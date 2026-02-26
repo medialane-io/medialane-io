@@ -11,7 +11,7 @@
  */
 
 import { useState, useCallback } from "react";
-import { cairo, shortString, constants, RpcProvider } from "starknet";
+import { cairo, shortString, constants } from "starknet";
 import { toast } from "sonner";
 import {
   buildOrderTypedData,
@@ -22,7 +22,8 @@ import {
 } from "@medialane/sdk";
 import { useChipiTransaction } from "./use-chipi-transaction";
 import { useSessionKey } from "./use-session-key";
-import { MARKETPLACE_CONTRACT, STARKNET_RPC_URL } from "@/lib/constants";
+import { MARKETPLACE_CONTRACT } from "@/lib/constants";
+import { starknetProvider } from "@/lib/starknet";
 import { normalizeAddress } from "@/lib/utils";
 
 // ─── Types ────────────────────────────────────────────────────────────────
@@ -33,7 +34,6 @@ export interface CreateListingInput {
   price: string; // human-readable, e.g. "10.5"
   currencySymbol: string;
   durationSeconds: number;
-  offererAddress: string;
 }
 
 export interface MakeOfferInput {
@@ -42,12 +42,10 @@ export interface MakeOfferInput {
   price: string;
   currencySymbol: string;
   durationSeconds: number;
-  offererAddress: string;
 }
 
 export interface FulfillOrderInput {
   orderHash: string;
-  fulfillerAddress: string;
   considerationToken: string;
   considerationAmount: string;
   nftContract: string;
@@ -56,29 +54,23 @@ export interface FulfillOrderInput {
 
 export interface CancelOrderInput {
   orderHash: string;
-  offererAddress: string;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
 
-const provider = new RpcProvider({ nodeUrl: STARKNET_RPC_URL });
-
-/** Read the marketplace nonce for an address (used in SNIP-12 typed data) */
+/** Read the marketplace nonce for an address (used in SNIP-12 typed data). Throws on RPC failure. */
 async function getMarketplaceNonce(offerer: string): Promise<string> {
-  try {
-    const result = await provider.callContract({
-      contractAddress: MARKETPLACE_CONTRACT,
-      entrypoint: "nonces",
-      calldata: [offerer],
-    });
-    return BigInt(result[0]).toString();
-  } catch {
-    return "0";
-  }
+  const result = await starknetProvider.callContract({
+    contractAddress: MARKETPLACE_CONTRACT,
+    entrypoint: "nonces",
+    calldata: [offerer],
+  });
+  return BigInt(result[0]).toString();
 }
 
 function buildOrderParams(
   input: CreateListingInput | MakeOfferInput,
+  offererAddress: string,
   nonce: string,
   isSellOrder: boolean
 ) {
@@ -92,9 +84,10 @@ function buildOrderParams(
 
   const decimals = token.decimals;
   const priceWei = BigInt(Math.round(parseFloat(input.price) * 10 ** decimals)).toString();
+  const offerer = normalizeAddress(offererAddress);
 
   return {
-    offerer: normalizeAddress(input.offererAddress),
+    offerer,
     offer: {
       item_type: isSellOrder ? "ERC721" : "ERC20",
       token: isSellOrder ? normalizeAddress(input.assetContract) : normalizeAddress(token.address),
@@ -108,7 +101,7 @@ function buildOrderParams(
       identifier_or_criteria: isSellOrder ? "0" : input.tokenId,
       start_amount: isSellOrder ? priceWei : "1",
       end_amount: isSellOrder ? priceWei : "1",
-      recipient: normalizeAddress(input.offererAddress),
+      recipient: offerer,
     },
     start_time: startTime.toString(),
     end_time: endTime.toString(),
@@ -149,8 +142,16 @@ function encodeOrderCalldata(
 export function useMarketplace() {
   const { executeTransaction, status, txHash, error: txError, reset } =
     useChipiTransaction();
-  const { wallet, walletAddress, hasWallet, isLoadingWallet, signTypedData } =
-    useSessionKey();
+  const {
+    wallet,
+    walletAddress,
+    hasWallet,
+    isLoadingWallet,
+    hasActiveSession,
+    isSettingUpSession,
+    setupSession,
+    signTypedData,
+  } = useSessionKey();
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -190,11 +191,13 @@ export function useMarketplace() {
 
   const createListing = useCallback(
     async (input: CreateListingInput & { pin: string }) => {
+      if (!walletAddress) throw new Error("Wallet not ready. Please wait a moment.");
       setIsProcessing(true);
       setError(null);
       try {
-        const nonce = await getMarketplaceNonce(normalizeAddress(input.offererAddress));
-        const orderParams = buildOrderParams(input, nonce, true);
+        const addr = normalizeAddress(walletAddress);
+        const nonce = await getMarketplaceNonce(addr);
+        const orderParams = buildOrderParams(input, addr, nonce, true);
         const typedData = buildOrderTypedData(
           stringifyBigInts(orderParams),
           constants.StarknetChainId.SN_MAIN
@@ -231,20 +234,22 @@ export function useMarketplace() {
         setIsProcessing(false);
       }
     },
-    [execWithPin, signTypedData]
+    [walletAddress, execWithPin, signTypedData]
   );
 
   // ── fulfillOrder (buy) ─────────────────────────────────────────────────
 
   const fulfillOrder = useCallback(
     async (input: FulfillOrderInput & { pin: string }) => {
+      if (!walletAddress) throw new Error("Wallet not ready. Please wait a moment.");
       setIsProcessing(true);
       setError(null);
       try {
-        const nonce = await getMarketplaceNonce(normalizeAddress(input.fulfillerAddress));
+        const addr = normalizeAddress(walletAddress);
+        const nonce = await getMarketplaceNonce(addr);
         const fulfillmentParams = {
           order_hash: input.orderHash,
-          fulfiller: normalizeAddress(input.fulfillerAddress),
+          fulfiller: addr,
           nonce,
         };
         const typedData = buildFulfillmentTypedData(
@@ -268,13 +273,7 @@ export function useMarketplace() {
         const fulfillCall = {
           contractAddress: MARKETPLACE_CONTRACT,
           entrypoint: "fulfill_order",
-          calldata: [
-            input.orderHash,
-            normalizeAddress(input.fulfillerAddress),
-            nonce,
-            sig.length.toString(),
-            ...sig,
-          ],
+          calldata: [input.orderHash, addr, nonce, sig.length.toString(), ...sig],
         };
 
         const result = await execWithPin(input.pin, [approveCall, fulfillCall]);
@@ -289,20 +288,77 @@ export function useMarketplace() {
         setIsProcessing(false);
       }
     },
-    [execWithPin, signTypedData]
+    [walletAddress, execWithPin, signTypedData]
+  );
+
+  // ── makeOffer ──────────────────────────────────────────────────────────
+
+  const makeOffer = useCallback(
+    async (input: MakeOfferInput & { pin: string }) => {
+      if (!walletAddress) throw new Error("Wallet not ready. Please wait a moment.");
+      setIsProcessing(true);
+      setError(null);
+      try {
+        const addr = normalizeAddress(walletAddress);
+        const nonce = await getMarketplaceNonce(addr);
+        const orderParams = buildOrderParams(input, addr, nonce, false);
+        const typedData = buildOrderTypedData(
+          stringifyBigInts(orderParams),
+          constants.StarknetChainId.SN_MAIN
+        );
+
+        const sig = await signTypedData(typedData, input.pin);
+
+        const token = SUPPORTED_TOKENS.find((t) => t.symbol === input.currencySymbol);
+        if (!token) throw new Error(`Unsupported currency: ${input.currencySymbol}`);
+        const decimals = token.decimals;
+        const priceWei = BigInt(Math.round(parseFloat(input.price) * 10 ** decimals));
+        const priceU256 = cairo.uint256(priceWei.toString());
+
+        const approveCall = {
+          contractAddress: normalizeAddress(token.address),
+          entrypoint: "approve",
+          calldata: [
+            MARKETPLACE_CONTRACT,
+            priceU256.low.toString(),
+            priceU256.high.toString(),
+          ],
+        };
+
+        const registerCall = {
+          contractAddress: MARKETPLACE_CONTRACT,
+          entrypoint: "register_order",
+          calldata: encodeOrderCalldata(orderParams, sig),
+        };
+
+        const result = await execWithPin(input.pin, [approveCall, registerCall]);
+        toast.success("Offer submitted!", { description: `Offer on token #${input.tokenId} is live.` });
+        return result.txHash;
+      } catch (err: any) {
+        const msg = err?.message || "Failed to submit offer";
+        setError(msg);
+        toast.error("Offer failed", { description: msg });
+        return undefined;
+      } finally {
+        setIsProcessing(false);
+      }
+    },
+    [walletAddress, execWithPin, signTypedData]
   );
 
   // ── cancelOrder ────────────────────────────────────────────────────────
 
   const cancelOrder = useCallback(
     async (input: CancelOrderInput & { pin: string }) => {
+      if (!walletAddress) throw new Error("Wallet not ready. Please wait a moment.");
       setIsProcessing(true);
       setError(null);
       try {
-        const nonce = await getMarketplaceNonce(normalizeAddress(input.offererAddress));
+        const addr = normalizeAddress(walletAddress);
+        const nonce = await getMarketplaceNonce(addr);
         const cancelParams = {
           order_hash: input.orderHash,
-          offerer: normalizeAddress(input.offererAddress),
+          offerer: addr,
           nonce,
         };
         const typedData = buildCancellationTypedData(
@@ -315,13 +371,7 @@ export function useMarketplace() {
         const cancelCall = {
           contractAddress: MARKETPLACE_CONTRACT,
           entrypoint: "cancel_order",
-          calldata: [
-            input.orderHash,
-            normalizeAddress(input.offererAddress),
-            nonce,
-            sig.length.toString(),
-            ...sig,
-          ],
+          calldata: [input.orderHash, addr, nonce, sig.length.toString(), ...sig],
         };
 
         const result = await execWithPin(input.pin, [cancelCall]);
@@ -336,11 +386,12 @@ export function useMarketplace() {
         setIsProcessing(false);
       }
     },
-    [execWithPin, signTypedData]
+    [walletAddress, execWithPin, signTypedData]
   );
 
   return {
     createListing,
+    makeOffer,
     fulfillOrder,
     cancelOrder,
     /** Starknet contract address of the user's ChipiPay wallet */
@@ -349,6 +400,12 @@ export function useMarketplace() {
     hasWallet,
     /** Whether wallet is still loading from ChipiPay API */
     isLoadingWallet,
+    /** Whether a registered, non-expired session key exists */
+    hasActiveSession,
+    /** Whether a session key is being created or registered */
+    isSettingUpSession,
+    /** Register a new session key (call with user's PIN) */
+    setupSession,
     isProcessing,
     txStatus: status,
     txHash: hash ?? txHash,

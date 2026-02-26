@@ -5,8 +5,9 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShoppingCart, Tag } from "lucide-react";
+import { ShoppingCart, Tag, Plus } from "lucide-react";
 import { ipfsToHttp, formatPrice } from "@/lib/utils";
+import { useCart } from "@/hooks/use-cart";
 import type { ApiToken } from "@medialane/sdk";
 
 interface TokenCardProps {
@@ -18,9 +19,29 @@ interface TokenCardProps {
 }
 
 export function TokenCard({ token, showBuyButton = true, onBuy, onList, isOwner = false }: TokenCardProps) {
+  const { addItem, items } = useCart();
   const name = token.metadata?.name || `Token #${token.tokenId}`;
   const image = ipfsToHttp(token.metadata?.image);
   const activeOrder = token.activeOrders?.[0];
+  const inCart = activeOrder ? items.some((i) => i.orderHash === activeOrder.orderHash) : false;
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!activeOrder) return;
+    addItem({
+      orderHash: activeOrder.orderHash,
+      nftContract: token.contractAddress,
+      nftTokenId: token.tokenId,
+      name,
+      image,
+      price: activeOrder.price.formatted,
+      currency: activeOrder.price.currency,
+      currencyDecimals: activeOrder.price.decimals,
+      offerer: activeOrder.offerer,
+      considerationToken: activeOrder.consideration.token,
+      considerationAmount: activeOrder.consideration.startAmount,
+    });
+  };
 
   return (
     <Link href={`/asset/${token.contractAddress}/${token.tokenId}`} className="block group">
@@ -57,33 +78,47 @@ export function TokenCard({ token, showBuyButton = true, onBuy, onList, isOwner 
                   {activeOrder.price.formatted} {activeOrder.price.currency}
                 </p>
               </div>
-              {showBuyButton && !isOwner && onBuy && (
-                <Button
-                  size="sm"
-                  className="h-8 text-xs"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    onBuy(token);
-                  }}
-                >
-                  <ShoppingCart className="h-3 w-3 mr-1" />
-                  Buy
-                </Button>
-              )}
-              {isOwner && onList && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-8 text-xs"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    onList(token);
-                  }}
-                >
-                  <Tag className="h-3 w-3 mr-1" />
-                  Edit
-                </Button>
-              )}
+              <div className="flex gap-1">
+                {showBuyButton && !isOwner && onBuy && (
+                  <Button
+                    size="sm"
+                    className="h-8 text-xs"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onBuy(token);
+                    }}
+                  >
+                    <ShoppingCart className="h-3 w-3 mr-1" />
+                    Buy
+                  </Button>
+                )}
+                {!isOwner && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                    onClick={handleAddToCart}
+                    disabled={inCart}
+                    aria-label={inCart ? "In cart" : "Add to cart"}
+                  >
+                    <Plus className={`h-3 w-3 ${inCart ? "opacity-40" : ""}`} />
+                  </Button>
+                )}
+                {isOwner && onList && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 text-xs"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onList(token);
+                    }}
+                  >
+                    <Tag className="h-3 w-3 mr-1" />
+                    Edit
+                  </Button>
+                )}
+              </div>
             </div>
           )}
 

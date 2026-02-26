@@ -10,19 +10,17 @@
  *  4. The signature array is passed as calldata to register_order / fulfill_order / cancel_order
  */
 
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
 import {
   useChipiWallet,
   useCreateSessionKey,
   useAddSessionKeyToContract,
 } from "@chipi-stack/nextjs";
-import { Account, RpcProvider, stark } from "starknet";
+import { Account, stark } from "starknet";
 import CryptoES from "crypto-es";
-import { STARKNET_RPC_URL } from "@/lib/constants";
+import { starknetProvider } from "@/lib/starknet";
 import type { SessionKeyData } from "@chipi-stack/types";
-
-const provider = new RpcProvider({ nodeUrl: STARKNET_RPC_URL });
 
 const SESSION_DURATION_SECONDS = 6 * 60 * 60; // 6 hours
 const SESSION_MAX_CALLS = 1000;
@@ -50,17 +48,12 @@ export function useSessionKey() {
     enabled: !!userId,
   });
 
-  // Persisted session from Clerk unsafeMetadata
-  const storedSession = useMemo(
-    () => (user?.unsafeMetadata?.chipiSession as SessionKeyData | null) ?? null,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [user?.unsafeMetadata?.chipiSession]
-  );
+  // Persisted session from Clerk unsafeMetadata — no memo needed, user is already stable
+  const storedSession =
+    (user?.unsafeMetadata?.chipiSession as SessionKeyData | null) ?? null;
 
-  const hasActiveSession = useMemo(() => {
-    if (!storedSession) return false;
-    return storedSession.validUntil * 1000 > Date.now();
-  }, [storedSession]);
+  const hasActiveSession =
+    storedSession !== null && storedSession.validUntil * 1000 > Date.now();
 
   /** Starknet contract address for this user's ChipiPay account */
   const walletAddress = wallet?.normalizedPublicKey ?? null;
@@ -152,7 +145,7 @@ export function useSessionKey() {
       }
 
       // Create a starknet.js Account using the decrypted key; sign typed data
-      const signingAccount = new Account(provider, walletAddress, privateKey);
+      const signingAccount = new Account(starknetProvider, walletAddress, privateKey);
       const sig = await signingAccount.signMessage(typedData as any);
 
       // Normalize Signature (string[] | { r, s }) → string[]

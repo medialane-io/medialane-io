@@ -162,10 +162,20 @@ export default function CreateAssetPage() {
                   className="hidden"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
-                    if (file) {
-                      form.setValue("image", file);
-                      setImagePreview(URL.createObjectURL(file));
+                    if (!file) return;
+                    const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/svg+xml", "image/webp"];
+                    if (file.size > 10 * 1024 * 1024) {
+                      toast.error("File too large", { description: "Maximum file size is 10 MB." });
+                      e.target.value = "";
+                      return;
                     }
+                    if (!ALLOWED_TYPES.includes(file.type)) {
+                      toast.error("Unsupported format", { description: "Please upload a JPG, PNG, GIF, SVG, or WebP image." });
+                      e.target.value = "";
+                      return;
+                    }
+                    form.setValue("image", file);
+                    setImagePreview(URL.createObjectURL(file));
                   }}
                 />
               </div>

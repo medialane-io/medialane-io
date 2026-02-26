@@ -13,31 +13,31 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PurchaseDialog } from "@/components/marketplace/purchase-dialog";
 import { ListingDialog } from "@/components/marketplace/listing-dialog";
+import { OfferDialog } from "@/components/marketplace/offer-dialog";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { ipfsToHttp, timeUntil } from "@/lib/utils";
-import { ShoppingCart, Tag, ExternalLink, Clock } from "lucide-react";
+import { ShoppingCart, Tag, ExternalLink, Clock, HandCoins } from "lucide-react";
 import { EXPLORER_URL } from "@/lib/constants";
-import { useUser } from "@clerk/nextjs";
+import { useSessionKey } from "@/hooks/use-session-key";
 import type { ApiOrder } from "@medialane/sdk";
 
 export default function AssetPage() {
   const { contract, tokenId } = useParams<{ contract: string; tokenId: string }>();
-  const { user, isSignedIn } = useUser();
+  const { walletAddress } = useSessionKey();
   const { token, isLoading } = useToken(contract, tokenId);
   const { listings } = useTokenListings(contract, tokenId);
 
   const [purchaseOrder, setPurchaseOrder] = useState<ApiOrder | null>(null);
   const [listOpen, setListOpen] = useState(false);
+  const [offerOpen, setOfferOpen] = useState(false);
 
   const activeListings = listings.filter((l) => l.status === "ACTIVE");
   const cheapest = activeListings.sort((a, b) =>
     BigInt(a.consideration.startAmount) < BigInt(b.consideration.startAmount) ? -1 : 1
   )[0];
 
-  const userAddress = user?.publicMetadata?.publicKey as string | undefined;
-  const isOwner = token && userAddress
-    ? token.owner.toLowerCase() === userAddress.toLowerCase()
-    : false;
+  const isOwner = !!(token && walletAddress &&
+    token.owner.toLowerCase() === walletAddress.toLowerCase());
 
   if (isLoading) {
     return (
@@ -131,22 +131,37 @@ export default function AssetPage() {
                     Edit listing
                   </Button>
                 ) : (
-                  <Button
-                    className="w-full h-12 text-base"
-                    onClick={() => setPurchaseOrder(cheapest)}
-                  >
-                    <ShoppingCart className="h-5 w-5 mr-2" />
-                    Buy now
-                  </Button>
+                  <div className="space-y-2">
+                    <Button
+                      className="w-full h-12 text-base"
+                      onClick={() => setPurchaseOrder(cheapest)}
+                    >
+                      <ShoppingCart className="h-5 w-5 mr-2" />
+                      Buy now
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => setOfferOpen(true)}
+                    >
+                      <HandCoins className="h-4 w-4 mr-2" />
+                      Make offer
+                    </Button>
+                  </div>
                 )}
               </div>
             ) : (
               <div className="rounded-xl border border-border p-5 space-y-3">
                 <p className="text-muted-foreground text-sm">Not listed for sale.</p>
-                {isOwner && (
+                {isOwner ? (
                   <Button className="w-full" onClick={() => setListOpen(true)}>
                     <Tag className="h-4 w-4 mr-2" />
                     List for sale
+                  </Button>
+                ) : (
+                  <Button variant="outline" className="w-full" onClick={() => setOfferOpen(true)}>
+                    <HandCoins className="h-4 w-4 mr-2" />
+                    Make offer
                   </Button>
                 )}
               </div>
@@ -184,6 +199,14 @@ export default function AssetPage() {
       <ListingDialog
         open={listOpen}
         onOpenChange={setListOpen}
+        assetContract={contract}
+        tokenId={tokenId}
+        tokenName={name}
+      />
+
+      <OfferDialog
+        open={offerOpen}
+        onOpenChange={setOfferOpen}
         assetContract={contract}
         tokenId={tokenId}
         tokenName={name}

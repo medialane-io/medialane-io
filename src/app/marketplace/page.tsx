@@ -1,13 +1,16 @@
-import type { Metadata } from "next";
+"use client";
+
+export const dynamic = "force-dynamic";
+
+import { useState } from "react";
 import { ListingsGrid } from "@/components/marketplace/listings-grid";
+import { FilterSidebar } from "@/components/marketplace/filter-sidebar";
 import { Sparkles } from "lucide-react";
 
-export const metadata: Metadata = {
-  title: "Marketplace",
-  description: "Browse and buy IP assets on Medialane.",
-};
-
 export default function MarketplacePage() {
+  const [sort, setSort] = useState("recent");
+  const [currency, setCurrency] = useState("");
+
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
       {/* Hero */}
@@ -22,8 +25,21 @@ export default function MarketplacePage() {
         </p>
       </div>
 
-      {/* Grid — no filter sidebar for initial release, keep it simple */}
-      <ListingsGrid />
+      {/* Filter + Grid */}
+      <div className="flex gap-8">
+        <aside className="hidden md:block w-52 shrink-0">
+          <FilterSidebar
+            sort={sort}
+            currency={currency}
+            onSortChange={setSort}
+            onCurrencyChange={setCurrency}
+            onReset={() => { setSort("recent"); setCurrency(""); }}
+          />
+        </aside>
+        <div className="flex-1 min-w-0">
+          <ListingsGrid sort={sort} currency={currency || undefined} />
+        </div>
+      </div>
     </div>
   );
 }

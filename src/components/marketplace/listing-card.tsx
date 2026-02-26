@@ -5,8 +5,9 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShoppingCart, Clock } from "lucide-react";
+import { ShoppingCart, Clock, Plus } from "lucide-react";
 import { ipfsToHttp, timeUntil, shortenAddress } from "@/lib/utils";
+import { useCart } from "@/hooks/use-cart";
 import type { ApiOrder } from "@medialane/sdk";
 
 interface ListingCardProps {
@@ -15,6 +16,26 @@ interface ListingCardProps {
 }
 
 export function ListingCard({ order, onBuy }: ListingCardProps) {
+  const { addItem, items } = useCart();
+  const inCart = items.some((i) => i.orderHash === order.orderHash);
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    addItem({
+      orderHash: order.orderHash,
+      nftContract: order.nftContract,
+      nftTokenId: order.nftTokenId,
+      name: `Token #${order.nftTokenId}`,
+      image: "",
+      price: order.price.formatted,
+      currency: order.price.currency,
+      currencyDecimals: order.price.decimals,
+      offerer: order.offerer,
+      considerationToken: order.consideration.token,
+      considerationAmount: order.consideration.startAmount,
+    });
+  };
+
   return (
     <Link href={`/asset/${order.nftContract}/${order.nftTokenId}`} className="block group">
       <div className="rounded-xl border border-border bg-card overflow-hidden asset-card-hover hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5">
@@ -44,18 +65,32 @@ export function ListingCard({ order, onBuy }: ListingCardProps) {
                 {order.price.formatted} {order.price.currency}
               </p>
             </div>
-            {onBuy && order.offer.itemType === "ERC721" && (
-              <Button
-                size="sm"
-                className="h-8 text-xs"
-                onClick={(e) => {
-                  e.preventDefault();
-                  onBuy(order);
-                }}
-              >
-                <ShoppingCart className="h-3 w-3 mr-1" />
-                Buy
-              </Button>
+            {order.offer.itemType === "ERC721" && (
+              <div className="flex gap-1">
+                {onBuy && (
+                  <Button
+                    size="sm"
+                    className="h-8 text-xs"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onBuy(order);
+                    }}
+                  >
+                    <ShoppingCart className="h-3 w-3 mr-1" />
+                    Buy
+                  </Button>
+                )}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                  onClick={handleAddToCart}
+                  disabled={inCart}
+                  aria-label={inCart ? "In cart" : "Add to cart"}
+                >
+                  <Plus className={`h-3 w-3 ${inCart ? "opacity-40" : ""}`} />
+                </Button>
+              </div>
             )}
           </div>
 

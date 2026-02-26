@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
+import { SessionSetupDialog } from "@/components/chipi/session-setup-dialog";
 import { TxStatus } from "@/components/chipi/tx-status";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { EXPLORER_URL } from "@/lib/constants";
@@ -27,11 +28,22 @@ interface PurchaseDialogProps {
 
 export function PurchaseDialog({ order, open, onOpenChange }: PurchaseDialogProps) {
   const { isSignedIn } = useAuth();
-  const { fulfillOrder, walletAddress, hasWallet, isProcessing, txStatus, txHash, error, resetState } =
-    useMarketplace();
+  const {
+    fulfillOrder,
+    hasWallet,
+    hasActiveSession,
+    isSettingUpSession,
+    setupSession,
+    isProcessing,
+    txStatus,
+    txHash,
+    error,
+    resetState,
+  } = useMarketplace();
 
   const [pinOpen, setPinOpen] = useState(false);
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
+  const [sessionSetupOpen, setSessionSetupOpen] = useState(false);
 
   const handleBuyClick = () => {
     if (!isSignedIn) return;
@@ -39,16 +51,23 @@ export function PurchaseDialog({ order, open, onOpenChange }: PurchaseDialogProp
       setWalletSetupOpen(true);
       return;
     }
+    if (!hasActiveSession) {
+      setSessionSetupOpen(true);
+      return;
+    }
+    setPinOpen(true);
+  };
+
+  const handleSessionSetup = async (pin: string) => {
+    await setupSession(pin);
+    setSessionSetupOpen(false);
     setPinOpen(true);
   };
 
   const handlePin = async (pin: string) => {
     setPinOpen(false);
-    if (!walletAddress) return;
-
     await fulfillOrder({
       orderHash: order.orderHash,
-      fulfillerAddress: walletAddress,
       considerationToken: order.consideration.token,
       considerationAmount: order.consideration.startAmount,
       nftContract: order.nftContract,
@@ -151,12 +170,23 @@ export function PurchaseDialog({ order, open, onOpenChange }: PurchaseDialogProp
         description={`Enter your PIN to buy token #${order.nftTokenId} for ${order.price.formatted} ${order.price.currency}.`}
       />
 
+      <SessionSetupDialog
+        open={sessionSetupOpen}
+        onOpenChange={setSessionSetupOpen}
+        onSetup={handleSessionSetup}
+        isProcessing={isSettingUpSession}
+      />
+
       <WalletSetupDialog
         open={walletSetupOpen}
         onOpenChange={setWalletSetupOpen}
         onSuccess={() => {
           setWalletSetupOpen(false);
-          setPinOpen(true);
+          if (!hasActiveSession) {
+            setSessionSetupOpen(true);
+          } else {
+            setPinOpen(true);
+          }
         }}
       />
     </>

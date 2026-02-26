@@ -5,6 +5,7 @@ import { Inter } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Providers } from "./providers";
 import { Header } from "@/components/layout/header";
+import { CartDrawer } from "@/components/layout/cart-drawer";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
@@ -50,6 +51,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <body className={inter.className}>
             <div className="relative min-h-screen flex flex-col">
               <Header />
+              <CartDrawer />
               <main className="flex-1">{children}</main>
             </div>
           </body>

@@ -7,8 +7,18 @@ import { PurchaseDialog } from "./purchase-dialog";
 import { Button } from "@/components/ui/button";
 import type { ApiOrder } from "@medialane/sdk";
 
-export function ListingsGrid() {
-  const { orders, isLoading } = useOrders({ status: "ACTIVE", sort: "recent", limit: 24 });
+interface ListingsGridProps {
+  sort?: string;
+  currency?: string;
+}
+
+export function ListingsGrid({ sort = "recent", currency }: ListingsGridProps = {}) {
+  const { orders, isLoading } = useOrders({
+    status: "ACTIVE",
+    sort,
+    ...(currency ? { currency } : {}),
+    limit: 24,
+  });
   const [selectedOrder, setSelectedOrder] = useState<ApiOrder | null>(null);
   const [purchaseOpen, setPurchaseOpen] = useState(false);
 

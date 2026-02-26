@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { CheckCircle2, AlertCircle, Tag, ExternalLink, Loader2 } from "lucide-react";
+import { CheckCircle2, AlertCircle, HandCoins, ExternalLink, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -28,7 +28,6 @@ import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { SessionSetupDialog } from "@/components/chipi/session-setup-dialog";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { EXPLORER_URL, DURATION_OPTIONS } from "@/lib/constants";
-import { cn } from "@/lib/utils";
 
 const CURRENCIES = ["USDC", "USDT", "STRK"] as const;
 
@@ -43,7 +42,7 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
-interface ListingDialogProps {
+interface OfferDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   assetContract: string;
@@ -51,15 +50,15 @@ interface ListingDialogProps {
   tokenName?: string;
 }
 
-export function ListingDialog({
+export function OfferDialog({
   open,
   onOpenChange,
   assetContract,
   tokenId,
   tokenName,
-}: ListingDialogProps) {
+}: OfferDialogProps) {
   const {
-    createListing,
+    makeOffer,
     hasWallet,
     hasActiveSession,
     isSettingUpSession,
@@ -70,6 +69,7 @@ export function ListingDialog({
     error,
     resetState,
   } = useMarketplace();
+
   const [pinOpen, setPinOpen] = useState(false);
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
   const [sessionSetupOpen, setSessionSetupOpen] = useState(false);
@@ -103,7 +103,7 @@ export function ListingDialog({
     setPinOpen(false);
     if (!pendingValues) return;
 
-    await createListing({
+    await makeOffer({
       assetContract,
       tokenId,
       price: pendingValues.price,
@@ -129,16 +129,16 @@ export function ListingDialog({
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>List for sale</DialogTitle>
+            <DialogTitle>Make an offer</DialogTitle>
           </DialogHeader>
 
           {isSuccess ? (
             <div className="flex flex-col items-center gap-4 py-4">
               <CheckCircle2 className="h-12 w-12 text-emerald-500" />
-              <p className="font-semibold text-lg">Listing live!</p>
+              <p className="font-semibold text-lg">Offer submitted!</p>
               <p className="text-sm text-muted-foreground text-center">
-                {tokenName || `Token #${tokenId}`} is now available for{" "}
-                {pendingValues?.price} {pendingValues?.currency}.
+                Your offer of {pendingValues?.price} {pendingValues?.currency} on{" "}
+                {tokenName || `Token #${tokenId}`} is live.
               </p>
               {txHash && (
                 <Button variant="outline" size="sm" asChild>
@@ -153,12 +153,11 @@ export function ListingDialog({
             <div className="flex flex-col items-center gap-4 py-8">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <p className="text-sm text-muted-foreground">
-                {txStatus === "submitting" ? "Submitting listing…" : "Confirming on Starknet…"}
+                {txStatus === "submitting" ? "Submitting offer…" : "Confirming on Starknet…"}
               </p>
             </div>
           ) : (
             <div className="space-y-4">
-              {/* Asset info */}
               <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
                 <Badge variant="outline" className="font-mono">#{tokenId}</Badge>
                 <span className="text-sm font-medium truncate">{tokenName || `Token #${tokenId}`}</span>
@@ -171,7 +170,7 @@ export function ListingDialog({
                     name="price"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Price</FormLabel>
+                        <FormLabel>Offer price</FormLabel>
                         <div className="relative">
                           <FormControl>
                             <Input
@@ -253,11 +252,11 @@ export function ListingDialog({
                   )}
 
                   <Button type="submit" className="w-full h-11" disabled={isProcessing}>
-                    <Tag className="h-4 w-4 mr-2" />
-                    {hasWallet ? "List for sale" : "Set up wallet & list"}
+                    <HandCoins className="h-4 w-4 mr-2" />
+                    {hasWallet ? "Submit offer" : "Set up wallet & offer"}
                   </Button>
                   <p className="text-[10px] text-center text-muted-foreground">
-                    Gas is free. Your PIN signs the listing.
+                    Gas is free. Your ERC-20 balance is locked until the offer expires or is accepted.
                   </p>
                 </form>
               </Form>
@@ -270,8 +269,8 @@ export function ListingDialog({
         open={pinOpen}
         onSubmit={handlePin}
         onCancel={() => setPinOpen(false)}
-        title="Confirm listing"
-        description={`Enter PIN to list ${tokenName || `#${tokenId}`} for ${pendingValues?.price} ${pendingValues?.currency}.`}
+        title="Confirm offer"
+        description={`Enter PIN to submit offer of ${pendingValues?.price} ${pendingValues?.currency} on ${tokenName || `#${tokenId}`}.`}
       />
 
       <SessionSetupDialog
