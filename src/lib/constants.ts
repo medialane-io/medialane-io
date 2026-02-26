@@ -27,6 +27,20 @@ export const PINATA_GATEWAY =
 export const EXPLORER_URL =
   process.env.NEXT_PUBLIC_EXPLORER_URL || "https://voyager.online";
 
+export const MINT_CONTRACT =
+  (process.env.NEXT_PUBLIC_MINT_CONTRACT as `0x${string}`) || ("" as `0x${string}`);
+
+// Genesis launch mint (alias kept for env compat)
+export const LAUNCH_MINT_CONTRACT =
+  (process.env.NEXT_PUBLIC_LAUNCH_MINT_CONTRACT as `0x${string}`) || ("" as `0x${string}`);
+
+export const GENESIS_NFT_URI =
+  process.env.NEXT_PUBLIC_GENESIS_NFT_URI || "";
+
+/** Optional: direct image URL shown in the NFT card preview (e.g. Pinata gateway URL). */
+export const GENESIS_NFT_IMAGE_URL =
+  process.env.NEXT_PUBLIC_GENESIS_NFT_IMAGE_URL || "";
+
 export const DURATION_OPTIONS = [
   { label: "1 Day", seconds: 86400 },
   { label: "7 Days", seconds: 604800 },

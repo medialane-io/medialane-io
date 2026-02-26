@@ -92,3 +92,55 @@
 .asset-card-hover:hover {
   transform: translateY(-6px);
 }
+
+/* Genesis launch page */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+@keyframes blob-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.25; }
+  50% { transform: scale(1.25); opacity: 0.45; }
+}
+@keyframes blob-pulse-slow {
+  0%, 100% { transform: scale(1); opacity: 0.15; }
+  50% { transform: scale(1.4); opacity: 0.35; }
+}
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+@keyframes spin-slow-reverse {
+  to { transform: rotate(-360deg); }
+}
+@keyframes sparkle-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.15); opacity: 1; }
+}
+@keyframes digit-in {
+  from { transform: translateY(-14px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+@keyframes fade-up {
+  from { transform: translateY(16px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+@keyframes confetti-out {
+  from { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+  to   { opacity: 0; }
+}
+
+.animate-float { animation: float 5s ease-in-out infinite; }
+.animate-blob { animation: blob-pulse 3.5s ease-in-out infinite; }
+.animate-blob-slow { animation: blob-pulse-slow 4.5s ease-in-out infinite 1.2s; }
+.animate-spin-slow { animation: spin-slow 24s linear infinite; }
+.animate-spin-slow-reverse { animation: spin-slow-reverse 18s linear infinite; }
+.animate-sparkle { animation: sparkle-pulse 2.5s ease-in-out infinite; }
+.animate-fade-up { animation: fade-up 0.5s ease-out forwards; }
+
+.genesis-card-tilt {
+  transition: transform 0.3s ease-out;
+  transform-style: preserve-3d;
+}
+.genesis-card-tilt:hover {
+  transform: perspective(800px) rotateX(-4deg) rotateY(4deg) translateY(-4px);
+}
