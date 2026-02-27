@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import Image from "next/image";
 import { useUser, useAuth, SignInButton, SignUpButton } from "@clerk/nextjs";
 import { byteArray, CallData } from "starknet";
 import { useCreateWallet, Chain } from "@chipi-stack/nextjs";
@@ -13,7 +14,6 @@ import {
   Loader2,
   XCircle,
   RefreshCw,
-  LayoutGrid,
   Gift,
   Droplets,
   Star,
@@ -22,15 +22,14 @@ import {
   EyeOff,
   Wallet,
   Lock,
+  User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import {
   EXPLORER_URL,
-  MINT_CONTRACT,
+  LAUNCH_MINT_CONTRACT,
   GENESIS_NFT_URI,
-  GENESIS_NFT_IMAGE_URL,
 } from "@/lib/constants";
 import { LaunchCountdown } from "./launch-countdown";
 
@@ -38,90 +37,21 @@ import { LaunchCountdown } from "./launch-countdown";
 
 function GenesisNftCard({ minted = false }: { minted?: boolean }) {
   return (
-    <div className="genesis-card-tilt cursor-pointer select-none animate-float">
-      <div className="relative w-72 sm:w-80 rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-primary/30">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0d0118] via-[#1a0540] to-[#080818]" />
-        <div className="absolute -top-10 -right-10 w-44 h-44 rounded-full bg-primary/25 blur-3xl animate-blob" />
-        <div className="absolute -bottom-10 -left-10 w-44 h-44 rounded-full bg-purple-500/20 blur-3xl animate-blob-slow" />
-        <svg className="absolute inset-0 w-full h-full opacity-[0.07]" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="genesis-grid" width="24" height="24" patternUnits="userSpaceOnUse">
-              <path d="M 24 0 L 0 0 0 24" fill="none" stroke="white" strokeWidth="0.5" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#genesis-grid)" />
-        </svg>
-
-        <div className="relative z-10 flex flex-col p-5 aspect-[3/4]">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-1.5">
-              <LayoutGrid className="h-3.5 w-3.5 text-primary/70" />
-              <span className="text-[11px] font-bold text-white/50 uppercase tracking-widest">Medialane</span>
-            </div>
-            <Badge variant="outline" className="text-[10px] border-white/15 text-white/40 bg-white/5 px-2 py-0.5 font-mono">
-              Genesis #001
-            </Badge>
-          </div>
-
-          <div className="flex-1 flex items-center justify-center">
-            {GENESIS_NFT_IMAGE_URL ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={GENESIS_NFT_IMAGE_URL} alt="Genesis NFT" className="w-full h-full object-contain rounded-lg" />
-            ) : (
-              <div className="relative flex items-center justify-center w-full h-full">
-                <div className="absolute w-36 h-36 rounded-full border border-primary/25 animate-spin-slow">
-                  {[0, 90, 180, 270].map((deg) => (
-                    <div
-                      key={deg}
-                      className="absolute w-1.5 h-1.5 rounded-full bg-primary/60 -translate-x-1/2 -translate-y-1/2"
-                      style={{
-                        top: `${50 + 47 * Math.sin((deg * Math.PI) / 180)}%`,
-                        left: `${50 + 47 * Math.cos((deg * Math.PI) / 180)}%`,
-                      }}
-                    />
-                  ))}
-                </div>
-                <div className="absolute w-24 h-24 rounded-full border border-purple-400/20 animate-spin-slow-reverse" />
-                <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-primary/30 via-purple-600/20 to-pink-500/10 border border-primary/40 flex items-center justify-center">
-                  <Sparkles className="h-6 w-6 text-primary animate-sparkle" />
-                </div>
-                {[
-                  { top: "14%", left: "16%", size: 8 },
-                  { top: "18%", left: "76%", size: 6 },
-                  { top: "72%", left: "14%", size: 6 },
-                  { top: "76%", left: "78%", size: 8 },
-                ].map((s, i) => (
-                  <div
-                    key={i}
-                    className="absolute rounded-full bg-white/25 animate-pulse"
-                    style={{ top: s.top, left: s.left, width: s.size, height: s.size, animationDelay: `${i * 0.4}s` }}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-3 mt-4">
-            <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-            <div className="flex items-end justify-between">
-              <div>
-                <p className="text-[10px] text-white/35 uppercase tracking-widest mb-0.5">Collection</p>
-                <p className="text-sm font-bold text-white leading-tight">Medialane Genesis</p>
-                {minted && (
-                  <div className="flex items-center gap-1 mt-1">
-                    <CheckCircle2 className="h-3 w-3 text-emerald-400" />
-                    <span className="text-[10px] font-semibold text-emerald-400">Minted</span>
-                  </div>
-                )}
-              </div>
-              <div className="text-right">
-                <p className="text-[10px] text-white/35 uppercase tracking-widest mb-0.5">Network</p>
-                <p className="text-xs font-bold bg-gradient-to-r from-primary to-purple-400 bg-clip-text text-transparent">Starknet</p>
-              </div>
-            </div>
-          </div>
+    <div className="relative w-72 sm:w-80 rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-primary/30">
+      <Image
+        src="/genesis.jpg"
+        alt="Medialane Genesis NFT"
+        width={320}
+        height={320}
+        className="w-full aspect-square object-cover"
+        priority
+      />
+      {minted && (
+        <div className="absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-black/60 backdrop-blur-sm px-2.5 py-1 border border-emerald-500/40">
+          <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+          <span className="text-[11px] font-semibold text-emerald-400">Minted</span>
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -130,9 +60,9 @@ function GenesisNftCard({ minted = false }: { minted?: boolean }) {
 
 const PERKS = [
   { icon: Gift, label: "Free to mint", sub: "Zero protocol fees" },
-  { icon: Zap, label: "Gas-free", sub: "Sponsored by Medialane" },
-  { icon: Droplets, label: "Airdrop eligible", sub: "Future ML token distribution" },
-  { icon: Shield, label: "On-chain IP", sub: "Immutable ownership via ZK proofs" },
+  { icon: Zap, label: "Gas-free", sub: "Powered by Chipipay" },
+  { icon: Droplets, label: "Airdrop passport", sub: "Future distribution" },
+  { icon: Shield, label: "Programmable IP", sub: "Immutable ownership" },
 ];
 
 function PerksGrid() {
@@ -315,7 +245,7 @@ export function LaunchMint() {
 
     try {
       if (!recipientAddress) throw new Error("Wallet address not found.");
-      if (!MINT_CONTRACT) throw new Error("Mint contract not configured.");
+      if (!LAUNCH_MINT_CONTRACT) throw new Error("Mint contract not configured.");
 
       // Resolve token URI
       let tokenUri = GENESIS_NFT_URI;
@@ -327,6 +257,7 @@ export function LaunchMint() {
           "description",
           "The official launch NFT of Medialane — the creator launchpad for programmable IP on Starknet. Holders are eligible for future Medialane airdrops."
         );
+        form.append("edition", "Genesis");
         const res = await fetch("/api/pinata", { method: "POST", body: form });
         const data = await res.json();
         if (data.error) throw new Error("Metadata upload failed: " + data.error);
@@ -339,8 +270,8 @@ export function LaunchMint() {
 
       const result = await executeTransaction({
         pin: mintPin,
-        contractAddress: MINT_CONTRACT,
-        calls: [{ contractAddress: MINT_CONTRACT, entrypoint: "mint_item", calldata }],
+        contractAddress: LAUNCH_MINT_CONTRACT,
+        calls: [{ contractAddress: LAUNCH_MINT_CONTRACT, entrypoint: "mint_item", calldata }],
       });
 
       if (result.status === "confirmed") {
@@ -388,8 +319,9 @@ export function LaunchMint() {
         {/* Launch badge */}
         <div className="flex justify-center mb-10">
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-sm backdrop-blur-sm">
+            <span className="font-semibold text-primary">Medialane Launch</span>
             <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-            <span className="font-semibold text-primary">Pre-launch mint event · Starknet Mainnet</span>
+            <span className="font-semibold text-primary">Starknet Mainnet</span>
           </div>
         </div>
 
@@ -414,21 +346,14 @@ export function LaunchMint() {
             {isLoaded && !isSignedIn && (
               <div className="space-y-7">
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                    <span className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">
-                      Genesis Collection
-                    </span>
-                  </div>
                   <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-[1.1]">
                     Claim your{" "}
                     <span className="bg-gradient-to-r from-primary via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                      Genesis NFT
+                      NFT
                     </span>
                   </h1>
-                  <p className="text-base text-muted-foreground leading-relaxed max-w-md">
-                    Be among the first to mark the launch of Medialane on Starknet. This free,
-                    exclusive NFT is your proof of early support — and your ticket to future airdrops.
+                  <p className="text-xs text-muted-foreground leading-relaxed max-w-md">
+                    You are finally early! Be among the first to claim our exclusive free NFT, your proof of early support and ticket to future airdrops.
                   </p>
                 </div>
 
@@ -437,7 +362,6 @@ export function LaunchMint() {
                     Full app launches in
                   </p>
                   <LaunchCountdown />
-                  <p className="text-xs text-muted-foreground">March 14, 2026 · Starknet Mainnet</p>
                 </div>
 
                 <PerksGrid />
@@ -446,21 +370,20 @@ export function LaunchMint() {
                   <SignUpButton mode="modal">
                     <Button
                       size="lg"
-                      className="w-full rounded-xl h-12 text-base font-bold gap-2 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 shadow-lg shadow-primary/25"
+                      className="w-full rounded-xl h-12 text-base font-medium bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 shadow-lg shadow-primary/25"
                     >
-                      <Sparkles className="h-4 w-4" />
-                      Create free account
-                      <ArrowRight className="h-4 w-4 ml-auto" />
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Sign up
+
                     </Button>
                   </SignUpButton>
                   <SignInButton mode="modal">
                     <Button size="lg" variant="outline" className="w-full rounded-xl h-12 text-base font-medium">
+                      <User className="h-4 w-4 mr-2" />
                       Sign in
                     </Button>
                   </SignInButton>
-                  <p className="text-xs text-center text-muted-foreground pt-1">
-                    No seed phrases · Gas-free · One per wallet
-                  </p>
+
                 </div>
               </div>
             )}
@@ -578,10 +501,10 @@ export function LaunchMint() {
                         size="lg"
                         className="w-full rounded-xl h-12 text-base font-bold gap-2 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 shadow-lg shadow-primary/25"
                         onClick={() => setMintStep("enter-pin")}
-                        disabled={!MINT_CONTRACT}
+                        disabled={!LAUNCH_MINT_CONTRACT}
                       >
                         <Sparkles className="h-4 w-4" />
-                        {MINT_CONTRACT ? "Claim Genesis NFT — Free" : "Mint opening soon"}
+                        {LAUNCH_MINT_CONTRACT ? "Claim Genesis NFT — Free" : "Mint opening soon"}
                         <ArrowRight className="h-4 w-4 ml-auto" />
                       </Button>
                       <p className="text-xs text-center text-muted-foreground">
@@ -713,7 +636,7 @@ export function LaunchMint() {
                       <div className="grid grid-cols-1 gap-2 text-sm">
                         <div className="flex items-center gap-2 rounded-lg bg-emerald-500/5 border border-emerald-500/20 px-3 py-2">
                           <Droplets className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-                          <span>Airdrop eligible — you&apos;ll receive future ML token distributions</span>
+                          <span>Airdrop passport</span>
                         </div>
                         <div className="flex items-center gap-2 rounded-lg bg-emerald-500/5 border border-emerald-500/20 px-3 py-2">
                           <Shield className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
