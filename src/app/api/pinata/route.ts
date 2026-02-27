@@ -13,6 +13,8 @@ export async function POST(req: NextRequest) {
     const description = formData.get("description") as string | null;
     const ipType = formData.get("ipType") as string | null;
     const licenseType = formData.get("licenseType") as string | null;
+    const edition = formData.get("edition") as string | null;
+    const externalUrl = (formData.get("external_url") as string | null) ?? "https://medialane.io";
     const imageFile = formData.get("file") as File | null;
 
     let imageUri: string | null = null;
@@ -23,21 +25,19 @@ export async function POST(req: NextRequest) {
       imageUri = `ipfs://${imageUpload.cid}`;
     }
 
-    // Build and upload metadata JSON
+    // Build and upload metadata JSON (ERC-721 / OpenSea standard)
     const metadata = {
       name,
       description: description || "",
       image: imageUri,
+      external_url: externalUrl,
       attributes: [
+        { trait_type: "Platform", value: "Medialane" },
+        { trait_type: "Network", value: "Starknet Mainnet" },
         ...(ipType ? [{ trait_type: "IP Type", value: ipType }] : []),
         ...(licenseType ? [{ trait_type: "License", value: licenseType }] : []),
+        ...(edition ? [{ trait_type: "Edition", value: edition }] : []),
       ],
-      properties: {
-        ipType,
-        licenseType,
-        commercialUse: false,
-        createdAt: new Date().toISOString(),
-      },
     };
 
     const metadataBlob = new Blob([JSON.stringify(metadata)], { type: "application/json" });
