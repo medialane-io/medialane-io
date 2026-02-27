@@ -255,9 +255,9 @@ export function LaunchMint() {
         form.append("name", "Medialane Genesis");
         form.append(
           "description",
-          "The official launch NFT of Medialane — the creator launchpad for programmable IP on Starknet. Holders are eligible for future Medialane airdrops."
+          "The official launch NFT of Medialane — the creator launchpad for programmable IP on Starknet."
         );
-        form.append("edition", "Genesis");
+        form.append("external_url", "https://medialane.io");
         const res = await fetch("/api/pinata", { method: "POST", body: form });
         const data = await res.json();
         if (data.error) throw new Error("Metadata upload failed: " + data.error);
@@ -353,14 +353,11 @@ export function LaunchMint() {
                     </span>
                   </h1>
                   <p className="text-xs text-muted-foreground leading-relaxed max-w-md">
-                    You are finally early! Be among the first to claim our exclusive free NFT, your proof of early support and ticket to future airdrops.
+                    You are finally early! Be among the first to claim our Genesis NFT.
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
-                    Full app launches in
-                  </p>
                   <LaunchCountdown />
                 </div>
 
