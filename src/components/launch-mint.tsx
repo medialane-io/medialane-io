@@ -467,12 +467,7 @@ export function LaunchMint() {
                 {/* Header — shown on all sub-steps */}
                 {mintStep !== "success" && (
                   <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                      <span className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">
-                        Genesis Collection
-                      </span>
-                    </div>
+                    
                     <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-[1.1]">
                       Claim your{" "}
                       <span className="bg-gradient-to-r from-primary via-purple-400 to-pink-400 bg-clip-text text-transparent">
@@ -603,12 +598,7 @@ export function LaunchMint() {
                 {mintStep === "success" && (
                   <div className="space-y-5">
                     <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                        <span className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">
-                          Genesis Collection
-                        </span>
-                      </div>
+                      
                       <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-[1.1]">
                         You&apos;re{" "}
                         <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
@@ -623,7 +613,7 @@ export function LaunchMint() {
                           <CheckCircle2 className="h-6 w-6 text-emerald-400" />
                         </div>
                         <div>
-                          <p className="font-bold text-emerald-300 text-lg">Genesis NFT claimed!</p>
+                          <p className="font-bold text-emerald-300 text-lg">NFT claimed!</p>
                           <p className="text-sm text-muted-foreground">
                             You&apos;re part of the Medialane genesis community.
                           </p>
@@ -637,7 +627,7 @@ export function LaunchMint() {
                         </div>
                         <div className="flex items-center gap-2 rounded-lg bg-emerald-500/5 border border-emerald-500/20 px-3 py-2">
                           <Shield className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-                          <span>Ownership recorded on Starknet mainnet — immutable forever</span>
+                          <span>Immutable ownership</span>
                         </div>
                       </div>
 
@@ -657,9 +647,6 @@ export function LaunchMint() {
                     </div>
 
                     <div className="space-y-2">
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
-                        Full platform launches in
-                      </p>
                       <LaunchCountdown />
                     </div>
                   </div>
