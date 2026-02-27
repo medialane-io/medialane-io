@@ -16,7 +16,7 @@ export const COLLECTION_CONTRACT =
 
 export const STARKNET_RPC_URL =
   process.env.NEXT_PUBLIC_STARKNET_RPC_URL ||
-  "https://starknet-mainnet.public.blastapi.io";
+  "https://starknet-mainnet.g.alchemy.com/starknet/version/rpc/v0_10/5Kaw8bJUF3QFKknr4N6Uo";
 
 export const MEDIALANE_BACKEND_URL =
   process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL || "http://localhost:3001";
