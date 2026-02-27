@@ -255,7 +255,7 @@ export function LaunchMint() {
         form.append("name", "Medialane Genesis");
         form.append(
           "description",
-          "The official launch NFT of Medialane — the creator launchpad for programmable IP on Starknet."
+          "Claim your exclusive Genesis NFT."
         );
         form.append("external_url", "https://medialane.io");
         const res = await fetch("/api/pinata", { method: "POST", body: form });
@@ -319,9 +319,9 @@ export function LaunchMint() {
         {/* Launch badge */}
         <div className="flex justify-center mb-10">
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-sm backdrop-blur-sm">
-            <span className="font-semibold text-primary">Medialane Launch</span>
+            <span className="font-semibold text-primary">Medialane</span>
             <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-            <span className="font-semibold text-primary">Starknet Mainnet</span>
+            <span className="font-semibold text-primary">Starknet</span>
           </div>
         </div>
 
@@ -471,7 +471,7 @@ export function LaunchMint() {
                     <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-[1.1]">
                       Claim your{" "}
                       <span className="bg-gradient-to-r from-primary via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                        Genesis NFT
+                        NFT
                       </span>
                     </h1>
                   </div>
@@ -481,11 +481,7 @@ export function LaunchMint() {
                 {mintStep === "ready" && (
                   <>
                     <div className="space-y-2">
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
-                        Full app launches in
-                      </p>
                       <LaunchCountdown />
-                      <p className="text-xs text-muted-foreground">March 14, 2026 · Starknet Mainnet</p>
                     </div>
                     <PerksGrid />
                     <div className="space-y-3">
@@ -500,7 +496,7 @@ export function LaunchMint() {
                         <ArrowRight className="h-4 w-4 ml-auto" />
                       </Button>
                       <p className="text-xs text-center text-muted-foreground">
-                        Limited edition · One per wallet · Gas fees sponsored
+                        Limited edition · Mainnet Launch · Gas fees sponsored
                       </p>
                     </div>
                   </>
