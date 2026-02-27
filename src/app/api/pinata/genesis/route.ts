@@ -7,11 +7,7 @@ const pinata = new PinataSDK({
 });
 
 const DEFAULT_NAME = "Medialane Genesis";
-const DEFAULT_DESCRIPTION =
-  "The official launch NFT of Medialane — the creator launchpad for programmable IP on Starknet. " +
-  "This commemorative token marks the genesis of on-chain IP ownership on Starknet mainnet. " +
-  "Holders are eligible for future Medialane airdrops and early platform access.";
-
+const DEFAULT_DESCRIPTION = "This commemorative token marks the official launch of Medialane on Starknet. ";
 /**
  * POST /api/pinata/genesis
  *

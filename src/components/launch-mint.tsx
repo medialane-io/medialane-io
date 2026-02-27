@@ -37,12 +37,12 @@ import { LaunchCountdown } from "./launch-countdown";
 
 function GenesisNftCard({ minted = false }: { minted?: boolean }) {
   return (
-    <div className="relative w-72 sm:w-80 rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-primary/30">
+    <div className="relative w-96 rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-primary/30">
       <Image
         src="/genesis.jpg"
         alt="Medialane Genesis NFT"
-        width={320}
-        height={320}
+        width={400}
+        height={400}
         className="w-full aspect-square object-cover"
         priority
       />
