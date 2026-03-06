@@ -5,43 +5,45 @@ export const dynamic = "force-dynamic";
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { ListingsGrid } from "@/components/marketplace/listings-grid";
-import { FilterSidebar } from "@/components/marketplace/filter-sidebar";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Sparkles, Search, X, SlidersHorizontal } from "lucide-react";
+import { Sparkles, Search, X } from "lucide-react";
 import type { ApiSearchResult } from "@medialane/sdk";
 import Link from "next/link";
+
+const SORT_OPTIONS = [
+  { label: "Recent", value: "recent" },
+  { label: "Price ↑", value: "price_asc" },
+  { label: "Price ↓", value: "price_desc" },
+];
+
+const TYPE_OPTIONS = [
+  { label: "All", value: "" },
+  { label: "Listings", value: "listings" },
+  { label: "Offers", value: "offers" },
+];
+
+const CURRENCY_OPTIONS = ["USDC", "USDT", "STRK", "ETH"];
 
 function SearchBar() {
   const client = useMedialaneClient();
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<ApiSearchResult | null>(null);
-  const [isSearching, setIsSearching] = useState(false);
   const [open, setOpen] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const handleChange = (value: string) => {
     setQuery(value);
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    if (!value.trim()) {
-      setResults(null);
-      setOpen(false);
-      return;
-    }
+    if (!value.trim()) { setResults(null); setOpen(false); return; }
     timeoutRef.current = setTimeout(async () => {
-      setIsSearching(true);
       try {
         const res = await client.api.search(value.trim(), 8);
         setResults(res.data);
         setOpen(true);
-      } catch {
-        // ignore search errors
-      } finally {
-        setIsSearching(false);
-      }
+      } catch { /* ignore */ }
     }, 300);
   };
 
@@ -56,7 +58,7 @@ function SearchBar() {
     results && ((results.tokens?.length ?? 0) > 0 || (results.collections?.length ?? 0) > 0);
 
   return (
-    <div className="relative max-w-md w-full">
+    <div className="relative w-full sm:max-w-sm">
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
@@ -136,70 +138,90 @@ export default function MarketplacePage() {
   const [orderType, setOrderType] = useState("");
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-8">
+    <div className="px-4 py-8 space-y-6">
       {/* Hero */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-primary">
-            <Sparkles className="h-5 w-5" />
-            <span className="text-sm font-semibold uppercase tracking-wider">Marketplace</span>
-          </div>
-          <h1 className="text-3xl font-bold">Discover IP Assets</h1>
-          <p className="text-muted-foreground">
-            Browse, buy, and license creative works on Starknet — gasless for everyone.
-          </p>
+      <div className="space-y-1">
+        <div className="flex items-center gap-2 text-primary">
+          <Sparkles className="h-4 w-4" />
+          <span className="text-xs font-semibold uppercase tracking-wider">Marketplace</span>
         </div>
+        <h1 className="text-2xl font-bold">Discover IP Assets</h1>
+        <p className="text-sm text-muted-foreground">
+          Browse, buy, and license creative works on Starknet — gasless for everyone.
+        </p>
+      </div>
+
+      {/* Filter toolbar */}
+      <div className="flex flex-wrap items-center gap-3 pb-2 border-b border-border/60">
+        {/* Search */}
         <SearchBar />
-      </div>
 
-      {/* Mobile filter button */}
-      <div className="md:hidden">
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-2">
-              <SlidersHorizontal className="h-4 w-4" />
-              Filters
-              {(sort !== "recent" || currency || orderType) && (
-                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-              )}
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-72">
-            <SheetHeader>
-              <SheetTitle>Filters</SheetTitle>
-            </SheetHeader>
-            <div className="mt-6 px-1">
-              <FilterSidebar
-                sort={sort}
-                currency={currency}
-                orderType={orderType}
-                onSortChange={setSort}
-                onCurrencyChange={setCurrency}
-                onOrderTypeChange={setOrderType}
-                onReset={() => { setSort("recent"); setCurrency(""); setOrderType(""); }}
-              />
-            </div>
-          </SheetContent>
-        </Sheet>
-      </div>
-
-      {/* Filter + Grid */}
-      <div className="flex gap-8">
-        <aside className="hidden md:block w-52 shrink-0">
-          <FilterSidebar
-            sort={sort}
-            currency={currency}
-            orderType={orderType}
-            onSortChange={setSort}
-            onCurrencyChange={setCurrency}
-            onOrderTypeChange={setOrderType}
-            onReset={() => { setSort("recent"); setCurrency(""); setOrderType(""); }}
-          />
-        </aside>
-        <div className="flex-1 min-w-0">
-          <ListingsGrid sort={sort} currency={currency || undefined} orderType={orderType} />
+        {/* Sort */}
+        <div className="flex items-center gap-1">
+          {SORT_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setSort(opt.value)}
+              className={`text-xs px-3 py-1.5 rounded-md transition-colors ${
+                sort === opt.value
+                  ? "bg-primary/10 text-primary font-medium"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
         </div>
+
+        {/* Type */}
+        <div className="flex items-center gap-1">
+          {TYPE_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setOrderType(opt.value)}
+              className={`text-xs px-3 py-1.5 rounded-md transition-colors ${
+                orderType === opt.value
+                  ? "bg-primary/10 text-primary font-medium"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Currency */}
+        <div className="flex items-center gap-1.5">
+          {CURRENCY_OPTIONS.map((c) => (
+            <button
+              key={c}
+              onClick={() => setCurrency(currency === c ? "" : c)}
+              className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                currency === c
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border text-muted-foreground hover:border-primary/50"
+              }`}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+
+        {/* Reset */}
+        {(sort !== "recent" || currency || orderType) && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 text-xs text-muted-foreground ml-auto"
+            onClick={() => { setSort("recent"); setCurrency(""); setOrderType(""); }}
+          >
+            Reset
+          </Button>
+        )}
       </div>
+
+      {/* Grid */}
+      <ListingsGrid sort={sort} currency={currency || undefined} orderType={orderType} />
     </div>
   );
 }
