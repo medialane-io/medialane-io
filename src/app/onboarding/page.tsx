@@ -3,13 +3,13 @@
 import { useState, useCallback } from "react";
 import { useAuth, useUser, useClerk } from "@clerk/nextjs";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useChipiWallet } from "@chipi-stack/nextjs";
+import { useChipiWallet, isWebAuthnSupported, createWalletPasskey } from "@chipi-stack/nextjs";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Wallet, CheckCircle2, AlertCircle } from "lucide-react";
+import { Loader2, Wallet, CheckCircle2, AlertCircle, KeyRound } from "lucide-react";
 import { completeOnboarding } from "./_actions";
 
 export default function OnboardingPage() {
@@ -31,12 +31,62 @@ export default function OnboardingPage() {
     enabled: false,
   });
 
+  const [passkeySupported] = useState(
+    () => typeof window !== "undefined" && isWebAuthnSupported()
+  );
+  const [showPinFallback, setShowPinFallback] = useState(false);
   const [pin, setPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
   const [step, setStep] = useState<"pin" | "confirm" | "done" | "error">("pin");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleCreate = async () => {
+  const isLoading = isCreating || isSubmitting;
+
+  // ── Shared wallet creation ────────────────────────────────────────────────
+
+  const createWalletWithKey = async (encryptKey: string) => {
+    const wallet = await createWallet({ encryptKey });
+    if (!wallet?.publicKey || !wallet?.encryptedPrivateKey) {
+      throw new Error("Wallet creation returned invalid data");
+    }
+
+    const result = await completeOnboarding({
+      publicKey: wallet.publicKey,
+      encryptedPrivateKey: wallet.encryptedPrivateKey,
+    });
+
+    if (result.error) throw new Error(result.error);
+
+    await user?.reload();
+    await session?.touch();
+
+    setStep("done");
+    setTimeout(() => router.push(redirectUrl), 1500);
+  };
+
+  // ── Passkey flow ──────────────────────────────────────────────────────────
+
+  const handlePasskeySetup = async () => {
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      const userName =
+        user?.primaryEmailAddress?.emailAddress ?? user?.username ?? "user";
+      const { encryptKey } = await createWalletPasskey(user?.id ?? "", userName);
+      await createWalletWithKey(encryptKey);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Passkey setup failed";
+      setError(msg);
+      setShowPinFallback(true); // reveal PIN fallback automatically on passkey failure
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // ── PIN flow ──────────────────────────────────────────────────────────────
+
+  const handlePinCreate = async () => {
     if (pin !== confirmPin) {
       setError("PINs do not match. Please try again.");
       setStep("pin");
@@ -45,37 +95,59 @@ export default function OnboardingPage() {
       return;
     }
 
+    setIsSubmitting(true);
     setError(null);
-
     try {
-      const wallet = await createWallet({ encryptKey: pin });
-      if (!wallet?.publicKey || !wallet?.encryptedPrivateKey) {
-        throw new Error("Wallet creation returned invalid data");
-      }
-
-      const result = await completeOnboarding({
-        publicKey: wallet.publicKey,
-        encryptedPrivateKey: wallet.encryptedPrivateKey,
-      });
-
-      if (result.error) throw new Error(result.error);
-
-      // Reload user so Clerk metadata is fresh, then touch session so middleware JWT updates
-      await user?.reload();
-      await session?.touch();
-
-      setStep("done");
-
-      setTimeout(() => {
-        router.push(redirectUrl);
-      }, 1500);
-    } catch (err: unknown) {
+      await createWalletWithKey(pin);
+    } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create wallet. Please try again.");
       setStep("error");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const isLoading = isCreating || step === "done";
+  // ── Done state ────────────────────────────────────────────────────────────
+
+  if (step === "done") {
+    return (
+      <div className="min-h-[80vh] flex items-center justify-center px-4">
+        <Card className="w-full max-w-sm text-center">
+          <CardHeader>
+            <div className="flex justify-center mb-2">
+              <div className="h-12 w-12 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                <CheckCircle2 className="h-6 w-6 text-emerald-500" />
+              </div>
+            </div>
+            <CardTitle>Wallet ready!</CardTitle>
+            <CardDescription>Taking you to your portfolio…</CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
+  // ── Loading state ─────────────────────────────────────────────────────────
+
+  if (isLoading) {
+    return (
+      <div className="min-h-[80vh] flex items-center justify-center px-4">
+        <Card className="w-full max-w-sm text-center">
+          <CardHeader>
+            <div className="flex justify-center mb-4">
+              <Loader2 className="h-10 w-10 animate-spin text-primary" />
+            </div>
+            <CardTitle>Creating your wallet…</CardTitle>
+            <CardDescription>Securing your account. This takes just a second.</CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
+  // ── Main UI ───────────────────────────────────────────────────────────────
+
+  const usePasskeyUI = passkeySupported && !showPinFallback;
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4">
@@ -83,48 +155,45 @@ export default function OnboardingPage() {
         <CardHeader className="text-center">
           <div className="flex justify-center mb-2">
             <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-              {step === "done" ? (
-                <CheckCircle2 className="h-6 w-6 text-emerald-500" />
-              ) : (
-                <Wallet className="h-6 w-6 text-primary" />
-              )}
+              <Wallet className="h-6 w-6 text-primary" />
             </div>
           </div>
-          <CardTitle>
-            {step === "done" ? "Wallet ready!" : "Create your wallet"}
-          </CardTitle>
+          <CardTitle>Create your wallet</CardTitle>
           <CardDescription>
-            {step === "done"
-              ? "Your invisible Starknet wallet is set up. Redirecting…"
+            {usePasskeyUI
+              ? "Your invisible Starknet wallet is protected by a passkey — works with Face ID, Touch ID, or your device PIN."
               : step === "confirm"
               ? "Re-enter your PIN to confirm."
-              : "Set a 4-digit PIN to protect your gasless Starknet wallet. Store it safely — we never store it."}
+              : "Set a 4-digit PIN to protect your wallet. Store it safely — we never store it."}
           </CardDescription>
         </CardHeader>
 
         <CardContent className="flex flex-col items-center gap-4">
-          {isLoading && step !== "done" && (
-            <div className="flex flex-col items-center gap-3 py-4">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <p className="text-sm text-muted-foreground">Creating your wallet…</p>
-            </div>
+          {error && (
+            <Alert variant="destructive" className="w-full">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
           )}
 
-          {step === "done" && (
-            <div className="flex flex-col items-center gap-3 py-4">
-              <p className="text-sm text-muted-foreground">Taking you to your portfolio…</p>
+          {/* ── Passkey-first UI ── */}
+          {usePasskeyUI ? (
+            <div className="w-full space-y-3">
+              <Button className="w-full gap-2" size="lg" onClick={handlePasskeySetup}>
+                <KeyRound className="h-4 w-4" />
+                Continue with passkey
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full text-muted-foreground text-sm"
+                onClick={() => { setShowPinFallback(true); setError(null); }}
+              >
+                Use a PIN instead
+              </Button>
             </div>
-          )}
-
-          {!isLoading && step !== "done" && (
+          ) : (
+            /* ── PIN UI ── */
             <>
-              {error && (
-                <Alert variant="destructive" className="w-full">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-
               <InputOTP
                 maxLength={4}
                 value={step === "confirm" ? confirmPin : pin}
@@ -141,7 +210,7 @@ export default function OnboardingPage() {
                 </InputOTPGroup>
               </InputOTP>
 
-              <div className="flex w-full gap-2 mt-2">
+              <div className="flex w-full gap-2">
                 {step === "confirm" && (
                   <Button
                     variant="outline"
@@ -154,11 +223,21 @@ export default function OnboardingPage() {
                 <Button
                   className="flex-1"
                   disabled={step === "pin" ? pin.length !== 4 : confirmPin.length !== 4}
-                  onClick={step === "pin" ? () => setStep("confirm") : handleCreate}
+                  onClick={step === "pin" ? () => setStep("confirm") : handlePinCreate}
                 >
                   {step === "confirm" ? "Create wallet" : "Next"}
                 </Button>
               </div>
+
+              {passkeySupported && (
+                <Button
+                  variant="ghost"
+                  className="w-full text-muted-foreground text-sm"
+                  onClick={() => { setShowPinFallback(false); setError(null); setPin(""); setConfirmPin(""); setStep("pin"); }}
+                >
+                  Use passkey instead
+                </Button>
+              )}
             </>
           )}
         </CardContent>
