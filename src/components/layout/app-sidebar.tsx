@@ -75,17 +75,17 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             {isLoaded && isSignedIn ? (
-              <SidebarMenuButton size="lg" className="cursor-default">
+              <div className="flex items-center gap-3 px-2 py-1.5">
                 <UserButton afterSignOutUrl="/" />
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">
+                <div className="grid flex-1 text-left text-sm leading-tight min-w-0">
+                  <span className="truncate font-medium text-sidebar-foreground">
                     {user?.fullName ?? user?.username ?? "Account"}
                   </span>
-                  <span className="truncate text-xs text-muted-foreground">
+                  <span className="truncate text-xs text-sidebar-foreground/60">
                     {user?.primaryEmailAddress?.emailAddress}
                   </span>
                 </div>
-              </SidebarMenuButton>
+              </div>
             ) : (
               isLoaded && (
                 <div className="flex flex-col gap-1.5 px-1 pb-1">

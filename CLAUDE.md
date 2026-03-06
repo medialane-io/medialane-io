@@ -31,7 +31,7 @@ NEXT_PUBLIC_MEDIALANE_BACKEND_URL=http://localhost:3001
 - **Clerk** — Email/social authentication. Session JWTs are templated as `chipipay` for wallet derivation.
 - **ChipiPay** (`@chipi-stack/nextjs`) — Manages Starknet wallets derived from Clerk sessions. Enables gasless transactions. Wraps the app via `ChipiProvider` in `src/app/providers.tsx`.
 - **Starknet.js** — Direct contract calls. RPC singleton in `src/lib/starknet.ts`.
-- **@medialane/sdk** — Local workspace package (`file:../medialane-sdk`). Provides `ApiOrder`, `ApiToken`, `ApiCollection`, `OrderStatus` types and the SDK client used in `src/lib/medialane-client.ts`.
+- **@medialane/sdk** — Published npm package (`@medialane/sdk@0.1.0`, org: `@medialane`). Provides `ApiOrder`, `ApiToken`, `ApiCollection`, `OrderStatus` types and the SDK client used in `src/lib/medialane-client.ts`.
 - **Pinata** — IPFS uploads via `src/app/api/pinata/route.ts`. Handles file + metadata.
 
 ### Data Flow
@@ -89,7 +89,7 @@ When `LAUNCH_MINT_CONTRACT` or `GENESIS_NFT_URI` are empty the button renders as
 - Contract addresses & RPC URL: `src/lib/constants.ts`
 - Shared TypeScript types: `src/types/index.ts` + `@medialane/sdk`
 - Global CSS variables (HSL theme tokens): `src/app/globals.css`
-- App providers (ChipiPay, theme, toast): `src/app/providers.tsx`
+- App shell (sidebar, top bar, theme, toast): `src/app/providers.tsx`
 
 ## UI Conventions
 
@@ -142,11 +142,7 @@ All write ops follow: create intent → sign typed data → submit signature →
 
 ## Known Bugs (as of 2026-03-06)
 
-1. **Asset page — history section layout**: The `{history.length > 0 && ...}` block renders outside the `container mx-auto px-4` wrapper, so it displays edge-to-edge without padding.
-2. **Asset page — Tabs imported but unused**: `Tabs, TabsContent, TabsList, TabsTrigger` are imported but the page uses a flat layout. The "All Listings" tab intended to show all orders for the token is missing.
-3. **Asset page — cancel listing**: Owner sees "Edit listing" which opens the listing dialog again (re-listing). No direct "Cancel" button on the asset page for owners.
-4. **Portfolio listings table — no token names**: Shows only `#tokenId`, doesn't fetch/display token name or image.
-5. **Offers table — no accept action**: Incoming offers show in portfolio but have no Accept/Reject buttons.
+All previously noted bugs were fixed. No outstanding known bugs.
 
 ---
 
@@ -173,7 +169,37 @@ All write ops follow: create intent → sign typed data → submit signature →
 ### P3 — Nice to have
 - [x] Cart batch checkout flow (buy multiple items in one session, single PIN) ✓ 2026-03-06
 - [x] Offer browsing in marketplace (Type filter: All / Listings / Offers) ✓ 2026-03-06
-- [ ] Price range filter in marketplace sidebar (requires backend min/max params — deferred)
+- [ ] Price range filter in marketplace (requires backend min/max params — deferred)
+- [x] Sidebar-first layout: shadcn `sidebar-07` replaces top header globally ✓ 2026-03-06
+- [x] `@medialane/sdk` published to npm — replaced local `file:` dep ✓ 2026-03-06
+
+---
+
+## App Shell Architecture (as of 2026-03-06)
+
+The app uses a **shadcn `sidebar-07` layout** as the global shell — no top `Header` component exists.
+
+```
+layout.tsx (server)
+  └─ ClerkProvider > ChipiProvider
+       └─ Providers (client) — src/app/providers.tsx
+            └─ ThemeProvider > SidebarProvider
+                 ├─ AppSidebar — src/components/layout/app-sidebar.tsx
+                 │    Brand logo + Platform nav (Marketplace/Collections/Portfolio/Create/Launchpad/Activity)
+                 │    + Clerk user (UserButton + name/email) in SidebarFooter
+                 │    collapsible="icon" — collapses to icons on desktop, Sheet on mobile
+                 └─ SidebarInset
+                      ├─ sticky h-12 top bar: SidebarTrigger + search + theme + cart + auth
+                      ├─ SessionExpiryBanner (sticky top-12)
+                      └─ <main> — page content
+            (outside SidebarInset) CartDrawer + Toaster
+```
+
+**Key rules:**
+- Never nest `SidebarProvider` inside a page — it's global in `providers.tsx`
+- `UserButton` from Clerk must NOT be wrapped in `SidebarMenuButton` (button-in-button → React error #130)
+- `SessionExpiryBanner` uses `sticky top-12` (header is h-12 = 48px, was top-16 when header was h-16)
+- Marketplace filters are an inline horizontal toolbar (no sidebar) — Sort/Type/Currency chips
 
 ---
 
@@ -186,7 +212,8 @@ All write ops follow: create intent → sign typed data → submit signature →
 | `src/lib/utils.ts` | `ipfsToHttp`, `timeUntil`, `formatPrice`, `cn` |
 | `src/types/index.ts` | Local TypeScript types (CartItem, etc.) |
 | `src/app/globals.css` | HSL theme tokens, `.glass`, `.gradient-text` |
-| `src/app/providers.tsx` | ChipiPay + theme + sonner wrappers |
+| `src/app/providers.tsx` | Global shell: SidebarProvider + AppSidebar + SidebarInset + top bar |
+| `src/components/layout/app-sidebar.tsx` | Shadcn sidebar: brand, nav, Clerk user footer |
 | `src/middleware.ts` | Clerk route protection (/portfolio, /create/*) |
 | `src/hooks/use-session-key.ts` | Wallet derivation + SNIP-9 session key |
 | `src/hooks/use-marketplace.ts` | All marketplace write operations |
