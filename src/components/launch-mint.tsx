@@ -16,14 +16,12 @@ import {
   RefreshCw,
   Gift,
   Droplets,
-  Star,
   ArrowRight,
-  Eye,
-  EyeOff,
   Wallet,
   Lock,
   User,
 } from "lucide-react";
+import { PinInput, validatePin } from "@/components/ui/pin-input";
 import { Button } from "@/components/ui/button";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import {
@@ -86,53 +84,6 @@ function PerksGrid() {
   );
 }
 
-// ─── PIN input ────────────────────────────────────────────────────────────────
-
-function PinInput({
-  value,
-  onChange,
-  visible,
-  onToggleVisible,
-  placeholder = "Enter 6–12 digit PIN",
-  error,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  visible: boolean;
-  onToggleVisible: () => void;
-  placeholder?: string;
-  error?: string | null;
-}) {
-  return (
-    <div className="space-y-1.5">
-      <div className="relative">
-        <input
-          type={visible ? "text" : "password"}
-          inputMode="numeric"
-          value={value}
-          onChange={(e) => {
-            const v = e.target.value.replace(/\D/g, "").slice(0, 12);
-            onChange(v);
-          }}
-          placeholder={placeholder}
-          className="w-full rounded-lg border border-border/60 bg-muted/30 px-4 py-3 pr-12 text-lg tracking-widest font-mono placeholder:text-muted-foreground/40 placeholder:text-sm placeholder:tracking-normal focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
-          autoComplete="off"
-          autoFocus
-        />
-        <button
-          type="button"
-          onClick={onToggleVisible}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-          tabIndex={-1}
-        >
-          {visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-        </button>
-      </div>
-      {error && <p className="text-xs text-destructive font-medium">{error}</p>}
-    </div>
-  );
-}
-
 // ─── Main component ───────────────────────────────────────────────────────────
 
 type MintStep = "ready" | "enter-pin" | "minting" | "success" | "error";
@@ -145,7 +96,6 @@ export function LaunchMint() {
 
   // Wallet creation
   const [walletPin, setWalletPin] = useState("");
-  const [walletPinVisible, setWalletPinVisible] = useState(false);
   const [walletPinError, setWalletPinError] = useState<string | null>(null);
   const [isCreatingWallet, setIsCreatingWallet] = useState(false);
   const [walletCreateError, setWalletCreateError] = useState<string | null>(null);
@@ -153,7 +103,6 @@ export function LaunchMint() {
   // Mint flow
   const [mintStep, setMintStep] = useState<MintStep>("ready");
   const [mintPin, setMintPin] = useState("");
-  const [mintPinVisible, setMintPinVisible] = useState(false);
   const [mintPinError, setMintPinError] = useState<string | null>(null);
   const [mintError, setMintError] = useState<string | null>(null);
   const [mintStatusMsg, setMintStatusMsg] = useState("");
@@ -175,15 +124,6 @@ export function LaunchMint() {
   const recipientAddress = (
     user?.publicMetadata?.publicKey ?? user?.unsafeMetadata?.publicKey
   ) as string | undefined;
-
-  // ── Validate PIN ──────────────────────────────────────────────────────────
-
-  const validatePin = (pin: string): string | null => {
-    if (!pin) return "PIN is required";
-    if (!/^\d+$/.test(pin)) return "Digits only";
-    if (pin.length < 6) return "Minimum 6 digits";
-    return null;
-  };
 
   // ── Create wallet ─────────────────────────────────────────────────────────
 
@@ -422,10 +362,9 @@ export function LaunchMint() {
                   <PinInput
                     value={walletPin}
                     onChange={(v) => { setWalletPin(v); setWalletPinError(null); }}
-                    visible={walletPinVisible}
-                    onToggleVisible={() => setWalletPinVisible((x) => !x)}
                     placeholder="e.g. 123456"
                     error={walletPinError}
+                    autoFocus
                   />
 
                   {walletCreateError && (
@@ -529,10 +468,9 @@ export function LaunchMint() {
                       <PinInput
                         value={mintPin}
                         onChange={(v) => { setMintPin(v); setMintPinError(null); }}
-                        visible={mintPinVisible}
-                        onToggleVisible={() => setMintPinVisible((x) => !x)}
                         placeholder="Your wallet PIN"
                         error={mintPinError}
+                        autoFocus
                       />
 
                       <div className="flex gap-2">

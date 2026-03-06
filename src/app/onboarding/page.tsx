@@ -4,10 +4,9 @@ import { useState, useCallback } from "react";
 import { useAuth, useUser, useClerk } from "@clerk/nextjs";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useChipiWallet, isWebAuthnSupported, createWalletPasskey } from "@chipi-stack/nextjs";
-import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { PinInput, validatePin } from "@/components/ui/pin-input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Wallet, CheckCircle2, AlertCircle, KeyRound } from "lucide-react";
 import { completeOnboarding } from "./_actions";
@@ -37,7 +36,9 @@ export default function OnboardingPage() {
   const [showPinFallback, setShowPinFallback] = useState(false);
   const [pin, setPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
-  const [step, setStep] = useState<"pin" | "confirm" | "done" | "error">("pin");
+  const [pinError, setPinError] = useState<string | null>(null);
+  const [confirmPinError, setConfirmPinError] = useState<string | null>(null);
+  const [step, setStep] = useState<"pin" | "confirm" | "done">("pin");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -78,7 +79,7 @@ export default function OnboardingPage() {
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Passkey setup failed";
       setError(msg);
-      setShowPinFallback(true); // reveal PIN fallback automatically on passkey failure
+      setShowPinFallback(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -86,22 +87,26 @@ export default function OnboardingPage() {
 
   // ── PIN flow ──────────────────────────────────────────────────────────────
 
+  const handlePinNext = () => {
+    const err = validatePin(pin);
+    if (err) { setPinError(err); return; }
+    setPinError(null);
+    setStep("confirm");
+  };
+
   const handlePinCreate = async () => {
     if (pin !== confirmPin) {
-      setError("PINs do not match. Please try again.");
-      setStep("pin");
-      setPin("");
-      setConfirmPin("");
+      setConfirmPinError("PINs do not match. Please try again.");
       return;
     }
-
+    setConfirmPinError(null);
     setIsSubmitting(true);
     setError(null);
     try {
       await createWalletWithKey(pin);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create wallet. Please try again.");
-      setStep("error");
+      setStep("pin");
     } finally {
       setIsSubmitting(false);
     }
@@ -145,8 +150,6 @@ export default function OnboardingPage() {
     );
   }
 
-  // ── Main UI ───────────────────────────────────────────────────────────────
-
   const usePasskeyUI = passkeySupported && !showPinFallback;
 
   return (
@@ -164,7 +167,7 @@ export default function OnboardingPage() {
               ? "Your invisible Starknet wallet is protected by a passkey — works with Face ID, Touch ID, or your device PIN."
               : step === "confirm"
               ? "Re-enter your PIN to confirm."
-              : "Set a 4-digit PIN to protect your wallet. Store it safely — we never store it."}
+              : "Choose a 6–12 digit PIN to protect your wallet. Store it safely — we never store it."}
           </CardDescription>
         </CardHeader>
 
@@ -194,36 +197,30 @@ export default function OnboardingPage() {
           ) : (
             /* ── PIN UI ── */
             <>
-              <InputOTP
-                maxLength={4}
+              <PinInput
                 value={step === "confirm" ? confirmPin : pin}
-                onChange={step === "confirm" ? setConfirmPin : setPin}
-                pattern={REGEXP_ONLY_DIGITS}
-                inputMode="numeric"
-                autoComplete="off"
-              >
-                <InputOTPGroup>
-                  <InputOTPSlot index={0} />
-                  <InputOTPSlot index={1} />
-                  <InputOTPSlot index={2} />
-                  <InputOTPSlot index={3} />
-                </InputOTPGroup>
-              </InputOTP>
+                onChange={step === "confirm"
+                  ? (v) => { setConfirmPin(v); setConfirmPinError(null); }
+                  : (v) => { setPin(v); setPinError(null); }
+                }
+                error={step === "confirm" ? confirmPinError : pinError}
+                autoFocus
+              />
 
               <div className="flex w-full gap-2">
                 {step === "confirm" && (
                   <Button
                     variant="outline"
                     className="flex-1"
-                    onClick={() => { setStep("pin"); setConfirmPin(""); setError(null); }}
+                    onClick={() => { setStep("pin"); setConfirmPin(""); setConfirmPinError(null); setError(null); }}
                   >
                     Back
                   </Button>
                 )}
                 <Button
                   className="flex-1"
-                  disabled={step === "pin" ? pin.length !== 4 : confirmPin.length !== 4}
-                  onClick={step === "pin" ? () => setStep("confirm") : handlePinCreate}
+                  disabled={step === "pin" ? pin.length < 6 : confirmPin.length < 6}
+                  onClick={step === "pin" ? handlePinNext : handlePinCreate}
                 >
                   {step === "confirm" ? "Create wallet" : "Next"}
                 </Button>
