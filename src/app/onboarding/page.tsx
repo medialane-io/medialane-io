@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useAuth, useUser, useClerk } from "@clerk/nextjs";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useChipiWallet, isWebAuthnSupported, createWalletPasskey } from "@chipi-stack/nextjs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,7 +15,6 @@ export default function OnboardingPage() {
   const { userId, getToken } = useAuth();
   const { user } = useUser();
   const { session } = useClerk();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get("redirect_url") || "/portfolio";
 
@@ -63,7 +62,10 @@ export default function OnboardingPage() {
     await session?.touch();
 
     setStep("done");
-    setTimeout(() => router.push(redirectUrl), 1500);
+    // Use full page navigation so the browser fetches a fresh Clerk JWT before
+    // the middleware runs — router.push reuses the cached token and the middleware
+    // would see stale claims (walletCreated still false) and redirect back here.
+    setTimeout(() => { window.location.href = redirectUrl; }, 1500);
   };
 
   // ── Passkey flow ──────────────────────────────────────────────────────────
