@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useAuth, useUser } from "@clerk/nextjs";
+import { useAuth, useUser, useClerk } from "@clerk/nextjs";
 import { useChipiWallet } from "@chipi-stack/nextjs";
-import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,10 +12,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Wallet, CheckCircle2, AlertCircle } from "lucide-react";
+import { PinInput, validatePin } from "@/components/ui/pin-input";
+import { completeOnboarding } from "@/app/onboarding/_actions";
 
 interface WalletSetupDialogProps {
   open: boolean;
@@ -27,43 +26,41 @@ interface WalletSetupDialogProps {
 export function WalletSetupDialog({ open, onOpenChange, onSuccess }: WalletSetupDialogProps) {
   const { userId, getToken } = useAuth();
   const { user } = useUser();
+  const { session } = useClerk();
 
   const getBearerToken = useCallback(
-    () =>
-      getToken({
-        template: process.env.NEXT_PUBLIC_CLERK_TEMPLATE_NAME || "chipipay",
-      }),
+    () => getToken({ template: process.env.NEXT_PUBLIC_CLERK_TEMPLATE_NAME || "chipipay" }),
     [getToken]
   );
 
-  // useChipiWallet.createWallet handles externalUserId + bearer token internally
   const { createWallet, isCreating } = useChipiWallet({
     externalUserId: userId,
     getBearerToken,
-    enabled: false, // don't auto-fetch on mount — this dialog is only shown pre-wallet
+    enabled: false,
   });
 
   const [pin, setPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
-  const [step, setStep] = useState<"pin" | "confirm" | "creating" | "done" | "error">("pin");
+  const [pinError, setPinError] = useState<string | null>(null);
+  const [confirmPinError, setConfirmPinError] = useState<string | null>(null);
+  const [step, setStep] = useState<"pin" | "confirm" | "done" | "error">("pin");
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleNext = () => {
-    if (step === "pin" && pin.length === 4) {
-      setStep("confirm");
-    }
+    const err = validatePin(pin);
+    if (err) { setPinError(err); return; }
+    setPinError(null);
+    setStep("confirm");
   };
 
   const handleCreate = async () => {
     if (pin !== confirmPin) {
-      setError("PINs do not match. Please try again.");
-      setStep("pin");
-      setPin("");
-      setConfirmPin("");
+      setConfirmPinError("PINs do not match. Please try again.");
       return;
     }
-
-    setStep("creating");
+    setConfirmPinError(null);
+    setIsSubmitting(true);
     setError(null);
 
     try {
@@ -72,30 +69,36 @@ export function WalletSetupDialog({ open, onOpenChange, onSuccess }: WalletSetup
         throw new Error("Wallet creation returned invalid data");
       }
 
-      // Persist wallet keys in Clerk unsafeMetadata for backward compatibility
-      await user?.update({
-        unsafeMetadata: {
-          ...(user.unsafeMetadata ?? {}),
-          publicKey: wallet.publicKey,
-          encryptedPrivateKey: wallet.encryptedPrivateKey,
-        },
+      const result = await completeOnboarding({
+        publicKey: wallet.publicKey,
+        encryptedPrivateKey: wallet.encryptedPrivateKey,
       });
+      if (result.error) throw new Error(result.error);
+
+      await user?.reload();
+      await session?.touch();
 
       setStep("done");
       onSuccess?.();
-    } catch (err: any) {
-      setError(err?.message || "Failed to create wallet. Please try again.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to create wallet. Please try again.");
       setStep("error");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleClose = () => {
     setPin("");
     setConfirmPin("");
+    setPinError(null);
+    setConfirmPinError(null);
     setStep("pin");
     setError(null);
     onOpenChange(false);
   };
+
+  const isLoading = isCreating || isSubmitting;
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -108,7 +111,9 @@ export function WalletSetupDialog({ open, onOpenChange, onSuccess }: WalletSetup
           </div>
           <DialogTitle className="text-center">Create your wallet</DialogTitle>
           <DialogDescription className="text-center">
-            Set a 4-digit PIN to protect your gasless Starknet wallet.
+            {step === "confirm"
+              ? "Re-enter your PIN to confirm."
+              : "Choose a 6–12 digit PIN to protect your gasless Starknet wallet."}
           </DialogDescription>
         </DialogHeader>
 
@@ -119,62 +124,50 @@ export function WalletSetupDialog({ open, onOpenChange, onSuccess }: WalletSetup
             </div>
             <p className="text-center font-semibold">Wallet created!</p>
             <p className="text-center text-sm text-muted-foreground">
-              Your invisible wallet is ready. No seed phrases — your PIN unlocks every transaction.
+              Your invisible wallet is ready. Your PIN unlocks every transaction.
             </p>
             <Button className="w-full mt-2" onClick={handleClose}>Get started</Button>
           </div>
-        ) : step === "creating" || isCreating ? (
+        ) : isLoading ? (
           <div className="flex flex-col items-center gap-4 py-8">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <p className="text-sm text-muted-foreground">Creating your wallet…</p>
           </div>
         ) : (
-          <div className="flex flex-col items-center gap-4 py-4">
+          <div className="flex flex-col gap-4 py-4">
             {error && (
-              <Alert variant="destructive" className="w-full">
+              <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            <Label className="self-start text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              {step === "confirm" ? "Confirm PIN" : "Choose PIN"}
-            </Label>
-            {step === "pin" ? (
-              <InputOTP maxLength={4} value={pin} onChange={setPin} pattern={REGEXP_ONLY_DIGITS} inputMode="numeric" autoComplete="off">
-                <InputOTPGroup>
-                  <InputOTPSlot index={0} />
-                  <InputOTPSlot index={1} />
-                  <InputOTPSlot index={2} />
-                  <InputOTPSlot index={3} />
-                </InputOTPGroup>
-              </InputOTP>
-            ) : (
-              <InputOTP maxLength={4} value={confirmPin} onChange={setConfirmPin} pattern={REGEXP_ONLY_DIGITS} inputMode="numeric" autoComplete="off">
-                <InputOTPGroup>
-                  <InputOTPSlot index={0} />
-                  <InputOTPSlot index={1} />
-                  <InputOTPSlot index={2} />
-                  <InputOTPSlot index={3} />
-                </InputOTPGroup>
-              </InputOTP>
-            )}
+            <PinInput
+              value={step === "confirm" ? confirmPin : pin}
+              onChange={step === "confirm"
+                ? (v) => { setConfirmPin(v); setConfirmPinError(null); }
+                : (v) => { setPin(v); setPinError(null); }
+              }
+              error={step === "confirm" ? confirmPinError : pinError}
+              placeholder={step === "confirm" ? "Re-enter PIN" : "Enter 6–12 digit PIN"}
+              autoFocus
+            />
             <p className="text-xs text-muted-foreground text-center">
               {step === "confirm"
-                ? "Re-enter your PIN to confirm."
+                ? "Make sure it matches your first entry."
                 : "Remember this PIN — it signs every transaction. We never store it."}
             </p>
           </div>
         )}
 
-        {step !== "done" && step !== "creating" && !isCreating && (
+        {step !== "done" && !isLoading && (
           <DialogFooter>
             {step === "confirm" && (
-              <Button variant="outline" onClick={() => { setStep("pin"); setConfirmPin(""); }}>
+              <Button variant="outline" onClick={() => { setStep("pin"); setConfirmPin(""); setConfirmPinError(null); }}>
                 Back
               </Button>
             )}
             <Button
-              disabled={step === "pin" ? pin.length !== 4 : confirmPin.length !== 4}
+              disabled={step === "pin" ? pin.length < 6 : confirmPin.length < 6}
               onClick={step === "pin" ? handleNext : handleCreate}
             >
               {step === "confirm" ? "Create wallet" : "Next"}
