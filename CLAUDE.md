@@ -31,16 +31,17 @@ NEXT_PUBLIC_MEDIALANE_BACKEND_URL=http://localhost:3001
 - **Clerk** — Email/social authentication. Session JWTs are templated as `chipipay` for wallet derivation.
 - **ChipiPay** (`@chipi-stack/nextjs`) — Manages Starknet wallets derived from Clerk sessions. Enables gasless transactions. Wraps the app via `ChipiProvider` in `src/app/providers.tsx`.
 - **Starknet.js** — Direct contract calls. RPC singleton in `src/lib/starknet.ts`.
-- **@medialane/sdk** — Published npm package (`@medialane/sdk@0.1.0`, org: `@medialane`). Provides `ApiOrder`, `ApiToken`, `ApiCollection`, `OrderStatus` types and the SDK client used in `src/lib/medialane-client.ts`.
-- **Pinata** — IPFS uploads via `src/app/api/pinata/route.ts`. Handles file + metadata.
+- **@medialane/sdk** — Published npm package (`@medialane/sdk@0.2.0`, org: `@medialane`). Provides `ApiOrder`, `ApiToken`, `ApiCollection`, `OrderStatus`, `IpAttribute`, `IpNftMetadata` types and the SDK client used in `src/lib/medialane-client.ts`.
+- **Pinata** — IPFS uploads via `src/app/api/pinata/route.ts`. Universal IP asset upload endpoint — requires Clerk session auth, accepts full licensing schema, uploads image + metadata JSON directly to Pinata in one call. Asset creation bypasses the backend entirely (decentralised). Genesis-specific uploads use the separate `src/app/api/pinata/genesis/route.ts`.
 
 ### Data Flow
 
 1. User authenticates via Clerk → ChipiPay derives a Starknet wallet from the session
 2. Session keys (SNIP-9) are stored in Clerk user metadata, managed via `use-session-key.ts`
-3. Marketplace orders use SNIP-12 typed data signing (see `use-marketplace.ts`)
-4. Cart state is persisted to localStorage via Zustand (`use-cart.ts`)
-5. Server state (tokens, collections, orders) fetched via TanStack Query hooks in `src/hooks/`
+3. **Asset uploads**: `POST /api/pinata` → image to Pinata → metadata JSON to Pinata → `ipfs://` URI → mint tx. Never goes through the backend. `PINATA_JWT` is consumed server-side in the Next.js route.
+4. Marketplace orders use SNIP-12 typed data signing (see `use-marketplace.ts`)
+5. Cart state is persisted to localStorage via Zustand (`use-cart.ts`)
+6. Server state (tokens, collections, orders) fetched via TanStack Query hooks in `src/hooks/`
 
 ### Route Protection
 
@@ -172,6 +173,9 @@ All previously noted bugs were fixed. No outstanding known bugs.
 - [ ] Price range filter in marketplace (requires backend min/max params — deferred)
 - [x] Sidebar-first layout: shadcn `sidebar-07` replaces top header globally ✓ 2026-03-06
 - [x] `@medialane/sdk` published to npm — replaced local `file:` dep ✓ 2026-03-06
+- [x] Full programmable licensing metadata (Berne Convention, CC variants, AI policy, royalty) ✓ 2026-03-06
+- [x] Asset page License tab — rich display from IPFS attributes (Berne badge, icon table) ✓ 2026-03-06
+- [x] Asset upload decentralised — direct Pinata via `/api/pinata`, no backend hop ✓ 2026-03-06
 
 ---
 
@@ -211,6 +215,8 @@ layout.tsx (server)
 | `src/lib/medialane-client.ts` | SDK singleton (MedialaneClient) |
 | `src/lib/utils.ts` | `ipfsToHttp`, `timeUntil`, `formatPrice`, `cn` |
 | `src/types/index.ts` | Local TypeScript types (CartItem, etc.) |
+| `src/types/ip.ts` | IP/licensing constants: `LICENSE_TYPES`, `IP_TYPES`, `GEOGRAPHIC_SCOPES`, `AI_POLICIES`, `DERIVATIVES_OPTIONS`, `LICENSE_TRAIT_TYPES` |
+| `src/app/api/pinata/route.ts` | Universal IP asset upload (Clerk-gated, direct Pinata) — accepts image + full licensing schema, returns `{ uri, imageUri, cid }` |
 | `src/app/globals.css` | HSL theme tokens, `.glass`, `.gradient-text` |
 | `src/app/providers.tsx` | Global shell: SidebarProvider + AppSidebar + SidebarInset + top bar |
 | `src/components/layout/app-sidebar.tsx` | Shadcn sidebar: brand, nav, Clerk user footer |

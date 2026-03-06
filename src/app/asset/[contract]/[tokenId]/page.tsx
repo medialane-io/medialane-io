@@ -17,7 +17,8 @@ import { OfferDialog } from "@/components/marketplace/offer-dialog";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { ipfsToHttp, timeUntil, timeAgo } from "@/lib/utils";
-import { ShoppingCart, Tag, ExternalLink, Clock, HandCoins, ArrowRightLeft, X, CheckCircle } from "lucide-react";
+import { ShoppingCart, Tag, ExternalLink, Clock, HandCoins, ArrowRightLeft, X, CheckCircle, DollarSign, GitBranch, UserCheck, Globe, Bot, Percent, Shield, Calendar } from "lucide-react";
+import { LICENSE_TRAIT_TYPES } from "@/types/ip";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ApiActivity, ApiOrder } from "@medialane/sdk";
 import { EXPLORER_URL } from "@/lib/constants";
@@ -305,6 +306,7 @@ export default function AssetPage() {
         <Tabs defaultValue="details">
           <TabsList>
             <TabsTrigger value="details">Details</TabsTrigger>
+            <TabsTrigger value="license">License</TabsTrigger>
             <TabsTrigger value="listings">
               Listings {activeListings.length > 0 && `(${activeListings.length})`}
             </TabsTrigger>
@@ -360,6 +362,95 @@ export default function AssetPage() {
             {!description && !token.metadata?.licenseType && attributes.length === 0 && (
               <p className="text-sm text-muted-foreground">No additional details available.</p>
             )}
+          </TabsContent>
+
+          {/* License tab */}
+          <TabsContent value="license" className="mt-4">
+            {(() => {
+              const attr = (trait: string) =>
+                attributes.find((a) => a.trait_type === trait)?.value;
+              const licenseType = attr("License");
+              const commercialUse = attr("Commercial Use");
+              const derivatives = attr("Derivatives");
+              const attribution = attr("Attribution");
+              const territory = attr("Territory");
+              const aiPolicy = attr("AI Policy");
+              const royalty = attr("Royalty");
+              const standard = attr("Standard");
+              const registration = attr("Registration");
+
+              const hasLicenseData = licenseType || commercialUse || derivatives || attribution;
+
+              if (!hasLicenseData) {
+                return (
+                  <p className="text-sm text-muted-foreground py-6 text-center">
+                    No licensing information attached to this asset.
+                  </p>
+                );
+              }
+
+              const rows: { icon: React.ReactNode; label: string; value: string | undefined }[] = [
+                { icon: <Shield className="h-4 w-4" />, label: "License", value: licenseType },
+                { icon: <DollarSign className="h-4 w-4" />, label: "Commercial Use", value: commercialUse },
+                { icon: <GitBranch className="h-4 w-4" />, label: "Derivatives", value: derivatives },
+                { icon: <UserCheck className="h-4 w-4" />, label: "Attribution", value: attribution },
+                { icon: <Globe className="h-4 w-4" />, label: "Territory", value: territory },
+                { icon: <Bot className="h-4 w-4" />, label: "AI & Data Mining", value: aiPolicy },
+                { icon: <Percent className="h-4 w-4" />, label: "Royalty", value: royalty },
+                { icon: <Calendar className="h-4 w-4" />, label: "Registration", value: registration },
+              ].filter((r) => !!r.value);
+
+              return (
+                <div className="space-y-4">
+                  {standard && (
+                    <div className="flex items-center gap-2 rounded-lg bg-primary/5 border border-primary/20 px-4 py-3">
+                      <Shield className="h-4 w-4 text-primary shrink-0" />
+                      <div>
+                        <p className="text-xs font-semibold text-primary">
+                          {standard} Compliant
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Licensing terms are immutably embedded in IPFS metadata and compliant with international copyright law.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="rounded-xl border border-border divide-y divide-border">
+                    {rows.map(({ icon, label, value }) => (
+                      <div key={label} className="flex items-center justify-between px-4 py-3 gap-4">
+                        <div className="flex items-center gap-2.5 text-muted-foreground min-w-0">
+                          {icon}
+                          <span className="text-sm">{label}</span>
+                        </div>
+                        <span className="text-sm font-medium text-right">{value}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Non-license attributes */}
+                  {attributes.filter((a) => !LICENSE_TRAIT_TYPES.has(a.trait_type ?? "")).length > 0 && (
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                        Additional Attributes
+                      </p>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {attributes
+                          .filter((a) => !LICENSE_TRAIT_TYPES.has(a.trait_type ?? ""))
+                          .map((attr, i) => (
+                            <div key={i} className="rounded-lg border border-border bg-muted/20 p-3 text-center">
+                              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                                {attr.trait_type ?? "Trait"}
+                              </p>
+                              <p className="text-sm font-semibold mt-0.5">{attr.value ?? "—"}</p>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </TabsContent>
 
           {/* Listings tab */}
