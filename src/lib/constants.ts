@@ -21,6 +21,9 @@ export const STARKNET_RPC_URL =
 export const MEDIALANE_BACKEND_URL =
   process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL || "http://localhost:3001";
 
+export const MEDIALANE_API_KEY =
+  process.env.NEXT_PUBLIC_MEDIALANE_API_KEY || "";
+
 export const PINATA_GATEWAY =
   process.env.NEXT_PUBLIC_PINATA_GATEWAY || "https://gateway.pinata.cloud";
 

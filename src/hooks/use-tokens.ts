@@ -9,7 +9,7 @@ export function useToken(contract: string | null, tokenId: string | null) {
 
   const { data, error, isLoading, mutate } = useSWR(
     contract && tokenId ? `token-${contract}-${tokenId}` : null,
-    () => client.indexer.getToken(contract!, tokenId!),
+    () => client.api.getToken(contract!, tokenId!),
     { revalidateOnFocus: false }
   );
 
@@ -21,7 +21,7 @@ export function useTokensByOwner(address: string | null, page = 1, limit = 20) {
 
   const { data, error, isLoading, mutate } = useSWR(
     address ? `tokens-owned-${address}-${page}` : null,
-    () => client.indexer.getTokensByOwner(address!, page, limit),
+    () => client.api.getTokensByOwner(address!, page, limit),
     { revalidateOnFocus: false }
   );
 
@@ -32,4 +32,16 @@ export function useTokensByOwner(address: string | null, page = 1, limit = 20) {
     error,
     mutate,
   };
+}
+
+export function useTokenHistory(contract: string | null, tokenId: string | null) {
+  const client = useMedialaneClient();
+
+  const { data, error, isLoading } = useSWR(
+    contract && tokenId ? `token-history-${contract}-${tokenId}` : null,
+    () => client.api.getTokenHistory(contract!, tokenId!),
+    { revalidateOnFocus: false }
+  );
+
+  return { history: data?.data ?? [], isLoading, error };
 }
