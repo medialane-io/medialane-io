@@ -15,18 +15,18 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ApiOrder } from "@medialane/sdk";
 
-interface ListingsTableProps {
+interface ReceivedOffersTableProps {
   address: string;
 }
 
-function ListingRow({
+function ReceivedOfferRow({
   order,
   isProcessing,
-  onCancel,
+  onAccept,
 }: {
   order: ApiOrder;
   isProcessing: boolean;
-  onCancel: (order: ApiOrder) => void;
+  onAccept: (order: ApiOrder) => void;
 }) {
   const { token } = useToken(order.nftContract, order.nftTokenId);
   const name = token?.metadata?.name || `#${order.nftTokenId}`;
@@ -50,7 +50,7 @@ function ListingRow({
             {name}
           </Link>
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-[10px]">{order.status}</Badge>
+            <Badge variant="secondary" className="text-[10px]">Received offer</Badge>
             <p className="text-xs text-muted-foreground">
               Expires {timeUntil(order.endTime)}
             </p>
@@ -60,6 +60,9 @@ function ListingRow({
 
       <div className="text-right shrink-0">
         <p className="font-bold text-sm">{order.price.formatted} {order.price.currency}</p>
+        <p className="text-xs text-muted-foreground truncate max-w-[100px]">
+          from {order.offerer.slice(0, 8)}…
+        </p>
       </div>
 
       <div className="flex items-center gap-2 shrink-0">
@@ -72,28 +75,31 @@ function ListingRow({
         </a>
         <Button
           size="sm"
-          variant="destructive"
           disabled={isProcessing}
-          onClick={() => onCancel(order)}
+          onClick={() => onAccept(order)}
         >
-          Cancel
+          Accept
         </Button>
       </div>
     </div>
   );
 }
 
-export function ListingsTable({ address }: ListingsTableProps) {
+export function ReceivedOffersTable({ address }: ReceivedOffersTableProps) {
   const { orders, isLoading, mutate } = useUserOrders(address);
-  const { cancelOrder, isProcessing } = useMarketplace();
+  const { fulfillOrder, isProcessing } = useMarketplace();
   const [pinOpen, setPinOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<ApiOrder | null>(null);
 
-  const myListings = orders.filter(
-    (o) => o.offer.itemType === "ERC721" && o.status === "ACTIVE"
+  // Received = ERC20 offers where someone else is the offerer
+  const receivedOffers = orders.filter(
+    (o) =>
+      o.offer.itemType === "ERC20" &&
+      o.status === "ACTIVE" &&
+      o.offerer.toLowerCase() !== address.toLowerCase()
   );
 
-  const handleCancel = (order: ApiOrder) => {
+  const handleAccept = (order: ApiOrder) => {
     setSelectedOrder(order);
     setPinOpen(true);
   };
@@ -101,26 +107,26 @@ export function ListingsTable({ address }: ListingsTableProps) {
   const handlePin = async (pin: string) => {
     setPinOpen(false);
     if (!selectedOrder) return;
-    await cancelOrder({ orderHash: selectedOrder.orderHash, pin });
+    await fulfillOrder({ orderHash: selectedOrder.orderHash, pin });
     mutate();
   };
 
   if (isLoading) {
     return (
       <div className="space-y-2">
-        {Array.from({ length: 4 }).map((_, i) => (
+        {Array.from({ length: 3 }).map((_, i) => (
           <Skeleton key={i} className="h-16 w-full rounded-lg" />
         ))}
       </div>
     );
   }
 
-  if (myListings.length === 0) {
+  if (receivedOffers.length === 0) {
     return (
       <div className="py-12 text-center">
-        <p className="font-semibold">No active listings</p>
+        <p className="font-semibold">No incoming offers</p>
         <p className="text-sm text-muted-foreground mt-1">
-          List an asset from your portfolio to see it here.
+          Offers made on your assets will appear here.
         </p>
       </div>
     );
@@ -129,12 +135,12 @@ export function ListingsTable({ address }: ListingsTableProps) {
   return (
     <>
       <div className="divide-y divide-border rounded-lg border">
-        {myListings.map((order) => (
-          <ListingRow
+        {receivedOffers.map((order) => (
+          <ReceivedOfferRow
             key={order.orderHash}
             order={order}
             isProcessing={isProcessing}
-            onCancel={handleCancel}
+            onAccept={handleAccept}
           />
         ))}
       </div>
@@ -143,8 +149,10 @@ export function ListingsTable({ address }: ListingsTableProps) {
         open={pinOpen}
         onSubmit={handlePin}
         onCancel={() => { setPinOpen(false); setSelectedOrder(null); }}
-        title="Cancel listing"
-        description={`Enter your PIN to cancel the listing for token #${selectedOrder?.nftTokenId}.`}
+        title="Accept offer"
+        description={selectedOrder
+          ? `Accept ${selectedOrder.price.formatted} ${selectedOrder.price.currency} for token #${selectedOrder.nftTokenId}?`
+          : "Enter your PIN to accept this offer."}
       />
     </>
   );

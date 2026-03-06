@@ -13,19 +13,29 @@ const SORT_OPTIONS = [
 
 const CURRENCY_OPTIONS = ["USDC", "USDT", "STRK", "ETH"];
 
+const TYPE_OPTIONS = [
+  { label: "All", value: "" },
+  { label: "Listings", value: "listings" },
+  { label: "Offers", value: "offers" },
+];
+
 interface FilterSidebarProps {
   sort?: string;
   currency?: string;
+  orderType?: string;
   onSortChange?: (sort: string) => void;
   onCurrencyChange?: (currency: string) => void;
+  onOrderTypeChange?: (type: string) => void;
   onReset?: () => void;
 }
 
 export function FilterSidebar({
   sort = "recent",
   currency,
+  orderType = "",
   onSortChange,
   onCurrencyChange,
+  onOrderTypeChange,
   onReset,
 }: FilterSidebarProps) {
   return (
@@ -55,6 +65,30 @@ export function FilterSidebar({
               onClick={() => onSortChange?.(opt.value)}
               className={`w-full text-left text-sm px-2 py-1.5 rounded-md transition-colors ${
                 sort === opt.value
+                  ? "bg-primary/10 text-primary font-medium"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Type */}
+      <div className="space-y-2">
+        <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Type
+        </Label>
+        <div className="space-y-1">
+          {TYPE_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => onOrderTypeChange?.(opt.value)}
+              className={`w-full text-left text-sm px-2 py-1.5 rounded-md transition-colors ${
+                orderType === opt.value
                   ? "bg-primary/10 text-primary font-medium"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
               }`}

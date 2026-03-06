@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +21,7 @@ interface TokenCardProps {
 
 export function TokenCard({ token, showBuyButton = true, onBuy, onList, isOwner = false }: TokenCardProps) {
   const { addItem, items } = useCart();
+  const [imgError, setImgError] = useState(false);
   const name = token.metadata?.name || `Token #${token.tokenId}`;
   const image = ipfsToHttp(token.metadata?.image);
   const activeOrder = token.activeOrders?.[0];
@@ -48,14 +50,19 @@ export function TokenCard({ token, showBuyButton = true, onBuy, onList, isOwner 
       <div className="rounded-xl border border-border bg-card overflow-hidden asset-card-hover hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5">
         {/* Image */}
         <div className="relative aspect-square bg-muted overflow-hidden">
-          <Image
-            src={image}
-            alt={name}
-            fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-            unoptimized={image.startsWith("http")}
-            onError={() => {}}
-          />
+          {!imgError ? (
+            <Image
+              src={image}
+              alt={name}
+              fill
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              onError={() => setImgError(true)}
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary/5 to-purple-500/5">
+              <span className="text-2xl font-mono text-muted-foreground">#{token.tokenId}</span>
+            </div>
+          )}
           {token.metadata?.ipType && (
             <Badge className="absolute top-2 left-2 text-[10px] bg-background/80 backdrop-blur-sm border-border/50">
               {token.metadata.ipType}

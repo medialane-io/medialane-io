@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShoppingCart, Clock, Plus } from "lucide-react";
 import { ipfsToHttp, timeUntil, shortenAddress } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
+import { useToken } from "@/hooks/use-tokens";
 import type { ApiOrder } from "@medialane/sdk";
 
 interface ListingCardProps {
@@ -18,6 +19,12 @@ interface ListingCardProps {
 export function ListingCard({ order, onBuy }: ListingCardProps) {
   const { addItem, items } = useCart();
   const inCart = items.some((i) => i.orderHash === order.orderHash);
+  const [imgError, setImgError] = useState(false);
+
+  // Lazy-fetch token metadata to show the real image + name
+  const { token } = useToken(order.nftContract, order.nftTokenId);
+  const name = token?.metadata?.name ?? `Token #${order.nftTokenId}`;
+  const image = token?.metadata?.image ? ipfsToHttp(token.metadata.image) : null;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -25,8 +32,8 @@ export function ListingCard({ order, onBuy }: ListingCardProps) {
       orderHash: order.orderHash,
       nftContract: order.nftContract,
       nftTokenId: order.nftTokenId,
-      name: `Token #${order.nftTokenId}`,
-      image: "",
+      name,
+      image: image ?? "",
       price: order.price.formatted,
       currency: order.price.currency,
       currencyDecimals: order.price.decimals,
@@ -39,18 +46,30 @@ export function ListingCard({ order, onBuy }: ListingCardProps) {
   return (
     <Link href={`/asset/${order.nftContract}/${order.nftTokenId}`} className="block group">
       <div className="rounded-xl border border-border bg-card overflow-hidden asset-card-hover hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5">
-        {/* Image placeholder */}
-        <div className="relative aspect-square bg-gradient-to-br from-muted to-muted/50 overflow-hidden flex items-center justify-center">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-purple-500/5" />
-          <span className="text-2xl font-mono text-muted-foreground z-10">
-            #{order.nftTokenId}
-          </span>
+        {/* Image */}
+        <div className="relative aspect-square bg-gradient-to-br from-muted to-muted/50 overflow-hidden">
+          {image && !imgError ? (
+            <Image
+              src={image}
+              alt={name}
+              fill
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              onError={() => setImgError(true)}
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-purple-500/5" />
+              <span className="text-2xl font-mono text-muted-foreground z-10">
+                #{order.nftTokenId}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Info */}
         <div className="p-3 space-y-2">
           <div>
-            <p className="font-semibold text-sm truncate">Token #{order.nftTokenId}</p>
+            <p className="font-semibold text-sm truncate">{name}</p>
             <p className="text-xs text-muted-foreground font-mono">
               {shortenAddress(order.nftContract)}
             </p>

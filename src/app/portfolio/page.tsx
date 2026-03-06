@@ -9,6 +9,9 @@ import { Button } from "@/components/ui/button";
 import { AssetsGrid } from "@/components/portfolio/assets-grid";
 import { ListingsTable } from "@/components/portfolio/listings-table";
 import { OffersTable } from "@/components/portfolio/offers-table";
+import { ReceivedOffersTable } from "@/components/portfolio/received-offers-table";
+import { PortfolioActivity } from "@/components/portfolio/portfolio-activity";
+import { AddressDisplay } from "@/components/shared/address-display";
 import { Briefcase } from "lucide-react";
 
 export default function PortfolioPage() {
@@ -44,16 +47,19 @@ export default function PortfolioPage() {
     <div className="container mx-auto px-4 py-8 space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Portfolio</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Your on-chain IP assets, listings, and offers.
-        </p>
+        <div className="flex items-center gap-2 mt-1">
+          <p className="text-muted-foreground text-sm">Your Starknet wallet:</p>
+          <AddressDisplay address={address} chars={6} className="text-sm" />
+        </div>
       </div>
 
       <Tabs defaultValue="assets">
         <TabsList>
           <TabsTrigger value="assets">Assets</TabsTrigger>
           <TabsTrigger value="listings">Listings</TabsTrigger>
-          <TabsTrigger value="offers">Offers</TabsTrigger>
+          <TabsTrigger value="offers">Offers sent</TabsTrigger>
+          <TabsTrigger value="received">Offers received</TabsTrigger>
+          <TabsTrigger value="activity">Activity</TabsTrigger>
         </TabsList>
 
         <TabsContent value="assets" className="mt-6">
@@ -66,6 +72,14 @@ export default function PortfolioPage() {
 
         <TabsContent value="offers" className="mt-6">
           <OffersTable address={address} />
+        </TabsContent>
+
+        <TabsContent value="received" className="mt-6">
+          <ReceivedOffersTable address={address} />
+        </TabsContent>
+
+        <TabsContent value="activity" className="mt-6">
+          <PortfolioActivity address={address} />
         </TabsContent>
       </Tabs>
     </div>

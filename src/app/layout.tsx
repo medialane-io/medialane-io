@@ -48,11 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <ChipiProvider>
         <html lang="en" suppressHydrationWarning>
           <body className={inter.className}>
-            <Providers>
-              <div className="relative min-h-screen flex flex-col">
-                <main className="flex-1">{children}</main>
-              </div>
-            </Providers>
+            <Providers>{children}</Providers>
           </body>
         </html>
       </ChipiProvider>
