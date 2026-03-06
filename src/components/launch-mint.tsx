@@ -316,14 +316,15 @@ export function LaunchMint() {
       </div>
 
       <div className="container mx-auto px-4 py-12 lg:py-20 relative max-w-5xl">
-        {/* Launch badge */}
+
+        {/* Launch badge 
         <div className="flex justify-center mb-10">
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-sm backdrop-blur-sm">
             <span className="font-semibold text-primary">Medialane</span>
             <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
             <span className="font-semibold text-primary">Starknet</span>
           </div>
-        </div>
+        </div>*/}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           {/* Left: NFT card */}
@@ -467,7 +468,7 @@ export function LaunchMint() {
                 {/* Header — shown on all sub-steps */}
                 {mintStep !== "success" && (
                   <div className="space-y-3">
-                    
+
                     <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-[1.1]">
                       Claim your{" "}
                       <span className="bg-gradient-to-r from-primary via-purple-400 to-pink-400 bg-clip-text text-transparent">
@@ -594,7 +595,7 @@ export function LaunchMint() {
                 {mintStep === "success" && (
                   <div className="space-y-5">
                     <div className="space-y-3">
-                      
+
                       <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-[1.1]">
                         You&apos;re{" "}
                         <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">

@@ -16,7 +16,6 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -25,8 +24,9 @@ import { PinDialog } from "@/components/chipi/pin-dialog";
 import { TxStatus } from "@/components/chipi/tx-status";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
-import { COLLECTION_CONTRACT } from "@/lib/constants";
-import { Upload, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { useMedialaneClient } from "@/hooks/use-medialane-client";
+import { COLLECTION_CONTRACT, EXPLORER_URL } from "@/lib/constants";
+import { Upload, Loader2, CheckCircle2, AlertCircle, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 
 const IP_TYPES = ["Art", "Music", "Video", "Documents", "Posts", "Patents", "Code", "NFT"] as const;
@@ -45,6 +45,7 @@ type FormValues = z.infer<typeof schema>;
 export default function CreateAssetPage() {
   const { executeTransaction, status, txHash, error, statusMessage } = useChipiTransaction();
   const { walletAddress, wallet } = useSessionKey();
+  const client = useMedialaneClient();
 
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
   const [pinOpen, setPinOpen] = useState(false);
@@ -72,16 +73,26 @@ export default function CreateAssetPage() {
     if (!pendingValues) return;
 
     try {
-      // 1. Upload metadata to IPFS
-      const formData = new FormData();
-      if (pendingValues.image) formData.append("file", pendingValues.image);
-      formData.append("name", pendingValues.name);
-      formData.append("description", pendingValues.description || "");
-      formData.append("ipType", pendingValues.ipType);
-      formData.append("licenseType", pendingValues.licenseType);
+      // 1. Upload image (if provided) then metadata via backend
+      let imageUri: string | null = null;
+      if (pendingValues.image) {
+        const fileRes = await client.api.uploadFile(pendingValues.image);
+        imageUri = fileRes.data.url;
+      }
 
-      const uploadRes = await fetch("/api/pinata", { method: "POST", body: formData });
-      const { uri } = await uploadRes.json();
+      const metaRes = await client.api.uploadMetadata({
+        name: pendingValues.name,
+        description: pendingValues.description || "",
+        image: imageUri,
+        external_url: "https://medialane.io",
+        attributes: [
+          { trait_type: "Platform", value: "Medialane" },
+          { trait_type: "Network", value: "Starknet Mainnet" },
+          { trait_type: "IP Type", value: pendingValues.ipType },
+          { trait_type: "License", value: pendingValues.licenseType },
+        ],
+      });
+      const uri = metaRes.data.url;
 
       if (!uri) throw new Error("IPFS upload failed");
 
@@ -113,10 +124,19 @@ export default function CreateAssetPage() {
   if (status === "confirmed") {
     return (
       <div className="container max-w-lg mx-auto px-4 py-16 text-center space-y-6">
-        <CheckCircle2 className="h-16 w-16 text-emerald-500 mx-auto" />
+        <div className="h-16 w-16 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto">
+          <CheckCircle2 className="h-8 w-8 text-emerald-500" />
+        </div>
         <h1 className="text-2xl font-bold">Asset created!</h1>
         <p className="text-muted-foreground">{pendingValues?.name} has been minted on Starknet.</p>
-        <div className="flex gap-3 justify-center">
+        {txHash && (
+          <Button variant="outline" size="sm" asChild>
+            <a href={`${EXPLORER_URL}/tx/${txHash}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+              View on Voyager <ExternalLink className="h-3 w-3" />
+            </a>
+          </Button>
+        )}
+        <div className="flex gap-3 justify-center pt-2">
           <Button onClick={() => { form.reset(); window.location.reload(); }}>Create another</Button>
           <Button variant="outline" asChild>
             <a href="/portfolio">View portfolio</a>

@@ -1,20 +1,40 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTheme } from "next-themes";
 import { SignInButton, SignUpButton, UserButton, useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-import { LayoutGrid, Compass, Briefcase, PlusCircle, Zap, Menu, ShoppingBag } from "lucide-react";
+import { LayoutGrid, Compass, Briefcase, PlusCircle, Zap, Menu, ShoppingBag, Search, Sun, Moon } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
 
 const NAV_LINKS = [
   { href: "/marketplace", label: "Marketplace", icon: Compass },
+  { href: "/collections", label: "Collections", icon: LayoutGrid },
   { href: "/portfolio", label: "Portfolio", icon: Briefcase },
   { href: "/create", label: "Create", icon: PlusCircle },
   { href: "/launchpad", label: "Launchpad", icon: Zap },
 ];
+
+function ThemeToggle() {
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return <div className="h-9 w-9" />;
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      aria-label="Toggle theme"
+      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+    >
+      {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+    </Button>
+  );
+}
 
 export function Header() {
   const pathname = usePathname();
@@ -49,8 +69,18 @@ export function Header() {
           ))}
         </nav>
 
-        {/* Right side: cart + auth + mobile menu */}
+        {/* Right side: search + cart + auth + mobile menu */}
         <div className="flex items-center gap-2">
+          {/* Search icon */}
+          <Button variant="ghost" size="icon" aria-label="Search" asChild>
+            <Link href="/search">
+              <Search className="h-5 w-5" />
+            </Link>
+          </Button>
+
+          {/* Theme toggle */}
+          <ThemeToggle />
+
           {/* Cart icon */}
           <Button
             variant="ghost"

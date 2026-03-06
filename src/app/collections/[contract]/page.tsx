@@ -3,16 +3,19 @@
 export const dynamic = "force-dynamic";
 
 import { useParams } from "next/navigation";
-import { useCollection } from "@/hooks/use-collections";
+import { useCollection, useCollectionTokens } from "@/hooks/use-collections";
 import { useOrders } from "@/hooks/use-orders";
 import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listing-card";
+import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddressDisplay } from "@/components/shared/address-display";
 
 export default function CollectionPage() {
   const { contract } = useParams<{ contract: string }>();
   const { collection, isLoading: colLoading } = useCollection(contract);
+  const { tokens, isLoading: tokensLoading } = useCollectionTokens(contract);
   const { orders, isLoading: ordersLoading } = useOrders({
     collection: contract,
     status: "ACTIVE",
@@ -21,6 +24,7 @@ export default function CollectionPage() {
   });
 
   const name = collection?.name || "Collection";
+  const activeListings = orders.filter((o) => o.status === "ACTIVE");
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
@@ -53,7 +57,7 @@ export default function CollectionPage() {
           {[
             { label: "Items", value: collection.totalSupply?.toLocaleString() ?? "—" },
             { label: "Holders", value: collection.holderCount?.toLocaleString() ?? "—" },
-            { label: "Floor", value: collection.floorPrice ? `${collection.floorPrice} ETH` : "—" },
+            { label: "Floor", value: collection.floorPrice ? `${collection.floorPrice}` : "—" },
             { label: "Volume", value: collection.totalVolume ?? "—" },
           ].map(({ label, value }) => (
             <div key={label} className="rounded-lg border border-border bg-card p-4">
@@ -64,25 +68,53 @@ export default function CollectionPage() {
         </div>
       )}
 
-      {/* Listings */}
-      <div>
-        <h2 className="text-xl font-semibold mb-4">Active Listings</h2>
-        {ordersLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {Array.from({ length: 8 }).map((_, i) => <ListingCardSkeleton key={i} />)}
-          </div>
-        ) : orders.length === 0 ? (
-          <div className="py-12 text-center">
-            <p className="text-muted-foreground">No active listings in this collection.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {orders.map((order) => (
-              <ListingCard key={order.orderHash} order={order} />
-            ))}
-          </div>
-        )}
-      </div>
+      {/* Tokens + Listings tabs */}
+      <Tabs defaultValue="items">
+        <TabsList>
+          <TabsTrigger value="items">
+            All Items {!tokensLoading && tokens.length > 0 && `(${tokens.length})`}
+          </TabsTrigger>
+          <TabsTrigger value="listings">
+            Listings {!ordersLoading && activeListings.length > 0 && `(${activeListings.length})`}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="items" className="mt-6">
+          {tokensLoading ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {Array.from({ length: 8 }).map((_, i) => <TokenCardSkeleton key={i} />)}
+            </div>
+          ) : tokens.length === 0 ? (
+            <div className="py-12 text-center text-muted-foreground">
+              No items indexed yet.
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {tokens.map((t) => (
+                <TokenCard key={`${t.contractAddress}-${t.tokenId}`} token={t} />
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="listings" className="mt-6">
+          {ordersLoading ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {Array.from({ length: 8 }).map((_, i) => <ListingCardSkeleton key={i} />)}
+            </div>
+          ) : activeListings.length === 0 ? (
+            <div className="py-12 text-center text-muted-foreground">
+              No active listings in this collection.
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {activeListings.map((order) => (
+                <ListingCard key={order.orderHash} order={order} />
+              ))}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

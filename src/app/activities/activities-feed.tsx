@@ -2,87 +2,201 @@
 
 export const dynamic = "force-dynamic";
 
-import { useOrders } from "@/hooks/use-orders";
+import { useState, useEffect, useRef } from "react";
+import { useActivities } from "@/hooks/use-activities";
+import { useToken } from "@/hooks/use-tokens";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { AddressDisplay } from "@/components/shared/address-display";
 import Link from "next/link";
-import { formatPrice, getCurrency } from "@/lib/utils";
 import { EXPLORER_URL } from "@/lib/constants";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Loader2 } from "lucide-react";
+import { ACTIVITY_TYPE_CONFIG } from "@/lib/activity";
+import { timeAgo } from "@/lib/utils";
+import type { ApiActivity } from "@medialane/sdk";
 
-const STATUS_LABELS: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-  ACTIVE: { label: "Listed", variant: "default" },
-  FULFILLED: { label: "Sold", variant: "secondary" },
-  CANCELLED: { label: "Cancelled", variant: "outline" },
-  EXPIRED: { label: "Expired", variant: "outline" },
-};
+const PAGE_SIZE = 30;
 
-export function ActivitiesFeed() {
-  const { orders, isLoading } = useOrders({ sort: "recent", limit: 50 });
+const TYPE_FILTERS = [
+  { label: "All", value: "" },
+  { label: "Sales", value: "sale" },
+  { label: "Listings", value: "listing" },
+  { label: "Offers", value: "offer" },
+  { label: "Transfers", value: "transfer" },
+  { label: "Cancelled", value: "cancelled" },
+];
 
-  if (isLoading) {
-    return (
-      <div className="space-y-2">
-        {Array.from({ length: 10 }).map((_, i) => (
-          <Skeleton key={i} className="h-16 w-full rounded-lg" />
-        ))}
-      </div>
-    );
-  }
+function ActivityRow({ activity }: { activity: ApiActivity }) {
+  const config = ACTIVITY_TYPE_CONFIG[activity.type] ?? {
+    label: activity.type,
+    variant: "outline" as const,
+    icon: ExternalLink,
+  };
+  const Icon = config.icon;
 
-  if (orders.length === 0) {
-    return (
-      <div className="py-16 text-center text-muted-foreground">No activity yet.</div>
-    );
-  }
+  const contract = activity.nftContract ?? activity.contractAddress ?? null;
+  const tokenId = activity.nftTokenId ?? activity.tokenId ?? null;
+  const actor = activity.offerer ?? activity.fulfiller ?? activity.from ?? "";
+  const txLink = activity.txHash ? `${EXPLORER_URL}/tx/${activity.txHash}` : null;
+
+  const { token } = useToken(contract, tokenId);
+  const tokenName = token?.metadata?.name ?? (tokenId ? `#${tokenId}` : null);
 
   return (
-    <div className="divide-y divide-border rounded-lg border">
-      {orders.map((order) => {
-        const statusInfo = STATUS_LABELS[order.status] ?? { label: order.status, variant: "outline" as const };
-        const currency = getCurrency(order.consideration.token);
-
-        return (
-          <div key={order.orderHash} className="flex items-center justify-between p-4 gap-4 hover:bg-muted/20 transition-colors">
-            <div className="flex items-center gap-3 min-w-0">
-              <Badge variant={statusInfo.variant} className="shrink-0 text-[10px]">
-                {statusInfo.label}
-              </Badge>
-              <div className="min-w-0">
-                <Link
-                  href={`/asset/${order.nftContract}/${order.nftTokenId}`}
-                  className="font-mono text-sm font-semibold hover:underline truncate block"
-                >
-                  #{order.nftTokenId}
-                </Link>
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <span>by</span>
-                  <AddressDisplay address={order.offerer} chars={3} showCopy={false} />
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 shrink-0">
-              <div className="text-right">
-                <p className="font-bold text-sm">
-                  {order.price.formatted} {order.price.currency}
-                </p>
-                <p className="text-[10px] text-muted-foreground">
-                  {new Date(order.createdAt).toLocaleDateString()}
-                </p>
-              </div>
-              <a
-                href={`${EXPLORER_URL}/tx/${order.txHash.created}`}
-                target="_blank"
-                rel="noopener noreferrer"
+    <div className="flex items-center justify-between p-4 gap-4 hover:bg-muted/20 transition-colors">
+      <div className="flex items-center gap-3 min-w-0">
+        <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
+          <Icon className="h-4 w-4 text-muted-foreground" />
+        </div>
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Badge variant={config.variant} className="text-[10px] shrink-0">{config.label}</Badge>
+            {contract && tokenId && (
+              <Link
+                href={`/asset/${contract}/${tokenId}`}
+                className="text-sm font-semibold hover:underline truncate"
               >
-                <ExternalLink className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
-              </a>
-            </div>
+                {tokenName}
+              </Link>
+            )}
           </div>
+          {actor && (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
+              <AddressDisplay address={actor} chars={4} showCopy={false} />
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3 shrink-0">
+        {activity.price?.formatted && (
+          <div className="text-right">
+            <p className="font-bold text-sm">
+              {activity.price.formatted} {activity.price.currency}
+            </p>
+          </div>
+        )}
+        <div className="text-right">
+          <p className="text-[10px] text-muted-foreground" title={new Date(activity.timestamp).toLocaleString()}>
+            {timeAgo(activity.timestamp)}
+          </p>
+        </div>
+        {txLink && (
+          <a href={txLink} target="_blank" rel="noopener noreferrer">
+            <ExternalLink className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
+          </a>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function ActivitiesFeed() {
+  const [page, setPage] = useState(1);
+  const [typeFilter, setTypeFilter] = useState("");
+  const [allActivities, setAllActivities] = useState<ApiActivity[]>([]);
+
+  // Reset when type filter changes
+  const prevType = useRef(typeFilter);
+  useEffect(() => {
+    if (prevType.current !== typeFilter) {
+      prevType.current = typeFilter;
+      setPage(1);
+      setAllActivities([]);
+    }
+  }, [typeFilter]);
+
+  const { activities, meta, isLoading } = useActivities({ limit: PAGE_SIZE, page });
+
+  // Accumulate pages
+  useEffect(() => {
+    if (isLoading) return;
+    if (page === 1) {
+      setAllActivities(activities);
+    } else {
+      setAllActivities((prev) => {
+        const existing = new Set(
+          prev.map((a) => `${a.txHash}-${a.type}-${a.nftTokenId ?? ""}`)
         );
-      })}
+        const newItems = activities.filter(
+          (a) => !existing.has(`${a.txHash}-${a.type}-${a.nftTokenId ?? ""}`)
+        );
+        return newItems.length > 0 ? [...prev, ...newItems] : prev;
+      });
+    }
+  }, [activities, isLoading, page]);
+
+  // Client-side type filter
+  const displayed = typeFilter
+    ? allActivities.filter((a) => a.type === typeFilter)
+    : allActivities;
+
+  const isInitialLoading = isLoading && allActivities.length === 0;
+  const isLoadingMore = isLoading && allActivities.length > 0;
+  const hasMore = meta ? allActivities.length < meta.total : false;
+
+  return (
+    <div className="space-y-4">
+      {/* Type filter chips */}
+      <div className="flex flex-wrap gap-2">
+        {TYPE_FILTERS.map((f) => (
+          <button
+            key={f.value}
+            onClick={() => setTypeFilter(f.value)}
+            className={`text-xs px-3 py-1 rounded-full border transition-colors ${
+              typeFilter === f.value
+                ? "border-primary bg-primary/10 text-primary font-medium"
+                : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      {isInitialLoading ? (
+        <div className="space-y-2">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <Skeleton key={i} className="h-16 w-full rounded-lg" />
+          ))}
+        </div>
+      ) : displayed.length === 0 ? (
+        <div className="py-16 text-center text-muted-foreground">
+          {typeFilter ? `No ${typeFilter} events yet.` : "No activity yet."}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="divide-y divide-border rounded-lg border">
+            {displayed.map((activity, i) => (
+              <ActivityRow
+                key={`${activity.txHash}-${activity.type}-${activity.nftTokenId ?? i}`}
+                activity={activity}
+              />
+            ))}
+          </div>
+
+          {(hasMore || isLoadingMore) && !typeFilter && (
+            <div className="flex justify-center pt-2">
+              <Button
+                variant="outline"
+                size="lg"
+                disabled={isLoadingMore}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                {isLoadingMore ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Loading…
+                  </>
+                ) : (
+                  `Load more${meta ? ` (${meta.total - allActivities.length} remaining)` : ""}`
+                )}
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
