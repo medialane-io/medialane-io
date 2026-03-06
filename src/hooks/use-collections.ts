@@ -8,7 +8,7 @@ export function useCollections(page = 1, limit = 20) {
 
   const { data, error, isLoading, mutate } = useSWR(
     `collections-${page}-${limit}`,
-    () => client.indexer.getCollections(page, limit),
+    () => client.api.getCollections(page, limit),
     { revalidateOnFocus: false }
   );
 
@@ -26,9 +26,21 @@ export function useCollection(contract: string | null) {
 
   const { data, error, isLoading } = useSWR(
     contract ? `collection-${contract}` : null,
-    () => client.indexer.getCollection(contract!),
+    () => client.api.getCollection(contract!),
     { revalidateOnFocus: false }
   );
 
   return { collection: data?.data ?? null, isLoading, error };
+}
+
+export function useCollectionTokens(contract: string | null, page = 1, limit = 24) {
+  const client = useMedialaneClient();
+
+  const { data, error, isLoading } = useSWR(
+    contract ? `collection-tokens-${contract}-${page}` : null,
+    () => client.api.getCollectionTokens(contract!, page, limit),
+    { revalidateOnFocus: false }
+  );
+
+  return { tokens: data?.data ?? [], meta: data?.meta, isLoading, error };
 }

@@ -10,7 +10,7 @@ export function useOrders(query: ApiOrdersQuery = {}) {
 
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<ApiOrder[]>>(
     key,
-    () => client.indexer.getOrders(query),
+    () => client.api.getOrders(query),
     { revalidateOnFocus: false }
   );
 
@@ -28,7 +28,7 @@ export function useOrder(orderHash: string | null) {
 
   const { data, error, isLoading } = useSWR(
     orderHash ? `order-${orderHash}` : null,
-    () => client.indexer.getOrder(orderHash!),
+    () => client.api.getOrder(orderHash!),
     { revalidateOnFocus: false }
   );
 
@@ -40,7 +40,7 @@ export function useTokenListings(contract: string | null, tokenId: string | null
 
   const { data, error, isLoading, mutate } = useSWR(
     contract && tokenId ? `listings-${contract}-${tokenId}` : null,
-    () => client.indexer.getListingsForToken(contract!, tokenId!),
+    () => client.api.getActiveOrdersForToken(contract!, tokenId!),
     { revalidateOnFocus: false }
   );
 
@@ -52,7 +52,7 @@ export function useUserOrders(address: string | null) {
 
   const { data, error, isLoading, mutate } = useSWR(
     address ? `user-orders-${address}` : null,
-    () => client.indexer.getOrdersByUser(address!),
+    () => client.api.getOrdersByUser(address!),
     { revalidateOnFocus: false }
   );
 

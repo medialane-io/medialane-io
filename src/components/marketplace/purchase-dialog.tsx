@@ -68,10 +68,6 @@ export function PurchaseDialog({ order, open, onOpenChange }: PurchaseDialogProp
     setPinOpen(false);
     await fulfillOrder({
       orderHash: order.orderHash,
-      considerationToken: order.consideration.token,
-      considerationAmount: order.consideration.startAmount,
-      nftContract: order.nftContract,
-      nftTokenId: order.nftTokenId,
       pin,
     });
   };

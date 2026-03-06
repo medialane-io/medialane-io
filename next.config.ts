@@ -12,6 +12,11 @@ const nextConfig: NextConfig = {
         pathname: "/ipfs/**",
       },
       {
+        // Dedicated Pinata gateways (e.g. myapp.mypinata.cloud)
+        protocol: "https",
+        hostname: "**.mypinata.cloud",
+      },
+      {
         protocol: "https",
         hostname: "ipfs.io",
         pathname: "/ipfs/**",
