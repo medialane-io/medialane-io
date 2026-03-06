@@ -4,6 +4,8 @@ export const dynamic = "force-dynamic";
 
 import { useUser } from "@clerk/nextjs";
 import { SignInButton } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { AssetsGrid } from "@/components/portfolio/assets-grid";
@@ -16,6 +18,7 @@ import { Briefcase } from "lucide-react";
 
 export default function PortfolioPage() {
   const { user, isLoaded, isSignedIn } = useUser();
+  const router = useRouter();
   const address = user?.publicMetadata?.publicKey as string | undefined;
 
   if (!isLoaded) return null;
@@ -33,15 +36,11 @@ export default function PortfolioPage() {
     );
   }
 
-  if (!address) {
-    return (
-      <div className="container mx-auto px-4 py-24 text-center space-y-4">
-        <p className="text-muted-foreground">
-          Your wallet hasn&apos;t been set up yet. Complete wallet setup to see your portfolio.
-        </p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (isLoaded && isSignedIn && !address) {
+      router.replace("/onboarding?redirect_url=/portfolio");
+    }
+  }, [isLoaded, isSignedIn, address, router]);
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
