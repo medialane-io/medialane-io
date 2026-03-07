@@ -3,15 +3,25 @@
 import { useUser } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
-import { useCollectionsByOwner } from "@/hooks/use-collections";
+import { useUserCollections } from "@/hooks/use-user-collections";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { ipfsToHttp } from "@/lib/utils";
 import { Layers, Plus, ImageIcon } from "lucide-react";
+import type { UserCollection } from "@/hooks/use-user-collections";
+import { useCollections } from "@/hooks/use-collections";
 import type { ApiCollection } from "@medialane/sdk";
 
-function CollectionRow({ col }: { col: ApiCollection }) {
-  const imgUrl = col.image ? ipfsToHttp(col.image) : null;
+// Merge on-chain data with DB metadata (image, description, totalSupply)
+function CollectionRow({
+  col,
+  meta,
+}: {
+  col: UserCollection;
+  meta: ApiCollection | undefined;
+}) {
+  const imgUrl = meta?.image ? ipfsToHttp(meta.image) : null;
+  const name = col.name || meta?.name || "Unnamed collection";
 
   return (
     <Link
@@ -21,7 +31,7 @@ function CollectionRow({ col }: { col: ApiCollection }) {
       {/* Thumbnail */}
       <div className="relative h-14 w-14 rounded-lg bg-gradient-to-br from-primary/10 to-purple-500/10 shrink-0 overflow-hidden border border-border">
         {imgUrl ? (
-          <Image src={imgUrl} alt={col.name ?? ""} fill className="object-cover" unoptimized />
+          <Image src={imgUrl} alt={name} fill className="object-cover" unoptimized />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
             <ImageIcon className="h-6 w-6 text-muted-foreground/40" />
@@ -31,22 +41,22 @@ function CollectionRow({ col }: { col: ApiCollection }) {
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <p className="font-semibold truncate">{col.name ?? "Unnamed collection"}</p>
+        <p className="font-semibold truncate">{name}</p>
         <div className="flex items-center gap-3 mt-0.5">
           {col.symbol && (
             <span className="text-xs text-muted-foreground font-mono">{col.symbol}</span>
           )}
-          <span className="text-xs text-muted-foreground">
-            {col.totalSupply ?? 0} token{col.totalSupply !== 1 ? "s" : ""}
-          </span>
-          {col.floorPrice && (
+          {meta?.totalSupply != null && (
             <span className="text-xs text-muted-foreground">
-              Floor {col.floorPrice}
+              {meta.totalSupply} token{meta.totalSupply !== 1 ? "s" : ""}
             </span>
           )}
+          {meta?.floorPrice && (
+            <span className="text-xs text-muted-foreground">Floor {meta.floorPrice}</span>
+          )}
         </div>
-        {col.description && (
-          <p className="text-xs text-muted-foreground mt-1 truncate">{col.description}</p>
+        {meta?.description && (
+          <p className="text-xs text-muted-foreground mt-1 truncate">{meta.description}</p>
         )}
       </div>
 
@@ -61,7 +71,13 @@ function CollectionRow({ col }: { col: ApiCollection }) {
 export default function PortfolioCollectionsPage() {
   const { user } = useUser();
   const address = user?.publicMetadata?.publicKey as string | undefined;
-  const { collections, isLoading } = useCollectionsByOwner(address ?? null);
+
+  // On-chain: get collection IDs + basic metadata owned by this wallet
+  const { collections, isLoading } = useUserCollections(address ?? null);
+
+  // DB: fetch all collections to get image/description/supply enrichment
+  const { collections: dbCollections } = useCollections(1, 50);
+  const dbMap = new Map(dbCollections.map((c) => [c.contractAddress, c]));
 
   if (isLoading) {
     return (
@@ -81,7 +97,7 @@ export default function PortfolioCollectionsPage() {
         </div>
         <p className="font-semibold text-lg">No collections yet</p>
         <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-          Deploy your first NFT collection on Starknet — it's free and gasless.
+          Deploy your first NFT collection on Starknet — it&apos;s free and gasless.
         </p>
         <Button asChild>
           <Link href="/create/collection">
@@ -109,7 +125,11 @@ export default function PortfolioCollectionsPage() {
 
       <div className="space-y-2">
         {collections.map((col) => (
-          <CollectionRow key={col.contractAddress} col={col} />
+          <CollectionRow
+            key={col.onChainId}
+            col={col}
+            meta={dbMap.get(col.contractAddress)}
+          />
         ))}
       </div>
     </div>

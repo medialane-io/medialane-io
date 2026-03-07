@@ -31,8 +31,11 @@ NEXT_PUBLIC_MEDIALANE_BACKEND_URL=http://localhost:3001
 - **Clerk** — Email/social authentication. Session JWTs are templated as `chipipay` for wallet derivation.
 - **ChipiPay** (`@chipi-stack/nextjs`) — Manages Starknet wallets derived from Clerk sessions. Enables gasless transactions. Wraps the app via `ChipiProvider` in `src/app/providers.tsx`.
 - **Starknet.js** — Direct contract calls. RPC singleton in `src/lib/starknet.ts`.
-- **@medialane/sdk** — Published npm package (`@medialane/sdk@0.2.0`, org: `@medialane`). Provides `ApiOrder`, `ApiToken`, `ApiCollection`, `OrderStatus`, `IpAttribute`, `IpNftMetadata` types and the SDK client used in `src/lib/medialane-client.ts`.
-- **Pinata** — IPFS uploads via `src/app/api/pinata/route.ts`. Universal IP asset upload endpoint — requires Clerk session auth, accepts full licensing schema, uploads image + metadata JSON directly to Pinata in one call. Asset creation bypasses the backend entirely (decentralised). Genesis-specific uploads use the separate `src/app/api/pinata/genesis/route.ts`.
+- **@medialane/sdk** — Published npm package (`@medialane/sdk@0.2.8`, org: `@medialane`). Provides `ApiOrder`, `ApiToken`, `ApiCollection`, `ApiOrderTokenMeta`, `OrderStatus`, `IpAttribute`, `IpNftMetadata` types and the SDK client used in `src/lib/medialane-client.ts`. `ApiOrder.token: ApiOrderTokenMeta | null` carries name/image/description enrichment from the backend — no per-row `useToken` calls needed.
+- **Pinata** — IPFS uploads via two Next.js routes (both Clerk-gated, direct to Pinata):
+  - `src/app/api/pinata/route.ts` — Universal IP asset upload. Accepts full licensing schema, uploads image + metadata JSON in one call. Returns `{ uri, imageUri, cid }`.
+  - `src/app/api/pinata/image/route.ts` — Image-only upload. Returns `{ imageUri: "ipfs://...", cid }`. Used by the create collection flow.
+  - `src/app/api/pinata/genesis/route.ts` — Genesis mint specific.
 
 ### Data Flow
 
@@ -118,6 +121,7 @@ When `LAUNCH_MINT_CONTRACT` or `GENESIS_NFT_URI` are empty the button renders as
 | `useCollections()` | All collections | `GET /v1/collections` |
 | `useCollection(contract)` | Single collection | `GET /v1/collections/:contract` |
 | `useCollectionTokens(contract)` | Tokens in collection | `GET /v1/collections/:contract/tokens` |
+| `useCollectionsByOwner(address)` | Collections owned by address | `GET /v1/collections?owner=address` (direct fetch, bypasses SDK) |
 | `useActivities(query)` | Global activity feed | `GET /v1/activities` |
 | `useActivitiesByAddress(address)` | User activity | `GET /v1/activities/:address` |
 
@@ -127,6 +131,8 @@ All write ops follow: create intent → sign typed data → submit signature →
 - `makeOffer(input)` → SNIP-12 offer intent
 - `fulfillOrder(input)` → Buy listing — simplest: `createFulfillIntent` returns pre-signed calls
 - `cancelOrder(input)` → Cancel SNIP-12
+
+**Stale order sync**: after every write op, `setTimeout(() => invalidate(), 10000)` fires a delayed revalidation to ensure UI reflects on-chain state after the indexer processes the block (~6s poll cycle). SWR hooks also have `refreshInterval: 30000` / `20000`.
 
 ### Wallet & session (`use-session-key.ts`)
 - `walletAddress` — user's Starknet address (from ChipiPay)
@@ -158,6 +164,8 @@ All previously noted bugs were fixed. No outstanding known bugs.
 - [x] Asset page: show all listings in "Listings" tab (not just cheapest) ✓ 2026-03-06
 - [x] Portfolio listings table: fetch token metadata for name/image display ✓ 2026-03-06
 - [x] Portfolio offers table: add Cancel button + token name/image ✓ 2026-03-06
+- [x] Portfolio restructured: tabs → subpages (`/portfolio/assets`, `/portfolio/collections`, etc.) ✓ 2026-03-07
+- [x] Portfolio collections page: shows user-owned collections via `useCollectionsByOwner` ✓ 2026-03-07
 - [x] Asset page: incoming offers section + Offers tab with Accept flow ✓ 2026-03-06
 - [x] Marketplace: "Load more" pagination (PAGE_SIZE=12, appends pages) ✓ 2026-03-06
 
@@ -172,7 +180,10 @@ All previously noted bugs were fixed. No outstanding known bugs.
 - [x] Offer browsing in marketplace (Type filter: All / Listings / Offers) ✓ 2026-03-06
 - [ ] Price range filter in marketplace (requires backend min/max params — deferred)
 - [x] Sidebar-first layout: shadcn `sidebar-07` replaces top header globally ✓ 2026-03-06
-- [x] `@medialane/sdk` published to npm — replaced local `file:` dep ✓ 2026-03-06
+- [x] `@medialane/sdk` published to npm — replaced local `file:` dep ✓ 2026-03-06 (latest: v0.2.8)
+- [x] batchTokenMeta: order endpoints return `token.{name,image,description}` — eliminates N+1 `useToken` calls ✓ 2026-03-07
+- [x] Stale order sync: refreshInterval + delayed invalidate after write ops ✓ 2026-03-07
+- [x] Collection image upload in create flow (`/api/pinata/image`) + image stored in intent typedData ✓ 2026-03-07
 - [x] Full programmable licensing metadata (Berne Convention, CC variants, AI policy, royalty) ✓ 2026-03-06
 - [x] Asset page License tab — rich display from IPFS attributes (Berne badge, icon table) ✓ 2026-03-06
 - [x] Asset upload decentralised — direct Pinata via `/api/pinata`, no backend hop ✓ 2026-03-06
@@ -217,6 +228,9 @@ layout.tsx (server)
 | `src/types/index.ts` | Local TypeScript types (CartItem, etc.) |
 | `src/types/ip.ts` | IP/licensing constants: `LICENSE_TYPES`, `IP_TYPES`, `GEOGRAPHIC_SCOPES`, `AI_POLICIES`, `DERIVATIVES_OPTIONS`, `LICENSE_TRAIT_TYPES` |
 | `src/app/api/pinata/route.ts` | Universal IP asset upload (Clerk-gated, direct Pinata) — accepts image + full licensing schema, returns `{ uri, imageUri, cid }` |
+| `src/app/api/pinata/image/route.ts` | Image-only upload (Clerk-gated, direct Pinata) — returns `{ imageUri: "ipfs://...", cid }`. Used by create collection flow |
+| `src/app/portfolio/layout.tsx` | Portfolio shared layout: auth guard, wallet display, subnav with 6 links + unread badge |
+| `src/hooks/use-collections.ts` | `useCollections`, `useCollection`, `useCollectionTokens`, `useCollectionsByOwner` |
 | `src/app/globals.css` | HSL theme tokens, `.glass`, `.gradient-text` |
 | `src/app/providers.tsx` | Global shell: SidebarProvider + AppSidebar + SidebarInset + top bar |
 | `src/components/layout/app-sidebar.tsx` | Shadcn sidebar: brand, nav, Clerk user footer |

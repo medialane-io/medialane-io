@@ -28,12 +28,15 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { TxStatus } from "@/components/chipi/tx-status";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
-import { COLLECTION_CONTRACT, EXPLORER_URL } from "@/lib/constants";
+import { useMedialaneClient } from "@/hooks/use-medialane-client";
+import { useUserCollections } from "@/hooks/use-user-collections";
+import { EXPLORER_URL } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import {
   IP_TYPES,
@@ -50,10 +53,15 @@ import {
   ExternalLink,
   ChevronDown,
   ShieldCheck,
+  Boxes,
+  Plus,
 } from "lucide-react";
 import { toast } from "sonner";
+import Link from "next/link";
+import type { ChipiCall } from "@/hooks/use-chipi-transaction";
 
 const schema = z.object({
+  collectionId: z.string().min(1, "Select a collection"),
   name: z.string().min(1, "Name required").max(100),
   description: z.string().max(1000).optional(),
   ipType: z.enum(IP_TYPES),
@@ -103,6 +111,10 @@ function ToggleGroup({
 export default function CreateAssetPage() {
   const { executeTransaction, status, txHash, error, statusMessage } = useChipiTransaction();
   const { walletAddress, wallet } = useSessionKey();
+  const client = useMedialaneClient();
+
+  // Fetch user's collections from the collection registry on-chain
+  const { collections, isLoading: collectionsLoading } = useUserCollections(walletAddress ?? null);
 
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
   const [pinOpen, setPinOpen] = useState(false);
@@ -115,6 +127,7 @@ export default function CreateAssetPage() {
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
+      collectionId: "",
       name: "",
       description: "",
       ipType: "Art",
@@ -149,10 +162,10 @@ export default function CreateAssetPage() {
 
   const handlePin = async (pin: string) => {
     setPinOpen(false);
-    if (!pendingValues) return;
+    if (!pendingValues || !walletAddress) return;
 
     try {
-      // 1. Upload image + metadata directly to Pinata (via local API route — decentralised)
+      // 1. Upload image + metadata to IPFS via /api/pinata
       const formData = new FormData();
       formData.set("name", pendingValues.name);
       formData.set("description", pendingValues.description ?? "");
@@ -171,23 +184,30 @@ export default function CreateAssetPage() {
       if (!uploadRes.ok || uploadData.error) {
         throw new Error(uploadData.error ?? "IPFS upload failed");
       }
-      const uri: string = uploadData.uri;
-      if (!uri) throw new Error("IPFS upload returned no URI");
+      const tokenUri: string = uploadData.uri;
+      if (!tokenUri) throw new Error("IPFS upload returned no URI");
 
-      // 3. Mint via ChipiPay
+      // 2. Create mint intent — backend validates ownership on-chain + encodes Cairo calldata
+      const intentRes = await client.api.createMintIntent({
+        owner: walletAddress,
+        collectionId: pendingValues.collectionId,
+        recipient: walletAddress,
+        tokenUri,
+      });
+
+      if (!intentRes.data?.calls?.length) {
+        throw new Error("Mint intent returned no calls");
+      }
+
+      // 3. Execute via ChipiPay
       const walletOverride = wallet
         ? { publicKey: wallet.publicKey, encryptedPrivateKey: wallet.encryptedPrivateKey }
         : undefined;
+
       await executeTransaction({
         pin,
-        contractAddress: COLLECTION_CONTRACT,
-        calls: [
-          {
-            contractAddress: COLLECTION_CONTRACT,
-            entrypoint: "mint",
-            calldata: [walletAddress ?? "", uri],
-          },
-        ],
+        contractAddress: intentRes.data.calls[0].contractAddress,
+        calls: intentRes.data.calls as ChipiCall[],
         wallet: walletOverride,
       });
 
@@ -222,7 +242,7 @@ export default function CreateAssetPage() {
         <div className="flex gap-3 justify-center pt-2">
           <Button onClick={() => { form.reset(); window.location.reload(); }}>Create another</Button>
           <Button variant="outline" asChild>
-            <a href="/portfolio">View portfolio</a>
+            <Link href="/portfolio/assets">View portfolio</Link>
           </Button>
         </div>
       </div>
@@ -245,6 +265,51 @@ export default function CreateAssetPage() {
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+
+            {/* Collection selector */}
+            <FormField
+              control={form.control}
+              name="collectionId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-1.5">
+                    <Boxes className="h-4 w-4" />
+                    Collection *
+                  </FormLabel>
+                  {collectionsLoading ? (
+                    <Skeleton className="h-10 w-full rounded-md" />
+                  ) : collections.length === 0 ? (
+                    <div className="rounded-lg border border-dashed border-border p-4 text-center space-y-2">
+                      <p className="text-sm text-muted-foreground">
+                        You don&apos;t have any collections yet. Create one first.
+                      </p>
+                      <Button size="sm" variant="outline" asChild>
+                        <Link href="/create/collection">
+                          <Plus className="h-3.5 w-3.5 mr-1.5" />
+                          Create collection
+                        </Link>
+                      </Button>
+                    </div>
+                  ) : (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a collection" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {collections.map((col) => (
+                          <SelectItem key={col.onChainId} value={col.onChainId}>
+                            {col.name || col.symbol || `Collection #${col.onChainId}`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             {/* Cover image */}
             <div className="space-y-2">
@@ -352,17 +417,13 @@ export default function CreateAssetPage() {
                 <span className="text-xs text-muted-foreground ml-auto">Embedded in IPFS metadata · Berne Convention</span>
               </div>
 
-              {/* License type */}
               <FormField
                 control={form.control}
                 name="licenseType"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>License</FormLabel>
-                    <Select
-                      value={field.value}
-                      onValueChange={handleLicenseChange}
-                    >
+                    <Select value={field.value} onValueChange={handleLicenseChange}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue />
@@ -385,69 +446,50 @@ export default function CreateAssetPage() {
                 )}
               />
 
-              {/* Commercial Use */}
               <FormField
                 control={form.control}
                 name="commercialUse"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Commercial Use</FormLabel>
-                    <ToggleGroup
-                      value={field.value}
-                      options={["Yes", "No"]}
-                      onChange={field.onChange}
-                    />
+                    <ToggleGroup value={field.value} options={["Yes", "No"]} onChange={field.onChange} />
                   </FormItem>
                 )}
               />
 
-              {/* Derivatives */}
               <FormField
                 control={form.control}
                 name="derivatives"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Derivatives</FormLabel>
-                    <ToggleGroup
-                      value={field.value}
-                      options={DERIVATIVES_OPTIONS}
-                      onChange={field.onChange}
-                    />
+                    <ToggleGroup value={field.value} options={DERIVATIVES_OPTIONS} onChange={field.onChange} />
                   </FormItem>
                 )}
               />
 
-              {/* Attribution */}
               <FormField
                 control={form.control}
                 name="attribution"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Attribution</FormLabel>
-                    <ToggleGroup
-                      value={field.value}
-                      options={["Required", "Not Required"]}
-                      onChange={field.onChange}
-                    />
+                    <ToggleGroup value={field.value} options={["Required", "Not Required"]} onChange={field.onChange} />
                   </FormItem>
                 )}
               />
 
-              {/* Advanced */}
               <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
                 <CollapsibleTrigger asChild>
                   <button
                     type="button"
                     className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    <ChevronDown
-                      className={cn("h-3.5 w-3.5 transition-transform", advancedOpen && "rotate-180")}
-                    />
+                    <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", advancedOpen && "rotate-180")} />
                     Advanced options
                   </button>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="space-y-4 pt-3">
-                  {/* Geographic Scope */}
                   <FormField
                     control={form.control}
                     name="geographicScope"
@@ -456,9 +498,7 @@ export default function CreateAssetPage() {
                         <FormLabel>Territory</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             {GEOGRAPHIC_SCOPES.map((s) => (
@@ -470,23 +510,17 @@ export default function CreateAssetPage() {
                     )}
                   />
 
-                  {/* AI Policy */}
                   <FormField
                     control={form.control}
                     name="aiPolicy"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>AI & Data Mining</FormLabel>
-                        <ToggleGroup
-                          value={field.value}
-                          options={AI_POLICIES}
-                          onChange={field.onChange}
-                        />
+                        <FormLabel>AI &amp; Data Mining</FormLabel>
+                        <ToggleGroup value={field.value} options={AI_POLICIES} onChange={field.onChange} />
                       </FormItem>
                     )}
                   />
 
-                  {/* Royalty */}
                   <FormField
                     control={form.control}
                     name="royalty"
@@ -522,7 +556,12 @@ export default function CreateAssetPage() {
             <Button
               type="submit"
               className="w-full h-12 text-base"
-              disabled={status === "submitting" || status === "confirming"}
+              disabled={
+                status === "submitting" ||
+                status === "confirming" ||
+                collectionsLoading ||
+                collections.length === 0
+              }
             >
               {status === "submitting" ? (
                 <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Minting…</>
