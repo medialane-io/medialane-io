@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUser, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
-import { LayoutGrid, Compass, Briefcase, PlusCircle, Zap, Activity } from "lucide-react";
+import { Home, Compass, Briefcase, PlusCircle, Zap, Activity, LayoutGrid } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 const NAV = [
+  { href: "/", label: "Home", icon: Home, exact: true },
   { href: "/marketplace", label: "Marketplace", icon: Compass },
   { href: "/collections", label: "Collections", icon: LayoutGrid },
   { href: "/portfolio", label: "Portfolio", icon: Briefcase },
@@ -39,7 +40,7 @@ export function AppSidebar() {
             <SidebarMenuButton size="lg" asChild>
               <Link href="/">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shrink-0">
-                  <LayoutGrid className="size-4" />
+                  <Zap className="size-4" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold tracking-tight">medialane</span>
@@ -56,9 +57,13 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel>Platform</SidebarGroupLabel>
           <SidebarMenu>
-            {NAV.map(({ href, label, icon: Icon }) => (
+            {NAV.map(({ href, label, icon: Icon, exact }) => (
               <SidebarMenuItem key={href}>
-                <SidebarMenuButton asChild isActive={!!pathname?.startsWith(href)} tooltip={label}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={exact ? pathname === href : !!pathname?.startsWith(href)}
+                  tooltip={label}
+                >
                   <Link href={href}>
                     <Icon />
                     <span>{label}</span>

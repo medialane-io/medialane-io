@@ -52,16 +52,32 @@ function TokenCard({ token }: { token: NonNullable<ApiSearchResult["tokens"]>[nu
 }
 
 function CollectionCard({ col }: { col: NonNullable<ApiSearchResult["collections"]>[number] }) {
+  const [imgError, setImgError] = useState(false);
+  const imageUrl = col.image ? ipfsToHttp(col.image) : null;
+  const showImage = imageUrl && !imgError;
+  const initial = (col.name ?? "?").charAt(0).toUpperCase();
+
   return (
     <Link
       href={`/collections/${col.contractAddress}`}
       className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 hover:border-primary/30 hover:bg-muted/30 transition-all"
     >
-      <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center text-base font-bold shrink-0">
-        {col.name?.charAt(0) ?? "?"}
+      <div className="relative h-10 w-10 rounded-lg bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center text-base font-bold shrink-0 overflow-hidden">
+        {showImage ? (
+          <Image
+            src={imageUrl}
+            alt=""
+            fill
+            className="object-cover"
+            onError={() => setImgError(true)}
+            unoptimized
+          />
+        ) : (
+          <span>{initial}</span>
+        )}
       </div>
       <div className="min-w-0">
-        <p className="font-semibold text-sm truncate">{col.name}</p>
+        <p className="font-semibold text-sm truncate">{col.name ?? "Unnamed"}</p>
         <p className="text-xs text-muted-foreground font-mono truncate">
           {col.contractAddress.slice(0, 20)}…
         </p>
