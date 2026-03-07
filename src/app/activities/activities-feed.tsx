@@ -161,14 +161,14 @@ export function ActivitiesFeed() {
             <Skeleton key={i} className="h-16 w-full rounded-lg" />
           ))}
         </div>
-      ) : displayed.length === 0 ? (
+      ) : allActivities.length === 0 ? (
         <div className="py-16 text-center text-muted-foreground">
           {typeFilter ? `No ${typeFilter} events yet.` : "No activity yet."}
         </div>
       ) : (
         <div className="space-y-4">
           <div className="divide-y divide-border rounded-lg border">
-            {displayed.map((activity, i) => (
+            {allActivities.map((activity, i) => (
               <ActivityRow
                 key={`${activity.txHash}-${activity.type}-${activity.nftTokenId ?? i}`}
                 activity={activity}
