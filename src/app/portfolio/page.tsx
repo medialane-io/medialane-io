@@ -29,7 +29,7 @@ export default function PortfolioPage() {
       o.offerer.toLowerCase() !== (address ?? "").toLowerCase()
   ).length;
 
-  // Mark all received offers as seen when portfolio is opened
+  // All hooks must be called before any early returns
   useEffect(() => {
     const receivedOffers = orders.filter(
       (o) => o.status === "ACTIVE" && o.offer.itemType === "ERC20"
@@ -38,6 +38,12 @@ export default function PortfolioPage() {
       markOffersAsSeen(receivedOffers.map((o) => o.orderHash));
     }
   }, [orders]);
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn && !address) {
+      router.replace("/onboarding?redirect_url=/portfolio");
+    }
+  }, [isLoaded, isSignedIn, address, router]);
 
   if (!isLoaded) return null;
 
@@ -53,12 +59,6 @@ export default function PortfolioPage() {
       </div>
     );
   }
-
-  useEffect(() => {
-    if (isLoaded && isSignedIn && !address) {
-      router.replace("/onboarding?redirect_url=/portfolio");
-    }
-  }, [isLoaded, isSignedIn, address, router]);
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
