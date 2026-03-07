@@ -63,7 +63,9 @@ function ActivityRow({ activity }: { activity: ApiActivity }) {
           </div>
           {actor && (
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
-              <AddressDisplay address={actor} chars={4} showCopy={false} />
+              <Link href={`/creator/${actor}`} className="hover:text-primary transition-colors">
+                <AddressDisplay address={actor} chars={4} showCopy={false} />
+              </Link>
             </div>
           )}
         </div>

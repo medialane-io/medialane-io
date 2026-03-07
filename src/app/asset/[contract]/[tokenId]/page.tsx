@@ -8,6 +8,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useToken, useTokenHistory } from "@/hooks/use-tokens";
 import { useTokenListings } from "@/hooks/use-orders";
+import { useCollection } from "@/hooks/use-collections";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,7 +18,7 @@ import { OfferDialog } from "@/components/marketplace/offer-dialog";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { ipfsToHttp, timeUntil, timeAgo } from "@/lib/utils";
-import { ShoppingCart, Tag, ExternalLink, Clock, HandCoins, ArrowRightLeft, X, CheckCircle, DollarSign, GitBranch, UserCheck, Globe, Bot, Percent, Shield, Calendar } from "lucide-react";
+import { ShoppingCart, Tag, ExternalLink, Clock, HandCoins, ArrowRightLeft, X, CheckCircle, DollarSign, GitBranch, UserCheck, Globe, Bot, Percent, Shield, Calendar, ChevronRight } from "lucide-react";
 import { LICENSE_TRAIT_TYPES } from "@/types/ip";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ApiActivity, ApiOrder } from "@medialane/sdk";
@@ -36,6 +37,7 @@ const TYPE_LABEL: Record<string, string> = {
 export default function AssetPage() {
   const { contract, tokenId } = useParams<{ contract: string; tokenId: string }>();
   const { walletAddress } = useSessionKey();
+  const { collection } = useCollection(contract);
   const { token, isLoading } = useToken(contract, tokenId);
   const { listings, mutate: mutateListings } = useTokenListings(contract, tokenId);
   const { history } = useTokenHistory(contract, tokenId);
@@ -133,10 +135,26 @@ export default function AssetPage() {
   return (
     <>
       <div className="container mx-auto px-4 py-8 space-y-8">
+        {/* Breadcrumb */}
+        <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          <Link href="/collections" className="hover:text-foreground transition-colors">
+            Collections
+          </Link>
+          <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+          <Link
+            href={`/collections/${contract}`}
+            className="hover:text-foreground transition-colors truncate max-w-[160px]"
+          >
+            {collection?.name ?? contract.slice(0, 10) + "…"}
+          </Link>
+          <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+          <span className="text-foreground font-medium truncate">{name}</span>
+        </nav>
+
         {/* Top: image + info */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-          {/* Image */}
-          <div className="relative aspect-square rounded-2xl overflow-hidden border border-border bg-muted">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
+          {/* Image — sticky on desktop */}
+          <div className="lg:sticky lg:top-16 relative aspect-square rounded-2xl overflow-hidden border border-border bg-muted">
             {image && !imgError ? (
               <Image
                 src={image}
@@ -161,7 +179,9 @@ export default function AssetPage() {
               <h1 className="text-3xl font-bold">{name}</h1>
               <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
                 <span>Owned by</span>
-                <AddressDisplay address={token.owner} />
+                <Link href={`/creator/${token.owner}`} className="hover:text-primary transition-colors">
+                  <AddressDisplay address={token.owner} />
+                </Link>
               </div>
             </div>
 
