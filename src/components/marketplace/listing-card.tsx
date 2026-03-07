@@ -8,7 +8,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ShoppingCart, Clock, Plus } from "lucide-react";
 import { ipfsToHttp, timeUntil, shortenAddress } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
-import { useToken } from "@/hooks/use-tokens";
 import type { ApiOrder } from "@medialane/sdk";
 
 interface ListingCardProps {
@@ -21,10 +20,8 @@ export function ListingCard({ order, onBuy }: ListingCardProps) {
   const inCart = items.some((i) => i.orderHash === order.orderHash);
   const [imgError, setImgError] = useState(false);
 
-  // Lazy-fetch token metadata to show the real image + name
-  const { token } = useToken(order.nftContract, order.nftTokenId);
-  const name = token?.metadata?.name ?? `Token #${order.nftTokenId}`;
-  const image = token?.metadata?.image ? ipfsToHttp(token.metadata.image) : null;
+  const name = order.token?.name ?? `Token #${order.nftTokenId}`;
+  const image = order.token?.image ? ipfsToHttp(order.token.image) : null;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();

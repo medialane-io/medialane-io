@@ -1,16 +1,17 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { ListingsGrid } from "@/components/marketplace/listings-grid";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Search, X } from "lucide-react";
 import type { ApiSearchResult } from "@medialane/sdk";
+import { ipfsToHttp } from "@/lib/utils";
 import Link from "next/link";
+import { usePlatformStats } from "@/hooks/use-stats";
 
 const SORT_OPTIONS = [
   { label: "Recent", value: "recent" },
@@ -109,21 +110,28 @@ function SearchBar() {
               <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted/30">
                 Collections
               </div>
-              {results.collections!.map((c) => (
-                <Link
-                  key={c.contractAddress}
-                  href={`/collections/${c.contractAddress}`}
-                  className="flex items-center gap-3 px-3 py-2.5 hover:bg-muted/50 transition-colors"
-                >
-                  <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center text-xs font-bold shrink-0">
-                    {c.name?.charAt(0) ?? "?"}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium truncate">{c.name}</p>
-                    <p className="text-xs text-muted-foreground font-mono truncate">{c.contractAddress.slice(0, 14)}…</p>
-                  </div>
-                </Link>
-              ))}
+              {results.collections!.map((c) => {
+                const imgUrl = c.image ? ipfsToHttp(c.image) : null;
+                return (
+                  <Link
+                    key={c.contractAddress}
+                    href={`/collections/${c.contractAddress}`}
+                    className="flex items-center gap-3 px-3 py-2.5 hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="relative h-8 w-8 rounded-lg bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center text-xs font-bold shrink-0 overflow-hidden">
+                      {imgUrl ? (
+                        <Image src={imgUrl} alt="" fill className="object-cover" unoptimized />
+                      ) : (
+                        <span>{c.name?.charAt(0) ?? "?"}</span>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium truncate">{c.name}</p>
+                      <p className="text-xs text-muted-foreground font-mono truncate">{c.contractAddress.slice(0, 14)}…</p>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           )}
         </div>
@@ -132,10 +140,60 @@ function SearchBar() {
   );
 }
 
+function PlatformStatsBar() {
+  const { stats } = usePlatformStats();
+
+  const items = [
+    { label: "Collections", value: stats?.collections },
+    { label: "Assets", value: stats?.tokens },
+    { label: "Sales", value: stats?.sales },
+  ];
+
+  return (
+    <div className="flex items-center gap-6">
+      {items.map(({ label, value }) => (
+        <div key={label} className="text-sm">
+          <span className="font-bold text-foreground">
+            {value !== undefined ? value.toLocaleString() : "—"}
+          </span>
+          <span className="text-muted-foreground ml-1.5">{label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function MarketplacePage() {
   const [sort, setSort] = useState("recent");
   const [currency, setCurrency] = useState("");
   const [orderType, setOrderType] = useState("");
+  const [minInput, setMinInput] = useState("");
+  const [maxInput, setMaxInput] = useState("");
+  const [minPrice, setMinPrice] = useState<string | undefined>();
+  const [maxPrice, setMaxPrice] = useState<string | undefined>();
+  const priceDebounce = useRef<ReturnType<typeof setTimeout>>(null);
+
+  const handlePriceInput = (min: string, max: string) => {
+    setMinInput(min);
+    setMaxInput(max);
+    if (priceDebounce.current) clearTimeout(priceDebounce.current);
+    priceDebounce.current = setTimeout(() => {
+      setMinPrice(min.trim() || undefined);
+      setMaxPrice(max.trim() || undefined);
+    }, 400);
+  };
+
+  const hasFilters = sort !== "recent" || currency || orderType || minPrice || maxPrice;
+
+  const resetAll = () => {
+    setSort("recent");
+    setCurrency("");
+    setOrderType("");
+    setMinInput("");
+    setMaxInput("");
+    setMinPrice(undefined);
+    setMaxPrice(undefined);
+  };
 
   return (
     <div className="px-4 py-8 space-y-6">
@@ -149,79 +207,116 @@ export default function MarketplacePage() {
         <p className="text-sm text-muted-foreground">
           Browse, buy, and license creative works on Starknet — gasless for everyone.
         </p>
+        <PlatformStatsBar />
       </div>
 
       {/* Filter toolbar */}
-      <div className="flex flex-wrap items-center gap-3 pb-2 border-b border-border/60">
-        {/* Search */}
+      <div className="space-y-3 pb-2 border-b border-border/60">
+        {/* Row 1: search */}
         <SearchBar />
 
-        {/* Sort */}
-        <div className="flex items-center gap-1">
-          {SORT_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => setSort(opt.value)}
-              className={`text-xs px-3 py-1.5 rounded-md transition-colors ${
-                sort === opt.value
-                  ? "bg-primary/10 text-primary font-medium"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
+        {/* Row 2: scrollable filter chips */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+          {/* Sort */}
+          <div className="flex items-center gap-1 shrink-0">
+            {SORT_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setSort(opt.value)}
+                className={`text-xs px-3 py-1.5 rounded-md transition-colors whitespace-nowrap ${
+                  sort === opt.value
+                    ? "bg-primary/10 text-primary font-medium"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
 
-        {/* Type */}
-        <div className="flex items-center gap-1">
-          {TYPE_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => setOrderType(opt.value)}
-              className={`text-xs px-3 py-1.5 rounded-md transition-colors ${
-                orderType === opt.value
-                  ? "bg-primary/10 text-primary font-medium"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
+          <div className="w-px h-5 bg-border shrink-0" />
 
-        {/* Currency */}
-        <div className="flex items-center gap-1.5">
-          {CURRENCY_OPTIONS.map((c) => (
-            <button
-              key={c}
-              onClick={() => setCurrency(currency === c ? "" : c)}
-              className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
-                currency === c
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-border text-muted-foreground hover:border-primary/50"
-              }`}
-            >
-              {c}
-            </button>
-          ))}
-        </div>
+          {/* Type */}
+          <div className="flex items-center gap-1 shrink-0">
+            {TYPE_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setOrderType(opt.value)}
+                className={`text-xs px-3 py-1.5 rounded-md transition-colors whitespace-nowrap ${
+                  orderType === opt.value
+                    ? "bg-primary/10 text-primary font-medium"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
 
-        {/* Reset */}
-        {(sort !== "recent" || currency || orderType) && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 text-xs text-muted-foreground ml-auto"
-            onClick={() => { setSort("recent"); setCurrency(""); setOrderType(""); }}
-          >
-            Reset
-          </Button>
-        )}
+          <div className="w-px h-5 bg-border shrink-0" />
+
+          {/* Currency */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            {CURRENCY_OPTIONS.map((c) => (
+              <button
+                key={c}
+                onClick={() => setCurrency(currency === c ? "" : c)}
+                className={`text-xs px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap ${
+                  currency === c
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border text-muted-foreground hover:border-primary/50"
+                }`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+
+          <div className="w-px h-5 bg-border shrink-0" />
+
+          {/* Price range */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            <Input
+              placeholder="Min"
+              value={minInput}
+              onChange={(e) => handlePriceInput(e.target.value, maxInput)}
+              className="h-7 w-16 text-xs px-2"
+              type="number"
+              min="0"
+            />
+            <span className="text-xs text-muted-foreground">–</span>
+            <Input
+              placeholder="Max"
+              value={maxInput}
+              onChange={(e) => handlePriceInput(minInput, e.target.value)}
+              className="h-7 w-16 text-xs px-2"
+              type="number"
+              min="0"
+            />
+          </div>
+
+          {/* Reset */}
+          {hasFilters && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs text-muted-foreground shrink-0 ml-auto"
+              onClick={resetAll}
+            >
+              Reset
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Grid */}
-      <ListingsGrid sort={sort} currency={currency || undefined} orderType={orderType} />
+      <ListingsGrid
+        sort={sort}
+        currency={currency || undefined}
+        orderType={orderType}
+        minPrice={minPrice}
+        maxPrice={maxPrice}
+      />
     </div>
   );
 }

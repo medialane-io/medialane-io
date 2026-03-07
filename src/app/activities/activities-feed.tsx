@@ -1,9 +1,8 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import { useState, useEffect, useRef } from "react";
 import { useActivities } from "@/hooks/use-activities";
+import type { ApiActivitiesQuery } from "@medialane/sdk";
 import { useToken } from "@/hooks/use-tokens";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -63,7 +62,9 @@ function ActivityRow({ activity }: { activity: ApiActivity }) {
           </div>
           {actor && (
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
-              <AddressDisplay address={actor} chars={4} showCopy={false} />
+              <Link href={`/creator/${actor}`} className="hover:text-primary transition-colors">
+                <AddressDisplay address={actor} chars={4} showCopy={false} />
+              </Link>
             </div>
           )}
         </div>
@@ -107,7 +108,11 @@ export function ActivitiesFeed() {
     }
   }, [typeFilter]);
 
-  const { activities, meta, isLoading } = useActivities({ limit: PAGE_SIZE, page });
+  const { activities, meta, isLoading } = useActivities({
+    limit: PAGE_SIZE,
+    page,
+    type: typeFilter as ApiActivitiesQuery["type"] || undefined,
+  });
 
   // Accumulate pages
   useEffect(() => {
@@ -127,14 +132,9 @@ export function ActivitiesFeed() {
     }
   }, [activities, isLoading, page]);
 
-  // Client-side type filter
-  const displayed = typeFilter
-    ? allActivities.filter((a) => a.type === typeFilter)
-    : allActivities;
-
   const isInitialLoading = isLoading && allActivities.length === 0;
   const isLoadingMore = isLoading && allActivities.length > 0;
-  const hasMore = meta ? allActivities.length < meta.total : false;
+  const hasMore = meta?.total != null ? allActivities.length < meta.total : false;
 
   return (
     <div className="space-y-4">
@@ -161,14 +161,14 @@ export function ActivitiesFeed() {
             <Skeleton key={i} className="h-16 w-full rounded-lg" />
           ))}
         </div>
-      ) : displayed.length === 0 ? (
+      ) : allActivities.length === 0 ? (
         <div className="py-16 text-center text-muted-foreground">
           {typeFilter ? `No ${typeFilter} events yet.` : "No activity yet."}
         </div>
       ) : (
         <div className="space-y-4">
           <div className="divide-y divide-border rounded-lg border">
-            {displayed.map((activity, i) => (
+            {allActivities.map((activity, i) => (
               <ActivityRow
                 key={`${activity.txHash}-${activity.type}-${activity.nftTokenId ?? i}`}
                 activity={activity}
@@ -176,7 +176,7 @@ export function ActivitiesFeed() {
             ))}
           </div>
 
-          {(hasMore || isLoadingMore) && !typeFilter && (
+          {(hasMore || isLoadingMore) && (
             <div className="flex justify-center pt-2">
               <Button
                 variant="outline"

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useUserOrders } from "@/hooks/use-orders";
-import { useToken } from "@/hooks/use-tokens";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -28,9 +27,8 @@ function OfferRow({
   isProcessing: boolean;
   onCancel: (order: ApiOrder) => void;
 }) {
-  const { token } = useToken(order.nftContract, order.nftTokenId);
-  const name = token?.metadata?.name || `#${order.nftTokenId}`;
-  const image = token?.metadata?.image ? ipfsToHttp(token.metadata.image) : null;
+  const name = order.token?.name || `#${order.nftTokenId}`;
+  const image = order.token?.image ? ipfsToHttp(order.token.image) : null;
 
   return (
     <div className="flex items-center justify-between p-4 gap-4">

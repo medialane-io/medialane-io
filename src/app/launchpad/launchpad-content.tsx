@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useUserOrders } from "@/hooks/use-orders";
+import { useCollections } from "@/hooks/use-collections";
+import { CollectionCard, CollectionCardSkeleton } from "@/components/shared/collection-card";
 import {
   Zap,
   ImagePlus,
@@ -103,6 +105,7 @@ const colorMap = {
 export function LaunchpadContent() {
   const { user, isSignedIn } = useUser();
   const walletAddress = user?.publicMetadata?.publicKey as string | undefined;
+  const { collections: featured, isLoading: featuredLoading } = useCollections(1, 6, true);
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-10">
@@ -174,25 +177,43 @@ export function LaunchpadContent() {
         </div>
       )}
 
-      {/* Featured drops (future) */}
+      {/* Featured drops */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Featured drops</h2>
-          <Badge variant="outline" className="text-[10px]">Coming soon</Badge>
-        </div>
-        <div className="rounded-2xl border border-dashed border-border p-12 text-center space-y-3">
-          <div className="flex justify-center gap-2 text-muted-foreground/40">
-            <Star className="h-6 w-6" />
-            <Rocket className="h-6 w-6" />
-            <Star className="h-6 w-6" />
+          <div className="flex items-center gap-2">
+            <Star className="h-4 w-4 text-primary" />
+            <h2 className="text-lg font-semibold">Featured drops</h2>
           </div>
-          <p className="text-sm text-muted-foreground">
-            Curated creator drops will appear here. Build your collection and apply to be featured.
-          </p>
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/marketplace">Browse marketplace</Link>
+          <Button variant="ghost" size="sm" asChild className="gap-1 text-muted-foreground">
+            <Link href="/collections">
+              View all <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
           </Button>
         </div>
+
+        {featuredLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {Array.from({ length: 3 }).map((_, i) => <CollectionCardSkeleton key={i} />)}
+          </div>
+        ) : featured.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {featured.map((col) => <CollectionCard key={col.contractAddress} collection={col} />)}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-border p-12 text-center space-y-3">
+            <div className="flex justify-center gap-2 text-muted-foreground/40">
+              <Star className="h-6 w-6" />
+              <Rocket className="h-6 w-6" />
+              <Star className="h-6 w-6" />
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Curated creator drops will appear here. Build your collection and apply to be featured.
+            </p>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/marketplace">Browse marketplace</Link>
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

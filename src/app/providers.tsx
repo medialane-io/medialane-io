@@ -5,7 +5,7 @@ import { ThemeProvider, useTheme } from "next-themes";
 import { Toaster } from "sonner";
 import { SignInButton, SignUpButton, useUser } from "@clerk/nextjs";
 import Link from "next/link";
-import { Sun, Moon, Search, ShoppingBag } from "lucide-react";
+import { Sun, Moon, Search, ShoppingBag, Zap } from "lucide-react";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { CartDrawer } from "@/components/layout/cart-drawer";
 import { SessionExpiryBanner } from "@/components/layout/session-expiry-banner";
@@ -90,6 +90,23 @@ function Shell({ children }: { children: React.ReactNode }) {
         </header>
         <SessionExpiryBanner />
         <main className="flex-1">{children}</main>
+        <footer className="border-t border-border/60 px-6 py-8 mt-auto">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <Zap className="h-4 w-4 text-primary" />
+              <span className="font-semibold text-foreground">Medialane</span>
+              <span>· IP marketplace on Starknet</span>
+            </div>
+            <nav className="flex items-center gap-4 flex-wrap justify-center">
+              <Link href="/marketplace" className="hover:text-foreground transition-colors">Marketplace</Link>
+              <Link href="/collections" className="hover:text-foreground transition-colors">Collections</Link>
+              <Link href="/launchpad" className="hover:text-foreground transition-colors">Launchpad</Link>
+              <Link href="/activity" className="hover:text-foreground transition-colors">Activity</Link>
+              <a href="https://twitter.com/medialane_io" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">Twitter</a>
+            </nav>
+            <p className="text-xs">© {new Date().getFullYear()} Medialane</p>
+          </div>
+        </footer>
       </SidebarInset>
     </SidebarProvider>
   );

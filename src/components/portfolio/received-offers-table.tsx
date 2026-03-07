@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useUserOrders } from "@/hooks/use-orders";
-import { useToken } from "@/hooks/use-tokens";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -28,9 +27,8 @@ function ReceivedOfferRow({
   isProcessing: boolean;
   onAccept: (order: ApiOrder) => void;
 }) {
-  const { token } = useToken(order.nftContract, order.nftTokenId);
-  const name = token?.metadata?.name || `#${order.nftTokenId}`;
-  const image = token?.metadata?.image ? ipfsToHttp(token.metadata.image) : null;
+  const name = order.token?.name || `#${order.nftTokenId}`;
+  const image = order.token?.image ? ipfsToHttp(order.token.image) : null;
 
   return (
     <div className="flex items-center justify-between p-4 gap-4">
@@ -60,9 +58,12 @@ function ReceivedOfferRow({
 
       <div className="text-right shrink-0">
         <p className="font-bold text-sm">{order.price.formatted} {order.price.currency}</p>
-        <p className="text-xs text-muted-foreground truncate max-w-[100px]">
+        <Link
+          href={`/creator/${order.offerer}`}
+          className="text-xs text-muted-foreground hover:text-primary transition-colors truncate max-w-[100px] block"
+        >
           from {order.offerer.slice(0, 8)}…
-        </p>
+        </Link>
       </div>
 
       <div className="flex items-center gap-2 shrink-0">

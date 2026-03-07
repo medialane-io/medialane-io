@@ -22,14 +22,14 @@ function cartItemToOrder(item: CartItem): ApiOrder {
     offer: {
       itemType: "ERC721",
       token: item.nftContract,
-      identifierOrCriteria: item.nftTokenId,
+      identifier: item.nftTokenId,
       startAmount: "1",
       endAmount: "1",
     },
     consideration: {
       itemType: "ERC20",
       token: item.considerationToken,
-      identifierOrCriteria: "0",
+      identifier: "0",
       startAmount: item.considerationAmount,
       endAmount: item.considerationAmount,
       recipient: item.offerer,

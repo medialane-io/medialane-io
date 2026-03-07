@@ -14,29 +14,33 @@ interface ListingsGridProps {
   sort?: string;
   currency?: string;
   orderType?: string; // "listings" | "offers" | "" (all)
+  minPrice?: string;
+  maxPrice?: string;
 }
 
-export function ListingsGrid({ sort = "recent", currency, orderType = "" }: ListingsGridProps = {}) {
+export function ListingsGrid({ sort = "recent", currency, orderType = "", minPrice, maxPrice }: ListingsGridProps = {}) {
   const [page, setPage] = useState(1);
   const [allOrders, setAllOrders] = useState<ApiOrder[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<ApiOrder | null>(null);
   const [purchaseOpen, setPurchaseOpen] = useState(false);
 
   // Reset accumulated orders when filters change
-  const prevFilters = useRef({ sort, currency, orderType });
+  const prevFilters = useRef({ sort, currency, orderType, minPrice, maxPrice });
   useEffect(() => {
     const f = prevFilters.current;
-    if (f.sort !== sort || f.currency !== currency || f.orderType !== orderType) {
-      prevFilters.current = { sort, currency, orderType };
+    if (f.sort !== sort || f.currency !== currency || f.orderType !== orderType || f.minPrice !== minPrice || f.maxPrice !== maxPrice) {
+      prevFilters.current = { sort, currency, orderType, minPrice, maxPrice };
       setPage(1);
       setAllOrders([]);
     }
-  }, [sort, currency, orderType]);
+  }, [sort, currency, orderType, minPrice, maxPrice]);
 
   const { orders, meta, isLoading } = useOrders({
     status: "ACTIVE",
     sort,
     ...(currency ? { currency } : {}),
+    ...(minPrice ? { minPrice } : {}),
+    ...(maxPrice ? { maxPrice } : {}),
     page,
     limit: PAGE_SIZE,
   });

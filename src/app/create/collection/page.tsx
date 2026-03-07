@@ -1,11 +1,10 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,7 +25,8 @@ import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { EXPLORER_URL } from "@/lib/constants";
-import { Layers, Loader2, CheckCircle2, AlertCircle, ExternalLink } from "lucide-react";
+import { ipfsToHttp } from "@/lib/utils";
+import { Layers, Loader2, CheckCircle2, AlertCircle, ExternalLink, ImagePlus, X } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 import type { ChipiCall } from "@/hooks/use-chipi-transaction";
@@ -52,12 +52,47 @@ export default function CreateCollectionPage() {
   const [pinOpen, setPinOpen] = useState(false);
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
 
+  // Image upload state
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [imageUploading, setImageUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const hasWallet = !!walletAddress;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { name: "", symbol: "", description: "" },
   });
+
+  const handleImageSelect = async (file: File) => {
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+    setImageUri(null);
+    setImageUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/pinata/image", { method: "POST", body: fd });
+      if (!res.ok) throw new Error("Upload failed");
+      const json = await res.json();
+      setImageUri(json.imageUri);
+      toast.success("Image uploaded to IPFS");
+    } catch {
+      toast.error("Image upload failed. You can still create the collection without an image.");
+      setImageUri(null);
+    } finally {
+      setImageUploading(false);
+    }
+  };
+
+  const clearImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setImageUri(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
   const onSubmit = (values: FormValues) => {
     setPendingValues(values);
@@ -78,7 +113,8 @@ export default function CreateCollectionPage() {
         owner: walletAddress,
         name: pendingValues.name,
         symbol: pendingValues.symbol,
-        baseUri: "",
+        description: pendingValues.description || undefined,
+        image: imageUri || undefined,
       });
 
       const calls = intentRes.data.calls as ChipiCall[];
@@ -100,6 +136,7 @@ export default function CreateCollectionPage() {
         description: `${pendingValues.name} (${pendingValues.symbol}) is live on Starknet.`,
       });
       form.reset();
+      clearImage();
     } catch (err: any) {
       toast.error("Collection creation failed", { description: err?.message });
     }
@@ -160,6 +197,72 @@ export default function CreateCollectionPage() {
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+            {/* Collection image */}
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Collection image</p>
+              <div className="flex items-start gap-4">
+                {/* Preview / placeholder */}
+                <div
+                  className="relative h-28 w-28 rounded-xl border-2 border-dashed border-border bg-muted flex items-center justify-center overflow-hidden shrink-0 cursor-pointer hover:border-primary/50 transition-colors"
+                  onClick={() => !imageUploading && fileInputRef.current?.click()}
+                >
+                  {imagePreview ? (
+                    <Image src={imagePreview} alt="Collection image" fill className="object-cover" />
+                  ) : (
+                    <ImagePlus className="h-8 w-8 text-muted-foreground" />
+                  )}
+                  {imageUploading && (
+                    <div className="absolute inset-0 bg-background/70 flex items-center justify-center">
+                      <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2 flex-1">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif,image/svg+xml,image/webp"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleImageSelect(file);
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={imageUploading}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    {imageUploading ? (
+                      <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />Uploading…</>
+                    ) : imageFile ? (
+                      "Change image"
+                    ) : (
+                      "Upload image"
+                    )}
+                  </Button>
+                  {imageFile && (
+                    <button
+                      type="button"
+                      onClick={clearImage}
+                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors"
+                    >
+                      <X className="h-3 w-3" /> Remove
+                    </button>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    JPG, PNG, GIF, SVG or WebP · max 10 MB
+                    {imageUri && (
+                      <span className="ml-2 text-emerald-500 font-medium">✓ Uploaded to IPFS</span>
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <FormField
               control={form.control}
               name="name"

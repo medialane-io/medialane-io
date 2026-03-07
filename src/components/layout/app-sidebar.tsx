@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUser, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
-import { LayoutGrid, Compass, Briefcase, PlusCircle, Zap, Activity } from "lucide-react";
+import { Home, Compass, Briefcase, PlusCircle, Zap, Activity, LayoutGrid, Telescope } from "lucide-react";
+import { useUnreadOffers } from "@/hooks/use-unread-offers";
 import {
   Sidebar,
   SidebarContent,
@@ -18,6 +19,8 @@ import {
 import { Button } from "@/components/ui/button";
 
 const NAV = [
+  { href: "/", label: "Home", icon: Home, exact: true },
+  { href: "/discover", label: "Discover", icon: Telescope },
   { href: "/marketplace", label: "Marketplace", icon: Compass },
   { href: "/collections", label: "Collections", icon: LayoutGrid },
   { href: "/portfolio", label: "Portfolio", icon: Briefcase },
@@ -29,6 +32,8 @@ const NAV = [
 export function AppSidebar() {
   const pathname = usePathname();
   const { user, isLoaded, isSignedIn } = useUser();
+  const walletAddress = user?.publicMetadata?.publicKey as string | undefined;
+  const unreadOffers = useUnreadOffers(isSignedIn ? walletAddress : null);
 
   return (
     <Sidebar collapsible="icon">
@@ -39,7 +44,7 @@ export function AppSidebar() {
             <SidebarMenuButton size="lg" asChild>
               <Link href="/">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shrink-0">
-                  <LayoutGrid className="size-4" />
+                  <Zap className="size-4" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold tracking-tight">medialane</span>
@@ -56,16 +61,28 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel>Platform</SidebarGroupLabel>
           <SidebarMenu>
-            {NAV.map(({ href, label, icon: Icon }) => (
-              <SidebarMenuItem key={href}>
-                <SidebarMenuButton asChild isActive={!!pathname?.startsWith(href)} tooltip={label}>
-                  <Link href={href}>
-                    <Icon />
-                    <span>{label}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
+            {NAV.map(({ href, label, icon: Icon, exact }) => {
+              const showBadge = href === "/portfolio" && unreadOffers > 0;
+              return (
+                <SidebarMenuItem key={href}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={exact ? pathname === href : !!pathname?.startsWith(href)}
+                    tooltip={showBadge ? `${label} (${unreadOffers} new offer${unreadOffers > 1 ? "s" : ""})` : label}
+                  >
+                    <Link href={href} className="relative">
+                      <Icon />
+                      <span>{label}</span>
+                      {showBadge && (
+                        <span className="absolute right-2 top-1/2 -translate-y-1/2 h-4 min-w-4 rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground flex items-center justify-center px-1">
+                          {unreadOffers > 9 ? "9+" : unreadOffers}
+                        </span>
+                      )}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            })}
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
