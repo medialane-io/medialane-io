@@ -78,7 +78,7 @@ export default function CreateCollectionPage() {
         owner: walletAddress,
         name: pendingValues.name,
         symbol: pendingValues.symbol,
-        baseUri: "",
+        description: pendingValues.description || undefined,
       });
 
       const calls = intentRes.data.calls as ChipiCall[];
