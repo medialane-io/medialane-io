@@ -4,12 +4,14 @@ export const dynamic = "force-dynamic";
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { ListingsGrid } from "@/components/marketplace/listings-grid";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Search, X } from "lucide-react";
 import type { ApiSearchResult } from "@medialane/sdk";
+import { ipfsToHttp } from "@/lib/utils";
 import Link from "next/link";
 
 const SORT_OPTIONS = [
@@ -109,21 +111,28 @@ function SearchBar() {
               <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted/30">
                 Collections
               </div>
-              {results.collections!.map((c) => (
-                <Link
-                  key={c.contractAddress}
-                  href={`/collections/${c.contractAddress}`}
-                  className="flex items-center gap-3 px-3 py-2.5 hover:bg-muted/50 transition-colors"
-                >
-                  <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center text-xs font-bold shrink-0">
-                    {c.name?.charAt(0) ?? "?"}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium truncate">{c.name}</p>
-                    <p className="text-xs text-muted-foreground font-mono truncate">{c.contractAddress.slice(0, 14)}…</p>
-                  </div>
-                </Link>
-              ))}
+              {results.collections!.map((c) => {
+                const imgUrl = c.image ? ipfsToHttp(c.image) : null;
+                return (
+                  <Link
+                    key={c.contractAddress}
+                    href={`/collections/${c.contractAddress}`}
+                    className="flex items-center gap-3 px-3 py-2.5 hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="relative h-8 w-8 rounded-lg bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center text-xs font-bold shrink-0 overflow-hidden">
+                      {imgUrl ? (
+                        <Image src={imgUrl} alt="" fill className="object-cover" unoptimized />
+                      ) : (
+                        <span>{c.name?.charAt(0) ?? "?"}</span>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium truncate">{c.name}</p>
+                      <p className="text-xs text-muted-foreground font-mono truncate">{c.contractAddress.slice(0, 14)}…</p>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           )}
         </div>
