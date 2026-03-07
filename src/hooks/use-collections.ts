@@ -3,12 +3,12 @@
 import useSWR from "swr";
 import { useMedialaneClient } from "./use-medialane-client";
 
-export function useCollections(page = 1, limit = 20) {
+export function useCollections(page = 1, limit = 20, isKnown?: boolean) {
   const client = useMedialaneClient();
 
   const { data, error, isLoading, mutate } = useSWR(
-    `collections-${page}-${limit}`,
-    () => client.api.getCollections(page, limit),
+    `collections-${page}-${limit}-${isKnown}`,
+    () => client.api.getCollections(page, limit, isKnown),
     { revalidateOnFocus: false }
   );
 

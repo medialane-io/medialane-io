@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ListingsGrid } from "@/components/marketplace/listings-grid";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
@@ -136,6 +136,33 @@ export default function MarketplacePage() {
   const [sort, setSort] = useState("recent");
   const [currency, setCurrency] = useState("");
   const [orderType, setOrderType] = useState("");
+  const [minInput, setMinInput] = useState("");
+  const [maxInput, setMaxInput] = useState("");
+  const [minPrice, setMinPrice] = useState<string | undefined>();
+  const [maxPrice, setMaxPrice] = useState<string | undefined>();
+  const priceDebounce = useRef<ReturnType<typeof setTimeout>>(null);
+
+  const handlePriceInput = (min: string, max: string) => {
+    setMinInput(min);
+    setMaxInput(max);
+    if (priceDebounce.current) clearTimeout(priceDebounce.current);
+    priceDebounce.current = setTimeout(() => {
+      setMinPrice(min.trim() || undefined);
+      setMaxPrice(max.trim() || undefined);
+    }, 400);
+  };
+
+  const hasFilters = sort !== "recent" || currency || orderType || minPrice || maxPrice;
+
+  const resetAll = () => {
+    setSort("recent");
+    setCurrency("");
+    setOrderType("");
+    setMinInput("");
+    setMaxInput("");
+    setMinPrice(undefined);
+    setMaxPrice(undefined);
+  };
 
   return (
     <div className="px-4 py-8 space-y-6">
@@ -152,7 +179,7 @@ export default function MarketplacePage() {
       </div>
 
       {/* Filter toolbar */}
-      <div className="flex flex-wrap items-center gap-3 pb-2 border-b border-border/60">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3 pb-2 border-b border-border/60">
         {/* Search */}
         <SearchBar />
 
@@ -207,13 +234,34 @@ export default function MarketplacePage() {
           ))}
         </div>
 
+        {/* Price range */}
+        <div className="flex items-center gap-1.5">
+          <Input
+            placeholder="Min"
+            value={minInput}
+            onChange={(e) => handlePriceInput(e.target.value, maxInput)}
+            className="h-8 w-20 text-xs px-2"
+            type="number"
+            min="0"
+          />
+          <span className="text-xs text-muted-foreground">–</span>
+          <Input
+            placeholder="Max"
+            value={maxInput}
+            onChange={(e) => handlePriceInput(minInput, e.target.value)}
+            className="h-8 w-20 text-xs px-2"
+            type="number"
+            min="0"
+          />
+        </div>
+
         {/* Reset */}
-        {(sort !== "recent" || currency || orderType) && (
+        {hasFilters && (
           <Button
             variant="ghost"
             size="sm"
             className="h-7 text-xs text-muted-foreground ml-auto"
-            onClick={() => { setSort("recent"); setCurrency(""); setOrderType(""); }}
+            onClick={resetAll}
           >
             Reset
           </Button>
@@ -221,7 +269,13 @@ export default function MarketplacePage() {
       </div>
 
       {/* Grid */}
-      <ListingsGrid sort={sort} currency={currency || undefined} orderType={orderType} />
+      <ListingsGrid
+        sort={sort}
+        currency={currency || undefined}
+        orderType={orderType}
+        minPrice={minPrice}
+        maxPrice={maxPrice}
+      />
     </div>
   );
 }

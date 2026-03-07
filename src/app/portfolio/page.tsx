@@ -15,11 +15,24 @@ import { ReceivedOffersTable } from "@/components/portfolio/received-offers-tabl
 import { PortfolioActivity } from "@/components/portfolio/portfolio-activity";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { Briefcase } from "lucide-react";
+import { useUserOrders } from "@/hooks/use-orders";
+import { markOffersAsSeen } from "@/hooks/use-unread-offers";
 
 export default function PortfolioPage() {
   const { user, isLoaded, isSignedIn } = useUser();
   const router = useRouter();
   const address = user?.publicMetadata?.publicKey as string | undefined;
+  const { orders } = useUserOrders(address ?? null);
+
+  // Mark all received offers as seen when portfolio is opened
+  useEffect(() => {
+    const receivedOffers = orders.filter(
+      (o) => o.status === "ACTIVE" && o.offer.itemType === "ERC20"
+    );
+    if (receivedOffers.length > 0) {
+      markOffersAsSeen(receivedOffers.map((o) => o.orderHash));
+    }
+  }, [orders]);
 
   if (!isLoaded) return null;
 
