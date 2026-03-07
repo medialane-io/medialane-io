@@ -139,6 +139,8 @@ export function useMarketplace() {
       const result = await execWithPin(pin, calls);
       toast.success(successMsg);
       invalidate();
+      // Re-invalidate after indexer processes the block (~10s) to reflect chain state
+      setTimeout(() => invalidate(), 10000);
       return result.txHash;
     },
     [walletAddress, signTypedData, client, execWithPin, invalidate]
