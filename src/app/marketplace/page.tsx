@@ -179,93 +179,102 @@ export default function MarketplacePage() {
       </div>
 
       {/* Filter toolbar */}
-      <div className="flex flex-wrap items-center gap-2 sm:gap-3 pb-2 border-b border-border/60">
-        {/* Search */}
+      <div className="space-y-3 pb-2 border-b border-border/60">
+        {/* Row 1: search */}
         <SearchBar />
 
-        {/* Sort */}
-        <div className="flex items-center gap-1">
-          {SORT_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => setSort(opt.value)}
-              className={`text-xs px-3 py-1.5 rounded-md transition-colors ${
-                sort === opt.value
-                  ? "bg-primary/10 text-primary font-medium"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-              }`}
+        {/* Row 2: scrollable filter chips */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+          {/* Sort */}
+          <div className="flex items-center gap-1 shrink-0">
+            {SORT_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setSort(opt.value)}
+                className={`text-xs px-3 py-1.5 rounded-md transition-colors whitespace-nowrap ${
+                  sort === opt.value
+                    ? "bg-primary/10 text-primary font-medium"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="w-px h-5 bg-border shrink-0" />
+
+          {/* Type */}
+          <div className="flex items-center gap-1 shrink-0">
+            {TYPE_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setOrderType(opt.value)}
+                className={`text-xs px-3 py-1.5 rounded-md transition-colors whitespace-nowrap ${
+                  orderType === opt.value
+                    ? "bg-primary/10 text-primary font-medium"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="w-px h-5 bg-border shrink-0" />
+
+          {/* Currency */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            {CURRENCY_OPTIONS.map((c) => (
+              <button
+                key={c}
+                onClick={() => setCurrency(currency === c ? "" : c)}
+                className={`text-xs px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap ${
+                  currency === c
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border text-muted-foreground hover:border-primary/50"
+                }`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+
+          <div className="w-px h-5 bg-border shrink-0" />
+
+          {/* Price range */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            <Input
+              placeholder="Min"
+              value={minInput}
+              onChange={(e) => handlePriceInput(e.target.value, maxInput)}
+              className="h-7 w-16 text-xs px-2"
+              type="number"
+              min="0"
+            />
+            <span className="text-xs text-muted-foreground">–</span>
+            <Input
+              placeholder="Max"
+              value={maxInput}
+              onChange={(e) => handlePriceInput(minInput, e.target.value)}
+              className="h-7 w-16 text-xs px-2"
+              type="number"
+              min="0"
+            />
+          </div>
+
+          {/* Reset */}
+          {hasFilters && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs text-muted-foreground shrink-0 ml-auto"
+              onClick={resetAll}
             >
-              {opt.label}
-            </button>
-          ))}
+              Reset
+            </Button>
+          )}
         </div>
-
-        {/* Type */}
-        <div className="flex items-center gap-1">
-          {TYPE_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => setOrderType(opt.value)}
-              className={`text-xs px-3 py-1.5 rounded-md transition-colors ${
-                orderType === opt.value
-                  ? "bg-primary/10 text-primary font-medium"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Currency */}
-        <div className="flex items-center gap-1.5">
-          {CURRENCY_OPTIONS.map((c) => (
-            <button
-              key={c}
-              onClick={() => setCurrency(currency === c ? "" : c)}
-              className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
-                currency === c
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-border text-muted-foreground hover:border-primary/50"
-              }`}
-            >
-              {c}
-            </button>
-          ))}
-        </div>
-
-        {/* Price range */}
-        <div className="flex items-center gap-1.5">
-          <Input
-            placeholder="Min"
-            value={minInput}
-            onChange={(e) => handlePriceInput(e.target.value, maxInput)}
-            className="h-8 w-20 text-xs px-2"
-            type="number"
-            min="0"
-          />
-          <span className="text-xs text-muted-foreground">–</span>
-          <Input
-            placeholder="Max"
-            value={maxInput}
-            onChange={(e) => handlePriceInput(minInput, e.target.value)}
-            className="h-8 w-20 text-xs px-2"
-            type="number"
-            min="0"
-          />
-        </div>
-
-        {/* Reset */}
-        {hasFilters && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 text-xs text-muted-foreground ml-auto"
-            onClick={resetAll}
-          >
-            Reset
-          </Button>
-        )}
       </div>
 
       {/* Grid */}

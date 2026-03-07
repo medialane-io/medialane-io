@@ -60,9 +60,12 @@ function ReceivedOfferRow({
 
       <div className="text-right shrink-0">
         <p className="font-bold text-sm">{order.price.formatted} {order.price.currency}</p>
-        <p className="text-xs text-muted-foreground truncate max-w-[100px]">
+        <Link
+          href={`/creator/${order.offerer}`}
+          className="text-xs text-muted-foreground hover:text-primary transition-colors truncate max-w-[100px] block"
+        >
           from {order.offerer.slice(0, 8)}…
-        </p>
+        </Link>
       </div>
 
       <div className="flex items-center gap-2 shrink-0">

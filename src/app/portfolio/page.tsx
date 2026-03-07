@@ -24,6 +24,13 @@ export default function PortfolioPage() {
   const address = user?.publicMetadata?.publicKey as string | undefined;
   const { orders } = useUserOrders(address ?? null);
 
+  const receivedCount = orders.filter(
+    (o) =>
+      o.status === "ACTIVE" &&
+      o.offer.itemType === "ERC20" &&
+      o.offerer.toLowerCase() !== (address ?? "").toLowerCase()
+  ).length;
+
   // Mark all received offers as seen when portfolio is opened
   useEffect(() => {
     const receivedOffers = orders.filter(
@@ -70,7 +77,14 @@ export default function PortfolioPage() {
           <TabsTrigger value="assets">Assets</TabsTrigger>
           <TabsTrigger value="listings">Listings</TabsTrigger>
           <TabsTrigger value="offers">Offers sent</TabsTrigger>
-          <TabsTrigger value="received">Offers received</TabsTrigger>
+          <TabsTrigger value="received" className="gap-1.5">
+            Offers received
+            {receivedCount > 0 && (
+              <span className="h-4 min-w-4 rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground flex items-center justify-center px-1">
+                {receivedCount}
+              </span>
+            )}
+          </TabsTrigger>
           <TabsTrigger value="activity">Activity</TabsTrigger>
         </TabsList>
 

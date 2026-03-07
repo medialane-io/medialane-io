@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CheckCircle2, Layers } from "lucide-react";
+import { CheckCircle2, Loader2 } from "lucide-react";
 import { ipfsToHttp } from "@/lib/utils";
 import type { ApiCollection } from "@medialane/sdk";
 
@@ -50,9 +50,16 @@ export function CollectionCard({ collection }: CollectionCardProps) {
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
-                <p className="font-semibold truncate text-sm leading-tight">
-                  {collection.name ?? "Unnamed Collection"}
-                </p>
+                {!collection.name && collection.metadataStatus === "PENDING" ? (
+                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    Indexing…
+                  </span>
+                ) : (
+                  <p className="font-semibold truncate text-sm leading-tight">
+                    {collection.name ?? "Unnamed Collection"}
+                  </p>
+                )}
                 {collection.isKnown && (
                   <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />
                 )}

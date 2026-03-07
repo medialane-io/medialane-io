@@ -89,6 +89,13 @@
   background: rgba(255, 255, 255, 0.3);
 }
 
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
 .glass {
   background: rgba(15, 15, 15, 0.5);
   backdrop-filter: blur(8px);
