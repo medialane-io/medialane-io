@@ -13,6 +13,7 @@ import { Sparkles, Search, X } from "lucide-react";
 import type { ApiSearchResult } from "@medialane/sdk";
 import { ipfsToHttp } from "@/lib/utils";
 import Link from "next/link";
+import { usePlatformStats } from "@/hooks/use-stats";
 
 const SORT_OPTIONS = [
   { label: "Recent", value: "recent" },
@@ -141,6 +142,29 @@ function SearchBar() {
   );
 }
 
+function PlatformStatsBar() {
+  const { stats } = usePlatformStats();
+
+  const items = [
+    { label: "Collections", value: stats?.collections },
+    { label: "Assets", value: stats?.tokens },
+    { label: "Sales", value: stats?.sales },
+  ];
+
+  return (
+    <div className="flex items-center gap-6">
+      {items.map(({ label, value }) => (
+        <div key={label} className="text-sm">
+          <span className="font-bold text-foreground">
+            {value !== undefined ? value.toLocaleString() : "—"}
+          </span>
+          <span className="text-muted-foreground ml-1.5">{label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function MarketplacePage() {
   const [sort, setSort] = useState("recent");
   const [currency, setCurrency] = useState("");
@@ -185,6 +209,7 @@ export default function MarketplacePage() {
         <p className="text-sm text-muted-foreground">
           Browse, buy, and license creative works on Starknet — gasless for everyone.
         </p>
+        <PlatformStatsBar />
       </div>
 
       {/* Filter toolbar */}

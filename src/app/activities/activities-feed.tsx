@@ -1,9 +1,8 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import { useState, useEffect, useRef } from "react";
 import { useActivities } from "@/hooks/use-activities";
+import type { ApiActivitiesQuery } from "@medialane/sdk";
 import { useToken } from "@/hooks/use-tokens";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -109,7 +108,11 @@ export function ActivitiesFeed() {
     }
   }, [typeFilter]);
 
-  const { activities, meta, isLoading } = useActivities({ limit: PAGE_SIZE, page });
+  const { activities, meta, isLoading } = useActivities({
+    limit: PAGE_SIZE,
+    page,
+    type: typeFilter as ApiActivitiesQuery["type"] || undefined,
+  });
 
   // Accumulate pages
   useEffect(() => {
@@ -129,14 +132,9 @@ export function ActivitiesFeed() {
     }
   }, [activities, isLoading, page]);
 
-  // Client-side type filter
-  const displayed = typeFilter
-    ? allActivities.filter((a) => a.type === typeFilter)
-    : allActivities;
-
   const isInitialLoading = isLoading && allActivities.length === 0;
   const isLoadingMore = isLoading && allActivities.length > 0;
-  const hasMore = meta ? allActivities.length < meta.total : false;
+  const hasMore = meta?.total != null ? allActivities.length < meta.total : false;
 
   return (
     <div className="space-y-4">
@@ -178,7 +176,7 @@ export function ActivitiesFeed() {
             ))}
           </div>
 
-          {(hasMore || isLoadingMore) && !typeFilter && (
+          {(hasMore || isLoadingMore) && (
             <div className="flex justify-center pt-2">
               <Button
                 variant="outline"

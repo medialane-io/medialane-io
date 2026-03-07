@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUser, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
-import { Home, Compass, Briefcase, PlusCircle, Zap, Activity, LayoutGrid } from "lucide-react";
+import { Home, Compass, Briefcase, PlusCircle, Zap, Activity, LayoutGrid, Telescope } from "lucide-react";
 import { useUnreadOffers } from "@/hooks/use-unread-offers";
 import {
   Sidebar,
@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 
 const NAV = [
   { href: "/", label: "Home", icon: Home, exact: true },
+  { href: "/discover", label: "Discover", icon: Telescope },
   { href: "/marketplace", label: "Marketplace", icon: Compass },
   { href: "/collections", label: "Collections", icon: LayoutGrid },
   { href: "/portfolio", label: "Portfolio", icon: Briefcase },

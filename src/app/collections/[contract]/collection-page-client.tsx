@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -10,10 +10,12 @@ import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listi
 import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddressDisplay } from "@/components/shared/address-display";
-import { CheckCircle2, ArrowLeft } from "lucide-react";
+import { CheckCircle2, ArrowLeft, Loader2 } from "lucide-react";
 import { ipfsToHttp } from "@/lib/utils";
+import type { ApiToken } from "@medialane/sdk";
 
 const STATS = (col: NonNullable<ReturnType<typeof useCollection>["collection"]>) => [
   { label: "Items",   value: col.totalSupply?.toLocaleString() ?? "—" },
@@ -125,15 +127,68 @@ function CollectionBanner({ collection, isLoading }: {
   );
 }
 
+const PAGE_SIZE = 24;
+
+function CollectionItems({ contract }: { contract: string }) {
+  const [page, setPage] = useState(1);
+  const [allTokens, setAllTokens] = useState<ApiToken[]>([]);
+  const { tokens, meta, isLoading } = useCollectionTokens(contract, page, PAGE_SIZE);
+
+  useEffect(() => {
+    if (tokens.length > 0) {
+      setAllTokens((prev) => {
+        const ids = new Set(prev.map((t) => `${t.contractAddress}-${t.tokenId}`));
+        const next = tokens.filter((t) => !ids.has(`${t.contractAddress}-${t.tokenId}`));
+        return page === 1 ? tokens : [...prev, ...next];
+      });
+    }
+  }, [tokens, page]);
+
+  const hasMore = meta ? allTokens.length < meta.total! : false;
+
+  if (isLoading && allTokens.length === 0) {
+    return (
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        {Array.from({ length: 8 }).map((_, i) => <TokenCardSkeleton key={i} />)}
+      </div>
+    );
+  }
+
+  if (allTokens.length === 0) {
+    return <div className="py-16 text-center text-muted-foreground">No items indexed yet.</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        {allTokens.map((t) => (
+          <TokenCard key={`${t.contractAddress}-${t.tokenId}`} token={t} />
+        ))}
+      </div>
+      {hasMore && (
+        <div className="flex justify-center">
+          <Button
+            variant="outline"
+            onClick={() => setPage((p) => p + 1)}
+            disabled={isLoading}
+          >
+            {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+            Load more
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function CollectionPageClient() {
   const { contract } = useParams<{ contract: string }>();
   const { collection, isLoading: colLoading } = useCollection(contract);
-  const { tokens, isLoading: tokensLoading } = useCollectionTokens(contract);
   const { orders, isLoading: ordersLoading } = useOrders({
     collection: contract,
     status: "ACTIVE",
     sort: "recent",
-    limit: 50,
+    limit: 100,
   });
 
   const activeListings = orders.filter((o) => o.status === "ACTIVE" && o.offer.itemType === "ERC721");
@@ -168,7 +223,7 @@ export default function CollectionPageClient() {
         <Tabs defaultValue="items">
           <TabsList>
             <TabsTrigger value="items">
-              Items{!tokensLoading && tokens.length > 0 && ` (${tokens.length})`}
+              Items{collection?.totalSupply ? ` (${collection.totalSupply.toLocaleString()})` : ""}
             </TabsTrigger>
             <TabsTrigger value="listings">
               Listings{!ordersLoading && activeListings.length > 0 && ` (${activeListings.length})`}
@@ -180,19 +235,7 @@ export default function CollectionPageClient() {
 
           {/* Items */}
           <TabsContent value="items" className="mt-6">
-            {tokensLoading ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                {Array.from({ length: 8 }).map((_, i) => <TokenCardSkeleton key={i} />)}
-              </div>
-            ) : tokens.length === 0 ? (
-              <div className="py-16 text-center text-muted-foreground">No items indexed yet.</div>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                {tokens.map((t) => (
-                  <TokenCard key={`${t.contractAddress}-${t.tokenId}`} token={t} />
-                ))}
-              </div>
-            )}
+            <CollectionItems contract={contract} />
           </TabsContent>
 
           {/* Listings */}
