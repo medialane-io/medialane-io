@@ -121,7 +121,8 @@ When `LAUNCH_MINT_CONTRACT` or `GENESIS_NFT_URI` are empty the button renders as
 | `useCollections()` | All collections | `GET /v1/collections` |
 | `useCollection(contract)` | Single collection | `GET /v1/collections/:contract` |
 | `useCollectionTokens(contract)` | Tokens in collection | `GET /v1/collections/:contract/tokens` |
-| `useCollectionsByOwner(address)` | Collections owned by address | `GET /v1/collections?owner=address` (direct fetch, bypasses SDK) |
+| `useCollectionsByOwner(address)` | Collections owned by address (DB-based) | `GET /v1/collections?owner=address` (direct fetch, bypasses SDK) |
+| `useUserCollections(address)` | Collections owned by address (on-chain direct) | Calls `list_user_collections()` + `get_collection()` on registry contract via starknet.js. Used in portfolio/collections — bypasses DB entirely so new collections appear immediately |
 | `useActivities(query)` | Global activity feed | `GET /v1/activities` |
 | `useActivitiesByAddress(address)` | User activity | `GET /v1/activities/:address` |
 
@@ -165,7 +166,8 @@ All previously noted bugs were fixed. No outstanding known bugs.
 - [x] Portfolio listings table: fetch token metadata for name/image display ✓ 2026-03-06
 - [x] Portfolio offers table: add Cancel button + token name/image ✓ 2026-03-06
 - [x] Portfolio restructured: tabs → subpages (`/portfolio/assets`, `/portfolio/collections`, etc.) ✓ 2026-03-07
-- [x] Portfolio collections page: shows user-owned collections via `useCollectionsByOwner` ✓ 2026-03-07
+- [x] Portfolio collections page: shows user-owned collections via `useUserCollections` (on-chain direct, not DB-based) ✓ 2026-03-08
+- [x] Create asset page: collection selector using `useUserCollections`; correct mint flow via `createMintIntent` with `collectionId` ✓ 2026-03-08
 - [x] Asset page: incoming offers section + Offers tab with Accept flow ✓ 2026-03-06
 - [x] Marketplace: "Load more" pagination (PAGE_SIZE=12, appends pages) ✓ 2026-03-06
 
@@ -231,6 +233,7 @@ layout.tsx (server)
 | `src/app/api/pinata/image/route.ts` | Image-only upload (Clerk-gated, direct Pinata) — returns `{ imageUri: "ipfs://...", cid }`. Used by create collection flow |
 | `src/app/portfolio/layout.tsx` | Portfolio shared layout: auth guard, wallet display, subnav with 6 links + unread badge |
 | `src/hooks/use-collections.ts` | `useCollections`, `useCollection`, `useCollectionTokens`, `useCollectionsByOwner` |
+| `src/hooks/use-user-collections.ts` | `useUserCollections(address)` — on-chain direct via starknet.js; returns `{ onChainId, contractAddress, name, symbol }[]`. Used by portfolio/collections and create/asset collection selector |
 | `src/app/globals.css` | HSL theme tokens, `.glass`, `.gradient-text` |
 | `src/app/providers.tsx` | Global shell: SidebarProvider + AppSidebar + SidebarInset + top bar |
 | `src/components/layout/app-sidebar.tsx` | Shadcn sidebar: brand, nav, Clerk user footer |
