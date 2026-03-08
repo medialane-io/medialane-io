@@ -310,7 +310,7 @@ export default function CreateAssetPage() {
                 ) : (
                   <div className="flex flex-col items-center gap-2 text-muted-foreground">
                     <Upload className="h-8 w-8" />
-                    <p className="text-sm">Click to upload (JPG, PNG, GIF, SVG, WebP · max 10 MB)</p>
+                    <p className="text-sm">Click to upload (JPG, PNG, GIF, SVG, WebP · max 4 MB)</p>
                   </div>
                 )}
                 <input
@@ -322,8 +322,8 @@ export default function CreateAssetPage() {
                     const file = e.target.files?.[0];
                     if (!file) return;
                     const ALLOWED = ["image/jpeg", "image/png", "image/gif", "image/svg+xml", "image/webp"];
-                    if (file.size > 10 * 1024 * 1024) {
-                      toast.error("File too large", { description: "Maximum file size is 10 MB." });
+                    if (file.size > 4 * 1024 * 1024) {
+                      toast.error("File too large", { description: "Maximum file size is 4 MB." });
                       e.target.value = "";
                       return;
                     }

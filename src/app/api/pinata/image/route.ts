@@ -46,8 +46,8 @@ export async function POST(req: NextRequest) {
   if (!ALLOWED_TYPES.has(file.type)) {
     return NextResponse.json({ error: "Unsupported image type" }, { status: 400 });
   }
-  if (file.size > 10 * 1024 * 1024) {
-    return NextResponse.json({ error: "Image must be under 10 MB" }, { status: 400 });
+  if (file.size > 4 * 1024 * 1024) {
+    return NextResponse.json({ error: "Image must be under 4 MB" }, { status: 400 });
   }
 
   try {

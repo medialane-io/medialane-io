@@ -38,7 +38,7 @@ const ALLOWED_IMAGE_TYPES = new Set([
   "image/svg+xml",
   "image/webp",
 ]);
-const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10 MB
+const MAX_FILE_BYTES = 4 * 1024 * 1024; // 4 MB — Vercel serverless payload limit
 
 export async function POST(req: NextRequest) {
   // ── Auth ─────────────────────────────────────────────────────────────────────
@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
       }
       if (imageFile.size > MAX_FILE_BYTES) {
         return NextResponse.json(
-          { error: "Image exceeds 10 MB limit." },
+          { error: "Image exceeds 4 MB limit." },
           { status: 400 }
         );
       }

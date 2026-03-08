@@ -67,6 +67,13 @@ export default function CreateCollectionPage() {
   });
 
   const handleImageSelect = async (file: File) => {
+    const MAX_BYTES = 4 * 1024 * 1024; // 4 MB — Vercel serverless payload limit
+    if (file.size > MAX_BYTES) {
+      toast.error("Image too large", {
+        description: `Max size is 4 MB. Your file is ${(file.size / 1024 / 1024).toFixed(1)} MB. Please compress or resize it first.`,
+      });
+      return;
+    }
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
     setImageUri(null);
@@ -235,7 +242,7 @@ export default function CreateCollectionPage() {
                     </button>
                   )}
                   <p className="text-xs text-muted-foreground">
-                    JPG, PNG, GIF, SVG or WebP · max 10 MB
+                    JPG, PNG, GIF, SVG or WebP · max 4 MB
                     {imageUri && (
                       <span className="ml-2 text-emerald-500 font-medium">✓ Uploaded to IPFS</span>
                     )}
