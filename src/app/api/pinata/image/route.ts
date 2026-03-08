@@ -14,10 +14,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { PinataSDK } from "pinata";
 
-const pinata = new PinataSDK({
-  pinataJwt: process.env.PINATA_JWT!,
-  pinataGateway: process.env.NEXT_PUBLIC_PINATA_GATEWAY || "https://gateway.pinata.cloud",
-});
+function getPinata() {
+  const jwt = process.env.PINATA_JWT;
+  if (!jwt) throw new Error("PINATA_JWT environment variable is not set");
+  return new PinataSDK({
+    pinataJwt: jwt,
+    pinataGateway: process.env.NEXT_PUBLIC_PINATA_GATEWAY || "https://gateway.pinata.cloud",
+  });
+}
 
 const ALLOWED_TYPES = new Set([
   "image/jpeg",
@@ -47,11 +51,13 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    const pinata = getPinata();
     const upload = await pinata.upload.public.file(file);
     const imageUri = `ipfs://${upload.cid}`;
     return NextResponse.json({ imageUri, cid: upload.cid });
   } catch (err: any) {
-    console.error("[pinata/image] upload failed", err);
-    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
+    const message = err?.message ?? "Upload failed";
+    console.error("[pinata/image] upload failed:", message, err);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

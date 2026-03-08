@@ -75,12 +75,13 @@ export default function CreateCollectionPage() {
       const fd = new FormData();
       fd.append("file", file);
       const res = await fetch("/api/pinata/image", { method: "POST", body: fd });
-      if (!res.ok) throw new Error("Upload failed");
-      const json = await res.json();
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.error ?? "Upload failed");
       setImageUri(json.imageUri);
       toast.success("Image uploaded to IPFS");
-    } catch {
-      toast.error("Image upload failed. You can still create the collection without an image.");
+    } catch (err: any) {
+      const msg = err?.message ?? "Upload failed";
+      toast.error("Image upload failed", { description: msg });
       setImageUri(null);
     } finally {
       setImageUploading(false);
