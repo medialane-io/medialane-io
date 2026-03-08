@@ -36,6 +36,7 @@ import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { useUserCollections } from "@/hooks/use-user-collections";
 import { MintProgressDialog } from "@/components/marketplace/mint-progress-dialog";
 import type { MintStep } from "@/components/marketplace/mint-progress-dialog";
+import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 import { cn } from "@/lib/utils";
 import {
   IP_TYPES,
@@ -214,6 +215,7 @@ export default function CreateAssetPage() {
       });
 
       setMintStep("success");
+      invalidatePortfolioCache(walletAddress);
     } catch (err: any) {
       setMintError(err?.message ?? "Something went wrong");
       setMintStep("error");

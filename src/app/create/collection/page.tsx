@@ -21,6 +21,7 @@ import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { CollectionProgressDialog } from "@/components/marketplace/collection-progress-dialog";
 import type { CollectionStep } from "@/components/marketplace/collection-progress-dialog";
+import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
@@ -135,6 +136,7 @@ export default function CreateCollectionPage() {
       });
 
       setCollectionStep("success");
+      invalidatePortfolioCache(walletAddress);
     } catch (err: any) {
       setCollectionError(err?.message ?? "Something went wrong");
       setCollectionStep("error");

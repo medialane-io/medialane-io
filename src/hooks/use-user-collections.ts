@@ -108,7 +108,7 @@ export function useUserCollections(address: string | null | undefined) {
   const { data, error, isLoading, mutate } = useSWR(
     address ? `user-collections-${address}` : null,
     () => fetchUserCollections(address!),
-    { revalidateOnFocus: false }
+    { revalidateOnFocus: false, refreshInterval: 12000 }
   );
 
   return { collections: data ?? [], isLoading, error, mutate };
