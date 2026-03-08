@@ -6,7 +6,7 @@ import Image from "next/image";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { MotionCard } from "@/components/ui/motion-primitives";
-import { ipfsToHttp } from "@/lib/utils";
+import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import type { ApiCollection } from "@medialane/sdk";
 
 interface CollectionCardProps {
@@ -85,7 +85,7 @@ export function CollectionCard({ collection }: CollectionCardProps) {
             {[
               { label: "Items", value: collection.totalSupply?.toLocaleString() ?? "—", colored: false },
               { label: "Holders", value: collection.holderCount?.toLocaleString() ?? "—", colored: false },
-              { label: "Floor", value: collection.floorPrice ?? "—", colored: hasFloor },
+              { label: "Floor", value: formatDisplayPrice(collection.floorPrice) || "—", colored: hasFloor },
             ].map(({ label, value, colored }) => (
               <div key={label} className="rounded-xl bg-muted/50 p-2 text-center">
                 <p className="section-label">{label}</p>

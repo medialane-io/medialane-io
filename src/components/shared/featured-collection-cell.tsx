@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ipfsToHttp } from "@/lib/utils";
+import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import type { ApiCollection } from "@medialane/sdk";
 
 interface FeaturedCollectionCellProps {
@@ -49,7 +49,7 @@ export function FeaturedCollectionCell({ collection, large = false }: FeaturedCo
             )}
             {collection.floorPrice && (
               <span className="text-brand-orange text-xs font-bold">
-                Floor {collection.floorPrice}
+                Floor {formatDisplayPrice(collection.floorPrice)}
               </span>
             )}
           </div>

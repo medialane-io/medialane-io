@@ -61,16 +61,16 @@ const QUICK_ACTIONS: QuickAction[] = [
 
 function QuickActionCell({ title, sub, href, icon: Icon, from, to, iconColor }: QuickAction) {
   return (
-    <Link href={href} className="block h-full">
+    <Link href={href} className="block h-full group">
       <div
-        className={`bento-cell h-full min-h-[100px] p-3 sm:p-4 bg-gradient-to-br ${from} ${to} flex flex-col justify-between`}
+        className={`bento-cell h-full min-h-[100px] p-3 sm:p-4 bg-gradient-to-br ${from} ${to} flex flex-col justify-between transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1`}
       >
-        <div className="h-8 w-8 rounded-xl bg-background/60 flex items-center justify-center">
-          <Icon className={`h-4 w-4 ${iconColor}`} />
+        <div className="h-9 w-9 rounded-xl bg-background/60 flex items-center justify-center shadow-inner group-hover:bg-background/80 transition-colors">
+          <Icon className={`h-4.5 w-4.5 ${iconColor} group-hover:scale-110 transition-transform duration-300`} />
         </div>
         <div className="mt-3">
           <p className="font-bold text-sm leading-snug">{title}</p>
-          <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">{sub}</p>
+          <p className="text-[11px] text-muted-foreground/80 mt-0.5 leading-snug group-hover:text-foreground transition-colors">{sub}</p>
         </div>
       </div>
     </Link>
@@ -102,8 +102,7 @@ export function BentoSection() {
         </div>
       </FadeIn>
 
-      {/* Bento grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 auto-rows-min">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {/* Featured collection — 2×2 hero slot */}
         {isLoading ? (
           <div className="col-span-2 row-span-2 bento-cell">
@@ -119,42 +118,37 @@ export function BentoSection() {
           </FadeIn>
         ) : null}
 
-        {/* Quick action cells — fill right column */}
-        {QUICK_ACTIONS.slice(0, 2).map((q, i) => (
+        {/* Quick action cells — fill right column in a 2x2 square */}
+        {QUICK_ACTIONS.map((q, i) => (
           <FadeIn key={q.href} delay={0.1 + i * 0.08} className="col-span-1">
-            <QuickActionCell {...q} />
-          </FadeIn>
-        ))}
-
-        {/* Second featured collection */}
-        {isLoading ? (
-          <div className="col-span-2 bento-cell">
-            <Skeleton className="aspect-[16/7] w-full" />
-            <div className="p-3 space-y-1.5">
-              <Skeleton className="h-4 w-1/2" />
-              <Skeleton className="h-3 w-1/4" />
-            </div>
-          </div>
-        ) : cols[1] ? (
-          <FadeIn className="col-span-2" delay={0.15}>
-            <FeaturedCollectionCell collection={cols[1]} />
-          </FadeIn>
-        ) : null}
-
-        {/* Remaining quick actions */}
-        {QUICK_ACTIONS.slice(2).map((q, i) => (
-          <FadeIn key={q.href} delay={0.2 + i * 0.08} className="col-span-1">
             <QuickActionCell {...q} />
           </FadeIn>
         ))}
       </div>
 
-      {/* Third collection — full row */}
-      {!isLoading && cols[2] && (
-        <FadeIn delay={0.25}>
-          <CollectionCard collection={cols[2]} />
-        </FadeIn>
-      )}
+      {/* Remaining collections — full row split in half */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+        {isLoading ? (
+          <>
+            <CollectionCardSkeleton />
+            <CollectionCardSkeleton />
+          </>
+        ) : (
+          <>
+            {cols[1] && (
+              <FadeIn delay={0.15}>
+                <CollectionCard collection={cols[1]} />
+              </FadeIn>
+            )}
+            {cols[2] && (
+              <FadeIn delay={0.25}>
+                <CollectionCard collection={cols[2]} />
+              </FadeIn>
+            )}
+          </>
+        )}
+      </div>
+
     </section>
   );
 }
