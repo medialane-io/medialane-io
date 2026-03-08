@@ -7,7 +7,7 @@ import { ListingsGrid } from "@/components/marketplace/listings-grid";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Search, X } from "lucide-react";
+import { Search, X } from "lucide-react";
 import type { ApiSearchResult } from "@medialane/sdk";
 import { ipfsToHttp } from "@/lib/utils";
 import Link from "next/link";
@@ -150,13 +150,16 @@ function PlatformStatsBar() {
   ];
 
   return (
-    <div className="flex items-center gap-6">
+    <div className="flex flex-wrap items-center gap-2 pt-0.5">
       {items.map(({ label, value }) => (
-        <div key={label} className="text-sm">
+        <div
+          key={label}
+          className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-sm"
+        >
           <span className="font-bold text-foreground">
             {value !== undefined ? value.toLocaleString() : "—"}
           </span>
-          <span className="text-muted-foreground ml-1.5">{label}</span>
+          <span className="text-muted-foreground">{label}</span>
         </div>
       ))}
     </div>
@@ -198,12 +201,9 @@ export default function MarketplacePage() {
   return (
     <div className="px-4 py-8 space-y-6">
       {/* Hero */}
-      <div className="space-y-1">
-        <div className="flex items-center gap-2 text-primary">
-          <Sparkles className="h-4 w-4" />
-          <span className="text-xs font-semibold uppercase tracking-wider">Marketplace</span>
-        </div>
-        <h1 className="text-2xl font-bold">Discover IP Assets</h1>
+      <div className="space-y-2">
+        <p className="section-label">Marketplace</p>
+        <h1 className="text-2xl font-bold tracking-tight">Discover IP Assets</h1>
         <p className="text-sm text-muted-foreground">
           Browse, buy, and license creative works on Starknet — gasless for everyone.
         </p>

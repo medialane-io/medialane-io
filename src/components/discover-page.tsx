@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useCollections } from "@/hooks/use-collections";
 import { useOrders } from "@/hooks/use-orders";
 import { useActivities } from "@/hooks/use-activities";
@@ -20,9 +19,11 @@ import {
   Tag,
   Handshake,
   ArrowRightLeft,
+  Image as ImageIcon,
 } from "lucide-react";
 import type { ApiActivity, ApiOrder } from "@medialane/sdk";
 import { usePlatformStats } from "@/hooks/use-stats";
+import Image from "next/image";
 
 // ─── Hero ─────────────────────────────────────────────────────────────────────
 
@@ -37,34 +38,37 @@ function Hero() {
 
   return (
     <section className="relative overflow-hidden border-b border-border/60">
-      {/* Ambient glow */}
+      {/* Ambient glows */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-primary/10 blur-3xl" />
-        <div className="absolute -top-16 right-0 h-72 w-72 rounded-full bg-purple-500/10 blur-3xl" />
+        <div className="absolute -top-40 -left-40 h-[500px] w-[500px] rounded-full bg-primary/8 blur-3xl animate-blob" />
+        <div className="absolute -top-20 right-0 h-80 w-80 rounded-full bg-purple-500/8 blur-3xl animate-blob-slow" />
+        <div className="absolute bottom-0 left-1/3 h-64 w-64 rounded-full bg-blue-500/5 blur-3xl" />
       </div>
 
       <div className="container mx-auto px-4 py-16 sm:py-24 relative">
-        <div className="max-w-2xl space-y-6">
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
+        <div className="max-w-2xl space-y-7">
+          {/* Pill badge */}
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/8 px-3.5 py-1 text-[11px] font-bold tracking-wide text-primary uppercase">
             <Sparkles className="h-3 w-3" />
             IP marketplace on Starknet
           </div>
 
-          <h1 className="text-4xl sm:text-5xl font-black leading-tight tracking-tight">
+          {/* Headline */}
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black leading-[1.05] tracking-tight">
             Create, license &{" "}
-            <span className="bg-gradient-to-r from-primary to-purple-400 bg-clip-text text-transparent">
-              trade IP assets
-            </span>{" "}
-            — gasless for everyone.
+            <span className="gradient-text">trade IP assets</span>
+            {" "}— gasless for everyone.
           </h1>
 
+          {/* Subhead */}
           <p className="text-muted-foreground text-lg max-w-xl leading-relaxed">
-            Medialane is a decentralised marketplace for intellectual property NFTs built on
-            Starknet. Register your creative works on-chain in under a minute.
+            A decentralised marketplace for intellectual property NFTs built on Starknet.
+            Register your creative works on-chain in under a minute.
           </p>
 
-          <div className="flex flex-wrap items-center gap-3 pt-2">
-            <Button size="lg" asChild className="gap-2">
+          {/* CTAs */}
+          <div className="flex flex-wrap items-center gap-3 pt-1">
+            <Button size="lg" asChild className="gap-2 shadow-lg shadow-primary/20">
               <Link href="/marketplace">
                 <Compass className="h-4 w-4" />
                 Explore marketplace
@@ -78,14 +82,18 @@ function Hero() {
             </Button>
           </div>
 
+          {/* Stats pills */}
           {stats && (
-            <div className="flex items-center gap-6 pt-2">
+            <div className="flex flex-wrap items-center gap-3 pt-1">
               {statItems.map(({ label, value }) => (
-                <div key={label} className="text-sm">
-                  <span className="font-bold text-foreground text-base">
+                <div
+                  key={label}
+                  className="flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1.5 text-sm"
+                >
+                  <span className="font-bold text-foreground">
                     {value !== undefined ? value.toLocaleString() : "—"}
                   </span>
-                  <span className="text-muted-foreground ml-1.5">{label}</span>
+                  <span className="text-muted-foreground">{label}</span>
                 </div>
               ))}
             </div>
@@ -107,11 +115,14 @@ function FeaturedCollections() {
   return (
     <section className="container mx-auto px-4 space-y-5">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Layers className="h-4 w-4 text-primary" />
-          <h2 className="text-xl font-bold">Collections</h2>
+        <div className="space-y-0.5">
+          <p className="section-label">Curated</p>
+          <div className="flex items-center gap-2">
+            <Layers className="h-4 w-4 text-primary" />
+            <h2 className="text-xl font-bold">Collections</h2>
+          </div>
         </div>
-        <Button variant="ghost" size="sm" asChild className="gap-1 text-muted-foreground">
+        <Button variant="ghost" size="sm" asChild className="gap-1 text-muted-foreground hover:text-foreground">
           <Link href="/collections">
             View all <ArrowRight className="h-3.5 w-3.5" />
           </Link>
@@ -133,6 +144,8 @@ function FeaturedCollections() {
 
 function RecentListingRow({ order }: { order: ApiOrder }) {
   const [imgError, setImgError] = useState(false);
+  const name = order.token?.name ?? `Token #${order.nftTokenId}`;
+  const image = order.token?.image ? ipfsToHttp(order.token.image) : null;
 
   return (
     <Link
@@ -140,25 +153,36 @@ function RecentListingRow({ order }: { order: ApiOrder }) {
       className="flex items-center gap-3 px-4 py-3 hover:bg-muted/40 rounded-xl transition-colors group"
     >
       {/* Thumbnail */}
-      <div className="h-10 w-10 rounded-lg bg-muted overflow-hidden shrink-0 relative">
-        <span className="absolute inset-0 flex items-center justify-center text-xs font-mono text-muted-foreground">
-          #{order.nftTokenId}
-        </span>
+      <div className="h-10 w-10 rounded-lg bg-muted overflow-hidden shrink-0 relative border border-border/60">
+        {image && !imgError ? (
+          <Image
+            src={image}
+            alt={name}
+            fill
+            className="object-cover"
+            onError={() => setImgError(true)}
+            unoptimized
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary/10 to-purple-500/10">
+            <ImageIcon className="h-3.5 w-3.5 text-muted-foreground/50" />
+          </div>
+        )}
       </div>
 
       {/* Info */}
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">
-          Token #{order.nftTokenId}
+          {name}
         </p>
-        <p className="text-xs text-muted-foreground font-mono truncate">
+        <p className="text-[11px] text-muted-foreground font-mono truncate">
           {order.nftContract?.slice(0, 14)}…
         </p>
       </div>
 
       {/* Price + time */}
       <div className="text-right shrink-0">
-        <p className="text-sm font-semibold">{order.price.formatted ?? "—"}</p>
+        <p className="price-value text-sm">{order.price.formatted ?? "—"}</p>
         <p className="text-[10px] text-muted-foreground">{timeAgo(order.createdAt)}</p>
       </div>
     </Link>
@@ -171,18 +195,21 @@ function RecentListings() {
   return (
     <section className="space-y-5">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Tag className="h-4 w-4 text-primary" />
-          <h2 className="text-xl font-bold">Recent Listings</h2>
+        <div className="space-y-0.5">
+          <p className="section-label">Fresh on market</p>
+          <div className="flex items-center gap-2">
+            <Tag className="h-4 w-4 text-primary" />
+            <h2 className="text-xl font-bold">Recent Listings</h2>
+          </div>
         </div>
-        <Button variant="ghost" size="sm" asChild className="gap-1 text-muted-foreground">
+        <Button variant="ghost" size="sm" asChild className="gap-1 text-muted-foreground hover:text-foreground">
           <Link href="/marketplace">
             View all <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </Button>
       </div>
 
-      <div className="rounded-xl border border-border bg-card divide-y divide-border/60 overflow-hidden">
+      <div className="rounded-2xl border border-border bg-card divide-y divide-border/60 overflow-hidden">
         {isLoading ? (
           Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="flex items-center gap-3 px-4 py-3">
@@ -222,8 +249,17 @@ const ACTIVITY_LABEL: Record<string, string> = {
   cancelled: "Cancelled",
 };
 
+const ACTIVITY_COLOR: Record<string, string> = {
+  listing:   "text-primary",
+  sale:      "text-emerald-500",
+  offer:     "text-amber-500",
+  transfer:  "text-blue-400",
+  cancelled: "text-muted-foreground",
+};
+
 function ActivityRow({ event }: { event: ApiActivity }) {
   const Icon = ACTIVITY_ICON[event.type] ?? ArrowRightLeft;
+  const color = ACTIVITY_COLOR[event.type] ?? "text-muted-foreground";
   const contract = event.nftContract ?? event.contractAddress;
   const tokenId  = event.nftTokenId  ?? event.tokenId;
 
@@ -232,22 +268,22 @@ function ActivityRow({ event }: { event: ApiActivity }) {
       href={contract && tokenId ? `/asset/${contract}/${tokenId}` : "/activities"}
       className="flex items-center gap-3 px-4 py-3 hover:bg-muted/40 rounded-xl transition-colors group"
     >
-      <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
-        <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+      <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center shrink-0 border border-border/60">
+        <Icon className={`h-3.5 w-3.5 ${color}`} />
       </div>
 
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">
           {ACTIVITY_LABEL[event.type]} · Token #{tokenId ?? "—"}
         </p>
-        <p className="text-xs text-muted-foreground truncate font-mono">
+        <p className="text-[11px] text-muted-foreground truncate font-mono">
           {contract?.slice(0, 14)}…
         </p>
       </div>
 
       <div className="text-right shrink-0">
         {event.price?.formatted && (
-          <p className="text-sm font-semibold">{event.price.formatted}</p>
+          <p className="price-value text-sm">{event.price.formatted}</p>
         )}
         <p className="text-[10px] text-muted-foreground">{timeAgo(event.timestamp)}</p>
       </div>
@@ -261,18 +297,21 @@ function RecentActivity() {
   return (
     <section className="space-y-5">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Activity className="h-4 w-4 text-primary" />
-          <h2 className="text-xl font-bold">Recent Activity</h2>
+        <div className="space-y-0.5">
+          <p className="section-label">On-chain</p>
+          <div className="flex items-center gap-2">
+            <Activity className="h-4 w-4 text-primary" />
+            <h2 className="text-xl font-bold">Recent Activity</h2>
+          </div>
         </div>
-        <Button variant="ghost" size="sm" asChild className="gap-1 text-muted-foreground">
+        <Button variant="ghost" size="sm" asChild className="gap-1 text-muted-foreground hover:text-foreground">
           <Link href="/activities">
             View all <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </Button>
       </div>
 
-      <div className="rounded-xl border border-border bg-card divide-y divide-border/60 overflow-hidden">
+      <div className="rounded-2xl border border-border bg-card divide-y divide-border/60 overflow-hidden">
         {isLoading ? (
           Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="flex items-center gap-3 px-4 py-3">

@@ -84,7 +84,7 @@ function Shell({ children }: { children: React.ReactNode }) {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="sticky top-0 z-50 flex h-12 shrink-0 items-center gap-2 border-b border-border/60 bg-background px-4">
+        <header className="sticky top-0 z-50 flex h-12 shrink-0 items-center gap-2 border-b border-border/60 bg-background/80 backdrop-blur-md px-4">
           <SidebarTrigger className="h-8 w-8" />
           <TopBarActions />
         </header>
