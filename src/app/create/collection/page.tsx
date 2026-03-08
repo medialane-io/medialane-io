@@ -17,18 +17,15 @@ import {
   FormMessage,
   FormDescription,
 } from "@/components/ui/form";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { PinDialog } from "@/components/chipi/pin-dialog";
-import { TxStatus } from "@/components/chipi/tx-status";
+import { CollectionProgressDialog } from "@/components/marketplace/collection-progress-dialog";
+import type { CollectionStep } from "@/components/marketplace/collection-progress-dialog";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
-import { EXPLORER_URL } from "@/lib/constants";
-import { ipfsToHttp } from "@/lib/utils";
-import { Layers, Loader2, CheckCircle2, AlertCircle, ExternalLink, ImagePlus, X } from "lucide-react";
+import { Layers, Loader2, ImagePlus, X } from "lucide-react";
 import { toast } from "sonner";
-import Link from "next/link";
 import type { ChipiCall } from "@/hooks/use-chipi-transaction";
 
 const schema = z.object({
@@ -44,13 +41,15 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export default function CreateCollectionPage() {
-  const { executeTransaction, status, txHash, error, statusMessage } = useChipiTransaction();
+  const { executeTransaction, status, txHash } = useChipiTransaction();
   const { walletAddress, wallet } = useSessionKey();
   const client = useMedialaneClient();
 
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
   const [pinOpen, setPinOpen] = useState(false);
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
+  const [collectionStep, setCollectionStep] = useState<CollectionStep>("idle");
+  const [collectionError, setCollectionError] = useState<string | null>(null);
 
   // Image upload state
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -107,6 +106,9 @@ export default function CreateCollectionPage() {
     setPinOpen(false);
     if (!pendingValues || !walletAddress) return;
 
+    setCollectionError(null);
+    setCollectionStep("processing");
+
     try {
       // 1. Create collection intent — pre-signed, returns calls immediately
       const intentRes = await client.api.createCollectionIntent({
@@ -132,52 +134,33 @@ export default function CreateCollectionPage() {
         wallet: walletOverride,
       });
 
-      toast.success("Collection created!", {
-        description: `${pendingValues.name} (${pendingValues.symbol}) is live on Starknet.`,
-      });
-      form.reset();
-      clearImage();
+      setCollectionStep("success");
     } catch (err: any) {
-      toast.error("Collection creation failed", { description: err?.message });
+      setCollectionError(err?.message ?? "Something went wrong");
+      setCollectionStep("error");
     }
   };
 
-  if (status === "confirmed") {
-    return (
-      <div className="container max-w-lg mx-auto px-4 py-16 text-center space-y-6">
-        <div className="h-16 w-16 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto">
-          <CheckCircle2 className="h-8 w-8 text-emerald-500" />
-        </div>
-        <h1 className="text-2xl font-bold">Collection created!</h1>
-        <p className="text-muted-foreground">
-          Your collection is now live on Starknet. You can start minting assets into it.
-        </p>
-        {txHash && (
-          <Button variant="outline" size="sm" asChild>
-            <a
-              href={`${EXPLORER_URL}/tx/${txHash}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2"
-            >
-              View on Voyager <ExternalLink className="h-3 w-3" />
-            </a>
-          </Button>
-        )}
-        <div className="flex gap-3 justify-center pt-2">
-          <Button onClick={() => { form.reset(); window.location.reload(); }}>
-            Create another
-          </Button>
-          <Button variant="outline" asChild>
-            <Link href="/portfolio">My portfolio</Link>
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  const handleCreateAnother = () => {
+    setCollectionStep("idle");
+    setCollectionError(null);
+    form.reset();
+    clearImage();
+  };
 
   return (
     <>
+      <CollectionProgressDialog
+        open={collectionStep !== "idle"}
+        collectionStep={collectionStep}
+        txStatus={status}
+        collectionName={pendingValues?.name ?? ""}
+        imagePreview={imagePreview}
+        txHash={txHash}
+        error={collectionError}
+        onCreateAnother={handleCreateAnother}
+      />
+
       <div className="container max-w-2xl mx-auto px-4 py-8 space-y-6">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -191,17 +174,12 @@ export default function CreateCollectionPage() {
           </div>
         </div>
 
-        {(status === "submitting" || status === "confirming") && (
-          <TxStatus status={status} txHash={txHash} statusMessage={statusMessage} />
-        )}
-
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
             {/* Collection image */}
             <div className="space-y-2">
               <p className="text-sm font-medium">Collection image</p>
               <div className="flex items-start gap-4">
-                {/* Preview / placeholder */}
                 <div
                   className="relative h-28 w-28 rounded-xl border-2 border-dashed border-border bg-muted flex items-center justify-center overflow-hidden shrink-0 cursor-pointer hover:border-primary/50 transition-colors"
                   onClick={() => !imageUploading && fileInputRef.current?.click()}
@@ -317,29 +295,13 @@ export default function CreateCollectionPage() {
               )}
             />
 
-            {error && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
             <Button
               type="submit"
               className="w-full h-12 text-base"
-              disabled={status === "submitting" || status === "confirming"}
+              disabled={collectionStep !== "idle" || imageUploading}
             >
-              {status === "submitting" || status === "confirming" ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Creating…
-                </>
-              ) : (
-                <>
-                  <Layers className="h-4 w-4 mr-2" />
-                  Create collection
-                </>
-              )}
+              <Layers className="h-4 w-4 mr-2" />
+              Create collection
             </Button>
             <p className="text-xs text-center text-muted-foreground">
               Gas is free. Your PIN signs the transaction.
