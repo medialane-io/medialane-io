@@ -45,6 +45,16 @@ export function formatAmount(amount: string, decimals: number): string {
   return formatPrice(amount, decimals);
 }
 
+export function formatDisplayPrice(price: string | number | null | undefined): string {
+  if (price === null || price === undefined) return "";
+  const num = Number(price);
+  if (isNaN(num)) return String(price);
+  return num.toLocaleString(undefined, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
+}
+
 export function ipfsToHttp(uri: string | null | undefined): string {
   if (!uri) return "/placeholder.svg";
   if (uri.startsWith("ipfs://")) {

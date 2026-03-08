@@ -12,7 +12,7 @@ import Link from "next/link";
 import { EXPLORER_URL } from "@/lib/constants";
 import { ExternalLink, Loader2 } from "lucide-react";
 import { ACTIVITY_TYPE_CONFIG } from "@/lib/activity";
-import { timeAgo } from "@/lib/utils";
+import { timeAgo , formatDisplayPrice} from "@/lib/utils";
 import type { ApiActivity } from "@medialane/sdk";
 
 const PAGE_SIZE = 30;
@@ -74,7 +74,7 @@ function ActivityRow({ activity }: { activity: ApiActivity }) {
         {activity.price?.formatted && (
           <div className="text-right">
             <p className="font-bold text-sm">
-              {activity.price.formatted} {activity.price.currency}
+              {formatDisplayPrice(activity.price.formatted)} {activity.price.currency}
             </p>
           </div>
         )}

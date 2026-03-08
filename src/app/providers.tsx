@@ -9,6 +9,7 @@ import { CartDrawer } from "@/components/layout/cart-drawer";
 import { SessionExpiryBanner } from "@/components/layout/session-expiry-banner";
 import { Aurora } from "@/components/ui/aurora";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { MedialaneLogo } from "@/components/brand/medialane-logo";
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
@@ -21,18 +22,14 @@ function Shell({ children }: { children: React.ReactNode }) {
         <footer className="bg-background border-t border-border/60 px-6 py-8 mt-auto">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
-              <Zap className="h-4 w-4 text-primary" />
-              <span className="font-semibold text-foreground">Medialane</span>
-              <span>· IP marketplace on Starknet</span>
+              <MedialaneLogo />
             </div>
             <nav className="flex items-center gap-4 flex-wrap justify-center">
-              <Link href="/marketplace" className="hover:text-foreground transition-colors">Marketplace</Link>
-              <Link href="/collections" className="hover:text-foreground transition-colors">Collections</Link>
-              <Link href="/launchpad" className="hover:text-foreground transition-colors">Launchpad</Link>
-              <Link href="/activity" className="hover:text-foreground transition-colors">Activity</Link>
-              <a href="https://twitter.com/medialane_io" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">Twitter</a>
+              <Link href="/marketplace" className="hover:text-foreground transition-colors">Trade</Link>
+              <Link href="/launchpad" className="hover:text-foreground transition-colors">Launch</Link>
+              <a href="https://x.com/medialane_io" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">X</a>
             </nav>
-            <p className="text-xs">© {new Date().getFullYear()} Medialane</p>
+            <p className="text-xs">© {new Date().getFullYear()} Medialane DAO</p>
           </div>
         </footer>
       </SidebarInset>

@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { useMarketplace } from "@/hooks/use-marketplace";
-import { timeUntil, ipfsToHttp } from "@/lib/utils";
+import { timeUntil, ipfsToHttp , formatDisplayPrice} from "@/lib/utils";
 import { ExternalLink } from "lucide-react";
 import { EXPLORER_URL } from "@/lib/constants";
 import Image from "next/image";
@@ -57,7 +57,7 @@ function ReceivedOfferRow({
       </div>
 
       <div className="text-right shrink-0">
-        <p className="font-bold text-sm">{order.price.formatted} {order.price.currency}</p>
+        <p className="font-bold text-sm">{formatDisplayPrice(order.price.formatted)} {order.price.currency}</p>
         <Link
           href={`/creator/${order.offerer}`}
           className="text-xs text-muted-foreground hover:text-primary transition-colors truncate max-w-[100px] block"
@@ -152,7 +152,7 @@ export function ReceivedOffersTable({ address }: ReceivedOffersTableProps) {
         onCancel={() => { setPinOpen(false); setSelectedOrder(null); }}
         title="Accept offer"
         description={selectedOrder
-          ? `Accept ${selectedOrder.price.formatted} ${selectedOrder.price.currency} for token #${selectedOrder.nftTokenId}?`
+          ? `Accept ${formatDisplayPrice(selectedOrder.price.formatted)} ${selectedOrder.price.currency} for token #${selectedOrder.nftTokenId}?`
           : "Enter your PIN to accept this offer."}
       />
     </>

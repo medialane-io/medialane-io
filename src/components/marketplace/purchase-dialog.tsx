@@ -19,6 +19,7 @@ import { TxStatus } from "@/components/chipi/tx-status";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { EXPLORER_URL } from "@/lib/constants";
 import type { ApiOrder } from "@medialane/sdk";
+import { formatDisplayPrice } from "@/lib/utils";
 
 interface PurchaseDialogProps {
   order: ApiOrder;
@@ -124,7 +125,7 @@ export function PurchaseDialog({ order, open, onOpenChange }: PurchaseDialogProp
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Price</span>
-                  <span className="font-bold">{order.price.formatted} {order.price.currency}</span>
+                  <span className="font-bold">{formatDisplayPrice(order.price.formatted)} {order.price.currency}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Gas</span>
@@ -163,7 +164,7 @@ export function PurchaseDialog({ order, open, onOpenChange }: PurchaseDialogProp
         onSubmit={handlePin}
         onCancel={() => setPinOpen(false)}
         title="Confirm purchase"
-        description={`Enter your PIN to buy token #${order.nftTokenId} for ${order.price.formatted} ${order.price.currency}.`}
+        description={`Enter your PIN to buy token #${order.nftTokenId} for ${formatDisplayPrice(order.price.formatted)} ${order.price.currency}.`}
       />
 
       <SessionSetupDialog

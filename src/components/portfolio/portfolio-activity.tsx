@@ -10,7 +10,7 @@ import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { EXPLORER_URL } from "@/lib/constants";
 import { ACTIVITY_TYPE_CONFIG } from "@/lib/activity";
-import { timeAgo } from "@/lib/utils";
+import { timeAgo , formatDisplayPrice} from "@/lib/utils";
 import type { ApiActivity } from "@medialane/sdk";
 
 const TYPE_FILTERS = [
@@ -64,7 +64,7 @@ function ActivityRow({ activity }: { activity: ApiActivity }) {
       <div className="flex items-center gap-3 shrink-0">
         {activity.price?.formatted && (
           <span className="text-sm font-bold">
-            {activity.price.formatted} {activity.price.currency}
+            {formatDisplayPrice(activity.price.formatted)} {activity.price.currency}
           </span>
         )}
         {txLink && (

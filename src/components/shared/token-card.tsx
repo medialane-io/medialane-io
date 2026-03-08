@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MotionCard } from "@/components/ui/motion-primitives";
 import { ShoppingCart, Tag } from "lucide-react";
-import { ipfsToHttp } from "@/lib/utils";
+import { ipfsToHttp , formatDisplayPrice} from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
 import type { ApiToken } from "@medialane/sdk";
 
@@ -43,7 +43,7 @@ export function TokenCard({
       nftTokenId: token.tokenId,
       name,
       image,
-      price: activeOrder.price.formatted,
+      price: formatDisplayPrice(activeOrder.price.formatted),
       currency: activeOrder.price.currency,
       currencyDecimals: activeOrder.price.decimals,
       offerer: activeOrder.offerer,
@@ -89,7 +89,7 @@ export function TokenCard({
               <div>
                 <p className="section-label">Price</p>
                 <p className="price-value text-sm">
-                  {activeOrder.price.formatted}{" "}
+                  {formatDisplayPrice(activeOrder.price.formatted)}{" "}
                   <span className="text-muted-foreground font-normal text-xs">
                     {activeOrder.price.currency}
                   </span>

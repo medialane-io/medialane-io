@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FadeIn } from "@/components/ui/motion-primitives";
 import { BRAND } from "@/lib/brand";
-import { ipfsToHttp, timeAgo } from "@/lib/utils";
+import { ipfsToHttp, timeAgo , formatDisplayPrice} from "@/lib/utils";
 import {
   ArrowRight,
   TrendingUp,
@@ -56,7 +56,7 @@ function RecentListingRow({ order }: { order: ApiOrder }) {
         </p>
       </div>
       <div className="text-right shrink-0">
-        <p className="price-value text-sm">{order.price.formatted ?? "—"}</p>
+        <p className="price-value text-sm">{formatDisplayPrice(order.price.formatted) ?? "—"}</p>
         <p className="text-[10px] text-muted-foreground">{timeAgo(order.createdAt)}</p>
       </div>
     </Link>
@@ -113,7 +113,7 @@ function ActivityRow({ event }: { event: ApiActivity }) {
       </div>
       <div className="text-right shrink-0">
         {event.price?.formatted && (
-          <p className="price-value text-sm">{event.price.formatted}</p>
+          <p className="price-value text-sm">{formatDisplayPrice(event.price.formatted)}</p>
         )}
         <p className="text-[10px] text-muted-foreground">{timeAgo(event.timestamp)}</p>
       </div>

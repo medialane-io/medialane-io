@@ -21,9 +21,9 @@ import {
   SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { MedialaneLogo } from "../brand/medialane-logo";
 
 const NAV = [
-  { href: "/", label: "Home", icon: Home, exact: true },
   { href: "/discover", label: "Discover", icon: Telescope },
   { href: "/marketplace", label: "Marketplace", icon: Compass },
   { href: "/collections", label: "Collections", icon: LayoutGrid },
@@ -85,13 +85,7 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link href="/">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-purple-600 text-primary-foreground shrink-0 shadow-lg shadow-primary/30">
-                  <Zap className="size-4" />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-bold tracking-tight">medialane</span>
-                  <span className="truncate text-xs text-muted-foreground">IP on Starknet</span>
-                </div>
+                <MedialaneLogo />
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -101,7 +95,6 @@ export function AppSidebar() {
       {/* Nav */}
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Platform</SidebarGroupLabel>
           <SidebarMenu>
             {NAV.map(({ href, label, icon: Icon, exact }) => {
               const showBadge = href === "/portfolio" && unreadOffers > 0;
@@ -171,7 +164,7 @@ export function AppSidebar() {
                   </SignInButton>
                   <SignUpButton mode="modal">
                     <Button size="sm" className="w-full">
-                      Get started
+                      Start
                     </Button>
                   </SignUpButton>
                 </div>

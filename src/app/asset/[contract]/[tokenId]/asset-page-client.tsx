@@ -15,7 +15,7 @@ import { ListingDialog } from "@/components/marketplace/listing-dialog";
 import { OfferDialog } from "@/components/marketplace/offer-dialog";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { PinDialog } from "@/components/chipi/pin-dialog";
-import { ipfsToHttp, timeUntil, timeAgo } from "@/lib/utils";
+import { ipfsToHttp, timeUntil, timeAgo , formatDisplayPrice} from "@/lib/utils";
 import { ShoppingCart, Tag, ExternalLink, Clock, HandCoins, ArrowRightLeft, X, CheckCircle, DollarSign, GitBranch, UserCheck, Globe, Bot, Percent, Shield, Calendar, ChevronRight } from "lucide-react";
 import { LICENSE_TRAIT_TYPES } from "@/types/ip";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -191,7 +191,7 @@ export default function AssetPageClient() {
                     {isOwner ? "Your listing" : "Current price"}
                   </p>
                   <p className="text-3xl font-bold mt-1">
-                    {cheapest.price.formatted} {cheapest.price.currency}
+                    {formatDisplayPrice(cheapest.price.formatted)} {cheapest.price.currency}
                   </p>
                   <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
                     <Clock className="h-3 w-3" />
@@ -270,7 +270,7 @@ export default function AssetPageClient() {
                     >
                       <div className="min-w-0">
                         <p className="text-sm font-bold">
-                          {bid.price.formatted} {bid.price.currency}
+                          {formatDisplayPrice(bid.price.formatted)} {bid.price.currency}
                         </p>
                         <div className="flex items-center gap-2 mt-0.5">
                           <AddressDisplay
@@ -486,7 +486,7 @@ export default function AssetPageClient() {
                   return (
                     <div key={order.orderHash} className="flex items-center justify-between px-4 py-3 gap-4">
                       <div className="min-w-0">
-                        <p className="font-bold text-sm">{order.price.formatted} {order.price.currency}</p>
+                        <p className="font-bold text-sm">{formatDisplayPrice(order.price.formatted)} {order.price.currency}</p>
                         <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
                           <Clock className="h-3 w-3" />
                           {timeUntil(order.endTime)}
@@ -525,7 +525,7 @@ export default function AssetPageClient() {
                 {activeBids.map((bid) => (
                   <div key={bid.orderHash} className="flex items-center justify-between px-4 py-3 gap-4">
                     <div className="min-w-0">
-                      <p className="font-bold text-sm">{bid.price.formatted} {bid.price.currency}</p>
+                      <p className="font-bold text-sm">{formatDisplayPrice(bid.price.formatted)} {bid.price.currency}</p>
                       <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
                         <Clock className="h-3 w-3" />
                         {timeUntil(bid.endTime)}
@@ -573,7 +573,7 @@ export default function AssetPageClient() {
                       <div className="flex items-center gap-3 shrink-0">
                         {event.price?.formatted && (
                           <span className="text-sm font-bold">
-                            {event.price.formatted} {event.price.currency}
+                            {formatDisplayPrice(event.price.formatted)} {event.price.currency}
                           </span>
                         )}
                         <span className="text-xs text-muted-foreground" title={new Date(event.timestamp).toLocaleString()}>
@@ -633,7 +633,7 @@ export default function AssetPageClient() {
         onCancel={() => { setAcceptPinOpen(false); setOrderToAccept(null); }}
         title="Accept offer"
         description={orderToAccept
-          ? `Accept ${orderToAccept.price.formatted} ${orderToAccept.price.currency} for ${name}?`
+          ? `Accept ${formatDisplayPrice(orderToAccept.price.formatted)} ${orderToAccept.price.currency} for ${name}?`
           : "Enter your PIN to accept this offer."}
       />
     </>

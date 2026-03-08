@@ -9,7 +9,7 @@ import { AddressDisplay } from "@/components/shared/address-display";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listing-card";
-import { timeAgo } from "@/lib/utils";
+import { timeAgo , formatDisplayPrice} from "@/lib/utils";
 import {
   Tag,
   Handshake,
@@ -82,7 +82,7 @@ function ActivityRow({ event }: { event: ApiActivity }) {
       </div>
       <div className="text-right shrink-0">
         {event.price?.formatted && (
-          <p className="text-sm font-semibold">{event.price.formatted}</p>
+          <p className="text-sm font-semibold">{formatDisplayPrice(event.price.formatted)}</p>
         )}
         <p className="text-[10px] text-muted-foreground">{timeAgo(event.timestamp)}</p>
       </div>

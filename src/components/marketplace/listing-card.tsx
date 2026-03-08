@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MotionCard } from "@/components/ui/motion-primitives";
 import { ShoppingCart, Clock } from "lucide-react";
-import { ipfsToHttp, timeUntil, shortenAddress } from "@/lib/utils";
+import { ipfsToHttp, timeUntil, shortenAddress , formatDisplayPrice} from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
 import type { ApiOrder } from "@medialane/sdk";
 
@@ -34,7 +34,7 @@ export function ListingCard({ order, onBuy }: ListingCardProps) {
       nftTokenId: order.nftTokenId,
       name,
       image: image ?? "",
-      price: order.price.formatted,
+      price: formatDisplayPrice(order.price.formatted),
       currency: order.price.currency,
       currencyDecimals: order.price.decimals,
       offerer: order.offerer,
@@ -78,7 +78,7 @@ export function ListingCard({ order, onBuy }: ListingCardProps) {
             <div>
               <p className="section-label">{isListing ? "Ask" : "Offer"}</p>
               <p className="price-value text-sm">
-                {order.price.formatted}{" "}
+                {formatDisplayPrice(order.price.formatted)}{" "}
                 <span className="text-muted-foreground font-normal text-xs">
                   {order.price.currency}
                 </span>
