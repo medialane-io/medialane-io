@@ -19,8 +19,19 @@ import { toast } from "sonner";
 import { useChipiTransaction } from "./use-chipi-transaction";
 import { useSessionKey } from "./use-session-key";
 import { useMedialaneClient } from "./use-medialane-client";
-import { MARKETPLACE_CONTRACT } from "@/lib/constants";
+import { MARKETPLACE_CONTRACT, SUPPORTED_TOKENS } from "@/lib/constants";
 import type { ChipiCall } from "./use-chipi-transaction";
+
+/** Resolve a currency symbol (e.g. "USDC") to its on-chain contract address.
+ *  Returns the input unchanged if it already looks like an address. */
+function resolveCurrencyAddress(symbolOrAddress: string): string {
+  if (symbolOrAddress.startsWith("0x")) return symbolOrAddress;
+  const token = SUPPORTED_TOKENS.find(
+    (t) => t.symbol === symbolOrAddress.toUpperCase()
+  );
+  if (!token) throw new Error(`Unsupported currency: ${symbolOrAddress}`);
+  return token.address;
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────
 
@@ -160,7 +171,7 @@ export function useMarketplace() {
             offerer: walletAddress!,
             nftContract: input.assetContract,
             tokenId: input.tokenId,
-            currency: input.currencySymbol,
+            currency: resolveCurrencyAddress(input.currencySymbol),
             price: input.price,
             endTime,
           }),
@@ -217,7 +228,7 @@ export function useMarketplace() {
             offerer: walletAddress!,
             nftContract: input.assetContract,
             tokenId: input.tokenId,
-            currency: input.currencySymbol,
+            currency: resolveCurrencyAddress(input.currencySymbol),
             price: input.price,
             endTime,
           }),
