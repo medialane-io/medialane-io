@@ -56,9 +56,12 @@ export interface UserCollection {
 async function fetchUserCollections(address: string): Promise<UserCollection[]> {
   const contract = new Contract(REGISTRY_ABI as any, COLLECTION_CONTRACT, starknetProvider);
 
-  // Returns Span<u256> — decoded as array of { low, high } objects or bigints
-  const ids: any[] = await (contract as any).list_user_collections(address);
-  if (!ids || ids.length === 0) return [];
+  // Use "latest" block — Alchemy v0_10 does not support the default "pending" block tag
+  const rawIds = await contract.call("list_user_collections", [address], {
+    blockIdentifier: "latest",
+  });
+  const ids: any[] = Array.isArray(rawIds) ? rawIds : rawIds != null ? [rawIds] : [];
+  if (ids.length === 0) return [];
 
   const results = await Promise.allSettled(
     ids.map(async (idRaw: any) => {
@@ -70,7 +73,9 @@ async function fetchUserCollections(address: string): Promise<UserCollection[]> 
           ? BigInt(idRaw.low) + (BigInt(idRaw.high) << 128n)
           : BigInt(idRaw);
 
-      const col = await (contract as any).get_collection(cairo.uint256(id));
+      const col = await contract.call("get_collection", [cairo.uint256(id)], {
+        blockIdentifier: "latest",
+      });
 
       // ip_nft is a ContractAddress — decoded as bigint or hex string by starknet.js
       const ipNftRaw = col.ip_nft ?? col["ip_nft"];
