@@ -1,96 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { ThemeProvider, useTheme } from "next-themes";
+import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
-import { SignInButton, SignUpButton, useUser } from "@clerk/nextjs";
 import Link from "next/link";
-import { Sun, Moon, Search, ShoppingBag, Zap } from "lucide-react";
+import { Zap } from "lucide-react";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { CartDrawer } from "@/components/layout/cart-drawer";
 import { SessionExpiryBanner } from "@/components/layout/session-expiry-banner";
 import { Aurora } from "@/components/ui/aurora";
-import { Button } from "@/components/ui/button";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { useCart } from "@/hooks/use-cart";
-
-function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  if (!mounted) return <div className="h-8 w-8" />;
-  return (
-    <Button
-      variant="ghost"
-      size="icon"
-      className="h-8 w-8"
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      aria-label="Toggle theme"
-    >
-      {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-    </Button>
-  );
-}
-
-function TopBarActions() {
-  const { isSignedIn, isLoaded } = useUser();
-  const { items, toggleCart } = useCart();
-  const cartCount = items.length;
-
-  return (
-    <div className="flex items-center gap-1">
-      <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-        <Link href="/search" aria-label="Search">
-          <Search className="h-4 w-4" />
-        </Link>
-      </Button>
-
-      <ThemeToggle />
-
-      <Button
-        variant="ghost"
-        size="icon"
-        className="relative h-8 w-8"
-        onClick={toggleCart}
-        aria-label="Cart"
-      >
-        <ShoppingBag className="h-4 w-4" />
-        {cartCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-primary text-[10px] font-bold text-primary-foreground flex items-center justify-center">
-            {cartCount > 9 ? "9+" : cartCount}
-          </span>
-        )}
-      </Button>
-
-      {isLoaded && !isSignedIn && (
-        <>
-          <SignInButton mode="modal">
-            <Button variant="ghost" size="sm" className="h-8 text-sm">
-              Sign in
-            </Button>
-          </SignInButton>
-          <SignUpButton mode="modal">
-            <Button size="sm" className="h-8 hidden sm:inline-flex text-sm">
-              Get started
-            </Button>
-          </SignUpButton>
-        </>
-      )}
-    </div>
-  );
-}
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="absolute inset-x-0 top-0 z-50 flex items-center gap-2 px-3 pt-3 pointer-events-none">
-          <SidebarTrigger className="pointer-events-auto h-9 w-9" />
-          <div className="ml-auto pointer-events-auto flex items-center gap-1">
-            <TopBarActions />
-          </div>
-        </header>
+        <SidebarTrigger className="absolute top-3 left-3 z-50" />
         <SessionExpiryBanner />
         <main className="flex-1 bg-background">{children}</main>
         <footer className="bg-background border-t border-border/60 px-6 py-8 mt-auto">
