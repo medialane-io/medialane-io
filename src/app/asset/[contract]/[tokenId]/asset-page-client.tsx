@@ -367,11 +367,13 @@ export default function AssetPageClient() {
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Attributes</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {attributes.map((attr, i) => (
-                    <div key={i} className="rounded-lg border border-border bg-muted/20 p-3 text-center">
-                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    <div key={i} className="rounded-lg border border-border bg-muted/20 p-3 text-center overflow-hidden">
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground truncate" title={attr.trait_type ?? "Trait"}>
                         {attr.trait_type ?? "Trait"}
                       </p>
-                      <p className="text-sm font-semibold mt-0.5">{attr.value ?? "—"}</p>
+                      <p className="text-sm font-semibold mt-0.5 truncate" title={attr.value ?? "—"}>
+                        {attr.value ?? "—"}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -456,11 +458,13 @@ export default function AssetPageClient() {
                         {attributes
                           .filter((a) => !LICENSE_TRAIT_TYPES.has(a.trait_type ?? ""))
                           .map((attr, i) => (
-                            <div key={i} className="rounded-lg border border-border bg-muted/20 p-3 text-center">
-                              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                            <div key={i} className="rounded-lg border border-border bg-muted/20 p-3 text-center overflow-hidden">
+                              <p className="text-[10px] uppercase tracking-wider text-muted-foreground truncate" title={attr.trait_type ?? "Trait"}>
                                 {attr.trait_type ?? "Trait"}
                               </p>
-                              <p className="text-sm font-semibold mt-0.5">{attr.value ?? "—"}</p>
+                              <p className="text-sm font-semibold mt-0.5 truncate" title={attr.value ?? "—"}>
+                                {attr.value ?? "—"}
+                              </p>
                             </div>
                           ))}
                       </div>
