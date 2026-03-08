@@ -51,7 +51,22 @@ function CollectionBanner({ collection, isLoading }: {
   }
 
   return (
-    <div>
+    <div className="relative">
+      {/* Full-bleed blurred background from collection image */}
+      {showImage && (
+        <div className="absolute inset-0 -z-10 overflow-hidden">
+          <Image
+            src={imageUrl}
+            alt=""
+            fill
+            className="object-cover scale-150 blur-3xl opacity-40"
+            unoptimized
+            aria-hidden
+          />
+          <div className="absolute inset-0 bg-background/60" />
+        </div>
+      )}
+
       {/* Banner */}
       <div className="relative w-full aspect-[4/3] sm:aspect-[21/7] bg-gradient-to-br from-primary/20 via-purple-500/15 to-blue-500/10 overflow-hidden">
         {showImage && (
@@ -67,10 +82,10 @@ function CollectionBanner({ collection, isLoading }: {
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
 
-        {/* Back link */}
+        {/* Back link — sits below the floating header */}
         <Link
           href="/collections"
-          className="absolute top-4 left-4 flex items-center gap-1.5 text-xs font-medium text-white/80 hover:text-white bg-black/30 hover:bg-black/50 backdrop-blur-sm px-3 py-1.5 rounded-full transition-all"
+          className="absolute top-14 left-4 flex items-center gap-1.5 text-xs font-medium text-white/80 hover:text-white bg-black/30 hover:bg-black/50 backdrop-blur-sm px-3 py-1.5 rounded-full transition-all"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           Collections
@@ -195,7 +210,7 @@ export default function CollectionPageClient() {
   const activeBids = orders.filter((o) => o.status === "ACTIVE" && o.offer.itemType === "ERC20");
 
   return (
-    <div className="space-y-0 -mt-12">
+    <div className="space-y-0">
       <CollectionBanner collection={collection} isLoading={colLoading} />
 
       <div className="container mx-auto px-4 space-y-8 pb-12">

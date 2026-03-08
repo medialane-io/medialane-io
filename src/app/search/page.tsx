@@ -112,7 +112,7 @@ function SearchResults() {
   const totalResults = tokens.length + collections.length;
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-8">
+    <div className="container mx-auto px-4 pt-14 pb-8 space-y-8">
       {/* Header */}
       <div className="space-y-1">
         <div className="flex items-center gap-2 text-primary">
@@ -208,7 +208,7 @@ function SearchResults() {
 export default function SearchPage() {
   return (
     <Suspense fallback={
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 pt-14 pb-8">
         <Skeleton className="h-8 w-64 mb-2" />
         <Skeleton className="h-4 w-32" />
       </div>

@@ -66,7 +66,7 @@ export default function PortfolioLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
+    <div className="container mx-auto px-4 pt-14 pb-8 space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold">Portfolio</h1>

@@ -100,7 +100,7 @@ export default function AssetPageClient() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 pt-14 pb-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
           <Skeleton className="aspect-square w-full rounded-2xl" />
           <div className="space-y-4">
@@ -132,7 +132,7 @@ export default function AssetPageClient() {
 
   return (
     <>
-      <div className="container mx-auto px-4 py-8 space-y-8">
+      <div className="container mx-auto px-4 pt-14 pb-8 space-y-8">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
           <Link href="/collections" className="hover:text-foreground transition-colors shrink-0">
