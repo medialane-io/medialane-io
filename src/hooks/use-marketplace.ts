@@ -33,6 +33,33 @@ function resolveCurrencyAddress(symbolOrAddress: string): string {
   return token.address;
 }
 
+/** Build a symbol→address map for all supported tokens. */
+const SYMBOL_TO_ADDRESS: Record<string, string> = Object.fromEntries(
+  SUPPORTED_TOKENS.map((t) => [t.symbol, t.address])
+);
+
+/**
+ * Walk typed data recursively and replace any plain currency symbol strings
+ * (e.g. "USDC") with their contract addresses. Fixes backends that embed the
+ * symbol instead of the address in ContractAddress fields.
+ */
+function sanitizeTypedData(value: unknown): unknown {
+  if (typeof value === "string") {
+    const upper = value.toUpperCase();
+    return SYMBOL_TO_ADDRESS[upper] ?? value;
+  }
+  if (Array.isArray(value)) return value.map(sanitizeTypedData);
+  if (value !== null && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([k, v]) => [
+        k,
+        sanitizeTypedData(v),
+      ])
+    );
+  }
+  return value;
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────
 
 export interface CreateListingInput {
@@ -141,7 +168,9 @@ export function useMarketplace() {
       const intentRes = await intentFn();
       const { id, typedData } = intentRes.data;
 
-      const sig = await signTypedData(typedData, pin);
+      // Sanitize typed data: replace any bare currency symbols (e.g. "USDC")
+      // with their contract addresses so starknet.js can convert them to BigInt.
+      const sig = await signTypedData(sanitizeTypedData(typedData), pin);
 
       const signedRes = await client.api.submitIntentSignature(id, sig);
       const calls = signedRes.data.calls as ChipiCall[];
