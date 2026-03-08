@@ -10,6 +10,8 @@ import { ipfsToHttp } from "@/lib/utils";
 import { Layers, Plus, ImageIcon } from "lucide-react";
 import type { UserCollection } from "@/hooks/use-user-collections";
 import { useCollections } from "@/hooks/use-collections";
+import { RefreshCw } from "lucide-react";
+import { useState } from "react";
 import type { ApiCollection } from "@medialane/sdk";
 
 // Merge on-chain data with DB metadata (image, description, totalSupply)
@@ -71,9 +73,10 @@ function CollectionRow({
 export default function PortfolioCollectionsPage() {
   const { user } = useUser();
   const address = user?.publicMetadata?.publicKey as string | undefined;
+  const [refreshing, setRefreshing] = useState(false);
 
   // On-chain: get collection IDs + basic metadata owned by this wallet
-  const { collections, isLoading } = useUserCollections(address ?? null);
+  const { collections, isLoading, mutate } = useUserCollections(address ?? null);
 
   // DB: fetch all collections to get image/description/supply enrichment
   const { collections: dbCollections } = useCollections(1, 50);
@@ -89,6 +92,12 @@ export default function PortfolioCollectionsPage() {
     );
   }
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await mutate();
+    setRefreshing(false);
+  };
+
   if (collections.length === 0) {
     return (
       <div className="py-16 text-center space-y-4">
@@ -97,14 +106,20 @@ export default function PortfolioCollectionsPage() {
         </div>
         <p className="font-semibold text-lg">No collections yet</p>
         <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-          Deploy your first NFT collection on Starknet — it&apos;s free and gasless.
+          If you just created a collection, it may take a few seconds to sync from the blockchain.
         </p>
-        <Button asChild>
-          <Link href="/create/collection">
-            <Plus className="h-4 w-4 mr-1.5" />
-            Create collection
-          </Link>
-        </Button>
+        <div className="flex items-center justify-center gap-3">
+          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={refreshing}>
+            <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${refreshing ? "animate-spin" : ""}`} />
+            {refreshing ? "Refreshing…" : "Refresh"}
+          </Button>
+          <Button size="sm" asChild>
+            <Link href="/create/collection">
+              <Plus className="h-4 w-4 mr-1.5" />
+              Create collection
+            </Link>
+          </Button>
+        </div>
       </div>
     );
   }

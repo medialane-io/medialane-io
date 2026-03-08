@@ -15,113 +15,104 @@ import {
   XCircle,
   ExternalLink,
   Sparkles,
+  Layers,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { ChipiTransactionStatus } from "@/hooks/use-chipi-transaction";
 
-export type MintStep = "idle" | "uploading" | "processing" | "success" | "error";
+export type CollectionStep = "idle" | "processing" | "success" | "error";
 
-interface MintProgressDialogProps {
+interface CollectionProgressDialogProps {
   open: boolean;
-  mintStep: MintStep;
+  collectionStep: CollectionStep;
   txStatus: ChipiTransactionStatus;
-  assetName: string;
+  collectionName: string;
   imagePreview: string | null;
   txHash: string | null;
   error: string | null;
-  onMintAnother: () => void;
+  onCreateAnother: () => void;
 }
 
 const STEPS = [
   {
-    label: "Upload to IPFS",
-    done: (mintStep: MintStep, txStatus: ChipiTransactionStatus) =>
-      mintStep === "processing" || mintStep === "success" ||
-      txStatus === "submitting" || txStatus === "confirming" || txStatus === "confirmed",
+    label: "Create collection intent",
+    done: (_: ChipiTransactionStatus) => true, // done as soon as processing starts
+    active: (txStatus: ChipiTransactionStatus) => txStatus === "idle",
   },
   {
     label: "Submit transaction",
-    done: (_: MintStep, txStatus: ChipiTransactionStatus) =>
+    done: (txStatus: ChipiTransactionStatus) =>
       txStatus === "confirming" || txStatus === "confirmed",
+    active: (txStatus: ChipiTransactionStatus) => txStatus === "submitting",
   },
   {
     label: "Confirm on Starknet",
-    done: (_: MintStep, txStatus: ChipiTransactionStatus) =>
-      txStatus === "confirmed",
+    done: (txStatus: ChipiTransactionStatus) => txStatus === "confirmed",
+    active: (txStatus: ChipiTransactionStatus) => txStatus === "confirming",
   },
 ];
 
-
-export function MintProgressDialog({
+export function CollectionProgressDialog({
   open,
-  mintStep,
+  collectionStep,
   txStatus,
-  assetName,
+  collectionName,
   imagePreview,
   txHash,
   error,
-  onMintAnother,
-}: MintProgressDialogProps) {
+  onCreateAnother,
+}: CollectionProgressDialogProps) {
   const router = useRouter();
   const confettiFired = useRef(false);
 
   useEffect(() => {
-    if (mintStep === "success" && !confettiFired.current) {
+    if (collectionStep === "success" && !confettiFired.current) {
       confettiFired.current = true;
       fireConfetti();
     }
-    if (mintStep !== "success") {
+    if (collectionStep !== "success") {
       confettiFired.current = false;
     }
-  }, [mintStep]);
+  }, [collectionStep]);
 
-  const isProcessing = mintStep === "uploading" || mintStep === "processing";
-  const isSuccess = mintStep === "success";
-  const isError = mintStep === "error";
+  const isProcessing = collectionStep === "processing";
+  const isSuccess = collectionStep === "success";
+  const isError = collectionStep === "error";
 
   return (
     <Dialog open={open} modal>
       <DialogContent
         className="sm:max-w-md"
-        // Prevent closing during processing
         onInteractOutside={isProcessing ? (e) => e.preventDefault() : undefined}
         onEscapeKeyDown={isProcessing ? (e) => e.preventDefault() : undefined}
-        // Hide the default X button during processing
         {...(isProcessing ? { hideClose: true } : {})}
       >
         <DialogTitle className="sr-only">
-          {isProcessing ? "Minting asset…" : isSuccess ? "Asset minted!" : "Mint failed"}
+          {isProcessing ? "Creating collection…" : isSuccess ? "Collection created!" : "Creation failed"}
         </DialogTitle>
 
         {/* ── Processing ── */}
         {isProcessing && (
           <div className="flex flex-col items-center gap-6 py-4">
-            <div className="relative">
-              <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
+            <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
 
             <div className="text-center space-y-1">
-              <p className="font-semibold text-lg">
-                {mintStep === "uploading" ? "Uploading to IPFS…" : "Minting on Starknet…"}
-              </p>
+              <p className="font-semibold text-lg">Deploying collection…</p>
               <p className="text-sm text-muted-foreground">
-                {mintStep === "uploading"
-                  ? "Pinning your metadata to IPFS"
-                  : txStatus === "confirming"
+                {txStatus === "confirming"
                   ? "Waiting for block confirmation"
-                  : "Submitting transaction"}
+                  : txStatus === "submitting"
+                  ? "Submitting transaction"
+                  : "Creating intent on-chain"}
               </p>
             </div>
 
             <div className="w-full space-y-2 rounded-xl border border-border/60 bg-muted/30 p-4">
-              {STEPS.map(({ label, done }) => {
-                const isDone = done(mintStep, txStatus);
-                const isActive =
-                  (label === "Upload to IPFS" && mintStep === "uploading") ||
-                  (label === "Submit transaction" && mintStep === "processing" && txStatus === "submitting") ||
-                  (label === "Confirm on Starknet" && txStatus === "confirming");
+              {STEPS.map(({ label, done, active }) => {
+                const isDone = done(txStatus);
+                const isActive = active(txStatus);
                 return (
                   <div key={label} className="flex items-center gap-3">
                     {isDone ? (
@@ -164,21 +155,25 @@ export function MintProgressDialog({
             </div>
 
             <div className="text-center space-y-1">
-              <p className="font-bold text-xl">Minted!</p>
+              <p className="font-bold text-xl">Collection deployed!</p>
               <p className="text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">{assetName || "Your asset"}</span> is
-                now live on Starknet.
+                <span className="font-medium text-foreground">{collectionName || "Your collection"}</span> is
+                live on Starknet. Start minting assets into it.
               </p>
             </div>
 
-            {/* Asset preview */}
             {imagePreview && (
-              <div className="h-28 w-28 rounded-xl overflow-hidden border border-border shadow-md">
-                <img src={imagePreview} alt={assetName} className="h-full w-full object-cover" />
+              <div className="h-24 w-24 rounded-xl overflow-hidden border border-border shadow-md">
+                <img src={imagePreview} alt={collectionName} className="h-full w-full object-cover" />
               </div>
             )}
 
-            {/* Tx link */}
+            {!imagePreview && (
+              <div className="h-24 w-24 rounded-xl border border-border bg-primary/5 flex items-center justify-center">
+                <Layers className="h-10 w-10 text-primary/40" />
+              </div>
+            )}
+
             {txHash && (
               <a
                 href={`${EXPLORER_URL}/tx/${txHash}`}
@@ -194,18 +189,11 @@ export function MintProgressDialog({
             )}
 
             <div className="flex flex-col sm:flex-row gap-2 w-full pt-1">
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={onMintAnother}
-              >
-                Mint another
+              <Button variant="outline" className="flex-1" onClick={onCreateAnother}>
+                Create another
               </Button>
-              <Button
-                className="flex-1"
-                onClick={() => router.push("/portfolio/assets")}
-              >
-                View portfolio
+              <Button className="flex-1" onClick={() => router.push("/create/asset")}>
+                Mint an asset
               </Button>
             </div>
           </div>
@@ -219,13 +207,13 @@ export function MintProgressDialog({
             </div>
 
             <div className="text-center space-y-1">
-              <p className="font-bold text-xl">Mint failed</p>
+              <p className="font-bold text-xl">Creation failed</p>
               {error && (
                 <p className="text-sm text-muted-foreground max-w-xs mx-auto">{error}</p>
               )}
             </div>
 
-            <Button variant="outline" className="w-full" onClick={onMintAnother}>
+            <Button variant="outline" className="w-full" onClick={onCreateAnother}>
               Try again
             </Button>
           </div>

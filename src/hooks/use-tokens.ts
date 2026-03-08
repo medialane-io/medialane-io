@@ -22,7 +22,7 @@ export function useTokensByOwner(address: string | null, page = 1, limit = 20) {
   const { data, error, isLoading, mutate } = useSWR(
     address ? `tokens-owned-${address}-${page}` : null,
     () => client.api.getTokensByOwner(address!, page, limit),
-    { revalidateOnFocus: false }
+    { revalidateOnFocus: false, refreshInterval: 12000 }
   );
 
   return {
