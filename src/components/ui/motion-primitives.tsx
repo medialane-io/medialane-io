@@ -2,8 +2,8 @@
 
 import { motion, type HTMLMotionProps } from "framer-motion";
 
-const SPRING = { type: "spring", stiffness: 400, damping: 28 } as const;
-const EASE_OUT = [0.25, 0.46, 0.45, 0.94] as const;
+export const SPRING = { type: "spring", stiffness: 400, damping: 28 } as const;
+export const EASE_OUT = [0.25, 0.46, 0.45, 0.94] as const;
 
 // ─── Press-able card wrapper ──────────────────────────────────────────────────
 // Replaces hover effects with a native-feeling press scale (good for mobile)

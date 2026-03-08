@@ -9,7 +9,7 @@ import { useUserOrders } from "@/hooks/use-orders";
 import { useCollections } from "@/hooks/use-collections";
 import { CollectionCard, CollectionCardSkeleton } from "@/components/shared/collection-card";
 import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion-primitives";
-import { HeroAurora } from "@/components/ui/aurora";
+import { BRAND } from "@/lib/brand";
 import {
   Zap, ImagePlus, Layers, ArrowRight,
   Package, Tag, ShoppingCart, Star, Rocket,
@@ -22,9 +22,9 @@ function CreatorStats({ address }: { address: string }) {
   const totalSales = orders.filter((o) => o.status === "FULFILLED");
 
   const stats = [
-    { label: "Owned", value: tokensLoading ? null : tokens.length, icon: Package, color: "text-brand-purple", bg: "bg-brand-purple/10" },
-    { label: "Listed", value: ordersLoading ? null : activeListings.length, icon: Tag, color: "text-brand-blue", bg: "bg-brand-blue/10" },
-    { label: "Sold", value: ordersLoading ? null : totalSales.length, icon: ShoppingCart, color: "text-brand-orange", bg: "bg-brand-orange/10" },
+    { label: "Owned", value: tokensLoading ? null : tokens.length, icon: Package, color: BRAND.purple.text, bg: BRAND.purple.bg },
+    { label: "Listed", value: ordersLoading ? null : activeListings.length, icon: Tag, color: BRAND.blue.text, bg: BRAND.blue.bg },
+    { label: "Sold", value: ordersLoading ? null : totalSales.length, icon: ShoppingCart, color: BRAND.orange.text, bg: BRAND.orange.bg },
   ];
 
   return (
@@ -54,9 +54,9 @@ const QUICK_ACTIONS = [
     description: "Register a creative work as an NFT. Gasless.",
     icon: ImagePlus,
     href: "/create/asset",
-    gradient: "from-brand-purple/20 to-brand-blue/20",
-    iconColor: "text-brand-purple",
-    iconBg: "bg-brand-purple/15",
+    gradient: `${BRAND.purple.from} ${BRAND.blue.to}`,
+    iconColor: BRAND.purple.text,
+    iconBg: BRAND.purple.bgSolid,
     badge: "~1 min",
   },
   {
@@ -64,9 +64,9 @@ const QUICK_ACTIONS = [
     description: "Deploy a named NFT collection and build your catalog.",
     icon: Layers,
     href: "/create/collection",
-    gradient: "from-brand-blue/20 to-brand-rose/20",
-    iconColor: "text-brand-blue",
-    iconBg: "bg-brand-blue/15",
+    gradient: `${BRAND.blue.from} ${BRAND.rose.to}`,
+    iconColor: BRAND.blue.text,
+    iconBg: BRAND.blue.bgSolid,
     badge: "~2 min",
   },
 ];
@@ -80,8 +80,7 @@ export function LaunchpadContent() {
     <div className="pb-16 space-y-10">
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-border/50">
-        <HeroAurora />
-        <div className="relative px-4 py-14 sm:py-20">
+        <div className="px-4 py-14 sm:py-20">
           <FadeIn>
             <span className="pill-badge mb-5 inline-flex">
               <Zap className="h-3 w-3" />
@@ -171,7 +170,7 @@ export function LaunchpadContent() {
             <div>
               <p className="section-label">Curated</p>
               <div className="flex items-center gap-2 mt-0.5">
-                <Star className="h-4 w-4 text-brand-orange" />
+                <Star className={`h-4 w-4 ${BRAND.orange.text}`} />
                 <h2 className="text-xl font-bold">Featured drops</h2>
               </div>
             </div>

@@ -1,4 +1,4 @@
-import { DiscoverPage } from "@/components/discover-page";
+import { DiscoverPage } from "@/components/discover";
 
 export default function DiscoverPreviewPage() {
   return <DiscoverPage />;
