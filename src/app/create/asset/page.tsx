@@ -27,16 +27,15 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { PinDialog } from "@/components/chipi/pin-dialog";
-import { TxStatus } from "@/components/chipi/tx-status";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { useUserCollections } from "@/hooks/use-user-collections";
-import { EXPLORER_URL } from "@/lib/constants";
+import { MintProgressDialog } from "@/components/marketplace/mint-progress-dialog";
+import type { MintStep } from "@/components/marketplace/mint-progress-dialog";
 import { cn } from "@/lib/utils";
 import {
   IP_TYPES,
@@ -47,10 +46,6 @@ import {
 } from "@/types/ip";
 import {
   Upload,
-  Loader2,
-  CheckCircle2,
-  AlertCircle,
-  ExternalLink,
   ChevronDown,
   ShieldCheck,
   Boxes,
@@ -121,6 +116,8 @@ export default function CreateAssetPage() {
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [mintStep, setMintStep] = useState<MintStep>("idle");
+  const [mintError, setMintError] = useState<string | null>(null);
 
   const hasWallet = !!walletAddress;
 
@@ -164,6 +161,9 @@ export default function CreateAssetPage() {
     setPinOpen(false);
     if (!pendingValues || !walletAddress) return;
 
+    setMintError(null);
+    setMintStep("uploading");
+
     try {
       // 1. Upload image + metadata to IPFS via /api/pinata
       const formData = new FormData();
@@ -186,6 +186,8 @@ export default function CreateAssetPage() {
       }
       const tokenUri: string = uploadData.uri;
       if (!tokenUri) throw new Error("IPFS upload returned no URI");
+
+      setMintStep("processing");
 
       // 2. Create mint intent — backend validates ownership on-chain + encodes Cairo calldata
       const intentRes = await client.api.createMintIntent({
@@ -211,46 +213,33 @@ export default function CreateAssetPage() {
         wallet: walletOverride,
       });
 
-      toast.success("Asset created!", { description: `${pendingValues.name} has been minted.` });
-      form.reset();
-      setImagePreview(null);
+      setMintStep("success");
     } catch (err: any) {
-      toast.error("Creation failed", { description: err?.message });
+      setMintError(err?.message ?? "Something went wrong");
+      setMintStep("error");
     }
   };
 
-  if (status === "confirmed") {
-    return (
-      <div className="container max-w-lg mx-auto px-4 py-16 text-center space-y-6">
-        <div className="h-16 w-16 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto">
-          <CheckCircle2 className="h-8 w-8 text-emerald-500" />
-        </div>
-        <h1 className="text-2xl font-bold">Asset created!</h1>
-        <p className="text-muted-foreground">{pendingValues?.name} has been minted on Starknet.</p>
-        {txHash && (
-          <Button variant="outline" size="sm" asChild>
-            <a
-              href={`${EXPLORER_URL}/tx/${txHash}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2"
-            >
-              View on Voyager <ExternalLink className="h-3 w-3" />
-            </a>
-          </Button>
-        )}
-        <div className="flex gap-3 justify-center pt-2">
-          <Button onClick={() => { form.reset(); window.location.reload(); }}>Create another</Button>
-          <Button variant="outline" asChild>
-            <Link href="/portfolio/assets">View portfolio</Link>
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  const handleMintAnother = () => {
+    setMintStep("idle");
+    setMintError(null);
+    form.reset();
+    setImagePreview(null);
+  };
 
   return (
     <>
+      <MintProgressDialog
+        open={mintStep !== "idle"}
+        mintStep={mintStep}
+        txStatus={status}
+        assetName={pendingValues?.name ?? ""}
+        imagePreview={imagePreview}
+        txHash={txHash}
+        error={mintError}
+        onMintAnother={handleMintAnother}
+      />
+
       <div className="container max-w-2xl mx-auto px-4 py-8 space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Create IP Asset</h1>
@@ -258,10 +247,6 @@ export default function CreateAssetPage() {
             Mint your creative work as a programmable NFT on Starknet with immutable licensing embedded in IPFS metadata.
           </p>
         </div>
-
-        {(status === "submitting" || status === "confirming") && (
-          <TxStatus status={status} txHash={txHash} statusMessage={statusMessage} />
-        )}
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -546,28 +531,16 @@ export default function CreateAssetPage() {
               </Collapsible>
             </div>
 
-            {error && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
             <Button
               type="submit"
               className="w-full h-12 text-base"
               disabled={
-                status === "submitting" ||
-                status === "confirming" ||
+                mintStep !== "idle" ||
                 collectionsLoading ||
                 collections.length === 0
               }
             >
-              {status === "submitting" ? (
-                <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Minting…</>
-              ) : (
-                "Mint asset"
-              )}
+              Mint asset
             </Button>
             <p className="text-xs text-center text-muted-foreground">
               Gas is free. Your PIN signs the mint transaction.
