@@ -14,14 +14,14 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { CheckCircle2, ArrowLeft, Loader2 } from "lucide-react";
-import { ipfsToHttp } from "@/lib/utils";
+import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import type { ApiToken } from "@medialane/sdk";
 
 const STATS = (col: NonNullable<ReturnType<typeof useCollection>["collection"]>) => [
   { label: "Items",   value: col.totalSupply?.toLocaleString() ?? "—" },
   { label: "Holders", value: col.holderCount?.toLocaleString() ?? "—" },
-  { label: "Floor",   value: col.floorPrice ?? "—" },
-  { label: "Volume",  value: col.totalVolume ?? "—" },
+  { label: "Floor",   value: formatDisplayPrice(col.floorPrice) || "—" },
+  { label: "Volume",  value: formatDisplayPrice(col.totalVolume) || "—" },
 ];
 
 function CollectionBanner({ collection, isLoading }: {
@@ -94,7 +94,7 @@ function CollectionBanner({ collection, isLoading }: {
 
       {/* Identity — overlaps banner */}
       <div className="container mx-auto px-4">
-        <div className="flex items-end gap-4 -mt-10 pb-4">
+        <div className="relative z-10 flex items-end gap-4 -mt-10 pb-4">
           {/* Avatar */}
           <div className="relative h-20 w-20 rounded-2xl border-4 border-background bg-gradient-to-br from-primary/30 to-purple-500/30 flex items-center justify-center text-3xl font-black shrink-0 overflow-hidden shadow-xl">
             {showImage && (

@@ -15,7 +15,7 @@ import { ListingDialog } from "@/components/marketplace/listing-dialog";
 import { OfferDialog } from "@/components/marketplace/offer-dialog";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { PinDialog } from "@/components/chipi/pin-dialog";
-import { ipfsToHttp, timeUntil, timeAgo , formatDisplayPrice} from "@/lib/utils";
+import { ipfsToHttp, timeUntil, timeAgo, formatDisplayPrice } from "@/lib/utils";
 import { ShoppingCart, Tag, ExternalLink, Clock, HandCoins, ArrowRightLeft, X, CheckCircle, DollarSign, GitBranch, UserCheck, Globe, Bot, Percent, Shield, Calendar, ChevronRight } from "lucide-react";
 import { LICENSE_TRAIT_TYPES } from "@/types/ip";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -131,7 +131,22 @@ export default function AssetPageClient() {
     : [];
 
   return (
-    <>
+    <div className="relative z-0 min-h-screen">
+      {/* Full-bleed blurred background from asset image */}
+      {image && !imgError && (
+        <div className="absolute inset-0 -z-10 overflow-hidden">
+          <Image
+            src={image}
+            alt=""
+            fill
+            className="object-cover scale-150 blur-xl opacity-60"
+            unoptimized
+            aria-hidden
+          />
+          <div className="absolute inset-0 bg-background/70" />
+        </div>
+      )}
+
       <div className="container mx-auto px-4 pt-14 pb-8 space-y-8">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -636,6 +651,6 @@ export default function AssetPageClient() {
           ? `Accept ${formatDisplayPrice(orderToAccept.price.formatted)} ${orderToAccept.price.currency} for ${name}?`
           : "Enter your PIN to accept this offer."}
       />
-    </>
+    </div>
   );
 }

@@ -47,12 +47,21 @@ export function formatAmount(amount: string, decimals: number): string {
 
 export function formatDisplayPrice(price: string | number | null | undefined): string {
   if (price === null || price === undefined) return "";
-  const num = Number(price);
-  if (isNaN(num)) return String(price);
-  return num.toLocaleString(undefined, {
-    minimumFractionDigits: 0,
+  
+  const priceStr = String(price);
+  const parts = priceStr.split(" ");
+  const numericPart = parts[0];
+  const currencyPart = parts.length > 1 ? parts.slice(1).join(" ") : "";
+
+  const num = Number(numericPart);
+  if (isNaN(num)) return priceStr;
+
+  const formatted = num.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
+
+  return currencyPart ? `${formatted} ${currencyPart}` : formatted;
 }
 
 export function ipfsToHttp(uri: string | null | undefined): string {

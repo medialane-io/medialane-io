@@ -16,7 +16,7 @@ export function MedialaneLogo() {
 
   if (!mounted) {
     return (
-      <div className="flex items-center space-x-2 ml-4">
+      <div className="flex items-center space-x-2">
         <Link href="/">
           <div className="w-[196px] h-[34px]" />
         </Link>

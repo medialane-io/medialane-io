@@ -13,7 +13,7 @@ import { MedialaneLogo } from "@/components/brand/medialane-logo";
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={false}>
       <AppSidebar />
       <SidebarInset>
         <SidebarTrigger className="absolute top-3 left-3 z-50" />
