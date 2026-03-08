@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { ipfsToHttp } from "@/lib/utils";
@@ -18,12 +17,13 @@ export function CollectionCard({ collection }: CollectionCardProps) {
   const imageUrl = collection.image ? ipfsToHttp(collection.image) : null;
   const showImage = imageUrl && !imgError;
   const initial = (collection.name ?? collection.contractAddress).charAt(0).toUpperCase();
+  const hasFloor = !!collection.floorPrice;
 
   return (
     <Link href={`/collections/${collection.contractAddress}`} className="block group">
-      <div className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/40 hover:shadow-xl hover:shadow-primary/5 transition-all duration-200">
+      <div className="rounded-2xl border border-border bg-card overflow-hidden asset-card-hover card-glow hover:border-primary/30">
         {/* Cover image */}
-        <div className="relative aspect-[16/7] w-full bg-gradient-to-br from-primary/20 via-purple-500/15 to-blue-500/10 overflow-hidden">
+        <div className="relative aspect-[16/7] w-full overflow-hidden">
           {showImage ? (
             <Image
               src={imageUrl}
@@ -34,29 +34,29 @@ export function CollectionCard({ collection }: CollectionCardProps) {
               unoptimized
             />
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-6xl font-black text-primary/20 select-none">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-purple-500/15 to-blue-500/10 flex items-center justify-center">
+              <span className="text-7xl font-black text-primary/15 select-none tracking-tighter">
                 {initial}
               </span>
             </div>
           )}
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-card/80 via-transparent to-transparent" />
+          {/* Bottom fade so text reads over any image */}
+          <div className="absolute inset-0 bg-gradient-to-t from-card/90 via-card/10 to-transparent" />
         </div>
 
         {/* Content */}
         <div className="p-4 space-y-3">
-          {/* Name + badges */}
+          {/* Name row */}
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
                 {!collection.name && collection.metadataStatus === "PENDING" ? (
-                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Loader2 className="h-3 w-3 animate-spin" />
                     Indexing…
                   </span>
                 ) : (
-                  <p className="font-semibold truncate text-sm leading-tight">
+                  <p className="font-semibold text-sm truncate leading-snug">
                     {collection.name ?? "Unnamed Collection"}
                   </p>
                 )}
@@ -65,7 +65,7 @@ export function CollectionCard({ collection }: CollectionCardProps) {
                 )}
               </div>
               {collection.symbol && (
-                <p className="text-[11px] text-muted-foreground mt-0.5">{collection.symbol}</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5 font-mono">{collection.symbol}</p>
               )}
             </div>
           </div>
@@ -77,20 +77,26 @@ export function CollectionCard({ collection }: CollectionCardProps) {
             </p>
           )}
 
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-2 pt-1">
-            {[
-              { label: "Items", value: collection.totalSupply?.toLocaleString() ?? "—" },
-              { label: "Holders", value: collection.holderCount?.toLocaleString() ?? "—" },
-              { label: "Floor", value: collection.floorPrice ?? "—" },
-            ].map(({ label, value }) => (
-              <div key={label} className="rounded-lg bg-muted/40 p-2 text-center">
-                <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider">
-                  {label}
-                </p>
-                <p className="text-xs font-bold mt-0.5 truncate">{value}</p>
-              </div>
-            ))}
+          {/* Stats row */}
+          <div className="grid grid-cols-3 gap-2">
+            <div className="rounded-xl bg-muted/50 p-2 text-center">
+              <p className="section-label">Items</p>
+              <p className="text-xs font-bold mt-0.5">
+                {collection.totalSupply?.toLocaleString() ?? "—"}
+              </p>
+            </div>
+            <div className="rounded-xl bg-muted/50 p-2 text-center">
+              <p className="section-label">Holders</p>
+              <p className="text-xs font-bold mt-0.5">
+                {collection.holderCount?.toLocaleString() ?? "—"}
+              </p>
+            </div>
+            <div className="rounded-xl bg-muted/50 p-2 text-center">
+              <p className="section-label">Floor</p>
+              <p className={`text-xs font-bold mt-0.5 ${hasFloor ? "price-value" : ""}`}>
+                {collection.floorPrice ?? "—"}
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -100,18 +106,18 @@ export function CollectionCard({ collection }: CollectionCardProps) {
 
 export function CollectionCardSkeleton() {
   return (
-    <div className="rounded-xl border border-border bg-card overflow-hidden">
+    <div className="rounded-2xl border border-border bg-card overflow-hidden">
       <Skeleton className="aspect-[16/7] w-full" />
       <div className="p-4 space-y-3">
         <div className="space-y-1.5">
           <Skeleton className="h-4 w-2/3" />
           <Skeleton className="h-3 w-1/3" />
         </div>
-        <Skeleton className="h-8 w-full" />
+        <Skeleton className="h-3 w-full" />
         <div className="grid grid-cols-3 gap-2">
-          <Skeleton className="h-10 rounded-lg" />
-          <Skeleton className="h-10 rounded-lg" />
-          <Skeleton className="h-10 rounded-lg" />
+          <Skeleton className="h-10 rounded-xl" />
+          <Skeleton className="h-10 rounded-xl" />
+          <Skeleton className="h-10 rounded-xl" />
         </div>
       </div>
     </div>

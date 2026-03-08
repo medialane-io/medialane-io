@@ -43,12 +43,12 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link href="/">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shrink-0">
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-purple-600 text-primary-foreground shrink-0 shadow-lg shadow-primary/30">
                   <Zap className="size-4" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold tracking-tight">medialane</span>
-                  <span className="truncate text-xs text-muted-foreground">Starknet marketplace</span>
+                  <span className="truncate font-bold tracking-tight">medialane</span>
+                  <span className="truncate text-xs text-muted-foreground">IP on Starknet</span>
                 </div>
               </Link>
             </SidebarMenuButton>
