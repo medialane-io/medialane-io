@@ -3,104 +3,73 @@
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useUserOrders } from "@/hooks/use-orders";
 import { useCollections } from "@/hooks/use-collections";
 import { CollectionCard, CollectionCardSkeleton } from "@/components/shared/collection-card";
+import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion-primitives";
+import { HeroAurora } from "@/components/ui/aurora";
 import {
-  Zap,
-  ImagePlus,
-  Layers,
-  ArrowRight,
-  Package,
-  Tag,
-  TrendingUp,
-  ShoppingCart,
-  Star,
-  Rocket,
+  Zap, ImagePlus, Layers, ArrowRight,
+  Package, Tag, ShoppingCart, Star, Rocket,
 } from "lucide-react";
 
 function CreatorStats({ address }: { address: string }) {
   const { tokens, isLoading: tokensLoading } = useTokensByOwner(address);
   const { orders, isLoading: ordersLoading } = useUserOrders(address);
-
   const activeListings = orders.filter((o) => o.status === "ACTIVE" && o.offer.itemType === "ERC721");
   const totalSales = orders.filter((o) => o.status === "FULFILLED");
 
   const stats = [
-    {
-      label: "Assets owned",
-      value: tokensLoading ? null : tokens.length,
-      icon: Package,
-    },
-    {
-      label: "Active listings",
-      value: ordersLoading ? null : activeListings.length,
-      icon: Tag,
-    },
-    {
-      label: "Total sales",
-      value: ordersLoading ? null : totalSales.length,
-      icon: ShoppingCart,
-    },
+    { label: "Owned", value: tokensLoading ? null : tokens.length, icon: Package, color: "text-brand-purple", bg: "bg-brand-purple/10" },
+    { label: "Listed", value: ordersLoading ? null : activeListings.length, icon: Tag, color: "text-brand-blue", bg: "bg-brand-blue/10" },
+    { label: "Sold", value: ordersLoading ? null : totalSales.length, icon: ShoppingCart, color: "text-brand-orange", bg: "bg-brand-orange/10" },
   ];
 
   return (
-    <div className="grid grid-cols-3 gap-3 mb-8">
-      {stats.map(({ label, value, icon: Icon }) => (
-        <div key={label} className="rounded-xl border border-border bg-card p-4">
-          <div className="flex items-center gap-2 mb-1">
-            <Icon className="h-3.5 w-3.5 text-muted-foreground" />
-            <p className="text-[11px] text-muted-foreground uppercase font-semibold tracking-wider">
-              {label}
-            </p>
+    <Stagger className="grid grid-cols-3 gap-3">
+      {stats.map(({ label, value, icon: Icon, color, bg }) => (
+        <StaggerItem key={label}>
+          <div className="bento-cell p-4 text-center">
+            <div className={`h-9 w-9 rounded-xl ${bg} flex items-center justify-center mx-auto mb-2`}>
+              <Icon className={`h-4 w-4 ${color}`} />
+            </div>
+            {value === null ? (
+              <Skeleton className="h-7 w-10 mx-auto" />
+            ) : (
+              <p className="text-2xl font-black">{value}</p>
+            )}
+            <p className="section-label mt-1">{label}</p>
           </div>
-          {value === null ? (
-            <Skeleton className="h-7 w-12 mt-1" />
-          ) : (
-            <p className="text-2xl font-bold">{value}</p>
-          )}
-        </div>
+        </StaggerItem>
       ))}
-    </div>
+    </Stagger>
   );
 }
 
 const QUICK_ACTIONS = [
   {
     title: "Mint IP Asset",
-    description: "Register a single creative work — art, music, document, or any IP — as an NFT.",
+    description: "Register a creative work as an NFT. Gasless.",
     icon: ImagePlus,
     href: "/create/asset",
-    color: "primary" as const,
-    badge: "1 min",
+    gradient: "from-brand-purple/20 to-brand-blue/20",
+    iconColor: "text-brand-purple",
+    iconBg: "bg-brand-purple/15",
+    badge: "~1 min",
   },
   {
     title: "Create Collection",
-    description: "Deploy a named NFT collection contract and build your IP catalog.",
+    description: "Deploy a named NFT collection and build your catalog.",
     icon: Layers,
     href: "/create/collection",
-    color: "purple" as const,
-    badge: "2 min",
+    gradient: "from-brand-blue/20 to-brand-rose/20",
+    iconColor: "text-brand-blue",
+    iconBg: "bg-brand-blue/15",
+    badge: "~2 min",
   },
 ];
-
-const colorMap = {
-  primary: {
-    bg: "bg-primary/10",
-    hoverBg: "group-hover:bg-primary/20",
-    icon: "text-primary",
-    border: "group-hover:border-primary/30",
-  },
-  purple: {
-    bg: "bg-purple-500/10",
-    hoverBg: "group-hover:bg-purple-500/20",
-    icon: "text-purple-500",
-    border: "group-hover:border-purple-500/30",
-  },
-};
 
 export function LaunchpadContent() {
   const { user, isSignedIn } = useUser();
@@ -108,113 +77,136 @@ export function LaunchpadContent() {
   const { collections: featured, isLoading: featuredLoading } = useCollections(1, 6, true);
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-10">
-      {/* Header */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 text-primary">
-          <Zap className="h-5 w-5" />
-          <span className="text-sm font-semibold uppercase tracking-wider">Launchpad</span>
+    <div className="pb-16 space-y-10">
+      {/* Hero */}
+      <section className="relative overflow-hidden border-b border-border/50">
+        <HeroAurora />
+        <div className="relative px-4 py-14 sm:py-20">
+          <FadeIn>
+            <span className="pill-badge mb-5 inline-flex">
+              <Zap className="h-3 w-3" />
+              Creator Launchpad
+            </span>
+          </FadeIn>
+          <FadeIn delay={0.08}>
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight mb-3">
+              Launch your{" "}
+              <span className="gradient-text-warm">creative vision</span>
+              <br />
+              on-chain — gasless.
+            </h1>
+          </FadeIn>
+          <FadeIn delay={0.16}>
+            <p className="text-muted-foreground text-base max-w-lg leading-relaxed">
+              Mint, monetize, and manage your intellectual property on Starknet. No gas fees. No barriers. Just create.
+            </p>
+          </FadeIn>
         </div>
-        <h1 className="text-3xl font-bold">Creator Hub</h1>
-        <p className="text-muted-foreground">
-          Launch, mint, and monetize your intellectual property on Starknet — gasless for everyone.
-        </p>
-      </div>
+      </section>
 
-      {/* Creator stats (signed-in only) */}
+      {/* Stats */}
       {isSignedIn && walletAddress && (
-        <CreatorStats address={walletAddress} />
+        <section className="px-4">
+          <FadeIn>
+            <p className="section-label mb-3">Your activity</p>
+          </FadeIn>
+          <CreatorStats address={walletAddress} />
+        </section>
       )}
 
       {/* Quick actions */}
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold">Start creating</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {QUICK_ACTIONS.map(({ title, description, icon: Icon, href, color, badge }) => {
-            const c = colorMap[color];
-            return (
-              <Link key={href} href={href} className="group">
-                <div className={`rounded-xl border border-border bg-card p-6 h-full transition-all ${c.border} hover:shadow-md`}>
-                  <div className="flex items-start justify-between mb-4">
-                    <div className={`h-11 w-11 rounded-xl ${c.bg} ${c.hoverBg} flex items-center justify-center transition-colors`}>
-                      <Icon className={`h-5 w-5 ${c.icon}`} />
+      <section className="px-4 space-y-3">
+        <FadeIn>
+          <p className="section-label">Start creating</p>
+          <h2 className="text-xl font-bold mt-0.5">What do you want to build?</h2>
+        </FadeIn>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {QUICK_ACTIONS.map(({ title, description, icon: Icon, href, gradient, iconColor, iconBg, badge }, i) => (
+            <FadeIn key={href} delay={0.08 + i * 0.07}>
+              <Link href={href} className="block">
+                <div className={`bento-cell p-5 bg-gradient-to-br ${gradient} min-h-[140px] flex flex-col justify-between`}>
+                  <div className="flex items-start justify-between">
+                    <div className={`h-10 w-10 rounded-xl ${iconBg} flex items-center justify-center`}>
+                      <Icon className={`h-5 w-5 ${iconColor}`} />
                     </div>
-                    <Badge variant="secondary" className="text-[10px] font-semibold">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-background/60 rounded-full px-2.5 py-0.5">
                       {badge}
-                    </Badge>
+                    </span>
                   </div>
-                  <h3 className="font-semibold text-base mb-1.5">{title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
-                  <div className="flex items-center gap-1 mt-4 text-sm font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                    Get started <ArrowRight className="h-3.5 w-3.5" />
+                  <div className="mt-4">
+                    <p className="font-bold text-base">{title}</p>
+                    <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{description}</p>
                   </div>
                 </div>
               </Link>
-            );
-          })}
+            </FadeIn>
+          ))}
         </div>
-      </div>
+      </section>
 
-      {/* My Portfolio link */}
+      {/* Portfolio shortcut */}
       {isSignedIn && (
-        <div className="rounded-xl border border-border bg-card/50 p-6 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
-              <TrendingUp className="h-5 w-5 text-muted-foreground" />
+        <section className="px-4">
+          <FadeIn>
+            <div className="bento-cell p-5 bg-gradient-to-r from-brand-navy/10 to-brand-purple/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <p className="section-label">Manage</p>
+                <p className="font-bold text-base mt-0.5">Your portfolio</p>
+                <p className="text-sm text-muted-foreground mt-1">Assets, listings, offers, and activity.</p>
+              </div>
+              <Button variant="outline" asChild className="shrink-0">
+                <Link href="/portfolio">
+                  View portfolio <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
+                </Link>
+              </Button>
             </div>
-            <div>
-              <p className="font-semibold">Your portfolio</p>
-              <p className="text-sm text-muted-foreground">
-                View your assets, active listings, and open offers.
-              </p>
-            </div>
-          </div>
-          <Button variant="outline" asChild>
-            <Link href="/portfolio">
-              View <ArrowRight className="h-3.5 w-3.5 ml-1" />
-            </Link>
-          </Button>
-        </div>
+          </FadeIn>
+        </section>
       )}
 
       {/* Featured drops */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Star className="h-4 w-4 text-primary" />
-            <h2 className="text-lg font-semibold">Featured drops</h2>
+      <section className="px-4 space-y-4">
+        <FadeIn>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="section-label">Curated</p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <Star className="h-4 w-4 text-brand-orange" />
+                <h2 className="text-xl font-bold">Featured drops</h2>
+              </div>
+            </div>
+            <Button variant="ghost" size="sm" asChild className="gap-1 text-muted-foreground">
+              <Link href="/collections">View all <ArrowRight className="h-3.5 w-3.5" /></Link>
+            </Button>
           </div>
-          <Button variant="ghost" size="sm" asChild className="gap-1 text-muted-foreground">
-            <Link href="/collections">
-              View all <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </Button>
-        </div>
+        </FadeIn>
 
         {featuredLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {Array.from({ length: 3 }).map((_, i) => <CollectionCardSkeleton key={i} />)}
           </div>
         ) : featured.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {featured.map((col) => <CollectionCard key={col.contractAddress} collection={col} />)}
-          </div>
+          <Stagger className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {featured.map((col) => (
+              <StaggerItem key={col.contractAddress}>
+                <CollectionCard collection={col} />
+              </StaggerItem>
+            ))}
+          </Stagger>
         ) : (
-          <div className="rounded-2xl border border-dashed border-border p-12 text-center space-y-3">
-            <div className="flex justify-center gap-2 text-muted-foreground/40">
-              <Star className="h-6 w-6" />
-              <Rocket className="h-6 w-6" />
-              <Star className="h-6 w-6" />
+          <FadeIn>
+            <div className="bento-cell border-dashed p-12 text-center space-y-3">
+              <div className="flex justify-center gap-2 text-muted-foreground/30">
+                <Star className="h-6 w-6" /><Rocket className="h-6 w-6" /><Star className="h-6 w-6" />
+              </div>
+              <p className="text-sm text-muted-foreground">Curated creator drops will appear here.</p>
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/marketplace">Browse marketplace</Link>
+              </Button>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Curated creator drops will appear here. Build your collection and apply to be featured.
-            </p>
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/marketplace">Browse marketplace</Link>
-            </Button>
-          </div>
+          </FadeIn>
         )}
-      </div>
+      </section>
     </div>
   );
 }

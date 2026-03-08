@@ -9,6 +9,7 @@ import { Sun, Moon, Search, ShoppingBag, Zap } from "lucide-react";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { CartDrawer } from "@/components/layout/cart-drawer";
 import { SessionExpiryBanner } from "@/components/layout/session-expiry-banner";
+import { Aurora } from "@/components/ui/aurora";
 import { Button } from "@/components/ui/button";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { useCart } from "@/hooks/use-cart";
@@ -84,7 +85,7 @@ function Shell({ children }: { children: React.ReactNode }) {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="sticky top-0 z-50 flex h-12 shrink-0 items-center gap-2 border-b border-border/60 bg-background/80 backdrop-blur-md px-4">
+        <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border/60 bg-background/80 backdrop-blur-md px-4">
           <SidebarTrigger className="h-8 w-8" />
           <TopBarActions />
         </header>
@@ -115,6 +116,7 @@ function Shell({ children }: { children: React.ReactNode }) {
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+      <Aurora />
       <Shell>{children}</Shell>
       <CartDrawer />
       <Toaster richColors position="bottom-right" />

@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { MotionCard } from "@/components/ui/motion-primitives";
 import { ShoppingCart, Tag } from "lucide-react";
 import { ipfsToHttp } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
@@ -19,18 +20,23 @@ interface TokenCardProps {
   isOwner?: boolean;
 }
 
-export function TokenCard({ token, showBuyButton = true, onBuy, onList, isOwner = false }: TokenCardProps) {
+export function TokenCard({
+  token,
+  showBuyButton = true,
+  onBuy,
+  onList,
+  isOwner = false,
+}: TokenCardProps) {
   const { addItem, items } = useCart();
   const [imgError, setImgError] = useState(false);
   const name = token.metadata?.name || `Token #${token.tokenId}`;
   const image = ipfsToHttp(token.metadata?.image);
   const activeOrder = token.activeOrders?.[0];
   const inCart = activeOrder ? items.some((i) => i.orderHash === activeOrder.orderHash) : false;
-  const isListed = !!activeOrder;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!activeOrder) return;
+    if (!activeOrder || inCart) return;
     addItem({
       orderHash: activeOrder.orderHash,
       nftContract: token.contractAddress,
@@ -47,8 +53,8 @@ export function TokenCard({ token, showBuyButton = true, onBuy, onList, isOwner 
   };
 
   return (
-    <Link href={`/asset/${token.contractAddress}/${token.tokenId}`} className="block group">
-      <div className="rounded-2xl border border-border bg-card overflow-hidden asset-card-hover card-glow hover:border-primary/30">
+    <MotionCard className="card-base">
+      <Link href={`/asset/${token.contractAddress}/${token.tokenId}`} className="block">
         {/* Image */}
         <div className="relative aspect-square bg-muted overflow-hidden">
           {!imgError ? (
@@ -56,39 +62,18 @@ export function TokenCard({ token, showBuyButton = true, onBuy, onList, isOwner 
               src={image}
               alt={name}
               fill
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              className="object-cover"
               onError={() => setImgError(true)}
             />
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary/10 to-purple-500/10">
+            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-brand-purple/15 to-brand-blue/15">
               <span className="text-2xl font-mono text-muted-foreground">#{token.tokenId}</span>
             </div>
           )}
-
-          {/* IP type badge */}
           {token.metadata?.ipType && (
-            <Badge className="absolute top-2 left-2 text-[10px] bg-background/80 backdrop-blur-sm border-border/50">
+            <Badge className="absolute top-2 left-2 text-[10px] bg-background/85 backdrop-blur-sm border-0">
               {token.metadata.ipType}
             </Badge>
-          )}
-
-          {/* Cart overlay — appears on hover when listed and not owner */}
-          {isListed && !isOwner && (
-            <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end p-3">
-              <Button
-                size="sm"
-                className="w-full h-8 text-xs"
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (inCart) return;
-                  handleAddToCart(e);
-                }}
-                disabled={inCart}
-              >
-                <ShoppingCart className="h-3 w-3 mr-1.5" />
-                {inCart ? "In cart" : "Add to cart"}
-              </Button>
-            </div>
           )}
         </div>
 
@@ -99,21 +84,22 @@ export function TokenCard({ token, showBuyButton = true, onBuy, onList, isOwner 
             <p className="text-[11px] text-muted-foreground">#{token.tokenId}</p>
           </div>
 
-          {/* Price + buy row */}
           {activeOrder && (
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <div>
                 <p className="section-label">Price</p>
                 <p className="price-value text-sm">
                   {activeOrder.price.formatted}{" "}
-                  <span className="text-muted-foreground font-normal">{activeOrder.price.currency}</span>
+                  <span className="text-muted-foreground font-normal text-xs">
+                    {activeOrder.price.currency}
+                  </span>
                 </p>
               </div>
-              <div className="flex gap-1">
+              <div className="flex gap-1.5">
                 {showBuyButton && !isOwner && onBuy && (
                   <Button
                     size="sm"
-                    className="h-8 text-xs"
+                    className="h-8 px-3 text-xs bg-brand-purple text-white"
                     onClick={(e) => {
                       e.preventDefault();
                       onBuy(token);
@@ -122,7 +108,19 @@ export function TokenCard({ token, showBuyButton = true, onBuy, onList, isOwner 
                     Buy
                   </Button>
                 )}
-                {isOwner && onList && (
+                {!isOwner && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 w-8 p-0"
+                    onClick={handleAddToCart}
+                    disabled={inCart}
+                    aria-label={inCart ? "In cart" : "Add to cart"}
+                  >
+                    <ShoppingCart className={`h-3.5 w-3.5 ${inCart ? "opacity-40" : ""}`} />
+                  </Button>
+                )}
+                {isOwner && onList && activeOrder && (
                   <Button
                     size="sm"
                     variant="outline"
@@ -140,31 +138,30 @@ export function TokenCard({ token, showBuyButton = true, onBuy, onList, isOwner 
             </div>
           )}
 
-          {/* List for sale (unlisted owner) */}
           {!activeOrder && isOwner && onList && (
             <Button
               size="sm"
               variant="outline"
-              className="w-full h-8 text-xs"
+              className="w-full h-9 text-xs"
               onClick={(e) => {
                 e.preventDefault();
                 onList(token);
               }}
             >
-              <Tag className="h-3 w-3 mr-1" />
+              <Tag className="h-3 w-3 mr-1.5" />
               List for sale
             </Button>
           )}
         </div>
-      </div>
-    </Link>
+      </Link>
+    </MotionCard>
   );
 }
 
 export function TokenCardSkeleton() {
   return (
-    <div className="rounded-2xl border border-border bg-card overflow-hidden">
-      <Skeleton className="aspect-square w-full" />
+    <div className="card-base">
+      <Skeleton className="aspect-square w-full rounded-none" />
       <div className="p-3 space-y-2.5">
         <div className="space-y-1">
           <Skeleton className="h-4 w-3/4" />

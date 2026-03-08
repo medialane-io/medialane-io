@@ -43,7 +43,7 @@ export function SessionExpiryBanner() {
 
   return (
     <>
-      <div className="sticky top-12 z-40 bg-yellow-500/10 border-b border-yellow-500/20">
+      <div className="bg-yellow-500/10 border-b border-yellow-500/20">
         <div className="container mx-auto px-4 py-2 flex items-center justify-between gap-4 text-sm text-yellow-600 dark:text-yellow-400">
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 shrink-0" />

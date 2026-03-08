@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { MotionCard } from "@/components/ui/motion-primitives";
 import { ShoppingCart, Clock } from "lucide-react";
 import { ipfsToHttp, timeUntil, shortenAddress } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
@@ -26,6 +27,7 @@ export function ListingCard({ order, onBuy }: ListingCardProps) {
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
+    if (inCart) return;
     addItem({
       orderHash: order.orderHash,
       nftContract: order.nftContract,
@@ -42,8 +44,8 @@ export function ListingCard({ order, onBuy }: ListingCardProps) {
   };
 
   return (
-    <Link href={`/asset/${order.nftContract}/${order.nftTokenId}`} className="block group">
-      <div className="rounded-2xl border border-border bg-card overflow-hidden asset-card-hover card-glow hover:border-primary/30">
+    <MotionCard className="card-base">
+      <Link href={`/asset/${order.nftContract}/${order.nftTokenId}`} className="block">
         {/* Image */}
         <div className="relative aspect-square bg-muted overflow-hidden">
           {image && !imgError ? (
@@ -51,32 +53,14 @@ export function ListingCard({ order, onBuy }: ListingCardProps) {
               src={image}
               alt={name}
               fill
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              className="object-cover"
               onError={() => setImgError(true)}
             />
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary/10 to-purple-500/10">
+            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-brand-purple/15 to-brand-blue/15">
               <span className="text-2xl font-mono text-muted-foreground">
                 #{order.nftTokenId}
               </span>
-            </div>
-          )}
-
-          {/* Cart overlay on hover for listings */}
-          {isListing && (
-            <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end p-3">
-              <Button
-                size="sm"
-                className="w-full h-8 text-xs"
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (!inCart) handleAddToCart(e);
-                }}
-                disabled={inCart}
-              >
-                <ShoppingCart className="h-3 w-3 mr-1.5" />
-                {inCart ? "In cart" : "Add to cart"}
-              </Button>
             </div>
           )}
         </div>
@@ -90,25 +74,41 @@ export function ListingCard({ order, onBuy }: ListingCardProps) {
             </p>
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-end justify-between gap-2">
             <div>
               <p className="section-label">{isListing ? "Ask" : "Offer"}</p>
               <p className="price-value text-sm">
                 {order.price.formatted}{" "}
-                <span className="text-muted-foreground font-normal">{order.price.currency}</span>
+                <span className="text-muted-foreground font-normal text-xs">
+                  {order.price.currency}
+                </span>
               </p>
             </div>
-            {isListing && onBuy && (
-              <Button
-                size="sm"
-                className="h-8 text-xs"
-                onClick={(e) => {
-                  e.preventDefault();
-                  onBuy(order);
-                }}
-              >
-                Buy
-              </Button>
+            {isListing && (
+              <div className="flex gap-1.5">
+                {onBuy && (
+                  <Button
+                    size="sm"
+                    className="h-8 px-3 text-xs bg-brand-purple text-white"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onBuy(order);
+                    }}
+                  >
+                    Buy
+                  </Button>
+                )}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 w-8 p-0"
+                  onClick={handleAddToCart}
+                  disabled={inCart}
+                  aria-label={inCart ? "In cart" : "Add to cart"}
+                >
+                  <ShoppingCart className={`h-3.5 w-3.5 ${inCart ? "opacity-40" : ""}`} />
+                </Button>
+              </div>
             )}
           </div>
 
@@ -117,15 +117,15 @@ export function ListingCard({ order, onBuy }: ListingCardProps) {
             <span>Expires {timeUntil(order.endTime)}</span>
           </div>
         </div>
-      </div>
-    </Link>
+      </Link>
+    </MotionCard>
   );
 }
 
 export function ListingCardSkeleton() {
   return (
-    <div className="rounded-2xl border border-border bg-card overflow-hidden">
-      <Skeleton className="aspect-square w-full" />
+    <div className="card-base">
+      <Skeleton className="aspect-square w-full rounded-none" />
       <div className="p-3 space-y-2.5">
         <div className="space-y-1">
           <Skeleton className="h-4 w-3/4" />
