@@ -38,7 +38,7 @@ function TopBarActions() {
   const cartCount = items.length;
 
   return (
-    <div className="ml-auto flex items-center gap-1">
+    <div className="flex items-center gap-1">
       <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
         <Link href="/search" aria-label="Search">
           <Search className="h-4 w-4" />
@@ -85,29 +85,35 @@ function Shell({ children }: { children: React.ReactNode }) {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border/60 bg-background/80 backdrop-blur-md px-4">
-          <SidebarTrigger className="h-8 w-8" />
-          <TopBarActions />
-        </header>
-        <SessionExpiryBanner />
-        <main className="flex-1">{children}</main>
-        <footer className="border-t border-border/60 px-6 py-8 mt-auto">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <Zap className="h-4 w-4 text-primary" />
-              <span className="font-semibold text-foreground">Medialane</span>
-              <span>· IP marketplace on Starknet</span>
+        <div className="relative flex flex-col flex-1 min-h-svh">
+          <header className="absolute inset-x-0 top-0 z-50 flex items-center gap-2 px-3 pt-3 pointer-events-none">
+            <div className="pointer-events-auto bg-black/20 dark:bg-black/35 backdrop-blur-xl rounded-xl border border-white/10 shadow-sm">
+              <SidebarTrigger className="h-9 w-9" />
             </div>
-            <nav className="flex items-center gap-4 flex-wrap justify-center">
-              <Link href="/marketplace" className="hover:text-foreground transition-colors">Marketplace</Link>
-              <Link href="/collections" className="hover:text-foreground transition-colors">Collections</Link>
-              <Link href="/launchpad" className="hover:text-foreground transition-colors">Launchpad</Link>
-              <Link href="/activity" className="hover:text-foreground transition-colors">Activity</Link>
-              <a href="https://twitter.com/medialane_io" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">Twitter</a>
-            </nav>
-            <p className="text-xs">© {new Date().getFullYear()} Medialane</p>
-          </div>
-        </footer>
+            <div className="ml-auto pointer-events-auto bg-black/20 dark:bg-black/35 backdrop-blur-xl rounded-full border border-white/10 shadow-sm px-1 py-1 flex items-center gap-0.5">
+              <TopBarActions />
+            </div>
+          </header>
+          <SessionExpiryBanner />
+          <main className="flex-1 pt-12">{children}</main>
+          <footer className="border-t border-border/60 px-6 py-8 mt-auto">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Zap className="h-4 w-4 text-primary" />
+                <span className="font-semibold text-foreground">Medialane</span>
+                <span>· IP marketplace on Starknet</span>
+              </div>
+              <nav className="flex items-center gap-4 flex-wrap justify-center">
+                <Link href="/marketplace" className="hover:text-foreground transition-colors">Marketplace</Link>
+                <Link href="/collections" className="hover:text-foreground transition-colors">Collections</Link>
+                <Link href="/launchpad" className="hover:text-foreground transition-colors">Launchpad</Link>
+                <Link href="/activity" className="hover:text-foreground transition-colors">Activity</Link>
+                <a href="https://twitter.com/medialane_io" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">Twitter</a>
+              </nav>
+              <p className="text-xs">© {new Date().getFullYear()} Medialane</p>
+            </div>
+          </footer>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );

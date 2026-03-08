@@ -36,7 +36,7 @@ function CollectionBanner({ collection, isLoading }: {
   if (isLoading) {
     return (
       <div>
-        <Skeleton className="w-full aspect-[21/7]" />
+        <Skeleton className="-mt-12 w-full aspect-[21/7]" />
         <div className="container mx-auto px-4">
           <div className="flex items-end gap-4 -mt-8 pb-6">
             <Skeleton className="h-20 w-20 rounded-2xl shrink-0" />
@@ -52,8 +52,8 @@ function CollectionBanner({ collection, isLoading }: {
 
   return (
     <div>
-      {/* Banner */}
-      <div className="relative w-full aspect-[4/3] sm:aspect-[21/7] bg-gradient-to-br from-primary/20 via-purple-500/15 to-blue-500/10 overflow-hidden">
+      {/* Banner — pulls up behind the transparent header */}
+      <div className="-mt-12 relative w-full aspect-[4/3] sm:aspect-[21/7] bg-gradient-to-br from-primary/20 via-purple-500/15 to-blue-500/10 overflow-hidden">
         {showImage && (
           <Image
             src={imageUrl}
