@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
-import { useAuth, useUser } from "@clerk/nextjs";
-import { useCallAnyContract } from "@chipi-stack/nextjs";
+import { useAuth } from "@clerk/nextjs";
+import { useChipiWallet, useCallAnyContract } from "@chipi-stack/nextjs";
 import { RpcProvider } from "starknet";
 import { STARKNET_RPC_URL } from "@/lib/constants";
 
@@ -42,9 +42,22 @@ const provider = new RpcProvider({ nodeUrl: STARKNET_RPC_URL });
 // ─── Hook ─────────────────────────────────────────────────────────────────
 
 export function useChipiTransaction() {
-  const { getToken } = useAuth();
-  const { user } = useUser();
+  const { userId, getToken } = useAuth();
   const { callAnyContractAsync } = useCallAnyContract();
+
+  const getBearerToken = useCallback(
+    () =>
+      getToken({
+        template: process.env.NEXT_PUBLIC_CLERK_TEMPLATE_NAME || "chipipay",
+      }),
+    [getToken]
+  );
+
+  const { wallet } = useChipiWallet({
+    externalUserId: userId,
+    getBearerToken,
+    enabled: !!userId,
+  });
 
   const [status, setStatus] = useState<ChipiTransactionStatus>("idle");
   const [txHash, setTxHash] = useState<string | null>(null);
@@ -54,20 +67,14 @@ export function useChipiTransaction() {
   const getWallet = useCallback(
     (override?: ChipiTransactionParams["wallet"]) => {
       if (override) return override;
-      // Check both publicMetadata (backend-set) and unsafeMetadata (frontend-set via WalletSetupDialog)
-      const publicKey =
-        (user?.publicMetadata?.publicKey ?? user?.unsafeMetadata?.publicKey) as
-          | string
-          | undefined;
-      const encryptedPrivateKey =
-        (user?.publicMetadata?.encryptedPrivateKey ??
-          user?.unsafeMetadata?.encryptedPrivateKey) as string | undefined;
+      const publicKey = wallet?.normalizedPublicKey;
+      const encryptedPrivateKey = wallet?.encryptedPrivateKey;
       if (!publicKey || !encryptedPrivateKey) {
         throw new Error("Wallet not set up. Please create your wallet first.");
       }
       return { publicKey, encryptedPrivateKey };
     },
-    [user]
+    [wallet]
   );
 
   const executeTransaction = useCallback(
@@ -82,9 +89,7 @@ export function useChipiTransaction() {
       setTxHash(null);
 
       try {
-        const token = await getToken({
-          template: process.env.NEXT_PUBLIC_CLERK_TEMPLATE_NAME || "chipipay",
-        });
+        const token = await getBearerToken();
         if (!token) throw new Error("No bearer token. Please sign in again.");
 
         const wallet = getWallet(params.wallet);
@@ -142,7 +147,7 @@ export function useChipiTransaction() {
         isSubmittingRef.current = false;
       }
     },
-    [getToken, getWallet, callAnyContractAsync]
+    [getBearerToken, getWallet, callAnyContractAsync]
   );
 
   const reset = useCallback(() => {
