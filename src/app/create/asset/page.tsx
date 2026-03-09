@@ -33,7 +33,7 @@ import { PinDialog } from "@/components/chipi/pin-dialog";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
-import { useUserCollections } from "@/hooks/use-user-collections";
+import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { MintProgressDialog } from "@/components/marketplace/mint-progress-dialog";
 import type { MintStep } from "@/components/marketplace/mint-progress-dialog";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
@@ -109,8 +109,10 @@ export default function CreateAssetPage() {
   const { walletAddress, wallet } = useSessionKey();
   const client = useMedialaneClient();
 
-  // Fetch user's collections from the collection registry on-chain
-  const { collections, isLoading: collectionsLoading } = useUserCollections(walletAddress ?? null);
+  // Fetch user's collections from the API (collectionId field contains on-chain registry ID)
+  const { collections: allCollections, isLoading: collectionsLoading } = useCollectionsByOwner(walletAddress ?? null);
+  // Only show collections that have been indexed with their on-chain ID (required for minting)
+  const collections = allCollections.filter((c) => c.collectionId != null);
 
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
   const [pinOpen, setPinOpen] = useState(false);
@@ -286,8 +288,8 @@ export default function CreateAssetPage() {
                       </FormControl>
                       <SelectContent>
                         {collections.map((col) => (
-                          <SelectItem key={col.onChainId} value={col.onChainId}>
-                            {col.name || col.symbol || `Collection #${col.onChainId}`}
+                          <SelectItem key={col.collectionId!} value={col.collectionId!}>
+                            {col.name || col.symbol || `Collection #${col.collectionId}`}
                           </SelectItem>
                         ))}
                       </SelectContent>
