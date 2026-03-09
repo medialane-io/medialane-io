@@ -31,7 +31,7 @@ NEXT_PUBLIC_MEDIALANE_BACKEND_URL=http://localhost:3001
 - **Clerk** — Email/social authentication. Session JWTs are templated as `chipipay` for wallet derivation.
 - **ChipiPay** (`@chipi-stack/nextjs`) — Manages Starknet wallets derived from Clerk sessions. Enables gasless transactions. Wraps the app via `ChipiProvider` in `src/app/providers.tsx`.
 - **Starknet.js** — Direct contract calls. RPC singleton in `src/lib/starknet.ts`.
-- **@medialane/sdk** — Published npm package (`@medialane/sdk@0.2.8`, org: `@medialane`). Provides `ApiOrder`, `ApiToken`, `ApiCollection`, `ApiOrderTokenMeta`, `OrderStatus`, `IpAttribute`, `IpNftMetadata` types and the SDK client used in `src/lib/medialane-client.ts`. `ApiOrder.token: ApiOrderTokenMeta | null` carries name/image/description enrichment from the backend — no per-row `useToken` calls needed.
+- **@medialane/sdk** — Published npm package (`@medialane/sdk@0.3.1`, org: `@medialane`). Provides `ApiOrder`, `ApiToken`, `ApiCollection`, `ApiOrderTokenMeta`, `OrderStatus`, `IpAttribute`, `IpNftMetadata` types and the SDK client used in `src/lib/medialane-client.ts`. `ApiOrder.token: ApiOrderTokenMeta | null` carries name/image/description enrichment from the backend — no per-row `useToken` calls needed. `ApiCollection.collectionId: string | null` is the on-chain registry numeric ID needed for `createMintIntent`. The SDK normalizes all addresses internally.
 - **Pinata** — IPFS uploads via two Next.js routes (both Clerk-gated, direct to Pinata):
   - `src/app/api/pinata/route.ts` — Universal IP asset upload. Accepts full licensing schema, uploads image + metadata JSON in one call. Returns `{ uri, imageUri, cid }`.
   - `src/app/api/pinata/image/route.ts` — Image-only upload. Returns `{ imageUri: "ipfs://...", cid }`. Used by the create collection flow.
@@ -41,10 +41,11 @@ NEXT_PUBLIC_MEDIALANE_BACKEND_URL=http://localhost:3001
 
 1. User authenticates via Clerk → ChipiPay derives a Starknet wallet from the session
 2. Session keys (SNIP-9) are stored in Clerk user metadata, managed via `use-session-key.ts`
-3. **Asset uploads**: `POST /api/pinata` → image to Pinata → metadata JSON to Pinata → `ipfs://` URI → mint tx. Never goes through the backend. `PINATA_JWT` is consumed server-side in the Next.js route.
-4. Marketplace orders use SNIP-12 typed data signing (see `use-marketplace.ts`)
-5. Cart state is persisted to localStorage via Zustand (`use-cart.ts`)
-6. Server state (tokens, collections, orders) fetched via TanStack Query hooks in `src/hooks/`
+3. **Wallet address**: always read from `useSessionKey().walletAddress` — never from `user.publicMetadata.publicKey` (Clerk server-only, returns `undefined` on the client)
+4. **Asset uploads**: `POST /api/pinata` → image to Pinata → metadata JSON to Pinata → `ipfs://` URI → mint tx. Never goes through the backend. `PINATA_JWT` is consumed server-side in the Next.js route.
+5. Marketplace orders use SNIP-12 typed data signing (see `use-marketplace.ts`)
+6. Cart state is persisted to localStorage via Zustand (`use-cart.ts`)
+7. Server state (tokens, collections, orders) fetched via SWR hooks in `src/hooks/` — **all** data comes from the backend API, no direct RPC calls except `useUserCollections` (needed for on-chain collection ID used in minting)
 
 ### Route Protection
 
@@ -121,8 +122,8 @@ When `LAUNCH_MINT_CONTRACT` or `GENESIS_NFT_URI` are empty the button renders as
 | `useCollections()` | All collections | `GET /v1/collections` |
 | `useCollection(contract)` | Single collection | `GET /v1/collections/:contract` |
 | `useCollectionTokens(contract)` | Tokens in collection | `GET /v1/collections/:contract/tokens` |
-| `useCollectionsByOwner(address)` | Collections owned by address (DB-based) | `GET /v1/collections?owner=address` (direct fetch, bypasses SDK) |
-| `useUserCollections(address)` | Collections owned by address (on-chain direct) | Calls `list_user_collections()` + `get_collection()` on registry contract via starknet.js. Used in portfolio/collections — bypasses DB entirely so new collections appear immediately |
+| `useCollectionsByOwner(address)` | Collections owned by address (API-based, returns `collectionId`) | `GET /v1/collections?owner=address` via SDK client. Used in portfolio/collections and create/asset collection selector |
+| `useUserCollections(address)` | Collections owned by address (on-chain direct, returns `onChainId`) | Calls `list_user_collections()` + `get_collection()` on registry contract via starknet.js. **Only use this if you specifically need `onChainId` and `useCollectionsByOwner` can't provide `collectionId`** |
 | `useActivities(query)` | Global activity feed | `GET /v1/activities` |
 | `useActivitiesByAddress(address)` | User activity | `GET /v1/activities/:address` |
 
@@ -148,7 +149,7 @@ All write ops follow: create intent → sign typed data → submit signature →
 
 ---
 
-## Known Bugs (as of 2026-03-06)
+## Known Bugs (as of 2026-03-09)
 
 All previously noted bugs were fixed. No outstanding known bugs.
 
@@ -166,8 +167,8 @@ All previously noted bugs were fixed. No outstanding known bugs.
 - [x] Portfolio listings table: fetch token metadata for name/image display ✓ 2026-03-06
 - [x] Portfolio offers table: add Cancel button + token name/image ✓ 2026-03-06
 - [x] Portfolio restructured: tabs → subpages (`/portfolio/assets`, `/portfolio/collections`, etc.) ✓ 2026-03-07
-- [x] Portfolio collections page: shows user-owned collections via `useUserCollections` (on-chain direct, not DB-based) ✓ 2026-03-08
-- [x] Create asset page: collection selector using `useUserCollections`; correct mint flow via `createMintIntent` with `collectionId` ✓ 2026-03-08
+- [x] Portfolio collections page: shows user-owned collections via `useCollectionsByOwner` (API-based) ✓ 2026-03-09
+- [x] Create asset page: collection selector using `useCollectionsByOwner` (API-based, `col.collectionId` passed to `createMintIntent`) ✓ 2026-03-09
 - [x] Asset page: incoming offers section + Offers tab with Accept flow ✓ 2026-03-06
 - [x] Marketplace: "Load more" pagination (PAGE_SIZE=12, appends pages) ✓ 2026-03-06
 
@@ -182,13 +183,20 @@ All previously noted bugs were fixed. No outstanding known bugs.
 - [x] Offer browsing in marketplace (Type filter: All / Listings / Offers) ✓ 2026-03-06
 - [ ] Price range filter in marketplace (requires backend min/max params — deferred)
 - [x] Sidebar-first layout: shadcn `sidebar-07` replaces top header globally ✓ 2026-03-06
-- [x] `@medialane/sdk` published to npm — replaced local `file:` dep ✓ 2026-03-06 (latest: v0.2.8)
+- [x] `@medialane/sdk` published to npm — replaced local `file:` dep ✓ 2026-03-06 (latest: v0.3.1)
 - [x] batchTokenMeta: order endpoints return `token.{name,image,description}` — eliminates N+1 `useToken` calls ✓ 2026-03-07
 - [x] Stale order sync: refreshInterval + delayed invalidate after write ops ✓ 2026-03-07
 - [x] Collection image upload in create flow (`/api/pinata/image`) + image stored in intent typedData ✓ 2026-03-07
 - [x] Full programmable licensing metadata (Berne Convention, CC variants, AI policy, royalty) ✓ 2026-03-06
 - [x] Asset page License tab — rich display from IPFS attributes (Berne badge, icon table) ✓ 2026-03-06
 - [x] Asset upload decentralised — direct Pinata via `/api/pinata`, no backend hop ✓ 2026-03-06
+- [x] Platform hardening: all portfolio pages use `useSessionKey()` for wallet address — no more `publicMetadata.publicKey` reads ✓ 2026-03-09
+- [x] `use-chipi-transaction.ts` reads wallet keys from `useChipiWallet` (not Clerk metadata) ✓ 2026-03-09
+- [x] `<EmptyOrError>` component: single component for loading/error/empty states across all portfolio pages ✓ 2026-03-09
+- [x] Global SWR `onError` handler: sonner toast on any API failure — users always see errors ✓ 2026-03-09
+- [x] `useCollectionsByOwner` uses SDK client (not raw fetch); `useCollectionsByOwner` used in create/asset for collection selector ✓ 2026-03-09
+- [x] Backend address normalization: full 64-char pad applied in all route handlers ✓ 2026-03-09
+- [x] SDK v0.3.0/0.3.1: normalizes addresses internally; `ApiCollection.collectionId` added ✓ 2026-03-09
 
 ---
 
@@ -200,7 +208,7 @@ The app uses a **shadcn `sidebar-07` layout** as the global shell — no top `He
 layout.tsx (server)
   └─ ClerkProvider > ChipiProvider
        └─ Providers (client) — src/app/providers.tsx
-            └─ ThemeProvider > SidebarProvider
+            └─ ThemeProvider > SWRConfig (global onError → sonner toast) > SidebarProvider
                  ├─ AppSidebar — src/components/layout/app-sidebar.tsx
                  │    Brand logo + Platform nav (Marketplace/Collections/Portfolio/Create/Launchpad/Activity)
                  │    + Clerk user (UserButton + name/email) in SidebarFooter
