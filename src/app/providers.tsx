@@ -1,7 +1,7 @@
 "use client";
 
 import { ThemeProvider } from "next-themes";
-import { Toaster } from "sonner";
+import { Toaster, toast } from "sonner";
 import Link from "next/link";
 import { Zap } from "lucide-react";
 import { AppSidebar } from "@/components/layout/app-sidebar";
@@ -10,6 +10,7 @@ import { SessionExpiryBanner } from "@/components/layout/session-expiry-banner";
 import { Aurora } from "@/components/ui/aurora";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { MedialaneLogo } from "@/components/brand/medialane-logo";
+import { SWRConfig } from "swr";
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
@@ -40,10 +41,19 @@ function Shell({ children }: { children: React.ReactNode }) {
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-      <Aurora />
-      <Shell>{children}</Shell>
-      <CartDrawer />
-      <Toaster richColors position="bottom-right" />
+      <SWRConfig
+        value={{
+          onError: (err: unknown) => {
+            const msg = err instanceof Error ? err.message : "Something went wrong";
+            toast.error(msg, { id: "swr-error" });
+          },
+        }}
+      >
+        <Aurora />
+        <Shell>{children}</Shell>
+        <CartDrawer />
+        <Toaster richColors position="bottom-right" />
+      </SWRConfig>
     </ThemeProvider>
   );
 }
