@@ -2,8 +2,7 @@
 
 import useSWR from "swr";
 import { useMedialaneClient } from "./use-medialane-client";
-import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
-import type { ApiCollection, ApiResponse } from "@medialane/sdk";
+
 
 export function useCollections(page = 1, limit = 20, isKnown?: boolean) {
   const client = useMedialaneClient();
@@ -36,16 +35,11 @@ export function useCollection(contract: string | null) {
 }
 
 export function useCollectionsByOwner(owner: string | null) {
+  const client = useMedialaneClient();
+
   const { data, error, isLoading, mutate } = useSWR(
     owner ? `collections-owner-${owner}` : null,
-    async () => {
-      const params = new URLSearchParams({ owner: owner!, page: "1", limit: "50" });
-      const res = await fetch(`${MEDIALANE_BACKEND_URL}/v1/collections?${params}`, {
-        headers: { "x-api-key": MEDIALANE_API_KEY },
-      });
-      if (!res.ok) throw new Error("Failed to fetch collections");
-      return res.json() as Promise<ApiResponse<ApiCollection[]>>;
-    },
+    () => client.api.getCollectionsByOwner(owner!),
     { revalidateOnFocus: false, refreshInterval: 12000 }
   );
 
