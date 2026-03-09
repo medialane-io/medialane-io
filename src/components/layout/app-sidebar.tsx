@@ -6,6 +6,7 @@ import { useUser, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { Home, Compass, Briefcase, PlusCircle, Zap, Activity, LayoutGrid, Telescope, Search, Sun, Moon, ShoppingBag, LogIn, UserPlus } from "lucide-react";
+import { useSessionKey } from "@/hooks/use-session-key";
 import { useUnreadOffers } from "@/hooks/use-unread-offers";
 import { useCart } from "@/hooks/use-cart";
 import { cn } from "@/lib/utils";
@@ -77,7 +78,7 @@ function CartItem() {
 export function AppSidebar() {
   const pathname = usePathname();
   const { user, isLoaded, isSignedIn } = useUser();
-  const walletAddress = user?.publicMetadata?.publicKey as string | undefined;
+  const { walletAddress } = useSessionKey();
   const unreadOffers = useUnreadOffers(isSignedIn ? walletAddress : null);
   const { setOpen, setOpenMobile, isMobile, state } = useSidebar();
 
