@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
 import { useUser, useAuth, SignInButton, SignUpButton } from "@clerk/nextjs";
+import { useSessionKey } from "@/hooks/use-session-key";
 import { byteArray, CallData } from "starknet";
 import { useCreateWallet, Chain } from "@chipi-stack/nextjs";
 import {
@@ -91,6 +92,7 @@ type MintStep = "ready" | "enter-pin" | "minting" | "success" | "error";
 export function LaunchMint() {
   const { isSignedIn, isLoaded, user } = useUser();
   const { getToken } = useAuth();
+  const { walletAddress: sessionWalletAddress, hasWallet } = useSessionKey();
   const { createWalletAsync } = useCreateWallet();
   const { executeTransaction, status, statusMessage, error: txError, reset } = useChipiTransaction();
 
@@ -120,10 +122,7 @@ export function LaunchMint() {
     }
   }, [userId]);
 
-  const hasWallet = !!(user?.publicMetadata?.publicKey || user?.unsafeMetadata?.publicKey);
-  const recipientAddress = (
-    user?.publicMetadata?.publicKey ?? user?.unsafeMetadata?.publicKey
-  ) as string | undefined;
+  const recipientAddress = sessionWalletAddress ?? undefined;
 
   // ── Create wallet ─────────────────────────────────────────────────────────
 

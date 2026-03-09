@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
+import { useSessionKey } from "@/hooks/use-session-key";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTokensByOwner } from "@/hooks/use-tokens";
@@ -72,8 +73,8 @@ const QUICK_ACTIONS = [
 ];
 
 export function LaunchpadContent() {
-  const { user, isSignedIn } = useUser();
-  const walletAddress = user?.publicMetadata?.publicKey as string | undefined;
+  const { isSignedIn } = useUser();
+  const { walletAddress } = useSessionKey();
   const { collections: featured, isLoading: featuredLoading } = useCollections(1, 6, true);
 
   return (
