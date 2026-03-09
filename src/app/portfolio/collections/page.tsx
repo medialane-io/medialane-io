@@ -4,11 +4,10 @@ import { useSessionKey } from "@/hooks/use-session-key";
 import Image from "next/image";
 import Link from "next/link";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { EmptyOrError } from "@/components/ui/empty-or-error";
 import { ipfsToHttp } from "@/lib/utils";
-import { Layers, Plus, ImageIcon, RefreshCw } from "lucide-react";
-import { useState } from "react";
+import { Layers, Plus, ImageIcon } from "lucide-react";
 import type { ApiCollection } from "@medialane/sdk";
 
 function CollectionRow({ col }: { col: ApiCollection }) {
@@ -62,71 +61,39 @@ function CollectionRow({ col }: { col: ApiCollection }) {
 
 export default function PortfolioCollectionsPage() {
   const { walletAddress } = useSessionKey();
-  const [refreshing, setRefreshing] = useState(false);
 
-  const { collections, isLoading, mutate } = useCollectionsByOwner(walletAddress ?? null);
+  const { collections, isLoading, error, mutate } = useCollectionsByOwner(walletAddress ?? null);
 
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await mutate();
-    setRefreshing(false);
-  };
-
-  if (isLoading) {
-    return (
-      <div className="space-y-3">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-24 w-full rounded-xl" />
-        ))}
-      </div>
-    );
-  }
-
-  if (collections.length === 0) {
-    return (
-      <div className="py-16 text-center space-y-4">
-        <div className="h-14 w-14 rounded-xl bg-muted flex items-center justify-center mx-auto">
-          <Layers className="h-7 w-7 text-muted-foreground" />
-        </div>
-        <p className="font-semibold text-lg">No collections yet</p>
-        <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-          If you just created a collection, it may take a few seconds to appear.
-        </p>
-        <div className="flex items-center justify-center gap-3">
-          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={refreshing}>
-            <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${refreshing ? "animate-spin" : ""}`} />
-            {refreshing ? "Refreshing…" : "Refresh"}
-          </Button>
-          <Button size="sm" asChild>
+  return (
+    <EmptyOrError
+      isLoading={isLoading}
+      error={error}
+      isEmpty={collections.length === 0}
+      onRetry={mutate}
+      emptyTitle="No collections yet"
+      emptyDescription="If you just created a collection, it may take a few seconds to appear."
+      emptyCta={{ label: "Create collection", href: "/create/collection" }}
+      emptyIcon={<Layers className="h-7 w-7 text-muted-foreground" />}
+    >
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            {collections.length} collection{collections.length !== 1 ? "s" : ""}
+          </p>
+          <Button size="sm" variant="outline" asChild>
             <Link href="/create/collection">
-              <Plus className="h-4 w-4 mr-1.5" />
-              Create collection
+              <Plus className="h-3.5 w-3.5 mr-1.5" />
+              New collection
             </Link>
           </Button>
         </div>
-      </div>
-    );
-  }
 
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          {collections.length} collection{collections.length !== 1 ? "s" : ""}
-        </p>
-        <Button size="sm" variant="outline" asChild>
-          <Link href="/create/collection">
-            <Plus className="h-3.5 w-3.5 mr-1.5" />
-            New collection
-          </Link>
-        </Button>
+        <div className="space-y-2">
+          {collections.map((col) => (
+            <CollectionRow key={col.contractAddress} col={col} />
+          ))}
+        </div>
       </div>
-
-      <div className="space-y-2">
-        {collections.map((col) => (
-          <CollectionRow key={col.contractAddress} col={col} />
-        ))}
-      </div>
-    </div>
+    </EmptyOrError>
   );
 }

@@ -4,11 +4,11 @@ import { useState } from "react";
 import { useUserOrders } from "@/hooks/use-orders";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyOrError } from "@/components/ui/empty-or-error";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { timeUntil, ipfsToHttp , formatDisplayPrice} from "@/lib/utils";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Tag } from "lucide-react";
 import { EXPLORER_URL } from "@/lib/constants";
 import Image from "next/image";
 import Link from "next/link";
@@ -82,7 +82,7 @@ function ListingRow({
 }
 
 export function ListingsTable({ address }: ListingsTableProps) {
-  const { orders, isLoading, mutate } = useUserOrders(address);
+  const { orders, isLoading, error, mutate } = useUserOrders(address);
   const { cancelOrder, isProcessing } = useMarketplace();
   const [pinOpen, setPinOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<ApiOrder | null>(null);
@@ -103,39 +103,29 @@ export function ListingsTable({ address }: ListingsTableProps) {
     mutate();
   };
 
-  if (isLoading) {
-    return (
-      <div className="space-y-2">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-16 w-full rounded-lg" />
-        ))}
-      </div>
-    );
-  }
-
-  if (myListings.length === 0) {
-    return (
-      <div className="py-12 text-center">
-        <p className="font-semibold">No active listings</p>
-        <p className="text-sm text-muted-foreground mt-1">
-          List an asset from your portfolio to see it here.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <>
-      <div className="divide-y divide-border rounded-lg border">
-        {myListings.map((order) => (
-          <ListingRow
-            key={order.orderHash}
-            order={order}
-            isProcessing={isProcessing}
-            onCancel={handleCancel}
-          />
-        ))}
-      </div>
+      <EmptyOrError
+        isLoading={isLoading}
+        error={error}
+        isEmpty={myListings.length === 0}
+        onRetry={mutate}
+        emptyTitle="No active listings"
+        emptyDescription="List an asset to start selling."
+        emptyCta={{ label: "Browse assets", href: "/portfolio/assets" }}
+        emptyIcon={<Tag className="h-7 w-7 text-muted-foreground" />}
+      >
+        <div className="divide-y divide-border rounded-lg border">
+          {myListings.map((order) => (
+            <ListingRow
+              key={order.orderHash}
+              order={order}
+              isProcessing={isProcessing}
+              onCancel={handleCancel}
+            />
+          ))}
+        </div>
+      </EmptyOrError>
 
       <PinDialog
         open={pinOpen}

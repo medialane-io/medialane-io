@@ -4,11 +4,11 @@ import { useState } from "react";
 import { useUserOrders } from "@/hooks/use-orders";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyOrError } from "@/components/ui/empty-or-error";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { timeUntil, ipfsToHttp , formatDisplayPrice} from "@/lib/utils";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Inbox } from "lucide-react";
 import { EXPLORER_URL } from "@/lib/constants";
 import Image from "next/image";
 import Link from "next/link";
@@ -87,7 +87,7 @@ function ReceivedOfferRow({
 }
 
 export function ReceivedOffersTable({ address }: ReceivedOffersTableProps) {
-  const { orders, isLoading, mutate } = useUserOrders(address);
+  const { orders, isLoading, error, mutate } = useUserOrders(address);
   const { fulfillOrder, isProcessing } = useMarketplace();
   const [pinOpen, setPinOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<ApiOrder | null>(null);
@@ -112,39 +112,29 @@ export function ReceivedOffersTable({ address }: ReceivedOffersTableProps) {
     mutate();
   };
 
-  if (isLoading) {
-    return (
-      <div className="space-y-2">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <Skeleton key={i} className="h-16 w-full rounded-lg" />
-        ))}
-      </div>
-    );
-  }
-
-  if (receivedOffers.length === 0) {
-    return (
-      <div className="py-12 text-center">
-        <p className="font-semibold">No incoming offers</p>
-        <p className="text-sm text-muted-foreground mt-1">
-          Offers made on your assets will appear here.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <>
-      <div className="divide-y divide-border rounded-lg border">
-        {receivedOffers.map((order) => (
-          <ReceivedOfferRow
-            key={order.orderHash}
-            order={order}
-            isProcessing={isProcessing}
-            onAccept={handleAccept}
-          />
-        ))}
-      </div>
+      <EmptyOrError
+        isLoading={isLoading}
+        error={error}
+        isEmpty={receivedOffers.length === 0}
+        onRetry={mutate}
+        emptyTitle="No offers received"
+        emptyDescription="When someone makes an offer on your asset, it will appear here."
+        emptyIcon={<Inbox className="h-7 w-7 text-muted-foreground" />}
+        skeletonCount={3}
+      >
+        <div className="divide-y divide-border rounded-lg border">
+          {receivedOffers.map((order) => (
+            <ReceivedOfferRow
+              key={order.orderHash}
+              order={order}
+              isProcessing={isProcessing}
+              onAccept={handleAccept}
+            />
+          ))}
+        </div>
+      </EmptyOrError>
 
       <PinDialog
         open={pinOpen}

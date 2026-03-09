@@ -4,11 +4,11 @@ import { useState } from "react";
 import { useUserOrders } from "@/hooks/use-orders";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyOrError } from "@/components/ui/empty-or-error";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { timeUntil, ipfsToHttp , formatDisplayPrice} from "@/lib/utils";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, HandCoins } from "lucide-react";
 import { EXPLORER_URL } from "@/lib/constants";
 import Image from "next/image";
 import Link from "next/link";
@@ -82,7 +82,7 @@ function OfferRow({
 }
 
 export function OffersTable({ address }: OffersTableProps) {
-  const { orders, isLoading, mutate } = useUserOrders(address);
+  const { orders, isLoading, error, mutate } = useUserOrders(address);
   const { cancelOrder, isProcessing } = useMarketplace();
   const [pinOpen, setPinOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<ApiOrder | null>(null);
@@ -103,39 +103,30 @@ export function OffersTable({ address }: OffersTableProps) {
     mutate();
   };
 
-  if (isLoading) {
-    return (
-      <div className="space-y-2">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <Skeleton key={i} className="h-16 w-full rounded-lg" />
-        ))}
-      </div>
-    );
-  }
-
-  if (myOffers.length === 0) {
-    return (
-      <div className="py-12 text-center">
-        <p className="font-semibold">No active offers</p>
-        <p className="text-sm text-muted-foreground mt-1">
-          Browse the marketplace to make offers on assets.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <>
-      <div className="divide-y divide-border rounded-lg border">
-        {myOffers.map((order) => (
-          <OfferRow
-            key={order.orderHash}
-            order={order}
-            isProcessing={isProcessing}
-            onCancel={handleCancel}
-          />
-        ))}
-      </div>
+      <EmptyOrError
+        isLoading={isLoading}
+        error={error}
+        isEmpty={myOffers.length === 0}
+        onRetry={mutate}
+        emptyTitle="No offers made"
+        emptyDescription="Browse the marketplace to make offers on assets."
+        emptyCta={{ label: "Browse marketplace", href: "/" }}
+        emptyIcon={<HandCoins className="h-7 w-7 text-muted-foreground" />}
+        skeletonCount={3}
+      >
+        <div className="divide-y divide-border rounded-lg border">
+          {myOffers.map((order) => (
+            <OfferRow
+              key={order.orderHash}
+              order={order}
+              isProcessing={isProcessing}
+              onCancel={handleCancel}
+            />
+          ))}
+        </div>
+      </EmptyOrError>
 
       <PinDialog
         open={pinOpen}
