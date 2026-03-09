@@ -3,6 +3,7 @@
 import useSWR from "swr";
 import { useMedialaneClient } from "./use-medialane-client";
 import type { ApiOrdersQuery, ApiOrder, ApiResponse } from "@medialane/sdk";
+import { normalizeAddress } from "@/lib/utils";
 
 export function useOrders(query: ApiOrdersQuery = {}) {
   const client = useMedialaneClient();
@@ -49,10 +50,11 @@ export function useTokenListings(contract: string | null, tokenId: string | null
 
 export function useUserOrders(address: string | null) {
   const client = useMedialaneClient();
+  const normalized = address ? normalizeAddress(address) : null;
 
   const { data, error, isLoading, mutate } = useSWR(
-    address ? `user-orders-${address}` : null,
-    () => client.api.getOrdersByUser(address!),
+    normalized ? `user-orders-${normalized}` : null,
+    () => client.api.getOrdersByUser(normalized!),
     { revalidateOnFocus: false, refreshInterval: 20000 }
   );
 

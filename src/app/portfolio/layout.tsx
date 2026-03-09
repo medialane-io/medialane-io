@@ -1,14 +1,15 @@
 "use client";
 
 import { useUser } from "@clerk/nextjs";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { SignInButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { AddressDisplay } from "@/components/shared/address-display";
-import { Briefcase } from "lucide-react";
+import { Briefcase, Wallet } from "lucide-react";
 import { useUserOrders } from "@/hooks/use-orders";
 import { markOffersAsSeen } from "@/hooks/use-unread-offers";
+import { useSessionKey } from "@/hooks/use-session-key";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -22,10 +23,10 @@ const NAV_ITEMS = [
 ];
 
 export default function PortfolioLayout({ children }: { children: React.ReactNode }) {
-  const { user, isLoaded, isSignedIn } = useUser();
-  const router = useRouter();
+  const { isLoaded, isSignedIn } = useUser();
+  const { walletAddress, isLoadingWallet } = useSessionKey();
   const pathname = usePathname();
-  const address = user?.publicMetadata?.publicKey as string | undefined;
+  const address = walletAddress;
   const { orders } = useUserOrders(address ?? null);
 
   const receivedCount = orders.filter(
@@ -44,13 +45,7 @@ export default function PortfolioLayout({ children }: { children: React.ReactNod
     }
   }, [orders]);
 
-  useEffect(() => {
-    if (isLoaded && isSignedIn && !address) {
-      router.replace("/onboarding?redirect_url=/portfolio/assets");
-    }
-  }, [isLoaded, isSignedIn, address, router]);
-
-  if (!isLoaded) return null;
+  if (!isLoaded || isLoadingWallet) return null;
 
   if (!isSignedIn) {
     return (
@@ -61,6 +56,21 @@ export default function PortfolioLayout({ children }: { children: React.ReactNod
         <SignInButton mode="modal">
           <Button>Sign in</Button>
         </SignInButton>
+      </div>
+    );
+  }
+
+  if (!address) {
+    return (
+      <div className="container mx-auto px-4 py-24 text-center space-y-4">
+        <Wallet className="h-12 w-12 mx-auto text-muted-foreground" />
+        <h1 className="text-2xl font-bold">Wallet not found</h1>
+        <p className="text-muted-foreground max-w-sm mx-auto">
+          You need a Starknet wallet to use your portfolio. Set one up to get started.
+        </p>
+        <Button asChild>
+          <Link href="/onboarding?redirect_url=/portfolio/assets">Set up wallet</Link>
+        </Button>
       </div>
     );
   }

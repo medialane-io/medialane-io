@@ -36,7 +36,7 @@ export function useCollection(contract: string | null) {
 }
 
 export function useCollectionsByOwner(owner: string | null) {
-  const { data, error, isLoading } = useSWR(
+  const { data, error, isLoading, mutate } = useSWR(
     owner ? `collections-owner-${owner}` : null,
     async () => {
       const params = new URLSearchParams({ owner: owner!, page: "1", limit: "50" });
@@ -46,10 +46,10 @@ export function useCollectionsByOwner(owner: string | null) {
       if (!res.ok) throw new Error("Failed to fetch collections");
       return res.json() as Promise<ApiResponse<ApiCollection[]>>;
     },
-    { revalidateOnFocus: false }
+    { revalidateOnFocus: false, refreshInterval: 12000 }
   );
 
-  return { collections: data?.data ?? [], isLoading, error };
+  return { collections: data?.data ?? [], isLoading, error, mutate };
 }
 
 export function useCollectionTokens(contract: string | null, page = 1, limit = 24) {

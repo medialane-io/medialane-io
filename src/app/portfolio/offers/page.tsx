@@ -1,10 +1,9 @@
 "use client";
 
-import { useUser } from "@clerk/nextjs";
+import { useSessionKey } from "@/hooks/use-session-key";
 import { OffersTable } from "@/components/portfolio/offers-table";
 
 export default function PortfolioOffersPage() {
-  const { user } = useUser();
-  const address = user?.publicMetadata?.publicKey as string | undefined;
-  return <OffersTable address={address!} />;
+  const { walletAddress } = useSessionKey();
+  return <OffersTable address={walletAddress!} />;
 }

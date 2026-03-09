@@ -1,10 +1,9 @@
 "use client";
 
-import { useUser } from "@clerk/nextjs";
+import { useSessionKey } from "@/hooks/use-session-key";
 import { ListingsTable } from "@/components/portfolio/listings-table";
 
 export default function PortfolioListingsPage() {
-  const { user } = useUser();
-  const address = user?.publicMetadata?.publicKey as string | undefined;
-  return <ListingsTable address={address!} />;
+  const { walletAddress } = useSessionKey();
+  return <ListingsTable address={walletAddress!} />;
 }

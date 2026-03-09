@@ -1,29 +1,19 @@
 "use client";
 
-import { useUser } from "@clerk/nextjs";
+import { useSessionKey } from "@/hooks/use-session-key";
 import Image from "next/image";
 import Link from "next/link";
-import { useUserCollections } from "@/hooks/use-user-collections";
+import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { ipfsToHttp } from "@/lib/utils";
-import { Layers, Plus, ImageIcon } from "lucide-react";
-import type { UserCollection } from "@/hooks/use-user-collections";
-import { useCollections } from "@/hooks/use-collections";
-import { RefreshCw } from "lucide-react";
+import { Layers, Plus, ImageIcon, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import type { ApiCollection } from "@medialane/sdk";
 
-// Merge on-chain data with DB metadata (image, description, totalSupply)
-function CollectionRow({
-  col,
-  meta,
-}: {
-  col: UserCollection;
-  meta: ApiCollection | undefined;
-}) {
-  const imgUrl = meta?.image ? ipfsToHttp(meta.image) : null;
-  const name = col.name || meta?.name || "Unnamed collection";
+function CollectionRow({ col }: { col: ApiCollection }) {
+  const imgUrl = col.image ? ipfsToHttp(col.image) : null;
+  const name = col.name || "Unnamed collection";
 
   return (
     <Link
@@ -48,17 +38,17 @@ function CollectionRow({
           {col.symbol && (
             <span className="text-xs text-muted-foreground font-mono">{col.symbol}</span>
           )}
-          {meta?.totalSupply != null && (
+          {col.totalSupply != null && (
             <span className="text-xs text-muted-foreground">
-              {meta.totalSupply} token{meta.totalSupply !== 1 ? "s" : ""}
+              {col.totalSupply} token{col.totalSupply !== 1 ? "s" : ""}
             </span>
           )}
-          {meta?.floorPrice && (
-            <span className="text-xs text-muted-foreground">Floor {meta.floorPrice}</span>
+          {col.floorPrice && (
+            <span className="text-xs text-muted-foreground">Floor {col.floorPrice}</span>
           )}
         </div>
-        {meta?.description && (
-          <p className="text-xs text-muted-foreground mt-1 truncate">{meta.description}</p>
+        {col.description && (
+          <p className="text-xs text-muted-foreground mt-1 truncate">{col.description}</p>
         )}
       </div>
 
@@ -71,16 +61,16 @@ function CollectionRow({
 }
 
 export default function PortfolioCollectionsPage() {
-  const { user } = useUser();
-  const address = user?.publicMetadata?.publicKey as string | undefined;
+  const { walletAddress } = useSessionKey();
   const [refreshing, setRefreshing] = useState(false);
 
-  // On-chain: get collection IDs + basic metadata owned by this wallet
-  const { collections, isLoading, mutate } = useUserCollections(address ?? null);
+  const { collections, isLoading, mutate } = useCollectionsByOwner(walletAddress ?? null);
 
-  // DB: fetch all collections to get image/description/supply enrichment
-  const { collections: dbCollections } = useCollections(1, 50);
-  const dbMap = new Map(dbCollections.map((c) => [c.contractAddress, c]));
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await mutate();
+    setRefreshing(false);
+  };
 
   if (isLoading) {
     return (
@@ -92,12 +82,6 @@ export default function PortfolioCollectionsPage() {
     );
   }
 
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await mutate();
-    setRefreshing(false);
-  };
-
   if (collections.length === 0) {
     return (
       <div className="py-16 text-center space-y-4">
@@ -106,7 +90,7 @@ export default function PortfolioCollectionsPage() {
         </div>
         <p className="font-semibold text-lg">No collections yet</p>
         <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-          If you just created a collection, it may take a few seconds to sync from the blockchain.
+          If you just created a collection, it may take a few seconds to appear.
         </p>
         <div className="flex items-center justify-center gap-3">
           <Button variant="outline" size="sm" onClick={handleRefresh} disabled={refreshing}>
@@ -140,11 +124,7 @@ export default function PortfolioCollectionsPage() {
 
       <div className="space-y-2">
         {collections.map((col) => (
-          <CollectionRow
-            key={col.onChainId}
-            col={col}
-            meta={dbMap.get(col.contractAddress)}
-          />
+          <CollectionRow key={col.contractAddress} col={col} />
         ))}
       </div>
     </div>
