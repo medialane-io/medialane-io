@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTokensByOwner } from "@/hooks/use-tokens";
 import { TokenCard } from "@/components/shared/token-card";
 import { ListingDialog } from "@/components/marketplace/listing-dialog";
+import { TransferDialog } from "@/components/marketplace/transfer-dialog";
 import { EmptyOrError } from "@/components/ui/empty-or-error";
 import { ImageIcon } from "lucide-react";
 import type { ApiToken } from "@medialane/sdk";
@@ -16,10 +17,17 @@ export function AssetsGrid({ address }: AssetsGridProps) {
   const { tokens, isLoading, error, mutate } = useTokensByOwner(address);
   const [selectedToken, setSelectedToken] = useState<ApiToken | null>(null);
   const [listOpen, setListOpen] = useState(false);
+  const [transferToken, setTransferToken] = useState<ApiToken | null>(null);
+  const [transferOpen, setTransferOpen] = useState(false);
 
   const handleList = (token: ApiToken) => {
     setSelectedToken(token);
     setListOpen(true);
+  };
+
+  const handleTransfer = (token: ApiToken) => {
+    setTransferToken(token);
+    setTransferOpen(true);
   };
 
   return (
@@ -42,6 +50,7 @@ export function AssetsGrid({ address }: AssetsGridProps) {
               token={token}
               isOwner
               onList={handleList}
+              onTransfer={handleTransfer}
             />
           ))}
         </div>
@@ -57,6 +66,20 @@ export function AssetsGrid({ address }: AssetsGridProps) {
           assetContract={selectedToken.contractAddress}
           tokenId={selectedToken.tokenId}
           tokenName={selectedToken.metadata?.name ?? undefined}
+        />
+      )}
+
+      {transferToken && (
+        <TransferDialog
+          open={transferOpen}
+          onOpenChange={(v) => {
+            setTransferOpen(v);
+            if (!v) setTransferToken(null);
+          }}
+          contractAddress={transferToken.contractAddress}
+          tokenId={transferToken.tokenId}
+          tokenName={transferToken.metadata?.name ?? undefined}
+          onSuccess={mutate}
         />
       )}
     </>
