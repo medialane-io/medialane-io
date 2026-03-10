@@ -55,6 +55,7 @@ interface TransferDialogProps {
   tokenId: string;
   tokenName?: string;
   onSuccess?: () => void;
+  hasActiveListing?: boolean;
 }
 
 export function TransferDialog({
@@ -64,12 +65,14 @@ export function TransferDialog({
   tokenId,
   tokenName,
   onSuccess,
+  hasActiveListing = false,
 }: TransferDialogProps) {
   const {
     transferToken,
     walletAddress,
     hasWallet,
     isProcessing,
+    isLoadingWallet,
     txStatus,
     txHash,
     error,
@@ -192,6 +195,18 @@ export function TransferDialog({
                 </AlertDescription>
               </Alert>
 
+              {/* Active listing warning */}
+              {hasActiveListing && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription className="text-xs">
+                    This token has an active listing. A buyer could still complete
+                    the purchase after you transfer it. Cancel the listing first,
+                    or proceed with caution.
+                  </AlertDescription>
+                </Alert>
+              )}
+
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                   <FormField
@@ -222,10 +237,19 @@ export function TransferDialog({
                   <Button
                     type="submit"
                     className="w-full h-11"
-                    disabled={isProcessing}
+                    disabled={isProcessing || isLoadingWallet}
                   >
-                    <ArrowRightLeft className="h-4 w-4 mr-2" />
-                    {hasWallet ? "Transfer" : "Set up wallet & transfer"}
+                    {isLoadingWallet ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Loading wallet…
+                      </>
+                    ) : (
+                      <>
+                        <ArrowRightLeft className="h-4 w-4 mr-2" />
+                        {hasWallet ? "Transfer" : "Set up wallet & transfer"}
+                      </>
+                    )}
                   </Button>
                   <p className="text-[10px] text-center text-muted-foreground">
                     Gas is free. Your PIN authorises the transfer.
