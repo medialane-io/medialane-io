@@ -2,15 +2,14 @@
 
 import { useState } from "react";
 import { useActivitiesByAddress } from "@/hooks/use-activities";
-import { useToken } from "@/hooks/use-tokens";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { EmptyOrError } from "@/components/ui/empty-or-error";
 import { AddressDisplay } from "@/components/shared/address-display";
 import Link from "next/link";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Activity } from "lucide-react";
 import { EXPLORER_URL } from "@/lib/constants";
 import { ACTIVITY_TYPE_CONFIG } from "@/lib/activity";
-import { timeAgo , formatDisplayPrice} from "@/lib/utils";
+import { timeAgo, formatDisplayPrice } from "@/lib/utils";
 import type { ApiActivity } from "@medialane/sdk";
 
 const TYPE_FILTERS = [
@@ -34,8 +33,10 @@ function ActivityRow({ activity }: { activity: ApiActivity }) {
   const tokenId = activity.nftTokenId ?? activity.tokenId ?? null;
   const txLink = activity.txHash ? `${EXPLORER_URL}/tx/${activity.txHash}` : null;
 
-  const { token } = useToken(contract, tokenId);
-  const tokenName = token?.metadata?.name ?? (tokenId ? `#${tokenId}` : null);
+  const tokenLabel =
+    contract && tokenId
+      ? `${contract.slice(0, 10)}…#${tokenId}`
+      : null;
 
   return (
     <div className="flex items-center justify-between p-4 gap-4">
@@ -49,9 +50,9 @@ function ActivityRow({ activity }: { activity: ApiActivity }) {
             {contract && tokenId && (
               <Link
                 href={`/asset/${contract}/${tokenId}`}
-                className="text-sm font-semibold hover:underline truncate"
+                className="text-sm font-semibold hover:underline truncate font-mono"
               >
-                {tokenName}
+                {tokenLabel}
               </Link>
             )}
           </div>
@@ -78,18 +79,8 @@ function ActivityRow({ activity }: { activity: ApiActivity }) {
 }
 
 export function PortfolioActivity({ address }: { address: string }) {
-  const { activities, isLoading } = useActivitiesByAddress(address);
+  const { activities, isLoading, error, mutate } = useActivitiesByAddress(address);
   const [typeFilter, setTypeFilter] = useState("");
-
-  if (isLoading) {
-    return (
-      <div className="space-y-2">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <Skeleton key={i} className="h-14 w-full rounded-lg" />
-        ))}
-      </div>
-    );
-  }
 
   const displayed = typeFilter
     ? activities.filter((a) => a.type === typeFilter)
@@ -114,17 +105,22 @@ export function PortfolioActivity({ address }: { address: string }) {
         ))}
       </div>
 
-      {displayed.length === 0 ? (
-        <div className="py-16 text-center text-muted-foreground">
-          {typeFilter ? `No ${typeFilter} events yet.` : "No activity yet."}
-        </div>
-      ) : (
+      <EmptyOrError
+        isLoading={isLoading}
+        error={error}
+        isEmpty={displayed.length === 0}
+        onRetry={mutate}
+        emptyTitle={typeFilter ? `No ${typeFilter} events yet` : "No activity yet"}
+        emptyDescription="Your on-chain activity will appear here."
+        emptyIcon={<Activity className="h-7 w-7 text-muted-foreground" />}
+        skeletonCount={8}
+      >
         <div className="divide-y divide-border rounded-lg border">
           {displayed.map((activity, i) => (
             <ActivityRow key={`${activity.txHash}-${activity.type}-${i}`} activity={activity} />
           ))}
         </div>
-      )}
+      </EmptyOrError>
     </div>
   );
 }
