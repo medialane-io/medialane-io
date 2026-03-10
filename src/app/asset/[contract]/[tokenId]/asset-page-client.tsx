@@ -23,6 +23,8 @@ import type { ApiActivity, ApiOrder } from "@medialane/sdk";
 import { EXPLORER_URL } from "@/lib/constants";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useMarketplace } from "@/hooks/use-marketplace";
+import { useCart } from "@/hooks/use-cart";
+import { toast } from "sonner";
 
 const TYPE_LABEL: Record<string, string> = {
   transfer: "Transfer",
@@ -40,6 +42,8 @@ export default function AssetPageClient() {
   const { listings, mutate: mutateListings } = useTokenListings(contract, tokenId);
   const { history } = useTokenHistory(contract, tokenId);
   const { cancelOrder, fulfillOrder, isProcessing } = useMarketplace();
+
+  const { addItem, items: cartItems, setIsOpen: setCartOpen } = useCart();
 
   const [imgError, setImgError] = useState(false);
   const [purchaseOrder, setPurchaseOrder] = useState<ApiOrder | null>(null);
@@ -71,6 +75,31 @@ export default function AssetPageClient() {
   const myListing = isOwner
     ? activeListings.find((l) => l.offerer.toLowerCase() === walletAddress!.toLowerCase())
     : null;
+
+  const inCart = cheapest ? cartItems.some((i) => i.orderHash === cheapest.orderHash) : false;
+
+  const handleAddToCart = () => {
+    if (!cheapest || inCart) return;
+    addItem(
+      {
+        orderHash: cheapest.orderHash,
+        nftContract: contract,
+        nftTokenId: tokenId,
+        name,
+        image: ipfsToHttp(token?.metadata?.image) ?? "",
+        price: formatDisplayPrice(cheapest.price.formatted),
+        currency: cheapest.price.currency,
+        currencyDecimals: cheapest.price.decimals,
+        offerer: cheapest.offerer,
+        considerationToken: cheapest.consideration.token,
+        considerationAmount: cheapest.consideration.startAmount,
+      },
+      walletAddress ?? undefined
+    );
+    toast.success("Added to cart", {
+      action: { label: "View cart", onClick: () => setCartOpen(true) },
+    });
+  };
 
   const handleCancelClick = (order: ApiOrder) => {
     setOrderToCancel(order);
@@ -243,14 +272,25 @@ export default function AssetPageClient() {
                       <ShoppingCart className="h-5 w-5 mr-2" />
                       Buy now
                     </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => setOfferOpen(true)}
-                    >
-                      <HandCoins className="h-4 w-4 mr-2" />
-                      Make offer
-                    </Button>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        disabled={inCart}
+                        onClick={handleAddToCart}
+                      >
+                        <ShoppingCart className="h-4 w-4 mr-2" />
+                        {inCart ? "In cart" : "Add to cart"}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => setOfferOpen(true)}
+                      >
+                        <HandCoins className="h-4 w-4 mr-2" />
+                        Make offer
+                      </Button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -624,6 +664,7 @@ export default function AssetPageClient() {
         assetContract={contract}
         tokenId={tokenId}
         tokenName={name}
+        onSuccess={mutateListings}
       />
 
       <OfferDialog

@@ -49,6 +49,7 @@ interface ListingDialogProps {
   assetContract: string;
   tokenId: string;
   tokenName?: string;
+  onSuccess?: () => void;
 }
 
 export function ListingDialog({
@@ -57,6 +58,7 @@ export function ListingDialog({
   assetContract,
   tokenId,
   tokenName,
+  onSuccess,
 }: ListingDialogProps) {
   const {
     createListing,
@@ -147,7 +149,13 @@ export function ListingDialog({
                   </a>
                 </Button>
               )}
-              <Button className="w-full" onClick={() => onOpenChange(false)}>Done</Button>
+              <Button className="w-full" onClick={() => {
+                resetState();
+                form.reset();
+                setPendingValues(null);
+                onOpenChange(false);
+                onSuccess?.();
+              }}>Done</Button>
             </div>
           ) : isProcessing ? (
             <div className="flex flex-col items-center gap-4 py-8">

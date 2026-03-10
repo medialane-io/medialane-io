@@ -117,6 +117,7 @@ export default function CreateAssetPage() {
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
   const [pinOpen, setPinOpen] = useState(false);
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [mintStep, setMintStep] = useState<MintStep>("idle");
@@ -180,7 +181,7 @@ export default function CreateAssetPage() {
       formData.set("geographicScope", pendingValues.geographicScope);
       formData.set("aiPolicy", pendingValues.aiPolicy);
       formData.set("royalty", String(pendingValues.royalty));
-      if (pendingValues.image) formData.set("file", pendingValues.image);
+      if (imageFile) formData.set("file", imageFile);
 
       const uploadRes = await fetch("/api/pinata", { method: "POST", body: formData });
       const uploadData = await uploadRes.json();
@@ -228,6 +229,7 @@ export default function CreateAssetPage() {
     setMintStep("idle");
     setMintError(null);
     form.reset();
+    setImageFile(null);
     setImagePreview(null);
   };
 
@@ -334,6 +336,7 @@ export default function CreateAssetPage() {
                       e.target.value = "";
                       return;
                     }
+                    setImageFile(file);
                     form.setValue("image", file);
                     setImagePreview(URL.createObjectURL(file));
                   }}
