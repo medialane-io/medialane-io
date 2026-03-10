@@ -105,7 +105,10 @@ function SearchResults() {
       if (!cancelled) setIsLoading(false);
     });
     return () => { cancelled = true; };
-  }, [q]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Intentionally depend only on `q` — `client` is a stable singleton that
+  // never changes, so omitting it from the dep array is safe.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q]);
 
   const tokens = results?.tokens ?? [];
   const collections = results?.collections ?? [];

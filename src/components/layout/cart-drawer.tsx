@@ -94,7 +94,10 @@ export function CartDrawer() {
     });
 
     return () => { cancelled = true; };
-  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Intentionally depend only on `isOpen` — re-validating on `items` or `client`
+  // change would re-check availability on every cart mutation rather than once on open.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   const handleBuy = (item: CartItem) => {
     setPurchaseOrder(cartItemToOrder(item));
