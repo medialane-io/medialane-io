@@ -43,6 +43,31 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "image field is required" }, { status: 400 });
     }
 
+    const ALLOWED_TYPES = [
+      "image/jpeg",
+      "image/png",
+      "image/gif",
+      "image/webp",
+      "image/svg+xml",
+    ];
+
+    if (!ALLOWED_TYPES.includes(imageFile.type)) {
+      return NextResponse.json(
+        {
+          error: `Unsupported file type: ${imageFile.type}. Allowed: ${ALLOWED_TYPES.join(", ")}`,
+        },
+        { status: 400 }
+      );
+    }
+
+    const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
+    if (imageFile.size > MAX_SIZE) {
+      return NextResponse.json(
+        { error: "File too large. Maximum size is 10 MB." },
+        { status: 400 }
+      );
+    }
+
     // 1. Upload image
     const imageUpload = await pinata.upload.public.file(imageFile);
     const imageUri = `ipfs://${imageUpload.cid}`;
