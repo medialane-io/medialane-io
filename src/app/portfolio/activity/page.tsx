@@ -5,5 +5,5 @@ import { PortfolioActivity } from "@/components/portfolio/portfolio-activity";
 
 export default function PortfolioActivityPage() {
   const { walletAddress } = useSessionKey();
-  return <PortfolioActivity address={walletAddress} />;
+  return <PortfolioActivity address={walletAddress ?? null} />;
 }

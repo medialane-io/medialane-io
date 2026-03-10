@@ -86,8 +86,10 @@ export function timeAgo(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString();
 }
 
-export function timeUntil(dateStr: string): string {
-  const diff = new Date(dateStr).getTime() - Date.now();
+export function timeUntil(dateStr: string | number): string {
+  // Accept Unix seconds (number) or a date string. Convert seconds → ms.
+  const ms = typeof dateStr === "number" ? dateStr * 1000 : new Date(dateStr).getTime();
+  const diff = ms - Date.now();
   if (diff <= 0) return "Expired";
   const days = Math.floor(diff / 86400000);
   const hours = Math.floor((diff % 86400000) / 3600000);

@@ -29,7 +29,7 @@ export function useActivitiesByAddress(address: string | null) {
   const { data, error, isLoading, mutate } = useSWR(
     address ? `activities-${address}` : null,
     () => client.api.getActivitiesByAddress(address!),
-    { revalidateOnFocus: false }
+    { revalidateOnFocus: false, refreshInterval: 30000 }
   );
 
   return { activities: data?.data ?? [], isLoading, error, mutate };

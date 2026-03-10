@@ -247,15 +247,17 @@ export default function AssetPageClient() {
 
                 {isOwner ? (
                   <div className="space-y-2">
+                    {myListing && (
                     <Button
                       variant="destructive"
                       className="w-full"
                       disabled={isProcessing}
-                      onClick={() => handleCancelClick(myListing ?? cheapest)}
+                      onClick={() => handleCancelClick(myListing)}
                     >
                       <X className="h-4 w-4 mr-2" />
                       Cancel listing
                     </Button>
+                    )}
                     <Button
                       variant="outline"
                       className="w-full"

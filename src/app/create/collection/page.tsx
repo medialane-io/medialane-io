@@ -113,6 +113,11 @@ export default function CreateCollectionPage() {
   };
 
   const onSubmit = (values: FormValues) => {
+    // If the user selected an image but the upload failed, block submission
+    if (imageFile && !imageUri && !imageUploading) {
+      toast.error("Image upload failed", { description: "Please re-upload your collection image before continuing." });
+      return;
+    }
     setPendingValues(values);
     if (!hasWallet) {
       setWalletSetupOpen(true);
@@ -146,12 +151,16 @@ export default function CreateCollectionPage() {
         ? { publicKey: wallet.publicKey, encryptedPrivateKey: wallet.encryptedPrivateKey }
         : undefined;
 
-      await executeTransaction({
+      const result = await executeTransaction({
         pin,
         contractAddress: calls[0].contractAddress,
         calls,
         wallet: walletOverride,
       });
+
+      if (result.status === "reverted") {
+        throw new Error(result.revertReason || "Collection transaction reverted on chain");
+      }
 
       setCollectionStep("success");
       invalidatePortfolioCache(walletAddress);

@@ -7,6 +7,6 @@ import { mutate } from "swr";
  * next auto-refresh cycle.
  */
 export function invalidatePortfolioCache(address: string) {
-  mutate(`tokens-owned-${address}-1`);
+  mutate((key) => typeof key === "string" && key.startsWith(`tokens-owned-${address}-`), undefined, { revalidate: true });
   mutate(`user-collections-${address}`);
 }

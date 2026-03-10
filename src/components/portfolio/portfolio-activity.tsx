@@ -78,7 +78,7 @@ function ActivityRow({ activity }: { activity: ApiActivity }) {
   );
 }
 
-export function PortfolioActivity({ address }: { address: string }) {
+export function PortfolioActivity({ address }: { address: string | null }) {
   const { activities, isLoading, error, mutate } = useActivitiesByAddress(address);
   const [typeFilter, setTypeFilter] = useState("");
 

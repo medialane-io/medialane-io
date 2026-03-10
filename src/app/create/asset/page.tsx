@@ -217,12 +217,16 @@ export default function CreateAssetPage() {
         ? { publicKey: wallet.publicKey, encryptedPrivateKey: wallet.encryptedPrivateKey }
         : undefined;
 
-      await executeTransaction({
+      const result = await executeTransaction({
         pin,
         contractAddress: intentRes.data.calls[0].contractAddress,
         calls: intentRes.data.calls as ChipiCall[],
         wallet: walletOverride,
       });
+
+      if (result.status === "reverted") {
+        throw new Error(result.revertReason || "Mint transaction reverted on chain");
+      }
 
       setMintStep("success");
       invalidatePortfolioCache(walletAddress);

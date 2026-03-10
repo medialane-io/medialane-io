@@ -166,7 +166,8 @@ export function useMarketplace() {
       if (!walletAddress) throw new Error("Wallet not ready. Please wait a moment.");
 
       const intentRes = await intentFn();
-      const { id, typedData } = intentRes.data;
+      const { id, typedData } = intentRes.data ?? {};
+      if (!id || !typedData) throw new Error("Intent creation failed: no data returned");
 
       // Sanitize typed data: replace any bare currency symbols (e.g. "USDC")
       // with their contract addresses so starknet.js can convert them to BigInt.
@@ -177,6 +178,9 @@ export function useMarketplace() {
       if (!calls?.length) throw new Error("No calls returned from intent");
 
       const result = await execWithPin(pin, calls);
+      if (result.status === "reverted") {
+        throw new Error(result.revertReason || "Transaction reverted on chain");
+      }
       toast.success(successMsg);
       invalidate();
       // Re-invalidate after indexer processes the block (~10s) to reflect chain state

@@ -30,9 +30,13 @@ export function useUnreadOffers(address: string | null | undefined) {
 
   useEffect(() => {
     if (!address || orders.length === 0) { setUnreadCount(0); return; }
-    // Received offers: ACTIVE bids where consideration (NFT) owner is this address
+    // Received offers: ACTIVE bids where consideration (NFT) owner is this address.
+    // Exclude offers sent by this user themselves.
     const receivedOffers = orders.filter(
-      (o) => o.status === "ACTIVE" && o.offer.itemType === "ERC20"
+      (o) =>
+        o.status === "ACTIVE" &&
+        o.offer.itemType === "ERC20" &&
+        o.offerer.toLowerCase() !== address.toLowerCase()
     );
     const seen = getSeenOffers();
     const unseen = receivedOffers.filter((o) => !seen.has(o.orderHash));

@@ -132,7 +132,7 @@ export function ListingsGrid({ sort = "recent", currency, orderType = "", minPri
                   Loading…
                 </>
               ) : (
-                `Load more ${meta ? `(${meta.total - allOrders.length} remaining)` : ""}`
+                `Load more${!orderType && meta ? ` (${meta.total - allOrders.length} remaining)` : ""}`
               )}
             </Button>
           </div>

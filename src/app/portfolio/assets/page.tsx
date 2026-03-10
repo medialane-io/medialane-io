@@ -5,5 +5,5 @@ import { AssetsGrid } from "@/components/portfolio/assets-grid";
 
 export default function PortfolioAssetsPage() {
   const { walletAddress } = useSessionKey();
-  return <AssetsGrid address={walletAddress} />;
+  return <AssetsGrid address={walletAddress ?? null} />;
 }

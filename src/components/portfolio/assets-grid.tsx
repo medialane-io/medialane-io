@@ -11,7 +11,7 @@ import { ImageIcon, Loader2 } from "lucide-react";
 import type { ApiToken } from "@medialane/sdk";
 
 interface AssetsGridProps {
-  address: string;
+  address: string | null;
 }
 
 export function AssetsGrid({ address }: AssetsGridProps) {
