@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -58,6 +58,13 @@ export default function CreateCollectionPage() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const previewUrlRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+    };
+  }, []);
 
   const hasWallet = !!walletAddress;
 
@@ -75,7 +82,10 @@ export default function CreateCollectionPage() {
       return;
     }
     setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
+    if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+    const objectUrl = URL.createObjectURL(file);
+    previewUrlRef.current = objectUrl;
+    setImagePreview(objectUrl);
     setImageUri(null);
     setImageUploading(true);
     try {

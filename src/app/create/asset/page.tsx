@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -122,6 +122,13 @@ export default function CreateAssetPage() {
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [mintStep, setMintStep] = useState<MintStep>("idle");
   const [mintError, setMintError] = useState<string | null>(null);
+  const previewUrlRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+    };
+  }, []);
 
   const hasWallet = !!walletAddress;
 
@@ -338,7 +345,10 @@ export default function CreateAssetPage() {
                     }
                     setImageFile(file);
                     form.setValue("image", file);
-                    setImagePreview(URL.createObjectURL(file));
+                    if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+                    const objectUrl = URL.createObjectURL(file);
+                    previewUrlRef.current = objectUrl;
+                    setImagePreview(objectUrl);
                   }}
                 />
               </div>
