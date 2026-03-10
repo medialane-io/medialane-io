@@ -719,6 +719,8 @@ export default function AssetPageClient() {
         contractAddress={contract}
         tokenId={tokenId}
         tokenName={name}
+        hasActiveListing={activeListings.length > 0}
+        onSuccess={mutateListings}
       />
     </div>
   );
