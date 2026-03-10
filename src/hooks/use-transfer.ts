@@ -45,8 +45,6 @@ export function useTransfer() {
       undefined,
       { revalidate: true }
     );
-    // Re-invalidate after indexer processes the block (~10 s)
-    setTimeout(() => invalidate(), 10000);
   }, [mutate]);
 
   const resetState = useCallback(() => {
@@ -93,6 +91,8 @@ export function useTransfer() {
           description: `Token #${input.tokenId} sent successfully.`,
         });
         invalidate();
+        // Re-invalidate after indexer processes the block (~10 s)
+        setTimeout(() => invalidate(), 10000);
         return result.txHash;
       } catch (err: any) {
         const msg = err?.message || "Transfer failed";
