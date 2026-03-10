@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTokensByOwner } from "@/hooks/use-tokens";
 import { TokenCard } from "@/components/shared/token-card";
 import { ListingDialog } from "@/components/marketplace/listing-dialog";
 import { TransferDialog } from "@/components/marketplace/transfer-dialog";
 import { EmptyOrError } from "@/components/ui/empty-or-error";
-import { ImageIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ImageIcon, Loader2 } from "lucide-react";
 import type { ApiToken } from "@medialane/sdk";
 
 interface AssetsGridProps {
@@ -14,7 +15,22 @@ interface AssetsGridProps {
 }
 
 export function AssetsGrid({ address }: AssetsGridProps) {
-  const { tokens, isLoading, error, mutate } = useTokensByOwner(address);
+  const [page, setPage] = useState(1);
+  const [allTokens, setAllTokens] = useState<ApiToken[]>([]);
+
+  const { tokens, meta, isLoading, error, mutate } = useTokensByOwner(address, page);
+
+  // Accumulate pages
+  useEffect(() => {
+    setAllTokens((prev) => (page === 1 ? tokens : [...prev, ...tokens]));
+  }, [tokens, page]);
+
+  // Reset when address changes
+  useEffect(() => {
+    setPage(1);
+    setAllTokens([]);
+  }, [address]);
+
   const [selectedToken, setSelectedToken] = useState<ApiToken | null>(null);
   const [listOpen, setListOpen] = useState(false);
   const [transferToken, setTransferToken] = useState<ApiToken | null>(null);
@@ -30,12 +46,21 @@ export function AssetsGrid({ address }: AssetsGridProps) {
     setTransferOpen(true);
   };
 
+  // After a write op, reset to page 1 and let SWR refetch
+  const handleSuccess = () => {
+    setPage(1);
+    setAllTokens([]);
+    mutate();
+  };
+
+  const hasMore = meta ? meta.total > allTokens.length : false;
+
   return (
     <>
       <EmptyOrError
-        isLoading={isLoading}
+        isLoading={isLoading && page === 1}
         error={error}
-        isEmpty={tokens.length === 0}
+        isEmpty={allTokens.length === 0 && !isLoading}
         onRetry={mutate}
         emptyTitle="No assets yet"
         emptyDescription="Mint your first asset to get started."
@@ -44,7 +69,7 @@ export function AssetsGrid({ address }: AssetsGridProps) {
         skeletonCount={8}
       >
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {tokens.map((token) => (
+          {allTokens.map((token) => (
             <TokenCard
               key={`${token.contractAddress}-${token.tokenId}`}
               token={token}
@@ -54,6 +79,19 @@ export function AssetsGrid({ address }: AssetsGridProps) {
             />
           ))}
         </div>
+
+        {hasMore && (
+          <div className="flex justify-center mt-6">
+            <Button
+              variant="outline"
+              onClick={() => setPage((p) => p + 1)}
+              disabled={isLoading}
+            >
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Load more
+            </Button>
+          </div>
+        )}
       </EmptyOrError>
 
       {selectedToken && (
@@ -66,6 +104,7 @@ export function AssetsGrid({ address }: AssetsGridProps) {
           assetContract={selectedToken.contractAddress}
           tokenId={selectedToken.tokenId}
           tokenName={selectedToken.metadata?.name ?? undefined}
+          onSuccess={handleSuccess}
         />
       )}
 
@@ -79,7 +118,8 @@ export function AssetsGrid({ address }: AssetsGridProps) {
           contractAddress={transferToken.contractAddress}
           tokenId={transferToken.tokenId}
           tokenName={transferToken.metadata?.name ?? undefined}
-          onSuccess={mutate}
+          hasActiveListing={!!transferToken.activeOrders?.[0]}
+          onSuccess={handleSuccess}
         />
       )}
     </>
