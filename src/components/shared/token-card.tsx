@@ -88,7 +88,7 @@ export function TokenCard({
 
           {activeOrder && (
             <div className="flex items-center justify-between gap-2">
-              <div>
+              <div className="min-w-0">
                 <p className="section-label">Price</p>
                 <p className="price-value text-sm">
                   {formatDisplayPrice(activeOrder.price.formatted)}{" "}
@@ -155,7 +155,7 @@ export function TokenCard({
             </div>
           )}
 
-          {!activeOrder && isOwner && (
+          {!activeOrder && isOwner && (onList || onTransfer) && (
             <div className="flex gap-1.5">
               {onList && (
                 <Button
