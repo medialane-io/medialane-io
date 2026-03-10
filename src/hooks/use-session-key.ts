@@ -124,11 +124,8 @@ export function useSessionKey() {
         // Session key: short-lived, registered on-chain under the owner contract
         encryptedPk = storedSession.encryptedPrivateKey;
       } else {
-        // Owner key: from ChipiPay API (most reliable) or Clerk metadata fallback
-        encryptedPk =
-          wallet?.encryptedPrivateKey ??
-          (user?.unsafeMetadata?.encryptedPrivateKey as string | undefined) ??
-          (user?.publicMetadata?.encryptedPrivateKey as string | undefined);
+        // Owner key: from ChipiPay API (authoritative source)
+        encryptedPk = wallet?.encryptedPrivateKey;
       }
 
       if (!encryptedPk) {
@@ -151,7 +148,7 @@ export function useSessionKey() {
       // Normalize Signature (string[] | { r, s }) → string[]
       return stark.formatSignature(sig);
     },
-    [walletAddress, hasActiveSession, storedSession, wallet, user]
+    [walletAddress, hasActiveSession, storedSession, wallet]
   );
 
   // ─── clearSession ─────────────────────────────────────────────────────────
