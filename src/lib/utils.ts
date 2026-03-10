@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { SUPPORTED_TOKENS } from "./constants";
+import { SUPPORTED_TOKENS, PINATA_GATEWAY } from "./constants";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -68,7 +68,7 @@ export function ipfsToHttp(uri: string | null | undefined): string {
   if (!uri) return "/placeholder.svg";
   if (uri.startsWith("ipfs://")) {
     const cid = uri.slice(7);
-    return `https://gateway.pinata.cloud/ipfs/${cid}`;
+    return `${PINATA_GATEWAY}/ipfs/${cid}`;
   }
   return uri;
 }
