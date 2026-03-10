@@ -45,7 +45,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         value={{
           onError: (err: unknown) => {
             const msg = err instanceof Error ? err.message : "Something went wrong";
-            toast.error(msg, { id: "swr-error" });
+            toast.error(msg);
           },
         }}
       >
