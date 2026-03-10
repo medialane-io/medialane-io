@@ -3,8 +3,7 @@
 import { useState, useCallback, useRef } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useChipiWallet, useCallAnyContract } from "@chipi-stack/nextjs";
-import { RpcProvider } from "starknet";
-import { STARKNET_RPC_URL } from "@/lib/constants";
+import { starknetProvider } from "@/lib/starknet";
 
 // ─── Types ────────────────────────────────────────────────────────────────
 
@@ -34,10 +33,6 @@ export type ChipiTransactionStatus =
   | "confirmed"
   | "reverted"
   | "error";
-
-// ─── Provider ─────────────────────────────────────────────────────────────
-
-const provider = new RpcProvider({ nodeUrl: STARKNET_RPC_URL });
 
 // ─── Hook ─────────────────────────────────────────────────────────────────
 
@@ -115,7 +110,7 @@ export function useChipiTransaction() {
         setStatus("confirming");
 
         try {
-          const receipt = await provider.waitForTransaction(result, { retryInterval: 3000 });
+          const receipt = await starknetProvider.waitForTransaction(result, { retryInterval: 3000 });
           const executionStatus = (receipt as any)?.execution_status || (receipt as any)?.status;
           const isReverted =
             executionStatus === "REVERTED" ||
