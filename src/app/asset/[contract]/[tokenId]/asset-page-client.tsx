@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PurchaseDialog } from "@/components/marketplace/purchase-dialog";
 import { ListingDialog } from "@/components/marketplace/listing-dialog";
 import { OfferDialog } from "@/components/marketplace/offer-dialog";
+import { TransferDialog } from "@/components/marketplace/transfer-dialog";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { ipfsToHttp, timeUntil, timeAgo, formatDisplayPrice } from "@/lib/utils";
@@ -53,6 +54,7 @@ export default function AssetPageClient() {
   const [cancelPinOpen, setCancelPinOpen] = useState(false);
   const [orderToAccept, setOrderToAccept] = useState<ApiOrder | null>(null);
   const [acceptPinOpen, setAcceptPinOpen] = useState(false);
+  const [transferOpen, setTransferOpen] = useState(false);
 
   // Listings = ERC721 in offer (someone selling the NFT)
   const activeListings = listings.filter(
@@ -262,6 +264,14 @@ export default function AssetPageClient() {
                       <Tag className="h-4 w-4 mr-2" />
                       Create new listing
                     </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => setTransferOpen(true)}
+                    >
+                      <ArrowRightLeft className="h-4 w-4 mr-2" />
+                      Transfer
+                    </Button>
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -298,10 +308,20 @@ export default function AssetPageClient() {
               <div className="rounded-xl border border-border p-5 space-y-3">
                 <p className="text-muted-foreground text-sm">Not listed for sale.</p>
                 {isOwner ? (
-                  <Button className="w-full" onClick={() => setListOpen(true)}>
-                    <Tag className="h-4 w-4 mr-2" />
-                    List for sale
-                  </Button>
+                  <div className="space-y-2">
+                    <Button className="w-full" onClick={() => setListOpen(true)}>
+                      <Tag className="h-4 w-4 mr-2" />
+                      List for sale
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => setTransferOpen(true)}
+                    >
+                      <ArrowRightLeft className="h-4 w-4 mr-2" />
+                      Transfer
+                    </Button>
+                  </div>
                 ) : (
                   <Button variant="outline" className="w-full" onClick={() => setOfferOpen(true)}>
                     <HandCoins className="h-4 w-4 mr-2" />
@@ -691,6 +711,14 @@ export default function AssetPageClient() {
         description={orderToAccept
           ? `Accept ${formatDisplayPrice(orderToAccept.price.formatted)} ${orderToAccept.price.currency} for ${name}?`
           : "Enter your PIN to accept this offer."}
+      />
+
+      <TransferDialog
+        open={transferOpen}
+        onOpenChange={setTransferOpen}
+        contractAddress={contract}
+        tokenId={tokenId}
+        tokenName={name}
       />
     </div>
   );
