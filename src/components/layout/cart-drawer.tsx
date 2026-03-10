@@ -94,8 +94,9 @@ export function CartDrawer() {
     });
 
     return () => { cancelled = true; };
-  // Intentionally depend only on `isOpen` — re-validating on `items` or `client`
-  // change would re-check availability on every cart mutation rather than once on open.
+  // Intentionally depend only on `isOpen` — including `items` would re-check
+  // availability on every cart mutation rather than once on open. `client` is a
+  // stable singleton and safe to omit.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
