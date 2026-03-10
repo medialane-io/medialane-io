@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MotionCard } from "@/components/ui/motion-primitives";
-import { ShoppingCart, Tag } from "lucide-react";
+import { ShoppingCart, Tag, ArrowRightLeft } from "lucide-react";
 import { ipfsToHttp , formatDisplayPrice} from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
 import type { ApiToken } from "@medialane/sdk";
@@ -17,6 +17,7 @@ interface TokenCardProps {
   showBuyButton?: boolean;
   onBuy?: (token: ApiToken) => void;
   onList?: (token: ApiToken) => void;
+  onTransfer?: (token: ApiToken) => void;
   isOwner?: boolean;
 }
 
@@ -25,6 +26,7 @@ export function TokenCard({
   showBuyButton = true,
   onBuy,
   onList,
+  onTransfer,
   isOwner = false,
 }: TokenCardProps) {
   const { addItem, items } = useCart();
@@ -134,23 +136,57 @@ export function TokenCard({
                     Edit
                   </Button>
                 )}
+                {isOwner && onTransfer && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 w-8 p-0"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onTransfer(token);
+                    }}
+                    aria-label="Transfer asset"
+                    title="Transfer to another wallet"
+                  >
+                    <ArrowRightLeft className="h-3.5 w-3.5" />
+                  </Button>
+                )}
               </div>
             </div>
           )}
 
-          {!activeOrder && isOwner && onList && (
-            <Button
-              size="sm"
-              variant="outline"
-              className="w-full h-9 text-xs"
-              onClick={(e) => {
-                e.preventDefault();
-                onList(token);
-              }}
-            >
-              <Tag className="h-3 w-3 mr-1.5" />
-              List for sale
-            </Button>
+          {!activeOrder && isOwner && (
+            <div className="flex gap-1.5">
+              {onList && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex-1 h-9 text-xs"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onList(token);
+                  }}
+                >
+                  <Tag className="h-3 w-3 mr-1.5" />
+                  List for sale
+                </Button>
+              )}
+              {onTransfer && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-9 w-9 p-0 shrink-0"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onTransfer(token);
+                  }}
+                  aria-label="Transfer asset"
+                  title="Transfer to another wallet"
+                >
+                  <ArrowRightLeft className="h-3.5 w-3.5" />
+                </Button>
+              )}
+            </div>
           )}
         </div>
       </Link>
