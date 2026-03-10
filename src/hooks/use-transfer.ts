@@ -56,12 +56,11 @@ export function useTransfer() {
 
   const transferToken = useCallback(
     async (input: TransferInput) => {
-      if (!walletAddress) throw new Error("Wallet not ready. Please wait a moment.");
-
       setIsProcessing(true);
       setError(null);
 
       try {
+        if (!walletAddress) throw new Error("Wallet not ready. Please wait a moment.");
         const [tokenIdLow, tokenIdHigh] = encodeTokenId(input.tokenId);
 
         // useChipiTransaction resolves its own wallet internally via useChipiWallet.

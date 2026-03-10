@@ -86,13 +86,17 @@ export function TransferDialog({
   });
 
   const onSubmit = (values: FormValues) => {
-    // Self-transfer guard (done here since walletAddress is runtime state)
-    if (
-      walletAddress &&
-      values.toAddress.toLowerCase() === walletAddress.toLowerCase()
-    ) {
-      form.setError("toAddress", { message: "Cannot transfer to yourself" });
-      return;
+    // Self-transfer guard — compare as BigInt to handle zero-padded vs
+    // non-padded Starknet address representations (0x01 === 0x0001).
+    if (walletAddress) {
+      try {
+        if (BigInt(values.toAddress) === BigInt(walletAddress)) {
+          form.setError("toAddress", { message: "Cannot transfer to yourself" });
+          return;
+        }
+      } catch {
+        // BigInt parse failed — Zod regex already blocked invalid input, safe to continue.
+      }
     }
     setPendingAddress(values.toAddress);
     if (!hasWallet) {
