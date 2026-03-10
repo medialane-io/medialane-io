@@ -18,7 +18,7 @@ export interface TransferInput {
  * Encode a token ID (decimal or hex string) into two felt252 values
  * for Starknet u256 calldata: [low_128_bits, high_128_bits].
  */
-function encodeTokenId(tokenId: string): [string, string] {
+export function encodeTokenId(tokenId: string): [string, string] {
   const id = BigInt(tokenId);
   const low = (id & BigInt("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")).toString();
   const high = (id >> BigInt(128)).toString();
