@@ -31,6 +31,7 @@ import {
   GENESIS_NFT_URI,
 } from "@/lib/constants";
 import { LaunchCountdown } from "./launch-countdown";
+import { completeOnboarding } from "@/app/onboarding/_actions";
 
 // ─── Genesis NFT card ────────────────────────────────────────────────────────
 
@@ -154,14 +155,8 @@ export function LaunchMint() {
         throw new Error("Wallet creation returned invalid data. Please try again.");
       }
 
-      await user!.update({
-        unsafeMetadata: {
-          ...user!.unsafeMetadata,
-          publicKey: wallet.publicKey,
-          encryptedPrivateKey: wallet.encryptedPrivateKey,
-          walletCreated: true,
-        },
-      });
+      const result = await completeOnboarding({ publicKey: wallet.publicKey });
+      if (result.error) throw new Error(result.error);
 
       await user!.reload();
       // hasWallet will now be true → component re-renders to show mint button
