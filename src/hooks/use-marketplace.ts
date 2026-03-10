@@ -143,7 +143,9 @@ export function useMarketplace() {
         : undefined;
       const result = await executeTransaction({
         pin,
-        contractAddress: calls[0]?.contractAddress ?? MARKETPLACE_CONTRACT,
+        // Always use the marketplace contract so ChipiPay can locate the correct session key.
+        // calls[0] is the NFT/ERC-20 approve — using it as contractAddress would mismatch the session.
+        contractAddress: MARKETPLACE_CONTRACT,
         calls,
         wallet: walletOverride,
       });
