@@ -117,16 +117,12 @@ export function useSessionKey() {
         throw new Error("Wallet not found. Please set up your wallet first.");
       }
 
-      // Prefer session key if active; fall back to owner key
-      let encryptedPk: string | undefined;
-
-      if (hasActiveSession && storedSession?.encryptedPrivateKey) {
-        // Session key: short-lived, registered on-chain under the owner contract
-        encryptedPk = storedSession.encryptedPrivateKey;
-      } else {
-        // Owner key: from ChipiPay API (authoritative source)
-        encryptedPk = wallet?.encryptedPrivateKey;
-      }
+      // SNIP-12 order signatures must ALWAYS use the owner key.
+      // Session keys are for transaction execution only (ChipiPay gasless multicall).
+      // The Cairo contract verifies order signatures against the account owner key —
+      // signing with a session key produces a signature the contract cannot verify,
+      // causing register_order to return without emitting OrderCreated.
+      const encryptedPk = wallet?.encryptedPrivateKey;
 
       if (!encryptedPk) {
         throw new Error(
