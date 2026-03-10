@@ -46,16 +46,7 @@ export function useTransfer() {
       { revalidate: true }
     );
     // Re-invalidate after indexer processes the block (~10 s)
-    setTimeout(() => {
-      mutate(
-        (key) => {
-          if (typeof key !== "string") return false;
-          return key.startsWith("tokens-owned-") || key.startsWith("token-");
-        },
-        undefined,
-        { revalidate: true }
-      );
-    }, 10000);
+    setTimeout(() => invalidate(), 10000);
   }, [mutate]);
 
   const resetState = useCallback(() => {
