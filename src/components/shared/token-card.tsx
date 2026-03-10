@@ -38,6 +38,7 @@ export function TokenCard({
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     if (!activeOrder || inCart) return;
     addItem({
       orderHash: activeOrder.orderHash,
@@ -104,6 +105,7 @@ export function TokenCard({
                     className="h-8 px-3 text-xs bg-brand-purple text-white"
                     onClick={(e) => {
                       e.preventDefault();
+                      e.stopPropagation();
                       onBuy(token);
                     }}
                   >
@@ -129,6 +131,7 @@ export function TokenCard({
                     className="h-8 text-xs"
                     onClick={(e) => {
                       e.preventDefault();
+                      e.stopPropagation();
                       onList(token);
                     }}
                   >
@@ -143,6 +146,7 @@ export function TokenCard({
                     className="h-8 w-8 p-0"
                     onClick={(e) => {
                       e.preventDefault();
+                      e.stopPropagation();
                       onTransfer(token);
                     }}
                     aria-label="Transfer asset"
@@ -164,6 +168,7 @@ export function TokenCard({
                   className="flex-1 h-9 text-xs"
                   onClick={(e) => {
                     e.preventDefault();
+                    e.stopPropagation();
                     onList(token);
                   }}
                 >
@@ -178,6 +183,7 @@ export function TokenCard({
                   className="h-9 w-9 p-0 shrink-0"
                   onClick={(e) => {
                     e.preventDefault();
+                    e.stopPropagation();
                     onTransfer(token);
                   }}
                   aria-label="Transfer asset"
