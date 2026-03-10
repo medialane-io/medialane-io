@@ -4,7 +4,6 @@ import { auth, clerkClient } from "@clerk/nextjs/server";
 
 interface WalletData {
   publicKey: string;
-  encryptedPrivateKey: string;
 }
 
 export async function completeOnboarding(walletData: WalletData) {
@@ -17,7 +16,6 @@ export async function completeOnboarding(walletData: WalletData) {
       publicMetadata: {
         walletCreated: true,
         publicKey: walletData.publicKey,
-        encryptedPrivateKey: walletData.encryptedPrivateKey,
       },
     });
 
