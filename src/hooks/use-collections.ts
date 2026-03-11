@@ -2,14 +2,37 @@
 
 import useSWR from "swr";
 import { useMedialaneClient } from "./use-medialane-client";
+import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
+import type { ApiCollection, ApiResponse } from "@medialane/sdk";
 
+export type CollectionSort = "recent" | "supply" | "floor" | "volume" | "name";
 
-export function useCollections(page = 1, limit = 20, isKnown?: boolean) {
-  const client = useMedialaneClient();
+export function useCollections(
+  page = 1,
+  limit = 20,
+  isKnown?: boolean,
+  sort: CollectionSort = "recent"
+) {
+  // Build the URL directly so we can pass the `sort` param without
+  // requiring a new SDK version to be published.
+  const key = `collections-${page}-${limit}-${isKnown}-${sort}`;
 
-  const { data, error, isLoading, mutate } = useSWR(
-    `collections-${page}-${limit}-${isKnown}`,
-    () => client.api.getCollections(page, limit, isKnown),
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<ApiCollection[]>>(
+    key,
+    async () => {
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(limit),
+        sort,
+      });
+      if (isKnown !== undefined) params.set("isKnown", String(isKnown));
+      const url = `${MEDIALANE_BACKEND_URL.replace(/\/$/, "")}/v1/collections?${params}`;
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (MEDIALANE_API_KEY) headers["x-api-key"] = MEDIALANE_API_KEY;
+      const res = await fetch(url, { headers });
+      if (!res.ok) throw new Error(`Collections fetch failed: ${res.status}`);
+      return res.json();
+    },
     { revalidateOnFocus: false }
   );
 

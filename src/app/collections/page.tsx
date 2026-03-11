@@ -1,34 +1,63 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useCollections } from "@/hooks/use-collections";
+import { useState, useEffect, useRef } from "react";
+import { useCollections, type CollectionSort } from "@/hooks/use-collections";
 import { CollectionCard, CollectionCardSkeleton } from "@/components/shared/collection-card";
 import { Button } from "@/components/ui/button";
-import { Layers, Loader2 } from "lucide-react";
+import { Layers, Loader2, BadgeCheck } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { ApiCollection } from "@medialane/sdk";
 
 const PAGE_SIZE = 18;
 
-export default function CollectionsPage() {
-  const [page, setPage] = useState(1);
-  const [allCollections, setAllCollections] = useState<ApiCollection[]>([]);
-  const { collections, meta, isLoading } = useCollections(page, PAGE_SIZE);
+const SORT_OPTIONS: { label: string; value: CollectionSort }[] = [
+  { label: "Recent",     value: "recent"  },
+  { label: "Most assets", value: "supply"  },
+  { label: "Top volume",  value: "volume"  },
+  { label: "Floor ↑",    value: "floor"   },
+  { label: "A → Z",      value: "name"    },
+];
 
+export default function CollectionsPage() {
+  const [sort, setSort]       = useState<CollectionSort>("recent");
+  const [verified, setVerified] = useState(false);
+  const [page, setPage]       = useState(1);
+  const [allCollections, setAllCollections] = useState<ApiCollection[]>([]);
+
+  const { collections, meta, isLoading } = useCollections(
+    page,
+    PAGE_SIZE,
+    verified ? true : undefined,
+    sort
+  );
+
+  // Reset accumulated list whenever filters change
+  const prevFilters = useRef({ sort, verified });
   useEffect(() => {
-    if (collections.length > 0) {
-      setAllCollections((prev) => {
-        const ids = new Set(prev.map((c) => c.contractAddress));
-        const next = collections.filter((c) => !ids.has(c.contractAddress));
-        return page === 1 ? collections : [...prev, ...next];
-      });
+    const f = prevFilters.current;
+    if (f.sort !== sort || f.verified !== verified) {
+      prevFilters.current = { sort, verified };
+      setPage(1);
+      setAllCollections([]);
     }
-  }, [collections, page]);
+  }, [sort, verified]);
+
+  // Append new page to accumulated list
+  useEffect(() => {
+    if (isLoading || collections.length === 0) return;
+    setAllCollections((prev) => {
+      const ids = new Set(prev.map((c) => c.contractAddress));
+      const next = collections.filter((c) => !ids.has(c.contractAddress));
+      return page === 1 ? collections : [...prev, ...next];
+    });
+  }, [collections, isLoading, page]);
 
   const hasMore = meta?.total != null ? allCollections.length < meta.total : false;
   const isInitialLoading = isLoading && allCollections.length === 0;
 
   return (
     <div className="container mx-auto px-4 pt-14 pb-8 space-y-8">
+
       {/* Header */}
       <div className="space-y-2">
         <div className="flex items-center gap-2 text-primary">
@@ -39,11 +68,51 @@ export default function CollectionsPage() {
         <p className="text-muted-foreground">
           Browse NFT collections deployed on Medialane and Starknet.
           {meta?.total != null && (
-            <span className="ml-2 text-foreground font-medium">{meta.total.toLocaleString()} total</span>
+            <span className="ml-2 text-foreground font-medium">
+              {meta.total.toLocaleString()} total
+            </span>
           )}
         </p>
       </div>
 
+      {/* Filter toolbar */}
+      <div className="flex items-center gap-2 flex-wrap pb-2 border-b border-border/60">
+        {/* Sort chips */}
+        <div className="flex items-center gap-1 flex-wrap">
+          {SORT_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setSort(opt.value)}
+              className={cn(
+                "text-xs px-3 py-1.5 rounded-md transition-colors whitespace-nowrap",
+                sort === opt.value
+                  ? "bg-primary/10 text-primary font-medium"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              )}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="w-px h-5 bg-border hidden sm:block" />
+
+        {/* Verified toggle */}
+        <button
+          onClick={() => setVerified((v) => !v)}
+          className={cn(
+            "flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-colors whitespace-nowrap",
+            verified
+              ? "border-primary bg-primary/10 text-primary font-medium"
+              : "border-border text-muted-foreground hover:border-primary/50"
+          )}
+        >
+          <BadgeCheck className="h-3.5 w-3.5" />
+          Verified only
+        </button>
+      </div>
+
+      {/* Grid */}
       {isInitialLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {Array.from({ length: 9 }).map((_, i) => <CollectionCardSkeleton key={i} />)}
@@ -51,8 +120,17 @@ export default function CollectionsPage() {
       ) : allCollections.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
           <Layers className="h-12 w-12 text-muted-foreground/30" />
-          <p className="text-2xl font-bold">No collections yet</p>
-          <p className="text-muted-foreground max-w-sm">Deploy the first collection on Medialane.</p>
+          <p className="text-2xl font-bold">No collections found</p>
+          <p className="text-muted-foreground max-w-sm">
+            {verified
+              ? "No verified collections match the current sort. Try removing the Verified filter."
+              : "Deploy the first collection on Medialane."}
+          </p>
+          {verified && (
+            <Button variant="outline" size="sm" onClick={() => setVerified(false)}>
+              Remove filter
+            </Button>
+          )}
         </div>
       ) : (
         <div className="space-y-6">
@@ -61,11 +139,18 @@ export default function CollectionsPage() {
               <CollectionCard key={col.contractAddress} collection={col} />
             ))}
           </div>
+
+          {/* Load more */}
           {hasMore && (
             <div className="flex justify-center">
-              <Button variant="outline" onClick={() => setPage((p) => p + 1)} disabled={isLoading}>
-                {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                Load more
+              <Button
+                variant="outline"
+                onClick={() => setPage((p) => p + 1)}
+                disabled={isLoading}
+              >
+                {isLoading
+                  ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Loading…</>
+                  : `Load more (${meta!.total - allCollections.length} remaining)`}
               </Button>
             </div>
           )}
