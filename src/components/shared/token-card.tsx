@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MotionCard } from "@/components/ui/motion-primitives";
-import { ShoppingCart, Tag, ArrowRightLeft } from "lucide-react";
+import { ShoppingCart, Tag, ArrowRightLeft, X } from "lucide-react";
 import { ipfsToHttp , formatDisplayPrice} from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
 import type { ApiToken } from "@medialane/sdk";
@@ -18,6 +18,7 @@ interface TokenCardProps {
   onBuy?: (token: ApiToken) => void;
   onList?: (token: ApiToken) => void;
   onTransfer?: (token: ApiToken) => void;
+  onCancel?: (token: ApiToken) => void;
   isOwner?: boolean;
 }
 
@@ -27,6 +28,7 @@ export function TokenCard({
   onBuy,
   onList,
   onTransfer,
+  onCancel,
   isOwner = false,
 }: TokenCardProps) {
   const { addItem, items } = useCart();
@@ -78,6 +80,11 @@ export function TokenCard({
               {token.metadata.ipType}
             </Badge>
           )}
+          {isOwner && activeOrder && (
+            <Badge className="absolute top-2 right-2 text-[10px] bg-emerald-500/90 text-white border-0 backdrop-blur-sm">
+              Listed
+            </Badge>
+          )}
         </div>
 
         {/* Info */}
@@ -90,7 +97,7 @@ export function TokenCard({
           {activeOrder && (
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">
-                <p className="section-label">Price</p>
+                <p className="section-label">{isOwner ? "Listed for" : "Price"}</p>
                 <p className="price-value text-sm">
                   {formatDisplayPrice(activeOrder.price.formatted)}{" "}
                   <span className="text-muted-foreground font-normal text-xs">
@@ -124,19 +131,20 @@ export function TokenCard({
                     <ShoppingCart className={`h-3.5 w-3.5 ${inCart ? "opacity-40" : ""}`} />
                   </Button>
                 )}
-                {isOwner && onList && activeOrder && (
+                {isOwner && onCancel && activeOrder && (
                   <Button
                     size="sm"
                     variant="outline"
-                    className="h-8 text-xs"
+                    className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      onList(token);
+                      onCancel(token);
                     }}
+                    aria-label="Cancel listing"
+                    title="Cancel listing"
                   >
-                    <Tag className="h-3 w-3 mr-1" />
-                    Edit
+                    <X className="h-3.5 w-3.5" />
                   </Button>
                 )}
                 {isOwner && onTransfer && (

@@ -5,9 +5,11 @@ import { useTokensByOwner } from "@/hooks/use-tokens";
 import { TokenCard } from "@/components/shared/token-card";
 import { ListingDialog } from "@/components/marketplace/listing-dialog";
 import { TransferDialog } from "@/components/marketplace/transfer-dialog";
+import { PinDialog } from "@/components/chipi/pin-dialog";
 import { EmptyOrError } from "@/components/ui/empty-or-error";
 import { Button } from "@/components/ui/button";
 import { ImageIcon, Loader2 } from "lucide-react";
+import { useMarketplace } from "@/hooks/use-marketplace";
 import type { ApiToken } from "@medialane/sdk";
 
 interface AssetsGridProps {
@@ -19,6 +21,7 @@ export function AssetsGrid({ address }: AssetsGridProps) {
   const [allTokens, setAllTokens] = useState<ApiToken[]>([]);
 
   const { tokens, meta, isLoading, error, mutate } = useTokensByOwner(address, page);
+  const { cancelOrder } = useMarketplace();
 
   // Accumulate pages
   useEffect(() => {
@@ -35,6 +38,8 @@ export function AssetsGrid({ address }: AssetsGridProps) {
   const [listOpen, setListOpen] = useState(false);
   const [transferToken, setTransferToken] = useState<ApiToken | null>(null);
   const [transferOpen, setTransferOpen] = useState(false);
+  const [cancelToken, setCancelToken] = useState<ApiToken | null>(null);
+  const [cancelPinOpen, setCancelPinOpen] = useState(false);
 
   const handleList = (token: ApiToken) => {
     setSelectedToken(token);
@@ -44,6 +49,20 @@ export function AssetsGrid({ address }: AssetsGridProps) {
   const handleTransfer = (token: ApiToken) => {
     setTransferToken(token);
     setTransferOpen(true);
+  };
+
+  const handleCancelRequest = (token: ApiToken) => {
+    setCancelToken(token);
+    setCancelPinOpen(true);
+  };
+
+  const handleCancelPin = async (pin: string) => {
+    setCancelPinOpen(false);
+    const orderHash = cancelToken?.activeOrders?.[0]?.orderHash;
+    if (!orderHash) return;
+    await cancelOrder({ orderHash, pin });
+    setCancelToken(null);
+    handleSuccess();
   };
 
   // After a write op, reset to page 1 and let SWR refetch
@@ -76,6 +95,7 @@ export function AssetsGrid({ address }: AssetsGridProps) {
               isOwner
               onList={handleList}
               onTransfer={handleTransfer}
+              onCancel={handleCancelRequest}
             />
           ))}
         </div>
@@ -107,6 +127,14 @@ export function AssetsGrid({ address }: AssetsGridProps) {
           onSuccess={handleSuccess}
         />
       )}
+
+      <PinDialog
+        open={cancelPinOpen}
+        onSubmit={handleCancelPin}
+        onCancel={() => { setCancelPinOpen(false); setCancelToken(null); }}
+        title="Cancel listing"
+        description={`Enter PIN to cancel the listing for ${cancelToken?.metadata?.name || `Token #${cancelToken?.tokenId}`}.`}
+      />
 
       {transferToken && (
         <TransferDialog

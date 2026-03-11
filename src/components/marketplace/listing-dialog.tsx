@@ -108,6 +108,7 @@ export function ListingDialog({
     await createListing({
       assetContract,
       tokenId,
+      tokenName,
       price: pendingValues.price,
       currencySymbol: pendingValues.currency,
       durationSeconds: pendingValues.durationSeconds,

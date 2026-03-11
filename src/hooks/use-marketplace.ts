@@ -65,6 +65,7 @@ function sanitizeTypedData(value: unknown): unknown {
 export interface CreateListingInput {
   assetContract: string;
   tokenId: string;
+  tokenName?: string;
   price: string;
   currencySymbol: string;
   durationSeconds: number;
@@ -73,6 +74,7 @@ export interface CreateListingInput {
 export interface MakeOfferInput {
   assetContract: string;
   tokenId: string;
+  tokenName?: string;
   price: string;
   currencySymbol: string;
   durationSeconds: number;
@@ -210,7 +212,7 @@ export function useMarketplace() {
             price: input.price,
             endTime,
           }),
-          `Token #${input.tokenId} is now listed.`
+          `${input.tokenName || `Token #${input.tokenId}`} listed for ${input.price} ${input.currencySymbol}`
         );
       } catch (err: any) {
         const msg = err?.message || "Failed to create listing";
@@ -267,7 +269,7 @@ export function useMarketplace() {
             price: input.price,
             endTime,
           }),
-          `Offer on token #${input.tokenId} submitted.`
+          `Offer submitted for ${input.tokenName || `Token #${input.tokenId}`}`
         );
       } catch (err: any) {
         const msg = err?.message || "Failed to submit offer";
