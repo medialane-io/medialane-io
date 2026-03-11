@@ -10,6 +10,7 @@ import { Briefcase, Wallet } from "lucide-react";
 import { useUserOrders } from "@/hooks/use-orders";
 import { markOffersAsSeen } from "@/hooks/use-unread-offers";
 import { useSessionKey } from "@/hooks/use-session-key";
+import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -45,7 +46,20 @@ export default function PortfolioLayout({ children }: { children: React.ReactNod
     }
   }, [orders]);
 
-  if (!isLoaded || isLoadingWallet) return null;
+  if (!isLoaded || isLoadingWallet) {
+    return (
+      <div className="container mx-auto px-4 pt-14 pb-8 space-y-6">
+        <Skeleton className="h-9 w-48" />
+        <Skeleton className="h-4 w-64" />
+        <Skeleton className="h-10 w-full" />
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 w-full rounded-xl" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   if (!isSignedIn) {
     return (

@@ -25,6 +25,7 @@ import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
+import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
 import { Layers, Loader2, ImagePlus, X } from "lucide-react";
 import { toast } from "sonner";
 import type { ChipiCall } from "@/hooks/use-chipi-transaction";
@@ -160,6 +161,15 @@ export default function CreateCollectionPage() {
 
       if (result.status === "reverted") {
         throw new Error(result.revertReason || "Collection transaction reverted on chain");
+      }
+
+      // Immediately register the collection from the tx so it appears in portfolio without waiting for the indexer
+      if (result.txHash) {
+        fetch(`${MEDIALANE_BACKEND_URL}/v1/collections/sync-tx`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...(MEDIALANE_API_KEY ? { "x-api-key": MEDIALANE_API_KEY } : {}) },
+          body: JSON.stringify({ txHash: result.txHash }),
+        }).catch(() => {}); // fire-and-forget — indexer will catch up regardless
       }
 
       setCollectionStep("success");
