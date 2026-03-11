@@ -163,13 +163,21 @@ export default function CreateCollectionPage() {
         throw new Error(result.revertReason || "Collection transaction reverted on chain");
       }
 
-      // Immediately register the collection from the tx so it appears in portfolio without waiting for the indexer
+      // Immediately register the collection from the tx so it appears in portfolio without waiting for the indexer.
+      // Await with a 6s timeout so invalidatePortfolioCache fires AFTER the collection is in the DB.
       if (result.txHash) {
-        fetch(`${MEDIALANE_BACKEND_URL}/v1/collections/sync-tx`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", ...(MEDIALANE_API_KEY ? { "x-api-key": MEDIALANE_API_KEY } : {}) },
-          body: JSON.stringify({ txHash: result.txHash }),
-        }).catch(() => {}); // fire-and-forget — indexer will catch up regardless
+        try {
+          await Promise.race([
+            fetch(`${MEDIALANE_BACKEND_URL}/v1/collections/sync-tx`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", ...(MEDIALANE_API_KEY ? { "x-api-key": MEDIALANE_API_KEY } : {}) },
+              body: JSON.stringify({ txHash: result.txHash }),
+            }),
+            new Promise<never>((_, reject) => setTimeout(() => reject(), 6000)),
+          ]);
+        } catch {
+          // timeout or error — indexer will catch up regardless
+        }
       }
 
       setCollectionStep("success");
