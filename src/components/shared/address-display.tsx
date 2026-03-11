@@ -22,7 +22,7 @@ export function AddressDisplay({ address, className, chars = 4, showCopy = true 
   };
 
   return (
-    <span className={cn("inline-flex items-center gap-1 font-mono text-sm", className)}>
+    <span className={cn("inline-flex items-center gap-1 font-mono text-sm", className)} title={address} aria-label={address}>
       {shortenAddress(address, chars)}
       {showCopy && (
         <button

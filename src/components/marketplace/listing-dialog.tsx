@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { CheckCircle2, AlertCircle, Tag, ExternalLink, Loader2 } from "lucide-react";
@@ -96,9 +97,13 @@ export function ListingDialog({
   };
 
   const handleSessionSetup = async (pin: string) => {
-    await setupSession(pin);
-    setSessionSetupOpen(false);
-    setPinOpen(true);
+    try {
+      await setupSession(pin);
+      setSessionSetupOpen(false);
+      setPinOpen(true);
+    } catch {
+      toast.error("Session setup failed. Please try again.");
+    }
   };
 
   const handlePin = async (pin: string) => {

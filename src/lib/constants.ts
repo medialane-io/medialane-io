@@ -20,6 +20,7 @@ export const STARKNET_RPC_URL =
 export const MEDIALANE_BACKEND_URL =
   process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL || "http://localhost:3001";
 
+// read-only public key — authorizes read operations only. Do NOT use for admin ops.
 export const MEDIALANE_API_KEY =
   process.env.NEXT_PUBLIC_MEDIALANE_API_KEY || "";
 
@@ -42,6 +43,9 @@ export const GENESIS_NFT_URI =
 /** Optional: direct image URL shown in the NFT card preview (e.g. Pinata gateway URL). */
 export const GENESIS_NFT_IMAGE_URL =
   process.env.NEXT_PUBLIC_GENESIS_NFT_IMAGE_URL || "";
+
+/** Delay (ms) before re-fetching after a write op, allowing the indexer to process the block. */
+export const INDEXER_REVALIDATION_DELAY_MS = 10_000;
 
 export const DURATION_OPTIONS = [
   { label: "1 Day", seconds: 86400 },

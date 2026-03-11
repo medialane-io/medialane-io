@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import CreatorPageClient from "./creator-page-client";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 interface Props {
   params: Promise<{ address: string }>;

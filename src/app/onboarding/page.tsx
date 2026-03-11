@@ -16,7 +16,12 @@ export default function OnboardingPage() {
   const { user } = useUser();
   const { session } = useClerk();
   const searchParams = useSearchParams();
-  const redirectUrl = searchParams.get("redirect_url") || "/portfolio";
+  const raw = searchParams.get("redirect_url") || "/portfolio";
+  const redirectUrl =
+    raw.startsWith("http") &&
+    !raw.startsWith(process.env.NEXT_PUBLIC_APP_URL || "https://medialane.io")
+      ? "/portfolio"
+      : raw;
 
   const getBearerToken = useCallback(
     () => getToken({ template: process.env.NEXT_PUBLIC_CLERK_TEMPLATE_NAME || "chipipay" }),
@@ -128,6 +133,9 @@ export default function OnboardingPage() {
             <CardTitle>Wallet ready!</CardTitle>
             <CardDescription>Taking you to your portfolio…</CardDescription>
           </CardHeader>
+          <div className="flex justify-center pb-6">
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          </div>
         </Card>
       </div>
     );

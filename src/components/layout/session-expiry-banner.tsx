@@ -43,14 +43,14 @@ export function SessionExpiryBanner() {
 
   return (
     <>
-      <div className="bg-yellow-500/10 border-b border-yellow-500/20">
+      <div className="bg-yellow-500/10 border-b border-yellow-500/20" role="alert" aria-live="assertive">
         <div className="container mx-auto px-4 py-2 flex items-center justify-between gap-4 text-sm text-yellow-600 dark:text-yellow-400">
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 shrink-0" />
             <span>
               {minutesLeft === 0
-                ? "Your signing session has expired. Refresh to continue making transactions."
-                : `Signing session expires in ${minutesLeft} min — refresh to avoid interruptions.`}
+                ? "Your signing session has expired. Renew session to continue making transactions."
+                : `Signing session expires in ${minutesLeft} min — renew to avoid interruptions.`}
             </span>
           </div>
           <Button
@@ -59,7 +59,7 @@ export function SessionExpiryBanner() {
             className="h-7 text-xs shrink-0 border-yellow-500/40 hover:bg-yellow-500/10 text-yellow-600 dark:text-yellow-400"
             onClick={() => setSessionOpen(true)}
           >
-            Refresh
+            Renew session
           </Button>
         </div>
       </div>

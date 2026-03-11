@@ -97,8 +97,8 @@ export default function CreateCollectionPage() {
       if (!res.ok) throw new Error(json.error ?? "Upload failed");
       setImageUri(json.imageUri);
       toast.success("Image uploaded to IPFS");
-    } catch (err: any) {
-      const msg = err?.message ?? "Upload failed";
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Upload failed";
       toast.error("Image upload failed", { description: msg });
       setImageUri(null);
     } finally {
@@ -182,8 +182,8 @@ export default function CreateCollectionPage() {
 
       setCollectionStep("success");
       invalidatePortfolioCache(walletAddress);
-    } catch (err: any) {
-      setCollectionError(err?.message ?? "Something went wrong");
+    } catch (err: unknown) {
+      setCollectionError(err instanceof Error ? err.message : "Something went wrong");
       setCollectionStep("error");
     }
   };
@@ -229,7 +229,11 @@ export default function CreateCollectionPage() {
               <div className="flex items-start gap-4">
                 <div
                   className="relative h-28 w-28 rounded-xl border-2 border-dashed border-border bg-muted flex items-center justify-center overflow-hidden shrink-0 cursor-pointer hover:border-primary/50 transition-colors"
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Upload collection image"
                   onClick={() => !imageUploading && fileInputRef.current?.click()}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); if (!imageUploading) fileInputRef.current?.click(); } }}
                 >
                   {imagePreview ? (
                     <Image src={imagePreview} alt="Collection image" fill className="object-cover" />

@@ -171,7 +171,8 @@ export default function AssetPageClient() {
             alt=""
             fill
             className="object-cover scale-150 blur-xl opacity-60"
-            unoptimized
+            quality={10}
+            sizes="200px"
             aria-hidden
           />
           <div className="absolute inset-0 bg-background/70" />

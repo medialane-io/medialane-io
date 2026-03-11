@@ -1,5 +1,3 @@
-export const dynamic = "force-dynamic";
-
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
@@ -25,10 +23,12 @@ export const metadata: Metadata = {
     title: "Medialane",
     description: "Creator launchpad & IP marketplace on Starknet",
     siteName: "Medialane",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Medialane" }],
   },
   twitter: {
     card: "summary_large_image",
     creator: "@medialane_io",
+    images: ["/og-image.png"],
   },
 };
 
@@ -36,7 +36,7 @@ export const viewport = {
   themeColor: "black",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
+  maximumScale: 5,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -18,6 +18,7 @@ import {
   useAddSessionKeyToContract,
 } from "@chipi-stack/nextjs";
 import { Account, stark } from "starknet";
+// crypto-es: must match ChipiPay's AES encryption scheme — do not swap to Web Crypto without coordinating with ChipiPay
 import CryptoES from "crypto-es";
 import { starknetProvider } from "@/lib/starknet";
 import type { SessionKeyData } from "@chipi-stack/types";

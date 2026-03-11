@@ -41,10 +41,6 @@ export function formatPrice(amount: string, decimals: number): string {
   }
 }
 
-export function formatAmount(amount: string, decimals: number): string {
-  return formatPrice(amount, decimals);
-}
-
 export function formatDisplayPrice(price: string | number | null | undefined): string {
   if (price === null || price === undefined) return "";
   

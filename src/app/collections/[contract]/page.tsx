@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { fetchCollectionMeta, ipfsToHttpServer } from "@/lib/api-server";
 import CollectionPageClient from "./collection-page-client";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 interface Props {
   params: Promise<{ contract: string }>;

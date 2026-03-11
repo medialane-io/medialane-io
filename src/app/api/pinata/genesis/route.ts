@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PinataSDK } from "pinata";
+import crypto from "crypto";
 
 const pinata = new PinataSDK({
   pinataJwt: process.env.PINATA_JWT!,
@@ -7,7 +8,7 @@ const pinata = new PinataSDK({
 });
 
 const DEFAULT_NAME = "Medialane Genesis";
-const DEFAULT_DESCRIPTION = "This commemorative token marks the official launch of Medialane on Starknet. ";
+const DEFAULT_DESCRIPTION = "This commemorative token marks the official launch of Medialane on Starknet.";
 /**
  * POST /api/pinata/genesis
  *
@@ -29,7 +30,15 @@ export async function POST(req: NextRequest) {
 
   const authHeader = req.headers.get("authorization") ?? "";
   const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
-  if (token !== adminSecret) {
+
+  // Use constant-time comparison to prevent timing attacks
+  const secretBuf = Buffer.from(adminSecret);
+  const tokenBuf = Buffer.from(token);
+  const isAuthorized =
+    secretBuf.length === tokenBuf.length &&
+    crypto.timingSafeEqual(secretBuf, tokenBuf);
+
+  if (!isAuthorized) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -100,8 +109,9 @@ export async function POST(req: NextRequest) {
       imageUri,
       cid: metadataUpload.cid,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Upload failed";
     console.error("[/api/pinata/genesis]", err);
-    return NextResponse.json({ error: err?.message || "Upload failed" }, { status: 500 });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

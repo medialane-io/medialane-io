@@ -225,3 +225,14 @@
 .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
 .animate-spin-slow  { animation: spin-slow 24s linear infinite; }
 .animate-sparkle    { animation: pulse-glow 2.5s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float,
+  .animate-blob,
+  .animate-blob-slow,
+  .animate-pulse-glow,
+  .animate-spin-slow,
+  .animate-sparkle {
+    animation: none;
+  }
+}

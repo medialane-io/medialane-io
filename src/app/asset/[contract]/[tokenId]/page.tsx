@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { fetchTokenMeta, fetchCollectionMeta, ipfsToHttpServer } from "@/lib/api-server";
 import AssetPageClient from "./asset-page-client";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 interface Props {
   params: Promise<{ contract: string; tokenId: string }>;

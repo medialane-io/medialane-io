@@ -5,6 +5,7 @@ import { useSWRConfig } from "swr";
 import { toast } from "sonner";
 import { useChipiTransaction } from "./use-chipi-transaction";
 import { useSessionKey } from "./use-session-key";
+import { INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
 import type { ChipiCall } from "./use-chipi-transaction";
 
 export interface TransferInput {
@@ -90,11 +91,11 @@ export function useTransfer() {
           description: `Token #${input.tokenId} sent successfully.`,
         });
         invalidate();
-        // Re-invalidate after indexer processes the block (~10 s)
-        setTimeout(() => invalidate(), 10000);
+        // Re-invalidate after indexer processes the block
+        setTimeout(() => invalidate(), INDEXER_REVALIDATION_DELAY_MS);
         return result.txHash;
-      } catch (err: any) {
-        const msg = err?.message || "Transfer failed";
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Transfer failed";
         setError(msg);
         toast.error("Transfer failed", { description: msg });
       } finally {

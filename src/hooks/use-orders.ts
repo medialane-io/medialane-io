@@ -12,7 +12,7 @@ export function useOrders(query: ApiOrdersQuery = {}) {
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<ApiOrder[]>>(
     key,
     () => client.api.getOrders(query),
-    { revalidateOnFocus: false, refreshInterval: 30000 }
+    { revalidateOnFocus: false, refreshInterval: 30000, dedupingInterval: 5000 }
   );
 
   return {
@@ -42,7 +42,7 @@ export function useTokenListings(contract: string | null, tokenId: string | null
   const { data, error, isLoading, mutate } = useSWR(
     contract && tokenId ? `listings-${contract}-${tokenId}` : null,
     () => client.api.getActiveOrdersForToken(contract!, tokenId!),
-    { revalidateOnFocus: false, refreshInterval: 20000 }
+    { revalidateOnFocus: false, refreshInterval: 20000, dedupingInterval: 5000 }
   );
 
   return { listings: data?.data ?? [], isLoading, error, mutate };
@@ -55,7 +55,7 @@ export function useUserOrders(address: string | null) {
   const { data, error, isLoading, mutate } = useSWR(
     normalized ? `user-orders-${normalized}` : null,
     () => client.api.getOrdersByUser(normalized!),
-    { revalidateOnFocus: false, refreshInterval: 20000 }
+    { revalidateOnFocus: false, refreshInterval: 20000, dedupingInterval: 5000 }
   );
 
   return { orders: data?.data ?? [], isLoading, error, mutate };

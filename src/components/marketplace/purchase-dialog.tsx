@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@clerk/nextjs";
+import { toast } from "sonner";
 import { CheckCircle2, AlertCircle, ExternalLink, ShoppingCart } from "lucide-react";
 import {
   Dialog,
@@ -60,9 +61,13 @@ export function PurchaseDialog({ order, open, onOpenChange }: PurchaseDialogProp
   };
 
   const handleSessionSetup = async (pin: string) => {
-    await setupSession(pin);
-    setSessionSetupOpen(false);
-    setPinOpen(true);
+    try {
+      await setupSession(pin);
+      setSessionSetupOpen(false);
+      setPinOpen(true);
+    } catch {
+      toast.error("Session setup failed. Please try again.");
+    }
   };
 
   const handlePin = async (pin: string) => {

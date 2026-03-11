@@ -4,6 +4,7 @@ import { useState, useCallback, useRef } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useChipiWallet, useCallAnyContract } from "@chipi-stack/nextjs";
 import { starknetProvider } from "@/lib/starknet";
+import type { WalletCredentials } from "@/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────
 
@@ -17,7 +18,7 @@ export type ChipiTransactionParams = {
   pin: string;
   contractAddress: string;
   calls: ChipiCall[];
-  wallet?: { publicKey: string; encryptedPrivateKey: string };
+  wallet?: WalletCredentials;
 };
 
 export type ChipiTransactionResult = {
@@ -127,13 +128,13 @@ export function useChipiTransaction() {
 
           setStatus("confirmed");
           return { txHash: result, status: "confirmed" };
-        } catch (receiptError: any) {
-          const reason = receiptError?.message || "Transaction failed on L2";
+        } catch (receiptError: unknown) {
+          const reason = receiptError instanceof Error ? receiptError.message : "Transaction failed on L2";
           setStatus("reverted");
           setError(reason);
           return { txHash: result, status: "reverted", revertReason: reason };
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         setStatus("error");
         const msg = err instanceof Error ? err.message : "Transaction failed";
         setError(msg);

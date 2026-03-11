@@ -160,8 +160,8 @@ export function LaunchMint() {
 
       await user!.reload();
       // hasWallet will now be true → component re-renders to show mint button
-    } catch (err: any) {
-      setWalletCreateError(err?.message || "Wallet creation failed. Please try again.");
+    } catch (err: unknown) {
+      setWalletCreateError(err instanceof Error ? err.message : "Wallet creation failed. Please try again.");
     } finally {
       setIsCreatingWallet(false);
     }
@@ -215,9 +215,9 @@ export function LaunchMint() {
       } else {
         throw new Error(result.revertReason || "Transaction reverted on-chain.");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setMintStep("error");
-      setMintError(err?.message || "Mint failed. Please try again.");
+      setMintError(err instanceof Error ? err.message : "Mint failed. Please try again.");
     }
   }, [mintPin, recipientAddress, userId, executeTransaction]);
 
@@ -239,7 +239,7 @@ export function LaunchMint() {
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -top-1/3 -left-1/4 h-2/3 w-2/3 rounded-full bg-primary/[0.08] blur-[120px]" />
         <div className="absolute -bottom-1/3 -right-1/4 h-2/3 w-2/3 rounded-full bg-purple-600/[0.08] blur-[120px]" />
-        <svg className="absolute inset-0 w-full h-full opacity-[0.025]" xmlns="http://www.w3.org/2000/svg">
+        <svg className="absolute inset-0 w-full h-full opacity-[0.025]" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <defs>
             <pattern id="launch-dots" width="32" height="32" patternUnits="userSpaceOnUse">
               <circle cx="1" cy="1" r="1" fill="white" />
@@ -250,15 +250,6 @@ export function LaunchMint() {
       </div>
 
       <div className="container mx-auto px-4 py-12 lg:py-20 relative max-w-5xl">
-
-        {/* Launch badge 
-        <div className="flex justify-center mb-10">
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-sm backdrop-blur-sm">
-            <span className="font-semibold text-primary">Medialane</span>
-            <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-            <span className="font-semibold text-primary">Starknet</span>
-          </div>
-        </div>*/}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           {/* Left: NFT card */}
@@ -356,7 +347,7 @@ export function LaunchMint() {
                   <PinInput
                     value={walletPin}
                     onChange={(v) => { setWalletPin(v); setWalletPinError(null); }}
-                    placeholder="e.g. 123456"
+                    placeholder="enter PIN"
                     error={walletPinError}
                     autoFocus
                   />

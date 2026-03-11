@@ -230,8 +230,8 @@ export default function CreateAssetPage() {
 
       setMintStep("success");
       invalidatePortfolioCache(walletAddress);
-    } catch (err: any) {
-      setMintError(err?.message ?? "Something went wrong");
+    } catch (err: unknown) {
+      setMintError(err instanceof Error ? err.message : "Something went wrong");
       setMintStep("error");
     }
   };
@@ -318,7 +318,11 @@ export default function CreateAssetPage() {
               <label className="text-sm font-medium">Cover image</label>
               <div
                 className="border-2 border-dashed border-border rounded-xl p-8 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                role="button"
+                tabIndex={0}
+                aria-label="Upload image"
                 onClick={() => document.getElementById("image-upload")?.click()}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); document.getElementById("image-upload")?.click(); } }}
               >
                 {imagePreview ? (
                   <img src={imagePreview} alt="Preview" className="mx-auto max-h-48 rounded-lg object-contain" />

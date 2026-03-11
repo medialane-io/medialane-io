@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import { useChipiTransaction } from "./use-chipi-transaction";
 import { useSessionKey } from "./use-session-key";
 import { useMedialaneClient } from "./use-medialane-client";
-import { MARKETPLACE_CONTRACT, SUPPORTED_TOKENS } from "@/lib/constants";
+import { MARKETPLACE_CONTRACT, SUPPORTED_TOKENS, INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
 import type { ChipiCall } from "./use-chipi-transaction";
 
 /** Resolve a currency symbol (e.g. "USDC") to its on-chain contract address.
@@ -188,7 +188,7 @@ export function useMarketplace() {
       toast.success(successMsg);
       invalidate();
       // Re-invalidate after indexer processes the block (~10s) to reflect chain state
-      setTimeout(() => invalidate(), 10000);
+      setTimeout(() => invalidate(), INDEXER_REVALIDATION_DELAY_MS);
       return result.txHash;
     },
     [walletAddress, signTypedData, client, execWithPin, invalidate]
@@ -214,8 +214,8 @@ export function useMarketplace() {
           }),
           `${input.tokenName || `Token #${input.tokenId}`} listed for ${input.price} ${input.currencySymbol}`
         );
-      } catch (err: any) {
-        const msg = err?.message || "Failed to create listing";
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Failed to create listing";
         setError(msg);
         toast.error("Listing failed", { description: msg });
       } finally {
@@ -240,8 +240,8 @@ export function useMarketplace() {
           }),
           "Purchase complete!"
         );
-      } catch (err: any) {
-        const msg = err?.message || "Purchase failed";
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Purchase failed";
         setError(msg);
         toast.error("Purchase failed", { description: msg });
       } finally {
@@ -271,8 +271,8 @@ export function useMarketplace() {
           }),
           `Offer submitted for ${input.tokenName || `Token #${input.tokenId}`}`
         );
-      } catch (err: any) {
-        const msg = err?.message || "Failed to submit offer";
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Failed to submit offer";
         setError(msg);
         toast.error("Offer failed", { description: msg });
       } finally {
@@ -297,8 +297,8 @@ export function useMarketplace() {
           }),
           "Order cancelled."
         );
-      } catch (err: any) {
-        const msg = err?.message || "Cancellation failed";
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Cancellation failed";
         setError(msg);
         toast.error("Cancellation failed", { description: msg });
       } finally {

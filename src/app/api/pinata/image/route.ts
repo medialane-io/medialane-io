@@ -55,8 +55,8 @@ export async function POST(req: NextRequest) {
     const upload = await pinata.upload.public.file(file);
     const imageUri = `ipfs://${upload.cid}`;
     return NextResponse.json({ imageUri, cid: upload.cid });
-  } catch (err: any) {
-    const message = err?.message ?? "Upload failed";
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Upload failed";
     console.error("[pinata/image] upload failed:", message, err);
     return NextResponse.json({ error: message }, { status: 500 });
   }
