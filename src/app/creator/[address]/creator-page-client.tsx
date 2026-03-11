@@ -254,9 +254,9 @@ export default function CreatorPageClient() {
           className="absolute inset-0"
           style={{
             background: `
-              radial-gradient(ellipse 90% 90% at 15% 60%, hsl(${h1}, 68%, 42% / ${bannerImage ? 0.3 : 0.55}) 0%, transparent 65%),
-              radial-gradient(ellipse 65% 65% at 85% 25%, hsl(${h2}, 68%, 38% / ${bannerImage ? 0.2 : 0.45}) 0%, transparent 60%),
-              radial-gradient(ellipse 45% 45% at 55% 85%, hsl(${h3}, 68%, 38% / ${bannerImage ? 0.15 : 0.35}) 0%, transparent 55%)
+              radial-gradient(ellipse 90% 90% at 15% 60%, hsl(${h1}, 68%, 42% / ${bannerImage ? 0.3 : 0.55}) 0%, transparent 40%),
+              radial-gradient(ellipse 65% 65% at 85% 25%, hsl(${h2}, 68%, 38% / ${bannerImage ? 0.2 : 0.45}) 0%, transparent 30%),
+              radial-gradient(ellipse 45% 45% at 55% 85%, hsl(${h3}, 68%, 38% / ${bannerImage ? 0.15 : 0.35}) 0%, transparent 40%)
             `,
           }}
         />
