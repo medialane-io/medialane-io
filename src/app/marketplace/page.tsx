@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, X } from "lucide-react";
 import type { ApiSearchResult } from "@medialane/sdk";
+import { getTokenBySymbol, parseAmount } from "@medialane/sdk";
 import { ipfsToHttp } from "@/lib/utils";
 import Link from "next/link";
 import { usePlatformStats } from "@/hooks/use-stats";
@@ -180,10 +181,29 @@ export default function MarketplacePage() {
     setMinInput(min);
     setMaxInput(max);
     if (priceDebounce.current) clearTimeout(priceDebounce.current);
+    // Capture decimals at call time to avoid stale closure inside the timeout
+    const decimals = getTokenBySymbol(currency)?.decimals ?? 18;
     priceDebounce.current = setTimeout(() => {
-      setMinPrice(min.trim() || undefined);
-      setMaxPrice(max.trim() || undefined);
+      try {
+        setMinPrice(min.trim() ? parseAmount(min.trim(), decimals) : undefined);
+      } catch {
+        setMinPrice(undefined);
+      }
+      try {
+        setMaxPrice(max.trim() ? parseAmount(max.trim(), decimals) : undefined);
+      } catch {
+        setMaxPrice(undefined);
+      }
     }, 400);
+  };
+
+  const handleCurrencyChange = (c: string) => {
+    setCurrency(currency === c ? "" : c);
+    // Clear price inputs when currency changes — decimals differ between tokens
+    setMinInput("");
+    setMaxInput("");
+    setMinPrice(undefined);
+    setMaxPrice(undefined);
   };
 
   const hasFilters = sort !== "recent" || currency || orderType || minPrice || maxPrice;
@@ -260,7 +280,7 @@ export default function MarketplacePage() {
             {CURRENCY_OPTIONS.map((c) => (
               <button
                 key={c}
-                onClick={() => setCurrency(currency === c ? "" : c)}
+                onClick={() => handleCurrencyChange(c)}
                 className={`text-xs px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap ${
                   currency === c
                     ? "border-primary bg-primary/10 text-primary"
@@ -312,7 +332,7 @@ export default function MarketplacePage() {
       {/* Grid */}
       <ListingsGrid
         sort={sort}
-        currency={currency || undefined}
+        currency={currency ? getTokenBySymbol(currency)?.address : undefined}
         orderType={orderType}
         minPrice={minPrice}
         maxPrice={maxPrice}
