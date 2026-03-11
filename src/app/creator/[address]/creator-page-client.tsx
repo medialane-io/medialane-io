@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
+import NextImage from "next/image";
 import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useUserOrders } from "@/hooks/use-orders";
 import { useActivitiesByAddress } from "@/hooks/use-activities";
@@ -9,7 +10,7 @@ import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listing-card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { timeAgo, formatDisplayPrice } from "@/lib/utils";
+import { timeAgo, formatDisplayPrice, ipfsToHttp } from "@/lib/utils";
 import {
   Tag,
   Handshake,
@@ -34,21 +35,46 @@ function addressPalette(address: string) {
   return { h1, h2, h3 };
 }
 
-function AddressAvatar({ address, size = 88 }: { address: string; size?: number }) {
+function AddressAvatar({
+  address,
+  image,
+  size = 88,
+}: {
+  address: string;
+  image?: string | null;
+  size?: number;
+}) {
+  const [imgError, setImgError] = useState(false);
   const { h1, h2 } = addressPalette(address);
   const initials = address.slice(2, 4).toUpperCase();
+  const showImage = image && image !== "/placeholder.svg" && !imgError;
+
   return (
     <div
-      className="rounded-full flex items-center justify-center text-white font-bold shrink-0 ring-[3px] ring-background"
+      className="rounded-full shrink-0 ring-[3px] ring-background overflow-hidden flex items-center justify-center text-white font-bold"
       style={{
         width: size,
         height: size,
-        background: `linear-gradient(145deg, hsl(${h1}, 72%, 60%), hsl(${h2}, 72%, 50%))`,
+        background: showImage
+          ? "transparent"
+          : `linear-gradient(145deg, hsl(${h1}, 72%, 60%), hsl(${h2}, 72%, 50%))`,
         fontSize: size * 0.33,
         boxShadow: `0 0 0 1px hsl(${h1}, 72%, 60% / 0.25), 0 0 40px hsl(${h1}, 72%, 60% / 0.25), 0 8px 32px rgba(0,0,0,0.35)`,
       }}
     >
-      {initials}
+      {showImage ? (
+        <NextImage
+          src={image!}
+          alt="Creator"
+          width={size}
+          height={size}
+          className="w-full h-full object-cover"
+          unoptimized
+          onError={() => setImgError(true)}
+        />
+      ) : (
+        initials
+      )}
     </div>
   );
 }
@@ -182,6 +208,12 @@ export default function CreatorPageClient() {
 
   const { h1, h2, h3 } = addressPalette(address ?? "0x0");
 
+  // Latest minted asset — used for banner background + avatar image
+  const latestToken  = tokens[0];
+  const latestRawImg = latestToken?.metadata?.image;
+  const latestImage  = latestRawImg ? ipfsToHttp(latestRawImg) : null;
+  const bannerImage  = latestImage && latestImage !== "/placeholder.svg" ? latestImage : null;
+
   const STATS = [
     { label: "Assets",   value: tokensLoading ? null : tokens.length,          Icon: ImageIcon },
     { label: "Listings", value: ordersLoading  ? null : activeListings.length,  Icon: Tag },
@@ -199,23 +231,40 @@ export default function CreatorPageClient() {
 
       {/* ── Cinematic banner ─────────────────────────────────────────────── */}
       <div className="relative h-52 sm:h-72 overflow-hidden">
-        {/* Mesh gradient — driven by address palette */}
+
+        {/* Layer 1 — blurred asset image (when available) */}
+        {bannerImage && (
+          <div className="absolute inset-0">
+            <NextImage
+              src={bannerImage}
+              alt=""
+              fill
+              className="object-cover scale-150 blur-2xl"
+              style={{ opacity: 0.45 }}
+              unoptimized
+              aria-hidden
+            />
+            {/* Tinted overlay so mesh gradient still tints through */}
+            <div className="absolute inset-0 bg-background/40" />
+          </div>
+        )}
+
+        {/* Layer 2 — address-derived mesh gradient (always present, reduced when image exists) */}
         <div
           className="absolute inset-0"
           style={{
             background: `
-              radial-gradient(ellipse 90% 90% at 15% 60%, hsl(${h1}, 68%, 42% / 0.55) 0%, transparent 65%),
-              radial-gradient(ellipse 65% 65% at 85% 25%, hsl(${h2}, 68%, 38% / 0.45) 0%, transparent 60%),
-              radial-gradient(ellipse 45% 45% at 55% 85%, hsl(${h3}, 68%, 38% / 0.35) 0%, transparent 55%),
-              hsl(var(--card))
+              radial-gradient(ellipse 90% 90% at 15% 60%, hsl(${h1}, 68%, 42% / ${bannerImage ? 0.3 : 0.55}) 0%, transparent 65%),
+              radial-gradient(ellipse 65% 65% at 85% 25%, hsl(${h2}, 68%, 38% / ${bannerImage ? 0.2 : 0.45}) 0%, transparent 60%),
+              radial-gradient(ellipse 45% 45% at 55% 85%, hsl(${h3}, 68%, 38% / ${bannerImage ? 0.15 : 0.35}) 0%, transparent 55%)
             `,
           }}
         />
 
-        {/* Grid texture */}
-        <div className="absolute inset-0 bg-grid opacity-[0.18]" />
+        {/* Layer 3 — grid texture */}
+        <div className="absolute inset-0 bg-grid opacity-[0.15]" />
 
-        {/* Noise grain overlay (CSS-only) */}
+        {/* Layer 4 — noise grain */}
         <div
           className="absolute inset-0 opacity-[0.04]"
           style={{
@@ -225,13 +274,13 @@ export default function CreatorPageClient() {
           }}
         />
 
-        {/* Bottom fade to background */}
+        {/* Bottom fade */}
         <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background via-background/60 to-transparent" />
 
         {/* Top fade */}
         <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-background/20 to-transparent" />
 
-        {/* Floating address label — top right */}
+        {/* Floating Starknet badge */}
         <div className="absolute top-4 right-4 sm:right-6">
           <div className="glass rounded-full px-3 py-1.5 flex items-center gap-1.5">
             <span
@@ -249,9 +298,9 @@ export default function CreatorPageClient() {
 
         {/* ── Identity row ─────────────────────────────────────────────────── */}
         <div className="-mt-16 relative z-10 flex flex-col sm:flex-row sm:items-end gap-5 pb-8">
-          {/* Avatar */}
+          {/* Avatar — shows latest asset image, falls back to gradient initials */}
           <div className="shrink-0">
-            <AddressAvatar address={address ?? "0x0"} size={88} />
+            <AddressAvatar address={address ?? "0x0"} image={latestImage} size={88} />
           </div>
 
           {/* Name + address */}
