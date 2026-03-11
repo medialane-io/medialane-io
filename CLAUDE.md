@@ -119,7 +119,7 @@ When `LAUNCH_MINT_CONTRACT` or `GENESIS_NFT_URI` are empty the button renders as
 | `useOrder(orderHash)` | Single order | `GET /v1/orders/:orderHash` |
 | `useTokenListings(contract, tokenId)` | Active orders for token | `GET /v1/orders/token/:contract/:tokenId` |
 | `useUserOrders(address)` | All orders (buy+sell) for user | `GET /v1/orders/user/:address` |
-| `useCollections()` | All collections | `GET /v1/collections` |
+| `useCollections(page, limit, isKnown?, sort?)` | All collections with sort/filter | `GET /v1/collections` (direct fetch, bypasses SDK — supports `sort` param without requiring SDK publish) |
 | `useCollection(contract)` | Single collection | `GET /v1/collections/:contract` |
 | `useCollectionTokens(contract)` | Tokens in collection | `GET /v1/collections/:contract/tokens` |
 | `useCollectionsByOwner(address)` | Collections owned by address (API-based, returns `collectionId`) | `GET /v1/collections?owner=address` via SDK client. Used in portfolio/collections and create/asset collection selector |
@@ -149,9 +149,14 @@ All write ops follow: create intent → sign typed data → submit signature →
 
 ---
 
-## Known Bugs (as of 2026-03-09)
+## Known Bugs (as of 2026-03-11)
 
 All previously noted bugs were fixed. No outstanding known bugs.
+
+**Fixed in 2026-03-11 session:**
+- Marketplace currency filter: was passing token symbol to API instead of token address. Fixed with `getTokenBySymbol(currency)?.address`.
+- Marketplace price filter: was passing human-readable amounts (e.g. "1") instead of wei. Fixed with `parseAmount(value, decimals)` where decimals come from `getTokenBySymbol(currency)?.decimals ?? 18`.
+- Collections page was sorting by `totalSupply DESC` (oldest/largest first). Now defaults to `createdAt DESC` (newest first).
 
 ---
 
@@ -197,6 +202,10 @@ All previously noted bugs were fixed. No outstanding known bugs.
 - [x] `useCollectionsByOwner` uses SDK client (not raw fetch); `useCollectionsByOwner` used in create/asset for collection selector ✓ 2026-03-09
 - [x] Backend address normalization: full 64-char pad applied in all route handlers ✓ 2026-03-09
 - [x] SDK v0.3.0/0.3.1: normalizes addresses internally; `ApiCollection.collectionId` added ✓ 2026-03-09
+- [x] Marketplace currency + price filters fixed (symbol→address, human→wei conversion) ✓ 2026-03-11
+- [x] Collections page: sort/filter toolbar (Recent/Supply/Volume/Floor/Name + Verified toggle), newest-first default ✓ 2026-03-11
+- [x] Creator page (`/creator/[address]`): full redesign — address-derived color palette, blurred banner from latest token image, asset avatar, activity timeline ✓ 2026-03-11
+- [x] `/docs` folder removed from git tracking (gitignored) — internal planning docs no longer exposed in repo ✓ 2026-03-11
 
 ---
 

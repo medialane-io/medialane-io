@@ -36,6 +36,13 @@ Medialane is a platform for the **creative economy on Starknet**. It bridges Web
 - Batch cart checkout — buy multiple items in one PIN-authenticated session
 - Accept, cancel, and manage listings and offers from the portfolio
 - Asset pages with Details, License, Listings, Offers, and History tabs
+- Marketplace filters: currency, price range (min/max), order type (listings/offers)
+
+### Collections
+- Browse all NFT collections with sort options: Recent (default), Most assets, Top volume, Floor price, A→Z
+- Filter by verified collections only
+- Infinite scroll with "Load more" pagination — shows remaining count
+- Creator pages with address-derived identity system and blurred asset banner
 
 ### Invisible Wallet (ChipiPay)
 - Sign in with email, Google, or any Clerk-supported provider
