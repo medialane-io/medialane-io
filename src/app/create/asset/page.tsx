@@ -208,7 +208,8 @@ export default function CreateAssetPage() {
         tokenUri,
       });
 
-      if (!intentRes.data?.calls?.length) {
+      const intentData = intentRes.data as { calls?: { contractAddress: string; [key: string]: unknown }[] } | undefined;
+      if (!intentData?.calls?.length) {
         throw new Error("Mint intent returned no calls");
       }
 
@@ -219,8 +220,8 @@ export default function CreateAssetPage() {
 
       const result = await executeTransaction({
         pin,
-        contractAddress: intentRes.data.calls[0].contractAddress,
-        calls: intentRes.data.calls as ChipiCall[],
+        contractAddress: intentData.calls[0].contractAddress,
+        calls: intentData.calls as ChipiCall[],
         wallet: walletOverride,
       });
 

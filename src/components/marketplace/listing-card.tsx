@@ -30,16 +30,16 @@ export function ListingCard({ order, onBuy }: ListingCardProps) {
     if (inCart) return;
     addItem({
       orderHash: order.orderHash,
-      nftContract: order.nftContract,
-      nftTokenId: order.nftTokenId,
+      nftContract: order.nftContract ?? "",
+      nftTokenId: order.nftTokenId ?? "",
       name,
       image: image ?? "",
       price: formatDisplayPrice(order.price.formatted),
-      currency: order.price.currency,
+      currency: order.price.currency ?? "",
       currencyDecimals: order.price.decimals,
-      offerer: order.offerer,
-      considerationToken: order.consideration.token,
-      considerationAmount: order.consideration.startAmount,
+      offerer: order.offerer ?? "",
+      considerationToken: order.consideration.token ?? "",
+      considerationAmount: order.consideration.startAmount ?? "",
     });
   };
 
@@ -70,7 +70,7 @@ export function ListingCard({ order, onBuy }: ListingCardProps) {
           <div>
             <p className="font-semibold text-sm truncate leading-snug">{name}</p>
             <p className="text-[11px] text-muted-foreground font-mono">
-              {shortenAddress(order.nftContract)}
+              {shortenAddress(order.nftContract ?? "")}
             </p>
           </div>
 

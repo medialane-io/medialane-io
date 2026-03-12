@@ -69,7 +69,7 @@ export default function CollectionsPage() {
           Browse NFT collections deployed on Medialane and Starknet.
           {meta?.total != null && (
             <span className="ml-2 text-foreground font-medium">
-              {meta.total.toLocaleString()} total
+              {(meta.total ?? 0).toLocaleString()} total
             </span>
           )}
         </p>
@@ -150,7 +150,7 @@ export default function CollectionsPage() {
               >
                 {isLoading
                   ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Loading…</>
-                  : `Load more (${meta!.total - allCollections.length} remaining)`}
+                  : `Load more (${(meta?.total ?? 0) - allCollections.length} remaining)`}
               </Button>
             </div>
           )}

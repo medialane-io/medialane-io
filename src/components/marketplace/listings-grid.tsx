@@ -6,7 +6,7 @@ import { ListingCard, ListingCardSkeleton } from "./listing-card";
 import { PurchaseDialog } from "./purchase-dialog";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import type { ApiOrder } from "@medialane/sdk";
+import type { ApiOrder, SortOrder } from "@medialane/sdk";
 
 const PAGE_SIZE = 12;
 
@@ -37,7 +37,7 @@ export function ListingsGrid({ sort = "recent", currency, orderType = "", minPri
 
   const { orders, meta, isLoading } = useOrders({
     status: "ACTIVE",
-    sort,
+    sort: sort as SortOrder,
     ...(currency ? { currency } : {}),
     ...(minPrice ? { minPrice } : {}),
     ...(maxPrice ? { maxPrice } : {}),
@@ -68,7 +68,7 @@ export function ListingsGrid({ sort = "recent", currency, orderType = "", minPri
 
   const isInitialLoading = isLoading && allOrders.length === 0;
   const isLoadingMore = isLoading && allOrders.length > 0;
-  const hasMore = meta ? allOrders.length < meta.total : false;
+  const hasMore = meta ? allOrders.length < (meta.total ?? 0) : false;
 
   const handleBuy = (order: ApiOrder) => {
     setSelectedOrder(order);
@@ -132,13 +132,13 @@ export function ListingsGrid({ sort = "recent", currency, orderType = "", minPri
                   Loading…
                 </>
               ) : (
-                `Load more${!orderType && meta ? ` (${meta.total - allOrders.length} remaining)` : ""}`
+                `Load more${!orderType && meta ? ` (${(meta.total ?? 0) - allOrders.length} remaining)` : ""}`
               )}
             </Button>
           </div>
         )}
 
-        {!hasMore && displayedOrders.length > 0 && meta && meta.total > PAGE_SIZE && (
+        {!hasMore && displayedOrders.length > 0 && meta && (meta.total ?? 0) > PAGE_SIZE && (
           <p className="text-center text-xs text-muted-foreground">
             All {displayedOrders.length} listings shown
           </p>

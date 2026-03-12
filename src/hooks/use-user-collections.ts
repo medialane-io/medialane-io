@@ -75,12 +75,12 @@ async function fetchUserCollections(address: string): Promise<UserCollection[]> 
 
       const col = await contract.call("get_collection", [cairo.uint256(id)], {
         blockIdentifier: "latest",
-      });
+      }) as Record<string, unknown>;
 
       // ip_nft is a ContractAddress — decoded as bigint or hex string by starknet.js
       const ipNftRaw = col.ip_nft ?? col["ip_nft"];
       const contractAddress = ipNftRaw
-        ? "0x" + num.toBigInt(ipNftRaw.toString()).toString(16).padStart(64, "0")
+        ? "0x" + num.toBigInt(String(ipNftRaw)).toString(16).padStart(64, "0")
         : "";
 
       if (!contractAddress || contractAddress === "0x" + "0".repeat(64)) return null;
@@ -90,7 +90,7 @@ async function fetchUserCollections(address: string): Promise<UserCollection[]> 
         contractAddress,
         name: typeof col.name === "string" ? col.name : "",
         symbol: typeof col.symbol === "string" ? col.symbol : "",
-      } satisfies UserCollection;
+      } as UserCollection;
     })
   );
 

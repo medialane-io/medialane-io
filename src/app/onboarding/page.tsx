@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, Suspense } from "react";
 import { useAuth, useUser, useClerk } from "@clerk/nextjs";
 import { useSearchParams } from "next/navigation";
 import { useChipiWallet, isWebAuthnSupported, createWalletPasskey } from "@chipi-stack/nextjs";
@@ -12,6 +12,14 @@ import { Loader2, Wallet, CheckCircle2, AlertCircle, KeyRound } from "lucide-rea
 import { completeOnboarding } from "./_actions";
 
 export default function OnboardingPage() {
+  return (
+    <Suspense>
+      <OnboardingContent />
+    </Suspense>
+  );
+}
+
+function OnboardingContent() {
   const { userId, getToken } = useAuth();
   const { user } = useUser();
   const { session } = useClerk();
@@ -52,12 +60,12 @@ export default function OnboardingPage() {
 
   const createWalletWithKey = async (encryptKey: string) => {
     const wallet = await createWallet({ encryptKey });
-    if (!wallet?.publicKey) {
+    if (!wallet?.walletPublicKey) {
       throw new Error("Wallet creation returned invalid data");
     }
 
     const result = await completeOnboarding({
-      publicKey: wallet.publicKey,
+      publicKey: wallet.walletPublicKey,
     });
 
     if (result.error) throw new Error(result.error);

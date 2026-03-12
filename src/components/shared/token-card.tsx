@@ -49,11 +49,11 @@ export function TokenCard({
       name,
       image,
       price: formatDisplayPrice(activeOrder.price.formatted),
-      currency: activeOrder.price.currency,
+      currency: activeOrder.price.currency ?? "",
       currencyDecimals: activeOrder.price.decimals,
-      offerer: activeOrder.offerer,
-      considerationToken: activeOrder.consideration.token,
-      considerationAmount: activeOrder.consideration.startAmount,
+      offerer: activeOrder.offerer ?? "",
+      considerationToken: activeOrder.consideration.token ?? "",
+      considerationAmount: activeOrder.consideration.startAmount ?? "",
     });
   };
 

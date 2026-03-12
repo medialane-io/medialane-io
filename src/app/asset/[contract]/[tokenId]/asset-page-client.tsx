@@ -90,7 +90,7 @@ export default function AssetPageClient() {
         name,
         image: ipfsToHttp(token?.metadata?.image) ?? "",
         price: formatDisplayPrice(cheapest.price.formatted),
-        currency: cheapest.price.currency,
+        currency: cheapest.price.currency ?? "",
         currencyDecimals: cheapest.price.decimals,
         offerer: cheapest.offerer,
         considerationToken: cheapest.consideration.token,

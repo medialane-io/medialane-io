@@ -190,7 +190,7 @@ export function ActivitiesFeed() {
                     Loading…
                   </>
                 ) : (
-                  `Load more${meta ? ` (${meta.total - allActivities.length} remaining)` : ""}`
+                  `Load more${meta?.total ? ` (${meta.total - allActivities.length} remaining)` : ""}`
                 )}
               </Button>
             </div>

@@ -72,7 +72,7 @@ export function AssetsGrid({ address }: AssetsGridProps) {
     mutate();
   };
 
-  const hasMore = meta ? meta.total > allTokens.length : false;
+  const hasMore = meta ? (meta.total ?? 0) > allTokens.length : false;
 
   return (
     <>
