@@ -101,29 +101,31 @@ export default function PortfolioLayout({ children }: { children: React.ReactNod
       </div>
 
       {/* Subnav */}
-      <nav className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-none border-b border-border/60">
-        {NAV_ITEMS.map((item) => {
-          const active = pathname === item.href || pathname.startsWith(item.href + "/");
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "relative flex items-center gap-1.5 px-3 py-2 text-sm rounded-md whitespace-nowrap transition-colors shrink-0",
-                active
-                  ? "text-foreground font-medium bg-muted"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-              )}
-            >
-              {item.label}
-              {item.badge && receivedCount > 0 && (
-                <span className="h-4 min-w-4 rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground flex items-center justify-center px-1">
-                  {receivedCount}
-                </span>
-              )}
-            </Link>
-          );
-        })}
+      <nav className="overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0 border-b border-border/60 pb-1">
+        <div className="flex items-center gap-1 min-w-max md:min-w-0 md:flex-wrap">
+          {NAV_ITEMS.map((item) => {
+            const active = pathname === item.href || pathname.startsWith(item.href + "/");
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "relative flex items-center gap-1.5 px-3 py-2 text-sm rounded-md whitespace-nowrap transition-colors shrink-0",
+                  active
+                    ? "text-foreground font-medium bg-muted"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                )}
+              >
+                {item.label}
+                {item.badge && receivedCount > 0 && (
+                  <span className="h-4 min-w-4 rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground flex items-center justify-center px-1">
+                    {receivedCount}
+                  </span>
+                )}
+              </Link>
+            );
+          })}
+        </div>
       </nav>
 
       {/* Page content */}

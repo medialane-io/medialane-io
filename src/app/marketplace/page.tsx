@@ -236,7 +236,8 @@ export default function MarketplacePage() {
         <SearchBar />
 
         {/* Row 2: scrollable filter chips */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
+          <div className="flex items-center gap-2 min-w-max md:min-w-0 md:flex-wrap pb-1">
           {/* Sort */}
           <div className="flex items-center gap-1 shrink-0">
             {SORT_OPTIONS.map((opt) => (
@@ -326,6 +327,7 @@ export default function MarketplacePage() {
               Reset
             </Button>
           )}
+          </div>
         </div>
       </div>
 
