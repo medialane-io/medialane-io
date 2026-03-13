@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -46,6 +47,7 @@ export default function AssetPageClient() {
   const { cancelOrder, fulfillOrder, isProcessing } = useMarketplace();
 
   const { addItem, items: cartItems, setIsOpen: setCartOpen } = useCart();
+  const shouldReduce = useReducedMotion();
 
   const imageUrl = token?.metadata?.image ? ipfsToHttp(token.metadata.image) : null;
   const { imgRef, dynamicTheme } = useDominantColor(imageUrl);
@@ -222,24 +224,36 @@ export default function AssetPageClient() {
         {/* Top: image + info */}
         <div className="grid grid-cols-1 md:grid-cols-[40%_60%] md:gap-8 gap-10 items-start">
           {/* Image — sticky on desktop */}
-          <div className="md:sticky md:top-16 relative aspect-square rounded-2xl overflow-hidden border border-border bg-muted">
-            {image && !imgError ? (
-              <Image
-                src={image}
-                alt={name}
-                fill
-                className="object-cover"
-                onError={() => setImgError(true)}
-              />
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary/10 to-purple-500/10">
-                <span className="text-5xl font-mono text-muted-foreground">#{tokenId}</span>
-              </div>
-            )}
-          </div>
+          <motion.div
+            initial={shouldReduce ? false : { scale: 1.0, opacity: 0 }}
+            animate={{ scale: 1.02, opacity: 1 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="overflow-hidden rounded-xl md:sticky md:top-16"
+          >
+            <div className="relative aspect-square rounded-2xl overflow-hidden border border-border bg-muted">
+              {image && !imgError ? (
+                <Image
+                  src={image}
+                  alt={name}
+                  fill
+                  className="object-cover"
+                  onError={() => setImgError(true)}
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary/10 to-purple-500/10">
+                  <span className="text-5xl font-mono text-muted-foreground">#{tokenId}</span>
+                </div>
+              )}
+            </div>
+          </motion.div>
 
           {/* Right column */}
-          <div className="space-y-6">
+          <motion.div
+            initial={shouldReduce ? false : { opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="space-y-6"
+          >
             <div>
               {token.metadata?.ipType && (
                 <Badge variant="secondary" className="mb-2">{token.metadata.ipType}</Badge>
@@ -301,13 +315,24 @@ export default function AssetPageClient() {
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <Button
-                      className="w-full h-12 text-base"
-                      onClick={() => setPurchaseOrder(cheapest)}
+                    <motion.div
+                      animate={shouldReduce ? {} : {
+                        boxShadow: [
+                          "0 0 0 0 hsl(var(--dynamic-primary) / 0.4)",
+                          "0 0 0 12px hsl(var(--dynamic-primary) / 0)",
+                        ],
+                      }}
+                      transition={{ duration: 1.2, ease: "easeOut", repeat: 0 }}
+                      style={{ borderRadius: "inherit" }}
                     >
-                      <ShoppingCart className="h-5 w-5 mr-2" />
-                      Buy now
-                    </Button>
+                      <Button
+                        className="w-full h-12 text-base"
+                        onClick={() => setPurchaseOrder(cheapest)}
+                      >
+                        <ShoppingCart className="h-5 w-5 mr-2" />
+                        Buy now
+                      </Button>
+                    </motion.div>
                     <div className="grid grid-cols-2 gap-2">
                       <Button
                         variant="outline"
@@ -418,7 +443,7 @@ export default function AssetPageClient() {
                 Collection
               </Link>
             </div>
-          </div>
+          </motion.div>
         </div>
 
         {/* Tabs */}
