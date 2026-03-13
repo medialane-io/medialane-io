@@ -181,23 +181,28 @@ export default function AssetPageClient() {
           style={{ display: "none" }}
         />
       )}
-      {/* Full-bleed blurred background from asset image */}
-      {image && !imgError && (
-        <div className="absolute inset-0 -z-10 overflow-hidden">
-          <Image
-            src={image}
+      {/* Full-bleed atmospheric background from asset image */}
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        {imageUrl && (
+          <img
+            src={imageUrl}
             alt=""
-            fill
-            className="object-cover scale-150 blur-xl opacity-60"
-            quality={10}
-            sizes="200px"
             aria-hidden
+            className="absolute inset-0 w-full h-full object-cover opacity-20 scale-110"
+            style={{ filter: "blur(60px) saturate(1.5)" }}
           />
-          <div className="absolute inset-0 bg-background/70" />
-        </div>
-      )}
+        )}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: dynamicTheme
+              ? `hsl(var(--dynamic-primary) / 0.08)`
+              : "transparent"
+          }}
+        />
+      </div>
 
-      <div className="container mx-auto px-4 pt-14 pb-8 space-y-8">
+      <div className="container mx-auto px-4 pt-14 pb-8 space-y-8 bg-background/80">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
           <Link href="/collections" className="hover:text-foreground transition-colors shrink-0">
@@ -215,9 +220,9 @@ export default function AssetPageClient() {
         </nav>
 
         {/* Top: image + info */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-[40%_60%] md:gap-8 gap-10 items-start">
           {/* Image — sticky on desktop */}
-          <div className="lg:sticky lg:top-16 relative aspect-square rounded-2xl overflow-hidden border border-border bg-muted">
+          <div className="md:sticky md:top-16 relative aspect-square rounded-2xl overflow-hidden border border-border bg-muted">
             {image && !imgError ? (
               <Image
                 src={image}
@@ -689,6 +694,19 @@ export default function AssetPageClient() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Mobile sticky buy bar */}
+      {cheapest && !isOwner && walletAddress && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 p-4 bg-background/90 backdrop-blur-md border-t border-border md:hidden">
+          <Button
+            className="w-full h-12 text-base font-semibold"
+            style={dynamicTheme ? { background: `hsl(var(--dynamic-primary))` } : {}}
+            onClick={() => setPurchaseOrder(cheapest)}
+          >
+            Buy for {formatDisplayPrice(cheapest.price.formatted)} {cheapest.price.currency}
+          </Button>
+        </div>
+      )}
 
       {/* Dialogs */}
       {purchaseOrder && (
