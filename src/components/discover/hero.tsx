@@ -3,12 +3,15 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { usePlatformStats } from "@/hooks/use-stats";
+import { useOrders } from "@/hooks/use-orders";
 import { Button } from "@/components/ui/button";
 import { KineticWords, EASE_OUT } from "@/components/ui/motion-primitives";
 import { Compass, Sparkles, Zap } from "lucide-react";
+import { ipfsToHttp } from "@/lib/utils";
 
 export function Hero() {
   const { stats } = usePlatformStats();
+  const { orders: recentListings } = useOrders({ status: "ACTIVE", sort: "recent", limit: 5 });
 
   return (
     <section className="relative overflow-hidden border-b border-border/50 bg-background">
@@ -82,6 +85,39 @@ export function Hero() {
               </div>
             ))}
           </motion.div>
+        )}
+
+        {/* Live asset strip */}
+        {recentListings.length >= 3 && (
+          <div className="mt-8 relative overflow-hidden">
+            <div
+              className="flex gap-4 w-max"
+              style={{ animation: "scroll-strip 20s linear infinite" }}
+              onMouseEnter={(e) => (e.currentTarget.style.animationPlayState = "paused")}
+              onMouseLeave={(e) => (e.currentTarget.style.animationPlayState = "running")}
+            >
+              {/* Render twice for seamless loop */}
+              {[...recentListings, ...recentListings].map((listing, i) => (
+                <Link
+                  key={`${listing.orderHash}-${i}`}
+                  href={`/asset/${listing.nftContract}/${listing.nftTokenId}`}
+                  className="flex-shrink-0 w-36 group"
+                >
+                  <div className="aspect-square rounded-lg overflow-hidden bg-muted">
+                    {listing.token?.image && (
+                      <img
+                        src={ipfsToHttp(listing.token.image)}
+                        alt={listing.token?.name ?? ""}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    )}
+                  </div>
+                  <p className="text-xs mt-1 truncate text-muted-foreground">{listing.token?.name ?? `#${listing.nftTokenId}`}</p>
+                  <p className="text-xs font-semibold">{listing.price?.formatted ?? ""} {listing.price?.currency ?? ""}</p>
+                </Link>
+              ))}
+            </div>
+          </div>
         )}
       </div>
     </section>
