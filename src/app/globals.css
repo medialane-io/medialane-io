@@ -34,10 +34,17 @@
     --sidebar-accent-foreground: 224 47% 11%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 221 83% 53%;
+
+    /* Medialane brand tokens — additive alongside shadcn defaults */
+    --brand-blue: 221 83% 53%;
+    --brand-navy: 224 87% 20%;
+    --brand-rose: 350 89% 60%;
+    --brand-purple: 271 81% 56%;
+    --brand-orange: 21 90% 44%;
   }
 
   .dark {
-    --background: 224 50% 5%;
+    --background: 222 87% 8%;
     --foreground: 210 20% 95%;
     --card: 224 40% 8%;
     --card-foreground: 210 20% 95%;
@@ -53,7 +60,7 @@
     --accent-foreground: 0 0% 98%;
     --destructive: 350 80% 55%;
     --destructive-foreground: 0 0% 98%;
-    --border: 224 20% 16%;
+    --border: 262 30% 18%;
     --input: 224 20% 16%;
     --ring: 271 81% 65%;
     --price: 21 90% 58%;
@@ -66,6 +73,13 @@
     --sidebar-accent-foreground: 210 15% 85%;
     --sidebar-border: 224 20% 12%;
     --sidebar-ring: 271 60% 65%;
+
+    /* Medialane brand tokens */
+    --brand-blue: 221 83% 53%;
+    --brand-navy: 224 87% 20%;
+    --brand-rose: 350 89% 60%;
+    --brand-purple: 271 81% 56%;
+    --brand-orange: 21 90% 44%;
   }
 }
 
