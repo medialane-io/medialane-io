@@ -149,9 +149,12 @@ All write ops follow: create intent → sign typed data → submit signature →
 
 ---
 
-## Known Bugs (as of 2026-03-11)
+## Known Bugs (as of 2026-03-12)
 
 All previously noted bugs were fixed. No outstanding known bugs.
+
+**Fixed in 2026-03-12 session (backend):**
+- Collections created via the frontend could get stuck with `metadataStatus: "PENDING"`, `description: null`, `image: null`, `totalSupply: 0` if the `COLLECTION_METADATA_FETCH` job failed to process. Root cause: the job could exhaust retries without updating the collection status, and `STATS_UPDATE` was never enqueued from within `handleCollectionMetadataFetch`. Fixed in `medialane-backend`: `handleCollectionMetadataFetch` now enqueues a `STATS_UPDATE` after success; admin `/refresh` endpoint uses `normalizeAddress` and also enqueues `STATS_UPDATE`; new `POST /admin/collections/:contract/stats-refresh` endpoint added for on-demand stats sync.
 
 **Fixed in 2026-03-11 session:**
 - Marketplace currency filter: was passing token symbol to API instead of token address. Fixed with `getTokenBySymbol(currency)?.address`.
@@ -224,7 +227,7 @@ layout.tsx (server)
                  │    collapsible="icon" — collapses to icons on desktop, Sheet on mobile
                  └─ SidebarInset
                       ├─ sticky h-12 top bar: SidebarTrigger + search + theme + cart + auth
-                      ├─ SessionExpiryBanner (sticky top-12)
+                      ├─ SessionExpiryBanner (fixed bottom-4 right-4, dismissible toast)
                       └─ <main> — page content
             (outside SidebarInset) CartDrawer + Toaster
 ```
@@ -232,7 +235,7 @@ layout.tsx (server)
 **Key rules:**
 - Never nest `SidebarProvider` inside a page — it's global in `providers.tsx`
 - `UserButton` from Clerk must NOT be wrapped in `SidebarMenuButton` (button-in-button → React error #130)
-- `SessionExpiryBanner` uses `sticky top-12` (header is h-12 = 48px, was top-16 when header was h-16)
+- `SessionExpiryBanner` is a fixed bottom-4 right-4 dismissible toast. Dismissed state stored in sessionStorage key "session-banner-dismissed".
 - Marketplace filters are an inline horizontal toolbar (no sidebar) — Sort/Type/Currency chips
 
 ---

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
-import { AlertTriangle } from "lucide-react";
+import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SessionSetupDialog } from "@/components/chipi/session-setup-dialog";
 import { useSessionKey } from "@/hooks/use-session-key";
@@ -15,9 +15,16 @@ export function SessionExpiryBanner() {
   const { setupSession, isSettingUpSession } = useSessionKey();
   const [sessionOpen, setSessionOpen] = useState(false);
   const [minutesLeft, setMinutesLeft] = useState<number | null>(null);
+  const [dismissed, setDismissed] = useState(false);
 
   const storedSession =
     (user?.unsafeMetadata?.chipiSession as SessionKeyData | null) ?? null;
+
+  useEffect(() => {
+    if (sessionStorage.getItem("session-banner-dismissed") === "1") {
+      setDismissed(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (!storedSession) {
@@ -33,34 +40,45 @@ export function SessionExpiryBanner() {
     return () => clearInterval(id);
   }, [storedSession]);
 
-  // Only show when a session exists but is expiring / expired
-  if (!storedSession || minutesLeft === null || minutesLeft > 30) return null;
+  const handleDismiss = () => {
+    sessionStorage.setItem("session-banner-dismissed", "1");
+    setDismissed(true);
+  };
 
   const handleSetup = async (pin: string) => {
     await setupSession(pin);
     setSessionOpen(false);
   };
 
+  // Only show when a session exists but is expiring / expired
+  const shouldShow = storedSession && minutesLeft !== null && minutesLeft <= 30;
+
+  if (dismissed || !shouldShow) return null;
+
   return (
     <>
-      <div className="bg-yellow-500/10 border-b border-yellow-500/20" role="alert" aria-live="assertive">
-        <div className="container mx-auto px-4 py-2 flex items-center justify-between gap-4 text-sm text-yellow-600 dark:text-yellow-400">
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4 shrink-0" />
-            <span>
-              {minutesLeft === 0
-                ? "Your signing session has expired. Renew session to continue making transactions."
-                : `Signing session expires in ${minutesLeft} min — renew to avoid interruptions.`}
-            </span>
-          </div>
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-7 text-xs shrink-0 border-yellow-500/40 hover:bg-yellow-500/10 text-yellow-600 dark:text-yellow-400"
-            onClick={() => setSessionOpen(true)}
+      <div
+        className="fixed bottom-4 right-4 z-50 flex items-start gap-3 rounded-xl border border-border bg-background/95 backdrop-blur-sm shadow-lg px-4 py-3 max-w-sm"
+        role="alert"
+        aria-live="assertive"
+      >
+        <div className="flex-1">
+          <p className="text-sm font-medium">Session expiring soon</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {minutesLeft === 0
+              ? "Your signing session has expired."
+              : <>Your session expires in <span className="font-semibold">{minutesLeft}m</span></>}
+          </p>
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <Button size="sm" onClick={() => setSessionOpen(true)}>Renew</Button>
+          <button
+            onClick={handleDismiss}
+            className="text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Dismiss"
           >
-            Renew session
-          </Button>
+            <X className="h-4 w-4" />
+          </button>
         </div>
       </div>
 
