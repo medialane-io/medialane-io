@@ -26,6 +26,7 @@ import { useSessionKey } from "@/hooks/use-session-key";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { useCart } from "@/hooks/use-cart";
 import { toast } from "sonner";
+import { useDominantColor } from "@/hooks/use-dominant-color";
 
 const TYPE_LABEL: Record<string, string> = {
   transfer: "Transfer",
@@ -45,6 +46,9 @@ export default function AssetPageClient() {
   const { cancelOrder, fulfillOrder, isProcessing } = useMarketplace();
 
   const { addItem, items: cartItems, setIsOpen: setCartOpen } = useCart();
+
+  const imageUrl = token?.metadata?.image ? ipfsToHttp(token.metadata.image) : null;
+  const { imgRef, dynamicTheme } = useDominantColor(imageUrl);
 
   const [imgError, setImgError] = useState(false);
   const [purchaseOrder, setPurchaseOrder] = useState<ApiOrder | null>(null);
@@ -162,7 +166,21 @@ export default function AssetPageClient() {
     : [];
 
   return (
-    <div className="relative z-0 min-h-screen">
+    <div
+      style={dynamicTheme ? (dynamicTheme as React.CSSProperties) : {}}
+      className="relative z-0 min-h-screen"
+    >
+      {/* Hidden extraction image for dominant color — must be in component tree */}
+      {imageUrl && (
+        <img
+          ref={imgRef}
+          src={imageUrl}
+          crossOrigin="anonymous"
+          aria-hidden
+          alt=""
+          style={{ display: "none" }}
+        />
+      )}
       {/* Full-bleed blurred background from asset image */}
       {image && !imgError && (
         <div className="absolute inset-0 -z-10 overflow-hidden">
