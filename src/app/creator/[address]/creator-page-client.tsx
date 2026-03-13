@@ -3,12 +3,19 @@
 import { useState } from "react";
 import { useParams } from "next/navigation";
 import NextImage from "next/image";
+import { useAuth } from "@clerk/nextjs";
+import { toast } from "sonner";
 import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useUserOrders } from "@/hooks/use-orders";
 import { useActivitiesByAddress } from "@/hooks/use-activities";
+import { useCollectionsByOwner } from "@/hooks/use-collections";
+import { useDominantColor } from "@/hooks/use-dominant-color";
+import { useFollows } from "@/hooks/use-follows";
 import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listing-card";
+import { CollectionCard, CollectionCardSkeleton } from "@/components/shared/collection-card";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { timeAgo, formatDisplayPrice, ipfsToHttp } from "@/lib/utils";
 import {
@@ -21,6 +28,9 @@ import {
   LayoutGrid,
   Zap,
   ShoppingBag,
+  Heart,
+  Share2,
+  LayoutList,
 } from "lucide-react";
 import type { ApiActivity } from "@medialane/sdk";
 import { cn } from "@/lib/utils";
@@ -39,10 +49,12 @@ function AddressAvatar({
   address,
   image,
   size = 88,
+  borderColor,
 }: {
   address: string;
   image?: string | null;
   size?: number;
+  borderColor?: string;
 }) {
   const [imgError, setImgError] = useState(false);
   const { h1, h2 } = addressPalette(address);
@@ -59,7 +71,9 @@ function AddressAvatar({
           ? "transparent"
           : `linear-gradient(145deg, hsl(${h1}, 72%, 60%), hsl(${h2}, 72%, 50%))`,
         fontSize: size * 0.33,
-        boxShadow: `0 0 0 1px hsl(${h1}, 72%, 60% / 0.25), 0 0 40px hsl(${h1}, 72%, 60% / 0.25), 0 8px 32px rgba(0,0,0,0.35)`,
+        boxShadow: borderColor
+          ? `0 0 0 3px ${borderColor}, 0 0 0 4px hsl(var(--background)), 0 8px 32px rgba(0,0,0,0.35)`
+          : `0 0 0 1px hsl(${h1}, 72%, 60% / 0.25), 0 0 40px hsl(${h1}, 72%, 60% / 0.25), 0 8px 32px rgba(0,0,0,0.35)`,
       }}
     >
       {showImage ? (
@@ -160,9 +174,10 @@ function ActivityRow({ event, isLast }: { event: ApiActivity; isLast: boolean })
 // ─── Tab config ──────────────────────────────────────────────────────────────
 
 const TABS = [
-  { id: "assets",   label: "Assets",   Icon: LayoutGrid },
-  { id: "listings", label: "Listings", Icon: ShoppingBag },
-  { id: "activity", label: "Activity", Icon: Activity },
+  { id: "assets",      label: "Assets",      Icon: LayoutGrid },
+  { id: "listings",    label: "Listings",    Icon: ShoppingBag },
+  { id: "collections", label: "Collections", Icon: LayoutList },
+  { id: "activity",    label: "Activity",    Icon: Activity },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -191,43 +206,106 @@ function EmptyState({
   );
 }
 
+// ─── Follow button ────────────────────────────────────────────────────────────
+
+function FollowButton({ address }: { address: string }) {
+  const { isSignedIn } = useAuth();
+  const { toggle, isFollowing } = useFollows();
+  const following = isFollowing(address);
+
+  if (!isSignedIn) {
+    return (
+      <Button variant="outline" size="sm" disabled title="Sign in to follow">
+        <Heart className="h-4 w-4 mr-1" /> Follow
+      </Button>
+    );
+  }
+
+  return (
+    <Button
+      variant={following ? "default" : "outline"}
+      size="sm"
+      onClick={() => toggle(address)}
+    >
+      <Heart className={cn("h-4 w-4 mr-1", following && "fill-current")} />
+      {following ? "Following" : "Follow"}
+    </Button>
+  );
+}
+
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 export default function CreatorPageClient() {
   const { address } = useParams<{ address: string }>();
   const [activeTab, setActiveTab] = useState<TabId>("assets");
 
-  const { tokens,     isLoading: tokensLoading     } = useTokensByOwner(address);
-  const { orders,     isLoading: ordersLoading     } = useUserOrders(address);
-  const { activities, isLoading: activitiesLoading } = useActivitiesByAddress(address);
+  const addr = address ?? null;
+
+  // Lazy data fetching — only load when tab is active
+  const { tokens,      isLoading: tokensLoading      } = useTokensByOwner(activeTab === "assets"      ? addr : null);
+  const { orders,      isLoading: ordersLoading      } = useUserOrders(activeTab === "listings"    ? addr : null);
+  const { collections, isLoading: collectionsLoading } = useCollectionsByOwner(activeTab === "collections" ? addr : null);
+  const { activities,  isLoading: activitiesLoading  } = useActivitiesByAddress(activeTab === "activity"  ? addr : null);
+
+  // Always fetch first page of tokens for banner image (no tab gate)
+  const { tokens: bannerTokens } = useTokensByOwner(addr, 1, 1);
 
   const activeListings = orders.filter(
     (o) => o.status === "ACTIVE" && o.offer.itemType === "ERC721"
   );
   const totalSales = orders.filter((o) => o.status === "FULFILLED").length;
 
-  const { h1, h2, h3 } = addressPalette(address ?? "0x0");
+  const { h1, h2, h3 } = addressPalette(addr ?? "0x0");
 
-  // Latest minted asset — used for banner background + avatar image
-  const latestToken  = tokens[0];
+  // Latest minted asset — used for banner + dominant color
+  const latestToken  = bannerTokens[0];
   const latestRawImg = latestToken?.metadata?.image;
   const latestImage  = latestRawImg ? ipfsToHttp(latestRawImg) : null;
   const bannerImage  = latestImage && latestImage !== "/placeholder.svg" ? latestImage : null;
 
+  // Dominant color extraction
+  const { imgRef, dynamicTheme } = useDominantColor(bannerImage);
+  const dynamicPrimary = dynamicTheme
+    ? `hsl(var(--dynamic-primary))`
+    : `hsl(${h1}, 72%, 62%)`;
+
+  // Stats (always-available counts from tab data when loaded)
+  const assetsCount      = activeTab === "assets"      ? (tokensLoading      ? null : tokens.length)      : null;
+  const listingsCount    = activeTab === "listings"    ? (ordersLoading      ? null : activeListings.length) : null;
+  const collectionsCount = activeTab === "collections" ? (collectionsLoading ? null : collections.length) : null;
+  const activityCount    = activeTab === "activity"    ? (activitiesLoading  ? null : activities.length)  : null;
+
   const STATS = [
-    { label: "Assets",   value: tokensLoading ? null : tokens.length,          Icon: ImageIcon },
-    { label: "Listings", value: ordersLoading  ? null : activeListings.length,  Icon: Tag },
-    { label: "Sales",    value: ordersLoading  ? null : totalSales,             Icon: Zap },
+    { label: "Assets",      value: assetsCount,      Icon: ImageIcon },
+    { label: "Listings",    value: listingsCount,    Icon: Tag },
+    { label: "Collections", value: collectionsCount, Icon: LayoutList },
+    { label: "Sales",       value: totalSales > 0 ? totalSales : null, Icon: Zap },
   ];
 
   const tabBadge: Record<TabId, number | null> = {
-    assets:   tokensLoading     ? null : tokens.length,
-    listings: ordersLoading     ? null : activeListings.length,
-    activity: activitiesLoading ? null : activities.length,
+    assets:      assetsCount,
+    listings:    listingsCount,
+    collections: collectionsCount,
+    activity:    activityCount,
   };
 
   return (
-    <div className="pb-20 min-h-screen">
+    <div
+      className="pb-20 min-h-screen"
+      style={dynamicTheme ? (dynamicTheme as React.CSSProperties) : {}}
+    >
+      {/* Hidden extraction image for dominant color */}
+      {bannerImage && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          ref={imgRef}
+          src={bannerImage}
+          crossOrigin="anonymous"
+          aria-hidden
+          alt=""
+          style={{ display: "none" }}
+        />
+      )}
 
       {/* ── Cinematic banner ─────────────────────────────────────────────── */}
       <div className="relative h-52 sm:h-72 overflow-hidden">
@@ -240,7 +318,7 @@ export default function CreatorPageClient() {
               alt=""
               fill
               className="object-cover scale-150 blur-xl"
-              style={{ opacity: 0.6 }}
+              style={{ opacity: 0.65, filter: "blur(40px) saturate(1.8) brightness(0.6)" }}
               unoptimized
               aria-hidden
             />
@@ -274,8 +352,15 @@ export default function CreatorPageClient() {
           }}
         />
 
-        {/* Bottom fade */}
-        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background via-background/60 to-transparent" />
+        {/* Dynamic gradient overlay at bottom */}
+        <div
+          className="absolute inset-x-0 bottom-0 h-40"
+          style={{
+            background: dynamicTheme
+              ? `linear-gradient(to bottom, hsl(var(--dynamic-primary) / 0.15) 0%, hsl(var(--background)) 100%)`
+              : `linear-gradient(to bottom, transparent 0%, hsl(var(--background)) 100%)`,
+          }}
+        />
 
         {/* Top fade */}
         <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-background/20 to-transparent" />
@@ -285,7 +370,7 @@ export default function CreatorPageClient() {
           <div className="glass rounded-full px-3 py-1.5 flex items-center gap-1.5">
             <span
               className="h-1.5 w-1.5 rounded-full animate-pulse-glow"
-              style={{ background: `hsl(${h1}, 72%, 62%)` }}
+              style={{ background: dynamicPrimary }}
             />
             <span className="text-[10px] font-mono text-foreground/70 tracking-wide">
               Starknet
@@ -297,10 +382,15 @@ export default function CreatorPageClient() {
       <div className="container mx-auto px-4 max-w-6xl">
 
         {/* ── Identity row ─────────────────────────────────────────────────── */}
-        <div className="-mt-16 relative z-10 flex flex-col sm:flex-row sm:items-end gap-5 pb-8">
+        <div className="-mt-16 relative z-10 flex flex-col sm:flex-row sm:items-end gap-5 pb-6">
           {/* Avatar — shows latest asset image, falls back to gradient initials */}
           <div className="shrink-0">
-            <AddressAvatar address={address ?? "0x0"} image={latestImage} size={88} />
+            <AddressAvatar
+              address={address ?? "0x0"}
+              image={latestImage}
+              size={88}
+              borderColor={dynamicTheme ? `hsl(var(--dynamic-primary))` : undefined}
+            />
           </div>
 
           {/* Name + address */}
@@ -335,9 +425,25 @@ export default function CreatorPageClient() {
           </div>
         </div>
 
+        {/* ── Action buttons ────────────────────────────────────────────────── */}
+        <div className="flex gap-3 mb-6 relative z-10">
+          <FollowButton address={address ?? ""} />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              navigator.clipboard.writeText(window.location.href);
+              toast.success("Link copied");
+            }}
+          >
+            <Share2 className="h-4 w-4 mr-1" />
+            Share profile
+          </Button>
+        </div>
+
         {/* ── Mobile stats ─────────────────────────────────────────────────── */}
         <div className="sm:hidden grid grid-cols-3 gap-3 mb-8 border-t border-border/50 pt-6">
-          {STATS.map(({ label, value, Icon }) => (
+          {STATS.slice(0, 3).map(({ label, value, Icon }) => (
             <div
               key={label}
               className="bento-cell px-3 py-3.5 flex flex-col items-center gap-1.5 text-center"
@@ -389,7 +495,9 @@ export default function CreatorPageClient() {
                     <span
                       className="absolute bottom-0 inset-x-0 h-0.5 rounded-full"
                       style={{
-                        background: `linear-gradient(90deg, hsl(${h1}, 68%, 62%), hsl(${h2}, 68%, 58%))`,
+                        background: dynamicTheme
+                          ? `linear-gradient(90deg, hsl(var(--dynamic-primary)), hsl(var(--dynamic-accent)))`
+                          : `linear-gradient(90deg, hsl(${h1}, 68%, 62%), hsl(${h2}, 68%, 58%))`,
                       }}
                     />
                   )}
@@ -436,6 +544,27 @@ export default function CreatorPageClient() {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {activeListings.map((o) => (
                 <ListingCard key={o.orderHash} order={o} />
+              ))}
+            </div>
+          )
+        )}
+
+        {/* ── Collections ──────────────────────────────────────────────────── */}
+        {activeTab === "collections" && (
+          collectionsLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Array.from({ length: 3 }).map((_, i) => <CollectionCardSkeleton key={i} />)}
+            </div>
+          ) : collections.length === 0 ? (
+            <EmptyState
+              icon={LayoutList}
+              heading="No collections yet"
+              body="This creator hasn't deployed any collections on Medialane yet."
+            />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {collections.map((c) => (
+                <CollectionCard key={c.contractAddress} collection={c} />
               ))}
             </div>
           )
