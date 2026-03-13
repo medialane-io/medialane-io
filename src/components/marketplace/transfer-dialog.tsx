@@ -124,7 +124,7 @@ export function TransferDialog({
     }
   };
 
-  const isSuccess = txStatus === "confirmed";
+  const isSuccess = txStatus === "confirmed" && !error;
   const displayName = tokenName || `Token #${tokenId}`;
 
   return (

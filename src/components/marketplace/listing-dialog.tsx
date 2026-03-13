@@ -130,7 +130,7 @@ export function ListingDialog({
     }
   };
 
-  const isSuccess = txStatus === "confirmed";
+  const isSuccess = txStatus === "confirmed" && !error;
 
   return (
     <>

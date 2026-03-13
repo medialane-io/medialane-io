@@ -85,7 +85,7 @@ export function PurchaseDialog({ order, open, onOpenChange }: PurchaseDialogProp
     }
   };
 
-  const isSuccess = txStatus === "confirmed";
+  const isSuccess = txStatus === "confirmed" && !error;
 
   return (
     <>

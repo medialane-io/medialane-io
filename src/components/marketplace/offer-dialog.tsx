@@ -123,7 +123,7 @@ export function OfferDialog({
     }
   };
 
-  const isSuccess = txStatus === "confirmed";
+  const isSuccess = txStatus === "confirmed" && !error;
 
   return (
     <>
