@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MotionCard } from "@/components/ui/motion-primitives";
-import { ShoppingCart, Tag, ArrowRightLeft, X } from "lucide-react";
+import { ShoppingCart, Tag, ArrowRightLeft, X, Loader2 } from "lucide-react";
 import { ipfsToHttp , formatDisplayPrice} from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
 import type { ApiToken } from "@medialane/sdk";
@@ -79,6 +79,12 @@ export function TokenCard({
             <Badge className="absolute top-2 left-2 text-[10px] bg-background/85 backdrop-blur-sm border-0">
               {token.metadata.ipType}
             </Badge>
+          )}
+          {(token.metadataStatus === "PENDING" || token.metadataStatus === "FETCHING") && (
+            <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-background/85 backdrop-blur-sm rounded-full px-2 py-0.5">
+              <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+              <span className="text-[10px] text-muted-foreground">Indexing…</span>
+            </div>
           )}
           {isOwner && activeOrder && (
             <Badge className="absolute top-2 right-2 text-[10px] bg-emerald-500/90 text-white border-0 backdrop-blur-sm">
