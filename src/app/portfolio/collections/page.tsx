@@ -72,7 +72,7 @@ export default function PortfolioCollectionsPage() {
       onRetry={mutate}
       emptyTitle="No collections yet"
       emptyDescription="If you just created a collection, it may take a few seconds to appear."
-      emptyCta={{ label: "Create collection", href: "/create/collection" }}
+      emptyCta={{ label: "Create a collection", href: "/create/collection" }}
       emptyIcon={<Layers className="h-7 w-7 text-muted-foreground" />}
     >
       <div className="space-y-4">

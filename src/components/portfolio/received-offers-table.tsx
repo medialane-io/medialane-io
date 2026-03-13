@@ -119,7 +119,7 @@ export function ReceivedOffersTable({ address }: ReceivedOffersTableProps) {
         error={error}
         isEmpty={receivedOffers.length === 0}
         onRetry={mutate}
-        emptyTitle="No offers received"
+        emptyTitle="No offers received yet"
         emptyDescription="When someone makes an offer on your asset, it will appear here."
         emptyIcon={<Inbox className="h-7 w-7 text-muted-foreground" />}
         skeletonCount={3}

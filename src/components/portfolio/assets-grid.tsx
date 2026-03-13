@@ -83,7 +83,7 @@ export function AssetsGrid({ address }: AssetsGridProps) {
         onRetry={mutate}
         emptyTitle="No assets yet"
         emptyDescription="Mint your first asset to get started."
-        emptyCta={{ label: "Mint asset", href: "/create/asset" }}
+        emptyCta={{ label: "Create your first asset", href: "/create/asset" }}
         emptyIcon={<ImageIcon className="h-7 w-7 text-muted-foreground" />}
         skeletonCount={8}
       >

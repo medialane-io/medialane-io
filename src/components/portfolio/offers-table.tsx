@@ -110,9 +110,9 @@ export function OffersTable({ address }: OffersTableProps) {
         error={error}
         isEmpty={myOffers.length === 0}
         onRetry={mutate}
-        emptyTitle="No offers made"
+        emptyTitle="No offers sent yet"
         emptyDescription="Browse the marketplace to make offers on assets."
-        emptyCta={{ label: "Browse marketplace", href: "/" }}
+        emptyCta={{ label: "Browse marketplace", href: "/marketplace" }}
         emptyIcon={<HandCoins className="h-7 w-7 text-muted-foreground" />}
         skeletonCount={3}
       >
