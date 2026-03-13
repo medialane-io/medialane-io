@@ -204,7 +204,7 @@ export default function AssetPageClient() {
         />
       </div>
 
-      <div className="container mx-auto px-4 pt-14 pb-8 space-y-8 bg-background/80">
+      <div className={`container mx-auto px-4 pt-14 space-y-8 bg-background/80 ${cheapest && !isOwner && walletAddress ? "pb-24 md:pb-8" : "pb-8"}`}>
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
           <Link href="/collections" className="hover:text-foreground transition-colors shrink-0">
