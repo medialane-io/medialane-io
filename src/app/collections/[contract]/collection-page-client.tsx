@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Image from "next/image";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { motion, useScroll, useTransform, useReducedMotion, useInView } from "framer-motion";
 import { useCollection, useCollectionTokens } from "@/hooks/use-collections";
 import { useOrders } from "@/hooks/use-orders";
+import { useDominantColor } from "@/hooks/use-dominant-color";
 import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listing-card";
 import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,131 +17,7 @@ import { AddressDisplay } from "@/components/shared/address-display";
 import { CheckCircle2, ArrowLeft, Loader2 } from "lucide-react";
 import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import type { ApiToken } from "@medialane/sdk";
-
-const STATS = (col: NonNullable<ReturnType<typeof useCollection>["collection"]>) => [
-  { label: "Items",   value: col.totalSupply?.toLocaleString() ?? "—" },
-  { label: "Holders", value: col.holderCount?.toLocaleString() ?? "—" },
-  { label: "Floor",   value: formatDisplayPrice(col.floorPrice) || "—" },
-  { label: "Volume",  value: formatDisplayPrice(col.totalVolume) || "—" },
-];
-
-function CollectionBanner({ collection, isLoading }: {
-  collection: ReturnType<typeof useCollection>["collection"];
-  isLoading: boolean;
-}) {
-  const [imgError, setImgError] = useState(false);
-  const imageUrl = collection?.image ? ipfsToHttp(collection.image) : null;
-  const showImage = imageUrl && !imgError;
-  const initial = (collection?.name ?? "?").charAt(0).toUpperCase();
-
-  if (isLoading) {
-    return (
-      <div>
-        <Skeleton className="w-full aspect-[21/7]" />
-        <div className="container mx-auto px-4">
-          <div className="flex items-end gap-4 -mt-8 pb-6">
-            <Skeleton className="h-20 w-20 rounded-2xl shrink-0" />
-            <div className="space-y-2 pb-1 flex-1">
-              <Skeleton className="h-7 w-56" />
-              <Skeleton className="h-4 w-40" />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="relative">
-      {/* Full-bleed blurred background from collection image */}
-      {showImage && (
-        <div className="absolute inset-0 -z-10 overflow-hidden">
-          <Image
-            src={imageUrl}
-            alt=""
-            fill
-            className="object-cover scale-150 blur-3xl opacity-40"
-            unoptimized
-            aria-hidden
-          />
-          <div className="absolute inset-0 bg-background/60" />
-        </div>
-      )}
-
-      {/* Banner */}
-      <div className="relative w-full aspect-[4/3] sm:aspect-[21/7] bg-gradient-to-br from-primary/20 via-purple-500/15 to-blue-500/10 overflow-hidden">
-        {showImage && (
-          <Image
-            src={imageUrl}
-            alt={collection?.name ?? "Collection"}
-            fill
-            className="object-cover"
-            onError={() => setImgError(true)}
-            unoptimized
-            priority
-          />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
-
-        {/* Back link — sits below the floating header */}
-        <Link
-          href="/collections"
-          className="absolute top-14 left-4 flex items-center gap-1.5 text-xs font-medium text-white/80 hover:text-white bg-black/30 hover:bg-black/50 backdrop-blur-sm px-3 py-1.5 rounded-full transition-all"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          Collections
-        </Link>
-      </div>
-
-      {/* Identity — overlaps banner */}
-      <div className="container mx-auto px-4">
-        <div className="relative z-10 flex items-end gap-4 -mt-10 pb-4">
-          {/* Avatar */}
-          <div className="relative h-20 w-20 rounded-2xl border-4 border-background bg-gradient-to-br from-primary/30 to-purple-500/30 flex items-center justify-center text-3xl font-black shrink-0 overflow-hidden shadow-xl">
-            {showImage && (
-              <Image
-                src={imageUrl}
-                alt=""
-                fill
-                className="object-cover"
-                onError={() => setImgError(true)}
-                unoptimized
-              />
-            )}
-            {!showImage && <span>{initial}</span>}
-          </div>
-
-          {/* Name + meta */}
-          <div className="min-w-0 pb-1 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-bold truncate">{collection?.name ?? "Unnamed Collection"}</h1>
-              {collection?.symbol && (
-                <Badge variant="secondary" className="font-mono text-xs shrink-0">
-                  {collection.symbol}
-                </Badge>
-              )}
-              {collection?.isKnown && (
-                <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-              )}
-            </div>
-            <AddressDisplay
-              address={collection?.contractAddress ?? ""}
-              chars={6}
-              className="text-xs text-muted-foreground mt-0.5"
-            />
-          </div>
-        </div>
-
-        {/* Description */}
-        {collection?.description && (
-          <p className="text-sm text-muted-foreground max-w-2xl leading-relaxed pb-2">
-            {collection.description}
-          </p>
-        )}
-      </div>
-    </div>
-  );
-}
+import type { DynamicTheme } from "@/lib/theme-utils";
 
 const PAGE_SIZE = 24;
 
@@ -206,47 +83,171 @@ export default function CollectionPageClient() {
     limit: 100,
   });
 
+  const bannerUrl = collection?.image ? ipfsToHttp(collection.image) : null;
+  const { imgRef, dynamicTheme } = useDominantColor(bannerUrl);
+
   const activeListings = orders.filter((o) => o.status === "ACTIVE" && o.offer.itemType === "ERC721");
   const activeBids = orders.filter((o) => o.status === "ACTIVE" && o.offer.itemType === "ERC20");
 
   return (
-    <div className="space-y-0">
-      <CollectionBanner collection={collection} isLoading={colLoading} />
+    <div
+      style={dynamicTheme ? (dynamicTheme as React.CSSProperties) : {}}
+      className="relative space-y-0"
+    >
+      {/* Hidden extraction img */}
+      {bannerUrl && (
+        <img
+          ref={imgRef}
+          src={bannerUrl}
+          crossOrigin="anonymous"
+          aria-hidden
+          alt=""
+          style={{ display: "none" }}
+        />
+      )}
 
-      <div className="container mx-auto px-4 space-y-8 pb-12">
-        {/* Stats bar */}
-        {colLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-16 rounded-xl" />
-            ))}
+      {/* Full-bleed collection banner */}
+      {colLoading ? (
+        <Skeleton className="w-full" style={{ height: "45vh", minHeight: "250px" }} />
+      ) : (
+        <div
+          className="relative w-full overflow-hidden"
+          style={{ height: "45vh", minHeight: "250px" }}
+        >
+          {/* Parallax image */}
+          <ParallaxBanner imageUrl={bannerUrl} />
+
+          {/* Gradient overlay using dynamic color */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background: dynamicTheme
+                ? `linear-gradient(to bottom, hsl(var(--dynamic-primary) / 0.3) 0%, hsl(var(--background) / 0.95) 100%)`
+                : `linear-gradient(to bottom, transparent 0%, hsl(var(--background) / 0.95) 100%)`,
+            }}
+          />
+
+          {/* Back link */}
+          <Link
+            href="/collections"
+            className="absolute top-14 left-4 flex items-center gap-1.5 text-xs font-medium text-white/80 hover:text-white bg-black/30 hover:bg-black/50 backdrop-blur-sm px-3 py-1.5 rounded-full transition-all z-10"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Collections
+          </Link>
+
+          {/* Collection identity over the banner */}
+          <div className="absolute bottom-6 left-6 right-6 z-10">
+            <h1 className="text-3xl font-bold text-white drop-shadow-md">
+              {collection?.name ?? "Unnamed Collection"}
+            </h1>
+            <div className="flex items-center gap-2 mt-1">
+              {collection?.symbol && (
+                <Badge variant="secondary" className="font-mono text-xs">
+                  {collection.symbol}
+                </Badge>
+              )}
+              {collection?.isKnown && (
+                <Badge className="mt-0">
+                  <CheckCircle2 className="h-3 w-3 mr-1" />
+                  Verified
+                </Badge>
+              )}
+            </div>
           </div>
-        ) : collection ? (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-            {STATS(collection).map(({ label, value }) => (
-              <div key={label} className="rounded-xl border border-border bg-card px-4 py-3">
-                <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider">
-                  {label}
-                </p>
-                <p className="text-xl font-bold mt-0.5 truncate">{value}</p>
+        </div>
+      )}
+
+      {/* Stats bar */}
+      {colLoading ? (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 px-6 py-5">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-16 rounded-xl" />
+          ))}
+        </div>
+      ) : collection ? (
+        <>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 px-6 py-5 bg-background/80 backdrop-blur-sm">
+            {[
+              {
+                label: "Items",
+                value: collection.totalSupply ?? null,
+                display: collection.totalSupply != null ? String(collection.totalSupply) : "—",
+                currency: undefined,
+              },
+              {
+                label: "Holders",
+                value: null,
+                display: collection.holderCount != null ? String(collection.holderCount) : "—",
+                currency: undefined,
+              },
+              {
+                label: "Floor",
+                value: null,
+                display: formatDisplayPrice(collection.floorPrice) || "—",
+                currency: undefined,
+              },
+              {
+                label: "Volume",
+                value: null,
+                display: formatDisplayPrice(collection.totalVolume) || "—",
+                currency: undefined,
+              },
+            ].map(({ label, value, display, currency }) => (
+              <div key={label} className="text-center">
+                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{label}</p>
+                <CountUpStat value={value} display={display} currency={currency} dynamicTheme={dynamicTheme} />
               </div>
             ))}
           </div>
-        ) : null}
 
-        {/* Tabs */}
+          {/* Creator credit */}
+          {collection.owner && (
+            <div className="px-6 py-2 flex items-center gap-2 text-sm text-muted-foreground">
+              <span>by</span>
+              <Link
+                href={`/creator/${collection.owner}`}
+                className="font-medium hover:underline text-foreground"
+              >
+                {collection.owner.slice(0, 6)}...{collection.owner.slice(-4)}
+              </Link>
+            </div>
+          )}
+
+          {/* Description */}
+          {collection.description && (
+            <p className="px-6 pb-2 text-sm text-muted-foreground max-w-2xl leading-relaxed">
+              {collection.description}
+            </p>
+          )}
+
+          {/* Contract address */}
+          <div className="px-6 pb-2">
+            <AddressDisplay
+              address={collection.contractAddress ?? ""}
+              chars={6}
+              className="text-xs text-muted-foreground"
+            />
+          </div>
+        </>
+      ) : null}
+
+      {/* Tabs */}
+      <div className="px-6 pb-12">
         <Tabs defaultValue="items">
-          <TabsList>
-            <TabsTrigger value="items">
-              Items{collection?.totalSupply ? ` (${collection.totalSupply.toLocaleString()})` : ""}
-            </TabsTrigger>
-            <TabsTrigger value="listings">
-              Listings{!ordersLoading && activeListings.length > 0 && ` (${activeListings.length})`}
-            </TabsTrigger>
-            <TabsTrigger value="offers">
-              Offers{!ordersLoading && activeBids.length > 0 && ` (${activeBids.length})`}
-            </TabsTrigger>
-          </TabsList>
+          <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border">
+            <TabsList>
+              <TabsTrigger value="items">
+                Items{collection?.totalSupply ? ` (${collection.totalSupply.toLocaleString()})` : ""}
+              </TabsTrigger>
+              <TabsTrigger value="listings">
+                Listings{!ordersLoading && activeListings.length > 0 && ` (${activeListings.length})`}
+              </TabsTrigger>
+              <TabsTrigger value="offers">
+                Offers{!ordersLoading && activeBids.length > 0 && ` (${activeBids.length})`}
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Items */}
           <TabsContent value="items" className="mt-6">
@@ -289,5 +290,68 @@ export default function CollectionPageClient() {
         </Tabs>
       </div>
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Sub-components
+// ---------------------------------------------------------------------------
+
+function ParallaxBanner({ imageUrl }: { imageUrl: string | null }) {
+  const { scrollY } = useScroll();
+  const shouldReduce = useReducedMotion();
+  const y = useTransform(scrollY, [0, 500], [0, shouldReduce ? 0 : 150]);
+  if (!imageUrl) return null;
+  return (
+    <motion.img
+      src={imageUrl}
+      alt=""
+      aria-hidden
+      style={{ y }}
+      className="absolute inset-0 w-full h-full object-cover scale-110"
+    />
+  );
+}
+
+function CountUpStat({
+  value,
+  display,
+  currency,
+  dynamicTheme,
+}: {
+  value: number | null;
+  display: string;
+  currency?: string;
+  dynamicTheme: DynamicTheme | null;
+}) {
+  const shouldReduce = useReducedMotion();
+  const ref = useRef<HTMLSpanElement>(null);
+  const isInView = useInView(ref, { once: true });
+  const [shown, setShown] = useState(shouldReduce || value === null ? display : "0");
+
+  useEffect(() => {
+    if (shouldReduce || value === null || !isInView) return;
+    let start = 0;
+    const duration = 1000;
+    const step = (timestamp: number) => {
+      if (!start) start = timestamp;
+      const progress = Math.min((timestamp - start) / duration, 1);
+      setShown(String(Math.floor(progress * value)));
+      if (progress < 1) requestAnimationFrame(step);
+      else setShown(display);
+    };
+    requestAnimationFrame(step);
+  }, [isInView, shouldReduce, value, display]);
+
+  return (
+    <p
+      className="text-2xl font-bold tabular-nums"
+      style={dynamicTheme ? { color: `hsl(var(--dynamic-primary))` } : {}}
+    >
+      <span ref={ref}>{shown}</span>
+      {currency && (
+        <span className="text-sm font-normal ml-1 text-muted-foreground">{currency}</span>
+      )}
+    </p>
   );
 }
