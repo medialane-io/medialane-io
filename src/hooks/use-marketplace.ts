@@ -20,6 +20,7 @@ import { useChipiTransaction } from "./use-chipi-transaction";
 import { useSessionKey } from "./use-session-key";
 import { useMedialaneClient } from "./use-medialane-client";
 import { MARKETPLACE_CONTRACT, SUPPORTED_TOKENS, INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
+import { normalizeAddress } from "@/lib/utils";
 import type { ChipiCall } from "./use-chipi-transaction";
 
 /** Resolve a currency symbol (e.g. "USDC") to its on-chain contract address.
@@ -197,9 +198,9 @@ export function useMarketplace() {
       // the expected contract emitted at least one event to confirm the operation
       // actually executed on-chain.
       if (requiredEventFrom) {
-        const normalizedRequired = requiredEventFrom.toLowerCase();
+        const normalizedRequired = normalizeAddress(requiredEventFrom);
         const hasEvent = (result.events ?? []).some(
-          (e) => e.from_address?.toLowerCase() === normalizedRequired
+          (e) => normalizeAddress(e.from_address ?? "") === normalizedRequired
         );
         if (!hasEvent) {
           throw new Error(

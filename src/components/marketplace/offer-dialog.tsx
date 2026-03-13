@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { CheckCircle2, AlertCircle, HandCoins, ExternalLink, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -94,9 +95,13 @@ export function OfferDialog({
   };
 
   const handleSessionSetup = async (pin: string) => {
-    await setupSession(pin);
-    setSessionSetupOpen(false);
-    setPinOpen(true);
+    try {
+      await setupSession(pin);
+      setSessionSetupOpen(false);
+      setPinOpen(true);
+    } catch {
+      toast.error("Session setup failed. Please try again.");
+    }
   };
 
   const handlePin = async (pin: string) => {
@@ -148,7 +153,7 @@ export function OfferDialog({
                   </a>
                 </Button>
               )}
-              <Button className="w-full" onClick={() => onOpenChange(false)}>Done</Button>
+              <Button className="w-full" onClick={() => { resetState(); form.reset(); setPendingValues(null); onOpenChange(false); }}>Done</Button>
             </div>
           ) : isProcessing ? (
             <div className="flex flex-col items-center gap-4 py-8">

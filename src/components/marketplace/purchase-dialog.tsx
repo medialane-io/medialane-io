@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { toast } from "sonner";
-import { CheckCircle2, AlertCircle, ExternalLink, ShoppingCart } from "lucide-react";
+import { CheckCircle2, AlertCircle, ExternalLink, ShoppingCart, RefreshCw } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -114,7 +114,7 @@ export function PurchaseDialog({ order, open, onOpenChange }: PurchaseDialogProp
                   </a>
                 </Button>
               )}
-              <Button className="w-full" onClick={() => onOpenChange(false)}>Done</Button>
+              <Button className="w-full" onClick={() => { resetState(); onOpenChange(false); }}>Done</Button>
             </div>
           ) : (isProcessing || txStatus === "confirming") ? (
             <TxStatus status={txStatus} txHash={txHash} error={error} statusMessage={
@@ -139,10 +139,19 @@ export function PurchaseDialog({ order, open, onOpenChange }: PurchaseDialogProp
               </div>
 
               {error && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
+                <>
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                  {txHash && (
+                    <Button variant="outline" size="sm" className="w-full" asChild>
+                      <a href={`${EXPLORER_URL}/tx/${txHash}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+                        View transaction on Voyager <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </Button>
+                  )}
+                </>
               )}
 
               {!isSignedIn ? (
@@ -151,8 +160,8 @@ export function PurchaseDialog({ order, open, onOpenChange }: PurchaseDialogProp
                 </p>
               ) : (
                 <Button className="w-full h-11" onClick={handleBuyClick}>
-                  <ShoppingCart className="h-4 w-4 mr-2" />
-                  {hasWallet ? "Buy now" : "Set up wallet & buy"}
+                  {error ? <RefreshCw className="h-4 w-4 mr-2" /> : <ShoppingCart className="h-4 w-4 mr-2" />}
+                  {error ? "Try again" : hasWallet ? "Buy now" : "Set up wallet & buy"}
                 </Button>
               )}
 
