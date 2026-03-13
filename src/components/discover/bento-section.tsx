@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FadeIn } from "@/components/ui/motion-primitives";
 import { BRAND } from "@/lib/brand";
+import { ipfsToHttp } from "@/lib/utils";
 import { Compass, Sparkles, Layers, Zap, ArrowRight } from "lucide-react";
 
 interface QuickAction {
@@ -148,6 +149,45 @@ export function BentoSection() {
           </>
         )}
       </div>
+
+      {/* Featured Drops — large cards with full-bleed image */}
+      {featured.length > 0 && (
+        <FadeIn delay={0.3}>
+          <section className="mt-4">
+            <p className="section-label mb-1">Featured drops</p>
+            <div className="flex items-center gap-2 mb-4">
+              <Zap className={`h-4 w-4 ${BRAND.orange.text}`} />
+              <h2 className="text-xl font-bold">Featured Collections</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {featured.map((col) => (
+                <Link key={col.contractAddress ?? col.id} href={`/collections/${col.contractAddress}`} className="group">
+                  <div className="rounded-xl overflow-hidden border border-border hover:shadow-lg transition-shadow duration-300">
+                    <div className="aspect-video relative overflow-hidden">
+                      {col.image ? (
+                        <img
+                          src={ipfsToHttp(col.image)}
+                          alt={col.name ?? ""}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-[hsl(var(--brand-purple)/0.2)] to-[hsl(var(--brand-blue)/0.2)]" />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                      <div className="absolute bottom-3 left-3 right-3">
+                        <p className="font-semibold text-white truncate">{col.name ?? "Unnamed"}</p>
+                        <div className="flex justify-between text-xs text-white/80 mt-1">
+                          <span>{col.totalSupply ?? 0} items</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        </FadeIn>
+      )}
 
     </section>
   );
