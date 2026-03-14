@@ -43,56 +43,36 @@ export function CollectionCard({ collection }: CollectionCardProps) {
             </div>
           )}
 
-          {/* Avant-garde Glass Overlay */}
-          <div className="absolute inset-x-2 bottom-2 glass rounded-xl p-3 space-y-2 border border-white/10 shadow-xl backdrop-blur-md">
-            {/* Header: Name + Badge */}
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5">
-                  {!collection.name && collection.metadataStatus === "PENDING" ? (
-                    <span className="flex items-center gap-1.5 text-[10px] text-white/60">
-                      <Loader2 className="h-2.5 w-2.5 animate-spin" />
-                      Indexing…
-                    </span>
-                  ) : (
-                    <p className="font-bold text-sm truncate leading-snug text-white">
-                      {collection.name ?? "Unnamed Collection"}
-                    </p>
-                  )}
-                  {collection.isKnown && (
-                    <CheckCircle2 className="h-3.5 w-3.5 text-brand-blue shrink-0" />
-                  )}
-                </div>
-                {collection.symbol && (
-                  <p className="text-[10px] text-white/50 mt-0.5 font-mono">
-                    {collection.symbol}
-                  </p>
-                )}
-              </div>
+          {/* Name badge — bottom left */}
+          <div className="absolute bottom-2 left-2 right-2 flex items-end justify-between gap-1.5 flex-wrap">
+            <div className="flex items-center gap-1 backdrop-blur-md bg-black/50 rounded-lg px-2 py-1 max-w-[70%]">
+              {!collection.name && collection.metadataStatus === "PENDING" ? (
+                <span className="flex items-center gap-1 text-[10px] text-white/70">
+                  <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                  Indexing…
+                </span>
+              ) : (
+                <p className="font-bold text-xs truncate text-white leading-tight">
+                  {collection.name ?? "Unnamed Collection"}
+                </p>
+              )}
+              {collection.isKnown && (
+                <CheckCircle2 className="h-3 w-3 text-brand-blue shrink-0" />
+              )}
             </div>
 
-            {/* Price section - compact */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="text-center">
-                  <p className="section-label !text-[8px] !text-white/40 !tracking-widest">Items</p>
-                  <p className="text-[11px] font-bold text-white mt-0.5">
-                    {collection.totalSupply?.toLocaleString() ?? "—"}
-                  </p>
-                </div>
-                <div className="text-center">
-                  <p className="section-label !text-[8px] !text-white/40 !tracking-widest">Holders</p>
-                  <p className="text-[11px] font-bold text-white mt-0.5">
-                    {collection.holderCount?.toLocaleString() ?? "—"}
-                  </p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="section-label !text-[8px] !text-white/40 !tracking-widest">Floor</p>
-                <p className={`text-[11px] font-black mt-0.5 ${hasFloor ? "text-primary" : "text-white"}`}>
-                  {formatDisplayPrice(collection.floorPrice) || "—"}
-                </p>
-              </div>
+            {/* Stat badges */}
+            <div className="flex items-center gap-1">
+              {collection.totalSupply != null && (
+                <span className="backdrop-blur-md bg-black/50 rounded-lg px-2 py-1 text-[10px] font-semibold text-white/80">
+                  {collection.totalSupply.toLocaleString()} items
+                </span>
+              )}
+              {hasFloor && (
+                <span className="backdrop-blur-md bg-black/50 rounded-lg px-2 py-1 text-[10px] font-bold text-white">
+                  {formatDisplayPrice(collection.floorPrice)}
+                </span>
+              )}
             </div>
           </div>
         </div>

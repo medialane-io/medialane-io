@@ -108,24 +108,11 @@ export default function CollectionPageClient() {
 
       {/* Full-bleed collection banner */}
       {colLoading ? (
-        <Skeleton className="w-full" style={{ height: "45vh", minHeight: "250px" }} />
+        <Skeleton className="w-full aspect-video" />
       ) : (
-        <div
-          className="relative w-full overflow-hidden"
-          style={{ height: "45vh", minHeight: "250px" }}
-        >
+        <div className="relative w-full overflow-hidden aspect-video">
           {/* Parallax image */}
           <ParallaxBanner imageUrl={bannerUrl} />
-
-          {/* Gradient overlay using dynamic color */}
-          <div
-            className="absolute inset-0"
-            style={{
-              background: dynamicTheme
-                ? `linear-gradient(to bottom, hsl(var(--dynamic-primary) / 0.3) 0%, hsl(var(--background) / 0.95) 100%)`
-                : `linear-gradient(to bottom, transparent 0%, hsl(var(--background) / 0.95) 100%)`,
-            }}
-          />
 
           {/* Back link */}
           <Link

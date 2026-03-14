@@ -97,7 +97,7 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild onClick={closeSidebar}>
-              {state === "expanded" ? <MedialaneLogo /> : <MedialaneIcon />}
+              {isMobile || state === "expanded" ? <MedialaneLogo /> : <MedialaneIcon />}
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -157,10 +157,10 @@ export function AppSidebar() {
             {isLoaded && isSignedIn ? (
               <div className={cn(
                 "flex items-center gap-3 py-1.5",
-                state === "collapsed" ? "justify-center px-0" : "px-2"
+                !isMobile && state === "collapsed" ? "justify-center px-0" : "px-2"
               )}>
                 <UserButton afterSignOutUrl="/" />
-                {state === "expanded" && (
+                {(isMobile || state === "expanded") && (
                   <div className="grid flex-1 text-left text-sm leading-tight min-w-0">
                     <span className="truncate font-medium text-sidebar-foreground">
                       {user?.fullName ?? user?.username ?? "Account"}
@@ -175,10 +175,10 @@ export function AppSidebar() {
               isLoaded && (
                 <div className={cn(
                   "flex gap-1.5 pb-1",
-                  state === "collapsed" ? "flex-col items-center px-0" : "flex-col px-1"
+                  !isMobile && state === "collapsed" ? "flex-col items-center px-0" : "flex-col px-1"
                 )}>
                   <SignInButton mode="modal">
-                    {state === "collapsed" ? (
+                    {!isMobile && state === "collapsed" ? (
                       <SidebarMenuButton tooltip="Sign in">
                         <LogIn />
                         <span className="sr-only">Sign in</span>
@@ -190,7 +190,7 @@ export function AppSidebar() {
                     )}
                   </SignInButton>
                   <SignUpButton mode="modal">
-                    {state === "collapsed" ? (
+                    {!isMobile && state === "collapsed" ? (
                       <SidebarMenuButton tooltip="Start">
                         <PlusCircle />
                         <span className="sr-only">Start</span>

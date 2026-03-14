@@ -97,7 +97,13 @@ export function TokenCard({
         <div className="p-3 space-y-2.5">
           <div>
             <p className="font-semibold text-sm truncate leading-snug">{name}</p>
-            <p className="text-[11px] text-muted-foreground">#{token.tokenId}</p>
+            {token.metadata?.description ? (
+              <p className="text-[11px] text-muted-foreground line-clamp-2 leading-snug mt-0.5">
+                {token.metadata.description}
+              </p>
+            ) : (
+              <p className="text-[11px] text-muted-foreground">#{token.tokenId}</p>
+            )}
           </div>
 
           {activeOrder && (

@@ -15,7 +15,7 @@ export function Hero() {
 
   return (
     <section className="relative overflow-hidden border-b border-border/50 bg-background">
-      <div className="relative px-4 py-16 sm:py-24 max-w-3xl mx-auto text-center sm:text-left">
+      <div className="relative px-4 sm:px-8 py-16 sm:py-24 text-center sm:text-left">
         {/* Badge */}
         <motion.div
           className="flex justify-center sm:justify-start mb-6"
