@@ -59,12 +59,12 @@ export function ListingsGrid({ sort = "recent", currency, orderType = "", minPri
     }
   }, [orders, isLoading, page]);
 
-  // Client-side type filter (backend doesn't support itemType param)
-  const displayedOrders = orderType === "listings"
-    ? allOrders.filter((o) => o.offer.itemType === "ERC721")
-    : orderType === "offers"
+  // Client-side type filter (backend doesn't support itemType param).
+  // Default ("" / "all") shows only listings — offers (bids) are not useful
+  // in the browse grid and are accessible via the "Offers" filter tab.
+  const displayedOrders = orderType === "offers"
     ? allOrders.filter((o) => o.offer.itemType === "ERC20")
-    : allOrders;
+    : allOrders.filter((o) => o.offer.itemType === "ERC721");
 
   const isInitialLoading = isLoading && allOrders.length === 0;
   const isLoadingMore = isLoading && allOrders.length > 0;
