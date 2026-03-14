@@ -57,10 +57,10 @@ export function AirdropSection() {
       {/* Cinematic dark background */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#0a0010] via-[#06000e] to-[#000814]" />
 
-      {/* Aurora atmosphere */}
-      <div className="aurora-purple absolute w-[600px] h-[600px] -top-32 -left-24" style={{ opacity: 0.22 }} />
-      <div className="aurora-blue absolute w-[450px] h-[450px] top-10 right-0" style={{ opacity: 0.15 }} />
-      <div className="aurora-rose absolute w-[350px] h-[350px] bottom-0 left-1/3" style={{ opacity: 0.10 }} />
+      {/* Aurora atmosphere — sizes in % so they scale with the section, never overflow */}
+      <div className="aurora-purple absolute w-[80%] max-w-[600px] h-[60%] max-h-[600px] -top-1/4 -left-1/4" style={{ opacity: 0.22 }} />
+      <div className="aurora-blue absolute w-[60%] max-w-[450px] h-[50%] max-h-[450px] top-0 -right-1/4" style={{ opacity: 0.15 }} />
+      <div className="aurora-rose absolute w-[50%] max-w-[350px] h-[40%] max-h-[350px] bottom-0 left-1/3" style={{ opacity: 0.10 }} />
 
       {/* Edge glow lines */}
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-500/40 to-transparent" />
@@ -80,7 +80,7 @@ export function AirdropSection() {
 
             {/* Headline */}
             <div className="space-y-4">
-              <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black leading-[1.05] tracking-tight text-white">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black leading-[1.08] tracking-tight text-white">
                 The First Airdrop
                 <br />
                 Built for{" "}

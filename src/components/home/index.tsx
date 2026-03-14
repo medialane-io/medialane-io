@@ -10,8 +10,7 @@ import { LearnDocsCta } from "./learn-docs-cta";
 
 export function HomePage() {
   return (
-    // overflow-x-hidden on root prevents ANY section from causing page-level horizontal scroll
-    <div className="pb-24 overflow-x-hidden">
+    <div className="pb-24">
       {/* Hero — <main> has zero padding so this is naturally full-bleed */}
       <HeroSlider />
 

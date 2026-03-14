@@ -85,6 +85,10 @@
 
 @layer base {
   * { @apply border-border; }
+  /* Prevent horizontal scroll at the document level. overflow-x:clip is
+     stronger than hidden: it clips without creating a scroll container,
+     so position:sticky children still work correctly. */
+  html, body { overflow-x: clip; max-width: 100%; }
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
