@@ -321,8 +321,12 @@ export function useMarketplace() {
             offerer: walletAddress!,
             orderHash: input.orderHash,
           }),
-          "Order cancelled.",
-          MARKETPLACE_CONTRACT
+          "Order cancelled."
+          // No requiredEventFrom — a confirmed cancel tx is always successful.
+          // The event guard is only needed for fulfillOrder where ChipiPay's
+          // multicall wrapper can report SUCCEEDED while the inner call panics
+          // (e.g. insufficient ERC-20 balance). That silent-failure path does
+          // not exist for cancel_order.
         );
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Cancellation failed";
