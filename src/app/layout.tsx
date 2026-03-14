@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     template: "%s | Medialane",
   },
   description:
-    "Launch, collect, and monetize intellectual property on Starknet. No seed phrases, no gas fees.",
+    "Launch, collect, and monetize NFT digital assets. No seed phrases, no gas fees.",
   keywords: ["NFT", "IP", "Intellectual Property", "Starknet", "Creator", "Marketplace"],
   authors: [{ name: "Medialane" }],
   openGraph: {

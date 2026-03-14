@@ -34,7 +34,7 @@ export function NewOnMarketplace() {
 
       <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">
         {isLoading
-          ? Array.from({ length: 6 }).map((_, i) => <ListingCardSkeleton key={i} />)
+          ? Array.from({ length: 4 }).map((_, i) => <ListingCardSkeleton key={i} />)
           : listings.length === 0
           ? (
               <p className="col-span-full text-sm text-muted-foreground py-4">

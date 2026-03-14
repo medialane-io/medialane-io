@@ -19,10 +19,6 @@ export function GenesisMintSection() {
           Claim your{" "}
           <span className="gradient-text">Genesis NFT</span>
         </h2>
-        <p className="text-muted-foreground leading-relaxed">
-          Your passport to the Medialane airdrop. Mint once, hold forever.
-          The clock is ticking.
-        </p>
       </div>
 
       {/* Mint widget */}

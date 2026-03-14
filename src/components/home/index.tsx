@@ -26,9 +26,10 @@ export function HomePage() {
 
       {/* Padded content sections */}
       <div className={`${SECTION_PADDING} space-y-20 mt-20`}>
-        <GenesisMintSection />
+        
         <TrendingCollections />
         <NewOnMarketplace />
+        <GenesisMintSection />
         <CommunityActivity />
         <LearnDocsCta />
       </div>

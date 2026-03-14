@@ -234,22 +234,9 @@ export function LaunchMint() {
   const isSuccess = mintStep === "success";
 
   return (
-    <div className="min-h-screen relative flex items-center">
-      {/* Background */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-1/3 -left-1/4 h-2/3 w-2/3 rounded-full bg-primary/[0.08] blur-[120px]" />
-        <div className="absolute -bottom-1/3 -right-1/4 h-2/3 w-2/3 rounded-full bg-purple-600/[0.08] blur-[120px]" />
-        <svg className="absolute inset-0 w-full h-full opacity-[0.025]" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <defs>
-            <pattern id="launch-dots" width="32" height="32" patternUnits="userSpaceOnUse">
-              <circle cx="1" cy="1" r="1" fill="white" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#launch-dots)" />
-        </svg>
-      </div>
-
-      <div className="container mx-auto px-4 py-12 lg:py-20 relative max-w-5xl">
+    <div className="relative flex items-center">
+      
+      <div className="container mx-auto px-4 py-8 relative max-w-5xl">
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           {/* Left: NFT card */}
@@ -270,18 +257,8 @@ export function LaunchMint() {
 
             {/* ── Not signed in ── */}
             {isLoaded && !isSignedIn && (
-              <div className="space-y-7">
-                <div className="space-y-3">
-                  <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-[1.1]">
-                    Claim your{" "}
-                    <span className="bg-gradient-to-r from-primary via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                      NFT
-                    </span>
-                  </h1>
-                  <p className="text-xs text-muted-foreground leading-relaxed max-w-md">
-                    You are finally early! Be among the first to claim our Genesis NFT.
-                  </p>
-                </div>
+              <div className="space-y-2">
+                
 
                 <div className="space-y-2">
                   <LaunchCountdown />

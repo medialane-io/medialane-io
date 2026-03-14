@@ -359,7 +359,7 @@ export default function AssetPageClient() {
                   <SignInButton mode="modal">
                     <Button className="w-full h-12 text-base">
                       <ShoppingCart className="h-5 w-5 mr-2" />
-                      Sign in to buy
+                      Sign in to trade
                     </Button>
                   </SignInButton>
                 )}
