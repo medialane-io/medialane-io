@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useUser, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
-import { Home, Compass, Briefcase, PlusCircle, Zap, Activity, LayoutGrid, Telescope, Search, Sun, Moon, ShoppingBag, LogIn, UserPlus } from "lucide-react";
+import { Home, Compass, Briefcase, PlusCircle, Zap, Activity, LayoutGrid, Telescope, Search, Sun, Moon, ShoppingBag, LogIn, UserPlus, Info, BookOpen, FileCode2, Mail, LifeBuoy, Scale, Lock } from "lucide-react";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useUnreadOffers } from "@/hooks/use-unread-offers";
 import { useCart } from "@/hooks/use-cart";
@@ -146,6 +146,61 @@ export function AppSidebar() {
             </SidebarMenuItem>
             <ThemeToggleItem />
             <CartItem />
+          </SidebarMenu>
+        </SidebarGroup>
+
+        <SidebarSeparator />
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Learn & Docs</SidebarGroupLabel>
+          <SidebarMenu>
+            {[
+              { href: "/about",  label: "About",  icon: Info },
+              { href: "/learn",  label: "Learn",  icon: BookOpen },
+              { href: "/docs",   label: "Docs",   icon: FileCode2 },
+            ].map(({ href, label, icon: Icon }) => (
+              <SidebarMenuItem key={href}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname === href || (href !== "/about" && !!pathname?.startsWith(href))}
+                  tooltip={label}
+                  onClick={closeSidebar}
+                >
+                  <Link href={href}>
+                    <Icon />
+                    <span>{label}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
+
+        <SidebarSeparator />
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Company</SidebarGroupLabel>
+          <SidebarMenu>
+            {[
+              { href: "/contact", label: "Contact Us",   icon: Mail },
+              { href: "/support", label: "Support",      icon: LifeBuoy },
+              { href: "/terms",   label: "Terms of Use", icon: Scale },
+              { href: "/privacy", label: "Privacy",      icon: Lock },
+            ].map(({ href, label, icon: Icon }) => (
+              <SidebarMenuItem key={href}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname === href}
+                  tooltip={label}
+                  onClick={closeSidebar}
+                >
+                  <Link href={href}>
+                    <Icon />
+                    <span>{label}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
