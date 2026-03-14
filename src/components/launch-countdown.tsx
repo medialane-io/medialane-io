@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from "react";
 
-const LAUNCH_DATE = new Date("2026-03-14T00:00:00Z");
+const GENESIS_MINT_DATE = new Date("2026-03-26T00:00:00Z");
 
 function pad(n: number) {
   return String(n).padStart(2, "0");
 }
 
 function getTimeLeft() {
-  const diff = LAUNCH_DATE.getTime() - Date.now();
+  const diff = GENESIS_MINT_DATE.getTime() - Date.now();
   if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0, launched: true };
   return {
     days: Math.floor(diff / (1000 * 60 * 60 * 24)),

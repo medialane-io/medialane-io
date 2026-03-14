@@ -1,10 +1,18 @@
-import { LaunchMint } from "@/components/launch-mint";
-import { DiscoverPage } from "@/components/discover";
+import type { Metadata } from "next";
+import { HomePage } from "@/components/home";
 
-// Flip to DiscoverPage automatically on launch date
-const LAUNCH_DATE = new Date("2026-03-14T00:00:00Z");
-const isLaunched = new Date() >= LAUNCH_DATE;
+export const metadata: Metadata = {
+  title: "Medialane — The Starknet Creator Launchpad",
+  description:
+    "Mint, license, and trade intellectual property as NFTs on Starknet. Free to mint. Gas-free trading. Programmable royalties.",
+  openGraph: {
+    title: "Medialane — The Starknet Creator Launchpad",
+    description:
+      "Mint, license, and trade intellectual property as NFTs on Starknet. Free to mint. Gas-free trading. Programmable royalties.",
+    type: "website",
+  },
+};
 
-export default function HomePage() {
-  return isLaunched ? <DiscoverPage /> : <LaunchMint />;
+export default function Page() {
+  return <HomePage />;
 }
