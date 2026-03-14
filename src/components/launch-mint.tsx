@@ -2,10 +2,10 @@
 
 import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
-import { useUser, useAuth, SignInButton, SignUpButton } from "@clerk/nextjs";
+import Link from "next/link";
+import { useUser, SignInButton, SignUpButton } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { byteArray, CallData } from "starknet";
-import { useChipiWallet } from "@chipi-stack/nextjs";
 import {
   Sparkles,
   Zap,
@@ -13,13 +13,12 @@ import {
   ExternalLink,
   CheckCircle2,
   Loader2,
-  XCircle,
   RefreshCw,
+  XCircle,
   Gift,
   Droplets,
   ArrowRight,
   Wallet,
-  Lock,
   User,
 } from "lucide-react";
 import { PinInput, validatePin } from "@/components/ui/pin-input";
@@ -31,7 +30,6 @@ import {
   GENESIS_NFT_URI,
 } from "@/lib/constants";
 import { LaunchCountdown } from "./launch-countdown";
-import { completeOnboarding } from "@/app/onboarding/_actions";
 
 // ─── Genesis NFT card ────────────────────────────────────────────────────────
 
@@ -92,27 +90,8 @@ type MintStep = "ready" | "enter-pin" | "minting" | "success" | "error";
 
 export function LaunchMint() {
   const { isSignedIn, isLoaded, user } = useUser();
-  const { getToken } = useAuth();
   const { walletAddress: sessionWalletAddress, hasWallet, isLoadingWallet } = useSessionKey();
   const { executeTransaction, status, statusMessage, error: txError, reset } = useChipiTransaction();
-
-  const getBearerToken = useCallback(
-    () => getToken({ template: process.env.NEXT_PUBLIC_CLERK_TEMPLATE_NAME || "chipipay" }),
-    [getToken]
-  );
-  // Use useChipiWallet (not useCreateWallet) so its onSuccess invalidates
-  // ["chipi-wallet", userId] → useSessionKey refetches → hasWallet becomes true
-  const { createWallet: chipiCreateWallet } = useChipiWallet({
-    externalUserId: user?.id ?? "",
-    getBearerToken,
-    enabled: false,
-  });
-
-  // Wallet creation
-  const [walletPin, setWalletPin] = useState("");
-  const [walletPinError, setWalletPinError] = useState<string | null>(null);
-  const [isCreatingWallet, setIsCreatingWallet] = useState(false);
-  const [walletCreateError, setWalletCreateError] = useState<string | null>(null);
 
   // Mint flow
   const [mintStep, setMintStep] = useState<MintStep>("ready");
@@ -135,34 +114,6 @@ export function LaunchMint() {
   }, [userId]);
 
   const recipientAddress = sessionWalletAddress ?? undefined;
-
-  // ── Create wallet ─────────────────────────────────────────────────────────
-
-  const handleCreateWallet = useCallback(async () => {
-    const err = validatePin(walletPin);
-    if (err) { setWalletPinError(err); return; }
-    setWalletPinError(null);
-    setIsCreatingWallet(true);
-    setWalletCreateError(null);
-
-    try {
-      const wallet = await chipiCreateWallet({ encryptKey: walletPin });
-      if (!wallet?.walletPublicKey) {
-        throw new Error("Wallet creation returned invalid data. Please try again.");
-      }
-
-      const result = await completeOnboarding({ publicKey: wallet.walletPublicKey });
-      if (result.error) throw new Error(result.error);
-
-      // useChipiWallet.createWallet invalidates ["chipi-wallet", userId] in React Query →
-      // useSessionKey's useChipiWallet refetches → hasWallet becomes true → mint flow renders
-      await user!.reload();
-    } catch (err: unknown) {
-      setWalletCreateError(err instanceof Error ? err.message : "Wallet creation failed. Please try again.");
-    } finally {
-      setIsCreatingWallet(false);
-    }
-  }, [walletPin, chipiCreateWallet, user]);
 
   // ── Mint ──────────────────────────────────────────────────────────────────
 
@@ -285,7 +236,7 @@ export function LaunchMint() {
               </div>
             )}
 
-            {/* ── Signed in, no wallet: onboarding ── */}
+            {/* ── Signed in, no wallet: redirect to onboarding ── */}
             {isLoaded && !isLoadingWallet && isSignedIn && !hasWallet && (
               <div className="space-y-6">
                 <div className="space-y-3">
@@ -296,67 +247,31 @@ export function LaunchMint() {
                     </span>
                   </div>
                   <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight leading-[1.1]">
-                    Create your{" "}
+                    Secure your{" "}
                     <span className="bg-gradient-to-r from-primary via-purple-400 to-pink-400 bg-clip-text text-transparent">
                       Starknet wallet
                     </span>
                   </h2>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Set a PIN to secure your invisible wallet. No seed phrases, no gas fees — just a
-                    number you'll remember.
+                    One quick step before minting — set up your invisible wallet with a passkey or PIN. No seed phrases, no gas fees.
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-border/60 bg-card/50 p-5 space-y-4">
-                  <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                      <Lock className="h-4 w-4 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold">Choose a wallet PIN</p>
-                      <p className="text-xs text-muted-foreground">6–12 digits · Numbers only</p>
-                    </div>
-                  </div>
+                <Button
+                  size="lg"
+                  className="w-full rounded-xl h-12 font-bold gap-2 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 shadow-lg shadow-primary/25"
+                  asChild
+                >
+                  <Link href="/onboarding?redirect_url=/">
+                    <Wallet className="h-4 w-4" />
+                    Set up your wallet
+                    <ArrowRight className="h-4 w-4 ml-auto" />
+                  </Link>
+                </Button>
 
-                  <PinInput
-                    value={walletPin}
-                    onChange={(v) => { setWalletPin(v); setWalletPinError(null); }}
-                    placeholder="enter PIN"
-                    error={walletPinError}
-                    autoFocus
-                  />
-
-                  {walletCreateError && (
-                    <p className="text-xs text-destructive font-medium flex items-start gap-1">
-                      <XCircle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                      {walletCreateError}
-                    </p>
-                  )}
-
-                  <Button
-                    size="lg"
-                    className="w-full rounded-xl h-11 font-bold gap-2 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90"
-                    onClick={handleCreateWallet}
-                    disabled={isCreatingWallet || walletPin.length < 6}
-                  >
-                    {isCreatingWallet ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Creating wallet…
-                      </>
-                    ) : (
-                      <>
-                        <Wallet className="h-4 w-4" />
-                        Create wallet &amp; continue
-                        <ArrowRight className="h-4 w-4 ml-auto" />
-                      </>
-                    )}
-                  </Button>
-
-                  <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
-                    ⚠️ Your PIN cannot be recovered. Store it somewhere safe.
-                  </p>
-                </div>
+                <p className="text-xs text-center text-muted-foreground">
+                  Takes less than a minute · Passkey or PIN
+                </p>
               </div>
             )}
 
