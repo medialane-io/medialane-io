@@ -93,7 +93,7 @@ type MintStep = "ready" | "enter-pin" | "minting" | "success" | "error";
 export function LaunchMint() {
   const { isSignedIn, isLoaded, user } = useUser();
   const { getToken } = useAuth();
-  const { walletAddress: sessionWalletAddress, hasWallet } = useSessionKey();
+  const { walletAddress: sessionWalletAddress, hasWallet, isLoadingWallet } = useSessionKey();
   const { executeTransaction, status, statusMessage, error: txError, reset } = useChipiTransaction();
 
   const getBearerToken = useCallback(
@@ -244,7 +244,7 @@ export function LaunchMint() {
           {/* Right: interactive panel */}
           <div>
             {/* ── Loading ── */}
-            {!isLoaded && (
+            {(!isLoaded || (isLoaded && isSignedIn && isLoadingWallet)) && (
               <div className="space-y-6">
                 <div className="h-10 w-48 rounded-lg bg-muted/40 animate-pulse" />
                 <div className="h-24 rounded-xl bg-muted/30 animate-pulse" />
@@ -286,7 +286,7 @@ export function LaunchMint() {
             )}
 
             {/* ── Signed in, no wallet: onboarding ── */}
-            {isLoaded && isSignedIn && !hasWallet && (
+            {isLoaded && !isLoadingWallet && isSignedIn && !hasWallet && (
               <div className="space-y-6">
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 text-sm">
@@ -361,7 +361,7 @@ export function LaunchMint() {
             )}
 
             {/* ── Has wallet: mint flow ── */}
-            {isLoaded && isSignedIn && hasWallet && (
+            {isLoaded && !isLoadingWallet && isSignedIn && hasWallet && (
               <div className="space-y-7">
                 {/* Header — shown on all sub-steps */}
                 {mintStep !== "success" && (
