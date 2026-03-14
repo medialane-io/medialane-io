@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Mail, MapPin, Twitter } from "lucide-react";
+import { Mail, MapPin, Send, Twitter } from "lucide-react";
 
 export default function ContactPage() {
   const [loading, setLoading] = useState(false);
@@ -23,9 +23,9 @@ export default function ContactPage() {
     <div className="container mx-auto px-4 pt-12 pb-16 max-w-4xl space-y-12">
       {/* Header */}
       <div className="space-y-3">
-        <h1 className="text-3xl font-bold">Contact Us</h1>
+        <h1 className="text-3xl font-bold">Reach Us</h1>
         <p className="text-muted-foreground leading-relaxed max-w-xl">
-          Have a question, partnership inquiry, or feedback? Fill out the form and we&apos;ll
+          Have a question, support request, partnership inquiry, or feedback? Fill out the form or mail us at dao@medialane.org and we&apos;ll
           get back to you as soon as possible.
         </p>
       </div>
@@ -102,8 +102,8 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <p className="text-sm font-medium">Email</p>
-                  <a href="mailto:hello@medialane.io" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                    hello@medialane.io
+                  <a href="mailto:dao@medialane.org" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                    dao@medialane.org
                   </a>
                 </div>
               </div>
@@ -122,23 +122,24 @@ export default function ContactPage() {
 
               <div className="flex items-start gap-3">
                 <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                  <MapPin className="h-4 w-4 text-primary" />
+                  <Send className="h-4 w-4 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium">Based on Starknet</p>
-                  <p className="text-sm text-muted-foreground">Decentralised globally</p>
+                  <p className="text-sm font-medium">Telegram</p>
+                  <a href="https://t.me/integrityweb" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                    @IntegrityWeb
+                  </a>
                 </div>
               </div>
+
             </div>
           </div>
 
           <div className="bento-cell p-5 space-y-2">
-            <p className="text-sm font-medium">Specific enquiries</p>
+            <p className="text-sm font-medium">Our contacts</p>
             <div className="space-y-1.5 text-sm text-muted-foreground">
-              <p><a href="mailto:legal@medialane.io" className="text-primary hover:underline">legal@medialane.io</a> — Terms, legal matters</p>
-              <p><a href="mailto:dmca@medialane.io" className="text-primary hover:underline">dmca@medialane.io</a> — Copyright / DMCA</p>
-              <p><a href="mailto:privacy@medialane.io" className="text-primary hover:underline">privacy@medialane.io</a> — Privacy requests</p>
-              <p><a href="mailto:dev@medialane.io" className="text-primary hover:underline">dev@medialane.io</a> — Developer / API access</p>
+              <p><a href="mailto:dao@medialane.org" className="text-primary hover:underline">dao@medialane.org</a></p>
+              <p><a href="mailto:medialaneio@gmail.com" className="text-primary hover:underline">medialaneio@gmail.com</a></p>
             </div>
           </div>
         </div>
