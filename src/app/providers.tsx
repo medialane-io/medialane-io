@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { ThemeProvider } from "next-themes";
 import { Toaster, toast } from "sonner";
 import Link from "next/link";
@@ -13,6 +14,15 @@ import { MedialaneLogo } from "@/components/brand/medialane-logo";
 import { SWRConfig } from "swr";
 
 function Shell({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    if (sessionStorage.getItem("ml-mainnet-notice-shown")) return;
+    sessionStorage.setItem("ml-mainnet-notice-shown", "1");
+    toast.warning("Medialane is live on Starknet Mainnet — early testing phase. Proceed with caution.", {
+      duration: 12000,
+      id: "mainnet-notice",
+    });
+  }, []);
+
   return (
     <SidebarProvider defaultOpen={false}>
       <AppSidebar />

@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useUser, useAuth, SignInButton, SignUpButton } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { byteArray, CallData } from "starknet";
-import { useCreateWallet, Chain } from "@chipi-stack/nextjs";
+import { useChipiWallet } from "@chipi-stack/nextjs";
 import {
   Sparkles,
   Zap,
@@ -94,8 +94,19 @@ export function LaunchMint() {
   const { isSignedIn, isLoaded, user } = useUser();
   const { getToken } = useAuth();
   const { walletAddress: sessionWalletAddress, hasWallet } = useSessionKey();
-  const { createWalletAsync } = useCreateWallet();
   const { executeTransaction, status, statusMessage, error: txError, reset } = useChipiTransaction();
+
+  const getBearerToken = useCallback(
+    () => getToken({ template: process.env.NEXT_PUBLIC_CLERK_TEMPLATE_NAME || "chipipay" }),
+    [getToken]
+  );
+  // Use useChipiWallet (not useCreateWallet) so its onSuccess invalidates
+  // ["chipi-wallet", userId] → useSessionKey refetches → hasWallet becomes true
+  const { createWallet: chipiCreateWallet } = useChipiWallet({
+    externalUserId: user?.id ?? "",
+    getBearerToken,
+    enabled: false,
+  });
 
   // Wallet creation
   const [walletPin, setWalletPin] = useState("");
@@ -135,37 +146,23 @@ export function LaunchMint() {
     setWalletCreateError(null);
 
     try {
-      const token = await getToken({
-        template: process.env.NEXT_PUBLIC_CLERK_TEMPLATE_NAME || "chipipay",
-      });
-      if (!token) throw new Error("Auth token missing. Please sign in again.");
-
-      const response = await createWalletAsync({
-        params: {
-          encryptKey: walletPin,
-          externalUserId: user!.id as any,
-          chain: "STARKNET" as Chain,
-        },
-        bearerToken: token,
-      });
-
-      // SDK v11 returns { wallet: {...} }, v13 returns the wallet directly
-      const wallet = (response as any).wallet || response;
-      if (!wallet?.publicKey) {
+      const wallet = await chipiCreateWallet({ encryptKey: walletPin });
+      if (!wallet?.walletPublicKey) {
         throw new Error("Wallet creation returned invalid data. Please try again.");
       }
 
-      const result = await completeOnboarding({ publicKey: wallet.publicKey });
+      const result = await completeOnboarding({ publicKey: wallet.walletPublicKey });
       if (result.error) throw new Error(result.error);
 
+      // useChipiWallet.createWallet invalidates ["chipi-wallet", userId] in React Query →
+      // useSessionKey's useChipiWallet refetches → hasWallet becomes true → mint flow renders
       await user!.reload();
-      // hasWallet will now be true → component re-renders to show mint button
     } catch (err: unknown) {
       setWalletCreateError(err instanceof Error ? err.message : "Wallet creation failed. Please try again.");
     } finally {
       setIsCreatingWallet(false);
     }
-  }, [walletPin, getToken, createWalletAsync, user]);
+  }, [walletPin, chipiCreateWallet, user]);
 
   // ── Mint ──────────────────────────────────────────────────────────────────
 

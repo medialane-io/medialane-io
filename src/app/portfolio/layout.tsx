@@ -24,8 +24,8 @@ const NAV_ITEMS = [
 ];
 
 export default function PortfolioLayout({ children }: { children: React.ReactNode }) {
-  const { isLoaded, isSignedIn } = useUser();
-  const { walletAddress, isLoadingWallet } = useSessionKey();
+  const { isLoaded, isSignedIn, user } = useUser();
+  const { walletAddress, isLoadingWallet, refetchWallet } = useSessionKey();
   const pathname = usePathname();
   const address = walletAddress;
   const { orders } = useUserOrders(address ?? null);
@@ -75,6 +75,25 @@ export default function PortfolioLayout({ children }: { children: React.ReactNod
   }
 
   if (!address) {
+    // walletCreated is set in Clerk publicMetadata after successful onboarding.
+    // If true here, the wallet exists in ChipiPay but the query returned null
+    // (stale cache, network blip, or race condition). Offer a retry instead of
+    // sending the user back to /onboarding where wallet creation would fail.
+    const walletCreated = user?.publicMetadata?.walletCreated === true;
+
+    if (walletCreated) {
+      return (
+        <div className="container mx-auto px-4 py-24 text-center space-y-4">
+          <Wallet className="h-12 w-12 mx-auto text-muted-foreground" />
+          <h1 className="text-2xl font-bold">Connecting to your wallet…</h1>
+          <p className="text-muted-foreground max-w-sm mx-auto">
+            Your wallet exists but couldn&apos;t be loaded right now. Please retry.
+          </p>
+          <Button onClick={() => refetchWallet()}>Retry</Button>
+        </div>
+      );
+    }
+
     return (
       <div className="container mx-auto px-4 py-24 text-center space-y-4">
         <Wallet className="h-12 w-12 mx-auto text-muted-foreground" />

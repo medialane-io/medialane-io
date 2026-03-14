@@ -43,7 +43,7 @@ export function useSessionKey() {
   );
 
   // Fetch wallet from ChipiPay API — authoritative source for normalizedPublicKey + encryptedPrivateKey
-  const { wallet, isLoadingWallet } = useChipiWallet({
+  const { wallet, isLoadingWallet, refetchWallet } = useChipiWallet({
     externalUserId: userId,
     getBearerToken,
     enabled: !!userId,
@@ -170,6 +170,8 @@ export function useSessionKey() {
     hasActiveSession,
     /** Whether wallet data is still loading */
     isLoadingWallet,
+    /** Force-refetch the wallet from ChipiPay (useful after wallet creation in another context) */
+    refetchWallet,
     /** Whether a session key is being created or registered on-chain */
     isSettingUpSession: isCreating || isRegistering,
     setupSession,

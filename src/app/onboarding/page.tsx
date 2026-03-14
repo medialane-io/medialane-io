@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, Suspense } from "react";
+import { useState, useCallback, useEffect, useRef, Suspense } from "react";
 import { useAuth, useUser, useClerk } from "@clerk/nextjs";
 import { useSearchParams } from "next/navigation";
 import { useChipiWallet, isWebAuthnSupported, createWalletPasskey } from "@chipi-stack/nextjs";
@@ -36,11 +36,30 @@ function OnboardingContent() {
     [getToken]
   );
 
-  const { createWallet, isCreating } = useChipiWallet({
+  // enabled: !!userId so we auto-detect a pre-existing wallet (recovery for users
+  // who created a wallet via LaunchMint but whose completeOnboarding never ran).
+  const { createWallet, isCreating, wallet, hasWallet, isLoadingWallet } = useChipiWallet({
     externalUserId: userId,
     getBearerToken,
-    enabled: false,
+    enabled: !!userId,
   });
+
+  // Auto-recovery: wallet exists in ChipiPay but walletCreated not yet set in Clerk.
+  // Complete onboarding silently and redirect — no user action needed.
+  const autoCompleteAttempted = useRef(false);
+  useEffect(() => {
+    if (!hasWallet || !wallet || step === "done" || autoCompleteAttempted.current) return;
+    autoCompleteAttempted.current = true;
+    completeOnboarding({ publicKey: (wallet as any).publicKey ?? "" }).then((result) => {
+      if (!result?.error) {
+        user?.reload().then(() => {
+          setStep("done");
+          setTimeout(() => { window.location.href = redirectUrl; }, 1500);
+        });
+      }
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasWallet, wallet]);
 
   const [passkeySupported] = useState(
     () => typeof window !== "undefined" && isWebAuthnSupported()
@@ -149,7 +168,25 @@ function OnboardingContent() {
     );
   }
 
-  // ── Loading state ─────────────────────────────────────────────────────────
+  // ── Wallet check loading state ─────────────────────────────────────────────
+
+  if (isLoadingWallet) {
+    return (
+      <div className="min-h-[80vh] flex items-center justify-center px-4">
+        <Card className="w-full max-w-sm text-center">
+          <CardHeader>
+            <div className="flex justify-center mb-4">
+              <Loader2 className="h-10 w-10 animate-spin text-primary" />
+            </div>
+            <CardTitle>Checking your account…</CardTitle>
+            <CardDescription>Just a moment.</CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
+  // ── Wallet creation loading state ──────────────────────────────────────────
 
   if (isLoading) {
     return (
