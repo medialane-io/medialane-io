@@ -23,6 +23,7 @@ import { LICENSE_TRAIT_TYPES } from "@/types/ip";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ApiActivity, ApiOrder } from "@medialane/sdk";
 import { EXPLORER_URL } from "@/lib/constants";
+import { useAuth, SignInButton } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { useCart } from "@/hooks/use-cart";
@@ -39,6 +40,7 @@ const TYPE_LABEL: Record<string, string> = {
 
 export default function AssetPageClient() {
   const { contract, tokenId } = useParams<{ contract: string; tokenId: string }>();
+  const { isSignedIn } = useAuth();
   const { walletAddress } = useSessionKey();
   const { collection } = useCollection(contract);
   const { token, isLoading } = useToken(contract, tokenId);
@@ -313,7 +315,7 @@ export default function AssetPageClient() {
                       Transfer
                     </Button>
                   </div>
-                ) : (
+                ) : isSignedIn ? (
                   <div className="space-y-2">
                     <motion.div
                       animate={shouldReduce ? {} : {
@@ -353,6 +355,13 @@ export default function AssetPageClient() {
                       </Button>
                     </div>
                   </div>
+                ) : (
+                  <SignInButton mode="modal">
+                    <Button className="w-full h-12 text-base">
+                      <ShoppingCart className="h-5 w-5 mr-2" />
+                      Sign in to buy
+                    </Button>
+                  </SignInButton>
                 )}
               </div>
             ) : (
@@ -373,11 +382,17 @@ export default function AssetPageClient() {
                       Transfer
                     </Button>
                   </div>
-                ) : (
+                ) : isSignedIn ? (
                   <Button variant="outline" className="w-full" onClick={() => setOfferOpen(true)}>
                     <HandCoins className="h-4 w-4 mr-2" />
                     Make offer
                   </Button>
+                ) : (
+                  <SignInButton mode="modal">
+                    <Button variant="outline" className="w-full">
+                      Sign in to make an offer
+                    </Button>
+                  </SignInButton>
                 )}
               </div>
             )}

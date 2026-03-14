@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { CheckCircle2, AlertCircle, Tag, ExternalLink, Loader2 } from "lucide-react";
+import { CheckCircle2, AlertCircle, Tag, ExternalLink, Loader2, LogIn } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -27,6 +27,7 @@ import { Badge } from "@/components/ui/badge";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { SessionSetupDialog } from "@/components/chipi/session-setup-dialog";
+import { useAuth, SignInButton } from "@clerk/nextjs";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { EXPLORER_URL, DURATION_OPTIONS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
@@ -61,6 +62,7 @@ export function ListingDialog({
   tokenName,
   onSuccess,
 }: ListingDialogProps) {
+  const { isSignedIn } = useAuth();
   const {
     createListing,
     hasWallet,
@@ -84,6 +86,7 @@ export function ListingDialog({
   });
 
   const onSubmit = (values: FormValues) => {
+    if (!isSignedIn) return;
     setPendingValues(values);
     if (!hasWallet) {
       setWalletSetupOpen(true);
@@ -140,7 +143,20 @@ export function ListingDialog({
             <DialogTitle>List for sale</DialogTitle>
           </DialogHeader>
 
-          {isSuccess ? (
+          {!isSignedIn ? (
+            <div className="flex flex-col items-center gap-4 py-8 text-center">
+              <LogIn className="h-10 w-10 text-muted-foreground" />
+              <div>
+                <p className="font-semibold">Sign in to list</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  You need a Medialane account to list assets for sale.
+                </p>
+              </div>
+              <SignInButton mode="modal">
+                <Button className="w-full">Sign in</Button>
+              </SignInButton>
+            </div>
+          ) : isSuccess ? (
             <div className="flex flex-col items-center gap-4 py-4">
               <CheckCircle2 className="h-12 w-12 text-emerald-500" />
               <p className="font-semibold text-lg">Listing live!</p>

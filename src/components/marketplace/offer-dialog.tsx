@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { CheckCircle2, AlertCircle, HandCoins, ExternalLink, Loader2 } from "lucide-react";
+import { CheckCircle2, AlertCircle, HandCoins, ExternalLink, Loader2, LogIn } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -27,6 +27,7 @@ import { Badge } from "@/components/ui/badge";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { SessionSetupDialog } from "@/components/chipi/session-setup-dialog";
+import { useAuth, SignInButton } from "@clerk/nextjs";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { EXPLORER_URL, DURATION_OPTIONS } from "@/lib/constants";
 
@@ -58,6 +59,7 @@ export function OfferDialog({
   tokenId,
   tokenName,
 }: OfferDialogProps) {
+  const { isSignedIn } = useAuth();
   const {
     makeOffer,
     hasWallet,
@@ -82,6 +84,7 @@ export function OfferDialog({
   });
 
   const onSubmit = (values: FormValues) => {
+    if (!isSignedIn) return;
     setPendingValues(values);
     if (!hasWallet) {
       setWalletSetupOpen(true);
@@ -138,7 +141,20 @@ export function OfferDialog({
             <DialogTitle>Make an offer</DialogTitle>
           </DialogHeader>
 
-          {isSuccess ? (
+          {!isSignedIn ? (
+            <div className="flex flex-col items-center gap-4 py-8 text-center">
+              <LogIn className="h-10 w-10 text-muted-foreground" />
+              <div>
+                <p className="font-semibold">Sign in to make an offer</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  You need a Medialane account to place offers.
+                </p>
+              </div>
+              <SignInButton mode="modal">
+                <Button className="w-full">Sign in</Button>
+              </SignInButton>
+            </div>
+          ) : isSuccess ? (
             <div className="flex flex-col items-center gap-4 py-4">
               <CheckCircle2 className="h-12 w-12 text-emerald-500" />
               <p className="font-semibold text-lg">Offer submitted!</p>
