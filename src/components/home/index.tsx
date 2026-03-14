@@ -10,19 +10,39 @@ import { LearnDocsCta } from "./learn-docs-cta";
 
 export function HomePage() {
   return (
-    <div className="space-y-16 pb-20">
-      {/* Full-bleed slider — bleeds outside the sidebar inset padding */}
+    <div className="pb-24">
+      {/* Full-bleed hero — break out of sidebar padding */}
       <div className="-mx-4 sm:mx-0">
         <HeroSlider />
       </div>
 
-      {/* All remaining sections share a max-width container */}
-      <div className="container mx-auto px-4 max-w-6xl space-y-16">
+      {/* Airdrop — full-bleed cinematic dark section */}
+      <div className="-mx-4 sm:-mx-6 lg:-mx-10 mt-6">
         <AirdropSection />
+      </div>
+
+      {/* Genesis Mint — padded, generous vertical space */}
+      <div className="px-4 sm:px-6 lg:px-10 mt-24">
         <GenesisMintSection />
+      </div>
+
+      {/* Trending Collections — full-width for the horizontal scroller */}
+      <div className="mt-24">
         <TrendingCollections />
+      </div>
+
+      {/* New on Marketplace — padded */}
+      <div className="px-4 sm:px-6 lg:px-10 mt-24">
         <NewOnMarketplace />
+      </div>
+
+      {/* Community Activity — padded */}
+      <div className="px-4 sm:px-6 lg:px-10 mt-24">
         <CommunityActivity />
+      </div>
+
+      {/* Learn & Docs — padded */}
+      <div className="px-4 sm:px-6 lg:px-10 mt-24">
         <LearnDocsCta />
       </div>
     </div>
