@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { SUPPORTED_TOKENS, PINATA_GATEWAY } from "./constants";
+import { SUPPORTED_TOKENS } from "./constants";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -63,8 +63,11 @@ export function formatDisplayPrice(price: string | number | null | undefined): s
 export function ipfsToHttp(uri: string | null | undefined): string {
   if (!uri) return "/placeholder.svg";
   if (uri.startsWith("ipfs://")) {
-    const cid = uri.slice(7);
-    return `${PINATA_GATEWAY}/ipfs/${cid}`;
+    // Route through our server-side proxy (/api/ipfs/[...cid]) to avoid:
+    //  - Pinata's CORP header blocking cross-origin image loads on free plans
+    //  - Client-visible 429 rate-limit errors from the public gateway
+    const cid = uri.slice(7); // strips "ipfs://"
+    return `/api/ipfs/${cid}`;
   }
   return uri;
 }
