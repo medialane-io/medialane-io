@@ -23,6 +23,11 @@ Medialane is a platform for the **creative economy on Starknet**. It bridges Web
 
 ## Features
 
+### Discover
+- Full-width hero with kinetic headline, CTA buttons, live platform stats, and scrolling asset strip
+- Featured collections bento grid with verified badges and floor prices
+- Recent listings + on-chain activity feed side by side
+
 ### Creator Launchpad
 - Mint IP assets (Art, Music, Video, Documents, Posts, Patents, Code, NFTs) to any collection
 - Full programmable licensing form — CC variants, commercial use, derivatives, attribution, territory, AI policy, royalty %
@@ -36,13 +41,16 @@ Medialane is a platform for the **creative economy on Starknet**. It bridges Web
 - Batch cart checkout — buy multiple items in one PIN-authenticated session
 - Accept, cancel, and manage listings and offers from the portfolio
 - Asset pages with Details, License, Listings, Offers, and History tabs
+- Dynamic color theming derived from the asset image (CSS custom properties, WCAG contrast-checked)
+- Atmospheric blurred background on asset pages for immersive browsing
 - Marketplace filters: currency, price range (min/max), order type (listings/offers)
 
 ### Collections
 - Browse all NFT collections with sort options: Recent (default), Most assets, Top volume, Floor price, A→Z
 - Filter by verified collections only
+- Collection pages with `aspect-video` parallax banner, animated stats, and sticky tabs
 - Infinite scroll with "Load more" pagination — shows remaining count
-- Creator pages with address-derived identity system and blurred asset banner
+- Creator profile pages with address-derived color identity and blurred asset banner
 
 ### Invisible Wallet (ChipiPay)
 - Sign in with email, Google, or any Clerk-supported provider
