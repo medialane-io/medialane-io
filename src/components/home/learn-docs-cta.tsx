@@ -2,6 +2,7 @@ import type { ElementType } from "react";
 import Link from "next/link";
 import { ArrowRight, BookOpen, FileCode2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const LEARN_LINKS = [
   { label: "NFT Fundamentals", href: "/learn/nft" },
@@ -34,7 +35,6 @@ function CtaCard({
 }) {
   return (
     <div className="bento-cell p-6 sm:p-8 flex flex-col gap-6 relative overflow-hidden group hover:border-border/80 transition-colors">
-      {/* Subtle gradient tint — brightens on hover */}
       <div className={`absolute inset-0 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity ${gradient} pointer-events-none`} />
 
       <div className="relative z-10 space-y-3">
@@ -70,11 +70,6 @@ function CtaCard({
       </div>
     </div>
   );
-}
-
-// Inline cn to avoid import — or just use string concatenation
-function cn(...classes: (string | undefined)[]) {
-  return classes.filter(Boolean).join(" ");
 }
 
 export function LearnDocsCta() {

@@ -10,9 +10,9 @@ export function TrendingCollections() {
   const { collections, isLoading } = useCollections(1, 10, undefined, "volume");
 
   return (
-    <section className="space-y-5">
-      {/* Header — padded */}
-      <div className="flex items-center justify-between px-4 sm:px-6 lg:px-10">
+    <section className="space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-orange-400 to-rose-500 flex items-center justify-center shadow-lg shadow-orange-500/20">
             <TrendingUp className="h-4 w-4 text-white" />
@@ -26,25 +26,27 @@ export function TrendingCollections() {
         </Button>
       </div>
 
-      {/* Full-width scroll — no px padding so cards bleed to edge */}
-      <div className="flex gap-4 overflow-x-auto pb-3 px-4 sm:px-6 lg:px-10 scrollbar-hide snap-x">
-        {isLoading
-          ? Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="shrink-0 w-60 sm:w-72 snap-start">
-                <CollectionCardSkeleton />
-              </div>
-            ))
-          : collections.length === 0
-          ? (
-              <p className="text-sm text-muted-foreground py-4">
-                No collections yet. Be the first to create one!
-              </p>
-            )
-          : collections.map((col) => (
-              <div key={col.contractAddress} className="shrink-0 w-60 sm:w-72 snap-start">
-                <CollectionCard collection={col} />
-              </div>
-            ))}
+      {/* Scroll row — w-full + overflow-x-auto creates a self-contained scroll zone */}
+      <div className="w-full overflow-x-auto scrollbar-hide">
+        <div className="flex gap-4 snap-x snap-mandatory pb-2" style={{ width: "max-content" }}>
+          {isLoading
+            ? Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="w-56 sm:w-64 snap-start shrink-0">
+                  <CollectionCardSkeleton />
+                </div>
+              ))
+            : collections.length === 0
+            ? (
+                <p className="text-sm text-muted-foreground py-4">
+                  No collections yet. Be the first to create one!
+                </p>
+              )
+            : collections.map((col) => (
+                <div key={col.contractAddress} className="w-56 sm:w-64 snap-start shrink-0">
+                  <CollectionCard collection={col} />
+                </div>
+              ))}
+        </div>
       </div>
     </section>
   );

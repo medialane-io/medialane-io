@@ -130,7 +130,7 @@ export function HeroSlider() {
   }, [count, next]);
 
   return (
-    <section className="relative w-full h-[60vh] min-h-[400px] max-h-[680px] overflow-hidden rounded-none sm:rounded-2xl bg-muted">
+    <section className="relative w-full h-[65vw] min-h-[420px] max-h-[640px] sm:h-[60vh] sm:max-h-[680px] overflow-hidden bg-muted">
       {count === 0 ? (
         <HeroPlaceholder />
       ) : (
