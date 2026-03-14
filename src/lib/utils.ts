@@ -86,8 +86,11 @@ export function timeAgo(dateStr: string): string {
 }
 
 export function timeUntil(dateStr: string | number): string {
-  // Accept Unix seconds (number) or a date string. Convert seconds → ms.
-  const ms = typeof dateStr === "number" ? dateStr * 1000 : new Date(dateStr).getTime();
+  // Accept Unix seconds as number, numeric string (BigInt serialized), or ISO date string.
+  const raw = typeof dateStr === "string" && /^\d+$/.test(dateStr.trim())
+    ? Number(dateStr)
+    : dateStr;
+  const ms = typeof raw === "number" ? raw * 1000 : new Date(raw).getTime();
   const diff = ms - Date.now();
   if (diff <= 0) return "Expired";
   const days = Math.floor(diff / 86400000);
