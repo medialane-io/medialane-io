@@ -31,7 +31,7 @@ function RecentListingRow({ order }: { order: ApiOrder }) {
   return (
     <Link
       href={`/asset/${order.nftContract}/${order.nftTokenId}`}
-      className="flex items-center gap-3 px-4 py-3 active:bg-muted/60 rounded-xl transition-colors"
+      className="flex items-center gap-3 px-4 py-3 hover:bg-muted/40 active:bg-muted/60 rounded-xl transition-colors"
     >
       <div className="h-11 w-11 rounded-xl bg-muted overflow-hidden shrink-0 relative border border-border/60">
         {image && !imgError ? (
@@ -98,7 +98,7 @@ function ActivityRow({ event }: { event: ApiActivity }) {
   return (
     <Link
       href={contract && tokenId ? `/asset/${contract}/${tokenId}` : "/activities"}
-      className="flex items-center gap-3 px-4 py-3 active:bg-muted/60 rounded-xl transition-colors"
+      className="flex items-center gap-3 px-4 py-3 hover:bg-muted/40 active:bg-muted/60 rounded-xl transition-colors"
     >
       <div className="h-8 w-8 rounded-xl bg-muted flex items-center justify-center shrink-0 border border-border/60">
         <Icon className={`h-3.5 w-3.5 ${color}`} />
@@ -128,7 +128,7 @@ export function FeedSection() {
   const { activities, isLoading: activitiesLoading } = useActivities({ limit: 6 });
 
   return (
-    <section className="px-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <section className="px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Recent Listings */}
       <FadeIn>
         <div className="space-y-3">

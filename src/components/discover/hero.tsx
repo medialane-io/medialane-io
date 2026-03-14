@@ -15,7 +15,7 @@ export function Hero() {
 
   return (
     <section className="relative overflow-hidden border-b border-border/50 bg-background">
-      <div className="relative px-4 sm:px-8 py-16 sm:py-24 text-center sm:text-left">
+      <div className="relative px-4 sm:px-6 lg:px-8 py-16 sm:py-24 text-center sm:text-left max-w-screen-xl mx-auto">
         {/* Badge */}
         <motion.div
           className="flex justify-center sm:justify-start mb-6"
@@ -91,8 +91,8 @@ export function Hero() {
         {recentListings.length >= 3 && (
           <div className="mt-8 relative overflow-hidden">
             <div
-              className="flex gap-4 w-max"
-              style={{ animation: "scroll-strip 20s linear infinite" }}
+              className="flex gap-6 w-max"
+              style={{ animation: "scroll-strip 40s linear infinite" }}
               onMouseEnter={(e) => (e.currentTarget.style.animationPlayState = "paused")}
               onMouseLeave={(e) => (e.currentTarget.style.animationPlayState = "running")}
             >
@@ -101,9 +101,9 @@ export function Hero() {
                 <Link
                   key={`${listing.orderHash}-${i}`}
                   href={`/asset/${listing.nftContract}/${listing.nftTokenId}`}
-                  className="flex-shrink-0 w-36 group"
+                  className="flex-shrink-0 w-72 group"
                 >
-                  <div className="aspect-square rounded-lg overflow-hidden bg-muted">
+                  <div className="aspect-square rounded-xl overflow-hidden bg-muted">
                     {listing.token?.image && (
                       <img
                         src={ipfsToHttp(listing.token.image)}
@@ -112,8 +112,8 @@ export function Hero() {
                       />
                     )}
                   </div>
-                  <p className="text-xs mt-1 truncate text-muted-foreground">{listing.token?.name ?? `#${listing.nftTokenId}`}</p>
-                  <p className="text-xs font-semibold">{listing.price?.formatted ?? ""} {listing.price?.currency ?? ""}</p>
+                  <p className="text-sm mt-2 truncate text-muted-foreground">{listing.token?.name ?? `#${listing.nftTokenId}`}</p>
+                  <p className="text-sm font-bold">{listing.price?.formatted ?? ""} {listing.price?.currency ?? ""}</p>
                 </Link>
               ))}
             </div>

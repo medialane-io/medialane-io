@@ -1,14 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useCollections } from "@/hooks/use-collections";
+import { useCollections, useCollection } from "@/hooks/use-collections";
 import { CollectionCard, CollectionCardSkeleton } from "@/components/shared/collection-card";
 import { FeaturedCollectionCell } from "@/components/shared/featured-collection-cell";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FadeIn } from "@/components/ui/motion-primitives";
 import { BRAND } from "@/lib/brand";
-import { ipfsToHttp } from "@/lib/utils";
+import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
+import { FEATURED_COLLECTIONS, type FeaturedCollection } from "@/lib/featured-collections";
 import { Compass, Sparkles, Layers, Zap, ArrowRight } from "lucide-react";
 
 interface QuickAction {
@@ -78,14 +79,56 @@ function QuickActionCell({ title, sub, href, icon: Icon, from, to, iconColor }: 
   );
 }
 
-export function BentoSection() {
-  const { collections: featured, isLoading: fl } = useCollections(1, 3, true);
-  const { collections: all, isLoading: al } = useCollections(1, 3);
-  const isLoading = fl || (featured.length === 0 && al);
-  const cols = featured.length > 0 ? featured : all;
+function FeaturedCollectionCard({ config }: { config: FeaturedCollection }) {
+  const { collection, isLoading } = useCollection(config.contractAddress);
+  const name = config.nameOverride ?? collection?.name ?? "Unnamed";
+  const image = config.imageOverride
+    ? config.imageOverride
+    : collection?.image
+      ? ipfsToHttp(collection.image)
+      : null;
+
+  if (isLoading) {
+    return <Skeleton className="aspect-video w-full rounded-xl" />;
+  }
 
   return (
-    <section className="px-4 space-y-4">
+    <Link href={`/collections/${config.contractAddress}`} className="group">
+      <div className="rounded-xl overflow-hidden border border-border hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-0.5">
+        <div className="aspect-video relative overflow-hidden">
+          {image ? (
+            <img
+              src={image}
+              alt={name}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-[hsl(var(--brand-purple)/0.2)] to-[hsl(var(--brand-blue)/0.2)]" />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/75 to-transparent" />
+          <div className="absolute bottom-3 left-3 right-3">
+            {config.tagline && (
+              <p className="text-[10px] font-bold text-white/60 uppercase tracking-widest mb-1">{config.tagline}</p>
+            )}
+            <p className="font-bold text-white truncate">{name}</p>
+            <div className="flex items-center justify-between text-xs text-white/70 mt-1">
+              <span>{collection?.totalSupply ?? 0} items</span>
+              {collection?.floorPrice && (
+                <span className="font-semibold text-white/90">Floor {formatDisplayPrice(collection.floorPrice)}</span>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+export function BentoSection() {
+  const { collections: cols, isLoading } = useCollections(1, 3);
+
+  return (
+    <section className="px-4 sm:px-6 lg:px-8 space-y-4">
       <FadeIn>
         <div className="flex items-center justify-between mb-1">
           <div>
@@ -150,8 +193,8 @@ export function BentoSection() {
         )}
       </div>
 
-      {/* Featured Drops — large cards with full-bleed image */}
-      {featured.length > 0 && (
+      {/* Featured Drops — curated from featured-collections.ts */}
+      {FEATURED_COLLECTIONS.length > 0 && (
         <FadeIn delay={0.3}>
           <section className="mt-4">
             <p className="section-label mb-1">Featured drops</p>
@@ -160,29 +203,8 @@ export function BentoSection() {
               <h2 className="text-xl font-bold">Featured Collections</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {featured.map((col) => (
-                <Link key={col.contractAddress ?? col.id} href={`/collections/${col.contractAddress}`} className="group">
-                  <div className="rounded-xl overflow-hidden border border-border hover:shadow-lg transition-shadow duration-300">
-                    <div className="aspect-video relative overflow-hidden">
-                      {col.image ? (
-                        <img
-                          src={ipfsToHttp(col.image)}
-                          alt={col.name ?? ""}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-[hsl(var(--brand-purple)/0.2)] to-[hsl(var(--brand-blue)/0.2)]" />
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                      <div className="absolute bottom-3 left-3 right-3">
-                        <p className="font-semibold text-white truncate">{col.name ?? "Unnamed"}</p>
-                        <div className="flex justify-between text-xs text-white/80 mt-1">
-                          <span>{col.totalSupply ?? 0} items</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
+              {FEATURED_COLLECTIONS.map((config) => (
+                <FeaturedCollectionCard key={config.contractAddress} config={config} />
               ))}
             </div>
           </section>
