@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 const isProtectedRoute = createRouteMatcher([
   "/portfolio(.*)",
   "/create(.*)",
+  "/admin(.*)",
 ]);
 
 const isPublicRoute = createRouteMatcher([
@@ -57,6 +58,14 @@ export default clerkMiddleware(async (auth, req) => {
     // Already has wallet and hits /onboarding → redirect to portfolio
     if (hasWallet && req.nextUrl.pathname === "/onboarding") {
       return NextResponse.redirect(new URL("/portfolio", req.url));
+    }
+
+    // Admin route — require role: "admin" in Clerk public metadata
+    if (req.nextUrl.pathname.startsWith("/admin")) {
+      const metadata = (sessionClaims?.metadata as Record<string, unknown> | undefined);
+      if (metadata?.role !== "admin") {
+        return NextResponse.redirect(new URL("/portfolio", req.url));
+      }
     }
 
     // Signed in, no wallet, hitting a protected route → onboarding

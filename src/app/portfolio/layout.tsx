@@ -15,12 +15,14 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-  { label: "Assets",           href: "/portfolio/assets" },
-  { label: "Collections",      href: "/portfolio/collections" },
-  { label: "Listings",         href: "/portfolio/listings" },
-  { label: "Offers sent",      href: "/portfolio/offers" },
-  { label: "Offers received",  href: "/portfolio/received", badge: true },
-  { label: "Activity",         href: "/portfolio/activity" },
+  { label: "Assets",            href: "/portfolio/assets" },
+  { label: "Collections",       href: "/portfolio/collections" },
+  { label: "Claim Collection",  href: "/portfolio/claim" },
+  { label: "Listings",          href: "/portfolio/listings" },
+  { label: "Offers sent",       href: "/portfolio/offers" },
+  { label: "Offers received",   href: "/portfolio/received", badge: true },
+  { label: "Activity",          href: "/portfolio/activity" },
+  { label: "Settings",          href: "/portfolio/settings" },
 ];
 
 export default function PortfolioLayout({ children }: { children: React.ReactNode }) {
