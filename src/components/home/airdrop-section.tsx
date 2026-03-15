@@ -82,18 +82,15 @@ export function AirdropSection() {
             <div className="space-y-4">
               <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black leading-[1.08] tracking-tight text-white">
                 Built for{" "}
-                <span className="gradient-text">Creators</span>
-                <br />
-                &amp; Collectors.
+                <span className="gradient-text">Creators</span>&amp; Collectors
               </h2>
               <p className="text-base sm:text-lg text-white/50 leading-relaxed max-w-lg">
                 Mint, collect, and build on Medialane to earn your allocation.
-                The earlier you participate, the greater your share.
               </p>
             </div>
 
             {/* Participant type cards — 2×2 grid */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               {PARTICIPANT_TYPES.map(({ icon: Icon, label, description, accent, border, dot }) => (
                 <div
                   key={label}

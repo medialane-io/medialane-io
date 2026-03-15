@@ -20,12 +20,12 @@ export const FEATURED_COLLECTIONS: FeaturedCollection[] = [
     tagline: "New Yorker",
   },
 {
-    contractAddress: "0x00b618e6abbfe1131d31bcd5d8e57c333adae57b0a271289e39d6e4091c0160b",
-    tagline: "Kalamaha Rock Soundtrack",
+    contractAddress: "0x002ba821c3539ca14c87c9db427aa9663407a170faffaa9c53b3d099e65a4d24",
+    tagline: "Se faltar a paz, Minas Gerais",
   },
   {
-    contractAddress: "0x05dfc757748a8c2dee80dfaf2339f95c2788734176f6c617c6114c85664f8d38",
-    tagline: "South Korea Photography",
+    contractAddress: "0x05431a0124148aa39078f0f85aa1d01976c40e9aa66e24c0297fe77d8f2e871d",
+    tagline: "Photographic journey through time",
   }
 
 ];
