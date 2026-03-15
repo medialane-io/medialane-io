@@ -18,7 +18,9 @@ import { TransferDialog } from "@/components/marketplace/transfer-dialog";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { ipfsToHttp, timeUntil, timeAgo, formatDisplayPrice } from "@/lib/utils";
-import { ShoppingCart, Tag, ExternalLink, Clock, HandCoins, ArrowRightLeft, X, CheckCircle, DollarSign, GitBranch, UserCheck, Globe, Bot, Percent, Shield, Calendar, ChevronRight } from "lucide-react";
+import { ShoppingCart, Tag, ExternalLink, Clock, HandCoins, ArrowRightLeft, X, CheckCircle, DollarSign, GitBranch, UserCheck, Globe, Bot, Percent, Shield, Calendar, ChevronRight, Flag } from "lucide-react";
+import { ReportDialog } from "@/components/report-dialog";
+import { HiddenContentBanner } from "@/components/hidden-content-banner";
 import { LICENSE_TRAIT_TYPES } from "@/types/ip";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ApiActivity, ApiOrder } from "@medialane/sdk";
@@ -63,6 +65,7 @@ export default function AssetPageClient() {
   const [orderToAccept, setOrderToAccept] = useState<ApiOrder | null>(null);
   const [acceptPinOpen, setAcceptPinOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
 
   // Listings = ERC721 in offer (someone selling the NFT)
   const activeListings = listings.filter(
@@ -174,6 +177,7 @@ export default function AssetPageClient() {
       style={dynamicTheme ? (dynamicTheme as React.CSSProperties) : {}}
       className="relative z-0 min-h-screen"
     >
+      {(token as any).isHidden && <HiddenContentBanner />}
       {/* Hidden extraction image for dominant color — must be in component tree */}
       {imageUrl && (
         <img
@@ -444,7 +448,7 @@ export default function AssetPageClient() {
             )}
 
             {/* Links */}
-            <div className="flex gap-3 text-sm">
+            <div className="flex items-center gap-3 text-sm">
               <a
                 href={`${EXPLORER_URL}/contract/${token.contractAddress}`}
                 target="_blank"
@@ -459,7 +463,27 @@ export default function AssetPageClient() {
               >
                 Collection
               </Link>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-muted-foreground hover:text-foreground"
+                onClick={() => setReportOpen(true)}
+                title="Report this asset"
+              >
+                <Flag className="w-4 h-4" />
+              </Button>
             </div>
+
+            <ReportDialog
+              target={{
+                type: "TOKEN",
+                contract: token.contractAddress,
+                tokenId: token.tokenId,
+                name: name ?? undefined,
+              }}
+              open={reportOpen}
+              onOpenChange={setReportOpen}
+            />
           </motion.div>
         </div>
 
