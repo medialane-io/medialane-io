@@ -62,8 +62,18 @@ export default clerkMiddleware(async (auth, req) => {
 
     // Admin route — require role: "admin" in Clerk public metadata
     if (req.nextUrl.pathname.startsWith("/admin")) {
-      const metadata = (sessionClaims?.metadata as Record<string, unknown> | undefined);
-      if (metadata?.role !== "admin") {
+      let isAdmin = (sessionClaims?.metadata as Record<string, unknown> | undefined)?.role === "admin";
+      // Fallback: JWT may be stale or template not configured — check Clerk API directly
+      if (!isAdmin) {
+        try {
+          const client = await clerkClient();
+          const clerkUser = await client.users.getUser(userId);
+          isAdmin = clerkUser.publicMetadata?.role === "admin";
+        } catch {
+          // If API check fails, deny access
+        }
+      }
+      if (!isAdmin) {
         return NextResponse.redirect(new URL("/portfolio", req.url));
       }
     }
