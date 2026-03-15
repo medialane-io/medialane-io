@@ -56,6 +56,11 @@ export function ReportDialog({ target, open, onOpenChange }: ReportDialogProps) 
       openSignIn();
       return;
     }
+    if (!next) {
+      setCategories([]);
+      setDescription("");
+      setSubmitted(false);
+    }
     onOpenChange(next);
   };
 
