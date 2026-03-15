@@ -140,8 +140,8 @@ export default function AssetPageClient() {
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 pt-14 pb-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-          <Skeleton className="aspect-square w-full rounded-2xl" />
+        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] lg:gap-10 gap-8">
+          <Skeleton className="aspect-[4/3] w-full rounded-2xl" />
           <div className="space-y-4">
             <Skeleton className="h-8 w-3/4" />
             <Skeleton className="h-4 w-1/2" />
@@ -224,25 +224,27 @@ export default function AssetPageClient() {
         </nav>
 
         {/* Top: image + info */}
-        <div className="grid grid-cols-1 md:grid-cols-[40%_60%] md:gap-8 gap-10 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] lg:gap-10 gap-8 items-start">
           {/* Image — sticky on desktop */}
           <motion.div
             initial={shouldReduce ? false : { scale: 1.0, opacity: 0 }}
             animate={{ scale: 1.02, opacity: 1 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="overflow-hidden rounded-xl md:sticky md:top-16"
+            className="overflow-hidden rounded-xl lg:sticky lg:top-16"
           >
-            <div className="relative aspect-square rounded-2xl overflow-hidden border border-border bg-muted">
+            <div className="rounded-2xl overflow-hidden border border-border bg-muted">
               {image && !imgError ? (
                 <Image
                   src={image}
                   alt={name}
-                  fill
-                  className="object-cover"
+                  width={0}
+                  height={0}
+                  sizes="(max-width: 1024px) 100vw, 66vw"
+                  className="w-full h-auto"
                   onError={() => setImgError(true)}
                 />
               ) : (
-                <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary/10 to-purple-500/10">
+                <div className="aspect-square flex items-center justify-center bg-gradient-to-br from-primary/10 to-purple-500/10">
                   <span className="text-5xl font-mono text-muted-foreground">#{tokenId}</span>
                 </div>
               )}
