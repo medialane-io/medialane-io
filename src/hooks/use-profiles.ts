@@ -1,10 +1,10 @@
 import useSWR from "swr";
-import { client } from "@/lib/medialane-client";
+import { getMedialaneClient } from "@/lib/medialane-client";
 
 export function useCollectionProfile(contractAddress: string | undefined) {
   const { data, error, isLoading, mutate } = useSWR(
     contractAddress ? `profile-collection-${contractAddress}` : null,
-    () => client.getCollectionProfile(contractAddress!),
+    () => getMedialaneClient().api.getCollectionProfile(contractAddress!),
     { revalidateOnFocus: false }
   );
   return { profile: data ?? null, isLoading, error, mutate };
@@ -13,7 +13,7 @@ export function useCollectionProfile(contractAddress: string | undefined) {
 export function useCreatorProfile(walletAddress: string | undefined) {
   const { data, error, isLoading, mutate } = useSWR(
     walletAddress ? `profile-creator-${walletAddress}` : null,
-    () => client.getCreatorProfile(walletAddress!),
+    () => getMedialaneClient().api.getCreatorProfile(walletAddress!),
     { revalidateOnFocus: false }
   );
   return { profile: data ?? null, isLoading, error, mutate };

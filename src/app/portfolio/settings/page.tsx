@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useCreatorProfile } from "@/hooks/use-profiles";
-import { client } from "@/lib/medialane-client";
+import { getMedialaneClient } from "@/lib/medialane-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,7 +14,7 @@ import { toast } from "sonner";
 export default function ProfileSettingsPage() {
   const { getToken } = useAuth();
   const { walletAddress } = useSessionKey();
-  const { profile, mutate } = useCreatorProfile(walletAddress);
+  const { profile, mutate } = useCreatorProfile(walletAddress ?? undefined);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     displayName: "", bio: "", avatarImage: "", bannerImage: "",
@@ -40,7 +40,7 @@ export default function ProfileSettingsPage() {
     try {
       const token = await getToken();
       if (!token) throw new Error("Not authenticated");
-      await client.updateCreatorProfile(walletAddress, form, token);
+      await getMedialaneClient().api.updateCreatorProfile(walletAddress, form, token);
       await mutate();
       toast.success("Profile updated");
     } catch {

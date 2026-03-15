@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
-import { client } from "@/lib/medialane-client";
+import { getMedialaneClient } from "@/lib/medialane-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,7 +34,7 @@ export default function ClaimCollectionPage() {
     try {
       const token = await getToken();
       if (!token) throw new Error("Not authenticated");
-      const result = await client.claimCollection(contractAddress.trim(), walletAddress, token);
+      const result = await getMedialaneClient().api.claimCollection(contractAddress.trim(), walletAddress, token);
       if (result.verified) {
         setClaimedCollection(result.collection ?? { contractAddress: contractAddress.trim() });
         setStep("success");
@@ -51,7 +51,7 @@ export default function ClaimCollectionPage() {
   async function handleManualRequest() {
     if (!email.trim()) { toast.error("Email is required"); return; }
     try {
-      await client.requestCollectionClaim({
+      await getMedialaneClient().api.requestCollectionClaim({
         contractAddress: contractAddress.trim(),
         walletAddress: walletAddress ?? undefined,
         email: email.trim(),

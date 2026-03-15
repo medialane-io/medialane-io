@@ -5,7 +5,7 @@ import { useAuth } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useCollection } from "@/hooks/use-collections";
 import { useCollectionProfile } from "@/hooks/use-profiles";
-import { client } from "@/lib/medialane-client";
+import { getMedialaneClient } from "@/lib/medialane-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,7 +57,7 @@ export default function CollectionSettingsPage({ params }: Props) {
     try {
       const token = await getToken();
       if (!token) throw new Error("Not authenticated");
-      await client.updateCollectionProfile(contract, form, token);
+      await getMedialaneClient().api.updateCollectionProfile(contract, form, token);
       await mutate();
       toast.success("Collection profile updated");
     } catch {
