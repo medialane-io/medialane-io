@@ -28,7 +28,9 @@ import {
   ShoppingBag,
   Share2,
   LayoutList,
+  Flag,
 } from "lucide-react";
+import { ReportDialog } from "@/components/report-dialog";
 import type { ApiActivity } from "@medialane/sdk";
 import { cn } from "@/lib/utils";
 
@@ -215,6 +217,7 @@ function EmptyState({
 export default function CreatorPageClient() {
   const { address } = useParams<{ address: string }>();
   const [activeTab, setActiveTab] = useState<TabId>("assets");
+  const [reportOpen, setReportOpen] = useState(false);
 
   const addr = address ?? null;
 
@@ -334,7 +337,7 @@ export default function CreatorPageClient() {
               />
             </div>
 
-            <div className="pb-1 shrink-0">
+            <div className="pb-1 shrink-0 flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
@@ -346,9 +349,28 @@ export default function CreatorPageClient() {
                 <Share2 className="h-3.5 w-3.5 mr-1.5" />
                 Share
               </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-muted-foreground hover:text-foreground"
+                onClick={() => setReportOpen(true)}
+                title="Report this creator"
+              >
+                <Flag className="w-4 h-4" />
+              </Button>
             </div>
           </div>
         </div>
+
+        <ReportDialog
+          target={{
+            type: "CREATOR",
+            address: address ?? "",
+            name: addr ? `${addr.slice(0, 10)}…${addr.slice(-8)}` : undefined,
+          }}
+          open={reportOpen}
+          onOpenChange={setReportOpen}
+        />
 
         {/* ── Tab navigation ────────────────────────────────────────────── */}
         <div className="sticky top-0 z-10 -mx-6 px-6 bg-background/95 backdrop-blur-sm border-b border-border">

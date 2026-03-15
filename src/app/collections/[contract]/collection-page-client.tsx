@@ -14,7 +14,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddressDisplay } from "@/components/shared/address-display";
-import { CheckCircle2, ArrowLeft, Loader2 } from "lucide-react";
+import { CheckCircle2, ArrowLeft, Loader2, Flag } from "lucide-react";
+import { ReportDialog } from "@/components/report-dialog";
+import { HiddenContentBanner } from "@/components/hidden-content-banner";
 import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import type { ApiToken } from "@medialane/sdk";
 import type { DynamicTheme } from "@/lib/theme-utils";
@@ -75,6 +77,7 @@ function CollectionItems({ contract }: { contract: string }) {
 
 export default function CollectionPageClient() {
   const { contract } = useParams<{ contract: string }>();
+  const [reportOpen, setReportOpen] = useState(false);
   const { collection, isLoading: colLoading } = useCollection(contract);
   const { orders, isLoading: ordersLoading } = useOrders({
     collection: contract,
@@ -94,6 +97,7 @@ export default function CollectionPageClient() {
       style={dynamicTheme ? (dynamicTheme as React.CSSProperties) : {}}
       className="relative space-y-0"
     >
+      {(collection as any)?.isHidden && <HiddenContentBanner />}
       {/* Hidden extraction img */}
       {bannerUrl && (
         <img
@@ -208,14 +212,33 @@ export default function CollectionPageClient() {
             </p>
           )}
 
-          {/* Contract address */}
-          <div className="px-6 pb-2">
+          {/* Contract address + report */}
+          <div className="px-6 pb-2 flex items-center gap-3">
             <AddressDisplay
               address={collection.contractAddress ?? ""}
               chars={6}
               className="text-xs text-muted-foreground"
             />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-muted-foreground hover:text-foreground"
+              onClick={() => setReportOpen(true)}
+              title="Report this collection"
+            >
+              <Flag className="w-4 h-4" />
+            </Button>
           </div>
+
+          <ReportDialog
+            target={{
+              type: "COLLECTION",
+              contract: collection.contractAddress,
+              name: collection.name ?? undefined,
+            }}
+            open={reportOpen}
+            onOpenChange={setReportOpen}
+          />
         </>
       ) : null}
 
