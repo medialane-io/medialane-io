@@ -279,6 +279,8 @@ export default function CreatorPageClient() {
         />
       )}
 
+      {hiddenStatus?.isHidden === true && <HiddenContentBanner />}
+
       {/* ── Cinematic banner ─────────────────────────────────────────────── */}
       <div className="relative h-48 sm:h-64 overflow-hidden">
         {/* Layer 1 — blurred asset image */}
@@ -378,8 +380,6 @@ export default function CreatorPageClient() {
           open={reportOpen}
           onOpenChange={setReportOpen}
         />
-
-        {hiddenStatus?.isHidden === true && <HiddenContentBanner />}
 
         {/* ── Tab navigation ────────────────────────────────────────────── */}
         <div className="sticky top-0 z-10 -mx-6 px-6 bg-background/95 backdrop-blur-sm border-b border-border">
