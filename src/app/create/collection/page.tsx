@@ -38,6 +38,13 @@ const schema = z.object({
     .max(10, "Max 10 characters")
     .regex(/^[A-Z0-9]+$/, "Uppercase letters and numbers only"),
   description: z.string().max(500).optional(),
+  external_link: z
+    .string()
+    .max(500)
+    .refine((v) => !v || v.startsWith("http://") || v.startsWith("https://"), {
+      message: "Must start with http:// or https://",
+    })
+    .optional(),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -71,7 +78,7 @@ export default function CreateCollectionPage() {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { name: "", symbol: "", description: "" },
+    defaultValues: { name: "", symbol: "", description: "", external_link: "" },
   });
 
   const handleImageSelect = async (file: File) => {
@@ -147,7 +154,7 @@ export default function CreateCollectionPage() {
               name: pendingValues.name,
               description: pendingValues.description || "",
               image: imageUri,
-              external_link: "https://medialane.io",
+              external_link: pendingValues.external_link || "https://medialane.io",
             }),
           });
           const metaData = await metaRes.json().catch(() => ({}));
@@ -364,6 +371,23 @@ export default function CreateCollectionPage() {
                       {...field}
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="external_link"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>External link <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
+                  <FormControl>
+                    <Input placeholder="https://yourwebsite.com" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    Your website, portfolio, or social profile. Stored in collection metadata on IPFS.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

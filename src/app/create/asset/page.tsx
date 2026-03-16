@@ -60,6 +60,13 @@ const schema = z.object({
   collectionId: z.string().min(1, "Select a collection"),
   name: z.string().min(1, "Name required").max(100),
   description: z.string().max(1000).optional(),
+  external_url: z
+    .string()
+    .max(500)
+    .refine((v) => !v || v.startsWith("http://") || v.startsWith("https://"), {
+      message: "Must start with http:// or https://",
+    })
+    .optional(),
   ipType: z.enum(IP_TYPES),
   licenseType: z.string().min(1, "License required"),
   commercialUse: z.enum(["Yes", "No"]),
@@ -138,6 +145,7 @@ export default function CreateAssetPage() {
       collectionId: "",
       name: "",
       description: "",
+      external_url: "",
       ipType: "Art",
       licenseType: "All Rights Reserved",
       commercialUse: "No",
@@ -180,6 +188,7 @@ export default function CreateAssetPage() {
       const formData = new FormData();
       formData.set("name", pendingValues.name);
       formData.set("description", pendingValues.description ?? "");
+      if (pendingValues.external_url) formData.set("external_url", pendingValues.external_url);
       formData.set("ipType", pendingValues.ipType);
       formData.set("licenseType", pendingValues.licenseType);
       formData.set("commercialUse", pendingValues.commercialUse);
@@ -391,6 +400,21 @@ export default function CreateAssetPage() {
                       rows={4}
                       {...field}
                     />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* External URL */}
+            <FormField
+              control={form.control}
+              name="external_url"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>External link <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
+                  <FormControl>
+                    <Input placeholder="https://yourwebsite.com" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
