@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { CheckCircle2, AlertCircle, HandCoins, ExternalLink, Loader2, LogIn } from "lucide-react";
+import { CheckCircle2, AlertCircle, HandCoins, ExternalLink, Loader2, LogIn, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -24,7 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { PinDialog } from "@/components/chipi/pin-dialog";
+import { PinInput, validatePin } from "@/components/ui/pin-input";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { SessionSetupDialog } from "@/components/chipi/session-setup-dialog";
 import { useAuth, SignInButton } from "@clerk/nextjs";
@@ -73,10 +73,12 @@ export function OfferDialog({
     resetState,
   } = useMarketplace();
 
-  const [pinOpen, setPinOpen] = useState(false);
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
   const [sessionSetupOpen, setSessionSetupOpen] = useState(false);
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
+  const [pin, setPin] = useState("");
+  const [pinError, setPinError] = useState<string | null>(null);
+  const [step, setStep] = useState<"form" | "pin">("form");
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -94,21 +96,23 @@ export function OfferDialog({
       setSessionSetupOpen(true);
       return;
     }
-    setPinOpen(true);
+    setStep("pin");
   };
 
   const handleSessionSetup = async (pin: string) => {
     try {
       await setupSession(pin);
       setSessionSetupOpen(false);
-      setPinOpen(true);
+      setStep("pin");
     } catch {
       toast.error("Session setup failed. Please try again.");
     }
   };
 
-  const handlePin = async (pin: string) => {
-    setPinOpen(false);
+  const handlePin = async () => {
+    const err = validatePin(pin);
+    if (err) { setPinError(err); return; }
+    setPinError(null);
     if (!pendingValues) return;
 
     await makeOffer({
@@ -120,6 +124,8 @@ export function OfferDialog({
       durationSeconds: pendingValues.durationSeconds,
       pin,
     });
+    setPin("");
+    setStep("form");
   };
 
   const handleClose = (v: boolean) => {
@@ -127,6 +133,9 @@ export function OfferDialog({
       resetState();
       form.reset();
       setPendingValues(null);
+      setPin("");
+      setPinError(null);
+      setStep("form");
       onOpenChange(v);
     }
   };
@@ -138,7 +147,9 @@ export function OfferDialog({
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Make an offer</DialogTitle>
+            <DialogTitle>
+              {step === "pin" ? "Confirm with PIN" : "Make an offer"}
+            </DialogTitle>
           </DialogHeader>
 
           {!isSignedIn ? (
@@ -169,13 +180,57 @@ export function OfferDialog({
                   </a>
                 </Button>
               )}
-              <Button className="w-full" onClick={() => { resetState(); form.reset(); setPendingValues(null); onOpenChange(false); }}>Done</Button>
+              <Button className="w-full" onClick={() => { resetState(); form.reset(); setPendingValues(null); setStep("form"); onOpenChange(false); }}>Done</Button>
             </div>
           ) : isProcessing ? (
             <div className="flex flex-col items-center gap-4 py-8">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <p className="text-sm text-muted-foreground">
                 {txStatus === "submitting" ? "Submitting offer…" : "Confirming on Starknet…"}
+              </p>
+            </div>
+          ) : step === "pin" ? (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                <Badge variant="outline" className="font-mono">#{tokenId}</Badge>
+                <span className="text-sm font-medium truncate">
+                  {pendingValues?.price} {pendingValues?.currency} · {tokenName || `Token #${tokenId}`}
+                </span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Enter your wallet PIN to sign the offer.
+              </p>
+              <PinInput
+                value={pin}
+                onChange={(v) => { setPin(v); setPinError(null); }}
+                error={pinError}
+                autoFocus
+              />
+              {error && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="gap-1.5"
+                  onClick={() => { setStep("form"); setPin(""); setPinError(null); }}
+                >
+                  <ArrowLeft className="h-4 w-4" /> Back
+                </Button>
+                <Button
+                  className="flex-1"
+                  disabled={pin.length < 6}
+                  onClick={handlePin}
+                >
+                  <HandCoins className="h-4 w-4 mr-2" />
+                  Submit offer
+                </Button>
+              </div>
+              <p className="text-[10px] text-center text-muted-foreground">
+                Gas is free. Your ERC-20 balance is locked until the offer expires or is accepted.
               </p>
             </div>
           ) : (
@@ -287,14 +342,6 @@ export function OfferDialog({
         </DialogContent>
       </Dialog>
 
-      <PinDialog
-        open={pinOpen}
-        onSubmit={handlePin}
-        onCancel={() => setPinOpen(false)}
-        title="Confirm offer"
-        description={`Enter PIN to submit offer of ${pendingValues?.price} ${pendingValues?.currency} on ${tokenName || `#${tokenId}`}.`}
-      />
-
       <SessionSetupDialog
         open={sessionSetupOpen}
         onOpenChange={setSessionSetupOpen}
@@ -310,7 +357,7 @@ export function OfferDialog({
           if (!hasActiveSession) {
             setSessionSetupOpen(true);
           } else {
-            setPinOpen(true);
+            setStep("pin");
           }
         }}
       />

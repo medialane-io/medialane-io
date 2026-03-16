@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { toast } from "sonner";
-import { CheckCircle2, AlertCircle, ExternalLink, ShoppingCart, RefreshCw } from "lucide-react";
+import { CheckCircle2, AlertCircle, ExternalLink, ShoppingCart, RefreshCw, ArrowLeft } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { PinDialog } from "@/components/chipi/pin-dialog";
+import { PinInput, validatePin } from "@/components/ui/pin-input";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { SessionSetupDialog } from "@/components/chipi/session-setup-dialog";
 import { TxStatus } from "@/components/chipi/tx-status";
@@ -43,9 +43,11 @@ export function PurchaseDialog({ order, open, onOpenChange }: PurchaseDialogProp
     resetState,
   } = useMarketplace();
 
-  const [pinOpen, setPinOpen] = useState(false);
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
   const [sessionSetupOpen, setSessionSetupOpen] = useState(false);
+  const [pin, setPin] = useState("");
+  const [pinError, setPinError] = useState<string | null>(null);
+  const [step, setStep] = useState<"details" | "pin">("details");
 
   const handleBuyClick = () => {
     if (!isSignedIn) return;
@@ -57,30 +59,38 @@ export function PurchaseDialog({ order, open, onOpenChange }: PurchaseDialogProp
       setSessionSetupOpen(true);
       return;
     }
-    setPinOpen(true);
+    setStep("pin");
   };
 
   const handleSessionSetup = async (pin: string) => {
     try {
       await setupSession(pin);
       setSessionSetupOpen(false);
-      setPinOpen(true);
+      setStep("pin");
     } catch {
       toast.error("Session setup failed. Please try again.");
     }
   };
 
-  const handlePin = async (pin: string) => {
-    setPinOpen(false);
+  const handlePin = async () => {
+    const err = validatePin(pin);
+    if (err) { setPinError(err); return; }
+    setPinError(null);
+
     await fulfillOrder({
       orderHash: order.orderHash,
       pin,
     });
+    setPin("");
+    setStep("details");
   };
 
   const handleClose = (v: boolean) => {
     if (!isProcessing) {
       resetState();
+      setPin("");
+      setPinError(null);
+      setStep("details");
       onOpenChange(v);
     }
   };
@@ -92,10 +102,14 @@ export function PurchaseDialog({ order, open, onOpenChange }: PurchaseDialogProp
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Purchase Token #{order.nftTokenId}</DialogTitle>
-            <DialogDescription>
-              Buy this IP asset gaslessly with your invisible Starknet wallet.
-            </DialogDescription>
+            <DialogTitle>
+              {step === "pin" ? "Confirm with PIN" : `Purchase Token #${order.nftTokenId}`}
+            </DialogTitle>
+            {step === "details" && (
+              <DialogDescription>
+                Buy this IP asset gaslessly with your invisible Starknet wallet.
+              </DialogDescription>
+            )}
           </DialogHeader>
 
           {isSuccess ? (
@@ -114,12 +128,64 @@ export function PurchaseDialog({ order, open, onOpenChange }: PurchaseDialogProp
                   </a>
                 </Button>
               )}
-              <Button className="w-full" onClick={() => { resetState(); onOpenChange(false); }}>Done</Button>
+              <Button className="w-full" onClick={() => { resetState(); setStep("details"); onOpenChange(false); }}>Done</Button>
             </div>
           ) : (isProcessing || txStatus === "confirming") ? (
             <TxStatus status={txStatus} txHash={txHash} error={error} statusMessage={
               txStatus === "submitting" ? "Submitting purchase…" : "Confirming on Starknet…"
             } />
+          ) : step === "pin" ? (
+            <div className="space-y-4 py-2">
+              <div className="rounded-lg bg-muted/30 p-4 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Token</span>
+                  <span className="font-mono">#{order.nftTokenId}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Price</span>
+                  <span className="font-bold">{formatDisplayPrice(order.price.formatted)} {order.price.currency}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Gas</span>
+                  <span className="text-emerald-500 font-medium">Free (sponsored)</span>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Enter your wallet PIN to confirm this purchase.
+              </p>
+              <PinInput
+                value={pin}
+                onChange={(v) => { setPin(v); setPinError(null); }}
+                error={pinError}
+                autoFocus
+              />
+              {error && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="gap-1.5"
+                  onClick={() => { setStep("details"); setPin(""); setPinError(null); }}
+                >
+                  <ArrowLeft className="h-4 w-4" /> Back
+                </Button>
+                <Button
+                  className="flex-1 h-11"
+                  disabled={pin.length < 6}
+                  onClick={handlePin}
+                >
+                  <ShoppingCart className="h-4 w-4 mr-2" />
+                  Buy now
+                </Button>
+              </div>
+              <p className="text-[10px] text-center text-muted-foreground">
+                Gas fees are sponsored by Medialane. Your PIN authorizes this transaction.
+              </p>
+            </div>
           ) : (
             <div className="space-y-4 py-2">
               {/* Order summary */}
@@ -173,14 +239,6 @@ export function PurchaseDialog({ order, open, onOpenChange }: PurchaseDialogProp
         </DialogContent>
       </Dialog>
 
-      <PinDialog
-        open={pinOpen}
-        onSubmit={handlePin}
-        onCancel={() => setPinOpen(false)}
-        title="Confirm purchase"
-        description={`Enter your PIN to buy token #${order.nftTokenId} for ${formatDisplayPrice(order.price.formatted)} ${order.price.currency}.`}
-      />
-
       <SessionSetupDialog
         open={sessionSetupOpen}
         onOpenChange={setSessionSetupOpen}
@@ -196,7 +254,7 @@ export function PurchaseDialog({ order, open, onOpenChange }: PurchaseDialogProp
           if (!hasActiveSession) {
             setSessionSetupOpen(true);
           } else {
-            setPinOpen(true);
+            setStep("pin");
           }
         }}
       />

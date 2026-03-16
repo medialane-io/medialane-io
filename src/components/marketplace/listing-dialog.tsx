@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { CheckCircle2, AlertCircle, Tag, ExternalLink, Loader2, LogIn } from "lucide-react";
+import { CheckCircle2, AlertCircle, Tag, ExternalLink, Loader2, LogIn, ArrowLeft } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -24,7 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { PinDialog } from "@/components/chipi/pin-dialog";
+import { PinInput, validatePin } from "@/components/ui/pin-input";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { SessionSetupDialog } from "@/components/chipi/session-setup-dialog";
 import { useAuth, SignInButton } from "@clerk/nextjs";
@@ -75,10 +75,12 @@ export function ListingDialog({
     error,
     resetState,
   } = useMarketplace();
-  const [pinOpen, setPinOpen] = useState(false);
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
   const [sessionSetupOpen, setSessionSetupOpen] = useState(false);
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
+  const [pin, setPin] = useState("");
+  const [pinError, setPinError] = useState<string | null>(null);
+  const [step, setStep] = useState<"form" | "pin">("form");
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -96,21 +98,23 @@ export function ListingDialog({
       setSessionSetupOpen(true);
       return;
     }
-    setPinOpen(true);
+    setStep("pin");
   };
 
   const handleSessionSetup = async (pin: string) => {
     try {
       await setupSession(pin);
       setSessionSetupOpen(false);
-      setPinOpen(true);
+      setStep("pin");
     } catch {
       toast.error("Session setup failed. Please try again.");
     }
   };
 
-  const handlePin = async (pin: string) => {
-    setPinOpen(false);
+  const handlePin = async () => {
+    const err = validatePin(pin);
+    if (err) { setPinError(err); return; }
+    setPinError(null);
     if (!pendingValues) return;
 
     await createListing({
@@ -122,6 +126,8 @@ export function ListingDialog({
       durationSeconds: pendingValues.durationSeconds,
       pin,
     });
+    setPin("");
+    setStep("form");
   };
 
   const handleClose = (v: boolean) => {
@@ -129,6 +135,9 @@ export function ListingDialog({
       resetState();
       form.reset();
       setPendingValues(null);
+      setPin("");
+      setPinError(null);
+      setStep("form");
       onOpenChange(v);
     }
   };
@@ -140,7 +149,9 @@ export function ListingDialog({
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>List for sale</DialogTitle>
+            <DialogTitle>
+              {step === "pin" ? "Confirm with PIN" : "List for sale"}
+            </DialogTitle>
           </DialogHeader>
 
           {!isSignedIn ? (
@@ -175,6 +186,7 @@ export function ListingDialog({
                 resetState();
                 form.reset();
                 setPendingValues(null);
+                setStep("form");
                 onOpenChange(false);
                 onSuccess?.();
               }}>Done</Button>
@@ -184,6 +196,50 @@ export function ListingDialog({
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <p className="text-sm text-muted-foreground">
                 {txStatus === "submitting" ? "Submitting listing…" : "Confirming on Starknet…"}
+              </p>
+            </div>
+          ) : step === "pin" ? (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                <Badge variant="outline" className="font-mono">#{tokenId}</Badge>
+                <span className="text-sm font-medium truncate">
+                  {pendingValues?.price} {pendingValues?.currency} · {tokenName || `Token #${tokenId}`}
+                </span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Enter your wallet PIN to sign the listing.
+              </p>
+              <PinInput
+                value={pin}
+                onChange={(v) => { setPin(v); setPinError(null); }}
+                error={pinError}
+                autoFocus
+              />
+              {error && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="gap-1.5"
+                  onClick={() => { setStep("form"); setPin(""); setPinError(null); }}
+                >
+                  <ArrowLeft className="h-4 w-4" /> Back
+                </Button>
+                <Button
+                  className="flex-1"
+                  disabled={pin.length < 6}
+                  onClick={handlePin}
+                >
+                  <Tag className="h-4 w-4 mr-2" />
+                  List for sale
+                </Button>
+              </div>
+              <p className="text-[10px] text-center text-muted-foreground">
+                Gas is free. Your PIN signs the listing.
               </p>
             </div>
           ) : (
@@ -296,14 +352,6 @@ export function ListingDialog({
         </DialogContent>
       </Dialog>
 
-      <PinDialog
-        open={pinOpen}
-        onSubmit={handlePin}
-        onCancel={() => setPinOpen(false)}
-        title="Confirm listing"
-        description={`Enter PIN to list ${tokenName || `#${tokenId}`} for ${pendingValues?.price} ${pendingValues?.currency}.`}
-      />
-
       <SessionSetupDialog
         open={sessionSetupOpen}
         onOpenChange={setSessionSetupOpen}
@@ -319,7 +367,7 @@ export function ListingDialog({
           if (!hasActiveSession) {
             setSessionSetupOpen(true);
           } else {
-            setPinOpen(true);
+            setStep("pin");
           }
         }}
       />
