@@ -42,7 +42,7 @@ export function TrendingCollections() {
                 </p>
               )
             : collections.map((col) => (
-                <div key={col.contractAddress} className="w-56 sm:w-64 snap-start shrink-0">
+                <div key={col.contractAddress} className="w-64 snap-start shrink-0">
                   <CollectionCard collection={col} />
                 </div>
               ))}

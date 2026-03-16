@@ -53,11 +53,11 @@ function HeroSlide({
       {/* Content */}
       <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-10 flex flex-col gap-3">
         {tagline && (
-          <p className="text-xs sm:text-sm font-semibold uppercase tracking-widest text-white/70">
+          <p className="text-sm uppercase tracking-widest text-white/70">
             {tagline}
           </p>
         )}
-        <h2 className="text-3xl sm:text-5xl font-black text-white leading-tight">
+        <h2 className="text-5xl font-semibold text-white leading-tight">
           {isLoading ? (
             <Skeleton className="h-12 w-64 bg-white/20" />
           ) : (

@@ -68,7 +68,7 @@ export function AirdropSection() {
 
       {/* Content — same padding scale as all other homepage sections */}
       <div className="relative z-10 px-4 sm:px-6 lg:px-10 xl:px-16 2xl:px-24">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+        <div className="grid grid-cols-1 gap-12 lg:gap-16 items-center">
 
           {/* ── Left: Headline + participant cards ── */}
           <div className="space-y-8">
@@ -81,8 +81,7 @@ export function AirdropSection() {
             {/* Headline */}
             <div className="space-y-4">
               <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black leading-[1.08] tracking-tight text-white">
-                Built for{" "}
-                <span className="gradient-text">Creators</span>&amp; Collectors
+                Built for{" "} <span className="gradient-text">Creators</span> &amp; <span className="gradient-text">Collectors</span>
               </h2>
               <p className="text-base sm:text-lg text-white/50 leading-relaxed max-w-lg">
                 Mint, collect, and build on Medialane to earn your allocation.

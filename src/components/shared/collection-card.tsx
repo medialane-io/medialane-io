@@ -24,7 +24,7 @@ export function CollectionCard({ collection }: CollectionCardProps) {
     <MotionCard className="card-base group">
       <Link href={`/collections/${collection.contractAddress}`} className="block relative h-full">
         {/* Main Image Area */}
-        <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
+        <div className="relative aspect-[3/4] w-full overflow-hidden bg-muted">
           {/* Vivid Image with Hover Effect */}
           {showImage ? (
             <Image
@@ -52,7 +52,7 @@ export function CollectionCard({ collection }: CollectionCardProps) {
                   Indexing…
                 </span>
               ) : (
-                <p className="font-bold text-xs truncate text-white leading-tight">
+                <p className="font-bold text-sm truncate text-white leading-tight">
                   {collection.name ?? "Unnamed Collection"}
                 </p>
               )}

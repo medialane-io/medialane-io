@@ -75,12 +75,6 @@ function CtaCard({
 export function LearnDocsCta() {
   return (
     <section className="space-y-5">
-      <div className="space-y-1">
-        <h2 className="text-xl sm:text-2xl font-black">Learn &amp; Build</h2>
-        <p className="text-sm text-muted-foreground">
-          Everything you need to create, collect, and build on Medialane.
-        </p>
-      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <CtaCard
           icon={BookOpen}

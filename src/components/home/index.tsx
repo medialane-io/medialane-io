@@ -17,7 +17,7 @@ const SECTION_PADDING = "px-4 sm:px-6 lg:px-10 xl:px-16 2xl:px-24";
 
 export function HomePage() {
   return (
-    <div className="pb-24">
+    <div className="pb-20">
       {/* Hero — <main> has zero padding so this is naturally full-bleed */}
       <HeroSlider />
 
