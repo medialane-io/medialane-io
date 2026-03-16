@@ -189,6 +189,7 @@ export default function CreateAssetPage() {
       formData.set("name", pendingValues.name);
       formData.set("description", pendingValues.description ?? "");
       if (pendingValues.external_url) formData.set("external_url", pendingValues.external_url);
+      formData.set("creator", walletAddress);
       formData.set("ipType", pendingValues.ipType);
       formData.set("licenseType", pendingValues.licenseType);
       formData.set("commercialUse", pendingValues.commercialUse);

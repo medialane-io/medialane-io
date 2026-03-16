@@ -9,6 +9,7 @@
  *   name            string   — asset name (required)
  *   description     string?  — asset description
  *   external_url    string?  — canonical URL (default: https://medialane.io)
+ *   creator         string?  — creator wallet address (stored as attribute)
  *   ipType          string?  — e.g. "Art", "Music", "Video", …
  *   licenseType     string?  — e.g. "CC BY", "All Rights Reserved", …
  *   commercialUse   string?  — "Yes" | "No"
@@ -57,6 +58,7 @@ export async function POST(req: NextRequest) {
     }
     const description = (formData.get("description") as string | null) ?? "";
     const externalUrl = (formData.get("external_url") as string | null) ?? "https://medialane.io";
+    const creator = (formData.get("creator") as string | null) ?? null;
 
     // ── IP / licensing fields ─────────────────────────────────────────────────
     const ipType = formData.get("ipType") as string | null;
@@ -97,6 +99,7 @@ export async function POST(req: NextRequest) {
       { trait_type: "Network", value: "Starknet Mainnet" },
     ];
 
+    if (creator) attributes.push({ trait_type: "Creator", value: creator });
     if (ipType) attributes.push({ trait_type: "IP Type", value: ipType });
     if (licenseType) attributes.push({ trait_type: "License", value: licenseType });
     if (commercialUse) attributes.push({ trait_type: "Commercial Use", value: commercialUse });
