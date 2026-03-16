@@ -7,7 +7,7 @@ import { useOrders } from "@/hooks/use-orders";
 import { Button } from "@/components/ui/button";
 import { KineticWords, EASE_OUT } from "@/components/ui/motion-primitives";
 import { Compass, Sparkles, Zap } from "lucide-react";
-import { ipfsToHttp } from "@/lib/utils";
+import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 
 export function Hero() {
   const { stats } = usePlatformStats();
@@ -113,7 +113,7 @@ export function Hero() {
                     )}
                   </div>
                   <p className="text-sm mt-2 truncate text-muted-foreground">{listing.token?.name ?? `#${listing.nftTokenId}`}</p>
-                  <p className="text-sm font-bold">{listing.price?.formatted ?? ""} {listing.price?.currency ?? ""}</p>
+                  <p className="text-sm font-bold">{listing.price ? `${formatDisplayPrice(listing.price.formatted)} ${listing.price.currency}` : ""}</p>
                 </Link>
               ))}
             </div>
