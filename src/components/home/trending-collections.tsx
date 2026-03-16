@@ -1,23 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, TrendingUp } from "lucide-react";
+import { ArrowRight, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCollections } from "@/hooks/use-collections";
 import { CollectionCard, CollectionCardSkeleton } from "@/components/shared/collection-card";
 
 export function TrendingCollections() {
-  const { collections, isLoading } = useCollections(1, 10, undefined, "volume");
+  const { collections, isLoading } = useCollections(1, 10, undefined, "recent");
 
   return (
     <section className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-orange-400 to-rose-500 flex items-center justify-center shadow-lg shadow-orange-500/20">
-            <TrendingUp className="h-4 w-4 text-white" />
+          <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
+            <Clock className="h-4 w-4 text-white" />
           </div>
-          <h2 className="text-xl sm:text-2xl font-black">Trending Collections</h2>
+          <h2 className="text-xl sm:text-2xl font-black">Recent Collections</h2>
         </div>
         <Button variant="ghost" size="sm" asChild>
           <Link href="/collections" className="flex items-center gap-1 text-muted-foreground hover:text-foreground">

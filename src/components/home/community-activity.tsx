@@ -6,9 +6,69 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useActivities } from "@/hooks/use-activities";
+import { useToken } from "@/hooks/use-tokens";
 import { AddressDisplay } from "@/components/shared/address-display";
-import { timeAgo } from "@/lib/utils";
+import { timeAgo, formatDisplayPrice } from "@/lib/utils";
 import { ACTIVITY_TYPE_CONFIG } from "@/lib/activity";
+import type { ApiActivity } from "@medialane/sdk";
+
+function ActivityRow({ act }: { act: ApiActivity }) {
+  const config = ACTIVITY_TYPE_CONFIG[act.type] ?? ACTIVITY_TYPE_CONFIG.transfer;
+  const actorAddress = act.offerer ?? act.fulfiller ?? act.from ?? act.to ?? null;
+  const contract = act.nftContract ?? act.contractAddress ?? null;
+  const tokenId = act.nftTokenId ?? act.tokenId ?? null;
+
+  const { token } = useToken(contract, tokenId);
+  const tokenName = token?.metadata?.name ?? (tokenId ? `#${tokenId}` : "—");
+
+  return (
+    <div className="flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors text-sm">
+      {/* Type badge */}
+      <Badge
+        variant={config.variant}
+        className="shrink-0 text-[10px] font-bold tracking-wide"
+      >
+        {config.label}
+      </Badge>
+
+      {/* Actor */}
+      {actorAddress ? (
+        <Link
+          href={`/creator/${actorAddress}`}
+          className="text-muted-foreground hover:text-primary transition-colors font-mono text-xs shrink-0 hover:underline underline-offset-2"
+        >
+          <AddressDisplay address={actorAddress} />
+        </Link>
+      ) : (
+        <span className="text-muted-foreground text-xs shrink-0">—</span>
+      )}
+
+      {/* Asset link */}
+      {contract && tokenId ? (
+        <Link
+          href={`/asset/${contract}/${tokenId}`}
+          className="text-foreground hover:text-primary transition-colors truncate flex-1 text-xs font-medium hover:underline underline-offset-2"
+        >
+          {tokenName}
+        </Link>
+      ) : (
+        <span className="flex-1 text-muted-foreground text-xs">—</span>
+      )}
+
+      {/* Price (if any) */}
+      {act.price?.formatted && (
+        <span className="price-value text-xs shrink-0 hidden sm:block">
+          {formatDisplayPrice(act.price.formatted)} {act.price.currency}
+        </span>
+      )}
+
+      {/* Timestamp */}
+      <span className="text-muted-foreground text-xs shrink-0 tabular-nums hidden sm:block">
+        {timeAgo(act.timestamp)}
+      </span>
+    </div>
+  );
+}
 
 export function CommunityActivity() {
   const { activities, isLoading } = useActivities({ limit: 10 });
@@ -23,7 +83,7 @@ export function CommunityActivity() {
           <h2 className="text-xl sm:text-2xl font-black">Community Activity</h2>
         </div>
         <Button variant="ghost" size="sm" asChild>
-          <Link href="/discover" className="flex items-center gap-1 text-muted-foreground hover:text-foreground">
+          <Link href="/activities" className="flex items-center gap-1 text-muted-foreground hover:text-foreground">
             View all <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </Button>
@@ -48,55 +108,10 @@ export function CommunityActivity() {
           </div>
         ) : (
           activities.map((act, i) => {
-            const config = ACTIVITY_TYPE_CONFIG[act.type] ?? ACTIVITY_TYPE_CONFIG.transfer;
-            const actorAddress = act.from ?? act.to ?? null;
-            const contract = act.nftContract ?? act.contractAddress ?? null;
-            const tokenId = act.nftTokenId ?? act.tokenId ?? null;
-            const key = act.txHash ? `${act.txHash}-${i}` : `activity-${i}`;
-
-            return (
-              <div
-                key={key}
-                className="flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors text-sm group"
-              >
-                {/* Type badge */}
-                <Badge
-                  variant={config.variant}
-                  className="shrink-0 text-[10px] font-bold tracking-wide"
-                >
-                  {config.label}
-                </Badge>
-
-                {/* Actor */}
-                {actorAddress ? (
-                  <Link
-                    href={`/creator/${actorAddress}`}
-                    className="text-muted-foreground hover:text-primary transition-colors font-mono text-xs shrink-0 group-hover:underline underline-offset-2"
-                  >
-                    <AddressDisplay address={actorAddress} />
-                  </Link>
-                ) : (
-                  <span className="text-muted-foreground text-xs shrink-0">—</span>
-                )}
-
-                {/* Asset link */}
-                {contract && tokenId ? (
-                  <Link
-                    href={`/asset/${contract}/${tokenId}`}
-                    className="text-foreground hover:text-primary transition-colors truncate flex-1 font-mono text-xs font-medium"
-                  >
-                    {`${contract.slice(0, 8)}…#${tokenId}`}
-                  </Link>
-                ) : (
-                  <span className="flex-1 text-muted-foreground text-xs">—</span>
-                )}
-
-                {/* Timestamp */}
-                <span className="text-muted-foreground text-xs shrink-0 hidden sm:block tabular-nums">
-                  {timeAgo(act.timestamp)}
-                </span>
-              </div>
-            );
+            const key = act.txHash
+              ? `${act.txHash}-${act.type}-${act.nftTokenId ?? ""}`
+              : `activity-${i}`;
+            return <ActivityRow key={key} act={act} />;
           })
         )}
       </div>
