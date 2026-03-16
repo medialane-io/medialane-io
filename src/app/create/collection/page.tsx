@@ -135,13 +135,36 @@ export default function CreateCollectionPage() {
     setCollectionStep("processing");
 
     try {
-      // 1. Create collection intent — pre-signed, returns calls immediately
+      // 1. Upload collection metadata JSON to IPFS so permissionless dapps can resolve
+      //    the collection image on-chain (base_uri → collection metadata → image field).
+      let baseUri: string | undefined;
+      if (imageUri) {
+        try {
+          const metaRes = await fetch("/api/pinata/json", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: pendingValues.name,
+              description: pendingValues.description || "",
+              image: imageUri,
+              external_link: "https://medialane.io",
+            }),
+          });
+          const metaData = await metaRes.json().catch(() => ({}));
+          if (metaRes.ok && metaData.uri) baseUri = metaData.uri;
+        } catch {
+          // Non-fatal: collection is still created, just without on-chain metadata URI
+        }
+      }
+
+      // 2. Create collection intent — pre-signed, returns calls immediately
       const intentRes = await client.api.createCollectionIntent({
         owner: walletAddress,
         name: pendingValues.name,
         symbol: pendingValues.symbol,
         description: pendingValues.description || undefined,
         image: imageUri || undefined,
+        baseUri,
       });
 
       const calls = intentRes.data.calls as ChipiCall[];
