@@ -66,8 +66,8 @@ export function AirdropSection() {
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-500/40 to-transparent" />
       <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-blue-500/30 to-transparent" />
 
-      {/* Content — same padding scale as all other homepage sections */}
-      <div className="relative z-10 px-4 sm:px-6 lg:px-10 xl:px-16 2xl:px-24">
+      {/* Content — matches the max-w-7xl container rhythm used by other homepage sections */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-12 lg:gap-16 items-center">
 
           {/* ── Left: Headline + participant cards ── */}
