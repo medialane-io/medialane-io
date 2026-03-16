@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import useSWR from "swr";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import NextImage from "next/image";
@@ -31,6 +32,7 @@ import {
   Flag,
 } from "lucide-react";
 import { ReportDialog } from "@/components/report-dialog";
+import { HiddenContentBanner } from "@/components/hidden-content-banner";
 import type { ApiActivity } from "@medialane/sdk";
 import { cn } from "@/lib/utils";
 
@@ -221,6 +223,11 @@ export default function CreatorPageClient() {
 
   const addr = address ?? null;
 
+  const { data: hiddenStatus } = useSWR<{ isHidden: boolean }>(
+    address ? `/api/creators/${address}/hidden` : null,
+    (url: string) => fetch(url).then(r => r.json())
+  );
+
   // Lazy data fetching — only load when tab is active
   const { tokens,      isLoading: tokensLoading      } = useTokensByOwner(activeTab === "assets"      ? addr : null);
   const { orders,      isLoading: ordersLoading      } = useUserOrders(activeTab === "listings"    ? addr : null);
@@ -371,6 +378,8 @@ export default function CreatorPageClient() {
           open={reportOpen}
           onOpenChange={setReportOpen}
         />
+
+        {hiddenStatus?.isHidden === true && <HiddenContentBanner />}
 
         {/* ── Tab navigation ────────────────────────────────────────────── */}
         <div className="sticky top-0 z-10 -mx-6 px-6 bg-background/95 backdrop-blur-sm border-b border-border">
