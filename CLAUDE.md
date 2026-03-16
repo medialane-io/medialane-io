@@ -32,9 +32,10 @@ NEXT_PUBLIC_MEDIALANE_BACKEND_URL=http://localhost:3001
 - **ChipiPay** (`@chipi-stack/nextjs`) — Manages Starknet wallets derived from Clerk sessions. Enables gasless transactions. Wraps the app via `ChipiProvider` in `src/app/providers.tsx`.
 - **Starknet.js** — Direct contract calls. RPC singleton in `src/lib/starknet.ts`.
 - **@medialane/sdk** — Published npm package (`@medialane/sdk@0.3.1`, org: `@medialane`). Provides `ApiOrder`, `ApiToken`, `ApiCollection`, `ApiOrderTokenMeta`, `OrderStatus`, `IpAttribute`, `IpNftMetadata` types and the SDK client used in `src/lib/medialane-client.ts`. `ApiOrder.token: ApiOrderTokenMeta | null` carries name/image/description enrichment from the backend — no per-row `useToken` calls needed. `ApiCollection.collectionId: string | null` is the on-chain registry numeric ID needed for `createMintIntent`. The SDK normalizes all addresses internally.
-- **Pinata** — IPFS uploads via two Next.js routes (both Clerk-gated, direct to Pinata):
-  - `src/app/api/pinata/route.ts` — Universal IP asset upload. Accepts full licensing schema, uploads image + metadata JSON in one call. Returns `{ uri, imageUri, cid }`.
-  - `src/app/api/pinata/image/route.ts` — Image-only upload. Returns `{ imageUri: "ipfs://...", cid }`. Used by the create collection flow.
+- **Pinata** — IPFS uploads via Next.js routes (all Clerk-gated, direct to Pinata):
+  - `src/app/api/pinata/route.ts` — Universal IP asset upload. Accepts `file`, `name`, `description`, `external_url`, `creator` (wallet address), and full licensing schema (`ipType`, `licenseType`, `commercialUse`, `derivatives`, `attribution`, `geographicScope`, `aiPolicy`, `royalty`, `edition`). Uploads image then metadata JSON. Returns `{ uri, imageUri, cid }`. Metadata follows OpenSea ERC-721 standard with `attributes` array. Creator wallet embedded as `{ trait_type: "Creator", value: walletAddress }`.
+  - `src/app/api/pinata/image/route.ts` — Image-only upload. Returns `{ imageUri: "ipfs://...", cid }`. Used by the create collection flow for the preview image.
+  - `src/app/api/pinata/json/route.ts` — Generic JSON document upload. Accepts any JSON body. Returns `{ uri: "ipfs://...", cid }`. Used by the create collection flow to upload collection metadata JSON (`{ name, description, image, external_link }`) and set the resulting URI as `baseUri` for the on-chain collection.
   - `src/app/api/pinata/genesis/route.ts` — Genesis mint specific.
 
 ### Data Flow
@@ -195,6 +196,9 @@ All previously noted bugs were fixed. No outstanding known bugs.
 - [x] batchTokenMeta: order endpoints return `token.{name,image,description}` — eliminates N+1 `useToken` calls ✓ 2026-03-07
 - [x] Stale order sync: refreshInterval + delayed invalidate after write ops ✓ 2026-03-07
 - [x] Collection image upload in create flow (`/api/pinata/image`) + image stored in intent typedData ✓ 2026-03-07
+- [x] Collection metadata JSON uploaded to IPFS on collection creation (`/api/pinata/json`) → `baseUri` set on-chain so `dapp.medialane.io` resolves collection images permissionlessly ✓ 2026-03-16
+- [x] External link fields: `external_link` in create collection form, `external_url` in create asset form — both optional, validated as http/https URLs ✓ 2026-03-16
+- [x] Creator wallet address embedded in asset IPFS metadata attributes (`{ trait_type: "Creator", value: walletAddress }`) — sourced from `useSessionKey().walletAddress` ✓ 2026-03-16
 - [x] Full programmable licensing metadata (Berne Convention, CC variants, AI policy, royalty) ✓ 2026-03-06
 - [x] Asset page License tab — rich display from IPFS attributes (Berne badge, icon table) ✓ 2026-03-06
 - [x] Asset upload decentralised — direct Pinata via `/api/pinata`, no backend hop ✓ 2026-03-06
@@ -249,8 +253,9 @@ layout.tsx (server)
 | `src/lib/utils.ts` | `ipfsToHttp`, `timeUntil`, `formatPrice`, `cn` |
 | `src/types/index.ts` | Local TypeScript types (CartItem, etc.) |
 | `src/types/ip.ts` | IP/licensing constants: `LICENSE_TYPES`, `IP_TYPES`, `GEOGRAPHIC_SCOPES`, `AI_POLICIES`, `DERIVATIVES_OPTIONS`, `LICENSE_TRAIT_TYPES` |
-| `src/app/api/pinata/route.ts` | Universal IP asset upload (Clerk-gated, direct Pinata) — accepts image + full licensing schema, returns `{ uri, imageUri, cid }` |
+| `src/app/api/pinata/route.ts` | Universal IP asset upload (Clerk-gated, direct Pinata) — accepts image + full licensing schema + `creator` wallet + `external_url`, returns `{ uri, imageUri, cid }`. Embeds creator as attribute. |
 | `src/app/api/pinata/image/route.ts` | Image-only upload (Clerk-gated, direct Pinata) — returns `{ imageUri: "ipfs://...", cid }`. Used by create collection flow |
+| `src/app/api/pinata/json/route.ts` | Generic JSON document upload (Clerk-gated, direct Pinata) — returns `{ uri: "ipfs://...", cid }`. Used by create collection flow to anchor collection metadata on-chain as `baseUri` |
 | `src/app/portfolio/layout.tsx` | Portfolio shared layout: auth guard, wallet display, subnav with 6 links + unread badge |
 | `src/hooks/use-collections.ts` | `useCollections`, `useCollection`, `useCollectionTokens`, `useCollectionsByOwner` |
 | `src/hooks/use-user-collections.ts` | `useUserCollections(address)` — on-chain direct via starknet.js; returns `{ onChainId, contractAddress, name, symbol }[]`. Used by portfolio/collections and create/asset collection selector |

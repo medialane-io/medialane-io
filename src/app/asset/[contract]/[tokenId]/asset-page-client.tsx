@@ -267,6 +267,11 @@ export default function AssetPageClient() {
                 <Badge variant="secondary" className="mb-2">{token.metadata.ipType}</Badge>
               )}
               <h1 className="text-3xl font-bold">{name}</h1>
+              {description && (
+              <div>
+                <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
+              </div>
+            )}
               <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
                 <span>Owned by</span>
                 <Link href={`/creator/${token.owner}`} className="hover:text-primary transition-colors">
@@ -505,12 +510,7 @@ export default function AssetPageClient() {
 
           {/* Details tab */}
           <TabsContent value="details" className="mt-4 space-y-4">
-            {description && (
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Description</p>
-                <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
-              </div>
-            )}
+            
             {token.metadata?.licenseType && (
               <div className="rounded-lg bg-muted/30 p-4 space-y-1">
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">License</p>
