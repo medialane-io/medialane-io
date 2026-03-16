@@ -6,21 +6,15 @@ const ADMIN_KEY = process.env.NEXT_PUBLIC_ADMIN_API_KEY!;
 
 async function getPendingReportCount(): Promise<number> {
   try {
-    const [pendingRes, underReviewRes] = await Promise.all([
-      fetch(`${BACKEND_URL}/admin/reports?status=PENDING&limit=1`, {
+    const res = await fetch(
+      `${BACKEND_URL}/admin/reports?status=PENDING,UNDER_REVIEW&limit=1`,
+      {
         headers: { "x-api-key": ADMIN_KEY },
         cache: "no-store",
-      }),
-      fetch(`${BACKEND_URL}/admin/reports?status=UNDER_REVIEW&limit=1`, {
-        headers: { "x-api-key": ADMIN_KEY },
-        cache: "no-store",
-      }),
-    ]);
-    const [pending, underReview] = await Promise.all([
-      pendingRes.json(),
-      underReviewRes.json(),
-    ]);
-    return (pending.total ?? 0) + (underReview.total ?? 0);
+      }
+    );
+    const data = await res.json();
+    return data.total ?? 0;
   } catch {
     return 0;
   }
