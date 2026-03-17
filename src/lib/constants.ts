@@ -54,4 +54,3 @@ export const DURATION_OPTIONS = [
   { label: "6 Months", seconds: 15552000 },
 ] as const;
 
-export type SupportedCurrencySymbol = "STRK" | "USDC" | "USDT" | "ETH";

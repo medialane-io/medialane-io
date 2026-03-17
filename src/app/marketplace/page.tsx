@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, X } from "lucide-react";
 import type { ApiSearchResult } from "@medialane/sdk";
-import { getTokenBySymbol, parseAmount } from "@medialane/sdk";
+import { getTokenBySymbol, parseAmount, SUPPORTED_TOKENS } from "@medialane/sdk";
 import { ipfsToHttp } from "@/lib/utils";
 import Link from "next/link";
 import { usePlatformStats } from "@/hooks/use-stats";
@@ -26,7 +26,7 @@ const TYPE_OPTIONS = [
   { label: "Offers", value: "offers" },
 ];
 
-const CURRENCY_OPTIONS = ["USDC", "USDT", "STRK", "ETH"];
+const CURRENCY_OPTIONS = SUPPORTED_TOKENS.map((t) => t.symbol);
 
 function SearchBar() {
   const client = useMedialaneClient();
