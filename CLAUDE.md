@@ -31,7 +31,7 @@ NEXT_PUBLIC_MEDIALANE_BACKEND_URL=http://localhost:3001
 - **Clerk** — Email/social authentication. Session JWTs are templated as `chipipay` for wallet derivation.
 - **ChipiPay** (`@chipi-stack/nextjs`) — Manages Starknet wallets derived from Clerk sessions. Enables gasless transactions. Wraps the app via `ChipiProvider` in `src/app/providers.tsx`.
 - **Starknet.js** — Direct contract calls. RPC singleton in `src/lib/starknet.ts`.
-- **@medialane/sdk** — Published npm package (`@medialane/sdk@0.3.1`, org: `@medialane`). Provides `ApiOrder`, `ApiToken`, `ApiCollection`, `ApiOrderTokenMeta`, `OrderStatus`, `IpAttribute`, `IpNftMetadata` types and the SDK client used in `src/lib/medialane-client.ts`. `ApiOrder.token: ApiOrderTokenMeta | null` carries name/image/description enrichment from the backend — no per-row `useToken` calls needed. `ApiCollection.collectionId: string | null` is the on-chain registry numeric ID needed for `createMintIntent`. The SDK normalizes all addresses internally.
+- **@medialane/sdk** — Published npm package (`@medialane/sdk@0.4.2`, org: `@medialane`). Provides `ApiOrder`, `ApiToken`, `ApiCollection`, `ApiOrderTokenMeta`, `OrderStatus`, `IpAttribute`, `IpNftMetadata`, `SupportedTokenSymbol` types and the SDK client used in `src/lib/medialane-client.ts`. `ApiOrder.token: ApiOrderTokenMeta | null` carries name/image/description enrichment from the backend — no per-row `useToken` calls needed. `ApiCollection.collectionId: string | null` is the on-chain registry numeric ID needed for `createMintIntent`. The SDK normalizes all addresses internally. `getListableTokens()` returns all tokens with `listable: true` (USDC, USDT, ETH, STRK, WBTC) — used by `listing-dialog` and `offer-dialog` to build currency lists. `SupportedCurrencySymbol` local type was removed in v0.4.2; use `SupportedTokenSymbol` from `@medialane/sdk` instead.
 - **Pinata** — IPFS uploads via Next.js routes (all Clerk-gated, direct to Pinata):
   - `src/app/api/pinata/route.ts` — Universal IP asset upload. Accepts `file`, `name`, `description`, `external_url`, `creator` (wallet address), and full licensing schema (`ipType`, `licenseType`, `commercialUse`, `derivatives`, `attribution`, `geographicScope`, `aiPolicy`, `royalty`, `edition`). Uploads image then metadata JSON. Returns `{ uri, imageUri, cid }`. Metadata follows OpenSea ERC-721 standard with `attributes` array. Creator wallet embedded as `{ trait_type: "Creator", value: walletAddress }`.
   - `src/app/api/pinata/image/route.ts` — Image-only upload. Returns `{ imageUri: "ipfs://...", cid }`. Used by the create collection flow for the preview image.
@@ -192,7 +192,7 @@ All previously noted bugs were fixed. No outstanding known bugs.
 - [x] Offer browsing in marketplace (Type filter: All / Listings / Offers) ✓ 2026-03-06
 - [ ] Price range filter in marketplace (requires backend min/max params — deferred)
 - [x] Sidebar-first layout: shadcn `sidebar-07` replaces top header globally ✓ 2026-03-06
-- [x] `@medialane/sdk` published to npm — replaced local `file:` dep ✓ 2026-03-06 (latest: v0.3.1)
+- [x] `@medialane/sdk` published to npm — replaced local `file:` dep ✓ 2026-03-06 (latest: v0.4.2)
 - [x] batchTokenMeta: order endpoints return `token.{name,image,description}` — eliminates N+1 `useToken` calls ✓ 2026-03-07
 - [x] Stale order sync: refreshInterval + delayed invalidate after write ops ✓ 2026-03-07
 - [x] Collection image upload in create flow (`/api/pinata/image`) + image stored in intent typedData ✓ 2026-03-07
@@ -213,6 +213,7 @@ All previously noted bugs were fixed. No outstanding known bugs.
 - [x] Collections page: sort/filter toolbar (Recent/Supply/Volume/Floor/Name + Verified toggle), newest-first default ✓ 2026-03-11
 - [x] Creator page (`/creator/[address]`): full redesign — address-derived color palette, blurred banner from latest token image, asset avatar, activity timeline ✓ 2026-03-11
 - [x] `/docs` folder removed from git tracking (gitignored) — internal planning docs no longer exposed in repo ✓ 2026-03-11
+- [x] Currency expansion: WBTC + ETH added to listing/offer dialogs; USDC.e removed; token list centralized in SDK via `getListableTokens()` ✓ 2026-03-17
 
 ---
 
