@@ -81,6 +81,13 @@ export default function CreateCollectionPage() {
     defaultValues: { name: "", symbol: "", description: "", external_link: "" },
   });
 
+  // Once the wallet address is known, pre-fill the external_link with the creator page URL
+  useEffect(() => {
+    if (walletAddress && !form.getValues("external_link")) {
+      form.setValue("external_link", `https://medialane.io/creator/${walletAddress}`);
+    }
+  }, [walletAddress, form]);
+
   const handleImageSelect = async (file: File) => {
     const MAX_BYTES = 4 * 1024 * 1024; // 4 MB — Vercel serverless payload limit
     if (file.size > MAX_BYTES) {

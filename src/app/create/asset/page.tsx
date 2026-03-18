@@ -157,6 +157,15 @@ export default function CreateAssetPage() {
     },
   });
 
+  // When a collection is selected, pre-fill external_url with the collection page URL
+  const selectedCollectionId = form.watch("collectionId");
+  useEffect(() => {
+    const col = collections.find((c) => c.collectionId === selectedCollectionId);
+    if (col?.contractAddress && !form.getValues("external_url")) {
+      form.setValue("external_url", `https://medialane.io/collections/${col.contractAddress}`);
+    }
+  }, [selectedCollectionId, collections, form]);
+
   const handleLicenseChange = (value: string) => {
     form.setValue("licenseType", value);
     const def = LICENSE_TYPES.find((l) => l.value === value);
