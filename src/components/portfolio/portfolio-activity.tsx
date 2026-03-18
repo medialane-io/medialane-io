@@ -14,6 +14,7 @@ import type { ApiActivity } from "@medialane/sdk";
 
 const TYPE_FILTERS = [
   { label: "All", value: "" },
+  { label: "Mints", value: "mint" },
   { label: "Sales", value: "sale" },
   { label: "Listings", value: "listing" },
   { label: "Offers", value: "offer" },

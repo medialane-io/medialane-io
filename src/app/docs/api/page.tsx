@@ -102,7 +102,7 @@ export default function DocsAPIPage() {
             <EndpointRow method="GET" path="/activities" desc="Global activity feed (all event types)" />
             <EndpointRow method="GET" path="/activities/:address" desc="Activity for a specific wallet address" />
           </div>
-          <p>Event types: <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">listing</code>, <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">sale</code>, <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">offer</code>, <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">transfer</code>, <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">cancelled</code>.</p>
+          <p>Event types: <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">mint</code>, <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">listing</code>, <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">sale</code>, <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">offer</code>, <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">transfer</code>, <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">cancelled</code>.</p>
         </Section>
 
         <Section title="Response Format">

@@ -30,6 +30,7 @@ import {
   Share2,
   LayoutList,
   Flag,
+  Sparkles,
 } from "lucide-react";
 import { ReportDialog } from "@/components/report-dialog";
 import { HiddenContentBanner } from "@/components/hidden-content-banner";
@@ -100,6 +101,7 @@ const ACTIVITY_META: Record<
   string,
   { label: string; textColor: string; bg: string }
 > = {
+  mint:      { label: "Minted",    textColor: "text-yellow-400",  bg: "bg-yellow-500/8 border-yellow-500/15" },
   listing:   { label: "Listed",    textColor: "text-violet-400",  bg: "bg-violet-500/8 border-violet-500/15" },
   sale:      { label: "Sold",      textColor: "text-emerald-400", bg: "bg-emerald-500/8 border-emerald-500/15" },
   offer:     { label: "Offer",     textColor: "text-amber-400",   bg: "bg-amber-500/8 border-amber-500/15" },
@@ -108,6 +110,7 @@ const ACTIVITY_META: Record<
 };
 
 const ACTIVITY_ICONS: Record<string, React.ElementType> = {
+  mint:      Sparkles,
   listing:   Tag,
   sale:      Handshake,
   offer:     TrendingUp,

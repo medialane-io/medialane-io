@@ -19,6 +19,7 @@ const PAGE_SIZE = 30;
 
 const TYPE_FILTERS = [
   { label: "All", value: "" },
+  { label: "Mints", value: "mint" },
   { label: "Sales", value: "sale" },
   { label: "Listings", value: "listing" },
   { label: "Offers", value: "offer" },
@@ -36,7 +37,8 @@ function ActivityRow({ activity }: { activity: ApiActivity }) {
 
   const contract = activity.nftContract ?? activity.contractAddress ?? null;
   const tokenId = activity.nftTokenId ?? activity.tokenId ?? null;
-  const actor = activity.offerer ?? activity.fulfiller ?? activity.from ?? "";
+  // For mints, from is null (zero address suppressed); show the recipient (to) as actor instead
+  const actor = activity.offerer ?? activity.fulfiller ?? ((activity.type as string) === "mint" ? activity.to : activity.from) ?? "";
   const txLink = activity.txHash ? `${EXPLORER_URL}/tx/${activity.txHash}` : null;
 
   const { token } = useToken(contract, tokenId);
