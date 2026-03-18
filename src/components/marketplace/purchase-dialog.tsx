@@ -21,6 +21,8 @@ import { useMarketplace } from "@/hooks/use-marketplace";
 import { EXPLORER_URL } from "@/lib/constants";
 import type { ApiOrder } from "@medialane/sdk";
 import { formatDisplayPrice } from "@/lib/utils";
+import { isWebAuthnSupported } from "@chipi-stack/nextjs";
+import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
 
 interface PurchaseDialogProps {
   order: ApiOrder;
@@ -48,6 +50,12 @@ export function PurchaseDialog({ order, open, onOpenChange }: PurchaseDialogProp
   const [pin, setPin] = useState("");
   const [pinError, setPinError] = useState<string | null>(null);
   const [step, setStep] = useState<"details" | "pin">("details");
+
+  const [passkeySupported] = useState(
+    () => typeof window !== "undefined" && isWebAuthnSupported()
+  );
+  const [isAuthenticatingPasskey, setIsAuthenticatingPasskey] = useState(false);
+  const { authenticate, encryptKey } = usePasskeyAuth();
 
   const handleBuyClick = () => {
     if (!isSignedIn) return;
@@ -83,6 +91,28 @@ export function PurchaseDialog({ order, open, onOpenChange }: PurchaseDialogProp
     });
     setPin("");
     setStep("details");
+  };
+
+  const handleUsePasskey = async () => {
+    setPinError(null);
+    setIsAuthenticatingPasskey(true);
+    try {
+      const derived = encryptKey ?? (await authenticate());
+      if (!derived) throw new Error("Passkey authentication failed.");
+
+      await fulfillOrder({
+        orderHash: order.orderHash,
+        pin: derived,
+      });
+
+      setPin("");
+      setStep("details");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Passkey setup failed";
+      toast.error("Passkey authentication failed", { description: msg });
+    } finally {
+      setIsAuthenticatingPasskey(false);
+    }
   };
 
   const handleClose = (v: boolean) => {
@@ -151,7 +181,7 @@ export function PurchaseDialog({ order, open, onOpenChange }: PurchaseDialogProp
                 </div>
               </div>
               <p className="text-sm text-muted-foreground">
-                Enter your wallet PIN to confirm this purchase.
+                Enter your wallet PIN to confirm this purchase, or use passkey instead.
               </p>
               <PinInput
                 value={pin}
@@ -159,6 +189,17 @@ export function PurchaseDialog({ order, open, onOpenChange }: PurchaseDialogProp
                 error={pinError}
                 autoFocus
               />
+              {passkeySupported && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full"
+                  disabled={isAuthenticatingPasskey || isProcessing}
+                  onClick={handleUsePasskey}
+                >
+                  {isAuthenticatingPasskey ? "Authenticating passkey…" : "Use passkey instead"}
+                </Button>
+              )}
               {error && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />

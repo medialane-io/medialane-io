@@ -9,7 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@chipi-stack/nextjs": "^13.8.0",
+    "@chipi-stack/chipi-passkey": "^2.0.0",
+    "@chipi-stack/chipi-react": "^14.0.0",
+    "@chipi-stack/nextjs": "^14.0.0",
     "@clerk/nextjs": "^6",
     "@hookform/resolvers": "^3",
     "@medialane/sdk": "^0.4.1",
@@ -49,8 +51,8 @@
     "next": "^15",
     "next-themes": "latest",
     "pinata": "^2",
-    "react": "19.2.0",
-    "react-dom": "19.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "react-hook-form": "^7",
     "sonner": "^1",
     "starknet": "^6.11.0",

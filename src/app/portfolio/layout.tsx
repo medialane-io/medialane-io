@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
   { label: "Assets",            href: "/portfolio/assets" },
+  { label: "Wallet",            href: "/portfolio/wallet" },
   { label: "Collections",       href: "/portfolio/collections" },
   { label: "Claim Collection",  href: "/portfolio/claim" },
   { label: "Listings",          href: "/portfolio/listings" },

@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useAuth, useUser, useClerk } from "@clerk/nextjs";
-import { useChipiWallet } from "@chipi-stack/nextjs";
+import { useChipiWallet, WalletData } from "@chipi-stack/nextjs";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -65,12 +65,13 @@ export function WalletSetupDialog({ open, onOpenChange, onSuccess }: WalletSetup
 
     try {
       const wallet = await createWallet({ encryptKey: pin });
-      if (!wallet?.walletPublicKey) {
+      const walletKey = (wallet as WalletData)?.publicKey ?? wallet?.publicKey;
+      if (!walletKey) {
         throw new Error("Wallet creation returned invalid data");
       }
 
       const result = await completeOnboarding({
-        publicKey: wallet.walletPublicKey,
+        publicKey: walletKey,
       });
       if (result.error) throw new Error(result.error);
 
