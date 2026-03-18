@@ -80,7 +80,7 @@ export function CollectionProgressDialog({
   const isError = collectionStep === "error";
 
   return (
-    <Dialog open={open} modal>
+    <Dialog open={open} modal onOpenChange={(v) => { if (!v && !isProcessing) onCreateAnother(); }}>
       <DialogContent
         className="sm:max-w-md"
         onInteractOutside={isProcessing ? (e) => e.preventDefault() : undefined}

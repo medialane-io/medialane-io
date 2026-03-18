@@ -80,7 +80,7 @@ export function MintProgressDialog({
   const isError = mintStep === "error";
 
   return (
-    <Dialog open={open} modal>
+    <Dialog open={open} modal onOpenChange={(v) => { if (!v && !isProcessing) onMintAnother(); }}>
       <DialogContent
         className="sm:max-w-md"
         // Prevent closing during processing
