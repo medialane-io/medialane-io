@@ -152,7 +152,7 @@ export function AppSidebar() {
         <SidebarSeparator />
 
         <SidebarGroup>
-          <SidebarGroupLabel>Learn & Docs</SidebarGroupLabel>
+          <SidebarGroupLabel>Docs</SidebarGroupLabel>
           <SidebarMenu>
             {[
               { href: "/about",  label: "About",  icon: Info },
@@ -179,13 +179,11 @@ export function AppSidebar() {
         <SidebarSeparator />
 
         <SidebarGroup>
-          <SidebarGroupLabel>Company</SidebarGroupLabel>
+          <SidebarGroupLabel>DAO</SidebarGroupLabel>
           <SidebarMenu>
             {[
               { href: "/contact", label: "Contact Us",   icon: Mail },
               { href: "/support", label: "Support",      icon: LifeBuoy },
-              { href: "/terms",   label: "Terms of Use", icon: Scale },
-              { href: "/privacy", label: "Privacy",      icon: Lock },
             ].map(({ href, label, icon: Icon }) => (
               <SidebarMenuItem key={href}>
                 <SidebarMenuButton
