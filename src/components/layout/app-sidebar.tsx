@@ -91,16 +91,8 @@ export function AppSidebar() {
     }
   };
 
-  // Hover-to-open: expand on hover when collapsed on desktop, collapse on mouse leave
-  const handleMouseEnter = () => {
-    if (!isMobile && state === "collapsed") setOpen(true);
-  };
-  const handleMouseLeave = () => {
-    if (!isMobile && state === "expanded") setOpen(false);
-  };
-
   return (
-    <Sidebar collapsible="icon" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+    <Sidebar collapsible="icon">
       {/* Brand */}
       <SidebarHeader>
         <SidebarMenu>

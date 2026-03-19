@@ -210,7 +210,7 @@ export default function AssetPageClient() {
         />
       </div>
 
-      <div className={`container mx-auto px-4 pt-14 space-y-8 ${cheapest && !isOwner && walletAddress ? "pb-24 md:pb-8" : "pb-8"}`}>
+      <div className={`container mx-auto px-4 pt-14 space-y-8 pb-8`}>
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
           <Link href="/collections" className="hover:text-foreground transition-colors shrink-0">
@@ -340,6 +340,7 @@ export default function AssetPageClient() {
                     >
                       <Button
                         className="w-full h-12 text-base"
+                        style={dynamicTheme ? { background: `hsl(var(--dynamic-primary))`, color: "white" } : {}}
                         onClick={() => setPurchaseOrder(cheapest)}
                       >
                         <ShoppingCart className="h-5 w-5 mr-2" />
@@ -350,6 +351,7 @@ export default function AssetPageClient() {
                       <Button
                         variant="outline"
                         className="w-full"
+                        style={dynamicTheme ? { borderColor: `hsl(var(--dynamic-primary))`, color: `hsl(var(--dynamic-primary))` } : {}}
                         disabled={inCart}
                         onClick={handleAddToCart}
                       >
@@ -359,6 +361,7 @@ export default function AssetPageClient() {
                       <Button
                         variant="outline"
                         className="w-full"
+                        style={dynamicTheme ? { borderColor: `hsl(var(--dynamic-primary))`, color: `hsl(var(--dynamic-primary))` } : {}}
                         onClick={() => setOfferOpen(true)}
                       >
                         <HandCoins className="h-4 w-4 mr-2" />
@@ -761,15 +764,16 @@ export default function AssetPageClient() {
         </Tabs>
       </div>
 
-      {/* Mobile sticky buy bar */}
+      {/* Mobile floating buy pill */}
       {cheapest && !isOwner && walletAddress && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 p-4 bg-background/90 backdrop-blur-md border-t border-border md:hidden">
+        <div className="fixed bottom-6 left-4 z-40 md:hidden">
           <Button
-            className="w-full h-12 text-base font-semibold"
-            style={dynamicTheme ? { background: `hsl(var(--dynamic-primary))` } : {}}
+            className="h-12 px-5 rounded-full text-sm font-semibold shadow-lg shadow-black/20"
+            style={dynamicTheme ? { background: `hsl(var(--dynamic-primary))`, color: "white" } : {}}
             onClick={() => setPurchaseOrder(cheapest)}
           >
-            Buy for {formatDisplayPrice(cheapest.price.formatted)} {cheapest.price.currency}
+            <ShoppingCart className="h-4 w-4 mr-2 shrink-0" />
+            {formatDisplayPrice(cheapest.price.formatted)} {cheapest.price.currency}
           </Button>
         </div>
       )}
