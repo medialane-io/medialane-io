@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useCreatorByUsername } from "@/hooks/use-username-claims";
 import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
-import { useActivitiesByAddress } from "@/hooks/use-activities";
 import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
 import { CollectionCard, CollectionCardSkeleton } from "@/components/shared/collection-card";
 import { Button } from "@/components/ui/button";
@@ -21,7 +20,6 @@ export default function CreatorUsernamePageClient({ username }: Props) {
   const walletAddress = creator?.walletAddress ?? null;
   const { tokens, isLoading: tokensLoading } = useTokensByOwner(walletAddress);
   const { collections, isLoading: colsLoading } = useCollectionsByOwner(walletAddress);
-  const { activities } = useActivitiesByAddress(walletAddress);
 
   if (isLoading) {
     return (

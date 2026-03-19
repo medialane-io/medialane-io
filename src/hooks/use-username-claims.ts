@@ -2,6 +2,8 @@
 
 import useSWR from "swr";
 import { useAuth } from "@clerk/nextjs";
+import { type ApiCreatorProfile } from "@medialane/sdk";
+import { getMedialaneClient } from "@/lib/medialane-client";
 import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
 
 export interface UsernameClaim {
@@ -14,18 +16,7 @@ export interface UsernameClaim {
   createdAt: string;
 }
 
-export interface CreatorByUsername {
-  walletAddress: string;
-  username: string;
-  displayName: string | null;
-  bio: string | null;
-  avatarImage: string | null;
-  bannerImage: string | null;
-  websiteUrl: string | null;
-  twitterUrl: string | null;
-  discordUrl: string | null;
-  telegramUrl: string | null;
-}
+export type { ApiCreatorProfile as CreatorByUsername };
 
 /** Fetch the current user's username claim status (requires Clerk auth + API key). */
 export function useMyUsernameClaim() {
@@ -73,15 +64,7 @@ export async function submitUsernameClaim(
 export function useCreatorByUsername(username: string | null | undefined) {
   const { data, error, isLoading } = useSWR(
     username ? `creator-by-username-${username}` : null,
-    async () => {
-      const res = await fetch(
-        `${MEDIALANE_BACKEND_URL}/v1/creators/by-username/${encodeURIComponent(username!)}`,
-        { headers: { "x-api-key": MEDIALANE_API_KEY } }
-      );
-      if (res.status === 404) return null;
-      if (!res.ok) throw new Error("Failed to fetch creator");
-      return res.json() as Promise<CreatorByUsername>;
-    },
+    () => getMedialaneClient().api.getCreatorByUsername(username!),
     { revalidateOnFocus: false }
   );
   return { creator: data ?? null, isLoading, error };
