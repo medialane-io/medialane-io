@@ -160,7 +160,9 @@ export function ListingDialog({
       setPin("");
       setStep("form");
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Passkey setup failed";
+      const msg = err instanceof Error
+        ? err.message
+        : "Passkey authentication failed";
       toast.error("Passkey authentication failed", { description: msg });
     } finally {
       setIsAuthenticatingPasskey(false);

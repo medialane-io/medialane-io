@@ -11,6 +11,7 @@ import {
   useMigrateWalletToPasskey,
 } from "@chipi-stack/nextjs";
 import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
+
 import { toast } from "sonner";
 export function ChipiWalletPanel() {
   const {
@@ -97,6 +98,13 @@ export function ChipiWalletPanel() {
 
     if (!walletAddress || !wallet) {
       setError("Wallet not found. Please create a wallet first.");
+      return;
+    }
+
+    const numAmount = Number(amount);
+    if (!Number.isFinite(numAmount) || numAmount <= 0) {
+      setError("Amount must be greater than 0.");
+      toast.error("Invalid amount", { description: "Enter an amount greater than 0." });
       return;
     }
 
