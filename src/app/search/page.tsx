@@ -7,8 +7,8 @@ import Image from "next/image";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ipfsToHttp } from "@/lib/utils";
-import { Search, Layers, ImageIcon } from "lucide-react";
-import type { ApiSearchResult } from "@medialane/sdk";
+import { Search, Layers, ImageIcon, Users, AtSign } from "lucide-react";
+import type { ApiSearchResult, ApiSearchCreatorResult } from "@medialane/sdk";
 
 function TokenCard({ token }: { token: NonNullable<ApiSearchResult["tokens"]>[number] }) {
   const [imgError, setImgError] = useState(false);
@@ -84,6 +84,31 @@ function CollectionCard({ col }: { col: NonNullable<ApiSearchResult["collections
   );
 }
 
+function CreatorCard({ creator }: { creator: ApiSearchCreatorResult }) {
+  const avatarUrl = creator.avatarImage ? ipfsToHttp(creator.avatarImage) : null;
+  const displayName = creator.displayName || `@${creator.username}`;
+  return (
+    <Link
+      href={`/creator/${creator.username}`}
+      className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 hover:border-primary/30 hover:bg-muted/30 transition-all"
+    >
+      <div className="h-9 w-9 rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 flex items-center justify-center shrink-0 overflow-hidden">
+        {avatarUrl ? (
+          <img src={avatarUrl} alt={displayName} className="h-full w-full object-cover" />
+        ) : (
+          <span className="text-sm font-bold text-primary-foreground">{displayName.charAt(0).toUpperCase()}</span>
+        )}
+      </div>
+      <div className="min-w-0">
+        <p className="font-semibold text-sm truncate">{displayName}</p>
+        <div className="flex items-center gap-0.5 text-xs text-muted-foreground">
+          <AtSign className="h-3 w-3" /><span>{creator.username}</span>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 function SearchResults() {
   const searchParams = useSearchParams();
   const q = searchParams.get("q") ?? "";
@@ -112,7 +137,8 @@ function SearchResults() {
 
   const tokens = results?.tokens ?? [];
   const collections = results?.collections ?? [];
-  const totalResults = tokens.length + collections.length;
+  const creators = results?.creators ?? [];
+  const totalResults = tokens.length + collections.length + creators.length;
 
   return (
     <div className="container mx-auto px-4 pt-14 pb-8 space-y-8">
@@ -159,6 +185,23 @@ function SearchResults() {
 
       {!isLoading && results && (
         <>
+          {/* Creators */}
+          {creators.length > 0 && (
+            <section className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-primary" />
+                <h2 className="font-semibold">
+                  Creators <span className="text-muted-foreground font-normal">({creators.length})</span>
+                </h2>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {creators.map((c) => (
+                  <CreatorCard key={c.walletAddress} creator={c} />
+                ))}
+              </div>
+            </section>
+          )}
+
           {/* Collections */}
           {collections.length > 0 && (
             <section className="space-y-4">
