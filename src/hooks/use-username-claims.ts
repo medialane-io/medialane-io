@@ -20,10 +20,10 @@ export type { ApiCreatorProfile as CreatorByUsername };
 
 /** Fetch the current user's username claim status (requires Clerk auth + API key). */
 export function useMyUsernameClaim() {
-  const { getToken } = useAuth();
+  const { getToken, isSignedIn } = useAuth();
 
   const { data, error, isLoading, mutate } = useSWR(
-    "username-claim-me",
+    isSignedIn ? "username-claim-me" : null,
     async () => {
       const token = await getToken();
       const res = await fetch(`${MEDIALANE_BACKEND_URL}/v1/username-claims/me`, {
@@ -39,6 +39,16 @@ export function useMyUsernameClaim() {
   );
 
   return { username: data?.username ?? null, claim: data?.claim ?? null, isLoading, error, mutate };
+}
+
+/** Check if a username is available (no auth required). */
+export async function checkUsernameAvailability(
+  username: string
+): Promise<{ available: boolean; reason?: string }> {
+  const res = await fetch(`${MEDIALANE_BACKEND_URL}/v1/username-claims/check/${encodeURIComponent(username)}`, {
+    headers: { "x-api-key": MEDIALANE_API_KEY },
+  });
+  return res.json();
 }
 
 /** Submit a username claim. */

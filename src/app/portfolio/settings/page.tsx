@@ -5,7 +5,7 @@ import { useAuth } from "@clerk/nextjs";
 import { useUser } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useCreatorProfile } from "@/hooks/use-profiles";
-import { useMyUsernameClaim, submitUsernameClaim } from "@/hooks/use-username-claims";
+import { useMyUsernameClaim, submitUsernameClaim, checkUsernameAvailability } from "@/hooks/use-username-claims";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,51 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { AtSign, CheckCircle, Clock, XCircle } from "lucide-react";
+
+type CheckState = "idle" | "checking" | "available" | "taken";
+
+function UsernameClaimInput({ value, onChange, onCheck, onSubmit, checkState, checkReason, loading, disabled }: {
+  value: string; onChange: (v: string) => void;
+  onCheck: () => void; onSubmit: () => void;
+  checkState: CheckState; checkReason?: string;
+  loading: boolean; disabled: boolean;
+}) {
+  const isAvailable = checkState === "available";
+  const isChecking = checkState === "checking";
+
+  return (
+    <div className="space-y-2">
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <AtSign className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+          <Input
+            className="pl-7 font-mono"
+            placeholder="yourname"
+            value={value}
+            onChange={(e) => onChange(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))}
+            maxLength={20}
+            onKeyDown={(e) => e.key === "Enter" && !loading && !isChecking && (isAvailable ? onSubmit() : onCheck())}
+          />
+        </div>
+        {isAvailable ? (
+          <Button onClick={onSubmit} disabled={loading || disabled} className="bg-green-600 hover:bg-green-700">
+            {loading ? "Submitting…" : `Claim @${value}`}
+          </Button>
+        ) : (
+          <Button onClick={onCheck} disabled={isChecking || disabled || value.length < 3} variant="outline">
+            {isChecking ? "Checking…" : "Check"}
+          </Button>
+        )}
+      </div>
+      {checkState === "taken" && (
+        <p className="text-xs text-destructive">{checkReason ?? "That username is not available."}</p>
+      )}
+      {checkState === "available" && (
+        <p className="text-xs text-green-500">@{value} is available!</p>
+      )}
+    </div>
+  );
+}
 
 export default function ProfileSettingsPage() {
   const { getToken } = useAuth();
@@ -24,6 +69,8 @@ export default function ProfileSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [claimInput, setClaimInput] = useState("");
   const [claiming, setClaiming] = useState(false);
+  const [checkState, setCheckState] = useState<"idle" | "checking" | "available" | "taken">("idle");
+  const [checkReason, setCheckReason] = useState<string | undefined>();
   const [form, setForm] = useState({
     displayName: "", bio: "", avatarImage: "", bannerImage: "",
     websiteUrl: "", twitterUrl: "", discordUrl: "", telegramUrl: "",
@@ -42,6 +89,24 @@ export default function ProfileSettingsPage() {
     });
   }, [profile]);
 
+  async function handleCheckUsername() {
+    if (!claimInput.trim()) return;
+    setCheckState("checking");
+    setCheckReason(undefined);
+    try {
+      const result = await checkUsernameAvailability(claimInput);
+      if (result.available) {
+        setCheckState("available");
+      } else {
+        setCheckState("taken");
+        setCheckReason(result.reason);
+      }
+    } catch {
+      setCheckState("idle");
+      toast.error("Could not check username availability");
+    }
+  }
+
   async function handleClaimUsername() {
     if (!claimInput.trim()) return;
     setClaiming(true);
@@ -55,6 +120,8 @@ export default function ProfileSettingsPage() {
       } else {
         toast.success("Username claim submitted — the Medialane DAO team will review it shortly.");
         setClaimInput("");
+        setCheckState("idle");
+        setCheckReason(undefined);
         await mutateClaim();
       }
     } catch {
@@ -78,30 +145,6 @@ export default function ProfileSettingsPage() {
     } finally {
       setSaving(false);
     }
-  }
-
-  function UsernameClaimInput({ value, onChange, onSubmit, loading, disabled }: {
-    value: string; onChange: (v: string) => void;
-    onSubmit: () => void; loading: boolean; disabled: boolean;
-  }) {
-    return (
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <AtSign className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
-          <Input
-            className="pl-7 font-mono"
-            placeholder="yourname"
-            value={value}
-            onChange={(e) => onChange(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))}
-            maxLength={20}
-            onKeyDown={(e) => e.key === "Enter" && !loading && onSubmit()}
-          />
-        </div>
-        <Button onClick={onSubmit} disabled={loading || disabled || value.length < 3}>
-          {loading ? "Submitting…" : "Request"}
-        </Button>
-      </div>
-    );
   }
 
   const field = (key: keyof typeof form, label: string, placeholder = "") => (
@@ -149,8 +192,11 @@ export default function ProfileSettingsPage() {
             </div>
             <UsernameClaimInput
               value={claimInput}
-              onChange={setClaimInput}
+              onChange={(v) => { setClaimInput(v); setCheckState("idle"); setCheckReason(undefined); }}
+              onCheck={handleCheckUsername}
               onSubmit={handleClaimUsername}
+              checkState={checkState}
+              checkReason={checkReason}
               loading={claiming}
               disabled={!walletAddress}
             />
@@ -164,8 +210,11 @@ export default function ProfileSettingsPage() {
             </p>
             <UsernameClaimInput
               value={claimInput}
-              onChange={setClaimInput}
+              onChange={(v) => { setClaimInput(v); setCheckState("idle"); setCheckReason(undefined); }}
+              onCheck={handleCheckUsername}
               onSubmit={handleClaimUsername}
+              checkState={checkState}
+              checkReason={checkReason}
               loading={claiming}
               disabled={!walletAddress}
             />
