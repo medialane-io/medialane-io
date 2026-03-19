@@ -84,7 +84,7 @@ export default function CreateCollectionPage() {
   // Once the wallet address is known, pre-fill the external_link with the creator page URL
   useEffect(() => {
     if (walletAddress && !form.getValues("external_link")) {
-      form.setValue("external_link", `https://medialane.io/creator/${walletAddress}`);
+      form.setValue("external_link", `https://medialane.io/account/${walletAddress}`);
     }
   }, [walletAddress, form]);
 

@@ -149,11 +149,11 @@ export function BentoSection() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {/* Featured collection — 2×2 hero slot */}
         {isLoading ? (
-          <div className="col-span-2 row-span-2 bento-cell">
-            <Skeleton className="aspect-[4/3] w-full" />
-            <div className="p-4 space-y-2">
-              <Skeleton className="h-5 w-2/3" />
-              <Skeleton className="h-3 w-1/3" />
+          <div className="col-span-2 row-span-2 bento-cell min-h-[220px] relative overflow-hidden">
+            <Skeleton className="absolute inset-0 rounded-none" />
+            <div className="absolute bottom-0 left-0 right-0 p-4 space-y-1.5">
+              <Skeleton className="h-4 w-2/3 bg-white/20" />
+              <Skeleton className="h-3 w-1/3 bg-white/15" />
             </div>
           </div>
         ) : cols[0] ? (

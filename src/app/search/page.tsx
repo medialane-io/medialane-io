@@ -1,13 +1,15 @@
 "use client";
 
-import { Suspense, useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { Suspense, useState, useEffect, useRef } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { ipfsToHttp } from "@/lib/utils";
-import { Search, Layers, ImageIcon, Users, AtSign } from "lucide-react";
+import { Search, Layers, ImageIcon, Users, AtSign, X } from "lucide-react";
 import type { ApiSearchResult, ApiSearchCreatorResult } from "@medialane/sdk";
 
 function TokenCard({ token }: { token: NonNullable<ApiSearchResult["tokens"]>[number] }) {
@@ -111,15 +113,28 @@ function CreatorCard({ creator }: { creator: ApiSearchCreatorResult }) {
 
 function SearchResults() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const q = searchParams.get("q") ?? "";
   const client = useMedialaneClient();
+  const [inputValue, setInputValue] = useState(q);
   const [results, setResults] = useState<ApiSearchResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasError, setHasError] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
+
+  // Keep input in sync if URL param changes (e.g. browser back/forward)
+  useEffect(() => {
+    setInputValue(q);
+  }, [q]);
 
   useEffect(() => {
-    if (!q.trim()) return;
+    if (!q.trim()) {
+      setResults(null);
+      return;
+    }
     let cancelled = false;
     setIsLoading(true);
+    setHasError(false);
     setResults(null);
     client.api.search(q.trim(), 50).then((res) => {
       if (!cancelled) {
@@ -127,13 +142,32 @@ function SearchResults() {
         setIsLoading(false);
       }
     }).catch(() => {
-      if (!cancelled) setIsLoading(false);
+      if (!cancelled) {
+        setIsLoading(false);
+        setHasError(true);
+      }
     });
     return () => { cancelled = true; };
-  // Intentionally depend only on `q` — `client` is a stable singleton that
-  // never changes, so omitting it from the dep array is safe.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q]);
+
+  function handleInputChange(value: string) {
+    setInputValue(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      if (value.trim()) {
+        router.replace(`/search?q=${encodeURIComponent(value.trim())}`);
+      } else {
+        router.replace("/search");
+      }
+    }, 350);
+  }
+
+  function handleClear() {
+    setInputValue("");
+    setResults(null);
+    router.replace("/search");
+  }
 
   const tokens = results?.tokens ?? [];
   const collections = results?.collections ?? [];
@@ -143,19 +177,40 @@ function SearchResults() {
   return (
     <div className="container mx-auto px-4 pt-14 pb-8 space-y-8">
       {/* Header */}
-      <div className="space-y-1">
+      <div className="space-y-4">
         <div className="flex items-center gap-2 text-primary">
           <Search className="h-5 w-5" />
           <span className="text-sm font-semibold uppercase tracking-wider">Search</span>
         </div>
-        <h1 className="text-3xl font-bold">
-          {q ? `Results for "${q}"` : "Search"}
-        </h1>
+        <h1 className="text-3xl font-bold">Search</h1>
+
+        {/* Search input */}
+        <div className="relative max-w-xl">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <Input
+            autoFocus
+            className="pl-9 pr-10 h-11 text-base"
+            placeholder="Search assets, collections, creators…"
+            value={inputValue}
+            onChange={(e) => handleInputChange(e.target.value)}
+          />
+          {inputValue && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground hover:text-foreground"
+              onClick={handleClear}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+
         {!isLoading && results && (
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             {totalResults === 0
-              ? "No results found."
-              : `${totalResults} result${totalResults !== 1 ? "s" : ""}`}
+              ? `No results for "${q}"`
+              : `${totalResults} result${totalResults !== 1 ? "s" : ""} for "${q}"`}
           </p>
         )}
       </div>
@@ -176,10 +231,18 @@ function SearchResults() {
         </div>
       )}
 
+      {!isLoading && hasError && (
+        <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
+          <Search className="h-10 w-10 text-muted-foreground/30" />
+          <p className="font-semibold">Search unavailable</p>
+          <p className="text-sm text-muted-foreground">Could not reach the search service. Please try again.</p>
+        </div>
+      )}
+
       {!isLoading && !q && (
         <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
           <Search className="h-12 w-12 text-muted-foreground/30" />
-          <p className="text-muted-foreground">Enter a search term to find tokens and collections.</p>
+          <p className="text-muted-foreground">Type above to search assets, collections, and creators.</p>
         </div>
       )}
 
@@ -225,7 +288,7 @@ function SearchResults() {
               <div className="flex items-center gap-2">
                 <ImageIcon className="h-4 w-4 text-primary" />
                 <h2 className="font-semibold">
-                  Tokens <span className="text-muted-foreground font-normal">({tokens.length})</span>
+                  Assets <span className="text-muted-foreground font-normal">({tokens.length})</span>
                 </h2>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -254,9 +317,9 @@ function SearchResults() {
 export default function SearchPage() {
   return (
     <Suspense fallback={
-      <div className="container mx-auto px-4 pt-14 pb-8">
-        <Skeleton className="h-8 w-64 mb-2" />
-        <Skeleton className="h-4 w-32" />
+      <div className="container mx-auto px-4 pt-14 pb-8 space-y-4">
+        <Skeleton className="h-8 w-32" />
+        <Skeleton className="h-11 w-full max-w-xl" />
       </div>
     }>
       <SearchResults />

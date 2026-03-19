@@ -76,7 +76,7 @@ export function useCreatorByUsername(username: string | null | undefined) {
   const { data, error, isLoading } = useSWR(
     username ? `creator-by-username-${username}` : null,
     () => getMedialaneClient().api.getCreatorByUsername(username!),
-    { revalidateOnFocus: false }
+    { revalidateOnFocus: false, revalidateOnMount: true }
   );
   return { creator: data ?? null, isLoading, error };
 }

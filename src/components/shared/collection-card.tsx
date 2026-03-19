@@ -84,17 +84,11 @@ export function CollectionCard({ collection }: CollectionCardProps) {
 export function CollectionCardSkeleton() {
   return (
     <div className="card-base">
-      <Skeleton className="aspect-[16/7] w-full rounded-none" />
-      <div className="p-4 space-y-3">
-        <div className="space-y-1.5">
-          <Skeleton className="h-4 w-2/3" />
-          <Skeleton className="h-3 w-1/3" />
-        </div>
-        <Skeleton className="h-3 w-full" />
-        <div className="grid grid-cols-3 gap-2">
-          <Skeleton className="h-10 rounded-xl" />
-          <Skeleton className="h-10 rounded-xl" />
-          <Skeleton className="h-10 rounded-xl" />
+      <div className="relative aspect-[3/4] w-full overflow-hidden bg-muted rounded-none">
+        <Skeleton className="absolute inset-0 rounded-none" />
+        <div className="absolute bottom-2 left-2 right-2 flex items-end justify-between gap-1.5">
+          <Skeleton className="h-6 w-2/3 rounded-lg" />
+          <Skeleton className="h-5 w-14 rounded-lg" />
         </div>
       </div>
     </div>

@@ -8,8 +8,9 @@ import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
 import { CollectionCard, CollectionCardSkeleton } from "@/components/shared/collection-card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ipfsToHttp } from "@/lib/utils";
+import { ipfsToHttp, normalizeAddress } from "@/lib/utils";
 import { AtSign, Globe, Twitter, ExternalLink } from "lucide-react";
+import type { ApiCollection, ApiToken } from "@medialane/sdk";
 
 interface Props {
   username: string;
@@ -17,17 +18,31 @@ interface Props {
 
 export default function CreatorUsernamePageClient({ username }: Props) {
   const { creator, isLoading, error } = useCreatorByUsername(username);
-  const walletAddress = creator?.walletAddress ?? null;
+  const walletAddress = creator?.walletAddress ? normalizeAddress(creator.walletAddress) : null;
   const { tokens, isLoading: tokensLoading } = useTokensByOwner(walletAddress);
   const { collections, isLoading: colsLoading } = useCollectionsByOwner(walletAddress);
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-16 max-w-4xl space-y-6">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-4 w-72" />
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mt-8">
-          {Array.from({ length: 8 }).map((_, i) => <TokenCardSkeleton key={i} />)}
+      <div className="pb-20 min-h-screen">
+        {/* Banner skeleton */}
+        <Skeleton className="w-full h-48 sm:h-64 rounded-none" />
+        <div className="px-6">
+          {/* Identity row skeleton */}
+          <div className="-mt-14 sm:-mt-16 relative z-10">
+            <div className="flex flex-wrap items-end gap-x-4 gap-y-3 pb-6">
+              <Skeleton className="h-[88px] w-[88px] rounded-full shrink-0" />
+              <div className="flex-1 min-w-0 pb-1 space-y-2">
+                <Skeleton className="h-3.5 w-20" />
+                <Skeleton className="h-6 w-48" />
+                <Skeleton className="h-3 w-64" />
+              </div>
+            </div>
+          </div>
+          {/* Assets skeleton */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {Array.from({ length: 8 }).map((_, i) => <TokenCardSkeleton key={i} />)}
+          </div>
         </div>
       </div>
     );
@@ -117,7 +132,7 @@ export default function CreatorUsernamePageClient({ username }: Props) {
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                {collections!.map((col: any) => <CollectionCard key={col.contractAddress} collection={col} />)}
+                {collections!.map((col: ApiCollection) => <CollectionCard key={col.contractAddress} collection={col} />)}
               </div>
             )}
           </section>
@@ -132,7 +147,7 @@ export default function CreatorUsernamePageClient({ username }: Props) {
             </div>
           ) : tokens && tokens.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-              {tokens.map((token: any) => <TokenCard key={`${token.contractAddress}-${token.tokenId}`} token={token} />)}
+              {tokens.map((token: ApiToken) => <TokenCard key={`${token.contractAddress}-${token.tokenId}`} token={token} />)}
             </div>
           ) : (
             <p className="text-sm text-muted-foreground py-8 text-center">No assets yet.</p>

@@ -105,7 +105,7 @@ function ActivityRow({ event }: { event: ApiActivity }) {
       </div>
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium truncate">
-          {ACTIVITY_LABEL[event.type]} · {(event as any).token?.name ?? (event as any).tokenName ?? `#${tokenId ?? "—"}`}
+          {ACTIVITY_LABEL[event.type]} · {(event as any).token?.name ?? `#${tokenId ?? "—"}`}
         </p>
         <p className="text-[11px] text-muted-foreground font-mono truncate">
           {contract?.slice(0, 14)}…

@@ -34,10 +34,13 @@ import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
+import { usePostMintListing } from "@/hooks/use-post-mint-listing";
 import { MintProgressDialog } from "@/components/marketplace/mint-progress-dialog";
 import type { MintStep } from "@/components/marketplace/mint-progress-dialog";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 import { cn } from "@/lib/utils";
+import { DURATION_OPTIONS } from "@/lib/constants";
+import { getListableTokens } from "@medialane/sdk";
 import {
   IP_TYPES,
   LICENSE_TYPES,
@@ -52,10 +55,13 @@ import {
   Boxes,
   Plus,
   ImagePlus,
+  Tag,
 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 import type { ChipiCall } from "@/hooks/use-chipi-transaction";
+
+const LISTING_CURRENCIES = getListableTokens().map((t) => t.symbol);
 
 const schema = z.object({
   collectionId: z.string().min(1, "Select a collection"),
@@ -116,6 +122,7 @@ export default function CreateAssetPage() {
   const { executeTransaction, status, txHash, error, statusMessage } = useChipiTransaction();
   const { walletAddress, wallet } = useSessionKey();
   const client = useMedialaneClient();
+  const { listingStep, listingError, runPostMintListing, resetListing } = usePostMintListing();
 
   // Fetch user's collections from the API (collectionId field contains on-chain registry ID)
   const { collections: allCollections, isLoading: collectionsLoading } = useCollectionsByOwner(walletAddress ?? null);
@@ -128,8 +135,13 @@ export default function CreateAssetPage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [listingOpen, setListingOpen] = useState(false);
+  const [listPrice, setListPrice] = useState("");
+  const [listCurrency, setListCurrency] = useState<string>(LISTING_CURRENCIES[0] ?? "USDC");
+  const [listDuration, setListDuration] = useState<number>(DURATION_OPTIONS[0]?.seconds ?? 86400);
   const [mintStep, setMintStep] = useState<MintStep>("idle");
   const [mintError, setMintError] = useState<string | null>(null);
+  const pinRef = useRef<string | null>(null);
   const previewUrlRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -190,7 +202,9 @@ export default function CreateAssetPage() {
     setPinOpen(false);
     if (!pendingValues || !walletAddress) return;
 
+    pinRef.current = pin;
     setMintError(null);
+    resetListing();
     setMintStep("uploading");
 
     try {
@@ -251,7 +265,27 @@ export default function CreateAssetPage() {
 
       setMintStep("success");
       invalidatePortfolioCache(walletAddress);
+
+      // ── Optional listing after mint ──────────────────────────────────────
+      const col = collections.find((c) => c.collectionId === pendingValues.collectionId);
+      const wantListing = listingOpen && listPrice && parseFloat(listPrice) > 0 && col?.contractAddress && pinRef.current;
+      if (wantListing) {
+        const savedPin = pinRef.current!;
+        pinRef.current = null;
+        await runPostMintListing({
+          walletAddress,
+          collectionContract: col!.contractAddress,
+          price: listPrice,
+          currencySymbol: listCurrency,
+          durationSeconds: listDuration,
+          tokenName: pendingValues.name,
+          pin: savedPin,
+        });
+      } else {
+        pinRef.current = null;
+      }
     } catch (err: unknown) {
+      pinRef.current = null;
       setMintError(err instanceof Error ? err.message : "Something went wrong");
       setMintStep("error");
     }
@@ -260,9 +294,12 @@ export default function CreateAssetPage() {
   const handleMintAnother = () => {
     setMintStep("idle");
     setMintError(null);
+    resetListing();
+    pinRef.current = null;
     form.reset();
     setImageFile(null);
     setImagePreview(null);
+    setListPrice("");
   };
 
   return (
@@ -276,6 +313,8 @@ export default function CreateAssetPage() {
         txHash={txHash}
         error={mintError}
         onMintAnother={handleMintAnother}
+        listingStep={listingStep}
+        listingError={listingError}
       />
 
       <div className="container max-w-2xl mx-auto px-4 pt-14 pb-8 space-y-8">
@@ -596,6 +635,71 @@ export default function CreateAssetPage() {
               </Collapsible>
             </div>
 
+            {/* Optional listing section */}
+            <Collapsible open={listingOpen} onOpenChange={setListingOpen}>
+              <div className="rounded-xl border border-border overflow-hidden">
+                <CollapsibleTrigger asChild>
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-between px-5 py-4 hover:bg-muted/30 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Tag className="h-4 w-4 text-primary" />
+                      <span className="text-sm font-semibold">List on marketplace after minting</span>
+                      <span className="text-xs text-muted-foreground font-normal">Optional</span>
+                    </div>
+                    <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", listingOpen && "rotate-180")} />
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="px-5 pb-5 space-y-4 border-t border-border/60 pt-4">
+                    <p className="text-xs text-muted-foreground">
+                      Set a price and your asset will be listed on the marketplace immediately after it&apos;s minted. One PIN, two actions.
+                    </p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <label className="text-sm font-medium">Price</label>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          placeholder="0.00"
+                          value={listPrice}
+                          onChange={(e) => setListPrice(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-sm font-medium">Currency</label>
+                        <Select value={listCurrency} onValueChange={setListCurrency}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {LISTING_CURRENCIES.map((c) => (
+                              <SelectItem key={c} value={c}>{c}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium">Duration</label>
+                      <Select value={String(listDuration)} onValueChange={(v) => setListDuration(Number(v))}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {DURATION_OPTIONS.map((d) => (
+                            <SelectItem key={d.seconds} value={String(d.seconds)}>{d.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
+
             <Button
               type="submit"
               className="w-full h-12 text-base"
@@ -605,10 +709,10 @@ export default function CreateAssetPage() {
                 collections.length === 0
               }
             >
-              Mint asset
+              {listingOpen && listPrice && parseFloat(listPrice) > 0 ? "Mint & List" : "Mint asset"}
             </Button>
             <p className="text-xs text-center text-muted-foreground">
-              Gas is free. Your PIN signs the mint transaction.
+              Gas is free. Your PIN signs the mint{listingOpen && listPrice ? " and listing" : ""} transaction.
             </p>
           </form>
         </Form>
