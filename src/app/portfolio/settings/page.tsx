@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useCreatorProfile } from "@/hooks/use-profiles";
 import { useMyUsernameClaim, submitUsernameClaim } from "@/hooks/use-username-claims";
@@ -16,6 +17,7 @@ import { AtSign, CheckCircle, Clock, XCircle } from "lucide-react";
 
 export default function ProfileSettingsPage() {
   const { getToken } = useAuth();
+  const { user } = useUser();
   const { walletAddress } = useSessionKey();
   const { profile, mutate } = useCreatorProfile(walletAddress ?? undefined);
   const { username: approvedUsername, claim, mutate: mutateClaim } = useMyUsernameClaim();
@@ -46,7 +48,8 @@ export default function ProfileSettingsPage() {
     try {
       const token = await getToken();
       if (!token) throw new Error("Not authenticated");
-      const result = await submitUsernameClaim(claimInput.trim().toLowerCase(), token);
+      const notifyEmail = user?.primaryEmailAddress?.emailAddress;
+      const result = await submitUsernameClaim(claimInput.trim().toLowerCase(), token, notifyEmail);
       if (result.error) {
         toast.error(result.error);
       } else {

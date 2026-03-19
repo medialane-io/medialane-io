@@ -44,7 +44,8 @@ export function useMyUsernameClaim() {
 /** Submit a username claim. */
 export async function submitUsernameClaim(
   username: string,
-  token: string
+  token: string,
+  notifyEmail?: string
 ): Promise<{ claim?: UsernameClaim; error?: string }> {
   const res = await fetch(`${MEDIALANE_BACKEND_URL}/v1/username-claims`, {
     method: "POST",
@@ -53,7 +54,7 @@ export async function submitUsernameClaim(
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ username }),
+    body: JSON.stringify({ username, ...(notifyEmail ? { notifyEmail } : {}) }),
   });
   const json = await res.json();
   if (!res.ok) return { error: json.error ?? "Failed to submit claim" };
