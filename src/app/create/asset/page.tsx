@@ -51,6 +51,7 @@ import {
   ShieldCheck,
   Boxes,
   Plus,
+  ImagePlus,
 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -277,10 +278,14 @@ export default function CreateAssetPage() {
         onMintAnother={handleMintAnother}
       />
 
-      <div className="container max-w-2xl mx-auto px-4 py-8 space-y-6">
-        <div>
+      <div className="container max-w-2xl mx-auto px-4 pt-14 pb-8 space-y-8">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-primary">
+            <ImagePlus className="h-5 w-5" />
+            <span className="text-sm font-semibold uppercase tracking-wider">Create</span>
+          </div>
           <h1 className="text-3xl font-bold">Create IP Asset</h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-muted-foreground">
             Mint your creative work as a programmable NFT on Starknet with immutable licensing embedded in IPFS metadata.
           </p>
         </div>

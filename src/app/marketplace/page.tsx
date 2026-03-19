@@ -7,7 +7,7 @@ import { ListingsGrid } from "@/components/marketplace/listings-grid";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, X } from "lucide-react";
+import { Search, X, Store } from "lucide-react";
 import type { ApiSearchResult } from "@medialane/sdk";
 import { getTokenBySymbol, parseAmount, SUPPORTED_TOKENS } from "@medialane/sdk";
 import { ipfsToHttp } from "@/lib/utils";
@@ -219,12 +219,15 @@ export default function MarketplacePage() {
   };
 
   return (
-    <div className="px-4 py-8 space-y-6">
-      {/* Hero */}
+    <div className="container mx-auto px-4 pt-14 pb-8 space-y-8">
+      {/* Header */}
       <div className="space-y-2">
-        <p className="section-label">Marketplace</p>
-        <h1 className="text-2xl font-bold tracking-tight">Discover IP Assets</h1>
-        <p className="text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 text-primary">
+          <Store className="h-5 w-5" />
+          <span className="text-sm font-semibold uppercase tracking-wider">Marketplace</span>
+        </div>
+        <h1 className="text-3xl font-bold">Discover IP Assets</h1>
+        <p className="text-muted-foreground">
           Browse, buy, and license creative works on Starknet — gasless for everyone.
         </p>
         <PlatformStatsBar />

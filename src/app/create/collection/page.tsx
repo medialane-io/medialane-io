@@ -245,17 +245,16 @@ export default function CreateCollectionPage() {
         onCreateAnother={handleCreateAnother}
       />
 
-      <div className="container max-w-2xl mx-auto px-4 py-8 space-y-6">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Layers className="h-5 w-5 text-primary" />
+      <div className="container max-w-2xl mx-auto px-4 pt-14 pb-8 space-y-8">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-primary">
+            <Layers className="h-5 w-5" />
+            <span className="text-sm font-semibold uppercase tracking-wider">Create</span>
           </div>
-          <div>
-            <h1 className="text-3xl font-bold">Create Collection</h1>
-            <p className="text-muted-foreground mt-0.5">
-              Deploy a new NFT collection on Starknet. Gas is free.
-            </p>
-          </div>
+          <h1 className="text-3xl font-bold">Create Collection</h1>
+          <p className="text-muted-foreground">
+            Deploy a new NFT collection on Starknet. Gas is free.
+          </p>
         </div>
 
         <Form {...form}>

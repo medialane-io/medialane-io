@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { AtSign, CheckCircle, Clock, XCircle } from "lucide-react";
+import { AtSign, CheckCircle, Clock, XCircle, Settings } from "lucide-react";
 
 type CheckState = "idle" | "checking" | "available" | "taken";
 
@@ -155,8 +155,15 @@ export default function ProfileSettingsPage() {
   );
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-2xl space-y-8">
-      <h1 className="text-2xl font-bold">Creator Profile</h1>
+    <div className="container mx-auto px-4 pt-14 pb-8 max-w-2xl space-y-8">
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 text-primary">
+          <Settings className="h-5 w-5" />
+          <span className="text-sm font-semibold uppercase tracking-wider">Settings</span>
+        </div>
+        <h1 className="text-3xl font-bold">Creator Profile</h1>
+        <p className="text-muted-foreground">Manage your public identity and username.</p>
+      </div>
 
       {/* ── Username claim ── */}
       <div className="glass rounded-xl p-5 space-y-3">

@@ -6,7 +6,7 @@ import { useCreators } from "@/hooks/use-creators";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ipfsToHttp } from "@/lib/utils";
-import { AtSign, Search } from "lucide-react";
+import { AtSign, Search, Users } from "lucide-react";
 import type { ApiCreatorProfile } from "@medialane/sdk";
 
 function CreatorCard({ creator }: { creator: ApiCreatorProfile }) {
@@ -83,17 +83,21 @@ export default function CreatorsPageClient() {
   const { creators, total, isLoading } = useCreators(debouncedSearch || undefined);
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
-      <div className="mb-8 space-y-1">
-        <h1 className="text-2xl font-bold">Creators</h1>
-        <p className="text-muted-foreground text-sm">
-          Discover verified creators on Medialane
-          {!isLoading && total > 0 && <span className="ml-1">· {total} creator{total !== 1 ? "s" : ""}</span>}
+    <div className="container mx-auto px-4 pt-14 pb-8 space-y-8">
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 text-primary">
+          <Users className="h-5 w-5" />
+          <span className="text-sm font-semibold uppercase tracking-wider">Creators</span>
+        </div>
+        <h1 className="text-3xl font-bold">All Creators</h1>
+        <p className="text-muted-foreground">
+          Discover verified creators on Medialane.
+          {!isLoading && total > 0 && <span className="ml-1 text-foreground font-medium">{total} total</span>}
         </p>
       </div>
 
       {/* Search */}
-      <div className="relative max-w-sm mb-8">
+      <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
         <Input
           className="pl-9"
