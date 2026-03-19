@@ -35,7 +35,7 @@ export function useMyUsernameClaim() {
       if (!res.ok) throw new Error("Failed to fetch username claim");
       return res.json() as Promise<{ username: string | null; claim: UsernameClaim | null }>;
     },
-    { revalidateOnFocus: false }
+    { revalidateOnFocus: false, shouldRetryOnError: false }
   );
 
   return { username: data?.username ?? null, claim: data?.claim ?? null, isLoading, error, mutate };
