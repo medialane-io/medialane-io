@@ -4,14 +4,16 @@ import { useState, FormEvent, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useWalletWithBalance } from "@/hooks/use-wallet-with-balance";
 import { useSessionKey } from "@/hooks/use-session-key";
-import { ChainToken } from "@chipi-stack/types";
+import { ChainToken, UpdateWalletEncryptionResponse, WalletData } from "@chipi-stack/types";
 import {
   useTransfer,
   isWebAuthnSupported,
-  useMigrateWalletToPasskey,
+  useUpdateWalletEncryption,
 } from "@chipi-stack/nextjs";
-import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
+import { usePasskeyAuth, usePasskeySetup } from "@chipi-stack/chipi-passkey/hooks";
+import CryptoES from "crypto-es";
 
+import { PinDialog } from "@/components/chipi/pin-dialog";
 import { toast } from "sonner";
 export function ChipiWalletPanel() {
   const {
@@ -30,8 +32,9 @@ export function ChipiWalletPanel() {
 
   const { transferAsync, isLoading: isTransferring } = useTransfer();
   const { authenticate, encryptKey } = usePasskeyAuth();
-  const { migrateWalletToPasskeyAsync, isLoading: isMigrating } =
-    useMigrateWalletToPasskey();
+  const { setupPasskey } = usePasskeySetup();
+  const { updateWalletEncryptionAsync, isLoading: isUpdatingEncryption } =
+    useUpdateWalletEncryption();
 
   const [passkeySupported] = useState(
     () => typeof window !== "undefined" && isWebAuthnSupported()
@@ -42,6 +45,8 @@ export function ChipiWalletPanel() {
   const [toAddress, setToAddress] = useState("");
   const [amount, setAmount] = useState("");
   const [pin, setPin] = useState("");
+  const [isPinMigrationDialogOpen, setIsPinMigrationDialogOpen] =
+    useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -347,46 +352,69 @@ export function ChipiWalletPanel() {
         </p>
         <button
           type="button"
-          disabled={!wallet || !userId || !passkeySupported || isMigrating}
-          onClick={async () => {
+          disabled={!wallet || !userId || !passkeySupported || isUpdatingEncryption}
+          onClick={() => {
             if (!wallet) return;
             if (!userId) return;
-            if (!pin) {
-              toast.error("PIN required to migrate.", {
-                description: "Enter your wallet PIN above (Use PIN) to migrate this wallet to passkey.",
-              });
-              return;
-            }
             setError(null);
-
-            try {
-              const bearerToken = await getBearerToken();
-              if (!bearerToken) throw new Error("Not authenticated. Please sign in again.");
-
-              await migrateWalletToPasskeyAsync({
-                wallet: wallet as any,
-                oldEncryptKey: pin,
-                externalUserId: userId,
-                bearerToken,
-              } as any);
-
-              await Promise.all([refetchWallet(), refetchBalance()]);
-              await clearSession();
-              setAuthMethod("passkey");
-              toast.success("Wallet migrated to passkey.", {
-                description: "You can now transfer using passkey authentication.",
-              });
-            } catch (err) {
-              const msg = err instanceof Error ? err.message : "Migration failed";
-              setError(msg);
-              toast.error("Migration failed", { description: msg });
-            }
+            setIsPinMigrationDialogOpen(true);
           }}
           className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs hover:text-foreground disabled:opacity-60"
         >
           Migrate PIN wallet to passkey
         </button>
       </div>
+
+      <PinDialog
+        open={isPinMigrationDialogOpen}
+        onCancel={() => setIsPinMigrationDialogOpen(false)}
+        onSubmit={async (oldEncryptKey) => {
+          if (!wallet) return;
+          if (!userId) return;
+          try {
+            const bearerToken = await getBearerToken();
+            if (!bearerToken) throw new Error("Not authenticated. Please sign in again.");
+
+            const decryptedPkBytes = CryptoES.AES.decrypt(
+              (wallet as any).encryptedPrivateKey,
+              oldEncryptKey
+            );
+            const decryptedPrivateKey = decryptedPkBytes.toString(CryptoES.enc.Utf8);
+            if (!decryptedPrivateKey) {
+              throw new Error("Incorrect PIN. Please try again.");
+            }
+
+            const passkeyData = await setupPasskey(userId, userId);
+            const newEncryptedPrivateKey = CryptoES.AES.encrypt(
+              decryptedPrivateKey,
+              passkeyData.encryptKey
+            ).toString();
+
+            await updateWalletEncryptionAsync({
+              externalUserId: userId,
+              publicKey: (wallet as WalletData).publicKey,
+              newEncryptedPrivateKey,
+              bearerToken,
+            } );
+
+            await Promise.all([refetchWallet(), refetchBalance()]);
+            await clearSession();
+            setAuthMethod("passkey");
+            setPin("");
+            setIsPinMigrationDialogOpen(false);
+            toast.success("Wallet migrated to passkey.", {
+              description: "You can now transfer using passkey authentication.",
+            });
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : "Migration failed";
+            setError(msg);
+            toast.error("Migration failed", { description: msg });
+          }
+        }}
+        title="Enter your wallet PIN"
+        description="Your wallet is PIN-protected. Enter your PIN to migrate this wallet to passkey."
+        allowPasskey={false}
+      />
     </section>
   );
 }

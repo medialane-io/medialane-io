@@ -44,3 +44,8 @@ package-lock.json
 
 # clerk configuration (can include secrets)
 /.clerk/
+
+# Local Playwright / E2E (optional; remove these lines if you want them in the repo)
+playwright.config.ts
+/e2e-tests/
+/.github/

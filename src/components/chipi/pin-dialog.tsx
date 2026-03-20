@@ -16,10 +16,11 @@ import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
 
 interface PinDialogProps {
   open: boolean;
-  onSubmit: (pin: string) => void;
+  onSubmit: (pin: string) => void | Promise<void>;
   onCancel: () => void;
   title?: string;
   description?: string;
+  allowPasskey?: boolean;
 }
 
 export function PinDialog({
@@ -28,6 +29,7 @@ export function PinDialog({
   onCancel,
   title = "Enter your PIN",
   description = "Your wallet is protected — enter your PIN to continue.",
+  allowPasskey = true,
 }: PinDialogProps) {
   const [pin, setPin] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -90,7 +92,7 @@ export function PinDialog({
             autoFocus
           />
         </div>
-        {passkeySupported && (
+        {allowPasskey && passkeySupported && (
           <div className="py-1">
             <Button
               type="button"
