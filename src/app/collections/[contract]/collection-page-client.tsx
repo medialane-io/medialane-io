@@ -3,23 +3,21 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { motion, useScroll, useTransform, useReducedMotion, useInView } from "framer-motion";
+import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
 import { useCollection, useCollectionTokens } from "@/hooks/use-collections";
 import { useOrders } from "@/hooks/use-orders";
 import { useDominantColor } from "@/hooks/use-dominant-color";
 import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listing-card";
 import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { CheckCircle2, ArrowLeft, Loader2, Flag, Inbox } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { ReportDialog } from "@/components/report-dialog";
 import { HiddenContentBanner } from "@/components/hidden-content-banner";
 import { ipfsToHttp, formatDisplayPrice, cn } from "@/lib/utils";
 import type { ApiToken } from "@medialane/sdk";
-import type { DynamicTheme } from "@/lib/theme-utils";
 
 const PAGE_SIZE = 24;
 
@@ -87,6 +85,7 @@ export default function CollectionPageClient() {
   const [descClamped, setDescClamped] = useState(false);
   const [descOverflows, setDescOverflows] = useState(false);
   const descRef = useRef<HTMLParagraphElement>(null);
+
   const { collection, isLoading: colLoading } = useCollection(contract);
   const { orders, isLoading: ordersLoading } = useOrders({
     collection: contract,
@@ -108,10 +107,17 @@ export default function CollectionPageClient() {
   const activeListings = orders.filter((o) => o.status === "ACTIVE" && o.offer.itemType === "ERC721");
   const activeBids = orders.filter((o) => o.status === "ACTIVE" && o.offer.itemType === "ERC20");
 
+  const stats = [
+    { label: "Items",   display: collection?.totalSupply != null ? String(collection.totalSupply) : "—" },
+    { label: "Holders", display: collection?.holderCount  != null ? String(collection.holderCount)  : "—" },
+    { label: "Floor",   display: formatDisplayPrice(collection?.floorPrice)  || "—" },
+    { label: "Volume",  display: formatDisplayPrice(collection?.totalVolume) || "—" },
+  ];
+
   return (
     <div
       style={dynamicTheme ? (dynamicTheme as React.CSSProperties) : {}}
-      className="relative z-0 min-h-screen space-y-0"
+      className="relative z-0 min-h-screen"
     >
       {/* Atmospheric blur background */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
@@ -136,7 +142,7 @@ export default function CollectionPageClient() {
 
       {(collection as any)?.isHidden && <HiddenContentBanner />}
 
-      {/* Hidden extraction img */}
+      {/* Hidden extraction img for dominant color */}
       {bannerUrl && (
         <img
           ref={imgRef}
@@ -148,145 +154,118 @@ export default function CollectionPageClient() {
         />
       )}
 
-      {/* Full-bleed collection banner */}
+      {/* ── Full-bleed hero banner ── */}
       {colLoading ? (
-        <Skeleton className="w-full aspect-[2/1] sm:aspect-video" />
+        <Skeleton className="w-full h-48 sm:aspect-video" />
       ) : (
-        <div className="relative w-full overflow-hidden aspect-[2/1] sm:aspect-video">
-          {/* Parallax image */}
+        <div className="relative w-full overflow-hidden h-[80svh] sm:h-auto sm:aspect-video">
+          {/* Parallax / gradient fill */}
           <ParallaxBanner imageUrl={bannerUrl} contract={contract} />
 
-          {/* Bottom gradient for text legibility */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          {/* Scrim: heavy at bottom for legibility */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/10" />
 
-          {/* Back link */}
+          {/* Back link — top-right */}
           <Link
             href="/collections"
-            className="absolute top-12 sm:top-14 left-4 flex items-center gap-1.5 text-xs font-medium text-white/80 hover:text-white bg-black/30 hover:bg-black/50 backdrop-blur-sm px-3 py-1.5 rounded-full transition-all z-10"
+            className="absolute top-12 sm:top-14 right-4 flex items-center gap-1.5 text-xs font-medium text-white/80 hover:text-white bg-black/30 hover:bg-black/50 backdrop-blur-sm px-3 py-1.5 rounded-full transition-all z-10"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
-            Collections
+            <span className="hidden xs:inline">Collections</span>
           </Link>
 
-          {/* Collection identity over the banner */}
-          <div className="absolute bottom-5 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-6 z-10">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white drop-shadow-md leading-tight">
-              {collection?.name ?? "Unnamed Collection"}
-            </h1>
-            <div className="flex items-center gap-2 mt-2 flex-wrap">
-              {collection?.symbol && (
-                <Badge variant="secondary" className="font-mono text-xs bg-white/20 text-white border-white/30 backdrop-blur-sm">
-                  {collection.symbol}
-                </Badge>
-              )}
-              {collection?.isKnown && (
-                <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
-                  <CheckCircle2 className="h-3 w-3 mr-1" />
-                  Verified
-                </Badge>
-              )}
+          {/* Bottom overlay: title + badges + stat chips */}
+          <div className="absolute bottom-0 left-0 right-0 px-4 sm:px-6 pb-4 sm:pb-6 space-y-3 z-10">
+            {/* Title */}
+            <div>
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white drop-shadow leading-tight">
+                {collection?.name ?? "Unnamed Collection"}
+              </h1>
+              <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                {collection?.symbol && (
+                  <span className="font-mono text-xs bg-white/15 text-white border border-white/25 backdrop-blur-sm rounded-full px-2 py-0.5">
+                    {collection.symbol}
+                  </span>
+                )}
+                {collection?.isKnown && (
+                  <span className="flex items-center gap-1 text-xs bg-white/15 text-white border border-white/25 backdrop-blur-sm rounded-full px-2 py-0.5">
+                    <CheckCircle2 className="h-3 w-3" />
+                    Verified
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Stat chips — 2×2 on mobile, 4-col on sm+ */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {stats.map(({ label, display }) => (
+                <div
+                  key={label}
+                  className="bg-black/35 backdrop-blur-md border border-white/10 rounded-xl px-3 py-2 text-center"
+                >
+                  <p className="text-[10px] text-white/55 uppercase tracking-widest mb-0.5">{label}</p>
+                  <p className="text-sm sm:text-base font-semibold text-white tabular-nums leading-tight">
+                    {display}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       )}
 
-      {/* Stats bar */}
-      {colLoading ? (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 px-4 sm:px-6 py-4 sm:py-5">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-14 rounded-xl" />
-          ))}
-        </div>
-      ) : collection ? (
-        <>
-          <div className="grid grid-cols-2 md:grid-cols-4 px-4 sm:px-6 py-4 sm:py-5 bg-background/40 backdrop-blur-md">
-            {[
-              {
-                label: "Items",
-                value: collection.totalSupply ?? null,
-                display: collection.totalSupply != null ? String(collection.totalSupply) : "—",
-              },
-              {
-                label: "Holders",
-                value: null,
-                display: collection.holderCount != null ? String(collection.holderCount) : "—",
-              },
-              {
-                label: "Floor",
-                value: null,
-                display: formatDisplayPrice(collection.floorPrice) || "—",
-              },
-              {
-                label: "Volume",
-                value: null,
-                display: formatDisplayPrice(collection.totalVolume) || "—",
-              },
-            ].map(({ label, value, display }, i) => (
-              <div key={label} className={cn(
-                "text-center py-2 md:py-0",
-                i > 0 && "md:border-l md:border-border/40"
-              )}>
-                <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-widest mb-1">{label}</p>
-                <CountUpStat value={value} display={display} dynamicTheme={dynamicTheme} />
-              </div>
-            ))}
-          </div>
-
-          {/* Meta section: creator + description + contract */}
-          <div className="px-4 sm:px-6 pt-3 pb-2 space-y-1.5">
-            {collection.owner && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span>by</span>
-                <Link
-                  href={`/creator/${collection.owner}`}
-                  className="hover:underline underline-offset-2"
-                >
-                  <AddressDisplay
-                    address={collection.owner}
-                    chars={6}
-                    showCopy={false}
-                    className="font-medium text-foreground"
-                  />
-                </Link>
-              </div>
-            )}
-
-            {collection.description && (
-              <>
-                <p
-                  ref={descRef}
-                  className={cn(
-                    "text-sm text-muted-foreground max-w-2xl leading-relaxed",
-                    descClamped && !descExpanded && "line-clamp-3"
-                  )}
-                >
-                  {collection.description}
-                </p>
-                {descOverflows && (
-                  <button
-                    onClick={() => setDescExpanded((e) => !e)}
-                    className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
-                  >
-                    {descExpanded ? "Show less" : "Show more"}
-                  </button>
-                )}
-              </>
-            )}
-
-            <div className="flex items-center gap-2 pt-0.5">
-              <AddressDisplay
-                address={collection.contractAddress ?? ""}
-                chars={6}
-                className="text-xs text-muted-foreground/70"
-              />
-              <button
-                onClick={() => setReportOpen(true)}
-                title="Report this collection"
-                className="text-muted-foreground/50 hover:text-muted-foreground transition-colors"
-              >
-                <Flag className="w-3.5 h-3.5" />
-              </button>
+      {/* ── Meta section ── */}
+      {!colLoading && collection && (
+        <div className="px-4 sm:px-6 pt-4 pb-2 space-y-1.5">
+          {collection.owner && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>by</span>
+              <Link href={`/creator/${collection.owner}`} className="hover:underline underline-offset-2">
+                <AddressDisplay
+                  address={collection.owner}
+                  chars={6}
+                  showCopy={false}
+                  className="font-medium text-foreground"
+                />
+              </Link>
             </div>
+          )}
+
+          {collection.description && (
+            <>
+              <p
+                ref={descRef}
+                className={cn(
+                  "text-sm text-muted-foreground max-w-2xl leading-relaxed",
+                  descClamped && !descExpanded && "line-clamp-3"
+                )}
+              >
+                {collection.description}
+              </p>
+              {descOverflows && (
+                <button
+                  onClick={() => setDescExpanded((e) => !e)}
+                  className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
+                >
+                  {descExpanded ? "Show less" : "Show more"}
+                </button>
+              )}
+            </>
+          )}
+
+          <div className="flex items-center gap-2 pt-0.5">
+            <AddressDisplay
+              address={collection.contractAddress ?? ""}
+              chars={6}
+              className="text-xs text-muted-foreground/70"
+            />
+            <button
+              onClick={() => setReportOpen(true)}
+              title="Report this collection"
+              className="text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+            >
+              <Flag className="w-3.5 h-3.5" />
+            </button>
           </div>
 
           <ReportDialog
@@ -298,13 +277,12 @@ export default function CollectionPageClient() {
             open={reportOpen}
             onOpenChange={setReportOpen}
           />
-        </>
-      ) : null}
+        </div>
+      )}
 
-      {/* Tabs */}
+      {/* ── Tabs ── */}
       <div className="px-4 sm:px-6 pb-12">
         <Tabs defaultValue="items">
-          {/* Tab bar: transparent, no background */}
           <div className="sticky top-0 z-10 pt-3 pb-1">
             <TabsList className="w-full sm:w-auto">
               <TabsTrigger value="items" className="flex-1 sm:flex-none">
@@ -319,12 +297,10 @@ export default function CollectionPageClient() {
             </TabsList>
           </div>
 
-          {/* Items */}
           <TabsContent value="items" className="mt-4">
             <CollectionItems contract={contract} />
           </TabsContent>
 
-          {/* Listings */}
           <TabsContent value="listings" className="mt-4">
             {ordersLoading ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -342,7 +318,6 @@ export default function CollectionPageClient() {
             )}
           </TabsContent>
 
-          {/* Offers */}
           <TabsContent value="offers" className="mt-4">
             {ordersLoading ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -380,7 +355,7 @@ function ParallaxBanner({ imageUrl, contract }: { imageUrl: string | null; contr
     const b = `#${hex.slice(-3).padStart(6, "5")}`;
     return (
       <div
-        className="absolute inset-0 w-full h-full scale-110"
+        className="absolute inset-0 w-full h-full"
         style={{ background: `linear-gradient(135deg, ${a}, ${b})` }}
       />
     );
@@ -394,44 +369,6 @@ function ParallaxBanner({ imageUrl, contract }: { imageUrl: string | null; contr
       style={{ y }}
       className="absolute inset-0 w-full h-full object-cover scale-110"
     />
-  );
-}
-
-function CountUpStat({
-  value,
-  display,
-  dynamicTheme,
-}: {
-  value: number | null;
-  display: string;
-  dynamicTheme: DynamicTheme | null;
-}) {
-  const shouldReduce = useReducedMotion();
-  const ref = useRef<HTMLSpanElement>(null);
-  const isInView = useInView(ref, { once: true });
-  const [shown, setShown] = useState(shouldReduce || value === null ? display : "0");
-
-  useEffect(() => {
-    if (shouldReduce || value === null || !isInView) return;
-    let start = 0;
-    const duration = 1000;
-    const step = (timestamp: number) => {
-      if (!start) start = timestamp;
-      const progress = Math.min((timestamp - start) / duration, 1);
-      setShown(String(Math.floor(progress * value)));
-      if (progress < 1) requestAnimationFrame(step);
-      else setShown(display);
-    };
-    requestAnimationFrame(step);
-  }, [isInView, shouldReduce, value, display]);
-
-  return (
-    <p
-      className="text-xl sm:text-2xl font-bold tabular-nums"
-      style={dynamicTheme ? { color: `hsl(var(--dynamic-primary))` } : {}}
-    >
-      <span ref={ref}>{shown}</span>
-    </p>
   );
 }
 
