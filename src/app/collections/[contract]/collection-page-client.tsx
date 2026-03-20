@@ -112,7 +112,7 @@ export default function CollectionPageClient() {
   return (
     <div
       style={dynamicTheme ? (dynamicTheme as React.CSSProperties) : {}}
-      className="relative space-y-0"
+      className="relative z-0 min-h-screen space-y-0"
     >
       {/* Atmospheric blur background */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
