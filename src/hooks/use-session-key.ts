@@ -177,8 +177,10 @@ export function useSessionKey() {
     wallet,
     /** Starknet contract address (for offerer/fulfiller in orders) */
     walletAddress,
-    /** Whether the user has a ChipiPay wallet */
-    hasWallet: !!wallet,
+    /** Whether the user has a wallet (from ChipiPay, JWT claim, or backend DB).
+     *  Never false just because ChipiPay is temporarily unavailable — prevents
+     *  incorrectly showing "create wallet" to users who already have one. */
+    hasWallet: !!walletAddress,
     /** Whether a registered, non-expired session key exists */
     hasActiveSession,
     /** Whether wallet data is still loading */

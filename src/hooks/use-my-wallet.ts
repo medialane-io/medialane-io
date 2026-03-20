@@ -9,7 +9,9 @@ import { getMedialaneClient } from "@/lib/medialane-client";
  * Acts as a third-tier fallback when ChipiPay is unavailable and the Clerk JWT
  * session claim is also missing (e.g. stale token before re-sign-in).
  *
- * Returns null if the user has never completed onboarding (POST /v1/users/me).
+ * On first load for existing users (who have a Clerk publicMetadata wallet but
+ * haven't stored it in the backend yet), automatically upserts the address so
+ * the DB stays in sync — no user action required.
  */
 export function useMyWallet() {
   const { userId, getToken } = useAuth();
@@ -21,7 +23,17 @@ export function useMyWallet() {
         template: process.env.NEXT_PUBLIC_CLERK_TEMPLATE_NAME || "chipipay",
       });
       if (!token) return null;
-      return getMedialaneClient().api.getMyWallet(token);
+
+      const existing = await getMedialaneClient().api.getMyWallet(token);
+      if (existing) return existing;
+
+      // Not yet stored — upsert now. Backend reads wallet from Clerk publicMetadata.
+      // This transparently backfills all existing users on their next page load.
+      try {
+        return await getMedialaneClient().api.upsertMyWallet(token);
+      } catch {
+        return null;
+      }
     },
     {
       revalidateOnFocus: false,
