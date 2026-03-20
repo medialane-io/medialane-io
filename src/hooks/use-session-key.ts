@@ -81,6 +81,9 @@ export function useSessionKey() {
   const setupSession = useCallback(
     async (pin: string): Promise<SessionKeyData> => {
       if (!wallet) throw new Error("Wallet not found. Please set up your wallet first.");
+      if (!wallet.encryptedPrivateKey) {
+        throw new Error("Wallet credentials unavailable — please try again in a moment. If the problem persists, contact support.");
+      }
 
       const bearerToken = await getBearerToken();
       if (!bearerToken) throw new Error("Not authenticated. Please sign in again.");
