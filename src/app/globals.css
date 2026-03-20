@@ -180,6 +180,26 @@
 .dark .aurora-rose   { opacity: 0.09; }
 .dark .aurora-orange { opacity: 0.07; }
 
+/* Mint button — animated gradient border */
+@keyframes mint-border-spin {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.mint-btn-wrap {
+  position: relative;
+  padding: 2px;
+  border-radius: calc(var(--radius) + 2px);
+  background: linear-gradient(135deg, #a855f7, #6366f1, #2563eb, #06b6d4, #a855f7);
+  background-size: 300% 300%;
+  animation: mint-border-spin 4s ease infinite;
+}
+
+.mint-btn-wrap > button {
+  border-radius: var(--radius);
+}
+
 /* Card base — no hover, press handled by Framer Motion */
 .card-base {
   border-radius: calc(var(--radius) * 1.25);
