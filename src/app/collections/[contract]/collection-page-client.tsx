@@ -165,32 +165,37 @@ export default function CollectionPageClient() {
           {/* Back link — top-right */}
           <Link
             href="/collections"
-            className="absolute top-12 sm:top-14 right-4 flex items-center gap-1.5 text-xs font-medium text-white/80 hover:text-white bg-black/30 hover:bg-black/50 backdrop-blur-sm px-3 py-1.5 rounded-full transition-all z-10"
+            className="absolute top-12 sm:top-14 right-4 flex items-center gap-1.5 text-xs font-medium text-white/80 hover:text-white bg-black/20 hover:bg-black/35 dark:bg-black/30 dark:hover:bg-black/50 backdrop-blur-sm px-3 py-1.5 rounded-full transition-all z-10"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             Collections
           </Link>
 
-          {/* Bottom overlay: title card + stat chips — all glass, no gradient scrim */}
-          <div className="absolute bottom-0 left-0 right-0 px-4 sm:px-6 pb-4 sm:pb-6 space-y-2 z-10">
-            {/* Title glass card */}
-            <div className="inline-block bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl px-4 py-3 max-w-full">
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight">
+          {/* Bottom overlay: title + badges + stat chips, all glass, no scrim */}
+          <div className="absolute bottom-0 left-0 right-0 px-4 sm:px-6 pb-4 sm:pb-6 space-y-2.5 z-10">
+
+            {/* Title — plain text with shadow, no background box */}
+            <div>
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight"
+                style={{ textShadow: "0 2px 12px rgba(0,0,0,0.6)" }}>
                 {collection?.name ?? "Unnamed Collection"}
               </h1>
-              <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                {collection?.symbol && (
-                  <span className="font-mono text-xs bg-white/15 text-white border border-white/20 rounded-full px-2 py-0.5">
-                    {collection.symbol}
-                  </span>
-                )}
-                {collection?.isKnown && (
-                  <span className="flex items-center gap-1 text-xs bg-white/15 text-white border border-white/20 rounded-full px-2 py-0.5">
-                    <CheckCircle2 className="h-3 w-3" />
-                    Verified
-                  </span>
-                )}
-              </div>
+              {/* Symbol + Verified as small separate pills, not grouped in the title */}
+              {(collection?.symbol || collection?.isKnown) && (
+                <div className="flex items-center gap-2 mt-2 flex-wrap">
+                  {collection?.symbol && (
+                    <span className="font-mono text-[11px] bg-black/20 dark:bg-black/40 text-white/90 border border-white/15 backdrop-blur-sm rounded-full px-2.5 py-0.5">
+                      {collection.symbol}
+                    </span>
+                  )}
+                  {collection?.isKnown && (
+                    <span className="flex items-center gap-1 text-[11px] bg-black/20 dark:bg-black/40 text-white/90 border border-white/15 backdrop-blur-sm rounded-full px-2.5 py-0.5">
+                      <CheckCircle2 className="h-3 w-3 text-blue-300" />
+                      Verified
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Stat chips — 2×2 on mobile, 4-col on sm+ */}
@@ -198,7 +203,7 @@ export default function CollectionPageClient() {
               {stats.map(({ label, display }) => (
                 <div
                   key={label}
-                  className="bg-black/35 backdrop-blur-md border border-white/10 rounded-xl px-3 py-2 text-center"
+                  className="bg-black/20 dark:bg-black/35 backdrop-blur-md border border-white/10 rounded-xl px-3 py-2 text-center"
                 >
                   <p className="text-[10px] text-white/55 uppercase tracking-widest mb-0.5">{label}</p>
                   <p className="text-sm sm:text-base font-semibold text-white tabular-nums leading-tight">
