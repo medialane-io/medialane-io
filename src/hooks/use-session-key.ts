@@ -13,6 +13,7 @@
 import { useCallback } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { normalizeAddress } from "@/lib/utils";
+import { useMyWallet } from "@/hooks/use-my-wallet";
 import {
   useChipiWallet,
   useCreateSessionKey,
@@ -30,6 +31,7 @@ const SESSION_MAX_CALLS = 1000;
 export function useSessionKey() {
   const { userId, getToken, sessionClaims } = useAuth();
   const { user } = useUser();
+  const { backendWalletAddress } = useMyWallet();
 
   const { createSessionKeyAsync, isLoading: isCreating } = useCreateSessionKey();
   const { addSessionKeyToContractAsync, isLoading: isRegistering } =
@@ -57,16 +59,18 @@ export function useSessionKey() {
   const hasActiveSession =
     storedSession !== null && storedSession.validUntil * 1000 > Date.now();
 
-  // Fallback wallet address from Clerk JWT session claims (publicMetadata.publicKey
-  // is written at onboarding and embedded in the JWT via the session token template).
-  // This allows read-only features (portfolio, assets, activity) to work even when
-  // the ChipiPay API is unavailable. Transaction signing still requires the full
-  // wallet object from ChipiPay (encryptedPrivateKey).
+  // Layer 1 fallback: Clerk JWT session claims (publicMetadata.publicKey is embedded
+  // in the JWT via the session token template). Works client-side without any API call.
   const claimKey = (sessionClaims?.metadata as Record<string, unknown> | undefined)?.publicKey as string | undefined;
   const claimAddress = claimKey ? normalizeAddress(claimKey) : null;
 
-  /** Starknet contract address for this user's ChipiPay account */
-  const walletAddress = wallet?.normalizedPublicKey ?? claimAddress ?? null;
+  /** Starknet contract address for this user's ChipiPay account.
+   * Resolution order:
+   *   1. ChipiPay full wallet (enables transaction signing)
+   *   2. Clerk JWT session claim (client-side, no extra API call)
+   *   3. Backend DB (deepest fallback — persisted at onboarding completion)
+   */
+  const walletAddress = wallet?.normalizedPublicKey ?? claimAddress ?? backendWalletAddress ?? null;
 
   // ─── setupSession ─────────────────────────────────────────────────────────
 
