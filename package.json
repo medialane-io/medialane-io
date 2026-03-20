@@ -9,7 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@chipi-stack/nextjs": "^13.8.0",
+    "@chipi-stack/chipi-passkey": "^2.0.0",
+    "@chipi-stack/chipi-react": "^14.0.0",
+    "@chipi-stack/nextjs": "^14.0.0",
     "@clerk/nextjs": "^6",
     "@hookform/resolvers": "^3",
     "@medialane/sdk": "^0.4.7",
@@ -67,6 +69,7 @@
     "@types/nodemailer": "^7.0.11",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    
     "autoprefixer": "^10",
     "postcss": "^8",
     "tailwindcss": "^3",

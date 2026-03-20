@@ -3,7 +3,7 @@
 import { useState, useCallback, Suspense } from "react";
 import { useAuth, useUser, useClerk } from "@clerk/nextjs";
 import { useSearchParams } from "next/navigation";
-import { useChipiWallet, isWebAuthnSupported, createWalletPasskey } from "@chipi-stack/nextjs";
+import { useChipiWallet, isWebAuthnSupported, createWalletPasskey, WalletType, WalletData } from "@chipi-stack/nextjs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PinInput, validatePin } from "@/components/ui/pin-input";
@@ -61,8 +61,8 @@ function OnboardingContent() {
   const createWalletWithKey = async (encryptKey: string) => {
     const wallet = await createWallet({ encryptKey });
     // ChipiPay API may return the address as `walletPublicKey` or `publicKey`
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const walletKey = wallet?.walletPublicKey ?? (wallet as any)?.publicKey;
+    
+    const walletKey = wallet.normalizedPublicKey ?? wallet.publicKey;
     if (!walletKey) {
       throw new Error("Wallet creation returned invalid data");
     }

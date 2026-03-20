@@ -34,7 +34,8 @@ function SearchBar() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<ApiSearchResult | null>(null);
   const [open, setOpen] = useState(false);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
+  // Use a nullable type so React infers MutableRefObject (not RefObject with readonly `current`)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleChange = (value: string) => {
     setQuery(value);
@@ -175,7 +176,7 @@ export default function MarketplacePage() {
   const [maxInput, setMaxInput] = useState("");
   const [minPrice, setMinPrice] = useState<string | undefined>();
   const [maxPrice, setMaxPrice] = useState<string | undefined>();
-  const priceDebounce = useRef<ReturnType<typeof setTimeout>>(null);
+  const priceDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handlePriceInput = (min: string, max: string) => {
     setMinInput(min);
