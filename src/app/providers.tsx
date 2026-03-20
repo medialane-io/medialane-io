@@ -29,7 +29,7 @@ function Shell({ children }: { children: React.ReactNode }) {
       <SidebarInset>
         <SidebarTrigger className="absolute top-3 left-3 z-50" />
         <SessionExpiryBanner />
-        <main className="flex-1 bg-background overflow-x-hidden">{children}</main>
+        <main className="flex-1 overflow-x-hidden">{children}</main>
         <footer className="bg-background border-t border-border/60 px-6 py-8 mt-auto">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
