@@ -42,37 +42,35 @@ export function CollectionCard({ collection }: CollectionCardProps) {
             </div>
           )}
 
-          {/* Glass info strip — no gradient overlay, artwork shows at full fidelity */}
-          <div className="absolute bottom-0 left-0 right-0 bg-black/45 backdrop-blur-md px-3 pb-3 pt-2.5">
-            {/* Name row */}
-            <div className="flex items-center gap-1.5 mb-1">
-              {!collection.name && collection.metadataStatus === "PENDING" ? (
-                <span className="flex items-center gap-1 text-[10px] text-white/60">
-                  <Loader2 className="h-2.5 w-2.5 animate-spin" />
-                  Indexing…
-                </span>
-              ) : (
-                <p className="font-bold text-sm truncate text-white leading-tight group-hover:text-white/90 transition-colors">
-                  {collection.name ?? "Unnamed Collection"}
-                </p>
-              )}
-              {collection.isKnown && (
-                <CheckCircle2 className="h-3.5 w-3.5 text-blue-400 shrink-0" />
-              )}
-            </div>
+          {/* Floating badges — no bar, each element gets its own blur */}
+          <div className="absolute bottom-0 left-0 right-0 px-2.5 pb-2.5 flex flex-col gap-1.5 items-start">
+            {/* Name badge */}
+            {!collection.name && collection.metadataStatus === "PENDING" ? (
+              <span className="flex items-center gap-1 text-[10px] text-white/60 backdrop-blur-md bg-black/30 rounded-full px-2 py-0.5">
+                <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                Indexing…
+              </span>
+            ) : (
+              <p
+                className="font-bold text-sm text-white leading-tight backdrop-blur-md bg-black/30 rounded-lg px-2.5 py-1 max-w-full truncate"
+                style={{ textShadow: "0 1px 6px rgba(0,0,0,0.5)" }}
+              >
+                {collection.name ?? "Unnamed Collection"}
+                {collection.isKnown && (
+                  <CheckCircle2 className="inline-block h-3 w-3 text-blue-400 ml-1.5 shrink-0 align-middle" />
+                )}
+              </p>
+            )}
 
-            {/* Stats row */}
+            {/* Stats badges */}
             <div className="flex items-center gap-1.5 flex-wrap">
               {collection.totalSupply != null && (
-                <span className="text-[10px] font-medium text-white/55">
+                <span className="text-[10px] font-medium text-white/80 backdrop-blur-md bg-black/30 rounded-full px-2 py-0.5">
                   {collection.totalSupply.toLocaleString()} items
                 </span>
               )}
-              {collection.totalSupply != null && hasFloor && (
-                <span className="text-[10px] text-white/25">·</span>
-              )}
               {hasFloor && (
-                <span className="text-[10px] font-bold text-white/90">
+                <span className="text-[10px] font-bold text-white/90 backdrop-blur-md bg-black/30 rounded-full px-2 py-0.5">
                   Floor {formatDisplayPrice(collection.floorPrice)}
                 </span>
               )}
