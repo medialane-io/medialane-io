@@ -42,7 +42,7 @@ function CollectionItems({ contract }: { contract: string }) {
 
   if (isLoading && allTokens.length === 0) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
         {Array.from({ length: 8 }).map((_, i) => <TokenCardSkeleton key={i} />)}
       </div>
     );
@@ -59,7 +59,7 @@ function CollectionItems({ contract }: { contract: string }) {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
         {allTokens.map((t) => (
           <TokenCard key={`${t.contractAddress}-${t.tokenId}`} token={t} />
         ))}
@@ -101,8 +101,7 @@ export default function CollectionPageClient() {
   useEffect(() => {
     const el = descRef.current;
     if (!el || !collection?.description) return;
-    // Measure natural height before clamp is applied (descClamped starts false)
-    setDescOverflows(el.scrollHeight > 80); // ~3 lines at 1.5rem line-height ≈ 72px
+    setDescOverflows(el.scrollHeight > 80);
     setDescClamped(true);
   }, [collection?.description]);
 
@@ -134,7 +133,9 @@ export default function CollectionPageClient() {
           }}
         />
       </div>
+
       {(collection as any)?.isHidden && <HiddenContentBanner />}
+
       {/* Hidden extraction img */}
       {bannerUrl && (
         <img
@@ -149,34 +150,37 @@ export default function CollectionPageClient() {
 
       {/* Full-bleed collection banner */}
       {colLoading ? (
-        <Skeleton className="w-full aspect-video" />
+        <Skeleton className="w-full aspect-[2/1] sm:aspect-video" />
       ) : (
-        <div className="relative w-full overflow-hidden aspect-video">
+        <div className="relative w-full overflow-hidden aspect-[2/1] sm:aspect-video">
           {/* Parallax image */}
           <ParallaxBanner imageUrl={bannerUrl} contract={contract} />
+
+          {/* Bottom gradient for text legibility */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
           {/* Back link */}
           <Link
             href="/collections"
-            className="absolute top-14 left-4 flex items-center gap-1.5 text-xs font-medium text-white/80 hover:text-white bg-black/30 hover:bg-black/50 backdrop-blur-sm px-3 py-1.5 rounded-full transition-all z-10"
+            className="absolute top-12 sm:top-14 left-4 flex items-center gap-1.5 text-xs font-medium text-white/80 hover:text-white bg-black/30 hover:bg-black/50 backdrop-blur-sm px-3 py-1.5 rounded-full transition-all z-10"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             Collections
           </Link>
 
           {/* Collection identity over the banner */}
-          <div className="absolute bottom-6 left-6 right-6 z-10">
-            <h1 className="text-3xl font-bold text-white drop-shadow-md">
+          <div className="absolute bottom-5 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-6 z-10">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white drop-shadow-md leading-tight">
               {collection?.name ?? "Unnamed Collection"}
             </h1>
-            <div className="flex items-center gap-2 mt-1">
+            <div className="flex items-center gap-2 mt-2 flex-wrap">
               {collection?.symbol && (
-                <Badge variant="secondary" className="font-mono text-xs">
+                <Badge variant="secondary" className="font-mono text-xs bg-white/20 text-white border-white/30 backdrop-blur-sm">
                   {collection.symbol}
                 </Badge>
               )}
               {collection?.isKnown && (
-                <Badge className="mt-0">
+                <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
                   <CheckCircle2 className="h-3 w-3 mr-1" />
                   Verified
                 </Badge>
@@ -188,104 +192,101 @@ export default function CollectionPageClient() {
 
       {/* Stats bar */}
       {colLoading ? (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 px-6 py-5">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 px-4 sm:px-6 py-4 sm:py-5">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-16 rounded-xl" />
+            <Skeleton key={i} className="h-14 rounded-xl" />
           ))}
         </div>
       ) : collection ? (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-4 px-6 py-5 bg-background/50 backdrop-blur-md">
+          <div className="grid grid-cols-2 md:grid-cols-4 px-4 sm:px-6 py-4 sm:py-5 bg-background/40 backdrop-blur-md">
             {[
               {
                 label: "Items",
                 value: collection.totalSupply ?? null,
                 display: collection.totalSupply != null ? String(collection.totalSupply) : "—",
-                currency: undefined,
               },
               {
                 label: "Holders",
                 value: null,
                 display: collection.holderCount != null ? String(collection.holderCount) : "—",
-                currency: undefined,
               },
               {
                 label: "Floor",
                 value: null,
                 display: formatDisplayPrice(collection.floorPrice) || "—",
-                currency: undefined,
               },
               {
                 label: "Volume",
                 value: null,
                 display: formatDisplayPrice(collection.totalVolume) || "—",
-                currency: undefined,
               },
-            ].map(({ label, value, display, currency }, i) => (
-              <div key={label} className={cn("text-center", i > 0 && "md:border-l md:border-border/40")}>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{label}</p>
-                <CountUpStat value={value} display={display} currency={currency} dynamicTheme={dynamicTheme} />
+            ].map(({ label, value, display }, i) => (
+              <div key={label} className={cn(
+                "text-center py-2 md:py-0",
+                i > 0 && "md:border-l md:border-border/40"
+              )}>
+                <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-widest mb-1">{label}</p>
+                <CountUpStat value={value} display={display} dynamicTheme={dynamicTheme} />
               </div>
             ))}
           </div>
 
-          {/* Creator credit */}
-          {collection.owner && (
-            <div className="px-6 py-2 flex items-center gap-2 text-sm text-muted-foreground">
-              <span>by</span>
-              <Link
-                href={`/creator/${collection.owner}`}
-                className="font-medium hover:underline text-foreground"
-              >
-                <AddressDisplay
-                  address={collection.owner}
-                  chars={6}
-                  showCopy={false}
-                  className="font-medium text-foreground"
-                />
-              </Link>
-            </div>
-          )}
-
-          {/* Description */}
-          {collection.description && (
-            <>
-              <p
-                ref={descRef}
-                className={cn(
-                  "px-6 pb-1 text-sm text-muted-foreground max-w-2xl leading-relaxed",
-                  descClamped && !descExpanded && "line-clamp-3"
-                )}
-              >
-                {collection.description}
-              </p>
-              {descOverflows && (
-                <button
-                  onClick={() => setDescExpanded((e) => !e)}
-                  className="px-6 pb-2 text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
+          {/* Meta section: creator + description + contract */}
+          <div className="px-4 sm:px-6 pt-3 pb-2 space-y-1.5">
+            {collection.owner && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span>by</span>
+                <Link
+                  href={`/creator/${collection.owner}`}
+                  className="hover:underline underline-offset-2"
                 >
-                  {descExpanded ? "Show less" : "Show more"}
-                </button>
-              )}
-            </>
-          )}
+                  <AddressDisplay
+                    address={collection.owner}
+                    chars={6}
+                    showCopy={false}
+                    className="font-medium text-foreground"
+                  />
+                </Link>
+              </div>
+            )}
 
-          {/* Contract address + report */}
-          <div className="px-6 pb-2 flex items-center gap-3">
-            <AddressDisplay
-              address={collection.contractAddress ?? ""}
-              chars={6}
-              className="text-xs text-muted-foreground"
-            />
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-muted-foreground hover:text-foreground"
-              onClick={() => setReportOpen(true)}
-              title="Report this collection"
-            >
-              <Flag className="w-4 h-4" />
-            </Button>
+            {collection.description && (
+              <>
+                <p
+                  ref={descRef}
+                  className={cn(
+                    "text-sm text-muted-foreground max-w-2xl leading-relaxed",
+                    descClamped && !descExpanded && "line-clamp-3"
+                  )}
+                >
+                  {collection.description}
+                </p>
+                {descOverflows && (
+                  <button
+                    onClick={() => setDescExpanded((e) => !e)}
+                    className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
+                  >
+                    {descExpanded ? "Show less" : "Show more"}
+                  </button>
+                )}
+              </>
+            )}
+
+            <div className="flex items-center gap-2 pt-0.5">
+              <AddressDisplay
+                address={collection.contractAddress ?? ""}
+                chars={6}
+                className="text-xs text-muted-foreground/70"
+              />
+              <button
+                onClick={() => setReportOpen(true)}
+                title="Report this collection"
+                className="text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+              >
+                <Flag className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
 
           <ReportDialog
@@ -301,31 +302,32 @@ export default function CollectionPageClient() {
       ) : null}
 
       {/* Tabs */}
-      <div className="px-6 pb-12">
+      <div className="px-4 sm:px-6 pb-12">
         <Tabs defaultValue="items">
-          <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border">
-            <TabsList>
-              <TabsTrigger value="items">
+          {/* Tab bar: transparent, no background */}
+          <div className="sticky top-0 z-10 pt-3 pb-1">
+            <TabsList className="w-full sm:w-auto">
+              <TabsTrigger value="items" className="flex-1 sm:flex-none">
                 Items{collection?.totalSupply ? ` (${collection.totalSupply.toLocaleString()})` : ""}
               </TabsTrigger>
-              <TabsTrigger value="listings">
+              <TabsTrigger value="listings" className="flex-1 sm:flex-none">
                 Listings{!ordersLoading && activeListings.length > 0 && ` (${activeListings.length})`}
               </TabsTrigger>
-              <TabsTrigger value="offers">
+              <TabsTrigger value="offers" className="flex-1 sm:flex-none">
                 Offers{!ordersLoading && activeBids.length > 0 && ` (${activeBids.length})`}
               </TabsTrigger>
             </TabsList>
           </div>
 
           {/* Items */}
-          <TabsContent value="items" className="mt-6">
+          <TabsContent value="items" className="mt-4">
             <CollectionItems contract={contract} />
           </TabsContent>
 
           {/* Listings */}
-          <TabsContent value="listings" className="mt-6">
+          <TabsContent value="listings" className="mt-4">
             {ordersLoading ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                 {Array.from({ length: 8 }).map((_, i) => <ListingCardSkeleton key={i} />)}
               </div>
             ) : activeListings.length === 0 ? (
@@ -334,16 +336,16 @@ export default function CollectionPageClient() {
                 body="When items in this collection are listed for sale, they'll appear here."
               />
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                 {activeListings.map((o) => <ListingCard key={o.orderHash} order={o} />)}
               </div>
             )}
           </TabsContent>
 
           {/* Offers */}
-          <TabsContent value="offers" className="mt-6">
+          <TabsContent value="offers" className="mt-4">
             {ordersLoading ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                 {Array.from({ length: 8 }).map((_, i) => <ListingCardSkeleton key={i} />)}
               </div>
             ) : activeBids.length === 0 ? (
@@ -352,7 +354,7 @@ export default function CollectionPageClient() {
                 body="Collection-wide offers will appear here when placed."
               />
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                 {activeBids.map((o) => <ListingCard key={o.orderHash} order={o} />)}
               </div>
             )}
@@ -373,8 +375,6 @@ function ParallaxBanner({ imageUrl, contract }: { imageUrl: string | null; contr
   const y = useTransform(scrollY, [0, 500], [0, shouldReduce ? 0 : 150]);
 
   if (!imageUrl) {
-    // Deterministic gradient from last 9 hex chars of the contract address.
-    // Pad char "a" → warm muted tone; pad char "5" → cool muted tone.
     const hex = contract.replace(/^0x/i, "");
     const a = `#${hex.slice(-6, -3).padStart(6, "a")}`;
     const b = `#${hex.slice(-3).padStart(6, "5")}`;
@@ -400,12 +400,10 @@ function ParallaxBanner({ imageUrl, contract }: { imageUrl: string | null; contr
 function CountUpStat({
   value,
   display,
-  currency,
   dynamicTheme,
 }: {
   value: number | null;
   display: string;
-  currency?: string;
   dynamicTheme: DynamicTheme | null;
 }) {
   const shouldReduce = useReducedMotion();
@@ -429,13 +427,10 @@ function CountUpStat({
 
   return (
     <p
-      className="text-2xl font-bold tabular-nums"
+      className="text-xl sm:text-2xl font-bold tabular-nums"
       style={dynamicTheme ? { color: `hsl(var(--dynamic-primary))` } : {}}
     >
       <span ref={ref}>{shown}</span>
-      {currency && (
-        <span className="text-sm font-normal ml-1 text-muted-foreground">{currency}</span>
-      )}
     </p>
   );
 }
