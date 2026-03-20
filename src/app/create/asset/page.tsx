@@ -47,8 +47,8 @@ import {
   GEOGRAPHIC_SCOPES,
   AI_POLICIES,
   DERIVATIVES_OPTIONS,
+  type IPType,
 } from "@/types/ip";
-import type { IPType } from "@/types/ip";
 import { IPTypeFields } from "@/components/create/ip-type-fields";
 import {
   Upload,

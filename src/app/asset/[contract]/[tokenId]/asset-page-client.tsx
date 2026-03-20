@@ -175,30 +175,25 @@ export default function AssetPageClient() {
     ? (token.metadata.attributes as { trait_type?: string; value?: string }[])
     : [];
 
-  // Whether the Media tab should render — requires a known IP type with template fields that have values.
-  const hasTemplateData = (() => {
-    const ipTypeAttr = attributes.find(
-      (a) => a.trait_type?.toLowerCase() === "ip type"
-    );
-    if (!ipTypeAttr?.value) return false;
-    const template = IP_TEMPLATES[ipTypeAttr.value as IPType];
-    if (!template || template.fields.length === 0) return false;
-    return template.fields.some((f) =>
+  // Derive active template once — shared by Media tab visibility check and attribute grid filtering.
+  // Per-type keys avoid cross-type collisions from shared keys like "Genre", "Duration".
+  const activeTemplate = IP_TEMPLATES[
+    (attributes.find((a) => a.trait_type?.toLowerCase() === "ip type")?.value ?? "") as IPType
+  ];
+  const activeTemplateKeys = new Set<string>([
+    "IP Type",
+    ...(activeTemplate?.fields.map((f) => f.key) ?? []),
+  ]);
+  const hasTemplateData =
+    !!activeTemplate &&
+    activeTemplate.fields.length > 0 &&
+    activeTemplate.fields.some((f) =>
       attributes.some((a) => a.trait_type === f.key && a.value)
     );
-  })();
 
-  // Keys belonging to the active template (if any) — used to filter them from attribute grids.
-  // Per-type filtering avoids cross-type collisions from shared keys like "Genre", "Duration".
-  const activeTemplateKeys = (() => {
-    const ipTypeAttr = attributes.find(
-      (a) => a.trait_type?.toLowerCase() === "ip type"
-    );
-    if (!ipTypeAttr?.value) return new Set<string>(["IP Type"]);
-    const template = IP_TEMPLATES[ipTypeAttr.value as IPType];
-    const keys = template?.fields.map((f) => f.key) ?? [];
-    return new Set<string>(["IP Type", ...keys]);
-  })();
+  // Predicate for filtering template + license attributes out of attribute grids.
+  const isDisplayAttr = (a: { trait_type?: string }): boolean =>
+    !LICENSE_TRAIT_TYPES.has(a.trait_type ?? "") && !activeTemplateKeys.has(a.trait_type ?? "");
 
   return (
     <div
@@ -564,13 +559,13 @@ export default function AssetPageClient() {
               </div>
             )}
             {attributes.filter(
-              (a) => !LICENSE_TRAIT_TYPES.has(a.trait_type ?? "") && !activeTemplateKeys.has(a.trait_type ?? "")
+              (a) => isDisplayAttr(a)
             ).length > 0 && (
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Attributes</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {attributes
-                    .filter((a) => !LICENSE_TRAIT_TYPES.has(a.trait_type ?? "") && !activeTemplateKeys.has(a.trait_type ?? ""))
+                    .filter((a) => isDisplayAttr(a))
                     .map((attr, i) => (
                     <div key={i} className="rounded-lg border border-border bg-muted/20 p-3 text-center overflow-hidden">
                       <p className="text-[10px] uppercase tracking-wider text-muted-foreground truncate" title={attr.trait_type ?? "Trait"}>
@@ -655,7 +650,7 @@ export default function AssetPageClient() {
 
                   {/* Non-license attributes */}
                   {attributes.filter(
-                    (a) => !LICENSE_TRAIT_TYPES.has(a.trait_type ?? "") && !activeTemplateKeys.has(a.trait_type ?? "")
+                    (a) => isDisplayAttr(a)
                   ).length > 0 && (
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
@@ -664,7 +659,7 @@ export default function AssetPageClient() {
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                         {attributes
                           .filter(
-                            (a) => !LICENSE_TRAIT_TYPES.has(a.trait_type ?? "") && !activeTemplateKeys.has(a.trait_type ?? "")
+                            (a) => isDisplayAttr(a)
                           )
                           .map((attr, i) => (
                             <div key={i} className="rounded-lg border border-border bg-muted/20 p-3 text-center overflow-hidden">
