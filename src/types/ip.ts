@@ -1,7 +1,4 @@
-export type { IPType } from "@medialane/sdk";
-
-// Local const required for z.enum() — mirrors SDK's IPType union.
-// z.enum() needs a [string, ...string[]] tuple; the SDK exports a readonly union type only.
+// Local const for z.enum() — [string, ...string[]] tuple required by Zod.
 export const IP_TYPES = [
   "Audio",
   "Art",
@@ -15,7 +12,9 @@ export const IP_TYPES = [
   "RWA",
   "Software",
   "Custom",
-] as const satisfies readonly import("@medialane/sdk").IPType[];
+] as const;
+
+export type IPType = (typeof IP_TYPES)[number];
 
 export interface LicenseType {
   value: string;

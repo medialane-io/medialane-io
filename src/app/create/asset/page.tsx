@@ -48,6 +48,7 @@ import {
   AI_POLICIES,
   DERIVATIVES_OPTIONS,
 } from "@/types/ip";
+import type { IPType } from "@/types/ip";
 import { IPTypeFields } from "@/components/create/ip-type-fields";
 import {
   Upload,
@@ -503,7 +504,7 @@ export default function CreateAssetPage() {
 
             {/* IP Type template fields */}
             <IPTypeFields
-              ipType={form.watch("ipType") as import("@medialane/sdk").IPType}
+              ipType={form.watch("ipType") as IPType}
               onChange={setTemplateFields}
             />
 

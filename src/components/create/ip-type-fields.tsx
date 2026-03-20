@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { IPType } from "@medialane/sdk";
+import type { IPType } from "@/types/ip";
 import { IP_TEMPLATES, type TemplateField } from "@/lib/ip-templates";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";

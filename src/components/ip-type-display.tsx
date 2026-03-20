@@ -1,6 +1,6 @@
 "use client";
 
-import type { IPType } from "@medialane/sdk";
+import type { IPType } from "@/types/ip";
 import { IP_TEMPLATES, type EmbedType } from "@/lib/ip-templates";
 import { ExternalLink } from "lucide-react";
 

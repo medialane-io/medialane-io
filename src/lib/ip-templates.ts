@@ -3,7 +3,7 @@ import {
   Award, MessageSquare, BookOpen, Building2, Code2, Layers,
   type LucideIcon,
 } from "lucide-react";
-import type { IPType } from "@medialane/sdk";
+import type { IPType } from "@/types/ip";
 
 export type EmbedType = "youtube" | "spotify" | "soundcloud" | "tiktok";
 
