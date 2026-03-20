@@ -44,7 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <ClerkProvider
       publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!}
       afterSignOutUrl="/"
-      afterSignUpUrl="/onboarding"
+      signUpForceRedirectUrl="/onboarding"
     >
       <ChipiProvider>
         <html lang="en" suppressHydrationWarning>

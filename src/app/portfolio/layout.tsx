@@ -48,7 +48,10 @@ export default function PortfolioLayout({ children }: { children: React.ReactNod
     }
   }, [orders]);
 
-  if (!isLoaded || isLoadingWallet) {
+  // Don't block on isLoadingWallet if we already have a walletAddress from a fallback
+  // (JWT claim or backend DB). ChipiPay 500s cause infinite retries that keep isLoadingWallet
+  // true forever — this guard prevents the portfolio from being permanently stuck.
+  if (!isLoaded || (isLoadingWallet && !walletAddress)) {
     return (
       <div className="container mx-auto px-4 pt-14 pb-8 space-y-6">
         <Skeleton className="h-9 w-48" />
