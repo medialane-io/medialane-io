@@ -22,6 +22,8 @@ import { ShoppingCart, Tag, ExternalLink, Clock, HandCoins, ArrowRightLeft, X, C
 import { ReportDialog } from "@/components/report-dialog";
 import { HiddenContentBanner } from "@/components/hidden-content-banner";
 import { LICENSE_TRAIT_TYPES } from "@/types/ip";
+import { IP_TEMPLATES, TEMPLATE_TRAIT_TYPES } from "@/lib/ip-templates";
+import { IPTypeDisplay } from "@/components/ip-type-display";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ApiActivity, ApiOrder } from "@medialane/sdk";
 import { EXPLORER_URL } from "@/lib/constants";
@@ -171,6 +173,31 @@ export default function AssetPageClient() {
   const attributes = Array.isArray(token.metadata?.attributes)
     ? (token.metadata.attributes as { trait_type?: string; value?: string }[])
     : [];
+
+  // Whether the Media tab should render — requires a known IP type with template fields that have values.
+  const hasTemplateData = (() => {
+    const ipTypeAttr = attributes.find(
+      (a) => a.trait_type?.toLowerCase() === "ip type"
+    );
+    if (!ipTypeAttr?.value) return false;
+    const template = IP_TEMPLATES[ipTypeAttr.value as import("@medialane/sdk").IPType];
+    if (!template || template.fields.length === 0) return false;
+    return template.fields.some((f) =>
+      attributes.some((a) => a.trait_type === f.key && a.value)
+    );
+  })();
+
+  // Keys belonging to the active template (if any) — used to filter them from attribute grids.
+  // Per-type filtering avoids cross-type collisions from shared keys like "Genre", "Duration".
+  const activeTemplateKeys = (() => {
+    const ipTypeAttr = attributes.find(
+      (a) => a.trait_type?.toLowerCase() === "ip type"
+    );
+    if (!ipTypeAttr?.value) return new Set<string>(["IP Type"]);
+    const template = IP_TEMPLATES[ipTypeAttr.value as import("@medialane/sdk").IPType];
+    const keys = template?.fields.map((f) => f.key) ?? [];
+    return new Set<string>(["IP Type", ...keys]);
+  })();
 
   return (
     <div
@@ -500,6 +527,9 @@ export default function AssetPageClient() {
           <TabsList>
             <TabsTrigger value="details">Details</TabsTrigger>
             <TabsTrigger value="license">License</TabsTrigger>
+            {hasTemplateData && (
+              <TabsTrigger value="media">Media</TabsTrigger>
+            )}
             <TabsTrigger value="listings">
               Listings {activeListings.length > 0 && `(${activeListings.length})`}
             </TabsTrigger>
@@ -532,11 +562,15 @@ export default function AssetPageClient() {
                 <p className="text-sm font-medium">{token.metadata.author as string}</p>
               </div>
             )}
-            {attributes.length > 0 && (
+            {attributes.filter(
+              (a) => !LICENSE_TRAIT_TYPES.has(a.trait_type ?? "") && !activeTemplateKeys.has(a.trait_type ?? "")
+            ).length > 0 && (
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Attributes</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {attributes.map((attr, i) => (
+                  {attributes
+                    .filter((a) => !LICENSE_TRAIT_TYPES.has(a.trait_type ?? "") && !activeTemplateKeys.has(a.trait_type ?? ""))
+                    .map((attr, i) => (
                     <div key={i} className="rounded-lg border border-border bg-muted/20 p-3 text-center overflow-hidden">
                       <p className="text-[10px] uppercase tracking-wider text-muted-foreground truncate" title={attr.trait_type ?? "Trait"}>
                         {attr.trait_type ?? "Trait"}
@@ -619,14 +653,18 @@ export default function AssetPageClient() {
                   </div>
 
                   {/* Non-license attributes */}
-                  {attributes.filter((a) => !LICENSE_TRAIT_TYPES.has(a.trait_type ?? "")).length > 0 && (
+                  {attributes.filter(
+                    (a) => !LICENSE_TRAIT_TYPES.has(a.trait_type ?? "") && !activeTemplateKeys.has(a.trait_type ?? "")
+                  ).length > 0 && (
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
                         Additional Attributes
                       </p>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                         {attributes
-                          .filter((a) => !LICENSE_TRAIT_TYPES.has(a.trait_type ?? ""))
+                          .filter(
+                            (a) => !LICENSE_TRAIT_TYPES.has(a.trait_type ?? "") && !activeTemplateKeys.has(a.trait_type ?? "")
+                          )
                           .map((attr, i) => (
                             <div key={i} className="rounded-lg border border-border bg-muted/20 p-3 text-center overflow-hidden">
                               <p className="text-[10px] uppercase tracking-wider text-muted-foreground truncate" title={attr.trait_type ?? "Trait"}>
@@ -644,6 +682,15 @@ export default function AssetPageClient() {
               );
             })()}
           </TabsContent>
+
+          {/* Media tab — IP type template metadata and embed players */}
+          {hasTemplateData && (
+            <TabsContent value="media" className="mt-4">
+              <IPTypeDisplay
+                attributes={token.metadata?.attributes as { trait_type?: string; value?: string }[] | null}
+              />
+            </TabsContent>
+          )}
 
           {/* Listings tab */}
           <TabsContent value="listings" className="mt-4">
