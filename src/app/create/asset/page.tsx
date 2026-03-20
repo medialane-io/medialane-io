@@ -299,6 +299,7 @@ export default function CreateAssetPage() {
     resetListing();
     pinRef.current = null;
     form.reset();
+    setTemplateFields({});
     setImageFile(null);
     setImagePreview(null);
     setListPrice("");
