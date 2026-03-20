@@ -51,7 +51,7 @@ type FormValues = z.infer<typeof schema>;
 
 export default function CreateCollectionPage() {
   const { executeTransaction, status, txHash } = useChipiTransaction();
-  const { walletAddress, wallet } = useSessionKey();
+  const { walletAddress } = useSessionKey();
   const client = useMedialaneClient();
 
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
@@ -185,15 +185,10 @@ export default function CreateCollectionPage() {
       if (!calls || calls.length === 0) throw new Error("No calls returned from intent");
 
       // 2. Execute the pre-signed calls via ChipiPay (gasless)
-      const walletOverride = wallet
-        ? { publicKey: wallet.publicKey, encryptedPrivateKey: wallet.encryptedPrivateKey }
-        : undefined;
-
       const result = await executeTransaction({
         pin,
         contractAddress: calls[0].contractAddress,
         calls,
-        wallet: walletOverride,
       });
 
       if (result.status === "reverted") {

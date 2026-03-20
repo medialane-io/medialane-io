@@ -120,7 +120,7 @@ function ToggleGroup({
 
 export default function CreateAssetPage() {
   const { executeTransaction, status, txHash, error, statusMessage } = useChipiTransaction();
-  const { walletAddress, wallet } = useSessionKey();
+  const { walletAddress } = useSessionKey();
   const client = useMedialaneClient();
   const { listingStep, listingError, runPostMintListing, resetListing } = usePostMintListing();
 
@@ -248,15 +248,10 @@ export default function CreateAssetPage() {
       }
 
       // 3. Execute via ChipiPay
-      const walletOverride = wallet
-        ? { publicKey: wallet.publicKey, encryptedPrivateKey: wallet.encryptedPrivateKey }
-        : undefined;
-
       const result = await executeTransaction({
         pin,
         contractAddress: intentData.calls[0].contractAddress,
         calls: intentData.calls as ChipiCall[],
-        wallet: walletOverride,
       });
 
       if (result.status === "reverted") {
