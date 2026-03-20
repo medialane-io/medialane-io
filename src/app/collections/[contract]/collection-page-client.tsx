@@ -14,10 +14,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddressDisplay } from "@/components/shared/address-display";
-import { CheckCircle2, ArrowLeft, Loader2, Flag } from "lucide-react";
+import { CheckCircle2, ArrowLeft, Loader2, Flag, Inbox } from "lucide-react";
 import { ReportDialog } from "@/components/report-dialog";
 import { HiddenContentBanner } from "@/components/hidden-content-banner";
-import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
+import { ipfsToHttp, formatDisplayPrice, cn } from "@/lib/utils";
 import type { ApiToken } from "@medialane/sdk";
 import type { DynamicTheme } from "@/lib/theme-utils";
 
@@ -49,7 +49,12 @@ function CollectionItems({ contract }: { contract: string }) {
   }
 
   if (allTokens.length === 0) {
-    return <div className="py-16 text-center text-muted-foreground">No items indexed yet.</div>;
+    return (
+      <EmptyState
+        title="No items yet"
+        body="Tokens in this collection will appear here once indexed."
+      />
+    );
   }
 
   return (
@@ -78,6 +83,10 @@ function CollectionItems({ contract }: { contract: string }) {
 export default function CollectionPageClient() {
   const { contract } = useParams<{ contract: string }>();
   const [reportOpen, setReportOpen] = useState(false);
+  const [descExpanded, setDescExpanded] = useState(false);
+  const [descClamped, setDescClamped] = useState(false);
+  const [descOverflows, setDescOverflows] = useState(false);
+  const descRef = useRef<HTMLParagraphElement>(null);
   const { collection, isLoading: colLoading } = useCollection(contract);
   const { orders, isLoading: ordersLoading } = useOrders({
     collection: contract,
@@ -89,6 +98,14 @@ export default function CollectionPageClient() {
   const bannerUrl = collection?.image ? ipfsToHttp(collection.image) : null;
   const { imgRef, dynamicTheme } = useDominantColor(bannerUrl);
 
+  useEffect(() => {
+    const el = descRef.current;
+    if (!el || !collection?.description) return;
+    // Measure natural height before clamp is applied (descClamped starts false)
+    setDescOverflows(el.scrollHeight > 80); // ~3 lines at 1.5rem line-height ≈ 72px
+    setDescClamped(true);
+  }, [collection?.description]);
+
   const activeListings = orders.filter((o) => o.status === "ACTIVE" && o.offer.itemType === "ERC721");
   const activeBids = orders.filter((o) => o.status === "ACTIVE" && o.offer.itemType === "ERC20");
 
@@ -97,6 +114,26 @@ export default function CollectionPageClient() {
       style={dynamicTheme ? (dynamicTheme as React.CSSProperties) : {}}
       className="relative space-y-0"
     >
+      {/* Atmospheric blur background */}
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        {bannerUrl && (
+          <img
+            src={bannerUrl}
+            alt=""
+            aria-hidden
+            className="absolute inset-0 w-full h-full object-cover opacity-20 scale-110"
+            style={{ filter: "blur(60px) saturate(1.5)" }}
+          />
+        )}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: dynamicTheme
+              ? `hsl(var(--dynamic-primary) / 0.08)`
+              : "transparent",
+          }}
+        />
+      </div>
       {(collection as any)?.isHidden && <HiddenContentBanner />}
       {/* Hidden extraction img */}
       {bannerUrl && (
@@ -116,7 +153,7 @@ export default function CollectionPageClient() {
       ) : (
         <div className="relative w-full overflow-hidden aspect-video">
           {/* Parallax image */}
-          <ParallaxBanner imageUrl={bannerUrl} />
+          <ParallaxBanner imageUrl={bannerUrl} contract={contract} />
 
           {/* Back link */}
           <Link
@@ -158,7 +195,7 @@ export default function CollectionPageClient() {
         </div>
       ) : collection ? (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 px-6 py-5 bg-background/80 backdrop-blur-sm">
+          <div className="grid grid-cols-2 md:grid-cols-4 px-6 py-5 bg-background/50 backdrop-blur-md">
             {[
               {
                 label: "Items",
@@ -184,8 +221,8 @@ export default function CollectionPageClient() {
                 display: formatDisplayPrice(collection.totalVolume) || "—",
                 currency: undefined,
               },
-            ].map(({ label, value, display, currency }) => (
-              <div key={label} className="text-center">
+            ].map(({ label, value, display, currency }, i) => (
+              <div key={label} className={cn("text-center", i > 0 && "md:border-l md:border-border/40")}>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{label}</p>
                 <CountUpStat value={value} display={display} currency={currency} dynamicTheme={dynamicTheme} />
               </div>
@@ -200,16 +237,37 @@ export default function CollectionPageClient() {
                 href={`/creator/${collection.owner}`}
                 className="font-medium hover:underline text-foreground"
               >
-                {collection.owner.slice(0, 6)}...{collection.owner.slice(-4)}
+                <AddressDisplay
+                  address={collection.owner}
+                  chars={6}
+                  showCopy={false}
+                  className="font-medium text-foreground"
+                />
               </Link>
             </div>
           )}
 
           {/* Description */}
           {collection.description && (
-            <p className="px-6 pb-2 text-sm text-muted-foreground max-w-2xl leading-relaxed">
-              {collection.description}
-            </p>
+            <>
+              <p
+                ref={descRef}
+                className={cn(
+                  "px-6 pb-1 text-sm text-muted-foreground max-w-2xl leading-relaxed",
+                  descClamped && !descExpanded && "line-clamp-3"
+                )}
+              >
+                {collection.description}
+              </p>
+              {descOverflows && (
+                <button
+                  onClick={() => setDescExpanded((e) => !e)}
+                  className="px-6 pb-2 text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
+                >
+                  {descExpanded ? "Show less" : "Show more"}
+                </button>
+              )}
+            </>
           )}
 
           {/* Contract address + report */}
@@ -245,7 +303,7 @@ export default function CollectionPageClient() {
       {/* Tabs */}
       <div className="px-6 pb-12">
         <Tabs defaultValue="items">
-          <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border">
+          <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border">
             <TabsList>
               <TabsTrigger value="items">
                 Items{collection?.totalSupply ? ` (${collection.totalSupply.toLocaleString()})` : ""}
@@ -271,9 +329,10 @@ export default function CollectionPageClient() {
                 {Array.from({ length: 8 }).map((_, i) => <ListingCardSkeleton key={i} />)}
               </div>
             ) : activeListings.length === 0 ? (
-              <div className="py-16 text-center text-muted-foreground">
-                No active listings in this collection.
-              </div>
+              <EmptyState
+                title="No active listings"
+                body="When items in this collection are listed for sale, they'll appear here."
+              />
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 {activeListings.map((o) => <ListingCard key={o.orderHash} order={o} />)}
@@ -288,9 +347,10 @@ export default function CollectionPageClient() {
                 {Array.from({ length: 8 }).map((_, i) => <ListingCardSkeleton key={i} />)}
               </div>
             ) : activeBids.length === 0 ? (
-              <div className="py-16 text-center text-muted-foreground">
-                No active offers in this collection.
-              </div>
+              <EmptyState
+                title="No active offers"
+                body="Collection-wide offers will appear here when placed."
+              />
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 {activeBids.map((o) => <ListingCard key={o.orderHash} order={o} />)}
@@ -307,11 +367,25 @@ export default function CollectionPageClient() {
 // Sub-components
 // ---------------------------------------------------------------------------
 
-function ParallaxBanner({ imageUrl }: { imageUrl: string | null }) {
+function ParallaxBanner({ imageUrl, contract }: { imageUrl: string | null; contract: string }) {
   const { scrollY } = useScroll();
   const shouldReduce = useReducedMotion();
   const y = useTransform(scrollY, [0, 500], [0, shouldReduce ? 0 : 150]);
-  if (!imageUrl) return null;
+
+  if (!imageUrl) {
+    // Deterministic gradient from last 9 hex chars of the contract address.
+    // Pad char "a" → warm muted tone; pad char "5" → cool muted tone.
+    const hex = contract.replace(/^0x/i, "");
+    const a = `#${hex.slice(-6, -3).padStart(6, "a")}`;
+    const b = `#${hex.slice(-3).padStart(6, "5")}`;
+    return (
+      <div
+        className="absolute inset-0 w-full h-full scale-110"
+        style={{ background: `linear-gradient(135deg, ${a}, ${b})` }}
+      />
+    );
+  }
+
   return (
     <motion.img
       src={imageUrl}
@@ -363,5 +437,15 @@ function CountUpStat({
         <span className="text-sm font-normal ml-1 text-muted-foreground">{currency}</span>
       )}
     </p>
+  );
+}
+
+function EmptyState({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="py-20 flex flex-col items-center gap-3 text-center">
+      <Inbox className="h-10 w-10 text-muted-foreground/40" />
+      <p className="text-sm font-medium text-muted-foreground">{title}</p>
+      <p className="text-xs text-muted-foreground/70 max-w-xs">{body}</p>
+    </div>
   );
 }
