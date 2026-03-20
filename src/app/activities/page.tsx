@@ -9,12 +9,15 @@ export const metadata: Metadata = {
 
 export default function ActivitiesPage() {
   return (
-    <div className="container mx-auto px-4 pt-14 pb-8 space-y-6">
-      <div className="flex items-center gap-2">
-        <Activity className="h-5 w-5 text-primary" />
-        <h1 className="text-3xl font-bold">Activity</h1>
+    <div className="container mx-auto px-4 pt-14 pb-8 space-y-8">
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 text-primary">
+          <Activity className="h-5 w-5" />
+          <span className="text-sm font-semibold uppercase tracking-wider">Activity</span>
+        </div>
+        <h1 className="text-3xl font-bold">Global Activity</h1>
+        <p className="text-muted-foreground">Marketplace events — sales, listings, and offers.</p>
       </div>
-      <p className="text-muted-foreground">Global marketplace events — sales, listings, and offers.</p>
       <ActivitiesFeed />
     </div>
   );

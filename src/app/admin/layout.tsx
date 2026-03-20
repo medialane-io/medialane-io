@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL!;
@@ -21,8 +21,23 @@ async function getPendingReportCount(): Promise<number> {
 }
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { sessionClaims } = await auth();
-  if ((sessionClaims?.metadata as any)?.role !== "admin") redirect("/portfolio");
+  const { userId, sessionClaims } = await auth();
+  if (!userId) redirect("/sign-in");
+
+  // Primary check: JWT session claims (fast, no API call).
+  // Fallback: Clerk API in case the JWT template is not configured or the token is stale.
+  let isAdmin = (sessionClaims?.metadata as any)?.role === "admin";
+  if (!isAdmin) {
+    try {
+      const client = await clerkClient();
+      const user = await client.users.getUser(userId);
+      isAdmin = user.publicMetadata?.role === "admin";
+    } catch {
+      // If the API call fails, deny access
+    }
+  }
+
+  if (!isAdmin) redirect("/portfolio");
 
   const pendingReports = await getPendingReportCount();
 

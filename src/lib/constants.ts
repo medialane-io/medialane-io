@@ -52,6 +52,7 @@ export const DURATION_OPTIONS = [
   { label: "7 Days", seconds: 604800 },
   { label: "30 Days", seconds: 2592000 },
   { label: "6 Months", seconds: 15552000 },
+  { label: "1 Year", seconds: 31536000 },
+  { label: "2 Years", seconds: 63072000 },
 ] as const;
 
-export type SupportedCurrencySymbol = "STRK" | "USDC" | "USDT" | "ETH";

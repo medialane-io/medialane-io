@@ -64,7 +64,7 @@ export function useChipiTransaction() {
   const getWallet = useCallback(
     (override?: ChipiTransactionParams["wallet"]) => {
       if (override) return override;
-      const publicKey = wallet?.normalizedPublicKey;
+      const publicKey = wallet?.publicKey;
       const encryptedPrivateKey = wallet?.encryptedPrivateKey;
       if (!publicKey || !encryptedPrivateKey) {
         throw new Error("Wallet not set up. Please create your wallet first.");

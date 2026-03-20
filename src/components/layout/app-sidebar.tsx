@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useUser, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
-import { Home, Compass, Briefcase, PlusCircle, Zap, Activity, LayoutGrid, Telescope, Search, Sun, Moon, ShoppingBag, LogIn, UserPlus, Info, BookOpen, FileCode2, Mail, LifeBuoy, Scale, Lock } from "lucide-react";
+import { Home, Compass, Briefcase, PlusCircle, Zap, Activity, LayoutGrid, Telescope, Search, Sun, Moon, ShoppingBag, LogIn, UserPlus, Info, BookOpen, FileCode2, Mail, LifeBuoy, Scale, Lock, Users } from "lucide-react";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useUnreadOffers } from "@/hooks/use-unread-offers";
 import { useCart } from "@/hooks/use-cart";
@@ -31,6 +31,7 @@ const NAV = [
   { href: "/discover", label: "Discover", icon: Telescope, exact: true },
   { href: "/marketplace", label: "Marketplace", icon: Compass, exact: true },
   { href: "/collections", label: "Collections", icon: LayoutGrid, exact: true },
+  { href: "/creators",   label: "Creators",    icon: Users,      exact: true },
   { href: "/portfolio", label: "Portfolio", icon: Briefcase, exact: true },
   { href: "/create", label: "Create", icon: PlusCircle, exact: true },
   { href: "/launchpad", label: "Launchpad", icon: Zap, exact: true },
@@ -152,7 +153,7 @@ export function AppSidebar() {
         <SidebarSeparator />
 
         <SidebarGroup>
-          <SidebarGroupLabel>Learn & Docs</SidebarGroupLabel>
+          <SidebarGroupLabel>Docs</SidebarGroupLabel>
           <SidebarMenu>
             {[
               { href: "/about",  label: "About",  icon: Info },
@@ -179,13 +180,11 @@ export function AppSidebar() {
         <SidebarSeparator />
 
         <SidebarGroup>
-          <SidebarGroupLabel>Company</SidebarGroupLabel>
+          <SidebarGroupLabel>DAO</SidebarGroupLabel>
           <SidebarMenu>
             {[
               { href: "/contact", label: "Contact Us",   icon: Mail },
               { href: "/support", label: "Support",      icon: LifeBuoy },
-              { href: "/terms",   label: "Terms of Use", icon: Scale },
-              { href: "/privacy", label: "Privacy",      icon: Lock },
             ].map(({ href, label, icon: Icon }) => (
               <SidebarMenuItem key={href}>
                 <SidebarMenuButton

@@ -49,7 +49,10 @@ export default function PortfolioLayout({ children }: { children: React.ReactNod
     }
   }, [orders]);
 
-  if (!isLoaded || isLoadingWallet) {
+  // Don't block on isLoadingWallet if we already have a walletAddress from a fallback
+  // (JWT claim or backend DB). ChipiPay 500s cause infinite retries that keep isLoadingWallet
+  // true forever — this guard prevents the portfolio from being permanently stuck.
+  if (!isLoaded || (isLoadingWallet && !walletAddress)) {
     return (
       <div className="container mx-auto px-4 pt-14 pb-8 space-y-6">
         <Skeleton className="h-9 w-48" />
@@ -114,10 +117,14 @@ export default function PortfolioLayout({ children }: { children: React.ReactNod
   return (
     <div className="container mx-auto px-4 pt-14 pb-8 space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold">Portfolio</h1>
-        <div className="flex items-center gap-2 mt-1">
-          <p className="text-muted-foreground text-sm">Your Starknet wallet:</p>
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 text-primary">
+          <Briefcase className="h-5 w-5" />
+          <span className="text-sm font-semibold uppercase tracking-wider">Portfolio</span>
+        </div>
+        <h1 className="text-3xl font-bold">Your Portfolio</h1>
+        <div className="flex items-center gap-2">
+          <p className="text-muted-foreground text-sm">Starknet wallet:</p>
           <AddressDisplay address={address} chars={6} className="text-sm" />
         </div>
       </div>

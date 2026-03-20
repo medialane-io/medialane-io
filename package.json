@@ -14,7 +14,7 @@
     "@chipi-stack/nextjs": "^14.0.0",
     "@clerk/nextjs": "^6",
     "@hookform/resolvers": "^3",
-    "@medialane/sdk": "^0.4.1",
+    "@medialane/sdk": "0.4.6",
     "@radix-ui/react-accordion": "latest",
     "@radix-ui/react-alert-dialog": "latest",
     "@radix-ui/react-avatar": "^1.1.11",
@@ -50,6 +50,7 @@
     "lucide-react": "^0.577.0",
     "next": "^15",
     "next-themes": "latest",
+    "nodemailer": "^8.0.3",
     "pinata": "^2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -65,8 +66,14 @@
   "devDependencies": {
     "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^22",
+<<<<<<< HEAD
     "@types/react": "^18.3.1",
     "@types/react-dom": "^18.3.1",
+=======
+    "@types/nodemailer": "^7.0.11",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+>>>>>>> main
     "autoprefixer": "^10",
     "postcss": "^8",
     "tailwindcss": "^3",

@@ -28,13 +28,21 @@ export function getCurrency(tokenAddress: string) {
   return { symbol: "TOKEN", decimals: 18 };
 }
 
+function adaptiveDecimals(num: number): number {
+  if (num === 0 || num >= 1) return 2;
+  if (num >= 0.01) return 4;
+  // Show enough decimals to reveal 2 significant figures (e.g. 0.000014 → 6)
+  const leadingZeros = Math.floor(-Math.log10(Math.abs(num)));
+  return leadingZeros + 2;
+}
+
 export function formatPrice(amount: string, decimals: number): string {
   if (!amount) return "0";
   try {
     const val = BigInt(amount);
-    const formatted = Number(val) / Math.pow(10, decimals);
-    return formatted.toLocaleString(undefined, {
-      maximumFractionDigits: decimals <= 6 ? 2 : 4,
+    const num = Number(val) / Math.pow(10, decimals);
+    return num.toLocaleString(undefined, {
+      maximumFractionDigits: adaptiveDecimals(num),
     });
   } catch {
     return "0";
@@ -43,7 +51,7 @@ export function formatPrice(amount: string, decimals: number): string {
 
 export function formatDisplayPrice(price: string | number | null | undefined): string {
   if (price === null || price === undefined) return "";
-  
+
   const priceStr = String(price);
   const parts = priceStr.split(" ");
   const numericPart = parts[0];
@@ -52,9 +60,10 @@ export function formatDisplayPrice(price: string | number | null | undefined): s
   const num = Number(numericPart);
   if (isNaN(num)) return priceStr;
 
+  const maxDecimals = adaptiveDecimals(num);
   const formatted = num.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    minimumFractionDigits: Math.min(2, maxDecimals),
+    maximumFractionDigits: maxDecimals,
   });
 
   return currencyPart ? `${formatted} ${currencyPart}` : formatted;

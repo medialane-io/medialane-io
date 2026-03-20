@@ -1,5 +1,6 @@
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
-import CreatorPageClient from "./creator-page-client";
+import CreatorUsernamePageClient from "./creator-username-client";
 
 export const revalidate = 60;
 
@@ -9,25 +10,22 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { address } = await params;
-  const short = `${address.slice(0, 8)}…${address.slice(-6)}`;
-  const title = `${short} | Creator`;
-  const description = `View IP assets, listings, and on-chain activity for creator ${short} on Medialane.`;
-
+  // For address-based routes, title will be set after redirect
   return {
-    title,
-    description,
-    openGraph: {
-      title: `${title} | Medialane`,
-      description,
-    },
-    twitter: {
-      card: "summary",
-      title: `${title} | Medialane`,
-      description,
-    },
+    title: `@${address} | Medialane`,
+    description: `Creator profile for @${address} on Medialane.`,
   };
 }
 
-export default function CreatorPage() {
-  return <CreatorPageClient />;
+export default async function CreatorPage({ params }: Props) {
+  const { address } = await params;
+
+  // Wallet addresses start with 0x — redirect them to /account/[address]
+  // to keep /creator/[slug] exclusively for username-based profiles.
+  if (address.startsWith("0x") || address.startsWith("0X")) {
+    redirect(`/account/${address}`);
+  }
+
+  // Otherwise treat as a username slug
+  return <CreatorUsernamePageClient username={address} />;
 }

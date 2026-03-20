@@ -11,6 +11,7 @@ import { useCollections } from "@/hooks/use-collections";
 import { CollectionCard, CollectionCardSkeleton } from "@/components/shared/collection-card";
 import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion-primitives";
 import { BRAND } from "@/lib/brand";
+import { UsernameClaimPanel } from "@/components/shared/username-claim-panel";
 import {
   Zap, ImagePlus, Layers, ArrowRight,
   Package, Tag, ShoppingCart, Star, Rocket,
@@ -143,6 +144,15 @@ export function LaunchpadContent() {
           ))}
         </div>
       </section>
+
+      {/* Username claim */}
+      {isSignedIn && walletAddress && (
+        <section className="px-4">
+          <FadeIn>
+            <UsernameClaimPanel />
+          </FadeIn>
+        </section>
+      )}
 
       {/* Portfolio shortcut */}
       {isSignedIn && (

@@ -100,7 +100,6 @@ export function useMarketplace() {
   const { executeTransaction, status, txHash, error: txError, reset } =
     useChipiTransaction();
   const {
-    wallet,
     walletAddress,
     hasWallet,
     isLoadingWallet,
@@ -141,21 +140,17 @@ export function useMarketplace() {
   /** Execute pre-built calls via ChipiPay (gasless). */
   const execWithPin = useCallback(
     async (pin: string, calls: ChipiCall[]) => {
-      const walletOverride = wallet
-        ? { publicKey: wallet.publicKey, encryptedPrivateKey: wallet.encryptedPrivateKey }
-        : undefined;
       const result = await executeTransaction({
         pin,
         // Always use the marketplace contract so ChipiPay can locate the correct session key.
         // calls[0] is the NFT/ERC-20 approve — using it as contractAddress would mismatch the session.
         contractAddress: MARKETPLACE_CONTRACT,
         calls,
-        wallet: walletOverride,
       });
       setHash(result.txHash);
       return result;
     },
-    [executeTransaction, wallet]
+    [executeTransaction]
   );
 
   /**

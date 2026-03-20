@@ -30,18 +30,23 @@ import { SessionSetupDialog } from "@/components/chipi/session-setup-dialog";
 import { useAuth, SignInButton } from "@clerk/nextjs";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { EXPLORER_URL, DURATION_OPTIONS } from "@/lib/constants";
+import { getListableTokens } from "@medialane/sdk";
 import { cn } from "@/lib/utils";
 import { isWebAuthnSupported } from "@chipi-stack/nextjs";
 import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
 
-const CURRENCIES = ["USDC", "USDT", "STRK"] as const;
+const CURRENCIES = getListableTokens().map((t) => t.symbol);
 
 const schema = z.object({
   price: z.string().min(1, "Price required").refine(
     (v) => !isNaN(parseFloat(v)) && parseFloat(v) > 0,
     "Must be a positive number"
   ),
-  currency: z.enum(CURRENCIES),
+  // z.enum() requires a const tuple — use z.string().refine() for runtime-derived lists
+  currency: z.string().refine(
+    (v) => getListableTokens().some((t) => t.symbol === v),
+    "Invalid currency"
+  ),
   durationSeconds: z.number().min(86400),
 });
 

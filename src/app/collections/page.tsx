@@ -62,11 +62,11 @@ export default function CollectionsPage() {
       <div className="space-y-2">
         <div className="flex items-center gap-2 text-primary">
           <Layers className="h-5 w-5" />
-          <span className="text-sm font-semibold uppercase tracking-wider">Collections</span>
+          <span className="text-sm font-semibold uppercase tracking-wider">Programmable IP</span>
         </div>
-        <h1 className="text-3xl font-bold">All Collections</h1>
+        <h1 className="text-3xl font-bold">Onchain Collections</h1>
         <p className="text-muted-foreground">
-          Browse NFT collections deployed on Medialane and Starknet.
+          NFT, IP, RWA: 
           {meta?.total != null && (
             <span className="ml-2 text-foreground font-medium">
               {(meta.total ?? 0).toLocaleString()} total
@@ -114,7 +114,7 @@ export default function CollectionsPage() {
 
       {/* Grid */}
       {isInitialLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {Array.from({ length: 9 }).map((_, i) => <CollectionCardSkeleton key={i} />)}
         </div>
       ) : allCollections.length === 0 ? (

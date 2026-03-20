@@ -14,7 +14,7 @@ export function useCreatorProfile(walletAddress: string | undefined) {
   const { data, error, isLoading, mutate } = useSWR(
     walletAddress ? `profile-creator-${walletAddress}` : null,
     () => getMedialaneClient().api.getCreatorProfile(walletAddress!),
-    { revalidateOnFocus: false }
+    { revalidateOnFocus: false, revalidateOnMount: true }
   );
   return { profile: data ?? null, isLoading, error, mutate };
 }
