@@ -12,6 +12,7 @@
 
 import { useCallback } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
+import { normalizeAddress } from "@/lib/utils";
 import {
   useChipiWallet,
   useCreateSessionKey,
@@ -27,7 +28,7 @@ const SESSION_DURATION_SECONDS = 6 * 60 * 60; // 6 hours
 const SESSION_MAX_CALLS = 1000;
 
 export function useSessionKey() {
-  const { userId, getToken } = useAuth();
+  const { userId, getToken, sessionClaims } = useAuth();
   const { user } = useUser();
 
   const { createSessionKeyAsync, isLoading: isCreating } = useCreateSessionKey();
@@ -56,8 +57,16 @@ export function useSessionKey() {
   const hasActiveSession =
     storedSession !== null && storedSession.validUntil * 1000 > Date.now();
 
+  // Fallback wallet address from Clerk JWT session claims (publicMetadata.publicKey
+  // is written at onboarding and embedded in the JWT via the session token template).
+  // This allows read-only features (portfolio, assets, activity) to work even when
+  // the ChipiPay API is unavailable. Transaction signing still requires the full
+  // wallet object from ChipiPay (encryptedPrivateKey).
+  const claimKey = (sessionClaims?.metadata as Record<string, unknown> | undefined)?.publicKey as string | undefined;
+  const claimAddress = claimKey ? normalizeAddress(claimKey) : null;
+
   /** Starknet contract address for this user's ChipiPay account */
-  const walletAddress = wallet?.normalizedPublicKey ?? null;
+  const walletAddress = wallet?.normalizedPublicKey ?? claimAddress ?? null;
 
   // ─── setupSession ─────────────────────────────────────────────────────────
 
