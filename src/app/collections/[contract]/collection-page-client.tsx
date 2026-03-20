@@ -162,33 +162,30 @@ export default function CollectionPageClient() {
           {/* Parallax / gradient fill */}
           <ParallaxBanner imageUrl={bannerUrl} contract={contract} />
 
-          {/* Scrim: heavy at bottom for legibility */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/10" />
-
           {/* Back link — top-right */}
           <Link
             href="/collections"
             className="absolute top-12 sm:top-14 right-4 flex items-center gap-1.5 text-xs font-medium text-white/80 hover:text-white bg-black/30 hover:bg-black/50 backdrop-blur-sm px-3 py-1.5 rounded-full transition-all z-10"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
-            <span className="hidden xs:inline">Collections</span>
+            Collections
           </Link>
 
-          {/* Bottom overlay: title + badges + stat chips */}
-          <div className="absolute bottom-0 left-0 right-0 px-4 sm:px-6 pb-4 sm:pb-6 space-y-3 z-10">
-            {/* Title */}
-            <div>
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white drop-shadow leading-tight">
+          {/* Bottom overlay: title card + stat chips — all glass, no gradient scrim */}
+          <div className="absolute bottom-0 left-0 right-0 px-4 sm:px-6 pb-4 sm:pb-6 space-y-2 z-10">
+            {/* Title glass card */}
+            <div className="inline-block bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl px-4 py-3 max-w-full">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight">
                 {collection?.name ?? "Unnamed Collection"}
               </h1>
               <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                 {collection?.symbol && (
-                  <span className="font-mono text-xs bg-white/15 text-white border border-white/25 backdrop-blur-sm rounded-full px-2 py-0.5">
+                  <span className="font-mono text-xs bg-white/15 text-white border border-white/20 rounded-full px-2 py-0.5">
                     {collection.symbol}
                   </span>
                 )}
                 {collection?.isKnown && (
-                  <span className="flex items-center gap-1 text-xs bg-white/15 text-white border border-white/25 backdrop-blur-sm rounded-full px-2 py-0.5">
+                  <span className="flex items-center gap-1 text-xs bg-white/15 text-white border border-white/20 rounded-full px-2 py-0.5">
                     <CheckCircle2 className="h-3 w-3" />
                     Verified
                   </span>
