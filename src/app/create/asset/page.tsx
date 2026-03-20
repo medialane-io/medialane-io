@@ -48,6 +48,7 @@ import {
   AI_POLICIES,
   DERIVATIVES_OPTIONS,
 } from "@/types/ip";
+import { IPTypeFields } from "@/components/create/ip-type-fields";
 import {
   Upload,
   ChevronDown,
@@ -141,6 +142,7 @@ export default function CreateAssetPage() {
   const [listDuration, setListDuration] = useState<number>(DURATION_OPTIONS[0]?.seconds ?? 86400);
   const [mintStep, setMintStep] = useState<MintStep>("idle");
   const [mintError, setMintError] = useState<string | null>(null);
+  const [templateFields, setTemplateFields] = useState<Record<string, string>>({});
   const pinRef = useRef<string | null>(null);
   const previewUrlRef = useRef<string | null>(null);
 
@@ -224,6 +226,11 @@ export default function CreateAssetPage() {
       formData.set("royalty", String(pendingValues.royalty));
       if (imageFile) formData.set("file", imageFile);
 
+      // Forward template-specific fields — keyed as "tmpl_{trait_type}"
+      Object.entries(templateFields).forEach(([key, value]) => {
+        if (value?.trim()) formData.set(`tmpl_${key}`, value.trim());
+      });
+
       const uploadRes = await fetch("/api/pinata", { method: "POST", body: formData });
       const uploadData = await uploadRes.json();
       if (!uploadRes.ok || uploadData.error) {
@@ -292,6 +299,7 @@ export default function CreateAssetPage() {
     resetListing();
     pinRef.current = null;
     form.reset();
+    setTemplateFields({});
     setImageFile(null);
     setImagePreview(null);
     setListPrice("");
@@ -491,6 +499,12 @@ export default function CreateAssetPage() {
                   </Select>
                 </FormItem>
               )}
+            />
+
+            {/* IP Type template fields */}
+            <IPTypeFields
+              ipType={form.watch("ipType") as import("@medialane/sdk").IPType}
+              onChange={setTemplateFields}
             />
 
             {/* Licensing section */}

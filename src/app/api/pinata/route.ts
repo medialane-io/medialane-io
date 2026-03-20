@@ -19,6 +19,8 @@
  *   aiPolicy        string?  — "Allowed" | "Not Allowed" | "Training Only"
  *   royalty         string?  — "0%"–"50%" or bare number
  *   edition         string?  — e.g. "Genesis" (legacy genesis-mint field)
+ *   tmpl_{key}      string?  — template field for selected IP type (e.g. "tmpl_Artist", "tmpl_Spotify URL")
+ *                              Any number of these. Stored as standard attributes with trait_type = key.
  *
  * Response: { uri: "ipfs://...", imageUri: "ipfs://..." | null, cid: string }
  */
@@ -118,6 +120,14 @@ export async function POST(req: NextRequest) {
 
     // Edition (legacy genesis-mint field)
     if (edition) attributes.push({ trait_type: "Edition", value: edition });
+
+    // Template-specific fields — stored as standard NFT attributes
+    for (const [key, value] of formData.entries()) {
+      if (typeof key === "string" && key.startsWith("tmpl_") && value) {
+        const traitType = key.slice(5); // strip "tmpl_" prefix → exact trait_type
+        attributes.push({ trait_type: traitType, value: String(value) });
+      }
+    }
 
     // Berne Convention marker — only when licensing data is provided
     if (licenseType) {
