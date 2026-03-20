@@ -58,6 +58,7 @@ import {
   Plus,
   ImagePlus,
   Tag,
+  Layers,
 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -138,6 +139,7 @@ export default function CreateAssetPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [listingOpen, setListingOpen] = useState(false);
+  const [ipTypeOpen, setIpTypeOpen] = useState(false);
   const [listPrice, setListPrice] = useState("");
   const [listCurrency, setListCurrency] = useState<string>(LISTING_CURRENCIES[0] ?? "USDC");
   const [listDuration, setListDuration] = useState<number>(DURATION_OPTIONS[0]?.seconds ?? 86400);
@@ -162,7 +164,7 @@ export default function CreateAssetPage() {
       name: "",
       description: "",
       external_url: "",
-      ipType: "Art",
+      ipType: "NFT",
       licenseType: "All Rights Reserved",
       commercialUse: "No",
       derivatives: "Not Allowed",
@@ -479,35 +481,6 @@ export default function CreateAssetPage() {
               )}
             />
 
-            {/* IP Type */}
-            <FormField
-              control={form.control}
-              name="ipType"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>IP Type</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {IP_TYPES.map((t) => (
-                        <SelectItem key={t} value={t}>{t}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </FormItem>
-              )}
-            />
-
-            {/* IP Type template fields */}
-            <IPTypeFields
-              ipType={form.watch("ipType") as IPType}
-              onChange={setTemplateFields}
-            />
-
             {/* Licensing section */}
             <div className="space-y-4 rounded-xl border border-border p-5">
               <div className="flex items-center gap-2">
@@ -705,6 +678,57 @@ export default function CreateAssetPage() {
                         </SelectContent>
                       </Select>
                     </div>
+                  </div>
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
+
+            {/* IP Type & template fields — optional, collapsed by default */}
+            <Collapsible open={ipTypeOpen} onOpenChange={setIpTypeOpen}>
+              <div className="rounded-xl border border-border overflow-hidden">
+                <CollapsibleTrigger asChild>
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-between px-5 py-4 hover:bg-muted/30 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Layers className="h-4 w-4 text-primary" />
+                      <span className="text-sm font-semibold">IP Type &amp; Metadata</span>
+                      <span className="text-xs text-muted-foreground font-normal">Optional</span>
+                    </div>
+                    <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", ipTypeOpen && "rotate-180")} />
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="px-5 pb-5 space-y-4 border-t border-border/60 pt-4">
+                    <p className="text-xs text-muted-foreground">
+                      Choose a content type to unlock optional metadata fields tailored to your work — artist credits, embed links, technical specs, and more.
+                    </p>
+                    <FormField
+                      control={form.control}
+                      name="ipType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>IP Type</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {IP_TYPES.map((t) => (
+                                <SelectItem key={t} value={t}>{t}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormItem>
+                      )}
+                    />
+                    <IPTypeFields
+                      ipType={form.watch("ipType") as IPType}
+                      onChange={setTemplateFields}
+                    />
                   </div>
                 </CollapsibleContent>
               </div>
