@@ -29,15 +29,19 @@ Medialane is a platform for the **creative economy on Starknet**. It bridges Web
 - Recent listings + on-chain activity feed side by side
 
 ### Creator Launchpad
-- Mint IP assets (Art, Music, Video, Documents, Posts, Patents, Code, NFTs) to any collection
+- Mint IP assets across 12 canonical IP types: Audio, Art, Video, Photography, NFT, Patents, Posts, Publications, Documents, RWA, Software, Custom
+- Dynamic template fields per IP type — collapsed optional panel, smart defaults per category
 - Full programmable licensing form — CC variants, commercial use, derivatives, attribution, territory, AI policy, royalty %
 - Licensing metadata embedded in IPFS as ERC-721 attributes (OpenSea-compatible + Berne Convention compliant)
+- Media tab on asset pages — embedded players for YouTube, Spotify, SoundCloud, TikTok
+- Creator wallet address embedded in every asset as `{ trait_type: "Creator", value: walletAddress }`
 - Direct Pinata upload — metadata stored on IPFS, not on centralized servers
 - Create and deploy ERC-721 collections on Starknet (gasless)
+- Collection metadata JSON uploaded to IPFS at creation time — `baseUri` set on-chain so any dApp can resolve collection images permissionlessly
 
 ### NFT Marketplace
 - Browse, search, and filter all Medialane IP assets
-- Buy NFTs directly or make offers with USDC, USDC.e, USDT, ETH, or STRK
+- Buy NFTs directly or make offers with USDC, USDT, ETH, STRK, or WBTC
 - Batch cart checkout — buy multiple items in one PIN-authenticated session
 - Accept, cancel, and manage listings and offers from the portfolio
 - Asset pages with Details, License, Listings, Offers, and History tabs
@@ -48,9 +52,15 @@ Medialane is a platform for the **creative economy on Starknet**. It bridges Web
 ### Collections
 - Browse all NFT collections with sort options: Recent (default), Most assets, Top volume, Floor price, A→Z
 - Filter by verified collections only
-- Collection pages with `aspect-video` parallax banner, animated stats, and sticky tabs
+- Collection pages with `aspect-video` parallax banner, animated stats, and sticky tabs (Items / Listings / Offers)
 - Infinite scroll with "Load more" pagination — shows remaining count
 - Creator profile pages with address-derived color identity and blurred asset banner
+
+### Creators
+- Dedicated `/creators` page showcasing verified creators in a 4-column card grid
+- Creator cards display banner, avatar, bio, and social links
+- Creators without uploaded images automatically fall back to their latest collection image
+- Profile pages with activity timeline, owned assets, collections, and listing history
 
 ### Invisible Wallet (ChipiPay)
 - Sign in with email, Google, or any Clerk-supported provider
@@ -157,10 +167,10 @@ This makes licensing terms **immutable**, **machine-readable**, and **interopera
 | Token | Network | Address |
 |---|---|---|
 | USDC (native) | Starknet Mainnet | `0x033068f6...` |
-| USDC.e (bridged) | Starknet Mainnet | `0x053c9125...` |
 | USDT | Starknet Mainnet | `0x068f5c6a...` |
 | ETH | Starknet Mainnet | `0x049d3657...` |
 | STRK | Starknet Mainnet | `0x04718f5a...` |
+| WBTC | Starknet Mainnet | `0x03fe2b97...` |
 
 ---
 

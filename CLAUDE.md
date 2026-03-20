@@ -150,7 +150,7 @@ All write ops follow: create intent → sign typed data → submit signature →
 
 ---
 
-## Known Bugs (as of 2026-03-12)
+## Known Bugs (as of 2026-03-20)
 
 All previously noted bugs were fixed. No outstanding known bugs.
 
@@ -214,6 +214,9 @@ All previously noted bugs were fixed. No outstanding known bugs.
 - [x] Creator page (`/creator/[address]`): full redesign — address-derived color palette, blurred banner from latest token image, asset avatar, activity timeline ✓ 2026-03-11
 - [x] `/docs` folder removed from git tracking (gitignored) — internal planning docs no longer exposed in repo ✓ 2026-03-11
 - [x] Currency expansion: WBTC + ETH added to listing/offer dialogs; USDC.e removed; token list centralized in SDK via `getListableTokens()` ✓ 2026-03-17
+- [x] IP Types & Templates: 12 canonical IP types (Audio, Art, Video, Photography, NFT, Patents, Posts, Publications, Documents, RWA, Software, Custom); dynamic template fields per type; Media tab on asset page with embed players ✓ 2026-03-20
+- [x] UI polish: removed duplicate floating buy button on mobile asset page; homepage full-width (removed max-w-7xl); creators page title "Meet the Creators" + friendlier subtitle; creator cards redesigned — larger avatar (h-14), 4-col grid, collection image fallback for creators without banner/avatar ✓ 2026-03-20
+- [x] ChipiPay wallet panel: upgraded @chipi-stack/nextjs to v14; new ChipiWalletPanel component + use-wallet-with-balance hook; passkey support ✓ 2026-03-20
 
 ---
 
