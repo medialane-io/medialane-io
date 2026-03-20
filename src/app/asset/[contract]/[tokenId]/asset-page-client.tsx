@@ -22,6 +22,7 @@ import { ShoppingCart, Tag, ExternalLink, Clock, HandCoins, ArrowRightLeft, X, C
 import { ReportDialog } from "@/components/report-dialog";
 import { HiddenContentBanner } from "@/components/hidden-content-banner";
 import { LICENSE_TRAIT_TYPES } from "@/types/ip";
+import type { IPType } from "@/types/ip";
 import { IP_TEMPLATES } from "@/lib/ip-templates";
 import { IPTypeDisplay } from "@/components/ip-type-display";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -180,7 +181,7 @@ export default function AssetPageClient() {
       (a) => a.trait_type?.toLowerCase() === "ip type"
     );
     if (!ipTypeAttr?.value) return false;
-    const template = IP_TEMPLATES[ipTypeAttr.value as import("@medialane/sdk").IPType];
+    const template = IP_TEMPLATES[ipTypeAttr.value as IPType];
     if (!template || template.fields.length === 0) return false;
     return template.fields.some((f) =>
       attributes.some((a) => a.trait_type === f.key && a.value)
@@ -194,7 +195,7 @@ export default function AssetPageClient() {
       (a) => a.trait_type?.toLowerCase() === "ip type"
     );
     if (!ipTypeAttr?.value) return new Set<string>(["IP Type"]);
-    const template = IP_TEMPLATES[ipTypeAttr.value as import("@medialane/sdk").IPType];
+    const template = IP_TEMPLATES[ipTypeAttr.value as IPType];
     const keys = template?.fields.map((f) => f.key) ?? [];
     return new Set<string>(["IP Type", ...keys]);
   })();
