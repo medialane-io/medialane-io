@@ -76,9 +76,9 @@ export function TokenCard({
             </div>
           )}
           {token.metadata?.ipType && (
-            <Badge className="absolute top-2 left-2 text-[10px] bg-background/85 backdrop-blur-sm border-0">
+            <span className="absolute top-2 left-2 text-[10px] font-semibold px-2 py-0.5 rounded-md bg-black/70 text-white backdrop-blur-sm leading-4">
               {token.metadata.ipType}
-            </Badge>
+            </span>
           )}
           {(token.metadataStatus === "PENDING" || token.metadataStatus === "FETCHING") && (
             <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-background/85 backdrop-blur-sm rounded-full px-2 py-0.5">
@@ -87,9 +87,9 @@ export function TokenCard({
             </div>
           )}
           {isOwner && activeOrder && (
-            <Badge className="absolute top-2 right-2 text-[10px] bg-emerald-500/90 text-white border-0 backdrop-blur-sm">
+            <span className="absolute top-2 right-2 text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-600/90 text-white backdrop-blur-sm leading-4">
               Listed
-            </Badge>
+            </span>
           )}
         </div>
 

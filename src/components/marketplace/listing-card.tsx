@@ -6,8 +6,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MotionCard } from "@/components/ui/motion-primitives";
-import { ShoppingCart, Clock } from "lucide-react";
-import { ipfsToHttp, timeUntil, shortenAddress , formatDisplayPrice} from "@/lib/utils";
+import { ShoppingCart } from "lucide-react";
+import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
 import type { ApiOrder } from "@medialane/sdk";
 
@@ -69,21 +69,22 @@ export function ListingCard({ order, onBuy }: ListingCardProps) {
         <div className="p-3 space-y-2.5">
           <div>
             <p className="font-semibold text-sm truncate leading-snug">{name}</p>
-            <p className="text-[11px] text-muted-foreground font-mono">
-              {shortenAddress(order.nftContract ?? "")}
-            </p>
+            {order.token?.description ? (
+              <p className="text-[11px] text-muted-foreground line-clamp-1 leading-snug mt-0.5">
+                {order.token.description}
+              </p>
+            ) : (
+              <p className="text-[11px] text-muted-foreground">#{order.nftTokenId}</p>
+            )}
           </div>
 
-          <div className="flex items-end justify-between gap-2">
-            <div>
-              <p className="section-label">{isListing ? "Ask" : "Offer"}</p>
-              <p className="price-value text-sm">
-                {formatDisplayPrice(order.price.formatted)}{" "}
-                <span className="text-muted-foreground font-normal text-xs">
-                  {order.price.currency}
-                </span>
-              </p>
-            </div>
+          <div className="flex items-center justify-between gap-2">
+            <p className="price-value text-sm">
+              {formatDisplayPrice(order.price.formatted)}{" "}
+              <span className="text-muted-foreground font-normal text-xs">
+                {order.price.currency}
+              </span>
+            </p>
             {isListing && (
               <div className="flex gap-1.5">
                 {onBuy && (
@@ -110,11 +111,6 @@ export function ListingCard({ order, onBuy }: ListingCardProps) {
                 </Button>
               </div>
             )}
-          </div>
-
-          <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-            <Clock className="h-3 w-3 shrink-0" />
-            <span>Expires {timeUntil(order.endTime)}</span>
           </div>
         </div>
       </Link>

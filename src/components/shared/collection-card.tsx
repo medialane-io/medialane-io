@@ -23,54 +23,60 @@ export function CollectionCard({ collection }: CollectionCardProps) {
   return (
     <MotionCard className="card-base group">
       <Link href={`/collections/${collection.contractAddress}`} className="block relative h-full">
-        {/* Main Image Area */}
+        {/* Image area */}
         <div className="relative aspect-[3/4] w-full overflow-hidden bg-muted">
-          {/* Vivid Image with Hover Effect */}
           {showImage ? (
             <Image
               src={imageUrl}
               alt={collection.name ?? "Collection"}
               fill
-              className="object-cover transition-transform duration-500 group-hover:scale-110"
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
               onError={() => setImgError(true)}
               unoptimized
             />
           ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-brand-purple/25 via-brand-blue/15 to-brand-navy/30 flex items-center justify-center transition-transform duration-500 group-hover:scale-110">
-              <span className="text-7xl font-black text-white/10 select-none tracking-tighter">
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-purple/30 via-brand-blue/20 to-brand-navy/40 flex items-center justify-center">
+              <span className="text-8xl font-black text-white/10 select-none tracking-tighter">
                 {initial}
               </span>
             </div>
           )}
 
-          {/* Name badge — bottom left */}
-          <div className="absolute bottom-2 left-2 right-2 flex items-end justify-between gap-1.5 flex-wrap">
-            <div className="flex items-center gap-1 backdrop-blur-md  rounded-lg px-2 py-1 max-w-[70%]">
+          {/* Gradient overlay for legibility */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent pointer-events-none" />
+
+          {/* Bottom info row */}
+          <div className="absolute bottom-0 left-0 right-0 px-3 pb-3 pt-6">
+            {/* Name row */}
+            <div className="flex items-center gap-1.5 mb-1.5">
               {!collection.name && collection.metadataStatus === "PENDING" ? (
-                <span className="flex items-center gap-1 text-[10px] text-white/70">
+                <span className="flex items-center gap-1 text-[10px] text-white/60">
                   <Loader2 className="h-2.5 w-2.5 animate-spin" />
                   Indexing…
                 </span>
               ) : (
-                <p className="font-bold text-sm truncate text-white leading-tight">
+                <p className="font-bold text-sm truncate text-white leading-tight group-hover:text-white/90 transition-colors">
                   {collection.name ?? "Unnamed Collection"}
                 </p>
               )}
               {collection.isKnown && (
-                <CheckCircle2 className="h-3 w-3 text-brand-blue shrink-0" />
+                <CheckCircle2 className="h-3.5 w-3.5 text-blue-400 shrink-0" />
               )}
             </div>
 
-            {/* Stat badges */}
-            <div className="flex items-center gap-1">
+            {/* Stats row */}
+            <div className="flex items-center gap-1.5 flex-wrap">
               {collection.totalSupply != null && (
-                <span className="backdrop-blur-md  rounded-lg px-2 py-1 text-[10px] font-semibold text-white/80">
+                <span className="text-[10px] font-medium text-white/60">
                   {collection.totalSupply.toLocaleString()} items
                 </span>
               )}
+              {collection.totalSupply != null && hasFloor && (
+                <span className="text-[10px] text-white/30">·</span>
+              )}
               {hasFloor && (
-                <span className="backdrop-blur-md  rounded-lg px-2 py-1 text-[10px] font-bold text-white">
-                  {formatDisplayPrice(collection.floorPrice)}
+                <span className="text-[10px] font-bold text-white/90">
+                  Floor {formatDisplayPrice(collection.floorPrice)}
                 </span>
               )}
             </div>
@@ -86,9 +92,9 @@ export function CollectionCardSkeleton() {
     <div className="card-base">
       <div className="relative aspect-[3/4] w-full overflow-hidden bg-muted rounded-none">
         <Skeleton className="absolute inset-0 rounded-none" />
-        <div className="absolute bottom-2 left-2 right-2 flex items-end justify-between gap-1.5">
-          <Skeleton className="h-6 w-2/3 rounded-lg" />
-          <Skeleton className="h-5 w-14 rounded-lg" />
+        <div className="absolute bottom-3 left-3 right-3 space-y-1.5">
+          <Skeleton className="h-4 w-2/3 rounded-md" />
+          <Skeleton className="h-3 w-1/3 rounded-md" />
         </div>
       </div>
     </div>
