@@ -18,7 +18,7 @@ import { TransferDialog } from "@/components/marketplace/transfer-dialog";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { ipfsToHttp, timeUntil, timeAgo, formatDisplayPrice } from "@/lib/utils";
-import { ShoppingCart, Tag, ExternalLink, Clock, HandCoins, ArrowRightLeft, X, CheckCircle, DollarSign, GitBranch, UserCheck, Globe, Bot, Percent, Shield, Calendar, ChevronRight, Flag } from "lucide-react";
+import { ShoppingCart, Tag, ExternalLink, Clock, HandCoins, ArrowRightLeft, X, CheckCircle, DollarSign, GitBranch, UserCheck, Globe, Bot, Percent, Shield, Calendar, ChevronRight, Flag, Loader2 } from "lucide-react";
 import { ReportDialog } from "@/components/report-dialog";
 import { HiddenContentBanner } from "@/components/hidden-content-banner";
 import { LICENSE_TRAIT_TYPES } from "@/types/ip";
@@ -26,6 +26,7 @@ import type { IPType } from "@/types/ip";
 import { IP_TEMPLATES } from "@/lib/ip-templates";
 import { IPTypeDisplay } from "@/components/ip-type-display";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import type { ApiActivity, ApiOrder } from "@medialane/sdk";
 import { EXPLORER_URL } from "@/lib/constants";
 import { useAuth, SignInButton } from "@clerk/nextjs";
@@ -65,6 +66,8 @@ export default function AssetPageClient() {
   const [offerOpen, setOfferOpen] = useState(false);
   const [orderToCancel, setOrderToCancel] = useState<ApiOrder | null>(null);
   const [cancelPinOpen, setCancelPinOpen] = useState(false);
+  const [cancelStep, setCancelStep] = useState<"idle" | "processing" | "success" | "error">("idle");
+  const [cancelError, setCancelError] = useState<string | null>(null);
   const [orderToAccept, setOrderToAccept] = useState<ApiOrder | null>(null);
   const [acceptPinOpen, setAcceptPinOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
@@ -125,9 +128,16 @@ export default function AssetPageClient() {
   const handleCancelPin = async (pin: string) => {
     setCancelPinOpen(false);
     if (!orderToCancel) return;
-    await cancelOrder({ orderHash: orderToCancel.orderHash, pin });
-    setOrderToCancel(null);
-    mutateListings();
+    setCancelStep("processing");
+    setCancelError(null);
+    try {
+      await cancelOrder({ orderHash: orderToCancel.orderHash, pin });
+      setCancelStep("success");
+      mutateListings();
+    } catch (err: unknown) {
+      setCancelStep("error");
+      setCancelError(err instanceof Error ? err.message : "Cancellation failed");
+    }
   };
 
   const handleAcceptClick = (order: ApiOrder) => {
@@ -235,16 +245,12 @@ export default function AssetPageClient() {
 
       <div className={`container mx-auto px-4 pt-14 space-y-8 pb-8`}>
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <Link href="/collections" className="hover:text-foreground transition-colors shrink-0">
-            Collections
-          </Link>
-          <ChevronRight className="h-3.5 w-3.5 shrink-0 hidden sm:block" />
+        <nav className="flex items-center gap-1.5 text-sm text-muted-foreground min-w-0">
           <Link
             href={`/collections/${contract}`}
-            className="hover:text-foreground transition-colors truncate max-w-[120px] hidden sm:block"
+            className="hover:text-foreground transition-colors truncate max-w-[140px] shrink-0"
           >
-            {collection?.name ?? contract.slice(0, 10) + "…"}
+            {collection?.name ?? contract.slice(0, 8) + "…"}
           </Link>
           <ChevronRight className="h-3.5 w-3.5 shrink-0" />
           <span className="text-foreground font-medium truncate">{name}</span>
@@ -519,26 +525,27 @@ export default function AssetPageClient() {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="details">
+        <Tabs defaultValue="overview">
           <TabsList>
-            <TabsTrigger value="details">Details</TabsTrigger>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="license">License</TabsTrigger>
-            {hasTemplateData && (
-              <TabsTrigger value="media">Media</TabsTrigger>
-            )}
-            <TabsTrigger value="listings">
-              Listings {activeListings.length > 0 && `(${activeListings.length})`}
+            <TabsTrigger value="markets">
+              Markets {(activeListings.length + activeBids.length) > 0 && `(${activeListings.length + activeBids.length})`}
             </TabsTrigger>
-            <TabsTrigger value="offers">
-              Offers {activeBids.length > 0 && `(${activeBids.length})`}
-            </TabsTrigger>
-            <TabsTrigger value="history">
-              History {history.length > 0 && `(${history.length})`}
+            <TabsTrigger value="provenance">
+              Provenance {history.length > 0 && `(${history.length})`}
             </TabsTrigger>
           </TabsList>
 
-          {/* Details tab */}
-          <TabsContent value="details" className="mt-4 space-y-4">
+          {/* Overview tab — media embeds + attributes */}
+          <TabsContent value="overview" className="mt-4 space-y-6">
+            {/* Media embeds (YouTube, Spotify, etc.) — shown first when present */}
+            {hasTemplateData && (
+              <IPTypeDisplay
+                attributes={token.metadata?.attributes as { trait_type?: string; value?: string }[] | null}
+              />
+            )}
+            <div className="space-y-4">
             
             {token.metadata?.licenseType && (
               <div className="rounded-lg bg-muted/30 p-4 space-y-1">
@@ -582,6 +589,7 @@ export default function AssetPageClient() {
             {!description && !token.metadata?.licenseType && attributes.length === 0 && (
               <p className="text-sm text-muted-foreground">No additional details available.</p>
             )}
+            </div>
           </TabsContent>
 
           {/* License tab */}
@@ -679,92 +687,74 @@ export default function AssetPageClient() {
             })()}
           </TabsContent>
 
-          {/* Media tab — IP type template metadata and embed players */}
-          {hasTemplateData && (
-            <TabsContent value="media" className="mt-4">
-              <IPTypeDisplay
-                attributes={token.metadata?.attributes as { trait_type?: string; value?: string }[] | null}
-              />
-            </TabsContent>
-          )}
-
-          {/* Listings tab */}
-          <TabsContent value="listings" className="mt-4">
-            {activeListings.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-6 text-center">No active listings for this token.</p>
-            ) : (
-              <div className="rounded-xl border border-border divide-y divide-border">
-                {activeListings.map((order) => {
-                  const isMyOrder = walletAddress && order.offerer.toLowerCase() === walletAddress.toLowerCase();
-                  return (
-                    <div key={order.orderHash} className="flex items-center justify-between px-4 py-3 gap-4">
+          {/* Markets tab — listings + offers */}
+          <TabsContent value="markets" className="mt-4 space-y-6">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Listings</p>
+              {activeListings.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-4 text-center">No active listings.</p>
+              ) : (
+                <div className="rounded-xl border border-border divide-y divide-border">
+                  {activeListings.map((order) => {
+                    const isMyOrder = walletAddress && order.offerer.toLowerCase() === walletAddress.toLowerCase();
+                    return (
+                      <div key={order.orderHash} className="flex items-center justify-between px-4 py-3 gap-4">
+                        <div className="min-w-0">
+                          <p className="font-bold text-sm">{formatDisplayPrice(order.price.formatted)} {order.price.currency}</p>
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+                            <Clock className="h-3 w-3" />
+                            {timeUntil(order.endTime)}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <AddressDisplay address={order.offerer} chars={4} showCopy={false} className="text-xs text-muted-foreground" />
+                          {isMyOrder ? (
+                            <Button size="sm" variant="destructive" disabled={isProcessing} onClick={() => handleCancelClick(order)}>
+                              Cancel
+                            </Button>
+                          ) : (
+                            <Button size="sm" onClick={() => setPurchaseOrder(order)}>Buy</Button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Offers</p>
+              {activeBids.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-4 text-center">No active offers.</p>
+              ) : (
+                <div className="rounded-xl border border-border divide-y divide-border">
+                  {activeBids.map((bid) => (
+                    <div key={bid.orderHash} className="flex items-center justify-between px-4 py-3 gap-4">
                       <div className="min-w-0">
-                        <p className="font-bold text-sm">{formatDisplayPrice(order.price.formatted)} {order.price.currency}</p>
+                        <p className="font-bold text-sm">{formatDisplayPrice(bid.price.formatted)} {bid.price.currency}</p>
                         <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
                           <Clock className="h-3 w-3" />
-                          {timeUntil(order.endTime)}
+                          {timeUntil(bid.endTime)}
                         </div>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
-                        <AddressDisplay address={order.offerer} chars={4} showCopy={false} className="text-xs text-muted-foreground" />
-                        {isMyOrder ? (
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            disabled={isProcessing}
-                            onClick={() => handleCancelClick(order)}
-                          >
-                            Cancel
-                          </Button>
-                        ) : (
-                          <Button size="sm" onClick={() => setPurchaseOrder(order)}>
-                            Buy
+                        <AddressDisplay address={bid.offerer} chars={4} showCopy={false} className="text-xs text-muted-foreground" />
+                        {isOwner && (
+                          <Button size="sm" disabled={isProcessing} onClick={() => handleAcceptClick(bid)}>
+                            <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
+                            Accept
                           </Button>
                         )}
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
+            </div>
           </TabsContent>
 
-          {/* Offers tab */}
-          <TabsContent value="offers" className="mt-4">
-            {activeBids.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-6 text-center">No active offers for this token.</p>
-            ) : (
-              <div className="rounded-xl border border-border divide-y divide-border">
-                {activeBids.map((bid) => (
-                  <div key={bid.orderHash} className="flex items-center justify-between px-4 py-3 gap-4">
-                    <div className="min-w-0">
-                      <p className="font-bold text-sm">{formatDisplayPrice(bid.price.formatted)} {bid.price.currency}</p>
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
-                        <Clock className="h-3 w-3" />
-                        {timeUntil(bid.endTime)}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <AddressDisplay address={bid.offerer} chars={4} showCopy={false} className="text-xs text-muted-foreground" />
-                      {isOwner && (
-                        <Button
-                          size="sm"
-                          disabled={isProcessing}
-                          onClick={() => handleAcceptClick(bid)}
-                        >
-                          <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
-                          Accept
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-
-          {/* History tab */}
-          <TabsContent value="history" className="mt-4">
+          {/* Provenance tab */}
+          <TabsContent value="provenance" className="mt-4">
             {history.length === 0 ? (
               <p className="text-sm text-muted-foreground py-6 text-center">No activity recorded yet.</p>
             ) : (
@@ -864,6 +854,54 @@ export default function AssetPageClient() {
           ? `Accept ${formatDisplayPrice(orderToAccept.price.formatted)} ${orderToAccept.price.currency} for ${name}?`
           : "Enter your PIN to accept this offer."}
       />
+
+      {/* Cancel listing status dialog */}
+      <Dialog
+        open={cancelStep !== "idle"}
+        onOpenChange={(v) => { if (!v) { setCancelStep("idle"); setCancelError(null); } }}
+      >
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>
+              {cancelStep === "processing" && "Cancelling listing…"}
+              {cancelStep === "success" && "Listing cancelled"}
+              {cancelStep === "error" && "Cancellation failed"}
+            </DialogTitle>
+            {cancelStep === "processing" && (
+              <DialogDescription>
+                Submitting your cancellation to the network. Please wait.
+              </DialogDescription>
+            )}
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-4 py-4">
+            {cancelStep === "processing" && (
+              <Loader2 className="h-10 w-10 animate-spin text-primary" />
+            )}
+            {cancelStep === "success" && (
+              <>
+                <CheckCircle className="h-10 w-10 text-green-500" />
+                <p className="text-sm text-center text-muted-foreground">
+                  Your listing has been cancelled successfully.
+                </p>
+                <Button className="w-full" onClick={() => { setCancelStep("idle"); setCancelError(null); }}>
+                  Done
+                </Button>
+              </>
+            )}
+            {cancelStep === "error" && (
+              <>
+                <X className="h-10 w-10 text-destructive" />
+                <p className="text-sm text-center text-muted-foreground">
+                  {cancelError ?? "Something went wrong. Please try again."}
+                </p>
+                <Button variant="outline" className="w-full" onClick={() => { setCancelStep("idle"); setCancelError(null); }}>
+                  Dismiss
+                </Button>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <TransferDialog
         open={transferOpen}
