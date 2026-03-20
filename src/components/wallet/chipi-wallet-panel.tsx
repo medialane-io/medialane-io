@@ -4,7 +4,7 @@ import { useState, FormEvent, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useWalletWithBalance } from "@/hooks/use-wallet-with-balance";
 import { useSessionKey } from "@/hooks/use-session-key";
-import { ChainToken, UpdateWalletEncryptionResponse, WalletData } from "@chipi-stack/types";
+import { ChainToken, TransferHookInput, UpdateWalletEncryptionResponse, WalletData } from "@chipi-stack/types";
 import {
   useTransfer,
   isWebAuthnSupported,
@@ -119,13 +119,13 @@ export function ChipiWalletPanel() {
       const bearerToken = await getBearerToken();
       if (!bearerToken) throw new Error("Not authenticated. Please sign in again.");
 
-      const encryptKey = await getEncryptKey();
-      await ensureSession(encryptKey);
+      const derivedEncryptKey = await getEncryptKey();
+      await ensureSession(derivedEncryptKey);
 
       const publicKey =
         // ChipiPay wallet data can expose different public key field names.
-        (wallet as any)?.publicKey ??
-        (wallet as any)?.walletPublicKey ??
+        (wallet as WalletData)?.publicKey ??
+        (wallet as WalletData)?.normalizedPublicKey ??
         walletAddress;
 
       const resultTxHash = await transferAsync({
@@ -134,14 +134,14 @@ export function ChipiWalletPanel() {
           amount: Number(amount),
           recipient: toAddress,
           token: ChainToken.USDC,
-          encryptKey,
+          encryptKey: derivedEncryptKey,
           usePasskey: authMethod === "passkey",
           ...(authMethod === "passkey" ? { externalUserId: userId } : {}),
           wallet: {
             publicKey,
-            encryptedPrivateKey: (wallet as any)?.encryptedPrivateKey,
+            encryptedPrivateKey: (wallet as WalletData)?.encryptedPrivateKey,
           },
-        } as any,
+        } as TransferHookInput,
       });
 
       setToAddress("");
@@ -257,8 +257,9 @@ export function ChipiWalletPanel() {
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs font-medium">Recipient address</label>
+          <label htmlFor="toAddress" className="text-xs font-medium">Recipient address</label>
           <input
+            id="toAddress"
             className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-xs outline-none ring-0 focus-visible:border-primary"
             value={toAddress}
             onChange={(e) => setToAddress(e.target.value)}
@@ -269,8 +270,9 @@ export function ChipiWalletPanel() {
 
         <div className="flex gap-3">
           <div className="flex-1 space-y-1">
-            <label className="text-xs font-medium">Amount</label>
+            <label htmlFor="amount" className="text-xs font-medium">Amount</label>
             <input
+              id="amount"
               className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-xs outline-none ring-0 focus-visible:border-primary"
               type="number"
               min="0"
@@ -283,8 +285,9 @@ export function ChipiWalletPanel() {
           </div>
           {authMethod === "pin" && (
             <div className="flex-1 space-y-1">
-              <label className="text-xs font-medium">PIN</label>
+              <label htmlFor="pin" className="text-xs font-medium">PIN</label>
               <input
+                id="pin"
                 className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-xs outline-none ring-0 focus-visible:border-primary"
                 type="password"
                 value={pin}
@@ -369,14 +372,19 @@ export function ChipiWalletPanel() {
         open={isPinMigrationDialogOpen}
         onCancel={() => setIsPinMigrationDialogOpen(false)}
         onSubmit={async (oldEncryptKey) => {
-          if (!wallet) return;
-          if (!userId) return;
+          if (!wallet || !userId) {
+            setIsPinMigrationDialogOpen(false);
+            toast.error("Migration failed", {
+              description: "Wallet or user session not found.",
+            });
+            return;
+          }
           try {
             const bearerToken = await getBearerToken();
             if (!bearerToken) throw new Error("Not authenticated. Please sign in again.");
 
             const decryptedPkBytes = CryptoES.AES.decrypt(
-              (wallet as any).encryptedPrivateKey,
+              (wallet as WalletData).encryptedPrivateKey,
               oldEncryptKey
             );
             const decryptedPrivateKey = decryptedPkBytes.toString(CryptoES.enc.Utf8);

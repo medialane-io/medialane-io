@@ -65,10 +65,7 @@ export function WalletSetupDialog({ open, onOpenChange, onSuccess }: WalletSetup
 
     try {
       const wallet = await createWallet({ encryptKey: pin });
-      const walletKey =
-        (wallet as any)?.walletPublicKey ??
-        (wallet as WalletData)?.publicKey ??
-        (wallet as any)?.publicKey;
+      const walletKey = wallet.normalizedPublicKey ?? wallet.publicKey;
       if (!walletKey) {
         throw new Error("Wallet creation returned invalid data");
       }

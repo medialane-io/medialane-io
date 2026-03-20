@@ -59,14 +59,14 @@ export function PinDialog({
     setError(null);
     try {
       if (encryptKey) {
-        onSubmit(encryptKey);
+        await onSubmit(encryptKey);
         setPin("");
         setError(null);
         return;
       }
       const derived = await authenticate();
       if (!derived) throw new Error("Passkey authentication failed.");
-      onSubmit(derived);
+      await onSubmit(derived);
       setPin("");
       setError(null);
     } catch (err: unknown) {
