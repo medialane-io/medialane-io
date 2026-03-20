@@ -42,13 +42,10 @@ export function CollectionCard({ collection }: CollectionCardProps) {
             </div>
           )}
 
-          {/* Gradient overlay for legibility */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent pointer-events-none" />
-
-          {/* Bottom info row */}
-          <div className="absolute bottom-0 left-0 right-0 px-3 pb-3 pt-6">
+          {/* Glass info strip — no gradient overlay, artwork shows at full fidelity */}
+          <div className="absolute bottom-0 left-0 right-0 bg-black/45 backdrop-blur-md px-3 pb-3 pt-2.5">
             {/* Name row */}
-            <div className="flex items-center gap-1.5 mb-1.5">
+            <div className="flex items-center gap-1.5 mb-1">
               {!collection.name && collection.metadataStatus === "PENDING" ? (
                 <span className="flex items-center gap-1 text-[10px] text-white/60">
                   <Loader2 className="h-2.5 w-2.5 animate-spin" />
@@ -67,12 +64,12 @@ export function CollectionCard({ collection }: CollectionCardProps) {
             {/* Stats row */}
             <div className="flex items-center gap-1.5 flex-wrap">
               {collection.totalSupply != null && (
-                <span className="text-[10px] font-medium text-white/60">
+                <span className="text-[10px] font-medium text-white/55">
                   {collection.totalSupply.toLocaleString()} items
                 </span>
               )}
               {collection.totalSupply != null && hasFloor && (
-                <span className="text-[10px] text-white/30">·</span>
+                <span className="text-[10px] text-white/25">·</span>
               )}
               {hasFloor && (
                 <span className="text-[10px] font-bold text-white/90">
