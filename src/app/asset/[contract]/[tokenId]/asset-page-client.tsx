@@ -22,7 +22,7 @@ import { ShoppingCart, Tag, ExternalLink, Clock, HandCoins, ArrowRightLeft, X, C
 import { ReportDialog } from "@/components/report-dialog";
 import { HiddenContentBanner } from "@/components/hidden-content-banner";
 import { LICENSE_TRAIT_TYPES } from "@/types/ip";
-import { IP_TEMPLATES, TEMPLATE_TRAIT_TYPES } from "@/lib/ip-templates";
+import { IP_TEMPLATES } from "@/lib/ip-templates";
 import { IPTypeDisplay } from "@/components/ip-type-display";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ApiActivity, ApiOrder } from "@medialane/sdk";
