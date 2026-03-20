@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import Link from "next/link";
 import { useCreators } from "@/hooks/use-creators";
+import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,14 +24,23 @@ function CreatorCard({ creator }: { creator: ApiCreatorProfile }) {
   const hue2 = (hue + 60) % 360;
   const fallbackGradient = `linear-gradient(135deg, hsl(${hue},55%,30%), hsl(${hue2},50%,22%))`;
 
+  // Fetch collection images only when creator has no uploaded banner or avatar
+  const needsFallback = !avatarUrl && !bannerUrl;
+  const { collections } = useCollectionsByOwner(needsFallback ? creator.walletAddress : null);
+  const fallbackImage = collections[0]?.image ? ipfsToHttp(collections[0].image) : null;
+
+  // Resolved sources — prefer uploaded images, fall back to collection image
+  const resolvedBanner = bannerUrl ?? fallbackImage;
+  const resolvedAvatar = avatarUrl ?? fallbackImage;
+
   return (
     <MotionCard className="card-base group overflow-visible">
       <Link href={`/creator/${creator.username}`} className="block">
         {/* Banner */}
         <div className="relative aspect-[2/1] overflow-hidden rounded-t-[calc(var(--radius)*1.25)]">
-          {bannerUrl ? (
+          {resolvedBanner ? (
             <img
-              src={bannerUrl}
+              src={resolvedBanner}
               alt=""
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
@@ -60,17 +70,17 @@ function CreatorCard({ creator }: { creator: ApiCreatorProfile }) {
         </div>
 
         {/* Body */}
-        <div className="px-3 pt-0 pb-3">
+        <div className="px-4 pt-0 pb-4">
           {/* Avatar overlapping banner */}
-          <div className="-mt-5 mb-2">
+          <div className="-mt-7 mb-3">
             <div
-              className="h-10 w-10 rounded-full ring-2 ring-background overflow-hidden flex items-center justify-center shrink-0"
-              style={!avatarUrl ? { background: fallbackGradient } : {}}
+              className="h-14 w-14 rounded-full ring-2 ring-background overflow-hidden flex items-center justify-center shrink-0"
+              style={!resolvedAvatar ? { background: fallbackGradient } : {}}
             >
-              {avatarUrl ? (
-                <img src={avatarUrl} alt={displayName} className="h-full w-full object-cover" />
+              {resolvedAvatar ? (
+                <img src={resolvedAvatar} alt={displayName} className="h-full w-full object-cover" />
               ) : (
-                <span className="text-sm font-black text-white">
+                <span className="text-lg font-black text-white">
                   {displayName.charAt(0).toUpperCase()}
                 </span>
               )}
@@ -79,24 +89,20 @@ function CreatorCard({ creator }: { creator: ApiCreatorProfile }) {
 
           {/* Name + username */}
           <div className="space-y-0.5">
-            <div className="flex items-center gap-1">
-              <p className="font-bold text-sm truncate leading-snug group-hover:text-primary transition-colors">
-                {displayName}
-              </p>
-            </div>
-            <div className="flex items-center gap-0.5 text-muted-foreground text-[11px]">
+            <p className="font-bold text-sm truncate leading-snug group-hover:text-primary transition-colors">
+              {displayName}
+            </p>
+            <div className="flex items-center gap-0.5 text-muted-foreground/70 text-[11px]">
               <AtSign className="h-2.5 w-2.5 shrink-0" />
               <span className="truncate">{creator.username}</span>
             </div>
           </div>
 
           {/* Bio */}
-          {creator.bio ? (
-            <p className="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed mt-1.5">
+          {creator.bio && (
+            <p className="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed mt-2">
               {creator.bio}
             </p>
-          ) : (
-            <p className="text-[11px] text-muted-foreground/40 italic mt-1.5">No bio yet</p>
           )}
         </div>
       </Link>
@@ -108,9 +114,9 @@ function CreatorCardSkeleton() {
   return (
     <div className="card-base">
       <Skeleton className="aspect-[2/1] w-full rounded-none" />
-      <div className="px-3 pt-0 pb-3">
-        <div className="-mt-5 mb-2">
-          <Skeleton className="h-10 w-10 rounded-full" />
+      <div className="px-4 pt-0 pb-4">
+        <div className="-mt-7 mb-3">
+          <Skeleton className="h-14 w-14 rounded-full" />
         </div>
         <Skeleton className="h-4 w-28 mb-1" />
         <Skeleton className="h-3 w-16 mb-2" />
@@ -152,13 +158,13 @@ export default function CreatorsPageClient() {
           </FadeIn>
           <FadeIn delay={0.08}>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight mb-3">
-              The builders of{" "}
-              <span className="gradient-text">Medialane</span>
+              Meet the{" "}
+              <span className="gradient-text">Creators</span>
             </h1>
           </FadeIn>
           <FadeIn delay={0.16}>
             <p className="text-muted-foreground text-base max-w-lg leading-relaxed mb-6">
-              Verified creators minting intellectual property on Starknet. Each username is reviewed by the Medialane DAO.
+              Discover the artists, writers, and builders publishing their work on Medialane.
             </p>
           </FadeIn>
 
@@ -198,7 +204,7 @@ export default function CreatorsPageClient() {
       {/* Grid */}
       <section className="px-4 sm:px-6 lg:px-8 py-8">
         {isLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {Array.from({ length: 12 }).map((_, i) => <CreatorCardSkeleton key={i} />)}
           </div>
         ) : creators.length > 0 ? (
@@ -208,7 +214,7 @@ export default function CreatorsPageClient() {
                 {creators.length} result{creators.length !== 1 ? "s" : ""} for &ldquo;{debouncedSearch}&rdquo;
               </p>
             )}
-            <Stagger className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            <Stagger className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {creators.map((c) => (
                 <StaggerItem key={c.walletAddress}>
                   <CreatorCard creator={c} />

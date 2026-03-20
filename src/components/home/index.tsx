@@ -18,7 +18,7 @@ export function HomePage() {
       <AirdropSection />
 
       {/* Padded content sections — max-w + mx-auto ensures equal margins on both sides */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-20 mt-20">
+      <div className="px-4 sm:px-6 lg:px-8 space-y-20 mt-20">
         
         <TrendingCollections />
         <NewOnMarketplace />

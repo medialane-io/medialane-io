@@ -797,19 +797,6 @@ export default function AssetPageClient() {
         </Tabs>
       </div>
 
-      {/* Mobile floating buy pill */}
-      {cheapest && !isOwner && walletAddress && (
-        <div className="fixed bottom-6 left-4 z-40 md:hidden">
-          <Button
-            className="h-12 px-5 rounded-full text-sm font-semibold shadow-lg shadow-black/20"
-            style={dynamicTheme ? { background: `hsl(var(--dynamic-primary))`, color: "white" } : {}}
-            onClick={() => setPurchaseOrder(cheapest)}
-          >
-            <ShoppingCart className="h-4 w-4 mr-2 shrink-0" />
-            {formatDisplayPrice(cheapest.price.formatted)} {cheapest.price.currency}
-          </Button>
-        </div>
-      )}
 
       {/* Dialogs */}
       {purchaseOrder && (
