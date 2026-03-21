@@ -1,14 +1,18 @@
 "use client";
 
 import { Hero } from "./hero";
-import { BentoSection } from "./bento-section";
+import { FeaturedCarousel } from "./featured-carousel";
+import { CollectionsStrip } from "./collections-strip";
+import { CreatorsStrip } from "./creators-strip";
 import { FeedSection } from "./feed-section";
 
 export function DiscoverPage() {
   return (
-    <div className="space-y-10 pb-10">
+    <div className="pb-16 space-y-12">
       <Hero />
-      <BentoSection />
+      <FeaturedCarousel />
+      <CollectionsStrip />
+      <CreatorsStrip />
       <FeedSection />
     </div>
   );
