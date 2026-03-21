@@ -85,9 +85,21 @@ export function AssetsGrid({ address }: AssetsGridProps) {
         emptyDescription="Mint your first asset to get started."
         emptyCta={{ label: "Create your first asset", href: "/create/asset" }}
         emptyIcon={<ImageIcon className="h-7 w-7 text-muted-foreground" />}
-        skeletonCount={8}
+        skeletonNode={
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {Array.from({ length: 10 }).map((_, i) => (
+              <div key={i} className="rounded-xl overflow-hidden bg-muted animate-pulse">
+                <div className="aspect-square w-full bg-muted-foreground/10" />
+                <div className="p-3 space-y-2">
+                  <div className="h-4 bg-muted-foreground/10 rounded w-3/4" />
+                  <div className="h-3 bg-muted-foreground/10 rounded w-1/2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        }
       >
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {allTokens.map((token) => (
             <TokenCard
               key={`${token.contractAddress}-${token.tokenId}`}
