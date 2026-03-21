@@ -37,6 +37,20 @@ export function useAdminUsernameClaims(status?: string, page = 1) {
   return { claims: (data?.claims ?? []) as any[], total: data?.total ?? 0, isLoading, error, mutate };
 }
 
+export function useAdminCreators(status?: string, page = 1) {
+  const params = new URLSearchParams({ page: String(page), limit: "20" });
+  if (status) params.set("status", status);
+  const { data, error, isLoading, mutate } = useSWR(
+    `admin-username-claims-all-${status}-${page}`,
+    async () => {
+      const res = await fetch(`${BACKEND_URL}/admin/username-claims?${params}`, { headers: adminHeaders });
+      return res.json();
+    },
+    { revalidateOnFocus: false }
+  );
+  return { creators: (data?.claims ?? []) as any[], total: data?.total ?? 0, isLoading, error, mutate };
+}
+
 export function useAdminCollections(filters: { source?: string; metadataStatus?: string; search?: string; page?: number } = {}) {
   const params = new URLSearchParams({ page: String(filters.page ?? 1), limit: "20" });
   if (filters.source) params.set("source", filters.source);
