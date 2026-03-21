@@ -45,7 +45,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     { label: "Dashboard", href: "/admin", badge: undefined },
     { label: "Claims", href: "/admin/claims", badge: undefined },
     { label: "Collections", href: "/admin/collections", badge: undefined },
-    { label: "Reports", href: "/admin/reports", badge: pendingReports > 0 ? pendingReports : undefined },
+    { label: "Reports",     href: "/admin/reports",     badge: pendingReports > 0 ? pendingReports : undefined },
+    { label: "Tokens",      href: "/admin/tokens",      badge: undefined },
+    { label: "Creators",    href: "/admin/creators",    badge: undefined },
+    { label: "Maintenance", href: "/admin/maintenance", badge: undefined },
   ];
 
   return (
