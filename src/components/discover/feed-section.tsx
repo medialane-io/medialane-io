@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FadeIn } from "@/components/ui/motion-primitives";
 import { BRAND } from "@/lib/brand";
-import { ipfsToHttp, timeAgo , formatDisplayPrice} from "@/lib/utils";
+import { ipfsToHttp, timeAgo, formatDisplayPrice } from "@/lib/utils";
 import {
   ArrowRight,
   TrendingUp,
@@ -21,49 +21,64 @@ import {
 } from "lucide-react";
 import type { ApiActivity, ApiOrder } from "@medialane/sdk";
 
-// ─── Recent listings ──────────────────────────────────────────────────────────
+// ─── Listing card (image-led grid cell) ──────────────────────────────────────
 
-function RecentListingRow({ order }: { order: ApiOrder }) {
+function ListingCard({ order }: { order: ApiOrder }) {
   const [imgError, setImgError] = useState(false);
-  const name = order.token?.name ?? `Token #${order.nftTokenId}`;
-  const image = order.token?.image ? ipfsToHttp(order.token.image) : null;
+  const name = order.token?.name ?? `#${order.nftTokenId}`;
+  const image = order.token?.image && !imgError ? ipfsToHttp(order.token.image) : null;
 
   return (
     <Link
       href={`/asset/${order.nftContract}/${order.nftTokenId}`}
-      className="flex items-center gap-3 px-4 py-3 hover:bg-muted/40 active:bg-muted/60 rounded-xl transition-colors"
+      className="group block active:scale-[0.97] transition-transform duration-150"
     >
-      <div className="h-11 w-11 rounded-xl bg-muted overflow-hidden shrink-0 relative border border-border/60">
-        {image && !imgError ? (
-          <Image
-            src={image}
-            alt={name}
-            fill
-            className="object-cover"
-            onError={() => setImgError(true)}
-            unoptimized
-          />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-brand-purple/15 to-brand-blue/15">
-            <ImageIcon className="h-4 w-4 text-muted-foreground/50" />
-          </div>
-        )}
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium truncate">{name}</p>
-        <p className="text-[11px] text-muted-foreground font-mono truncate">
-          {order.nftContract?.slice(0, 14)}…
-        </p>
-      </div>
-      <div className="text-right shrink-0">
-        <p className="price-value text-sm">{formatDisplayPrice(order.price.formatted) ?? "—"}</p>
-        <p className="text-[10px] text-muted-foreground">{timeAgo(order.createdAt)}</p>
+      <div className="bento-cell overflow-hidden">
+        {/* Image */}
+        <div className="aspect-square bg-muted relative overflow-hidden">
+          {image ? (
+            <Image
+              src={image}
+              alt={name}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-500"
+              onError={() => setImgError(true)}
+              unoptimized
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-brand-purple/15 to-brand-blue/15">
+              <ImageIcon className="h-6 w-6 text-muted-foreground/30" />
+            </div>
+          )}
+        </div>
+        {/* Info */}
+        <div className="p-2.5">
+          <p className="text-xs font-semibold truncate">{name}</p>
+          {order.price && (
+            <p className="text-[11px] font-bold text-brand-orange mt-0.5">
+              {formatDisplayPrice(order.price.formatted)} {order.price.currency}
+            </p>
+          )}
+          <p className="text-[10px] text-muted-foreground mt-0.5">{timeAgo(order.createdAt)}</p>
+        </div>
       </div>
     </Link>
   );
 }
 
-// ─── Activity feed ────────────────────────────────────────────────────────────
+function ListingCardSkeleton() {
+  return (
+    <div className="bento-cell overflow-hidden">
+      <Skeleton className="aspect-square w-full rounded-none" />
+      <div className="p-2.5 space-y-1.5">
+        <Skeleton className="h-3 w-24" />
+        <Skeleton className="h-3 w-16" />
+      </div>
+    </div>
+  );
+}
+
+// ─── Activity row ─────────────────────────────────────────────────────────────
 
 const ACTIVITY_ICON: Record<string, React.ElementType> = {
   listing:   Tag,
@@ -89,9 +104,18 @@ const ACTIVITY_COLOR: Record<string, string> = {
   cancelled: "text-muted-foreground",
 };
 
-function ActivityRow({ event }: { event: ApiActivity }) {
+const ACTIVITY_BG: Record<string, string> = {
+  listing:   "bg-brand-purple/10",
+  sale:      "bg-emerald-500/10",
+  offer:     "bg-brand-orange/10",
+  transfer:  "bg-brand-blue/10",
+  cancelled: "bg-muted",
+};
+
+function ActivityRow({ event, isLatest }: { event: ApiActivity; isLatest: boolean }) {
   const Icon = ACTIVITY_ICON[event.type] ?? ArrowRightLeft;
   const color = ACTIVITY_COLOR[event.type] ?? "text-muted-foreground";
+  const bg = ACTIVITY_BG[event.type] ?? "bg-muted";
   const contract = event.nftContract ?? event.contractAddress;
   const tokenId = event.nftTokenId ?? event.tokenId;
 
@@ -100,12 +124,17 @@ function ActivityRow({ event }: { event: ApiActivity }) {
       href={contract && tokenId ? `/asset/${contract}/${tokenId}` : "/activities"}
       className="flex items-center gap-3 px-4 py-3 hover:bg-muted/40 active:bg-muted/60 rounded-xl transition-colors"
     >
-      <div className="h-8 w-8 rounded-xl bg-muted flex items-center justify-center shrink-0 border border-border/60">
+      <div className={`relative h-8 w-8 rounded-xl ${bg} flex items-center justify-center shrink-0`}>
         <Icon className={`h-3.5 w-3.5 ${color}`} />
+        {/* Pulse dot on latest item */}
+        {isLatest && (
+          <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-background animate-pulse" />
+        )}
       </div>
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium truncate">
-          {ACTIVITY_LABEL[event.type]} · {(event as any).token?.name ?? `#${tokenId ?? "—"}`}
+          {ACTIVITY_LABEL[event.type]} ·{" "}
+          {(event as any).token?.name ?? `#${tokenId ?? "—"}`}
         </p>
         <p className="text-[11px] text-muted-foreground font-mono truncate">
           {contract?.slice(0, 14)}…
@@ -113,7 +142,9 @@ function ActivityRow({ event }: { event: ApiActivity }) {
       </div>
       <div className="text-right shrink-0">
         {event.price?.formatted && (
-          <p className="price-value text-sm">{formatDisplayPrice(event.price.formatted)}</p>
+          <p className="text-sm font-semibold text-brand-orange">
+            {formatDisplayPrice(event.price.formatted)}
+          </p>
         )}
         <p className="text-[10px] text-muted-foreground">{timeAgo(event.timestamp)}</p>
       </div>
@@ -125,19 +156,19 @@ function ActivityRow({ event }: { event: ApiActivity }) {
 
 export function FeedSection() {
   const { orders, isLoading: ordersLoading } = useOrders({ status: "ACTIVE", sort: "recent", limit: 6 });
-  const { activities, isLoading: activitiesLoading } = useActivities({ limit: 6 });
+  const { activities, isLoading: activitiesLoading } = useActivities({ limit: 8 });
 
   return (
-    <section className="px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Recent Listings */}
+    <section className="px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {/* Recent Listings — image-led card grid */}
       <FadeIn>
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="section-label">Fresh on market</p>
               <div className="flex items-center gap-2 mt-0.5">
                 <Tag className={`h-4 w-4 ${BRAND.rose.text}`} />
-                <h2 className="text-lg font-bold">Recent Listings</h2>
+                <h2 className="text-lg font-bold">New Listings</h2>
               </div>
             </div>
             <Button variant="ghost" size="sm" asChild className="gap-1 text-muted-foreground">
@@ -146,32 +177,30 @@ export function FeedSection() {
               </Link>
             </Button>
           </div>
-          <div className="bento-cell divide-y divide-border/50">
-            {ordersLoading ? (
-              Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-3 px-4 py-3">
-                  <Skeleton className="h-11 w-11 rounded-xl shrink-0" />
-                  <div className="flex-1 space-y-1.5">
-                    <Skeleton className="h-3.5 w-32" />
-                    <Skeleton className="h-3 w-20" />
-                  </div>
-                  <Skeleton className="h-3.5 w-16" />
-                </div>
-              ))
-            ) : orders.length === 0 ? (
-              <div className="py-10 text-center text-sm text-muted-foreground">
-                No active listings yet.
-              </div>
-            ) : (
-              orders.map((o) => <RecentListingRow key={o.orderHash} order={o} />)
-            )}
-          </div>
+
+          {ordersLoading ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <ListingCardSkeleton key={i} />
+              ))}
+            </div>
+          ) : orders.length === 0 ? (
+            <div className="bento-cell py-12 text-center text-sm text-muted-foreground">
+              No active listings yet.
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {orders.map((o) => (
+                <ListingCard key={o.orderHash} order={o} />
+              ))}
+            </div>
+          )}
         </div>
       </FadeIn>
 
       {/* Recent Activity */}
-      <FadeIn delay={0.1}>
-        <div className="space-y-3">
+      <FadeIn delay={0.08}>
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="section-label">On-chain</p>
@@ -186,9 +215,10 @@ export function FeedSection() {
               </Link>
             </Button>
           </div>
+
           <div className="bento-cell divide-y divide-border/50">
             {activitiesLoading ? (
-              Array.from({ length: 5 }).map((_, i) => (
+              Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="flex items-center gap-3 px-4 py-3">
                   <Skeleton className="h-8 w-8 rounded-xl shrink-0" />
                   <div className="flex-1 space-y-1.5">
@@ -203,11 +233,11 @@ export function FeedSection() {
                 No activity yet.
               </div>
             ) : (
-              activities.map((a) => (
-                // Refactor #4: composite key instead of array index
+              activities.map((a, i) => (
                 <ActivityRow
                   key={`${a.type}-${a.timestamp}-${a.nftTokenId ?? a.tokenId ?? ""}`}
                   event={a}
+                  isLatest={i === 0}
                 />
               ))
             )}
