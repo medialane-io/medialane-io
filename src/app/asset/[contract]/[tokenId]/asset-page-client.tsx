@@ -219,6 +219,7 @@ export default function AssetPageClient() {
           crossOrigin="anonymous"
           aria-hidden
           alt=""
+          fetchPriority="high"
           style={{ display: "none" }}
         />
       )}
@@ -275,6 +276,7 @@ export default function AssetPageClient() {
                   sizes="(max-width: 1024px) 100vw, 66vw"
                   className="w-full h-auto"
                   onError={() => setImgError(true)}
+                  priority
                 />
               ) : (
                 <div className="aspect-square flex items-center justify-center bg-gradient-to-br from-primary/10 to-purple-500/10">
@@ -379,7 +381,7 @@ export default function AssetPageClient() {
                     <div className="grid grid-cols-2 gap-2">
                       <Button
                         variant="outline"
-                        className="w-full"
+                        className="w-full transition-colors [&:hover]:bg-[hsl(var(--dynamic-primary)/.1)] [&:hover]:text-[hsl(var(--dynamic-primary))] [&:hover]:border-[hsl(var(--dynamic-primary))]"
                         style={dynamicTheme ? { borderColor: `hsl(var(--dynamic-primary))`, color: `hsl(var(--dynamic-primary))` } : {}}
                         disabled={inCart}
                         onClick={handleAddToCart}
@@ -389,7 +391,7 @@ export default function AssetPageClient() {
                       </Button>
                       <Button
                         variant="outline"
-                        className="w-full"
+                        className="w-full transition-colors [&:hover]:bg-[hsl(var(--dynamic-primary)/.1)] [&:hover]:text-[hsl(var(--dynamic-primary))] [&:hover]:border-[hsl(var(--dynamic-primary))]"
                         style={dynamicTheme ? { borderColor: `hsl(var(--dynamic-primary))`, color: `hsl(var(--dynamic-primary))` } : {}}
                         onClick={() => setOfferOpen(true)}
                       >
@@ -426,7 +428,12 @@ export default function AssetPageClient() {
                     </Button>
                   </div>
                 ) : isSignedIn ? (
-                  <Button variant="outline" className="w-full" onClick={() => setOfferOpen(true)}>
+                  <Button
+                    variant="outline"
+                    className="w-full transition-colors [&:hover]:bg-[hsl(var(--dynamic-primary)/.1)] [&:hover]:text-[hsl(var(--dynamic-primary))] [&:hover]:border-[hsl(var(--dynamic-primary))]"
+                    style={dynamicTheme ? { borderColor: `hsl(var(--dynamic-primary))`, color: `hsl(var(--dynamic-primary))` } : {}}
+                    onClick={() => setOfferOpen(true)}
+                  >
                     <HandCoins className="h-4 w-4 mr-2" />
                     Make offer
                   </Button>
