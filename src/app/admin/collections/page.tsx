@@ -110,7 +110,7 @@ export default function AdminCollectionsPage() {
                   <Label htmlFor={`k-${col.id}`} className="text-xs cursor-pointer">Featured</Label>
                 </div>
                 <Button size="icon" variant="ghost" onClick={() => handleRefresh(col.contractAddress)} title="Refresh metadata"><RefreshCw className="h-4 w-4" /></Button>
-                <a href={`https://starkscan.co/contract/${col.contractAddress}`} target="_blank" rel="noopener noreferrer">
+                <a href={`https://voyager.online/contract/${col.contractAddress}`} target="_blank" rel="noopener noreferrer">
                   <Button size="icon" variant="ghost"><ExternalLink className="h-4 w-4" /></Button>
                 </a>
               </div>

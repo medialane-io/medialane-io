@@ -78,7 +78,7 @@ export default function AdminMaintenancePage() {
 
   async function handleBackfillTransfers() {
     if (!transferContract.trim()) { toast.error("Enter a contract address"); return; }
-    if (!transferFromBlock.trim()) { toast.error("Enter the deployment block (check Starkscan)"); return; }
+    if (!transferFromBlock.trim()) { toast.error("Enter the deployment block (check Voyager)"); return; }
     const fromBlock = Number(transferFromBlock);
     if (isNaN(fromBlock) || fromBlock < 0) { toast.error("Invalid block number"); return; }
     if (!confirm(`Scan Transfer events for ${transferContract.slice(0, 10)}… from block ${fromBlock}. This may take a minute.`)) return;
@@ -217,7 +217,7 @@ export default function AdminMaintenancePage() {
               <p className="font-semibold text-sm">Backfill Transfers</p>
               <p className="text-xs text-muted-foreground mt-0.5">
                 Scans historical ERC-721 Transfer events for a specific collection and inserts any missing token rows.
-                Use when a collection was registered after its mints already happened. Get the deployment block from Starkscan.
+                Use when a collection was registered after its mints already happened. Get the deployment block from Voyager.
               </p>
               {transferResult && (
                 <p className="text-xs text-green-500 mt-1 font-medium">
@@ -235,7 +235,7 @@ export default function AdminMaintenancePage() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs">Deployment block (from Starkscan)</Label>
+                  <Label className="text-xs">Deployment block (from Voyager)</Label>
                   <Input
                     placeholder="e.g. 7500000"
                     value={transferFromBlock}

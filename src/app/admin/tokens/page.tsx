@@ -13,7 +13,7 @@ import Image from "next/image";
 const BACKEND_URL = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL!;
 const ADMIN_KEY   = process.env.NEXT_PUBLIC_ADMIN_API_KEY!;
 const TENANT_KEY  = process.env.NEXT_PUBLIC_MEDIALANE_API_KEY!;
-const EXPLORER    = "https://starkscan.co";
+const EXPLORER    = "https://voyager.online";
 
 const STATUS_STYLE: Record<string, string> = {
   DONE:     "bg-green-500/20 text-green-400",
@@ -141,7 +141,7 @@ export default function AdminTokensPage() {
                 rel="noopener noreferrer"
               >
                 <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
-                Starkscan
+                Voyager
               </a>
             </Button>
             <Button size="sm" variant="ghost" asChild>
