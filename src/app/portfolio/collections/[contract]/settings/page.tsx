@@ -46,7 +46,7 @@ export default function CollectionSettingsPage({ params }: Props) {
 
   if (!collectionLoading && collection && !isOwner) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="py-8">
         <p className="text-muted-foreground">You don&apos;t have permission to edit this collection.</p>
       </div>
     );
@@ -67,31 +67,80 @@ export default function CollectionSettingsPage({ params }: Props) {
     }
   }
 
-  const field = (key: keyof typeof form, label: string, placeholder = "") => (
-    <div className="space-y-2">
+  const field = (
+    key: keyof typeof form,
+    label: string,
+    placeholder = "",
+    helper?: string
+  ) => (
+    <div className="space-y-1.5">
       <Label htmlFor={key}>{label}</Label>
-      <Input id={key} placeholder={placeholder} value={form[key]} onChange={(e) => setForm(f => ({ ...f, [key]: e.target.value }))} />
+      <Input
+        id={key}
+        placeholder={placeholder}
+        value={form[key]}
+        onChange={(e) => setForm(f => ({ ...f, [key]: e.target.value }))}
+      />
+      {helper && <p className="text-xs text-muted-foreground">{helper}</p>}
     </div>
   );
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-2xl space-y-6">
-      <h1 className="text-2xl font-bold">Collection Settings</h1>
-      <div className="space-y-4">
-        {field("displayName", "Display Name", collection?.name ?? "")}
-        <div className="space-y-2">
-          <Label htmlFor="description">Description</Label>
-          <Textarea id="description" value={form.description} onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))} rows={4} />
-        </div>
-        {field("image", "Cover Image (IPFS URI)", "ipfs://...")}
-        {field("bannerImage", "Banner Image (IPFS URI)", "ipfs://...")}
-        {field("websiteUrl", "Website", "https://...")}
-        {field("twitterUrl", "Twitter / X")}
-        {field("discordUrl", "Discord")}
-        {field("telegramUrl", "Telegram")}
+    <div className="space-y-8 max-w-2xl">
+      <div>
+        <h1 className="text-xl font-semibold">Collection Settings</h1>
+        <p className="text-sm text-muted-foreground mt-1">Update your collection profile and links.</p>
       </div>
+
+      {/* Identity */}
+      <div className="space-y-4">
+        <div>
+          <h3 className="text-sm font-semibold text-foreground">Identity</h3>
+          <p className="text-xs text-muted-foreground mt-0.5">Basic information about your collection</p>
+        </div>
+        <div className="border-t border-border pt-4 space-y-4">
+          {field("displayName", "Display name", collection?.name ?? "Collection name")}
+          <div className="space-y-1.5">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              value={form.description}
+              onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))}
+              rows={4}
+              placeholder="Tell people about your collection…"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Media */}
+      <div className="space-y-4">
+        <div>
+          <h3 className="text-sm font-semibold text-foreground">Media</h3>
+          <p className="text-xs text-muted-foreground mt-0.5">Images for your collection</p>
+        </div>
+        <div className="border-t border-border pt-4 space-y-4">
+          {field("image", "Cover image", "ipfs://Qm…", "IPFS or HTTPS URL, e.g. ipfs://Qm…")}
+          {field("bannerImage", "Banner image", "ipfs://Qm…", "IPFS or HTTPS URL, displayed at the top of your collection page")}
+        </div>
+      </div>
+
+      {/* Links */}
+      <div className="space-y-4">
+        <div>
+          <h3 className="text-sm font-semibold text-foreground">Links</h3>
+          <p className="text-xs text-muted-foreground mt-0.5">Your collection&apos;s web presence</p>
+        </div>
+        <div className="border-t border-border pt-4 space-y-4">
+          {field("websiteUrl", "Website", "https://…")}
+          {field("twitterUrl", "Twitter / X", "https://twitter.com/…")}
+          {field("discordUrl", "Discord", "https://discord.gg/…")}
+          {field("telegramUrl", "Telegram", "https://t.me/…")}
+        </div>
+      </div>
+
       <Button onClick={handleSave} disabled={saving || collectionLoading || profileLoading}>
-        {saving ? "Saving\u2026" : "Save Changes"}
+        {saving ? "Saving…" : "Save Changes"}
       </Button>
     </div>
   );
