@@ -133,7 +133,7 @@ function ActivityRow({ event, isLatest }: { event: ApiActivity; isLatest: boolea
       </div>
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium truncate">
-          {ACTIVITY_LABEL[event.type]} ·{" "}
+          {ACTIVITY_LABEL[event.type] ?? event.type} ·{" "}
           {(event as any).token?.name ?? `#${tokenId ?? "—"}`}
         </p>
         <p className="text-[11px] text-muted-foreground font-mono truncate">
@@ -159,7 +159,7 @@ export function FeedSection() {
   const { activities, isLoading: activitiesLoading } = useActivities({ limit: 8 });
 
   return (
-    <section className="px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
       {/* Recent Listings — image-led card grid */}
       <FadeIn>
         <div className="space-y-4">

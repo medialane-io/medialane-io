@@ -93,7 +93,7 @@ export function FeaturedCarousel() {
 
   return (
     <FadeIn>
-      <section className="px-4 sm:px-6 lg:px-8 space-y-4">
+      <section className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <p className="section-label">Curated drops</p>
@@ -109,9 +109,9 @@ export function FeaturedCarousel() {
           </Button>
         </div>
 
-        {/* Slider */}
+        {/* Slider — full-bleed by cancelling parent padding */}
         <div
-          className="relative rounded-2xl overflow-hidden aspect-[16/7] sm:aspect-[21/9] bg-muted"
+          className="-mx-4 sm:-mx-6 lg:-mx-8 relative overflow-hidden aspect-[16/7] sm:aspect-[21/9] bg-muted"
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
         >

@@ -90,7 +90,7 @@ export function CreatorsStrip() {
   return (
     <FadeIn>
       <section className="space-y-4">
-        <div className="px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+        <div className="flex items-center justify-between">
           <div>
             <p className="section-label">Creator network</p>
             <div className="flex items-center gap-2 mt-0.5">
