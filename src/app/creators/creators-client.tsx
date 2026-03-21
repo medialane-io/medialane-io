@@ -7,7 +7,6 @@ import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MotionCard } from "@/components/ui/motion-primitives";
 import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion-primitives";
 import { ipfsToHttp } from "@/lib/utils";
 import { BRAND } from "@/lib/brand";
@@ -22,109 +21,90 @@ function CreatorCard({ creator }: { creator: ApiCreatorProfile }) {
   // Deterministic gradient from username characters
   const hue = (creator.username ?? "a").split("").reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
   const hue2 = (hue + 60) % 360;
-  const fallbackGradient = `linear-gradient(135deg, hsl(${hue},55%,30%), hsl(${hue2},50%,22%))`;
+  const fallbackGradient = `linear-gradient(135deg, hsl(${hue},55%,35%), hsl(${hue2},50%,22%))`;
 
   // Fetch collection images only when creator has no uploaded banner or avatar
   const needsFallback = !avatarUrl && !bannerUrl;
   const { collections } = useCollectionsByOwner(needsFallback ? creator.walletAddress : null);
   const fallbackImage = collections[0]?.image ? ipfsToHttp(collections[0].image) : null;
 
-  // Resolved sources — prefer uploaded images, fall back to collection image
   const resolvedBanner = bannerUrl ?? fallbackImage;
   const resolvedAvatar = avatarUrl ?? fallbackImage;
 
   return (
-    <MotionCard className="card-base group overflow-visible">
-      <Link href={`/creator/${creator.username}`} className="block">
-        {/* Banner */}
-        <div className="relative aspect-[2/1] overflow-hidden rounded-t-[calc(var(--radius)*1.25)]">
-          {resolvedBanner ? (
-            <img
-              src={resolvedBanner}
-              alt=""
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
+    <Link
+      href={`/creator/${creator.username}`}
+      className="block relative aspect-[3/4] overflow-hidden rounded-2xl active:scale-[0.98] transition-transform duration-150 select-none"
+    >
+      {/* Full-bleed background */}
+      {resolvedBanner ? (
+        <img
+          src={resolvedBanner}
+          alt=""
+          aria-hidden
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+      ) : (
+        <div className="absolute inset-0" style={{ background: fallbackGradient }} />
+      )}
+
+      {/* Gradient scrim — heavier at bottom for legibility */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+
+      {/* Social icons — top right */}
+      {(creator.twitterUrl || creator.websiteUrl) && (
+        <div className="absolute top-3 right-3 flex items-center gap-1.5 z-10">
+          {creator.twitterUrl && (
+            <span className="h-7 w-7 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 flex items-center justify-center">
+              <Twitter className="h-3.5 w-3.5 text-white/80" />
+            </span>
+          )}
+          {creator.websiteUrl && (
+            <span className="h-7 w-7 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 flex items-center justify-center">
+              <Globe className="h-3.5 w-3.5 text-white/80" />
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Info overlay — bottom */}
+      <div className="absolute bottom-0 inset-x-0 p-4 space-y-2.5 z-10">
+        {/* Avatar */}
+        <div
+          className="h-11 w-11 rounded-full ring-2 ring-white/20 overflow-hidden flex items-center justify-center shrink-0"
+          style={!resolvedAvatar ? { background: fallbackGradient } : {}}
+        >
+          {resolvedAvatar ? (
+            <img src={resolvedAvatar} alt={displayName} className="h-full w-full object-cover" />
           ) : (
-            <div
-              className="absolute inset-0 transition-transform duration-500 group-hover:scale-105"
-              style={{ background: fallbackGradient }}
-            />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-
-          {/* Social icons — top right */}
-          {(creator.twitterUrl || creator.websiteUrl) && (
-            <div className="absolute top-2 right-2 flex items-center gap-1">
-              {creator.twitterUrl && (
-                <span className="h-6 w-6 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
-                  <Twitter className="h-3 w-3 text-white/80" />
-                </span>
-              )}
-              {creator.websiteUrl && (
-                <span className="h-6 w-6 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
-                  <Globe className="h-3 w-3 text-white/80" />
-                </span>
-              )}
-            </div>
+            <span className="text-base font-black text-white select-none">
+              {displayName.charAt(0).toUpperCase()}
+            </span>
           )}
         </div>
 
-        {/* Body */}
-        <div className="px-4 pt-0 pb-4">
-          {/* Avatar overlapping banner */}
-          <div className="-mt-7 mb-3">
-            <div
-              className="h-14 w-14 rounded-full ring-2 ring-background overflow-hidden flex items-center justify-center shrink-0"
-              style={!resolvedAvatar ? { background: fallbackGradient } : {}}
-            >
-              {resolvedAvatar ? (
-                <img src={resolvedAvatar} alt={displayName} className="h-full w-full object-cover" />
-              ) : (
-                <span className="text-lg font-black text-white">
-                  {displayName.charAt(0).toUpperCase()}
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Name + username */}
-          <div className="space-y-0.5">
-            <p className="font-bold text-sm truncate leading-snug group-hover:text-primary transition-colors">
-              {displayName}
-            </p>
-            <div className="flex items-center gap-0.5 text-muted-foreground/70 text-[11px]">
-              <AtSign className="h-2.5 w-2.5 shrink-0" />
-              <span className="truncate">{creator.username}</span>
-            </div>
-          </div>
-
-          {/* Bio */}
-          {creator.bio && (
-            <p className="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed mt-2">
-              {creator.bio}
-            </p>
-          )}
+        {/* Name + username */}
+        <div>
+          <p className="font-bold text-white text-base leading-snug truncate">{displayName}</p>
+          <p className="text-xs text-white/55 flex items-center gap-0.5 mt-0.5">
+            <AtSign className="h-2.5 w-2.5 shrink-0" />
+            <span className="truncate">{creator.username}</span>
+          </p>
         </div>
-      </Link>
-    </MotionCard>
+
+        {/* Bio */}
+        {creator.bio && (
+          <p className="text-[11px] text-white/65 line-clamp-2 leading-relaxed">
+            {creator.bio}
+          </p>
+        )}
+      </div>
+    </Link>
   );
 }
 
 function CreatorCardSkeleton() {
-  return (
-    <div className="card-base">
-      <Skeleton className="aspect-[2/1] w-full rounded-none" />
-      <div className="px-4 pt-0 pb-4">
-        <div className="-mt-7 mb-3">
-          <Skeleton className="h-14 w-14 rounded-full" />
-        </div>
-        <Skeleton className="h-4 w-28 mb-1" />
-        <Skeleton className="h-3 w-16 mb-2" />
-        <Skeleton className="h-3 w-full mb-1" />
-        <Skeleton className="h-3 w-3/4" />
-      </div>
-    </div>
-  );
+  return <Skeleton className="aspect-[3/4] w-full rounded-2xl" />;
 }
 
 export default function CreatorsPageClient() {
@@ -204,7 +184,7 @@ export default function CreatorsPageClient() {
       {/* Grid */}
       <section className="px-4 sm:px-6 lg:px-8 py-8">
         {isLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {Array.from({ length: 12 }).map((_, i) => <CreatorCardSkeleton key={i} />)}
           </div>
         ) : creators.length > 0 ? (
@@ -214,7 +194,7 @@ export default function CreatorsPageClient() {
                 {creators.length} result{creators.length !== 1 ? "s" : ""} for &ldquo;{debouncedSearch}&rdquo;
               </p>
             )}
-            <Stagger className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            <Stagger className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {creators.map((c) => (
                 <StaggerItem key={c.walletAddress}>
                   <CreatorCard creator={c} />
