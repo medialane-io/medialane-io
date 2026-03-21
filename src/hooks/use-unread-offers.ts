@@ -5,7 +5,7 @@ import { useUserOrders } from "./use-orders";
 
 const STORAGE_KEY = "medialane-seen-offers";
 
-function getSeenOffers(): Set<string> {
+export function getSeenOffers(): Set<string> {
   if (typeof window === "undefined") return new Set();
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
