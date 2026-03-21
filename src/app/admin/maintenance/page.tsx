@@ -3,7 +3,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { RefreshCw, Activity, Database, Zap } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RefreshCw, Activity, Database, Zap, GitMerge } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL!;
@@ -23,6 +25,10 @@ export default function AdminMaintenancePage() {
   const [registryResult, setRegistryResult]   = useState<{ inserted: number; skipped: number } | null>(null);
   const [metaRunning, setMetaRunning]         = useState(false);
   const [metaResult, setMetaResult]           = useState<{ enqueued: number } | null>(null);
+  const [transferContract, setTransferContract] = useState("");
+  const [transferFromBlock, setTransferFromBlock] = useState("");
+  const [transferRunning, setTransferRunning] = useState(false);
+  const [transferResult, setTransferResult]   = useState<{ inserted: number; skipped: number; metadataJobsEnqueued: number } | null>(null);
 
   const fetchHealth = useCallback(async () => {
     try {
@@ -68,6 +74,28 @@ export default function AdminMaintenancePage() {
       toast.success(`Metadata backfill complete — ${data.data.enqueued} jobs enqueued`);
     } catch { toast.error("Backfill metadata failed"); }
     finally { setMetaRunning(false); }
+  }
+
+  async function handleBackfillTransfers() {
+    if (!transferContract.trim()) { toast.error("Enter a contract address"); return; }
+    if (!transferFromBlock.trim()) { toast.error("Enter the deployment block (check Starkscan)"); return; }
+    const fromBlock = Number(transferFromBlock);
+    if (isNaN(fromBlock) || fromBlock < 0) { toast.error("Invalid block number"); return; }
+    if (!confirm(`Scan Transfer events for ${transferContract.slice(0, 10)}… from block ${fromBlock}. This may take a minute.`)) return;
+    setTransferRunning(true);
+    setTransferResult(null);
+    try {
+      const res = await fetch(`${BACKEND_URL}/admin/collections/${transferContract.trim()}/backfill-transfers`, {
+        method: "POST",
+        headers: { "x-api-key": ADMIN_KEY, "Content-Type": "application/json" },
+        body: JSON.stringify({ fromBlock }),
+      });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setTransferResult(data.data);
+      toast.success(`Transfer backfill complete — ${data.data.inserted} tokens inserted, ${data.data.metadataJobsEnqueued} metadata jobs queued`);
+    } catch { toast.error("Transfer backfill failed"); }
+    finally { setTransferRunning(false); }
   }
 
   const lagBlocks = health?.indexer?.lagBlocks ?? null;
@@ -178,6 +206,56 @@ export default function AdminMaintenancePage() {
             className="shrink-0"
           >
             {metaRunning ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : "Run"}
+          </Button>
+        </div>
+
+        {/* Backfill Transfers */}
+        <div className="glass rounded-xl p-5 space-y-4">
+          <div className="flex items-start gap-3">
+            <GitMerge className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+            <div className="flex-1">
+              <p className="font-semibold text-sm">Backfill Transfers</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Scans historical ERC-721 Transfer events for a specific collection and inserts any missing token rows.
+                Use when a collection was registered after its mints already happened. Get the deployment block from Starkscan.
+              </p>
+              {transferResult && (
+                <p className="text-xs text-green-500 mt-1 font-medium">
+                  ✓ {transferResult.inserted} tokens inserted, {transferResult.skipped} skipped, {transferResult.metadataJobsEnqueued} metadata jobs queued
+                </p>
+              )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                <div className="space-y-1">
+                  <Label className="text-xs">Contract address</Label>
+                  <Input
+                    placeholder="0x…"
+                    value={transferContract}
+                    onChange={e => setTransferContract(e.target.value)}
+                    className="h-8 text-xs font-mono"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Deployment block (from Starkscan)</Label>
+                  <Input
+                    placeholder="e.g. 7500000"
+                    value={transferFromBlock}
+                    onChange={e => setTransferFromBlock(e.target.value)}
+                    className="h-8 text-xs"
+                    type="number"
+                    min="0"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleBackfillTransfers}
+            disabled={transferRunning || !transferContract.trim() || !transferFromBlock.trim()}
+          >
+            {transferRunning ? <RefreshCw className="h-3.5 w-3.5 animate-spin mr-1.5" /> : null}
+            {transferRunning ? "Running…" : "Run"}
           </Button>
         </div>
       </div>
