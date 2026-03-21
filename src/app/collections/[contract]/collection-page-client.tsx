@@ -176,8 +176,8 @@ export default function CollectionPageClient() {
 
             {/* Title — plain text with shadow, no background box */}
             <div>
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight"
-                style={{ textShadow: "0 2px 12px rgba(0,0,0,0.6)" }}>
+              <h1 className="text-3xl sm:text-5xl lg:text-7xl font-bold text-white leading-tight"
+                style={{ textShadow: "0 2px 20px rgba(0,0,0,0.7)" }}>
                 {collection?.name ?? "Unnamed Collection"}
               </h1>
               {/* Symbol + Verified as small separate pills, not grouped in the title */}
@@ -198,14 +198,14 @@ export default function CollectionPageClient() {
               )}
             </div>
 
-            {/* Stat chips — 2×2 on mobile, 4-col on sm+ */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {/* Stat chips — compact squares */}
+            <div className="flex gap-2 flex-wrap">
               {stats.map(({ label, display }) => (
                 <div
                   key={label}
-                  className="bg-black/20 dark:bg-black/35 backdrop-blur-md border border-white/10 rounded-xl px-3 py-2 text-center"
+                  className="bg-black/25 backdrop-blur-md border border-white/10 rounded-xl w-[72px] h-[72px] sm:w-20 sm:h-20 flex flex-col items-center justify-center text-center shrink-0"
                 >
-                  <p className="text-[10px] text-white/55 uppercase tracking-widest mb-0.5">{label}</p>
+                  <p className="text-[9px] text-white/50 uppercase tracking-widest mb-1">{label}</p>
                   <p className="text-sm sm:text-base font-semibold text-white tabular-nums leading-tight">
                     {display}
                   </p>

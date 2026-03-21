@@ -297,7 +297,7 @@ export default function AssetPageClient() {
               {token.metadata?.ipType && (
                 <Badge variant="secondary" className="mb-2">{token.metadata.ipType}</Badge>
               )}
-              <h1 className="text-3xl font-bold">{name}</h1>
+              <h1 className="text-3xl lg:text-5xl font-bold">{name}</h1>
               {description && (
               <div>
                 <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
