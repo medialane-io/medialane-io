@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import type { ApiActivity, ApiOrder } from "@medialane/sdk";
 
-// ─── Listing card (image-led grid cell) ──────────────────────────────────────
+// ─── Listing card ─────────────────────────────────────────────────────────────
 
 function ListingCard({ order }: { order: ApiOrder }) {
   const [imgError, setImgError] = useState(false);
@@ -31,10 +31,9 @@ function ListingCard({ order }: { order: ApiOrder }) {
   return (
     <Link
       href={`/asset/${order.nftContract}/${order.nftTokenId}`}
-      className="group block active:scale-[0.97] transition-transform duration-150"
+      className="group block"
     >
-      <div className="bento-cell overflow-hidden">
-        {/* Image */}
+      <div className="rounded-xl border border-border overflow-hidden hover:border-border/80 transition-colors">
         <div className="aspect-square bg-muted relative overflow-hidden">
           {image ? (
             <Image
@@ -46,13 +45,12 @@ function ListingCard({ order }: { order: ApiOrder }) {
               unoptimized
             />
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-brand-purple/15 to-brand-blue/15">
+            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-brand-purple/10 to-brand-blue/10">
               <ImageIcon className="h-6 w-6 text-muted-foreground/30" />
             </div>
           )}
         </div>
-        {/* Info */}
-        <div className="p-2.5">
+        <div className="p-2.5 bg-card">
           <p className="text-xs font-semibold truncate">{name}</p>
           {order.price && (
             <p className="text-[11px] font-bold text-brand-orange mt-0.5">
@@ -68,7 +66,7 @@ function ListingCard({ order }: { order: ApiOrder }) {
 
 function ListingCardSkeleton() {
   return (
-    <div className="bento-cell overflow-hidden">
+    <div className="rounded-xl border border-border overflow-hidden">
       <Skeleton className="aspect-square w-full rounded-none" />
       <div className="p-2.5 space-y-1.5">
         <Skeleton className="h-3 w-24" />
@@ -122,11 +120,10 @@ function ActivityRow({ event, isLatest }: { event: ApiActivity; isLatest: boolea
   return (
     <Link
       href={contract && tokenId ? `/asset/${contract}/${tokenId}` : "/activities"}
-      className="flex items-center gap-3 px-4 py-3 hover:bg-muted/40 active:bg-muted/60 rounded-xl transition-colors"
+      className="flex items-center gap-3 px-3 py-3 hover:bg-muted/40 rounded-lg transition-colors"
     >
-      <div className={`relative h-8 w-8 rounded-xl ${bg} flex items-center justify-center shrink-0`}>
+      <div className={`relative h-8 w-8 rounded-lg ${bg} flex items-center justify-center shrink-0`}>
         <Icon className={`h-3.5 w-3.5 ${color}`} />
-        {/* Pulse dot on latest item */}
         {isLatest && (
           <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-background animate-pulse" />
         )}
@@ -152,17 +149,17 @@ function ActivityRow({ event, isLatest }: { event: ApiActivity; isLatest: boolea
   );
 }
 
-// ─── Feed section (exported) ──────────────────────────────────────────────────
+// ─── Feed section ─────────────────────────────────────────────────────────────
 
 export function FeedSection() {
   const { orders, isLoading: ordersLoading } = useOrders({ status: "ACTIVE", sort: "recent", limit: 6 });
   const { activities, isLoading: activitiesLoading } = useActivities({ limit: 8 });
 
   return (
-    <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      {/* Recent Listings — image-led card grid */}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {/* New Listings */}
       <FadeIn>
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div>
               <p className="section-label">Fresh on market</p>
@@ -179,20 +176,16 @@ export function FeedSection() {
           </div>
 
           {ordersLoading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <ListingCardSkeleton key={i} />
-              ))}
+            <div className="grid grid-cols-3 gap-3">
+              {Array.from({ length: 6 }).map((_, i) => <ListingCardSkeleton key={i} />)}
             </div>
           ) : orders.length === 0 ? (
-            <div className="bento-cell py-12 text-center text-sm text-muted-foreground">
+            <div className="rounded-xl border border-border py-12 text-center text-sm text-muted-foreground">
               No active listings yet.
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {orders.map((o) => (
-                <ListingCard key={o.orderHash} order={o} />
-              ))}
+            <div className="grid grid-cols-3 gap-3">
+              {orders.map((o) => <ListingCard key={o.orderHash} order={o} />)}
             </div>
           )}
         </div>
@@ -200,7 +193,7 @@ export function FeedSection() {
 
       {/* Recent Activity */}
       <FadeIn delay={0.08}>
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div>
               <p className="section-label">On-chain</p>
@@ -216,11 +209,11 @@ export function FeedSection() {
             </Button>
           </div>
 
-          <div className="bento-cell divide-y divide-border/50">
+          <div className="rounded-xl border border-border overflow-hidden">
             {activitiesLoading ? (
               Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-3 px-4 py-3">
-                  <Skeleton className="h-8 w-8 rounded-xl shrink-0" />
+                <div key={i} className="flex items-center gap-3 px-3 py-3 border-b border-border/50 last:border-0">
+                  <Skeleton className="h-8 w-8 rounded-lg shrink-0" />
                   <div className="flex-1 space-y-1.5">
                     <Skeleton className="h-3.5 w-40" />
                     <Skeleton className="h-3 w-24" />
@@ -234,16 +227,14 @@ export function FeedSection() {
               </div>
             ) : (
               activities.map((a, i) => (
-                <ActivityRow
-                  key={`${a.type}-${a.timestamp}-${a.nftTokenId ?? a.tokenId ?? ""}`}
-                  event={a}
-                  isLatest={i === 0}
-                />
+                <div key={`${a.type}-${a.timestamp}-${a.nftTokenId ?? a.tokenId ?? ""}`} className="border-b border-border/50 last:border-0">
+                  <ActivityRow event={a} isLatest={i === 0} />
+                </div>
               ))
             )}
           </div>
         </div>
       </FadeIn>
-    </section>
+    </div>
   );
 }

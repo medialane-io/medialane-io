@@ -1,14 +1,14 @@
 "use client";
 
-import { FeaturedCarousel } from "./featured-carousel";
+import { Hero } from "./hero";
 import { CollectionsStrip } from "./collections-strip";
 import { CreatorsStrip } from "./creators-strip";
 import { FeedSection } from "./feed-section";
 
 export function DiscoverPage() {
   return (
-    <div className="pb-16 space-y-12 px-4 sm:px-6 lg:px-8 pt-6">
-      <FeaturedCarousel />
+    <div className="container mx-auto px-4 pt-10 pb-16 space-y-10">
+      <Hero />
       <CollectionsStrip />
       <CreatorsStrip />
       <FeedSection />

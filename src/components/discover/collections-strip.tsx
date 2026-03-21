@@ -19,10 +19,9 @@ function CollectionChip({ collection }: { collection: ApiCollection }) {
   return (
     <Link
       href={`/collections/${collection.contractAddress}`}
-      className="block shrink-0 w-44 sm:w-52 snap-start active:scale-[0.97] transition-transform duration-150"
+      className="block shrink-0 w-44 snap-start active:scale-[0.97] transition-transform duration-150"
     >
-      <div className="bento-cell overflow-hidden group">
-        {/* Square image */}
+      <div className="rounded-xl border border-border overflow-hidden group bg-card hover:border-border/80 transition-colors">
         <div className="aspect-square bg-muted relative overflow-hidden">
           {image ? (
             <img
@@ -37,12 +36,9 @@ function CollectionChip({ collection }: { collection: ApiCollection }) {
             </div>
           )}
         </div>
-        {/* Info */}
         <div className="p-3 space-y-0.5">
           <div className="flex items-center gap-1 min-w-0">
-            <p className="text-sm font-semibold truncate leading-snug">
-              {collection.name ?? "Unnamed"}
-            </p>
+            <p className="text-sm font-semibold truncate">{collection.name ?? "Unnamed"}</p>
             {collection.isKnown && (
               <CheckCircle2 className="h-3 w-3 text-blue-400 shrink-0" />
             )}
@@ -63,9 +59,9 @@ function CollectionChip({ collection }: { collection: ApiCollection }) {
 
 function CollectionChipSkeleton() {
   return (
-    <div className="shrink-0 w-44 sm:w-52">
-      <Skeleton className="aspect-square w-full rounded-t-xl rounded-b-none" />
-      <div className="p-3 space-y-1.5 bento-cell rounded-t-none border-t-0">
+    <div className="shrink-0 w-44 rounded-xl border border-border overflow-hidden">
+      <Skeleton className="aspect-square w-full rounded-none" />
+      <div className="p-3 space-y-1.5">
         <Skeleton className="h-3.5 w-28" />
         <Skeleton className="h-3 w-16" />
       </div>
@@ -78,24 +74,25 @@ export function CollectionsStrip() {
 
   return (
     <FadeIn>
-      <section className="space-y-4">
+      <div className="space-y-3">
+        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <p className="section-label">Trending</p>
             <div className="flex items-center gap-2 mt-0.5">
               <Layers className={`h-4 w-4 ${BRAND.blue.text}`} />
-              <h2 className="text-xl font-bold">Collections</h2>
+              <h2 className="text-lg font-bold">Collections</h2>
             </div>
           </div>
-          <Button variant="ghost" size="sm" asChild className="gap-1 text-muted-foreground text-sm">
+          <Button variant="ghost" size="sm" asChild className="gap-1 text-muted-foreground">
             <Link href="/collections">
               View all <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </Button>
         </div>
 
-        {/* Horizontal scroll — bleeds to edge on mobile */}
-        <div className="overflow-x-auto scrollbar-hide snap-x snap-mandatory -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8">
+        {/* Scroll strip — bleeds to screen edge on mobile only */}
+        <div className="overflow-x-auto scrollbar-hide snap-x snap-mandatory -mx-4 px-4 md:mx-0 md:px-0">
           <div className="flex gap-3 w-max pb-1">
             {isLoading
               ? Array.from({ length: 6 }).map((_, i) => <CollectionChipSkeleton key={i} />)
@@ -104,7 +101,7 @@ export function CollectionsStrip() {
                 ))}
           </div>
         </div>
-      </section>
+      </div>
     </FadeIn>
   );
 }
