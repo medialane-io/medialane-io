@@ -16,6 +16,7 @@ import { CheckCircle2, ArrowLeft, Loader2, Flag, Inbox } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ReportDialog } from "@/components/report-dialog";
 import { TraitFilter } from "@/components/collection/trait-filter";
+import { SweepBar } from "@/components/collection/sweep-bar";
 import { HiddenContentBanner } from "@/components/hidden-content-banner";
 import { ipfsToHttp, formatDisplayPrice, cn } from "@/lib/utils";
 import type { ApiToken } from "@medialane/sdk";
@@ -331,6 +332,7 @@ export default function CollectionPageClient() {
           </TabsContent>
 
           <TabsContent value="listings" className="mt-4">
+            <SweepBar contract={contract} />
             {ordersLoading ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                 {Array.from({ length: 8 }).map((_, i) => <ListingCardSkeleton key={i} />)}
