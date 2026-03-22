@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { CallData } from "starknet";
 import { encodeTokenId } from "@/hooks/use-transfer";
-import { useAuth, SignInButton } from "@clerk/nextjs";
+import { useAuth, SignInButton, useClerk } from "@clerk/nextjs";
 import { useComments } from "@/hooks/use-comments";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
@@ -51,7 +51,8 @@ interface CommentsSectionProps {
 
 export function CommentsSection({ contract, tokenId }: CommentsSectionProps) {
   const { isSignedIn } = useAuth();
-  const { hasWallet } = useSessionKey();
+  const { openSignIn } = useClerk();
+  const { hasWallet, walletAddress } = useSessionKey();
   const { comments, total, isLoading, mutate } = useComments(contract, tokenId);
   const { executeTransaction } = useChipiTransaction();
 
@@ -62,9 +63,42 @@ export function CommentsSection({ contract, tokenId }: CommentsSectionProps) {
   const [postError, setPostError] = useState<string | null>(null);
   const [reportTarget, setReportTarget] = useState<ReportTarget | null>(null);
 
+  const messagesRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const composeRef = useRef<HTMLTextAreaElement>(null);
+
   const byteLen = new TextEncoder().encode(text).length;
   const canSubmit = text.trim().length > 0 && byteLen <= MAX_LEN && !!COMMENTS_CONTRACT;
   const isProcessing = postStep === "processing";
+
+  const isOwn = (author: string) =>
+    !!walletAddress && author.toLowerCase() === walletAddress.toLowerCase();
+
+  const isNearBottom = () => {
+    const el = messagesRef.current;
+    if (!el) return true;
+    return el.scrollHeight - el.scrollTop - el.clientHeight < 100;
+  };
+
+  useEffect(() => {
+    if (isNearBottom()) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [comments.length]);
+
+  const handleTextInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setText(e.target.value);
+    e.target.style.height = "auto";
+    e.target.style.height = Math.min(e.target.scrollHeight, 96) + "px";
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey && canSubmit && !isProcessing) {
+      e.preventDefault();
+      setPinOpen(true);
+    }
+  };
 
   const handlePin = async (pin: string) => {
     setPinOpen(false);
@@ -86,7 +120,7 @@ export function CommentsSection({ contract, tokenId }: CommentsSectionProps) {
       if (result.status === "confirmed") {
         setPostStep("success");
         setText("");
-        // Re-fetch after indexer lag (~30s)
+        if (composeRef.current) composeRef.current.style.height = "auto";
         setTimeout(() => mutate(), 30_000);
       } else {
         setPostStep("error");
@@ -104,110 +138,185 @@ export function CommentsSection({ contract, tokenId }: CommentsSectionProps) {
     setPostError(null);
   };
 
+  const handleStartConversation = () => {
+    if (!isSignedIn) {
+      openSignIn();
+    } else {
+      composeRef.current?.focus();
+    }
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Compose box */}
-      <div className="space-y-2">
-        {!isSignedIn ? (
-          <div className="rounded-lg border border-dashed border-border p-4 text-center space-y-2">
-            <p className="text-sm text-muted-foreground">Sign in to post a comment on-chain.</p>
-            <SignInButton mode="modal">
-              <Button variant="secondary" size="sm">Sign in</Button>
-            </SignInButton>
+    <div className="flex flex-col h-[480px] rounded-xl border border-border bg-card/50 overflow-hidden">
+
+      {/* ── Header ── */}
+      <div className="flex items-center justify-between px-4 h-11 border-b border-border shrink-0">
+        <div className="flex items-center gap-2">
+          <MessageSquare className="h-4 w-4 text-muted-foreground" />
+          {isLoading ? (
+            <Skeleton className="h-3 w-24" />
+          ) : (
+            <span className="text-sm font-medium">
+              {total} on-chain comment{total !== 1 ? "s" : ""}
+            </span>
+          )}
+        </div>
+        <span className="text-[10px] font-medium bg-primary/10 text-primary border border-primary/20 rounded-full px-2 py-0.5">
+          ⛓ Starknet
+        </span>
+      </div>
+
+      {/* ── Messages ── */}
+      <div ref={messagesRef} className="flex-1 overflow-y-auto px-4 py-3">
+        {isLoading ? (
+          <div className="space-y-3">
+            {([
+              { own: false, w: "w-40" },
+              { own: true,  w: "w-56" },
+              { own: false, w: "w-48" },
+              { own: true,  w: "w-32" },
+            ] as const).map((item, i) => (
+              <div key={i} className={`flex ${item.own ? "justify-end" : "justify-start"} gap-2`}>
+                {!item.own && <Skeleton className="h-7 w-7 rounded-full shrink-0" />}
+                <Skeleton
+                  className={`h-10 ${item.w} rounded-2xl ${item.own ? "rounded-tr-sm" : "rounded-tl-sm"}`}
+                />
+              </div>
+            ))}
           </div>
-        ) : !hasWallet ? (
-          <div className="rounded-lg border border-dashed border-border p-4 text-center">
-            <p className="text-sm text-muted-foreground">Set up your wallet to post comments.</p>
+        ) : comments.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full gap-3 text-center">
+            <MessageSquare className="h-10 w-10 text-muted-foreground/30" />
+            <div>
+              <p className="text-sm font-medium">No messages yet</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Be the first to leave a permanent comment on Starknet
+              </p>
+            </div>
+            <Button size="sm" variant="outline" onClick={handleStartConversation}>
+              Start the conversation
+            </Button>
           </div>
         ) : (
-          <div className="space-y-2">
-            <Textarea
-              placeholder="Write a comment… (posted permanently on Starknet)"
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              rows={3}
-              className="resize-none"
-              disabled={isProcessing}
-            />
-            <div className="flex items-center justify-between">
-              <span className={`text-xs ${byteLen > MAX_LEN ? "text-destructive" : "text-muted-foreground"}`}>
-                {byteLen}/{MAX_LEN} bytes
-              </span>
-              <Button
-                size="sm"
-                onClick={() => setPinOpen(true)}
-                disabled={!canSubmit || isProcessing}
-              >
-                {isProcessing ? (
-                  <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />Posting…</>
-                ) : (
-                  <><Send className="h-3.5 w-3.5 mr-1.5" />Post on-chain</>
-                )}
-              </Button>
-            </div>
+          <div className="space-y-3">
+            {comments.map((comment) => {
+              const own = isOwn(comment.author);
+              return (
+                <div
+                  key={comment.id}
+                  className={`group flex items-end gap-2 ${own ? "justify-end" : "justify-start"}`}
+                >
+                  {/* Avatar — others only */}
+                  {!own && (
+                    <Link href={`/creator/${comment.author}`} className="shrink-0 mb-1">
+                      <div className="h-7 w-7 rounded-full bg-gradient-to-br from-primary/30 to-purple-500/30 flex items-center justify-center text-[10px] font-mono font-bold select-none">
+                        {comment.author.slice(2, 4).toUpperCase()}
+                      </div>
+                    </Link>
+                  )}
+
+                  <div className={`flex flex-col max-w-[78%] ${own ? "items-end" : "items-start"}`}>
+                    {/* Author label — others only */}
+                    {!own && (
+                      <Link
+                        href={`/creator/${comment.author}`}
+                        className="text-[10px] font-medium text-muted-foreground mb-1 ml-1 hover:underline underline-offset-2"
+                      >
+                        <AddressDisplay address={comment.author} chars={4} showCopy={false} />
+                      </Link>
+                    )}
+
+                    {/* Bubble */}
+                    <div className="relative">
+                      <div
+                        className={`px-3 py-2 text-sm leading-relaxed break-words ${
+                          own
+                            ? "bg-primary/20 border border-primary/30 rounded-2xl rounded-tr-sm text-foreground"
+                            : "bg-muted rounded-2xl rounded-tl-sm"
+                        }`}
+                      >
+                        {comment.content}
+                      </div>
+
+                      {/* Flag — others only, visible on row hover */}
+                      {!own && isSignedIn && (
+                        <button
+                          className="absolute -top-1 -right-5 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground/40 hover:text-muted-foreground"
+                          title="Report comment"
+                          onClick={() => setReportTarget({ type: "COMMENT", commentId: comment.id })}
+                        >
+                          <Flag className="h-3 w-3" />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Timestamp */}
+                    <span
+                      className={`text-[10px] text-muted-foreground mt-1 ${own ? "mr-1" : "ml-1"}`}
+                      title={comment.postedAt}
+                    >
+                      {formatDistanceToNow(new Date(comment.postedAt), { addSuffix: true })}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+            <div ref={bottomRef} />
           </div>
         )}
       </div>
 
-      {/* Comments list */}
-      {isLoading ? (
-        <div className="space-y-4">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="flex gap-3">
-              <Skeleton className="h-8 w-8 rounded-full shrink-0" />
-              <div className="flex-1 space-y-2">
-                <Skeleton className="h-3 w-28" />
-                <Skeleton className="h-4 w-full" />
-              </div>
+      {/* ── Compose bar ── */}
+      <div className="border-t border-border shrink-0">
+        {!isSignedIn ? (
+          <div className="flex items-center justify-center gap-2 px-4 h-14">
+            <p className="text-sm text-muted-foreground">Sign in to join the conversation</p>
+            <SignInButton mode="modal">
+              <Button variant="ghost" size="sm">Sign in</Button>
+            </SignInButton>
+          </div>
+        ) : !hasWallet ? (
+          <div className="flex items-center justify-center px-4 h-14">
+            <p className="text-sm text-muted-foreground">Set up your wallet to comment</p>
+          </div>
+        ) : (
+          <div className="px-3 py-2 space-y-1">
+            <div className="flex items-end gap-2">
+              <span className="text-muted-foreground/60 text-xs pb-2 shrink-0">⛓</span>
+              <Textarea
+                ref={composeRef}
+                placeholder="Say something on-chain…"
+                value={text}
+                onChange={handleTextInput}
+                onKeyDown={handleKeyDown}
+                rows={1}
+                className="resize-none min-h-[36px] max-h-[96px] flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-0 py-1.5 text-sm"
+                disabled={isProcessing}
+              />
+              <Button
+                size="icon"
+                variant="ghost"
+                className="shrink-0 h-8 w-8 mb-1"
+                onClick={() => setPinOpen(true)}
+                disabled={!canSubmit || isProcessing}
+              >
+                {isProcessing ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+              </Button>
             </div>
-          ))}
-        </div>
-      ) : comments.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-10 text-center gap-3">
-          <MessageSquare className="h-9 w-9 text-muted-foreground/40" />
-          <p className="text-sm text-muted-foreground">No comments yet. Be the first.</p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          <p className="text-xs text-muted-foreground">
-            {total} on-chain comment{total !== 1 ? "s" : ""}
-          </p>
-          {comments.map((comment) => (
-            <div key={comment.id} className="flex gap-3">
-              <div className="shrink-0 h-8 w-8 rounded-full bg-gradient-to-br from-primary/30 to-purple-500/30 flex items-center justify-center text-xs font-mono font-bold select-none">
-                {comment.author.slice(2, 4).toUpperCase()}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-baseline gap-2 flex-wrap min-w-0">
-                    <Link
-                      href={`/creator/${comment.author}`}
-                      className="text-xs font-medium hover:underline underline-offset-2"
-                    >
-                      <AddressDisplay address={comment.author} chars={4} showCopy={false} />
-                    </Link>
-                    <span className="text-[10px] text-muted-foreground" title={comment.postedAt}>
-                      {formatDistanceToNow(new Date(comment.postedAt), { addSuffix: true })}
-                    </span>
-                  </div>
-                  {isSignedIn && (
-                    <button
-                      className="shrink-0 text-muted-foreground/40 hover:text-muted-foreground transition-colors mt-0.5"
-                      title="Report comment"
-                      onClick={() => setReportTarget({ type: "COMMENT", commentId: comment.id })}
-                    >
-                      <Flag className="h-3 w-3" />
-                    </button>
-                  )}
-                </div>
-                <p className="text-sm mt-1 break-words leading-relaxed">{comment.content}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+            {byteLen > 800 && (
+              <p className={`text-[10px] text-right ${byteLen > MAX_LEN ? "text-destructive" : "text-muted-foreground"}`}>
+                {byteLen}/{MAX_LEN}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
 
-      {/* PIN entry */}
+      {/* ── PIN entry ── */}
       <PinDialog
         open={pinOpen}
         onSubmit={handlePin}
@@ -216,7 +325,7 @@ export function CommentsSection({ contract, tokenId }: CommentsSectionProps) {
         description="Enter your PIN to publish this comment permanently to Starknet."
       />
 
-      {/* Comment report dialog */}
+      {/* ── Report dialog ── */}
       {reportTarget && (
         <ReportDialog
           target={reportTarget}
@@ -225,7 +334,7 @@ export function CommentsSection({ contract, tokenId }: CommentsSectionProps) {
         />
       )}
 
-      {/* Transaction status dialog */}
+      {/* ── Transaction status ── */}
       <Dialog open={postStep !== "idle"} onOpenChange={(v) => { if (!v) resetPost(); }}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
@@ -240,12 +349,10 @@ export function CommentsSection({ contract, tokenId }: CommentsSectionProps) {
               </DialogDescription>
             )}
           </DialogHeader>
-
           <div className="flex flex-col items-center gap-4 py-4">
             {postStep === "processing" && (
               <Loader2 className="h-10 w-10 animate-spin text-primary" />
             )}
-
             {postStep === "success" && (
               <>
                 <CheckCircle className="h-10 w-10 text-green-500" />
@@ -265,7 +372,6 @@ export function CommentsSection({ contract, tokenId }: CommentsSectionProps) {
                 <Button className="w-full" onClick={resetPost}>Done</Button>
               </>
             )}
-
             {postStep === "error" && (
               <>
                 <X className="h-10 w-10 text-destructive" />
