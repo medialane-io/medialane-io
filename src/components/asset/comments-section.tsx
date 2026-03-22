@@ -10,20 +10,20 @@ import { useComments } from "@/hooks/use-comments";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { PinDialog } from "@/components/chipi/pin-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { AddressDisplay } from "@/components/shared/address-display";
-import { COMMENTS_CONTRACT } from "@/lib/constants";
-import { MessageSquare, Loader2, Send } from "lucide-react";
-import { toast } from "sonner";
+import { COMMENTS_CONTRACT, EXPLORER_URL } from "@/lib/constants";
+import { MessageSquare, Loader2, Send, CheckCircle, X, ExternalLink } from "lucide-react";
 
 const MAX_LEN = 1000;
 
 /**
  * Build a Cairo ByteArray from any Unicode string.
- * starknet.js byteArrayFromString only handles ASCII — this encodes as UTF-8 first,
- * then packs bytes into 31-byte felt252 chunks (the Cairo ByteArray layout).
+ * starknet.js byteArrayFromString is ASCII-only — this encodes as UTF-8 first,
+ * then packs bytes into 31-byte felt252 chunks (Cairo ByteArray layout).
  */
 function byteArrayFromUtf8(str: string): { data: string[]; pending_word: string; pending_word_len: number } {
   const bytes = new TextEncoder().encode(str);
@@ -38,12 +38,10 @@ function byteArrayFromUtf8(str: string): { data: string[]; pending_word: string;
   const remaining = bytes.slice(i);
   let pendingWord = 0n;
   for (const byte of remaining) pendingWord = (pendingWord << 8n) | BigInt(byte);
-  return {
-    data,
-    pending_word: "0x" + pendingWord.toString(16),
-    pending_word_len: remaining.length,
-  };
+  return { data, pending_word: "0x" + pendingWord.toString(16), pending_word_len: remaining.length };
 }
+
+type PostStep = "idle" | "processing" | "success" | "error";
 
 interface CommentsSectionProps {
   contract: string;
@@ -52,27 +50,28 @@ interface CommentsSectionProps {
 
 export function CommentsSection({ contract, tokenId }: CommentsSectionProps) {
   const { isSignedIn } = useAuth();
-  const { walletAddress, hasWallet } = useSessionKey();
+  const { hasWallet } = useSessionKey();
   const { comments, total, isLoading, mutate } = useComments(contract, tokenId);
-  const { executeTransaction, isSubmitting } = useChipiTransaction();
+  const { executeTransaction } = useChipiTransaction();
 
   const [text, setText] = useState("");
   const [pinOpen, setPinOpen] = useState(false);
+  const [postStep, setPostStep] = useState<PostStep>("idle");
+  const [postTxHash, setPostTxHash] = useState<string | null>(null);
+  const [postError, setPostError] = useState<string | null>(null);
 
   const byteLen = new TextEncoder().encode(text).length;
   const canSubmit = text.trim().length > 0 && byteLen <= MAX_LEN && !!COMMENTS_CONTRACT;
-
-  const handleSubmit = () => {
-    if (!canSubmit) return;
-    setPinOpen(true);
-  };
+  const isProcessing = postStep === "processing";
 
   const handlePin = async (pin: string) => {
     setPinOpen(false);
+    setPostStep("processing");
+    setPostTxHash(null);
+    setPostError(null);
     try {
       const encoded = byteArrayFromUtf8(text.trim());
       const [tokenIdLow, tokenIdHigh] = encodeTokenId(tokenId);
-      // add_comment(nft_contract: ContractAddress, token_id: u256, content: ByteArray)
       const calldata = CallData.compile([contract, { low: tokenIdLow, high: tokenIdHigh }, encoded]);
 
       const result = await executeTransaction({
@@ -81,21 +80,26 @@ export function CommentsSection({ contract, tokenId }: CommentsSectionProps) {
         calls: [{ contractAddress: COMMENTS_CONTRACT, entrypoint: "add_comment", calldata }],
       });
 
+      setPostTxHash(result.txHash);
       if (result.status === "confirmed") {
+        setPostStep("success");
         setText("");
-        toast.success("Comment posted on-chain", {
-          description: "It will appear here once indexed (~30s).",
-        });
-        // Re-fetch after indexer lag
+        // Re-fetch after indexer lag (~30s)
         setTimeout(() => mutate(), 30_000);
       } else {
-        toast.error("Transaction reverted", { description: result.revertReason });
+        setPostStep("error");
+        setPostError(result.revertReason ?? "Transaction reverted");
       }
     } catch (err: unknown) {
-      toast.error("Failed to post comment", {
-        description: err instanceof Error ? err.message : "Unknown error",
-      });
+      setPostStep("error");
+      setPostError(err instanceof Error ? err.message : "Transaction failed");
     }
+  };
+
+  const resetPost = () => {
+    setPostStep("idle");
+    setPostTxHash(null);
+    setPostError(null);
   };
 
   return (
@@ -116,12 +120,12 @@ export function CommentsSection({ contract, tokenId }: CommentsSectionProps) {
         ) : (
           <div className="space-y-2">
             <Textarea
-              placeholder="Write a comment… (posted on Starknet)"
+              placeholder="Write a comment… (posted permanently on Starknet)"
               value={text}
               onChange={(e) => setText(e.target.value)}
               rows={3}
               className="resize-none"
-              disabled={isSubmitting}
+              disabled={isProcessing}
             />
             <div className="flex items-center justify-between">
               <span className={`text-xs ${byteLen > MAX_LEN ? "text-destructive" : "text-muted-foreground"}`}>
@@ -129,13 +133,13 @@ export function CommentsSection({ contract, tokenId }: CommentsSectionProps) {
               </span>
               <Button
                 size="sm"
-                onClick={handleSubmit}
-                disabled={!canSubmit || isSubmitting}
+                onClick={() => setPinOpen(true)}
+                disabled={!canSubmit || isProcessing}
               >
-                {isSubmitting ? (
-                  <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> Posting…</>
+                {isProcessing ? (
+                  <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />Posting…</>
                 ) : (
-                  <><Send className="h-3.5 w-3.5 mr-1.5" /> Post on-chain</>
+                  <><Send className="h-3.5 w-3.5 mr-1.5" />Post on-chain</>
                 )}
               </Button>
             </div>
@@ -190,13 +194,78 @@ export function CommentsSection({ contract, tokenId }: CommentsSectionProps) {
         </div>
       )}
 
+      {/* PIN entry */}
       <PinDialog
         open={pinOpen}
         onSubmit={handlePin}
         onCancel={() => setPinOpen(false)}
         title="Post comment on-chain"
-        description="Enter your PIN to publish this comment to Starknet."
+        description="Enter your PIN to publish this comment permanently to Starknet."
       />
+
+      {/* Transaction status dialog */}
+      <Dialog open={postStep !== "idle"} onOpenChange={(v) => { if (!v) resetPost(); }}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>
+              {postStep === "processing" && "Posting comment…"}
+              {postStep === "success" && "Comment posted!"}
+              {postStep === "error" && "Failed to post"}
+            </DialogTitle>
+            {postStep === "processing" && (
+              <DialogDescription>
+                Submitting your comment to Starknet. Please wait.
+              </DialogDescription>
+            )}
+          </DialogHeader>
+
+          <div className="flex flex-col items-center gap-4 py-4">
+            {postStep === "processing" && (
+              <Loader2 className="h-10 w-10 animate-spin text-primary" />
+            )}
+
+            {postStep === "success" && (
+              <>
+                <CheckCircle className="h-10 w-10 text-green-500" />
+                <p className="text-sm text-center text-muted-foreground">
+                  Your comment is on-chain and will appear here once indexed (~30s).
+                </p>
+                {postTxHash && (
+                  <a
+                    href={`${EXPLORER_URL}/tx/${postTxHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
+                  >
+                    View transaction <ExternalLink className="h-3 w-3" />
+                  </a>
+                )}
+                <Button className="w-full" onClick={resetPost}>Done</Button>
+              </>
+            )}
+
+            {postStep === "error" && (
+              <>
+                <X className="h-10 w-10 text-destructive" />
+                <p className="text-sm text-center text-muted-foreground">
+                  {postError ?? "Something went wrong. Please try again."}
+                </p>
+                {postTxHash && (
+                  <a
+                    href={`${EXPLORER_URL}/tx/${postTxHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:underline"
+                  >
+                    View transaction <ExternalLink className="h-3 w-3" />
+                  </a>
+                )}
+                <Button variant="outline" className="w-full" onClick={resetPost}>Dismiss</Button>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
