@@ -6,11 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { ExternalLink, RefreshCw, Plus } from "lucide-react";
+import { ExternalLink, RefreshCw, Plus, Download } from "lucide-react";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL!;
 // Must match API_SECRET_KEY on the backend — set NEXT_PUBLIC_ADMIN_API_KEY in .env.local and Railway
@@ -39,7 +39,13 @@ export default function AdminCollectionsPage() {
   const [registerOpen, setRegisterOpen] = useState(false);
   const [registerContract, setRegisterContract] = useState("");
   const [registerSource, setRegisterSource] = useState("EXTERNAL");
+  const [registerStartBlock, setRegisterStartBlock] = useState("");
   const [registering, setRegistering] = useState(false);
+
+  const [backfillOpen, setBackfillOpen] = useState(false);
+  const [backfillContract, setBackfillContract] = useState("");
+  const [backfillFromBlock, setBackfillFromBlock] = useState("");
+  const [backfilling, setBackfilling] = useState(false);
 
   function onSearch(val: string) {
     setSearch(val);
@@ -72,14 +78,41 @@ export default function AdminCollectionsPage() {
     if (!registerContract.trim()) return;
     setRegistering(true);
     try {
-      const res = await adminFetch("/admin/collections", { method: "POST", body: JSON.stringify({ contractAddress: registerContract.trim(), source: registerSource }) });
+      const body: Record<string, unknown> = { contractAddress: registerContract.trim(), source: registerSource };
+      if (registerStartBlock.trim()) body.startBlock = parseInt(registerStartBlock.trim(), 10);
+      const res = await adminFetch("/admin/collections", { method: "POST", body: JSON.stringify(body) });
       if (!res.ok) throw new Error();
       toast.success("Collection registered");
       setRegisterOpen(false);
       setRegisterContract("");
+      setRegisterStartBlock("");
       await mutate();
     } catch { toast.error("Registration failed"); }
     finally { setRegistering(false); }
+  }
+
+  function openBackfill(contractAddress: string) {
+    setBackfillContract(contractAddress);
+    setBackfillFromBlock("");
+    setBackfillOpen(true);
+  }
+
+  async function handleBackfillTransfers() {
+    if (!backfillContract) return;
+    setBackfilling(true);
+    try {
+      const body: Record<string, unknown> = {};
+      if (backfillFromBlock.trim()) body.fromBlock = parseInt(backfillFromBlock.trim(), 10);
+      const res = await adminFetch(`/admin/collections/${backfillContract}/backfill-transfers`, { method: "POST", body: JSON.stringify(body) });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((json as any).error ?? "Failed");
+      const { inserted, skipped, metadataJobsEnqueued } = (json as any).data ?? {};
+      toast.success(`Backfill complete — ${inserted} inserted, ${skipped} skipped, ${metadataJobsEnqueued} metadata jobs queued`);
+      setBackfillOpen(false);
+      await mutate();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Backfill failed");
+    } finally { setBackfilling(false); }
   }
 
   return (
@@ -109,6 +142,7 @@ export default function AdminCollectionsPage() {
                   <Switch checked={col.isKnown} onCheckedChange={() => handleIsKnown(col.contractAddress, col.isKnown)} id={`k-${col.id}`} />
                   <Label htmlFor={`k-${col.id}`} className="text-xs cursor-pointer">Featured</Label>
                 </div>
+                <Button size="icon" variant="ghost" onClick={() => openBackfill(col.contractAddress)} title="Backfill transfers"><Download className="h-4 w-4" /></Button>
                 <Button size="icon" variant="ghost" onClick={() => handleRefresh(col.contractAddress)} title="Refresh metadata"><RefreshCw className="h-4 w-4" /></Button>
                 <a href={`https://voyager.online/contract/${col.contractAddress}`} target="_blank" rel="noopener noreferrer">
                   <Button size="icon" variant="ghost"><ExternalLink className="h-4 w-4" /></Button>
@@ -134,9 +168,53 @@ export default function AdminCollectionsPage() {
                 <SelectContent>{SOURCES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
               </Select>
             </div>
+            <div className="space-y-2">
+              <Label>Start Block <span className="text-muted-foreground font-normal">(optional)</span></Label>
+              <Input
+                type="number"
+                placeholder="e.g. 7488087"
+                value={registerStartBlock}
+                onChange={(e) => setRegisterStartBlock(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Block where this collection was deployed. Required if the collection was minted before registration — used by the indexer to find past Transfer events.
+              </p>
+            </div>
           </div>
           <DialogFooter>
             <Button disabled={registering} onClick={handleRegister}>{registering ? "Registering\u2026" : "Register"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={backfillOpen} onOpenChange={setBackfillOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Backfill Transfers</DialogTitle>
+            <DialogDescription className="font-mono text-xs break-all">{backfillContract}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-muted-foreground">
+              Scans historical Transfer events on-chain and creates Token records for any tokens missed by the indexer. Use when a collection was registered after its mints already happened.
+            </p>
+            <div className="space-y-2">
+              <Label>From Block <span className="text-muted-foreground font-normal">(optional)</span></Label>
+              <Input
+                type="number"
+                placeholder="e.g. 7488087 (defaults to block 0)"
+                value={backfillFromBlock}
+                onChange={(e) => setBackfillFromBlock(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Start scanning from this block. Set to the collection deployment block to avoid scanning the entire chain.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBackfillOpen(false)}>Cancel</Button>
+            <Button disabled={backfilling} onClick={handleBackfillTransfers}>
+              {backfilling ? "Backfilling\u2026" : "Backfill Transfers"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
