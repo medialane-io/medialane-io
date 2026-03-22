@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { IP_TYPE_CONFIG } from "@/lib/ip-type-config";
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://medialane.io";
 const BACKEND_URL =
@@ -22,18 +23,33 @@ async function fetchJson<T>(path: string): Promise<T | null> {
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: BASE_URL, changeFrequency: "daily", priority: 1 },
+    { url: `${BASE_URL}/discover`, changeFrequency: "daily", priority: 0.9 },
     { url: `${BASE_URL}/marketplace`, changeFrequency: "hourly", priority: 0.9 },
     { url: `${BASE_URL}/collections`, changeFrequency: "hourly", priority: 0.9 },
+    { url: `${BASE_URL}/creators`, changeFrequency: "daily", priority: 0.8 },
     { url: `${BASE_URL}/launchpad`, changeFrequency: "daily", priority: 0.8 },
     { url: `${BASE_URL}/activities`, changeFrequency: "hourly", priority: 0.6 },
+    { url: `${BASE_URL}/about`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${BASE_URL}/learn`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${BASE_URL}/docs`, changeFrequency: "monthly", priority: 0.5 },
   ];
 
-  const [collectionsData, tokensData] = await Promise.all([
+  // IP type browse pages
+  const ipTypeRoutes: MetadataRoute.Sitemap = IP_TYPE_CONFIG.map(({ slug }) => ({
+    url: `${BASE_URL}/${slug}`,
+    changeFrequency: "daily" as const,
+    priority: 0.7,
+  }));
+
+  const [collectionsData, tokensData, creatorsData] = await Promise.all([
     fetchJson<{ data: { contractAddress: string; updatedAt?: string }[] }>(
-      "/v1/collections?limit=200"
+      "/v1/collections?limit=500"
     ),
     fetchJson<{ data: { contractAddress: string; tokenId: string; updatedAt?: string }[] }>(
-      "/v1/tokens?limit=500"
+      "/v1/tokens?limit=2000"
+    ),
+    fetchJson<{ data: { username?: string; walletAddress: string }[] }>(
+      "/v1/creators?limit=500"
     ),
   ]);
 
@@ -51,5 +67,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: t.updatedAt ? new Date(t.updatedAt) : undefined,
   }));
 
-  return [...staticRoutes, ...collectionRoutes, ...tokenRoutes];
+  const creatorRoutes: MetadataRoute.Sitemap = (creatorsData?.data ?? [])
+    .filter((c) => c.username)
+    .map((c) => ({
+      url: `${BASE_URL}/creator/${c.username}`,
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
+    }));
+
+  return [...staticRoutes, ...ipTypeRoutes, ...collectionRoutes, ...tokenRoutes, ...creatorRoutes];
 }

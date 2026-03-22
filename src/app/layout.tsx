@@ -23,12 +23,12 @@ export const metadata: Metadata = {
     title: "Medialane",
     description: "Creator launchpad & IP marketplace on Starknet",
     siteName: "Medialane",
-    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Medialane" }],
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Medialane" }],
   },
   twitter: {
     card: "summary_large_image",
     creator: "@medialane_io",
-    images: ["/og-image.png"],
+    images: ["/og-image.jpg"],
   },
 };
 
