@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { ExternalLink, RefreshCw, Plus, Download, EyeOff, Eye } from "lucide-react";
+import { ExternalLink, RefreshCw, Plus, Download, EyeOff, Eye, Trash2 } from "lucide-react";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL!;
 // Must match API_SECRET_KEY on the backend — set NEXT_PUBLIC_ADMIN_API_KEY in .env.local and Railway
@@ -80,6 +80,20 @@ export default function AdminCollectionsPage() {
       toast.success(!current ? "Collection hidden from platform" : "Collection visible on platform");
       await mutate();
     } catch { toast.error("Failed to update"); }
+  }
+
+  async function handleDelete(contractAddress: string, name: string) {
+    if (!confirm(`Permanently delete "${name}" and all its tokens and transfers? This cannot be undone.`)) return;
+    try {
+      const res = await adminFetch(`/admin/collections/${contractAddress}`, { method: "DELETE" });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((json as any).error ?? "Failed");
+      const { transfers, tokens } = (json as any).data?.deleted ?? {};
+      toast.success(`Deleted — ${tokens?.count ?? 0} tokens, ${transfers?.count ?? 0} transfers removed`);
+      await mutate();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Delete failed");
+    }
   }
 
   async function handleRegister() {
@@ -165,6 +179,9 @@ export default function AdminCollectionsPage() {
                 <a href={`https://voyager.online/contract/${col.contractAddress}`} target="_blank" rel="noopener noreferrer">
                   <Button size="icon" variant="ghost"><ExternalLink className="h-4 w-4" /></Button>
                 </a>
+                <Button size="icon" variant="ghost" onClick={() => handleDelete(col.contractAddress, col.name ?? "Unnamed")} title="Delete collection" className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
             </div>
           ))}
