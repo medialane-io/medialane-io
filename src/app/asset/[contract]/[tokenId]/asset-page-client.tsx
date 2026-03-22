@@ -29,6 +29,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import type { ApiActivity, ApiOrder } from "@medialane/sdk";
 import { PriceHistoryChart } from "@/components/asset/price-history-chart";
+import { CommentsSection } from "@/components/asset/comments-section";
 import { EXPLORER_URL } from "@/lib/constants";
 import { useAuth, SignInButton } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
@@ -543,6 +544,7 @@ export default function AssetPageClient() {
             <TabsTrigger value="provenance">
               Provenance {history.length > 0 && `(${history.length})`}
             </TabsTrigger>
+            <TabsTrigger value="comments">Comments</TabsTrigger>
           </TabsList>
 
           {/* Overview tab — media embeds + attributes */}
@@ -804,6 +806,11 @@ export default function AssetPageClient() {
                 </div>
               )}
             </div>
+          </TabsContent>
+
+          {/* Comments tab — on-chain comments from NFTComments contract */}
+          <TabsContent value="comments" className="mt-4">
+            <CommentsSection contract={contract} tokenId={tokenId} />
           </TabsContent>
         </Tabs>
       </div>
