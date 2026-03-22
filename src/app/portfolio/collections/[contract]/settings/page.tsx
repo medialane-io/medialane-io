@@ -41,8 +41,8 @@ export default function CollectionSettingsPage({ params }: Props) {
     }
   }, [profile]);
 
-  const isOwner = walletAddress && collection?.claimedBy &&
-    walletAddress.toLowerCase() === collection.claimedBy.toLowerCase();
+  const isOwner = walletAddress && collection?.owner &&
+    walletAddress.toLowerCase() === collection.owner.toLowerCase();
 
   if (!collectionLoading && collection && !isOwner) {
     return (

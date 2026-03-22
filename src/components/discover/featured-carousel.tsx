@@ -3,23 +3,21 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { useCollection } from "@/hooks/use-collections";
+import { useCollections } from "@/hooks/use-collections";
 import { Button } from "@/components/ui/button";
 import { FadeIn, EASE_OUT } from "@/components/ui/motion-primitives";
-import { FEATURED_COLLECTIONS } from "@/lib/featured-collections";
 import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import { ChevronLeft, ChevronRight, ArrowRight, Sparkles } from "lucide-react";
 import { BRAND } from "@/lib/brand";
+import type { ApiCollection } from "@medialane/sdk";
 
-function Slide({ config }: { config: (typeof FEATURED_COLLECTIONS)[number] }) {
-  const { collection } = useCollection(config.contractAddress);
-  const name = config.nameOverride ?? collection?.name ?? "Featured Collection";
-  const rawImage = config.imageOverride ?? collection?.image ?? null;
+function Slide({ collection }: { collection: ApiCollection }) {
+  const name = collection.name ?? "Featured Collection";
+  const rawImage = collection.image ?? null;
   const image = rawImage ? ipfsToHttp(rawImage) : null;
 
   return (
     <div className="relative w-full h-full">
-      {/* Background image */}
       {image ? (
         <img
           src={image}
@@ -30,43 +28,36 @@ function Slide({ config }: { config: (typeof FEATURED_COLLECTIONS)[number] }) {
         <div className="absolute inset-0 bg-gradient-to-br from-brand-purple/30 via-brand-blue/20 to-brand-navy/40" />
       )}
 
-      {/* Multi-layer scrim for readability */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/10" />
       <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-transparent" />
 
-      {/* Content */}
       <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-8 lg:p-10">
-        {config.tagline && (
-          <p className="section-label text-white/60 mb-2">{config.tagline}</p>
-        )}
         <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white leading-tight mb-3 max-w-lg">
           {name}
         </h2>
 
-        {collection && (
-          <div className="flex items-center gap-4 mb-5">
-            {collection.totalSupply != null && (
-              <span className="text-sm text-white/70">
-                <span className="font-bold text-white">{collection.totalSupply}</span> items
+        <div className="flex items-center gap-4 mb-5">
+          {collection.totalSupply != null && (
+            <span className="text-sm text-white/70">
+              <span className="font-bold text-white">{collection.totalSupply}</span> items
+            </span>
+          )}
+          {collection.floorPrice && (
+            <span className="text-sm text-white/70">
+              Floor{" "}
+              <span className="font-bold text-brand-orange">
+                {formatDisplayPrice(collection.floorPrice)}
               </span>
-            )}
-            {collection.floorPrice && (
-              <span className="text-sm text-white/70">
-                Floor{" "}
-                <span className="font-bold text-brand-orange">
-                  {formatDisplayPrice(collection.floorPrice)}
-                </span>
-              </span>
-            )}
-          </div>
-        )}
+            </span>
+          )}
+        </div>
 
         <Button
           asChild
           size="sm"
           className="gap-2 bg-white/15 hover:bg-white/25 text-white border border-white/20 backdrop-blur-sm"
         >
-          <Link href={`/collections/${config.contractAddress}`}>
+          <Link href={`/collections/${collection.contractAddress}`}>
             View Collection <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </Button>
@@ -76,18 +67,41 @@ function Slide({ config }: { config: (typeof FEATURED_COLLECTIONS)[number] }) {
 }
 
 export function FeaturedCarousel() {
-  const total = FEATURED_COLLECTIONS.length;
+  const { collections, isLoading } = useCollections(1, 12, true);
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
 
+  const total = collections.length;
   const next = useCallback(() => setActive((p) => (p + 1) % total), [total]);
   const prev = useCallback(() => setActive((p) => (p - 1 + total) % total), [total]);
+
+  // Reset active index when collection list changes
+  useEffect(() => { setActive(0); }, [total]);
 
   useEffect(() => {
     if (paused || total <= 1) return;
     const id = setInterval(next, 6000);
     return () => clearInterval(id);
   }, [next, paused, total]);
+
+  if (isLoading) {
+    return (
+      <FadeIn>
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="section-label">Curated drops</p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <Sparkles className={`h-4 w-4 ${BRAND.purple.text}`} />
+                <h2 className="text-xl font-bold">Featured Collections</h2>
+              </div>
+            </div>
+          </div>
+          <div className="-mx-4 sm:-mx-6 lg:-mx-8 aspect-[16/7] sm:aspect-[21/9] bg-muted animate-pulse" />
+        </section>
+      </FadeIn>
+    );
+  }
 
   if (total === 0) return null;
 
@@ -109,7 +123,6 @@ export function FeaturedCarousel() {
           </Button>
         </div>
 
-        {/* Slider — full-bleed by cancelling parent padding */}
         <div
           className="-mx-4 sm:-mx-6 lg:-mx-8 relative overflow-hidden aspect-[16/7] sm:aspect-[21/9] bg-muted"
           onMouseEnter={() => setPaused(true)}
@@ -124,11 +137,10 @@ export function FeaturedCarousel() {
               exit={{ opacity: 0, x: -40 }}
               transition={{ duration: 0.45, ease: EASE_OUT }}
             >
-              <Slide config={FEATURED_COLLECTIONS[active]} />
+              <Slide collection={collections[active]} />
             </motion.div>
           </AnimatePresence>
 
-          {/* Arrow buttons — only show if more than 1 slide */}
           {total > 1 && (
             <>
               <button
@@ -148,10 +160,9 @@ export function FeaturedCarousel() {
             </>
           )}
 
-          {/* Dot indicators */}
           {total > 1 && (
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10">
-              {FEATURED_COLLECTIONS.map((_, i) => (
+              {collections.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setActive(i)}
