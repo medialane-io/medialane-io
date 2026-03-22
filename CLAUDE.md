@@ -31,7 +31,7 @@ NEXT_PUBLIC_MEDIALANE_BACKEND_URL=http://localhost:3001
 - **Clerk** — Email/social authentication. Session JWTs are templated as `chipipay` for wallet derivation.
 - **ChipiPay** (`@chipi-stack/nextjs`) — Manages Starknet wallets derived from Clerk sessions. Enables gasless transactions. Wraps the app via `ChipiProvider` in `src/app/providers.tsx`.
 - **Starknet.js** — Direct contract calls. RPC singleton in `src/lib/starknet.ts`.
-- **@medialane/sdk** — Published npm package (`@medialane/sdk@0.4.2`, org: `@medialane`). Provides `ApiOrder`, `ApiToken`, `ApiCollection`, `ApiOrderTokenMeta`, `OrderStatus`, `IpAttribute`, `IpNftMetadata`, `SupportedTokenSymbol` types and the SDK client used in `src/lib/medialane-client.ts`. `ApiOrder.token: ApiOrderTokenMeta | null` carries name/image/description enrichment from the backend — no per-row `useToken` calls needed. `ApiCollection.collectionId: string | null` is the on-chain registry numeric ID needed for `createMintIntent`. The SDK normalizes all addresses internally. `getListableTokens()` returns all tokens with `listable: true` (USDC, USDT, ETH, STRK, WBTC) — used by `listing-dialog` and `offer-dialog` to build currency lists. `SupportedCurrencySymbol` local type was removed in v0.4.2; use `SupportedTokenSymbol` from `@medialane/sdk` instead.
+- **@medialane/sdk** — Published npm package (`@medialane/sdk@0.4.8`, org: `@medialane`). Provides `ApiOrder`, `ApiToken`, `ApiCollection`, `ApiOrderTokenMeta`, `ApiComment`, `OrderStatus`, `IpAttribute`, `IpNftMetadata`, `SupportedTokenSymbol` types and the SDK client used in `src/lib/medialane-client.ts`. `ApiOrder.token: ApiOrderTokenMeta | null` carries name/image/description enrichment from the backend — no per-row `useToken` calls needed. `ApiCollection.collectionId: string | null` is the on-chain registry numeric ID needed for `createMintIntent`. The SDK normalizes all addresses internally. `getListableTokens()` returns all tokens with `listable: true` (USDC, USDT, ETH, STRK, WBTC) — used by `listing-dialog` and `offer-dialog` to build currency lists. `SupportedCurrencySymbol` local type was removed in v0.4.2; use `SupportedTokenSymbol` from `@medialane/sdk` instead. `getTokenComments(contract, tokenId, opts?)` added in v0.4.8.
 - **Pinata** — IPFS uploads via Next.js routes (all Clerk-gated, direct to Pinata):
   - `src/app/api/pinata/route.ts` — Universal IP asset upload. Accepts `file`, `name`, `description`, `external_url`, `creator` (wallet address), and full licensing schema (`ipType`, `licenseType`, `commercialUse`, `derivatives`, `attribution`, `geographicScope`, `aiPolicy`, `royalty`, `edition`). Uploads image then metadata JSON. Returns `{ uri, imageUri, cid }`. Metadata follows OpenSea ERC-721 standard with `attributes` array. Creator wallet embedded as `{ trait_type: "Creator", value: walletAddress }`.
   - `src/app/api/pinata/image/route.ts` — Image-only upload. Returns `{ imageUri: "ipfs://...", cid }`. Used by the create collection flow for the preview image.
@@ -127,6 +127,7 @@ When `LAUNCH_MINT_CONTRACT` or `GENESIS_NFT_URI` are empty the button renders as
 | `useUserCollections(address)` | Collections owned by address (on-chain direct, returns `onChainId`) | Calls `list_user_collections()` + `get_collection()` on registry contract via starknet.js. **Only use this if you specifically need `onChainId` and `useCollectionsByOwner` can't provide `collectionId`** |
 | `useActivities(query)` | Global activity feed | `GET /v1/activities` |
 | `useActivitiesByAddress(address)` | User activity | `GET /v1/activities/:address` |
+| `useComments(contract, tokenId)` | On-chain comments for a token | `GET /v1/tokens/:contract/:tokenId/comments` via SDK |
 
 ### Write operations (via `useMarketplace`)
 All write ops follow: create intent → sign typed data → submit signature → execute calls via ChipiPay.
@@ -267,6 +268,9 @@ layout.tsx (server)
 | `src/app/providers.tsx` | Global shell: SidebarProvider + AppSidebar + SidebarInset + top bar |
 | `src/components/layout/app-sidebar.tsx` | Shadcn sidebar: brand, nav, Clerk user footer |
 | `src/middleware.ts` | Clerk route protection (/portfolio, /create/*) |
+| `src/hooks/use-comments.ts` | `useComments(contract, tokenId)` SWR hook — fetches via SDK `getTokenComments()` |
+| `src/components/asset/comments-section.tsx` | Messenger-style chat bubble panel (480px fixed height). Own comments right-aligned, others left with gradient avatar. Per-comment Voyager link. Enhanced compose bar with "Post on-chain" CTA. |
+| `src/app/api/reports/route.ts` | Reports proxy to backend — handles `COMMENT` type, builds `COMMENT::<commentId>` targetKey |
 | `src/hooks/use-session-key.ts` | Wallet derivation + SNIP-9 session key |
 | `src/hooks/use-marketplace.ts` | All marketplace write operations |
 | `src/hooks/use-chipi-transaction.ts` | ChipiPay tx execution + status |
