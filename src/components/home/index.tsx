@@ -7,6 +7,7 @@ import { TrendingCollections } from "./trending-collections";
 import { NewOnMarketplace } from "./new-on-marketplace";
 import { CommunityActivity } from "./community-activity";
 import { LearnDocsCta } from "./learn-docs-cta";
+import { IpTypeNav } from "./ip-type-nav";
 
 export function HomePage() {
   return (
@@ -20,6 +21,7 @@ export function HomePage() {
       {/* Padded content sections */}
       <div className="px-5 sm:px-10 lg:px-16 space-y-20 mt-20">
         
+        <IpTypeNav />
         <TrendingCollections />
         <NewOnMarketplace />
         <GenesisMintSection />

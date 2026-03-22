@@ -6,6 +6,7 @@ import { useUser, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { Home, Compass, Briefcase, PlusCircle, Zap, Activity, LayoutGrid, Telescope, Search, Sun, Moon, ShoppingBag, LogIn, UserPlus, Info, BookOpen, FileCode2, Mail, LifeBuoy, Scale, Lock, Users } from "lucide-react";
+import { IP_TYPE_CONFIG } from "@/lib/ip-type-config";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useUnreadOffers } from "@/hooks/use-unread-offers";
 import { useCart } from "@/hooks/use-cart";
@@ -149,6 +150,30 @@ export function AppSidebar() {
             <ThemeToggleItem />
             <CartItem />
             <NotificationsItem />
+          </SidebarMenu>
+        </SidebarGroup>
+
+        <SidebarSeparator />
+
+        {/* Browse by IP type */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Browse</SidebarGroupLabel>
+          <SidebarMenu>
+            {IP_TYPE_CONFIG.map(({ slug, label, icon: Icon, colorClass }) => (
+              <SidebarMenuItem key={slug}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname === `/${slug}`}
+                  tooltip={label}
+                  onClick={closeSidebar}
+                >
+                  <Link href={`/${slug}`}>
+                    <Icon className={pathname === `/${slug}` ? colorClass : undefined} />
+                    <span>{label}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
           </SidebarMenu>
         </SidebarGroup>
 
