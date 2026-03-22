@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { COMMENTS_CONTRACT, EXPLORER_URL } from "@/lib/constants";
-import { MessageSquare, Loader2, Send, CheckCircle, X, ExternalLink, Flag } from "lucide-react";
+import { MessageSquare, Loader2, Send, CheckCircle, X, ExternalLink, Flag, Zap } from "lucide-react";
 import { ReportDialog, type ReportTarget } from "@/components/report-dialog";
 
 const MAX_LEN = 1000;
@@ -241,7 +241,7 @@ export function CommentsSection({ contract, tokenId }: CommentsSectionProps) {
                       {/* Flag — others only, visible on row hover */}
                       {!own && isSignedIn && (
                         <button
-                          className="absolute -top-1 -right-5 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground/40 hover:text-muted-foreground"
+                          className="absolute -top-1 -right-5 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground/40 hover:text-destructive/70"
                           title="Report comment"
                           onClick={() => setReportTarget({ type: "COMMENT", commentId: comment.id })}
                         >
@@ -250,13 +250,24 @@ export function CommentsSection({ contract, tokenId }: CommentsSectionProps) {
                       )}
                     </div>
 
-                    {/* Timestamp */}
-                    <span
-                      className={`text-[10px] text-muted-foreground mt-1 ${own ? "mr-1" : "ml-1"}`}
-                      title={comment.postedAt}
-                    >
-                      {formatDistanceToNow(new Date(comment.postedAt), { addSuffix: true })}
-                    </span>
+                    {/* Metadata row: timestamp + on-chain proof link */}
+                    <div className={`flex items-center gap-2 mt-1 ${own ? "mr-1 flex-row-reverse" : "ml-1"}`}>
+                      <span className="text-[10px] text-muted-foreground" title={comment.postedAt}>
+                        {formatDistanceToNow(new Date(comment.postedAt), { addSuffix: true })}
+                      </span>
+                      {comment.txHash && (
+                        <a
+                          href={`${EXPLORER_URL}/tx/${comment.txHash}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="View on Voyager"
+                          className="flex items-center gap-0.5 text-[10px] text-primary/60 hover:text-primary transition-colors"
+                        >
+                          <span>⛓</span>
+                          <ExternalLink className="h-2.5 w-2.5" />
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
@@ -280,38 +291,52 @@ export function CommentsSection({ contract, tokenId }: CommentsSectionProps) {
             <p className="text-sm text-muted-foreground">Set up your wallet to comment</p>
           </div>
         ) : (
-          <div className="px-3 py-2 space-y-1">
-            <div className="flex items-end gap-2">
-              <span className="text-muted-foreground/60 text-xs pb-2 shrink-0">⛓</span>
+          <div className="px-3 py-3 space-y-2">
+            {/* CTA label */}
+            <div className="flex items-center gap-1.5">
+              <Zap className="h-3 w-3 text-primary/70" />
+              <span className="text-[10px] font-medium text-primary/70 uppercase tracking-wider">
+                Leave a permanent mark on Starknet
+              </span>
+            </div>
+            {/* Input area */}
+            <div className="rounded-xl border border-border bg-background/60 focus-within:border-primary/60 focus-within:ring-2 focus-within:ring-primary/15 transition-all">
               <Textarea
                 ref={composeRef}
-                placeholder="Say something on-chain…"
+                placeholder="Say something on-chain… it's permanent."
                 value={text}
                 onChange={handleTextInput}
                 onKeyDown={handleKeyDown}
-                rows={1}
-                className="resize-none min-h-[36px] max-h-[96px] flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-0 py-1.5 text-sm"
+                rows={2}
+                className="resize-none min-h-[56px] max-h-[120px] w-full border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-3 pt-2.5 pb-1 text-sm rounded-xl"
                 disabled={isProcessing}
               />
-              <Button
-                size="icon"
-                variant="ghost"
-                className="shrink-0 h-8 w-8 mb-1"
-                onClick={() => setPinOpen(true)}
-                disabled={!canSubmit || isProcessing}
-              >
-                {isProcessing ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Send className="h-4 w-4" />
-                )}
-              </Button>
+              <div className="flex items-center justify-between px-3 pb-2.5">
+                <span className="text-[10px] text-muted-foreground/50 flex items-center gap-1">
+                  <span>⛓</span> Starknet · Enter to post
+                </span>
+                <div className="flex items-center gap-2">
+                  {byteLen > 800 && (
+                    <span className={`text-[10px] ${byteLen > MAX_LEN ? "text-destructive" : "text-muted-foreground"}`}>
+                      {byteLen}/{MAX_LEN}
+                    </span>
+                  )}
+                  <Button
+                    size="sm"
+                    className="h-7 px-3 text-xs gap-1.5"
+                    onClick={() => setPinOpen(true)}
+                    disabled={!canSubmit || isProcessing}
+                  >
+                    {isProcessing ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Send className="h-3 w-3" />
+                    )}
+                    Post on-chain
+                  </Button>
+                </div>
+              </div>
             </div>
-            {byteLen > 800 && (
-              <p className={`text-[10px] text-right ${byteLen > MAX_LEN ? "text-destructive" : "text-muted-foreground"}`}>
-                {byteLen}/{MAX_LEN}
-              </p>
-            )}
           </div>
         )}
       </div>
