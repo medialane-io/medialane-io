@@ -9,7 +9,16 @@ import { MotionCard } from "@/components/ui/motion-primitives";
 import { ShoppingCart, Tag, ArrowRightLeft, X, Loader2 } from "lucide-react";
 import { cn, ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
+import type { RarityTier } from "@/lib/rarity";
 import type { ApiToken } from "@medialane/sdk";
+
+const RARITY_STYLE: Record<RarityTier, { label: string; className: string } | null> = {
+  legendary: { label: "Legendary", className: "bg-yellow-400/90 text-yellow-900" },
+  epic:      { label: "Epic",      className: "bg-purple-500/85 text-white" },
+  rare:      { label: "Rare",      className: "bg-blue-500/85 text-white" },
+  uncommon:  { label: "Uncommon",  className: "bg-emerald-500/85 text-white" },
+  common:    null,
+};
 
 interface TokenCardProps {
   token: ApiToken;
@@ -19,7 +28,7 @@ interface TokenCardProps {
   onTransfer?: (token: ApiToken) => void;
   onCancel?: (token: ApiToken) => void;
   isOwner?: boolean;
-  rarityRank?: number;
+  rarityTier?: RarityTier;
 }
 
 export function TokenCard({
@@ -30,7 +39,7 @@ export function TokenCard({
   onTransfer,
   onCancel,
   isOwner = false,
-  rarityRank,
+  rarityTier,
 }: TokenCardProps) {
   const { addItem, items } = useCart();
   const [imgError, setImgError] = useState(false);
@@ -91,11 +100,14 @@ export function TokenCard({
               <span className="text-[10px] text-muted-foreground">Indexing…</span>
             </div>
           )}
-          {/* Rarity rank badge */}
-          {rarityRank !== undefined && !isOwner && (
+          {/* Rarity tier badge */}
+          {rarityTier && !isOwner && RARITY_STYLE[rarityTier] && (
             <div className="absolute top-2 right-2 z-10">
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-black/60 backdrop-blur-sm text-[10px] font-bold text-white tabular-nums">
-                #{rarityRank}
+              <span className={cn(
+                "inline-flex items-center px-1.5 py-0.5 rounded-md backdrop-blur-sm text-[10px] font-bold leading-none",
+                RARITY_STYLE[rarityTier]!.className
+              )}>
+                {RARITY_STYLE[rarityTier]!.label}
               </span>
             </div>
           )}

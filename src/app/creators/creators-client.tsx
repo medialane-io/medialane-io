@@ -86,10 +86,12 @@ function CreatorCard({ creator }: { creator: ApiCreatorProfile }) {
         {/* Name + username */}
         <div>
           <p className="font-bold text-white text-base leading-snug truncate">{displayName}</p>
-          <p className="text-xs text-white/55 flex items-center gap-0.5 mt-0.5">
-            <AtSign className="h-2.5 w-2.5 shrink-0" />
-            <span className="truncate">{creator.username}</span>
-          </p>
+          {creator.displayName && (
+            <p className="text-xs text-white/55 flex items-center gap-0.5 mt-0.5">
+              <AtSign className="h-2.5 w-2.5 shrink-0" />
+              <span className="truncate">{creator.username}</span>
+            </p>
+          )}
         </div>
 
         {/* Bio */}
@@ -155,7 +157,7 @@ export default function CreatorsPageClient() {
                 <div className="flex items-center gap-2 rounded-full border border-border bg-card/80 px-4 py-1.5 text-sm">
                   <Palette className={`h-3.5 w-3.5 ${BRAND.purple.text}`} />
                   <span className="font-bold">{total}</span>
-                  <span className="text-muted-foreground">verified creator{total !== 1 ? "s" : ""}</span>
+                  <span className="text-muted-foreground">creator{total !== 1 ? "s" : ""}</span>
                 </div>
               )}
 

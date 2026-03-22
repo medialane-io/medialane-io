@@ -1,11 +1,23 @@
 /**
  * Compute rarity scores from a set of token attributes.
  * Score = sum of (totalTokens / traitValueCount) for each trait the token has.
- * Higher score = rarer. Returns a map of tokenId → { score, rank }.
+ * Higher score = rarer. Returns a map of tokenId → { score, rank, tier }.
  */
+export type RarityTier = "legendary" | "epic" | "rare" | "uncommon" | "common";
+
 export interface RarityResult {
   score: number;
   rank: number;
+  tier: RarityTier;
+}
+
+function toTier(rank: number, total: number): RarityTier {
+  const pct = rank / total;
+  if (pct <= 0.01) return "legendary";
+  if (pct <= 0.05) return "epic";
+  if (pct <= 0.15) return "rare";
+  if (pct <= 0.35) return "uncommon";
+  return "common";
 }
 
 type Attribute = { trait_type?: string; value?: unknown };
@@ -50,7 +62,8 @@ export function computeRarity(
 
   const result = new Map<string, RarityResult>();
   scores.forEach(({ tokenId, score }, i) => {
-    result.set(tokenId, { score, rank: i + 1 });
+    const rank = i + 1;
+    result.set(tokenId, { score, rank, tier: toTier(rank, total) });
   });
 
   return result;

@@ -12,7 +12,7 @@ import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddressDisplay } from "@/components/shared/address-display";
-import { CheckCircle2, ArrowLeft, Loader2, Flag, Inbox } from "lucide-react";
+import { ArrowLeft, Loader2, Flag, Inbox } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ReportDialog } from "@/components/report-dialog";
 import { TraitFilter } from "@/components/collection/trait-filter";
@@ -92,7 +92,7 @@ function CollectionItems({ contract }: { contract: string }) {
             <TokenCard
               key={`${t.contractAddress}-${t.tokenId}`}
               token={t}
-              rarityRank={rarityMap.get(t.tokenId)?.rank}
+              rarityTier={rarityMap.get(t.tokenId)?.tier}
             />
           ))}
         </div>
@@ -216,19 +216,11 @@ export default function CollectionPageClient() {
                 {collection?.name ?? "Unnamed Collection"}
               </h1>
               {/* Symbol + Verified as small separate pills, not grouped in the title */}
-              {(collection?.symbol || collection?.isKnown) && (
+              {collection?.symbol && (
                 <div className="flex items-center gap-2 mt-2 flex-wrap">
-                  {collection?.symbol && (
-                    <span className="font-mono text-[11px] bg-black/20 dark:bg-black/40 text-white/90 border border-white/15 backdrop-blur-sm rounded-full px-2.5 py-0.5">
-                      {collection.symbol}
-                    </span>
-                  )}
-                  {collection?.isKnown && (
-                    <span className="flex items-center gap-1 text-[11px] bg-black/20 dark:bg-black/40 text-white/90 border border-white/15 backdrop-blur-sm rounded-full px-2.5 py-0.5">
-                      <CheckCircle2 className="h-3 w-3 text-blue-300" />
-                      Verified
-                    </span>
-                  )}
+                  <span className="font-mono text-[11px] bg-black/20 dark:bg-black/40 text-white/90 border border-white/15 backdrop-blur-sm rounded-full px-2.5 py-0.5">
+                    {collection.symbol}
+                  </span>
                 </div>
               )}
             </div>
