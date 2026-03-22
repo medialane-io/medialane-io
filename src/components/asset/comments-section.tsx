@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
-import { byteArray, CallData } from "starknet";
+import { CallData } from "starknet";
 import { encodeTokenId } from "@/hooks/use-transfer";
 import { useAuth, SignInButton } from "@clerk/nextjs";
 import { useComments } from "@/hooks/use-comments";
@@ -20,6 +20,31 @@ import { toast } from "sonner";
 
 const MAX_LEN = 1000;
 
+/**
+ * Build a Cairo ByteArray from any Unicode string.
+ * starknet.js byteArrayFromString only handles ASCII — this encodes as UTF-8 first,
+ * then packs bytes into 31-byte felt252 chunks (the Cairo ByteArray layout).
+ */
+function byteArrayFromUtf8(str: string): { data: string[]; pending_word: string; pending_word_len: number } {
+  const bytes = new TextEncoder().encode(str);
+  const data: string[] = [];
+  let i = 0;
+  while (i + 31 <= bytes.length) {
+    let value = 0n;
+    for (let j = 0; j < 31; j++) value = (value << 8n) | BigInt(bytes[i + j]);
+    data.push("0x" + value.toString(16));
+    i += 31;
+  }
+  const remaining = bytes.slice(i);
+  let pendingWord = 0n;
+  for (const byte of remaining) pendingWord = (pendingWord << 8n) | BigInt(byte);
+  return {
+    data,
+    pending_word: "0x" + pendingWord.toString(16),
+    pending_word_len: remaining.length,
+  };
+}
+
 interface CommentsSectionProps {
   contract: string;
   tokenId: string;
@@ -34,7 +59,8 @@ export function CommentsSection({ contract, tokenId }: CommentsSectionProps) {
   const [text, setText] = useState("");
   const [pinOpen, setPinOpen] = useState(false);
 
-  const canSubmit = text.trim().length > 0 && text.length <= MAX_LEN && !!COMMENTS_CONTRACT;
+  const byteLen = new TextEncoder().encode(text).length;
+  const canSubmit = text.trim().length > 0 && byteLen <= MAX_LEN && !!COMMENTS_CONTRACT;
 
   const handleSubmit = () => {
     if (!canSubmit) return;
@@ -44,7 +70,7 @@ export function CommentsSection({ contract, tokenId }: CommentsSectionProps) {
   const handlePin = async (pin: string) => {
     setPinOpen(false);
     try {
-      const encoded = byteArray.byteArrayFromString(text.trim());
+      const encoded = byteArrayFromUtf8(text.trim());
       const [tokenIdLow, tokenIdHigh] = encodeTokenId(tokenId);
       // add_comment(nft_contract: ContractAddress, token_id: u256, content: ByteArray)
       const calldata = CallData.compile([contract, { low: tokenIdLow, high: tokenIdHigh }, encoded]);
@@ -98,8 +124,8 @@ export function CommentsSection({ contract, tokenId }: CommentsSectionProps) {
               disabled={isSubmitting}
             />
             <div className="flex items-center justify-between">
-              <span className={`text-xs ${text.length > MAX_LEN ? "text-destructive" : "text-muted-foreground"}`}>
-                {text.length}/{MAX_LEN}
+              <span className={`text-xs ${byteLen > MAX_LEN ? "text-destructive" : "text-muted-foreground"}`}>
+                {byteLen}/{MAX_LEN} bytes
               </span>
               <Button
                 size="sm"
