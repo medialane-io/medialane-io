@@ -19,6 +19,7 @@ import { TraitFilter } from "@/components/collection/trait-filter";
 import { SweepBar } from "@/components/collection/sweep-bar";
 import { HiddenContentBanner } from "@/components/hidden-content-banner";
 import { ipfsToHttp, formatDisplayPrice, cn } from "@/lib/utils";
+import { computeRarity } from "@/lib/rarity";
 import type { ApiToken } from "@medialane/sdk";
 
 const PAGE_SIZE = 24;
@@ -51,6 +52,8 @@ function CollectionItems({ contract }: { contract: string }) {
       );
     });
   }, [allTokens, selectedFilters]);
+
+  const rarityMap = useMemo(() => computeRarity(allTokens), [allTokens]);
 
   const hasMore = meta ? allTokens.length < meta.total! : false;
 
@@ -86,7 +89,11 @@ function CollectionItems({ contract }: { contract: string }) {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
           {filteredTokens.map((t) => (
-            <TokenCard key={`${t.contractAddress}-${t.tokenId}`} token={t} />
+            <TokenCard
+              key={`${t.contractAddress}-${t.tokenId}`}
+              token={t}
+              rarityRank={rarityMap.get(t.tokenId)?.rank}
+            />
           ))}
         </div>
       )}

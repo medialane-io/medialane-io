@@ -19,6 +19,7 @@ interface TokenCardProps {
   onTransfer?: (token: ApiToken) => void;
   onCancel?: (token: ApiToken) => void;
   isOwner?: boolean;
+  rarityRank?: number;
 }
 
 export function TokenCard({
@@ -29,6 +30,7 @@ export function TokenCard({
   onTransfer,
   onCancel,
   isOwner = false,
+  rarityRank,
 }: TokenCardProps) {
   const { addItem, items } = useCart();
   const [imgError, setImgError] = useState(false);
@@ -87,6 +89,14 @@ export function TokenCard({
             <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-background/85 backdrop-blur-sm rounded-full px-2 py-0.5">
               <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
               <span className="text-[10px] text-muted-foreground">Indexing…</span>
+            </div>
+          )}
+          {/* Rarity rank badge */}
+          {rarityRank !== undefined && !isOwner && (
+            <div className="absolute top-2 right-2 z-10">
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-black/60 backdrop-blur-sm text-[10px] font-bold text-white tabular-nums">
+                #{rarityRank}
+              </span>
             </div>
           )}
           {/* Listed badge — shows price + currency */}
