@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { ExternalLink, RefreshCw, Plus, Download } from "lucide-react";
+import { ExternalLink, RefreshCw, Plus, Download, EyeOff, Eye } from "lucide-react";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL!;
 // Must match API_SECRET_KEY on the backend — set NEXT_PUBLIC_ADMIN_API_KEY in .env.local and Railway
@@ -74,6 +74,14 @@ export default function AdminCollectionsPage() {
     } catch { toast.error("Failed to update"); }
   }
 
+  async function handleIsHidden(contractAddress: string, current: boolean) {
+    try {
+      await adminFetch(`/admin/collections/${contractAddress}`, { method: "PATCH", body: JSON.stringify({ isHidden: !current }) });
+      toast.success(!current ? "Collection hidden from platform" : "Collection visible on platform");
+      await mutate();
+    } catch { toast.error("Failed to update"); }
+  }
+
   async function handleRegister() {
     if (!registerContract.trim()) return;
     setRegistering(true);
@@ -127,12 +135,13 @@ export default function AdminCollectionsPage() {
       {isLoading ? <p className="text-sm text-muted-foreground">Loading&hellip;</p> : (
         <div className="space-y-2">
           {collections.map((col: any) => (
-            <div key={col.id} className="glass rounded-lg p-4 flex items-center gap-4">
+            <div key={col.id} className={`glass rounded-lg p-4 flex items-center gap-4 ${col.isHidden ? "opacity-50" : ""}`}>
               <div className="flex-1 min-w-0 space-y-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-semibold truncate">{col.name ?? "Unnamed"}</span>
                   <Badge variant="outline" className={SOURCE_STYLE[col.source]}>{col.source}</Badge>
                   <Badge variant="outline" className={STATUS_STYLE[col.metadataStatus]}>{col.metadataStatus}</Badge>
+                  {col.isHidden && <Badge variant="outline" className="bg-destructive/20 text-destructive">Hidden</Badge>}
                 </div>
                 <p className="text-xs text-muted-foreground font-mono truncate">{col.contractAddress}</p>
                 {col.claimedBy && <p className="text-xs text-muted-foreground">Claimed: {col.claimedBy.slice(0, 14)}&hellip;</p>}
@@ -142,6 +151,15 @@ export default function AdminCollectionsPage() {
                   <Switch checked={col.isKnown} onCheckedChange={() => handleIsKnown(col.contractAddress, col.isKnown)} id={`k-${col.id}`} />
                   <Label htmlFor={`k-${col.id}`} className="text-xs cursor-pointer">Featured</Label>
                 </div>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => handleIsHidden(col.contractAddress, col.isHidden)}
+                  title={col.isHidden ? "Show on platform" : "Hide from platform"}
+                  className={col.isHidden ? "text-destructive hover:text-destructive" : ""}
+                >
+                  {col.isHidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
                 <Button size="icon" variant="ghost" onClick={() => openBackfill(col.contractAddress)} title="Backfill transfers"><Download className="h-4 w-4" /></Button>
                 <Button size="icon" variant="ghost" onClick={() => handleRefresh(col.contractAddress)} title="Refresh metadata"><RefreshCw className="h-4 w-4" /></Button>
                 <a href={`https://voyager.online/contract/${col.contractAddress}`} target="_blank" rel="noopener noreferrer">
