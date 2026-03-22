@@ -28,6 +28,7 @@ import { IPTypeDisplay } from "@/components/ip-type-display";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import type { ApiActivity, ApiOrder } from "@medialane/sdk";
+import { PriceHistoryChart } from "@/components/asset/price-history-chart";
 import { EXPLORER_URL } from "@/lib/constants";
 import { useAuth, SignInButton } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
@@ -762,44 +763,47 @@ export default function AssetPageClient() {
 
           {/* Provenance tab */}
           <TabsContent value="provenance" className="mt-4">
-            {history.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-6 text-center">No activity recorded yet.</p>
-            ) : (
-              <div className="rounded-xl border border-border divide-y divide-border">
-                {(history as ApiActivity[]).map((event, i) => {
-                  const actor = event.offerer ?? event.fulfiller ?? event.from ?? "";
-                  const txLink = event.txHash ? `${EXPLORER_URL}/tx/${event.txHash}` : null;
-                  return (
-                    <div key={i} className="flex items-center justify-between px-4 py-3 gap-4">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <ArrowRightLeft className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium">{TYPE_LABEL[event.type] ?? event.type}</p>
-                          {actor && (
-                            <AddressDisplay address={actor} chars={4} showCopy={false} className="text-xs text-muted-foreground" />
+            <div className="space-y-4">
+              <PriceHistoryChart history={history as ApiActivity[]} />
+              {history.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-6 text-center">No activity recorded yet.</p>
+              ) : (
+                <div className="rounded-xl border border-border divide-y divide-border">
+                  {(history as ApiActivity[]).map((event, i) => {
+                    const actor = event.offerer ?? event.fulfiller ?? event.from ?? "";
+                    const txLink = event.txHash ? `${EXPLORER_URL}/tx/${event.txHash}` : null;
+                    return (
+                      <div key={i} className="flex items-center justify-between px-4 py-3 gap-4">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <ArrowRightLeft className="h-4 w-4 text-muted-foreground shrink-0" />
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium">{TYPE_LABEL[event.type] ?? event.type}</p>
+                            {actor && (
+                              <AddressDisplay address={actor} chars={4} showCopy={false} className="text-xs text-muted-foreground" />
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 shrink-0">
+                          {event.price?.formatted && (
+                            <span className="text-sm font-bold">
+                              {formatDisplayPrice(event.price.formatted)} {event.price.currency}
+                            </span>
+                          )}
+                          <span className="text-xs text-muted-foreground" title={new Date(event.timestamp).toLocaleString()}>
+                            {timeAgo(event.timestamp)}
+                          </span>
+                          {txLink && (
+                            <a href={txLink} target="_blank" rel="noopener noreferrer">
+                              <ExternalLink className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                            </a>
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-3 shrink-0">
-                        {event.price?.formatted && (
-                          <span className="text-sm font-bold">
-                            {formatDisplayPrice(event.price.formatted)} {event.price.currency}
-                          </span>
-                        )}
-                        <span className="text-xs text-muted-foreground" title={new Date(event.timestamp).toLocaleString()}>
-                          {timeAgo(event.timestamp)}
-                        </span>
-                        {txLink && (
-                          <a href={txLink} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="h-3 w-3 text-muted-foreground hover:text-foreground" />
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </TabsContent>
         </Tabs>
       </div>
