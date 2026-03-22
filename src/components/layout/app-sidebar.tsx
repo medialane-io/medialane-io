@@ -26,6 +26,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { MedialaneLogo } from "../brand/medialane-logo";
 import { MedialaneIcon } from "../brand/medialane-icon";
+import { NotificationsItem } from "@/components/layout/notifications-sheet";
 
 const NAV = [
   { href: "/discover", label: "Discover", icon: Telescope, exact: true },
@@ -147,6 +148,7 @@ export function AppSidebar() {
             </SidebarMenuItem>
             <ThemeToggleItem />
             <CartItem />
+            <NotificationsItem />
           </SidebarMenu>
         </SidebarGroup>
 
