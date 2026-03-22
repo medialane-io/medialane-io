@@ -61,7 +61,8 @@ trait INFTComments<TContractState> {
         token_id: u256,
         content: ByteArray,
     );
-    fn upgrade(ref self: TContractState, new_class_hash: starknet::ClassHash);
+    // upgrade is NOT in this trait — it uses OwnableComponent's assert_only_owner
+    // and UpgradeableComponent::UpgradeableImpl directly (infrastructure, not feature API)
 }
 
 #[starknet::contract]
@@ -77,6 +78,8 @@ mod NFTComments {
     #[abi(embed_v0)]
     impl OwnableImpl = OwnableComponent::OwnableImpl<ContractState>;
     impl OwnableInternalImpl = OwnableComponent::InternalImpl<ContractState>;
+    #[abi(embed_v0)]
+    impl UpgradeableImpl = UpgradeableComponent::UpgradeableImpl<ContractState>;
     impl UpgradeableInternalImpl = UpgradeableComponent::InternalImpl<ContractState>;
 
     #[storage]
@@ -132,10 +135,6 @@ mod NFTComments {
             });
         }
 
-        fn upgrade(ref self: ContractState, new_class_hash: ClassHash) {
-            self.ownable.assert_only_owner();
-            self.upgradeable.upgrade(new_class_hash);
-        }
     }
 }
 ```
@@ -191,8 +190,9 @@ model Comment {
   isHidden        Boolean  @default(false)
   txHash          String?
   blockNumber     BigInt
+  blockTimestamp  BigInt   // unix seconds from chain event (on-chain post time)
   logIndex        Int
-  createdAt       DateTime @default(now())
+  createdAt       DateTime @default(now())  // indexing time — for internal use only
 
   @@unique([txHash, logIndex])
   @@index([chain, contractAddress, tokenId])
@@ -247,19 +247,16 @@ export async function pollCommentEvents(fromBlock: number, toBlock: number): Pro
     const tokenId = (tokenIdHigh << 128n) | tokenIdLow;
     const author = normalizeAddress(event.keys[4]);
 
-    // data layout: ByteArray (variable length), then timestamp (u64)
-    // Cairo ByteArray serializes as: [word_count, word_0, ..., word_n, pending_word, pending_word_len]
-    // starknet.js v6 exports byteArray.stringFromByteArray(arr) which takes this raw felt array.
-    // It is a named export: import { byteArray } from "starknet"
+    // data layout: ByteArray (variable length), then timestamp (u64 — last felt)
+    // Parse timestamp from tail — immune to ByteArray length variance.
+    // byteArray.stringFromByteArray is a starknet.js v6 named export.
     const dataArr = event.data;
-    const wordCount = parseInt(dataArr[0], 16);
-    // Slice: elements 0..wordCount+2 inclusive = word_count + words + pending_word + pending_word_len
-    const byteArrayData = dataArr.slice(0, wordCount + 3);
+    const blockTimestamp = parseInt(dataArr[dataArr.length - 1], 16);
+    const byteArrayData = dataArr.slice(0, dataArr.length - 1);
     const content = byteArray.stringFromByteArray(byteArrayData);
-    const timestamp = parseInt(dataArr[wordCount + 3], 16);
 
     // Per-transaction logIndex: counts events from this contract within the same tx
-    const txHash = event.transaction_hash ?? "";
+    const txHash = event.transaction_hash; // always present from getEvents()
     const logIndex = txCounters[txHash] ?? 0;
     txCounters[txHash] = logIndex + 1;
 
@@ -268,7 +265,7 @@ export async function pollCommentEvents(fromBlock: number, toBlock: number): Pro
       tokenId: tokenId.toString(),
       author,
       content,
-      timestamp,
+      blockTimestamp,
       txHash,
       blockNumber: BigInt(event.block_number ?? 0),
       logIndex,
@@ -281,8 +278,8 @@ export interface ParsedComment {
   tokenId: string;
   author: string;
   content: string;
-  timestamp: number;
-  txHash: string | null;
+  blockTimestamp: number;  // unix seconds from the CommentAdded event
+  txHash: string;          // always present from getEvents() — non-nullable
   blockNumber: bigint;
   logIndex: number;
 }
@@ -300,7 +297,7 @@ export async function handleCommentAdded(comment: ParsedComment): Promise<void> 
   if (!content) return;
 
   await db.comment.upsert({
-    where: { txHash_logIndex: { txHash: comment.txHash ?? "", logIndex: comment.logIndex } },
+    where: { txHash_logIndex: { txHash: comment.txHash, logIndex: comment.logIndex } },
     create: {
       chain: "starknet",
       contractAddress: normalizeAddress(comment.nftContract),
@@ -309,6 +306,7 @@ export async function handleCommentAdded(comment: ParsedComment): Promise<void> 
       content,
       txHash: comment.txHash,
       blockNumber: comment.blockNumber,
+      blockTimestamp: BigInt(comment.blockTimestamp),
       logIndex: comment.logIndex,
     },
     update: {}, // no updates — events are immutable
@@ -349,7 +347,7 @@ export interface ApiComment {
   content: string;            // sanitized comment text
   txHash: string | null;
   blockNumber: string;        // BigInt serialized as string
-  createdAt: string;          // ISO 8601
+  postedAt: string;           // ISO 8601 derived from blockTimestamp — use this for display
 }
 ```
 
@@ -429,7 +427,7 @@ const calldata = CallData.compile({
 - On success: `mutate()` + `setTimeout(() => mutate(), 10000)` (same delayed-revalidation pattern used after order writes).
 
 **Comment list:**
-- Each row shows `<AddressDisplay>` (author, 6 chars), comment text, `timeAgo(createdAt)`, and an external link icon to `${EXPLORER_URL}/${comment.txHash}` (opens Voyager in new tab; only shown when `txHash` is non-null).
+- Each row shows `<AddressDisplay>` (author, 6 chars), comment text, `timeAgo(postedAt)` (on-chain time, not indexing time), and an external link icon to `${EXPLORER_URL}/${comment.txHash}` (opens Voyager in new tab; only shown when `txHash` is non-null).
 
 **Empty state:** "Be the first to leave a comment."
 

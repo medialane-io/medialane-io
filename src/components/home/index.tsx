@@ -20,12 +20,11 @@ export function HomePage() {
 
       {/* Padded content sections */}
       <div className="px-5 sm:px-10 lg:px-16 space-y-20 mt-20">
-        
-        <IpTypeNav />
         <TrendingCollections />
         <NewOnMarketplace />
         <GenesisMintSection />
         <CommunityActivity />
+        <IpTypeNav />
         <LearnDocsCta />
       </div>
     </div>

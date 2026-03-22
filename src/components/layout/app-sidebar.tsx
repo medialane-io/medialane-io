@@ -155,7 +155,7 @@ export function AppSidebar() {
 
         <SidebarSeparator />
 
-        {/* Browse by IP type */}
+        {/* Browse by IP type 
         <SidebarGroup>
           <SidebarGroupLabel>Browse</SidebarGroupLabel>
           <SidebarMenu>
@@ -177,7 +177,7 @@ export function AppSidebar() {
           </SidebarMenu>
         </SidebarGroup>
 
-        <SidebarSeparator />
+        <SidebarSeparator />*/}
 
         <SidebarGroup>
           <SidebarGroupLabel>Docs</SidebarGroupLabel>
