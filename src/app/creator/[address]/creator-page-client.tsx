@@ -31,9 +31,11 @@ import {
   LayoutList,
   Flag,
   Sparkles,
+  BarChart2,
 } from "lucide-react";
 import { ReportDialog } from "@/components/report-dialog";
 import { HiddenContentBanner } from "@/components/hidden-content-banner";
+import { CreatorAnalytics } from "@/components/creator/creator-analytics";
 import type { ApiActivity } from "@medialane/sdk";
 import { cn } from "@/lib/utils";
 
@@ -188,6 +190,7 @@ const TABS = [
   { id: "assets",      label: "Assets",      Icon: LayoutGrid },
   { id: "listings",    label: "Listings",    Icon: ShoppingBag },
   { id: "collections", label: "Collections", Icon: LayoutList },
+  { id: "analytics",   label: "Analytics",   Icon: BarChart2 },
   { id: "activity",    label: "Activity",    Icon: Activity },
 ] as const;
 
@@ -235,7 +238,7 @@ export default function CreatorPageClient() {
   const { tokens,      isLoading: tokensLoading      } = useTokensByOwner(activeTab === "assets"      ? addr : null);
   const { orders,      isLoading: ordersLoading      } = useUserOrders(activeTab === "listings"    ? addr : null);
   const { collections, isLoading: collectionsLoading } = useCollectionsByOwner(activeTab === "collections" ? addr : null);
-  const { activities,  isLoading: activitiesLoading  } = useActivitiesByAddress(activeTab === "activity"  ? addr : null);
+  const { activities,  isLoading: activitiesLoading  } = useActivitiesByAddress(addr);
 
   // Always fetch one token for the banner image
   const { tokens: bannerTokens } = useTokensByOwner(addr, 1, 1);
@@ -261,7 +264,7 @@ export default function CreatorPageClient() {
     ...(activeTab === "assets"      && !tokensLoading      && { assets:      tokens.length }),
     ...(activeTab === "listings"    && !ordersLoading      && { listings:    activeListings.length }),
     ...(activeTab === "collections" && !collectionsLoading && { collections: collections.length }),
-    ...(activeTab === "activity"    && !activitiesLoading  && { activity:    activities.length }),
+    ...(!activitiesLoading && { activity: activities.length }),
   };
 
   return (
@@ -495,6 +498,13 @@ export default function CreatorPageClient() {
                 ))}
               </div>
             )
+          )}
+
+          {/* Analytics */}
+          {activeTab === "analytics" && (
+            <div className="max-w-2xl">
+              <CreatorAnalytics activities={activities} isLoading={activitiesLoading} />
+            </div>
           )}
 
           {/* Activity */}
