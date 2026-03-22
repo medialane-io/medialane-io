@@ -16,7 +16,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { COMMENTS_CONTRACT, EXPLORER_URL } from "@/lib/constants";
-import { MessageSquare, Loader2, Send, CheckCircle, X, ExternalLink } from "lucide-react";
+import { MessageSquare, Loader2, Send, CheckCircle, X, ExternalLink, Flag } from "lucide-react";
+import { ReportDialog, type ReportTarget } from "@/components/report-dialog";
 
 const MAX_LEN = 1000;
 
@@ -59,6 +60,7 @@ export function CommentsSection({ contract, tokenId }: CommentsSectionProps) {
   const [postStep, setPostStep] = useState<PostStep>("idle");
   const [postTxHash, setPostTxHash] = useState<string | null>(null);
   const [postError, setPostError] = useState<string | null>(null);
+  const [reportTarget, setReportTarget] = useState<ReportTarget | null>(null);
 
   const byteLen = new TextEncoder().encode(text).length;
   const canSubmit = text.trim().length > 0 && byteLen <= MAX_LEN && !!COMMENTS_CONTRACT;
@@ -176,16 +178,27 @@ export function CommentsSection({ contract, tokenId }: CommentsSectionProps) {
                 {comment.author.slice(2, 4).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-baseline gap-2 flex-wrap">
-                  <Link
-                    href={`/creator/${comment.author}`}
-                    className="text-xs font-medium hover:underline underline-offset-2"
-                  >
-                    <AddressDisplay address={comment.author} chars={4} showCopy={false} />
-                  </Link>
-                  <span className="text-[10px] text-muted-foreground" title={comment.postedAt}>
-                    {formatDistanceToNow(new Date(comment.postedAt), { addSuffix: true })}
-                  </span>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-baseline gap-2 flex-wrap min-w-0">
+                    <Link
+                      href={`/creator/${comment.author}`}
+                      className="text-xs font-medium hover:underline underline-offset-2"
+                    >
+                      <AddressDisplay address={comment.author} chars={4} showCopy={false} />
+                    </Link>
+                    <span className="text-[10px] text-muted-foreground" title={comment.postedAt}>
+                      {formatDistanceToNow(new Date(comment.postedAt), { addSuffix: true })}
+                    </span>
+                  </div>
+                  {isSignedIn && (
+                    <button
+                      className="shrink-0 text-muted-foreground/40 hover:text-muted-foreground transition-colors mt-0.5"
+                      title="Report comment"
+                      onClick={() => setReportTarget({ type: "COMMENT", commentId: comment.id })}
+                    >
+                      <Flag className="h-3 w-3" />
+                    </button>
+                  )}
                 </div>
                 <p className="text-sm mt-1 break-words leading-relaxed">{comment.content}</p>
               </div>
@@ -202,6 +215,15 @@ export function CommentsSection({ contract, tokenId }: CommentsSectionProps) {
         title="Post comment on-chain"
         description="Enter your PIN to publish this comment permanently to Starknet."
       />
+
+      {/* Comment report dialog */}
+      {reportTarget && (
+        <ReportDialog
+          target={reportTarget}
+          open={!!reportTarget}
+          onOpenChange={(open) => { if (!open) setReportTarget(null); }}
+        />
+      )}
 
       {/* Transaction status dialog */}
       <Dialog open={postStep !== "idle"} onOpenChange={(v) => { if (!v) resetPost(); }}>
