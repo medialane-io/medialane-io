@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
@@ -15,6 +15,7 @@ import { AddressDisplay } from "@/components/shared/address-display";
 import { CheckCircle2, ArrowLeft, Loader2, Flag, Inbox } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ReportDialog } from "@/components/report-dialog";
+import { TraitFilter } from "@/components/collection/trait-filter";
 import { HiddenContentBanner } from "@/components/hidden-content-banner";
 import { ipfsToHttp, formatDisplayPrice, cn } from "@/lib/utils";
 import type { ApiToken } from "@medialane/sdk";
@@ -24,6 +25,7 @@ const PAGE_SIZE = 24;
 function CollectionItems({ contract }: { contract: string }) {
   const [page, setPage] = useState(1);
   const [allTokens, setAllTokens] = useState<ApiToken[]>([]);
+  const [selectedFilters, setSelectedFilters] = useState<Record<string, string>>({});
   const { tokens, meta, isLoading } = useCollectionTokens(contract, page, PAGE_SIZE);
 
   useEffect(() => {
@@ -35,6 +37,19 @@ function CollectionItems({ contract }: { contract: string }) {
       });
     }
   }, [tokens, page]);
+
+  const filteredTokens = useMemo(() => {
+    const filterEntries = Object.entries(selectedFilters);
+    if (filterEntries.length === 0) return allTokens;
+    return allTokens.filter((token) => {
+      const attrs = Array.isArray(token.metadata?.attributes)
+        ? (token.metadata.attributes as { trait_type?: string; value?: string }[])
+        : [];
+      return filterEntries.every(([traitType, value]) =>
+        attrs.some((a) => a.trait_type === traitType && String(a.value) === value)
+      );
+    });
+  }, [allTokens, selectedFilters]);
 
   const hasMore = meta ? allTokens.length < meta.total! : false;
 
@@ -56,12 +71,24 @@ function CollectionItems({ contract }: { contract: string }) {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-        {allTokens.map((t) => (
-          <TokenCard key={`${t.contractAddress}-${t.tokenId}`} token={t} />
-        ))}
-      </div>
+    <div className="space-y-4">
+      <TraitFilter
+        tokens={allTokens}
+        selected={selectedFilters}
+        onChange={setSelectedFilters}
+      />
+      {filteredTokens.length === 0 && Object.keys(selectedFilters).length > 0 ? (
+        <EmptyState
+          title="No items match these filters"
+          body="Try removing some filters to see more results."
+        />
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+          {filteredTokens.map((t) => (
+            <TokenCard key={`${t.contractAddress}-${t.tokenId}`} token={t} />
+          ))}
+        </div>
+      )}
       {hasMore && (
         <div className="flex justify-center">
           <Button
