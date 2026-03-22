@@ -145,6 +145,12 @@ export default function ProfileSettingsPage() {
 
   async function handleSave() {
     if (!walletAddress) return;
+    const urlFields = ["websiteUrl", "twitterUrl", "discordUrl", "telegramUrl"] as const;
+    const hasInvalidUrl = urlFields.some((k) => form[k] && !form[k].startsWith("http://") && !form[k].startsWith("https://"));
+    if (hasInvalidUrl) {
+      toast.error("All URL fields must start with http:// or https://");
+      return;
+    }
     setSaving(true);
     try {
       const token = await getToken();
@@ -159,23 +165,32 @@ export default function ProfileSettingsPage() {
     }
   }
 
+  const URL_KEYS = new Set(["websiteUrl", "twitterUrl", "discordUrl", "telegramUrl"]);
+  const isValidUrl = (v: string) => !v || v.startsWith("http://") || v.startsWith("https://");
+
   const field = (
     key: keyof typeof form,
     label: string,
     placeholder = "",
     helper?: string
-  ) => (
-    <div className="space-y-1.5">
-      <Label htmlFor={key}>{label}</Label>
-      <Input
-        id={key}
-        placeholder={placeholder}
-        value={form[key]}
-        onChange={(e) => setForm(f => ({ ...f, [key]: e.target.value }))}
-      />
-      {helper && <p className="text-xs text-muted-foreground">{helper}</p>}
-    </div>
-  );
+  ) => {
+    const isUrl = URL_KEYS.has(key);
+    const invalid = isUrl && !isValidUrl(form[key]);
+    return (
+      <div className="space-y-1.5">
+        <Label htmlFor={key}>{label}</Label>
+        <Input
+          id={key}
+          placeholder={placeholder}
+          value={form[key]}
+          onChange={(e) => setForm(f => ({ ...f, [key]: e.target.value }))}
+          className={invalid ? "border-destructive focus-visible:ring-destructive" : ""}
+        />
+        {invalid && <p className="text-xs text-destructive">Must start with http:// or https://</p>}
+        {!invalid && helper && <p className="text-xs text-muted-foreground">{helper}</p>}
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-8 max-w-2xl">
