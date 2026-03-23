@@ -405,6 +405,15 @@ export default function AssetPageClient() {
                       <ArrowRightLeft className="h-4 w-4 mr-2" />
                       Transfer
                     </Button>
+                    <div className="btn-border-animated p-[1px] rounded-xl">
+                      <button
+                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-rose"
+                        onClick={() => setSelfRemixOpen(true)}
+                      >
+                        <GitBranch className="h-4 w-4" />
+                        Create a Remix
+                      </button>
+                    </div>
                   </div>
                 ) : isSignedIn ? (
                   <div className="space-y-2">
@@ -430,10 +439,10 @@ export default function AssetPageClient() {
                           {inCart ? "In cart" : "Add to cart"}
                         </button>
                       </div>
-                      {/* Make offer — flat brand-rose, animated gradient border */}
+                      {/* Make offer — flat brand-purple, animated gradient border */}
                       <div className="btn-border-animated p-[1px] rounded-xl">
                         <button
-                          className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-rose"
+                          className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-purple"
                           onClick={() => setOfferOpen(true)}
                         >
                           <HandCoins className="h-4 w-4" />
@@ -441,6 +450,19 @@ export default function AssetPageClient() {
                         </button>
                       </div>
                     </div>
+                    {/* Create a Remix */}
+                    {!isOwner && (
+                      <div className="btn-border-animated p-[1px] rounded-xl">
+                        <button
+                          className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-rose disabled:opacity-50"
+                          disabled={autoRemixLoading}
+                          onClick={isOpenLicense ? handleAutoRemix : () => setRemixOfferOpen(true)}
+                        >
+                          {autoRemixLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <GitBranch className="h-4 w-4" />}
+                          Create a Remix
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <SignInButton mode="modal">
@@ -468,16 +490,37 @@ export default function AssetPageClient() {
                       <ArrowRightLeft className="h-4 w-4 mr-2" />
                       Transfer
                     </Button>
+                    <div className="btn-border-animated p-[1px] rounded-xl">
+                      <button
+                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-rose"
+                        onClick={() => setSelfRemixOpen(true)}
+                      >
+                        <GitBranch className="h-4 w-4" />
+                        Create a Remix
+                      </button>
+                    </div>
                   </div>
                 ) : isSignedIn ? (
-                  <div className="btn-border-animated p-[1px] rounded-xl">
-                    <button
-                      className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-purple"
-                      onClick={() => setOfferOpen(true)}
-                    >
-                      <HandCoins className="h-4 w-4" />
-                      Make offer
-                    </button>
+                  <div className="space-y-2">
+                    <div className="btn-border-animated p-[1px] rounded-xl">
+                      <button
+                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-purple"
+                        onClick={() => setOfferOpen(true)}
+                      >
+                        <HandCoins className="h-4 w-4" />
+                        Make offer
+                      </button>
+                    </div>
+                    <div className="btn-border-animated p-[1px] rounded-xl">
+                      <button
+                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-rose disabled:opacity-50"
+                        disabled={autoRemixLoading}
+                        onClick={isOpenLicense ? handleAutoRemix : () => setRemixOfferOpen(true)}
+                      >
+                        {autoRemixLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <GitBranch className="h-4 w-4" />}
+                        Create a Remix
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <SignInButton mode="modal">
@@ -532,30 +575,6 @@ export default function AssetPageClient() {
                 </div>
               </div>
             )}
-
-            {/* Remix button */}
-            {isOwner ? (
-              <div className="btn-border-animated p-[1px] rounded-xl">
-                <button
-                  className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-rose"
-                  onClick={() => setSelfRemixOpen(true)}
-                >
-                  <GitBranch className="h-4 w-4" />
-                  Create a Remix
-                </button>
-              </div>
-            ) : isSignedIn ? (
-              <div className="btn-border-animated p-[1px] rounded-xl">
-                <button
-                  className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-rose disabled:opacity-50"
-                  disabled={autoRemixLoading}
-                  onClick={isOpenLicense ? handleAutoRemix : () => setRemixOfferOpen(true)}
-                >
-                  {autoRemixLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <GitBranch className="h-4 w-4" />}
-                  Create a Remix
-                </button>
-              </div>
-            ) : null}
 
             {/* Links */}
             <div className="flex items-center gap-3 text-sm">
