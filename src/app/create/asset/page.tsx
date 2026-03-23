@@ -744,17 +744,19 @@ export default function CreateAssetPage() {
             </Collapsible>
 
             <div className="mint-btn-wrap">
-              <Button
-                type="submit"
-                className="w-full h-12 text-base"
-                disabled={
-                  mintStep !== "idle" ||
-                  collectionsLoading ||
-                  collections.length === 0
-                }
-              >
-                {listingOpen && listPrice && parseFloat(listPrice) > 0 ? "Mint & List" : "Mint asset"}
-              </Button>
+              <div className={`btn-border-animated p-[1px] rounded-xl ${mintStep !== "idle" || collectionsLoading || collections.length === 0 ? "opacity-40 pointer-events-none" : ""}`}>
+                <Button
+                  type="submit"
+                  className="w-full h-12 text-base rounded-[11px] bg-brand-blue hover:brightness-110 border-0 text-white"
+                  disabled={
+                    mintStep !== "idle" ||
+                    collectionsLoading ||
+                    collections.length === 0
+                  }
+                >
+                  {listingOpen && listPrice && parseFloat(listPrice) > 0 ? "Mint & List" : "Mint asset"}
+                </Button>
+              </div>
             </div>
             <p className="text-xs text-center text-muted-foreground">
               Gas is free. Your PIN signs the mint{listingOpen && listPrice ? " and listing" : ""} transaction.

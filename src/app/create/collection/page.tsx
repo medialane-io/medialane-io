@@ -394,14 +394,16 @@ export default function CreateCollectionPage() {
               )}
             />
 
-            <Button
-              type="submit"
-              className="w-full h-12 text-base"
-              disabled={collectionStep !== "idle" || imageUploading}
-            >
-              <Layers className="h-4 w-4 mr-2" />
-              Create collection
-            </Button>
+            <div className={`btn-border-animated p-[1px] rounded-xl ${collectionStep !== "idle" || imageUploading ? "opacity-40 pointer-events-none" : ""}`}>
+              <Button
+                type="submit"
+                className="w-full h-12 text-base rounded-[11px] bg-brand-blue hover:brightness-110 border-0 text-white"
+                disabled={collectionStep !== "idle" || imageUploading}
+              >
+                <Layers className="h-4 w-4 mr-2" />
+                Create collection
+              </Button>
+            </div>
             <p className="text-xs text-center text-muted-foreground">
               Gas is free. Your PIN signs the transaction.
             </p>
