@@ -170,40 +170,21 @@ function PlatformStatsBar() {
   );
 }
 
-function IpTypeNav() {
+function IpTypeChip({ href, label }: { href: string; label: string }) {
   const pathname = usePathname();
-  const activeType = pathname === "/marketplace" ? "" : pathname.slice(1);
-
+  const isActive = href === "/marketplace" ? pathname === "/marketplace" : pathname === href;
   return (
-    <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0 border-t border-border/40 pt-3">
-      <div className="flex items-center gap-1.5 min-w-max pb-1">
-        <Link
-          href="/marketplace"
-          className={cn(
-            "text-xs px-3 py-1.5 rounded-full border transition-colors whitespace-nowrap",
-            activeType === ""
-              ? "border-primary bg-primary/10 text-primary font-medium"
-              : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
-          )}
-        >
-          All Types
-        </Link>
-        {IP_TYPES.map((type) => (
-          <Link
-            key={type}
-            href={`/${type.toLowerCase()}`}
-            className={cn(
-              "text-xs px-3 py-1.5 rounded-full border transition-colors whitespace-nowrap",
-              activeType === type.toLowerCase()
-                ? "border-primary bg-primary/10 text-primary font-medium"
-                : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
-            )}
-          >
-            {type}
-          </Link>
-        ))}
-      </div>
-    </div>
+    <Link
+      href={href}
+      className={cn(
+        "text-xs px-3 py-1 rounded-full border transition-colors whitespace-nowrap",
+        isActive
+          ? "border-primary bg-primary/10 text-primary font-medium"
+          : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
+      )}
+    >
+      {label}
+    </Link>
   );
 }
 
@@ -385,6 +366,17 @@ export default function MarketplacePageClient() {
               </div>
             </div>
 
+            {/* IP Type */}
+            <div className="flex flex-wrap items-start gap-2 pt-1 border-t border-border/60">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground w-12 shrink-0 pt-1">IP Type</span>
+              <div className="flex flex-wrap gap-1.5">
+                <IpTypeChip href="/marketplace" label="All" />
+                {IP_TYPES.map((type) => (
+                  <IpTypeChip key={type} href={`/${type.toLowerCase()}`} label={type} />
+                ))}
+              </div>
+            </div>
+
             {hasFilters && (
               <div className="pt-1 border-t border-border/60">
                 <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground" onClick={resetAll}>
@@ -395,9 +387,6 @@ export default function MarketplacePageClient() {
           </div>
         )}
       </div>
-
-      {/* IP Type navigation */}
-      <IpTypeNav />
 
       {/* Grid */}
       <ListingsGrid

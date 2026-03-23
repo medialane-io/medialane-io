@@ -6,9 +6,11 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MotionCard } from "@/components/ui/motion-primitives";
-import { ShoppingCart, Check } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ShoppingCart, Check, MoreHorizontal, ExternalLink, Layers, ArrowRightLeft, Flag } from "lucide-react";
 import { cn, ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
+import { ReportDialog } from "@/components/report-dialog";
 import type { ApiOrder } from "@medialane/sdk";
 
 interface ListingCardProps {
@@ -20,6 +22,7 @@ export function ListingCard({ order, onBuy }: ListingCardProps) {
   const { addItem, items } = useCart();
   const inCart = items.some((i) => i.orderHash === order.orderHash);
   const [imgError, setImgError] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   const isListing = order.offer.itemType === "ERC721";
 
   const name = order.token?.name ?? `Token #${order.nftTokenId}`;
@@ -86,11 +89,11 @@ export function ListingCard({ order, onBuy }: ListingCardProps) {
           </p>
 
           {isListing && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               {onBuy && (
                 <Button
                   size="sm"
-                  className="flex-1 h-8 text-xs bg-brand-purple hover:bg-brand-purple/90 text-white"
+                  className="flex-1 h-8 text-xs bg-brand-blue hover:brightness-110 text-white border-0"
                   onClick={(e) => {
                     e.preventDefault();
                     onBuy(order);
@@ -99,26 +102,74 @@ export function ListingCard({ order, onBuy }: ListingCardProps) {
                   Buy Now
                 </Button>
               )}
+              {/* Cart */}
               <Button
                 size="sm"
                 variant="outline"
                 className={cn(
                   "h-8 w-8 p-0 shrink-0 transition-colors",
-                  inCart && "border-emerald-500/50 bg-emerald-500/10 text-emerald-500"
+                  inCart && "border-brand-orange/50 bg-brand-orange/10 text-brand-orange"
                 )}
                 onClick={handleAddToCart}
                 disabled={inCart}
                 aria-label={inCart ? "Added to cart" : "Add to cart"}
               >
-                {inCart
-                  ? <Check className="h-3.5 w-3.5" />
-                  : <ShoppingCart className="h-3.5 w-3.5" />
-                }
+                {inCart ? <Check className="h-3.5 w-3.5" /> : <ShoppingCart className="h-3.5 w-3.5" />}
               </Button>
+              {/* More actions */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 w-8 p-0 shrink-0"
+                    onClick={(e) => e.preventDefault()}
+                    aria-label="More actions"
+                  >
+                    <MoreHorizontal className="h-3.5 w-3.5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-44">
+                  <DropdownMenuItem asChild>
+                    <Link href={`/asset/${order.nftContract}/${order.nftTokenId}`} className="flex items-center gap-2">
+                      <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+                      View Asset
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href={`/collections/${order.nftContract}`} className="flex items-center gap-2">
+                      <Layers className="h-3.5 w-3.5 text-muted-foreground" />
+                      View Collection
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href={`/asset/${order.nftContract}/${order.nftTokenId}`} className="flex items-center gap-2">
+                      <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground" />
+                      Transfer Asset
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="flex items-center gap-2 text-destructive focus:text-destructive"
+                    onClick={(e) => { e.preventDefault(); setReportOpen(true); }}
+                  >
+                    <Flag className="h-3.5 w-3.5" />
+                    Report
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           )}
         </div>
       </Link>
+
+      {reportOpen && (
+        <ReportDialog
+          target={{ type: "TOKEN", contract: order.nftContract ?? "", tokenId: order.nftTokenId ?? "", name: order.token?.name ?? undefined }}
+          open={reportOpen}
+          onOpenChange={setReportOpen}
+        />
+      )}
     </MotionCard>
   );
 }
