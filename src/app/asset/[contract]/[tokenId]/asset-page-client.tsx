@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useToken, useTokenHistory } from "@/hooks/use-tokens";
@@ -40,11 +40,8 @@ import { useMarketplace } from "@/hooks/use-marketplace";
 import { useCart } from "@/hooks/use-cart";
 import { toast } from "sonner";
 import { useDominantColor } from "@/hooks/use-dominant-color";
-import { RemixOfferDialog } from "@/components/asset/remix-offer-dialog";
-import { SelfRemixDialog } from "@/components/asset/self-remix-dialog";
 import { RemixesTab, ParentAttributionBanner } from "@/components/asset/remixes-tab";
-import { submitAutoRemixOffer, useTokenRemixes } from "@/hooks/use-remix-offers";
-import { OPEN_LICENSES } from "@/types/remix-offers";
+import { useTokenRemixes } from "@/hooks/use-remix-offers";
 
 const TYPE_LABEL: Record<string, string> = {
   transfer: "Transfer",
@@ -56,6 +53,7 @@ const TYPE_LABEL: Record<string, string> = {
 
 export default function AssetPageClient() {
   const { contract, tokenId } = useParams<{ contract: string; tokenId: string }>();
+  const router = useRouter();
   const { isSignedIn, getToken } = useAuth();
   const { walletAddress } = useSessionKey();
   const { collection } = useCollection(contract);
@@ -83,9 +81,6 @@ export default function AssetPageClient() {
   const [transferOpen, setTransferOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [commentOpen, setCommentOpen] = useState(false);
-  const [remixOfferOpen, setRemixOfferOpen] = useState(false);
-  const [selfRemixOpen, setSelfRemixOpen] = useState(false);
-  const [autoRemixLoading, setAutoRemixLoading] = useState(false);
 
   const isMobile = useIsMobile();
   const { comments, total: commentTotal } = useComments(contract, tokenId);
@@ -171,19 +166,8 @@ export default function AssetPageClient() {
     mutateListings();
   };
 
-  const handleAutoRemix = async () => {
-    if (!walletAddress) return;
-    const clerkToken = await getToken();
-    if (!clerkToken) { toast.error("Sign in required"); return; }
-    setAutoRemixLoading(true);
-    try {
-      await submitAutoRemixOffer({ originalContract: contract, originalTokenId: tokenId }, clerkToken);
-      toast.success("Remix offer submitted!", { description: "The creator will be notified." });
-    } catch (err: unknown) {
-      toast.error("Failed to submit", { description: err instanceof Error ? err.message : "Unknown error" });
-    } finally {
-      setAutoRemixLoading(false);
-    }
+  const handleAutoRemix = () => {
+    router.push(`/create/remix/${contract}/${tokenId}`);
   };
 
   if (isLoading) {
@@ -241,9 +225,6 @@ export default function AssetPageClient() {
   // Remix / parent detection
   const parentContract = attributes.find((a) => a.trait_type === "Parent Contract")?.value ?? null;
   const parentTokenId = attributes.find((a) => a.trait_type === "Parent Token ID")?.value ?? null;
-  const licenseAttr = attributes.find((a) => a.trait_type === "License")?.value;
-  const licensePriceAttr = attributes.find((a) => a.trait_type === "License Price")?.value;
-  const isOpenLicense = !!(licenseAttr && (OPEN_LICENSES as readonly string[]).includes(licenseAttr) && licensePriceAttr);
 
   return (
     <div
@@ -408,7 +389,7 @@ export default function AssetPageClient() {
                     <div className="btn-border-animated p-[1px] rounded-xl">
                       <button
                         className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-rose"
-                        onClick={() => setSelfRemixOpen(true)}
+                        onClick={() => router.push(`/create/remix/${contract}/${tokenId}`)}
                       >
                         <GitBranch className="h-4 w-4" />
                         Create a Remix
@@ -455,10 +436,9 @@ export default function AssetPageClient() {
                       <div className="btn-border-animated p-[1px] rounded-xl">
                         <button
                           className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-rose disabled:opacity-50"
-                          disabled={autoRemixLoading}
-                          onClick={isOpenLicense ? handleAutoRemix : () => setRemixOfferOpen(true)}
+                          onClick={handleAutoRemix}
                         >
-                          {autoRemixLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <GitBranch className="h-4 w-4" />}
+                          <GitBranch className="h-4 w-4" />
                           Create a Remix
                         </button>
                       </div>
@@ -493,7 +473,7 @@ export default function AssetPageClient() {
                     <div className="btn-border-animated p-[1px] rounded-xl">
                       <button
                         className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-rose"
-                        onClick={() => setSelfRemixOpen(true)}
+                        onClick={() => router.push(`/create/remix/${contract}/${tokenId}`)}
                       >
                         <GitBranch className="h-4 w-4" />
                         Create a Remix
@@ -514,10 +494,9 @@ export default function AssetPageClient() {
                     <div className="btn-border-animated p-[1px] rounded-xl">
                       <button
                         className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-rose disabled:opacity-50"
-                        disabled={autoRemixLoading}
-                        onClick={isOpenLicense ? handleAutoRemix : () => setRemixOfferOpen(true)}
+                        onClick={handleAutoRemix}
                       >
-                        {autoRemixLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <GitBranch className="h-4 w-4" />}
+                        <GitBranch className="h-4 w-4" />
                         Create a Remix
                       </button>
                     </div>
@@ -990,23 +969,6 @@ export default function AssetPageClient() {
           </div>
         </DialogContent>
       </Dialog>
-
-      <RemixOfferDialog
-        open={remixOfferOpen}
-        onOpenChange={setRemixOfferOpen}
-        contractAddress={contract}
-        tokenId={tokenId}
-        tokenName={name}
-      />
-
-      <SelfRemixDialog
-        open={selfRemixOpen}
-        onOpenChange={setSelfRemixOpen}
-        originalContract={contract}
-        originalTokenId={tokenId}
-        originalName={name}
-        originalImage={image}
-      />
 
       <TransferDialog
         open={transferOpen}
