@@ -818,25 +818,25 @@ export default function AssetPageClient() {
       </div>
 
 
-      {/* Floating comments button */}
-      <button
-        onClick={() => setCommentOpen(true)}
-        className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full shadow-lg shadow-black/30 px-4 py-3 text-sm font-semibold text-white transition-all hover:scale-105 active:scale-95"
-        style={{
-          background: dynamicTheme
-            ? `hsl(var(--dynamic-primary))`
-            : "hsl(var(--primary))",
-        }}
-        aria-label="Open comments"
-      >
-        <MessageSquare className="h-4 w-4 shrink-0" />
-        <span>Comments</span>
+      {/* Floating comments bubble */}
+      <div className="fixed bottom-6 right-6 z-40">
+        <button
+          onClick={() => setCommentOpen(true)}
+          aria-label="Open comments"
+          className="relative flex h-14 w-14 items-center justify-center rounded-full text-white transition-all hover:scale-110 active:scale-95 shadow-lg shadow-brand-blue/40"
+          style={{ background: "linear-gradient(135deg, hsl(var(--brand-blue)), hsl(var(--brand-purple)))" }}
+        >
+          {/* pulse ring */}
+          <span className="absolute inset-0 rounded-full animate-ping opacity-20" style={{ background: "hsl(var(--brand-blue))" }} />
+          <MessageSquare className="h-6 w-6 relative z-10" />
+        </button>
         {commentTotal > 0 && (
-          <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-white/25 px-1.5 text-xs font-bold tabular-nums">
+          <span className="absolute -top-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-bold tabular-nums text-white pointer-events-none"
+            style={{ background: "hsl(var(--brand-rose))" }}>
             {commentTotal}
           </span>
         )}
-      </button>
+      </div>
 
       {/* Comments Sheet — bottom drawer on mobile, right panel on desktop */}
       <Sheet open={commentOpen} onOpenChange={setCommentOpen}>
@@ -844,16 +844,19 @@ export default function AssetPageClient() {
           side={isMobile ? "bottom" : "right"}
           className="h-[85svh] sm:h-full sm:max-w-md p-0 flex flex-col"
         >
-          <SheetHeader className="px-4 pt-4 pb-2 border-b border-border shrink-0">
-            <SheetTitle className="flex items-center gap-2 text-base">
-              <MessageSquare className="h-4 w-4" />
-              On-chain Comments
+          <SheetHeader className="px-4 pt-4 pb-3 shrink-0" style={{ background: "linear-gradient(135deg, hsl(var(--brand-blue) / 0.12), hsl(var(--brand-purple) / 0.10))" }}>
+            <SheetTitle className="flex items-center gap-2.5 text-base">
+              <div className="flex h-7 w-7 items-center justify-center rounded-full text-white shrink-0" style={{ background: "linear-gradient(135deg, hsl(var(--brand-blue)), hsl(var(--brand-purple)))" }}>
+                <MessageSquare className="h-3.5 w-3.5" />
+              </div>
+              <span>On-chain Comments</span>
               {commentTotal > 0 && (
-                <span className="ml-1 text-xs font-bold text-muted-foreground">
-                  ({commentTotal})
+                <span className="ml-auto text-xs font-bold rounded-full px-2 py-0.5 text-white" style={{ background: "hsl(var(--brand-blue))" }}>
+                  {commentTotal}
                 </span>
               )}
             </SheetTitle>
+            <p className="text-[11px] text-muted-foreground mt-0.5 pl-9">Permanent messages stored on Starknet</p>
           </SheetHeader>
           <div className="flex-1 overflow-hidden">
             <CommentsSection contract={contract} tokenId={tokenId} className="h-full rounded-none border-0" />

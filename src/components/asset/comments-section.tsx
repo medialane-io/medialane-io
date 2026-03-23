@@ -149,29 +149,12 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
   };
 
   return (
-    <div className={cn("flex flex-col h-[480px] rounded-xl border border-border bg-card/50 overflow-hidden", className)}>
-
-      {/* ── Header ── */}
-      <div className="flex items-center justify-between px-4 h-11 border-b border-border shrink-0">
-        <div className="flex items-center gap-2">
-          <MessageSquare className="h-4 w-4 text-muted-foreground" />
-          {isLoading ? (
-            <Skeleton className="h-3 w-24" />
-          ) : (
-            <span className="text-sm font-medium">
-              {total} on-chain comment{total !== 1 ? "s" : ""}
-            </span>
-          )}
-        </div>
-        <span className="text-[10px] font-medium bg-primary/10 text-primary border border-primary/20 rounded-full px-2 py-0.5">
-          ⛓ Starknet
-        </span>
-      </div>
+    <div className={cn("flex flex-col h-[480px] overflow-hidden", className)}>
 
       {/* ── Messages ── */}
-      <div ref={messagesRef} className="flex-1 overflow-y-auto px-4 py-3">
+      <div ref={messagesRef} className="flex-1 overflow-y-auto px-4 py-4">
         {isLoading ? (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {([
               { own: false, w: "w-40" },
               { own: true,  w: "w-56" },
@@ -179,7 +162,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
               { own: true,  w: "w-32" },
             ] as const).map((item, i) => (
               <div key={i} className={`flex ${item.own ? "justify-end" : "justify-start"} gap-2`}>
-                {!item.own && <Skeleton className="h-7 w-7 rounded-full shrink-0" />}
+                {!item.own && <Skeleton className="h-8 w-8 rounded-full shrink-0" />}
                 <Skeleton
                   className={`h-10 ${item.w} rounded-2xl ${item.own ? "rounded-tr-sm" : "rounded-tl-sm"}`}
                 />
@@ -187,20 +170,27 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
             ))}
           </div>
         ) : comments.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full gap-3 text-center">
-            <MessageSquare className="h-10 w-10 text-muted-foreground/30" />
+          <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-4">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full" style={{ background: "linear-gradient(135deg, hsl(var(--brand-blue) / 0.15), hsl(var(--brand-purple) / 0.15))" }}>
+              <MessageSquare className="h-7 w-7" style={{ color: "hsl(var(--brand-blue))" }} />
+            </div>
             <div>
-              <p className="text-sm font-medium">No messages yet</p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Be the first to leave a permanent comment on Starknet
+              <p className="text-sm font-semibold">No comments yet</p>
+              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                Be the first to leave a permanent message on Starknet — it lives forever on-chain.
               </p>
             </div>
-            <Button size="sm" variant="outline" onClick={handleStartConversation}>
+            <Button
+              size="sm"
+              onClick={handleStartConversation}
+              className="rounded-full text-white px-5"
+              style={{ background: "linear-gradient(135deg, hsl(var(--brand-blue)), hsl(var(--brand-purple)))" }}
+            >
               Start the conversation
             </Button>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {comments.map((comment) => {
               const own = isOwn(comment.author);
               return (
@@ -211,7 +201,10 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
                   {/* Avatar — others only */}
                   {!own && (
                     <Link href={`/creator/${comment.author}`} className="shrink-0 mb-1">
-                      <div className="h-7 w-7 rounded-full bg-gradient-to-br from-primary/30 to-purple-500/30 flex items-center justify-center text-[10px] font-mono font-bold select-none">
+                      <div
+                        className="h-8 w-8 rounded-full flex items-center justify-center text-[10px] font-mono font-bold text-white select-none ring-2 ring-background"
+                        style={{ background: "linear-gradient(135deg, hsl(var(--brand-blue)), hsl(var(--brand-purple)))" }}
+                      >
                         {comment.author.slice(2, 4).toUpperCase()}
                       </div>
                     </Link>
@@ -230,15 +223,18 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
 
                     {/* Bubble */}
                     <div className="relative">
-                      <div
-                        className={`px-3 py-2 text-sm leading-relaxed break-words ${
-                          own
-                            ? "bg-primary/20 border border-primary/30 rounded-2xl rounded-tr-sm text-foreground"
-                            : "bg-muted rounded-2xl rounded-tl-sm"
-                        }`}
-                      >
-                        {comment.content}
-                      </div>
+                      {own ? (
+                        <div
+                          className="px-3.5 py-2.5 text-sm leading-relaxed break-words rounded-2xl rounded-tr-sm text-white"
+                          style={{ background: "linear-gradient(135deg, hsl(var(--brand-blue)), hsl(var(--brand-purple)))" }}
+                        >
+                          {comment.content}
+                        </div>
+                      ) : (
+                        <div className="px-3.5 py-2.5 text-sm leading-relaxed break-words bg-muted rounded-2xl rounded-tl-sm border border-border/50">
+                          {comment.content}
+                        </div>
+                      )}
 
                       {/* Flag — others only, visible on row hover */}
                       {!own && isSignedIn && (
@@ -253,8 +249,8 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
                     </div>
 
                     {/* Metadata row: timestamp + on-chain proof link */}
-                    <div className={`flex items-center gap-2 mt-1 ${own ? "mr-1 flex-row-reverse" : "ml-1"}`}>
-                      <span className="text-[10px] text-muted-foreground" title={comment.postedAt}>
+                    <div className={`flex items-center gap-2 mt-1.5 ${own ? "mr-1 flex-row-reverse" : "ml-1"}`}>
+                      <span className="text-[10px] text-muted-foreground/70" title={comment.postedAt}>
                         {formatDistanceToNow(new Date(comment.postedAt), { addSuffix: true })}
                       </span>
                       {comment.txHash && (
@@ -263,7 +259,10 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
                           target="_blank"
                           rel="noopener noreferrer"
                           title="View on Voyager"
-                          className="flex items-center gap-0.5 text-[10px] text-primary/60 hover:text-primary transition-colors"
+                          className="flex items-center gap-0.5 text-[10px] transition-colors"
+                          style={{ color: "hsl(var(--brand-blue) / 0.6)" }}
+                          onMouseEnter={(e) => (e.currentTarget.style.color = "hsl(var(--brand-blue))")}
+                          onMouseLeave={(e) => (e.currentTarget.style.color = "hsl(var(--brand-blue) / 0.6)")}
                         >
                           <span>⛓</span>
                           <ExternalLink className="h-2.5 w-2.5" />
@@ -280,29 +279,42 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
       </div>
 
       {/* ── Compose bar ── */}
-      <div className="border-t border-border shrink-0">
+      <div className="border-t border-border/60 shrink-0">
         {!isSignedIn ? (
-          <div className="flex items-center justify-center gap-2 px-4 h-14">
+          <div className="flex items-center justify-center gap-2 px-4 h-16">
             <p className="text-sm text-muted-foreground">Sign in to join the conversation</p>
             <SignInButton mode="modal">
-              <Button variant="ghost" size="sm">Sign in</Button>
+              <Button variant="ghost" size="sm" className="rounded-full" style={{ color: "hsl(var(--brand-blue))" }}>Sign in</Button>
             </SignInButton>
           </div>
         ) : !hasWallet ? (
-          <div className="flex items-center justify-center px-4 h-14">
+          <div className="flex items-center justify-center px-4 h-16">
             <p className="text-sm text-muted-foreground">Set up your wallet to comment</p>
           </div>
         ) : (
-          <div className="px-3 py-3 space-y-2">
+          <div className="px-3 pt-2 pb-3 space-y-2">
             {/* CTA label */}
             <div className="flex items-center gap-1.5">
-              <Zap className="h-3 w-3 text-primary/70" />
-              <span className="text-[10px] font-medium text-primary/70 uppercase tracking-wider">
+              <Zap className="h-3 w-3" style={{ color: "hsl(var(--brand-blue))" }} />
+              <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "hsl(var(--brand-blue))" }}>
                 Leave a permanent mark on Starknet
               </span>
             </div>
             {/* Input area */}
-            <div className="rounded-xl border border-border bg-background/60 focus-within:border-primary/60 focus-within:ring-2 focus-within:ring-primary/15 transition-all">
+            <div
+              className="rounded-xl border bg-background/60 transition-all focus-within:ring-2"
+              style={{
+                borderColor: "hsl(var(--border))",
+              }}
+              onFocusCapture={(e) => {
+                (e.currentTarget as HTMLDivElement).style.borderColor = "hsl(var(--brand-blue) / 0.6)";
+                (e.currentTarget as HTMLDivElement).style.boxShadow = "0 0 0 3px hsl(var(--brand-blue) / 0.12)";
+              }}
+              onBlurCapture={(e) => {
+                (e.currentTarget as HTMLDivElement).style.borderColor = "hsl(var(--border))";
+                (e.currentTarget as HTMLDivElement).style.boxShadow = "";
+              }}
+            >
               <Textarea
                 ref={composeRef}
                 placeholder="Say something on-chain… it's permanent."
@@ -310,12 +322,12 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
                 onChange={handleTextInput}
                 onKeyDown={handleKeyDown}
                 rows={2}
-                className="resize-none min-h-[56px] max-h-[120px] w-full border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-3 pt-2.5 pb-1 text-sm rounded-xl"
+                className="resize-none min-h-[52px] max-h-[120px] w-full border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-3 pt-2.5 pb-1 text-sm rounded-xl"
                 disabled={isProcessing}
               />
               <div className="flex items-center justify-between px-3 pb-2.5">
-                <span className="text-[10px] text-muted-foreground/50 flex items-center gap-1">
-                  <span>⛓</span> Starknet · Enter to post
+                <span className="text-[10px] text-muted-foreground/40 flex items-center gap-1">
+                  ⛓ Starknet · Enter to post
                 </span>
                 <div className="flex items-center gap-2">
                   {byteLen > 800 && (
@@ -323,11 +335,11 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
                       {byteLen}/{MAX_LEN}
                     </span>
                   )}
-                  <Button
-                    size="sm"
-                    className="h-7 px-3 text-xs gap-1.5"
+                  <button
                     onClick={() => setPinOpen(true)}
                     disabled={!canSubmit || isProcessing}
+                    className="flex items-center gap-1.5 h-7 px-3 text-xs font-semibold rounded-full text-white transition-all hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                    style={{ background: "linear-gradient(135deg, hsl(var(--brand-blue)), hsl(var(--brand-purple)))" }}
                   >
                     {isProcessing ? (
                       <Loader2 className="h-3 w-3 animate-spin" />
@@ -335,7 +347,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
                       <Send className="h-3 w-3" />
                     )}
                     Post on-chain
-                  </Button>
+                  </button>
                 </div>
               </div>
             </div>
