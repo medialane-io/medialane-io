@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@chipi-stack/nextjs": "^13.8.0",
+    "@chipi-stack/nextjs": "^14.1.1",
     "@clerk/nextjs": "^6",
     "@hookform/resolvers": "^3",
     "@medialane/sdk": "0.4.6",
@@ -50,8 +50,8 @@
     "next-themes": "latest",
     "nodemailer": "^8.0.3",
     "pinata": "^2",
-    "react": "19.2.0",
-    "react-dom": "19.2.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
     "react-hook-form": "^7",
     "sonner": "^1",
     "starknet": "^6.11.0",
