@@ -41,3 +41,4 @@ next-env.d.ts
 # npm lock file — project uses bun exclusively (bun.lock is authoritative)
 package-lock.json
 .worktrees/
+.clerk/
