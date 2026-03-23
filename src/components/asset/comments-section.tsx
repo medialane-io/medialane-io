@@ -18,6 +18,7 @@ import { AddressDisplay } from "@/components/shared/address-display";
 import { COMMENTS_CONTRACT, EXPLORER_URL } from "@/lib/constants";
 import { MessageSquare, Loader2, Send, CheckCircle, X, ExternalLink, Flag, Zap } from "lucide-react";
 import { ReportDialog, type ReportTarget } from "@/components/report-dialog";
+import { cn } from "@/lib/utils";
 
 const MAX_LEN = 1000;
 
@@ -47,9 +48,10 @@ type PostStep = "idle" | "processing" | "success" | "error";
 interface CommentsSectionProps {
   contract: string;
   tokenId: string;
+  className?: string;
 }
 
-export function CommentsSection({ contract, tokenId }: CommentsSectionProps) {
+export function CommentsSection({ contract, tokenId, className }: CommentsSectionProps) {
   const { isSignedIn } = useAuth();
   const { openSignIn } = useClerk();
   const { hasWallet, walletAddress } = useSessionKey();
@@ -147,7 +149,7 @@ export function CommentsSection({ contract, tokenId }: CommentsSectionProps) {
   };
 
   return (
-    <div className="flex flex-col h-[480px] rounded-xl border border-border bg-card/50 overflow-hidden">
+    <div className={cn("flex flex-col h-[480px] rounded-xl border border-border bg-card/50 overflow-hidden", className)}>
 
       {/* ── Header ── */}
       <div className="flex items-center justify-between px-4 h-11 border-b border-border shrink-0">

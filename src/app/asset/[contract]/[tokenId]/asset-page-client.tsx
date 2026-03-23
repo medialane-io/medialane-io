@@ -18,7 +18,7 @@ import { TransferDialog } from "@/components/marketplace/transfer-dialog";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { ipfsToHttp, timeUntil, timeAgo, formatDisplayPrice } from "@/lib/utils";
-import { ShoppingCart, Tag, ExternalLink, Clock, HandCoins, ArrowRightLeft, X, CheckCircle, DollarSign, GitBranch, UserCheck, Globe, Bot, Percent, Shield, Calendar, ChevronRight, Flag, Loader2 } from "lucide-react";
+import { ShoppingCart, Tag, ExternalLink, Clock, HandCoins, ArrowRightLeft, X, CheckCircle, DollarSign, GitBranch, UserCheck, Globe, Bot, Percent, Shield, Calendar, ChevronRight, Flag, Loader2, MessageSquare } from "lucide-react";
 import { ReportDialog } from "@/components/report-dialog";
 import { HiddenContentBanner } from "@/components/hidden-content-banner";
 import { LICENSE_TRAIT_TYPES } from "@/types/ip";
@@ -30,6 +30,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import type { ApiActivity, ApiOrder } from "@medialane/sdk";
 import { PriceHistoryChart } from "@/components/asset/price-history-chart";
 import { CommentsSection } from "@/components/asset/comments-section";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { useComments } from "@/hooks/use-comments";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { EXPLORER_URL } from "@/lib/constants";
 import { useAuth, SignInButton } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
@@ -74,6 +77,10 @@ export default function AssetPageClient() {
   const [acceptPinOpen, setAcceptPinOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [commentOpen, setCommentOpen] = useState(false);
+
+  const isMobile = useIsMobile();
+  const { comments, total: commentTotal } = useComments(contract, tokenId);
 
   // Listings = ERC721 in offer (someone selling the NFT)
   const activeListings = listings.filter(
@@ -544,7 +551,6 @@ export default function AssetPageClient() {
             <TabsTrigger value="provenance">
               Provenance {history.length > 0 && `(${history.length})`}
             </TabsTrigger>
-            <TabsTrigger value="comments">Comments</TabsTrigger>
           </TabsList>
 
           {/* Overview tab — media embeds + attributes */}
@@ -808,13 +814,52 @@ export default function AssetPageClient() {
             </div>
           </TabsContent>
 
-          {/* Comments tab — on-chain comments from NFTComments contract */}
-          <TabsContent value="comments" className="mt-4">
-            <CommentsSection contract={contract} tokenId={tokenId} />
-          </TabsContent>
         </Tabs>
       </div>
 
+
+      {/* Floating comments button */}
+      <button
+        onClick={() => setCommentOpen(true)}
+        className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full shadow-lg shadow-black/30 px-4 py-3 text-sm font-semibold text-white transition-all hover:scale-105 active:scale-95"
+        style={{
+          background: dynamicTheme
+            ? `hsl(var(--dynamic-primary))`
+            : "hsl(var(--primary))",
+        }}
+        aria-label="Open comments"
+      >
+        <MessageSquare className="h-4 w-4 shrink-0" />
+        <span>Comments</span>
+        {commentTotal > 0 && (
+          <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-white/25 px-1.5 text-xs font-bold tabular-nums">
+            {commentTotal}
+          </span>
+        )}
+      </button>
+
+      {/* Comments Sheet — bottom drawer on mobile, right panel on desktop */}
+      <Sheet open={commentOpen} onOpenChange={setCommentOpen}>
+        <SheetContent
+          side={isMobile ? "bottom" : "right"}
+          className="h-[85svh] sm:h-full sm:max-w-md p-0 flex flex-col"
+        >
+          <SheetHeader className="px-4 pt-4 pb-2 border-b border-border shrink-0">
+            <SheetTitle className="flex items-center gap-2 text-base">
+              <MessageSquare className="h-4 w-4" />
+              On-chain Comments
+              {commentTotal > 0 && (
+                <span className="ml-1 text-xs font-bold text-muted-foreground">
+                  ({commentTotal})
+                </span>
+              )}
+            </SheetTitle>
+          </SheetHeader>
+          <div className="flex-1 overflow-hidden">
+            <CommentsSection contract={contract} tokenId={tokenId} className="h-full rounded-none border-0" />
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {/* Dialogs */}
       {purchaseOrder && (
