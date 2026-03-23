@@ -11,7 +11,7 @@
   "dependencies": {
     "@chipi-stack/chipi-passkey": "^2.0.0",
     "@chipi-stack/chipi-react": "^14.0.0",
-    "@chipi-stack/nextjs": "^14.0.0",
+    "@chipi-stack/nextjs": "^14.1.1",
     "@clerk/nextjs": "^6",
     "@hookform/resolvers": "^3",
     "@medialane/sdk": "^0.4.8",
