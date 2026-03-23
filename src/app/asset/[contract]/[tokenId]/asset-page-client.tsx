@@ -668,14 +668,14 @@ export default function AssetPageClient() {
                       </div>
                     </div>
                   )}
-                  <div className="rounded-xl border border-border divide-y divide-border">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {rows.map(({ icon, label, value }) => (
-                      <div key={label} className="flex items-center justify-between px-4 py-3 gap-4">
-                        <div className="flex items-center gap-2.5 text-muted-foreground min-w-0">
+                      <div key={label} className="rounded-lg border border-border bg-muted/20 p-3 text-center overflow-hidden">
+                        <div className="flex justify-center text-muted-foreground">
                           {icon}
-                          <span className="text-sm">{label}</span>
                         </div>
-                        <span className="text-sm font-medium text-right">{value}</span>
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground truncate mt-1">{label}</p>
+                        <p className="text-sm font-semibold mt-0.5 truncate" title={value}>{value}</p>
                       </div>
                     ))}
                   </div>
