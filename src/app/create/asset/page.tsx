@@ -127,9 +127,9 @@ export default function CreateAssetPage() {
   const client = useMedialaneClient();
   const { listingStep, listingError, runPostMintListing, resetListing } = usePostMintListing();
 
-  // Fetch user's collections from the API (collectionId field contains on-chain registry ID)
+  // Fetch user's collections from the API (collectionId field contains onchain registry ID)
   const { collections: allCollections, isLoading: collectionsLoading } = useCollectionsByOwner(walletAddress ?? null);
-  // Only show collections that have been indexed with their on-chain ID (required for minting)
+  // Only show collections that have been indexed with their onchain ID (required for minting)
   const collections = allCollections.filter((c) => c.collectionId != null);
 
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
@@ -245,7 +245,7 @@ export default function CreateAssetPage() {
 
       setMintStep("processing");
 
-      // 2. Create mint intent — backend validates ownership on-chain + encodes Cairo calldata
+      // 2. Create mint intent — backend validates ownership onchain + encodes Cairo calldata
       const intentRes = await client.api.createMintIntent({
         owner: walletAddress,
         collectionId: pendingValues.collectionId,

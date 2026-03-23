@@ -30,7 +30,7 @@ const SECTIONS = [
     href: "/docs/protocol",
     icon: Network,
     title: "Protocol",
-    description: "Technical specification of the Medialane on-chain protocol — contracts, events, data structures, and standards.",
+    description: "Technical specification of the Medialane onchain protocol — contracts, events, data structures, and standards.",
   },
   {
     href: "/docs/community-guidelines",

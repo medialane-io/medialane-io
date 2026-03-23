@@ -179,7 +179,7 @@ export function ReportDialog({ target, open, onOpenChange }: ReportDialogProps) 
 
           <p className="text-xs text-muted-foreground">
             Reports are reviewed by the Medialane DAO team. Content remains
-            accessible on-chain and via the permissionless dapp.
+            accessible onchain and via the permissionless dapp.
           </p>
         </div>
 

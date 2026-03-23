@@ -81,7 +81,7 @@ export function useTransfer() {
         setHash(result.txHash);
 
         if (result.status === "reverted") {
-          const msg = result.revertReason || "Transfer reverted on-chain";
+          const msg = result.revertReason || "Transfer reverted onchain";
           setError(msg);
           toast.error("Transfer failed", { description: msg });
           return undefined;

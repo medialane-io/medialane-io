@@ -150,7 +150,7 @@ export default function CreateCollectionPage() {
 
     try {
       // 1. Upload collection metadata JSON to IPFS so permissionless dapps can resolve
-      //    the collection image on-chain (base_uri → collection metadata → image field).
+      //    the collection image onchain (base_uri → collection metadata → image field).
       let baseUri: string | undefined;
       if (imageUri) {
         try {
@@ -167,7 +167,7 @@ export default function CreateCollectionPage() {
           const metaData = await metaRes.json().catch(() => ({}));
           if (metaRes.ok && metaData.uri) baseUri = metaData.uri;
         } catch {
-          // Non-fatal: collection is still created, just without on-chain metadata URI
+          // Non-fatal: collection is still created, just without onchain metadata URI
         }
       }
 

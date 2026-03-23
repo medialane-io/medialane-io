@@ -4,7 +4,7 @@
  * SessionSetupDialog — one-time session key registration.
  *
  * Shows when a user is about to sign a marketplace operation but has no active
- * session key. User enters PIN once → session key is created + registered on-chain.
+ * session key. User enters PIN once → session key is created + registered onchain.
  * Subsequent signing operations use the session key (valid for 6 hours).
  */
 

@@ -49,7 +49,7 @@ export default function AdminMaintenancePage() {
   }, [fetchHealth]);
 
   async function handleBackfillRegistry() {
-    if (!confirm("Scan all CollectionCreated events on-chain and upsert missing collections. This may take a minute. Continue?")) return;
+    if (!confirm("Scan all CollectionCreated events onchain and upsert missing collections. This may take a minute. Continue?")) return;
     setRegistryRunning(true);
     setRegistryResult(null);
     try {
@@ -160,7 +160,7 @@ export default function AdminMaintenancePage() {
             <div>
               <p className="font-semibold text-sm">Backfill Registry</p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Scans all <code>CollectionCreated</code> events on-chain and upserts any collections missing from the database.
+                Scans all <code>CollectionCreated</code> events onchain and upserts any collections missing from the database.
                 Run this when collections were created but never indexed.
               </p>
               {registryResult && (

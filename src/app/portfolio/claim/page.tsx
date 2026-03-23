@@ -66,7 +66,7 @@ export default function ClaimCollectionPage() {
         setClaimedCollection(result.collection ?? { contractAddress: contractAddress.trim() });
         setStep("success");
       } else {
-        setVerifyError(result.reason ?? "Could not verify on-chain ownership");
+        setVerifyError(result.reason ?? "Could not verify onchain ownership");
         setStep("manual");
       }
     } catch {

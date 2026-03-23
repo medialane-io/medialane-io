@@ -199,7 +199,7 @@ export function useMarketplace() {
         );
         if (!hasEvent) {
           throw new Error(
-            "Transaction was submitted but the operation did not complete on-chain. " +
+            "Transaction was submitted but the operation did not complete onchain. " +
             "Please check your token balance and try again."
           );
         }

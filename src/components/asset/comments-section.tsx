@@ -177,7 +177,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
             <div>
               <p className="text-sm font-semibold">Nothing here yet</p>
               <p className="text-xs text-muted-foreground mt-1 leading-relaxed max-w-[220px]">
-                Your comment will be minted on-chain — attached to this NFT forever.
+                Your comment will be minted onchain — attached to this NFT forever.
               </p>
             </div>
             <Button
@@ -248,7 +248,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
                       )}
                     </div>
 
-                    {/* Metadata row: timestamp + on-chain proof link */}
+                    {/* Metadata row: timestamp + onchain proof link */}
                     <div className={`flex items-center gap-2 mt-1.5 ${own ? "mr-1 flex-row-reverse" : "ml-1"}`}>
                       <span className="text-[10px] text-muted-foreground/70" title={comment.postedAt}>
                         {formatDistanceToNow(new Date(comment.postedAt), { addSuffix: true })}
@@ -297,7 +297,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
             <div className="flex items-center gap-1.5">
               <Zap className="h-3 w-3" style={{ color: "hsl(var(--brand-blue))" }} />
               <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "hsl(var(--brand-blue))" }}>
-                Mint your message on-chain
+                Mint your message onchain
               </span>
             </div>
             {/* Input area */}
@@ -317,7 +317,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
             >
               <Textarea
                 ref={composeRef}
-                placeholder="Say something on-chain… it's permanent."
+                placeholder="Say something onchain… it's permanent."
                 value={text}
                 onChange={handleTextInput}
                 onKeyDown={handleKeyDown}
@@ -346,7 +346,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
                     ) : (
                       <Send className="h-3 w-3" />
                     )}
-                    Post on-chain
+                    Post onchain
                   </button>
                 </div>
               </div>
@@ -360,7 +360,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
         open={pinOpen}
         onSubmit={handlePin}
         onCancel={() => setPinOpen(false)}
-        title="Post comment on-chain"
+        title="Post comment onchain"
         description="Enter your PIN to publish this comment permanently to Starknet."
       />
 
@@ -396,7 +396,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
               <>
                 <CheckCircle className="h-10 w-10 text-green-500" />
                 <p className="text-sm text-center text-muted-foreground">
-                  Your comment is on-chain and will appear here once indexed (~30s).
+                  Your comment is onchain and will appear here once indexed (~30s).
                 </p>
                 {postTxHash && (
                   <a

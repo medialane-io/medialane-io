@@ -90,7 +90,6 @@ export function FeaturedCarousel() {
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="section-label">Curated drops</p>
               <div className="flex items-center gap-2 mt-0.5">
                 <Sparkles className={`h-4 w-4 ${BRAND.purple.text}`} />
                 <h2 className="text-xl font-bold">Featured Collections</h2>
@@ -110,7 +109,6 @@ export function FeaturedCarousel() {
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="section-label">Curated drops</p>
             <div className="flex items-center gap-2 mt-0.5">
               <Sparkles className={`h-4 w-4 ${BRAND.purple.text}`} />
               <h2 className="text-xl font-bold">Featured Collections</h2>

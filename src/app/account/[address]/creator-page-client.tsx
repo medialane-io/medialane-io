@@ -520,7 +520,7 @@ export default function CreatorPageClient() {
                 <EmptyState
                   icon={Activity}
                   heading="No activity yet"
-                  body="On-chain events for this creator will appear here as they happen."
+                  body="onchain events for this creator will appear here as they happen."
                 />
               ) : (
                 <div>

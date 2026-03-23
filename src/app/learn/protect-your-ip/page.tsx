@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Protect Your IP | Learn | Medialane",
-  description: "Understand the Berne Convention, copyright principles, and how Medialane helps creators protect their intellectual property on-chain.",
+  description: "Understand the Berne Convention, copyright principles, and how Medialane helps creators protect their intellectual property onchain.",
 };
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -21,7 +21,7 @@ export default function LearnProtectIPPage() {
         <h2 className="text-2xl font-bold">Protecting Your Intellectual Property</h2>
         <p className="text-muted-foreground text-lg leading-relaxed">
           Your creative work is protected by international copyright law from the moment
-          you create it. Medialane adds a permanent on-chain layer of proof that strengthens
+          you create it. Medialane adds a permanent onchain layer of proof that strengthens
           your rights and makes licensing enforceable at scale.
         </p>
       </div>

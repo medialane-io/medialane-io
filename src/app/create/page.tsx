@@ -62,7 +62,7 @@ const FEATURES = [
   {
     icon: ShieldCheck,
     title: "Censorship Resistance",
-    body: "Ensure your content remains permanently accessible and immutable on-chain. No central authority can remove it.",
+    body: "Ensure your content remains permanently accessible and immutable onchain. No central authority can remove it.",
     accent: "from-rose-400 to-pink-500",
     border: "border-rose-500/20",
     bg: "bg-rose-500/5",
@@ -102,7 +102,7 @@ const FEATURES = [
   {
     icon: Cpu,
     title: "Onchain Composability",
-    body: "Machine-readable IP permissions let games, AI models, and dApps automatically query and interact on-chain.",
+    body: "Machine-readable IP permissions let games, AI models, and dApps automatically query and interact onchain.",
     accent: "from-teal-400 to-emerald-400",
     border: "border-teal-500/20",
     bg: "bg-teal-500/5",
@@ -125,7 +125,7 @@ const ACTIONS = [
     icon: ImagePlus,
     label: "Mint IP Asset",
     description:
-      "Upload any creative work — art, music, document or file — and anchor it on-chain as a programmable IP asset.",
+      "Upload any creative work — art, music, document or file — and anchor it onchain as a programmable IP asset.",
     gradient: "from-violet-500 to-purple-600",
     ring: "hover:ring-violet-500/30",
     iconBg: "bg-violet-500/10 group-hover:bg-violet-500/20",

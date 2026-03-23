@@ -230,7 +230,7 @@ export default function AdminCollectionsPage() {
           </DialogHeader>
           <div className="space-y-4 py-2">
             <p className="text-sm text-muted-foreground">
-              Scans historical Transfer events on-chain and creates Token records for any tokens missed by the indexer. Use when a collection was registered after its mints already happened.
+              Scans historical Transfer events onchain and creates Token records for any tokens missed by the indexer. Use when a collection was registered after its mints already happened.
             </p>
             <div className="space-y-2">
               <Label>From Block <span className="text-muted-foreground font-normal">(optional)</span></Label>

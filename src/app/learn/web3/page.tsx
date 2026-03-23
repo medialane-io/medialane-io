@@ -44,7 +44,7 @@ export default function LearnWeb3Page() {
           <p>
             Web3 is the name for the emerging internet built on public blockchains. In Web2
             (the current internet), your data is owned by platforms — Instagram, YouTube,
-            Spotify. In Web3, your assets and identity are stored on-chain and you carry
+            Spotify. In Web3, your assets and identity are stored onchain and you carry
             them with you across applications.
           </p>
           <p>

@@ -52,7 +52,7 @@ export default function TermsPage() {
           <ul className="list-disc list-inside space-y-1">
             <li>NFT minting and collection deployment tools</li>
             <li>A peer-to-peer marketplace for listing, buying, and selling NFTs</li>
-            <li>On-chain licensing metadata and royalty enforcement</li>
+            <li>onchain licensing metadata and royalty enforcement</li>
             <li>Wallet management via ChipiPay session keys</li>
             <li>An API and SDK for third-party integrations</li>
           </ul>

@@ -36,7 +36,7 @@ export default function PrivacyPage() {
           <p><strong className="text-foreground">Wallet information:</strong> Your Starknet wallet address, derived from your
           authentication session via ChipiPay. We do not store your private keys — they
           are managed client-side by ChipiPay&apos;s infrastructure.</p>
-          <p><strong className="text-foreground">Transaction data:</strong> On-chain transaction data associated with your wallet
+          <p><strong className="text-foreground">Transaction data:</strong> onchain transaction data associated with your wallet
           address, including NFT mints, listings, purchases, and transfers. This data is
           publicly available on the Starknet blockchain.</p>
           <p><strong className="text-foreground">Usage data:</strong> Log data including IP address, browser type, pages visited,
@@ -61,10 +61,10 @@ export default function PrivacyPage() {
           <p>
             Blockchain transactions are publicly recorded on Starknet and cannot be
             deleted or modified. Your wallet address and transaction history are
-            permanently visible on-chain to anyone with access to a blockchain explorer.
+            permanently visible onchain to anyone with access to a blockchain explorer.
           </p>
           <p>
-            By using the Medialane marketplace, you acknowledge that your on-chain
+            By using the Medialane marketplace, you acknowledge that your onchain
             activity — including purchases, listings, and transfers — is publicly
             accessible and permanent.
           </p>

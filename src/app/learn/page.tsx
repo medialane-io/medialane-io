@@ -42,7 +42,7 @@ const TOPICS = [
     href: "/learn/programmable-licensing",
     icon: FileText,
     title: "Programmable Licensing",
-    description: "Explore Medialane's on-chain licensing system — Creative Commons variants, AI policy, royalties, and derivative rules.",
+    description: "Explore Medialane's onchain licensing system — Creative Commons variants, AI policy, royalties, and derivative rules.",
   },
 ];
 

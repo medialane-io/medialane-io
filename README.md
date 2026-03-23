@@ -26,7 +26,7 @@ Medialane is a platform for the **creative economy on Starknet**. It bridges Web
 ### Discover
 - Full-width hero with kinetic headline, CTA buttons, live platform stats, and scrolling asset strip
 - Featured collections bento grid with verified badges and floor prices
-- Recent listings + on-chain activity feed side by side
+- Recent listings + onchain activity feed side by side
 
 ### Creator Launchpad
 - Mint IP assets across 12 canonical IP types: Audio, Art, Video, Photography, NFT, Patents, Posts, Publications, Documents, RWA, Software, Custom
@@ -37,7 +37,7 @@ Medialane is a platform for the **creative economy on Starknet**. It bridges Web
 - Creator wallet address embedded in every asset as `{ trait_type: "Creator", value: walletAddress }`
 - Direct Pinata upload — metadata stored on IPFS, not on centralized servers
 - Create and deploy ERC-721 collections on Starknet (gasless)
-- Collection metadata JSON uploaded to IPFS at creation time — `baseUri` set on-chain so any dApp can resolve collection images permissionlessly
+- Collection metadata JSON uploaded to IPFS at creation time — `baseUri` set onchain so any dApp can resolve collection images permissionlessly
 
 ### NFT Marketplace
 - Browse, search, and filter all Medialane IP assets
@@ -106,7 +106,7 @@ User (email/passkey)
             │              └─ ipfs:// URI → mint tx on Starknet
             └─ Marketplace operations
                  └─ SNIP-12 signing → medialane-backend (Railway)
-                      └─ Starknet Mainnet (on-chain)
+                      └─ Starknet Mainnet (onchain)
 ```
 
 Asset uploads go **directly to Pinata** from the Next.js server — the backend is never involved in the upload path. This keeps IP assets fully decentralized.

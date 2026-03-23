@@ -48,8 +48,7 @@ function HeroSlide({
 
       {/* Content */}
       <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-10 flex flex-col gap-3">
-        <p className="text-sm uppercase tracking-widest text-white/70">Featured Collection</p>
-        <h2 className="text-5xl font-semibold text-white leading-tight">{name}</h2>
+        <h2 className="text-4xl lg:text-5xl font-semibold text-white leading-tight">{name}</h2>
         <div className="flex items-center gap-4 text-sm text-white/70">
           {supply != null && <span>{supply.toLocaleString()} items</span>}
           {floor && (

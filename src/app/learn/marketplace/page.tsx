@@ -36,7 +36,7 @@ export default function LearnMarketplacePage() {
             visible to all buyers.
           </p>
           <p>
-            A listing is an on-chain intent signed with SNIP-12 typed data. Your asset
+            A listing is an onchain intent signed with SNIP-12 typed data. Your asset
             remains in your wallet until a buyer fulfils the order — Medialane never
             takes custody of your NFT.
           </p>
@@ -61,13 +61,13 @@ export default function LearnMarketplacePage() {
           <p>
             If an asset is not listed or you want to negotiate a price, you can make an
             offer. Navigate to the asset page and click <strong className="text-foreground">Make offer</strong>.
-            Specify your bid amount — the offer is an on-chain signed intent and the funds
+            Specify your bid amount — the offer is an onchain signed intent and the funds
             are not locked until the creator accepts.
           </p>
           <p>
             Creators receive notifications about incoming offers in their Portfolio under
             <strong className="text-foreground"> Offers received</strong>. Accepting an
-            offer triggers an immediate on-chain settlement.
+            offer triggers an immediate onchain settlement.
           </p>
         </Section>
 
@@ -90,7 +90,7 @@ export default function LearnMarketplacePage() {
             Listings and offers can be cancelled at any time from the asset page or from
             your Portfolio under <strong className="text-foreground">Listings</strong> or
             <strong className="text-foreground"> Offers sent</strong>. Cancellation is
-            an on-chain transaction that invalidates the signed intent. No funds are lost —
+            an onchain transaction that invalidates the signed intent. No funds are lost —
             cancellation is free of asset cost, though a small gas fee applies.
           </p>
         </Section>

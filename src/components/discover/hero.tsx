@@ -77,7 +77,7 @@ export function Hero() {
         <KineticWords text="NFT — gasless." />
       </motion.div>
 
-      {/* CTAs */}
+      {/* CTAs 
       <motion.div
         className="flex flex-wrap gap-3"
         initial={{ opacity: 0, y: 12 }}
@@ -96,7 +96,7 @@ export function Hero() {
             Create
           </Link>
         </Button>
-      </motion.div>
+      </motion.div>*/}
 
       {/* Stats chips */}
       {stats && (
