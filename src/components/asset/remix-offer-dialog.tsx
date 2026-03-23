@@ -30,7 +30,7 @@ export function RemixOfferDialog({ open, onOpenChange, contractAddress, tokenId,
   const [loading, setLoading] = useState(false);
 
   const [price, setPrice] = useState("");
-  const [currency, setCurrency] = useState(TOKENS[0]?.symbol ?? "STRK");
+  const [currency, setCurrency] = useState<string>(TOKENS[0]?.symbol ?? "STRK");
   const [licenseType, setLicenseType] = useState("CC BY");
   const [commercial, setCommercial] = useState(false);
   const [derivatives, setDerivatives] = useState(true);

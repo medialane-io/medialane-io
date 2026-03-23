@@ -10,6 +10,7 @@ import { Briefcase, Wallet } from "lucide-react";
 import { useUserOrders } from "@/hooks/use-orders";
 import { useTokensByOwner } from "@/hooks/use-tokens";
 import { markOffersAsSeen } from "@/hooks/use-unread-offers";
+import { useRemixOffers } from "@/hooks/use-remix-offers";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
@@ -22,7 +23,8 @@ const NAV_GROUPS = [
       { label: "Assets",            href: "/portfolio/assets" },
       { label: "Listings",          href: "/portfolio/listings" },
       { label: "Offers sent",       href: "/portfolio/offers" },
-      { label: "Offers received",   href: "/portfolio/received", badge: true },
+      { label: "Offers received",   href: "/portfolio/received", badge: "offers" as const },
+      { label: "Remixes",           href: "/portfolio/remix-offers", badge: "remixes" as const },
       { label: "Activity",          href: "/portfolio/activity" },
     ],
   },
@@ -44,6 +46,7 @@ export default function PortfolioLayout({ children }: { children: React.ReactNod
   const address = walletAddress;
   const { orders } = useUserOrders(address ?? null);
   const { meta: tokenMeta } = useTokensByOwner(address ?? null, 1);
+  const { offers: remixOffers } = useRemixOffers("creator");
 
   const receivedCount = orders.filter(
     (o) =>
@@ -54,6 +57,10 @@ export default function PortfolioLayout({ children }: { children: React.ReactNod
 
   const activeListingsCount = orders.filter(
     (o) => o.offer.itemType === "ERC721" && o.status === "ACTIVE"
+  ).length;
+
+  const pendingRemixCount = remixOffers.filter(
+    (o) => o.status === "PENDING" || o.status === "AUTO_PENDING"
   ).length;
 
   const totalAssetsCount = tokenMeta?.total ?? null;
@@ -178,9 +185,14 @@ export default function PortfolioLayout({ children }: { children: React.ReactNod
                     )}
                   >
                     {item.label}
-                    {item.badge && receivedCount > 0 && (
+                    {item.badge === "offers" && receivedCount > 0 && (
                       <span className="h-4 min-w-4 rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground flex items-center justify-center px-1">
                         {receivedCount}
+                      </span>
+                    )}
+                    {item.badge === "remixes" && pendingRemixCount > 0 && (
+                      <span className="h-4 min-w-4 rounded-full bg-primary text-[10px] font-bold text-primary-foreground flex items-center justify-center px-1">
+                        {pendingRemixCount}
                       </span>
                     )}
                   </Link>

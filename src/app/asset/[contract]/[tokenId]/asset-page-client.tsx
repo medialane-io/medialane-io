@@ -40,6 +40,10 @@ import { useMarketplace } from "@/hooks/use-marketplace";
 import { useCart } from "@/hooks/use-cart";
 import { toast } from "sonner";
 import { useDominantColor } from "@/hooks/use-dominant-color";
+import { RemixOfferDialog } from "@/components/asset/remix-offer-dialog";
+import { SelfRemixDialog } from "@/components/asset/self-remix-dialog";
+import { RemixesTab, ParentAttributionBanner } from "@/components/asset/remixes-tab";
+import { submitAutoRemixOffer, useTokenRemixes } from "@/hooks/use-remix-offers";
 
 const TYPE_LABEL: Record<string, string> = {
   transfer: "Transfer",
@@ -51,7 +55,7 @@ const TYPE_LABEL: Record<string, string> = {
 
 export default function AssetPageClient() {
   const { contract, tokenId } = useParams<{ contract: string; tokenId: string }>();
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, getToken } = useAuth();
   const { walletAddress } = useSessionKey();
   const { collection } = useCollection(contract);
   const { token, isLoading } = useToken(contract, tokenId);
@@ -78,9 +82,13 @@ export default function AssetPageClient() {
   const [transferOpen, setTransferOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [commentOpen, setCommentOpen] = useState(false);
+  const [remixOfferOpen, setRemixOfferOpen] = useState(false);
+  const [selfRemixOpen, setSelfRemixOpen] = useState(false);
+  const [autoRemixLoading, setAutoRemixLoading] = useState(false);
 
   const isMobile = useIsMobile();
   const { comments, total: commentTotal } = useComments(contract, tokenId);
+  const { total: remixCount } = useTokenRemixes(contract, tokenId);
 
   // Listings = ERC721 in offer (someone selling the NFT)
   const activeListings = listings.filter(
@@ -214,6 +222,14 @@ export default function AssetPageClient() {
   const isDisplayAttr = (a: { trait_type?: string }): boolean =>
     !LICENSE_TRAIT_TYPES.has(a.trait_type ?? "") && !activeTemplateKeys.has(a.trait_type ?? "");
 
+  // Remix / parent detection
+  const parentContract = attributes.find((a) => a.trait_type === "Parent Contract")?.value ?? null;
+  const parentTokenId = attributes.find((a) => a.trait_type === "Parent Token ID")?.value ?? null;
+  const licenseAttr = attributes.find((a) => a.trait_type === "License")?.value;
+  const licensePriceAttr = attributes.find((a) => a.trait_type === "License Price")?.value;
+  const OPEN_LICENSES = ["CC0", "CC BY", "CC BY-SA", "CC BY-NC"];
+  const isOpenLicense = !!(licenseAttr && OPEN_LICENSES.includes(licenseAttr) && licensePriceAttr);
+
   return (
     <div
       style={dynamicTheme ? (dynamicTheme as React.CSSProperties) : {}}
@@ -303,6 +319,15 @@ export default function AssetPageClient() {
             className="space-y-6"
           >
             <div>
+              {parentContract && parentTokenId && (
+                <div className="mb-3">
+                  <ParentAttributionBanner
+                    parentContract={parentContract}
+                    parentTokenId={parentTokenId}
+                    parentName={`Token #${parentTokenId}`}
+                  />
+                </div>
+              )}
               {token.metadata?.ipType && (
                 <Badge variant="secondary" className="mb-2">{token.metadata.ipType}</Badge>
               )}
@@ -493,6 +518,49 @@ export default function AssetPageClient() {
               </div>
             )}
 
+            {/* Remix section */}
+            {isOwner ? (
+              <Button variant="outline" className="w-full" onClick={() => setSelfRemixOpen(true)}>
+                <GitBranch className="h-4 w-4 mr-2" />
+                Create Remix
+              </Button>
+            ) : isSignedIn ? (
+              <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <GitBranch className="h-4 w-4 text-primary shrink-0" />
+                  <p className="text-sm font-semibold">Create a Remix</p>
+                </div>
+                {isOpenLicense ? (
+                  <Button
+                    className="w-full"
+                    disabled={autoRemixLoading}
+                    onClick={async () => {
+                      if (!walletAddress) return;
+                      const clerkToken = await getToken();
+                      if (!clerkToken) { toast.error("Sign in required"); return; }
+                      setAutoRemixLoading(true);
+                      try {
+                        await submitAutoRemixOffer({ originalContract: contract, originalTokenId: tokenId }, clerkToken);
+                        toast.success("Remix offer submitted!", { description: "The creator will be notified." });
+                      } catch (err: unknown) {
+                        toast.error("Failed to submit", { description: err instanceof Error ? err.message : "Unknown error" });
+                      } finally {
+                        setAutoRemixLoading(false);
+                      }
+                    }}
+                  >
+                    {autoRemixLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <GitBranch className="h-4 w-4 mr-2" />}
+                    Request Remix ({licensePriceAttr})
+                  </Button>
+                ) : (
+                  <Button variant="outline" className="w-full" onClick={() => setRemixOfferOpen(true)}>
+                    <GitBranch className="h-4 w-4 mr-2" />
+                    Propose Remix Terms
+                  </Button>
+                )}
+              </div>
+            ) : null}
+
             {/* Links */}
             <div className="flex items-center gap-3 text-sm">
               <a
@@ -549,6 +617,9 @@ export default function AssetPageClient() {
             </TabsTrigger>
             <TabsTrigger value="provenance">
               Provenance {history.length > 0 && `(${history.length})`}
+            </TabsTrigger>
+            <TabsTrigger value="remixes">
+              Remixes {remixCount > 0 && `(${remixCount})`}
             </TabsTrigger>
           </TabsList>
 
@@ -750,6 +821,11 @@ export default function AssetPageClient() {
             </div>
           </TabsContent>
 
+          {/* Remixes tab */}
+          <TabsContent value="remixes" className="mt-4">
+            <RemixesTab contractAddress={contract} tokenId={tokenId} />
+          </TabsContent>
+
         </Tabs>
       </div>
 
@@ -899,6 +975,23 @@ export default function AssetPageClient() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <RemixOfferDialog
+        open={remixOfferOpen}
+        onOpenChange={setRemixOfferOpen}
+        contractAddress={contract}
+        tokenId={tokenId}
+        tokenName={name}
+      />
+
+      <SelfRemixDialog
+        open={selfRemixOpen}
+        onOpenChange={setSelfRemixOpen}
+        originalContract={contract}
+        originalTokenId={tokenId}
+        originalName={name}
+        originalImage={image}
+      />
 
       <TransferDialog
         open={transferOpen}
