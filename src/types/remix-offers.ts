@@ -1,3 +1,5 @@
+export const OPEN_LICENSES = ["CC0", "CC BY", "CC BY-SA", "CC BY-NC"] as const;
+
 export type RemixOfferStatus =
   | "PENDING"
   | "AUTO_PENDING"

@@ -44,6 +44,7 @@ import { RemixOfferDialog } from "@/components/asset/remix-offer-dialog";
 import { SelfRemixDialog } from "@/components/asset/self-remix-dialog";
 import { RemixesTab, ParentAttributionBanner } from "@/components/asset/remixes-tab";
 import { submitAutoRemixOffer, useTokenRemixes } from "@/hooks/use-remix-offers";
+import { OPEN_LICENSES } from "@/types/remix-offers";
 
 const TYPE_LABEL: Record<string, string> = {
   transfer: "Transfer",
@@ -170,6 +171,21 @@ export default function AssetPageClient() {
     mutateListings();
   };
 
+  const handleAutoRemix = async () => {
+    if (!walletAddress) return;
+    const clerkToken = await getToken();
+    if (!clerkToken) { toast.error("Sign in required"); return; }
+    setAutoRemixLoading(true);
+    try {
+      await submitAutoRemixOffer({ originalContract: contract, originalTokenId: tokenId }, clerkToken);
+      toast.success("Remix offer submitted!", { description: "The creator will be notified." });
+    } catch (err: unknown) {
+      toast.error("Failed to submit", { description: err instanceof Error ? err.message : "Unknown error" });
+    } finally {
+      setAutoRemixLoading(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 pt-14 pb-8">
@@ -227,8 +243,7 @@ export default function AssetPageClient() {
   const parentTokenId = attributes.find((a) => a.trait_type === "Parent Token ID")?.value ?? null;
   const licenseAttr = attributes.find((a) => a.trait_type === "License")?.value;
   const licensePriceAttr = attributes.find((a) => a.trait_type === "License Price")?.value;
-  const OPEN_LICENSES = ["CC0", "CC BY", "CC BY-SA", "CC BY-NC"];
-  const isOpenLicense = !!(licenseAttr && OPEN_LICENSES.includes(licenseAttr) && licensePriceAttr);
+  const isOpenLicense = !!(licenseAttr && (OPEN_LICENSES as readonly string[]).includes(licenseAttr) && licensePriceAttr);
 
   return (
     <div
@@ -534,20 +549,7 @@ export default function AssetPageClient() {
                   <Button
                     className="w-full"
                     disabled={autoRemixLoading}
-                    onClick={async () => {
-                      if (!walletAddress) return;
-                      const clerkToken = await getToken();
-                      if (!clerkToken) { toast.error("Sign in required"); return; }
-                      setAutoRemixLoading(true);
-                      try {
-                        await submitAutoRemixOffer({ originalContract: contract, originalTokenId: tokenId }, clerkToken);
-                        toast.success("Remix offer submitted!", { description: "The creator will be notified." });
-                      } catch (err: unknown) {
-                        toast.error("Failed to submit", { description: err instanceof Error ? err.message : "Unknown error" });
-                      } finally {
-                        setAutoRemixLoading(false);
-                      }
-                    }}
+                    onClick={handleAutoRemix}
                   >
                     {autoRemixLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <GitBranch className="h-4 w-4 mr-2" />}
                     Request Remix ({licensePriceAttr})
