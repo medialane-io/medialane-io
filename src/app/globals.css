@@ -302,3 +302,14 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* Animated gradient border for marketplace action buttons */
+@keyframes border-flow {
+  0%, 100% { background-position: 0% 50%; }
+  50%       { background-position: 100% 50%; }
+}
+.btn-border-animated {
+  background: linear-gradient(270deg, #2563eb, #9333ea, #f43f5e, #ea580c, #2563eb);
+  background-size: 300% 300%;
+  animation: border-flow 5s ease infinite;
+}

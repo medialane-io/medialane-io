@@ -368,56 +368,38 @@ export default function AssetPageClient() {
                   </div>
                 ) : isSignedIn ? (
                   <div className="space-y-2">
-                    <motion.div
-                      animate={shouldReduce ? {} : {
-                        boxShadow: [
-                          "0 0 0 0 hsl(var(--brand-rose) / 0.5)",
-                          "0 0 0 14px hsl(var(--brand-rose) / 0)",
-                        ],
-                      }}
-                      transition={{ duration: 1.4, ease: "easeOut", repeat: 0 }}
-                      style={{ borderRadius: "0.75rem" }}
-                    >
+                    {/* Buy Now — flat brand-blue, animated gradient border */}
+                    <div className="btn-border-animated p-[2px] rounded-xl">
                       <button
-                        className="w-full h-12 text-base font-semibold text-white rounded-xl flex items-center justify-center gap-2 transition-all hover:opacity-90 active:scale-[0.98]"
-                        style={{
-                          background: dynamicTheme
-                            ? `linear-gradient(135deg, hsl(var(--brand-rose)), hsl(var(--dynamic-primary) / 0.85) 60%, hsl(var(--brand-orange)))`
-                            : `linear-gradient(135deg, hsl(var(--brand-rose)), hsl(var(--brand-orange)))`,
-                          boxShadow: dynamicTheme ? `0 4px 20px hsl(var(--dynamic-primary) / 0.25)` : `0 4px 20px hsl(var(--brand-rose) / 0.25)`,
-                        }}
+                        className="w-full h-12 text-base font-semibold text-white rounded-[10px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] bg-brand-blue"
                         onClick={() => setPurchaseOrder(cheapest)}
                       >
                         <ShoppingCart className="h-5 w-5" />
                         Buy now
                       </button>
-                    </motion.div>
+                    </div>
                     <div className="grid grid-cols-2 gap-2">
-                      <button
-                        className="flex items-center justify-center gap-2 h-10 rounded-xl border-2 text-sm font-semibold transition-all hover:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed"
-                        style={{
-                          borderColor: "hsl(var(--brand-orange))",
-                          color: "hsl(var(--brand-orange))",
-                          background: dynamicTheme ? `hsl(var(--dynamic-primary) / 0.06)` : "transparent",
-                        }}
-                        disabled={inCart}
-                        onClick={handleAddToCart}
-                      >
-                        <ShoppingCart className="h-4 w-4" />
-                        {inCart ? "In cart" : "Add to cart"}
-                      </button>
-                      <button
-                        className="flex items-center justify-center gap-2 h-10 rounded-xl border-2 text-sm font-semibold transition-all hover:opacity-80"
-                        style={{
-                          borderColor: "hsl(var(--brand-purple))",
-                          color: "hsl(var(--brand-purple))",
-                          background: dynamicTheme ? `hsl(var(--dynamic-primary) / 0.06)` : "transparent",
-                        }}
-                        onClick={() => setOfferOpen(true)}
-                      >
-                        <HandCoins className="h-4 w-4" />
-                        Make offer
-                      </button>
+                      {/* Add to cart — flat brand-orange, animated gradient border */}
+                      <div className={`btn-border-animated p-[2px] rounded-xl ${inCart ? "opacity-40 pointer-events-none" : ""}`}>
+                        <button
+                          className="w-full h-10 rounded-[10px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-orange"
+                          disabled={inCart}
+                          onClick={handleAddToCart}
+                        >
+                          <ShoppingCart className="h-4 w-4" />
+                          {inCart ? "In cart" : "Add to cart"}
+                        </button>
+                      </div>
+                      {/* Make offer — flat brand-rose, animated gradient border */}
+                      <div className="btn-border-animated p-[2px] rounded-xl">
+                        <button
+                          className="w-full h-10 rounded-[10px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-rose"
+                          onClick={() => setOfferOpen(true)}
+                        >
+                          <HandCoins className="h-4 w-4" />
+                          Make offer
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ) : (
@@ -448,18 +430,15 @@ export default function AssetPageClient() {
                     </Button>
                   </div>
                 ) : isSignedIn ? (
-                  <button
-                    className="flex w-full items-center justify-center gap-2 h-10 rounded-xl border-2 text-sm font-semibold transition-all hover:opacity-80"
-                    style={{
-                      borderColor: "hsl(var(--brand-purple))",
-                      color: "hsl(var(--brand-purple))",
-                      background: dynamicTheme ? `hsl(var(--dynamic-primary) / 0.06)` : "transparent",
-                    }}
-                    onClick={() => setOfferOpen(true)}
-                  >
-                    <HandCoins className="h-4 w-4" />
-                    Make offer
-                  </button>
+                  <div className="btn-border-animated p-[2px] rounded-xl">
+                    <button
+                      className="w-full h-10 rounded-[10px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-rose"
+                      onClick={() => setOfferOpen(true)}
+                    >
+                      <HandCoins className="h-4 w-4" />
+                      Make offer
+                    </button>
+                  </div>
                 ) : (
                   <SignInButton mode="modal">
                     <Button variant="outline" className="w-full">
