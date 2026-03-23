@@ -62,6 +62,16 @@ Medialane is a platform for the **creative economy on Starknet**. It bridges Web
 - Creators without uploaded images automatically fall back to their latest collection image
 - Profile pages with activity timeline, owned assets, collections, and listing history
 
+### Remix Licensing
+- Request remix licenses from asset creators with fully configurable terms (license type, commercial use, derivatives, royalty %, proposed fee)
+- Full remix creation page at `/create/remix/[contract]/[tokenId]` — detects owner vs non-owner and adapts the flow:
+  - **Owner (self-remix)**: upload custom artwork, set name/description/IP type/license, mint as a new IP asset, recorded on-chain with parent attribution
+  - **Non-owner**: propose license terms + payment amount, creator receives notification and can approve/reject
+- Open-license assets (CC0, CC BY, CC BY-SA, CC BY-NC) auto-approve without creator action
+- Parent attribution embedded in remix metadata as `Parent Contract` + `Parent Token ID` attributes — displayed as a banner on remix asset pages
+- Portfolio Remixes page (`/portfolio/remix-offers`) — incoming requests (creator view with Approve/Reject) and outgoing requests (requester view) with status badges for all 7 states
+- Remix count badge on portfolio nav link for pending requests
+
 ### Invisible Wallet (ChipiPay)
 - Sign in with email, Google, or any Clerk-supported provider
 - Wallet created on first use — protected by a 6-12 digit PIN (AES-encrypted key, never stored in plaintext)
@@ -224,9 +234,9 @@ src/
   app/
     api/pinata/       # Universal IP asset upload (Clerk-gated, direct Pinata)
     asset/            # /asset/[contract]/[tokenId] — asset detail page + License tab
-    create/           # /create/asset + /create/collection — launchpad forms
+    create/           # /create/asset + /create/collection + /create/remix/[contract]/[tokenId]
     marketplace/      # /marketplace — browse + filter + search
-    portfolio/        # /portfolio — owned tokens, listings, offers, activity
+    portfolio/        # /portfolio — owned tokens, listings, offers, activity, remix-offers
     onboarding/       # /onboarding — wallet creation (passkey-first)
     ...
   components/
