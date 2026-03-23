@@ -44,7 +44,7 @@ function HeroSlide({
       )}
 
       {/* Darkening overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/30 to-black/0" />
 
       {/* Content */}
       <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-10 flex flex-col gap-3">
@@ -78,18 +78,18 @@ function HeroPlaceholder() {
       <div className="absolute aurora-blue w-[400px] h-[400px] opacity-15 -bottom-16 -right-16" />
       <h2 className="text-4xl sm:text-6xl font-black gradient-text relative z-10">Medialane</h2>
       <p className="text-muted-foreground text-lg relative z-10 max-w-md">
-        The Starknet creator launchpad for IP assets.
+        New monetization revenues for creative works
       </p>
       <div className="flex gap-3 relative z-10">
         <Button asChild>
-          <Link href="/collections">Explore Collections</Link>
+          <Link href="/marketplace">Markets</Link>
         </Button>
         <Button
           asChild
           variant="outline"
           className="bg-background/20 backdrop-blur-sm border-white/20 text-white hover:bg-white/10"
         >
-          <Link href="/create/asset">Start Creating</Link>
+          <Link href="/create/asset">Create</Link>
         </Button>
       </div>
     </div>
