@@ -472,7 +472,7 @@ export default function AssetPageClient() {
                 ) : isSignedIn ? (
                   <div className="btn-border-animated p-[1px] rounded-xl">
                     <button
-                      className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-rose"
+                      className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-purple"
                       onClick={() => setOfferOpen(true)}
                     >
                       <HandCoins className="h-4 w-4" />
@@ -533,33 +533,27 @@ export default function AssetPageClient() {
               </div>
             )}
 
-            {/* Remix section */}
+            {/* Remix button */}
             {isOwner ? (
-              <Button variant="outline" className="w-full" onClick={() => setSelfRemixOpen(true)}>
-                <GitBranch className="h-4 w-4 mr-2" />
-                Create Remix
-              </Button>
+              <div className="btn-border-animated p-[1px] rounded-xl">
+                <button
+                  className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-rose"
+                  onClick={() => setSelfRemixOpen(true)}
+                >
+                  <GitBranch className="h-4 w-4" />
+                  Create a Remix
+                </button>
+              </div>
             ) : isSignedIn ? (
-              <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3">
-                <div className="flex items-center gap-2">
-                  <GitBranch className="h-4 w-4 text-primary shrink-0" />
-                  <p className="text-sm font-semibold">Create a Remix</p>
-                </div>
-                {isOpenLicense ? (
-                  <Button
-                    className="w-full"
-                    disabled={autoRemixLoading}
-                    onClick={handleAutoRemix}
-                  >
-                    {autoRemixLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <GitBranch className="h-4 w-4 mr-2" />}
-                    Request Remix ({licensePriceAttr})
-                  </Button>
-                ) : (
-                  <Button variant="outline" className="w-full" onClick={() => setRemixOfferOpen(true)}>
-                    <GitBranch className="h-4 w-4 mr-2" />
-                    Propose Remix Terms
-                  </Button>
-                )}
+              <div className="btn-border-animated p-[1px] rounded-xl">
+                <button
+                  className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-rose disabled:opacity-50"
+                  disabled={autoRemixLoading}
+                  onClick={isOpenLicense ? handleAutoRemix : () => setRemixOfferOpen(true)}
+                >
+                  {autoRemixLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <GitBranch className="h-4 w-4" />}
+                  Create a Remix
+                </button>
               </div>
             ) : null}
 
@@ -619,9 +613,6 @@ export default function AssetPageClient() {
             </TabsTrigger>
             <TabsTrigger value="provenance">
               Provenance {history.length > 0 && `(${history.length})`}
-            </TabsTrigger>
-            <TabsTrigger value="remixes">
-              Remixes {remixCount > 0 && `(${remixCount})`}
             </TabsTrigger>
           </TabsList>
 
@@ -778,8 +769,15 @@ export default function AssetPageClient() {
             </div>
           </TabsContent>
 
-          {/* Provenance tab */}
+          {/* Provenance tab — history + remixes */}
           <TabsContent value="provenance" className="mt-4">
+            <div className="space-y-6">
+            {remixCount > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Remixes</p>
+                <RemixesTab contractAddress={contract} tokenId={tokenId} />
+              </div>
+            )}
             <div className="space-y-4">
               <PriceHistoryChart history={history as ApiActivity[]} />
               {history.length === 0 ? (
@@ -821,11 +819,7 @@ export default function AssetPageClient() {
                 </div>
               )}
             </div>
-          </TabsContent>
-
-          {/* Remixes tab */}
-          <TabsContent value="remixes" className="mt-4">
-            <RemixesTab contractAddress={contract} tokenId={tokenId} />
+            </div>
           </TabsContent>
 
         </Tabs>
