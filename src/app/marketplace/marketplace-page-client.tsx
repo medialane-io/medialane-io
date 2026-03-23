@@ -7,7 +7,7 @@ import { ListingsGrid } from "@/components/marketplace/listings-grid";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, X, Store } from "lucide-react";
+import { Search, X, Store, SlidersHorizontal } from "lucide-react";
 import type { ApiSearchResult } from "@medialane/sdk";
 import { getTokenBySymbol, parseAmount, SUPPORTED_TOKENS } from "@medialane/sdk";
 import { ipfsToHttp, cn } from "@/lib/utils";
@@ -246,7 +246,9 @@ export default function MarketplacePageClient() {
     setMaxPrice(undefined);
   };
 
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const hasFilters = sort !== "recent" || currency || orderType || minPrice || maxPrice;
+  const filterCount = [currency, orderType, minPrice || maxPrice].filter(Boolean).length;
 
   const resetAll = () => {
     setSort("recent");
@@ -274,104 +276,124 @@ export default function MarketplacePageClient() {
       </div>
 
       {/* Filter toolbar */}
-      <div className="space-y-3 pb-2 border-b border-border/60">
-        {/* Row 1: search */}
-        <SearchBar />
-
-        {/* Row 2: scrollable filter chips */}
-        <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
-          <div className="flex items-center gap-2 min-w-max md:min-w-0 md:flex-wrap pb-1">
-          {/* Sort */}
-          <div className="flex items-center gap-1 shrink-0">
-            {SORT_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => setSort(opt.value)}
-                className={`text-xs px-3 py-1.5 rounded-md transition-colors whitespace-nowrap ${
-                  sort === opt.value
-                    ? "bg-primary/10 text-primary font-medium"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
+      <div className="space-y-3 pb-3 border-b border-border/60">
+        {/* Row 1: search + filter toggle */}
+        <div className="flex items-center gap-2">
+          <div className="flex-1">
+            <SearchBar />
           </div>
-
-          <div className="w-px h-5 bg-border shrink-0" />
-
-          {/* Type */}
-          <div className="flex items-center gap-1 shrink-0">
-            {TYPE_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => setOrderType(opt.value)}
-                className={`text-xs px-3 py-1.5 rounded-md transition-colors whitespace-nowrap ${
-                  orderType === opt.value
-                    ? "bg-primary/10 text-primary font-medium"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="w-px h-5 bg-border shrink-0" />
-
-          {/* Currency */}
-          <div className="flex items-center gap-1.5 shrink-0">
-            {CURRENCY_OPTIONS.map((c) => (
-              <button
-                key={c}
-                onClick={() => handleCurrencyChange(c)}
-                className={`text-xs px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap ${
-                  currency === c
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-border text-muted-foreground hover:border-primary/50"
-                }`}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
-
-          <div className="w-px h-5 bg-border shrink-0" />
-
-          {/* Price range */}
-          <div className="flex items-center gap-1.5 shrink-0">
-            <Input
-              placeholder="Min"
-              value={minInput}
-              onChange={(e) => handlePriceInput(e.target.value, maxInput)}
-              className="h-7 w-16 text-xs px-2"
-              type="number"
-              min="0"
-            />
-            <span className="text-xs text-muted-foreground">–</span>
-            <Input
-              placeholder="Max"
-              value={maxInput}
-              onChange={(e) => handlePriceInput(minInput, e.target.value)}
-              className="h-7 w-16 text-xs px-2"
-              type="number"
-              min="0"
-            />
-          </div>
-
-          {/* Reset */}
-          {hasFilters && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 text-xs text-muted-foreground shrink-0 ml-auto"
-              onClick={resetAll}
-            >
-              Reset
-            </Button>
-          )}
-          </div>
+          <button
+            onClick={() => setFiltersOpen((v) => !v)}
+            className={cn(
+              "relative flex items-center gap-1.5 h-9 px-3 rounded-lg border text-xs font-medium transition-colors shrink-0",
+              filtersOpen || filterCount > 0
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
+            )}
+          >
+            <SlidersHorizontal className="h-3.5 w-3.5" />
+            Filters
+            {filterCount > 0 && (
+              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                {filterCount}
+              </span>
+            )}
+          </button>
         </div>
+
+        {/* Row 2: sort tabs — always visible */}
+        <div className="flex items-center gap-1">
+          {SORT_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setSort(opt.value)}
+              className={`text-xs px-3 py-1.5 rounded-md transition-colors whitespace-nowrap ${
+                sort === opt.value
+                  ? "bg-primary/10 text-primary font-medium"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Expandable filter panel */}
+        {filtersOpen && (
+          <div className="rounded-xl border border-border bg-muted/20 p-3 space-y-3">
+            {/* Type */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground w-12 shrink-0">Type</span>
+              <div className="flex items-center gap-1 flex-wrap">
+                {TYPE_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setOrderType(opt.value)}
+                    className={`text-xs px-3 py-1 rounded-full border transition-colors whitespace-nowrap ${
+                      orderType === opt.value
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border text-muted-foreground hover:border-primary/50"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Currency */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground w-12 shrink-0">Token</span>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {CURRENCY_OPTIONS.map((c) => (
+                  <button
+                    key={c}
+                    onClick={() => handleCurrencyChange(c)}
+                    className={`text-xs px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap ${
+                      currency === c
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border text-muted-foreground hover:border-primary/50"
+                    }`}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Price range */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground w-12 shrink-0">Price</span>
+              <div className="flex items-center gap-1.5">
+                <Input
+                  placeholder="Min"
+                  value={minInput}
+                  onChange={(e) => handlePriceInput(e.target.value, maxInput)}
+                  className="h-7 w-20 text-xs px-2"
+                  type="number"
+                  min="0"
+                />
+                <span className="text-xs text-muted-foreground">–</span>
+                <Input
+                  placeholder="Max"
+                  value={maxInput}
+                  onChange={(e) => handlePriceInput(minInput, e.target.value)}
+                  className="h-7 w-20 text-xs px-2"
+                  type="number"
+                  min="0"
+                />
+              </div>
+            </div>
+
+            {hasFilters && (
+              <div className="pt-1 border-t border-border/60">
+                <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground" onClick={resetAll}>
+                  Clear all filters
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* IP Type navigation */}

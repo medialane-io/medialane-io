@@ -24,7 +24,7 @@ export function HomePage() {
         <NewOnMarketplace />
         <GenesisMintSection />
         <CommunityActivity />
-        <IpTypeNav />
+        {/* <IpTypeNav /> */}{/* TODO: uncomment when more asset variety is available */}
         <LearnDocsCta />
       </div>
     </div>

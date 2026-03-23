@@ -371,42 +371,53 @@ export default function AssetPageClient() {
                     <motion.div
                       animate={shouldReduce ? {} : {
                         boxShadow: [
-                          "0 0 0 0 hsl(var(--dynamic-primary) / 0.4)",
-                          "0 0 0 12px hsl(var(--dynamic-primary) / 0)",
+                          "0 0 0 0 hsl(var(--brand-rose) / 0.5)",
+                          "0 0 0 14px hsl(var(--brand-rose) / 0)",
                         ],
                       }}
-                      transition={{ duration: 1.2, ease: "easeOut", repeat: 0 }}
-                      style={{ borderRadius: "inherit" }}
+                      transition={{ duration: 1.4, ease: "easeOut", repeat: 0 }}
+                      style={{ borderRadius: "0.75rem" }}
                     >
-                      <Button
-                        className="w-full h-12 text-base"
-                        style={dynamicTheme ? { background: `hsl(var(--dynamic-primary))`, color: "white" } : {}}
+                      <button
+                        className="w-full h-12 text-base font-semibold text-white rounded-xl flex items-center justify-center gap-2 transition-all hover:opacity-90 active:scale-[0.98]"
+                        style={{
+                          background: dynamicTheme
+                            ? `linear-gradient(135deg, hsl(var(--brand-rose)), hsl(var(--dynamic-primary) / 0.85) 60%, hsl(var(--brand-orange)))`
+                            : `linear-gradient(135deg, hsl(var(--brand-rose)), hsl(var(--brand-orange)))`,
+                          boxShadow: dynamicTheme ? `0 4px 20px hsl(var(--dynamic-primary) / 0.25)` : `0 4px 20px hsl(var(--brand-rose) / 0.25)`,
+                        }}
                         onClick={() => setPurchaseOrder(cheapest)}
                       >
-                        <ShoppingCart className="h-5 w-5 mr-2" />
+                        <ShoppingCart className="h-5 w-5" />
                         Buy now
-                      </Button>
+                      </button>
                     </motion.div>
                     <div className="grid grid-cols-2 gap-2">
-                      <Button
-                        variant="outline"
-                        className="w-full transition-colors [&:hover]:bg-[hsl(var(--dynamic-primary)/.1)] [&:hover]:text-[hsl(var(--dynamic-primary))] [&:hover]:border-[hsl(var(--dynamic-primary))]"
-                        style={dynamicTheme ? { borderColor: `hsl(var(--dynamic-primary))`, color: `hsl(var(--dynamic-primary))` } : {}}
+                      <button
+                        className="flex items-center justify-center gap-2 h-10 rounded-xl border-2 text-sm font-semibold transition-all hover:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed"
+                        style={{
+                          borderColor: "hsl(var(--brand-orange))",
+                          color: "hsl(var(--brand-orange))",
+                          background: dynamicTheme ? `hsl(var(--dynamic-primary) / 0.06)` : "transparent",
+                        }}
                         disabled={inCart}
                         onClick={handleAddToCart}
                       >
-                        <ShoppingCart className="h-4 w-4 mr-2" />
+                        <ShoppingCart className="h-4 w-4" />
                         {inCart ? "In cart" : "Add to cart"}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="w-full transition-colors [&:hover]:bg-[hsl(var(--dynamic-primary)/.1)] [&:hover]:text-[hsl(var(--dynamic-primary))] [&:hover]:border-[hsl(var(--dynamic-primary))]"
-                        style={dynamicTheme ? { borderColor: `hsl(var(--dynamic-primary))`, color: `hsl(var(--dynamic-primary))` } : {}}
+                      </button>
+                      <button
+                        className="flex items-center justify-center gap-2 h-10 rounded-xl border-2 text-sm font-semibold transition-all hover:opacity-80"
+                        style={{
+                          borderColor: "hsl(var(--brand-purple))",
+                          color: "hsl(var(--brand-purple))",
+                          background: dynamicTheme ? `hsl(var(--dynamic-primary) / 0.06)` : "transparent",
+                        }}
                         onClick={() => setOfferOpen(true)}
                       >
-                        <HandCoins className="h-4 w-4 mr-2" />
+                        <HandCoins className="h-4 w-4" />
                         Make offer
-                      </Button>
+                      </button>
                     </div>
                   </div>
                 ) : (
@@ -437,15 +448,18 @@ export default function AssetPageClient() {
                     </Button>
                   </div>
                 ) : isSignedIn ? (
-                  <Button
-                    variant="outline"
-                    className="w-full transition-colors [&:hover]:bg-[hsl(var(--dynamic-primary)/.1)] [&:hover]:text-[hsl(var(--dynamic-primary))] [&:hover]:border-[hsl(var(--dynamic-primary))]"
-                    style={dynamicTheme ? { borderColor: `hsl(var(--dynamic-primary))`, color: `hsl(var(--dynamic-primary))` } : {}}
+                  <button
+                    className="flex w-full items-center justify-center gap-2 h-10 rounded-xl border-2 text-sm font-semibold transition-all hover:opacity-80"
+                    style={{
+                      borderColor: "hsl(var(--brand-purple))",
+                      color: "hsl(var(--brand-purple))",
+                      background: dynamicTheme ? `hsl(var(--dynamic-primary) / 0.06)` : "transparent",
+                    }}
                     onClick={() => setOfferOpen(true)}
                   >
-                    <HandCoins className="h-4 w-4 mr-2" />
+                    <HandCoins className="h-4 w-4" />
                     Make offer
-                  </Button>
+                  </button>
                 ) : (
                   <SignInButton mode="modal">
                     <Button variant="outline" className="w-full">
@@ -510,12 +524,19 @@ export default function AssetPageClient() {
               >
                 Contract <ExternalLink className="h-3 w-3" />
               </a>
-              <Link
-                href={`/collections/${token.contractAddress}`}
-                className="flex items-center gap-1 text-muted-foreground hover:text-foreground"
-              >
-                Collection
-              </Link>
+              {collection && (
+                <Link
+                  href={`/collections/${token.contractAddress}`}
+                  className="flex items-center gap-2.5 rounded-lg border border-border px-3 py-1.5 hover:bg-muted/40 transition-colors group min-w-0"
+                >
+                  <div className="relative h-7 w-7 rounded-full overflow-hidden shrink-0 bg-gradient-to-br from-primary/20 to-purple-500/20 ring-1 ring-border">
+                    {collection.image && (
+                      <Image src={ipfsToHttp(collection.image)} alt="" fill className="object-cover" unoptimized />
+                    )}
+                  </div>
+                  <span className="text-xs font-medium truncate group-hover:text-primary transition-colors max-w-[120px]">{collection.name}</span>
+                </Link>
+              )}
               <Button
                 variant="ghost"
                 size="icon"
@@ -544,7 +565,6 @@ export default function AssetPageClient() {
         <Tabs defaultValue="overview">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="license">License</TabsTrigger>
             <TabsTrigger value="markets">
               Markets {(activeListings.length + activeBids.length) > 0 && `(${activeListings.length + activeBids.length})`}
             </TabsTrigger>
@@ -553,7 +573,7 @@ export default function AssetPageClient() {
             </TabsTrigger>
           </TabsList>
 
-          {/* Overview tab — media embeds + attributes */}
+          {/* Overview tab — media embeds + license + attributes */}
           <TabsContent value="overview" className="mt-4 space-y-6">
             {/* Media embeds (YouTube, Spotify, etc.) — shown first when present */}
             {hasTemplateData && (
@@ -561,55 +581,8 @@ export default function AssetPageClient() {
                 attributes={token.metadata?.attributes as { trait_type?: string; value?: string }[] | null}
               />
             )}
-            <div className="space-y-4">
-            
-            {token.metadata?.licenseType && (
-              <div className="rounded-lg bg-muted/30 p-4 space-y-1">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">License</p>
-                <p className="text-sm font-medium">{token.metadata.licenseType}</p>
-              </div>
-            )}
-            {token.metadata?.commercialUse !== undefined && token.metadata?.commercialUse !== null && (
-              <div className="rounded-lg bg-muted/30 p-4 space-y-1">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Commercial use</p>
-                <p className="text-sm font-medium">{String(token.metadata.commercialUse)}</p>
-              </div>
-            )}
-            {token.metadata?.author && (
-              <div className="rounded-lg bg-muted/30 p-4 space-y-1">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Author</p>
-                <p className="text-sm font-medium">{token.metadata.author as string}</p>
-              </div>
-            )}
-            {attributes.filter(
-              (a) => isDisplayAttr(a)
-            ).length > 0 && (
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Attributes</p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {attributes
-                    .filter((a) => isDisplayAttr(a))
-                    .map((attr, i) => (
-                    <div key={i} className="rounded-lg border border-border bg-muted/20 p-3 text-center overflow-hidden">
-                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground truncate" title={attr.trait_type ?? "Trait"}>
-                        {attr.trait_type ?? "Trait"}
-                      </p>
-                      <p className="text-sm font-semibold mt-0.5 truncate" title={attr.value ?? "—"}>
-                        {attr.value ?? "—"}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            {!description && !token.metadata?.licenseType && attributes.length === 0 && (
-              <p className="text-sm text-muted-foreground">No additional details available.</p>
-            )}
-            </div>
-          </TabsContent>
 
-          {/* License tab */}
-          <TabsContent value="license" className="mt-4">
+            {/* License section (inline from attributes) */}
             {(() => {
               const attr = (trait: string) =>
                 attributes.find((a) => a.trait_type === trait)?.value;
@@ -622,17 +595,8 @@ export default function AssetPageClient() {
               const royalty = attr("Royalty");
               const standard = attr("Standard");
               const registration = attr("Registration");
-
               const hasLicenseData = licenseType || commercialUse || derivatives || attribution;
-
-              if (!hasLicenseData) {
-                return (
-                  <p className="text-sm text-muted-foreground py-6 text-center">
-                    No licensing information attached to this asset.
-                  </p>
-                );
-              }
-
+              if (!hasLicenseData) return null;
               const rows: { icon: React.ReactNode; label: string; value: string | undefined }[] = [
                 { icon: <Shield className="h-4 w-4" />, label: "License", value: licenseType },
                 { icon: <DollarSign className="h-4 w-4" />, label: "Commercial Use", value: commercialUse },
@@ -643,23 +607,17 @@ export default function AssetPageClient() {
                 { icon: <Percent className="h-4 w-4" />, label: "Royalty", value: royalty },
                 { icon: <Calendar className="h-4 w-4" />, label: "Registration", value: registration },
               ].filter((r) => !!r.value);
-
               return (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {standard && (
                     <div className="flex items-center gap-2 rounded-lg bg-primary/5 border border-primary/20 px-4 py-3">
                       <Shield className="h-4 w-4 text-primary shrink-0" />
                       <div>
-                        <p className="text-xs font-semibold text-primary">
-                          {standard} Compliant
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Licensing terms are immutably embedded in IPFS metadata and compliant with international copyright law.
-                        </p>
+                        <p className="text-xs font-semibold text-primary">{standard} Compliant</p>
+                        <p className="text-xs text-muted-foreground">Licensing terms are immutably embedded in IPFS metadata and compliant with international copyright law.</p>
                       </div>
                     </div>
                   )}
-
                   <div className="rounded-xl border border-border divide-y divide-border">
                     {rows.map(({ icon, label, value }) => (
                       <div key={label} className="flex items-center justify-between px-4 py-3 gap-4">
@@ -671,37 +629,36 @@ export default function AssetPageClient() {
                       </div>
                     ))}
                   </div>
-
-                  {/* Non-license attributes */}
-                  {attributes.filter(
-                    (a) => isDisplayAttr(a)
-                  ).length > 0 && (
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-                        Additional Attributes
-                      </p>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                        {attributes
-                          .filter(
-                            (a) => isDisplayAttr(a)
-                          )
-                          .map((attr, i) => (
-                            <div key={i} className="rounded-lg border border-border bg-muted/20 p-3 text-center overflow-hidden">
-                              <p className="text-[10px] uppercase tracking-wider text-muted-foreground truncate" title={attr.trait_type ?? "Trait"}>
-                                {attr.trait_type ?? "Trait"}
-                              </p>
-                              <p className="text-sm font-semibold mt-0.5 truncate" title={attr.value ?? "—"}>
-                                {attr.value ?? "—"}
-                              </p>
-                            </div>
-                          ))}
-                      </div>
-                    </div>
-                  )}
                 </div>
               );
             })()}
+
+            {/* Attributes grid */}
+            {attributes.filter((a) => isDisplayAttr(a)).length > 0 && (
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Attributes</p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {attributes
+                    .filter((a) => isDisplayAttr(a))
+                    .map((attr, i) => (
+                      <div key={i} className="rounded-lg border border-border bg-muted/20 p-3 text-center overflow-hidden">
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground truncate" title={attr.trait_type ?? "Trait"}>
+                          {attr.trait_type ?? "Trait"}
+                        </p>
+                        <p className="text-sm font-semibold mt-0.5 truncate" title={attr.value ?? "—"}>
+                          {attr.value ?? "—"}
+                        </p>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+
+            {!hasTemplateData && attributes.filter((a) => isDisplayAttr(a)).length === 0 && (
+              <p className="text-sm text-muted-foreground">No additional details available.</p>
+            )}
           </TabsContent>
+
 
           {/* Markets tab — listings + offers */}
           <TabsContent value="markets" className="mt-4 space-y-6">
@@ -826,8 +783,10 @@ export default function AssetPageClient() {
           className="relative flex h-14 w-14 items-center justify-center rounded-full text-white transition-all hover:scale-110 active:scale-95 shadow-lg shadow-brand-blue/40"
           style={{ background: "linear-gradient(135deg, hsl(var(--brand-blue)), hsl(var(--brand-purple)))" }}
         >
-          {/* pulse ring */}
-          <span className="absolute inset-0 rounded-full animate-ping opacity-20" style={{ background: "hsl(var(--brand-blue))" }} />
+          {/* pulse ring — only when there are comments */}
+          {commentTotal > 0 && (
+            <span className="absolute inset-0 rounded-full animate-ping opacity-20" style={{ background: "hsl(var(--brand-blue))" }} />
+          )}
           <MessageSquare className="h-6 w-6 relative z-10" />
         </button>
         {commentTotal > 0 && (
@@ -843,20 +802,26 @@ export default function AssetPageClient() {
         <SheetContent
           side={isMobile ? "bottom" : "right"}
           className="h-[85svh] sm:h-full sm:max-w-md p-0 flex flex-col"
+          overlayClassName="bg-black/20 backdrop-blur-[2px]"
         >
-          <SheetHeader className="px-4 pt-4 pb-3 shrink-0" style={{ background: "linear-gradient(135deg, hsl(var(--brand-blue) / 0.12), hsl(var(--brand-purple) / 0.10))" }}>
-            <SheetTitle className="flex items-center gap-2.5 text-base">
-              <div className="flex h-7 w-7 items-center justify-center rounded-full text-white shrink-0" style={{ background: "linear-gradient(135deg, hsl(var(--brand-blue)), hsl(var(--brand-purple)))" }}>
-                <MessageSquare className="h-3.5 w-3.5" />
+          <SheetHeader className="px-4 pt-4 pb-3 shrink-0 border-b border-brand-blue/20" style={{ background: "linear-gradient(135deg, hsl(var(--brand-blue) / 0.10), hsl(var(--brand-purple) / 0.08))" }}>
+            <SheetTitle className="flex items-center gap-3 text-sm font-semibold">
+              {/* Asset avatar */}
+              <div className="relative h-9 w-9 rounded-full overflow-hidden shrink-0 ring-2 ring-white/20" style={{ background: "linear-gradient(135deg, hsl(var(--brand-blue) / 0.3), hsl(var(--brand-purple) / 0.3))" }}>
+                {imageUrl && (
+                  <Image src={imageUrl} alt={name} fill className="object-cover" unoptimized />
+                )}
               </div>
-              <span>On-chain Comments</span>
+              <div className="min-w-0">
+                <p className="text-[10px] font-medium uppercase tracking-wider" style={{ color: "hsl(var(--brand-blue))" }}>Comments</p>
+                <p className="text-sm font-semibold truncate text-foreground">{name}</p>
+              </div>
               {commentTotal > 0 && (
-                <span className="ml-auto text-xs font-bold rounded-full px-2 py-0.5 text-white" style={{ background: "hsl(var(--brand-blue))" }}>
+                <span className="ml-auto shrink-0 text-xs font-bold rounded-full px-2 py-0.5 text-white" style={{ background: "hsl(var(--brand-blue))" }}>
                   {commentTotal}
                 </span>
               )}
             </SheetTitle>
-            <p className="text-[11px] text-muted-foreground mt-0.5 pl-9">Permanent messages stored on Starknet</p>
           </SheetHeader>
           <div className="flex-1 overflow-hidden">
             <CommentsSection contract={contract} tokenId={tokenId} className="h-full rounded-none border-0" />

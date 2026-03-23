@@ -175,9 +175,9 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
               <MessageSquare className="h-7 w-7" style={{ color: "hsl(var(--brand-blue))" }} />
             </div>
             <div>
-              <p className="text-sm font-semibold">No comments yet</p>
-              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                Be the first to leave a permanent message on Starknet — it lives forever on-chain.
+              <p className="text-sm font-semibold">Nothing here yet</p>
+              <p className="text-xs text-muted-foreground mt-1 leading-relaxed max-w-[220px]">
+                Your comment will be minted on-chain — attached to this NFT forever.
               </p>
             </div>
             <Button
@@ -186,7 +186,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
               className="rounded-full text-white px-5"
               style={{ background: "linear-gradient(135deg, hsl(var(--brand-blue)), hsl(var(--brand-purple)))" }}
             >
-              Start the conversation
+              Write the first comment
             </Button>
           </div>
         ) : (
@@ -297,7 +297,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
             <div className="flex items-center gap-1.5">
               <Zap className="h-3 w-3" style={{ color: "hsl(var(--brand-blue))" }} />
               <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "hsl(var(--brand-blue))" }}>
-                Leave a permanent mark on Starknet
+                Mint your message on-chain
               </span>
             </div>
             {/* Input area */}
@@ -327,7 +327,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
               />
               <div className="flex items-center justify-between px-3 pb-2.5">
                 <span className="text-[10px] text-muted-foreground/40 flex items-center gap-1">
-                  ⛓ Starknet · Enter to post
+                  Enter ↵ to post
                 </span>
                 <div className="flex items-center gap-2">
                   {byteLen > 800 && (
