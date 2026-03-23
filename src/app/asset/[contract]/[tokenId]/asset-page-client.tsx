@@ -360,32 +360,35 @@ export default function AssetPageClient() {
                 {isOwner ? (
                   <div className="space-y-2">
                     {myListing && (
-                    <Button
-                      variant="destructive"
-                      className="w-full"
-                      disabled={isProcessing}
-                      onClick={() => handleCancelClick(myListing)}
-                    >
-                      <X className="h-4 w-4 mr-2" />
-                      Cancel listing
-                    </Button>
+                    <div className="btn-border-animated p-[1px] rounded-xl">
+                      <button
+                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-destructive disabled:opacity-50"
+                        disabled={isProcessing}
+                        onClick={() => handleCancelClick(myListing)}
+                      >
+                        {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
+                        Cancel listing
+                      </button>
+                    </div>
                     )}
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => setListOpen(true)}
-                    >
-                      <Tag className="h-4 w-4 mr-2" />
-                      Create new listing
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => setTransferOpen(true)}
-                    >
-                      <ArrowRightLeft className="h-4 w-4 mr-2" />
-                      Transfer
-                    </Button>
+                    <div className="btn-border-animated p-[1px] rounded-xl">
+                      <button
+                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-blue"
+                        onClick={() => setListOpen(true)}
+                      >
+                        <Tag className="h-4 w-4" />
+                        Create new listing
+                      </button>
+                    </div>
+                    <div className="btn-border-animated p-[1px] rounded-xl">
+                      <button
+                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-orange"
+                        onClick={() => setTransferOpen(true)}
+                      >
+                        <ArrowRightLeft className="h-4 w-4" />
+                        Transfer
+                      </button>
+                    </div>
                     <div className="btn-border-animated p-[1px] rounded-xl">
                       <button
                         className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-rose"
@@ -458,18 +461,24 @@ export default function AssetPageClient() {
                 <p className="text-muted-foreground text-sm">Not listed for sale.</p>
                 {isOwner ? (
                   <div className="space-y-2">
-                    <Button className="w-full" onClick={() => setListOpen(true)}>
-                      <Tag className="h-4 w-4 mr-2" />
-                      List for sale
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => setTransferOpen(true)}
-                    >
-                      <ArrowRightLeft className="h-4 w-4 mr-2" />
-                      Transfer
-                    </Button>
+                    <div className="btn-border-animated p-[1px] rounded-xl">
+                      <button
+                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-blue"
+                        onClick={() => setListOpen(true)}
+                      >
+                        <Tag className="h-4 w-4" />
+                        List for sale
+                      </button>
+                    </div>
+                    <div className="btn-border-animated p-[1px] rounded-xl">
+                      <button
+                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-orange"
+                        onClick={() => setTransferOpen(true)}
+                      >
+                        <ArrowRightLeft className="h-4 w-4" />
+                        Transfer
+                      </button>
+                    </div>
                     <div className="btn-border-animated p-[1px] rounded-xl">
                       <button
                         className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-rose"
