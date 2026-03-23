@@ -10,9 +10,11 @@ import { Button } from "@/components/ui/button";
 import { Search, X, Store } from "lucide-react";
 import type { ApiSearchResult } from "@medialane/sdk";
 import { getTokenBySymbol, parseAmount, SUPPORTED_TOKENS } from "@medialane/sdk";
-import { ipfsToHttp } from "@/lib/utils";
+import { ipfsToHttp, cn } from "@/lib/utils";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { usePlatformStats } from "@/hooks/use-stats";
+import { IP_TYPES } from "@/types/ip";
 
 const SORT_OPTIONS = [
   { label: "Recent", value: "recent" },
@@ -164,6 +166,43 @@ function PlatformStatsBar() {
           <span className="text-muted-foreground">{label}</span>
         </div>
       ))}
+    </div>
+  );
+}
+
+function IpTypeNav() {
+  const pathname = usePathname();
+  const activeType = pathname === "/marketplace" ? "" : pathname.slice(1);
+
+  return (
+    <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0 border-t border-border/40 pt-3">
+      <div className="flex items-center gap-1.5 min-w-max pb-1">
+        <Link
+          href="/marketplace"
+          className={cn(
+            "text-xs px-3 py-1.5 rounded-full border transition-colors whitespace-nowrap",
+            activeType === ""
+              ? "border-primary bg-primary/10 text-primary font-medium"
+              : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
+          )}
+        >
+          All Types
+        </Link>
+        {IP_TYPES.map((type) => (
+          <Link
+            key={type}
+            href={`/${type.toLowerCase()}`}
+            className={cn(
+              "text-xs px-3 py-1.5 rounded-full border transition-colors whitespace-nowrap",
+              activeType === type.toLowerCase()
+                ? "border-primary bg-primary/10 text-primary font-medium"
+                : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
+            )}
+          >
+            {type}
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }
@@ -334,6 +373,9 @@ export default function MarketplacePageClient() {
           </div>
         </div>
       </div>
+
+      {/* IP Type navigation */}
+      <IpTypeNav />
 
       {/* Grid */}
       <ListingsGrid

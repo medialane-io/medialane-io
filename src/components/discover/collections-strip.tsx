@@ -19,7 +19,7 @@ function CollectionChip({ collection }: { collection: ApiCollection }) {
   return (
     <Link
       href={`/collections/${collection.contractAddress}`}
-      className="block shrink-0 w-44 snap-start active:scale-[0.97] transition-transform duration-150"
+      className="block shrink-0 w-80 snap-start active:scale-[0.97] transition-transform duration-150"
     >
       <div className="rounded-xl border border-border overflow-hidden group bg-card hover:border-border/80 transition-colors">
         <div className="aspect-square bg-muted relative overflow-hidden">
@@ -59,7 +59,7 @@ function CollectionChip({ collection }: { collection: ApiCollection }) {
 
 function CollectionChipSkeleton() {
   return (
-    <div className="shrink-0 w-44 rounded-xl border border-border overflow-hidden">
+    <div className="shrink-0 w-80 rounded-xl border border-border overflow-hidden">
       <Skeleton className="aspect-square w-full rounded-none" />
       <div className="p-3 space-y-1.5">
         <Skeleton className="h-3.5 w-28" />

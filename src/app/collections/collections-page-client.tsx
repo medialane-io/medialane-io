@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useCollections, type CollectionSort } from "@/hooks/use-collections";
+import { usePlatformStats } from "@/hooks/use-stats";
 import { CollectionCard, CollectionCardSkeleton } from "@/components/shared/collection-card";
 import { Button } from "@/components/ui/button";
 import { Layers, Loader2, BadgeCheck } from "lucide-react";
@@ -19,6 +20,7 @@ const SORT_OPTIONS: { label: string; value: CollectionSort }[] = [
 ];
 
 export default function CollectionsPageClient() {
+  const { stats } = usePlatformStats();
   const [sort, setSort]       = useState<CollectionSort>("recent");
   const [verified, setVerified] = useState(false);
   const [page, setPage]       = useState(1);
@@ -65,14 +67,26 @@ export default function CollectionsPageClient() {
           <span className="text-sm font-semibold uppercase tracking-wider">Programmable IP</span>
         </div>
         <h1 className="text-3xl font-bold">Onchain Collections</h1>
-        <p className="text-muted-foreground">
-          NFT, IP, RWA:
+        <div className="flex flex-wrap items-center gap-2 mt-1">
           {meta?.total != null && (
-            <span className="ml-2 text-foreground font-medium">
-              {(meta.total ?? 0).toLocaleString()} total
-            </span>
+            <div className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-1.5 text-sm">
+              <span className="font-bold tabular-nums">{(meta.total ?? 0).toLocaleString()}</span>
+              <span className="text-muted-foreground">Collections</span>
+            </div>
           )}
-        </p>
+          {stats?.tokens != null && (
+            <div className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-1.5 text-sm">
+              <span className="font-bold tabular-nums">{stats.tokens.toLocaleString()}</span>
+              <span className="text-muted-foreground">Assets</span>
+            </div>
+          )}
+          {stats?.sales != null && (
+            <div className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-1.5 text-sm">
+              <span className="font-bold tabular-nums">{stats.sales.toLocaleString()}</span>
+              <span className="text-muted-foreground">Sales</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Filter toolbar */}

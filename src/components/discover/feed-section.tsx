@@ -4,22 +4,18 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useOrders } from "@/hooks/use-orders";
-import { useActivities } from "@/hooks/use-activities";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FadeIn } from "@/components/ui/motion-primitives";
+import { CommunityActivity } from "@/components/home/community-activity";
 import { BRAND } from "@/lib/brand";
 import { ipfsToHttp, timeAgo, formatDisplayPrice } from "@/lib/utils";
 import {
   ArrowRight,
-  TrendingUp,
-  Activity,
   Tag,
-  Handshake,
-  ArrowRightLeft,
   Image as ImageIcon,
 } from "lucide-react";
-import type { ApiActivity, ApiOrder } from "@medialane/sdk";
+import type { ApiOrder } from "@medialane/sdk";
 
 // ─── Listing card ─────────────────────────────────────────────────────────────
 
@@ -76,84 +72,10 @@ function ListingCardSkeleton() {
   );
 }
 
-// ─── Activity row ─────────────────────────────────────────────────────────────
-
-const ACTIVITY_ICON: Record<string, React.ElementType> = {
-  listing:   Tag,
-  sale:      Handshake,
-  offer:     TrendingUp,
-  transfer:  ArrowRightLeft,
-  cancelled: ArrowRightLeft,
-};
-
-const ACTIVITY_LABEL: Record<string, string> = {
-  listing:   "Listed",
-  sale:      "Sold",
-  offer:     "Offer",
-  transfer:  "Transfer",
-  cancelled: "Cancelled",
-};
-
-const ACTIVITY_COLOR: Record<string, string> = {
-  listing:   BRAND.purple.text,
-  sale:      "text-emerald-500",
-  offer:     BRAND.orange.text,
-  transfer:  BRAND.blue.text,
-  cancelled: "text-muted-foreground",
-};
-
-const ACTIVITY_BG: Record<string, string> = {
-  listing:   "bg-brand-purple/10",
-  sale:      "bg-emerald-500/10",
-  offer:     "bg-brand-orange/10",
-  transfer:  "bg-brand-blue/10",
-  cancelled: "bg-muted",
-};
-
-function ActivityRow({ event, isLatest }: { event: ApiActivity; isLatest: boolean }) {
-  const Icon = ACTIVITY_ICON[event.type] ?? ArrowRightLeft;
-  const color = ACTIVITY_COLOR[event.type] ?? "text-muted-foreground";
-  const bg = ACTIVITY_BG[event.type] ?? "bg-muted";
-  const contract = event.nftContract ?? event.contractAddress;
-  const tokenId = event.nftTokenId ?? event.tokenId;
-
-  return (
-    <Link
-      href={contract && tokenId ? `/asset/${contract}/${tokenId}` : "/activities"}
-      className="flex items-center gap-3 px-3 py-3 hover:bg-muted/40 rounded-lg transition-colors"
-    >
-      <div className={`relative h-8 w-8 rounded-lg ${bg} flex items-center justify-center shrink-0`}>
-        <Icon className={`h-3.5 w-3.5 ${color}`} />
-        {isLatest && (
-          <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-background animate-pulse" />
-        )}
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium truncate">
-          {ACTIVITY_LABEL[event.type] ?? event.type} ·{" "}
-          {(event as any).token?.name ?? `#${tokenId ?? "—"}`}
-        </p>
-        <p className="text-[11px] text-muted-foreground font-mono truncate">
-          {contract?.slice(0, 14)}…
-        </p>
-      </div>
-      <div className="text-right shrink-0">
-        {event.price?.formatted && (
-          <p className="text-sm font-semibold text-brand-orange">
-            {formatDisplayPrice(event.price.formatted)}
-          </p>
-        )}
-        <p className="text-[10px] text-muted-foreground">{timeAgo(event.timestamp)}</p>
-      </div>
-    </Link>
-  );
-}
-
 // ─── Feed section ─────────────────────────────────────────────────────────────
 
 export function FeedSection() {
   const { orders, isLoading: ordersLoading } = useOrders({ status: "ACTIVE", sort: "recent", limit: 6 });
-  const { activities, isLoading: activitiesLoading } = useActivities({ limit: 8 });
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -191,49 +113,9 @@ export function FeedSection() {
         </div>
       </FadeIn>
 
-      {/* Recent Activity */}
+      {/* Recent Activity — uses the same CommunityActivity widget from the homepage */}
       <FadeIn delay={0.08}>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="section-label">On-chain</p>
-              <div className="flex items-center gap-2 mt-0.5">
-                <Activity className={`h-4 w-4 ${BRAND.blue.text}`} />
-                <h2 className="text-lg font-bold">Recent Activity</h2>
-              </div>
-            </div>
-            <Button variant="ghost" size="sm" asChild className="gap-1 text-muted-foreground">
-              <Link href="/activities">
-                View all <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-            </Button>
-          </div>
-
-          <div className="rounded-xl border border-border overflow-hidden">
-            {activitiesLoading ? (
-              Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-3 px-3 py-3 border-b border-border/50 last:border-0">
-                  <Skeleton className="h-8 w-8 rounded-lg shrink-0" />
-                  <div className="flex-1 space-y-1.5">
-                    <Skeleton className="h-3.5 w-40" />
-                    <Skeleton className="h-3 w-24" />
-                  </div>
-                  <Skeleton className="h-3 w-12" />
-                </div>
-              ))
-            ) : activities.length === 0 ? (
-              <div className="py-10 text-center text-sm text-muted-foreground">
-                No activity yet.
-              </div>
-            ) : (
-              activities.map((a, i) => (
-                <div key={`${a.type}-${a.timestamp}-${a.nftTokenId ?? a.tokenId ?? ""}`} className="border-b border-border/50 last:border-0">
-                  <ActivityRow event={a} isLatest={i === 0} />
-                </div>
-              ))
-            )}
-          </div>
-        </div>
+        <CommunityActivity />
       </FadeIn>
     </div>
   );

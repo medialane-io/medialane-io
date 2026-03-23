@@ -122,12 +122,12 @@ export function HeroSlider() {
   // Loading shimmer
   if (isLoading) {
     return (
-      <section className="relative w-full h-[65vw] min-h-[420px] max-h-[640px] sm:h-[60vh] sm:max-h-[680px] bg-muted animate-pulse" />
+      <section className="relative w-full h-[78vw] min-h-[420px] max-h-[768px] sm:h-[72vh] sm:max-h-[816px] bg-muted animate-pulse" />
     );
   }
 
   return (
-    <section className="relative w-full h-[65vw] min-h-[420px] max-h-[640px] sm:h-[60vh] sm:max-h-[680px] overflow-hidden bg-muted">
+    <section className="relative w-full h-[78vw] min-h-[420px] max-h-[768px] sm:h-[72vh] sm:max-h-[816px] overflow-hidden bg-muted">
       {count === 0 ? (
         <HeroPlaceholder />
       ) : (

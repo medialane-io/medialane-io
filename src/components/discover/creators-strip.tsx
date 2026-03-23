@@ -30,7 +30,7 @@ function CreatorChip({ creator }: { creator: ApiCreatorProfile }) {
   return (
     <Link
       href={`/creator/${creator.username}`}
-      className="block shrink-0 w-36 snap-start active:scale-[0.97] transition-transform duration-150 select-none"
+      className="block shrink-0 w-64 snap-start active:scale-[0.97] transition-transform duration-150 select-none"
     >
       <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
         {resolvedBanner ? (
@@ -69,7 +69,7 @@ function CreatorChip({ creator }: { creator: ApiCreatorProfile }) {
 }
 
 function CreatorChipSkeleton() {
-  return <Skeleton className="shrink-0 w-36 aspect-[3/4] rounded-xl" />;
+  return <Skeleton className="shrink-0 w-64 aspect-[3/4] rounded-xl" />;
 }
 
 export function CreatorsStrip() {

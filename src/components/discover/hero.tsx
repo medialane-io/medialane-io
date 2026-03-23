@@ -74,7 +74,7 @@ export function Hero() {
           <KineticWords text="Create, license & trade" />
         </span>
         <br />
-        <KineticWords text="IP assets — gasless." />
+        <KineticWords text="NFT — gasless." />
       </motion.div>
 
       {/* CTAs */}

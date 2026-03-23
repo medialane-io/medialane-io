@@ -36,8 +36,10 @@ import {
 import { ReportDialog } from "@/components/report-dialog";
 import { HiddenContentBanner } from "@/components/hidden-content-banner";
 import { CreatorAnalytics } from "@/components/creator/creator-analytics";
+import { useCreatorProfile } from "@/hooks/use-profiles";
 import type { ApiActivity } from "@medialane/sdk";
 import { cn } from "@/lib/utils";
+import { Globe, Twitter, MessageCircle, Send } from "lucide-react";
 
 // ─── Address color identity ──────────────────────────────────────────────────
 
@@ -229,6 +231,8 @@ export default function CreatorPageClient() {
 
   const addr = address ?? null;
 
+  const { profile } = useCreatorProfile(addr ?? undefined);
+
   const { data: hiddenStatus } = useSWR<{ isHidden: boolean }>(
     address ? `/api/creators/${address}/hidden` : null,
     (url: string) => fetch(url).then(r => r.json())
@@ -287,9 +291,9 @@ export default function CreatorPageClient() {
 
       {hiddenStatus?.isHidden === true && <HiddenContentBanner />}
 
-      {/* ── Cinematic banner ─────────────────────────────────────────────── */}
-      <div className="relative h-48 sm:h-64 overflow-hidden">
-        {/* Layer 1 — blurred asset image */}
+      {/* ── Hero banner ──────────────────────────────────────────────────── */}
+      <div className="relative h-56 sm:h-80 overflow-hidden">
+        {/* Layer 1 — blurred asset image or profile banner */}
         {bannerImage && (
           <div className="absolute inset-0">
             <NextImage
@@ -319,31 +323,63 @@ export default function CreatorPageClient() {
 
         {/* Bottom fade to background */}
         <div
-          className="absolute inset-x-0 bottom-0 h-28"
+          className="absolute inset-x-0 bottom-0 h-32"
           style={{ background: `linear-gradient(to bottom, transparent 0%, hsl(var(--background)) 100%)` }}
         />
 
         {/* Top edge fade */}
         <div className="absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-background/15 to-transparent" />
+
+        {/* Floating action buttons — top right of banner */}
+        <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
+          <Button
+            variant="outline"
+            size="sm"
+            className="bg-background/60 backdrop-blur-sm border-white/20 text-white hover:bg-background/80 hover:text-white"
+            onClick={() => {
+              navigator.clipboard.writeText(window.location.href);
+              toast.success("Link copied");
+            }}
+          >
+            <Share2 className="h-3.5 w-3.5 mr-1.5" />
+            Share
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="bg-background/60 backdrop-blur-sm text-white/70 hover:text-white hover:bg-background/80"
+            onClick={() => setReportOpen(true)}
+            title="Report this creator"
+          >
+            <Flag className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
 
       {/* ── Page body ────────────────────────────────────────────────────── */}
       <div className="px-6">
 
-        {/* ── Identity row ─────────────────────────────────────────────── */}
-        <div className="-mt-14 sm:-mt-16 relative z-10">
-          <div className="flex flex-wrap items-end gap-x-4 gap-y-3 pb-6">
+        {/* ── Identity section ─────────────────────────────────────────── */}
+        <div className="-mt-16 sm:-mt-20 relative z-10 space-y-4 pb-6">
+
+          {/* Avatar + name row */}
+          <div className="flex flex-wrap items-end gap-x-5 gap-y-3">
             <AddressAvatar
               address={address ?? "0x0"}
               image={latestImage}
-              size={88}
+              size={112}
               borderColor={dynamicTheme ? `hsl(var(--dynamic-primary))` : undefined}
             />
 
-            <div className="flex-1 min-w-0 pb-1 space-y-1.5">
-              <span className="pill-badge">Creator</span>
-              <h1 className="text-lg sm:text-xl font-bold font-mono tracking-tight leading-snug truncate text-foreground">
-                {addr ? `${addr.slice(0, 10)}…${addr.slice(-8)}` : "—"}
+            <div className="flex-1 min-w-0 pb-1 space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="pill-badge">Creator</span>
+                {profile?.username && (
+                  <span className="text-xs font-mono text-muted-foreground">@{profile.username}</span>
+                )}
+              </div>
+              <h1 className="text-xl sm:text-2xl font-bold leading-tight truncate text-foreground">
+                {profile?.displayName || (addr ? `${addr.slice(0, 10)}…${addr.slice(-8)}` : "—")}
               </h1>
               <AddressDisplay
                 address={address ?? ""}
@@ -351,30 +387,86 @@ export default function CreatorPageClient() {
                 className="text-xs text-muted-foreground"
               />
             </div>
-
-            <div className="pb-1 shrink-0 flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  navigator.clipboard.writeText(window.location.href);
-                  toast.success("Link copied");
-                }}
-              >
-                <Share2 className="h-3.5 w-3.5 mr-1.5" />
-                Share
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-muted-foreground hover:text-foreground"
-                onClick={() => setReportOpen(true)}
-                title="Report this creator"
-              >
-                <Flag className="w-4 h-4" />
-              </Button>
-            </div>
           </div>
+
+          {/* Bio */}
+          {profile?.bio && (
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-xl line-clamp-2">
+              {profile.bio}
+            </p>
+          )}
+
+          {/* Stats bar */}
+          <div className="flex flex-wrap items-center gap-2">
+            {tokens.length > 0 && (
+              <div className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-1.5 text-sm">
+                <span className="font-bold tabular-nums">{tokens.length}</span>
+                <span className="text-muted-foreground">Assets</span>
+              </div>
+            )}
+            {activeListings.length > 0 && (
+              <div className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-1.5 text-sm">
+                <span className="font-bold tabular-nums">{activeListings.length}</span>
+                <span className="text-muted-foreground">Listed</span>
+              </div>
+            )}
+            {collections.length > 0 && (
+              <div className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-1.5 text-sm">
+                <span className="font-bold tabular-nums">{collections.length}</span>
+                <span className="text-muted-foreground">Collections</span>
+              </div>
+            )}
+          </div>
+
+          {/* Social links */}
+          {(profile?.websiteUrl || profile?.twitterUrl || profile?.discordUrl || profile?.telegramUrl) && (
+            <div className="flex items-center gap-2">
+              {profile.websiteUrl && (
+                <a
+                  href={profile.websiteUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="h-8 w-8 rounded-full border border-border bg-card flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors"
+                  title="Website"
+                >
+                  <Globe className="h-3.5 w-3.5" />
+                </a>
+              )}
+              {profile.twitterUrl && (
+                <a
+                  href={profile.twitterUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="h-8 w-8 rounded-full border border-border bg-card flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors"
+                  title="Twitter / X"
+                >
+                  <Twitter className="h-3.5 w-3.5" />
+                </a>
+              )}
+              {profile.discordUrl && (
+                <a
+                  href={profile.discordUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="h-8 w-8 rounded-full border border-border bg-card flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors"
+                  title="Discord"
+                >
+                  <MessageCircle className="h-3.5 w-3.5" />
+                </a>
+              )}
+              {profile.telegramUrl && (
+                <a
+                  href={profile.telegramUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="h-8 w-8 rounded-full border border-border bg-card flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors"
+                  title="Telegram"
+                >
+                  <Send className="h-3.5 w-3.5" />
+                </a>
+              )}
+            </div>
+          )}
         </div>
 
         <ReportDialog

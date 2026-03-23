@@ -6,8 +6,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MotionCard } from "@/components/ui/motion-primitives";
-import { ShoppingCart } from "lucide-react";
-import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
+import { ShoppingCart, Check } from "lucide-react";
+import { cn, ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
 import type { ApiOrder } from "@medialane/sdk";
 
@@ -53,7 +53,7 @@ export function ListingCard({ order, onBuy }: ListingCardProps) {
               src={image}
               alt={name}
               fill
-              className="object-cover"
+              className="object-cover group-hover:scale-105 transition-transform duration-500"
               onError={() => setImgError(true)}
             />
           ) : (
@@ -66,7 +66,7 @@ export function ListingCard({ order, onBuy }: ListingCardProps) {
         </div>
 
         {/* Info */}
-        <div className="p-3 space-y-2.5">
+        <div className="p-3 space-y-3">
           <div>
             <p className="font-semibold text-sm truncate leading-snug">{name}</p>
             {order.token?.description ? (
@@ -78,40 +78,45 @@ export function ListingCard({ order, onBuy }: ListingCardProps) {
             )}
           </div>
 
-          <div className="flex items-center justify-between gap-2">
-            <p className="price-value text-sm">
-              {formatDisplayPrice(order.price.formatted)}{" "}
-              <span className="text-muted-foreground font-normal text-xs">
-                {order.price.currency}
-              </span>
-            </p>
-            {isListing && (
-              <div className="flex gap-1.5">
-                {onBuy && (
-                  <Button
-                    size="sm"
-                    className="h-8 px-3 text-xs bg-brand-purple text-white"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      onBuy(order);
-                    }}
-                  >
-                    Buy
-                  </Button>
-                )}
+          <p className="text-base font-bold price-value leading-none">
+            {formatDisplayPrice(order.price.formatted)}{" "}
+            <span className="text-muted-foreground font-normal text-sm">
+              {order.price.currency}
+            </span>
+          </p>
+
+          {isListing && (
+            <div className="flex items-center gap-2">
+              {onBuy && (
                 <Button
                   size="sm"
-                  variant="outline"
-                  className="h-8 w-8 p-0"
-                  onClick={handleAddToCart}
-                  disabled={inCart}
-                  aria-label={inCart ? "In cart" : "Add to cart"}
+                  className="flex-1 h-8 text-xs bg-brand-purple hover:bg-brand-purple/90 text-white"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onBuy(order);
+                  }}
                 >
-                  <ShoppingCart className={`h-3.5 w-3.5 ${inCart ? "opacity-40" : ""}`} />
+                  Buy Now
                 </Button>
-              </div>
-            )}
-          </div>
+              )}
+              <Button
+                size="sm"
+                variant="outline"
+                className={cn(
+                  "h-8 w-8 p-0 shrink-0 transition-colors",
+                  inCart && "border-emerald-500/50 bg-emerald-500/10 text-emerald-500"
+                )}
+                onClick={handleAddToCart}
+                disabled={inCart}
+                aria-label={inCart ? "Added to cart" : "Add to cart"}
+              >
+                {inCart
+                  ? <Check className="h-3.5 w-3.5" />
+                  : <ShoppingCart className="h-3.5 w-3.5" />
+                }
+              </Button>
+            </div>
+          )}
         </div>
       </Link>
     </MotionCard>

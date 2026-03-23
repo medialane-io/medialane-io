@@ -156,7 +156,7 @@ export default function ProfileSettingsPage() {
       const token = await getToken();
       if (!token) throw new Error("Not authenticated");
       await getMedialaneClient().api.updateCreatorProfile(walletAddress, form, token);
-      await mutate();
+      await mutate(undefined, { revalidate: true });
       toast.success("Profile updated");
     } catch {
       toast.error("Failed to save changes");

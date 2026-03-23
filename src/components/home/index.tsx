@@ -19,7 +19,7 @@ export function HomePage() {
       <AirdropSection />
 
       {/* Padded content sections */}
-      <div className="px-5 sm:px-10 lg:px-16 space-y-20 mt-20">
+      <div className="container mx-auto px-4 sm:px-6 space-y-20 mt-20">
         <TrendingCollections />
         <NewOnMarketplace />
         <GenesisMintSection />
