@@ -128,7 +128,22 @@ export function useChipiTransaction() {
           }
 
           setStatus("confirmed");
-          return { txHash: result, status: "confirmed", events: (receipt as any)?.events ?? [] };
+
+          // Some RPC providers return an empty events array in the waitForTransaction
+          // response even for successful transactions. If events are missing, fetch the
+          // receipt explicitly to get the full event list needed for silent-failure detection.
+          let events: Array<{ from_address: string; keys: string[] }> =
+            (receipt as any)?.events ?? [];
+          if (events.length === 0) {
+            try {
+              const explicitReceipt = await starknetProvider.getTransactionReceipt(result);
+              events = (explicitReceipt as any)?.events ?? [];
+            } catch {
+              // Best-effort — if this fails, proceed with empty events
+            }
+          }
+
+          return { txHash: result, status: "confirmed", events };
         } catch (receiptError: unknown) {
           const reason = receiptError instanceof Error ? receiptError.message : "Transaction failed on L2";
           setStatus("reverted");
