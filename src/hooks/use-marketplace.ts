@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import { useChipiTransaction } from "./use-chipi-transaction";
 import { useSessionKey } from "./use-session-key";
 import { useMedialaneClient } from "./use-medialane-client";
-import { MARKETPLACE_CONTRACT, SUPPORTED_TOKENS, INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
+import { MARKETPLACE_CONTRACT, MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY, SUPPORTED_TOKENS, INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
 import { normalizeAddress } from "@/lib/utils";
 import type { ChipiCall } from "./use-chipi-transaction";
 
@@ -94,6 +94,16 @@ export interface CancelOrderInput {
   orderHash: string;
 }
 
+export interface MakeCounterOfferInput {
+  originalOrderHash: string;
+  /** Raw wei price (not human-readable) */
+  counterPriceRaw: string;
+  /** Duration in seconds (3600–2592000) */
+  durationSeconds: number;
+  message?: string;
+  tokenName?: string;
+}
+
 // ─── Hook ─────────────────────────────────────────────────────────────────
 
 export function useMarketplace() {
@@ -121,7 +131,8 @@ export function useMarketplace() {
         key.startsWith("listings-") ||
         key.startsWith("user-orders-") ||
         key.startsWith("token-") ||
-        key.startsWith("tokens-owned-")
+        key.startsWith("tokens-owned-") ||
+        key.startsWith("counter-offers-")
       );
     }, undefined, { revalidate: true });
   }, [mutate]);
@@ -303,6 +314,49 @@ export function useMarketplace() {
     [walletAddress, runIntent, client]
   );
 
+  // ── makeCounterOffer ───────────────────────────────────────────────────
+
+  const makeCounterOffer = useCallback(
+    async (input: MakeCounterOfferInput & { pin: string }) => {
+      setIsProcessing(true);
+      setError(null);
+      try {
+        return await runIntent(
+          input.pin,
+          async () => {
+            const res = await fetch(`${MEDIALANE_BACKEND_URL}/v1/intents/counter-offer`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "x-api-key": MEDIALANE_API_KEY ?? "",
+              },
+              body: JSON.stringify({
+                sellerAddress: walletAddress,
+                originalOrderHash: input.originalOrderHash,
+                durationSeconds: input.durationSeconds,
+                counterPrice: input.counterPriceRaw,
+                message: input.message,
+              }),
+            });
+            if (!res.ok) {
+              const body = await res.json().catch(() => ({}));
+              throw new Error((body as { error?: string }).error ?? `Counter-offer request failed (${res.status})`);
+            }
+            return res.json();
+          },
+          `Counter-offer sent${input.tokenName ? ` for ${input.tokenName}` : ""}!`
+        );
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Counter-offer failed";
+        setError(msg);
+        toast.error("Counter-offer failed", { description: msg });
+      } finally {
+        setIsProcessing(false);
+      }
+    },
+    [walletAddress, runIntent]
+  );
+
   // ── cancelOrder ────────────────────────────────────────────────────────
 
   const cancelOrder = useCallback(
@@ -337,6 +391,7 @@ export function useMarketplace() {
   return {
     createListing,
     makeOffer,
+    makeCounterOffer,
     fulfillOrder,
     cancelOrder,
     walletAddress,
