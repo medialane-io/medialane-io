@@ -320,12 +320,12 @@ export function ListingDialog({
                               type="number"
                               step="any"
                               placeholder="0.00"
-                              className="pr-16"
+                              className="pr-20"
                               disabled={isProcessing}
                               {...field}
                             />
                           </FormControl>
-                          <div className="absolute right-3 top-1.5 flex items-center gap-1">
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
                             <CurrencyIcon symbol={form.watch("currency")} size={14} />
                             <span className="text-xs font-bold">{form.watch("currency")}</span>
                           </div>
