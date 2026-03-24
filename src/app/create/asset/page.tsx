@@ -39,6 +39,7 @@ import { MintProgressDialog } from "@/components/marketplace/mint-progress-dialo
 import type { MintStep } from "@/components/marketplace/mint-progress-dialog";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 import { cn } from "@/lib/utils";
+import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { DURATION_OPTIONS } from "@/lib/constants";
 import { getListableTokens } from "@medialane/sdk";
 import {
@@ -509,7 +510,7 @@ export default function CreateAssetPage() {
                         <Input
                           type="number"
                           min="0"
-                          step="0.01"
+                          step="any"
                           placeholder="0.00"
                           value={listPrice}
                           onChange={(e) => setListPrice(e.target.value)}
@@ -519,11 +520,19 @@ export default function CreateAssetPage() {
                         <label className="text-sm font-medium">Currency</label>
                         <Select value={listCurrency} onValueChange={setListCurrency}>
                           <SelectTrigger>
-                            <SelectValue />
+                            <span className="flex items-center gap-1.5">
+                              <CurrencyIcon symbol={listCurrency} size={14} />
+                              <span>{listCurrency}</span>
+                            </span>
                           </SelectTrigger>
                           <SelectContent>
                             {LISTING_CURRENCIES.map((c) => (
-                              <SelectItem key={c} value={c}>{c}</SelectItem>
+                              <SelectItem key={c} value={c}>
+                                <span className="flex items-center gap-1.5">
+                                  <CurrencyIcon symbol={c} size={14} />
+                                  <span>{c}</span>
+                                </span>
+                              </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
