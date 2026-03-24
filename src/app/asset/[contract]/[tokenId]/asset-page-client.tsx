@@ -42,6 +42,7 @@ import { toast } from "sonner";
 import { useDominantColor } from "@/hooks/use-dominant-color";
 import { RemixesTab, ParentAttributionBanner } from "@/components/asset/remixes-tab";
 import { useTokenRemixes } from "@/hooks/use-remix-offers";
+import { CurrencyIcon } from "@/components/shared/currency-icon";
 
 const TYPE_LABEL: Record<string, string> = {
   transfer: "Transfer",
@@ -348,7 +349,8 @@ export default function AssetPageClient() {
                   <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">
                     {isOwner ? "Your listing" : "Current price"}
                   </p>
-                  <p className="text-3xl font-bold mt-1">
+                  <p className="text-3xl font-bold mt-1 flex items-center gap-2">
+                    <CurrencyIcon symbol={cheapest.price.currency} size={22} />
                     {formatDisplayPrice(cheapest.price.formatted)} {cheapest.price.currency}
                   </p>
                   <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
@@ -533,7 +535,8 @@ export default function AssetPageClient() {
                       className="flex items-center justify-between gap-3 rounded-lg bg-muted/30 px-3 py-2"
                     >
                       <div className="min-w-0">
-                        <p className="text-sm font-bold">
+                        <p className="text-sm font-bold flex items-center gap-1">
+                          <CurrencyIcon symbol={bid.price.currency} size={13} />
                           {formatDisplayPrice(bid.price.formatted)} {bid.price.currency}
                         </p>
                         <div className="flex items-center gap-2 mt-0.5">
@@ -723,7 +726,7 @@ export default function AssetPageClient() {
                     return (
                       <div key={order.orderHash} className="flex items-center justify-between px-4 py-3 gap-4">
                         <div className="min-w-0">
-                          <p className="font-bold text-sm">{formatDisplayPrice(order.price.formatted)} {order.price.currency}</p>
+                          <p className="font-bold text-sm flex items-center gap-1"><CurrencyIcon symbol={order.price.currency} size={13} />{formatDisplayPrice(order.price.formatted)} {order.price.currency}</p>
                           <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
                             <Clock className="h-3 w-3" />
                             {timeUntil(order.endTime)}
@@ -754,7 +757,7 @@ export default function AssetPageClient() {
                   {activeBids.map((bid) => (
                     <div key={bid.orderHash} className="flex items-center justify-between px-4 py-3 gap-4">
                       <div className="min-w-0">
-                        <p className="font-bold text-sm">{formatDisplayPrice(bid.price.formatted)} {bid.price.currency}</p>
+                        <p className="font-bold text-sm flex items-center gap-1"><CurrencyIcon symbol={bid.price.currency} size={13} />{formatDisplayPrice(bid.price.formatted)} {bid.price.currency}</p>
                         <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
                           <Clock className="h-3 w-3" />
                           {timeUntil(bid.endTime)}
@@ -807,7 +810,8 @@ export default function AssetPageClient() {
                         </div>
                         <div className="flex items-center gap-3 shrink-0">
                           {event.price?.formatted && (
-                            <span className="text-sm font-bold">
+                            <span className="text-sm font-bold flex items-center gap-1">
+                              <CurrencyIcon symbol={event.price.currency} size={13} />
                               {formatDisplayPrice(event.price.formatted)} {event.price.currency}
                             </span>
                           )}

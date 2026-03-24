@@ -33,6 +33,7 @@ import { EXPLORER_URL, DURATION_OPTIONS } from "@/lib/constants";
 import { isWebAuthnSupported } from "@chipi-stack/nextjs";
 import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
 import { getListableTokens } from "@medialane/sdk";
+import { CurrencyIcon } from "@/components/shared/currency-icon";
 
 const CURRENCIES = getListableTokens().map((t) => t.symbol);
 
@@ -314,8 +315,9 @@ export function OfferDialog({
                               {...field}
                             />
                           </FormControl>
-                          <div className="absolute right-3 top-2 text-xs font-bold">
-                            {form.watch("currency")}
+                          <div className="absolute right-3 top-1.5 flex items-center gap-1">
+                            <CurrencyIcon symbol={form.watch("currency")} size={14} />
+                            <span className="text-xs font-bold">{form.watch("currency")}</span>
                           </div>
                         </div>
                         <FormMessage />
@@ -339,7 +341,9 @@ export function OfferDialog({
                                 size="sm"
                                 onClick={() => field.onChange(c)}
                                 disabled={isProcessing}
+                                className="gap-1.5"
                               >
+                                <CurrencyIcon symbol={c} size={13} />
                                 {c}
                               </Button>
                             ))}

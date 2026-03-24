@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { submitRemixOffer } from "@/hooks/use-remix-offers";
 import { getListableTokens } from "@medialane/sdk";
 import { GitBranch, Loader2 } from "lucide-react";
+import { CurrencyIcon } from "@/components/shared/currency-icon";
 
 const LICENSE_TYPES = ["CC0", "CC BY", "CC BY-SA", "CC BY-NC", "CC BY-ND", "Custom"];
 const TOKENS = getListableTokens();
@@ -110,7 +111,12 @@ export function RemixOfferDialog({ open, onOpenChange, contractAddress, tokenId,
                 </SelectTrigger>
                 <SelectContent>
                   {TOKENS.map((t) => (
-                    <SelectItem key={t.symbol} value={t.symbol}>{t.symbol}</SelectItem>
+                    <SelectItem key={t.symbol} value={t.symbol}>
+                      <span className="flex items-center gap-1.5">
+                        <CurrencyIcon symbol={t.symbol} size={13} />
+                        {t.symbol}
+                      </span>
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>

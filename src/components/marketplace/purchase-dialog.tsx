@@ -21,6 +21,7 @@ import { useMarketplace } from "@/hooks/use-marketplace";
 import { EXPLORER_URL } from "@/lib/constants";
 import type { ApiOrder } from "@medialane/sdk";
 import { formatDisplayPrice } from "@/lib/utils";
+import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { isWebAuthnSupported } from "@chipi-stack/nextjs";
 import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
 
@@ -175,7 +176,10 @@ export function PurchaseDialog({ order, open, onOpenChange }: PurchaseDialogProp
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Price</span>
-                  <span className="font-bold">{formatDisplayPrice(order.price.formatted)} {order.price.currency}</span>
+                  <span className="font-bold inline-flex items-center gap-1">
+                    <CurrencyIcon symbol={order.price.currency} size={13} />
+                    {formatDisplayPrice(order.price.formatted)} {order.price.currency}
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Gas</span>
@@ -239,7 +243,10 @@ export function PurchaseDialog({ order, open, onOpenChange }: PurchaseDialogProp
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Price</span>
-                  <span className="font-bold">{formatDisplayPrice(order.price.formatted)} {order.price.currency}</span>
+                  <span className="font-bold inline-flex items-center gap-1">
+                    <CurrencyIcon symbol={order.price.currency} size={13} />
+                    {formatDisplayPrice(order.price.formatted)} {order.price.currency}
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Gas</span>

@@ -11,6 +11,7 @@ import { useMarketplace } from "@/hooks/use-marketplace";
 import { ShoppingBag, X, ShoppingCart, AlertCircle, Loader2, CheckCircle2 } from "lucide-react";
 import type { ApiOrder } from "@medialane/sdk";
 import type { CartItem } from "@/types";
+import { CurrencyIcon } from "@/components/shared/currency-icon";
 
 function cartItemToOrder(item: CartItem): ApiOrder {
   return {
@@ -240,7 +241,8 @@ export function CartDrawer() {
                         </div>
                       ) : (
                         <div className="flex items-center justify-between gap-2">
-                          <p className="text-sm font-bold">
+                          <p className="text-sm font-bold flex items-center gap-1">
+                            <CurrencyIcon symbol={item.currency} size={13} />
                             {item.price} {item.currency}
                           </p>
                           <Button

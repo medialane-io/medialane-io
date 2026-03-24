@@ -32,6 +32,7 @@ import { useMarketplace } from "@/hooks/use-marketplace";
 import { EXPLORER_URL, DURATION_OPTIONS } from "@/lib/constants";
 import { getListableTokens } from "@medialane/sdk";
 import { cn } from "@/lib/utils";
+import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { isWebAuthnSupported } from "@chipi-stack/nextjs";
 import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
 
@@ -324,8 +325,9 @@ export function ListingDialog({
                               {...field}
                             />
                           </FormControl>
-                          <div className="absolute right-3 top-2 text-xs font-bold">
-                            {form.watch("currency")}
+                          <div className="absolute right-3 top-1.5 flex items-center gap-1">
+                            <CurrencyIcon symbol={form.watch("currency")} size={14} />
+                            <span className="text-xs font-bold">{form.watch("currency")}</span>
                           </div>
                         </div>
                         <FormMessage />
@@ -349,7 +351,9 @@ export function ListingDialog({
                                 size="sm"
                                 onClick={() => field.onChange(c)}
                                 disabled={isProcessing}
+                                className="gap-1.5"
                               >
+                                <CurrencyIcon symbol={c} size={13} />
                                 {c}
                               </Button>
                             ))}
