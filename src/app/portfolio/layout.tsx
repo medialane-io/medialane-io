@@ -25,6 +25,7 @@ const NAV_GROUPS = [
       { label: "Offers sent",       href: "/portfolio/offers" },
       { label: "Offers received",   href: "/portfolio/received", badge: "offers" as const },
       { label: "Remixes",           href: "/portfolio/remix-offers", badge: "remixes" as const },
+      { label: "Counter-offers",    href: "/portfolio/counter-offers", badge: "counters" as const },
       { label: "Activity",          href: "/portfolio/activity" },
     ],
   },
@@ -61,6 +62,14 @@ export default function PortfolioLayout({ children }: { children: React.ReactNod
 
   const pendingRemixCount = remixOffers.filter(
     (o) => o.status === "PENDING" || o.status === "AUTO_PENDING"
+  ).length;
+
+  // Bids the user made that a seller has countered — buyer needs to respond
+  const pendingCounterCount = orders.filter(
+    (o) =>
+      o.offer.itemType === "ERC20" &&
+      o.offerer.toLowerCase() === (address ?? "").toLowerCase() &&
+      (o.status as string) === "COUNTER_OFFERED"
   ).length;
 
   const totalAssetsCount = tokenMeta?.total ?? null;
@@ -193,6 +202,11 @@ export default function PortfolioLayout({ children }: { children: React.ReactNod
                     {item.badge === "remixes" && pendingRemixCount > 0 && (
                       <span className="h-4 min-w-4 rounded-full bg-primary text-[10px] font-bold text-primary-foreground flex items-center justify-center px-1">
                         {pendingRemixCount}
+                      </span>
+                    )}
+                    {item.badge === "counters" && pendingCounterCount > 0 && (
+                      <span className="h-4 min-w-4 rounded-full bg-amber-500 text-[10px] font-bold text-white flex items-center justify-center px-1">
+                        {pendingCounterCount}
                       </span>
                     )}
                   </Link>
