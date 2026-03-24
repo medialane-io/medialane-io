@@ -26,6 +26,7 @@ export interface CounterOfferOrder {
   priceFormatted: string | null;
   currencySymbol: string | null;
   parentOrderHash: string | null;
+  createdTxHash: string | null;
   token: { name: string | null; image: string | null; description: string | null } | null;
 }
 
