@@ -8,9 +8,10 @@ import { PinDialog } from "@/components/chipi/pin-dialog";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { ipfsToHttp, formatDisplayPrice, cn } from "@/lib/utils";
 import { ExternalLink, Inbox } from "lucide-react";
-import { EXPLORER_URL } from "@/lib/constants";
+import { EXPLORER_URL, SUPPORTED_TOKENS } from "@/lib/constants";
 import { formatDistanceToNow } from "date-fns";
 import { getSeenOffers } from "@/hooks/use-unread-offers";
+import { CounterOfferDialog } from "@/components/marketplace/counter-offer-dialog";
 import Image from "next/image";
 import Link from "next/link";
 import type { ApiOrder } from "@medialane/sdk";
@@ -31,11 +32,13 @@ function ReceivedOfferRow({
   order,
   isProcessing,
   onAccept,
+  onCounter,
   isNew,
 }: {
   order: ApiOrder;
   isProcessing: boolean;
   onAccept: (order: ApiOrder) => void;
+  onCounter: (order: ApiOrder) => void;
   isNew: boolean;
 }) {
   const name = order.token?.name || `#${order.nftTokenId}`;
@@ -101,6 +104,15 @@ function ReceivedOfferRow({
         </a>
         <Button
           size="sm"
+          variant="outline"
+          className="h-8 text-xs"
+          disabled={isProcessing}
+          onClick={() => onCounter(order)}
+        >
+          Counter
+        </Button>
+        <Button
+          size="sm"
           variant="default"
           className="h-8 text-xs"
           disabled={isProcessing}
@@ -118,6 +130,7 @@ export function ReceivedOffersTable({ address }: ReceivedOffersTableProps) {
   const { fulfillOrder, isProcessing } = useMarketplace();
   const [pinOpen, setPinOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<ApiOrder | null>(null);
+  const [counterOrder, setCounterOrder] = useState<ApiOrder | null>(null);
 
   const seenHashes = getSeenOffers();
 
@@ -131,6 +144,10 @@ export function ReceivedOffersTable({ address }: ReceivedOffersTableProps) {
   const handleAccept = (order: ApiOrder) => {
     setSelectedOrder(order);
     setPinOpen(true);
+  };
+
+  const handleCounter = (order: ApiOrder) => {
+    setCounterOrder(order);
   };
 
   const handlePin = async (pin: string) => {
@@ -168,6 +185,7 @@ export function ReceivedOffersTable({ address }: ReceivedOffersTableProps) {
               order={order}
               isProcessing={isProcessing}
               onAccept={handleAccept}
+              onCounter={handleCounter}
               isNew={!seenHashes.has(order.orderHash)}
             />
           ))}
@@ -183,6 +201,21 @@ export function ReceivedOffersTable({ address }: ReceivedOffersTableProps) {
           ? `Accept ${formatDisplayPrice(selectedOrder.price.formatted)} ${selectedOrder.price.currency} for token #${selectedOrder.nftTokenId}?`
           : "Enter your PIN to accept this offer."}
       />
+
+      {counterOrder && (() => {
+        const token = SUPPORTED_TOKENS.find((t) => t.symbol === counterOrder.price.currency);
+        return (
+          <CounterOfferDialog
+            open={!!counterOrder}
+            onOpenChange={(v) => { if (!v) setCounterOrder(null); }}
+            originalOrderHash={counterOrder.orderHash}
+            tokenName={counterOrder.token?.name ?? undefined}
+            currentBid={`${formatDisplayPrice(counterOrder.price.formatted)} ${counterOrder.price.currency}`}
+            currencySymbol={counterOrder.price.currency ?? ""}
+            currencyDecimals={token?.decimals ?? 18}
+          />
+        );
+      })()}
     </>
   );
 }
