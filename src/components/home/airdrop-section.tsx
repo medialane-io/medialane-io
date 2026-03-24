@@ -79,7 +79,7 @@ export function AirdropSection() {
                 Built for{" "} <span className="gradient-text">Creators</span> &amp; <span className="gradient-text">Collectors</span>
               </h2>
               <p className="text-base sm:text-lg text-white/50 leading-relaxed max-w-lg">
-                Mint, collect, trade, remix and build revenue onchain.
+                Mint, collect, trade, remix and build revenue!
               </p>
             </div>
 
@@ -112,7 +112,7 @@ export function AirdropSection() {
               {[
                 { value: "Zero Fees", label: "on launch" },
                 { value: "Gas-free", label: "transactions" },
-                { value: "Secure", label: "onchain trading" },
+                { value: "Atomic", label: "onchain settlement" },
               ].map(({ value, label }) => (
                 <div key={label}>
                   <p className="text-lg font-black text-white">{value}</p>

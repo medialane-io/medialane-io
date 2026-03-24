@@ -38,7 +38,7 @@ export function CommunityActivity() {
           </div>
           <div>
             <h2 className="text-xl sm:text-2xl font-black leading-none">
-              Community Activity
+              Market & Community
             </h2>
             <p className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-1">
               <RefreshCw className="h-2.5 w-2.5" />
@@ -51,7 +51,7 @@ export function CommunityActivity() {
             href="/activities"
             className="flex items-center gap-1 text-muted-foreground hover:text-foreground"
           >
-            View all <ArrowRight className="h-3.5 w-3.5" />
+            Activities <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </Button>
       </div>

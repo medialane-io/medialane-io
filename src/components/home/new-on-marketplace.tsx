@@ -27,7 +27,7 @@ export function NewOnMarketplace() {
         </div>
         <Button variant="ghost" size="sm" asChild>
           <Link href="/marketplace" className="flex items-center gap-1 text-muted-foreground hover:text-foreground">
-            Browse all <ArrowRight className="h-3.5 w-3.5" />
+            Marketplace <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </Button>
       </div>

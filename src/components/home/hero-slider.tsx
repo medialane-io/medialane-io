@@ -43,9 +43,6 @@ function HeroSlide({
         <div className="absolute inset-0 bg-gradient-to-br from-brand-purple/40 via-brand-blue/20 to-brand-navy/60" />
       )}
 
-      {/* Darkening overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/30 to-black/0" />
-
       {/* Content */}
       <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-10 flex flex-col gap-3">
         <h2 className="text-4xl lg:text-5xl font-semibold text-white leading-tight">{name}</h2>
