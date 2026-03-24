@@ -332,7 +332,7 @@ export function OfferDialog({
                       <FormItem>
                         <FormLabel>Currency</FormLabel>
                         <FormControl>
-                          <div className="flex gap-2">
+                          <div className="grid grid-cols-5 gap-1.5">
                             {CURRENCIES.map((c) => (
                               <Button
                                 key={c}
@@ -341,10 +341,10 @@ export function OfferDialog({
                                 size="sm"
                                 onClick={() => field.onChange(c)}
                                 disabled={isProcessing}
-                                className="gap-1.5"
+                                className="gap-1 px-2 text-xs w-full"
                               >
-                                <CurrencyIcon symbol={c} size={13} />
-                                {c}
+                                <CurrencyIcon symbol={c} size={13} className="shrink-0" />
+                                <span className="truncate">{c}</span>
                               </Button>
                             ))}
                           </div>
