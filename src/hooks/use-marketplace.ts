@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import { useChipiTransaction } from "./use-chipi-transaction";
 import { useSessionKey } from "./use-session-key";
 import { useMedialaneClient } from "./use-medialane-client";
-import { MARKETPLACE_CONTRACT, MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY, SUPPORTED_TOKENS, INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
+import { MARKETPLACE_CONTRACT, SUPPORTED_TOKENS, INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
 import { normalizeAddress } from "@/lib/utils";
 import type { ChipiCall } from "./use-chipi-transaction";
 
@@ -323,27 +323,13 @@ export function useMarketplace() {
       try {
         return await runIntent(
           input.pin,
-          async () => {
-            const res = await fetch(`${MEDIALANE_BACKEND_URL}/v1/intents/counter-offer`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "x-api-key": MEDIALANE_API_KEY ?? "",
-              },
-              body: JSON.stringify({
-                sellerAddress: walletAddress,
-                originalOrderHash: input.originalOrderHash,
-                durationSeconds: input.durationSeconds,
-                counterPrice: input.counterPriceRaw,
-                message: input.message,
-              }),
-            });
-            if (!res.ok) {
-              const body = await res.json().catch(() => ({}));
-              throw new Error((body as { error?: string }).error ?? `Counter-offer request failed (${res.status})`);
-            }
-            return res.json();
-          },
+          () => client.api.createCounterOfferIntent({
+            sellerAddress: walletAddress!,
+            originalOrderHash: input.originalOrderHash,
+            durationSeconds: input.durationSeconds,
+            counterPrice: input.counterPriceRaw,
+            message: input.message,
+          }),
           `Counter-offer sent${input.tokenName ? ` for ${input.tokenName}` : ""}!`
         );
       } catch (err: unknown) {

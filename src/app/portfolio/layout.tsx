@@ -69,7 +69,7 @@ export default function PortfolioLayout({ children }: { children: React.ReactNod
     (o) =>
       o.offer.itemType === "ERC20" &&
       o.offerer.toLowerCase() === (address ?? "").toLowerCase() &&
-      (o.status as string) === "COUNTER_OFFERED"
+      o.status === "COUNTER_OFFERED"
   ).length;
 
   const totalAssetsCount = tokenMeta?.total ?? null;

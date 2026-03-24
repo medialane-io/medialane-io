@@ -14,7 +14,6 @@ import { formatDistanceToNow } from "date-fns";
 import Image from "next/image";
 import Link from "next/link";
 import type { ApiOrder } from "@medialane/sdk";
-import type { CounterOfferOrder } from "@/types";
 
 function formatExpiry(endTime: string | bigint) {
   const expiry = new Date(Number(endTime) * 1000);
@@ -35,7 +34,7 @@ function CounterOfferFetcher({
 }: {
   originalBid: ApiOrder;
   isProcessing: boolean;
-  onAccept: (counter: CounterOfferOrder, original: ApiOrder) => void;
+  onAccept: (counter: ApiOrder, original: ApiOrder) => void;
 }) {
   const { counterOffers } = useCounterOffers({ originalOrderHash: originalBid.orderHash });
   const counter = counterOffers[0];
@@ -73,8 +72,8 @@ function CounterOfferFetcher({
           {formatDisplayPrice(originalBid.price.formatted)} {originalBid.price.currency}
         </p>
         <p className="text-sm font-semibold">
-          {counter.priceFormatted
-            ? `${formatDisplayPrice(counter.priceFormatted)} ${counter.currencySymbol ?? ""}`
+          {counter.price.formatted
+            ? `${formatDisplayPrice(counter.price.formatted)} ${counter.price.currency ?? ""}`
             : "—"}
         </p>
       </div>
@@ -90,9 +89,9 @@ function CounterOfferFetcher({
       </div>
 
       <div className="flex items-center gap-2 shrink-0">
-        {counter.createdTxHash && (
+        {counter.txHash.created && (
           <a
-            href={`${EXPLORER_URL}/tx/${counter.createdTxHash}`}
+            href={`${EXPLORER_URL}/tx/${counter.txHash.created}`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center h-7 w-7 rounded-md hover:bg-muted transition-colors"
@@ -119,7 +118,7 @@ export function CounterOffersTable({ address }: { address: string }) {
   const { orders, isLoading, error, mutate } = useUserOrders(address);
   const { fulfillOrder, isProcessing } = useMarketplace();
   const [pinOpen, setPinOpen] = useState(false);
-  const [selectedCounter, setSelectedCounter] = useState<CounterOfferOrder | null>(null);
+  const [selectedCounter, setSelectedCounter] = useState<ApiOrder | null>(null);
   const [originalForSelected, setOriginalForSelected] = useState<ApiOrder | null>(null);
 
   // My bids that the seller has countered
@@ -127,10 +126,10 @@ export function CounterOffersTable({ address }: { address: string }) {
     (o) =>
       o.offer.itemType === "ERC20" &&
       o.offerer.toLowerCase() === address.toLowerCase() &&
-      (o.status as string) === "COUNTER_OFFERED"
+      o.status === "COUNTER_OFFERED"
   );
 
-  const handleAccept = (counter: CounterOfferOrder, original: ApiOrder) => {
+  const handleAccept = (counter: ApiOrder, original: ApiOrder) => {
     setSelectedCounter(counter);
     setOriginalForSelected(original);
     setPinOpen(true);
@@ -181,7 +180,7 @@ export function CounterOffersTable({ address }: { address: string }) {
         title="Accept counter-offer"
         description={
           selectedCounter && originalForSelected
-            ? `Accept seller's counter of ${formatDisplayPrice(selectedCounter.priceFormatted ?? "")} ${selectedCounter.currencySymbol ?? ""} for ${selectedCounter.token?.name || `#${selectedCounter.nftTokenId}`}?`
+            ? `Accept seller's counter of ${formatDisplayPrice(selectedCounter.price.formatted ?? "")} ${selectedCounter.price.currency ?? ""} for ${selectedCounter.token?.name || `#${selectedCounter.nftTokenId}`}?`
             : "Enter your PIN to accept the counter-offer."
         }
       />

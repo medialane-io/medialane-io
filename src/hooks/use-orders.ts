@@ -3,9 +3,7 @@
 import useSWR from "swr";
 import { useMedialaneClient } from "./use-medialane-client";
 import type { ApiOrdersQuery, ApiOrder, ApiResponse } from "@medialane/sdk";
-import type { CounterOfferOrder } from "@/types";
 import { normalizeAddress } from "@/lib/utils";
-import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
 
 export function useOrders(query: ApiOrdersQuery = {}) {
   const client = useMedialaneClient();
@@ -71,6 +69,7 @@ export function useCounterOffers({
   originalOrderHash?: string | null;
   sellerAddress?: string | null;
 }) {
+  const client = useMedialaneClient();
   const normalized = sellerAddress ? normalizeAddress(sellerAddress) : null;
   const key =
     originalOrderHash
@@ -79,19 +78,12 @@ export function useCounterOffers({
       ? `counter-offers-seller-${normalized}`
       : null;
 
-  const { data, error, isLoading, mutate } = useSWR<{ data: CounterOfferOrder[]; meta: { page: number; limit: number; total: number } }>(
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<ApiOrder[]>>(
     key,
-    async () => {
-      const params = new URLSearchParams();
-      if (originalOrderHash) params.set("originalOrderHash", originalOrderHash);
-      if (normalized) params.set("sellerAddress", normalized);
-      const res = await fetch(
-        `${MEDIALANE_BACKEND_URL}/v1/orders/counter-offers?${params.toString()}`,
-        { headers: { "x-api-key": MEDIALANE_API_KEY ?? "" } }
-      );
-      if (!res.ok) throw new Error(`counter-offers fetch failed: ${res.status}`);
-      return res.json();
-    },
+    () => client.api.getCounterOffers({
+      ...(originalOrderHash ? { originalOrderHash } : {}),
+      ...(normalized ? { sellerAddress: normalized } : {}),
+    }),
     { revalidateOnFocus: false, refreshInterval: 20000, dedupingInterval: 5000 }
   );
 
