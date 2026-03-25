@@ -120,7 +120,7 @@ function SearchResults() {
   const [results, setResults] = useState<ApiSearchResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Keep input in sync if URL param changes (e.g. browser back/forward)
   useEffect(() => {

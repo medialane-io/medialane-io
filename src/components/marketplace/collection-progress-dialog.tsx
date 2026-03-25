@@ -105,7 +105,7 @@ export function CollectionProgressDialog({
                   ? "Waiting for block confirmation"
                   : txStatus === "submitting"
                   ? "Submitting transaction"
-                  : "Creating intent on-chain"}
+                  : "Creating intent onchain"}
               </p>
             </div>
 

@@ -94,7 +94,7 @@ export function LaunchpadContent() {
               Launch your{" "}
               <span className="gradient-text-warm">creative vision</span>
               <br />
-              on-chain — gasless.
+              onchain — gasless.
             </h1>
           </FadeIn>
           <FadeIn delay={0.16}>

@@ -16,10 +16,11 @@ export async function POST(req: NextRequest) {
   }
 
   let body: {
-    targetType: "TOKEN" | "COLLECTION" | "CREATOR";
+    targetType: "TOKEN" | "COLLECTION" | "CREATOR" | "COMMENT";
     targetContract?: string;
     targetTokenId?: string;
     targetAddress?: string;
+    targetId?: string;
     categories: string[];
     description?: string;
   };
@@ -35,6 +36,11 @@ export async function POST(req: NextRequest) {
       { error: "targetType and categories are required" },
       { status: 400 }
     );
+  }
+
+  const validTypes = ["TOKEN", "COLLECTION", "CREATOR", "COMMENT"];
+  if (!validTypes.includes(body.targetType)) {
+    return NextResponse.json({ error: "Invalid targetType" }, { status: 400 });
   }
 
   // Normalize addresses before computing targetKey
@@ -53,6 +59,8 @@ export async function POST(req: NextRequest) {
     targetKey = `COLLECTION:${normalizedContract}`;
   } else if (body.targetType === "CREATOR" && normalizedAddress) {
     targetKey = `CREATOR:${normalizedAddress}`;
+  } else if (body.targetType === "COMMENT" && body.targetId) {
+    targetKey = `COMMENT:${body.targetId}`;
   } else {
     return NextResponse.json(
       { error: "Invalid target fields for targetType" },
@@ -72,6 +80,7 @@ export async function POST(req: NextRequest) {
       targetContract: normalizedContract,
       targetTokenId: body.targetTokenId,
       targetAddress: normalizedAddress,
+      targetId: body.targetId,
       reporterUserId: userId,
       categories: body.categories,
       description: body.description,

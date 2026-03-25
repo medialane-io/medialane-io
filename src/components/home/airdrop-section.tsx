@@ -34,7 +34,7 @@ const PARTICIPANT_TYPES = [
   {
     icon: Bot,
     label: "AI Agents",
-    description: "Autonomous agents can participate on-chain.",
+    description: "Autonomous agents can participate onchain.",
     accent: "from-emerald-400 to-teal-500",
     border: "border-emerald-500/20",
     dot: "bg-emerald-400",
@@ -72,11 +72,6 @@ export function AirdropSection() {
 
           {/* ── Left: Headline + participant cards ── */}
           <div className="space-y-8">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 px-4 py-1.5 text-sm font-semibold text-violet-300 backdrop-blur-sm">
-              <Sparkles className="h-3.5 w-3.5" />
-              Medialane Airdrop
-            </div>
 
             {/* Headline */}
             <div className="space-y-4">
@@ -84,7 +79,7 @@ export function AirdropSection() {
                 Built for{" "} <span className="gradient-text">Creators</span> &amp; <span className="gradient-text">Collectors</span>
               </h2>
               <p className="text-base sm:text-lg text-white/50 leading-relaxed max-w-lg">
-                Mint, collect, and build on Medialane to earn your allocation.
+                Mint, collect, trade, remix and build revenue onchain.
               </p>
             </div>
 
@@ -106,7 +101,7 @@ export function AirdropSection() {
                   </div>
                   <div>
                     <p className="font-bold text-sm text-white/90">{label}</p>
-                    <p className="text-xs text-white/40 leading-relaxed mt-0.5">{description}</p>
+                    {/* <p className="text-xs text-white/40 leading-relaxed mt-0.5">{description}</p> */}
                   </div>
                   <span className={cn("absolute top-3 right-3 h-1.5 w-1.5 rounded-full animate-pulse", dot)} />
                 </div>
@@ -116,9 +111,9 @@ export function AirdropSection() {
             {/* Stat strip */}
             <div className="flex items-center gap-8 pt-2">
               {[
-                { value: "Free", label: "to mint" },
-                { value: "Gas-free", label: "trading" },
-                { value: "On-chain", label: "royalties" },
+                { value: "Zero Fees", label: "on launch" },
+                { value: "Gas-free", label: "transactions" },
+                { value: "Secure", label: "onchain trading" },
               ].map(({ value, label }) => (
                 <div key={label}>
                   <p className="text-lg font-black text-white">{value}</p>

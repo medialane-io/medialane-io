@@ -33,6 +33,9 @@ export const EXPLORER_URL =
 export const MINT_CONTRACT =
   (process.env.NEXT_PUBLIC_MINT_CONTRACT as `0x${string}`) || ("" as `0x${string}`);
 
+export const COMMENTS_CONTRACT =
+  (process.env.NEXT_PUBLIC_COMMENTS_CONTRACT as `0x${string}`) || ("" as `0x${string}`);
+
 // Genesis launch mint (alias kept for env compat)
 export const LAUNCH_MINT_CONTRACT =
   (process.env.NEXT_PUBLIC_LAUNCH_MINT_CONTRACT as `0x${string}`) || ("" as `0x${string}`);

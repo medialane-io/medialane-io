@@ -188,7 +188,7 @@ const TABS = [
   { id: "assets",      label: "Assets",      Icon: LayoutGrid },
   { id: "listings",    label: "Listings",    Icon: ShoppingBag },
   { id: "collections", label: "Collections", Icon: LayoutList },
-  { id: "activity",    label: "Activity",    Icon: Activity },
+{ id: "activity",    label: "Activity",    Icon: Activity },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -235,7 +235,7 @@ export default function CreatorPageClient() {
   const { tokens,      isLoading: tokensLoading      } = useTokensByOwner(activeTab === "assets"      ? addr : null);
   const { orders,      isLoading: ordersLoading      } = useUserOrders(activeTab === "listings"    ? addr : null);
   const { collections, isLoading: collectionsLoading } = useCollectionsByOwner(activeTab === "collections" ? addr : null);
-  const { activities,  isLoading: activitiesLoading  } = useActivitiesByAddress(activeTab === "activity"  ? addr : null);
+  const { activities,  isLoading: activitiesLoading  } = useActivitiesByAddress(activeTab === "activity" ? addr : null);
 
   // Always fetch one token for the banner image
   const { tokens: bannerTokens } = useTokensByOwner(addr, 1, 1);
@@ -261,7 +261,7 @@ export default function CreatorPageClient() {
     ...(activeTab === "assets"      && !tokensLoading      && { assets:      tokens.length }),
     ...(activeTab === "listings"    && !ordersLoading      && { listings:    activeListings.length }),
     ...(activeTab === "collections" && !collectionsLoading && { collections: collections.length }),
-    ...(activeTab === "activity"    && !activitiesLoading  && { activity:    activities.length }),
+    ...(activeTab === "activity" && !activitiesLoading && { activity: activities.length }),
   };
 
   return (
@@ -520,7 +520,7 @@ export default function CreatorPageClient() {
                 <EmptyState
                   icon={Activity}
                   heading="No activity yet"
-                  body="On-chain events for this creator will appear here as they happen."
+                  body="onchain events for this creator will appear here as they happen."
                 />
               ) : (
                 <div>

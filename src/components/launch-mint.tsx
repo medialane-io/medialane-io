@@ -161,7 +161,7 @@ export function LaunchMint() {
         setCompletedTxHash(result.txHash);
         if (userId) localStorage.setItem(`ml_genesis_${userId}`, result.txHash);
       } else {
-        throw new Error(result.revertReason || "Transaction reverted on-chain.");
+        throw new Error(result.revertReason || "Transaction reverted onchain.");
       }
     } catch (err: unknown) {
       setMintStep("error");

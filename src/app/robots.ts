@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/api/", "/onboarding"],
+      disallow: ["/api/", "/onboarding", "/admin/", "/portfolio/", "/create/"],
     },
     sitemap: `${process.env.NEXT_PUBLIC_APP_URL || "https://medialane.io"}/sitemap.xml`,
   };

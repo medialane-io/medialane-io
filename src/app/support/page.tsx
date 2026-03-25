@@ -25,7 +25,7 @@ const FAQS = [
   },
   {
     q: "Can I cancel a listing or offer?",
-    a: "Yes. Go to Portfolio → Listings (for your listings) or Portfolio → Offers sent (for your offers). Click Cancel on any active order. Cancellation is an on-chain transaction and may require a small gas fee.",
+    a: "Yes. Go to Portfolio → Listings (for your listings) or Portfolio → Offers sent (for your offers). Click Cancel on any active order. Cancellation is an onchain transaction and may require a small gas fee.",
   },
   {
     q: "My session expired. Do I lose my assets?",

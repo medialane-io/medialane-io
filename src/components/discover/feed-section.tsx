@@ -4,140 +4,90 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useOrders } from "@/hooks/use-orders";
-import { useActivities } from "@/hooks/use-activities";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FadeIn } from "@/components/ui/motion-primitives";
+import { CommunityActivity } from "@/components/home/community-activity";
 import { BRAND } from "@/lib/brand";
-import { ipfsToHttp, timeAgo , formatDisplayPrice} from "@/lib/utils";
+import { ipfsToHttp, timeAgo, formatDisplayPrice } from "@/lib/utils";
 import {
   ArrowRight,
-  TrendingUp,
-  Activity,
   Tag,
-  Handshake,
-  ArrowRightLeft,
   Image as ImageIcon,
 } from "lucide-react";
-import type { ApiActivity, ApiOrder } from "@medialane/sdk";
+import type { ApiOrder } from "@medialane/sdk";
 
-// ─── Recent listings ──────────────────────────────────────────────────────────
+// ─── Listing card ─────────────────────────────────────────────────────────────
 
-function RecentListingRow({ order }: { order: ApiOrder }) {
+function ListingCard({ order }: { order: ApiOrder }) {
   const [imgError, setImgError] = useState(false);
-  const name = order.token?.name ?? `Token #${order.nftTokenId}`;
-  const image = order.token?.image ? ipfsToHttp(order.token.image) : null;
+  const name = order.token?.name ?? `#${order.nftTokenId}`;
+  const image = order.token?.image && !imgError ? ipfsToHttp(order.token.image) : null;
 
   return (
     <Link
       href={`/asset/${order.nftContract}/${order.nftTokenId}`}
-      className="flex items-center gap-3 px-4 py-3 hover:bg-muted/40 active:bg-muted/60 rounded-xl transition-colors"
+      className="group block"
     >
-      <div className="h-11 w-11 rounded-xl bg-muted overflow-hidden shrink-0 relative border border-border/60">
-        {image && !imgError ? (
-          <Image
-            src={image}
-            alt={name}
-            fill
-            className="object-cover"
-            onError={() => setImgError(true)}
-            unoptimized
-          />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-brand-purple/15 to-brand-blue/15">
-            <ImageIcon className="h-4 w-4 text-muted-foreground/50" />
-          </div>
-        )}
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium truncate">{name}</p>
-        <p className="text-[11px] text-muted-foreground font-mono truncate">
-          {order.nftContract?.slice(0, 14)}…
-        </p>
-      </div>
-      <div className="text-right shrink-0">
-        <p className="price-value text-sm">{formatDisplayPrice(order.price.formatted) ?? "—"}</p>
-        <p className="text-[10px] text-muted-foreground">{timeAgo(order.createdAt)}</p>
+      <div className="rounded-xl border border-border overflow-hidden hover:border-border/80 transition-colors">
+        <div className="aspect-square bg-muted relative overflow-hidden">
+          {image ? (
+            <Image
+              src={image}
+              alt={name}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-500"
+              onError={() => setImgError(true)}
+              unoptimized
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-brand-purple/10 to-brand-blue/10">
+              <ImageIcon className="h-6 w-6 text-muted-foreground/30" />
+            </div>
+          )}
+        </div>
+        <div className="p-2.5 bg-card">
+          <p className="text-xs font-semibold truncate">{name}</p>
+          {order.price && (
+            <p className="text-[11px] font-bold text-brand-orange mt-0.5">
+              {formatDisplayPrice(order.price.formatted)} {order.price.currency}
+            </p>
+          )}
+          <p className="text-[10px] text-muted-foreground mt-0.5">{timeAgo(order.createdAt)}</p>
+        </div>
       </div>
     </Link>
   );
 }
 
-// ─── Activity feed ────────────────────────────────────────────────────────────
-
-const ACTIVITY_ICON: Record<string, React.ElementType> = {
-  listing:   Tag,
-  sale:      Handshake,
-  offer:     TrendingUp,
-  transfer:  ArrowRightLeft,
-  cancelled: ArrowRightLeft,
-};
-
-const ACTIVITY_LABEL: Record<string, string> = {
-  listing:   "Listed",
-  sale:      "Sold",
-  offer:     "Offer",
-  transfer:  "Transfer",
-  cancelled: "Cancelled",
-};
-
-const ACTIVITY_COLOR: Record<string, string> = {
-  listing:   BRAND.purple.text,
-  sale:      "text-emerald-500",
-  offer:     BRAND.orange.text,
-  transfer:  BRAND.blue.text,
-  cancelled: "text-muted-foreground",
-};
-
-function ActivityRow({ event }: { event: ApiActivity }) {
-  const Icon = ACTIVITY_ICON[event.type] ?? ArrowRightLeft;
-  const color = ACTIVITY_COLOR[event.type] ?? "text-muted-foreground";
-  const contract = event.nftContract ?? event.contractAddress;
-  const tokenId = event.nftTokenId ?? event.tokenId;
-
+function ListingCardSkeleton() {
   return (
-    <Link
-      href={contract && tokenId ? `/asset/${contract}/${tokenId}` : "/activities"}
-      className="flex items-center gap-3 px-4 py-3 hover:bg-muted/40 active:bg-muted/60 rounded-xl transition-colors"
-    >
-      <div className="h-8 w-8 rounded-xl bg-muted flex items-center justify-center shrink-0 border border-border/60">
-        <Icon className={`h-3.5 w-3.5 ${color}`} />
+    <div className="rounded-xl border border-border overflow-hidden">
+      <Skeleton className="aspect-square w-full rounded-none" />
+      <div className="p-2.5 space-y-1.5">
+        <Skeleton className="h-3 w-24" />
+        <Skeleton className="h-3 w-16" />
       </div>
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium truncate">
-          {ACTIVITY_LABEL[event.type]} · {(event as any).token?.name ?? `#${tokenId ?? "—"}`}
-        </p>
-        <p className="text-[11px] text-muted-foreground font-mono truncate">
-          {contract?.slice(0, 14)}…
-        </p>
-      </div>
-      <div className="text-right shrink-0">
-        {event.price?.formatted && (
-          <p className="price-value text-sm">{formatDisplayPrice(event.price.formatted)}</p>
-        )}
-        <p className="text-[10px] text-muted-foreground">{timeAgo(event.timestamp)}</p>
-      </div>
-    </Link>
+    </div>
   );
 }
 
-// ─── Feed section (exported) ──────────────────────────────────────────────────
+// ─── Feed section ─────────────────────────────────────────────────────────────
 
 export function FeedSection() {
   const { orders, isLoading: ordersLoading } = useOrders({ status: "ACTIVE", sort: "recent", limit: 6 });
-  const { activities, isLoading: activitiesLoading } = useActivities({ limit: 6 });
 
   return (
-    <section className="px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Recent Listings */}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {/* New Listings */}
       <FadeIn>
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div>
-              <p className="section-label">Fresh on market</p>
+              <p className="section-label">NFTs</p>
               <div className="flex items-center gap-2 mt-0.5">
                 <Tag className={`h-4 w-4 ${BRAND.rose.text}`} />
-                <h2 className="text-lg font-bold">Recent Listings</h2>
+                <h2 className="text-lg font-bold">Fresh Markets</h2>
               </div>
             </div>
             <Button variant="ghost" size="sm" asChild className="gap-1 text-muted-foreground">
@@ -146,74 +96,27 @@ export function FeedSection() {
               </Link>
             </Button>
           </div>
-          <div className="bento-cell divide-y divide-border/50">
-            {ordersLoading ? (
-              Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-3 px-4 py-3">
-                  <Skeleton className="h-11 w-11 rounded-xl shrink-0" />
-                  <div className="flex-1 space-y-1.5">
-                    <Skeleton className="h-3.5 w-32" />
-                    <Skeleton className="h-3 w-20" />
-                  </div>
-                  <Skeleton className="h-3.5 w-16" />
-                </div>
-              ))
-            ) : orders.length === 0 ? (
-              <div className="py-10 text-center text-sm text-muted-foreground">
-                No active listings yet.
-              </div>
-            ) : (
-              orders.map((o) => <RecentListingRow key={o.orderHash} order={o} />)
-            )}
-          </div>
+
+          {ordersLoading ? (
+            <div className="grid grid-cols-3 gap-3">
+              {Array.from({ length: 6 }).map((_, i) => <ListingCardSkeleton key={i} />)}
+            </div>
+          ) : orders.length === 0 ? (
+            <div className="rounded-xl border border-border py-12 text-center text-sm text-muted-foreground">
+              No active listings yet.
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 gap-3">
+              {orders.map((o) => <ListingCard key={o.orderHash} order={o} />)}
+            </div>
+          )}
         </div>
       </FadeIn>
 
-      {/* Recent Activity */}
-      <FadeIn delay={0.1}>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="section-label">On-chain</p>
-              <div className="flex items-center gap-2 mt-0.5">
-                <Activity className={`h-4 w-4 ${BRAND.blue.text}`} />
-                <h2 className="text-lg font-bold">Recent Activity</h2>
-              </div>
-            </div>
-            <Button variant="ghost" size="sm" asChild className="gap-1 text-muted-foreground">
-              <Link href="/activities">
-                View all <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-            </Button>
-          </div>
-          <div className="bento-cell divide-y divide-border/50">
-            {activitiesLoading ? (
-              Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-3 px-4 py-3">
-                  <Skeleton className="h-8 w-8 rounded-xl shrink-0" />
-                  <div className="flex-1 space-y-1.5">
-                    <Skeleton className="h-3.5 w-40" />
-                    <Skeleton className="h-3 w-24" />
-                  </div>
-                  <Skeleton className="h-3 w-12" />
-                </div>
-              ))
-            ) : activities.length === 0 ? (
-              <div className="py-10 text-center text-sm text-muted-foreground">
-                No activity yet.
-              </div>
-            ) : (
-              activities.map((a) => (
-                // Refactor #4: composite key instead of array index
-                <ActivityRow
-                  key={`${a.type}-${a.timestamp}-${a.nftTokenId ?? a.tokenId ?? ""}`}
-                  event={a}
-                />
-              ))
-            )}
-          </div>
-        </div>
+      {/* Recent Activity — uses the same CommunityActivity widget from the homepage */}
+      <FadeIn delay={0.08}>
+        <CommunityActivity />
       </FadeIn>
-    </section>
+    </div>
   );
 }

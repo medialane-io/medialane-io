@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { useParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useToken, useTokenHistory } from "@/hooks/use-tokens";
@@ -18,12 +18,21 @@ import { TransferDialog } from "@/components/marketplace/transfer-dialog";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { ipfsToHttp, timeUntil, timeAgo, formatDisplayPrice } from "@/lib/utils";
-import { ShoppingCart, Tag, ExternalLink, Clock, HandCoins, ArrowRightLeft, X, CheckCircle, DollarSign, GitBranch, UserCheck, Globe, Bot, Percent, Shield, Calendar, ChevronRight, Flag } from "lucide-react";
+import { ShoppingCart, Tag, ExternalLink, Clock, HandCoins, ArrowRightLeft, X, CheckCircle, DollarSign, GitBranch, UserCheck, Globe, Bot, Percent, Shield, Calendar, ChevronRight, Flag, Loader2, MessageSquare } from "lucide-react";
 import { ReportDialog } from "@/components/report-dialog";
 import { HiddenContentBanner } from "@/components/hidden-content-banner";
 import { LICENSE_TRAIT_TYPES } from "@/types/ip";
+import type { IPType } from "@/types/ip";
+import { IP_TEMPLATES } from "@/lib/ip-templates";
+import { IPTypeDisplay } from "@/components/ip-type-display";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import type { ApiActivity, ApiOrder } from "@medialane/sdk";
+import { PriceHistoryChart } from "@/components/asset/price-history-chart";
+import { CommentsSection } from "@/components/asset/comments-section";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { useComments } from "@/hooks/use-comments";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { EXPLORER_URL } from "@/lib/constants";
 import { useAuth, SignInButton } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
@@ -31,6 +40,8 @@ import { useMarketplace } from "@/hooks/use-marketplace";
 import { useCart } from "@/hooks/use-cart";
 import { toast } from "sonner";
 import { useDominantColor } from "@/hooks/use-dominant-color";
+import { RemixesTab, ParentAttributionBanner } from "@/components/asset/remixes-tab";
+import { useTokenRemixes } from "@/hooks/use-remix-offers";
 
 const TYPE_LABEL: Record<string, string> = {
   transfer: "Transfer",
@@ -42,7 +53,9 @@ const TYPE_LABEL: Record<string, string> = {
 
 export default function AssetPageClient() {
   const { contract, tokenId } = useParams<{ contract: string; tokenId: string }>();
-  const { isSignedIn } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { isSignedIn, getToken } = useAuth();
   const { walletAddress } = useSessionKey();
   const { collection } = useCollection(contract);
   const { token, isLoading } = useToken(contract, tokenId);
@@ -62,10 +75,23 @@ export default function AssetPageClient() {
   const [offerOpen, setOfferOpen] = useState(false);
   const [orderToCancel, setOrderToCancel] = useState<ApiOrder | null>(null);
   const [cancelPinOpen, setCancelPinOpen] = useState(false);
+  const [cancelStep, setCancelStep] = useState<"idle" | "processing" | "success" | "error">("idle");
+  const [cancelError, setCancelError] = useState<string | null>(null);
   const [orderToAccept, setOrderToAccept] = useState<ApiOrder | null>(null);
   const [acceptPinOpen, setAcceptPinOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [commentOpen, setCommentOpen] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("action") !== "transfer") return;
+    setTransferOpen(true);
+    router.replace(`/asset/${contract}/${tokenId}`, { scroll: false });
+  }, [searchParams, contract, tokenId, router]);
+
+  const isMobile = useIsMobile();
+  const { comments, total: commentTotal } = useComments(contract, tokenId);
+  const { total: remixCount } = useTokenRemixes(contract, tokenId);
 
   // Listings = ERC721 in offer (someone selling the NFT)
   const activeListings = listings.filter(
@@ -122,9 +148,16 @@ export default function AssetPageClient() {
   const handleCancelPin = async (pin: string) => {
     setCancelPinOpen(false);
     if (!orderToCancel) return;
-    await cancelOrder({ orderHash: orderToCancel.orderHash, pin });
-    setOrderToCancel(null);
-    mutateListings();
+    setCancelStep("processing");
+    setCancelError(null);
+    try {
+      await cancelOrder({ orderHash: orderToCancel.orderHash, pin });
+      setCancelStep("success");
+      mutateListings();
+    } catch (err: unknown) {
+      setCancelStep("error");
+      setCancelError(err instanceof Error ? err.message : "Cancellation failed");
+    }
   };
 
   const handleAcceptClick = (order: ApiOrder) => {
@@ -138,6 +171,10 @@ export default function AssetPageClient() {
     await fulfillOrder({ orderHash: orderToAccept.orderHash, pin });
     setOrderToAccept(null);
     mutateListings();
+  };
+
+  const handleAutoRemix = () => {
+    router.push(`/create/remix/${contract}/${tokenId}`);
   };
 
   if (isLoading) {
@@ -172,6 +209,30 @@ export default function AssetPageClient() {
     ? (token.metadata.attributes as { trait_type?: string; value?: string }[])
     : [];
 
+  // Derive active template once — shared by Media tab visibility check and attribute grid filtering.
+  // Per-type keys avoid cross-type collisions from shared keys like "Genre", "Duration".
+  const activeTemplate = IP_TEMPLATES[
+    (attributes.find((a) => a.trait_type?.toLowerCase() === "ip type")?.value ?? "") as IPType
+  ];
+  const activeTemplateKeys = new Set<string>([
+    "IP Type",
+    ...(activeTemplate?.fields.map((f) => f.key) ?? []),
+  ]);
+  const hasTemplateData =
+    !!activeTemplate &&
+    activeTemplate.fields.length > 0 &&
+    activeTemplate.fields.some((f) =>
+      attributes.some((a) => a.trait_type === f.key && a.value)
+    );
+
+  // Predicate for filtering template + license attributes out of attribute grids.
+  const isDisplayAttr = (a: { trait_type?: string }): boolean =>
+    !LICENSE_TRAIT_TYPES.has(a.trait_type ?? "") && !activeTemplateKeys.has(a.trait_type ?? "");
+
+  // Remix / parent detection
+  const parentContract = attributes.find((a) => a.trait_type === "Parent Contract")?.value ?? null;
+  const parentTokenId = attributes.find((a) => a.trait_type === "Parent Token ID")?.value ?? null;
+
   return (
     <div
       style={dynamicTheme ? (dynamicTheme as React.CSSProperties) : {}}
@@ -186,6 +247,7 @@ export default function AssetPageClient() {
           crossOrigin="anonymous"
           aria-hidden
           alt=""
+          fetchPriority="high"
           style={{ display: "none" }}
         />
       )}
@@ -212,16 +274,12 @@ export default function AssetPageClient() {
 
       <div className={`container mx-auto px-4 pt-14 space-y-8 pb-8`}>
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <Link href="/collections" className="hover:text-foreground transition-colors shrink-0">
-            Collections
-          </Link>
-          <ChevronRight className="h-3.5 w-3.5 shrink-0 hidden sm:block" />
+        <nav className="flex items-center gap-1.5 text-sm text-muted-foreground min-w-0">
           <Link
             href={`/collections/${contract}`}
-            className="hover:text-foreground transition-colors truncate max-w-[120px] hidden sm:block"
+            className="hover:text-foreground transition-colors truncate max-w-[140px] shrink-0"
           >
-            {collection?.name ?? contract.slice(0, 10) + "…"}
+            {collection?.name ?? contract.slice(0, 8) + "…"}
           </Link>
           <ChevronRight className="h-3.5 w-3.5 shrink-0" />
           <span className="text-foreground font-medium truncate">{name}</span>
@@ -246,6 +304,7 @@ export default function AssetPageClient() {
                   sizes="(max-width: 1024px) 100vw, 66vw"
                   className="w-full h-auto"
                   onError={() => setImgError(true)}
+                  priority
                 />
               ) : (
                 <div className="aspect-square flex items-center justify-center bg-gradient-to-br from-primary/10 to-purple-500/10">
@@ -263,10 +322,19 @@ export default function AssetPageClient() {
             className="space-y-6"
           >
             <div>
+              {parentContract && parentTokenId && (
+                <div className="mb-3">
+                  <ParentAttributionBanner
+                    parentContract={parentContract}
+                    parentTokenId={parentTokenId}
+                    parentName={`Token #${parentTokenId}`}
+                  />
+                </div>
+              )}
               {token.metadata?.ipType && (
                 <Badge variant="secondary" className="mb-2">{token.metadata.ipType}</Badge>
               )}
-              <h1 className="text-3xl font-bold">{name}</h1>
+              <h1 className="text-3xl lg:text-5xl font-bold">{name}</h1>
               {description && (
               <div>
                 <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
@@ -299,75 +367,92 @@ export default function AssetPageClient() {
                 {isOwner ? (
                   <div className="space-y-2">
                     {myListing && (
-                    <Button
-                      variant="destructive"
-                      className="w-full"
-                      disabled={isProcessing}
-                      onClick={() => handleCancelClick(myListing)}
-                    >
-                      <X className="h-4 w-4 mr-2" />
-                      Cancel listing
-                    </Button>
+                    <div className="btn-border-animated p-[1px] rounded-xl">
+                      <button
+                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-destructive disabled:opacity-50"
+                        disabled={isProcessing}
+                        onClick={() => handleCancelClick(myListing)}
+                      >
+                        {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
+                        Cancel listing
+                      </button>
+                    </div>
                     )}
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => setListOpen(true)}
-                    >
-                      <Tag className="h-4 w-4 mr-2" />
-                      Create new listing
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => setTransferOpen(true)}
-                    >
-                      <ArrowRightLeft className="h-4 w-4 mr-2" />
-                      Transfer
-                    </Button>
+                    <div className="btn-border-animated p-[1px] rounded-xl">
+                      <button
+                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-blue"
+                        onClick={() => setListOpen(true)}
+                      >
+                        <Tag className="h-4 w-4" />
+                        Create new listing
+                      </button>
+                    </div>
+                    <div className="btn-border-animated p-[1px] rounded-xl">
+                      <button
+                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-orange"
+                        onClick={() => setTransferOpen(true)}
+                      >
+                        <ArrowRightLeft className="h-4 w-4" />
+                        Transfer
+                      </button>
+                    </div>
+                    <div className="btn-border-animated p-[1px] rounded-xl">
+                      <button
+                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-rose"
+                        onClick={() => router.push(`/create/remix/${contract}/${tokenId}`)}
+                      >
+                        <GitBranch className="h-4 w-4" />
+                        Create a Remix
+                      </button>
+                    </div>
                   </div>
                 ) : isSignedIn ? (
                   <div className="space-y-2">
-                    <motion.div
-                      animate={shouldReduce ? {} : {
-                        boxShadow: [
-                          "0 0 0 0 hsl(var(--dynamic-primary) / 0.4)",
-                          "0 0 0 12px hsl(var(--dynamic-primary) / 0)",
-                        ],
-                      }}
-                      transition={{ duration: 1.2, ease: "easeOut", repeat: 0 }}
-                      style={{ borderRadius: "inherit" }}
-                    >
-                      <Button
-                        className="w-full h-12 text-base"
-                        style={dynamicTheme ? { background: `hsl(var(--dynamic-primary))`, color: "white" } : {}}
+                    {/* Buy Now — flat brand-blue, animated gradient border */}
+                    <div className="btn-border-animated p-[1px] rounded-xl">
+                      <button
+                        className="w-full h-12 text-base font-semibold text-white rounded-[11px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] bg-brand-blue"
                         onClick={() => setPurchaseOrder(cheapest)}
                       >
-                        <ShoppingCart className="h-5 w-5 mr-2" />
+                        <ShoppingCart className="h-5 w-5" />
                         Buy now
-                      </Button>
-                    </motion.div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <Button
-                        variant="outline"
-                        className="w-full"
-                        style={dynamicTheme ? { borderColor: `hsl(var(--dynamic-primary))`, color: `hsl(var(--dynamic-primary))` } : {}}
-                        disabled={inCart}
-                        onClick={handleAddToCart}
-                      >
-                        <ShoppingCart className="h-4 w-4 mr-2" />
-                        {inCart ? "In cart" : "Add to cart"}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="w-full"
-                        style={dynamicTheme ? { borderColor: `hsl(var(--dynamic-primary))`, color: `hsl(var(--dynamic-primary))` } : {}}
-                        onClick={() => setOfferOpen(true)}
-                      >
-                        <HandCoins className="h-4 w-4 mr-2" />
-                        Make offer
-                      </Button>
+                      </button>
                     </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {/* Add to cart — flat brand-orange, animated gradient border */}
+                      <div className={`btn-border-animated p-[1px] rounded-xl ${inCart ? "opacity-40 pointer-events-none" : ""}`}>
+                        <button
+                          className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-orange"
+                          disabled={inCart}
+                          onClick={handleAddToCart}
+                        >
+                          <ShoppingCart className="h-4 w-4" />
+                          {inCart ? "In cart" : "Add to cart"}
+                        </button>
+                      </div>
+                      {/* Make offer — flat brand-purple, animated gradient border */}
+                      <div className="btn-border-animated p-[1px] rounded-xl">
+                        <button
+                          className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-purple"
+                          onClick={() => setOfferOpen(true)}
+                        >
+                          <HandCoins className="h-4 w-4" />
+                          Make offer
+                        </button>
+                      </div>
+                    </div>
+                    {/* Create a Remix */}
+                    {!isOwner && (
+                      <div className="btn-border-animated p-[1px] rounded-xl">
+                        <button
+                          className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-rose disabled:opacity-50"
+                          onClick={handleAutoRemix}
+                        >
+                          <GitBranch className="h-4 w-4" />
+                          Create a Remix
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <SignInButton mode="modal">
@@ -383,24 +468,55 @@ export default function AssetPageClient() {
                 <p className="text-muted-foreground text-sm">Not listed for sale.</p>
                 {isOwner ? (
                   <div className="space-y-2">
-                    <Button className="w-full" onClick={() => setListOpen(true)}>
-                      <Tag className="h-4 w-4 mr-2" />
-                      List for sale
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => setTransferOpen(true)}
-                    >
-                      <ArrowRightLeft className="h-4 w-4 mr-2" />
-                      Transfer
-                    </Button>
+                    <div className="btn-border-animated p-[1px] rounded-xl">
+                      <button
+                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-blue"
+                        onClick={() => setListOpen(true)}
+                      >
+                        <Tag className="h-4 w-4" />
+                        List for sale
+                      </button>
+                    </div>
+                    <div className="btn-border-animated p-[1px] rounded-xl">
+                      <button
+                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-orange"
+                        onClick={() => setTransferOpen(true)}
+                      >
+                        <ArrowRightLeft className="h-4 w-4" />
+                        Transfer
+                      </button>
+                    </div>
+                    <div className="btn-border-animated p-[1px] rounded-xl">
+                      <button
+                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-rose"
+                        onClick={() => router.push(`/create/remix/${contract}/${tokenId}`)}
+                      >
+                        <GitBranch className="h-4 w-4" />
+                        Create a Remix
+                      </button>
+                    </div>
                   </div>
                 ) : isSignedIn ? (
-                  <Button variant="outline" className="w-full" onClick={() => setOfferOpen(true)}>
-                    <HandCoins className="h-4 w-4 mr-2" />
-                    Make offer
-                  </Button>
+                  <div className="space-y-2">
+                    <div className="btn-border-animated p-[1px] rounded-xl">
+                      <button
+                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-purple"
+                        onClick={() => setOfferOpen(true)}
+                      >
+                        <HandCoins className="h-4 w-4" />
+                        Make offer
+                      </button>
+                    </div>
+                    <div className="btn-border-animated p-[1px] rounded-xl">
+                      <button
+                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-rose disabled:opacity-50"
+                        onClick={handleAutoRemix}
+                      >
+                        <GitBranch className="h-4 w-4" />
+                        Create a Remix
+                      </button>
+                    </div>
+                  </div>
                 ) : (
                   <SignInButton mode="modal">
                     <Button variant="outline" className="w-full">
@@ -465,12 +581,19 @@ export default function AssetPageClient() {
               >
                 Contract <ExternalLink className="h-3 w-3" />
               </a>
-              <Link
-                href={`/collections/${token.contractAddress}`}
-                className="flex items-center gap-1 text-muted-foreground hover:text-foreground"
-              >
-                Collection
-              </Link>
+              {collection && (
+                <Link
+                  href={`/collections/${token.contractAddress}`}
+                  className="flex items-center gap-2.5 rounded-lg border border-border px-3 py-1.5 hover:bg-muted/40 transition-colors group min-w-0"
+                >
+                  <div className="relative h-7 w-7 rounded-full overflow-hidden shrink-0 bg-gradient-to-br from-primary/20 to-purple-500/20 ring-1 ring-border">
+                    {collection.image && (
+                      <Image src={ipfsToHttp(collection.image)} alt="" fill className="object-cover" unoptimized />
+                    )}
+                  </div>
+                  <span className="text-xs font-medium truncate group-hover:text-primary transition-colors max-w-[120px]">{collection.name}</span>
+                </Link>
+              )}
               <Button
                 variant="ghost"
                 size="icon"
@@ -496,66 +619,27 @@ export default function AssetPageClient() {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="details">
+        <Tabs defaultValue="overview">
           <TabsList>
-            <TabsTrigger value="details">Details</TabsTrigger>
-            <TabsTrigger value="license">License</TabsTrigger>
-            <TabsTrigger value="listings">
-              Listings {activeListings.length > 0 && `(${activeListings.length})`}
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="markets">
+              Markets {(activeListings.length + activeBids.length) > 0 && `(${activeListings.length + activeBids.length})`}
             </TabsTrigger>
-            <TabsTrigger value="offers">
-              Offers {activeBids.length > 0 && `(${activeBids.length})`}
-            </TabsTrigger>
-            <TabsTrigger value="history">
-              History {history.length > 0 && `(${history.length})`}
+            <TabsTrigger value="provenance">
+              Provenance {history.length > 0 && `(${history.length})`}
             </TabsTrigger>
           </TabsList>
 
-          {/* Details tab */}
-          <TabsContent value="details" className="mt-4 space-y-4">
-            
-            {token.metadata?.licenseType && (
-              <div className="rounded-lg bg-muted/30 p-4 space-y-1">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">License</p>
-                <p className="text-sm font-medium">{token.metadata.licenseType}</p>
-              </div>
+          {/* Overview tab — media embeds + license + attributes */}
+          <TabsContent value="overview" className="mt-4 space-y-6">
+            {/* Media embeds (YouTube, Spotify, etc.) — shown first when present */}
+            {hasTemplateData && (
+              <IPTypeDisplay
+                attributes={token.metadata?.attributes as { trait_type?: string; value?: string }[] | null}
+              />
             )}
-            {token.metadata?.commercialUse !== undefined && token.metadata?.commercialUse !== null && (
-              <div className="rounded-lg bg-muted/30 p-4 space-y-1">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Commercial use</p>
-                <p className="text-sm font-medium">{String(token.metadata.commercialUse)}</p>
-              </div>
-            )}
-            {token.metadata?.author && (
-              <div className="rounded-lg bg-muted/30 p-4 space-y-1">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Author</p>
-                <p className="text-sm font-medium">{token.metadata.author as string}</p>
-              </div>
-            )}
-            {attributes.length > 0 && (
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Attributes</p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {attributes.map((attr, i) => (
-                    <div key={i} className="rounded-lg border border-border bg-muted/20 p-3 text-center overflow-hidden">
-                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground truncate" title={attr.trait_type ?? "Trait"}>
-                        {attr.trait_type ?? "Trait"}
-                      </p>
-                      <p className="text-sm font-semibold mt-0.5 truncate" title={attr.value ?? "—"}>
-                        {attr.value ?? "—"}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            {!description && !token.metadata?.licenseType && attributes.length === 0 && (
-              <p className="text-sm text-muted-foreground">No additional details available.</p>
-            )}
-          </TabsContent>
 
-          {/* License tab */}
-          <TabsContent value="license" className="mt-4">
+            {/* License section (inline from attributes) */}
             {(() => {
               const attr = (trait: string) =>
                 attributes.find((a) => a.trait_type === trait)?.value;
@@ -568,17 +652,8 @@ export default function AssetPageClient() {
               const royalty = attr("Royalty");
               const standard = attr("Standard");
               const registration = attr("Registration");
-
               const hasLicenseData = licenseType || commercialUse || derivatives || attribution;
-
-              if (!hasLicenseData) {
-                return (
-                  <p className="text-sm text-muted-foreground py-6 text-center">
-                    No licensing information attached to this asset.
-                  </p>
-                );
-              }
-
+              if (!hasLicenseData) return null;
               const rows: { icon: React.ReactNode; label: string; value: string | undefined }[] = [
                 { icon: <Shield className="h-4 w-4" />, label: "License", value: licenseType },
                 { icon: <DollarSign className="h-4 w-4" />, label: "Commercial Use", value: commercialUse },
@@ -589,23 +664,17 @@ export default function AssetPageClient() {
                 { icon: <Percent className="h-4 w-4" />, label: "Royalty", value: royalty },
                 { icon: <Calendar className="h-4 w-4" />, label: "Registration", value: registration },
               ].filter((r) => !!r.value);
-
               return (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {standard && (
                     <div className="flex items-center gap-2 rounded-lg bg-primary/5 border border-primary/20 px-4 py-3">
                       <Shield className="h-4 w-4 text-primary shrink-0" />
                       <div>
-                        <p className="text-xs font-semibold text-primary">
-                          {standard} Compliant
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Licensing terms are immutably embedded in IPFS metadata and compliant with international copyright law.
-                        </p>
+                        <p className="text-xs font-semibold text-primary">{standard} Compliant</p>
+                        <p className="text-xs text-muted-foreground">Licensing terms are immutably embedded in IPFS metadata and compliant with international copyright law.</p>
                       </div>
                     </div>
                   )}
-
                   <div className="rounded-xl border border-border divide-y divide-border">
                     {rows.map(({ icon, label, value }) => (
                       <div key={label} className="flex items-center justify-between px-4 py-3 gap-4">
@@ -617,166 +686,213 @@ export default function AssetPageClient() {
                       </div>
                     ))}
                   </div>
-
-                  {/* Non-license attributes */}
-                  {attributes.filter((a) => !LICENSE_TRAIT_TYPES.has(a.trait_type ?? "")).length > 0 && (
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-                        Additional Attributes
-                      </p>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                        {attributes
-                          .filter((a) => !LICENSE_TRAIT_TYPES.has(a.trait_type ?? ""))
-                          .map((attr, i) => (
-                            <div key={i} className="rounded-lg border border-border bg-muted/20 p-3 text-center overflow-hidden">
-                              <p className="text-[10px] uppercase tracking-wider text-muted-foreground truncate" title={attr.trait_type ?? "Trait"}>
-                                {attr.trait_type ?? "Trait"}
-                              </p>
-                              <p className="text-sm font-semibold mt-0.5 truncate" title={attr.value ?? "—"}>
-                                {attr.value ?? "—"}
-                              </p>
-                            </div>
-                          ))}
-                      </div>
-                    </div>
-                  )}
                 </div>
               );
             })()}
-          </TabsContent>
 
-          {/* Listings tab */}
-          <TabsContent value="listings" className="mt-4">
-            {activeListings.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-6 text-center">No active listings for this token.</p>
-            ) : (
-              <div className="rounded-xl border border-border divide-y divide-border">
-                {activeListings.map((order) => {
-                  const isMyOrder = walletAddress && order.offerer.toLowerCase() === walletAddress.toLowerCase();
-                  return (
-                    <div key={order.orderHash} className="flex items-center justify-between px-4 py-3 gap-4">
-                      <div className="min-w-0">
-                        <p className="font-bold text-sm">{formatDisplayPrice(order.price.formatted)} {order.price.currency}</p>
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
-                          <Clock className="h-3 w-3" />
-                          {timeUntil(order.endTime)}
-                        </div>
+            {/* Attributes grid */}
+            {attributes.filter((a) => isDisplayAttr(a)).length > 0 && (
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Attributes</p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {attributes
+                    .filter((a) => isDisplayAttr(a))
+                    .map((attr, i) => (
+                      <div key={i} className="rounded-lg border border-border bg-muted/20 p-3 text-center overflow-hidden">
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground truncate" title={attr.trait_type ?? "Trait"}>
+                          {attr.trait_type ?? "Trait"}
+                        </p>
+                        <p className="text-sm font-semibold mt-0.5 truncate" title={attr.value ?? "—"}>
+                          {attr.value ?? "—"}
+                        </p>
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <AddressDisplay address={order.offerer} chars={4} showCopy={false} className="text-xs text-muted-foreground" />
-                        {isMyOrder ? (
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            disabled={isProcessing}
-                            onClick={() => handleCancelClick(order)}
-                          >
-                            Cancel
-                          </Button>
-                        ) : (
-                          <Button size="sm" onClick={() => setPurchaseOrder(order)}>
-                            Buy
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+                    ))}
+                </div>
               </div>
+            )}
+
+            {!hasTemplateData && attributes.filter((a) => isDisplayAttr(a)).length === 0 && (
+              <p className="text-sm text-muted-foreground">No additional details available.</p>
             )}
           </TabsContent>
 
-          {/* Offers tab */}
-          <TabsContent value="offers" className="mt-4">
-            {activeBids.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-6 text-center">No active offers for this token.</p>
-            ) : (
-              <div className="rounded-xl border border-border divide-y divide-border">
-                {activeBids.map((bid) => (
-                  <div key={bid.orderHash} className="flex items-center justify-between px-4 py-3 gap-4">
-                    <div className="min-w-0">
-                      <p className="font-bold text-sm">{formatDisplayPrice(bid.price.formatted)} {bid.price.currency}</p>
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
-                        <Clock className="h-3 w-3" />
-                        {timeUntil(bid.endTime)}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <AddressDisplay address={bid.offerer} chars={4} showCopy={false} className="text-xs text-muted-foreground" />
-                      {isOwner && (
-                        <Button
-                          size="sm"
-                          disabled={isProcessing}
-                          onClick={() => handleAcceptClick(bid)}
-                        >
-                          <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
-                          Accept
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </TabsContent>
 
-          {/* History tab */}
-          <TabsContent value="history" className="mt-4">
-            {history.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-6 text-center">No activity recorded yet.</p>
-            ) : (
-              <div className="rounded-xl border border-border divide-y divide-border">
-                {(history as ApiActivity[]).map((event, i) => {
-                  const actor = event.offerer ?? event.fulfiller ?? event.from ?? "";
-                  const txLink = event.txHash ? `${EXPLORER_URL}/tx/${event.txHash}` : null;
-                  return (
-                    <div key={i} className="flex items-center justify-between px-4 py-3 gap-4">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <ArrowRightLeft className="h-4 w-4 text-muted-foreground shrink-0" />
+          {/* Markets tab — listings + offers */}
+          <TabsContent value="markets" className="mt-4 space-y-6">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Listings</p>
+              {activeListings.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-4 text-center">No active listings.</p>
+              ) : (
+                <div className="rounded-xl border border-border divide-y divide-border">
+                  {activeListings.map((order) => {
+                    const isMyOrder = walletAddress && order.offerer.toLowerCase() === walletAddress.toLowerCase();
+                    return (
+                      <div key={order.orderHash} className="flex items-center justify-between px-4 py-3 gap-4">
                         <div className="min-w-0">
-                          <p className="text-sm font-medium">{TYPE_LABEL[event.type] ?? event.type}</p>
-                          {actor && (
-                            <AddressDisplay address={actor} chars={4} showCopy={false} className="text-xs text-muted-foreground" />
+                          <p className="font-bold text-sm">{formatDisplayPrice(order.price.formatted)} {order.price.currency}</p>
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+                            <Clock className="h-3 w-3" />
+                            {timeUntil(order.endTime)}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <AddressDisplay address={order.offerer} chars={4} showCopy={false} className="text-xs text-muted-foreground" />
+                          {isMyOrder ? (
+                            <Button size="sm" variant="destructive" disabled={isProcessing} onClick={() => handleCancelClick(order)}>
+                              Cancel
+                            </Button>
+                          ) : (
+                            <Button size="sm" onClick={() => setPurchaseOrder(order)}>Buy</Button>
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-3 shrink-0">
-                        {event.price?.formatted && (
-                          <span className="text-sm font-bold">
-                            {formatDisplayPrice(event.price.formatted)} {event.price.currency}
-                          </span>
-                        )}
-                        <span className="text-xs text-muted-foreground" title={new Date(event.timestamp).toLocaleString()}>
-                          {timeAgo(event.timestamp)}
-                        </span>
-                        {txLink && (
-                          <a href={txLink} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="h-3 w-3 text-muted-foreground hover:text-foreground" />
-                          </a>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Offers</p>
+              {activeBids.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-4 text-center">No active offers.</p>
+              ) : (
+                <div className="rounded-xl border border-border divide-y divide-border">
+                  {activeBids.map((bid) => (
+                    <div key={bid.orderHash} className="flex items-center justify-between px-4 py-3 gap-4">
+                      <div className="min-w-0">
+                        <p className="font-bold text-sm">{formatDisplayPrice(bid.price.formatted)} {bid.price.currency}</p>
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+                          <Clock className="h-3 w-3" />
+                          {timeUntil(bid.endTime)}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <AddressDisplay address={bid.offerer} chars={4} showCopy={false} className="text-xs text-muted-foreground" />
+                        {isOwner && (
+                          <Button size="sm" disabled={isProcessing} onClick={() => handleAcceptClick(bid)}>
+                            <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
+                            Accept
+                          </Button>
                         )}
                       </div>
                     </div>
-                  );
-                })}
+                  ))}
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          {/* Provenance tab — history + remixes */}
+          <TabsContent value="provenance" className="mt-4">
+            <div className="space-y-6">
+            {remixCount > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Remixes</p>
+                <RemixesTab contractAddress={contract} tokenId={tokenId} />
               </div>
             )}
+            <div className="space-y-4">
+              <PriceHistoryChart history={history as ApiActivity[]} />
+              {history.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-6 text-center">No activity recorded yet.</p>
+              ) : (
+                <div className="rounded-xl border border-border divide-y divide-border">
+                  {(history as ApiActivity[]).map((event, i) => {
+                    const actor = event.offerer ?? event.fulfiller ?? event.from ?? "";
+                    const txLink = event.txHash ? `${EXPLORER_URL}/tx/${event.txHash}` : null;
+                    return (
+                      <div key={i} className="flex items-center justify-between px-4 py-3 gap-4">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <ArrowRightLeft className="h-4 w-4 text-muted-foreground shrink-0" />
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium">{TYPE_LABEL[event.type] ?? event.type}</p>
+                            {actor && (
+                              <AddressDisplay address={actor} chars={4} showCopy={false} className="text-xs text-muted-foreground" />
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 shrink-0">
+                          {event.price?.formatted && (
+                            <span className="text-sm font-bold">
+                              {formatDisplayPrice(event.price.formatted)} {event.price.currency}
+                            </span>
+                          )}
+                          <span className="text-xs text-muted-foreground" title={new Date(event.timestamp).toLocaleString()}>
+                            {timeAgo(event.timestamp)}
+                          </span>
+                          {txLink && (
+                            <a href={txLink} target="_blank" rel="noopener noreferrer">
+                              <ExternalLink className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            </div>
           </TabsContent>
+
         </Tabs>
       </div>
 
-      {/* Mobile floating buy pill */}
-      {cheapest && !isOwner && walletAddress && (
-        <div className="fixed bottom-6 left-4 z-40 md:hidden">
-          <Button
-            className="h-12 px-5 rounded-full text-sm font-semibold shadow-lg shadow-black/20"
-            style={dynamicTheme ? { background: `hsl(var(--dynamic-primary))`, color: "white" } : {}}
-            onClick={() => setPurchaseOrder(cheapest)}
-          >
-            <ShoppingCart className="h-4 w-4 mr-2 shrink-0" />
-            {formatDisplayPrice(cheapest.price.formatted)} {cheapest.price.currency}
-          </Button>
-        </div>
-      )}
+
+      {/* Floating comments bubble */}
+      <div className="fixed bottom-6 right-6 z-40">
+        <button
+          onClick={() => setCommentOpen(true)}
+          aria-label="Open comments"
+          className="relative flex h-14 w-14 items-center justify-center rounded-full text-white transition-all hover:scale-110 active:scale-95 shadow-lg shadow-brand-blue/40"
+          style={{ background: "linear-gradient(135deg, hsl(var(--brand-blue)), hsl(var(--brand-purple)))" }}
+        >
+          {/* pulse ring — only when there are comments */}
+          {commentTotal > 0 && (
+            <span className="absolute inset-0 rounded-full animate-ping opacity-20" style={{ background: "hsl(var(--brand-blue))" }} />
+          )}
+          <MessageSquare className="h-6 w-6 relative z-10" />
+        </button>
+        {commentTotal > 0 && (
+          <span className="absolute -top-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-bold tabular-nums text-white pointer-events-none"
+            style={{ background: "hsl(var(--brand-rose))" }}>
+            {commentTotal}
+          </span>
+        )}
+      </div>
+
+      {/* Comments Sheet — bottom drawer on mobile, right panel on desktop */}
+      <Sheet open={commentOpen} onOpenChange={setCommentOpen}>
+        <SheetContent
+          side={isMobile ? "bottom" : "right"}
+          className="h-[85svh] sm:h-full sm:max-w-md p-0 flex flex-col"
+          overlayClassName="bg-black/20 backdrop-blur-[2px]"
+        >
+          <SheetHeader className="px-4 pt-4 pb-3 shrink-0 border-b border-brand-blue/20" style={{ background: "linear-gradient(135deg, hsl(var(--brand-blue) / 0.10), hsl(var(--brand-purple) / 0.08))" }}>
+            <SheetTitle className="flex items-center gap-3 text-sm font-semibold">
+              {/* Asset avatar */}
+              <div className="relative h-9 w-9 rounded-full overflow-hidden shrink-0 ring-2 ring-white/20" style={{ background: "linear-gradient(135deg, hsl(var(--brand-blue) / 0.3), hsl(var(--brand-purple) / 0.3))" }}>
+                {imageUrl && (
+                  <Image src={imageUrl} alt={name} fill className="object-cover" unoptimized />
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] font-medium uppercase tracking-wider" style={{ color: "hsl(var(--brand-blue))" }}>Comments</p>
+                <p className="text-sm font-semibold truncate text-foreground">{name}</p>
+              </div>
+              {commentTotal > 0 && (
+                <span className="ml-auto shrink-0 text-xs font-bold rounded-full px-2 py-0.5 text-white" style={{ background: "hsl(var(--brand-blue))" }}>
+                  {commentTotal}
+                </span>
+              )}
+            </SheetTitle>
+          </SheetHeader>
+          <div className="flex-1 overflow-hidden">
+            <CommentsSection contract={contract} tokenId={tokenId} className="h-full rounded-none border-0" />
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {/* Dialogs */}
       {purchaseOrder && (
@@ -821,6 +937,54 @@ export default function AssetPageClient() {
           ? `Accept ${formatDisplayPrice(orderToAccept.price.formatted)} ${orderToAccept.price.currency} for ${name}?`
           : "Enter your PIN to accept this offer."}
       />
+
+      {/* Cancel listing status dialog */}
+      <Dialog
+        open={cancelStep !== "idle"}
+        onOpenChange={(v) => { if (!v) { setCancelStep("idle"); setCancelError(null); } }}
+      >
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>
+              {cancelStep === "processing" && "Cancelling listing…"}
+              {cancelStep === "success" && "Listing cancelled"}
+              {cancelStep === "error" && "Cancellation failed"}
+            </DialogTitle>
+            {cancelStep === "processing" && (
+              <DialogDescription>
+                Submitting your cancellation to the network. Please wait.
+              </DialogDescription>
+            )}
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-4 py-4">
+            {cancelStep === "processing" && (
+              <Loader2 className="h-10 w-10 animate-spin text-primary" />
+            )}
+            {cancelStep === "success" && (
+              <>
+                <CheckCircle className="h-10 w-10 text-green-500" />
+                <p className="text-sm text-center text-muted-foreground">
+                  Your listing has been cancelled successfully.
+                </p>
+                <Button className="w-full" onClick={() => { setCancelStep("idle"); setCancelError(null); }}>
+                  Done
+                </Button>
+              </>
+            )}
+            {cancelStep === "error" && (
+              <>
+                <X className="h-10 w-10 text-destructive" />
+                <p className="text-sm text-center text-muted-foreground">
+                  {cancelError ?? "Something went wrong. Please try again."}
+                </p>
+                <Button variant="outline" className="w-full" onClick={() => { setCancelStep("idle"); setCancelError(null); }}>
+                  Dismiss
+                </Button>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <TransferDialog
         open={transferOpen}

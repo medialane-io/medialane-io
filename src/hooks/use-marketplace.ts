@@ -107,6 +107,7 @@ export function useMarketplace() {
     isSettingUpSession,
     setupSession,
     signTypedData,
+    maybeClearSessionForAmountCap,
   } = useSessionKey();
   const client = useMedialaneClient();
   const { mutate } = useSWRConfig();
@@ -199,7 +200,7 @@ export function useMarketplace() {
         );
         if (!hasEvent) {
           throw new Error(
-            "Transaction was submitted but the operation did not complete on-chain. " +
+            "Transaction was submitted but the operation did not complete onchain. " +
             "Please check your token balance and try again."
           );
         }
@@ -350,5 +351,6 @@ export function useMarketplace() {
     txHash: hash ?? txHash,
     error: error ?? txError,
     resetState,
+    maybeClearSessionForAmountCap,
   };
 }

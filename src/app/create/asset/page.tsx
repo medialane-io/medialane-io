@@ -47,7 +47,9 @@ import {
   GEOGRAPHIC_SCOPES,
   AI_POLICIES,
   DERIVATIVES_OPTIONS,
+  type IPType,
 } from "@/types/ip";
+import { IPTypeFields } from "@/components/create/ip-type-fields";
 import {
   Upload,
   ChevronDown,
@@ -56,6 +58,7 @@ import {
   Plus,
   ImagePlus,
   Tag,
+  Layers,
 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -124,9 +127,9 @@ export default function CreateAssetPage() {
   const client = useMedialaneClient();
   const { listingStep, listingError, runPostMintListing, resetListing } = usePostMintListing();
 
-  // Fetch user's collections from the API (collectionId field contains on-chain registry ID)
+  // Fetch user's collections from the API (collectionId field contains onchain registry ID)
   const { collections: allCollections, isLoading: collectionsLoading } = useCollectionsByOwner(walletAddress ?? null);
-  // Only show collections that have been indexed with their on-chain ID (required for minting)
+  // Only show collections that have been indexed with their onchain ID (required for minting)
   const collections = allCollections.filter((c) => c.collectionId != null);
 
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
@@ -136,11 +139,14 @@ export default function CreateAssetPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [listingOpen, setListingOpen] = useState(false);
+  const [licensingOpen, setLicensingOpen] = useState(false);
+  const [ipTypeOpen, setIpTypeOpen] = useState(false);
   const [listPrice, setListPrice] = useState("");
   const [listCurrency, setListCurrency] = useState<string>(LISTING_CURRENCIES[0] ?? "USDC");
   const [listDuration, setListDuration] = useState<number>(DURATION_OPTIONS[0]?.seconds ?? 86400);
   const [mintStep, setMintStep] = useState<MintStep>("idle");
   const [mintError, setMintError] = useState<string | null>(null);
+  const [templateFields, setTemplateFields] = useState<Record<string, string>>({});
   const pinRef = useRef<string | null>(null);
   const previewUrlRef = useRef<string | null>(null);
 
@@ -159,7 +165,7 @@ export default function CreateAssetPage() {
       name: "",
       description: "",
       external_url: "",
-      ipType: "Art",
+      ipType: "NFT",
       licenseType: "All Rights Reserved",
       commercialUse: "No",
       derivatives: "Not Allowed",
@@ -224,6 +230,11 @@ export default function CreateAssetPage() {
       formData.set("royalty", String(pendingValues.royalty));
       if (imageFile) formData.set("file", imageFile);
 
+      // Forward template-specific fields — keyed as "tmpl_{trait_type}"
+      Object.entries(templateFields).forEach(([key, value]) => {
+        if (value?.trim()) formData.set(`tmpl_${key}`, value.trim());
+      });
+
       const uploadRes = await fetch("/api/pinata", { method: "POST", body: formData });
       const uploadData = await uploadRes.json();
       if (!uploadRes.ok || uploadData.error) {
@@ -234,7 +245,7 @@ export default function CreateAssetPage() {
 
       setMintStep("processing");
 
-      // 2. Create mint intent — backend validates ownership on-chain + encodes Cairo calldata
+      // 2. Create mint intent — backend validates ownership onchain + encodes Cairo calldata
       const intentRes = await client.api.createMintIntent({
         owner: walletAddress,
         collectionId: pendingValues.collectionId,
@@ -292,6 +303,7 @@ export default function CreateAssetPage() {
     resetListing();
     pinRef.current = null;
     form.reset();
+    setTemplateFields({});
     setImageFile(null);
     setImagePreview(null);
     setListPrice("");
@@ -470,166 +482,6 @@ export default function CreateAssetPage() {
               )}
             />
 
-            {/* IP Type */}
-            <FormField
-              control={form.control}
-              name="ipType"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>IP Type</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {IP_TYPES.map((t) => (
-                        <SelectItem key={t} value={t}>{t}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </FormItem>
-              )}
-            />
-
-            {/* Licensing section */}
-            <div className="space-y-4 rounded-xl border border-border p-5">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4 text-primary" />
-                <p className="text-sm font-semibold">Licensing Terms</p>
-                <span className="text-xs text-muted-foreground ml-auto">Embedded in IPFS metadata · Berne Convention</span>
-              </div>
-
-              <FormField
-                control={form.control}
-                name="licenseType"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>License</FormLabel>
-                    <Select value={field.value} onValueChange={handleLicenseChange}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {LICENSE_TYPES.map((l) => (
-                          <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {(() => {
-                      const def = LICENSE_TYPES.find((l) => l.value === field.value);
-                      return def ? (
-                        <p className="text-xs text-muted-foreground mt-1">{def.description}</p>
-                      ) : null;
-                    })()}
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="commercialUse"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Commercial Use</FormLabel>
-                    <ToggleGroup value={field.value} options={["Yes", "No"]} onChange={field.onChange} />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="derivatives"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Derivatives</FormLabel>
-                    <ToggleGroup value={field.value} options={DERIVATIVES_OPTIONS} onChange={field.onChange} />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="attribution"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Attribution</FormLabel>
-                    <ToggleGroup value={field.value} options={["Required", "Not Required"]} onChange={field.onChange} />
-                  </FormItem>
-                )}
-              />
-
-              <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
-                <CollapsibleTrigger asChild>
-                  <button
-                    type="button"
-                    className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", advancedOpen && "rotate-180")} />
-                    Advanced options
-                  </button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-4 pt-3">
-                  <FormField
-                    control={form.control}
-                    name="geographicScope"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Territory</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger><SelectValue /></SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {GEOGRAPHIC_SCOPES.map((s) => (
-                              <SelectItem key={s} value={s}>{s}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="aiPolicy"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>AI &amp; Data Mining</FormLabel>
-                        <ToggleGroup value={field.value} options={AI_POLICIES} onChange={field.onChange} />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="royalty"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Royalty % (0–50)</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            min={0}
-                            max={50}
-                            step={0.5}
-                            placeholder="0"
-                            {...field}
-                            onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </CollapsibleContent>
-              </Collapsible>
-            </div>
-
             {/* Optional listing section */}
             <Collapsible open={listingOpen} onOpenChange={setListingOpen}>
               <div className="rounded-xl border border-border overflow-hidden">
@@ -695,17 +547,211 @@ export default function CreateAssetPage() {
               </div>
             </Collapsible>
 
-            <Button
-              type="submit"
-              className="w-full h-12 text-base"
-              disabled={
-                mintStep !== "idle" ||
-                collectionsLoading ||
-                collections.length === 0
-              }
-            >
-              {listingOpen && listPrice && parseFloat(listPrice) > 0 ? "Mint & List" : "Mint asset"}
-            </Button>
+            {/* Licensing Terms — optional, collapsed by default */}
+            <Collapsible open={licensingOpen} onOpenChange={setLicensingOpen}>
+              <div className="rounded-xl border border-border overflow-hidden">
+                <CollapsibleTrigger asChild>
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-between px-5 py-4 hover:bg-muted/30 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck className="h-4 w-4 text-primary" />
+                      <span className="text-sm font-semibold">Licensing Terms</span>
+                      <span className="text-xs text-muted-foreground font-normal">Optional · Berne Convention</span>
+                    </div>
+                    <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", licensingOpen && "rotate-180")} />
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="px-5 pb-5 space-y-4 border-t border-border/60 pt-4">
+                    <p className="text-xs text-muted-foreground">
+                      Set licensing terms for your work. These are embedded as immutable IPFS metadata and Berne Convention-compatible.
+                    </p>
+                    <FormField
+                      control={form.control}
+                      name="licenseType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>License</FormLabel>
+                          <Select value={field.value} onValueChange={handleLicenseChange}>
+                            <FormControl>
+                              <SelectTrigger><SelectValue /></SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {LICENSE_TYPES.map((l) => (
+                                <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {(() => {
+                            const def = LICENSE_TYPES.find((l) => l.value === field.value);
+                            return def ? (
+                              <p className="text-xs text-muted-foreground mt-1">{def.description}</p>
+                            ) : null;
+                          })()}
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="commercialUse"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Commercial Use</FormLabel>
+                          <ToggleGroup value={field.value} options={["Yes", "No"]} onChange={field.onChange} />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="derivatives"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Derivatives</FormLabel>
+                          <ToggleGroup value={field.value} options={DERIVATIVES_OPTIONS} onChange={field.onChange} />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="attribution"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Attribution</FormLabel>
+                          <ToggleGroup value={field.value} options={["Required", "Not Required"]} onChange={field.onChange} />
+                        </FormItem>
+                      )}
+                    />
+                    <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
+                      <CollapsibleTrigger asChild>
+                        <button
+                          type="button"
+                          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", advancedOpen && "rotate-180")} />
+                          Advanced options
+                        </button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="space-y-4 pt-3">
+                        <FormField
+                          control={form.control}
+                          name="geographicScope"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Territory</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger><SelectValue /></SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {GEOGRAPHIC_SCOPES.map((s) => (
+                                    <SelectItem key={s} value={s}>{s}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="aiPolicy"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>AI &amp; Data Mining</FormLabel>
+                              <ToggleGroup value={field.value} options={AI_POLICIES} onChange={field.onChange} />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="royalty"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Royalty % (0–50)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  min={0}
+                                  max={50}
+                                  step={0.5}
+                                  placeholder="0"
+                                  {...field}
+                                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </CollapsibleContent>
+                    </Collapsible>
+                  </div>
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
+
+            {/* IP Type & template fields — optional, collapsed by default */}
+            <Collapsible open={ipTypeOpen} onOpenChange={setIpTypeOpen}>
+              <div className="rounded-xl border border-border overflow-hidden">
+                <CollapsibleTrigger asChild>
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-between px-5 py-4 hover:bg-muted/30 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Layers className="h-4 w-4 text-primary" />
+                      <span className="text-sm font-semibold">IP Type &amp; Metadata</span>
+                      <span className="text-xs text-muted-foreground font-normal">Optional</span>
+                    </div>
+                    <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", ipTypeOpen && "rotate-180")} />
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="px-5 pb-5 space-y-4 border-t border-border/60 pt-4">
+                    <p className="text-xs text-muted-foreground">
+                      Choose a content type to unlock optional metadata fields tailored to your work — artist credits, embed links, technical specs, and more.
+                    </p>
+                    <FormField
+                      control={form.control}
+                      name="ipType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>IP Type</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {IP_TYPES.map((t) => (
+                                <SelectItem key={t} value={t}>{t}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormItem>
+                      )}
+                    />
+                    <IPTypeFields
+                      ipType={form.watch("ipType") as IPType}
+                      onChange={setTemplateFields}
+                    />
+                  </div>
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
+
+            <div className={`btn-border-animated p-[1px] rounded-xl ${mintStep !== "idle" || collectionsLoading || collections.length === 0 ? "opacity-40 pointer-events-none" : ""}`}>
+              <button
+                type="submit"
+                disabled={mintStep !== "idle" || collectionsLoading || collections.length === 0}
+                className="w-full h-12 text-base font-semibold text-white rounded-[11px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] bg-brand-blue focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              >
+                {listingOpen && listPrice && parseFloat(listPrice) > 0 ? "Mint & List" : "Mint asset"}
+              </button>
+            </div>
             <p className="text-xs text-center text-muted-foreground">
               Gas is free. Your PIN signs the mint{listingOpen && listPrice ? " and listing" : ""} transaction.
             </p>

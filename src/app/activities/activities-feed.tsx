@@ -2,105 +2,21 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useActivities } from "@/hooks/use-activities";
-import type { ApiActivitiesQuery } from "@medialane/sdk";
-import { useToken } from "@/hooks/use-tokens";
+import type { ApiActivitiesQuery, ApiActivity } from "@medialane/sdk";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AddressDisplay } from "@/components/shared/address-display";
-import Link from "next/link";
-import { EXPLORER_URL } from "@/lib/constants";
-import { ExternalLink, Loader2 } from "lucide-react";
-import { ACTIVITY_TYPE_CONFIG } from "@/lib/activity";
-import { timeAgo , formatDisplayPrice} from "@/lib/utils";
-import type { ApiActivity } from "@medialane/sdk";
+import { Loader2, Zap } from "lucide-react";
+import { ACTIVITY_TYPE_CONFIG, TYPE_FILTERS } from "@/lib/activity";
+import { ActivityRow } from "@/components/shared/activity-row";
+import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 30;
-
-const TYPE_FILTERS = [
-  { label: "All", value: "" },
-  { label: "Mints", value: "mint" },
-  { label: "Sales", value: "sale" },
-  { label: "Listings", value: "listing" },
-  { label: "Offers", value: "offer" },
-  { label: "Transfers", value: "transfer" },
-  { label: "Cancelled", value: "cancelled" },
-];
-
-function ActivityRow({ activity }: { activity: ApiActivity }) {
-  const config = ACTIVITY_TYPE_CONFIG[activity.type] ?? {
-    label: activity.type,
-    variant: "outline" as const,
-    icon: ExternalLink,
-  };
-  const Icon = config.icon;
-
-  const contract = activity.nftContract ?? activity.contractAddress ?? null;
-  const tokenId = activity.nftTokenId ?? activity.tokenId ?? null;
-  // For mints, from is null (zero address suppressed); show the recipient (to) as actor instead
-  const actor = activity.offerer ?? activity.fulfiller ?? ((activity.type as string) === "mint" ? activity.to : activity.from) ?? "";
-  const txLink = activity.txHash ? `${EXPLORER_URL}/tx/${activity.txHash}` : null;
-
-  const { token } = useToken(contract, tokenId);
-  const tokenName = token?.metadata?.name ?? (tokenId ? `#${tokenId}` : null);
-
-  return (
-    <div className="flex items-center justify-between p-4 gap-4 hover:bg-muted/20 transition-colors">
-      <div className="flex items-center gap-3 min-w-0">
-        <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
-          <Icon className="h-4 w-4 text-muted-foreground" />
-        </div>
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant={config.variant} className="text-[10px] shrink-0">{config.label}</Badge>
-            {contract && tokenId && (
-              <Link
-                href={`/asset/${contract}/${tokenId}`}
-                className="text-sm font-semibold hover:underline truncate"
-              >
-                {tokenName}
-              </Link>
-            )}
-          </div>
-          {actor && (
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
-              <Link href={`/creator/${actor}`} className="hover:text-primary transition-colors">
-                <AddressDisplay address={actor} chars={4} showCopy={false} />
-              </Link>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="flex items-center gap-3 shrink-0">
-        {activity.price?.formatted && (
-          <div className="text-right">
-            <p className="font-bold text-sm">
-              {formatDisplayPrice(activity.price.formatted)} {activity.price.currency}
-            </p>
-          </div>
-        )}
-        <div className="text-right">
-          <p className="text-[10px] text-muted-foreground" title={new Date(activity.timestamp).toLocaleString()}>
-            {timeAgo(activity.timestamp)}
-          </p>
-        </div>
-        {txLink && (
-          <a href={txLink} target="_blank" rel="noopener noreferrer">
-            <ExternalLink className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
-          </a>
-        )}
-      </div>
-    </div>
-  );
-}
 
 export function ActivitiesFeed() {
   const [page, setPage] = useState(1);
   const [typeFilter, setTypeFilter] = useState("");
   const [allActivities, setAllActivities] = useState<ApiActivity[]>([]);
 
-  // Reset when type filter changes
   const prevType = useRef(typeFilter);
   useEffect(() => {
     if (prevType.current !== typeFilter) {
@@ -113,10 +29,9 @@ export function ActivitiesFeed() {
   const { activities, meta, isLoading } = useActivities({
     limit: PAGE_SIZE,
     page,
-    type: typeFilter as ApiActivitiesQuery["type"] || undefined,
+    type: (typeFilter as ApiActivitiesQuery["type"]) || undefined,
   });
 
-  // Accumulate pages
   useEffect(() => {
     if (isLoading) return;
     if (page === 1) {
@@ -137,43 +52,98 @@ export function ActivitiesFeed() {
   const isInitialLoading = isLoading && allActivities.length === 0;
   const isLoadingMore = isLoading && allActivities.length > 0;
   const hasMore = meta?.total != null ? allActivities.length < meta.total : false;
+  const total = meta?.total ?? null;
 
   return (
-    <div className="space-y-4">
-      {/* Type filter chips */}
+    <div className="space-y-5">
+      {/* Live stats bar */}
+      {total != null && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <span className="flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="font-semibold text-foreground tabular-nums">
+              {total.toLocaleString()}
+            </span>
+            {typeFilter ? `${typeFilter} events` : "total events"}
+          </span>
+          {typeFilter && allActivities.length > 0 && (
+            <>
+              <span className="text-muted-foreground/40">·</span>
+              <span>{allActivities.length.toLocaleString()} loaded</span>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Type filter chips with icons */}
       <div className="flex flex-wrap gap-2">
-        {TYPE_FILTERS.map((f) => (
-          <button
-            key={f.value}
-            onClick={() => setTypeFilter(f.value)}
-            className={`text-xs px-3 py-1 rounded-full border transition-colors ${
-              typeFilter === f.value
-                ? "border-primary bg-primary/10 text-primary font-medium"
-                : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
-            }`}
-          >
-            {f.label}
-          </button>
-        ))}
+        {TYPE_FILTERS.map((f) => {
+          const typeConfig = f.value ? ACTIVITY_TYPE_CONFIG[f.value] : null;
+          const Icon = typeConfig?.icon;
+          const isActive = typeFilter === f.value;
+          return (
+            <button
+              key={f.value}
+              onClick={() => setTypeFilter(f.value)}
+              className={cn(
+                "flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-all font-medium",
+                isActive
+                  ? "border-primary bg-primary/10 text-primary shadow-sm"
+                  : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground hover:bg-muted/50"
+              )}
+            >
+              {Icon && (
+                <Icon
+                  className={cn(
+                    "h-3 w-3",
+                    isActive ? typeConfig?.colorClass : ""
+                  )}
+                />
+              )}
+              {f.label}
+            </button>
+          );
+        })}
       </div>
 
       {isInitialLoading ? (
-        <div className="space-y-2">
+        <div className="divide-y divide-border/50 rounded-xl border border-border overflow-hidden">
           {Array.from({ length: 10 }).map((_, i) => (
-            <Skeleton key={i} className="h-16 w-full rounded-lg" />
+            <div key={i} className="flex items-center gap-3 px-4 py-3.5 bg-card">
+              <Skeleton className="h-8 w-8 rounded-lg shrink-0" />
+              <Skeleton className="h-9 w-9 rounded-md shrink-0" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-3.5 w-40" />
+                <Skeleton className="h-2.5 w-24" />
+              </div>
+              <div className="flex items-center gap-2.5">
+                <div className="space-y-1 text-right">
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="h-2.5 w-8" />
+                </div>
+                <Skeleton className="h-2.5 w-12 hidden sm:block" />
+              </div>
+            </div>
           ))}
         </div>
       ) : allActivities.length === 0 ? (
-        <div className="py-16 text-center text-muted-foreground">
-          {typeFilter ? `No ${typeFilter} events yet.` : "No activity yet."}
+        <div className="py-20 flex flex-col items-center gap-3 text-center">
+          <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+            <Zap className="h-5 w-5 text-muted-foreground" />
+          </div>
+          <p className="text-muted-foreground">
+            {typeFilter ? `No ${typeFilter} events yet.` : "No activity yet."}
+          </p>
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="divide-y divide-border rounded-lg border">
+          <div className="divide-y divide-border/50 rounded-xl border border-border overflow-hidden">
             {allActivities.map((activity, i) => (
               <ActivityRow
                 key={`${activity.txHash}-${activity.type}-${activity.nftTokenId ?? i}`}
                 activity={activity}
+                showActor
+                showExplorer
               />
             ))}
           </div>
@@ -192,7 +162,11 @@ export function ActivitiesFeed() {
                     Loading…
                   </>
                 ) : (
-                  `Load more${meta?.total ? ` (${meta.total - allActivities.length} remaining)` : ""}`
+                  `Load more${
+                    meta?.total
+                      ? ` (${meta.total - allActivities.length} remaining)`
+                      : ""
+                  }`
                 )}
               </Button>
             </div>

@@ -3,14 +3,22 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MotionCard } from "@/components/ui/motion-primitives";
 import { ShoppingCart, Tag, ArrowRightLeft, X, Loader2 } from "lucide-react";
-import { ipfsToHttp , formatDisplayPrice} from "@/lib/utils";
+import { cn, ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
+import type { RarityTier } from "@/lib/rarity";
 import type { ApiToken } from "@medialane/sdk";
+
+const RARITY_STYLE: Record<RarityTier, { label: string; className: string } | null> = {
+  legendary: { label: "Legendary", className: "bg-yellow-400/90 text-yellow-900" },
+  epic:      { label: "Epic",      className: "bg-purple-500/85 text-white" },
+  rare:      { label: "Rare",      className: "bg-blue-500/85 text-white" },
+  uncommon:  { label: "Uncommon",  className: "bg-emerald-500/85 text-white" },
+  common:    null,
+};
 
 interface TokenCardProps {
   token: ApiToken;
@@ -20,6 +28,7 @@ interface TokenCardProps {
   onTransfer?: (token: ApiToken) => void;
   onCancel?: (token: ApiToken) => void;
   isOwner?: boolean;
+  rarityTier?: RarityTier;
 }
 
 export function TokenCard({
@@ -30,6 +39,7 @@ export function TokenCard({
   onTransfer,
   onCancel,
   isOwner = false,
+  rarityTier,
 }: TokenCardProps) {
   const { addItem, items } = useCart();
   const [imgError, setImgError] = useState(false);
@@ -37,6 +47,10 @@ export function TokenCard({
   const image = ipfsToHttp(token.metadata?.image);
   const activeOrder = token.activeOrders?.[0];
   const inCart = activeOrder ? items.some((i) => i.orderHash === activeOrder.orderHash) : false;
+
+  const hasActions =
+    (isOwner && (onList || onTransfer || onCancel)) ||
+    (!isOwner && !!activeOrder);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -58,8 +72,8 @@ export function TokenCard({
   };
 
   return (
-    <MotionCard className="card-base">
-      <Link href={`/asset/${token.contractAddress}/${token.tokenId}`} className="block">
+    <MotionCard className="card-base group relative">
+      <Link href={`/asset/${token.contractAddress}/${token.tokenId}`} className="block relative">
         {/* Image */}
         <div className="relative aspect-square bg-muted overflow-hidden">
           {!imgError ? (
@@ -76,9 +90,9 @@ export function TokenCard({
             </div>
           )}
           {token.metadata?.ipType && (
-            <Badge className="absolute top-2 left-2 text-[10px] bg-background/85 backdrop-blur-sm border-0">
+            <span className="absolute top-2 left-2 text-[10px] font-semibold px-2 py-0.5 rounded-md bg-black/70 text-white backdrop-blur-sm leading-4">
               {token.metadata.ipType}
-            </Badge>
+            </span>
           )}
           {(token.metadataStatus === "PENDING" || token.metadataStatus === "FETCHING") && (
             <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-background/85 backdrop-blur-sm rounded-full px-2 py-0.5">
@@ -86,135 +100,131 @@ export function TokenCard({
               <span className="text-[10px] text-muted-foreground">Indexing…</span>
             </div>
           )}
+          {/* Rarity tier badge */}
+          {rarityTier && !isOwner && RARITY_STYLE[rarityTier] && (
+            <div className="absolute top-2 right-2 z-10">
+              <span className={cn(
+                "inline-flex items-center px-1.5 py-0.5 rounded-md backdrop-blur-sm text-[10px] font-bold leading-none",
+                RARITY_STYLE[rarityTier]!.className
+              )}>
+                {RARITY_STYLE[rarityTier]!.label}
+              </span>
+            </div>
+          )}
+          {/* Listed badge — shows price + currency */}
           {isOwner && activeOrder && (
-            <Badge className="absolute top-2 right-2 text-[10px] bg-emerald-500/90 text-white border-0 backdrop-blur-sm">
-              Listed
-            </Badge>
+            <span className="absolute top-2 right-2 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary backdrop-blur-sm leading-4">
+              {formatDisplayPrice(activeOrder.price.formatted)} {activeOrder.price.currency}
+            </span>
           )}
         </div>
 
         {/* Info */}
-        <div className="p-3 space-y-2.5">
-          <div>
-            <p className="font-semibold text-sm truncate leading-snug">{name}</p>
-            {token.metadata?.description ? (
-              <p className="text-[11px] text-muted-foreground line-clamp-2 leading-snug mt-0.5">
-                {token.metadata.description}
-              </p>
-            ) : (
-              <p className="text-[11px] text-muted-foreground">#{token.tokenId}</p>
-            )}
-          </div>
+        <div className={cn("p-3 space-y-1", hasActions && "pb-14 sm:pb-3")}>
+          <p className="font-semibold text-sm truncate leading-snug">{name}</p>
+          {token.metadata?.description ? (
+            <p className="text-[11px] text-muted-foreground line-clamp-2 leading-snug">
+              {token.metadata.description}
+            </p>
+          ) : (
+            <p className="text-[11px] text-muted-foreground">#{token.tokenId}</p>
+          )}
+          {activeOrder && !isOwner && (
+            <p className="text-sm font-medium pt-0.5">
+              {formatDisplayPrice(activeOrder.price.formatted)}{" "}
+              <span className="text-muted-foreground font-normal text-xs">
+                {activeOrder.price.currency}
+              </span>
+            </p>
+          )}
+        </div>
 
-          {activeOrder && (
-            <div className="flex items-center justify-between gap-2">
-              <div className="min-w-0">
-                <p className="section-label">{isOwner ? "Listed for" : "Price"}</p>
-                <p className="price-value text-sm">
-                  {formatDisplayPrice(activeOrder.price.formatted)}{" "}
-                  <span className="text-muted-foreground font-normal text-xs">
-                    {activeOrder.price.currency}
-                  </span>
-                </p>
-              </div>
-              <div className="flex gap-1.5">
-                {showBuyButton && !isOwner && onBuy && (
-                  <Button
-                    size="sm"
-                    className="h-8 px-3 text-xs bg-brand-purple text-white"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      onBuy(token);
-                    }}
-                  >
-                    Buy
-                  </Button>
-                )}
-                {!isOwner && (
+        {/* Action bar — always visible on mobile, hover-revealed on desktop */}
+        {hasActions && (
+          <div
+            className={cn(
+              "absolute bottom-0 inset-x-0 p-2 flex gap-2",
+              "bg-background/90 backdrop-blur-sm border-t border-border/40",
+              "opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-150"
+            )}
+          >
+            {isOwner && activeOrder && (
+              <>
+                {onCancel && (
                   <Button
                     size="sm"
                     variant="outline"
-                    className="h-8 w-8 p-0"
-                    onClick={handleAddToCart}
-                    disabled={inCart}
-                    aria-label={inCart ? "In cart" : "Add to cart"}
+                    className="flex-1 h-8 text-xs text-destructive hover:text-destructive"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); onCancel(token); }}
                   >
-                    <ShoppingCart className={`h-3.5 w-3.5 ${inCart ? "opacity-40" : ""}`} />
+                    <X className="h-3 w-3 mr-1" />
+                    Cancel
                   </Button>
                 )}
-                {isOwner && onCancel && activeOrder && (
+                {onTransfer && (
                   <Button
                     size="sm"
                     variant="outline"
-                    className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      onCancel(token);
-                    }}
-                    aria-label="Cancel listing"
-                    title="Cancel listing"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </Button>
-                )}
-                {isOwner && onTransfer && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-8 w-8 p-0"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      onTransfer(token);
-                    }}
-                    aria-label="Transfer asset"
-                    title="Transfer to another wallet"
+                    className="h-8 w-8 p-0 shrink-0"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); onTransfer(token); }}
+                    aria-label="Transfer"
                   >
                     <ArrowRightLeft className="h-3.5 w-3.5" />
                   </Button>
                 )}
-              </div>
-            </div>
-          )}
-
-          {!activeOrder && isOwner && (onList || onTransfer) && (
-            <div className="flex gap-1.5">
-              {onList && (
+              </>
+            )}
+            {isOwner && !activeOrder && (
+              <>
+                {onList && (
+                  <Button
+                    size="sm"
+                    variant="default"
+                    className="flex-1 h-8 text-xs"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); onList(token); }}
+                  >
+                    <Tag className="h-3 w-3 mr-1" />
+                    List for sale
+                  </Button>
+                )}
+                {onTransfer && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 w-8 p-0 shrink-0"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); onTransfer(token); }}
+                    aria-label="Transfer"
+                  >
+                    <ArrowRightLeft className="h-3.5 w-3.5" />
+                  </Button>
+                )}
+              </>
+            )}
+            {!isOwner && activeOrder && (
+              <>
+                {showBuyButton && onBuy && (
+                  <Button
+                    size="sm"
+                    className="flex-1 h-8 text-xs bg-brand-purple text-white"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); onBuy(token); }}
+                  >
+                    Buy
+                  </Button>
+                )}
                 <Button
                   size="sm"
                   variant="outline"
-                  className="flex-1 h-9 text-xs"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onList(token);
-                  }}
+                  className="h-8 w-8 p-0 shrink-0"
+                  onClick={handleAddToCart}
+                  disabled={inCart}
+                  aria-label={inCart ? "In cart" : "Add to cart"}
                 >
-                  <Tag className="h-3 w-3 mr-1.5" />
-                  List for sale
+                  <ShoppingCart className={cn("h-3.5 w-3.5", inCart && "opacity-40")} />
                 </Button>
-              )}
-              {onTransfer && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-9 w-9 p-0 shrink-0"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onTransfer(token);
-                  }}
-                  aria-label="Transfer asset"
-                  title="Transfer to another wallet"
-                >
-                  <ArrowRightLeft className="h-3.5 w-3.5" />
-                </Button>
-              )}
-            </div>
-          )}
-        </div>
+              </>
+            )}
+          </div>
+        )}
       </Link>
     </MotionCard>
   );

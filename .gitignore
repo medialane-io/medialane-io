@@ -41,4 +41,16 @@ next-env.d.ts
 # npm lock file — project uses bun exclusively (bun.lock is authoritative)
 package-lock.json
 .worktrees/
+
+# clerk configuration (can include secrets)
+/.clerk/
+
+# Local Playwright / E2E 
+playwright.config.ts
+/e2e-tests/
+/.github/
 .clerk/
+**.clerk/
+**/.clerk/
+**/.clerk/.tmp/telemetry.json
+/.clerk/.tmp/telemetry.json

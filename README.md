@@ -26,18 +26,22 @@ Medialane is a platform for the **creative economy on Starknet**. It bridges Web
 ### Discover
 - Full-width hero with kinetic headline, CTA buttons, live platform stats, and scrolling asset strip
 - Featured collections bento grid with verified badges and floor prices
-- Recent listings + on-chain activity feed side by side
+- Recent listings + onchain activity feed side by side
 
 ### Creator Launchpad
-- Mint IP assets (Art, Music, Video, Documents, Posts, Patents, Code, NFTs) to any collection
+- Mint IP assets across 12 canonical IP types: Audio, Art, Video, Photography, NFT, Patents, Posts, Publications, Documents, RWA, Software, Custom
+- Dynamic template fields per IP type — collapsed optional panel, smart defaults per category
 - Full programmable licensing form — CC variants, commercial use, derivatives, attribution, territory, AI policy, royalty %
 - Licensing metadata embedded in IPFS as ERC-721 attributes (OpenSea-compatible + Berne Convention compliant)
+- Media tab on asset pages — embedded players for YouTube, Spotify, SoundCloud, TikTok
+- Creator wallet address embedded in every asset as `{ trait_type: "Creator", value: walletAddress }`
 - Direct Pinata upload — metadata stored on IPFS, not on centralized servers
 - Create and deploy ERC-721 collections on Starknet (gasless)
+- Collection metadata JSON uploaded to IPFS at creation time — `baseUri` set onchain so any dApp can resolve collection images permissionlessly
 
 ### NFT Marketplace
 - Browse, search, and filter all Medialane IP assets
-- Buy NFTs directly or make offers with USDC, USDC.e, USDT, ETH, or STRK
+- Buy NFTs directly or make offers with USDC, USDT, ETH, STRK, or WBTC
 - Batch cart checkout — buy multiple items in one PIN-authenticated session
 - Accept, cancel, and manage listings and offers from the portfolio
 - Asset pages with Details, License, Listings, Offers, and History tabs
@@ -48,9 +52,25 @@ Medialane is a platform for the **creative economy on Starknet**. It bridges Web
 ### Collections
 - Browse all NFT collections with sort options: Recent (default), Most assets, Top volume, Floor price, A→Z
 - Filter by verified collections only
-- Collection pages with `aspect-video` parallax banner, animated stats, and sticky tabs
+- Collection pages with `aspect-video` parallax banner, animated stats, and sticky tabs (Items / Listings / Offers)
 - Infinite scroll with "Load more" pagination — shows remaining count
 - Creator profile pages with address-derived color identity and blurred asset banner
+
+### Creators
+- Dedicated `/creators` page showcasing verified creators in a 4-column card grid
+- Creator cards display banner, avatar, bio, and social links
+- Creators without uploaded images automatically fall back to their latest collection image
+- Profile pages with activity timeline, owned assets, collections, and listing history
+
+### Remix Licensing
+- Request remix licenses from asset creators with fully configurable terms (license type, commercial use, derivatives, royalty %, proposed fee)
+- Full remix creation page at `/create/remix/[contract]/[tokenId]` — detects owner vs non-owner and adapts the flow:
+  - **Owner (self-remix)**: upload custom artwork, set name/description/IP type/license, mint as a new IP asset, recorded on-chain with parent attribution
+  - **Non-owner**: propose license terms + payment amount, creator receives notification and can approve/reject
+- Open-license assets (CC0, CC BY, CC BY-SA, CC BY-NC) auto-approve without creator action
+- Parent attribution embedded in remix metadata as `Parent Contract` + `Parent Token ID` attributes — displayed as a banner on remix asset pages
+- Portfolio Remixes page (`/portfolio/remix-offers`) — incoming requests (creator view with Approve/Reject) and outgoing requests (requester view) with status badges for all 7 states
+- Remix count badge on portfolio nav link for pending requests
 
 ### Invisible Wallet (ChipiPay)
 - Sign in with email, Google, or any Clerk-supported provider
@@ -96,7 +116,7 @@ User (email/passkey)
             │              └─ ipfs:// URI → mint tx on Starknet
             └─ Marketplace operations
                  └─ SNIP-12 signing → medialane-backend (Railway)
-                      └─ Starknet Mainnet (on-chain)
+                      └─ Starknet Mainnet (onchain)
 ```
 
 Asset uploads go **directly to Pinata** from the Next.js server — the backend is never involved in the upload path. This keeps IP assets fully decentralized.
@@ -157,10 +177,10 @@ This makes licensing terms **immutable**, **machine-readable**, and **interopera
 | Token | Network | Address |
 |---|---|---|
 | USDC (native) | Starknet Mainnet | `0x033068f6...` |
-| USDC.e (bridged) | Starknet Mainnet | `0x053c9125...` |
 | USDT | Starknet Mainnet | `0x068f5c6a...` |
 | ETH | Starknet Mainnet | `0x049d3657...` |
 | STRK | Starknet Mainnet | `0x04718f5a...` |
+| WBTC | Starknet Mainnet | `0x03fe2b97...` |
 
 ---
 
@@ -214,9 +234,9 @@ src/
   app/
     api/pinata/       # Universal IP asset upload (Clerk-gated, direct Pinata)
     asset/            # /asset/[contract]/[tokenId] — asset detail page + License tab
-    create/           # /create/asset + /create/collection — launchpad forms
+    create/           # /create/asset + /create/collection + /create/remix/[contract]/[tokenId]
     marketplace/      # /marketplace — browse + filter + search
-    portfolio/        # /portfolio — owned tokens, listings, offers, activity
+    portfolio/        # /portfolio — owned tokens, listings, offers, activity, remix-offers
     onboarding/       # /onboarding — wallet creation (passkey-first)
     ...
   components/

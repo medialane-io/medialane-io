@@ -21,7 +21,7 @@ export default function LearnCreatorLaunchpadPage() {
         <h2 className="text-2xl font-bold">Creator Launchpad</h2>
         <p className="text-muted-foreground text-lg leading-relaxed">
           The Medialane Creator Launchpad lets you deploy your own NFT collection, mint
-          individual IP assets, and bring your creative work on-chain — without any coding
+          individual IP assets, and bring your creative work onchain — without any coding
           or prior blockchain experience.
         </p>
       </div>
@@ -39,14 +39,14 @@ export default function LearnCreatorLaunchpadPage() {
         <Section title="Step 2 — Deploy a Collection">
           <p>
             A collection is a smart contract on Starknet that groups related NFTs under
-            a shared name, symbol, and identity. Think of it as your brand on-chain —
+            a shared name, symbol, and identity. Think of it as your brand onchain —
             an art series, a music catalogue, a portfolio of photographs.
           </p>
           <p>
             From the <strong className="text-foreground">Create → Collection</strong> page,
             choose a name, symbol, and upload a cover image. Medialane deploys the
             collection contract to Starknet mainnet and registers it in the platform&apos;s
-            on-chain registry so it appears in search and discovery.
+            onchain registry so it appears in search and discovery.
           </p>
         </Section>
 
@@ -67,7 +67,7 @@ export default function LearnCreatorLaunchpadPage() {
           <p>
             Your file is uploaded to IPFS via Pinata, giving it a permanent content
             address. The metadata JSON — including your license terms — is also stored
-            on IPFS and linked to the NFT on-chain.
+            on IPFS and linked to the NFT onchain.
           </p>
         </Section>
 

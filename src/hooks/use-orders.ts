@@ -60,3 +60,26 @@ export function useUserOrders(address: string | null) {
 
   return { orders: data?.data ?? [], isLoading, error, mutate };
 }
+
+export function useCollectionFloorListings(contract: string | null, limit = 20) {
+  const client = useMedialaneClient();
+  const key = contract ? `floor-listings-${contract}-${limit}` : null;
+
+  const { data, error, isLoading } = useSWR<ApiResponse<ApiOrder[]>>(
+    key,
+    () =>
+      client.api.getOrders({
+        collection: contract!,
+        status: "ACTIVE",
+        sort: "price_asc",
+        limit,
+      }),
+    { refreshInterval: 30000 }
+  );
+
+  return {
+    listings: data?.data ?? [],
+    isLoading,
+    error,
+  };
+}

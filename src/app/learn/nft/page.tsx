@@ -51,7 +51,7 @@ export default function LearnNFTPage() {
             On Medialane, every NFT carries a programmable license embedded in its metadata.
             This license defines exactly how the work can be used: whether it can be reproduced,
             remixed, used commercially, or trained on by AI systems. These rules are enforced
-            on-chain and cannot be silently changed by a platform or middleman.
+            onchain and cannot be silently changed by a platform or middleman.
           </p>
         </Section>
 
@@ -77,7 +77,7 @@ export default function LearnNFTPage() {
           <p>
             Every asset minted through Medialane is stored on IPFS for decentralised content
             availability, with the IPFS content identifier (CID) anchored to the NFT&apos;s
-            on-chain metadata. This ensures the artwork and license terms cannot be silently
+            onchain metadata. This ensures the artwork and license terms cannot be silently
             modified after minting.
           </p>
         </Section>

@@ -19,7 +19,8 @@ import { useAuth, useClerk } from "@clerk/nextjs";
 export type ReportTarget =
   | { type: "TOKEN"; contract: string; tokenId: string; name?: string }
   | { type: "COLLECTION"; contract: string; name?: string }
-  | { type: "CREATOR"; address: string; name?: string };
+  | { type: "CREATOR"; address: string; name?: string }
+  | { type: "COMMENT"; commentId: string };
 
 const CATEGORIES = [
   { value: "COPYRIGHT_PIRACY", label: "Copyright / Piracy" },
@@ -79,8 +80,10 @@ export function ReportDialog({ target, open, onOpenChange }: ReportDialogProps) 
       payload.targetTokenId = target.tokenId;
     } else if (target.type === "COLLECTION") {
       payload.targetContract = target.contract;
-    } else {
+    } else if (target.type === "CREATOR") {
       payload.targetAddress = target.address;
+    } else if (target.type === "COMMENT") {
+      payload.targetId = target.commentId;
     }
 
     try {
@@ -113,7 +116,7 @@ export function ReportDialog({ target, open, onOpenChange }: ReportDialogProps) 
   };
 
   const targetLabel =
-    target.name
+    target.type !== "COMMENT" && target.name
       ? `"${target.name}"`
       : target.type.charAt(0) + target.type.slice(1).toLowerCase();
 
@@ -176,7 +179,7 @@ export function ReportDialog({ target, open, onOpenChange }: ReportDialogProps) 
 
           <p className="text-xs text-muted-foreground">
             Reports are reviewed by the Medialane DAO team. Content remains
-            accessible on-chain and via the permissionless dapp.
+            accessible onchain and via the permissionless dapp.
           </p>
         </div>
 

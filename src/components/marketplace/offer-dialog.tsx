@@ -30,6 +30,9 @@ import { SessionSetupDialog } from "@/components/chipi/session-setup-dialog";
 import { useAuth, SignInButton } from "@clerk/nextjs";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { EXPLORER_URL, DURATION_OPTIONS } from "@/lib/constants";
+import { parseFormPriceUsdc } from "@/lib/chipi/session-preferences";
+import { isWebAuthnSupported } from "@chipi-stack/nextjs";
+import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
 import { getListableTokens } from "@medialane/sdk";
 
 const CURRENCIES = getListableTokens().map((t) => t.symbol);
@@ -71,6 +74,7 @@ export function OfferDialog({
     hasActiveSession,
     isSettingUpSession,
     setupSession,
+    maybeClearSessionForAmountCap,
     isProcessing,
     txStatus,
     txHash,
@@ -85,19 +89,33 @@ export function OfferDialog({
   const [pinError, setPinError] = useState<string | null>(null);
   const [step, setStep] = useState<"form" | "pin">("form");
 
+  const [passkeySupported] = useState(
+    () => typeof window !== "undefined" && isWebAuthnSupported()
+  );
+  const [isAuthenticatingPasskey, setIsAuthenticatingPasskey] = useState(false);
+  const { authenticate, encryptKey } = usePasskeyAuth();
+
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { price: "", currency: "USDC", durationSeconds: 2592000 },
   });
 
-  const onSubmit = (values: FormValues) => {
+  const onSubmit = async (values: FormValues) => {
     if (!isSignedIn) return;
     setPendingValues(values);
     if (!hasWallet) {
       setWalletSetupOpen(true);
       return;
     }
-    if (!hasActiveSession) {
+    const priceUsdc = parseFormPriceUsdc(values.price);
+    const cleared = await maybeClearSessionForAmountCap(priceUsdc);
+    if (cleared) {
+      toast.info("Large offer — fresh signing session", {
+        description:
+          "Your saved session was cleared for this transaction size. Register a new session to continue.",
+      });
+    }
+    if (cleared || !hasActiveSession) {
       setSessionSetupOpen(true);
       return;
     }
@@ -131,6 +149,37 @@ export function OfferDialog({
     });
     setPin("");
     setStep("form");
+  };
+
+  const handleUsePasskey = async () => {
+    setPinError(null);
+    setIsAuthenticatingPasskey(true);
+    try {
+      if (!pendingValues) return;
+
+      const derived = encryptKey ?? (await authenticate());
+      if (!derived) throw new Error("Passkey authentication failed.");
+
+      await makeOffer({
+        assetContract,
+        tokenId,
+        tokenName,
+        price: pendingValues.price,
+        currencySymbol: pendingValues.currency,
+        durationSeconds: pendingValues.durationSeconds,
+        pin: derived,
+      });
+
+      setPin("");
+      setStep("form");
+    } catch (err: unknown) {
+      const msg = err instanceof Error
+        ? err.message
+        : "Passkey authentication failed";
+      toast.error("Passkey authentication failed", { description: msg });
+    } finally {
+      setIsAuthenticatingPasskey(false);
+    }
   };
 
   const handleClose = (v: boolean) => {
@@ -203,7 +252,7 @@ export function OfferDialog({
                 </span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Enter your wallet PIN to sign the offer.
+                Enter your wallet PIN to sign the offer, or use passkey instead.
               </p>
               <PinInput
                 value={pin}
@@ -211,6 +260,17 @@ export function OfferDialog({
                 error={pinError}
                 autoFocus
               />
+              {passkeySupported && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full"
+                  disabled={isAuthenticatingPasskey || isProcessing}
+                  onClick={handleUsePasskey}
+                >
+                  {isAuthenticatingPasskey ? "Authenticating passkey…" : "Use passkey instead"}
+                </Button>
+              )}
               {error && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />

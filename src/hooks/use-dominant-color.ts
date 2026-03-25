@@ -24,7 +24,9 @@ export interface DominantColorResult {
   error: boolean;
   dynamicTheme: DynamicTheme | null;
   /** Attach this ref to a hidden <img> element with crossOrigin="anonymous" */
-  imgRef: React.RefObject<HTMLImageElement | null>;
+  // React's <img ref> typing expects RefObject<HTMLImageElement> (not null).
+  // Internally the ref is initialized to null at runtime.
+  imgRef: React.RefObject<HTMLImageElement>;
 }
 
 const fac = new FastAverageColor();
@@ -32,7 +34,8 @@ const fac = new FastAverageColor();
 export function useDominantColor(
   imageUrl: string | null | undefined
 ): DominantColorResult {
-  const imgRef = useRef<HTMLImageElement>(null);
+  // `useRef` is null until React mounts; we cast for correct ref prop typing.
+  const imgRef = useRef<HTMLImageElement>(null as unknown as HTMLImageElement);
   const { resolvedTheme } = useTheme();
   const userIsDarkMode = resolvedTheme === "dark";
 
@@ -46,7 +49,7 @@ export function useDominantColor(
     setIsReady(false);
     setHasError(false);
 
-    const img = imgRef.current;
+    const img = imgRef.current as HTMLImageElement | null;
     if (!img) return;
 
     const extract = () => {

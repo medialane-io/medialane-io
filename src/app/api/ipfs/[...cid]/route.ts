@@ -25,6 +25,12 @@ export async function GET(
   const { cid: segments } = await params;
   const cidPath = segments.join("/");
 
+  // Validate CID format — CIDv0 (Qm...) or CIDv1 (bafy..., bafk..., etc.)
+  // Optional sub-path after the CID (letters, digits, dots, dashes, underscores, slashes)
+  if (!/^(Qm[1-9A-HJ-NP-Za-km-z]{44,}|b[a-z2-7]{58,})(\/[\w.\-/]*)?$/.test(cidPath)) {
+    return NextResponse.json({ error: "Invalid IPFS path" }, { status: 400 });
+  }
+
   const url = `${GATEWAY}/ipfs/${cidPath}`;
 
   const headers: HeadersInit = {};

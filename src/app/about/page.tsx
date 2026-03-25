@@ -11,7 +11,7 @@ const PILLARS = [
     icon: Shield,
     title: "IP Protection First",
     description:
-      "Every asset minted on Medialane is anchored to a programmable license encoded on-chain. Creators define how their work can be used, shared, remixed, or commercialised — no lawyers required.",
+      "Every asset minted on Medialane is anchored to a programmable license encoded onchain. Creators define how their work can be used, shared, remixed, or commercialised — no lawyers required.",
   },
   {
     icon: Zap,
@@ -29,7 +29,7 @@ const PILLARS = [
     icon: Users,
     title: "Creator-Governed",
     description:
-      "Medialane is moving toward DAO governance. Creators, collectors, and developers will shape the platform's future through on-chain voting and community proposals.",
+      "Medialane is moving toward DAO governance. Creators, collectors, and developers will shape the platform's future through onchain voting and community proposals.",
   },
 ];
 

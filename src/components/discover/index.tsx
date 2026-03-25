@@ -1,14 +1,16 @@
 "use client";
 
 import { Hero } from "./hero";
-import { BentoSection } from "./bento-section";
+import { CollectionsStrip } from "./collections-strip";
+import { CreatorsStrip } from "./creators-strip";
 import { FeedSection } from "./feed-section";
 
 export function DiscoverPage() {
   return (
-    <div className="space-y-10 pb-10">
+    <div className="container mx-auto px-4 pt-10 pb-16 space-y-10">
       <Hero />
-      <BentoSection />
+      <CollectionsStrip />
+      <CreatorsStrip />
       <FeedSection />
     </div>
   );

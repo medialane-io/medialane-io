@@ -1,5 +1,20 @@
-export const IP_TYPES = ["Art", "Music", "Video", "Documents", "Posts", "Patents", "Code", "NFT"] as const;
-export type IPType = typeof IP_TYPES[number];
+// Local const for z.enum() — [string, ...string[]] tuple required by Zod.
+export const IP_TYPES = [
+  "Audio",
+  "Art",
+  "Documents",
+  "NFT",
+  "Video",
+  "Photography",
+  "Patents",
+  "Posts",
+  "Publications",
+  "RWA",
+  "Software",
+  "Custom",
+] as const;
+
+export type IPType = (typeof IP_TYPES)[number];
 
 export interface LicenseType {
   value: string;

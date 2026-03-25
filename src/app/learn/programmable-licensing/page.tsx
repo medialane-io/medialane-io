@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Programmable Licensing | Learn | Medialane",
-  description: "Explore Medialane's on-chain licensing system — Creative Commons variants, AI policy, royalties, and derivative rules embedded in every NFT.",
+  description: "Explore Medialane's onchain licensing system — Creative Commons variants, AI policy, royalties, and derivative rules embedded in every NFT.",
 };
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {

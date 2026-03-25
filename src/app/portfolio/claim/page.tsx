@@ -8,12 +8,39 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { CheckCircle, Loader2, AlertCircle } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import Link from "next/link";
 
 type Step = "input" | "verifying" | "success" | "manual" | "pending";
+
+function StepIndicator({ step }: { step: Step }) {
+  const atStep2 = step === "manual" || step === "pending";
+  return (
+    <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
+        <div className={cn(
+          "w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0",
+          !atStep2 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+        )}>1</div>
+        <span className={cn("text-sm", !atStep2 ? "text-foreground font-medium" : "text-muted-foreground")}>
+          Verify ownership
+        </span>
+      </div>
+      <div className="w-8 h-px bg-border shrink-0" />
+      <div className="flex items-center gap-2">
+        <div className={cn(
+          "w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0",
+          atStep2 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+        )}>2</div>
+        <span className={cn("text-sm", atStep2 ? "text-foreground font-medium" : "text-muted-foreground")}>
+          Confirm claim
+        </span>
+      </div>
+    </div>
+  );
+}
 
 export default function ClaimCollectionPage() {
   const { getToken } = useAuth();
@@ -39,7 +66,7 @@ export default function ClaimCollectionPage() {
         setClaimedCollection(result.collection ?? { contractAddress: contractAddress.trim() });
         setStep("success");
       } else {
-        setVerifyError(result.reason ?? "Could not verify on-chain ownership");
+        setVerifyError(result.reason ?? "Could not verify onchain ownership");
         setStep("manual");
       }
     } catch {
@@ -63,96 +90,125 @@ export default function ClaimCollectionPage() {
     }
   }
 
-  if (step === "success") {
-    return (
-      <div className="container mx-auto px-4 py-8 max-w-lg">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="text-green-500 h-6 w-6" />
-              <CardTitle>Collection Claimed</CardTitle>
-            </div>
-            <CardDescription>Your collection is verified and added to your portfolio.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {claimedCollection && (
-              <div className="glass rounded-lg p-4">
-                <p className="font-semibold">{claimedCollection.name ?? "Collection"}</p>
-                <p className="text-xs text-muted-foreground font-mono mt-1 truncate">{claimedCollection.contractAddress}</p>
-              </div>
-            )}
-            <div className="flex gap-3">
-              <Button asChild><Link href="/portfolio/collections">View in Portfolio</Link></Button>
-              <Button variant="outline" onClick={() => { setContractAddress(""); setClaimedCollection(null); setStep("input"); }}>Claim Another</Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (step === "pending") {
-    return (
-      <div className="container mx-auto px-4 py-8 max-w-lg">
-        <Card>
-          <CardHeader>
-            <CardTitle>Request Submitted</CardTitle>
-            <CardDescription>Your claim is under review. We&apos;ll reach out to {email} once processed.</CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
-    );
-  }
-
   return (
-    <div className="container mx-auto px-4 py-8 max-w-lg space-y-6">
+    <div className="space-y-6 max-w-lg">
       <div>
-        <h1 className="text-2xl font-bold">Claim a Collection</h1>
-        <p className="text-muted-foreground mt-1">Import an existing Starknet ERC-721 collection into your Medialane profile.</p>
+        <h1 className="text-xl font-semibold">Claim a Collection</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Import an existing Starknet ERC-721 collection into your Medialane profile.
+        </p>
       </div>
 
-      {(step === "input" || step === "verifying") && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Contract Address</CardTitle>
-            <CardDescription>The Starknet ERC-721 contract address you own.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="contract">Contract Address</Label>
-              <Input id="contract" placeholder="0x..." value={contractAddress} onChange={(e) => setContractAddress(e.target.value)} disabled={step === "verifying"} />
+      <StepIndicator step={step} />
+
+      {/* Success state */}
+      {step === "success" && (
+        <div className="rounded-xl border border-green-500/40 bg-green-500/5 p-5 space-y-4">
+          <div>
+            <p className="font-semibold text-foreground">Collection claimed successfully</p>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Your collection is verified and added to your portfolio.
+            </p>
+          </div>
+          {claimedCollection && (
+            <div className="rounded-lg bg-muted/50 px-3 py-2">
+              <p className="text-sm font-medium">{claimedCollection.name ?? "Collection"}</p>
+              <p className="text-xs text-muted-foreground font-mono mt-0.5 truncate">
+                {claimedCollection.contractAddress}
+              </p>
             </div>
-            <Button onClick={handleAutoClaim} disabled={step === "verifying" || !contractAddress.trim()} className="w-full">
-              {step === "verifying" ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Verifying&hellip;</> : "Verify & Claim"}
+          )}
+          <div className="flex gap-3">
+            <Button asChild size="sm">
+              <Link href="/portfolio/collections">View in Portfolio</Link>
             </Button>
-          </CardContent>
-        </Card>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => { setContractAddress(""); setClaimedCollection(null); setVerifyError(""); setStep("input"); }}
+            >
+              Claim Another
+            </Button>
+          </div>
+        </div>
       )}
 
+      {/* Pending state */}
+      {step === "pending" && (
+        <div className="rounded-xl border border-border bg-muted/30 p-5 space-y-2">
+          <p className="font-semibold text-foreground">Claim under review</p>
+          <p className="text-sm text-muted-foreground">
+            Our team will verify ownership within 24–48 hours. You&apos;ll be notified at {email} once processed.
+          </p>
+        </div>
+      )}
+
+      {/* Step 1: Input + verifying */}
+      {(step === "input" || step === "verifying") && (
+        <div className="space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="contract">Contract address</Label>
+            <Input
+              id="contract"
+              placeholder="0x…"
+              value={contractAddress}
+              onChange={(e) => setContractAddress(e.target.value)}
+              disabled={step === "verifying"}
+            />
+            <p className="text-xs text-muted-foreground">
+              Paste the Starknet ERC-721 contract address you own.
+            </p>
+          </div>
+          <Button
+            onClick={handleAutoClaim}
+            disabled={step === "verifying" || !contractAddress.trim()}
+            className="w-full"
+          >
+            {step === "verifying"
+              ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Verifying…</>
+              : "Verify & Claim"
+            }
+          </Button>
+        </div>
+      )}
+
+      {/* Step 2: Manual review */}
       {step === "manual" && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <AlertCircle className="text-yellow-500 h-5 w-5" />
-              <CardTitle>Manual Review Required</CardTitle>
+        <div className="space-y-5">
+          <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-1">
+            <p className="text-sm font-medium text-foreground">Manual verification required</p>
+            <p className="text-xs text-muted-foreground">
+              {verifyError.replace(/[.!?]+$/, "")}. Submit a request for our team to review.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="email">Your email *</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+              />
             </div>
-            <CardDescription>{verifyError}. Submit a request for our team to review.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Your Email *</Label>
-              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-            </div>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="notes">Tell us about your connection to this collection</Label>
-              <Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
+              <Textarea
+                id="notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={3}
+                placeholder="e.g. I deployed this contract on Starknet mainnet…"
+              />
             </div>
             <div className="flex gap-3">
               <Button onClick={handleManualRequest} className="flex-1">Submit Request</Button>
               <Button variant="outline" onClick={() => setStep("input")}>Back</Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
     </div>
   );

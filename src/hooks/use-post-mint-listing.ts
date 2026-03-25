@@ -17,8 +17,9 @@ interface RunParams {
   pin: string;
 }
 
-const POLL_ATTEMPTS = 10;
-const POLL_INTERVAL_MS = 3000;
+const POLL_ATTEMPTS = 20;
+const POLL_INTERVAL_MS = 4000;
+const POLL_FIRST_WAIT_MS = 8000; // indexer cycle is ~6s — no point polling before that
 
 export function usePostMintListing() {
   const client = useMedialaneClient();
@@ -48,10 +49,11 @@ export function usePostMintListing() {
         });
       } catch { /* snapshot errors are non-fatal */ }
 
-      // Poll until the indexer surfaces the newly minted token (max ~30s)
+      // Poll until the indexer surfaces the newly minted token (max ~84s: 8000ms + 19×4000ms).
+      // First wait is longer — indexer cycle is ~6s and IPFS metadata fetch adds more time.
       let newToken: { contractAddress: string; tokenId: string } | null = null;
       for (let attempt = 0; attempt < POLL_ATTEMPTS; attempt++) {
-        await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+        await new Promise((r) => setTimeout(r, attempt === 0 ? POLL_FIRST_WAIT_MS : POLL_INTERVAL_MS));
         try {
           const res = await client.api.getTokensByOwner(walletAddress, 1, 100);
           const found = (res.data as ApiToken[] ?? []).find(
@@ -78,7 +80,7 @@ export function usePostMintListing() {
         setListingStep("listed");
       } else {
         setListingStep("failed");
-        setListingError("Asset not indexed yet — list from your portfolio");
+        setListingError("Asset not indexed yet — go to Portfolio → Assets to list it");
       }
     } catch (err: unknown) {
       setListingStep("failed");

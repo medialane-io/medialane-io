@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Protocol | Docs | Medialane",
-  description: "Technical specification of the Medialane on-chain protocol — contracts, events, data structures, and standards.",
+  description: "Technical specification of the Medialane onchain protocol — contracts, events, data structures, and standards.",
 };
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -28,7 +28,7 @@ export default function DocsProtocolPage() {
       <div className="space-y-2">
         <h2 className="text-2xl font-bold">Protocol Specification</h2>
         <p className="text-muted-foreground text-lg leading-relaxed">
-          The Medialane protocol consists of two on-chain contracts on Starknet mainnet
+          The Medialane protocol consists of two onchain contracts on Starknet mainnet
           and an off-chain indexer/API layer. This document describes the contracts,
           their interfaces, and the event model used by the indexer.
         </p>
@@ -52,7 +52,7 @@ export default function DocsProtocolPage() {
                 0x05e73b7be06d82beeb390a0e0d655f2c9e7cf519658e04f05d9c690ccc41da03
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                Factory for deploying IP NFT collections and registry for on-chain collection IDs.
+                Factory for deploying IP NFT collections and registry for onchain collection IDs.
               </p>
             </div>
           </div>
@@ -101,8 +101,8 @@ export default function DocsProtocolPage() {
   "chainId": "SN_MAIN"
 }`}</Code>
           <p>
-            The indexer validates submitted signatures on-chain before recording orders.
-            Fulfilled and cancelled orders are reconciled from on-chain events emitted by
+            The indexer validates submitted signatures onchain before recording orders.
+            Fulfilled and cancelled orders are reconciled from onchain events emitted by
             the marketplace contract.
           </p>
         </Section>

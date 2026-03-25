@@ -10,7 +10,7 @@
  *  4. The signature array is passed as calldata to register_order / fulfill_order / cancel_order
  */
 
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { normalizeAddress } from "@/lib/utils";
 import { useMyWallet } from "@/hooks/use-my-wallet";
@@ -24,9 +24,13 @@ import { Account, stark } from "starknet";
 import CryptoES from "crypto-es";
 import { starknetProvider } from "@/lib/starknet";
 import type { SessionKeyData } from "@chipi-stack/types";
+import {
+  type ChipiSessionPreferences,
+  resolveSessionCreationParams,
+  shouldClearSessionForAmountCap,
+} from "@/lib/chipi/session-preferences";
 
-const SESSION_DURATION_SECONDS = 6 * 60 * 60; // 6 hours
-const SESSION_MAX_CALLS = 1000;
+export type { ChipiSessionPreferences } from "@/lib/chipi/session-preferences";
 
 export function useSessionKey() {
   const { userId, getToken, sessionClaims } = useAuth();
@@ -56,6 +60,21 @@ export function useSessionKey() {
   const storedSession =
     (user?.unsafeMetadata?.chipiSession as SessionKeyData | null) ?? null;
 
+  const sessionPreferences = useMemo((): ChipiSessionPreferences | null => {
+    const raw = user?.unsafeMetadata?.chipiSessionPreferences;
+    if (!raw || typeof raw !== "object") return null;
+    const p = raw as Record<string, unknown>;
+    if (typeof p.enabled !== "boolean") return null;
+    return {
+      enabled: p.enabled,
+      mode: p.mode === "amount_capped" ? "amount_capped" : "duration",
+      durationMinutes: typeof p.durationMinutes === "number" ? p.durationMinutes : 60,
+      maxUsdcAmount:
+        typeof p.maxUsdcAmount === "string" ? p.maxUsdcAmount : undefined,
+      maxCalls: typeof p.maxCalls === "number" ? p.maxCalls : undefined,
+    };
+  }, [user?.unsafeMetadata?.chipiSessionPreferences]);
+
   const hasActiveSession =
     storedSession !== null && storedSession.validUntil * 1000 > Date.now();
 
@@ -76,10 +95,14 @@ export function useSessionKey() {
 
   /**
    * Create a new SNIP-9 session key and register it on-chain.
-   * Should be called once (per 6-hour window). User enters PIN once.
+   * Uses `chipiSessionPreferences` when set; otherwise defaults (6h + 1000 calls).
+   * Optional `override` wins over stored preferences (e.g. for tests or one-off flows).
    */
   const setupSession = useCallback(
-    async (pin: string): Promise<SessionKeyData> => {
+    async (
+      pin: string,
+      override?: Partial<{ durationSeconds: number; maxCalls: number }>
+    ): Promise<SessionKeyData> => {
       if (!wallet) throw new Error("Wallet not found. Please set up your wallet first.");
       if (!wallet.encryptedPrivateKey) {
         throw new Error("Wallet credentials unavailable — please try again in a moment. If the problem persists, contact support.");
@@ -88,10 +111,15 @@ export function useSessionKey() {
       const bearerToken = await getBearerToken();
       if (!bearerToken) throw new Error("Not authenticated. Please sign in again.");
 
+      const { durationSeconds, maxCalls } = resolveSessionCreationParams(
+        sessionPreferences,
+        override
+      );
+
       // 1. Generate local session keypair (encrypted with user's PIN)
       const session = await createSessionKeyAsync({
         encryptKey: pin,
-        durationSeconds: SESSION_DURATION_SECONDS,
+        durationSeconds,
       });
 
       // 2. Register the session public key on-chain (owner key signs this)
@@ -102,7 +130,7 @@ export function useSessionKey() {
           sessionConfig: {
             sessionPublicKey: session.publicKey,
             validUntil: session.validUntil,
-            maxCalls: SESSION_MAX_CALLS,
+            maxCalls,
             allowedEntrypoints: [], // all entrypoints allowed
           },
         },
@@ -119,7 +147,14 @@ export function useSessionKey() {
 
       return session;
     },
-    [wallet, getBearerToken, createSessionKeyAsync, addSessionKeyToContractAsync, user]
+    [
+      wallet,
+      getBearerToken,
+      createSessionKeyAsync,
+      addSessionKeyToContractAsync,
+      user,
+      sessionPreferences,
+    ]
   );
 
   // ─── signTypedData ────────────────────────────────────────────────────────
@@ -175,7 +210,45 @@ export function useSessionKey() {
     });
   }, [user]);
 
+  const updateSessionPreferences = useCallback(
+    async (prefs: ChipiSessionPreferences) => {
+      await user?.update({
+        unsafeMetadata: {
+          ...(user?.unsafeMetadata ?? {}),
+          chipiSessionPreferences: prefs,
+        },
+      });
+    },
+    [user]
+  );
+
+  const clearSessionPreferences = useCallback(async () => {
+    await user?.update({
+      unsafeMetadata: {
+        ...(user?.unsafeMetadata ?? {}),
+        chipiSessionPreferences: null,
+      },
+    });
+  }, [user]);
+
+  /**
+   * If amount-capped prefs apply and the transaction exceeds the cap, clears the stored session
+   * so the user must register a fresh session before continuing. Returns true when cleared.
+   */
+  const maybeClearSessionForAmountCap = useCallback(
+    async (amountUsdc: number): Promise<boolean> => {
+      if (!shouldClearSessionForAmountCap(sessionPreferences, amountUsdc)) {
+        return false;
+      }
+      await clearSession();
+      return true;
+    },
+    [sessionPreferences, clearSession]
+  );
+
   return {
+    /** Clerk-persisted session key blob (encrypted); null if none */
+    storedSession,
     /** Full wallet object from ChipiPay API */
     wallet,
     /** Starknet contract address (for offerer/fulfiller in orders) */
@@ -195,5 +268,10 @@ export function useSessionKey() {
     setupSession,
     signTypedData,
     clearSession,
+    /** Saved session UX preferences (multi-tx / duration / amount cap). */
+    sessionPreferences,
+    updateSessionPreferences,
+    clearSessionPreferences,
+    maybeClearSessionForAmountCap,
   };
 }

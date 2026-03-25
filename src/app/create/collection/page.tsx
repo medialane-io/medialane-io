@@ -150,7 +150,7 @@ export default function CreateCollectionPage() {
 
     try {
       // 1. Upload collection metadata JSON to IPFS so permissionless dapps can resolve
-      //    the collection image on-chain (base_uri → collection metadata → image field).
+      //    the collection image onchain (base_uri → collection metadata → image field).
       let baseUri: string | undefined;
       if (imageUri) {
         try {
@@ -167,7 +167,7 @@ export default function CreateCollectionPage() {
           const metaData = await metaRes.json().catch(() => ({}));
           if (metaRes.ok && metaData.uri) baseUri = metaData.uri;
         } catch {
-          // Non-fatal: collection is still created, just without on-chain metadata URI
+          // Non-fatal: collection is still created, just without onchain metadata URI
         }
       }
 
@@ -394,14 +394,16 @@ export default function CreateCollectionPage() {
               )}
             />
 
-            <Button
-              type="submit"
-              className="w-full h-12 text-base"
-              disabled={collectionStep !== "idle" || imageUploading}
-            >
-              <Layers className="h-4 w-4 mr-2" />
-              Create collection
-            </Button>
+            <div className={`btn-border-animated p-[1px] rounded-xl ${collectionStep !== "idle" || imageUploading ? "opacity-40 pointer-events-none" : ""}`}>
+              <button
+                type="submit"
+                disabled={collectionStep !== "idle" || imageUploading}
+                className="w-full h-12 text-base font-semibold text-white rounded-[11px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] bg-brand-blue"
+              >
+                <Layers className="h-4 w-4" />
+                Create collection
+              </button>
+            </div>
             <p className="text-xs text-center text-muted-foreground">
               Gas is free. Your PIN signs the transaction.
             </p>
