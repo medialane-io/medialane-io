@@ -130,14 +130,17 @@ export function useChipiTransaction() {
 
           setStatus("confirmed");
 
-          // Fetch receipt events via direct RPC with up to 3 attempts (2 s apart).
+          // Fetch receipt events via direct RPC with up to 6 attempts.
           // Direct fetch bypasses starknet.js ReceiptTx wrapping which drops events.
-          // Retries handle the window where the RPC node is confirmed but not yet
-          // returning events for a freshly-accepted block.
+          // Alchemy load-balances across nodes: the node that reports ACCEPTED may not
+          // be the one we hit next. Retries with growing delays cover this window.
+          // Delays: 0s, 2s, 3s, 4s, 5s, 6s → max ~20s extra wait on failure.
+          // In the happy path (events on first attempt) this exits immediately.
+          const RETRY_DELAYS = [0, 2000, 3000, 4000, 5000, 6000];
           let events: Array<{ from_address: string; keys: string[] }> = [];
-          for (let attempt = 0; attempt < 3; attempt++) {
-            if (attempt > 0) {
-              await new Promise<void>((resolve) => setTimeout(resolve, 2000));
+          for (let attempt = 0; attempt < RETRY_DELAYS.length; attempt++) {
+            if (RETRY_DELAYS[attempt] > 0) {
+              await new Promise<void>((resolve) => setTimeout(resolve, RETRY_DELAYS[attempt]));
             }
             try {
               const rpcRes = await fetch(STARKNET_RPC_URL, {
