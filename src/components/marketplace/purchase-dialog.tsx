@@ -203,7 +203,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
                 <Button variant="outline" className="flex-1" onClick={() => { onOpenChange(false); onSuccess?.(); }}>
                   Close
                 </Button>
-                <Button className="flex-1" onClick={() => { onOpenChange(false); router.push("/portfolio/assets"); }}
+                <Button className="flex-1" onClick={() => { onOpenChange(false); router.push("/portfolio/assets"); }}>
                   View portfolio
                 </Button>
               </div>
