@@ -20,6 +20,7 @@ import { useChipiTransaction } from "./use-chipi-transaction";
 import { useSessionKey } from "./use-session-key";
 import { useMedialaneClient } from "./use-medialane-client";
 import { MARKETPLACE_CONTRACT, SUPPORTED_TOKENS, INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
+import { normalizeAddress } from "@/lib/utils";
 import type { ChipiCall } from "./use-chipi-transaction";
 
 /** Resolve a currency symbol (e.g. "USDC") to its on-chain contract address.
@@ -166,12 +167,17 @@ export function useMarketplace() {
   /**
    * Shared intent flow:
    *  create intent → sign typedData → submit signature → execute returned calls
+   *
+   * @param requiredEventFrom - If provided, the receipt MUST contain an event from this
+   *   contract address. Catches ChipiPay multicall silent failures where the wrapper tx
+   *   reports SUCCEEDED but the inner call panicked (no event emitted).
    */
   const runIntent = useCallback(
     async (
       pin: string,
       intentFn: () => Promise<{ data: { id: string; typedData: unknown; calls: unknown } }>,
-      successMsg: string
+      successMsg: string,
+      requiredEventFrom?: string
     ): Promise<string | undefined> => {
       if (!walletAddress) throw new Error("Wallet not ready. Please wait a moment.");
 
@@ -190,6 +196,19 @@ export function useMarketplace() {
       const result = await execWithPin(pin, calls);
       if (result.status === "reverted") {
         throw new Error(result.revertReason || "Transaction reverted on chain");
+      }
+
+      if (requiredEventFrom) {
+        const normalizedRequired = normalizeAddress(requiredEventFrom);
+        const hasEvent = result.events.some(
+          (e) => normalizeAddress(e.from_address ?? "") === normalizedRequired
+        );
+        if (!hasEvent) {
+          throw new Error(
+            "Transaction was submitted but the operation did not complete onchain. " +
+            "Please check your token balance and try again."
+          );
+        }
       }
 
       toast.success(successMsg);
@@ -245,7 +264,8 @@ export function useMarketplace() {
             fulfiller: walletAddress!,
             orderHash: input.orderHash,
           }),
-          "Purchase complete!"
+          "Purchase complete!",
+          MARKETPLACE_CONTRACT
         );
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Purchase failed";
