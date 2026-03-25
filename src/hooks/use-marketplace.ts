@@ -20,7 +20,6 @@ import { useChipiTransaction } from "./use-chipi-transaction";
 import { useSessionKey } from "./use-session-key";
 import { useMedialaneClient } from "./use-medialane-client";
 import { MARKETPLACE_CONTRACT, SUPPORTED_TOKENS, INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
-import { normalizeAddress } from "@/lib/utils";
 import type { ChipiCall } from "./use-chipi-transaction";
 
 /** Resolve a currency symbol (e.g. "USDC") to its on-chain contract address.
@@ -165,19 +164,36 @@ export function useMarketplace() {
   );
 
   /**
+   * Poll GET /v1/intents/:id until the backend settles to CONFIRMED or FAILED,
+   * or until the timeout is reached.
+   */
+  const pollIntentUntilTerminal = useCallback(
+    async (id: string): Promise<"CONFIRMED" | "FAILED"> => {
+      const MAX_ATTEMPTS = 10;
+      const INTERVAL_MS = 3000;
+      for (let i = 0; i < MAX_ATTEMPTS; i++) {
+        if (i > 0) await new Promise<void>((r) => setTimeout(r, INTERVAL_MS));
+        const res = await client.api.getIntent(id);
+        const status = res.data.status;
+        if (status === "CONFIRMED" || status === "FAILED") return status;
+      }
+      throw new Error(
+        "Verification timed out. Check your wallet for the transaction status."
+      );
+    },
+    [client]
+  );
+
+  /**
    * Shared intent flow:
-   *  create intent → sign typedData → submit signature → execute returned calls
-   *
-   * @param requiredEventFrom - If provided, the receipt MUST contain an event from this
-   *   contract address. Catches ChipiPay multicall silent failures where the wrapper tx
-   *   reports SUCCEEDED but the inner call panicked (no event emitted).
+   *  create intent → sign typedData → submit signature → execute via ChipiPay
+   *  → POST txHash to backend → poll until CONFIRMED or FAILED
    */
   const runIntent = useCallback(
     async (
       pin: string,
       intentFn: () => Promise<{ data: { id: string; typedData: unknown; calls: unknown } }>,
-      successMsg: string,
-      requiredEventFrom?: string
+      successMsg: string
     ): Promise<string | undefined> => {
       if (!walletAddress) throw new Error("Wallet not ready. Please wait a moment.");
 
@@ -198,17 +214,16 @@ export function useMarketplace() {
         throw new Error(result.revertReason || "Transaction reverted on chain");
       }
 
-      if (requiredEventFrom) {
-        const normalizedRequired = normalizeAddress(requiredEventFrom);
-        const hasEvent = result.events.some(
-          (e) => normalizeAddress(e.from_address ?? "") === normalizedRequired
+      // Submit tx hash to backend — verifies receipt + marketplace events server-side
+      await client.api.confirmIntent(id, result.txHash);
+
+      // Poll until backend reports terminal status (CONFIRMED or FAILED)
+      const finalStatus = await pollIntentUntilTerminal(id);
+      if (finalStatus === "FAILED") {
+        throw new Error(
+          "Transaction was submitted but the marketplace operation did not complete onchain. " +
+          "Please check your token balance and try again."
         );
-        if (!hasEvent) {
-          throw new Error(
-            "Transaction was submitted but the operation did not complete onchain. " +
-            "Please check your token balance and try again."
-          );
-        }
       }
 
       toast.success(successMsg);
@@ -217,7 +232,7 @@ export function useMarketplace() {
       setTimeout(() => invalidate(), INDEXER_REVALIDATION_DELAY_MS);
       return result.txHash;
     },
-    [walletAddress, signTypedData, client, execWithPin, invalidate]
+    [walletAddress, signTypedData, client, execWithPin, invalidate, pollIntentUntilTerminal]
   );
 
   // ── createListing ──────────────────────────────────────────────────────
@@ -238,8 +253,7 @@ export function useMarketplace() {
             price: input.price,
             endTime,
           }),
-          `${input.tokenName || `Token #${input.tokenId}`} listed for ${input.price} ${input.currencySymbol}`,
-          MARKETPLACE_CONTRACT
+          `${input.tokenName || `Token #${input.tokenId}`} listed for ${input.price} ${input.currencySymbol}`
         );
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Failed to create listing";
@@ -265,8 +279,7 @@ export function useMarketplace() {
             fulfiller: walletAddress!,
             orderHash: input.orderHash,
           }),
-          "Purchase complete!",
-          MARKETPLACE_CONTRACT
+          "Purchase complete!"
         );
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Purchase failed";
@@ -297,8 +310,7 @@ export function useMarketplace() {
             price: input.price,
             endTime,
           }),
-          `Offer submitted for ${input.tokenName || `Token #${input.tokenId}`}`,
-          MARKETPLACE_CONTRACT
+          `Offer submitted for ${input.tokenName || `Token #${input.tokenId}`}`
         );
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Failed to submit offer";

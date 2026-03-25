@@ -4,7 +4,6 @@ import { useState, useCallback, useRef } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useChipiWallet, useCallAnyContract } from "@chipi-stack/nextjs";
 import { starknetProvider } from "@/lib/starknet";
-import { STARKNET_RPC_URL } from "@/lib/constants";
 import type { WalletCredentials } from "@/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────
@@ -26,7 +25,6 @@ export type ChipiTransactionResult = {
   txHash: string;
   status: "confirmed" | "reverted";
   revertReason?: string;
-  events: Array<{ from_address: string; keys: string[] }>;
 };
 
 export type ChipiTransactionStatus =
@@ -125,52 +123,16 @@ export function useChipiTransaction() {
               (receipt as any)?.revert_reason || `Transaction reverted (${executionStatus})`;
             setStatus("reverted");
             setError(revertReason);
-            return { txHash: result, status: "reverted", revertReason, events: [] };
+            return { txHash: result, status: "reverted", revertReason };
           }
 
           setStatus("confirmed");
-
-          // Fetch receipt events via direct RPC with up to 6 attempts.
-          // Direct fetch bypasses starknet.js ReceiptTx wrapping which drops events.
-          // Alchemy load-balances across nodes: the node that reports ACCEPTED may not
-          // be the one we hit next. Retries with growing delays cover this window.
-          // Delays: 0s, 2s, 3s, 4s, 5s, 6s → max ~20s extra wait on failure.
-          // In the happy path (events on first attempt) this exits immediately.
-          const RETRY_DELAYS = [0, 2000, 3000, 4000, 5000, 6000];
-          let events: Array<{ from_address: string; keys: string[] }> = [];
-          for (let attempt = 0; attempt < RETRY_DELAYS.length; attempt++) {
-            if (RETRY_DELAYS[attempt] > 0) {
-              await new Promise<void>((resolve) => setTimeout(resolve, RETRY_DELAYS[attempt]));
-            }
-            try {
-              const rpcRes = await fetch(STARKNET_RPC_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  jsonrpc: "2.0",
-                  method: "starknet_getTransactionReceipt",
-                  params: { transaction_hash: result },
-                  id: 1,
-                }),
-              });
-              const rpcJson = await rpcRes.json();
-              const fetched: Array<{ from_address: string; keys: string[] }> =
-                rpcJson?.result?.events ?? [];
-              if (fetched.length > 0) {
-                events = fetched;
-                break;
-              }
-            } catch {
-              // retry
-            }
-          }
-
-          return { txHash: result, status: "confirmed", events };
+          return { txHash: result, status: "confirmed" };
         } catch (receiptError: unknown) {
           const reason = receiptError instanceof Error ? receiptError.message : "Transaction failed on L2";
           setStatus("reverted");
           setError(reason);
-          return { txHash: result, status: "reverted", revertReason: reason, events: [] };
+          return { txHash: result, status: "reverted", revertReason: reason };
         }
       } catch (err: unknown) {
         setStatus("error");
