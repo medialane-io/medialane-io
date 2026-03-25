@@ -180,17 +180,21 @@ export function ListingDialog({
     if (!isProcessing) onOpenChange(v);
   };
 
-  // Reset all local state after the dialog finishes closing (avoids flash to form state)
+  // Reset local state AFTER the close animation finishes (200ms) to prevent
+  // success→form flash while the dialog is animating out.
   useEffect(() => {
     if (!open) {
-      resetState();
-      form.reset();
-      setPendingValues(null);
-      setPin("");
-      setPinError(null);
-      setStep("form");
+      const t = setTimeout(() => {
+        resetState();
+        form.reset();
+        setPendingValues(null);
+        setPin("");
+        setPinError(null);
+        setStep("form");
+      }, 250);
+      return () => clearTimeout(t);
     }
-  }, [open, resetState, form]);
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const isSuccess = !isProcessing && txStatus === "confirmed" && !error;
   const confettiFired = useRef(false);
