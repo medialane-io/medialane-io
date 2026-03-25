@@ -132,7 +132,7 @@ export function PurchaseDialog({ order, open, onOpenChange }: PurchaseDialogProp
     }
   };
 
-  const isSuccess = txStatus === "confirmed" && !error;
+  const isSuccess = !isProcessing && txStatus === "confirmed" && !error;
 
   useEffect(() => {
     if (isSuccess && !confettiFired.current) {

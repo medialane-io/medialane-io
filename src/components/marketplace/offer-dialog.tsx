@@ -186,7 +186,7 @@ export function OfferDialog({
     }
   };
 
-  const isSuccess = txStatus === "confirmed" && !error;
+  const isSuccess = !isProcessing && txStatus === "confirmed" && !error;
   const confettiFired = useRef(false);
 
   useEffect(() => {
