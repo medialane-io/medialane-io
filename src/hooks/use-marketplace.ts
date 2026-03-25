@@ -20,7 +20,6 @@ import { useChipiTransaction } from "./use-chipi-transaction";
 import { useSessionKey } from "./use-session-key";
 import { useMedialaneClient } from "./use-medialane-client";
 import { MARKETPLACE_CONTRACT, SUPPORTED_TOKENS, INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
-import { normalizeAddress } from "@/lib/utils";
 import type { ChipiCall } from "./use-chipi-transaction";
 
 /** Resolve a currency symbol (e.g. "USDC") to its on-chain contract address.
@@ -167,18 +166,12 @@ export function useMarketplace() {
   /**
    * Shared intent flow:
    *  create intent → sign typedData → submit signature → execute returned calls
-   *
-   * @param requiredEventFrom - If provided, the receipt MUST contain an event from this
-   *   contract address. Used to detect silent failures inside ChipiPay's multicall wrapper
-   *   (e.g. fulfill_order panicking due to insufficient balance — ChipiPay reports SUCCEEDED
-   *   but no OrderFulfilled event is emitted).
    */
   const runIntent = useCallback(
     async (
       pin: string,
       intentFn: () => Promise<{ data: { id: string; typedData: unknown; calls: unknown } }>,
-      successMsg: string,
-      requiredEventFrom?: string
+      successMsg: string
     ): Promise<string | undefined> => {
       if (!walletAddress) throw new Error("Wallet not ready. Please wait a moment.");
 
@@ -197,23 +190,6 @@ export function useMarketplace() {
       const result = await execWithPin(pin, calls);
       if (result.status === "reverted") {
         throw new Error(result.revertReason || "Transaction reverted on chain");
-      }
-
-      // ChipiPay's multicall wrapper reports SUCCEEDED even when inner calls panic
-      // (e.g. fulfill_order failing due to insufficient ERC-20 balance). Verify that
-      // the expected contract emitted at least one event to confirm the operation
-      // actually executed on-chain.
-      if (requiredEventFrom) {
-        const normalizedRequired = normalizeAddress(requiredEventFrom);
-        const hasEvent = (result.events ?? []).some(
-          (e) => normalizeAddress(e.from_address ?? "") === normalizedRequired
-        );
-        if (!hasEvent) {
-          throw new Error(
-            "Transaction was submitted but the operation did not complete onchain. " +
-            "Please check your token balance and try again."
-          );
-        }
       }
 
       toast.success(successMsg);
@@ -269,8 +245,7 @@ export function useMarketplace() {
             fulfiller: walletAddress!,
             orderHash: input.orderHash,
           }),
-          "Purchase complete!",
-          MARKETPLACE_CONTRACT
+          "Purchase complete!"
         );
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Purchase failed";

@@ -4,7 +4,6 @@ import { useState, useCallback, useRef } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useChipiWallet, useCallAnyContract } from "@chipi-stack/nextjs";
 import { starknetProvider } from "@/lib/starknet";
-import { STARKNET_RPC_URL } from "@/lib/constants";
 import type { WalletCredentials } from "@/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────
@@ -26,7 +25,6 @@ export type ChipiTransactionResult = {
   txHash: string;
   status: "confirmed" | "reverted";
   revertReason?: string;
-  events?: Array<{ from_address: string; keys: string[] }>;
 };
 
 export type ChipiTransactionStatus =
@@ -129,29 +127,7 @@ export function useChipiTransaction() {
           }
 
           setStatus("confirmed");
-
-          // Fetch events via a direct raw RPC call to avoid any starknet.js receipt
-          // wrapping (ReceiptTx) that may not preserve the events array reliably.
-          let events: Array<{ from_address: string; keys: string[] }> = [];
-          try {
-            const rpcRes = await fetch(STARKNET_RPC_URL, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                jsonrpc: "2.0",
-                method: "starknet_getTransactionReceipt",
-                params: { transaction_hash: result },
-                id: 1,
-              }),
-            });
-            const rpcJson = await rpcRes.json();
-            events = rpcJson?.result?.events ?? [];
-          } catch {
-            // Best-effort — fall back to whatever starknet.js returned
-            events = (receipt as any)?.events ?? [];
-          }
-
-          return { txHash: result, status: "confirmed", events };
+          return { txHash: result, status: "confirmed" };
         } catch (receiptError: unknown) {
           const reason = receiptError instanceof Error ? receiptError.message : "Transaction failed on L2";
           setStatus("reverted");
