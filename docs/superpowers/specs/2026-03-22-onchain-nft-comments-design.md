@@ -322,7 +322,7 @@ export async function handleCommentAdded(comment: ParsedComment): Promise<void> 
 GET /v1/tokens/:contract/:tokenId/comments
   Query:    ?page=1&limit=20
   Response: { data: ApiComment[], meta: { page, limit, total } }
-  Order:    blockTimestamp DESC, createdAt DESC (newest on-chain first)
+  Order:    createdAt DESC (newest first)
   Auth:     none (public read)
   Filter:   WHERE isHidden = false
 ```
@@ -437,7 +437,7 @@ const calldata = CallData.compile({
 
 ### 4d. Asset Page — Add Comments Tab
 
-File: `src/app/[contract]/[tokenId]/asset-page-client.tsx`
+File: `src/app/asset/[contract]/[tokenId]/asset-page-client.tsx`
 
 Add a **Comments** tab between Markets and Provenance:
 - Tab trigger: `Comments` with a count badge when `comments.length > 0`.

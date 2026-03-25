@@ -96,10 +96,7 @@ export async function POST(req: NextRequest) {
 
     // ── Build OpenSea ERC-721 + Berne Convention compatible metadata ───────────
     type Attr = { trait_type: string; value: string };
-    const attributes: Attr[] = [
-      { trait_type: "Platform", value: "Medialane" },
-      { trait_type: "Network", value: "Starknet Mainnet" },
-    ];
+    const attributes: Attr[] = [];
 
     if (creator) attributes.push({ trait_type: "Creator", value: creator });
     if (ipType) attributes.push({ trait_type: "IP Type", value: ipType });

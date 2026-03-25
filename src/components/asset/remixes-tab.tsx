@@ -14,7 +14,6 @@ interface RemixesTabProps {
 
 export function RemixesTab({ contractAddress, tokenId }: RemixesTabProps) {
   const { remixes, total, isLoading } = useTokenRemixes(contractAddress, tokenId);
-  const visibleRemixes = remixes.filter((r) => r.remixContract && r.remixTokenId);
 
   if (isLoading) {
     return (
@@ -26,7 +25,7 @@ export function RemixesTab({ contractAddress, tokenId }: RemixesTabProps) {
     );
   }
 
-  if (visibleRemixes.length === 0) {
+  if (remixes.length === 0) {
     return (
       <div className="flex flex-col items-center gap-3 py-12 text-center">
         <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -40,16 +39,10 @@ export function RemixesTab({ contractAddress, tokenId }: RemixesTabProps) {
 
   return (
     <div className="space-y-3">
-      <p className="text-xs text-muted-foreground">
-        {visibleRemixes.length} remix{visibleRemixes.length !== 1 ? "es" : ""} of this asset
-        {total > visibleRemixes.length ? (
-          <span className="block text-[10px] mt-0.5 opacity-80">
-            {total} recorded (some pending indexing)
-          </span>
-        ) : null}
-      </p>
+      <p className="text-xs text-muted-foreground">{total} remix{total !== 1 ? "es" : ""} of this asset</p>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {visibleRemixes.map((remix) => (
+        {remixes.map((remix) =>
+          remix.remixContract && remix.remixTokenId ? (
             <Link
               key={remix.id}
               href={`/asset/${remix.remixContract}/${remix.remixTokenId}`}
@@ -72,7 +65,8 @@ export function RemixesTab({ contractAddress, tokenId }: RemixesTabProps) {
                 </div>
               </div>
             </Link>
-        ))}
+          ) : null
+        )}
       </div>
     </div>
   );

@@ -27,7 +27,7 @@ export function useRemixOffers(role: "creator" | "requester", status?: string) {
   const { getToken } = useAuth();
   const { walletAddress } = useSessionKey();
 
-  const key = walletAddress ? `remix-offers-${walletAddress}-${role}-${status ?? "all"}` : null;
+  const key = walletAddress ? `remix-offers-${role}-${status ?? "all"}` : null;
 
   const { data, error, isLoading, mutate } = useSWR<RemixOfferListResponse>(
     key,
@@ -46,16 +46,10 @@ export function useRemixOffers(role: "creator" | "requester", status?: string) {
 export function useTokenRemixes(contract: string | null, tokenId: string | null) {
   const { data, error, isLoading, mutate } = useSWR<{ data: PublicRemix[]; meta: { total: number } }>(
     contract && tokenId ? `token-remixes-${contract}-${tokenId}` : null,
-    async () => {
-      const res = await fetch(`${MEDIALANE_BACKEND_URL}/v1/tokens/${contract}/${tokenId}/remixes`, {
+    () =>
+      fetch(`${MEDIALANE_BACKEND_URL}/v1/tokens/${contract}/${tokenId}/remixes`, {
         headers: { "x-api-key": MEDIALANE_API_KEY },
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error((err as any).error ?? `Request failed: ${res.status}`);
-      }
-      return res.json();
-    },
+      }).then((r) => r.json()),
     { refreshInterval: 60000, revalidateOnFocus: false }
   );
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-const GENESIS_MINT_DATE = new Date("2026-03-26T00:00:00Z");
+const GENESIS_MINT_DATE = new Date("2026-03-27T00:00:00Z");
 
 function pad(n: number) {
   return String(n).padStart(2, "0");

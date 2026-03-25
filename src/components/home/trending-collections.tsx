@@ -17,7 +17,7 @@ export function TrendingCollections() {
           <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
             <Clock className="h-4 w-4 text-white" />
           </div>
-          <h2 className="text-xl sm:text-2xl font-black">Recent Collections</h2>
+          <h2 className="text-xl sm:text-2xl font-black">Onchain Collections</h2>
         </div>
         <Button variant="ghost" size="sm" asChild>
           <Link href="/collections" className="flex items-center gap-1 text-muted-foreground hover:text-foreground">

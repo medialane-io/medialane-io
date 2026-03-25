@@ -747,7 +747,7 @@ export default function CreateAssetPage() {
               <button
                 type="submit"
                 disabled={mintStep !== "idle" || collectionsLoading || collections.length === 0}
-                className="w-full h-12 text-base font-semibold text-white rounded-[11px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] bg-brand-blue focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="w-full h-12 text-base font-semibold text-white rounded-[11px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] bg-brand-blue"
               >
                 {listingOpen && listPrice && parseFloat(listPrice) > 0 ? "Mint & List" : "Mint asset"}
               </button>

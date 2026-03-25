@@ -60,7 +60,9 @@ function OnboardingContent() {
 
   const createWalletWithKey = async (encryptKey: string) => {
     const wallet = await createWallet({ encryptKey });
-    const walletKey = wallet.publicKey;
+    // ChipiPay API may return the address as `walletPublicKey` or `publicKey`
+    
+    const walletKey = wallet.normalizedPublicKey ?? wallet.publicKey;
     if (!walletKey) {
       throw new Error("Wallet creation returned invalid data");
     }

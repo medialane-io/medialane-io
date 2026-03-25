@@ -134,11 +134,7 @@ export default function CollectionPageClient() {
 
   useEffect(() => {
     const el = descRef.current;
-    if (!el || !collection?.description) {
-      setDescOverflows(false);
-      setDescClamped(false);
-      return;
-    }
+    if (!el || !collection?.description) return;
     setDescOverflows(el.scrollHeight > 80);
     setDescClamped(true);
   }, [collection?.description]);

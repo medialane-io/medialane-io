@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { KineticWords, EASE_OUT } from "@/components/ui/motion-primitives";
 import { Compass, Sparkles } from "lucide-react";
 import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
+import { CurrencyIcon } from "@/components/shared/currency-icon";
 import type { ApiOrder } from "@medialane/sdk";
 
 function MarqueePill({ listing }: { listing: ApiOrder }) {
@@ -37,7 +38,8 @@ function MarqueePill({ listing }: { listing: ApiOrder }) {
           {listing.token?.name ?? `#${listing.nftTokenId}`}
         </p>
         {listing.price && (
-          <p className="text-[10px] font-bold text-brand-orange whitespace-nowrap">
+          <p className="text-[10px] font-bold text-brand-orange whitespace-nowrap flex items-center gap-0.5">
+            <CurrencyIcon symbol={listing.price.currency} size={10} />
             {formatDisplayPrice(listing.price.formatted)} {listing.price.currency}
           </p>
         )}

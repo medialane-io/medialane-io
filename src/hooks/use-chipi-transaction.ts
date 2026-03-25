@@ -25,7 +25,6 @@ export type ChipiTransactionResult = {
   txHash: string;
   status: "confirmed" | "reverted";
   revertReason?: string;
-  events?: Array<{ from_address: string; keys: string[] }>;
 };
 
 export type ChipiTransactionStatus =
@@ -128,7 +127,7 @@ export function useChipiTransaction() {
           }
 
           setStatus("confirmed");
-          return { txHash: result, status: "confirmed", events: (receipt as any)?.events ?? [] };
+          return { txHash: result, status: "confirmed" };
         } catch (receiptError: unknown) {
           const reason = receiptError instanceof Error ? receiptError.message : "Transaction failed on L2";
           setStatus("reverted");

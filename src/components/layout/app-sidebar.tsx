@@ -34,8 +34,8 @@ const NAV = [
   { href: "/marketplace", label: "Marketplace", icon: Compass, exact: true },
   { href: "/collections", label: "Collections", icon: LayoutGrid, exact: true },
   { href: "/creators",   label: "Creators",    icon: Users,      exact: true },
-  { href: "/portfolio", label: "Portfolio", icon: Briefcase, exact: true },
-  { href: "/create", label: "Create", icon: PlusCircle, exact: true },
+  { href: "/portfolio", label: "Portfolio", icon: Briefcase, exact: true, prefetch: false },
+  { href: "/create", label: "Create", icon: PlusCircle, exact: true, prefetch: false },
   { href: "/launchpad", label: "Launchpad", icon: Zap, exact: true },
   { href: "/activities", label: "Activity", icon: Activity, exact: true },
 ];
@@ -110,7 +110,7 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarMenu>
-            {NAV.map(({ href, label, icon: Icon, exact }) => {
+            {NAV.map(({ href, label, icon: Icon, exact, prefetch }) => {
               const showBadge = href === "/portfolio" && unreadOffers > 0;
               return (
                 <SidebarMenuItem key={href}>
@@ -120,7 +120,7 @@ export function AppSidebar() {
                     tooltip={showBadge ? `${label} (${unreadOffers} new offer${unreadOffers > 1 ? "s" : ""})` : label}
                     onClick={closeSidebar}
                   >
-                    <Link href={href} className="relative">
+                    <Link href={href} prefetch={prefetch} className="relative">
                       <Icon />
                       <span>{label}</span>
                       {showBadge && (

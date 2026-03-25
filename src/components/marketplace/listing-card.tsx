@@ -143,10 +143,7 @@ export function ListingCard({ order, onBuy }: ListingCardProps) {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link
-                      href={`/asset/${order.nftContract}/${order.nftTokenId}?action=transfer`}
-                      className="flex items-center gap-2"
-                    >
+                    <Link href={`/asset/${order.nftContract}/${order.nftTokenId}`} className="flex items-center gap-2">
                       <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground" />
                       Transfer Asset
                     </Link>

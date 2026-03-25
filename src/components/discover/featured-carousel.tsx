@@ -42,7 +42,7 @@ function Slide({ collection }: { collection: ApiCollection }) {
               <span className="font-bold text-white">{collection.totalSupply}</span> items
             </span>
           )}
-          {collection.floorPrice != null && (
+          {collection.floorPrice && (
             <span className="text-sm text-white/70">
               Floor{" "}
               <span className="font-bold text-brand-orange">
@@ -72,20 +72,11 @@ export function FeaturedCarousel() {
   const [paused, setPaused] = useState(false);
 
   const total = collections.length;
-  const safeActive = total > 0 ? Math.min(active, total - 1) : 0;
-  const next = useCallback(() => {
-    if (total === 0) return;
-    setActive((p) => (p + 1) % total);
-  }, [total]);
-  const prev = useCallback(() => {
-    if (total === 0) return;
-    setActive((p) => (p - 1 + total) % total);
-  }, [total]);
+  const next = useCallback(() => setActive((p) => (p + 1) % total), [total]);
+  const prev = useCallback(() => setActive((p) => (p - 1 + total) % total), [total]);
 
-  // Clamp active index when the list shrinks or grows
-  useEffect(() => {
-    setActive((p) => (total > 0 ? Math.max(0, Math.min(p, total - 1)) : 0));
-  }, [total]);
+  // Reset active index when collection list changes
+  useEffect(() => { setActive(0); }, [total]);
 
   useEffect(() => {
     if (paused || total <= 1) return;
@@ -137,14 +128,14 @@ export function FeaturedCarousel() {
         >
           <AnimatePresence mode="wait">
             <motion.div
-              key={collections[safeActive]?.contractAddress ?? safeActive}
+              key={active}
               className="absolute inset-0"
               initial={{ opacity: 0, x: 40 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -40 }}
               transition={{ duration: 0.45, ease: EASE_OUT }}
             >
-              <Slide collection={collections[safeActive]} />
+              <Slide collection={collections[active]} />
             </motion.div>
           </AnimatePresence>
 
@@ -174,7 +165,7 @@ export function FeaturedCarousel() {
                   key={i}
                   onClick={() => setActive(i)}
                   className={`h-1.5 rounded-full transition-all duration-300 ${
-                    i === safeActive
+                    i === active
                       ? "w-6 bg-white"
                       : "w-1.5 bg-white/40 hover:bg-white/70"
                   }`}

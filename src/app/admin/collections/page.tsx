@@ -12,6 +12,10 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { ExternalLink, RefreshCw, Plus, Download, EyeOff, Eye, Trash2 } from "lucide-react";
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL!;
+// Must match API_SECRET_KEY on the backend — set NEXT_PUBLIC_ADMIN_API_KEY in .env.local and Railway
+const ADMIN_KEY = process.env.NEXT_PUBLIC_ADMIN_API_KEY!;
+
 const SOURCE_STYLE: Record<string, string> = {
   MEDIALANE_REGISTRY: "bg-blue-500/20 text-blue-400",
   EXTERNAL: "bg-gray-500/20 text-gray-400",
@@ -50,9 +54,9 @@ export default function AdminCollectionsPage() {
   }
 
   async function adminFetch(path: string, opts: RequestInit = {}) {
-    return fetch(`/api/admin${path}`, {
+    return fetch(`${BACKEND_URL}${path}`, {
       ...opts,
-      headers: { "Content-Type": "application/json", ...opts.headers },
+      headers: { "x-api-key": ADMIN_KEY, "Content-Type": "application/json", ...opts.headers },
     });
   }
 
@@ -97,11 +101,7 @@ export default function AdminCollectionsPage() {
     setRegistering(true);
     try {
       const body: Record<string, unknown> = { contractAddress: registerContract.trim(), source: registerSource };
-      if (registerStartBlock.trim()) {
-        const trimmed = registerStartBlock.trim();
-        if (!/^\d+$/.test(trimmed)) throw new Error("Start block must be a non-negative integer");
-        body.startBlock = parseInt(trimmed, 10);
-      }
+      if (registerStartBlock.trim()) body.startBlock = parseInt(registerStartBlock.trim(), 10);
       const res = await adminFetch("/admin/collections", { method: "POST", body: JSON.stringify(body) });
       if (!res.ok) throw new Error();
       toast.success("Collection registered");
@@ -109,9 +109,7 @@ export default function AdminCollectionsPage() {
       setRegisterContract("");
       setRegisterStartBlock("");
       await mutate();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Registration failed");
-    }
+    } catch { toast.error("Registration failed"); }
     finally { setRegistering(false); }
   }
 
@@ -126,13 +124,7 @@ export default function AdminCollectionsPage() {
     setBackfilling(true);
     try {
       const body: Record<string, unknown> = {};
-      if (backfillFromBlock.trim()) {
-        const trimmed = backfillFromBlock.trim();
-        if (!/^\d+$/.test(trimmed)) {
-          throw new Error("From block must be a non-negative integer");
-        }
-        body.fromBlock = parseInt(trimmed, 10);
-      }
+      if (backfillFromBlock.trim()) body.fromBlock = parseInt(backfillFromBlock.trim(), 10);
       const res = await adminFetch(`/admin/collections/${backfillContract}/backfill-transfers`, { method: "POST", body: JSON.stringify(body) });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error((json as any).error ?? "Failed");

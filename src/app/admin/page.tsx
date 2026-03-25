@@ -1,30 +1,17 @@
-const BACKEND_URL = process.env.MEDIALANE_BACKEND_URL || "";
-const ADMIN_KEY = process.env.ADMIN_API_KEY || "";
-const TENANT_KEY = process.env.MEDIALANE_API_KEY || "";
-
-async function safeJson<T>(url: string, init: RequestInit, fallback: T): Promise<T> {
-  try {
-    const res = await fetch(url, init);
-    if (!res.ok) return fallback;
-    return (await res.json()) as T;
-  } catch {
-    return fallback;
-  }
-}
+const BACKEND_URL = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL!;
+// Admin endpoints require API_SECRET_KEY — use NEXT_PUBLIC_ADMIN_API_KEY (not tenant key)
+const ADMIN_KEY = process.env.NEXT_PUBLIC_ADMIN_API_KEY!;
+const TENANT_KEY = process.env.NEXT_PUBLIC_MEDIALANE_API_KEY!;
 
 async function getStats() {
   const h = { "x-api-key": ADMIN_KEY };
-  type HealthResponse = {
-    indexer?: { lastBlock?: number | string; lagBlocks?: number | null };
-    database?: string;
-  };
   const [p, c, f, uc, cr, health] = await Promise.all([
-    safeJson(`${BACKEND_URL}/admin/claims?status=PENDING&limit=1`, { headers: h, cache: "no-store" }, { total: 0 }),
-    safeJson(`${BACKEND_URL}/admin/collections?limit=1`, { headers: h, cache: "no-store" }, { total: 0 }),
-    safeJson(`${BACKEND_URL}/admin/collections?metadataStatus=FAILED&limit=1`, { headers: h, cache: "no-store" }, { total: 0 }),
-    safeJson(`${BACKEND_URL}/admin/username-claims?status=PENDING&limit=1`, { headers: h, cache: "no-store" }, { total: 0 }),
-    safeJson(`${BACKEND_URL}/v1/creators?limit=1`, { headers: { "x-api-key": TENANT_KEY }, cache: "no-store" }, { total: 0 }),
-    safeJson<HealthResponse>(`${BACKEND_URL}/health`, { cache: "no-store" }, { indexer: {}, database: "—" }),
+    fetch(`${BACKEND_URL}/admin/claims?status=PENDING&limit=1`, { headers: h, cache: "no-store" }).then(r => r.json()),
+    fetch(`${BACKEND_URL}/admin/collections?limit=1`, { headers: h, cache: "no-store" }).then(r => r.json()),
+    fetch(`${BACKEND_URL}/admin/collections?metadataStatus=FAILED&limit=1`, { headers: h, cache: "no-store" }).then(r => r.json()),
+    fetch(`${BACKEND_URL}/admin/username-claims?status=PENDING&limit=1`, { headers: h, cache: "no-store" }).then(r => r.json()),
+    fetch(`${BACKEND_URL}/v1/creators?limit=1`, { headers: { "x-api-key": TENANT_KEY }, cache: "no-store" }).then(r => r.json()),
+    fetch(`${BACKEND_URL}/health`, { cache: "no-store" }).then(r => r.json()),
   ]);
   return {
     pendingClaims: p.total ?? 0,
@@ -34,34 +21,14 @@ async function getStats() {
     totalCreators: cr.total ?? 0,
     indexer: {
       lastBlock: health.indexer?.lastBlock ?? "—",
-      lagBlocks: typeof health.indexer?.lagBlocks === "number" ? health.indexer.lagBlocks : null,
+      lagBlocks: health.indexer?.lagBlocks ?? "—",
       database: health.database ?? "—",
     },
   };
 }
 
 export default async function AdminDashboardPage() {
-  if (!BACKEND_URL || !ADMIN_KEY || !TENANT_KEY) {
-    return (
-      <div className="space-y-2">
-        <h2 className="text-lg font-semibold">Admin configuration missing</h2>
-        <p className="text-sm text-muted-foreground">
-          Set `MEDIALANE_BACKEND_URL`, `ADMIN_API_KEY`, and `MEDIALANE_API_KEY` on the server.
-        </p>
-      </div>
-    );
-  }
-
   const stats = await getStats();
-  const lag = stats.indexer.lagBlocks;
-  const lagNumeric = typeof lag === "number" && Number.isFinite(lag);
-  const lagColorClass = !lagNumeric
-    ? "text-muted-foreground"
-    : lag > 50
-      ? "text-destructive"
-      : lag > 20
-        ? "text-yellow-500"
-        : "text-green-500";
 
   const cards = [
     { label: "Pending Claims",    value: stats.pendingClaims,         href: "/admin/claims" },
@@ -90,8 +57,8 @@ export default async function AdminDashboardPage() {
         </div>
         <div>
           <p className="text-muted-foreground text-xs uppercase tracking-wider mb-0.5">Lag</p>
-          <p className={`font-semibold ${lagColorClass}`}>
-            {lagNumeric ? `${lag} blocks` : "—"}
+          <p className={`font-semibold ${Number(stats.indexer.lagBlocks) > 50 ? "text-destructive" : "text-green-500"}`}>
+            {stats.indexer.lagBlocks} blocks
           </p>
         </div>
         <div>

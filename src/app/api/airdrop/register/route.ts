@@ -7,11 +7,6 @@ const VALID_ROLES = new Set(["creator", "collector", "developer", "other"]);
 const ipCounts = new Map<string, { count: number; resetAt: number }>();
 function checkRateLimit(ip: string): boolean {
   const now = Date.now();
-  if (ipCounts.size > 1000) {
-    for (const [key, value] of ipCounts) {
-      if (now >= value.resetAt) ipCounts.delete(key);
-    }
-  }
   const entry = ipCounts.get(ip);
   if (!entry || now >= entry.resetAt) {
     ipCounts.set(ip, { count: 1, resetAt: now + 60_000 });

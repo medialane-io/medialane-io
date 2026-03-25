@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
   } else if (body.targetType === "CREATOR" && normalizedAddress) {
     targetKey = `CREATOR:${normalizedAddress}`;
   } else if (body.targetType === "COMMENT" && body.targetId) {
-    targetKey = `COMMENT:${body.targetId}`;
+    targetKey = `COMMENT::${body.targetId}`;
   } else {
     return NextResponse.json(
       { error: "Invalid target fields for targetType" },

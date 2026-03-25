@@ -1,12 +1,10 @@
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
-const BACKEND_URL =
-  process.env.MEDIALANE_BACKEND_URL || process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL || "";
-const ADMIN_KEY = process.env.ADMIN_API_KEY || "";
+const BACKEND_URL = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL!;
+const ADMIN_KEY = process.env.NEXT_PUBLIC_ADMIN_API_KEY!;
 
 async function getPendingReportCount(): Promise<number> {
-  if (!BACKEND_URL || !ADMIN_KEY) return 0;
   try {
     const res = await fetch(
       `${BACKEND_URL}/admin/reports?status=PENDING,UNDER_REVIEW&limit=1`,

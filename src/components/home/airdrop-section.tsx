@@ -79,11 +79,11 @@ export function AirdropSection() {
                 Built for{" "} <span className="gradient-text">Creators</span> &amp; <span className="gradient-text">Collectors</span>
               </h2>
               <p className="text-base sm:text-lg text-white/50 leading-relaxed max-w-lg">
-                Mint, collect, trade, remix and build revenue onchain.
+                Mint, collect, trade, remix and build revenue!
               </p>
             </div>
 
-            {/* Participant type cards — 2×2 grid */}
+            {/* 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               {PARTICIPANT_TYPES.map(({ icon: Icon, label, description, accent, border, dot }) => (
                 <div
@@ -101,19 +101,18 @@ export function AirdropSection() {
                   </div>
                   <div>
                     <p className="font-bold text-sm text-white/90">{label}</p>
-                    {/* <p className="text-xs text-white/40 leading-relaxed mt-0.5">{description}</p> */}
                   </div>
                   <span className={cn("absolute top-3 right-3 h-1.5 w-1.5 rounded-full animate-pulse", dot)} />
                 </div>
               ))}
-            </div>
+            </div>*/}
 
             {/* Stat strip */}
             <div className="flex items-center gap-8 pt-2">
               {[
                 { value: "Zero Fees", label: "on launch" },
                 { value: "Gas-free", label: "transactions" },
-                { value: "Secure", label: "onchain trading" },
+                { value: "Atomic", label: "onchain settlement" },
               ].map(({ value, label }) => (
                 <div key={label}>
                   <p className="text-lg font-black text-white">{value}</p>

@@ -43,16 +43,6 @@ import { Globe, Twitter, MessageCircle, Send } from "lucide-react";
 
 // ─── Address color identity ──────────────────────────────────────────────────
 
-function isValidHttpUrl(url: string | null | undefined): url is string {
-  if (!url?.trim()) return false;
-  try {
-    const u = new URL(url.trim());
-    return u.protocol === "http:" || u.protocol === "https:";
-  } catch {
-    return false;
-  }
-}
-
 function addressPalette(address: string) {
   const seed = parseInt(address.slice(2, 10) || "a1b2c3d4", 16);
   const h1 = seed % 360;
@@ -248,10 +238,10 @@ export default function CreatorPageClient() {
     (url: string) => fetch(url).then(r => r.json())
   );
 
-  // Load these unconditionally so header stats are accurate without tab switching.
-  const { tokens,      isLoading: tokensLoading      } = useTokensByOwner(addr);
-  const { orders,      isLoading: ordersLoading      } = useUserOrders(addr);
-  const { collections, isLoading: collectionsLoading } = useCollectionsByOwner(addr);
+  // Lazy data fetching — only load when tab is active
+  const { tokens,      isLoading: tokensLoading      } = useTokensByOwner(activeTab === "assets"      ? addr : null);
+  const { orders,      isLoading: ordersLoading      } = useUserOrders(activeTab === "listings"    ? addr : null);
+  const { collections, isLoading: collectionsLoading } = useCollectionsByOwner(activeTab === "collections" ? addr : null);
   const { activities,  isLoading: activitiesLoading  } = useActivitiesByAddress(addr);
 
   // Always fetch one token for the banner image
@@ -347,10 +337,8 @@ export default function CreatorPageClient() {
             size="sm"
             className="bg-background/60 backdrop-blur-sm border-white/20 text-white hover:bg-background/80 hover:text-white"
             onClick={() => {
-              void navigator.clipboard
-                .writeText(window.location.href)
-                .then(() => toast.success("Link copied"))
-                .catch(() => toast.error("Could not copy link"));
+              navigator.clipboard.writeText(window.location.href);
+              toast.success("Link copied");
             }}
           >
             <Share2 className="h-3.5 w-3.5 mr-1.5" />
@@ -430,14 +418,10 @@ export default function CreatorPageClient() {
             )}
           </div>
 
-          {/* Social links — only http(s) to avoid javascript: etc. */}
-          {profile &&
-            (isValidHttpUrl(profile.websiteUrl) ||
-              isValidHttpUrl(profile.twitterUrl) ||
-              isValidHttpUrl(profile.discordUrl) ||
-              isValidHttpUrl(profile.telegramUrl)) && (
+          {/* Social links */}
+          {(profile?.websiteUrl || profile?.twitterUrl || profile?.discordUrl || profile?.telegramUrl) && (
             <div className="flex items-center gap-2">
-              {isValidHttpUrl(profile.websiteUrl) && (
+              {profile.websiteUrl && (
                 <a
                   href={profile.websiteUrl}
                   target="_blank"
@@ -448,7 +432,7 @@ export default function CreatorPageClient() {
                   <Globe className="h-3.5 w-3.5" />
                 </a>
               )}
-              {isValidHttpUrl(profile.twitterUrl) && (
+              {profile.twitterUrl && (
                 <a
                   href={profile.twitterUrl}
                   target="_blank"
@@ -459,7 +443,7 @@ export default function CreatorPageClient() {
                   <Twitter className="h-3.5 w-3.5" />
                 </a>
               )}
-              {isValidHttpUrl(profile.discordUrl) && (
+              {profile.discordUrl && (
                 <a
                   href={profile.discordUrl}
                   target="_blank"
@@ -470,7 +454,7 @@ export default function CreatorPageClient() {
                   <MessageCircle className="h-3.5 w-3.5" />
                 </a>
               )}
-              {isValidHttpUrl(profile.telegramUrl) && (
+              {profile.telegramUrl && (
                 <a
                   href={profile.telegramUrl}
                   target="_blank"

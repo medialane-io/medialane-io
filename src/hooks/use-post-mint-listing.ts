@@ -49,7 +49,7 @@ export function usePostMintListing() {
         });
       } catch { /* snapshot errors are non-fatal */ }
 
-      // Poll until the indexer surfaces the newly minted token (max ~84s: 8000ms + 19×4000ms).
+      // Poll until the indexer surfaces the newly minted token (max ~88s).
       // First wait is longer — indexer cycle is ~6s and IPFS metadata fetch adds more time.
       let newToken: { contractAddress: string; tokenId: string } | null = null;
       for (let attempt = 0; attempt < POLL_ATTEMPTS; attempt++) {

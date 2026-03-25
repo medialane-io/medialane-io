@@ -39,12 +39,6 @@ function SearchBar() {
   // Use a nullable type so React infers MutableRefObject (not RefObject with readonly `current`)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
-  }, []);
-
   const handleChange = (value: string) => {
     setQuery(value);
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -203,15 +197,6 @@ export default function MarketplacePageClient() {
   const [minPrice, setMinPrice] = useState<string | undefined>();
   const [maxPrice, setMaxPrice] = useState<string | undefined>();
   const priceDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (priceDebounce.current) {
-        clearTimeout(priceDebounce.current);
-        priceDebounce.current = null;
-      }
-    };
-  }, []);
 
   const handlePriceInput = (min: string, max: string) => {
     setMinInput(min);

@@ -102,11 +102,6 @@ export function HeroSlider() {
   const { collections, isLoading } = useCollections(1, 3, true, "recent");
   const [current, setCurrent] = useState(0);
   const count = collections.length;
-  const safeCurrent = count > 0 ? Math.min(current, count - 1) : 0;
-
-  useEffect(() => {
-    setCurrent((c) => (count > 0 ? Math.min(c, count - 1) : 0));
-  }, [count]);
 
   const next = useCallback(() => {
     if (count > 1) setCurrent((c) => (c + 1) % count);
@@ -137,7 +132,7 @@ export function HeroSlider() {
       ) : (
         <>
           {collections.map((col, i) => (
-            <HeroSlide key={col.contractAddress} collection={col} active={i === safeCurrent} />
+            <HeroSlide key={col.contractAddress} collection={col} active={i === current} />
           ))}
 
           {/* Prev / Next arrows */}
@@ -170,7 +165,7 @@ export function HeroSlider() {
                   aria-label={`Go to slide ${i + 1}`}
                   className={cn(
                     "h-1.5 rounded-full transition-all",
-                    i === safeCurrent ? "w-6 bg-white" : "w-1.5 bg-white/40"
+                    i === current ? "w-6 bg-white" : "w-1.5 bg-white/40"
                   )}
                 />
               ))}

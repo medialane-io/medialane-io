@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useToken, useTokenHistory } from "@/hooks/use-tokens";
@@ -54,7 +54,6 @@ const TYPE_LABEL: Record<string, string> = {
 export default function AssetPageClient() {
   const { contract, tokenId } = useParams<{ contract: string; tokenId: string }>();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { isSignedIn, getToken } = useAuth();
   const { walletAddress } = useSessionKey();
   const { collection } = useCollection(contract);
@@ -82,12 +81,6 @@ export default function AssetPageClient() {
   const [transferOpen, setTransferOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [commentOpen, setCommentOpen] = useState(false);
-
-  useEffect(() => {
-    if (searchParams.get("action") !== "transfer") return;
-    setTransferOpen(true);
-    router.replace(`/asset/${contract}/${tokenId}`, { scroll: false });
-  }, [searchParams, contract, tokenId, router]);
 
   const isMobile = useIsMobile();
   const { comments, total: commentTotal } = useComments(contract, tokenId);

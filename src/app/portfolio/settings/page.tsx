@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { AtSign, CheckCircle2, Clock, XCircle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -80,7 +81,7 @@ export default function ProfileSettingsPage() {
   const { getToken } = useAuth();
   const { user } = useUser();
   const { walletAddress } = useSessionKey();
-  const { profile, mutate } = useCreatorProfile(walletAddress ?? undefined);
+  const { profile, isLoading: profileLoading, mutate } = useCreatorProfile(walletAddress ?? undefined);
   const { username: approvedUsername, claim, mutate: mutateClaim } = useMyUsernameClaim();
   const [saving, setSaving] = useState(false);
   const [claimInput, setClaimInput] = useState("");
@@ -155,11 +156,14 @@ export default function ProfileSettingsPage() {
     try {
       const token = await getToken();
       if (!token) throw new Error("Not authenticated");
-      await getMedialaneClient().api.updateCreatorProfile(walletAddress, form, token);
+      const result = await getMedialaneClient().api.updateCreatorProfile(walletAddress, form, token) as any;
+      if (!result?.walletAddress) {
+        throw new Error(result?.error ?? "Save failed — please try again");
+      }
       await mutate(undefined, { revalidate: true });
       toast.success("Profile updated");
-    } catch {
-      toast.error("Failed to save changes");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to save changes");
     } finally {
       setSaving(false);
     }
@@ -192,6 +196,24 @@ export default function ProfileSettingsPage() {
       </div>
     );
   };
+
+  if (profileLoading || (walletAddress && !profile && profileLoading !== false)) {
+    return (
+      <div className="space-y-8 max-w-2xl">
+        <div>
+          <h1 className="text-xl font-semibold">Profile Settings</h1>
+          <p className="text-sm text-muted-foreground mt-1">Manage your public creator identity.</p>
+        </div>
+        <div className="space-y-4">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 max-w-2xl">
@@ -349,7 +371,7 @@ export default function ProfileSettingsPage() {
         </div>
       </div>
 
-      <Button onClick={handleSave} disabled={saving || !walletAddress}>
+      <Button onClick={handleSave} disabled={saving || !walletAddress || profileLoading}>
         {saving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving…</> : "Save Changes"}
       </Button>
     </div>

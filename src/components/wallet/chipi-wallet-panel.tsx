@@ -682,14 +682,8 @@ export function ChipiWalletPanel() {
               oldEncryptKey
             );
             const decryptedPrivateKey = decryptedPkBytes.toString(CryptoES.enc.Utf8);
-            const normalizedPrivateKey = decryptedPrivateKey.startsWith("0x")
-              ? decryptedPrivateKey.slice(2)
-              : decryptedPrivateKey;
-            const isValidHexPrivateKey = /^[0-9a-fA-F]{64}$/.test(normalizedPrivateKey);
-            if (!decryptedPrivateKey || !isValidHexPrivateKey) {
-              setError("Incorrect PIN. Please try again.");
-              setIsSubmitting(false);
-              return;
+            if (!decryptedPrivateKey) {
+              throw new Error("Incorrect PIN. Please try again.");
             }
 
             const passkeyData = await setupPasskey(userId, userId);

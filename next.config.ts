@@ -55,9 +55,6 @@ const nextConfig: NextConfig = {
       {
         // NFT token images can be hosted on any external CDN — allow all HTTPS sources.
         // Restricting by hostname breaks images for any collection not on Pinata/IPFS.
-        // Security: this widens Next/Image optimization to arbitrary HTTPS URLs (SSRF/cache
-        // amplification risk if URLs are attacker-controlled). Prefer `unoptimized` for
-        // untrusted metadata URLs, or add a server-side allowlist/proxy when hardening.
         protocol: "https",
         hostname: "**",
       },

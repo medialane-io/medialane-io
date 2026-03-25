@@ -50,7 +50,7 @@ export function TokenCard({
 
   const hasActions =
     (isOwner && (onList || onTransfer || onCancel)) ||
-    (!isOwner && !!activeOrder);
+    (!isOwner && activeOrder && (showBuyButton || true));
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();

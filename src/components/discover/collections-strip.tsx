@@ -45,7 +45,7 @@ function CollectionChip({ collection }: { collection: ApiCollection }) {
           </div>
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>{collection.totalSupply ?? 0} items</span>
-            {collection.floorPrice != null && (
+            {collection.floorPrice && (
               <span className="font-semibold text-brand-orange">
                 {formatDisplayPrice(collection.floorPrice)}
               </span>

@@ -9,6 +9,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { toast } from "sonner";
 import { ExternalLink, Wrench } from "lucide-react";
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL!;
+const ADMIN_KEY   = process.env.NEXT_PUBLIC_ADMIN_API_KEY!;
+
 const STATUS_STYLE: Record<string, string> = {
   APPROVED: "bg-green-500/20 text-green-400",
   PENDING:  "bg-yellow-500/20 text-yellow-400",
@@ -37,26 +40,18 @@ export default function AdminCreatorsPage() {
     setFixing(true);
     try {
       const res = await fetch(
-        `/api/admin/admin/creators/${encodeURIComponent(fixCreator.walletAddress)}/fix-wallet`,
+        `${BACKEND_URL}/admin/creators/${fixCreator.walletAddress}/fix-wallet`,
         {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          headers: { "x-api-key": ADMIN_KEY, "Content-Type": "application/json" },
           body: JSON.stringify({ newAddress: newWallet.trim() }),
         }
       );
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(
-          (err as any).error ??
-            `Failed to fix wallet (${res.status} ${res.statusText})`
-        );
-      }
+      if (!res.ok) throw new Error();
       toast.success(`Wallet corrected for @${fixCreator.username}`);
       setFixOpen(false);
       await mutate();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to fix wallet");
-    }
+    } catch { toast.error("Failed to fix wallet"); }
     finally { setFixing(false); }
   }
 

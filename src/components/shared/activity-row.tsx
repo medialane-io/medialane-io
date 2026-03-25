@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { useToken } from "@/hooks/use-tokens";
 import { ipfsToHttp, timeAgo, formatDisplayPrice, cn } from "@/lib/utils";
+import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { ACTIVITY_TYPE_CONFIG } from "@/lib/activity";
 import { EXPLORER_URL } from "@/lib/constants";
 import type { ApiActivity } from "@medialane/sdk";
@@ -130,7 +131,8 @@ export function ActivityRow({
             <p className="text-sm font-bold tabular-nums leading-tight">
               {formatDisplayPrice(activity.price.formatted)}
             </p>
-            <p className="text-[10px] text-muted-foreground leading-tight">
+            <p className="text-[10px] text-muted-foreground leading-tight flex items-center justify-end gap-0.5">
+              <CurrencyIcon symbol={activity.price.currency} size={10} />
               {activity.price.currency}
             </p>
           </div>

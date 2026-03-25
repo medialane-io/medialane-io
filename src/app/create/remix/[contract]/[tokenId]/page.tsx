@@ -31,7 +31,6 @@ import { IP_TYPES, LICENSE_TYPES, type IPType } from "@/types/ip";
 import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import { INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-import { parseDecimalToUnits } from "@/lib/decimal-units";
 import {
   GitBranch, ChevronDown, ChevronLeft, ImagePlus, Upload,
   Shield, DollarSign, Percent, Boxes, Plus, Info, Loader2,
@@ -326,7 +325,7 @@ export default function CreateRemixPage() {
     try {
       const tokenInfo = getTokenBySymbol(currency as any);
       const decimals = tokenInfo?.decimals ?? 18;
-      const rawPrice = parseDecimalToUnits(price, decimals);
+      const rawPrice = BigInt(Math.round(parseFloat(price) * 10 ** decimals)).toString();
 
       await submitRemixOffer(
         {
@@ -667,11 +666,11 @@ export default function CreateRemixPage() {
             <div className="btn-border-animated p-[1px] rounded-xl">
               <button
                 type="button"
-                disabled={isOwner ? mintStep !== "idle" : offerLoading}
+                disabled={isOwner ? false : offerLoading}
                 onClick={isOwner ? handleOwnerSubmit : handleOfferSubmit}
                 className="w-full h-12 rounded-[11px] flex items-center justify-center gap-2 text-base font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-rose disabled:opacity-50"
               >
-                {(isOwner ? mintStep !== "idle" : offerLoading) ? (
+                {offerLoading ? (
                   <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
                   <GitBranch className="h-5 w-5" />

@@ -18,7 +18,6 @@ import { confirmRemixOffer } from "@/hooks/use-remix-offers";
 import { formatDisplayPrice } from "@/lib/utils";
 import { getTokenByAddress } from "@medialane/sdk";
 import { Check, GitBranch, Loader2 } from "lucide-react";
-import { formatUnitsToDecimal } from "@/lib/decimal-units";
 import type { RemixOffer } from "@/types/remix-offers";
 import type { ChipiCall } from "@/hooks/use-chipi-transaction";
 import { INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
@@ -58,7 +57,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
   const currencyToken = offer?.proposedCurrency ? getTokenByAddress(offer.proposedCurrency) : null;
   const priceDisplay =
     offer?.proposedPrice && currencyToken
-      ? `${formatDisplayPrice(formatUnitsToDecimal(offer.proposedPrice, currencyToken.decimals))} ${currencyToken.symbol}`
+      ? `${formatDisplayPrice((Number(BigInt(offer.proposedPrice)) / 10 ** currencyToken.decimals).toString())} ${currencyToken.symbol}`
       : "—";
 
   const handleOpenChange = (v: boolean) => {

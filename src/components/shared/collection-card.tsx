@@ -57,11 +57,7 @@ export function CollectionCard({ collection }: CollectionCardProps) {
               >
                 {collection.name ?? "Unnamed Collection"}
                 {collection.isKnown && (
-                  <CheckCircle2
-                    className="inline-block h-3 w-3 text-blue-400 ml-1.5 shrink-0 align-middle"
-                    aria-label="Known collection"
-                    role="img"
-                  />
+                  <CheckCircle2 className="inline-block h-3 w-3 text-blue-400 ml-1.5 shrink-0 align-middle" />
                 )}
               </p>
             )}

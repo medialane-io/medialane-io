@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ShoppingCart, Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/use-cart";
@@ -24,13 +24,13 @@ function orderToCartItem(order: ApiOrder) {
     currency: order.price?.currency ?? "STRK",
     currencyDecimals: order.price?.decimals ?? 18,
     offerer: order.offerer,
-    considerationToken: order.consideration?.token ?? "",
-    considerationAmount: order.consideration?.startAmount ?? "",
+    considerationToken: order.consideration.token ?? "",
+    considerationAmount: order.consideration.startAmount ?? "",
   };
 }
 
 export function SweepBar({ contract }: SweepBarProps) {
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState(1);
   const { listings, isLoading } = useCollectionFloorListings(contract, 20);
   const { addItem, items } = useCart();
   const { walletAddress } = useSessionKey();
@@ -42,28 +42,12 @@ export function SweepBar({ contract }: SweepBarProps) {
       l.offerer.toLowerCase() !== walletAddress.toLowerCase()
   );
 
-  const targetCurrency = buyable[0]?.price?.currency;
-  const mixedCurrencies = buyable.some(
-    (l) => (l.price?.currency ?? null) !== (targetCurrency ?? null)
-  );
-  const priced = targetCurrency
-    ? buyable.filter((l) => l.price?.currency === targetCurrency)
-    : buyable;
-
-  const maxSweep = Math.min(priced.length, 20);
-
-  useEffect(() => {
-    setCount((c) => {
-      if (maxSweep === 0) return 0;
-      return Math.min(Math.max(c, 1), maxSweep);
-    });
-  }, [maxSweep]);
+  const maxSweep = Math.min(buyable.length, 20);
 
   if (!isLoading && buyable.length === 0) return null;
 
   function handleSweep() {
-    if (count <= 0) return;
-    const toAdd = priced.slice(0, count);
+    const toAdd = buyable.slice(0, count);
     let added = 0;
     for (const order of toAdd) {
       const alreadyInCart = items.some((i) => i.orderHash === order.orderHash);
@@ -79,11 +63,11 @@ export function SweepBar({ contract }: SweepBarProps) {
     }
   }
 
-  const totalPrice = priced
+  const totalPrice = buyable
     .slice(0, count)
     .reduce((sum, l) => sum + parseFloat((l.price?.formatted ?? "0").replace(/[^0-9.]/g, "") || "0"), 0);
 
-  const currency = targetCurrency ?? "STRK";
+  const currency = buyable[0]?.price?.currency ?? "STRK";
 
   return (
     <div className="flex items-center gap-3 p-3 rounded-xl border border-border bg-card/50">
@@ -95,7 +79,7 @@ export function SweepBar({ contract }: SweepBarProps) {
           size="icon"
           variant="ghost"
           className="h-7 w-7"
-          onClick={() => setCount((c) => Math.max(0, c - 1))}
+          onClick={() => setCount((c) => Math.max(1, c - 1))}
           disabled={count <= 1}
         >
           <Minus className="h-3 w-3" />
@@ -115,14 +99,8 @@ export function SweepBar({ contract }: SweepBarProps) {
       {/* Total price */}
       {totalPrice > 0 && (
         <span className="text-sm text-muted-foreground">
-          {mixedCurrencies ? (
-            <span className="font-semibold text-foreground">Mixed currencies</span>
-          ) : (
-            <>
-              ≈ <span className="font-semibold text-foreground">{totalPrice.toFixed(2)}</span>{" "}
-              {currency}
-            </>
-          )}
+          ≈ <span className="font-semibold text-foreground">{totalPrice.toFixed(2)}</span>{" "}
+          {currency}
         </span>
       )}
 
@@ -131,7 +109,7 @@ export function SweepBar({ contract }: SweepBarProps) {
       <Button
         size="sm"
         onClick={handleSweep}
-        disabled={isLoading || count === 0 || buyable.length === 0}
+        disabled={isLoading || buyable.length === 0}
         className="gap-2 shrink-0"
       >
         <ShoppingCart className="h-3.5 w-3.5" />

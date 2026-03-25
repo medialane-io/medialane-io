@@ -8,12 +8,13 @@ import { Label } from "@/components/ui/label";
 import { RefreshCw, Activity, Database, Zap, GitMerge } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL ?? "";
+const BACKEND_URL = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL!;
+const ADMIN_KEY   = process.env.NEXT_PUBLIC_ADMIN_API_KEY!;
 
 function adminPost(path: string) {
-  return fetch(`/api/admin${path}`, {
+  return fetch(`${BACKEND_URL}${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "x-api-key": ADMIN_KEY },
   });
 }
 
@@ -30,11 +31,6 @@ export default function AdminMaintenancePage() {
   const [transferResult, setTransferResult]   = useState<{ inserted: number; skipped: number; metadataJobsEnqueued: number } | null>(null);
 
   const fetchHealth = useCallback(async () => {
-    if (!BACKEND_URL) {
-      setHealth(null);
-      setHealthLoading(false);
-      return;
-    }
     try {
       const res = await fetch(`${BACKEND_URL}/health`, { cache: "no-store" });
       setHealth(await res.json());
@@ -43,7 +39,7 @@ export default function AdminMaintenancePage() {
     } finally {
       setHealthLoading(false);
     }
-  }, [BACKEND_URL]);
+  }, []);
 
   // Fetch on mount + every 10s
   useEffect(() => {
@@ -89,9 +85,9 @@ export default function AdminMaintenancePage() {
     setTransferRunning(true);
     setTransferResult(null);
     try {
-      const res = await fetch(`/api/admin/admin/collections/${transferContract.trim()}/backfill-transfers`, {
+      const res = await fetch(`${BACKEND_URL}/admin/collections/${transferContract.trim()}/backfill-transfers`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "x-api-key": ADMIN_KEY, "Content-Type": "application/json" },
         body: JSON.stringify({ fromBlock }),
       });
       if (!res.ok) throw new Error();
@@ -131,12 +127,7 @@ export default function AdminMaintenancePage() {
           </button>
         </div>
 
-        {!BACKEND_URL ? (
-          <p className="text-sm text-destructive">
-            Set <code className="text-xs">NEXT_PUBLIC_MEDIALANE_BACKEND_URL</code> to enable indexer health
-            checks from the browser.
-          </p>
-        ) : healthLoading && !health ? (
+        {healthLoading && !health ? (
           <p className="text-sm text-muted-foreground">Loading…</p>
         ) : !health ? (
           <p className="text-sm text-destructive">Health check failed</p>

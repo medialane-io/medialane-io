@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button";
 import { EmptyOrError } from "@/components/ui/empty-or-error";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { useMarketplace } from "@/hooks/use-marketplace";
-import { ipfsToHttp, formatDisplayPrice, cn } from "@/lib/utils";
+import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import { ExternalLink, Tag } from "lucide-react";
 import { EXPLORER_URL } from "@/lib/constants";
 import { formatDistanceToNow } from "date-fns";
+import { cn } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
 import type { ApiOrder } from "@medialane/sdk";
@@ -24,13 +25,6 @@ function formatExpiry(endTime: string | bigint) {
   if (expiry < now) return { label: "Expired", urgent: false, expired: true };
   const urgent = expiry.getTime() - now.getTime() < 86400000;
   return { label: formatDistanceToNow(expiry, { addSuffix: true }), urgent, expired: false };
-}
-
-function parseNumericFormatted(value: string | null | undefined): number {
-  if (!value) return 0;
-  const normalized = value.replace(/[^0-9.,-]/g, "").replace(/,/g, "");
-  const parsed = Number.parseFloat(normalized);
-  return Number.isFinite(parsed) ? parsed : 0;
 }
 
 function ListingRow({
@@ -117,7 +111,7 @@ export function ListingsTable({ address }: ListingsTableProps) {
   // Per-currency totals
   const currencyTotals = myListings.reduce<Record<string, number>>((acc, o) => {
     const sym = o.price.currency ?? "?";
-    acc[sym] = (acc[sym] ?? 0) + parseNumericFormatted(o.price.formatted ?? "0");
+    acc[sym] = (acc[sym] ?? 0) + parseFloat(o.price.formatted ?? "0");
     return acc;
   }, {});
   const totalSummary = Object.entries(currencyTotals)

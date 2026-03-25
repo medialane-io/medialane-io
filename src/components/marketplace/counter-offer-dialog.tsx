@@ -1,17 +1,17 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { CheckCircle2, AlertCircle, Tag, ExternalLink, Loader2, LogIn, ArrowLeft, Sparkles } from "lucide-react";
-import { fireConfetti } from "@/lib/confetti";
+import { CheckCircle2, AlertCircle, ArrowLeftRight, ExternalLink, Loader2, LogIn, ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { PinInput, validatePin } from "@/components/ui/pin-input";
@@ -30,62 +31,64 @@ import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { SessionSetupDialog } from "@/components/chipi/session-setup-dialog";
 import { useAuth, SignInButton } from "@clerk/nextjs";
 import { useMarketplace } from "@/hooks/use-marketplace";
-import { EXPLORER_URL, DURATION_OPTIONS } from "@/lib/constants";
-import { parseFormPriceUsdc } from "@/lib/chipi/session-preferences";
-import { getListableTokens } from "@medialane/sdk";
-import { cn } from "@/lib/utils";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
+import { EXPLORER_URL, DURATION_OPTIONS } from "@/lib/constants";
 import { isWebAuthnSupported } from "@chipi-stack/nextjs";
 import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
 
-const CURRENCIES = getListableTokens().map((t) => t.symbol);
+/** Convert a human-readable amount string to raw wei integer string. */
+function toRawWei(humanAmount: string, decimals: number): string {
+  const parts = humanAmount.replace(/,/g, "").split(".");
+  const integer = BigInt(parts[0] || "0");
+  const fraction = (parts[1] || "").padEnd(decimals, "0").slice(0, decimals);
+  return (integer * BigInt(10 ** decimals) + BigInt(fraction)).toString();
+}
 
 const schema = z.object({
   price: z.string().min(1, "Price required").refine(
     (v) => !isNaN(parseFloat(v)) && parseFloat(v) > 0,
     "Must be a positive number"
   ),
-  // z.enum() requires a const tuple — use z.string().refine() for runtime-derived lists
-  currency: z.string().refine(
-    (v) => getListableTokens().some((t) => t.symbol === v),
-    "Invalid currency"
-  ),
-  durationSeconds: z.number().min(86400),
+  durationSeconds: z.number().int().min(3600),
+  message: z.string().max(500).optional(),
 });
 
 type FormValues = z.infer<typeof schema>;
 
-interface ListingDialogProps {
+interface CounterOfferDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  assetContract: string;
-  tokenId: string;
+  originalOrderHash: string;
   tokenName?: string;
-  onSuccess?: () => void;
+  /** Human-readable current bid (e.g. "12.5 USDC") — shown for reference */
+  currentBid?: string;
+  currencySymbol: string;
+  currencyDecimals: number;
 }
 
-export function ListingDialog({
+export function CounterOfferDialog({
   open,
   onOpenChange,
-  assetContract,
-  tokenId,
+  originalOrderHash,
   tokenName,
-  onSuccess,
-}: ListingDialogProps) {
+  currentBid,
+  currencySymbol,
+  currencyDecimals,
+}: CounterOfferDialogProps) {
   const { isSignedIn } = useAuth();
   const {
-    createListing,
+    makeCounterOffer,
     hasWallet,
     hasActiveSession,
     isSettingUpSession,
     setupSession,
-    maybeClearSessionForAmountCap,
     isProcessing,
     txStatus,
     txHash,
     error,
     resetState,
   } = useMarketplace();
+
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
   const [sessionSetupOpen, setSessionSetupOpen] = useState(false);
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
@@ -101,28 +104,14 @@ export function ListingDialog({
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { price: "", currency: "USDC", durationSeconds: 2592000 },
+    defaultValues: { price: "", durationSeconds: 604800, message: "" },
   });
 
-  const onSubmit = async (values: FormValues) => {
+  const onSubmit = (values: FormValues) => {
     if (!isSignedIn) return;
     setPendingValues(values);
-    if (!hasWallet) {
-      setWalletSetupOpen(true);
-      return;
-    }
-    const priceUsdc = parseFormPriceUsdc(values.price);
-    const cleared = await maybeClearSessionForAmountCap(priceUsdc);
-    if (cleared) {
-      toast.info("Large listing — fresh signing session", {
-        description:
-          "Your saved session was cleared for this transaction size. Register a new session to continue.",
-      });
-    }
-    if (cleared || !hasActiveSession) {
-      setSessionSetupOpen(true);
-      return;
-    }
+    if (!hasWallet) { setWalletSetupOpen(true); return; }
+    if (!hasActiveSession) { setSessionSetupOpen(true); return; }
     setStep("pin");
   };
 
@@ -136,51 +125,38 @@ export function ListingDialog({
     }
   };
 
+  const execWithPin = async (pinValue: string) => {
+    if (!pendingValues) return;
+    await makeCounterOffer({
+      originalOrderHash,
+      counterPriceRaw: toRawWei(pendingValues.price, currencyDecimals),
+      durationSeconds: pendingValues.durationSeconds,
+      message: pendingValues.message || undefined,
+      tokenName,
+      pin: pinValue,
+    });
+    setPin("");
+    setStep("form");
+  };
+
   const handlePin = async () => {
     const err = validatePin(pin);
     if (err) { setPinError(err); return; }
     setPinError(null);
-    if (!pendingValues) return;
-
-    await createListing({
-      assetContract,
-      tokenId,
-      tokenName,
-      price: pendingValues.price,
-      currencySymbol: pendingValues.currency,
-      durationSeconds: pendingValues.durationSeconds,
-      pin,
-    });
-    setPin("");
-    setStep("form");
+    await execWithPin(pin);
   };
 
   const handleUsePasskey = async () => {
     setPinError(null);
     setIsAuthenticatingPasskey(true);
     try {
-      if (!pendingValues) return;
-
       const derived = encryptKey ?? (await authenticate());
       if (!derived) throw new Error("Passkey authentication failed.");
-
-      await createListing({
-        assetContract,
-        tokenId,
-        tokenName,
-        price: pendingValues.price,
-        currencySymbol: pendingValues.currency,
-        durationSeconds: pendingValues.durationSeconds,
-        pin: derived,
-      });
-
-      setPin("");
-      setStep("form");
+      await execWithPin(derived);
     } catch (err: unknown) {
-      const msg = err instanceof Error
-        ? err.message
-        : "Passkey authentication failed";
-      toast.error("Passkey authentication failed", { description: msg });
+      toast.error("Passkey authentication failed", {
+        description: err instanceof Error ? err.message : "Passkey authentication failed",
+      });
     } finally {
       setIsAuthenticatingPasskey(false);
     }
@@ -198,16 +174,7 @@ export function ListingDialog({
     }
   };
 
-  const isSuccess = !isProcessing && txStatus === "confirmed" && !error;
-  const confettiFired = useRef(false);
-
-  useEffect(() => {
-    if (isSuccess && !confettiFired.current) {
-      confettiFired.current = true;
-      fireConfetti();
-    }
-    if (!isSuccess) confettiFired.current = false;
-  }, [isSuccess]);
+  const isSuccess = txStatus === "confirmed" && !error;
 
   return (
     <>
@@ -215,17 +182,23 @@ export function ListingDialog({
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {step === "pin" ? "Confirm with PIN" : "List for sale"}
+              {step === "pin" ? "Confirm with PIN" : "Send a counter-offer"}
             </DialogTitle>
+            {step === "form" && (
+              <DialogDescription>
+                Propose a different price to the buyer. Your NFT will be listed as a
+                counter-offer — verifiable on-chain.
+              </DialogDescription>
+            )}
           </DialogHeader>
 
           {!isSignedIn ? (
             <div className="flex flex-col items-center gap-4 py-8 text-center">
               <LogIn className="h-10 w-10 text-muted-foreground" />
               <div>
-                <p className="font-semibold">Sign in to list</p>
+                <p className="font-semibold">Sign in to send a counter-offer</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  You need a Medialane account to list assets for sale.
+                  You need a Medialane account to counter bids.
                 </p>
               </div>
               <SignInButton mode="modal">
@@ -233,59 +206,42 @@ export function ListingDialog({
               </SignInButton>
             </div>
           ) : isSuccess ? (
-            <div className="flex flex-col items-center gap-5 py-2">
-              <div className="relative">
-                <div className="h-16 w-16 rounded-full bg-emerald-500/15 flex items-center justify-center">
-                  <CheckCircle2 className="h-9 w-9 text-emerald-500" />
-                </div>
-                <Sparkles className="absolute -top-1 -right-1 h-5 w-5 text-yellow-400" />
-              </div>
-              <div className="text-center space-y-1">
-                <p className="font-bold text-xl">Listing live!</p>
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-medium text-foreground">
-                    {tokenName || `Token #${tokenId}`}
-                  </span>{" "}
-                  is now available for {pendingValues?.price} {pendingValues?.currency}.
-                </p>
-              </div>
+            <div className="flex flex-col items-center gap-4 py-4">
+              <CheckCircle2 className="h-12 w-12 text-emerald-500" />
+              <p className="font-semibold text-lg">Counter-offer sent!</p>
+              <p className="text-sm text-muted-foreground text-center">
+                Your counter of {pendingValues?.price} {currencySymbol} on{" "}
+                {tokenName || "this token"} is now live as an on-chain listing.
+              </p>
               {txHash && (
-                <a
-                  href={`${EXPLORER_URL}/tx/${txHash}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <span className="font-mono">{txHash.slice(0, 10)}…{txHash.slice(-8)}</span>
-                  <ExternalLink className="h-3 w-3" />
-                </a>
+                <Button variant="outline" size="sm" asChild>
+                  <a href={`${EXPLORER_URL}/tx/${txHash}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+                    View on Voyager <ExternalLink className="h-3 w-3" />
+                  </a>
+                </Button>
               )}
-              <Button className="w-full" onClick={() => {
-                resetState();
-                form.reset();
-                setPendingValues(null);
-                setStep("form");
-                onOpenChange(false);
-                onSuccess?.();
-              }}>Done</Button>
+              <Button className="w-full" onClick={() => handleClose(false)}>Done</Button>
             </div>
           ) : isProcessing ? (
             <div className="flex flex-col items-center gap-4 py-8">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <p className="text-sm text-muted-foreground">
-                {txStatus === "submitting" ? "Submitting listing…" : "Confirming on Starknet…"}
+                {txStatus === "submitting" ? "Submitting counter-offer…" : "Confirming on Starknet…"}
               </p>
             </div>
           ) : step === "pin" ? (
             <div className="space-y-4">
               <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                <Badge variant="outline" className="font-mono">#{tokenId}</Badge>
-                <span className="text-sm font-medium truncate">
-                  {pendingValues?.price} {pendingValues?.currency} · {tokenName || `Token #${tokenId}`}
+                <div className="flex items-center gap-1.5">
+                  <CurrencyIcon symbol={currencySymbol} size={14} />
+                  <span className="font-mono font-semibold">{pendingValues?.price} {currencySymbol}</span>
+                </div>
+                <span className="text-muted-foreground text-xs truncate">
+                  · {tokenName ?? "token"}
                 </span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Enter your wallet PIN to sign the listing, or use passkey instead.
+                Enter your wallet PIN to sign the counter-offer on-chain.
               </p>
               <PinInput
                 value={pin}
@@ -323,21 +279,22 @@ export function ListingDialog({
                   disabled={pin.length < 6}
                   onClick={handlePin}
                 >
-                  <Tag className="h-4 w-4 mr-2" />
-                  List for sale
+                  <ArrowLeftRight className="h-4 w-4 mr-2" />
+                  Send counter-offer
                 </Button>
               </div>
               <p className="text-[10px] text-center text-muted-foreground">
-                Gas is free. Your PIN signs the listing.
+                Gas is free. The counter creates a real on-chain order the buyer can accept.
               </p>
             </div>
           ) : (
             <div className="space-y-4">
-              {/* Asset info */}
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                <Badge variant="outline" className="font-mono">#{tokenId}</Badge>
-                <span className="text-sm font-medium truncate">{tokenName || `Token #${tokenId}`}</span>
-              </div>
+              {currentBid && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/30 text-sm">
+                  <span className="text-muted-foreground">Current bid:</span>
+                  <Badge variant="secondary">{currentBid}</Badge>
+                </div>
+              )}
 
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -346,7 +303,7 @@ export function ListingDialog({
                     name="price"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Price</FormLabel>
+                        <FormLabel>Your counter price</FormLabel>
                         <div className="relative">
                           <FormControl>
                             <Input
@@ -359,8 +316,8 @@ export function ListingDialog({
                             />
                           </FormControl>
                           <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
-                            <CurrencyIcon symbol={form.watch("currency")} size={14} />
-                            <span className="text-xs font-bold">{form.watch("currency")}</span>
+                            <CurrencyIcon symbol={currencySymbol} size={14} />
+                            <span className="text-xs font-bold">{currencySymbol}</span>
                           </div>
                         </div>
                         <FormMessage />
@@ -370,24 +327,23 @@ export function ListingDialog({
 
                   <FormField
                     control={form.control}
-                    name="currency"
+                    name="durationSeconds"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Currency</FormLabel>
+                        <FormLabel>Valid for</FormLabel>
                         <FormControl>
-                          <div className="grid grid-cols-5 gap-1.5">
-                            {CURRENCIES.map((c) => (
+                          <div className="grid grid-cols-4 gap-2">
+                            {DURATION_OPTIONS.map((opt) => (
                               <Button
-                                key={c}
+                                key={opt.label}
                                 type="button"
-                                variant={field.value === c ? "default" : "outline"}
+                                variant={field.value === opt.seconds ? "default" : "outline"}
                                 size="sm"
-                                onClick={() => field.onChange(c)}
-                                disabled={isProcessing}
-                                className="gap-1 px-2 text-xs w-full"
+                                onClick={() => field.onChange(opt.seconds)}
+                                disabled={isProcessing || opt.seconds < 3600}
+                                className="text-xs"
                               >
-                                <CurrencyIcon symbol={c} size={13} className="shrink-0" />
-                                <span className="truncate">{c}</span>
+                                {opt.label}
                               </Button>
                             ))}
                           </div>
@@ -398,27 +354,23 @@ export function ListingDialog({
 
                   <FormField
                     control={form.control}
-                    name="durationSeconds"
+                    name="message"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Duration</FormLabel>
+                        <FormLabel className="flex items-center gap-1">
+                          Message <span className="text-muted-foreground text-xs">(optional)</span>
+                        </FormLabel>
                         <FormControl>
-                          <div className="grid grid-cols-4 gap-2">
-                            {DURATION_OPTIONS.map((opt) => (
-                              <Button
-                                key={opt.label}
-                                type="button"
-                                variant={field.value === opt.seconds ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => field.onChange(opt.seconds)}
-                                disabled={isProcessing}
-                                className="text-xs"
-                              >
-                                {opt.label}
-                              </Button>
-                            ))}
-                          </div>
+                          <Textarea
+                            placeholder="Explain your counter price to the buyer…"
+                            className="resize-none"
+                            rows={2}
+                            maxLength={500}
+                            disabled={isProcessing}
+                            {...field}
+                          />
                         </FormControl>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -431,11 +383,11 @@ export function ListingDialog({
                   )}
 
                   <Button type="submit" className="w-full h-11" disabled={isProcessing}>
-                    <Tag className="h-4 w-4 mr-2" />
-                    {hasWallet ? "List for sale" : "Set up wallet & list"}
+                    <ArrowLeftRight className="h-4 w-4 mr-2" />
+                    {hasWallet ? "Send counter-offer" : "Set up wallet & counter"}
                   </Button>
                   <p className="text-[10px] text-center text-muted-foreground">
-                    Gas is free. Your PIN signs the listing.
+                    Gas is free. Currency is locked to the buyer&apos;s original bid token.
                   </p>
                 </form>
               </Form>

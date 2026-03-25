@@ -27,12 +27,12 @@ export function NewOnMarketplace() {
         </div>
         <Button variant="ghost" size="sm" asChild>
           <Link href="/marketplace" className="flex items-center gap-1 text-muted-foreground hover:text-foreground">
-            Browse all <ArrowRight className="h-3.5 w-3.5" />
+            Marketplace <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4">
         {isLoading
           ? Array.from({ length: 6 }).map((_, i) => <ListingCardSkeleton key={i} />)
           : listings.length === 0

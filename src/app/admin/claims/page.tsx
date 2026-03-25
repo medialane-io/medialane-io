@@ -11,6 +11,9 @@ import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { AtSign, FileCheck } from "lucide-react";
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL!;
+const API_KEY = process.env.NEXT_PUBLIC_ADMIN_API_KEY!;
+
 const STATUS_STYLE: Record<string, string> = {
   PENDING:       "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
   AUTO_APPROVED: "bg-green-500/20  text-green-400  border-green-500/30",
@@ -38,9 +41,9 @@ function CollectionClaimsTab() {
   async function handleAction(status: "APPROVED" | "REJECTED") {
     setProcessing(true);
     try {
-      const res = await fetch(`/api/admin/admin/claims/${selected.id}`, {
+      const res = await fetch(`${BACKEND_URL}/admin/claims/${selected.id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { "x-api-key": API_KEY, "Content-Type": "application/json" },
         body: JSON.stringify({ status, adminNotes, ...(status === "APPROVED" ? { source } : {}) }),
       });
       if (!res.ok) throw new Error();
@@ -126,9 +129,9 @@ function UsernameClaimsTab() {
   async function handleAction(status: "APPROVED" | "REJECTED") {
     setProcessing(true);
     try {
-      const res = await fetch(`/api/admin/admin/username-claims/${selected.id}`, {
+      const res = await fetch(`${BACKEND_URL}/admin/username-claims/${selected.id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { "x-api-key": API_KEY, "Content-Type": "application/json" },
         body: JSON.stringify({ status, adminNotes }),
       });
       if (!res.ok) throw new Error();

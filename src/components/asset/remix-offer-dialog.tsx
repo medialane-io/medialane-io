@@ -13,7 +13,6 @@ import { toast } from "sonner";
 import { submitRemixOffer } from "@/hooks/use-remix-offers";
 import { getListableTokens } from "@medialane/sdk";
 import { GitBranch, Loader2 } from "lucide-react";
-import { parseDecimalToUnits } from "@/lib/decimal-units";
 
 const LICENSE_TYPES = ["CC0", "CC BY", "CC BY-SA", "CC BY-NC", "CC BY-ND", "Custom"];
 const TOKENS = getListableTokens();
@@ -46,7 +45,7 @@ export function RemixOfferDialog({ open, onOpenChange, contractAddress, tokenId,
     const token = TOKENS.find((t) => t.symbol === currency);
     if (!token) return;
 
-    const rawPrice = parseDecimalToUnits(price, token.decimals);
+    const rawPrice = BigInt(Math.round(parseFloat(price) * 10 ** token.decimals)).toString();
     const royalty = royaltyPct ? parseInt(royaltyPct, 10) : undefined;
 
     setLoading(true);

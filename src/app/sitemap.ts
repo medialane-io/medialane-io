@@ -70,7 +70,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const creatorRoutes: MetadataRoute.Sitemap = (creatorsData?.data ?? [])
     .filter((c) => c.username)
     .map((c) => ({
-      url: `${BASE_URL}/creator/${encodeURIComponent(c.username!)}`,
+      url: `${BASE_URL}/creator/${c.username}`,
       changeFrequency: "weekly" as const,
       priority: 0.6,
     }));

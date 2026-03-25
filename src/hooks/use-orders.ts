@@ -61,6 +61,41 @@ export function useUserOrders(address: string | null) {
   return { orders: data?.data ?? [], isLoading, error, mutate };
 }
 
+/** Fetch counter-offers for a specific original bid (buyer view) or by seller address. */
+export function useCounterOffers({
+  originalOrderHash,
+  sellerAddress,
+}: {
+  originalOrderHash?: string | null;
+  sellerAddress?: string | null;
+}) {
+  const client = useMedialaneClient();
+  const normalized = sellerAddress ? normalizeAddress(sellerAddress) : null;
+  const key =
+    originalOrderHash
+      ? `counter-offers-${originalOrderHash}`
+      : normalized
+      ? `counter-offers-seller-${normalized}`
+      : null;
+
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<ApiOrder[]>>(
+    key,
+    () => client.api.getCounterOffers({
+      ...(originalOrderHash ? { originalOrderHash } : {}),
+      ...(normalized ? { sellerAddress: normalized } : {}),
+    }),
+    { revalidateOnFocus: false, refreshInterval: 20000, dedupingInterval: 5000 }
+  );
+
+  return {
+    counterOffers: data?.data ?? [],
+    total: data?.meta?.total ?? 0,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
 export function useCollectionFloorListings(contract: string | null, limit = 20) {
   const client = useMedialaneClient();
   const key = contract ? `floor-listings-${contract}-${limit}` : null;

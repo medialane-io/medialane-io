@@ -125,7 +125,7 @@ export default function ClaimCollectionPage() {
             <Button
               size="sm"
               variant="outline"
-              onClick={() => { setContractAddress(""); setClaimedCollection(null); setVerifyError(""); setStep("input"); }}
+              onClick={() => { setContractAddress(""); setClaimedCollection(null); setStep("input"); }}
             >
               Claim Another
             </Button>
@@ -178,7 +178,7 @@ export default function ClaimCollectionPage() {
           <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-1">
             <p className="text-sm font-medium text-foreground">Manual verification required</p>
             <p className="text-xs text-muted-foreground">
-              {verifyError.replace(/[.!?]+$/, "")}. Submit a request for our team to review.
+              {verifyError}. Submit a request for our team to review.
             </p>
           </div>
 

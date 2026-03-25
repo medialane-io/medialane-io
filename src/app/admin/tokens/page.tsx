@@ -10,7 +10,10 @@ import { Search, RefreshCw, ExternalLink } from "lucide-react";
 import { ipfsToHttp } from "@/lib/utils";
 import Image from "next/image";
 
-const EXPLORER = "https://voyager.online";
+const BACKEND_URL = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL!;
+const ADMIN_KEY   = process.env.NEXT_PUBLIC_ADMIN_API_KEY!;
+const TENANT_KEY  = process.env.NEXT_PUBLIC_MEDIALANE_API_KEY!;
+const EXPLORER    = "https://voyager.online";
 
 const STATUS_STYLE: Record<string, string> = {
   DONE:     "bg-green-500/20 text-green-400",
@@ -32,8 +35,8 @@ export default function AdminTokensPage() {
     setToken(null);
     try {
       const res = await fetch(
-        `/api/admin/v1/tokens/${encodeURIComponent(contract.trim())}/${encodeURIComponent(tokenId.trim())}`,
-        { cache: "no-store" }
+        `${BACKEND_URL}/v1/tokens/${contract.trim()}/${tokenId.trim()}`,
+        { headers: { "x-api-key": TENANT_KEY } }
       );
       if (!res.ok) { toast.error("Token not found"); return; }
       const data = await res.json();
@@ -47,8 +50,8 @@ export default function AdminTokensPage() {
     setRefreshing(true);
     try {
       const res = await fetch(
-        `/api/admin/admin/tokens/${contract.trim()}/${tokenId.trim()}/refresh`,
-        { method: "POST", headers: { "Content-Type": "application/json" } }
+        `${BACKEND_URL}/admin/tokens/${contract.trim()}/${tokenId.trim()}/refresh`,
+        { method: "POST", headers: { "x-api-key": ADMIN_KEY } }
       );
       if (!res.ok) throw new Error();
       const data = await res.json();
@@ -112,11 +115,9 @@ export default function AdminTokensPage() {
             <div className="flex-1 min-w-0 space-y-1">
               <p className="font-semibold truncate">{token.metadata?.name ?? token.name ?? `#${tokenId}`}</p>
               <div className="flex items-center gap-2 flex-wrap">
-                {token.metadataStatus != null && (
-                  <Badge className={STATUS_STYLE[token.metadataStatus] ?? ""}>
-                    {token.metadataStatus}
-                  </Badge>
-                )}
+                <Badge className={STATUS_STYLE[token.metadataStatus] ?? ""}>
+                  {token.metadataStatus}
+                </Badge>
                 {token.metadata?.ipType && <Badge variant="outline">{token.metadata.ipType}</Badge>}
               </div>
               <p className="text-xs text-muted-foreground font-mono break-all">{token.tokenUri}</p>

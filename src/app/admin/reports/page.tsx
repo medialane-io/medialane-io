@@ -15,6 +15,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL!;
+const API_KEY = process.env.NEXT_PUBLIC_ADMIN_API_KEY!;
+
 type ReportStatus =
   | "PENDING"
   | "UNDER_REVIEW"
@@ -87,8 +90,8 @@ export default function ReportsPage() {
     try {
       const params = new URLSearchParams({ limit: "50" });
       if (statusFilter) params.set("status", statusFilter);
-      const res = await fetch(`/api/admin/admin/reports?${params}`, {
-        headers: { "Content-Type": "application/json" },
+      const res = await fetch(`${BACKEND_URL}/admin/reports?${params}`, {
+        headers: { "x-api-key": API_KEY },
       });
       const data = await res.json();
       setReports(data.reports ?? []);
@@ -115,9 +118,10 @@ export default function ReportsPage() {
     }
     setActing(true);
     try {
-      const res = await fetch(`/api/admin/admin/reports/${selected.id}`, {
+      const res = await fetch(`${BACKEND_URL}/admin/reports/${selected.id}`, {
         method: "PATCH",
         headers: {
+          "x-api-key": API_KEY,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({

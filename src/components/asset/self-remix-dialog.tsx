@@ -17,20 +17,9 @@ import { confirmSelfRemix } from "@/hooks/use-remix-offers";
 import { IP_TYPES } from "@/types/ip";
 import { GitBranch, Loader2 } from "lucide-react";
 import type { ChipiCall } from "@/hooks/use-chipi-transaction";
+import { INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
 
 const LICENSE_TYPES = ["CC0", "CC BY", "CC BY-SA", "CC BY-NC", "CC BY-ND", "Personal"];
-
-function licenseFlagsForType(license: string): { commercial: boolean; derivatives: boolean } {
-  const map: Record<string, { commercial: boolean; derivatives: boolean }> = {
-    CC0: { commercial: true, derivatives: true },
-    "CC BY": { commercial: true, derivatives: true },
-    "CC BY-SA": { commercial: true, derivatives: true },
-    "CC BY-NC": { commercial: false, derivatives: true },
-    "CC BY-ND": { commercial: true, derivatives: false },
-    Personal: { commercial: false, derivatives: false },
-  };
-  return map[license] ?? { commercial: false, derivatives: true };
-}
 
 interface Props {
   open: boolean;
@@ -136,7 +125,6 @@ export function SelfRemixDialog({ open, onOpenChange, originalContract, original
       // Record self-remix
       const clerkToken = await getToken();
       if (!clerkToken) throw new Error("Not authenticated");
-      const { commercial, derivatives } = licenseFlagsForType(licenseType);
       await confirmSelfRemix(
         {
           originalContract,
@@ -145,14 +133,15 @@ export function SelfRemixDialog({ open, onOpenChange, originalContract, original
           remixTokenId,
           txHash: result.txHash ?? "",
           licenseType,
-          commercial,
-          derivatives,
+          commercial: false,
+          derivatives: true,
         },
         clerkToken
       );
 
       toast.success("Remix minted!", { description: "It will appear in your portfolio shortly." });
       onOpenChange(false);
+      setTimeout(() => {}, INDEXER_REVALIDATION_DELAY_MS);
     } catch (err: unknown) {
       toast.error("Remix failed", { description: err instanceof Error ? err.message : "Unknown error" });
     } finally {

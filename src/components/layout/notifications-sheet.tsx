@@ -82,35 +82,33 @@ export function NotificationsItem() {
               </div>
             ) : (
               <div className="divide-y divide-border/50">
-                {unseenOffers.map((offer) =>
-                  offer.consideration?.token && offer.consideration?.identifier ? (
-                    <Link
-                      key={offer.orderHash}
-                      href={`/asset/${offer.consideration.token}/${offer.consideration.identifier}`}
-                      onClick={() => setOpen(false)}
-                      className="flex items-start gap-3 px-4 py-3 hover:bg-muted/50 transition-colors"
-                    >
-                      <span className="h-2 w-2 rounded-full bg-blue-500 mt-2 shrink-0" />
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium leading-snug">
-                          New offer received
+                {unseenOffers.map((offer) => (
+                  <Link
+                    key={offer.orderHash}
+                    href={`/asset/${offer.consideration.token}/${offer.consideration.identifier}`}
+                    onClick={() => setOpen(false)}
+                    className="flex items-start gap-3 px-4 py-3 hover:bg-muted/50 transition-colors"
+                  >
+                    <span className="h-2 w-2 rounded-full bg-blue-500 mt-2 shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium leading-snug">
+                        New offer received
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                        {offer.token?.name ??
+                          `Token #${offer.consideration.identifier}`}
+                      </p>
+                      {offer.price?.formatted && (
+                        <p className="text-xs font-semibold text-foreground mt-0.5">
+                          {offer.price.formatted}{" "}
+                          {offer.price.currency ?? ""}
                         </p>
-                        <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                          {offer.token?.name ??
-                            `Token #${offer.consideration.identifier}`}
-                        </p>
-                        {offer.price?.formatted && (
-                          <p className="text-xs font-semibold text-foreground mt-0.5">
-                            {offer.price.formatted}{" "}
-                            {offer.price.currency ?? ""}
-                          </p>
-                        )}
-                      </div>
-                    </Link>
-                  ) : null
-                )}
+                      )}
+                    </div>
+                  </Link>
+                ))}
                 {recentActivities.map((event, i) => (
-                  <div key={`${event.type}-${event.timestamp}-${i}`} className="flex items-start gap-3 px-4 py-3">
+                  <div key={i} className="flex items-start gap-3 px-4 py-3">
                     <span className="h-2 w-2 rounded-full bg-muted-foreground/30 mt-2 shrink-0" />
                     <div className="min-w-0">
                       <p className="text-sm text-muted-foreground leading-snug">

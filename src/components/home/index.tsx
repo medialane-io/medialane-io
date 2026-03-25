@@ -7,6 +7,7 @@ import { TrendingCollections } from "./trending-collections";
 import { NewOnMarketplace } from "./new-on-marketplace";
 import { CommunityActivity } from "./community-activity";
 import { LearnDocsCta } from "./learn-docs-cta";
+import { IpTypeNav } from "./ip-type-nav";
 
 export function HomePage() {
   return (
@@ -23,6 +24,7 @@ export function HomePage() {
         <NewOnMarketplace />
         <GenesisMintSection />
         <CommunityActivity />
+        {/* <IpTypeNav /> */}{/* TODO: uncomment when more asset variety is available */}
         <LearnDocsCta />
       </div>
     </div>

@@ -75,15 +75,6 @@ function getEmbedSrc(embedType: EmbedType, value: string): string | null {
   }
 }
 
-function isSafeHttpUrl(url: string): boolean {
-  try {
-    const u = new URL(url);
-    return u.protocol === "http:" || u.protocol === "https:";
-  } catch {
-    return false;
-  }
-}
-
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function IPTypeDisplay({ attributes }: IPTypeDisplayProps) {
@@ -101,9 +92,7 @@ export function IPTypeDisplay({ attributes }: IPTypeDisplayProps) {
 
   // Map template fields to attribute values
   const fieldValues = template.fields.map((field) => {
-    const attr = attrs.find(
-      (a) => a.trait_type?.toLowerCase() === field.key.toLowerCase()
-    );
+    const attr = attrs.find((a) => a.trait_type === field.key);
     return { field, value: attr?.value ?? null };
   }).filter(({ value }) => value !== null && value !== "");
 
@@ -139,7 +128,6 @@ export function IPTypeDisplay({ attributes }: IPTypeDisplayProps) {
           );
         }
         // Fallback: plain external link if URL parsing failed
-        if (!isSafeHttpUrl(value)) return null;
         return (
           <div key={field.key}>
             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">

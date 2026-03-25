@@ -20,7 +20,6 @@ import { useChipiTransaction } from "./use-chipi-transaction";
 import { useSessionKey } from "./use-session-key";
 import { useMedialaneClient } from "./use-medialane-client";
 import { MARKETPLACE_CONTRACT, SUPPORTED_TOKENS, INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
-import { normalizeAddress } from "@/lib/utils";
 import type { ChipiCall } from "./use-chipi-transaction";
 
 /** Resolve a currency symbol (e.g. "USDC") to its on-chain contract address.
@@ -94,6 +93,16 @@ export interface CancelOrderInput {
   orderHash: string;
 }
 
+export interface MakeCounterOfferInput {
+  originalOrderHash: string;
+  /** Raw wei price (not human-readable) */
+  counterPriceRaw: string;
+  /** Duration in seconds (3600–2592000) */
+  durationSeconds: number;
+  message?: string;
+  tokenName?: string;
+}
+
 // ─── Hook ─────────────────────────────────────────────────────────────────
 
 export function useMarketplace() {
@@ -122,7 +131,8 @@ export function useMarketplace() {
         key.startsWith("listings-") ||
         key.startsWith("user-orders-") ||
         key.startsWith("token-") ||
-        key.startsWith("tokens-owned-")
+        key.startsWith("tokens-owned-") ||
+        key.startsWith("counter-offers-")
       );
     }, undefined, { revalidate: true });
   }, [mutate]);
@@ -155,20 +165,36 @@ export function useMarketplace() {
   );
 
   /**
+   * Poll GET /v1/intents/:id until the backend settles to CONFIRMED or FAILED,
+   * or until the timeout is reached.
+   */
+  const pollIntentUntilTerminal = useCallback(
+    async (id: string): Promise<"CONFIRMED" | "FAILED"> => {
+      const MAX_ATTEMPTS = 10;
+      const INTERVAL_MS = 3000;
+      for (let i = 0; i < MAX_ATTEMPTS; i++) {
+        if (i > 0) await new Promise<void>((r) => setTimeout(r, INTERVAL_MS));
+        const res = await client.api.getIntent(id);
+        const status = res.data.status;
+        if (status === "CONFIRMED" || status === "FAILED") return status;
+      }
+      throw new Error(
+        "Verification timed out. Check your wallet for the transaction status."
+      );
+    },
+    [client]
+  );
+
+  /**
    * Shared intent flow:
-   *  create intent → sign typedData → submit signature → execute returned calls
-   *
-   * @param requiredEventFrom - If provided, the receipt MUST contain an event from this
-   *   contract address. Used to detect silent failures inside ChipiPay's multicall wrapper
-   *   (e.g. fulfill_order panicking due to insufficient balance — ChipiPay reports SUCCEEDED
-   *   but no OrderFulfilled event is emitted).
+   *  create intent → sign typedData → submit signature → execute via ChipiPay
+   *  → POST txHash to backend → poll until CONFIRMED or FAILED
    */
   const runIntent = useCallback(
     async (
       pin: string,
       intentFn: () => Promise<{ data: { id: string; typedData: unknown; calls: unknown } }>,
-      successMsg: string,
-      requiredEventFrom?: string
+      successMsg: string
     ): Promise<string | undefined> => {
       if (!walletAddress) throw new Error("Wallet not ready. Please wait a moment.");
 
@@ -189,21 +215,16 @@ export function useMarketplace() {
         throw new Error(result.revertReason || "Transaction reverted on chain");
       }
 
-      // ChipiPay's multicall wrapper reports SUCCEEDED even when inner calls panic
-      // (e.g. fulfill_order failing due to insufficient ERC-20 balance). Verify that
-      // the expected contract emitted at least one event to confirm the operation
-      // actually executed on-chain.
-      if (requiredEventFrom) {
-        const normalizedRequired = normalizeAddress(requiredEventFrom);
-        const hasEvent = (result.events ?? []).some(
-          (e) => normalizeAddress(e.from_address ?? "") === normalizedRequired
+      // Submit tx hash to backend — verifies receipt + marketplace events server-side
+      await client.api.confirmIntent(id, result.txHash);
+
+      // Poll until backend reports terminal status (CONFIRMED or FAILED)
+      const finalStatus = await pollIntentUntilTerminal(id);
+      if (finalStatus === "FAILED") {
+        throw new Error(
+          "Transaction was submitted but the marketplace operation did not complete onchain. " +
+          "Please check your token balance and try again."
         );
-        if (!hasEvent) {
-          throw new Error(
-            "Transaction was submitted but the operation did not complete onchain. " +
-            "Please check your token balance and try again."
-          );
-        }
       }
 
       toast.success(successMsg);
@@ -212,7 +233,7 @@ export function useMarketplace() {
       setTimeout(() => invalidate(), INDEXER_REVALIDATION_DELAY_MS);
       return result.txHash;
     },
-    [walletAddress, signTypedData, client, execWithPin, invalidate]
+    [walletAddress, signTypedData, client, execWithPin, invalidate, pollIntentUntilTerminal]
   );
 
   // ── createListing ──────────────────────────────────────────────────────
@@ -259,8 +280,7 @@ export function useMarketplace() {
             fulfiller: walletAddress!,
             orderHash: input.orderHash,
           }),
-          "Purchase complete!",
-          MARKETPLACE_CONTRACT
+          "Purchase complete!"
         );
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Purchase failed";
@@ -304,6 +324,35 @@ export function useMarketplace() {
     [walletAddress, runIntent, client]
   );
 
+  // ── makeCounterOffer ───────────────────────────────────────────────────
+
+  const makeCounterOffer = useCallback(
+    async (input: MakeCounterOfferInput & { pin: string }) => {
+      setIsProcessing(true);
+      setError(null);
+      try {
+        return await runIntent(
+          input.pin,
+          () => client.api.createCounterOfferIntent({
+            sellerAddress: walletAddress!,
+            originalOrderHash: input.originalOrderHash,
+            durationSeconds: input.durationSeconds,
+            counterPrice: input.counterPriceRaw,
+            message: input.message,
+          }),
+          `Counter-offer sent${input.tokenName ? ` for ${input.tokenName}` : ""}!`
+        );
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Counter-offer failed";
+        setError(msg);
+        toast.error("Counter-offer failed", { description: msg });
+      } finally {
+        setIsProcessing(false);
+      }
+    },
+    [walletAddress, runIntent]
+  );
+
   // ── cancelOrder ────────────────────────────────────────────────────────
 
   const cancelOrder = useCallback(
@@ -338,6 +387,7 @@ export function useMarketplace() {
   return {
     createListing,
     makeOffer,
+    makeCounterOffer,
     fulfillOrder,
     cancelOrder,
     walletAddress,
