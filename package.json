@@ -9,9 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@chipi-stack/chipi-passkey": "^2.0.0",
-    "@chipi-stack/chipi-react": "^14.0.0",
-    "@chipi-stack/nextjs": "^14.1.1",
+    "@chipi-stack/chipi-passkey": "2.0.1",
+    "@chipi-stack/chipi-react": "14.2.0",
+    "@chipi-stack/nextjs": "14.2.0",
     "@clerk/nextjs": "^6",
     "@hookform/resolvers": "^3",
     "@medialane/sdk": "0.5.4",
