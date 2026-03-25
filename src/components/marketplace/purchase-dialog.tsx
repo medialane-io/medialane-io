@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { toast } from "sonner";
-import { CheckCircle2, AlertCircle, ExternalLink, ShoppingCart, RefreshCw, ArrowLeft } from "lucide-react";
+import { CheckCircle2, AlertCircle, ExternalLink, ShoppingCart, RefreshCw, ArrowLeft, Sparkles } from "lucide-react";
+import { fireConfetti } from "@/lib/confetti";
 import {
   Dialog,
   DialogContent,
@@ -20,7 +22,7 @@ import { TxStatus } from "@/components/chipi/tx-status";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { EXPLORER_URL } from "@/lib/constants";
 import type { ApiOrder } from "@medialane/sdk";
-import { formatDisplayPrice } from "@/lib/utils";
+import { formatDisplayPrice, ipfsToHttp } from "@/lib/utils";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { isWebAuthnSupported } from "@chipi-stack/nextjs";
 import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
@@ -32,7 +34,9 @@ interface PurchaseDialogProps {
 }
 
 export function PurchaseDialog({ order, open, onOpenChange }: PurchaseDialogProps) {
+  const router = useRouter();
   const { isSignedIn } = useAuth();
+  const confettiFired = useRef(false);
   const {
     fulfillOrder,
     hasWallet,
@@ -130,6 +134,14 @@ export function PurchaseDialog({ order, open, onOpenChange }: PurchaseDialogProp
 
   const isSuccess = txStatus === "confirmed" && !error;
 
+  useEffect(() => {
+    if (isSuccess && !confettiFired.current) {
+      confettiFired.current = true;
+      fireConfetti();
+    }
+    if (!isSuccess) confettiFired.current = false;
+  }, [isSuccess]);
+
   return (
     <>
       <Dialog open={open} onOpenChange={handleClose}>
@@ -146,22 +158,50 @@ export function PurchaseDialog({ order, open, onOpenChange }: PurchaseDialogProp
           </DialogHeader>
 
           {isSuccess ? (
-            <div className="flex flex-col items-center gap-4 py-4">
-              <div className="h-16 w-16 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                <CheckCircle2 className="h-8 w-8 text-emerald-500" />
+            <div className="flex flex-col items-center gap-5 py-2">
+              <div className="relative">
+                <div className="h-16 w-16 rounded-full bg-emerald-500/15 flex items-center justify-center">
+                  <CheckCircle2 className="h-9 w-9 text-emerald-500" />
+                </div>
+                <Sparkles className="absolute -top-1 -right-1 h-5 w-5 text-yellow-400" />
               </div>
-              <p className="font-semibold">Purchase successful!</p>
-              <p className="text-sm text-muted-foreground text-center">
-                Token #{order.nftTokenId} is now in your portfolio.
-              </p>
-              {txHash && (
-                <Button variant="outline" size="sm" asChild>
-                  <a href={`${EXPLORER_URL}/tx/${txHash}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
-                    View on Voyager <ExternalLink className="h-3 w-3" />
-                  </a>
-                </Button>
+              {order.token?.image && (
+                <div className="h-28 w-28 rounded-xl overflow-hidden border border-border shadow-md">
+                  <img
+                    src={ipfsToHttp(order.token.image)}
+                    alt={order.token?.name || `Token #${order.nftTokenId}`}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
               )}
-              <Button className="w-full" onClick={() => { resetState(); setStep("details"); onOpenChange(false); }}>Done</Button>
+              <div className="text-center space-y-1">
+                <p className="font-bold text-xl">You own it!</p>
+                <p className="text-sm text-muted-foreground">
+                  <span className="font-medium text-foreground">
+                    {order.token?.name || `Token #${order.nftTokenId}`}
+                  </span>{" "}
+                  is now in your portfolio.
+                </p>
+              </div>
+              {txHash && (
+                <a
+                  href={`${EXPLORER_URL}/tx/${txHash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <span className="font-mono">{txHash.slice(0, 10)}…{txHash.slice(-8)}</span>
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              )}
+              <div className="flex flex-col sm:flex-row gap-2 w-full pt-1">
+                <Button variant="outline" className="flex-1" onClick={() => { resetState(); setStep("details"); onOpenChange(false); }}>
+                  Close
+                </Button>
+                <Button className="flex-1" onClick={() => router.push("/portfolio/assets")}>
+                  View portfolio
+                </Button>
+              </div>
             </div>
           ) : (isProcessing || txStatus === "confirming") ? (
             <TxStatus status={txStatus} txHash={txHash} error={error} statusMessage={

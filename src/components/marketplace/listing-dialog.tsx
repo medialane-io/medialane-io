@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { CheckCircle2, AlertCircle, Tag, ExternalLink, Loader2, LogIn, ArrowLeft } from "lucide-react";
+import { CheckCircle2, AlertCircle, Tag, ExternalLink, Loader2, LogIn, ArrowLeft, Sparkles } from "lucide-react";
+import { fireConfetti } from "@/lib/confetti";
 import {
   Dialog,
   DialogContent,
@@ -188,6 +189,15 @@ export function ListingDialog({
   };
 
   const isSuccess = txStatus === "confirmed" && !error;
+  const confettiFired = useRef(false);
+
+  useEffect(() => {
+    if (isSuccess && !confettiFired.current) {
+      confettiFired.current = true;
+      fireConfetti();
+    }
+    if (!isSuccess) confettiFired.current = false;
+  }, [isSuccess]);
 
   return (
     <>
@@ -213,19 +223,32 @@ export function ListingDialog({
               </SignInButton>
             </div>
           ) : isSuccess ? (
-            <div className="flex flex-col items-center gap-4 py-4">
-              <CheckCircle2 className="h-12 w-12 text-emerald-500" />
-              <p className="font-semibold text-lg">Listing live!</p>
-              <p className="text-sm text-muted-foreground text-center">
-                {tokenName || `Token #${tokenId}`} is now available for{" "}
-                {pendingValues?.price} {pendingValues?.currency}.
-              </p>
+            <div className="flex flex-col items-center gap-5 py-2">
+              <div className="relative">
+                <div className="h-16 w-16 rounded-full bg-emerald-500/15 flex items-center justify-center">
+                  <CheckCircle2 className="h-9 w-9 text-emerald-500" />
+                </div>
+                <Sparkles className="absolute -top-1 -right-1 h-5 w-5 text-yellow-400" />
+              </div>
+              <div className="text-center space-y-1">
+                <p className="font-bold text-xl">Listing live!</p>
+                <p className="text-sm text-muted-foreground">
+                  <span className="font-medium text-foreground">
+                    {tokenName || `Token #${tokenId}`}
+                  </span>{" "}
+                  is now available for {pendingValues?.price} {pendingValues?.currency}.
+                </p>
+              </div>
               {txHash && (
-                <Button variant="outline" size="sm" asChild>
-                  <a href={`${EXPLORER_URL}/tx/${txHash}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
-                    View on Voyager <ExternalLink className="h-3 w-3" />
-                  </a>
-                </Button>
+                <a
+                  href={`${EXPLORER_URL}/tx/${txHash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <span className="font-mono">{txHash.slice(0, 10)}…{txHash.slice(-8)}</span>
+                  <ExternalLink className="h-3 w-3" />
+                </a>
               )}
               <Button className="w-full" onClick={() => {
                 resetState();

@@ -238,7 +238,8 @@ export function useMarketplace() {
             price: input.price,
             endTime,
           }),
-          `${input.tokenName || `Token #${input.tokenId}`} listed for ${input.price} ${input.currencySymbol}`
+          `${input.tokenName || `Token #${input.tokenId}`} listed for ${input.price} ${input.currencySymbol}`,
+          MARKETPLACE_CONTRACT
         );
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Failed to create listing";
@@ -296,7 +297,8 @@ export function useMarketplace() {
             price: input.price,
             endTime,
           }),
-          `Offer submitted for ${input.tokenName || `Token #${input.tokenId}`}`
+          `Offer submitted for ${input.tokenName || `Token #${input.tokenId}`}`,
+          MARKETPLACE_CONTRACT
         );
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Failed to submit offer";
