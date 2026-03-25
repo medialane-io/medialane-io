@@ -127,17 +127,15 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
     if (!isProcessing) onOpenChange(v);
   };
 
-  // Reset local state AFTER the close animation finishes (200ms) to prevent
-  // success→form flash while the dialog is animating out.
+  // Reset to fresh details state each time the dialog opens.
+  // Resetting on close causes the dialog to flash to form state mid-animation;
+  // resetting on open guarantees a clean slate without touching closing content.
   useEffect(() => {
-    if (!open) {
-      const t = setTimeout(() => {
-        resetState();
-        setPin("");
-        setPinError(null);
-        setStep("details");
-      }, 250);
-      return () => clearTimeout(t);
+    if (open) {
+      resetState();
+      setPin("");
+      setPinError(null);
+      setStep("details");
     }
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 

@@ -180,19 +180,17 @@ export function ListingDialog({
     if (!isProcessing) onOpenChange(v);
   };
 
-  // Reset local state AFTER the close animation finishes (200ms) to prevent
-  // success→form flash while the dialog is animating out.
+  // Reset to fresh form state each time the dialog opens.
+  // Resetting on close causes the dialog to flash to form state mid-animation;
+  // resetting on open guarantees a clean slate without touching closing content.
   useEffect(() => {
-    if (!open) {
-      const t = setTimeout(() => {
-        resetState();
-        form.reset();
-        setPendingValues(null);
-        setPin("");
-        setPinError(null);
-        setStep("form");
-      }, 250);
-      return () => clearTimeout(t);
+    if (open) {
+      resetState();
+      form.reset();
+      setPendingValues(null);
+      setPin("");
+      setPinError(null);
+      setStep("form");
     }
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
