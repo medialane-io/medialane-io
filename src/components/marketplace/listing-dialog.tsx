@@ -177,16 +177,20 @@ export function ListingDialog({
   };
 
   const handleClose = (v: boolean) => {
-    if (!isProcessing) {
+    if (!isProcessing) onOpenChange(v);
+  };
+
+  // Reset all local state after the dialog finishes closing (avoids flash to form state)
+  useEffect(() => {
+    if (!open) {
       resetState();
       form.reset();
       setPendingValues(null);
       setPin("");
       setPinError(null);
       setStep("form");
-      onOpenChange(v);
     }
-  };
+  }, [open, resetState, form]);
 
   const isSuccess = !isProcessing && txStatus === "confirmed" && !error;
   const confettiFired = useRef(false);
@@ -250,14 +254,7 @@ export function ListingDialog({
                   <ExternalLink className="h-3 w-3" />
                 </a>
               )}
-              <Button className="w-full" onClick={() => {
-                resetState();
-                form.reset();
-                setPendingValues(null);
-                setStep("form");
-                onOpenChange(false);
-                onSuccess?.();
-              }}>Done</Button>
+              <Button className="w-full" onClick={() => { onOpenChange(false); onSuccess?.(); }}>Done</Button>
             </div>
           ) : isProcessing ? (
             <div className="flex flex-col items-center gap-4 py-8">

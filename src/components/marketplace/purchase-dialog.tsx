@@ -31,9 +31,10 @@ interface PurchaseDialogProps {
   order: ApiOrder;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSuccess?: () => void;
 }
 
-export function PurchaseDialog({ order, open, onOpenChange }: PurchaseDialogProps) {
+export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: PurchaseDialogProps) {
   const router = useRouter();
   const { isSignedIn } = useAuth();
   const confettiFired = useRef(false);
@@ -123,14 +124,18 @@ export function PurchaseDialog({ order, open, onOpenChange }: PurchaseDialogProp
   };
 
   const handleClose = (v: boolean) => {
-    if (!isProcessing) {
+    if (!isProcessing) onOpenChange(v);
+  };
+
+  // Reset all local state after the dialog finishes closing (avoids flash to form state)
+  useEffect(() => {
+    if (!open) {
       resetState();
       setPin("");
       setPinError(null);
       setStep("details");
-      onOpenChange(v);
     }
-  };
+  }, [open, resetState]);
 
   const isSuccess = !isProcessing && txStatus === "confirmed" && !error;
 
@@ -195,10 +200,10 @@ export function PurchaseDialog({ order, open, onOpenChange }: PurchaseDialogProp
                 </a>
               )}
               <div className="flex flex-col sm:flex-row gap-2 w-full pt-1">
-                <Button variant="outline" className="flex-1" onClick={() => { resetState(); setStep("details"); onOpenChange(false); }}>
+                <Button variant="outline" className="flex-1" onClick={() => { onOpenChange(false); onSuccess?.(); }}>
                   Close
                 </Button>
-                <Button className="flex-1" onClick={() => router.push("/portfolio/assets")}>
+                <Button className="flex-1" onClick={() => { onOpenChange(false); router.push("/portfolio/assets"); }}
                   View portfolio
                 </Button>
               </div>

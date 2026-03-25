@@ -897,6 +897,7 @@ export default function AssetPageClient() {
           order={purchaseOrder}
           open
           onOpenChange={(v) => { if (!v) setPurchaseOrder(null); }}
+          onSuccess={mutateListings}
         />
       )}
 
