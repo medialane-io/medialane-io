@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent, useCallback } from "react";
+import { useState, FormEvent, useCallback, useEffect, useRef } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { uint256 } from "starknet";
 import { useWalletWithBalance } from "@/hooks/use-wallet-with-balance";
@@ -79,6 +79,33 @@ export function ChipiWalletPanel() {
   /** Matches the Remember session switch — prefs saved in Clerk, independent of whether a session is registered yet. */
   const rememberSessionUiOn =
     sessionPreferences?.enabled === true && walletSupportsSessionKeys;
+
+  // If the user turns "Remember session" off, ensure we also drop any previously
+  // registered/unlock state that could otherwise cause the next "Send" to
+  // silently reuse a stale session unlock key.
+  const prevRememberSessionUiOnRef = useRef<boolean>(rememberSessionUiOn);
+  useEffect(() => {
+    const prev = prevRememberSessionUiOnRef.current;
+    prevRememberSessionUiOnRef.current = rememberSessionUiOn;
+
+    // Turning the toggle back on is a significant state change; force a fresh unlock
+    // so the next "Send" must prompt for PIN/passkey (instead of silently reusing
+    // a previously-unlocked session key kept in memory/sessionStorage).
+    if (!prev && rememberSessionUiOn) {
+      clearSessionUnlockKey();
+      setSessionUnlockOpen(false);
+      setFallbackTransferOpen(false);
+    }
+
+    if (rememberSessionUiOn) return;
+    clearSessionUnlockKey();
+    void clearSession();
+    setSessionUnlockOpen(false);
+    setFallbackTransferOpen(false);
+    setError(null);
+    setEncryptionMismatchSuggestion(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rememberSessionUiOn]);
 
   /** Clerk has a non-expired chipiSession; enables executeWithSession after unlock key. */
   const hasRegisteredSigningSession = rememberSessionUiOn && hasActiveSession;
@@ -310,6 +337,7 @@ export function ChipiWalletPanel() {
 
       if (sessionExecuteAttempted) {
         clearSessionUnlockKey();
+        await clearSession();
         toast.error("Something went wrong", {
           description: err instanceof Error ? err.message : undefined,
         });
@@ -367,6 +395,7 @@ export function ChipiWalletPanel() {
     } catch (err) {
       if (sessionTried) {
         clearSessionUnlockKey();
+        await clearSession();
         toast.error("Something went wrong", {
           description: err instanceof Error ? err.message : undefined,
         });

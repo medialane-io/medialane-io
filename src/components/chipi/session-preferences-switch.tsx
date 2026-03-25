@@ -40,10 +40,12 @@ function SessionPreferencesModal({
   open,
   onOpenChange,
   initialPrefs,
+  autoRegisterOnOpen,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   initialPrefs: ChipiSessionPreferences | null;
+  autoRegisterOnOpen?: boolean;
 }) {
   const { setSessionUnlockKey } = useChipiSessionUnlock();
   const { updateSessionPreferences, setupSession, isSettingUpSession, hasWallet } =
@@ -51,6 +53,7 @@ function SessionPreferencesModal({
   const [mode, setMode] = useState<SessionPreferenceMode>("duration");
   const [durationMinutes, setDurationMinutes] = useState(60);
   const [maxUsdcAmount, setMaxUsdcAmount] = useState("100");
+  const [prefsInitialized, setPrefsInitialized] = useState(false);
   const [saving, setSaving] = useState(false);
   const [pinOpen, setPinOpen] = useState(false);
   /** Fresh params after save — hook may not have reloaded Clerk yet when PIN dialog submits. */
@@ -60,11 +63,15 @@ function SessionPreferencesModal({
   } | null>(null);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      setPrefsInitialized(false);
+      return;
+    }
     const base = initialPrefs ?? defaultPrefs();
     setMode(base.mode);
     setDurationMinutes(clampDurationMinutes(base.durationMinutes));
     setMaxUsdcAmount(base.maxUsdcAmount ?? "100");
+    setPrefsInitialized(true);
   }, [open, initialPrefs]);
 
   const savePrefs = useCallback((): ChipiSessionPreferences => {
@@ -125,6 +132,27 @@ function SessionPreferencesModal({
       setSaving(false);
     }
   };
+
+  // Auto-open the PIN/passkey dialog to register a signing session when the
+  // switch is toggled on and there is no active signing session yet.
+  const didAutoRegisterRef = useRef(false);
+  useEffect(() => {
+    if (!open) {
+      didAutoRegisterRef.current = false;
+      return;
+    }
+    if (!autoRegisterOnOpen) return;
+    if (isSettingUpSession) return;
+    if (didAutoRegisterRef.current) return;
+    if (!prefsInitialized) return;
+    didAutoRegisterRef.current = true;
+
+    const t = setTimeout(() => {
+      void handleRegisterNow();
+    }, 0);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, autoRegisterOnOpen, isSettingUpSession, prefsInitialized]);
 
   const longSessionDays = Math.round(AMOUNT_CAPPED_SESSION_DURATION_SECONDS / 86400);
 
@@ -260,10 +288,15 @@ export function SessionPreferencesSwitch({
 }: SessionPreferencesSwitchProps) {
   const { isSignedIn } = useAuth();
   const { clearSessionUnlockKey } = useChipiSessionUnlock();
-  const { sessionPreferences, clearSessionPreferences, clearSession } =
-    useSessionKey();
+  const {
+    sessionPreferences,
+    clearSessionPreferences,
+    clearSession,
+    hasActiveSession,
+  } = useSessionKey();
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [autoRegisterOnOpen, setAutoRegisterOnOpen] = useState(false);
 
   const enabled = sessionPreferences?.enabled ?? false;
 
@@ -273,6 +306,9 @@ export function SessionPreferencesSwitch({
       return;
     }
     if (checked) {
+      // If we don't have an active registered signing session yet, register one now
+      // so the first "Send" can use the session without extra steps.
+      setAutoRegisterOnOpen(!hasActiveSession);
       setModalOpen(true);
       return;
     }
@@ -336,8 +372,12 @@ export function SessionPreferencesSwitch({
 
       <SessionPreferencesModal
         open={modalOpen}
-        onOpenChange={setModalOpen}
+        onOpenChange={(open) => {
+          setModalOpen(open);
+          if (!open) setAutoRegisterOnOpen(false);
+        }}
         initialPrefs={sessionPreferences}
+        autoRegisterOnOpen={autoRegisterOnOpen}
       />
     </>
   );

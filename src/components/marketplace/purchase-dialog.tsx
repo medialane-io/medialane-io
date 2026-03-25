@@ -26,6 +26,7 @@ import { formatDisplayPrice, ipfsToHttp } from "@/lib/utils";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { isWebAuthnSupported } from "@chipi-stack/nextjs";
 import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
+import { orderPriceToUsdcNumber } from "@/lib/chipi/session-preferences";
 
 interface PurchaseDialogProps {
   order: ApiOrder;
