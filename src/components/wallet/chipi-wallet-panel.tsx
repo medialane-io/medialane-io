@@ -97,13 +97,11 @@ export function ChipiWalletPanel() {
     // so the next "Send" must prompt for PIN/passkey (instead of silently reusing
     // a previously-unlocked session key kept in memory/sessionStorage).
     if (!prev && rememberSessionUiOn) {
-      clearSessionUnlockKey();
       setSessionUnlockOpen(false);
       setFallbackTransferOpen(false);
     }
 
     if (rememberSessionUiOn) return;
-    clearSessionUnlockKey();
     void clearSession();
     setSessionUnlockOpen(false);
     setFallbackTransferOpen(false);
@@ -307,7 +305,6 @@ export function ChipiWalletPanel() {
             "Your saved session was cleared. Registering a new session for this transfer size.",
         });
         if (hadSessionBypass) {
-          clearSessionUnlockKey();
           toast.message("Enter PIN or passkey", {
             description: "This transfer needs your wallet key after the session was reset.",
           });
@@ -388,7 +385,6 @@ export function ChipiWalletPanel() {
           description:
             "Your saved session was cleared. Registering a new session for this transfer size.",
         });
-        clearSessionUnlockKey();
         setFallbackSignReason("session_error");
         setFallbackTransferOpen(true);
         return;
@@ -516,9 +512,7 @@ export function ChipiWalletPanel() {
                 </p>
                 {!sessionUnlockKey ? (
                   <p className="text-[11px] text-muted-foreground">
-                    After a page reload, tap Send and enter PIN or passkey once in the dialog. Or use
-                    &quot;Save &amp; register session now&quot; in Remember session to skip that until you
-                    reload.
+                    If asked, confirm once with PIN or passkey to unlock session signing in this tab.
                   </p>
                 ) : null}
               </>
