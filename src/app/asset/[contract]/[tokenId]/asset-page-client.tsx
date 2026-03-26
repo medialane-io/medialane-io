@@ -833,19 +833,18 @@ export default function AssetPageClient() {
       </div>
 
 
-      {/* Floating on-chain comments pill */}
+      {/* Floating comments button */}
       <div className="fixed bottom-6 right-6 z-40">
         <button
           onClick={() => setCommentOpen(true)}
           aria-label="Open on-chain comments"
-          className="relative flex items-center gap-2 rounded-full px-4 py-2.5 text-white transition-all hover:scale-105 active:scale-95 shadow-lg shadow-brand-blue/30"
-          style={{ background: "linear-gradient(135deg, hsl(var(--brand-blue)), hsl(var(--brand-purple)))" }}
+          className="relative flex flex-col items-center justify-center gap-0.5 h-14 w-14 rounded-2xl border border-border bg-card/95 backdrop-blur-sm shadow-md hover:shadow-lg hover:bg-accent transition-all active:scale-95"
         >
-          <MessageSquare className="h-4 w-4 shrink-0" />
-          <span className="text-xs font-medium leading-none">On-chain comments</span>
+          <MessageSquare className="h-5 w-5 text-foreground" />
+          <span className="text-[9px] font-medium text-muted-foreground leading-none">comments</span>
           {commentTotal > 0 && (
-            <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[10px] font-bold tabular-nums text-white"
-              style={{ background: "hsl(var(--brand-rose))" }}>
+            <span className="absolute -top-1.5 -right-1.5 flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-bold text-white"
+              style={{ background: "hsl(var(--brand-blue))" }}>
               {commentTotal}
             </span>
           )}
