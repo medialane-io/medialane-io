@@ -244,7 +244,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
                 </div>
               </div>
               <p className="text-sm text-muted-foreground">
-                Enter your wallet PIN to confirm this purchase, or use passkey instead.
+                Enter your security PIN to confirm this purchase.
               </p>
               <PinInput
                 value={pin}
@@ -252,17 +252,6 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
                 error={pinError}
                 autoFocus
               />
-              {passkeySupported && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="w-full"
-                  disabled={isAuthenticatingPasskey || isProcessing}
-                  onClick={handleUsePasskey}
-                >
-                  {isAuthenticatingPasskey ? "Authenticating passkey…" : "Use passkey instead"}
-                </Button>
-              )}
               {error && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
@@ -334,7 +323,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
               ) : (
                 <Button className="w-full h-11" onClick={handleBuyClick}>
                   {error ? <RefreshCw className="h-4 w-4 mr-2" /> : <ShoppingCart className="h-4 w-4 mr-2" />}
-                  {error ? "Try again" : hasWallet ? "Buy now" : "Set up wallet & buy"}
+                  {error ? "Try again" : hasWallet ? "Buy now" : "Secure account & buy"}
                 </Button>
               )}
 

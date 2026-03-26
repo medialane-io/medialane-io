@@ -241,7 +241,7 @@ export function CounterOfferDialog({
                 </span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Enter your wallet PIN to sign the counter-offer on-chain.
+                Enter your security PIN to sign the counter-offer on-chain.
               </p>
               <PinInput
                 value={pin}
@@ -249,17 +249,6 @@ export function CounterOfferDialog({
                 error={pinError}
                 autoFocus
               />
-              {passkeySupported && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="w-full"
-                  disabled={isAuthenticatingPasskey || isProcessing}
-                  onClick={handleUsePasskey}
-                >
-                  {isAuthenticatingPasskey ? "Authenticating passkey…" : "Use passkey instead"}
-                </Button>
-              )}
               {error && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />

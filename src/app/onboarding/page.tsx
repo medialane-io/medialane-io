@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PinInput, validatePin } from "@/components/ui/pin-input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Wallet, CheckCircle2, AlertCircle, KeyRound } from "lucide-react";
+import { Loader2, ShieldCheck, CheckCircle2, AlertCircle, KeyRound } from "lucide-react";
 import { completeOnboarding } from "./_actions";
 
 export default function OnboardingPage() {
@@ -47,10 +47,8 @@ function OnboardingContent() {
   );
   const [showPinFallback, setShowPinFallback] = useState(false);
   const [pin, setPin] = useState("");
-  const [confirmPin, setConfirmPin] = useState("");
   const [pinError, setPinError] = useState<string | null>(null);
-  const [confirmPinError, setConfirmPinError] = useState<string | null>(null);
-  const [step, setStep] = useState<"pin" | "confirm" | "done">("pin");
+  const [step, setStep] = useState<"pin" | "done">("pin");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -104,25 +102,16 @@ function OnboardingContent() {
 
   // ── PIN flow ──────────────────────────────────────────────────────────────
 
-  const handlePinNext = () => {
+  const handlePinCreate = async () => {
     const err = validatePin(pin);
     if (err) { setPinError(err); return; }
     setPinError(null);
-    setStep("confirm");
-  };
-
-  const handlePinCreate = async () => {
-    if (pin !== confirmPin) {
-      setConfirmPinError("PINs do not match. Please try again.");
-      return;
-    }
-    setConfirmPinError(null);
     setIsSubmitting(true);
     setError(null);
     try {
       await createWalletWithKey(pin);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create wallet. Please try again.");
+      setError(err instanceof Error ? err.message : "Failed to secure your account. Please try again.");
       setStep("pin");
     } finally {
       setIsSubmitting(false);
@@ -141,7 +130,7 @@ function OnboardingContent() {
                 <CheckCircle2 className="h-6 w-6 text-emerald-500" />
               </div>
             </div>
-            <CardTitle>Wallet ready!</CardTitle>
+            <CardTitle>You&apos;re all set!</CardTitle>
             <CardDescription>Taking you to your portfolio…</CardDescription>
           </CardHeader>
           <div className="flex justify-center pb-6">
@@ -162,8 +151,8 @@ function OnboardingContent() {
             <div className="flex justify-center mb-4">
               <Loader2 className="h-10 w-10 animate-spin text-primary" />
             </div>
-            <CardTitle>Creating your wallet…</CardTitle>
-            <CardDescription>Securing your account. This takes just a second.</CardDescription>
+            <CardTitle>Securing your account…</CardTitle>
+            <CardDescription>This takes just a second.</CardDescription>
           </CardHeader>
         </Card>
       </div>
@@ -178,16 +167,14 @@ function OnboardingContent() {
         <CardHeader className="text-center">
           <div className="flex justify-center mb-2">
             <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <Wallet className="h-6 w-6 text-primary" />
+              <ShieldCheck className="h-6 w-6 text-primary" />
             </div>
           </div>
-          <CardTitle>Create your wallet</CardTitle>
+          <CardTitle>Secure your account</CardTitle>
           <CardDescription>
             {usePasskeyUI
-              ? "Your invisible Starknet wallet is protected by a passkey — works with Face ID, Touch ID, or your device PIN."
-              : step === "confirm"
-              ? "Re-enter your PIN to confirm."
-              : "Choose a 6–12 digit PIN to protect your wallet. Store it safely — we never store it."}
+              ? "Use Face ID, Touch ID, or your device unlock to protect your account. Fast and effortless."
+              : "Create a 6-digit security PIN. You'll use it to authorize transactions — we never store it."}
           </CardDescription>
         </CardHeader>
 
@@ -204,45 +191,33 @@ function OnboardingContent() {
             <div className="w-full space-y-3">
               <Button className="w-full gap-2" size="lg" onClick={handlePasskeySetup}>
                 <KeyRound className="h-4 w-4" />
-                Continue with passkey
+                Secure with passkey
               </Button>
               <Button
                 variant="ghost"
                 className="w-full text-muted-foreground text-sm"
                 onClick={() => { setShowPinFallback(true); setError(null); }}
               >
-                Use a PIN instead
+                Use a security PIN instead
               </Button>
             </div>
           ) : (
             /* ── PIN UI ── */
             <>
               <PinInput
-                value={step === "confirm" ? confirmPin : pin}
-                onChange={step === "confirm"
-                  ? (v) => { setConfirmPin(v); setConfirmPinError(null); }
-                  : (v) => { setPin(v); setPinError(null); }
-                }
-                error={step === "confirm" ? confirmPinError : pinError}
+                value={pin}
+                onChange={(v) => { setPin(v); setPinError(null); }}
+                error={pinError}
                 autoFocus
               />
 
               <div className="flex w-full gap-2">
-                {step === "confirm" && (
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => { setStep("pin"); setConfirmPin(""); setConfirmPinError(null); setError(null); }}
-                  >
-                    Back
-                  </Button>
-                )}
                 <Button
                   className="flex-1"
-                  disabled={step === "pin" ? pin.length < 6 : confirmPin.length < 6}
-                  onClick={step === "pin" ? handlePinNext : handlePinCreate}
+                  disabled={pin.length < 6}
+                  onClick={handlePinCreate}
                 >
-                  {step === "confirm" ? "Create wallet" : "Next"}
+                  Secure my account
                 </Button>
               </div>
 
@@ -250,7 +225,7 @@ function OnboardingContent() {
                 <Button
                   variant="ghost"
                   className="w-full text-muted-foreground text-sm"
-                  onClick={() => { setShowPinFallback(false); setError(null); setPin(""); setConfirmPin(""); setStep("pin"); }}
+                  onClick={() => { setShowPinFallback(false); setError(null); setPin(""); setStep("pin"); }}
                 >
                   Use passkey instead
                 </Button>

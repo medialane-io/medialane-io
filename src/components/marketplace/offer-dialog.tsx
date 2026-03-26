@@ -283,7 +283,7 @@ export function OfferDialog({
                 </span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Enter your wallet PIN to sign the offer, or use passkey instead.
+                Enter your security PIN to sign the offer.
               </p>
               <PinInput
                 value={pin}
@@ -291,17 +291,6 @@ export function OfferDialog({
                 error={pinError}
                 autoFocus
               />
-              {passkeySupported && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="w-full"
-                  disabled={isAuthenticatingPasskey || isProcessing}
-                  onClick={handleUsePasskey}
-                >
-                  {isAuthenticatingPasskey ? "Authenticating passkey…" : "Use passkey instead"}
-                </Button>
-              )}
               {error && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
@@ -429,7 +418,7 @@ export function OfferDialog({
 
                   <Button type="submit" className="w-full h-11" disabled={isProcessing}>
                     <HandCoins className="h-4 w-4 mr-2" />
-                    {hasWallet ? "Submit offer" : "Set up wallet & offer"}
+                    {hasWallet ? "Submit offer" : "Secure account & offer"}
                   </Button>
                   <p className="text-[10px] text-center text-muted-foreground">
                     Gas is free. Your ERC-20 balance is locked until the offer expires or is accepted.

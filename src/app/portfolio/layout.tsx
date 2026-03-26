@@ -135,12 +135,12 @@ export default function PortfolioLayout({ children }: { children: React.ReactNod
     return (
       <div className="px-4 sm:px-6 lg:px-8 py-24 text-center space-y-4">
         <Wallet className="h-12 w-12 mx-auto text-muted-foreground" />
-        <h1 className="text-2xl font-bold">Wallet not found</h1>
+        <h1 className="text-2xl font-bold">Secure your account</h1>
         <p className="text-muted-foreground max-w-sm mx-auto">
-          You need a Starknet wallet to use your portfolio. Set one up to get started.
+          Protect your account to unlock your portfolio and start trading.
         </p>
         <Button asChild>
-          <Link href="/onboarding?redirect_url=/portfolio/assets">Set up wallet</Link>
+          <Link href="/onboarding?redirect_url=/portfolio/assets">Get started</Link>
         </Button>
       </div>
     );

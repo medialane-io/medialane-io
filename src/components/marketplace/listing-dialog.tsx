@@ -284,7 +284,7 @@ export function ListingDialog({
                 </span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Enter your wallet PIN to sign the listing, or use passkey instead.
+                Enter your security PIN to sign the listing.
               </p>
               <PinInput
                 value={pin}
@@ -292,17 +292,6 @@ export function ListingDialog({
                 error={pinError}
                 autoFocus
               />
-              {passkeySupported && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="w-full"
-                  disabled={isAuthenticatingPasskey || isProcessing}
-                  onClick={handleUsePasskey}
-                >
-                  {isAuthenticatingPasskey ? "Authenticating passkey…" : "Use passkey instead"}
-                </Button>
-              )}
               {error && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
@@ -431,7 +420,7 @@ export function ListingDialog({
 
                   <Button type="submit" className="w-full h-11" disabled={isProcessing}>
                     <Tag className="h-4 w-4 mr-2" />
-                    {hasWallet ? "List for sale" : "Set up wallet & list"}
+                    {hasWallet ? "List for sale" : "Secure account & list"}
                   </Button>
                   <p className="text-[10px] text-center text-muted-foreground">
                     Gas is free. Your PIN signs the listing.
