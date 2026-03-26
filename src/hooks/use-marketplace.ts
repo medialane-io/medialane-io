@@ -116,6 +116,7 @@ export function useMarketplace() {
     isSettingUpSession,
     setupSession,
     signTypedData,
+    maybeClearSessionForAmountCap,
   } = useSessionKey();
   const client = useMedialaneClient();
   const { mutate } = useSWRConfig();
@@ -400,5 +401,6 @@ export function useMarketplace() {
     txHash: hash ?? txHash,
     error: error ?? txError,
     resetState,
+    maybeClearSessionForAmountCap,
   };
 }

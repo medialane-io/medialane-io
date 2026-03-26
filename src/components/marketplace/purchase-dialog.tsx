@@ -26,6 +26,7 @@ import { formatDisplayPrice, ipfsToHttp } from "@/lib/utils";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { isWebAuthnSupported } from "@chipi-stack/nextjs";
 import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
+import { orderPriceToUsdcNumber } from "@/lib/chipi/session-preferences";
 
 interface PurchaseDialogProps {
   order: ApiOrder;
@@ -44,6 +45,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
     hasActiveSession,
     isSettingUpSession,
     setupSession,
+    maybeClearSessionForAmountCap,
     isProcessing,
     txStatus,
     txHash,
@@ -63,13 +65,21 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
   const [isAuthenticatingPasskey, setIsAuthenticatingPasskey] = useState(false);
   const { authenticate, encryptKey } = usePasskeyAuth();
 
-  const handleBuyClick = () => {
+  const handleBuyClick = async () => {
     if (!isSignedIn) return;
     if (!hasWallet) {
       setWalletSetupOpen(true);
       return;
     }
-    if (!hasActiveSession) {
+    const priceUsdc = orderPriceToUsdcNumber(order);
+    const cleared = await maybeClearSessionForAmountCap(priceUsdc);
+    if (cleared) {
+      toast.info("Large purchase — fresh signing session", {
+        description:
+          "Your saved session was cleared for this transaction size. Register a new session to continue.",
+      });
+    }
+    if (cleared || !hasActiveSession) {
       setSessionSetupOpen(true);
       return;
     }

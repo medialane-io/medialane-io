@@ -5,13 +5,17 @@ import { ThemeProvider } from "next-themes";
 import { Toaster, toast } from "sonner";
 import Link from "next/link";
 import { Zap } from "lucide-react";
+import { SignedIn } from "@clerk/nextjs";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { CartDrawer } from "@/components/layout/cart-drawer";
-import { SessionExpiryBanner } from "@/components/layout/session-expiry-banner";
+// Legacy “session expiring soon” card (same slot). Implementation kept in session-expiry-banner.tsx (returns null).
+// import { SessionExpiryBanner } from "@/components/layout/session-expiry-banner";
+import { SessionPreferencesSwitch } from "@/components/chipi/session-preferences-switch";
 import { Aurora } from "@/components/ui/aurora";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { MedialaneLogo } from "@/components/brand/medialane-logo";
 import { SWRConfig } from "swr";
+import { ChipiSessionUnlockProvider } from "@/contexts/chipi-session-unlock-context";
 
 function Shell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -25,10 +29,16 @@ function Shell({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarProvider defaultOpen={false}>
+      <ChipiSessionUnlockProvider>
       <AppSidebar />
       <SidebarInset>
         <SidebarTrigger className="absolute top-3 left-3 z-50" />
-        <SessionExpiryBanner />
+        {/* <SessionExpiryBanner /> */}
+        <SignedIn>
+          <div className="fixed bottom-4 right-4 z-50 w-[min(100vw-2rem,20rem)] pointer-events-auto">
+            <SessionPreferencesSwitch />
+          </div>
+        </SignedIn>
         <main className="flex-1 bg-background overflow-x-hidden">{children}</main>
         <footer className="bg-background border-t border-border/60 px-6 py-8 mt-auto">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
@@ -50,6 +60,7 @@ function Shell({ children }: { children: React.ReactNode }) {
           </div>
         </footer>
       </SidebarInset>
+      </ChipiSessionUnlockProvider>
     </SidebarProvider>
   );
 }

@@ -11,7 +11,6 @@ import { ShoppingCart, Check, MoreHorizontal, ExternalLink, Layers, ArrowRightLe
 import { cn, ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
 import { ReportDialog } from "@/components/report-dialog";
-import { CurrencyIcon } from "@/components/shared/currency-icon";
 import type { ApiOrder } from "@medialane/sdk";
 
 interface ListingCardProps {
@@ -82,8 +81,7 @@ export function ListingCard({ order, onBuy }: ListingCardProps) {
             )}
           </div>
 
-          <p className="text-base font-bold price-value leading-none flex items-center gap-1.5">
-            <CurrencyIcon symbol={order.price.currency} size={15} />
+          <p className="text-base font-bold price-value leading-none">
             {formatDisplayPrice(order.price.formatted)}{" "}
             <span className="text-muted-foreground font-normal text-sm">
               {order.price.currency}

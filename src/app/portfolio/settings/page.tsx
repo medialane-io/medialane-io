@@ -147,9 +147,9 @@ export default function ProfileSettingsPage() {
   async function handleSave() {
     if (!walletAddress) return;
     const urlFields = ["websiteUrl", "twitterUrl", "discordUrl", "telegramUrl"] as const;
-    const hasInvalidUrl = urlFields.some((k) => form[k] && !form[k].startsWith("http://") && !form[k].startsWith("https://"));
+    const hasInvalidUrl = urlFields.some((k) => !isValidUrl(form[k]));
     if (hasInvalidUrl) {
-      toast.error("All URL fields must start with http:// or https://");
+      toast.error("All URL fields must start with http://, https://, or ipfs://");
       return;
     }
     setSaving(true);
@@ -170,7 +170,8 @@ export default function ProfileSettingsPage() {
   }
 
   const URL_KEYS = new Set(["websiteUrl", "twitterUrl", "discordUrl", "telegramUrl"]);
-  const isValidUrl = (v: string) => !v || v.startsWith("http://") || v.startsWith("https://");
+  const isValidUrl = (v: string) =>
+    !v || v.startsWith("http://") || v.startsWith("https://") || v.startsWith("ipfs://");
 
   const field = (
     key: keyof typeof form,
@@ -190,7 +191,7 @@ export default function ProfileSettingsPage() {
           onChange={(e) => setForm(f => ({ ...f, [key]: e.target.value }))}
           className={invalid ? "border-destructive focus-visible:ring-destructive" : ""}
         />
-        {invalid && <p className="text-xs text-destructive">Must start with http:// or https://</p>}
+        {invalid && <p className="text-xs text-destructive">Must start with http://, https://, or ipfs://</p>}
         {!invalid && helper && <p className="text-xs text-muted-foreground">{helper}</p>}
       </div>
     );

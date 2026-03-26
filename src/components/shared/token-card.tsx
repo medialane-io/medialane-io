@@ -8,7 +8,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MotionCard } from "@/components/ui/motion-primitives";
 import { ShoppingCart, Tag, ArrowRightLeft, X, Loader2 } from "lucide-react";
 import { cn, ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
-import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { useCart } from "@/hooks/use-cart";
 import type { RarityTier } from "@/lib/rarity";
 import type { ApiToken } from "@medialane/sdk";
@@ -115,10 +114,7 @@ export function TokenCard({
           {/* Listed badge — shows price + currency */}
           {isOwner && activeOrder && (
             <span className="absolute top-2 right-2 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary backdrop-blur-sm leading-4">
-              <span className="inline-flex items-center gap-0.5">
-                <CurrencyIcon symbol={activeOrder.price.currency} size={10} />
-                {formatDisplayPrice(activeOrder.price.formatted)}
-              </span>
+              {formatDisplayPrice(activeOrder.price.formatted)} {activeOrder.price.currency}
             </span>
           )}
         </div>
@@ -134,8 +130,7 @@ export function TokenCard({
             <p className="text-[11px] text-muted-foreground">#{token.tokenId}</p>
           )}
           {activeOrder && !isOwner && (
-            <p className="text-sm font-medium pt-0.5 flex items-center gap-1">
-              <CurrencyIcon symbol={activeOrder.price.currency} size={13} />
+            <p className="text-sm font-medium pt-0.5">
               {formatDisplayPrice(activeOrder.price.formatted)}{" "}
               <span className="text-muted-foreground font-normal text-xs">
                 {activeOrder.price.currency}

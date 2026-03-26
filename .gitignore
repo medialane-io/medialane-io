@@ -49,3 +49,8 @@ package-lock.json
 playwright.config.ts
 /e2e-tests/
 /.github/
+.clerk/
+**.clerk/
+**/.clerk/
+**/.clerk/.tmp/telemetry.json
+/.clerk/.tmp/telemetry.json

@@ -14,6 +14,8 @@
      hasWallet,
      isLoadingWallet,
      refetchWallet,
+     storedSession,
+     sessionPreferences,
    } = useSessionKey();
 
    const getBearerToken = useCallback(
@@ -44,6 +46,8 @@
      hasWallet,
      isLoadingWallet,
      refetchWallet,
+     storedSession,
+     sessionPreferences,
      balance: balanceData?.balance ?? null,
      isLoadingBalance,
      refetchBalance: () => refetch(),

@@ -1,9 +1,24 @@
 import useSWR from "swr";
 import { useAuth } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
-import { useMedialaneClient } from "@/hooks/use-medialane-client";
-import { getMedialaneClient } from "@/lib/medialane-client";
+import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
 import type { RemixOffer, RemixOfferListResponse, PublicRemix } from "@/types/remix-offers";
+
+// ─── Fetcher helpers ──────────────────────────────────────────────────────────
+
+async function apiFetch(url: string, apiKey: string, clerkToken?: string | null, options?: RequestInit) {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    "x-api-key": apiKey,
+    ...(clerkToken ? { Authorization: `Bearer ${clerkToken}` } : {}),
+  };
+  const res = await fetch(url, { ...options, headers: { ...headers, ...(options?.headers as Record<string, string> ?? {}) } });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err as any).error ?? `Request failed: ${res.status}`);
+  }
+  return res.json();
+}
 
 // ─── Hooks ────────────────────────────────────────────────────────────────────
 
@@ -11,7 +26,6 @@ import type { RemixOffer, RemixOfferListResponse, PublicRemix } from "@/types/re
 export function useRemixOffers(role: "creator" | "requester", status?: string) {
   const { getToken } = useAuth();
   const { walletAddress } = useSessionKey();
-  const client = useMedialaneClient();
 
   const key = walletAddress ? `remix-offers-${role}-${status ?? "all"}` : null;
 
@@ -19,7 +33,8 @@ export function useRemixOffers(role: "creator" | "requester", status?: string) {
     key,
     async () => {
       const token = await getToken();
-      return client.api.getRemixOffers({ role }, token!) as Promise<RemixOfferListResponse>;
+      const params = new URLSearchParams({ role, ...(status ? { status } : {}) });
+      return apiFetch(`${MEDIALANE_BACKEND_URL}/v1/remix-offers?${params}`, MEDIALANE_API_KEY, token);
     },
     { refreshInterval: 30000, revalidateOnFocus: false }
   );
@@ -29,15 +44,16 @@ export function useRemixOffers(role: "creator" | "requester", status?: string) {
 
 /** Public remixes of a token. */
 export function useTokenRemixes(contract: string | null, tokenId: string | null) {
-  const client = useMedialaneClient();
-
   const { data, error, isLoading, mutate } = useSWR<{ data: PublicRemix[]; meta: { total: number } }>(
     contract && tokenId ? `token-remixes-${contract}-${tokenId}` : null,
-    () => client.api.getTokenRemixes(contract!, tokenId!) as Promise<{ data: PublicRemix[]; meta: { total: number } }>,
+    () =>
+      fetch(`${MEDIALANE_BACKEND_URL}/v1/tokens/${contract}/${tokenId}/remixes`, {
+        headers: { "x-api-key": MEDIALANE_API_KEY },
+      }).then((r) => r.json()),
     { refreshInterval: 60000, revalidateOnFocus: false }
   );
 
-  return { remixes: data?.data ?? [], total: data?.meta?.total ?? 0, isLoading, error, mutate };
+  return { remixes: data?.data ?? [], total: data?.meta.total ?? 0, isLoading, error, mutate };
 }
 
 // ─── Mutation helpers ─────────────────────────────────────────────────────────
@@ -58,17 +74,23 @@ export async function submitRemixOffer(
   },
   clerkToken: string
 ): Promise<RemixOffer> {
-  const res = await getMedialaneClient().api.submitRemixOffer(body, clerkToken);
-  return res.data as RemixOffer;
+  const res = await apiFetch(`${MEDIALANE_BACKEND_URL}/v1/remix-offers`, MEDIALANE_API_KEY, clerkToken, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+  return res.data;
 }
 
 /** Submit an auto (open-license) offer (Path 2). */
 export async function submitAutoRemixOffer(
-  body: { originalContract: string; originalTokenId: string; licenseType: string },
+  body: { originalContract: string; originalTokenId: string },
   clerkToken: string
 ): Promise<RemixOffer> {
-  const res = await getMedialaneClient().api.submitAutoRemixOffer(body, clerkToken);
-  return res.data as RemixOffer;
+  const res = await apiFetch(`${MEDIALANE_BACKEND_URL}/v1/remix-offers/auto`, MEDIALANE_API_KEY, clerkToken, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+  return res.data;
 }
 
 /** Record completed self-remix (Path 1). */
@@ -78,7 +100,7 @@ export async function confirmSelfRemix(
     originalTokenId: string;
     remixContract: string;
     remixTokenId: string;
-    txHash?: string;
+    txHash: string;
     licenseType: string;
     commercial: boolean;
     derivatives: boolean;
@@ -86,8 +108,11 @@ export async function confirmSelfRemix(
   },
   clerkToken: string
 ): Promise<RemixOffer> {
-  const res = await getMedialaneClient().api.confirmSelfRemix(body, clerkToken);
-  return res.data as RemixOffer;
+  const res = await apiFetch(`${MEDIALANE_BACKEND_URL}/v1/remix-offers/self/confirm`, MEDIALANE_API_KEY, clerkToken, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+  return res.data;
 }
 
 /** Record completed mint + listing (Paths 2 & 3). */
@@ -96,12 +121,18 @@ export async function confirmRemixOffer(
   body: { remixContract: string; remixTokenId: string; approvedCollection: string; orderHash: string },
   clerkToken: string
 ): Promise<RemixOffer> {
-  const res = await getMedialaneClient().api.confirmRemixOffer(id, body, clerkToken);
-  return res.data as RemixOffer;
+  const res = await apiFetch(`${MEDIALANE_BACKEND_URL}/v1/remix-offers/${id}/confirm`, MEDIALANE_API_KEY, clerkToken, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+  return res.data;
 }
 
 /** Reject an offer. */
 export async function rejectRemixOffer(id: string, clerkToken: string): Promise<RemixOffer> {
-  const res = await getMedialaneClient().api.rejectRemixOffer(id, clerkToken);
-  return res.data as RemixOffer;
+  const res = await apiFetch(`${MEDIALANE_BACKEND_URL}/v1/remix-offers/${id}/reject`, MEDIALANE_API_KEY, clerkToken, {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+  return res.data;
 }

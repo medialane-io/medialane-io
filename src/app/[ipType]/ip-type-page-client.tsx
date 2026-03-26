@@ -36,8 +36,8 @@ function TokenBrowseCard({ token }: { token: ApiToken }) {
   const price = activeOrder?.price;
   const ipType = token.metadata?.ipType;
   const typeConfig = ipType
-    ? IP_TYPE_CONFIG_LIST.find((c) => c.apiValue === ipType) ?? null
-    : IP_TYPE_CONFIG_LIST.find((c) => c.slug === "nft") ?? null;
+    ? IP_TYPE_CONFIG.find((c) => c.apiValue === ipType) ?? null
+    : IP_TYPE_CONFIG.find((c) => c.slug === "nft") ?? null;
 
   return (
     <div className="group rounded-xl border border-border overflow-hidden hover:border-primary/40 transition-all bg-card hover:shadow-lg hover:shadow-black/20 flex flex-col">

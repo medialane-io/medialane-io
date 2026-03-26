@@ -112,7 +112,7 @@ function CreatorCardSkeleton() {
 export default function CreatorsPageClient() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function handleSearch(value: string) {
     setSearch(value);

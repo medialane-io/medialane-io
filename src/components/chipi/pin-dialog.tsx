@@ -14,9 +14,11 @@ import { PinInput, validatePin } from "@/components/ui/pin-input";
 import { isWebAuthnSupported } from "@chipi-stack/nextjs";
 import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
 
+export type PinDialogSubmitOptions = { usedPasskey?: boolean };
+
 interface PinDialogProps {
   open: boolean;
-  onSubmit: (pin: string) => void | Promise<void>;
+  onSubmit: (pin: string, options?: PinDialogSubmitOptions) => void | Promise<void>;
   onCancel: () => void;
   title?: string;
   description?: string;
@@ -43,7 +45,7 @@ export function PinDialog({
   const handleSubmit = () => {
     const err = validatePin(pin);
     if (err) { setError(err); return; }
-    onSubmit(pin);
+    onSubmit(pin, { usedPasskey: false });
     setPin("");
     setError(null);
   };
@@ -59,14 +61,14 @@ export function PinDialog({
     setError(null);
     try {
       if (encryptKey) {
-        await onSubmit(encryptKey);
+        await onSubmit(encryptKey, { usedPasskey: true });
         setPin("");
         setError(null);
         return;
       }
       const derived = await authenticate();
       if (!derived) throw new Error("Passkey authentication failed.");
-      await onSubmit(derived);
+      await onSubmit(derived, { usedPasskey: true });
       setPin("");
       setError(null);
     } catch (err: unknown) {

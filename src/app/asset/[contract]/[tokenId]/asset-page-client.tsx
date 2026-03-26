@@ -42,7 +42,6 @@ import { toast } from "sonner";
 import { useDominantColor } from "@/hooks/use-dominant-color";
 import { RemixesTab, ParentAttributionBanner } from "@/components/asset/remixes-tab";
 import { useTokenRemixes } from "@/hooks/use-remix-offers";
-import { CurrencyIcon } from "@/components/shared/currency-icon";
 
 const TYPE_LABEL: Record<string, string> = {
   transfer: "Transfer",
@@ -349,8 +348,7 @@ export default function AssetPageClient() {
                   <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">
                     {isOwner ? "Your listing" : "Current price"}
                   </p>
-                  <p className="text-3xl font-bold mt-1 flex items-center gap-2">
-                    <CurrencyIcon symbol={cheapest.price.currency} size={22} />
+                  <p className="text-3xl font-bold mt-1">
                     {formatDisplayPrice(cheapest.price.formatted)} {cheapest.price.currency}
                   </p>
                   <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
@@ -364,7 +362,7 @@ export default function AssetPageClient() {
                     {myListing && (
                     <div className="btn-border-animated p-[1px] rounded-xl">
                       <button
-                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-transparent disabled:opacity-50"
+                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-destructive disabled:opacity-50"
                         disabled={isProcessing}
                         onClick={() => handleCancelClick(myListing)}
                       >
@@ -393,7 +391,7 @@ export default function AssetPageClient() {
                     </div>
                     <div className="btn-border-animated p-[1px] rounded-xl">
                       <button
-                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-purple"
+                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-rose"
                         onClick={() => router.push(`/create/remix/${contract}/${tokenId}`)}
                       >
                         <GitBranch className="h-4 w-4" />
@@ -428,7 +426,7 @@ export default function AssetPageClient() {
                       {/* Make offer — flat brand-purple, animated gradient border */}
                       <div className="btn-border-animated p-[1px] rounded-xl">
                         <button
-                          className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-rose"
+                          className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-purple"
                           onClick={() => setOfferOpen(true)}
                         >
                           <HandCoins className="h-4 w-4" />
@@ -535,8 +533,7 @@ export default function AssetPageClient() {
                       className="flex items-center justify-between gap-3 rounded-lg bg-muted/30 px-3 py-2"
                     >
                       <div className="min-w-0">
-                        <p className="text-sm font-bold flex items-center gap-1">
-                          <CurrencyIcon symbol={bid.price.currency} size={13} />
+                        <p className="text-sm font-bold">
                           {formatDisplayPrice(bid.price.formatted)} {bid.price.currency}
                         </p>
                         <div className="flex items-center gap-2 mt-0.5">
@@ -671,14 +668,14 @@ export default function AssetPageClient() {
                       </div>
                     </div>
                   )}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  <div className="rounded-xl border border-border divide-y divide-border">
                     {rows.map(({ icon, label, value }) => (
-                      <div key={label} className="rounded-lg border border-border bg-muted/20 p-3 text-center overflow-hidden">
-                        <div className="flex justify-center text-muted-foreground">
+                      <div key={label} className="flex items-center justify-between px-4 py-3 gap-4">
+                        <div className="flex items-center gap-2.5 text-muted-foreground min-w-0">
                           {icon}
+                          <span className="text-sm">{label}</span>
                         </div>
-                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground truncate mt-1">{label}</p>
-                        <p className="text-sm font-semibold mt-0.5 truncate" title={value}>{value}</p>
+                        <span className="text-sm font-medium text-right">{value}</span>
                       </div>
                     ))}
                   </div>
@@ -726,7 +723,7 @@ export default function AssetPageClient() {
                     return (
                       <div key={order.orderHash} className="flex items-center justify-between px-4 py-3 gap-4">
                         <div className="min-w-0">
-                          <p className="font-bold text-sm flex items-center gap-1"><CurrencyIcon symbol={order.price.currency} size={13} />{formatDisplayPrice(order.price.formatted)} {order.price.currency}</p>
+                          <p className="font-bold text-sm">{formatDisplayPrice(order.price.formatted)} {order.price.currency}</p>
                           <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
                             <Clock className="h-3 w-3" />
                             {timeUntil(order.endTime)}
@@ -757,7 +754,7 @@ export default function AssetPageClient() {
                   {activeBids.map((bid) => (
                     <div key={bid.orderHash} className="flex items-center justify-between px-4 py-3 gap-4">
                       <div className="min-w-0">
-                        <p className="font-bold text-sm flex items-center gap-1"><CurrencyIcon symbol={bid.price.currency} size={13} />{formatDisplayPrice(bid.price.formatted)} {bid.price.currency}</p>
+                        <p className="font-bold text-sm">{formatDisplayPrice(bid.price.formatted)} {bid.price.currency}</p>
                         <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
                           <Clock className="h-3 w-3" />
                           {timeUntil(bid.endTime)}
@@ -810,8 +807,7 @@ export default function AssetPageClient() {
                         </div>
                         <div className="flex items-center gap-3 shrink-0">
                           {event.price?.formatted && (
-                            <span className="text-sm font-bold flex items-center gap-1">
-                              <CurrencyIcon symbol={event.price.currency} size={13} />
+                            <span className="text-sm font-bold">
                               {formatDisplayPrice(event.price.formatted)} {event.price.currency}
                             </span>
                           )}

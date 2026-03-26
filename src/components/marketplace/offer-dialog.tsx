@@ -31,6 +31,7 @@ import { SessionSetupDialog } from "@/components/chipi/session-setup-dialog";
 import { useAuth, SignInButton } from "@clerk/nextjs";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { EXPLORER_URL, DURATION_OPTIONS } from "@/lib/constants";
+import { parseFormPriceUsdc } from "@/lib/chipi/session-preferences";
 import { isWebAuthnSupported } from "@chipi-stack/nextjs";
 import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
 import { getListableTokens } from "@medialane/sdk";
@@ -75,6 +76,7 @@ export function OfferDialog({
     hasActiveSession,
     isSettingUpSession,
     setupSession,
+    maybeClearSessionForAmountCap,
     isProcessing,
     txStatus,
     txHash,
@@ -100,14 +102,22 @@ export function OfferDialog({
     defaultValues: { price: "", currency: "USDC", durationSeconds: 2592000 },
   });
 
-  const onSubmit = (values: FormValues) => {
+  const onSubmit = async (values: FormValues) => {
     if (!isSignedIn) return;
     setPendingValues(values);
     if (!hasWallet) {
       setWalletSetupOpen(true);
       return;
     }
-    if (!hasActiveSession) {
+    const priceUsdc = parseFormPriceUsdc(values.price);
+    const cleared = await maybeClearSessionForAmountCap(priceUsdc);
+    if (cleared) {
+      toast.info("Large offer — fresh signing session", {
+        description:
+          "Your saved session was cleared for this transaction size. Register a new session to continue.",
+      });
+    }
+    if (cleared || !hasActiveSession) {
       setSessionSetupOpen(true);
       return;
     }
