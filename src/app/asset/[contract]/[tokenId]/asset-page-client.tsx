@@ -833,26 +833,23 @@ export default function AssetPageClient() {
       </div>
 
 
-      {/* Floating comments bubble */}
+      {/* Floating on-chain comments pill */}
       <div className="fixed bottom-6 right-6 z-40">
         <button
           onClick={() => setCommentOpen(true)}
-          aria-label="Open comments"
-          className="relative flex h-14 w-14 items-center justify-center rounded-full text-white transition-all hover:scale-110 active:scale-95 shadow-lg shadow-brand-blue/40"
+          aria-label="Open on-chain comments"
+          className="relative flex items-center gap-2 rounded-full px-4 py-2.5 text-white transition-all hover:scale-105 active:scale-95 shadow-lg shadow-brand-blue/30"
           style={{ background: "linear-gradient(135deg, hsl(var(--brand-blue)), hsl(var(--brand-purple)))" }}
         >
-          {/* pulse ring — only when there are comments */}
+          <MessageSquare className="h-4 w-4 shrink-0" />
+          <span className="text-xs font-medium leading-none">On-chain comments</span>
           {commentTotal > 0 && (
-            <span className="absolute inset-0 rounded-full animate-ping opacity-20" style={{ background: "hsl(var(--brand-blue))" }} />
+            <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[10px] font-bold tabular-nums text-white"
+              style={{ background: "hsl(var(--brand-rose))" }}>
+              {commentTotal}
+            </span>
           )}
-          <MessageSquare className="h-6 w-6 relative z-10" />
         </button>
-        {commentTotal > 0 && (
-          <span className="absolute -top-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-bold tabular-nums text-white pointer-events-none"
-            style={{ background: "hsl(var(--brand-rose))" }}>
-            {commentTotal}
-          </span>
-        )}
       </div>
 
       {/* Comments Sheet — bottom drawer on mobile, right panel on desktop */}

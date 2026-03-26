@@ -34,11 +34,7 @@ function Shell({ children }: { children: React.ReactNode }) {
       <SidebarInset>
         <SidebarTrigger className="absolute top-3 left-3 z-50" />
         {/* <SessionExpiryBanner /> */}
-        <SignedIn>
-          <div className="fixed bottom-4 right-4 z-50 w-[min(100vw-2rem,20rem)] pointer-events-auto">
-            <SessionPreferencesSwitch />
-          </div>
-        </SignedIn>
+        {/* SessionPreferencesSwitch hidden — surfaced inside account/wallet settings instead */}
         <main className="flex-1 bg-background overflow-x-hidden">{children}</main>
         <footer className="bg-background border-t border-border/60 px-6 py-8 mt-auto">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
