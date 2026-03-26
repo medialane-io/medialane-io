@@ -297,6 +297,7 @@ export function SessionPreferencesSwitch({
 
   const [modalOpen, setModalOpen] = useState(false);
   const [autoRegisterOnOpen, setAutoRegisterOnOpen] = useState(false);
+  const lastSessionClearedAtRef = useRef<number | null>(null);
 
   const enabled = sessionPreferences?.enabled ?? false;
 
@@ -308,7 +309,10 @@ export function SessionPreferencesSwitch({
     if (checked) {
       // If we don't have an active registered signing session yet, register one now
       // so the first "Send" can use the session without extra steps.
-      setAutoRegisterOnOpen(!hasActiveSession);
+      const justCleared =
+        lastSessionClearedAtRef.current != null &&
+        Date.now() - lastSessionClearedAtRef.current < 15_000;
+      setAutoRegisterOnOpen(justCleared || !hasActiveSession);
       setModalOpen(true);
       return;
     }
@@ -316,6 +320,7 @@ export function SessionPreferencesSwitch({
       await clearSession();
       clearSessionUnlockKey();
       await clearSessionPreferences();
+      lastSessionClearedAtRef.current = Date.now();
       toast.success("Remember session turned off", {
         description: "Your saved signing session was cleared from this device profile.",
       });

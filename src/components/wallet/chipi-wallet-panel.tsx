@@ -88,6 +88,11 @@ export function ChipiWalletPanel() {
     const prev = prevRememberSessionUiOnRef.current;
     prevRememberSessionUiOnRef.current = rememberSessionUiOn;
 
+    // During initial load, `sessionPreferences` can be null/unknown while Clerk
+    // hydrates. Do not clear registered sessions until we know the user
+    // explicitly turned the preference off.
+    if (sessionPreferences == null) return;
+
     // Turning the toggle back on is a significant state change; force a fresh unlock
     // so the next "Send" must prompt for PIN/passkey (instead of silently reusing
     // a previously-unlocked session key kept in memory/sessionStorage).
