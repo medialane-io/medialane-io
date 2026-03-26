@@ -80,6 +80,7 @@ export default function AssetPageClient() {
   const [acceptPinOpen, setAcceptPinOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [commentOpen, setCommentOpen] = useState(false);
 
   const isMobile = useIsMobile();
   const { comments, total: commentTotal } = useComments(contract, tokenId);
@@ -620,10 +621,6 @@ export default function AssetPageClient() {
             <TabsTrigger value="provenance">
               Provenance {history.length > 0 && `(${history.length})`}
             </TabsTrigger>
-            <TabsTrigger value="comments">
-              <MessageSquare className="h-3.5 w-3.5 mr-1.5" />
-              Comments {commentTotal > 0 && `(${commentTotal})`}
-            </TabsTrigger>
           </TabsList>
 
           {/* Overview tab — media embeds + license + attributes */}
@@ -832,12 +829,60 @@ export default function AssetPageClient() {
             </div>
           </TabsContent>
 
-          <TabsContent value="comments" className="mt-4">
-            <CommentsSection contract={contract} tokenId={tokenId} className="rounded-xl border border-border" />
-          </TabsContent>
-
         </Tabs>
       </div>
+
+
+      {/* Floating on-chain comments pill */}
+      <div className="fixed bottom-6 right-6 z-40">
+        <button
+          onClick={() => setCommentOpen(true)}
+          aria-label="Open on-chain comments"
+          className="relative flex items-center gap-2 rounded-full px-4 py-2.5 text-white transition-all hover:scale-105 active:scale-95 shadow-lg shadow-brand-blue/30"
+          style={{ background: "linear-gradient(135deg, hsl(var(--brand-blue)), hsl(var(--brand-purple)))" }}
+        >
+          <MessageSquare className="h-4 w-4 shrink-0" />
+          <span className="text-xs font-medium leading-none">On-chain comments</span>
+          {commentTotal > 0 && (
+            <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[10px] font-bold tabular-nums text-white"
+              style={{ background: "hsl(var(--brand-rose))" }}>
+              {commentTotal}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* Comments Sheet — bottom drawer on mobile, right panel on desktop */}
+      <Sheet open={commentOpen} onOpenChange={setCommentOpen}>
+        <SheetContent
+          side={isMobile ? "bottom" : "right"}
+          className="h-[85svh] sm:h-full sm:max-w-md p-0 flex flex-col"
+          overlayClassName="bg-black/20 backdrop-blur-[2px]"
+        >
+          <SheetHeader className="px-4 pt-4 pb-3 shrink-0 border-b border-brand-blue/20" style={{ background: "linear-gradient(135deg, hsl(var(--brand-blue) / 0.10), hsl(var(--brand-purple) / 0.08))" }}>
+            <SheetTitle className="flex items-center gap-3 text-sm font-semibold">
+              {/* Asset avatar */}
+              <div className="relative h-9 w-9 rounded-full overflow-hidden shrink-0 ring-2 ring-white/20" style={{ background: "linear-gradient(135deg, hsl(var(--brand-blue) / 0.3), hsl(var(--brand-purple) / 0.3))" }}>
+                {imageUrl && (
+                  <Image src={imageUrl} alt={name} fill className="object-cover" unoptimized />
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] font-medium uppercase tracking-wider" style={{ color: "hsl(var(--brand-blue))" }}>Comments</p>
+                <p className="text-sm font-semibold truncate text-foreground">{name}</p>
+              </div>
+              {commentTotal > 0 && (
+                <span className="ml-auto shrink-0 text-xs font-bold rounded-full px-2 py-0.5 text-white" style={{ background: "hsl(var(--brand-blue))" }}>
+                  {commentTotal}
+                </span>
+              )}
+            </SheetTitle>
+          </SheetHeader>
+          <div className="flex-1 overflow-hidden">
+            <CommentsSection contract={contract} tokenId={tokenId} className="h-full rounded-none border-0" />
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {/* Dialogs */}
       {purchaseOrder && (
