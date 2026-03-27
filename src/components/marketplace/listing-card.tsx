@@ -3,11 +3,12 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MotionCard } from "@/components/ui/motion-primitives";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ShoppingCart, Check, MoreHorizontal, ExternalLink, Layers, ArrowRightLeft, Flag } from "lucide-react";
+import { ShoppingCart, Check, MoreHorizontal, ExternalLink, Layers, ArrowRightLeft, Flag, GitBranch } from "lucide-react";
 import { cn, ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
 import { ReportDialog } from "@/components/report-dialog";
@@ -19,6 +20,7 @@ interface ListingCardProps {
 }
 
 export function ListingCard({ order, onBuy }: ListingCardProps) {
+  const router = useRouter();
   const { addItem, items } = useCart();
   const inCart = items.some((i) => i.orderHash === order.orderHash);
   const [imgError, setImgError] = useState(false);
@@ -115,6 +117,16 @@ export function ListingCard({ order, onBuy }: ListingCardProps) {
                 aria-label={inCart ? "Added to cart" : "Add to cart"}
               >
                 {inCart ? <Check className="h-3.5 w-3.5" /> : <ShoppingCart className="h-3.5 w-3.5" />}
+              </Button>
+              {/* Remix */}
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 w-8 p-0 shrink-0 border-brand-purple/40 text-brand-purple hover:bg-brand-purple/10"
+                onClick={(e) => { e.preventDefault(); router.push(`/create/remix/${order.nftContract}/${order.nftTokenId}`); }}
+                aria-label="Create a Remix"
+              >
+                <GitBranch className="h-3.5 w-3.5" />
               </Button>
               {/* More actions */}
               <DropdownMenu>

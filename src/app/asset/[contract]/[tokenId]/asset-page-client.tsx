@@ -391,7 +391,7 @@ export default function AssetPageClient() {
                     </div>
                     <div className="btn-border-animated p-[1px] rounded-xl">
                       <button
-                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-rose"
+                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-purple"
                         onClick={() => router.push(`/create/remix/${contract}/${tokenId}`)}
                       >
                         <GitBranch className="h-4 w-4" />
@@ -438,7 +438,7 @@ export default function AssetPageClient() {
                     {!isOwner && (
                       <div className="btn-border-animated p-[1px] rounded-xl">
                         <button
-                          className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-rose disabled:opacity-50"
+                          className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-purple disabled:opacity-50"
                           onClick={handleAutoRemix}
                         >
                           <GitBranch className="h-4 w-4" />
@@ -481,7 +481,7 @@ export default function AssetPageClient() {
                     </div>
                     <div className="btn-border-animated p-[1px] rounded-xl">
                       <button
-                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-rose"
+                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-purple"
                         onClick={() => router.push(`/create/remix/${contract}/${tokenId}`)}
                       >
                         <GitBranch className="h-4 w-4" />
@@ -502,7 +502,7 @@ export default function AssetPageClient() {
                     </div>
                     <div className="btn-border-animated p-[1px] rounded-xl">
                       <button
-                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-rose disabled:opacity-50"
+                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-purple disabled:opacity-50"
                         onClick={handleAutoRemix}
                       >
                         <GitBranch className="h-4 w-4" />
