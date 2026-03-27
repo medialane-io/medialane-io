@@ -10,11 +10,11 @@ import { PurchaseDialog } from "@/components/marketplace/purchase-dialog";
 import type { ApiOrder } from "@medialane/sdk";
 
 export function NewOnMarketplace() {
-  const { orders, isLoading } = useOrders({ status: "ACTIVE", limit: 9, page: 1 });
+  const { orders, isLoading } = useOrders({ status: "ACTIVE", limit: 10, page: 1 });
   const [buyOrder, setBuyOrder] = useState<ApiOrder | null>(null);
 
   // Only show actual listings (ERC721 in offer side = someone selling an NFT)
-  const listings = orders.filter((o) => o.offer.itemType === "ERC721").slice(0, 9);
+  const listings = orders.filter((o) => o.offer.itemType === "ERC721").slice(0, 10);
 
   return (
     <section className="space-y-4">
@@ -34,7 +34,7 @@ export function NewOnMarketplace() {
 
       <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4">
         {isLoading
-          ? Array.from({ length: 6 }).map((_, i) => <ListingCardSkeleton key={i} />)
+          ? Array.from({ length: 10 }).map((_, i) => <ListingCardSkeleton key={i} />)
           : listings.length === 0
           ? (
               <p className="col-span-full text-sm text-muted-foreground py-4">
