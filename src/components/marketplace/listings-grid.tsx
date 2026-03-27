@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import type { ApiOrder, SortOrder } from "@medialane/sdk";
 
-const PAGE_SIZE = 15;
+const PAGE_SIZE = 50;
 
 interface ListingsGridProps {
   sort?: string;
