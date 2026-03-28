@@ -3,13 +3,16 @@
 import { useState, useCallback, Suspense } from "react";
 import { useAuth, useUser, useClerk } from "@clerk/nextjs";
 import { useSearchParams } from "next/navigation";
-import { useChipiWallet, isWebAuthnSupported, createWalletPasskey, WalletType, WalletData } from "@chipi-stack/nextjs";
+import { useChipiWallet, isWebAuthnSupported, createWalletPasskey } from "@chipi-stack/nextjs";
+import { byteArray, CallData } from "starknet";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PinInput, validatePin } from "@/components/ui/pin-input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, ShieldCheck, CheckCircle2, AlertCircle, KeyRound } from "lucide-react";
 import { completeOnboarding } from "./_actions";
+import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
+import { LAUNCH_MINT_CONTRACT, GENESIS_NFT_URI } from "@/lib/constants";
 
 export default function OnboardingPage() {
   return (
@@ -24,12 +27,8 @@ function OnboardingContent() {
   const { user } = useUser();
   const { session } = useClerk();
   const searchParams = useSearchParams();
-  const raw = searchParams.get("redirect_url") || "/portfolio";
-  const redirectUrl =
-    raw.startsWith("http") &&
-    !raw.startsWith(process.env.NEXT_PUBLIC_APP_URL || "https://medialane.io")
-      ? "/portfolio"
-      : raw;
+  // Onboarding always ends at /welcome — ignore any redirect_url for the mint flow
+  void searchParams;
 
   const getBearerToken = useCallback(
     () => getToken({ template: process.env.NEXT_PUBLIC_CLERK_TEMPLATE_NAME || "chipipay" }),
@@ -42,43 +41,67 @@ function OnboardingContent() {
     enabled: false,
   });
 
+  const { executeTransaction } = useChipiTransaction();
+
   const [passkeySupported] = useState(
     () => typeof window !== "undefined" && isWebAuthnSupported()
   );
   const [showPinFallback, setShowPinFallback] = useState(false);
   const [pin, setPin] = useState("");
   const [pinError, setPinError] = useState<string | null>(null);
-  const [step, setStep] = useState<"pin" | "done">("pin");
+  const [step, setStep] = useState<"pin" | "minting" | "done">("pin");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const isLoading = isCreating || isSubmitting;
 
-  // ── Shared wallet creation ────────────────────────────────────────────────
+  // ── Shared wallet creation + mint ─────────────────────────────────────────
 
   const createWalletWithKey = async (encryptKey: string) => {
     const wallet = await createWallet({ encryptKey });
-    // ChipiPay API may return the address as `walletPublicKey` or `publicKey`
-    
     const walletKey = wallet.normalizedPublicKey ?? wallet.publicKey;
     if (!walletKey) {
       throw new Error("Wallet creation returned invalid data");
     }
 
-    const result = await completeOnboarding({
-      publicKey: walletKey,
-    });
-
+    const result = await completeOnboarding({ publicKey: walletKey });
     if (result.error) throw new Error(result.error);
 
     await user?.reload();
     await session?.touch();
 
+    // ── Genesis mint (non-blocking) ──────────────────────────────────────
+    if (LAUNCH_MINT_CONTRACT && GENESIS_NFT_URI && wallet.encryptedPrivateKey && userId) {
+      setStep("minting");
+      try {
+        const encodedUri = byteArray.byteArrayFromString(GENESIS_NFT_URI);
+        const calldata = CallData.compile([walletKey, encodedUri]);
+        const mintResult = await executeTransaction({
+          pin: encryptKey,
+          contractAddress: LAUNCH_MINT_CONTRACT,
+          wallet: {
+            publicKey: wallet.publicKey,
+            encryptedPrivateKey: wallet.encryptedPrivateKey,
+          },
+          calls: [
+            {
+              contractAddress: LAUNCH_MINT_CONTRACT,
+              entrypoint: "mint_item",
+              calldata,
+            },
+          ],
+        });
+        if (mintResult.status === "confirmed") {
+          localStorage.setItem(`ml_genesis_${userId}`, mintResult.txHash);
+        }
+      } catch {
+        // Non-fatal — LaunchMint on /welcome handles retry
+      }
+    }
+
+    sessionStorage.setItem("ml_fresh_onboarding", "1");
     setStep("done");
-    // Use full page navigation so the browser fetches a fresh Clerk JWT before
-    // the middleware runs — router.push reuses the cached token and the middleware
-    // would see stale claims (walletCreated still false) and redirect back here.
-    setTimeout(() => { window.location.href = redirectUrl; }, 1500);
+    setTimeout(() => { window.location.href = "/welcome"; }, 1500);
   };
 
   // ── Passkey flow ──────────────────────────────────────────────────────────
@@ -118,6 +141,35 @@ function OnboardingContent() {
     }
   };
 
+  // ── Minting step ──────────────────────────────────────────────────────────
+
+  if (step === "minting") {
+    return (
+      <div className="min-h-[80vh] flex items-center justify-center px-4">
+        <Card className="w-full max-w-sm text-center">
+          <CardHeader>
+            <div className="flex justify-center mb-4">
+              <Loader2 className="h-10 w-10 animate-spin text-primary" />
+            </div>
+            <CardTitle>Sending your welcome gift…</CardTitle>
+            <CardDescription>Minting your Genesis NFT on Starknet</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2 pb-6">
+            {["Upload metadata", "Submit transaction", "Confirm on Starknet"].map((label) => (
+              <div
+                key={label}
+                className="flex items-center gap-2 text-xs text-muted-foreground justify-center"
+              >
+                <div className="h-3 w-3 rounded-full border border-muted-foreground/30 animate-pulse shrink-0" />
+                <span>{label}</span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   // ── Done state ────────────────────────────────────────────────────────────
 
   if (step === "done") {
@@ -131,7 +183,7 @@ function OnboardingContent() {
               </div>
             </div>
             <CardTitle>You&apos;re all set!</CardTitle>
-            <CardDescription>Taking you to your portfolio…</CardDescription>
+            <CardDescription>Taking you to your welcome page…</CardDescription>
           </CardHeader>
           <div className="flex justify-center pb-6">
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -161,6 +213,8 @@ function OnboardingContent() {
 
   const usePasskeyUI = passkeySupported && !showPinFallback;
 
+  // ── PIN / Passkey UI ──────────────────────────────────────────────────────
+
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4">
       <Card className="w-full max-w-sm">
@@ -186,7 +240,6 @@ function OnboardingContent() {
             </Alert>
           )}
 
-          {/* ── Passkey-first UI ── */}
           {usePasskeyUI ? (
             <div className="w-full space-y-3">
               <Button className="w-full gap-2" size="lg" onClick={handlePasskeySetup}>
@@ -202,7 +255,6 @@ function OnboardingContent() {
               </Button>
             </div>
           ) : (
-            /* ── PIN UI ── */
             <>
               <PinInput
                 value={pin}
@@ -210,7 +262,6 @@ function OnboardingContent() {
                 error={pinError}
                 autoFocus
               />
-
               <div className="flex w-full gap-2">
                 <Button
                   className="flex-1"
@@ -220,7 +271,6 @@ function OnboardingContent() {
                   Secure my account
                 </Button>
               </div>
-
               {passkeySupported && (
                 <Button
                   variant="ghost"
