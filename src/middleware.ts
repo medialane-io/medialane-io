@@ -48,9 +48,9 @@ export default clerkMiddleware(async (auth, req) => {
       }
     }
 
-    // Already has wallet and hits /onboarding → redirect to portfolio
+    // Already has wallet and hits /onboarding → redirect to welcome
     if (hasWallet && req.nextUrl.pathname === "/onboarding") {
-      return NextResponse.redirect(new URL("/portfolio", req.url));
+      return NextResponse.redirect(new URL("/welcome", req.url));
     }
 
     // Admin route — require role: "admin"
