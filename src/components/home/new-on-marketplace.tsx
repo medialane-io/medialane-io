@@ -32,25 +32,32 @@ export function NewOnMarketplace() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4">
-        {isLoading
-          ? Array.from({ length: 10 }).map((_, i) => <ListingCardSkeleton key={i} />)
-          : listings.length === 0
-          ? (
-              <p className="col-span-full text-sm text-muted-foreground py-4">
-                No listings yet.{" "}
-                <Link href="/create/asset" className="text-primary hover:underline">
-                  Be the first to list an asset.
-                </Link>
-              </p>
-            )
-          : listings.map((order) => (
-              <ListingCard
-                key={order.orderHash}
-                order={order}
-                onBuy={() => setBuyOrder(order)}
-              />
-            ))}
+      <div className="w-full overflow-x-auto scrollbar-hide">
+        <div className="flex gap-4 snap-x snap-mandatory pb-2" style={{ width: "max-content" }}>
+          {isLoading
+            ? Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="w-72 snap-start shrink-0">
+                  <ListingCardSkeleton />
+                </div>
+              ))
+            : listings.length === 0
+            ? (
+                <p className="text-sm text-muted-foreground py-4">
+                  No listings yet.{" "}
+                  <Link href="/create/asset" className="text-primary hover:underline">
+                    Be the first to list an asset.
+                  </Link>
+                </p>
+              )
+            : listings.map((order) => (
+                <div key={order.orderHash} className="w-72 snap-start shrink-0">
+                  <ListingCard
+                    order={order}
+                    onBuy={() => setBuyOrder(order)}
+                  />
+                </div>
+              ))}
+        </div>
       </div>
 
       {buyOrder && (
