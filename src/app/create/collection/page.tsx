@@ -88,11 +88,17 @@ export default function CreateCollectionPage() {
     }
   }, [walletAddress, form]);
 
+  const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/svg+xml", "image/webp"];
+
   const handleImageSelect = async (file: File) => {
-    const MAX_BYTES = 4 * 1024 * 1024; // 4 MB — Vercel serverless payload limit
+    const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      toast.error("Unsupported format", { description: "Please upload a JPG, PNG, GIF, SVG, or WebP image." });
+      return;
+    }
     if (file.size > MAX_BYTES) {
       toast.error("Image too large", {
-        description: `Max size is 4 MB. Your file is ${(file.size / 1024 / 1024).toFixed(1)} MB. Please compress or resize it first.`,
+        description: `Max size is 10 MB. Your file is ${(file.size / 1024 / 1024).toFixed(1)} MB. Please compress or resize it first.`,
       });
       return;
     }
@@ -104,12 +110,20 @@ export default function CreateCollectionPage() {
     setImageUri(null);
     setImageUploading(true);
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const res = await fetch("/api/pinata/image", { method: "POST", body: fd });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json.error ?? "Upload failed");
-      setImageUri(json.imageUri);
+      // Upload directly to Pinata via signed URL (bypasses Next.js 4 MB body limit)
+      const signedRes = await fetch("/api/pinata/signed-url", { method: "POST" });
+      const signedData = await signedRes.json();
+      if (!signedRes.ok || !signedData.url) throw new Error("Failed to get upload URL");
+      const imgFormData = new FormData();
+      imgFormData.append("file", file, file.name);
+      imgFormData.append("network", "public");
+      imgFormData.append("name", file.name);
+      const uploadRes = await fetch(signedData.url, { method: "POST", body: imgFormData });
+      if (!uploadRes.ok) throw new Error("Image upload to IPFS failed");
+      const uploadJson = await uploadRes.json();
+      const cid = uploadJson.data?.cid;
+      if (!cid) throw new Error("Image upload returned no CID");
+      setImageUri(`ipfs://${cid}`);
       toast.success("Image uploaded to IPFS");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Upload failed";
@@ -314,7 +328,7 @@ export default function CreateCollectionPage() {
                     </button>
                   )}
                   <p className="text-xs text-muted-foreground">
-                    JPG, PNG, GIF, SVG or WebP · max 4 MB
+                    JPG, PNG, GIF, SVG or WebP · max 10 MB
                     {imageUri && (
                       <span className="ml-2 text-emerald-500 font-medium">✓ Uploaded to IPFS</span>
                     )}

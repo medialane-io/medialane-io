@@ -167,7 +167,18 @@ export default function CreateRemixPage() {
     return () => { if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current); };
   }, []);
 
+  const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/svg+xml", "image/webp"];
+  const MAX_IMAGE_BYTES = 10 * 1024 * 1024; // 10 MB
+
   const handleImageChange = (file: File) => {
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      toast.error("Unsupported format", { description: "Please upload a JPG, PNG, GIF, SVG, or WebP image." });
+      return;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      toast.error("File too large", { description: `Max size is 10 MB. Your file is ${(file.size / 1024 / 1024).toFixed(1)} MB.` });
+      return;
+    }
     if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
     const url = URL.createObjectURL(file);
     previewUrlRef.current = url;
@@ -226,7 +237,20 @@ export default function CreateRemixPage() {
       if (imageFile) {
         // Upload via /api/pinata (image + metadata)
         const formData = new FormData();
-        formData.set("file", imageFile);
+        // Upload image directly to Pinata via signed URL (bypasses Next.js 4 MB body limit)
+        const signedRes = await fetch("/api/pinata/signed-url", { method: "POST" });
+        const signedData = await signedRes.json();
+        if (!signedRes.ok || !signedData.url) throw new Error("Failed to get upload URL");
+        const imgFormData = new FormData();
+        imgFormData.append("file", imageFile, imageFile.name);
+        imgFormData.append("network", "public");
+        imgFormData.append("name", imageFile.name);
+        const imgRes = await fetch(signedData.url, { method: "POST", body: imgFormData });
+        if (!imgRes.ok) throw new Error("Image upload to IPFS failed");
+        const imgJson = await imgRes.json();
+        const imgCid = imgJson.data?.cid;
+        if (!imgCid) throw new Error("Image upload returned no CID");
+        formData.set("imageUri", `ipfs://${imgCid}`);
         formData.set("name", metadata.name);
         formData.set("description", metadata.description);
         formData.set("creator", walletAddress);

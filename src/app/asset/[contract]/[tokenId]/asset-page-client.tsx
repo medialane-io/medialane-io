@@ -401,10 +401,10 @@ export default function AssetPageClient() {
                   </div>
                 ) : isSignedIn ? (
                   <div className="space-y-2">
-                    {/* Buy Now — flat brand-blue, animated gradient border */}
+                    {/* Buy Now — flat bg/30, animated gradient border */}
                     <div className="btn-border-animated p-[1px] rounded-xl">
                       <button
-                        className="w-full h-12 text-base font-semibold text-white rounded-[11px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] bg-brand-blue"
+                        className="w-full h-12 text-base font-semibold text-white rounded-[11px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] bg-background/30"
                         onClick={() => setPurchaseOrder(cheapest)}
                       >
                         <ShoppingCart className="h-5 w-5" />
@@ -415,7 +415,7 @@ export default function AssetPageClient() {
                       {/* Add to cart — flat brand-orange, animated gradient border */}
                       <div className={`btn-border-animated p-[1px] rounded-xl ${inCart ? "opacity-40 pointer-events-none" : ""}`}>
                         <button
-                          className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-orange"
+                          className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-blue"
                           disabled={inCart}
                           onClick={handleAddToCart}
                         >
@@ -426,7 +426,7 @@ export default function AssetPageClient() {
                       {/* Make offer — flat brand-purple, animated gradient border */}
                       <div className="btn-border-animated p-[1px] rounded-xl">
                         <button
-                          className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-purple"
+                          className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-orange"
                           onClick={() => setOfferOpen(true)}
                         >
                           <HandCoins className="h-4 w-4" />
@@ -438,7 +438,7 @@ export default function AssetPageClient() {
                     {!isOwner && (
                       <div className="btn-border-animated p-[1px] rounded-xl">
                         <button
-                          className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-purple disabled:opacity-50"
+                          className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-purple"
                           onClick={handleAutoRemix}
                         >
                           <GitBranch className="h-4 w-4" />
@@ -449,10 +449,12 @@ export default function AssetPageClient() {
                   </div>
                 ) : (
                   <SignInButton mode="modal">
-                    <Button className="w-full h-12 text-base">
+                    <div className="btn-border-animated p-[1px] rounded-xl">
+                    <Button className="w-full h-12 text-base bg-background/30 text-white rounded-[11px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98]">
                       <ShoppingCart className="h-5 w-5 mr-2" />
                       Sign in to trade
                     </Button>
+                    </div>
                   </SignInButton>
                 )}
               </div>
@@ -463,7 +465,7 @@ export default function AssetPageClient() {
                   <div className="space-y-2">
                     <div className="btn-border-animated p-[1px] rounded-xl">
                       <button
-                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-blue"
+                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-background/30"
                         onClick={() => setListOpen(true)}
                       >
                         <Tag className="h-4 w-4" />
@@ -493,7 +495,7 @@ export default function AssetPageClient() {
                   <div className="space-y-2">
                     <div className="btn-border-animated p-[1px] rounded-xl">
                       <button
-                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-purple"
+                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-orange"
                         onClick={() => setOfferOpen(true)}
                       >
                         <HandCoins className="h-4 w-4" />
@@ -502,7 +504,7 @@ export default function AssetPageClient() {
                     </div>
                     <div className="btn-border-animated p-[1px] rounded-xl">
                       <button
-                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-purple disabled:opacity-50"
+                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-purple"
                         onClick={handleAutoRemix}
                       >
                         <GitBranch className="h-4 w-4" />

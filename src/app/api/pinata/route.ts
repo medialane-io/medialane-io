@@ -41,7 +41,7 @@ const ALLOWED_IMAGE_TYPES = new Set([
   "image/svg+xml",
   "image/webp",
 ]);
-const MAX_FILE_BYTES = 4 * 1024 * 1024; // 4 MB — Vercel serverless payload limit
+const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10 MB (server-side fallback guard)
 
 export async function POST(req: NextRequest) {
   // ── Auth ─────────────────────────────────────────────────────────────────────
@@ -74,24 +74,29 @@ export async function POST(req: NextRequest) {
     const edition = formData.get("edition") as string | null; // genesis-mint compat
 
     // ── Image upload ──────────────────────────────────────────────────────────
-    let imageUri: string | null = null;
-    const imageFile = formData.get("file") as File | null;
+    // Preferred path: client uploaded image directly via signed URL and passes
+    // back the resulting ipfs:// URI. No file bytes flow through this route.
+    let imageUri: string | null = (formData.get("imageUri") as string | null) || null;
 
-    if (imageFile && imageFile.size > 0) {
-      if (!ALLOWED_IMAGE_TYPES.has(imageFile.type)) {
-        return NextResponse.json(
-          { error: "Unsupported image format. Use JPG, PNG, GIF, SVG, or WebP." },
-          { status: 400 }
-        );
+    if (!imageUri) {
+      // Fallback: file sent through this route (subject to body size limits)
+      const imageFile = formData.get("file") as File | null;
+      if (imageFile && imageFile.size > 0) {
+        if (!ALLOWED_IMAGE_TYPES.has(imageFile.type)) {
+          return NextResponse.json(
+            { error: "Unsupported image format. Use JPG, PNG, GIF, SVG, or WebP." },
+            { status: 400 }
+          );
+        }
+        if (imageFile.size > MAX_FILE_BYTES) {
+          return NextResponse.json(
+            { error: "Image exceeds 10 MB limit." },
+            { status: 400 }
+          );
+        }
+        const imageUpload = await pinata.upload.public.file(imageFile);
+        imageUri = `ipfs://${imageUpload.cid}`;
       }
-      if (imageFile.size > MAX_FILE_BYTES) {
-        return NextResponse.json(
-          { error: "Image exceeds 4 MB limit." },
-          { status: 400 }
-        );
-      }
-      const imageUpload = await pinata.upload.public.file(imageFile);
-      imageUri = `ipfs://${imageUpload.cid}`;
     }
 
     // ── Build OpenSea ERC-721 + Berne Convention compatible metadata ───────────
