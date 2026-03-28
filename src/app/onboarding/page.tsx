@@ -3,7 +3,7 @@
 import { useState, useCallback, Suspense } from "react";
 import { useAuth, useUser, useClerk } from "@clerk/nextjs";
 import { useSearchParams } from "next/navigation";
-import { useChipiWallet, isWebAuthnSupported, createWalletPasskey } from "@chipi-stack/nextjs";
+import { useChipiWallet, useGetWallet, isWebAuthnSupported, createWalletPasskey } from "@chipi-stack/nextjs";
 import { byteArray, CallData } from "starknet";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,6 +41,7 @@ function OnboardingContent() {
     enabled: false,
   });
 
+  const { fetchWallet } = useGetWallet();
   const { executeTransaction } = useChipiTransaction();
 
   const [passkeySupported] = useState(
@@ -71,9 +72,23 @@ function OnboardingContent() {
     await session?.touch();
 
     // ── Genesis mint (non-blocking) ──────────────────────────────────────
-    if (LAUNCH_MINT_CONTRACT && GENESIS_NFT_URI && wallet.encryptedPrivateKey && userId) {
+    if (LAUNCH_MINT_CONTRACT && GENESIS_NFT_URI && userId) {
       setStep("minting");
       try {
+        // createWallet() response may omit encryptedPrivateKey — fetch to ensure we have it
+        let encryptedPrivateKey = wallet.encryptedPrivateKey;
+        if (!encryptedPrivateKey) {
+          const fetched = await fetchWallet({
+            params: { externalUserId: userId },
+            getBearerToken,
+          });
+          encryptedPrivateKey = fetched?.encryptedPrivateKey ?? "";
+        }
+
+        if (!encryptedPrivateKey) {
+          throw new Error("Could not retrieve wallet credentials for mint");
+        }
+
         const encodedUri = byteArray.byteArrayFromString(GENESIS_NFT_URI);
         const calldata = CallData.compile([walletKey, encodedUri]);
         const mintResult = await executeTransaction({
@@ -81,7 +96,7 @@ function OnboardingContent() {
           contractAddress: LAUNCH_MINT_CONTRACT,
           wallet: {
             publicKey: wallet.publicKey,
-            encryptedPrivateKey: wallet.encryptedPrivateKey,
+            encryptedPrivateKey,
           },
           calls: [
             {
