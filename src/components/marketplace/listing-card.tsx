@@ -71,9 +71,9 @@ export function ListingCard({ order, onBuy }: ListingCardProps) {
         </div>
 
         {/* Info */}
-        <div className="p-3 space-y-3">
+        <div className="p-4 space-y-3">
           <div>
-            <p className="font-semibold text-sm truncate leading-snug">{name}</p>
+            <p className="font-semibold text-base truncate leading-snug">{name}</p>
             {order.token?.description ? (
               <p className="text-[11px] text-muted-foreground line-clamp-1 leading-snug mt-0.5">
                 {order.token.description}
@@ -83,7 +83,7 @@ export function ListingCard({ order, onBuy }: ListingCardProps) {
             )}
           </div>
 
-          <p className="text-base font-bold price-value leading-none">
+          <p className="text-lg font-bold price-value leading-none">
             {formatDisplayPrice(order.price.formatted)}{" "}
             <span className="text-muted-foreground font-normal text-sm">
               {order.price.currency}
@@ -95,7 +95,7 @@ export function ListingCard({ order, onBuy }: ListingCardProps) {
               {onBuy && (
                 <Button
                   size="sm"
-                  className="flex-1 h-8 text-xs bg-brand-blue hover:brightness-110 text-white border-0"
+                  className="flex-1 h-9 text-xs bg-brand-blue hover:brightness-110 text-white border-0"
                   onClick={(e) => {
                     e.preventDefault();
                     onBuy(order);
@@ -109,7 +109,7 @@ export function ListingCard({ order, onBuy }: ListingCardProps) {
                 size="sm"
                 variant="outline"
                 className={cn(
-                  "h-8 w-8 p-0 shrink-0 transition-colors",
+                  "h-9 w-9 p-0 shrink-0 transition-colors",
                   inCart && "border-brand-orange/50 bg-brand-orange/10 text-brand-orange"
                 )}
                 onClick={handleAddToCart}
@@ -122,7 +122,7 @@ export function ListingCard({ order, onBuy }: ListingCardProps) {
               <Button
                 size="sm"
                 variant="outline"
-                className="h-8 w-8 p-0 shrink-0 border-brand-purple/40 text-brand-purple hover:bg-brand-purple/10"
+                className="h-9 w-9 p-0 shrink-0 border-brand-purple/40 text-brand-purple hover:bg-brand-purple/10"
                 onClick={(e) => { e.preventDefault(); router.push(`/create/remix/${order.nftContract}/${order.nftTokenId}`); }}
                 aria-label="Create a Remix"
               >
@@ -134,7 +134,7 @@ export function ListingCard({ order, onBuy }: ListingCardProps) {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="h-8 w-8 p-0 shrink-0"
+                    className="h-9 w-9 p-0 shrink-0"
                     onClick={(e) => e.preventDefault()}
                     aria-label="More actions"
                   >
