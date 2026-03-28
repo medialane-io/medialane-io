@@ -77,18 +77,23 @@ function OnboardingContent() {
       try {
         // createWallet() response may omit encryptedPrivateKey — fetch to ensure we have it
         let encryptedPrivateKey = wallet.encryptedPrivateKey;
+        console.log("[onboarding] encryptedPrivateKey from create:", encryptedPrivateKey ? "present" : "missing");
+
         if (!encryptedPrivateKey) {
+          console.log("[onboarding] fetching wallet to get encryptedPrivateKey...");
           const fetched = await fetchWallet({
             params: { externalUserId: userId },
             getBearerToken,
           });
           encryptedPrivateKey = fetched?.encryptedPrivateKey ?? "";
+          console.log("[onboarding] fetchWallet result:", fetched ? "got wallet" : "null", "encryptedPrivateKey:", encryptedPrivateKey ? "present" : "missing");
         }
 
         if (!encryptedPrivateKey) {
           throw new Error("Could not retrieve wallet credentials for mint");
         }
 
+        console.log("[onboarding] executing mint transaction...");
         const encodedUri = byteArray.byteArrayFromString(GENESIS_NFT_URI);
         const calldata = CallData.compile([walletKey, encodedUri]);
         const mintResult = await executeTransaction({
@@ -106,11 +111,12 @@ function OnboardingContent() {
             },
           ],
         });
+        console.log("[onboarding] mint result:", mintResult.status, mintResult.txHash);
         if (mintResult.status === "confirmed") {
           localStorage.setItem(`ml_genesis_${userId}`, mintResult.txHash);
         }
-      } catch {
-        // Non-fatal — LaunchMint on /welcome handles retry
+      } catch (mintErr) {
+        console.error("[onboarding] genesis mint failed (non-fatal):", mintErr);
       }
     }
 
