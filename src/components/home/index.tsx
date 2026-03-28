@@ -2,7 +2,6 @@
 
 import { HeroSlider } from "./hero-slider";
 import { AirdropSection } from "./airdrop-section";
-import { GenesisMintSection } from "./genesis-mint-section";
 import { TrendingCollections } from "./trending-collections";
 import { NewOnMarketplace } from "./new-on-marketplace";
 import { CommunityActivity } from "./community-activity";
@@ -22,7 +21,6 @@ export function HomePage() {
       <div className="container mx-auto px-4 sm:px-6 space-y-20 mt-20">
         <TrendingCollections />
         <NewOnMarketplace />
-        <GenesisMintSection />
         <CommunityActivity />
         {/* <IpTypeNav /> */}{/* TODO: uncomment when more asset variety is available */}
         <LearnDocsCta />
