@@ -39,14 +39,26 @@ function CurrencyIcon({ symbol, size = 16 }: { symbol: string; size?: number }) 
   return <Image src={src} alt={symbol} width={size} height={size} className="inline-block shrink-0" />;
 }
 
-/** Parse a backend price string like "1.500000 USDC" into numeric display + symbol. */
+/**
+ * Parse a backend price string like "0.000012000000 WBTC" into a clean display + symbol.
+ * - Strips trailing zeros from the decimal part (e.g. "1.500000" → "1.50")
+ * - Guards against pre-fix raw-wei values stored in the DB (> 1e12 → "—")
+ */
 function parsePriceDisplay(raw: string | null | undefined): { numStr: string; symbol: string | null } {
   if (!raw) return { numStr: "—", symbol: null };
   const parts = raw.trim().split(" ");
   const sym = parts.length > 1 ? parts[parts.length - 1] : null;
   const numericPart = sym ? parts.slice(0, -1).join(" ") : raw;
-  const numStr = formatDisplayPrice(numericPart) || "—";
-  return { numStr, symbol: sym };
+  const num = Number(numericPart);
+  if (isNaN(num)) return { numStr: "—", symbol: sym };
+  // Implausibly large → likely raw wei stored before the stats fix
+  if (num > 1e12) return { numStr: "—", symbol: null };
+  // Format with adaptive decimals, then strip trailing zeros after decimal point
+  const formatted = formatDisplayPrice(numericPart);
+  if (!formatted || formatted === "—") return { numStr: "—", symbol: sym };
+  // Remove trailing zeros: "0.000012000000" → "0.000012", "1.500000" → "1.50"
+  const clean = formatted.replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "");
+  return { numStr: clean || "—", symbol: sym };
 }
 
 function CollectionItems({ contract }: { contract: string }) {
