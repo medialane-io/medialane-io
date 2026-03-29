@@ -136,3 +136,12 @@ export async function rejectRemixOffer(id: string, clerkToken: string): Promise<
   });
   return res.data;
 }
+
+/** Extend the expiry of a pending offer by 1–30 days. */
+export async function extendRemixOffer(id: string, days: number, clerkToken: string): Promise<RemixOffer> {
+  const res = await apiFetch(`${MEDIALANE_BACKEND_URL}/v1/remix-offers/${id}/extend`, MEDIALANE_API_KEY, clerkToken, {
+    method: "POST",
+    body: JSON.stringify({ days }),
+  });
+  return res.data;
+}
