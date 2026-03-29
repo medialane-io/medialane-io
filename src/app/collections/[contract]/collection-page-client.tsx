@@ -18,11 +18,36 @@ import { ReportDialog } from "@/components/report-dialog";
 import { TraitFilter } from "@/components/collection/trait-filter";
 import { SweepBar } from "@/components/collection/sweep-bar";
 import { HiddenContentBanner } from "@/components/hidden-content-banner";
+import Image from "next/image";
 import { ipfsToHttp, formatDisplayPrice, cn } from "@/lib/utils";
 import { computeRarity } from "@/lib/rarity";
 import type { ApiToken } from "@medialane/sdk";
 
 const PAGE_SIZE = 24;
+
+const CURRENCY_ICONS: Record<string, string> = {
+  STRK: "/strk.svg",
+  ETH: "/eth.svg",
+  USDC: "/usdc.svg",
+  USDT: "/usdt.svg",
+  WBTC: "/btc.svg",
+};
+
+function CurrencyIcon({ symbol, size = 16 }: { symbol: string; size?: number }) {
+  const src = CURRENCY_ICONS[symbol?.toUpperCase()];
+  if (!src) return <span className="text-xs font-semibold text-white/70">{symbol}</span>;
+  return <Image src={src} alt={symbol} width={size} height={size} className="inline-block shrink-0" />;
+}
+
+/** Parse a backend price string like "1.500000 USDC" into numeric display + symbol. */
+function parsePriceDisplay(raw: string | null | undefined): { numStr: string; symbol: string | null } {
+  if (!raw) return { numStr: "—", symbol: null };
+  const parts = raw.trim().split(" ");
+  const sym = parts.length > 1 ? parts[parts.length - 1] : null;
+  const numericPart = sym ? parts.slice(0, -1).join(" ") : raw;
+  const numStr = formatDisplayPrice(numericPart) || "—";
+  return { numStr, symbol: sym };
+}
 
 function CollectionItems({ contract }: { contract: string }) {
   const [page, setPage] = useState(1);
@@ -142,11 +167,14 @@ export default function CollectionPageClient() {
   const activeListings = orders.filter((o) => o.status === "ACTIVE" && o.offer.itemType === "ERC721");
   const activeBids = orders.filter((o) => o.status === "ACTIVE" && o.offer.itemType === "ERC20");
 
+  const floorParsed = parsePriceDisplay(collection?.floorPrice);
+  const volumeParsed = parsePriceDisplay(collection?.totalVolume);
+
   const stats = [
-    { label: "Items",   display: collection?.totalSupply != null ? String(collection.totalSupply) : "—" },
-    { label: "Holders", display: collection?.holderCount  != null ? String(collection.holderCount)  : "—" },
-    { label: "Floor",   display: formatDisplayPrice(collection?.floorPrice)  || "—" },
-    { label: "Volume",  display: formatDisplayPrice(collection?.totalVolume) || "—" },
+    { label: "Items",   display: collection?.totalSupply != null ? String(collection.totalSupply) : "—", symbol: null },
+    { label: "Holders", display: collection?.holderCount  != null ? String(collection.holderCount)  : "—", symbol: null },
+    { label: "Floor",   display: floorParsed.numStr,  symbol: floorParsed.symbol },
+    { label: "Volume",  display: volumeParsed.numStr, symbol: volumeParsed.symbol },
   ];
 
   return (
@@ -225,17 +253,32 @@ export default function CollectionPageClient() {
               )}
             </div>
 
-            {/* Stat chips — compact squares */}
+            {/* Stat chips */}
             <div className="flex gap-2 flex-wrap">
-              {stats.map(({ label, display }) => (
+              {stats.map(({ label, display, symbol }) => (
                 <div
                   key={label}
-                  className="bg-black/25 backdrop-blur-md border border-white/10 rounded-xl w-[72px] h-[72px] sm:w-20 sm:h-20 flex flex-col items-center justify-center text-center shrink-0"
+                  className={cn(
+                    "bg-black/25 backdrop-blur-md border border-white/10 rounded-xl px-3 py-2 flex flex-col justify-center shrink-0",
+                    symbol ? "min-w-[88px]" : "min-w-[60px] items-center text-center"
+                  )}
                 >
                   <p className="text-[9px] text-white/50 uppercase tracking-widest mb-1">{label}</p>
-                  <p className="text-sm sm:text-base font-semibold text-white tabular-nums leading-tight">
-                    {display}
-                  </p>
+                  {symbol ? (
+                    <>
+                      <div className="flex items-center gap-1.5">
+                        <CurrencyIcon symbol={symbol} size={14} />
+                        <p className="text-sm sm:text-base font-bold text-white tabular-nums leading-tight truncate">
+                          {display}
+                        </p>
+                      </div>
+                      <p className="text-[9px] text-white/40 mt-0.5 leading-none">{symbol}</p>
+                    </>
+                  ) : (
+                    <p className="text-base sm:text-lg font-bold text-white tabular-nums leading-tight">
+                      {display}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>

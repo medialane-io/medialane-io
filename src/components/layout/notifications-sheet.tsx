@@ -8,6 +8,7 @@ import { useSessionKey } from "@/hooks/use-session-key";
 import { useNotifications } from "@/hooks/use-notifications";
 import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { formatDisplayPrice } from "@/lib/utils";
 
 const ACTIVITY_LABEL: Record<string, string> = {
   sale: "Sale",
@@ -100,7 +101,7 @@ export function NotificationsItem() {
                       </p>
                       {offer.price?.formatted && (
                         <p className="text-xs font-semibold text-foreground mt-0.5">
-                          {offer.price.formatted}{" "}
+                          {formatDisplayPrice(offer.price.formatted)}{" "}
                           {offer.price.currency ?? ""}
                         </p>
                       )}
@@ -116,7 +117,7 @@ export function NotificationsItem() {
                       </p>
                       {event.price?.formatted && (
                         <p className="text-xs font-semibold text-foreground mt-0.5">
-                          {event.price.formatted}{" "}
+                          {formatDisplayPrice(event.price.formatted)}{" "}
                           {event.price.currency ?? ""}
                         </p>
                       )}

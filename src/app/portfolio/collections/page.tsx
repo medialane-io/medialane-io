@@ -9,6 +9,7 @@ import { EmptyOrError } from "@/components/ui/empty-or-error";
 import { ipfsToHttp } from "@/lib/utils";
 import { Layers, Plus, Settings, ImageIcon } from "lucide-react";
 import type { ApiCollection } from "@medialane/sdk";
+import { formatDisplayPrice } from "@/lib/utils";
 
 function CollectionCard({ col }: { col: ApiCollection }) {
   const imgUrl = col.image ? ipfsToHttp(col.image) : null;
@@ -56,7 +57,7 @@ function CollectionCard({ col }: { col: ApiCollection }) {
               </span>
               {col.floorPrice && (
                 <span className="text-xs text-muted-foreground">
-                  · Floor {col.floorPrice}
+                  · Floor {formatDisplayPrice(col.floorPrice)}
                 </span>
               )}
             </div>

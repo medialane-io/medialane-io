@@ -17,8 +17,7 @@ export interface RemixOffer {
   creatorAddress: string;
   requesterAddress: string | null;
   message?: string | null;
-  proposedPrice?: string;
-  proposedCurrency?: string;
+  price?: { raw: string; formatted: string; currency: string; decimals: number };
   licenseType: string;
   commercial: boolean;
   derivatives: boolean;

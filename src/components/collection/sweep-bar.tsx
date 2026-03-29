@@ -7,6 +7,7 @@ import { useCart } from "@/hooks/use-cart";
 import { useCollectionFloorListings } from "@/hooks/use-orders";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { toast } from "sonner";
+import { formatDisplayPrice } from "@/lib/utils";
 import type { ApiOrder } from "@medialane/sdk";
 
 interface SweepBarProps {
@@ -99,7 +100,7 @@ export function SweepBar({ contract }: SweepBarProps) {
       {/* Total price */}
       {totalPrice > 0 && (
         <span className="text-sm text-muted-foreground">
-          ≈ <span className="font-semibold text-foreground">{totalPrice.toFixed(2)}</span>{" "}
+          ≈ <span className="font-semibold text-foreground">{formatDisplayPrice(totalPrice)}</span>{" "}
           {currency}
         </span>
       )}
