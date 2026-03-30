@@ -40,6 +40,7 @@ function CollectionClaimsTab() {
   const [processing, setProcessing] = useState(false);
 
   async function handleAction(status: "APPROVED" | "REJECTED") {
+    if (!selected) return;
     setProcessing(true);
     try {
       const res = await fetch(`${BACKEND_URL}/admin/claims/${selected.id}`, {
@@ -128,6 +129,7 @@ function UsernameClaimsTab() {
   const [processing, setProcessing] = useState(false);
 
   async function handleAction(status: "APPROVED" | "REJECTED") {
+    if (!selected) return;
     setProcessing(true);
     try {
       const res = await fetch(`${BACKEND_URL}/admin/username-claims/${selected.id}`, {
