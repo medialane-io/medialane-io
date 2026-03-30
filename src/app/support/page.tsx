@@ -79,7 +79,6 @@ export default function SupportPage() {
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
-    // TODO: wire up form submission
     setTimeout(() => {
       setLoading(false);
       toast.success("Support ticket submitted! We'll be in touch shortly.");

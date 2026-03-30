@@ -1,3 +1,4 @@
+// NOT PRODUCTION READY — stub only. Replace console.log with Resend / Mailchimp / DB write before launch.
 import { NextRequest, NextResponse } from "next/server";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
