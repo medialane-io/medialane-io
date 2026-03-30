@@ -8,7 +8,7 @@ import { Zap } from "lucide-react";
 import { SignedIn } from "@clerk/nextjs";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { CartDrawer } from "@/components/layout/cart-drawer";
-import { SessionPreferencesSwitch } from “@/components/chipi/session-preferences-switch”;
+import { SessionPreferencesSwitch } from "@/components/chipi/session-preferences-switch";
 import { Aurora } from "@/components/ui/aurora";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { MedialaneLogo } from "@/components/brand/medialane-logo";
