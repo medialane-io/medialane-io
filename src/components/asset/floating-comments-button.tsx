@@ -23,7 +23,8 @@ export function FloatingCommentsButton({ onClick, commentTotal }: FloatingCommen
   }, [prefersReducedMotion])
 
   return (
-    <div className="fixed bottom-6 right-6 z-40 relative">
+    <div className="fixed bottom-6 right-6 z-40">
+      <div className="relative">
       <motion.button
         onClick={onClick}
         aria-label="Open on-chain comments"
@@ -53,6 +54,7 @@ export function FloatingCommentsButton({ onClick, commentTotal }: FloatingCommen
           {commentTotal}
         </span>
       )}
+      </div>
     </div>
   )
 }
