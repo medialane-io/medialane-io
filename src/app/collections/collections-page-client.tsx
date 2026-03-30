@@ -5,14 +5,20 @@ import { useCollections, type CollectionSort } from "@/hooks/use-collections";
 import { usePlatformStats } from "@/hooks/use-stats";
 import { CollectionCard, CollectionCardSkeleton } from "@/components/shared/collection-card";
 import { Button } from "@/components/ui/button";
-import { Layers, Loader2, BadgeCheck, Eye } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { Layers, Loader2, BadgeCheck, Eye, SlidersHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ApiCollection } from "@medialane/sdk";
 
 const PAGE_SIZE = 18;
 
 const SORT_OPTIONS: { label: string; value: CollectionSort }[] = [
-  { label: "Recent",     value: "recent"  },
+  { label: "Recent",      value: "recent"  },
   { label: "Most assets", value: "supply"  },
   { label: "Top volume",  value: "volume"  },
   { label: "Floor ↑",    value: "floor"   },
@@ -21,10 +27,11 @@ const SORT_OPTIONS: { label: string; value: CollectionSort }[] = [
 
 export default function CollectionsPageClient() {
   const { stats } = usePlatformStats();
-  const [sort, setSort]         = useState<CollectionSort>("recent");
-  const [verified, setVerified] = useState(false);
+  const [sort, setSort]           = useState<CollectionSort>("recent");
+  const [verified, setVerified]   = useState(false);
   const [hideEmpty, setHideEmpty] = useState(true);
-  const [page, setPage]         = useState(1);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [page, setPage]           = useState(1);
   const [allCollections, setAllCollections] = useState<ApiCollection[]>([]);
 
   const { collections, meta, isLoading } = useCollections(
@@ -59,6 +66,14 @@ export default function CollectionsPageClient() {
   const hasMore = meta?.total != null ? allCollections.length < meta.total : false;
   const isInitialLoading = isLoading && allCollections.length === 0;
 
+  const activeFilters = [sort !== "recent", verified, !hideEmpty].filter(Boolean).length;
+
+  const resetAll = () => {
+    setSort("recent");
+    setVerified(false);
+    setHideEmpty(true);
+  };
+
   return (
     <div className="container mx-auto px-4 pt-14 pb-8 space-y-8">
 
@@ -91,56 +106,113 @@ export default function CollectionsPageClient() {
         </div>
       </div>
 
-      {/* Filter toolbar */}
-      <div className="flex items-center gap-2 flex-wrap pb-2 border-b border-border/60">
-        {/* Sort chips */}
-        <div className="flex items-center gap-1 flex-wrap">
-          {SORT_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => setSort(opt.value)}
-              className={cn(
-                "text-xs px-3 py-1.5 rounded-md transition-colors whitespace-nowrap",
-                sort === opt.value
-                  ? "bg-primary/10 text-primary font-medium"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-              )}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="w-px h-5 bg-border hidden sm:block" />
-
-        {/* Verified toggle */}
+      {/* Toolbar */}
+      <div className="flex items-center gap-2 pb-3 border-b border-border/60">
         <button
-          onClick={() => setVerified((v) => !v)}
+          onClick={() => setFiltersOpen(true)}
           className={cn(
-            "flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-colors whitespace-nowrap",
-            verified
-              ? "border-primary bg-primary/10 text-primary font-medium"
-              : "border-border text-muted-foreground hover:border-primary/50"
+            "relative flex items-center gap-1.5 h-9 px-3 rounded-lg border text-xs font-medium transition-colors",
+            activeFilters > 0
+              ? "border-primary bg-primary/10 text-primary"
+              : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
           )}
         >
-          <BadgeCheck className="h-3.5 w-3.5" />
-          Verified only
+          <SlidersHorizontal className="h-3.5 w-3.5" />
+          Filters
+          {activeFilters > 0 && (
+            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+              {activeFilters}
+            </span>
+          )}
         </button>
 
-        {/* Show empty toggle */}
-        <button
-          onClick={() => setHideEmpty((v) => !v)}
-          className={cn(
-            "flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-colors whitespace-nowrap",
-            !hideEmpty
-              ? "border-primary bg-primary/10 text-primary font-medium"
-              : "border-border text-muted-foreground hover:border-primary/50"
-          )}
-        >
-          <Eye className="h-3.5 w-3.5" />
-          Show empty
-        </button>
+        {/* Active filter pills — quick-clear */}
+        {sort !== "recent" && (
+          <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border border-primary/40 bg-primary/10 text-primary">
+            {SORT_OPTIONS.find((o) => o.value === sort)?.label}
+            <button onClick={() => setSort("recent")} className="ml-0.5 hover:text-primary/60">×</button>
+          </span>
+        )}
+        {verified && (
+          <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border border-primary/40 bg-primary/10 text-primary">
+            Verified
+            <button onClick={() => setVerified(false)} className="ml-0.5 hover:text-primary/60">×</button>
+          </span>
+        )}
+        {!hideEmpty && (
+          <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border border-primary/40 bg-primary/10 text-primary">
+            Show empty
+            <button onClick={() => setHideEmpty(true)} className="ml-0.5 hover:text-primary/60">×</button>
+          </span>
+        )}
       </div>
+
+      {/* Filter sheet */}
+      <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+        <SheetContent side="right" className="w-72 sm:w-80 flex flex-col gap-6">
+          <SheetHeader>
+            <SheetTitle>Filters</SheetTitle>
+          </SheetHeader>
+
+          {/* Sort */}
+          <div className="space-y-2">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Sort</p>
+            <div className="flex flex-wrap gap-1.5">
+              {SORT_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setSort(opt.value)}
+                  className={cn(
+                    "text-xs px-3 py-1.5 rounded-full border transition-colors whitespace-nowrap",
+                    sort === opt.value
+                      ? "border-primary bg-primary/10 text-primary font-medium"
+                      : "border-border text-muted-foreground hover:border-primary/50"
+                  )}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Show */}
+          <div className="space-y-2">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Show</p>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => setVerified((v) => !v)}
+                className={cn(
+                  "flex items-center gap-2 text-sm px-3 py-2 rounded-lg border transition-colors text-left",
+                  verified
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border text-muted-foreground hover:border-primary/50"
+                )}
+              >
+                <BadgeCheck className="h-4 w-4 shrink-0" />
+                Verified only
+              </button>
+              <button
+                onClick={() => setHideEmpty((v) => !v)}
+                className={cn(
+                  "flex items-center gap-2 text-sm px-3 py-2 rounded-lg border transition-colors text-left",
+                  !hideEmpty
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border text-muted-foreground hover:border-primary/50"
+                )}
+              >
+                <Eye className="h-4 w-4 shrink-0" />
+                Show empty collections
+              </button>
+            </div>
+          </div>
+
+          {activeFilters > 0 && (
+            <Button variant="ghost" size="sm" className="w-fit text-xs text-muted-foreground" onClick={resetAll}>
+              Clear all filters
+            </Button>
+          )}
+        </SheetContent>
+      </Sheet>
 
       {/* Grid */}
       {isInitialLoading ? (
@@ -158,19 +230,10 @@ export default function CollectionsPageClient() {
               ? "No collections with assets yet."
               : "Deploy the first collection on Medialane."}
           </p>
-          {(verified || hideEmpty) && (
-            <div className="flex gap-2">
-              {verified && (
-                <Button variant="outline" size="sm" onClick={() => setVerified(false)}>
-                  Remove verified filter
-                </Button>
-              )}
-              {hideEmpty && (
-                <Button variant="outline" size="sm" onClick={() => setHideEmpty(false)}>
-                  Show empty collections
-                </Button>
-              )}
-            </div>
+          {activeFilters > 0 && (
+            <Button variant="outline" size="sm" onClick={resetAll}>
+              Clear filters
+            </Button>
           )}
         </div>
       ) : (
