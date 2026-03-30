@@ -10,8 +10,11 @@ type Params = {
   userId: string | null;
   getBearerToken: () => Promise<string | null>;
   setupPasskey: (userName: string, userId: string) => Promise<{ encryptKey: string }>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   updateWalletEncryptionAsync: (args: any) => Promise<any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   refetchWallet: () => Promise<any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   refetchBalance: () => Promise<any>;
   clearSession: () => Promise<void>;
   clearSessionUnlockKey: () => void;
