@@ -12,6 +12,7 @@ import { ShoppingCart, Check, MoreHorizontal, ExternalLink, Layers, ArrowRightLe
 import { cn, ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
 import { ReportDialog } from "@/components/report-dialog";
+import { Tip } from "@/components/ui/tip";
 import type { ApiOrder } from "@medialane/sdk";
 
 interface ListingCardProps {
@@ -105,29 +106,33 @@ export function ListingCard({ order, onBuy }: ListingCardProps) {
                 </Button>
               )}
               {/* Cart */}
-              <Button
-                size="sm"
-                variant="outline"
-                className={cn(
-                  "h-9 w-9 p-0 shrink-0 transition-colors",
-                  inCart && "border-brand-orange/50 bg-brand-orange/10 text-brand-orange"
-                )}
-                onClick={handleAddToCart}
-                disabled={inCart}
-                aria-label={inCart ? "Added to cart" : "Add to cart"}
-              >
-                {inCart ? <Check className="h-3.5 w-3.5" /> : <ShoppingCart className="h-3.5 w-3.5" />}
-              </Button>
+              <Tip content={inCart ? "Already in cart" : "Add to cart — buy multiple items with one PIN"}>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className={cn(
+                    "h-9 w-9 p-0 shrink-0 transition-colors",
+                    inCart && "border-brand-orange/50 bg-brand-orange/10 text-brand-orange"
+                  )}
+                  onClick={handleAddToCart}
+                  disabled={inCart}
+                  aria-label={inCart ? "Added to cart" : "Add to cart"}
+                >
+                  {inCart ? <Check className="h-3.5 w-3.5" /> : <ShoppingCart className="h-3.5 w-3.5" />}
+                </Button>
+              </Tip>
               {/* Remix */}
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-9 w-9 p-0 shrink-0 border-brand-purple/40 text-brand-purple hover:bg-brand-purple/10"
-                onClick={(e) => { e.preventDefault(); router.push(`/create/remix/${order.nftContract}/${order.nftTokenId}`); }}
-                aria-label="Create a Remix"
-              >
-                <GitBranch className="h-3.5 w-3.5" />
-              </Button>
+              <Tip content="Create a Remix — build a licensed derivative of this IP asset">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-9 w-9 p-0 shrink-0 border-brand-purple/40 text-brand-purple hover:bg-brand-purple/10"
+                  onClick={(e) => { e.preventDefault(); router.push(`/create/remix/${order.nftContract}/${order.nftTokenId}`); }}
+                  aria-label="Create a Remix"
+                >
+                  <GitBranch className="h-3.5 w-3.5" />
+                </Button>
+              </Tip>
               {/* More actions */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
