@@ -5,7 +5,7 @@ import { useCollections, type CollectionSort } from "@/hooks/use-collections";
 import { usePlatformStats } from "@/hooks/use-stats";
 import { CollectionCard, CollectionCardSkeleton } from "@/components/shared/collection-card";
 import { Button } from "@/components/ui/button";
-import { Layers, Loader2, BadgeCheck } from "lucide-react";
+import { Layers, Loader2, BadgeCheck, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ApiCollection } from "@medialane/sdk";
 
@@ -21,28 +21,30 @@ const SORT_OPTIONS: { label: string; value: CollectionSort }[] = [
 
 export default function CollectionsPageClient() {
   const { stats } = usePlatformStats();
-  const [sort, setSort]       = useState<CollectionSort>("recent");
+  const [sort, setSort]         = useState<CollectionSort>("recent");
   const [verified, setVerified] = useState(false);
-  const [page, setPage]       = useState(1);
+  const [hideEmpty, setHideEmpty] = useState(true);
+  const [page, setPage]         = useState(1);
   const [allCollections, setAllCollections] = useState<ApiCollection[]>([]);
 
   const { collections, meta, isLoading } = useCollections(
     page,
     PAGE_SIZE,
     verified ? true : undefined,
-    sort
+    sort,
+    hideEmpty
   );
 
   // Reset accumulated list whenever filters change
-  const prevFilters = useRef({ sort, verified });
+  const prevFilters = useRef({ sort, verified, hideEmpty });
   useEffect(() => {
     const f = prevFilters.current;
-    if (f.sort !== sort || f.verified !== verified) {
-      prevFilters.current = { sort, verified };
+    if (f.sort !== sort || f.verified !== verified || f.hideEmpty !== hideEmpty) {
+      prevFilters.current = { sort, verified, hideEmpty };
       setPage(1);
       setAllCollections([]);
     }
-  }, [sort, verified]);
+  }, [sort, verified, hideEmpty]);
 
   // Append new page to accumulated list
   useEffect(() => {
@@ -124,6 +126,20 @@ export default function CollectionsPageClient() {
           <BadgeCheck className="h-3.5 w-3.5" />
           Verified only
         </button>
+
+        {/* Show empty toggle */}
+        <button
+          onClick={() => setHideEmpty((v) => !v)}
+          className={cn(
+            "flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-colors whitespace-nowrap",
+            !hideEmpty
+              ? "border-primary bg-primary/10 text-primary font-medium"
+              : "border-border text-muted-foreground hover:border-primary/50"
+          )}
+        >
+          <Eye className="h-3.5 w-3.5" />
+          Show empty
+        </button>
       </div>
 
       {/* Grid */}
@@ -137,13 +153,24 @@ export default function CollectionsPageClient() {
           <p className="text-2xl font-bold">No collections found</p>
           <p className="text-muted-foreground max-w-sm">
             {verified
-              ? "No verified collections match the current sort. Try removing the Verified filter."
+              ? "No verified collections match the current filters."
+              : hideEmpty
+              ? "No collections with assets yet."
               : "Deploy the first collection on Medialane."}
           </p>
-          {verified && (
-            <Button variant="outline" size="sm" onClick={() => setVerified(false)}>
-              Remove filter
-            </Button>
+          {(verified || hideEmpty) && (
+            <div className="flex gap-2">
+              {verified && (
+                <Button variant="outline" size="sm" onClick={() => setVerified(false)}>
+                  Remove verified filter
+                </Button>
+              )}
+              {hideEmpty && (
+                <Button variant="outline" size="sm" onClick={() => setHideEmpty(false)}>
+                  Show empty collections
+                </Button>
+              )}
+            </div>
           )}
         </div>
       ) : (
