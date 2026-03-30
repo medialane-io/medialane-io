@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CheckCircle2, Loader2 } from "lucide-react";
+import { Tip } from "@/components/ui/tip";
 import { MotionCard } from "@/components/ui/motion-primitives";
 import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import type { ApiCollection } from "@medialane/sdk";
@@ -57,7 +58,11 @@ export function CollectionCard({ collection }: CollectionCardProps) {
               >
                 {collection.name ?? "Unnamed Collection"}
                 {collection.isKnown && (
-                  <CheckCircle2 className="inline-block h-3 w-3 text-blue-400 ml-1.5 shrink-0 align-middle" />
+                  <Tip content="Verified collection — identity confirmed by Medialane" side="top">
+                    <span className="inline-flex items-center">
+                      <CheckCircle2 className="inline-block h-3 w-3 text-blue-400 ml-1.5 shrink-0 align-middle" />
+                    </span>
+                  </Tip>
                 )}
               </p>
             )}
@@ -65,14 +70,18 @@ export function CollectionCard({ collection }: CollectionCardProps) {
             {/* Stats badges */}
             <div className="flex items-center gap-1.5 flex-wrap">
               {collection.totalSupply != null && (
-                <span className="text-[10px] font-medium text-white/80 backdrop-blur-md bg-black/30 rounded-full px-2 py-0.5">
-                  {collection.totalSupply.toLocaleString()} items
-                </span>
+                <Tip content="Total NFTs minted in this collection" side="top">
+                  <span className="text-[10px] font-medium text-white/80 backdrop-blur-md bg-black/30 rounded-full px-2 py-0.5">
+                    {collection.totalSupply.toLocaleString()} items
+                  </span>
+                </Tip>
               )}
               {hasFloor && (
-                <span className="text-[10px] font-bold text-white/90 backdrop-blur-md bg-black/30 rounded-full px-2 py-0.5">
-                  Floor {formatDisplayPrice(collection.floorPrice)}
-                </span>
+                <Tip content="Lowest active listing price in this collection" side="top">
+                  <span className="text-[10px] font-bold text-white/90 backdrop-blur-md bg-black/30 rounded-full px-2 py-0.5">
+                    Floor {formatDisplayPrice(collection.floorPrice)}
+                  </span>
+                </Tip>
               )}
             </div>
           </div>
