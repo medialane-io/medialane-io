@@ -23,13 +23,13 @@ export function FloatingCommentsButton({ onClick, commentTotal }: FloatingCommen
   }, [prefersReducedMotion])
 
   return (
-    <div className="fixed bottom-6 right-6 z-40">
+    <div className="fixed bottom-6 right-6 z-40 relative">
       <motion.button
         onClick={onClick}
         aria-label="Open on-chain comments"
         animate={{ width: expanded ? 192 : 56 }}
         transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-        className="relative flex items-center justify-center gap-2 h-14 rounded-2xl border border-border bg-card/95 backdrop-blur-sm shadow-md hover:shadow-lg hover:bg-accent overflow-hidden active:scale-95"
+        className="flex items-center justify-center gap-2 h-14 rounded-2xl border border-border bg-card/95 backdrop-blur-sm shadow-md hover:shadow-lg hover:bg-accent overflow-hidden active:scale-95"
       >
         <MessageCircle className="h-5 w-5 text-foreground flex-shrink-0" />
         <AnimatePresence>
@@ -44,15 +44,15 @@ export function FloatingCommentsButton({ onClick, commentTotal }: FloatingCommen
             </motion.span>
           )}
         </AnimatePresence>
-        {commentTotal > 0 && (
-          <span
-            className="absolute -top-1.5 -right-1.5 flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-bold text-white"
-            style={{ background: "hsl(var(--brand-blue))" }}
-          >
-            {commentTotal}
-          </span>
-        )}
       </motion.button>
+      {commentTotal > 0 && (
+        <span
+          className="absolute -top-1.5 -right-1.5 flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-bold text-white pointer-events-none"
+          style={{ background: "hsl(var(--brand-blue))" }}
+        >
+          {commentTotal}
+        </span>
+      )}
     </div>
   )
 }
