@@ -6,8 +6,6 @@ import { TrendingCollections } from "./trending-collections";
 import { NewOnMarketplace } from "./new-on-marketplace";
 import { CommunityActivity } from "./community-activity";
 import { LearnDocsCta } from "./learn-docs-cta";
-import { IpTypeNav } from "./ip-type-nav";
-
 export function HomePage() {
   return (
     <div className="pb-20">
@@ -22,7 +20,6 @@ export function HomePage() {
         <TrendingCollections />
         <NewOnMarketplace />
         <CommunityActivity />
-        {/* <IpTypeNav /> */}{/* TODO: uncomment when more asset variety is available */}
         <LearnDocsCta />
       </div>
     </div>
