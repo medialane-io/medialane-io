@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { COMMENTS_CONTRACT, EXPLORER_URL } from "@/lib/constants";
-import { MessageSquare, Loader2, Send, CheckCircle, X, ExternalLink, Flag, Zap } from "lucide-react";
+import { MessageCircle, Loader2, Send, CheckCircle, X, ExternalLink, Flag, Zap } from "lucide-react";
 import { ReportDialog, type ReportTarget } from "@/components/report-dialog";
 import { cn } from "@/lib/utils";
 
@@ -172,7 +172,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
         ) : comments.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-4">
             <div className="flex h-16 w-16 items-center justify-center rounded-full" style={{ background: "linear-gradient(135deg, hsl(var(--brand-blue) / 0.15), hsl(var(--brand-purple) / 0.15))" }}>
-              <MessageSquare className="h-7 w-7" style={{ color: "hsl(var(--brand-blue))" }} />
+              <MessageCircle className="h-7 w-7" style={{ color: "hsl(var(--brand-blue))" }} />
             </div>
             <div>
               <p className="text-sm font-semibold">Nothing here yet</p>
@@ -190,36 +190,42 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
             </Button>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-5">
             {comments.map((comment) => {
               const own = isOwn(comment.author);
+              const avatarSeed = parseInt(comment.author.slice(2, 8), 16) % 360;
+              const avatarBg = own
+                ? "linear-gradient(135deg, hsl(var(--brand-blue)), hsl(var(--brand-purple)))"
+                : `linear-gradient(135deg, hsl(${avatarSeed}, 65%, 45%), hsl(${(avatarSeed + 60) % 360}, 65%, 55%))`;
+
               return (
                 <div
                   key={comment.id}
-                  className={`group flex items-end gap-2 ${own ? "justify-end" : "justify-start"}`}
+                  className={`group flex gap-2.5 ${own ? "flex-row-reverse" : "flex-row"}`}
                 >
-                  {/* Avatar — others only */}
-                  {!own && (
-                    <Link href={`/creator/${comment.author}`} className="shrink-0 mb-1">
-                      <div
-                        className="h-8 w-8 rounded-full flex items-center justify-center text-[10px] font-mono font-bold text-white select-none ring-2 ring-background"
-                        style={{ background: "linear-gradient(135deg, hsl(var(--brand-blue)), hsl(var(--brand-purple)))" }}
-                      >
-                        {comment.author.slice(2, 4).toUpperCase()}
-                      </div>
-                    </Link>
-                  )}
+                  {/* Avatar */}
+                  <Link href={`/creator/${comment.author}`} className="shrink-0 mt-0.5">
+                    <div
+                      className="h-9 w-9 rounded-full flex items-center justify-center text-[11px] font-bold text-white select-none ring-2 ring-background hover:ring-primary/40 transition-all"
+                      style={{ background: avatarBg }}
+                    >
+                      {comment.author.slice(2, 5).toUpperCase()}
+                    </div>
+                  </Link>
 
-                  <div className={`flex flex-col max-w-[78%] ${own ? "items-end" : "items-start"}`}>
-                    {/* Author label — others only */}
-                    {!own && (
+                  <div className={`flex flex-col max-w-[75%] gap-1 ${own ? "items-end" : "items-start"}`}>
+                    {/* Author + timestamp */}
+                    <div className={`flex items-center gap-2 px-1 ${own ? "flex-row-reverse" : "flex-row"}`}>
                       <Link
                         href={`/creator/${comment.author}`}
-                        className="text-[10px] font-medium text-muted-foreground mb-1 ml-1 hover:underline underline-offset-2"
+                        className="text-xs font-semibold text-foreground hover:underline underline-offset-2"
                       >
-                        <AddressDisplay address={comment.author} chars={4} showCopy={false} />
+                        {own ? "You" : <AddressDisplay address={comment.author} chars={5} showCopy={false} />}
                       </Link>
-                    )}
+                      <span className="text-[10px] text-muted-foreground" title={comment.postedAt}>
+                        {formatDistanceToNow(new Date(comment.postedAt), { addSuffix: true })}
+                      </span>
+                    </div>
 
                     {/* Bubble */}
                     <div className="relative">
@@ -235,8 +241,6 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
                           {comment.content}
                         </div>
                       )}
-
-                      {/* Flag — others only, visible on row hover */}
                       {!own && isSignedIn && (
                         <button
                           className="absolute -top-1 -right-5 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground/40 hover:text-destructive/70"
@@ -248,27 +252,22 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
                       )}
                     </div>
 
-                    {/* Metadata row: timestamp + onchain proof link */}
-                    <div className={`flex items-center gap-2 mt-1.5 ${own ? "mr-1 flex-row-reverse" : "ml-1"}`}>
-                      <span className="text-[10px] text-muted-foreground/70" title={comment.postedAt}>
-                        {formatDistanceToNow(new Date(comment.postedAt), { addSuffix: true })}
-                      </span>
-                      {comment.txHash && (
-                        <a
-                          href={`${EXPLORER_URL}/tx/${comment.txHash}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          title="View on Voyager"
-                          className="flex items-center gap-0.5 text-[10px] transition-colors"
-                          style={{ color: "hsl(var(--brand-blue) / 0.6)" }}
-                          onMouseEnter={(e) => (e.currentTarget.style.color = "hsl(var(--brand-blue))")}
-                          onMouseLeave={(e) => (e.currentTarget.style.color = "hsl(var(--brand-blue) / 0.6)")}
-                        >
-                          <span>⛓</span>
-                          <ExternalLink className="h-2.5 w-2.5" />
-                        </a>
-                      )}
-                    </div>
+                    {/* Onchain proof */}
+                    {comment.txHash && (
+                      <a
+                        href={`${EXPLORER_URL}/tx/${comment.txHash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 px-1 text-[10px] font-medium transition-colors"
+                        style={{ color: "hsl(var(--brand-blue) / 0.55)" }}
+                        onMouseEnter={(e) => (e.currentTarget.style.color = "hsl(var(--brand-blue))")}
+                        onMouseLeave={(e) => (e.currentTarget.style.color = "hsl(var(--brand-blue) / 0.55)")}
+                      >
+                        <span>⛓</span>
+                        <span>onchain proof</span>
+                        <ExternalLink className="h-2.5 w-2.5" />
+                      </a>
+                    )}
                   </div>
                 </div>
               );
