@@ -18,7 +18,8 @@ import { TransferDialog } from "@/components/marketplace/transfer-dialog";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { ipfsToHttp, timeUntil, timeAgo, formatDisplayPrice } from "@/lib/utils";
-import { ShoppingCart, Tag, ExternalLink, Clock, HandCoins, ArrowRightLeft, X, CheckCircle, DollarSign, GitBranch, UserCheck, Globe, Bot, Percent, Shield, Calendar, ChevronRight, Flag, Loader2, MessageSquare } from "lucide-react";
+import { ShoppingCart, Tag, ExternalLink, Clock, HandCoins, ArrowRightLeft, X, CheckCircle, DollarSign, GitBranch, UserCheck, Globe, Bot, Percent, Shield, Calendar, ChevronRight, Flag, Loader2 } from "lucide-react";
+import { FloatingCommentsButton } from "@/components/asset/floating-comments-button";
 import { ReportDialog } from "@/components/report-dialog";
 import { HiddenContentBanner } from "@/components/hidden-content-banner";
 import { LICENSE_TRAIT_TYPES } from "@/types/ip";
@@ -848,23 +849,7 @@ export default function AssetPageClient() {
       </div>
 
 
-      {/* Floating comments button */}
-      <div className="fixed bottom-6 right-6 z-40">
-        <button
-          onClick={() => setCommentOpen(true)}
-          aria-label="Open on-chain comments"
-          className="relative flex flex-col items-center justify-center gap-0.5 h-14 w-14 rounded-2xl border border-border bg-card/95 backdrop-blur-sm shadow-md hover:shadow-lg hover:bg-accent transition-all active:scale-95"
-        >
-          <MessageSquare className="h-5 w-5 text-foreground" />
-          <span className="text-[9px] font-medium text-muted-foreground leading-none">comments</span>
-          {commentTotal > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-bold text-white"
-              style={{ background: "hsl(var(--brand-blue))" }}>
-              {commentTotal}
-            </span>
-          )}
-        </button>
-      </div>
+      <FloatingCommentsButton onClick={() => setCommentOpen(true)} commentTotal={commentTotal} />
 
       {/* Comments Sheet — bottom drawer on mobile, right panel on desktop */}
       <Sheet open={commentOpen} onOpenChange={setCommentOpen}>
