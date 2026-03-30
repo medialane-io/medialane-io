@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { ExternalLink, Wrench } from "lucide-react";
+import type { AdminCreatorRecord } from "@/types/admin";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL!;
 const ADMIN_KEY   = process.env.NEXT_PUBLIC_ADMIN_API_KEY!;
@@ -25,11 +26,11 @@ export default function AdminCreatorsPage() {
 
   // Fix wallet dialog
   const [fixOpen, setFixOpen]       = useState(false);
-  const [fixCreator, setFixCreator] = useState<any>(null);
+  const [fixCreator, setFixCreator] = useState<AdminCreatorRecord | null>(null);
   const [newWallet, setNewWallet]   = useState("");
   const [fixing, setFixing]         = useState(false);
 
-  function openFix(creator: any) {
+  function openFix(creator: AdminCreatorRecord) {
     setFixCreator(creator);
     setNewWallet("");
     setFixOpen(true);
@@ -97,7 +98,7 @@ export default function AdminCreatorsPage() {
           <div className="px-4 py-8 text-center text-sm text-muted-foreground">Loading…</div>
         ) : creators.length === 0 ? (
           <div className="px-4 py-8 text-center text-sm text-muted-foreground">No creators found</div>
-        ) : creators.map((c: any) => (
+        ) : creators.map((c) => (
           <div key={c.id} className="flex items-center gap-4 px-4 py-3 border-b border-border/40 last:border-0 hover:bg-muted/30 transition-colors">
             <div className="w-28 shrink-0">
               <a
