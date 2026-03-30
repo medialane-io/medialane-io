@@ -109,21 +109,33 @@ export function IPTypeDisplay({ attributes }: IPTypeDisplayProps) {
         if (!field.embed || !value) return null;
         const src = getEmbedSrc(field.embed, value);
         if (src) {
+          const isCompact = field.embed === "soundcloud" || field.embed === "spotify";
           return (
             <div key={field.key} className="space-y-1.5">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 {field.label}
               </p>
-              <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-muted/20">
+              {isCompact ? (
                 <iframe
                   src={src}
-                  className="absolute inset-0 w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
+                  className="w-full rounded-xl border-0"
+                  height={166}
+                  allow="autoplay"
                   loading="lazy"
                   title={field.label}
                 />
-              </div>
+              ) : (
+                <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-muted/20">
+                  <iframe
+                    src={src}
+                    className="absolute inset-0 w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    loading="lazy"
+                    title={field.label}
+                  />
+                </div>
+              )}
             </div>
           );
         }
