@@ -36,20 +36,14 @@ import { isWebAuthnSupported } from "@chipi-stack/nextjs";
 import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
 import { getListableTokens } from "@medialane/sdk";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
+import { marketplacePriceField, marketplaceCurrencyField, marketplaceDurationField } from "@/lib/marketplace-schemas";
 
 const CURRENCIES = getListableTokens().map((t) => t.symbol);
 
 const schema = z.object({
-  price: z.string().min(1, "Price required").refine(
-    (v) => !isNaN(parseFloat(v)) && parseFloat(v) > 0,
-    "Must be a positive number"
-  ),
-  // z.enum() requires a const tuple — use z.string().refine() for runtime-derived lists
-  currency: z.string().refine(
-    (v) => getListableTokens().some((t) => t.symbol === v),
-    "Invalid currency"
-  ),
-  durationSeconds: z.number().min(86400),
+  price: marketplacePriceField,
+  currency: marketplaceCurrencyField,
+  durationSeconds: marketplaceDurationField,
 });
 
 type FormValues = z.infer<typeof schema>;
