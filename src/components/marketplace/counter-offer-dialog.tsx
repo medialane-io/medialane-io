@@ -33,6 +33,7 @@ import { useAuth, SignInButton } from "@clerk/nextjs";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { EXPLORER_URL, DURATION_OPTIONS } from "@/lib/constants";
+import { marketplacePriceField, counterOfferDurationField } from "@/lib/marketplace-schemas";
 import { isWebAuthnSupported } from "@chipi-stack/nextjs";
 import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
 
@@ -45,11 +46,8 @@ function toRawWei(humanAmount: string, decimals: number): string {
 }
 
 const schema = z.object({
-  price: z.string().min(1, "Price required").refine(
-    (v) => !isNaN(parseFloat(v)) && parseFloat(v) > 0,
-    "Must be a positive number"
-  ),
-  durationSeconds: z.number().int().min(3600),
+  price: marketplacePriceField,
+  durationSeconds: counterOfferDurationField,
   message: z.string().max(500).optional(),
 });
 

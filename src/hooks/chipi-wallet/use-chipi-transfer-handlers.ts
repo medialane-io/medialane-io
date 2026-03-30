@@ -34,7 +34,9 @@ type Params = {
   setupSession: (pin: string) => Promise<unknown>;
   clearSession: () => Promise<void>;
   maybeClearSessionForAmountCap: (amountUsdc: number) => Promise<boolean>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transferAsync: (args: any) => Promise<any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   executeWithSessionAsync: (args: any) => Promise<any>;
   clearSessionUnlockKey: () => void;
   setSessionUnlockKey: (key: string) => void;

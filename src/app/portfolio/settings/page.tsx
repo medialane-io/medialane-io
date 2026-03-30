@@ -162,8 +162,8 @@ export default function ProfileSettingsPage() {
       }
       await mutate(undefined, { revalidate: true });
       toast.success("Profile updated");
-    } catch (e: any) {
-      toast.error(e?.message ?? "Failed to save changes");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Failed to save changes");
     } finally {
       setSaving(false);
     }

@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { ExternalLink, RefreshCw, Plus, Download, EyeOff, Eye, Trash2 } from "lucide-react";
+import type { AdminCollectionRecord } from "@/types/admin";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL!;
 // Must match API_SECRET_KEY on the backend — set NEXT_PUBLIC_ADMIN_API_KEY in .env.local and Railway
@@ -148,7 +149,7 @@ export default function AdminCollectionsPage() {
 
       {isLoading ? <p className="text-sm text-muted-foreground">Loading&hellip;</p> : (
         <div className="space-y-2">
-          {collections.map((col: any) => (
+          {collections.map((col) => (
             <div key={col.id} className={`glass rounded-lg p-4 flex items-center gap-4 ${col.isHidden ? "opacity-50" : ""}`}>
               <div className="flex-1 min-w-0 space-y-1">
                 <div className="flex items-center gap-2 flex-wrap">

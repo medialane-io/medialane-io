@@ -1,4 +1,10 @@
 import useSWR from "swr";
+import type {
+  AdminCollectionClaimRecord,
+  AdminUsernameClaimRecord,
+  AdminCreatorRecord,
+  AdminCollectionRecord,
+} from "@/types/admin";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL!;
 // Admin endpoints (/admin/claims, /admin/collections) require the API_SECRET_KEY, not the tenant key.
@@ -20,7 +26,7 @@ export function useAdminClaims(status?: string, page = 1) {
     },
     { revalidateOnFocus: false }
   );
-  return { claims: (data?.claims ?? []) as any[], total: data?.total ?? 0, isLoading, error, mutate };
+  return { claims: (data?.claims ?? []) as AdminCollectionClaimRecord[], total: data?.total ?? 0, isLoading, error, mutate };
 }
 
 export function useAdminUsernameClaims(status?: string, page = 1) {
@@ -34,7 +40,7 @@ export function useAdminUsernameClaims(status?: string, page = 1) {
     },
     { revalidateOnFocus: false }
   );
-  return { claims: (data?.claims ?? []) as any[], total: data?.total ?? 0, isLoading, error, mutate };
+  return { claims: (data?.claims ?? []) as AdminUsernameClaimRecord[], total: data?.total ?? 0, isLoading, error, mutate };
 }
 
 export function useAdminCreators(status?: string, page = 1) {
@@ -48,7 +54,7 @@ export function useAdminCreators(status?: string, page = 1) {
     },
     { revalidateOnFocus: false }
   );
-  return { creators: (data?.claims ?? []) as any[], total: data?.total ?? 0, isLoading, error, mutate };
+  return { creators: (data?.claims ?? []) as AdminCreatorRecord[], total: data?.total ?? 0, isLoading, error, mutate };
 }
 
 export function useAdminCollections(filters: { source?: string; metadataStatus?: string; search?: string; page?: number } = {}) {
@@ -64,5 +70,5 @@ export function useAdminCollections(filters: { source?: string; metadataStatus?:
     },
     { revalidateOnFocus: false }
   );
-  return { collections: (data?.collections ?? []) as any[], total: data?.total ?? 0, isLoading, error, mutate };
+  return { collections: (data?.collections ?? []) as AdminCollectionRecord[], total: data?.total ?? 0, isLoading, error, mutate };
 }

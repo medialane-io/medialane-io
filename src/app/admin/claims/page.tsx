@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { AtSign, FileCheck } from "lucide-react";
+import type { AdminCollectionClaimRecord, AdminUsernameClaimRecord } from "@/types/admin";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL!;
 const API_KEY = process.env.NEXT_PUBLIC_ADMIN_API_KEY!;
@@ -33,12 +34,13 @@ const FILTERS = ["", "PENDING", "APPROVED", "REJECTED"];
 function CollectionClaimsTab() {
   const [statusFilter, setStatusFilter] = useState("PENDING");
   const { claims, total, isLoading, mutate } = useAdminClaims(statusFilter || undefined);
-  const [selected, setSelected] = useState<any>(null);
+  const [selected, setSelected] = useState<AdminCollectionClaimRecord | null>(null);
   const [adminNotes, setAdminNotes] = useState("");
   const [source, setSource] = useState("EXTERNAL");
   const [processing, setProcessing] = useState(false);
 
   async function handleAction(status: "APPROVED" | "REJECTED") {
+    if (!selected) return;
     setProcessing(true);
     try {
       const res = await fetch(`${BACKEND_URL}/admin/claims/${selected.id}`, {
@@ -69,7 +71,7 @@ function CollectionClaimsTab() {
 
       {isLoading ? <p className="text-muted-foreground text-sm">Loading…</p> : (
         <div className="space-y-2">
-          {claims.map((claim: any) => (
+          {claims.map((claim) => (
             <div key={claim.id} className="glass rounded-lg p-4 flex items-start justify-between gap-4">
               <div className="space-y-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
@@ -122,11 +124,12 @@ function CollectionClaimsTab() {
 function UsernameClaimsTab() {
   const [statusFilter, setStatusFilter] = useState("PENDING");
   const { claims, total, isLoading, mutate } = useAdminUsernameClaims(statusFilter || undefined);
-  const [selected, setSelected] = useState<any>(null);
+  const [selected, setSelected] = useState<AdminUsernameClaimRecord | null>(null);
   const [adminNotes, setAdminNotes] = useState("");
   const [processing, setProcessing] = useState(false);
 
   async function handleAction(status: "APPROVED" | "REJECTED") {
+    if (!selected) return;
     setProcessing(true);
     try {
       const res = await fetch(`${BACKEND_URL}/admin/username-claims/${selected.id}`, {
@@ -157,7 +160,7 @@ function UsernameClaimsTab() {
 
       {isLoading ? <p className="text-muted-foreground text-sm">Loading…</p> : (
         <div className="space-y-2">
-          {claims.map((claim: any) => (
+          {claims.map((claim) => (
             <div key={claim.id} className="glass rounded-lg p-4 flex items-start justify-between gap-4">
               <div className="space-y-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
