@@ -14,7 +14,6 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/s
 import { MedialaneLogo } from "@/components/brand/medialane-logo";
 import { SWRConfig } from "swr";
 import { ChipiSessionUnlockProvider } from "@/contexts/chipi-session-unlock-context";
-import { TooltipProvider } from "@/components/ui/tooltip";
 
 function Shell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -70,12 +69,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
           },
         }}
       >
-        <TooltipProvider delayDuration={400}>
-          <Aurora />
-          <Shell>{children}</Shell>
-          <CartDrawer />
-          <Toaster richColors position="bottom-right" />
-        </TooltipProvider>
+        <Aurora />
+        <Shell>{children}</Shell>
+        <CartDrawer />
+        <Toaster richColors position="bottom-right" />
       </SWRConfig>
     </ThemeProvider>
   );

@@ -14,7 +14,6 @@ import { useRemixOffers } from "@/hooks/use-remix-offers";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
-import { Tip } from "@/components/ui/tip";
 import { cn } from "@/lib/utils";
 
 const NAV_GROUPS = [
@@ -159,25 +158,19 @@ export default function PortfolioLayout({ children }: { children: React.ReactNod
         {/* Stat pills */}
         <div className="flex items-center gap-2 flex-wrap">
           {totalAssetsCount !== null ? (
-            <Tip content="Total NFT assets you own across all collections">
-              <span className="bg-muted rounded-full px-3 py-1 text-sm font-medium text-muted-foreground cursor-default">
-                {totalAssetsCount} Assets
-              </span>
-            </Tip>
+            <span className="bg-muted rounded-full px-3 py-1 text-sm font-medium text-muted-foreground">
+              {totalAssetsCount} Assets
+            </span>
           ) : (
             <span className="bg-muted rounded-full px-3 py-1 w-20 h-6 animate-pulse inline-block" />
           )}
-          <Tip content="Your active marketplace listings — assets currently for sale">
-            <span className="bg-muted rounded-full px-3 py-1 text-sm font-medium text-muted-foreground cursor-default">
-              {activeListingsCount} Listings
-            </span>
-          </Tip>
+          <span className="bg-muted rounded-full px-3 py-1 text-sm font-medium text-muted-foreground">
+            {activeListingsCount} Listings
+          </span>
           {receivedCount > 0 && (
-            <Tip content="Buyers have made offers on your assets — tap to respond">
-              <span className="bg-primary/10 text-primary rounded-full px-3 py-1 text-sm font-medium cursor-default">
-                {receivedCount} Offers received
-              </span>
-            </Tip>
+            <span className="bg-primary/10 text-primary rounded-full px-3 py-1 text-sm font-medium">
+              {receivedCount} Offers received
+            </span>
           )}
         </div>
       </div>
@@ -189,7 +182,7 @@ export default function PortfolioLayout({ children }: { children: React.ReactNod
             <div key={group.label} className="flex items-center">
               {group.items.map((item) => {
                 const active = pathname === item.href || pathname.startsWith(item.href + "/");
-                const linkEl = (
+                return (
                   <Link
                     key={item.href}
                     href={item.href}
@@ -218,28 +211,6 @@ export default function PortfolioLayout({ children }: { children: React.ReactNod
                     )}
                   </Link>
                 );
-                if (item.badge === "offers" && receivedCount > 0) {
-                  return (
-                    <Tip key={item.href} content="Buyers have made offers on your assets — accept, counter, or decline" side="bottom">
-                      {linkEl}
-                    </Tip>
-                  );
-                }
-                if (item.badge === "remixes" && pendingRemixCount > 0) {
-                  return (
-                    <Tip key={item.href} content="Creators want to build derivatives of your IP — review remix requests" side="bottom">
-                      {linkEl}
-                    </Tip>
-                  );
-                }
-                if (item.badge === "counters" && pendingCounterCount > 0) {
-                  return (
-                    <Tip key={item.href} content="A seller countered your offer — review and respond" side="bottom">
-                      {linkEl}
-                    </Tip>
-                  );
-                }
-                return linkEl;
               })}
               {groupIndex < NAV_GROUPS.length - 1 && (
                 <span className="w-px h-4 bg-border/40 mx-1 self-center shrink-0" />

@@ -15,19 +15,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { usePlatformStats } from "@/hooks/use-stats";
 import { IP_TYPES } from "@/types/ip";
-import { Tip } from "@/components/ui/tip";
 
 const SORT_OPTIONS = [
   { label: "Recent", value: "recent" },
   { label: "Price ↑", value: "price_asc" },
   { label: "Price ↓", value: "price_desc" },
 ];
-
-const SORT_TOOLTIPS: Record<string, string> = {
-  recent:     "Newest listings first",
-  price_asc:  "Cheapest listings first",
-  price_desc: "Most expensive listings first",
-};
 
 const TYPE_OPTIONS = [
   { label: "All", value: "" },
@@ -270,42 +263,39 @@ export default function MarketplacePageClient() {
           <div className="flex-1">
             <SearchBar />
           </div>
-          <Tip content={filterCount > 0 ? `${filterCount} active filter${filterCount > 1 ? "s" : ""} — click to adjust` : "Filter by type, currency, price range, and IP category"}>
-            <button
-              onClick={() => setFiltersOpen((v) => !v)}
-              className={cn(
-                "relative flex items-center gap-1.5 h-9 px-3 rounded-lg border text-xs font-medium transition-colors shrink-0",
-                filtersOpen || filterCount > 0
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
-              )}
-            >
-              <SlidersHorizontal className="h-3.5 w-3.5" />
-              Filters
-              {filterCount > 0 && (
-                <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
-                  {filterCount}
-                </span>
-              )}
-            </button>
-          </Tip>
+          <button
+            onClick={() => setFiltersOpen((v) => !v)}
+            className={cn(
+              "relative flex items-center gap-1.5 h-9 px-3 rounded-lg border text-xs font-medium transition-colors shrink-0",
+              filtersOpen || filterCount > 0
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
+            )}
+          >
+            <SlidersHorizontal className="h-3.5 w-3.5" />
+            Filters
+            {filterCount > 0 && (
+              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                {filterCount}
+              </span>
+            )}
+          </button>
         </div>
 
         {/* Row 2: sort tabs — always visible */}
         <div className="flex items-center gap-1">
           {SORT_OPTIONS.map((opt) => (
-            <Tip key={opt.value} content={SORT_TOOLTIPS[opt.value]}>
-              <button
-                onClick={() => setSort(opt.value)}
-                className={`text-xs px-3 py-1.5 rounded-md transition-colors whitespace-nowrap ${
-                  sort === opt.value
-                    ? "bg-primary/10 text-primary font-medium"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                }`}
-              >
-                {opt.label}
-              </button>
-            </Tip>
+            <button
+              key={opt.value}
+              onClick={() => setSort(opt.value)}
+              className={`text-xs px-3 py-1.5 rounded-md transition-colors whitespace-nowrap ${
+                sort === opt.value
+                  ? "bg-primary/10 text-primary font-medium"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              }`}
+            >
+              {opt.label}
+            </button>
           ))}
         </div>
 
@@ -380,13 +370,9 @@ export default function MarketplacePageClient() {
             <div className="flex flex-wrap items-start gap-2 pt-1 border-t border-border/60">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground w-12 shrink-0 pt-1">IP Type</span>
               <div className="flex flex-wrap gap-1.5">
-                <Tip content="Show all IP asset types">
-                  <IpTypeChip href="/marketplace" label="All" />
-                </Tip>
+                <IpTypeChip href="/marketplace" label="All" />
                 {IP_TYPES.map((type) => (
-                  <Tip key={type} content={`Show ${type} assets only`}>
-                    <IpTypeChip href={`/${type.toLowerCase()}`} label={type} />
-                  </Tip>
+                  <IpTypeChip key={type} href={`/${type.toLowerCase()}`} label={type} />
                 ))}
               </div>
             </div>

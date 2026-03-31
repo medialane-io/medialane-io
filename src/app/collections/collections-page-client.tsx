@@ -12,7 +12,6 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Layers, Loader2, BadgeCheck, Eye, SlidersHorizontal } from "lucide-react";
-import { Tip } from "@/components/ui/tip";
 import { cn } from "@/lib/utils";
 import type { ApiCollection } from "@medialane/sdk";
 
@@ -25,14 +24,6 @@ const SORT_OPTIONS: { label: string; value: CollectionSort }[] = [
   { label: "Floor ↑",    value: "floor"   },
   { label: "A → Z",      value: "name"    },
 ];
-
-const SORT_TOOLTIPS: Record<CollectionSort, string> = {
-  recent: "Newest collections first",
-  supply: "Collections with the most minted assets first",
-  volume: "Highest total trading volume first",
-  floor:  "Lowest floor price first",
-  name:   "Alphabetical order A → Z",
-};
 
 export default function CollectionsPageClient() {
   const { stats } = usePlatformStats();
@@ -117,25 +108,23 @@ export default function CollectionsPageClient() {
 
       {/* Toolbar */}
       <div className="flex items-center gap-2 pb-3 border-b border-border/60">
-        <Tip content={activeFilters > 0 ? `${activeFilters} active filter${activeFilters > 1 ? "s" : ""} — click to adjust` : "Sort and filter collections"}>
-          <button
-            onClick={() => setFiltersOpen(true)}
-            className={cn(
-              "relative flex items-center gap-1.5 h-9 px-3 rounded-lg border text-xs font-medium transition-colors",
-              activeFilters > 0
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
-            )}
-          >
-            <SlidersHorizontal className="h-3.5 w-3.5" />
-            Filters
-            {activeFilters > 0 && (
-              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
-                {activeFilters}
-              </span>
-            )}
-          </button>
-        </Tip>
+        <button
+          onClick={() => setFiltersOpen(true)}
+          className={cn(
+            "relative flex items-center gap-1.5 h-9 px-3 rounded-lg border text-xs font-medium transition-colors",
+            activeFilters > 0
+              ? "border-primary bg-primary/10 text-primary"
+              : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
+          )}
+        >
+          <SlidersHorizontal className="h-3.5 w-3.5" />
+          Filters
+          {activeFilters > 0 && (
+            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+              {activeFilters}
+            </span>
+          )}
+        </button>
 
         {/* Active filter pills — quick-clear */}
         {sort !== "recent" && (
@@ -170,19 +159,18 @@ export default function CollectionsPageClient() {
             <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Sort</p>
             <div className="flex flex-wrap gap-1.5">
               {SORT_OPTIONS.map((opt) => (
-                <Tip key={opt.value} content={SORT_TOOLTIPS[opt.value]}>
-                  <button
-                    onClick={() => setSort(opt.value)}
-                    className={cn(
-                      "text-xs px-3 py-1.5 rounded-full border transition-colors whitespace-nowrap",
-                      sort === opt.value
-                        ? "border-primary bg-primary/10 text-primary font-medium"
-                        : "border-border text-muted-foreground hover:border-primary/50"
-                    )}
-                  >
-                    {opt.label}
-                  </button>
-                </Tip>
+                <button
+                  key={opt.value}
+                  onClick={() => setSort(opt.value)}
+                  className={cn(
+                    "text-xs px-3 py-1.5 rounded-full border transition-colors whitespace-nowrap",
+                    sort === opt.value
+                      ? "border-primary bg-primary/10 text-primary font-medium"
+                      : "border-border text-muted-foreground hover:border-primary/50"
+                  )}
+                >
+                  {opt.label}
+                </button>
               ))}
             </div>
           </div>
@@ -191,34 +179,30 @@ export default function CollectionsPageClient() {
           <div className="space-y-2">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Show</p>
             <div className="flex flex-col gap-2">
-              <Tip content="Show only collections with a verified identity — confirmed by Medialane" side="right">
-                <button
-                  onClick={() => setVerified((v) => !v)}
-                  className={cn(
-                    "flex items-center gap-2 text-sm px-3 py-2 rounded-lg border transition-colors text-left",
-                    verified
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-border text-muted-foreground hover:border-primary/50"
-                  )}
-                >
-                  <BadgeCheck className="h-4 w-4 shrink-0" />
-                  Verified only
-                </button>
-              </Tip>
-              <Tip content="Include collections with no minted assets yet — hidden by default" side="right">
-                <button
-                  onClick={() => setHideEmpty((v) => !v)}
-                  className={cn(
-                    "flex items-center gap-2 text-sm px-3 py-2 rounded-lg border transition-colors text-left",
-                    !hideEmpty
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-border text-muted-foreground hover:border-primary/50"
-                  )}
-                >
-                  <Eye className="h-4 w-4 shrink-0" />
-                  Show empty collections
-                </button>
-              </Tip>
+              <button
+                onClick={() => setVerified((v) => !v)}
+                className={cn(
+                  "flex items-center gap-2 text-sm px-3 py-2 rounded-lg border transition-colors text-left",
+                  verified
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border text-muted-foreground hover:border-primary/50"
+                )}
+              >
+                <BadgeCheck className="h-4 w-4 shrink-0" />
+                Verified only
+              </button>
+              <button
+                onClick={() => setHideEmpty((v) => !v)}
+                className={cn(
+                  "flex items-center gap-2 text-sm px-3 py-2 rounded-lg border transition-colors text-left",
+                  !hideEmpty
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border text-muted-foreground hover:border-primary/50"
+                )}
+              >
+                <Eye className="h-4 w-4 shrink-0" />
+                Show empty collections
+              </button>
             </div>
           </div>
 

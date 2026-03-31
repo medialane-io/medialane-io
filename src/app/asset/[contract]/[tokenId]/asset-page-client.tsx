@@ -43,7 +43,6 @@ import { toast } from "sonner";
 import { useDominantColor } from "@/hooks/use-dominant-color";
 import { RemixesTab, ParentAttributionBanner } from "@/components/asset/remixes-tab";
 import { useTokenRemixes } from "@/hooks/use-remix-offers";
-import { Tip } from "@/components/ui/tip";
 
 const CURRENCY_ICONS: Record<string, string> = {
   STRK: "/strk.svg",
@@ -420,55 +419,47 @@ export default function AssetPageClient() {
                   <div className="space-y-2">
                     {/* Buy Now — flat bg/30, animated gradient border */}
                     <div className="btn-border-animated p-[1px] rounded-xl">
-                      <Tip content="Buy instantly at the listed price — gasless transaction on Starknet" side="left">
-                        <button
-                          className="w-full h-12 text-base font-semibold text-white rounded-[11px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] bg-background/30"
-                          onClick={() => setPurchaseOrder(cheapest)}
-                        >
-                          <ShoppingCart className="h-5 w-5" />
-                          Buy now
-                        </button>
-                      </Tip>
+                      <button
+                        className="w-full h-12 text-base font-semibold text-white rounded-[11px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] bg-background/30"
+                        onClick={() => setPurchaseOrder(cheapest)}
+                      >
+                        <ShoppingCart className="h-5 w-5" />
+                        Buy now
+                      </button>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       {/* Add to cart — flat brand-orange, animated gradient border */}
                       <div className={`btn-border-animated p-[1px] rounded-xl ${inCart ? "opacity-40 pointer-events-none" : ""}`}>
-                        <Tip content={inCart ? "Already in cart — checkout from sidebar" : "Add to cart — buy multiple items with one PIN"} side="bottom">
-                          <button
-                            className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-blue"
-                            disabled={inCart}
-                            onClick={handleAddToCart}
-                          >
-                            <ShoppingCart className="h-4 w-4" />
-                            {inCart ? "In cart" : "Add to cart"}
-                          </button>
-                        </Tip>
+                        <button
+                          className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-blue"
+                          disabled={inCart}
+                          onClick={handleAddToCart}
+                        >
+                          <ShoppingCart className="h-4 w-4" />
+                          {inCart ? "In cart" : "Add to cart"}
+                        </button>
                       </div>
                       {/* Make offer — flat brand-purple, animated gradient border */}
                       <div className="btn-border-animated p-[1px] rounded-xl">
-                        <Tip content="Send a private offer — owner can accept, counter, or decline" side="bottom">
-                          <button
-                            className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-orange"
-                            onClick={() => setOfferOpen(true)}
-                          >
-                            <HandCoins className="h-4 w-4" />
-                            Make offer
-                          </button>
-                        </Tip>
+                        <button
+                          className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-orange"
+                          onClick={() => setOfferOpen(true)}
+                        >
+                          <HandCoins className="h-4 w-4" />
+                          Make offer
+                        </button>
                       </div>
                     </div>
                     {/* Create a Remix */}
                     {!isOwner && (
                       <div className="btn-border-animated p-[1px] rounded-xl">
-                        <Tip content="Create a licensed derivative of this IP — remix licensing on Starknet" side="left">
-                          <button
-                            className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-purple"
-                            onClick={handleAutoRemix}
-                          >
-                            <GitBranch className="h-4 w-4" />
-                            Create a Remix
-                          </button>
-                        </Tip>
+                        <button
+                          className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-purple"
+                          onClick={handleAutoRemix}
+                        >
+                          <GitBranch className="h-4 w-4" />
+                          Create a Remix
+                        </button>
                       </div>
                     )}
                   </div>
@@ -489,51 +480,43 @@ export default function AssetPageClient() {
                 {isOwner ? (
                   <div className="space-y-2">
                     <div className="btn-border-animated p-[1px] rounded-xl">
-                      <Tip content="Set a price and currency to list this asset on the marketplace" side="left">
-                        <button
-                          className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-background/30"
-                          onClick={() => setListOpen(true)}
-                        >
-                          <Tag className="h-4 w-4" />
-                          List for sale
-                        </button>
-                      </Tip>
+                      <button
+                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-background/30"
+                        onClick={() => setListOpen(true)}
+                      >
+                        <Tag className="h-4 w-4" />
+                        List for sale
+                      </button>
                     </div>
                     <div className="btn-border-animated p-[1px] rounded-xl">
-                      <Tip content="Send this asset to another wallet address" side="left">
-                        <button
-                          className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-orange"
-                          onClick={() => setTransferOpen(true)}
-                        >
-                          <ArrowRightLeft className="h-4 w-4" />
-                          Transfer
-                        </button>
-                      </Tip>
+                      <button
+                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-orange"
+                        onClick={() => setTransferOpen(true)}
+                      >
+                        <ArrowRightLeft className="h-4 w-4" />
+                        Transfer
+                      </button>
                     </div>
                     <div className="btn-border-animated p-[1px] rounded-xl">
-                      <Tip content="Create a licensed derivative of this IP — remix licensing on Starknet" side="left">
-                        <button
-                          className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-purple"
-                          onClick={() => router.push(`/create/remix/${contract}/${tokenId}`)}
-                        >
-                          <GitBranch className="h-4 w-4" />
-                          Create a Remix
-                        </button>
-                      </Tip>
+                      <button
+                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-purple"
+                        onClick={() => router.push(`/create/remix/${contract}/${tokenId}`)}
+                      >
+                        <GitBranch className="h-4 w-4" />
+                        Create a Remix
+                      </button>
                     </div>
                   </div>
                 ) : isSignedIn ? (
                   <div className="space-y-2">
                     <div className="btn-border-animated p-[1px] rounded-xl">
-                      <Tip content="Send a private offer — owner can accept, counter, or decline" side="left">
-                        <button
-                          className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-orange"
-                          onClick={() => setOfferOpen(true)}
-                        >
-                          <HandCoins className="h-4 w-4" />
-                          Make offer
-                        </button>
-                      </Tip>
+                      <button
+                        className="w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-orange"
+                        onClick={() => setOfferOpen(true)}
+                      >
+                        <HandCoins className="h-4 w-4" />
+                        Make offer
+                      </button>
                     </div>
                     <div className="btn-border-animated p-[1px] rounded-xl">
                       <button
@@ -649,19 +632,13 @@ export default function AssetPageClient() {
         {/* Tabs */}
         <Tabs defaultValue="overview">
           <TabsList>
-            <Tip content="Asset details, license terms, attributes, and media" side="bottom">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-            </Tip>
-            <Tip content="Active listings and open offers for this asset" side="bottom">
-              <TabsTrigger value="markets">
-                Markets {(activeListings.length + activeBids.length) > 0 && `(${activeListings.length + activeBids.length})`}
-              </TabsTrigger>
-            </Tip>
-            <Tip content="Full transfer and sale history recorded onchain" side="bottom">
-              <TabsTrigger value="provenance">
-                Provenance {history.length > 0 && `(${history.length})`}
-              </TabsTrigger>
-            </Tip>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="markets">
+              Markets {(activeListings.length + activeBids.length) > 0 && `(${activeListings.length + activeBids.length})`}
+            </TabsTrigger>
+            <TabsTrigger value="provenance">
+              Provenance {history.length > 0 && `(${history.length})`}
+            </TabsTrigger>
           </TabsList>
 
           {/* Overview tab — media embeds + license + attributes */}
