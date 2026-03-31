@@ -35,7 +35,6 @@ const NAV = [
   { href: "/collections", label: "Collections", icon: LayoutGrid, exact: true },
   { href: "/creators",   label: "Creators",    icon: Users,      exact: true },
   { href: "/portfolio", label: "Portfolio", icon: Briefcase, exact: true, prefetch: false },
-  { href: "/create", label: "Create", icon: PlusCircle, exact: true, prefetch: false },
   { href: "/launchpad", label: "Launchpad", icon: Zap, exact: true },
   { href: "/activities", label: "Activity", icon: Activity, exact: true },
 ];
