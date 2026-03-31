@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CheckCircle2, Loader2 } from "lucide-react";
+import { HelpIcon } from "@/components/ui/help-icon";
 import { MotionCard } from "@/components/ui/motion-primitives";
 import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import type { ApiCollection } from "@medialane/sdk";
@@ -59,6 +60,9 @@ export function CollectionCard({ collection }: CollectionCardProps) {
                 {collection.isKnown && (
                   <CheckCircle2 className="inline-block h-3 w-3 text-blue-400 ml-1.5 shrink-0 align-middle" />
                 )}
+                {collection.isKnown && (
+                  <HelpIcon content="Verified collection — identity confirmed by Medialane" side="top" className="ml-1" />
+                )}
               </p>
             )}
 
@@ -70,8 +74,9 @@ export function CollectionCard({ collection }: CollectionCardProps) {
                 </span>
               )}
               {hasFloor && (
-                <span className="text-[10px] font-bold text-white/90 backdrop-blur-md bg-black/30 rounded-full px-2 py-0.5">
+                <span className="flex items-center gap-1 text-[10px] font-bold text-white/90 backdrop-blur-md bg-black/30 rounded-full px-2 py-0.5">
                   Floor {formatDisplayPrice(collection.floorPrice)}
+                  <HelpIcon content="Lowest active listing price in this collection" side="top" />
                 </span>
               )}
             </div>

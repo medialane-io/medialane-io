@@ -14,6 +14,7 @@ import { useRemixOffers } from "@/hooks/use-remix-offers";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
+import { HelpIcon } from "@/components/ui/help-icon";
 import { cn } from "@/lib/utils";
 
 const NAV_GROUPS = [
@@ -164,12 +165,14 @@ export default function PortfolioLayout({ children }: { children: React.ReactNod
           ) : (
             <span className="bg-muted rounded-full px-3 py-1 w-20 h-6 animate-pulse inline-block" />
           )}
-          <span className="bg-muted rounded-full px-3 py-1 text-sm font-medium text-muted-foreground">
+          <span className="flex items-center gap-1 bg-muted rounded-full px-3 py-1 text-sm font-medium text-muted-foreground">
             {activeListingsCount} Listings
+            <HelpIcon content="Your active marketplace listings — assets currently for sale" side="bottom" />
           </span>
           {receivedCount > 0 && (
-            <span className="bg-primary/10 text-primary rounded-full px-3 py-1 text-sm font-medium">
+            <span className="flex items-center gap-1 bg-primary/10 text-primary rounded-full px-3 py-1 text-sm font-medium">
               {receivedCount} Offers received
+              <HelpIcon content="Buyers have made offers on your assets — go to Offers received to accept, counter, or decline" side="bottom" />
             </span>
           )}
         </div>

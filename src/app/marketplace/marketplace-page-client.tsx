@@ -15,6 +15,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { usePlatformStats } from "@/hooks/use-stats";
 import { IP_TYPES } from "@/types/ip";
+import { HelpIcon } from "@/components/ui/help-icon";
 
 const SORT_OPTIONS = [
   { label: "Recent", value: "recent" },
@@ -368,7 +369,10 @@ export default function MarketplacePageClient() {
 
             {/* IP Type */}
             <div className="flex flex-wrap items-start gap-2 pt-1 border-t border-border/60">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground w-12 shrink-0 pt-1">IP Type</span>
+              <span className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground w-12 shrink-0 pt-1">
+                IP Type
+                <HelpIcon content="Filter by intellectual property category — Art, Audio, Video, Software, and more" side="right" />
+              </span>
               <div className="flex flex-wrap gap-1.5">
                 <IpTypeChip href="/marketplace" label="All" />
                 {IP_TYPES.map((type) => (

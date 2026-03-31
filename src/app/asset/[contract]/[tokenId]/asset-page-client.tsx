@@ -43,6 +43,7 @@ import { toast } from "sonner";
 import { useDominantColor } from "@/hooks/use-dominant-color";
 import { RemixesTab, ParentAttributionBanner } from "@/components/asset/remixes-tab";
 import { useTokenRemixes } from "@/hooks/use-remix-offers";
+import { HelpIcon } from "@/components/ui/help-icon";
 
 const CURRENCY_ICONS: Record<string, string> = {
   STRK: "/strk.svg",
@@ -412,6 +413,7 @@ export default function AssetPageClient() {
                       >
                         <GitBranch className="h-4 w-4" />
                         Create a Remix
+                        <HelpIcon content="Build a licensed derivative of this IP asset — your remix is minted as a new onchain NFT linked to the original" side="top" />
                       </button>
                     </div>
                   </div>
@@ -504,6 +506,7 @@ export default function AssetPageClient() {
                       >
                         <GitBranch className="h-4 w-4" />
                         Create a Remix
+                        <HelpIcon content="Build a licensed derivative of this IP asset — your remix is minted as a new onchain NFT linked to the original" side="top" />
                       </button>
                     </div>
                   </div>
@@ -525,6 +528,7 @@ export default function AssetPageClient() {
                       >
                         <GitBranch className="h-4 w-4" />
                         Create a Remix
+                        <HelpIcon content="Build a licensed derivative of this IP asset — your remix is minted as a new onchain NFT linked to the original" side="top" />
                       </button>
                     </div>
                   </div>
@@ -633,11 +637,13 @@ export default function AssetPageClient() {
         <Tabs defaultValue="overview">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="markets">
+            <TabsTrigger value="markets" className="flex items-center gap-1">
               Markets {(activeListings.length + activeBids.length) > 0 && `(${activeListings.length + activeBids.length})`}
+              <HelpIcon content="Active listings for sale and open offers on this asset" side="bottom" />
             </TabsTrigger>
-            <TabsTrigger value="provenance">
+            <TabsTrigger value="provenance" className="flex items-center gap-1">
               Provenance {history.length > 0 && `(${history.length})`}
+              <HelpIcon content="Full transfer and sale history recorded onchain — immutable proof of ownership" side="bottom" />
             </TabsTrigger>
           </TabsList>
 

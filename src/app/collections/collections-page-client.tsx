@@ -12,6 +12,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Layers, Loader2, BadgeCheck, Eye, SlidersHorizontal } from "lucide-react";
+import { HelpIcon } from "@/components/ui/help-icon";
 import { cn } from "@/lib/utils";
 import type { ApiCollection } from "@medialane/sdk";
 
@@ -190,6 +191,7 @@ export default function CollectionsPageClient() {
               >
                 <BadgeCheck className="h-4 w-4 shrink-0" />
                 Verified only
+                <HelpIcon content="Show only collections with a confirmed identity verified by Medialane" side="right" />
               </button>
               <button
                 onClick={() => setHideEmpty((v) => !v)}
@@ -202,6 +204,7 @@ export default function CollectionsPageClient() {
               >
                 <Eye className="h-4 w-4 shrink-0" />
                 Show empty collections
+                <HelpIcon content="Include collections with no minted assets yet — hidden by default to keep the feed clean" side="right" />
               </button>
             </div>
           </div>

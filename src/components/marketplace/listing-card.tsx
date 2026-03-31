@@ -12,6 +12,7 @@ import { ShoppingCart, Check, MoreHorizontal, ExternalLink, Layers, ArrowRightLe
 import { cn, ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
 import { ReportDialog } from "@/components/report-dialog";
+import { HelpIcon } from "@/components/ui/help-icon";
 import type { ApiOrder } from "@medialane/sdk";
 
 interface ListingCardProps {
@@ -128,6 +129,7 @@ export function ListingCard({ order, onBuy }: ListingCardProps) {
               >
                 <GitBranch className="h-3.5 w-3.5" />
               </Button>
+              <HelpIcon content="Cart: buy multiple items in one session. Remix: create a licensed derivative of this IP asset." side="top" />
               {/* More actions */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
