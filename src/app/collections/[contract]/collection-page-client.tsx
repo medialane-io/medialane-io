@@ -22,8 +22,7 @@ import Image from "next/image";
 import { ipfsToHttp, formatDisplayPrice, cn } from "@/lib/utils";
 import { computeRarity } from "@/lib/rarity";
 import { useCollectionProfile } from "@/hooks/use-profiles";
-import { useGatedContent } from "@/hooks/use-gated-content";
-import { useAuth } from "@clerk/nextjs";
+import { useGatedContent, type GatedContentState } from "@/hooks/use-gated-content";
 import type { ApiToken } from "@medialane/sdk";
 
 const PAGE_SIZE = 24;
@@ -163,10 +162,7 @@ export default function CollectionPageClient() {
 
   const { collection, isLoading: colLoading } = useCollection(contract);
   const { profile } = useCollectionProfile(contract);
-  const { isSignedIn } = useAuth();
-  const { content: gatedContent, isHolder, isLoading: gatedLoading } = useGatedContent(
-    profile?.hasGatedContent ? contract : undefined
-  );
+  const gatedState = useGatedContent(profile?.hasGatedContent ? contract : undefined);
   const { orders, isLoading: ordersLoading } = useOrders({
     collection: contract,
     status: "ACTIVE",
@@ -436,13 +432,7 @@ export default function CollectionPageClient() {
 
           {profile?.hasGatedContent && (
             <TabsContent value="exclusive" className="mt-4">
-              <GatedContentPanel
-                contract={contract}
-                content={gatedContent}
-                isHolder={isHolder}
-                isLoading={gatedLoading}
-                isSignedIn={!!isSignedIn}
-              />
+              <GatedContentPanel state={gatedState} />
             </TabsContent>
           )}
         </Tabs>
@@ -501,20 +491,8 @@ const CONTENT_TYPE_ICONS: Record<string, React.ReactNode> = {
   LINK: <Link2 className="h-5 w-5" />,
 };
 
-function GatedContentPanel({
-  contract: _contract,
-  content,
-  isHolder,
-  isLoading,
-  isSignedIn,
-}: {
-  contract: string;
-  content: { title: string | null; url: string; type: string | null } | null;
-  isHolder: boolean;
-  isLoading: boolean;
-  isSignedIn: boolean;
-}) {
-  if (!isSignedIn) {
+function GatedContentPanel({ state }: { state: GatedContentState }) {
+  if (state.status === "not_signed_in") {
     return (
       <div className="py-20 flex flex-col items-center gap-3 text-center">
         <Lock className="h-10 w-10 text-muted-foreground/40" />
@@ -526,7 +504,7 @@ function GatedContentPanel({
     );
   }
 
-  if (isLoading) {
+  if (state.status === "loading") {
     return (
       <div className="py-20 flex flex-col items-center gap-3">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground/40" />
@@ -534,7 +512,7 @@ function GatedContentPanel({
     );
   }
 
-  if (!isHolder || !content) {
+  if (state.status === "not_holder" || state.status === "error") {
     return (
       <div className="py-20 flex flex-col items-center gap-3 text-center">
         <Lock className="h-10 w-10 text-muted-foreground/40" />
@@ -546,6 +524,7 @@ function GatedContentPanel({
     );
   }
 
+  const { content } = state;
   const icon = content.type ? (CONTENT_TYPE_ICONS[content.type] ?? <Link2 className="h-5 w-5" />) : <Link2 className="h-5 w-5" />;
 
   return (

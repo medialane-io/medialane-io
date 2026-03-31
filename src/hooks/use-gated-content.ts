@@ -10,17 +10,17 @@ export interface GatedContent {
   type: string | null;
 }
 
-interface UseGatedContentResult {
-  content: GatedContent | null;
-  isHolder: boolean;
-  isLoading: boolean;
-  error: unknown;
-}
+export type GatedContentState =
+  | { status: "not_signed_in" }
+  | { status: "loading" }
+  | { status: "not_holder" }
+  | { status: "unlocked"; content: GatedContent }
+  | { status: "error" };
 
-export function useGatedContent(contract: string | undefined): UseGatedContentResult {
+export function useGatedContent(contract: string | undefined): GatedContentState {
   const { getToken, isSignedIn } = useAuth();
 
-  const { data, error, isLoading } = useSWR<GatedContent>(
+  const { data, error, isLoading } = useSWR<GatedContent | "not_holder">(
     contract && isSignedIn ? ["gated-content", contract] : null,
     async () => {
       const token = await getToken();
@@ -33,23 +33,16 @@ export function useGatedContent(contract: string | undefined): UseGatedContentRe
           },
         }
       );
-      if (res.status === 403) {
-        // Not a holder — return sentinel
-        return null as unknown as GatedContent;
-      }
-      if (!res.ok) throw new Error("Failed to fetch gated content");
+      if (res.status === 403) return "not_holder";
+      if (!res.ok) throw new Error(`${res.status}`);
       return res.json();
     },
     { shouldRetryOnError: false, revalidateOnFocus: false }
   );
 
-  // error with status 403 means not a holder (we return null above, so error = real fetch failure)
-  const isHolder = !error && data !== undefined && data !== null;
-
-  return {
-    content: data ?? null,
-    isHolder,
-    isLoading,
-    error,
-  };
+  if (!isSignedIn) return { status: "not_signed_in" };
+  if (isLoading) return { status: "loading" };
+  if (error) return { status: "error" };
+  if (data === "not_holder" || data === undefined) return { status: "not_holder" };
+  return { status: "unlocked", content: data };
 }

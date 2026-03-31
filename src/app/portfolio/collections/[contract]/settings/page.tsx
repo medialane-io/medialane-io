@@ -40,7 +40,7 @@ export default function CollectionSettingsPage({ params }: Props) {
         twitterUrl: profile.twitterUrl ?? "",
         discordUrl: profile.discordUrl ?? "",
         telegramUrl: profile.telegramUrl ?? "",
-        gatedContentTitle: "",
+        gatedContentTitle: profile.gatedContentTitle ?? "",
         gatedContentUrl: "",
         gatedContentType: "",
       });
