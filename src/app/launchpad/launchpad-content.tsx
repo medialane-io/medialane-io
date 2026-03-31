@@ -14,7 +14,7 @@ import { BRAND } from "@/lib/brand";
 import {
   Zap, ImagePlus, Layers, ArrowRight,
   Package, Tag, ShoppingCart, Star, Rocket,
-  GitBranch, Users, RefreshCw, Ticket, Coins, TrendingUp, Lock,
+  GitBranch, Users, RefreshCw, Ticket, Coins, TrendingUp, Lock, Globe, ExternalLink,
 } from "lucide-react";
 
 function HeroStats({ address }: { address: string }) {
@@ -81,12 +81,66 @@ const ACTIVE_TOOLS = [
 ] as const;
 
 const COMING_SOON = [
-  { title: "Collection Drop", description: "Limited edition timed releases",   icon: Package    },
-  { title: "Membership",      description: "Token-gated access passes",         icon: Users      },
-  { title: "Subscriptions",   description: "Recurring revenue streams",         icon: RefreshCw  },
-  { title: "IP Tickets",      description: "Event and experience NFTs",         icon: Ticket     },
-  { title: "IP Coins",        description: "Fungible tokens backed by IP",      icon: Coins      },
-  { title: "Creator Coins",   description: "Personal social tokens",            icon: TrendingUp },
+  {
+    title: "Collection Drop",
+    description: "Launch limited edition timed releases with a supply cap and mint window. Set your drop date, let your community race to collect — scarcity drives demand.",
+    icon: Package,
+    gradient: "from-orange-500/10 to-amber-500/10",
+    border: "border-orange-500/20",
+    iconBg: "bg-orange-500/10",
+    iconColor: "text-orange-500",
+    badge: "Building now" as const,
+  },
+  {
+    title: "IP Tickets",
+    description: "Gate real-world events with NFTs. Distribute tickets for concerts, workshops, and experiences — each with built-in proof of attendance on Starknet.",
+    icon: Ticket,
+    gradient: "from-green-500/10 to-emerald-500/10",
+    border: "border-green-500/20",
+    iconBg: "bg-green-500/10",
+    iconColor: "text-green-500",
+    badge: "Building now" as const,
+  },
+  {
+    title: "Membership",
+    description: "Create token-gated access passes. Holders unlock exclusive content, private communities, and creator experiences — your superfans become stakeholders.",
+    icon: Users,
+    gradient: "from-purple-500/10 to-violet-500/10",
+    border: "border-purple-500/20",
+    iconBg: "bg-purple-500/10",
+    iconColor: "text-purple-500",
+    badge: undefined,
+  },
+  {
+    title: "Subscriptions",
+    description: "Generate recurring revenue from your IP. Monthly licensing, creator support tiers, and access passes — all on-chain and auto-renewed without intermediaries.",
+    icon: RefreshCw,
+    gradient: "from-blue-500/10 to-cyan-500/10",
+    border: "border-blue-500/20",
+    iconBg: "bg-blue-500/10",
+    iconColor: "text-blue-500",
+    badge: undefined,
+  },
+  {
+    title: "IP Coins",
+    description: "Tokenize your intellectual property as fungible tokens. Enable fractional ownership and create liquid markets around your creative work.",
+    icon: Coins,
+    gradient: "from-yellow-500/10 to-amber-500/10",
+    border: "border-yellow-500/20",
+    iconBg: "bg-yellow-500/10",
+    iconColor: "text-yellow-600",
+    badge: undefined,
+  },
+  {
+    title: "Creator Coins",
+    description: "Launch your personal social token. Let fans invest directly in your creative career — full economic alignment between creator and community.",
+    icon: TrendingUp,
+    gradient: "from-rose-500/10 to-pink-500/10",
+    border: "border-rose-500/20",
+    iconBg: "bg-rose-500/10",
+    iconColor: "text-rose-500",
+    badge: undefined,
+  },
 ] as const;
 
 export function LaunchpadContent() {
@@ -162,26 +216,76 @@ export function LaunchpadContent() {
         </Stagger>
       </section>
 
-      {/* ── Section 3: Revenue Streams ────────────────────────── */}
-      <section className="px-4 space-y-3">
+      {/* ── Section 2b: Your Collection Page ────────────────── */}
+      <section className="px-4">
+        <FadeIn>
+          <div className="bento-cell p-5 sm:p-8 bg-gradient-to-br from-brand-purple/[0.08] via-brand-blue/[0.05] to-transparent overflow-hidden relative">
+            {/* Decorative background icon */}
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 hidden sm:flex items-center justify-center opacity-[0.06] select-none pointer-events-none">
+              <Layers className="h-48 w-48" />
+            </div>
+            <div className="relative z-10 max-w-lg space-y-4">
+              <div>
+                <p className="section-label">Drop Pages</p>
+                <h2 className="text-xl font-bold mt-0.5">Every collection gets a branded page</h2>
+                <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
+                  Share your work as a standalone creator drop page — fully branded, shareable on social, and accessible to anyone. Customize your name, banner, and links in collection settings.
+                </p>
+              </div>
+              {/* URL bar mockup */}
+              <div className="flex items-center gap-2 bg-muted/60 border border-border/60 rounded-lg px-3 py-2 max-w-sm">
+                <Globe className={`h-3.5 w-3.5 shrink-0 ${BRAND.purple.text}`} />
+                <span className="font-mono text-xs text-muted-foreground">medialane.io/collections/</span>
+                <span className={`font-mono text-xs font-semibold ${BRAND.blue.text} truncate`}>your-collection</span>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="btn-border-animated p-[1px] rounded-xl">
+                  <Link href="/create/collection">
+                    <button className={`h-9 px-4 rounded-[11px] flex items-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] ${BRAND.purple.bgSolid}`}>
+                      Create a collection
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </button>
+                  </Link>
+                </div>
+                <Button variant="ghost" size="sm" asChild className="text-muted-foreground">
+                  <Link href="/collections">
+                    Browse collections <ExternalLink className="h-3 w-3 ml-1" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </FadeIn>
+      </section>
+
+      {/* ── Section 3: Coming Soon ────────────────────────────── */}
+      <section className="px-4 space-y-4">
         <FadeIn>
           <p className="section-label">Coming Soon</p>
-          <h2 className="text-xl font-bold mt-0.5">Unlock New Revenue Streams</h2>
+          <h2 className="text-xl font-bold mt-0.5">What makes Medialane different</h2>
           <p className="text-sm text-muted-foreground mt-1 max-w-lg">
-            Medialane is building the complete financial toolkit for creator capital markets.
+            We are building the complete financial toolkit for creator capital markets — a full suite of services with a 1% commission and no intermediaries.
           </p>
         </FadeIn>
-        <Stagger className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          {COMING_SOON.map(({ title, description, icon: Icon }) => (
+        <Stagger className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {COMING_SOON.map(({ title, description, icon: Icon, gradient, border, iconBg, iconColor, badge }) => (
             <StaggerItem key={title}>
-              <div className="rounded-xl border border-border/40 bg-muted/10 p-4 text-center opacity-70 cursor-default select-none">
-                <Icon className="h-8 w-8 mx-auto text-muted-foreground/50 mb-3" />
-                <p className="font-semibold text-sm">{title}</p>
-                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{description}</p>
-                <div className="flex items-center justify-center gap-1 mt-3">
-                  <Lock className="h-3 w-3 text-muted-foreground/50" />
-                  <span className="text-[10px] text-muted-foreground/70 font-medium uppercase tracking-wide">Coming Soon</span>
+              <div className={`rounded-2xl border ${border} bg-gradient-to-br ${gradient} p-5 flex flex-col gap-3 min-h-[190px] relative overflow-hidden`}>
+                {badge && (
+                  <span className="absolute top-3 right-3 text-[9px] font-bold uppercase tracking-widest text-primary bg-primary/10 border border-primary/20 rounded-full px-2 py-0.5">
+                    {badge}
+                  </span>
+                )}
+                <div className="flex items-center gap-3">
+                  <div className={`h-10 w-10 rounded-xl ${iconBg} flex items-center justify-center shrink-0`}>
+                    <Icon className={`h-5 w-5 ${iconColor}`} />
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <p className="font-bold text-sm">{title}</p>
+                    <Lock className="h-3 w-3 text-muted-foreground/40" />
+                  </div>
                 </div>
+                <p className="text-sm text-muted-foreground leading-relaxed flex-1">{description}</p>
               </div>
             </StaggerItem>
           ))}
