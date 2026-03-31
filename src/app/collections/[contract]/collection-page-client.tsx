@@ -12,7 +12,7 @@ import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddressDisplay } from "@/components/shared/address-display";
-import { ArrowLeft, Loader2, Flag, Inbox } from "lucide-react";
+import { ArrowLeft, Loader2, Flag, Inbox, Lock, Unlock, Play, FileText, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ReportDialog } from "@/components/report-dialog";
 import { TraitFilter } from "@/components/collection/trait-filter";
@@ -21,6 +21,9 @@ import { HiddenContentBanner } from "@/components/hidden-content-banner";
 import Image from "next/image";
 import { ipfsToHttp, formatDisplayPrice, cn } from "@/lib/utils";
 import { computeRarity } from "@/lib/rarity";
+import { useCollectionProfile } from "@/hooks/use-profiles";
+import { useGatedContent } from "@/hooks/use-gated-content";
+import { useAuth } from "@clerk/nextjs";
 import type { ApiToken } from "@medialane/sdk";
 
 const PAGE_SIZE = 24;
@@ -159,6 +162,11 @@ export default function CollectionPageClient() {
   const descRef = useRef<HTMLParagraphElement>(null);
 
   const { collection, isLoading: colLoading } = useCollection(contract);
+  const { profile } = useCollectionProfile(contract);
+  const { isSignedIn } = useAuth();
+  const { content: gatedContent, isHolder, isLoading: gatedLoading } = useGatedContent(
+    profile?.hasGatedContent ? contract : undefined
+  );
   const { orders, isLoading: ordersLoading } = useOrders({
     collection: contract,
     status: "ACTIVE",
@@ -378,6 +386,12 @@ export default function CollectionPageClient() {
               <TabsTrigger value="offers" className="flex-1 sm:flex-none">
                 Offers{!ordersLoading && activeBids.length > 0 && ` (${activeBids.length})`}
               </TabsTrigger>
+              {profile?.hasGatedContent && (
+                <TabsTrigger value="exclusive" className="flex-1 sm:flex-none gap-1.5">
+                  <Lock className="h-3.5 w-3.5" />
+                  Exclusive
+                </TabsTrigger>
+              )}
             </TabsList>
           </div>
 
@@ -419,6 +433,18 @@ export default function CollectionPageClient() {
               </div>
             )}
           </TabsContent>
+
+          {profile?.hasGatedContent && (
+            <TabsContent value="exclusive" className="mt-4">
+              <GatedContentPanel
+                contract={contract}
+                content={gatedContent}
+                isHolder={isHolder}
+                isLoading={gatedLoading}
+                isSignedIn={!!isSignedIn}
+              />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </div>
@@ -463,6 +489,89 @@ function EmptyState({ title, body }: { title: string; body: string }) {
       <Inbox className="h-10 w-10 text-muted-foreground/40" />
       <p className="text-sm font-medium text-muted-foreground">{title}</p>
       <p className="text-xs text-muted-foreground/70 max-w-xs">{body}</p>
+    </div>
+  );
+}
+
+const CONTENT_TYPE_ICONS: Record<string, React.ReactNode> = {
+  VIDEO: <Play className="h-5 w-5" />,
+  AUDIO: <Play className="h-5 w-5" />,
+  STREAM: <Play className="h-5 w-5" />,
+  DOCUMENT: <FileText className="h-5 w-5" />,
+  LINK: <Link2 className="h-5 w-5" />,
+};
+
+function GatedContentPanel({
+  contract: _contract,
+  content,
+  isHolder,
+  isLoading,
+  isSignedIn,
+}: {
+  contract: string;
+  content: { title: string | null; url: string; type: string | null } | null;
+  isHolder: boolean;
+  isLoading: boolean;
+  isSignedIn: boolean;
+}) {
+  if (!isSignedIn) {
+    return (
+      <div className="py-20 flex flex-col items-center gap-3 text-center">
+        <Lock className="h-10 w-10 text-muted-foreground/40" />
+        <p className="text-sm font-medium text-muted-foreground">Sign in to access exclusive content</p>
+        <p className="text-xs text-muted-foreground/70 max-w-xs">
+          This collection has exclusive content available to verified holders.
+        </p>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="py-20 flex flex-col items-center gap-3">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground/40" />
+      </div>
+    );
+  }
+
+  if (!isHolder || !content) {
+    return (
+      <div className="py-20 flex flex-col items-center gap-3 text-center">
+        <Lock className="h-10 w-10 text-muted-foreground/40" />
+        <p className="text-sm font-medium text-muted-foreground">Holders only</p>
+        <p className="text-xs text-muted-foreground/70 max-w-xs">
+          You need to own at least one token from this collection to access exclusive content.
+        </p>
+      </div>
+    );
+  }
+
+  const icon = content.type ? (CONTENT_TYPE_ICONS[content.type] ?? <Link2 className="h-5 w-5" />) : <Link2 className="h-5 w-5" />;
+
+  return (
+    <div className="py-8 flex flex-col items-center gap-6 text-center max-w-sm mx-auto">
+      <div className="h-14 w-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+        <Unlock className="h-7 w-7" />
+      </div>
+      <div>
+        <p className="text-xs font-semibold text-emerald-500 uppercase tracking-widest mb-1">Holder exclusive</p>
+        <h3 className="text-lg font-bold">{content.title ?? "Exclusive Content"}</h3>
+        <p className="text-sm text-muted-foreground mt-1">
+          You&apos;re a verified holder. Click below to access.
+        </p>
+      </div>
+      <a
+        href={content.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-5 py-2.5 rounded-xl transition-colors text-sm"
+      >
+        {icon}
+        {content.type === "VIDEO" || content.type === "STREAM" ? "Watch now"
+          : content.type === "AUDIO" ? "Listen now"
+          : content.type === "DOCUMENT" ? "Open document"
+          : "Access content"}
+      </a>
     </div>
   );
 }
