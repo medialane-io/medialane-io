@@ -372,19 +372,17 @@ export function LaunchpadContent() {
           <FadeIn>
             <span className="pill-badge mb-5 inline-flex">
               <Zap className="h-3 w-3" />
-              Creator Capital Markets
+              Starknet
             </span>
           </FadeIn>
           <FadeIn delay={0.08}>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight mb-3">
-              The Financial Hub for<br />
-              <span className="gradient-text">Creator IP on Starknet</span>
+              <span className="gradient-text">Creator Launchpad</span>
             </h1>
           </FadeIn>
           <FadeIn delay={0.16}>
             <p className="text-muted-foreground text-base max-w-xl leading-relaxed">
-              Mint, structure, and monetize your intellectual property as programmable financial assets.
-              No intermediaries. Full sovereignty.
+              Permissionless smart contracts to create and generate new monetization revenues onchain, with full sovereignty and ownership.
             </p>
           </FadeIn>
           {isSignedIn && walletAddress && (
@@ -398,13 +396,6 @@ export function LaunchpadContent() {
       {/* ── Services ─────────────────────────────────────────────── */}
       <section className="px-4 space-y-5">
 
-        {/* Section header */}
-        <FadeIn>
-          <div className="space-y-1">
-            <p className="section-label">Platform</p>
-            <h2 className="text-xl font-bold">Everything you can build</h2>
-          </div>
-        </FadeIn>
 
         {/* Search + filter toolbar */}
         <FadeIn delay={0.06}>
