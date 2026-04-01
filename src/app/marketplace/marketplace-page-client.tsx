@@ -8,6 +8,7 @@ import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, X, Store, SlidersHorizontal } from "lucide-react";
+import { ActivityTicker } from "@/components/shared/activity-ticker";
 import type { ApiSearchResult } from "@medialane/sdk";
 import { getTokenBySymbol, parseAmount, SUPPORTED_TOKENS } from "@medialane/sdk";
 import { ipfsToHttp, cn } from "@/lib/utils";
@@ -256,6 +257,9 @@ export default function MarketplacePageClient() {
         </p>
         <PlatformStatsBar />
       </div>
+
+      {/* Live activity ticker */}
+      <ActivityTicker limit={12} />
 
       {/* Filter toolbar */}
       <div className="space-y-3 pb-3 border-b border-border/60">
