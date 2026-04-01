@@ -11,7 +11,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Layers, Loader2, BadgeCheck, Eye, SlidersHorizontal } from "lucide-react";
+import { Layers, Loader2, BadgeCheck, Eye, SlidersHorizontal, Award } from "lucide-react";
 import { HelpIcon } from "@/components/ui/help-icon";
 import { cn } from "@/lib/utils";
 import type { ApiCollection } from "@medialane/sdk";
@@ -26,11 +26,17 @@ const SORT_OPTIONS: { label: string; value: CollectionSort }[] = [
   { label: "A → Z",      value: "name"    },
 ];
 
+const SOURCE_TABS = [
+  { label: "All",        value: undefined      },
+  { label: "POP Events", value: "POP_PROTOCOL" },
+] as const;
+
 export default function CollectionsPageClient() {
   const { stats } = usePlatformStats();
   const [sort, setSort]           = useState<CollectionSort>("recent");
   const [verified, setVerified]   = useState(false);
   const [hideEmpty, setHideEmpty] = useState(true);
+  const [source, setSource]       = useState<string | undefined>(undefined);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [page, setPage]           = useState(1);
   const [allCollections, setAllCollections] = useState<ApiCollection[]>([]);
@@ -40,19 +46,20 @@ export default function CollectionsPageClient() {
     PAGE_SIZE,
     verified ? true : undefined,
     sort,
-    hideEmpty
+    source === "POP_PROTOCOL" ? false : hideEmpty,
+    source
   );
 
   // Reset accumulated list whenever filters change
-  const prevFilters = useRef({ sort, verified, hideEmpty });
+  const prevFilters = useRef({ sort, verified, hideEmpty, source });
   useEffect(() => {
     const f = prevFilters.current;
-    if (f.sort !== sort || f.verified !== verified || f.hideEmpty !== hideEmpty) {
-      prevFilters.current = { sort, verified, hideEmpty };
+    if (f.sort !== sort || f.verified !== verified || f.hideEmpty !== hideEmpty || f.source !== source) {
+      prevFilters.current = { sort, verified, hideEmpty, source };
       setPage(1);
       setAllCollections([]);
     }
-  }, [sort, verified, hideEmpty]);
+  }, [sort, verified, hideEmpty, source]);
 
   // Append new page to accumulated list
   useEffect(() => {
@@ -73,6 +80,10 @@ export default function CollectionsPageClient() {
     setSort("recent");
     setVerified(false);
     setHideEmpty(true);
+  };
+
+  const handleSourceChange = (val: string | undefined) => {
+    setSource(val);
   };
 
   return (
@@ -108,7 +119,28 @@ export default function CollectionsPageClient() {
       </div>
 
       {/* Toolbar */}
-      <div className="flex items-center gap-2 pb-3 border-b border-border/60">
+      <div className="flex items-center gap-2 pb-3 border-b border-border/60 flex-wrap">
+        {/* Source tabs */}
+        <div className="flex items-center gap-1 bg-muted/40 rounded-lg p-0.5">
+          {SOURCE_TABS.map(({ label, value }) => (
+            <button
+              key={label}
+              onClick={() => handleSourceChange(value)}
+              className={cn(
+                "flex items-center gap-1 text-xs px-3 py-1.5 rounded-md font-medium transition-colors",
+                source === value
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {value === "POP_PROTOCOL" && <Award className="h-3 w-3" />}
+              {label}
+            </button>
+          ))}
+        </div>
+
+        <div className="w-px h-5 bg-border/60 mx-1" />
+
         <button
           onClick={() => setFiltersOpen(true)}
           className={cn(

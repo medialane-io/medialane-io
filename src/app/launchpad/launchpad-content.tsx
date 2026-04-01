@@ -14,7 +14,7 @@ import { BRAND } from "@/lib/brand";
 import {
   Zap, ImagePlus, Layers, ArrowRight,
   Package, Tag, ShoppingCart, Star, Rocket,
-  GitBranch, Users, RefreshCw, Ticket, Coins, TrendingUp, Lock, Globe, ExternalLink,
+  GitBranch, Users, RefreshCw, Ticket, Coins, TrendingUp, Lock, Globe, ExternalLink, Award,
 } from "lucide-react";
 
 function HeroStats({ address }: { address: string }) {
@@ -77,6 +77,17 @@ const ACTIVE_TOOLS = [
     iconColor: BRAND.rose.text,
     buttonColor: "bg-brand-rose",
     badge: "~3 min",
+  },
+  {
+    title: "Proof of Participation",
+    description: "Claim your soulbound on-chain credential for events, bootcamps, and workshops on Starknet.",
+    icon: Award,
+    href: "/launchpad/pop",
+    gradient: "from-green-500/10 to-emerald-500/10",
+    iconBg: "bg-green-500/10",
+    iconColor: "text-green-500",
+    buttonColor: "bg-green-600",
+    badge: "Live",
   },
 ] as const;
 

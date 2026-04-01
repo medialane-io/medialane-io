@@ -12,11 +12,10 @@ export function useCollections(
   limit = 20,
   isKnown?: boolean,
   sort: CollectionSort = "recent",
-  hideEmpty = true
+  hideEmpty = true,
+  source?: string
 ) {
-  // Build the URL directly so we can pass the `sort` param without
-  // requiring a new SDK version to be published.
-  const key = `collections-${page}-${limit}-${isKnown}-${sort}-${hideEmpty}`;
+  const key = `collections-${page}-${limit}-${isKnown}-${sort}-${hideEmpty}-${source ?? ""}`;
 
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<ApiCollection[]>>(
     key,
@@ -28,6 +27,7 @@ export function useCollections(
       });
       if (isKnown !== undefined) params.set("isKnown", String(isKnown));
       if (hideEmpty) params.set("hideEmpty", "true");
+      if (source) params.set("source", source);
       const url = `${MEDIALANE_BACKEND_URL.replace(/\/$/, "")}/v1/collections?${params}`;
       const headers: Record<string, string> = { "Content-Type": "application/json" };
       if (MEDIALANE_API_KEY) headers["x-api-key"] = MEDIALANE_API_KEY;
