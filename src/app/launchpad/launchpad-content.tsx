@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useMemo } from "react";
+import { motion } from "framer-motion";
 import { useUser } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useUserOrders } from "@/hooks/use-orders";
-import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion-primitives";
+import { FadeIn } from "@/components/ui/motion-primitives";
 import { BRAND } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 import {
@@ -76,7 +77,7 @@ const SERVICES: ServiceDef[] = [
     icon: ImagePlus,
     href: "/create/asset",
     buttonLabel: "Mint asset",
-    gradient: "from-blue-500/20 via-sky-400/8 to-transparent",
+    gradient: "from-blue-500/10 via-sky-400/4 to-transparent",
     borderColor: "border-blue-500/20",
     iconColor: "text-blue-500",
     buttonColor: "bg-brand-blue hover:bg-brand-blue/90",
@@ -92,7 +93,7 @@ const SERVICES: ServiceDef[] = [
     icon: Layers,
     href: "/create/collection",
     buttonLabel: "Create collection",
-    gradient: "from-violet-500/20 via-purple-400/8 to-transparent",
+    gradient: "from-violet-500/10 via-purple-400/4 to-transparent",
     borderColor: "border-violet-500/20",
     iconColor: "text-violet-500",
     buttonColor: "bg-brand-purple hover:bg-brand-purple/90",
@@ -108,7 +109,7 @@ const SERVICES: ServiceDef[] = [
     icon: GitBranch,
     href: "/marketplace",
     buttonLabel: "Browse to remix",
-    gradient: "from-rose-500/20 via-pink-400/8 to-transparent",
+    gradient: "from-rose-500/10 via-pink-400/4 to-transparent",
     borderColor: "border-rose-500/20",
     iconColor: "text-rose-500",
     buttonColor: "bg-brand-rose hover:bg-brand-rose/90",
@@ -126,7 +127,7 @@ const SERVICES: ServiceDef[] = [
     icon: Award,
     href: "/launchpad/pop",
     buttonLabel: "View POP events",
-    gradient: "from-emerald-500/20 via-green-400/8 to-transparent",
+    gradient: "from-emerald-500/10 via-green-400/4 to-transparent",
     borderColor: "border-emerald-500/20",
     iconColor: "text-emerald-500",
     buttonColor: "bg-green-600 hover:bg-green-700",
@@ -142,7 +143,7 @@ const SERVICES: ServiceDef[] = [
     icon: Package,
     href: "/launchpad/drop",
     buttonLabel: "View drops",
-    gradient: "from-orange-500/20 via-amber-400/8 to-transparent",
+    gradient: "from-orange-500/10 via-amber-400/4 to-transparent",
     borderColor: "border-orange-500/20",
     iconColor: "text-orange-500",
     buttonColor: "bg-orange-600 hover:bg-orange-700",
@@ -156,7 +157,7 @@ const SERVICES: ServiceDef[] = [
     description: "Distribute tickets for concerts, workshops, and events. Each ticket is verifiable on-chain proof of attendance.",
     features: ["NFT-based event gating", "Proof of attendance", "Transferable or soulbound"],
     icon: Ticket,
-    gradient: "from-teal-500/12 via-cyan-400/5 to-transparent",
+    gradient: "from-teal-500/7 via-cyan-400/3 to-transparent",
     borderColor: "border-teal-500/15",
     iconColor: "text-teal-500",
     badge: "Building",
@@ -169,7 +170,7 @@ const SERVICES: ServiceDef[] = [
     description: "Create tiered membership passes that unlock exclusive content, private communities, and experiences for your most loyal fans.",
     features: ["Token-gated content", "Tiered access levels", "Community alignment"],
     icon: Users,
-    gradient: "from-indigo-500/10 via-violet-400/4 to-transparent",
+    gradient: "from-indigo-500/6 via-violet-400/2 to-transparent",
     borderColor: "border-indigo-500/10",
     iconColor: "text-indigo-400",
     badge: "Soon",
@@ -184,7 +185,7 @@ const SERVICES: ServiceDef[] = [
     description: "Monthly licensing, creator support tiers, and access passes — all auto-renewed without intermediaries.",
     features: ["Recurring revenue", "Auto-renewal protocol", "No middlemen"],
     icon: RefreshCw,
-    gradient: "from-sky-500/10 via-blue-400/4 to-transparent",
+    gradient: "from-sky-500/6 via-blue-400/2 to-transparent",
     borderColor: "border-sky-500/10",
     iconColor: "text-sky-400",
     badge: "Soon",
@@ -197,7 +198,7 @@ const SERVICES: ServiceDef[] = [
     description: "Tokenize your IP catalog as fungible tokens. Enable fractional ownership and liquid markets around your creative work.",
     features: ["Fungible IP tokens", "Fractional ownership", "Liquid secondary markets"],
     icon: Coins,
-    gradient: "from-amber-500/10 via-yellow-400/4 to-transparent",
+    gradient: "from-amber-500/6 via-yellow-400/2 to-transparent",
     borderColor: "border-amber-500/10",
     iconColor: "text-amber-400",
     badge: "Soon",
@@ -210,7 +211,7 @@ const SERVICES: ServiceDef[] = [
     description: "Launch a social token tied to your creative career. Let fans invest directly in your work — full economic alignment between creator and community.",
     features: ["Personal social token", "Fan investment", "Creator-community alignment"],
     icon: TrendingUp,
-    gradient: "from-pink-500/10 via-rose-400/4 to-transparent",
+    gradient: "from-pink-500/6 via-rose-400/2 to-transparent",
     borderColor: "border-pink-500/10",
     iconColor: "text-pink-400",
     badge: "Soon",
@@ -444,23 +445,25 @@ export function LaunchpadContent() {
 
         {/* Grid */}
         {filtered.length === 0 ? (
-          <FadeIn>
-            <div className="rounded-2xl border border-dashed border-border/40 p-16 text-center space-y-3">
-              <Search className="h-7 w-7 text-muted-foreground/20 mx-auto" />
-              <p className="text-sm text-muted-foreground">No services match your search.</p>
-              <Button variant="ghost" size="sm" onClick={() => { setSearch(""); setFilter("all"); }}>
-                Clear
-              </Button>
-            </div>
-          </FadeIn>
+          <div className="rounded-2xl border border-dashed border-border/40 p-16 text-center space-y-3">
+            <Search className="h-7 w-7 text-muted-foreground/20 mx-auto" />
+            <p className="text-sm text-muted-foreground">No services match your search.</p>
+            <Button variant="ghost" size="sm" onClick={() => { setSearch(""); setFilter("all"); }}>
+              Clear
+            </Button>
+          </div>
         ) : (
-          <Stagger className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <motion.div
+            key={filter + "|" + search}
+            className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+          >
             {filtered.map((s) => (
-              <StaggerItem key={s.title}>
-                <ServiceCard s={s} />
-              </StaggerItem>
+              <ServiceCard key={s.title} s={s} />
             ))}
-          </Stagger>
+          </motion.div>
         )}
 
       </section>
