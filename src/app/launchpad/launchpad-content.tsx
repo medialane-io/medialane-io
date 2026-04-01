@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useState, useMemo } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useUserOrders } from "@/hooks/use-orders";
@@ -14,10 +16,10 @@ import {
   Zap, ImagePlus, Layers, ArrowRight,
   Package, Tag, ShoppingCart,
   GitBranch, Users, RefreshCw, Ticket, Coins, TrendingUp,
-  Lock, Globe, ExternalLink, Award, CheckCircle2,
+  Lock, Globe, ExternalLink, Award, CheckCircle2, Search, X,
 } from "lucide-react";
 
-// ── Hero stats pill row ─────────────────────────────────────────────────────
+// ── Hero stats ──────────────────────────────────────────────────────────────
 function HeroStats({ address }: { address: string }) {
   const { tokens, isLoading: tl } = useTokensByOwner(address);
   const { orders, isLoading: ol } = useUserOrders(address);
@@ -33,9 +35,7 @@ function HeroStats({ address }: { address: string }) {
       {pills.map(({ label, value, icon: Icon, color }) => (
         <div key={label} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/40 text-sm">
           <Icon className={`h-3.5 w-3.5 ${color}`} />
-          {value === null
-            ? <Skeleton className="h-4 w-6 inline-block" />
-            : <span className="font-bold">{value}</span>}
+          {value === null ? <Skeleton className="h-4 w-6 inline-block" /> : <span className="font-bold">{value}</span>}
           <span className="text-muted-foreground">{label}</span>
         </div>
       ))}
@@ -43,10 +43,8 @@ function HeroStats({ address }: { address: string }) {
   );
 }
 
-// ── Service data ────────────────────────────────────────────────────────────
-
+// ── Service definitions ─────────────────────────────────────────────────────
 type ServiceStatus = "live" | "building" | "soon";
-type ColSpan = "normal" | "wide";
 
 interface ServiceDef {
   title: string;
@@ -59,172 +57,168 @@ interface ServiceDef {
   gradient: string;
   iconBg: string;
   iconColor: string;
+  accentBg: string;
   buttonColor?: string;
   badge: string;
   status: ServiceStatus;
-  colSpan: ColSpan;
+  category: "tool" | "service" | "roadmap";
 }
 
 const SERVICES: ServiceDef[] = [
-  // ── Live tools (row 1: [1][1][2]) ──────────────────────────────────────
   {
     title: "Mint IP Asset",
-    subtitle: "Register creative work on Starknet",
-    description: "Turn any creative file into a programmable IP NFT. Gasless, permanent, and immediately tradeable.",
-    features: ["Gasless transaction via ChipiPay", "IPFS metadata anchored on-chain", "Programmable licensing built-in"],
+    subtitle: "Creative tool · ~1 min",
+    description: "Turn any creative file into a programmable IP NFT. Gasless, permanent, and immediately tradeable on Starknet.",
+    features: ["Gasless transaction via ChipiPay", "IPFS-anchored metadata", "Programmable licensing built-in"],
     icon: ImagePlus,
     href: "/create/asset",
     buttonLabel: "Mint asset",
-    gradient: "from-blue-500/10 to-cyan-500/10",
+    gradient: "from-blue-500/[0.07] to-cyan-500/[0.04]",
     iconBg: "bg-blue-500/10",
     iconColor: "text-blue-500",
+    accentBg: "bg-blue-500",
     buttonColor: "bg-brand-blue",
-    badge: "~1 min",
+    badge: "Live",
     status: "live",
-    colSpan: "normal",
+    category: "tool",
   },
   {
     title: "Create Collection",
-    subtitle: "Deploy a named ERC-721 catalog",
-    description: "Group your IP assets into a branded collection with its own page, metadata, and on-chain identity.",
-    features: ["Factory-deployed ERC-721", "Collection page on medialane.io", "Add assets at any time"],
+    subtitle: "Creative tool · ~2 min",
+    description: "Deploy a named ERC-721 collection with its own branded page, metadata, and on-chain identity on Starknet.",
+    features: ["Factory-deployed ERC-721", "Branded collection page", "Add assets at any time"],
     icon: Layers,
     href: "/create/collection",
     buttonLabel: "Create collection",
-    gradient: "from-purple-500/10 to-violet-500/10",
+    gradient: "from-purple-500/[0.07] to-violet-500/[0.04]",
     iconBg: "bg-purple-500/10",
     iconColor: "text-purple-500",
+    accentBg: "bg-purple-500",
     buttonColor: "bg-brand-purple",
-    badge: "~2 min",
+    badge: "Live",
     status: "live",
-    colSpan: "normal",
+    category: "tool",
   },
   {
     title: "Remix an Asset",
-    subtitle: "Derivative works with on-chain attribution",
+    subtitle: "Creative tool · ~3 min",
     description: "Create a licensed derivative of any IP asset with full on-chain provenance and attribution to the original creator.",
     features: ["On-chain attribution chain", "License terms enforced at mint", "Royalties flow to original creator"],
     icon: GitBranch,
     href: "/marketplace",
     buttonLabel: "Browse to remix",
-    gradient: "from-rose-500/10 to-pink-500/10",
+    gradient: "from-rose-500/[0.07] to-pink-500/[0.04]",
     iconBg: "bg-rose-500/10",
     iconColor: "text-rose-500",
+    accentBg: "bg-rose-500",
     buttonColor: "bg-brand-rose",
-    badge: "~3 min",
+    badge: "Live",
     status: "live",
-    colSpan: "wide",
+    category: "tool",
   },
-
-  // ── Live services (row 2: [2][2]) ───────────────────────────────────────
   {
-    title: "Proof of Participation",
-    subtitle: "Soulbound credentials for events & education",
-    description: "Issue non-transferable on-chain credentials for bootcamps, workshops, hackathons, and conferences. Each attendee claims one soulbound badge — permanently tied to their wallet.",
-    features: [
-      "Soulbound · non-transferable ERC-721",
-      "One credential per wallet address",
-      "Claim window with optional allowlist",
-      "Organizer-deployed via POP Factory",
-    ],
+    title: "POP Protocol",
+    subtitle: "Service · Soulbound credentials",
+    description: "Issue non-transferable on-chain credentials for bootcamps, workshops, hackathons, and conferences. Each attendee claims one soulbound badge — permanently tied to their wallet, forever provable.",
+    features: ["Soulbound · non-transferable ERC-721", "One credential per wallet address", "Claim window with optional allowlist"],
     icon: Award,
     href: "/launchpad/pop",
-    buttonLabel: "View events",
-    gradient: "from-green-500/10 to-emerald-500/10",
+    buttonLabel: "View POP events",
+    gradient: "from-green-500/[0.07] to-emerald-500/[0.04]",
     iconBg: "bg-green-500/10",
     iconColor: "text-green-500",
+    accentBg: "bg-green-500",
     buttonColor: "bg-green-600",
     badge: "Live",
     status: "live",
-    colSpan: "wide",
+    category: "service",
   },
   {
     title: "Collection Drop",
-    subtitle: "Limited edition timed releases with a supply cap",
-    description: "Launch a fixed-supply ERC-721 drop with a defined mint window and per-wallet limit. Set your open date, let your community race to collect before supply runs out.",
-    features: [
-      "Fixed supply cap you control",
-      "Timed mint window (open → close)",
-      "Per-wallet mint limit",
-      "Free or paid mint with any ERC-20",
-    ],
+    subtitle: "Service · Limited edition releases",
+    description: "Launch a fixed-supply ERC-721 drop with a defined mint window and per-wallet limit. Set your open date and let your community race to collect before supply runs out.",
+    features: ["Fixed supply cap you control", "Timed mint window open → close", "Free or paid mint with any ERC-20"],
     icon: Package,
     href: "/launchpad/drop",
     buttonLabel: "View drops",
-    gradient: "from-orange-500/10 to-amber-500/10",
+    gradient: "from-orange-500/[0.07] to-amber-500/[0.04]",
     iconBg: "bg-orange-500/10",
     iconColor: "text-orange-500",
+    accentBg: "bg-orange-500",
     buttonColor: "bg-orange-600",
     badge: "Live",
     status: "live",
-    colSpan: "wide",
+    category: "service",
   },
-
-  // ── Coming soon (row 3+: [2][1][1], [2][2]) ────────────────────────────
   {
     title: "IP Tickets",
-    subtitle: "Gate real-world experiences with NFTs",
-    description: "Distribute tickets for concerts, workshops, and events. Each ticket doubles as verifiable on-chain proof of attendance.",
-    features: ["Event access gating", "Proof-of-attendance built-in", "Transferable or soulbound"],
+    subtitle: "Roadmap · Event gating",
+    description: "Distribute tickets for concerts, workshops, and real-world events. Each ticket doubles as verifiable on-chain proof of attendance.",
+    features: ["NFT-based event access gating", "Proof-of-attendance on-chain", "Transferable or soulbound options"],
     icon: Ticket,
-    gradient: "from-emerald-500/10 to-teal-500/10",
+    gradient: "from-emerald-500/[0.05] to-teal-500/[0.03]",
     iconBg: "bg-emerald-500/10",
     iconColor: "text-emerald-500",
+    accentBg: "bg-emerald-500",
     badge: "Building now",
     status: "building",
-    colSpan: "wide",
+    category: "roadmap",
   },
   {
     title: "Membership",
-    subtitle: "Token-gated access passes for your community",
-    description: "Create tiered membership passes that unlock exclusive content, private communities, and creator experiences.",
-    features: ["Token-gated content", "Tiered access levels", "Superfan alignment"],
+    subtitle: "Roadmap · Access passes",
+    description: "Create tiered membership passes that unlock exclusive content, private communities, and creator experiences for your most loyal fans.",
+    features: ["Token-gated content access", "Tiered membership levels", "Community-aligned incentives"],
     icon: Users,
-    gradient: "from-violet-500/10 to-purple-500/10",
+    gradient: "from-violet-500/[0.05] to-purple-500/[0.03]",
     iconBg: "bg-violet-500/10",
     iconColor: "text-violet-500",
+    accentBg: "bg-violet-500",
     badge: "Soon",
     status: "soon",
-    colSpan: "normal",
+    category: "roadmap",
   },
   {
     title: "Subscriptions",
-    subtitle: "Recurring revenue from your IP on-chain",
-    description: "Monthly licensing, creator support tiers, and access passes — all auto-renewed without intermediaries.",
+    subtitle: "Roadmap · Recurring revenue",
+    description: "Generate recurring revenue from your IP. Monthly licensing, creator support tiers, and access passes — all on-chain and auto-renewed without intermediaries.",
     features: ["Recurring on-chain revenue", "Auto-renewal protocol", "No platform fee middlemen"],
     icon: RefreshCw,
-    gradient: "from-sky-500/10 to-blue-500/10",
+    gradient: "from-sky-500/[0.05] to-blue-500/[0.03]",
     iconBg: "bg-sky-500/10",
     iconColor: "text-sky-500",
+    accentBg: "bg-sky-500",
     badge: "Soon",
     status: "soon",
-    colSpan: "normal",
+    category: "roadmap",
   },
   {
     title: "IP Coins",
-    subtitle: "Fractional ownership of intellectual property",
-    description: "Tokenize your IP catalog as fungible tokens. Enable fractional ownership and create liquid markets around creative work.",
+    subtitle: "Roadmap · Fractional ownership",
+    description: "Tokenize your IP catalog as fungible tokens. Enable fractional ownership and create liquid markets around your creative work.",
     features: ["Fungible IP tokens (ERC-20)", "Fractional ownership model", "Liquid secondary markets"],
     icon: Coins,
-    gradient: "from-amber-500/10 to-yellow-500/10",
+    gradient: "from-amber-500/[0.05] to-yellow-500/[0.03]",
     iconBg: "bg-amber-500/10",
     iconColor: "text-amber-500",
+    accentBg: "bg-amber-500",
     badge: "Soon",
     status: "soon",
-    colSpan: "wide",
+    category: "roadmap",
   },
   {
     title: "Creator Coins",
-    subtitle: "Your personal social token for fans",
-    description: "Launch a social token tied to your creative career. Let fans invest directly in your work — full economic alignment between creator and community.",
+    subtitle: "Roadmap · Social tokens",
+    description: "Launch a personal social token tied to your creative career. Let fans invest directly in your work — full economic alignment between creator and community.",
     features: ["Personal social token", "Fan investment mechanics", "Creator-community alignment"],
     icon: TrendingUp,
-    gradient: "from-rose-500/10 to-pink-500/10",
+    gradient: "from-rose-500/[0.05] to-pink-500/[0.03]",
     iconBg: "bg-rose-500/10",
     iconColor: "text-rose-500",
+    accentBg: "bg-rose-500",
     badge: "Soon",
     status: "soon",
-    colSpan: "wide",
+    category: "roadmap",
   },
 ];
 
@@ -234,64 +228,72 @@ function ServiceCard({ s }: { s: ServiceDef }) {
   const building = s.status === "building";
 
   return (
-    <div
-      className={cn(
-        "bento-cell flex flex-col relative overflow-hidden",
-        s.colSpan === "wide" ? "sm:col-span-2 lg:col-span-2" : "",
-        `bg-gradient-to-br ${s.gradient}`,
-        !live && "opacity-80"
-      )}
-    >
-      {/* Top row */}
-      <div className="flex items-start justify-between p-5 pb-0">
-        <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center shrink-0", s.iconBg)}>
-          <s.icon className={cn("h-5 w-5", s.iconColor)} />
-        </div>
-        <span className={cn(
-          "text-[9px] font-bold uppercase tracking-widest rounded-full px-2.5 py-0.5 border",
-          live
-            ? s.badge === "Live"
-              ? "text-green-600 bg-green-500/10 border-green-500/20 dark:text-green-400"
-              : "text-muted-foreground bg-background/60 border-border/50"
-            : building
-              ? "text-primary bg-primary/10 border-primary/20"
-              : "text-muted-foreground/60 bg-muted/40 border-border/30"
-        )}>
-          {!live && <Lock className="inline h-2.5 w-2.5 mr-0.5 -mt-px" />}
-          {s.badge}
-        </span>
-      </div>
+    <div className={cn(
+      "bento-cell flex flex-col overflow-hidden transition-shadow duration-200",
+      live && "hover:shadow-md",
+      `bg-gradient-to-br ${s.gradient}`
+    )}>
+      {/* Colored top accent */}
+      <div className={cn("h-[3px] w-full shrink-0", live || building ? s.accentBg : "bg-border/40")} />
 
-      {/* Content */}
-      <div className="flex flex-col flex-1 p-5 pt-3 gap-3">
-        <div>
-          <p className="font-bold text-base leading-snug">{s.title}</p>
-          <p className={cn("text-xs mt-0.5", live ? "text-muted-foreground" : "text-muted-foreground/60")}>
-            {s.subtitle}
-          </p>
-          <p className={cn("text-sm mt-2 leading-relaxed", live ? "text-muted-foreground" : "text-muted-foreground/50")}>
-            {s.description}
-          </p>
+      <div className="flex flex-col flex-1 p-6 gap-5">
+
+        {/* Icon + badge row */}
+        <div className="flex items-start justify-between">
+          <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center shrink-0", s.iconBg)}>
+            <s.icon className={cn("h-6 w-6", live || building ? s.iconColor : "text-muted-foreground/40")} />
+          </div>
+          <span className={cn(
+            "text-[10px] font-bold uppercase tracking-widest rounded-full px-2.5 py-1 border flex items-center gap-1",
+            live && s.badge === "Live"
+              ? "text-green-600 dark:text-green-400 bg-green-500/10 border-green-500/20"
+              : building
+                ? "text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20"
+                : "text-muted-foreground/50 bg-muted/40 border-border/30"
+          )}>
+            {!live && !building && <Lock className="h-2.5 w-2.5" />}
+            {live && s.badge === "Live" && (
+              <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+            )}
+            {s.badge}
+          </span>
         </div>
+
+        {/* Title block */}
+        <div>
+          <p className={cn("text-lg font-bold leading-snug", !live && !building && "text-muted-foreground/60")}>
+            {s.title}
+          </p>
+          <p className="text-xs text-muted-foreground/60 mt-0.5 font-medium">{s.subtitle}</p>
+        </div>
+
+        {/* Divider */}
+        <div className="border-t border-border/40" />
+
+        {/* Description */}
+        <p className={cn("text-sm leading-relaxed", live || building ? "text-muted-foreground" : "text-muted-foreground/40")}>
+          {s.description}
+        </p>
 
         {/* Features */}
-        <ul className="space-y-1 flex-1">
+        <ul className="space-y-2 flex-1">
           {s.features.map((f) => (
-            <li key={f} className={cn("flex items-start gap-2 text-xs", live ? "text-muted-foreground" : "text-muted-foreground/40")}>
-              {live
-                ? <CheckCircle2 className={cn("h-3.5 w-3.5 mt-px shrink-0", s.iconColor)} />
-                : <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-muted-foreground/20 shrink-0" />}
-              {f}
+            <li key={f} className={cn("flex items-center gap-2.5 text-sm", live || building ? "" : "text-muted-foreground/30")}>
+              {live || building
+                ? <CheckCircle2 className={cn("h-4 w-4 shrink-0", live ? s.iconColor : "text-amber-500/60")} />
+                : <span className="h-1.5 w-1.5 rounded-full bg-border shrink-0 ml-[3px]" />
+              }
+              <span className={live || building ? "" : "text-muted-foreground/40"}>{f}</span>
             </li>
           ))}
         </ul>
 
         {/* CTA */}
         {live ? (
-          <div className="btn-border-animated p-[1px] rounded-xl mt-1">
+          <div className="btn-border-animated p-[1px] rounded-xl">
             <Link href={s.href!}>
               <button className={cn(
-                "w-full h-9 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98]",
+                "w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98]",
                 s.buttonColor
               )}>
                 {s.buttonLabel}
@@ -302,14 +304,34 @@ function ServiceCard({ s }: { s: ServiceDef }) {
         ) : (
           <button
             disabled
-            className="mt-1 w-full h-9 rounded-xl flex items-center justify-center gap-2 text-sm font-semibold text-muted-foreground/40 bg-muted/40 border border-border/30 cursor-not-allowed"
+            className="w-full h-10 rounded-xl flex items-center justify-center gap-2 text-sm font-medium text-muted-foreground/40 bg-muted/30 border border-border/20 cursor-not-allowed"
           >
             <Lock className="h-3.5 w-3.5" />
-            Coming soon
+            {building ? "In development" : "Coming soon"}
           </button>
         )}
       </div>
     </div>
+  );
+}
+
+// ── Filter button ───────────────────────────────────────────────────────────
+function FilterChip({
+  active, onClick, children,
+}: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all border",
+        active
+          ? "bg-foreground text-background border-foreground"
+          : "bg-muted/30 text-muted-foreground border-border/50 hover:border-border hover:text-foreground"
+      )}
+    >
+      {children}
+    </button>
   );
 }
 
@@ -318,10 +340,33 @@ export function LaunchpadContent() {
   const { isSignedIn } = useUser();
   const { walletAddress } = useSessionKey();
 
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<"all" | "live" | "roadmap">("all");
+
+  const filtered = useMemo(() => SERVICES.filter((s) => {
+    const q = search.toLowerCase();
+    const matchesSearch = !q
+      || s.title.toLowerCase().includes(q)
+      || s.subtitle.toLowerCase().includes(q)
+      || s.description.toLowerCase().includes(q)
+      || s.features.some((f) => f.toLowerCase().includes(q));
+    const matchesFilter =
+      filter === "all"
+      || (filter === "live" && s.status === "live")
+      || (filter === "roadmap" && (s.status === "building" || s.status === "soon"));
+    return matchesSearch && matchesFilter;
+  }), [search, filter]);
+
+  const counts = useMemo(() => ({
+    all: SERVICES.length,
+    live: SERVICES.filter((s) => s.status === "live").length,
+    roadmap: SERVICES.filter((s) => s.status !== "live").length,
+  }), []);
+
   return (
     <div className="pb-16 space-y-10">
 
-      {/* ── Hero ────────────────────────────────────────────────── */}
+      {/* ── Hero ─────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden border-b border-border/50">
         <div className="px-4 py-14 sm:py-20">
           <FadeIn>
@@ -350,25 +395,88 @@ export function LaunchpadContent() {
         </div>
       </section>
 
-      {/* ── Services bento grid ─────────────────────────────────── */}
-      <section className="px-4 space-y-4">
+      {/* ── Services ─────────────────────────────────────────────── */}
+      <section className="px-4 space-y-5">
+
+        {/* Section header */}
         <FadeIn>
-          <p className="section-label">Platform</p>
-          <h2 className="text-xl font-bold mt-0.5">Everything you can build</h2>
-          <p className="text-sm text-muted-foreground mt-1 max-w-lg">
-            A complete toolkit for creator capital markets — live now and on the roadmap.
-          </p>
+          <div className="space-y-1">
+            <p className="section-label">Platform</p>
+            <h2 className="text-xl font-bold">Everything you can build</h2>
+          </div>
         </FadeIn>
-        <Stagger className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {SERVICES.map((s) => (
-            <StaggerItem key={s.title}>
-              <ServiceCard s={s} />
-            </StaggerItem>
-          ))}
-        </Stagger>
+
+        {/* Search + filter toolbar */}
+        <FadeIn delay={0.06}>
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* Search */}
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <Input
+                placeholder="Search services…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9 pr-9 h-9 bg-muted/30 border-border/50 focus:border-border"
+              />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Filter chips */}
+            <div className="flex items-center gap-2">
+              <FilterChip active={filter === "all"} onClick={() => setFilter("all")}>
+                All <span className="ml-1 text-xs opacity-60">{counts.all}</span>
+              </FilterChip>
+              <FilterChip active={filter === "live"} onClick={() => setFilter("live")}>
+                <span className="flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                  Live <span className="text-xs opacity-60">{counts.live}</span>
+                </span>
+              </FilterChip>
+              <FilterChip active={filter === "roadmap"} onClick={() => setFilter("roadmap")}>
+                Roadmap <span className="ml-1 text-xs opacity-60">{counts.roadmap}</span>
+              </FilterChip>
+            </div>
+          </div>
+        </FadeIn>
+
+        {/* Grid */}
+        {filtered.length === 0 ? (
+          <FadeIn>
+            <div className="bento-cell border-dashed p-16 text-center space-y-3">
+              <Search className="h-8 w-8 text-muted-foreground/20 mx-auto" />
+              <p className="text-sm text-muted-foreground">No services match your search.</p>
+              <Button variant="ghost" size="sm" onClick={() => { setSearch(""); setFilter("all"); }}>
+                Clear filters
+              </Button>
+            </div>
+          </FadeIn>
+        ) : (
+          <Stagger className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            {filtered.map((s) => (
+              <StaggerItem key={s.title}>
+                <ServiceCard s={s} />
+              </StaggerItem>
+            ))}
+          </Stagger>
+        )}
+
+        {/* Result count (when filtered) */}
+        {(search || filter !== "all") && filtered.length > 0 && (
+          <p className="text-xs text-muted-foreground text-right">
+            {filtered.length} of {SERVICES.length} services
+          </p>
+        )}
       </section>
 
-      {/* ── Drop Pages promo ────────────────────────────────────── */}
+      {/* ── Drop Pages promo ──────────────────────────────────────── */}
       <section className="px-4">
         <FadeIn>
           <div className="bento-cell p-5 sm:p-8 bg-gradient-to-br from-brand-purple/[0.08] via-brand-blue/[0.05] to-transparent overflow-hidden relative">
@@ -408,7 +516,7 @@ export function LaunchpadContent() {
         </FadeIn>
       </section>
 
-      {/* ── Portfolio shortcut (signed-in only) ─────────────────── */}
+      {/* ── Portfolio shortcut ────────────────────────────────────── */}
       {isSignedIn && (
         <section className="px-4">
           <FadeIn>

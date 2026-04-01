@@ -106,13 +106,13 @@ export function PopContent() {
           <FadeIn>
             <span className="pill-badge mb-5 inline-flex">
               <Award className="h-3 w-3" />
-              Proof of Participation
+              POP Protocol
             </span>
           </FadeIn>
           <FadeIn delay={0.08}>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight mb-3">
               Claim Your On-Chain<br />
-              <span className="gradient-text">Event Credentials</span>
+              <span className="gradient-text">POP Credential</span>
             </h1>
           </FadeIn>
           <FadeIn delay={0.16}>
