@@ -6,13 +6,7 @@ import { useAuth } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { CheckCircle2, AlertCircle, ExternalLink, ShoppingCart, RefreshCw, ArrowLeft, Sparkles, Zap } from "lucide-react";
 import { fireConfetti } from "@/lib/confetti";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PinInput, validatePin } from "@/components/ui/pin-input";
@@ -35,76 +29,44 @@ interface PurchaseDialogProps {
   onSuccess?: () => void;
 }
 
-// ── Shared order summary row ──────────────────────────────────────────────────
-function SummaryRow({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex items-center justify-between text-sm">
-      <span className="text-muted-foreground">{label}</span>
-      <span>{children}</span>
-    </div>
-  );
-}
-
-// ── Token hero (image + name shown at top of dialog) ─────────────────────────
+// ── Token hero — full-bleed image + name/price ───────────────────────────────
 function TokenHero({ order }: { order: ApiOrder }) {
   const image = order.token?.image ? ipfsToHttp(order.token.image) : null;
   const name = order.token?.name || `Token #${order.nftTokenId}`;
 
   return (
-    <div className="flex items-center gap-4 pb-4 border-b border-border/50">
-      <div className="relative h-16 w-16 shrink-0 rounded-xl overflow-hidden bg-muted border border-border/60 shadow-md">
+    <div>
+      {/* Full-bleed image */}
+      <div className="relative h-48 w-full bg-muted overflow-hidden">
         {image ? (
           <img src={image} alt={name} className="h-full w-full object-cover" />
         ) : (
-          <div className="h-full w-full bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center text-lg font-bold text-muted-foreground">
+          <div className="h-full w-full bg-gradient-to-br from-primary/20 via-purple-500/10 to-transparent flex items-center justify-center text-4xl font-bold text-muted-foreground/30">
             #{order.nftTokenId}
           </div>
         )}
+        {/* Subtle gradient fade into dialog bg */}
+        <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
       </div>
-      <div className="min-w-0 flex-1">
-        <p className="font-semibold text-base leading-tight truncate">{name}</p>
-        <p className="text-xs text-muted-foreground mt-0.5 font-mono">
-          Token #{order.nftTokenId}
-        </p>
-        <div className="flex items-center gap-1 mt-1.5">
-          <Zap className="h-3 w-3 text-emerald-500" />
-          <span className="text-[11px] font-medium text-emerald-500">Gasless purchase</span>
-        </div>
-      </div>
-      {order.price && (
-        <div className="shrink-0 text-right">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Price</p>
-          <p className="flex items-center gap-1 font-bold text-xl mt-0.5 justify-end">
-            <CurrencyIcon symbol={order.price.currency} size={16} />
-            {formatDisplayPrice(order.price.formatted)}
-          </p>
-          <p className="text-xs text-muted-foreground">{order.price.currency}</p>
-        </div>
-      )}
-    </div>
-  );
-}
 
-// ── Order summary card ────────────────────────────────────────────────────────
-function OrderSummary({ order }: { order: ApiOrder }) {
-  return (
-    <div className="rounded-xl bg-muted/30 border border-border/40 p-4 space-y-2.5">
-      <SummaryRow label="Token">
-        <span className="font-mono text-foreground">#{order.nftTokenId}</span>
-      </SummaryRow>
-      <SummaryRow label="Price">
-        <span className="font-bold inline-flex items-center gap-1 text-foreground">
-          <CurrencyIcon symbol={order.price.currency} size={13} />
-          {formatDisplayPrice(order.price.formatted)} {order.price.currency}
-        </span>
-      </SummaryRow>
-      <div className="border-t border-border/40 pt-2.5">
-        <SummaryRow label="Gas fee">
-          <span className="inline-flex items-center gap-1 text-emerald-500 font-medium">
-            <Zap className="h-3 w-3" />
-            Free (sponsored)
-          </span>
-        </SummaryRow>
+      {/* Name + price row */}
+      <div className="flex items-end justify-between px-6 pt-3 pb-1">
+        <div className="min-w-0">
+          <p className="font-bold text-lg leading-tight truncate">{name}</p>
+          <div className="flex items-center gap-1 mt-1">
+            <Zap className="h-3 w-3 text-emerald-500" />
+            <span className="text-[11px] font-medium text-emerald-500">Gasless · Starknet</span>
+          </div>
+        </div>
+        {order.price && (
+          <div className="shrink-0 text-right ml-4">
+            <p className="flex items-center gap-1.5 font-bold text-2xl justify-end">
+              <CurrencyIcon symbol={order.price.currency} size={18} />
+              {formatDisplayPrice(order.price.formatted)}
+            </p>
+            <p className="text-xs text-muted-foreground">{order.price.currency}</p>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -291,13 +253,10 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
             </div>
 
           ) : step === "pin" ? (
-            <div className="p-6 space-y-4">
-              <DialogHeader className="pb-0">
-                <DialogTitle>Confirm purchase</DialogTitle>
-                <DialogDescription>Enter your PIN to complete this transaction.</DialogDescription>
-              </DialogHeader>
+            <div className="space-y-4">
               <TokenHero order={order} />
-              <OrderSummary order={order} />
+              <div className="px-6 space-y-4">
+              <p className="text-sm text-muted-foreground">Enter your PIN to confirm this purchase.</p>
               <PinInput
                 value={pin}
                 onChange={(v) => { setPin(v); setPinError(null); }}
@@ -327,51 +286,48 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
                   Buy now
                 </Button>
               </div>
-              <p className="text-[10px] text-center text-muted-foreground">
+              <p className="text-[10px] text-center text-muted-foreground pb-2">
                 Gas fees are sponsored by Medialane. Your PIN authorizes this transaction.
               </p>
+              </div>
             </div>
 
           ) : (
-            <div className="p-6 space-y-4">
-              <DialogHeader className="pb-0">
-                <DialogTitle>Purchase IP Asset</DialogTitle>
-                <DialogDescription>Buy gaslessly with your invisible Starknet wallet.</DialogDescription>
-              </DialogHeader>
-
+            <div className="space-y-0">
               <TokenHero order={order} />
-              <OrderSummary order={order} />
 
-              {error && (
-                <>
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
-                  {txHash && (
-                    <Button variant="outline" size="sm" className="w-full" asChild>
-                      <a href={`${EXPLORER_URL}/tx/${txHash}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
-                        View transaction on Voyager <ExternalLink className="h-3 w-3" />
-                      </a>
-                    </Button>
-                  )}
-                </>
-              )}
+              <div className="px-6 pb-6 pt-3 space-y-3">
+                {error && (
+                  <>
+                    <Alert variant="destructive">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                    {txHash && (
+                      <Button variant="outline" size="sm" className="w-full" asChild>
+                        <a href={`${EXPLORER_URL}/tx/${txHash}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+                          View transaction on Voyager <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </Button>
+                    )}
+                  </>
+                )}
 
-              {!isSignedIn ? (
-                <p className="text-sm text-muted-foreground text-center py-2">
-                  Sign in to purchase this asset.
+                {!isSignedIn ? (
+                  <p className="text-sm text-muted-foreground text-center py-2">
+                    Sign in to purchase this asset.
+                  </p>
+                ) : (
+                  <Button className="w-full h-12 text-base font-semibold" onClick={handleBuyClick}>
+                    {error ? <RefreshCw className="h-4 w-4 mr-2" /> : <ShoppingCart className="h-4 w-4 mr-2" />}
+                    {error ? "Try again" : hasWallet ? "Buy now" : "Secure account & buy"}
+                  </Button>
+                )}
+
+                <p className="text-[10px] text-center text-muted-foreground">
+                  Gas fees are sponsored by Medialane. Your PIN authorizes this transaction.
                 </p>
-              ) : (
-                <Button className="w-full h-12 text-base font-semibold" onClick={handleBuyClick}>
-                  {error ? <RefreshCw className="h-4 w-4 mr-2" /> : <ShoppingCart className="h-4 w-4 mr-2" />}
-                  {error ? "Try again" : hasWallet ? "Buy now" : "Secure account & buy"}
-                </Button>
-              )}
-
-              <p className="text-[10px] text-center text-muted-foreground">
-                Gas fees are sponsored by Medialane. Your PIN authorizes this transaction.
-              </p>
+              </div>
             </div>
           )}
 
