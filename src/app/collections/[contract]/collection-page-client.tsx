@@ -23,6 +23,7 @@ import { ipfsToHttp, formatDisplayPrice, cn } from "@/lib/utils";
 import { computeRarity } from "@/lib/rarity";
 import { useCollectionProfile } from "@/hooks/use-profiles";
 import { useGatedContent, type GatedContentState } from "@/hooks/use-gated-content";
+import { CollectionServiceAction } from "@/components/services/collection-service-action";
 import type { ApiToken } from "@medialane/sdk";
 
 const PAGE_SIZE = 24;
@@ -340,6 +341,12 @@ export default function CollectionPageClient() {
               )}
             </>
           )}
+
+          {/* Service action slot (POP claim, Drop mint, etc.) */}
+          <CollectionServiceAction
+            source={collection.source}
+            contractAddress={collection.contractAddress}
+          />
 
           <div className="flex items-center gap-2 pt-0.5">
             <AddressDisplay
