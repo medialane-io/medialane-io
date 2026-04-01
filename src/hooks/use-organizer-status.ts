@@ -21,7 +21,7 @@ export function useIsPOPProvider(wallet: string | null | undefined) {
     wallet ? `pop-provider-${wallet}` : null,
     async () => {
       const factory = new Contract(POP_PROVIDER_CHECK_ABI as any, POP_FACTORY_CONTRACT_MAINNET, starknetProvider);
-      const result = await factory.is_active_provider(wallet);
+      const result = await factory.is_active_provider(wallet, { blockIdentifier: "latest" });
       return Boolean(result);
     },
     { revalidateOnFocus: false, shouldRetryOnError: false }
@@ -34,7 +34,7 @@ export function useIsDropOrganizer(wallet: string | null | undefined) {
     wallet ? `drop-organizer-${wallet}` : null,
     async () => {
       const factory = new Contract(DropFactoryABI as any, DROP_FACTORY_CONTRACT_MAINNET, starknetProvider);
-      const result = await factory.is_active_organizer(wallet);
+      const result = await factory.is_active_organizer(wallet, { blockIdentifier: "latest" });
       return Boolean(result);
     },
     { revalidateOnFocus: false, shouldRetryOnError: false }
