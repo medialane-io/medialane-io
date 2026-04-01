@@ -70,7 +70,7 @@ export function ActivityTicker({
   return (
     <div className={className}>
       {label && <div className="mb-2">{label}</div>}
-      <div className="relative overflow-hidden rounded-xl border border-border/40 bg-muted/20 py-2.5">
+      <div className="relative overflow-hidden py-2.5">
         <div
           className="flex gap-2 w-max px-2"
           style={{ animation: "scroll-strip 50s linear infinite" }}
