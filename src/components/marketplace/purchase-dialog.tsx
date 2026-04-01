@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { toast } from "sonner";
-import { CheckCircle2, AlertCircle, ExternalLink, ShoppingCart, RefreshCw, ArrowLeft, Sparkles } from "lucide-react";
+import { CheckCircle2, AlertCircle, ExternalLink, ShoppingCart, RefreshCw, ArrowLeft, Sparkles, Zap } from "lucide-react";
 import { fireConfetti } from "@/lib/confetti";
 import {
   Dialog,
@@ -33,6 +33,81 @@ interface PurchaseDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
+}
+
+// ── Shared order summary row ──────────────────────────────────────────────────
+function SummaryRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between text-sm">
+      <span className="text-muted-foreground">{label}</span>
+      <span>{children}</span>
+    </div>
+  );
+}
+
+// ── Token hero (image + name shown at top of dialog) ─────────────────────────
+function TokenHero({ order }: { order: ApiOrder }) {
+  const image = order.token?.image ? ipfsToHttp(order.token.image) : null;
+  const name = order.token?.name || `Token #${order.nftTokenId}`;
+
+  return (
+    <div className="flex items-center gap-4 pb-4 border-b border-border/50">
+      <div className="relative h-16 w-16 shrink-0 rounded-xl overflow-hidden bg-muted border border-border/60 shadow-md">
+        {image ? (
+          <img src={image} alt={name} className="h-full w-full object-cover" />
+        ) : (
+          <div className="h-full w-full bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center text-lg font-bold text-muted-foreground">
+            #{order.nftTokenId}
+          </div>
+        )}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="font-semibold text-base leading-tight truncate">{name}</p>
+        <p className="text-xs text-muted-foreground mt-0.5 font-mono">
+          Token #{order.nftTokenId}
+        </p>
+        <div className="flex items-center gap-1 mt-1.5">
+          <Zap className="h-3 w-3 text-emerald-500" />
+          <span className="text-[11px] font-medium text-emerald-500">Gasless purchase</span>
+        </div>
+      </div>
+      {order.price && (
+        <div className="shrink-0 text-right">
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Price</p>
+          <p className="flex items-center gap-1 font-bold text-xl mt-0.5 justify-end">
+            <CurrencyIcon symbol={order.price.currency} size={16} />
+            {formatDisplayPrice(order.price.formatted)}
+          </p>
+          <p className="text-xs text-muted-foreground">{order.price.currency}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Order summary card ────────────────────────────────────────────────────────
+function OrderSummary({ order }: { order: ApiOrder }) {
+  return (
+    <div className="rounded-xl bg-muted/30 border border-border/40 p-4 space-y-2.5">
+      <SummaryRow label="Token">
+        <span className="font-mono text-foreground">#{order.nftTokenId}</span>
+      </SummaryRow>
+      <SummaryRow label="Price">
+        <span className="font-bold inline-flex items-center gap-1 text-foreground">
+          <CurrencyIcon symbol={order.price.currency} size={13} />
+          {formatDisplayPrice(order.price.formatted)} {order.price.currency}
+        </span>
+      </SummaryRow>
+      <div className="border-t border-border/40 pt-2.5">
+        <SummaryRow label="Gas fee">
+          <span className="inline-flex items-center gap-1 text-emerald-500 font-medium">
+            <Zap className="h-3 w-3" />
+            Free (sponsored)
+          </span>
+        </SummaryRow>
+      </div>
+    </div>
+  );
 }
 
 export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: PurchaseDialogProps) {
@@ -137,9 +212,6 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
     if (!isProcessing) onOpenChange(v);
   };
 
-  // Reset to fresh details state each time the dialog opens.
-  // Resetting on close causes the dialog to flash to form state mid-animation;
-  // resetting on open guarantees a clean slate without touching closing content.
   useEffect(() => {
     if (open) {
       resetState();
@@ -162,20 +234,10 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
   return (
     <>
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              {step === "pin" ? "Confirm with PIN" : `Purchase Token #${order.nftTokenId}`}
-            </DialogTitle>
-            {step === "details" && (
-              <DialogDescription>
-                Buy this IP asset gaslessly with your invisible Starknet wallet.
-              </DialogDescription>
-            )}
-          </DialogHeader>
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden gap-0">
 
           {isSuccess ? (
-            <div className="flex flex-col items-center gap-5 py-2">
+            <div className="flex flex-col items-center gap-5 p-6 py-8">
               <div className="relative">
                 <div className="h-16 w-16 rounded-full bg-emerald-500/15 flex items-center justify-center">
                   <CheckCircle2 className="h-9 w-9 text-emerald-500" />
@@ -183,7 +245,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
                 <Sparkles className="absolute -top-1 -right-1 h-5 w-5 text-yellow-400" />
               </div>
               {order.token?.image && (
-                <div className="h-28 w-28 rounded-xl overflow-hidden border border-border shadow-md">
+                <div className="h-28 w-28 rounded-2xl overflow-hidden border border-border shadow-lg">
                   <img
                     src={ipfsToHttp(order.token.image)}
                     alt={order.token?.name || `Token #${order.nftTokenId}`}
@@ -220,32 +282,22 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
                 </Button>
               </div>
             </div>
+
           ) : (isProcessing || txStatus === "confirming") ? (
-            <TxStatus status={txStatus} txHash={txHash} error={error} statusMessage={
-              txStatus === "submitting" ? "Submitting purchase…" : "Confirming on Starknet…"
-            } />
+            <div className="p-6">
+              <TxStatus status={txStatus} txHash={txHash} error={error} statusMessage={
+                txStatus === "submitting" ? "Submitting purchase…" : "Confirming on Starknet…"
+              } />
+            </div>
+
           ) : step === "pin" ? (
-            <div className="space-y-4 py-2">
-              <div className="rounded-lg bg-muted/30 p-4 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Token</span>
-                  <span className="font-mono">#{order.nftTokenId}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Price</span>
-                  <span className="font-bold inline-flex items-center gap-1">
-                    <CurrencyIcon symbol={order.price.currency} size={13} />
-                    {formatDisplayPrice(order.price.formatted)} {order.price.currency}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Gas</span>
-                  <span className="text-emerald-500 font-medium">Free (sponsored)</span>
-                </div>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Enter your security PIN to confirm this purchase.
-              </p>
+            <div className="p-6 space-y-4">
+              <DialogHeader className="pb-0">
+                <DialogTitle>Confirm purchase</DialogTitle>
+                <DialogDescription>Enter your PIN to complete this transaction.</DialogDescription>
+              </DialogHeader>
+              <TokenHero order={order} />
+              <OrderSummary order={order} />
               <PinInput
                 value={pin}
                 onChange={(v) => { setPin(v); setPinError(null); }}
@@ -258,7 +310,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
-              <div className="flex gap-2">
+              <div className="flex gap-2 pt-1">
                 <Button
                   variant="outline"
                   className="gap-1.5"
@@ -279,26 +331,16 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
                 Gas fees are sponsored by Medialane. Your PIN authorizes this transaction.
               </p>
             </div>
+
           ) : (
-            <div className="space-y-4 py-2">
-              {/* Order summary */}
-              <div className="rounded-lg bg-muted/30 p-4 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Token</span>
-                  <span className="font-mono">#{order.nftTokenId}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Price</span>
-                  <span className="font-bold inline-flex items-center gap-1">
-                    <CurrencyIcon symbol={order.price.currency} size={13} />
-                    {formatDisplayPrice(order.price.formatted)} {order.price.currency}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Gas</span>
-                  <span className="text-emerald-500 font-medium">Free (sponsored)</span>
-                </div>
-              </div>
+            <div className="p-6 space-y-4">
+              <DialogHeader className="pb-0">
+                <DialogTitle>Purchase IP Asset</DialogTitle>
+                <DialogDescription>Buy gaslessly with your invisible Starknet wallet.</DialogDescription>
+              </DialogHeader>
+
+              <TokenHero order={order} />
+              <OrderSummary order={order} />
 
               {error && (
                 <>
@@ -317,11 +359,11 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
               )}
 
               {!isSignedIn ? (
-                <p className="text-sm text-muted-foreground text-center">
+                <p className="text-sm text-muted-foreground text-center py-2">
                   Sign in to purchase this asset.
                 </p>
               ) : (
-                <Button className="w-full h-11" onClick={handleBuyClick}>
+                <Button className="w-full h-12 text-base font-semibold" onClick={handleBuyClick}>
                   {error ? <RefreshCw className="h-4 w-4 mr-2" /> : <ShoppingCart className="h-4 w-4 mr-2" />}
                   {error ? "Try again" : hasWallet ? "Buy now" : "Secure account & buy"}
                 </Button>
@@ -332,6 +374,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
               </p>
             </div>
           )}
+
         </DialogContent>
       </Dialog>
 
