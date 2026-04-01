@@ -5,8 +5,12 @@ import { usePathname } from "next/navigation";
 import { useUser, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
-import { Home, Compass, Briefcase, PlusCircle, Zap, Activity, LayoutGrid, Telescope, Search, Sun, Moon, ShoppingBag, LogIn, UserPlus, Info, BookOpen, FileCode2, Mail, LifeBuoy, Scale, Lock, Users } from "lucide-react";
-import { IP_TYPE_CONFIG } from "@/lib/ip-type-config";
+import {
+  Telescope, Compass, Briefcase, Plus, Activity,
+  LayoutGrid, Users, BookOpen, FileCode2, Info, Mail, LifeBuoy,
+  Sun, Moon, ShoppingBag, LogIn, PlusCircle, Search,
+  ChevronRight, ImagePlus, Layers, Award, Package,
+} from "lucide-react";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useUnreadOffers } from "@/hooks/use-unread-offers";
 import { useCart } from "@/hooks/use-cart";
@@ -16,28 +20,123 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
-  SidebarGroupLabel,
-  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarSeparator,
   useSidebar,
 } from "@/components/ui/sidebar";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
 import { MedialaneLogo } from "../brand/medialane-logo";
 import { MedialaneIcon } from "../brand/medialane-icon";
 import { NotificationsItem } from "@/components/layout/notifications-sheet";
 
-const NAV = [
-  { href: "/discover", label: "Discover", icon: Telescope, exact: true },
-  { href: "/marketplace", label: "Marketplace", icon: Compass, exact: true },
-  { href: "/collections", label: "Collections", icon: LayoutGrid, exact: true },
-  { href: "/creators",   label: "Creators",    icon: Users,      exact: true },
-  { href: "/portfolio", label: "Portfolio", icon: Briefcase, exact: true, prefetch: false },
-  { href: "/launchpad", label: "Launchpad", icon: Zap, exact: true },
-  { href: "/activities", label: "Activity", icon: Activity, exact: true },
+// ── Sub-menu data ────────────────────────────────────────────────────────────
+
+const LAUNCHPAD_SUB = [
+  { href: "/launchpad",           label: "All Services",      icon: LayoutGrid },
+  { href: "/create/asset",        label: "Mint IP Asset",     icon: ImagePlus  },
+  { href: "/create/collection",   label: "Create Collection", icon: Layers     },
+  { href: "/launchpad/pop",       label: "POP Protocol",      icon: Award      },
+  { href: "/launchpad/drop",      label: "Collection Drop",   icon: Package    },
 ];
+
+const EXPLORE_SUB = [
+  { href: "/collections", label: "Collections", icon: LayoutGrid },
+  { href: "/creators",    label: "Creators",    icon: Users      },
+];
+
+const RESOURCES_SUB = [
+  { href: "/learn",   label: "Learn",   icon: BookOpen  },
+  { href: "/docs",    label: "Docs",    icon: FileCode2 },
+  { href: "/about",   label: "About",   icon: Info      },
+  { href: "/contact", label: "Contact", icon: Mail      },
+  { href: "/support", label: "Support", icon: LifeBuoy  },
+];
+
+// ── Collapsible nav group ────────────────────────────────────────────────────
+
+interface CollapsibleNavItemProps {
+  label: string;
+  icon: React.ElementType;
+  sub: { href: string; label: string; icon: React.ElementType }[];
+  defaultOpen?: boolean;
+  tooltip?: string;
+  onClose: () => void;
+}
+
+function CollapsibleNavItem({
+  label, icon: Icon, sub, defaultOpen = false, tooltip, onClose,
+}: CollapsibleNavItemProps) {
+  const pathname = usePathname();
+  const [open, setOpen] = useState(defaultOpen);
+  const { state, isMobile } = useSidebar();
+  const collapsed = !isMobile && state === "collapsed";
+
+  // When sidebar collapses to icon-only, keep the group visually "closed"
+  // but don't change the open state so it restores on expand
+  const isAnySubActive = sub.some((s) => pathname === s.href || pathname?.startsWith(s.href + "/"));
+
+  if (collapsed) {
+    // In collapsed mode, show icon only — sub items accessible via tooltip
+    return (
+      <SidebarMenuItem>
+        <SidebarMenuButton
+          tooltip={tooltip ?? label}
+          isActive={isAnySubActive}
+          onClick={() => setOpen(true)}
+        >
+          <Icon />
+          <span>{label}</span>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    );
+  }
+
+  return (
+    <Collapsible open={open} onOpenChange={setOpen} className="group/collapsible">
+      <SidebarMenuItem>
+        <CollapsibleTrigger asChild>
+          <SidebarMenuButton
+            tooltip={tooltip ?? label}
+            isActive={isAnySubActive && !open}
+          >
+            <Icon />
+            <span>{label}</span>
+            <ChevronRight className="ml-auto h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+          </SidebarMenuButton>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <SidebarMenuSub>
+            {sub.map(({ href, label: subLabel, icon: SubIcon }) => {
+              const active = pathname === href || (href !== "/launchpad" && pathname?.startsWith(href + "/"));
+              return (
+                <SidebarMenuSubItem key={href}>
+                  <SidebarMenuSubButton asChild isActive={active} onClick={onClose}>
+                    <Link href={href}>
+                      <SubIcon className="h-3.5 w-3.5" />
+                      {subLabel}
+                    </Link>
+                  </SidebarMenuSubButton>
+                </SidebarMenuSubItem>
+              );
+            })}
+          </SidebarMenuSub>
+        </CollapsibleContent>
+      </SidebarMenuItem>
+    </Collapsible>
+  );
+}
+
+// ── Utility items ─────────────────────────────────────────────────────────────
 
 function ThemeToggleItem() {
   const { theme, setTheme } = useTheme();
@@ -77,6 +176,8 @@ function CartItem() {
   );
 }
 
+// ── Sidebar ──────────────────────────────────────────────────────────────────
+
 export function AppSidebar() {
   const pathname = usePathname();
   const { user, isLoaded, isSignedIn } = useUser();
@@ -85,57 +186,143 @@ export function AppSidebar() {
   const { setOpen, setOpenMobile, isMobile, state } = useSidebar();
 
   const closeSidebar = () => {
-    if (isMobile) {
-      setOpenMobile(false);
-    } else {
-      setOpen(false);
-    }
+    if (isMobile) setOpenMobile(false);
+    else setOpen(false);
   };
+
+  // Whether to auto-expand collapsible groups on load
+  const onLaunchpad = !!(pathname?.startsWith("/launchpad") || pathname?.startsWith("/create"));
+  const onExplore   = !!(pathname === "/collections" || pathname?.startsWith("/creators"));
+  const onResources = !!(["/learn", "/docs", "/about", "/contact", "/support"].some(
+    (p) => pathname === p || pathname?.startsWith(p + "/")
+  ));
+
+  // Top-level flat nav (no collapsible)
+  const TOP_NAV = [
+    { href: "/discover",   label: "Discover",    icon: Telescope, exact: true  },
+    { href: "/marketplace",label: "Marketplace", icon: Compass,   exact: true  },
+    { href: "/portfolio",  label: "Portfolio",   icon: Briefcase, exact: false, prefetch: false },
+    { href: "/activities", label: "Activity",    icon: Activity,  exact: true  },
+  ];
 
   return (
     <Sidebar collapsible="icon">
-      {/* Brand */}
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild onClick={closeSidebar}>
-              {isMobile || state === "expanded" ? <MedialaneLogo /> : <MedialaneIcon />}
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
 
-      {/* Nav */}
+      {/* Brand */}
+      <SidebarMenu className="p-2">
+        <SidebarMenuItem>
+          <SidebarMenuButton size="lg" asChild onClick={closeSidebar}>
+            {isMobile || state === "expanded" ? <MedialaneLogo /> : <MedialaneIcon />}
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
+
       <SidebarContent>
+
+        {/* ── Main navigation ─────────────────────────────── */}
         <SidebarGroup>
           <SidebarMenu>
-            {NAV.map(({ href, label, icon: Icon, exact, prefetch }) => {
-              const showBadge = href === "/portfolio" && unreadOffers > 0;
-              return (
-                <SidebarMenuItem key={href}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={exact ? pathname === href : !!pathname?.startsWith(href)}
-                    tooltip={showBadge ? `${label} (${unreadOffers} new offer${unreadOffers > 1 ? "s" : ""})` : label}
-                    onClick={closeSidebar}
-                  >
-                    <Link href={href} prefetch={prefetch} className="relative">
-                      <Icon />
-                      <span>{label}</span>
-                      {showBadge && (
-                        <span className="absolute right-2 top-1/2 -translate-y-1/2 h-4 min-w-4 rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground flex items-center justify-center px-1">
-                          {unreadOffers > 9 ? "9+" : unreadOffers}
-                        </span>
-                      )}
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              );
-            })}
+
+            {/* Flat items above Launchpad */}
+            {TOP_NAV.slice(0, 2).map(({ href, label, icon: Icon, exact, prefetch }) => (
+              <SidebarMenuItem key={href}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={exact ? pathname === href : !!pathname?.startsWith(href)}
+                  tooltip={label}
+                  onClick={closeSidebar}
+                >
+                  <Link href={href} prefetch={prefetch}>
+                    <Icon />
+                    <span>{label}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+
+            {/* Launchpad — collapsible with Plus icon */}
+            <CollapsibleNavItem
+              label="Launchpad"
+              icon={Plus}
+              sub={LAUNCHPAD_SUB}
+              defaultOpen={onLaunchpad}
+              tooltip="Launchpad"
+              onClose={closeSidebar}
+            />
+
+            {/* Portfolio with unread badge */}
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={!!pathname?.startsWith("/portfolio")}
+                tooltip={unreadOffers > 0 ? `Portfolio (${unreadOffers} new offer${unreadOffers > 1 ? "s" : ""})` : "Portfolio"}
+                onClick={closeSidebar}
+              >
+                <Link href="/portfolio" prefetch={false} className="relative">
+                  <Briefcase />
+                  <span>Portfolio</span>
+                  {unreadOffers > 0 && (
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2 h-4 min-w-4 rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground flex items-center justify-center px-1">
+                      {unreadOffers > 9 ? "9+" : unreadOffers}
+                    </span>
+                  )}
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            {/* Activity */}
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname === "/activities"}
+                tooltip="Activity"
+                onClick={closeSidebar}
+              >
+                <Link href="/activities">
+                  <Activity />
+                  <span>Activity</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
           </SidebarMenu>
         </SidebarGroup>
+
         <SidebarSeparator />
 
+        {/* ── Explore (Collections + Creators) ────────────── */}
+        <SidebarGroup>
+          <SidebarMenu>
+            <CollapsibleNavItem
+              label="Explore"
+              icon={Compass}
+              sub={EXPLORE_SUB}
+              defaultOpen={onExplore}
+              tooltip="Explore"
+              onClose={closeSidebar}
+            />
+          </SidebarMenu>
+        </SidebarGroup>
+
+        <SidebarSeparator />
+
+        {/* ── Resources (Docs + DAO merged) ───────────────── */}
+        <SidebarGroup>
+          <SidebarMenu>
+            <CollapsibleNavItem
+              label="Resources"
+              icon={BookOpen}
+              sub={RESOURCES_SUB}
+              defaultOpen={onResources}
+              tooltip="Resources"
+              onClose={closeSidebar}
+            />
+          </SidebarMenu>
+        </SidebarGroup>
+
+        <SidebarSeparator />
+
+        {/* ── Utilities ────────────────────────────────────── */}
         <SidebarGroup>
           <SidebarMenu>
             <SidebarMenuItem>
@@ -152,85 +339,9 @@ export function AppSidebar() {
           </SidebarMenu>
         </SidebarGroup>
 
-        <SidebarSeparator />
-
-        {/* Browse by IP type 
-        <SidebarGroup>
-          <SidebarGroupLabel>Browse</SidebarGroupLabel>
-          <SidebarMenu>
-            {IP_TYPE_CONFIG.map(({ slug, label, icon: Icon, colorClass }) => (
-              <SidebarMenuItem key={slug}>
-                <SidebarMenuButton
-                  asChild
-                  isActive={pathname === `/${slug}`}
-                  tooltip={label}
-                  onClick={closeSidebar}
-                >
-                  <Link href={`/${slug}`}>
-                    <Icon className={pathname === `/${slug}` ? colorClass : undefined} />
-                    <span>{label}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarGroup>
-
-        <SidebarSeparator />*/}
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Docs</SidebarGroupLabel>
-          <SidebarMenu>
-            {[
-              { href: "/about",  label: "About",  icon: Info },
-              { href: "/learn",  label: "Learn",  icon: BookOpen },
-              { href: "/docs",   label: "Docs",   icon: FileCode2 },
-            ].map(({ href, label, icon: Icon }) => (
-              <SidebarMenuItem key={href}>
-                <SidebarMenuButton
-                  asChild
-                  isActive={pathname === href || (href !== "/about" && !!pathname?.startsWith(href))}
-                  tooltip={label}
-                  onClick={closeSidebar}
-                >
-                  <Link href={href}>
-                    <Icon />
-                    <span>{label}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarGroup>
-
-        <SidebarSeparator />
-
-        <SidebarGroup>
-          <SidebarGroupLabel>DAO</SidebarGroupLabel>
-          <SidebarMenu>
-            {[
-              { href: "/contact", label: "Contact Us",   icon: Mail },
-              { href: "/support", label: "Support",      icon: LifeBuoy },
-            ].map(({ href, label, icon: Icon }) => (
-              <SidebarMenuItem key={href}>
-                <SidebarMenuButton
-                  asChild
-                  isActive={pathname === href}
-                  tooltip={label}
-                  onClick={closeSidebar}
-                >
-                  <Link href={href}>
-                    <Icon />
-                    <span>{label}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarGroup>
       </SidebarContent>
 
-      {/* User */}
+      {/* ── User / Auth ──────────────────────────────────────── */}
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -264,9 +375,7 @@ export function AppSidebar() {
                         <span className="sr-only">Sign in</span>
                       </SidebarMenuButton>
                     ) : (
-                      <Button variant="outline" size="sm" className="w-full">
-                        Sign in
-                      </Button>
+                      <Button variant="outline" size="sm" className="w-full">Sign in</Button>
                     )}
                   </SignInButton>
                   <SignUpButton mode="modal">
@@ -276,9 +385,7 @@ export function AppSidebar() {
                         <span className="sr-only">Start</span>
                       </SidebarMenuButton>
                     ) : (
-                      <Button size="sm" className="w-full">
-                        Start
-                      </Button>
+                      <Button size="sm" className="w-full">Start</Button>
                     )}
                   </SignUpButton>
                 </div>
@@ -287,6 +394,7 @@ export function AppSidebar() {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
+
     </Sidebar>
   );
 }
