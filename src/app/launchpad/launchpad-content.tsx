@@ -89,19 +89,20 @@ const ACTIVE_TOOLS = [
     buttonColor: "bg-green-600",
     badge: "Live",
   },
+  {
+    title: "Collection Drop",
+    description: "Launch limited edition timed releases with a supply cap and mint window. Set your drop date, let your community race to collect.",
+    icon: Package,
+    href: "/launchpad/drop",
+    gradient: "from-orange-500/10 to-amber-500/10",
+    iconBg: "bg-orange-500/10",
+    iconColor: "text-orange-500",
+    buttonColor: "bg-orange-600",
+    badge: "Live",
+  },
 ] as const;
 
 const COMING_SOON = [
-  {
-    title: "Collection Drop",
-    description: "Launch limited edition timed releases with a supply cap and mint window. Set your drop date, let your community race to collect — scarcity drives demand.",
-    icon: Package,
-    gradient: "from-orange-500/10 to-amber-500/10",
-    border: "border-orange-500/20",
-    iconBg: "bg-orange-500/10",
-    iconColor: "text-orange-500",
-    badge: "Building now" as const,
-  },
   {
     title: "IP Tickets",
     description: "Gate real-world events with NFTs. Distribute tickets for concerts, workshops, and experiences — each with built-in proof of attendance on Starknet.",
