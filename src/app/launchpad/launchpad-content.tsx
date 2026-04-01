@@ -16,7 +16,7 @@ import {
   Zap, ImagePlus, Layers, ArrowRight,
   Package, Tag, ShoppingCart,
   GitBranch, Users, RefreshCw, Ticket, Coins, TrendingUp,
-  Lock, Globe, ExternalLink, Award, CheckCircle2, Search, X,
+  Lock, Globe, ExternalLink, Award, Search, X,
 } from "lucide-react";
 
 // ── Hero stats ──────────────────────────────────────────────────────────────
@@ -45,6 +45,7 @@ function HeroStats({ address }: { address: string }) {
 
 // ── Service definitions ─────────────────────────────────────────────────────
 type ServiceStatus = "live" | "building" | "soon";
+type ServiceCategory = "create" | "launch" | "monetize";
 
 interface ServiceDef {
   title: string;
@@ -54,171 +55,167 @@ interface ServiceDef {
   icon: React.ElementType;
   href?: string;
   buttonLabel?: string;
+  // Gradient: 3-stop diagonal, richer than before
   gradient: string;
-  iconBg: string;
+  // Tinted border color for live cards
+  borderColor: string;
   iconColor: string;
-  accentBg: string;
   buttonColor?: string;
   badge: string;
   status: ServiceStatus;
-  category: "tool" | "service" | "roadmap";
+  category: ServiceCategory;
 }
 
 const SERVICES: ServiceDef[] = [
+  // ── Create ─────────────────────────────────────────────────────────────
   {
     title: "Mint IP Asset",
-    subtitle: "Creative tool · ~1 min",
-    description: "Turn any creative file into a programmable IP NFT. Gasless, permanent, and immediately tradeable on Starknet.",
-    features: ["Gasless transaction via ChipiPay", "IPFS-anchored metadata", "Programmable licensing built-in"],
+    subtitle: "Register any creative work on Starknet",
+    description: "Turn any creative file into a programmable IP NFT. Gasless, permanent, and immediately tradeable.",
+    features: ["Gasless via ChipiPay", "IPFS metadata", "Programmable licensing"],
     icon: ImagePlus,
     href: "/create/asset",
     buttonLabel: "Mint asset",
-    gradient: "from-blue-500/[0.07] to-cyan-500/[0.04]",
-    iconBg: "bg-blue-500/10",
+    gradient: "from-blue-500/20 via-sky-400/8 to-transparent",
+    borderColor: "border-blue-500/20",
     iconColor: "text-blue-500",
-    accentBg: "bg-blue-500",
-    buttonColor: "bg-brand-blue",
+    buttonColor: "bg-brand-blue hover:bg-brand-blue/90",
     badge: "Live",
     status: "live",
-    category: "tool",
+    category: "create",
   },
   {
     title: "Create Collection",
-    subtitle: "Creative tool · ~2 min",
-    description: "Deploy a named ERC-721 collection with its own branded page, metadata, and on-chain identity on Starknet.",
+    subtitle: "Deploy a named ERC-721 catalog",
+    description: "Deploy a branded collection with its own page, metadata, and on-chain identity — ready to populate with assets.",
     features: ["Factory-deployed ERC-721", "Branded collection page", "Add assets at any time"],
     icon: Layers,
     href: "/create/collection",
     buttonLabel: "Create collection",
-    gradient: "from-purple-500/[0.07] to-violet-500/[0.04]",
-    iconBg: "bg-purple-500/10",
-    iconColor: "text-purple-500",
-    accentBg: "bg-purple-500",
-    buttonColor: "bg-brand-purple",
+    gradient: "from-violet-500/20 via-purple-400/8 to-transparent",
+    borderColor: "border-violet-500/20",
+    iconColor: "text-violet-500",
+    buttonColor: "bg-brand-purple hover:bg-brand-purple/90",
     badge: "Live",
     status: "live",
-    category: "tool",
+    category: "create",
   },
   {
     title: "Remix an Asset",
-    subtitle: "Creative tool · ~3 min",
-    description: "Create a licensed derivative of any IP asset with full on-chain provenance and attribution to the original creator.",
-    features: ["On-chain attribution chain", "License terms enforced at mint", "Royalties flow to original creator"],
+    subtitle: "Derivative works with on-chain attribution",
+    description: "Create a licensed derivative of any IP asset with full provenance and attribution flowing back to the original creator.",
+    features: ["On-chain attribution", "License-enforced at mint", "Royalties to original creator"],
     icon: GitBranch,
     href: "/marketplace",
     buttonLabel: "Browse to remix",
-    gradient: "from-rose-500/[0.07] to-pink-500/[0.04]",
-    iconBg: "bg-rose-500/10",
+    gradient: "from-rose-500/20 via-pink-400/8 to-transparent",
+    borderColor: "border-rose-500/20",
     iconColor: "text-rose-500",
-    accentBg: "bg-rose-500",
-    buttonColor: "bg-brand-rose",
+    buttonColor: "bg-brand-rose hover:bg-brand-rose/90",
     badge: "Live",
     status: "live",
-    category: "tool",
+    category: "create",
   },
+
+  // ── Launch ─────────────────────────────────────────────────────────────
   {
     title: "POP Protocol",
-    subtitle: "Service · Soulbound credentials",
-    description: "Issue non-transferable on-chain credentials for bootcamps, workshops, hackathons, and conferences. Each attendee claims one soulbound badge — permanently tied to their wallet, forever provable.",
-    features: ["Soulbound · non-transferable ERC-721", "One credential per wallet address", "Claim window with optional allowlist"],
+    subtitle: "Soulbound credentials for events & education",
+    description: "Issue non-transferable on-chain credentials for bootcamps, hackathons, and conferences. Each attendee claims one soulbound badge — permanently tied to their wallet.",
+    features: ["Soulbound · non-transferable", "One credential per wallet", "Optional allowlist gating"],
     icon: Award,
     href: "/launchpad/pop",
     buttonLabel: "View POP events",
-    gradient: "from-green-500/[0.07] to-emerald-500/[0.04]",
-    iconBg: "bg-green-500/10",
-    iconColor: "text-green-500",
-    accentBg: "bg-green-500",
-    buttonColor: "bg-green-600",
+    gradient: "from-emerald-500/20 via-green-400/8 to-transparent",
+    borderColor: "border-emerald-500/20",
+    iconColor: "text-emerald-500",
+    buttonColor: "bg-green-600 hover:bg-green-700",
     badge: "Live",
     status: "live",
-    category: "service",
+    category: "launch",
   },
   {
     title: "Collection Drop",
-    subtitle: "Service · Limited edition releases",
-    description: "Launch a fixed-supply ERC-721 drop with a defined mint window and per-wallet limit. Set your open date and let your community race to collect before supply runs out.",
-    features: ["Fixed supply cap you control", "Timed mint window open → close", "Free or paid mint with any ERC-20"],
+    subtitle: "Limited-edition timed releases",
+    description: "Launch a fixed-supply ERC-721 drop with a defined mint window and per-wallet limit. Set your open date and let your community race to collect.",
+    features: ["Fixed supply cap", "Timed mint window", "Free or paid mint"],
     icon: Package,
     href: "/launchpad/drop",
     buttonLabel: "View drops",
-    gradient: "from-orange-500/[0.07] to-amber-500/[0.04]",
-    iconBg: "bg-orange-500/10",
+    gradient: "from-orange-500/20 via-amber-400/8 to-transparent",
+    borderColor: "border-orange-500/20",
     iconColor: "text-orange-500",
-    accentBg: "bg-orange-500",
-    buttonColor: "bg-orange-600",
+    buttonColor: "bg-orange-600 hover:bg-orange-700",
     badge: "Live",
     status: "live",
-    category: "service",
+    category: "launch",
   },
   {
     title: "IP Tickets",
-    subtitle: "Roadmap · Event gating",
-    description: "Distribute tickets for concerts, workshops, and real-world events. Each ticket doubles as verifiable on-chain proof of attendance.",
-    features: ["NFT-based event access gating", "Proof-of-attendance on-chain", "Transferable or soulbound options"],
+    subtitle: "Gate real-world experiences with NFTs",
+    description: "Distribute tickets for concerts, workshops, and events. Each ticket is verifiable on-chain proof of attendance.",
+    features: ["NFT-based event gating", "Proof of attendance", "Transferable or soulbound"],
     icon: Ticket,
-    gradient: "from-emerald-500/[0.05] to-teal-500/[0.03]",
-    iconBg: "bg-emerald-500/10",
-    iconColor: "text-emerald-500",
-    accentBg: "bg-emerald-500",
-    badge: "Building now",
+    gradient: "from-teal-500/12 via-cyan-400/5 to-transparent",
+    borderColor: "border-teal-500/15",
+    iconColor: "text-teal-500",
+    badge: "Building",
     status: "building",
-    category: "roadmap",
+    category: "launch",
   },
   {
     title: "Membership",
-    subtitle: "Roadmap · Access passes",
-    description: "Create tiered membership passes that unlock exclusive content, private communities, and creator experiences for your most loyal fans.",
-    features: ["Token-gated content access", "Tiered membership levels", "Community-aligned incentives"],
+    subtitle: "Token-gated access passes",
+    description: "Create tiered membership passes that unlock exclusive content, private communities, and experiences for your most loyal fans.",
+    features: ["Token-gated content", "Tiered access levels", "Community alignment"],
     icon: Users,
-    gradient: "from-violet-500/[0.05] to-purple-500/[0.03]",
-    iconBg: "bg-violet-500/10",
-    iconColor: "text-violet-500",
-    accentBg: "bg-violet-500",
+    gradient: "from-indigo-500/10 via-violet-400/4 to-transparent",
+    borderColor: "border-indigo-500/10",
+    iconColor: "text-indigo-400",
     badge: "Soon",
     status: "soon",
-    category: "roadmap",
+    category: "launch",
   },
+
+  // ── Monetize ───────────────────────────────────────────────────────────
   {
     title: "Subscriptions",
-    subtitle: "Roadmap · Recurring revenue",
-    description: "Generate recurring revenue from your IP. Monthly licensing, creator support tiers, and access passes — all on-chain and auto-renewed without intermediaries.",
-    features: ["Recurring on-chain revenue", "Auto-renewal protocol", "No platform fee middlemen"],
+    subtitle: "Recurring on-chain revenue",
+    description: "Monthly licensing, creator support tiers, and access passes — all auto-renewed without intermediaries.",
+    features: ["Recurring revenue", "Auto-renewal protocol", "No middlemen"],
     icon: RefreshCw,
-    gradient: "from-sky-500/[0.05] to-blue-500/[0.03]",
-    iconBg: "bg-sky-500/10",
-    iconColor: "text-sky-500",
-    accentBg: "bg-sky-500",
+    gradient: "from-sky-500/10 via-blue-400/4 to-transparent",
+    borderColor: "border-sky-500/10",
+    iconColor: "text-sky-400",
     badge: "Soon",
     status: "soon",
-    category: "roadmap",
+    category: "monetize",
   },
   {
     title: "IP Coins",
-    subtitle: "Roadmap · Fractional ownership",
-    description: "Tokenize your IP catalog as fungible tokens. Enable fractional ownership and create liquid markets around your creative work.",
-    features: ["Fungible IP tokens (ERC-20)", "Fractional ownership model", "Liquid secondary markets"],
+    subtitle: "Fractional ownership of intellectual property",
+    description: "Tokenize your IP catalog as fungible tokens. Enable fractional ownership and liquid markets around your creative work.",
+    features: ["Fungible IP tokens", "Fractional ownership", "Liquid secondary markets"],
     icon: Coins,
-    gradient: "from-amber-500/[0.05] to-yellow-500/[0.03]",
-    iconBg: "bg-amber-500/10",
-    iconColor: "text-amber-500",
-    accentBg: "bg-amber-500",
+    gradient: "from-amber-500/10 via-yellow-400/4 to-transparent",
+    borderColor: "border-amber-500/10",
+    iconColor: "text-amber-400",
     badge: "Soon",
     status: "soon",
-    category: "roadmap",
+    category: "monetize",
   },
   {
     title: "Creator Coins",
-    subtitle: "Roadmap · Social tokens",
-    description: "Launch a personal social token tied to your creative career. Let fans invest directly in your work — full economic alignment between creator and community.",
-    features: ["Personal social token", "Fan investment mechanics", "Creator-community alignment"],
+    subtitle: "Personal social token for fans",
+    description: "Launch a social token tied to your creative career. Let fans invest directly in your work — full economic alignment between creator and community.",
+    features: ["Personal social token", "Fan investment", "Creator-community alignment"],
     icon: TrendingUp,
-    gradient: "from-rose-500/[0.05] to-pink-500/[0.03]",
-    iconBg: "bg-rose-500/10",
-    iconColor: "text-rose-500",
-    accentBg: "bg-rose-500",
+    gradient: "from-pink-500/10 via-rose-400/4 to-transparent",
+    borderColor: "border-pink-500/10",
+    iconColor: "text-pink-400",
     badge: "Soon",
     status: "soon",
-    category: "roadmap",
+    category: "monetize",
   },
 ];
 
@@ -226,96 +223,104 @@ const SERVICES: ServiceDef[] = [
 function ServiceCard({ s }: { s: ServiceDef }) {
   const live = s.status === "live";
   const building = s.status === "building";
+  const active = live || building;
 
   return (
     <div className={cn(
-      "bento-cell flex flex-col overflow-hidden transition-shadow duration-200",
-      live && "hover:shadow-md",
-      `bg-gradient-to-br ${s.gradient}`
+      "group relative rounded-2xl border overflow-hidden transition-all duration-300 flex flex-col",
+      `bg-gradient-to-br ${s.gradient}`,
+      active ? s.borderColor : "border-border/20",
+      live && "hover:-translate-y-[3px] hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20",
+      !active && "opacity-60"
     )}>
-      {/* Colored top accent */}
-      <div className={cn("h-[3px] w-full shrink-0", live || building ? s.accentBg : "bg-border/40")} />
+      <div className="flex flex-col flex-1 p-7 gap-6">
 
-      <div className="flex flex-col flex-1 p-6 gap-5">
-
-        {/* Icon + badge row */}
+        {/* Icon + badge */}
         <div className="flex items-start justify-between">
-          <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center shrink-0", s.iconBg)}>
-            <s.icon className={cn("h-6 w-6", live || building ? s.iconColor : "text-muted-foreground/40")} />
-          </div>
+          <s.icon className={cn(
+            "h-9 w-9 transition-transform duration-300",
+            active ? s.iconColor : "text-muted-foreground/25",
+            live && "group-hover:scale-110"
+          )} />
           <span className={cn(
-            "text-[10px] font-bold uppercase tracking-widest rounded-full px-2.5 py-1 border flex items-center gap-1",
-            live && s.badge === "Live"
-              ? "text-green-600 dark:text-green-400 bg-green-500/10 border-green-500/20"
+            "text-[10px] font-semibold tracking-widest uppercase rounded-full px-2.5 py-1 flex items-center gap-1.5",
+            live
+              ? "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10"
               : building
-                ? "text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20"
-                : "text-muted-foreground/50 bg-muted/40 border-border/30"
+                ? "text-amber-600 dark:text-amber-400 bg-amber-500/10"
+                : "text-muted-foreground/40 bg-muted/30"
           )}>
-            {!live && !building && <Lock className="h-2.5 w-2.5" />}
-            {live && s.badge === "Live" && (
-              <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-            )}
+            {live && <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />}
+            {!active && <Lock className="h-2.5 w-2.5" />}
             {s.badge}
           </span>
         </div>
 
-        {/* Title block */}
-        <div>
-          <p className={cn("text-lg font-bold leading-snug", !live && !building && "text-muted-foreground/60")}>
+        {/* Text */}
+        <div className="space-y-1.5">
+          <p className={cn(
+            "text-[17px] font-semibold leading-snug tracking-tight",
+            !active && "text-foreground/40"
+          )}>
             {s.title}
           </p>
-          <p className="text-xs text-muted-foreground/60 mt-0.5 font-medium">{s.subtitle}</p>
+          <p className={cn(
+            "text-xs leading-relaxed",
+            active ? "text-muted-foreground" : "text-muted-foreground/30"
+          )}>
+            {s.subtitle}
+          </p>
         </div>
 
-        {/* Divider */}
-        <div className="border-t border-border/40" />
-
         {/* Description */}
-        <p className={cn("text-sm leading-relaxed", live || building ? "text-muted-foreground" : "text-muted-foreground/40")}>
+        <p className={cn(
+          "text-sm leading-relaxed flex-1",
+          active ? "text-muted-foreground" : "text-muted-foreground/30"
+        )}>
           {s.description}
         </p>
 
-        {/* Features */}
-        <ul className="space-y-2 flex-1">
+        {/* Feature chips */}
+        <div className="flex flex-wrap gap-1.5">
           {s.features.map((f) => (
-            <li key={f} className={cn("flex items-center gap-2.5 text-sm", live || building ? "" : "text-muted-foreground/30")}>
-              {live || building
-                ? <CheckCircle2 className={cn("h-4 w-4 shrink-0", live ? s.iconColor : "text-amber-500/60")} />
-                : <span className="h-1.5 w-1.5 rounded-full bg-border shrink-0 ml-[3px]" />
-              }
-              <span className={live || building ? "" : "text-muted-foreground/40"}>{f}</span>
-            </li>
+            <span key={f} className={cn(
+              "text-[11px] px-2.5 py-1 rounded-full border font-medium",
+              active
+                ? "bg-background/50 border-border/50 text-muted-foreground"
+                : "bg-muted/10 border-border/15 text-muted-foreground/25"
+            )}>
+              {f}
+            </span>
           ))}
-        </ul>
+        </div>
 
         {/* CTA */}
         {live ? (
-          <div className="btn-border-animated p-[1px] rounded-xl">
-            <Link href={s.href!}>
-              <button className={cn(
-                "w-full h-10 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98]",
-                s.buttonColor
-              )}>
-                {s.buttonLabel}
-                <ArrowRight className="h-3.5 w-3.5" />
-              </button>
-            </Link>
-          </div>
-        ) : (
-          <button
-            disabled
-            className="w-full h-10 rounded-xl flex items-center justify-center gap-2 text-sm font-medium text-muted-foreground/40 bg-muted/30 border border-border/20 cursor-not-allowed"
+          <Link
+            href={s.href!}
+            className={cn(
+              "flex items-center justify-between w-full h-10 px-4 rounded-xl",
+              "text-sm font-semibold text-white",
+              "transition-all duration-200 active:scale-[0.98]",
+              s.buttonColor
+            )}
           >
+            {s.buttonLabel}
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        ) : (
+          <div className="flex items-center gap-2 h-10 text-sm text-muted-foreground/30 font-medium">
             <Lock className="h-3.5 w-3.5" />
             {building ? "In development" : "Coming soon"}
-          </button>
+          </div>
         )}
+
       </div>
     </div>
   );
 }
 
-// ── Filter button ───────────────────────────────────────────────────────────
+// ── Filter chip ─────────────────────────────────────────────────────────────
 function FilterChip({
   active, onClick, children,
 }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
@@ -324,10 +329,10 @@ function FilterChip({
       type="button"
       onClick={onClick}
       className={cn(
-        "px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all border",
+        "px-4 py-1.5 rounded-full text-sm font-medium transition-all border",
         active
-          ? "bg-foreground text-background border-foreground"
-          : "bg-muted/30 text-muted-foreground border-border/50 hover:border-border hover:text-foreground"
+          ? "bg-foreground text-background border-transparent"
+          : "bg-transparent text-muted-foreground border-border/50 hover:border-border hover:text-foreground"
       )}
     >
       {children}
@@ -341,7 +346,7 @@ export function LaunchpadContent() {
   const { walletAddress } = useSessionKey();
 
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<"all" | "live" | "roadmap">("all");
+  const [filter, setFilter] = useState<"all" | ServiceCategory>("all");
 
   const filtered = useMemo(() => SERVICES.filter((s) => {
     const q = search.toLowerCase();
@@ -350,17 +355,15 @@ export function LaunchpadContent() {
       || s.subtitle.toLowerCase().includes(q)
       || s.description.toLowerCase().includes(q)
       || s.features.some((f) => f.toLowerCase().includes(q));
-    const matchesFilter =
-      filter === "all"
-      || (filter === "live" && s.status === "live")
-      || (filter === "roadmap" && (s.status === "building" || s.status === "soon"));
+    const matchesFilter = filter === "all" || s.category === filter;
     return matchesSearch && matchesFilter;
   }), [search, filter]);
 
   const counts = useMemo(() => ({
-    all: SERVICES.length,
-    live: SERVICES.filter((s) => s.status === "live").length,
-    roadmap: SERVICES.filter((s) => s.status !== "live").length,
+    all:      SERVICES.length,
+    create:   SERVICES.filter((s) => s.category === "create").length,
+    launch:   SERVICES.filter((s) => s.category === "launch").length,
+    monetize: SERVICES.filter((s) => s.category === "monetize").length,
   }), []);
 
   return (
@@ -396,18 +399,18 @@ export function LaunchpadContent() {
       {/* ── Services ─────────────────────────────────────────────── */}
       <section className="px-4 space-y-5">
 
+        {/* Search + filter */}
+        <FadeIn>
+          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
 
-        {/* Search + filter toolbar */}
-        <FadeIn delay={0.06}>
-          <div className="flex flex-col sm:flex-row gap-3">
             {/* Search */}
-            <div className="relative flex-1 max-w-sm">
+            <div className="relative w-full sm:max-w-xs">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
               <Input
-                placeholder="Search services…"
+                placeholder="Search…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 pr-9 h-9 bg-muted/30 border-border/50 focus:border-border"
+                className="pl-9 pr-9 h-9 bg-muted/30 border-border/40 text-sm rounded-full"
               />
               {search && (
                 <button
@@ -420,37 +423,38 @@ export function LaunchpadContent() {
               )}
             </div>
 
-            {/* Filter chips */}
-            <div className="flex items-center gap-2">
-              <FilterChip active={filter === "all"} onClick={() => setFilter("all")}>
-                All <span className="ml-1 text-xs opacity-60">{counts.all}</span>
+            {/* Intent filters */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <FilterChip active={filter === "all"}      onClick={() => setFilter("all")}>
+                All <span className="opacity-40 text-xs ml-0.5">{counts.all}</span>
               </FilterChip>
-              <FilterChip active={filter === "live"} onClick={() => setFilter("live")}>
-                <span className="flex items-center gap-1.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                  Live <span className="text-xs opacity-60">{counts.live}</span>
-                </span>
+              <FilterChip active={filter === "create"}   onClick={() => setFilter("create")}>
+                Create
               </FilterChip>
-              <FilterChip active={filter === "roadmap"} onClick={() => setFilter("roadmap")}>
-                Roadmap <span className="ml-1 text-xs opacity-60">{counts.roadmap}</span>
+              <FilterChip active={filter === "launch"}   onClick={() => setFilter("launch")}>
+                Launch
+              </FilterChip>
+              <FilterChip active={filter === "monetize"} onClick={() => setFilter("monetize")}>
+                Monetize
               </FilterChip>
             </div>
+
           </div>
         </FadeIn>
 
         {/* Grid */}
         {filtered.length === 0 ? (
           <FadeIn>
-            <div className="bento-cell border-dashed p-16 text-center space-y-3">
-              <Search className="h-8 w-8 text-muted-foreground/20 mx-auto" />
+            <div className="rounded-2xl border border-dashed border-border/40 p-16 text-center space-y-3">
+              <Search className="h-7 w-7 text-muted-foreground/20 mx-auto" />
               <p className="text-sm text-muted-foreground">No services match your search.</p>
               <Button variant="ghost" size="sm" onClick={() => { setSearch(""); setFilter("all"); }}>
-                Clear filters
+                Clear
               </Button>
             </div>
           </FadeIn>
         ) : (
-          <Stagger className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <Stagger className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {filtered.map((s) => (
               <StaggerItem key={s.title}>
                 <ServiceCard s={s} />
@@ -459,43 +463,39 @@ export function LaunchpadContent() {
           </Stagger>
         )}
 
-        {/* Result count (when filtered) */}
-        {(search || filter !== "all") && filtered.length > 0 && (
-          <p className="text-xs text-muted-foreground text-right">
-            {filtered.length} of {SERVICES.length} services
-          </p>
-        )}
       </section>
 
       {/* ── Drop Pages promo ──────────────────────────────────────── */}
       <section className="px-4">
         <FadeIn>
-          <div className="bento-cell p-5 sm:p-8 bg-gradient-to-br from-brand-purple/[0.08] via-brand-blue/[0.05] to-transparent overflow-hidden relative">
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 hidden sm:flex items-center justify-center opacity-[0.06] select-none pointer-events-none">
-              <Layers className="h-48 w-48" />
+          <div className="rounded-2xl border border-border/40 p-5 sm:p-8 bg-gradient-to-br from-brand-purple/[0.08] via-brand-blue/[0.05] to-transparent overflow-hidden relative">
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 hidden sm:flex items-center justify-center opacity-[0.05] select-none pointer-events-none">
+              <Layers className="h-52 w-52" />
             </div>
             <div className="relative z-10 max-w-lg space-y-4">
               <div>
                 <p className="section-label">Drop Pages</p>
                 <h2 className="text-xl font-bold mt-0.5">Every collection gets a branded page</h2>
                 <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-                  Share your work as a standalone creator drop page — fully branded, shareable on social, and accessible to anyone. Customize your name, banner, and links in collection settings.
+                  Share your work as a standalone creator drop page — fully branded, shareable on social, and accessible to anyone.
                 </p>
               </div>
-              <div className="flex items-center gap-2 bg-muted/60 border border-border/60 rounded-lg px-3 py-2 max-w-sm">
+              <div className="flex items-center gap-2 bg-muted/50 border border-border/50 rounded-lg px-3 py-2 max-w-sm">
                 <Globe className={`h-3.5 w-3.5 shrink-0 ${BRAND.purple.text}`} />
                 <span className="font-mono text-xs text-muted-foreground">medialane.io/collections/</span>
                 <span className={`font-mono text-xs font-semibold ${BRAND.blue.text} truncate`}>your-collection</span>
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <div className="btn-border-animated p-[1px] rounded-xl">
-                  <Link href="/create/collection">
-                    <button className={`h-9 px-4 rounded-[11px] flex items-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] ${BRAND.purple.bgSolid}`}>
-                      Create a collection
-                      <ArrowRight className="h-3.5 w-3.5" />
-                    </button>
-                  </Link>
-                </div>
+                <Link
+                  href="/create/collection"
+                  className={cn(
+                    "h-9 px-4 rounded-xl flex items-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98]",
+                    BRAND.purple.bgSolid
+                  )}
+                >
+                  Create a collection
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
                 <Button variant="ghost" size="sm" asChild className="text-muted-foreground">
                   <Link href="/collections">
                     Browse collections <ExternalLink className="h-3 w-3 ml-1" />
@@ -511,7 +511,7 @@ export function LaunchpadContent() {
       {isSignedIn && (
         <section className="px-4">
           <FadeIn>
-            <div className="bento-cell p-5 bg-gradient-to-r from-brand-navy/10 to-brand-purple/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="rounded-2xl border border-border/40 p-5 bg-gradient-to-r from-brand-navy/10 to-brand-purple/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <p className="section-label">Manage</p>
                 <p className="font-bold text-base mt-0.5">Your portfolio</p>
