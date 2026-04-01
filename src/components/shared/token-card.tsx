@@ -11,6 +11,7 @@ import { cn, ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
 import type { RarityTier } from "@/lib/rarity";
 import type { ApiToken } from "@medialane/sdk";
+import { IpTypeBadge } from "@/components/shared/ip-type-badge";
 
 const RARITY_STYLE: Record<RarityTier, { label: string; className: string } | null> = {
   legendary: { label: "Legendary", className: "bg-yellow-400/90 text-yellow-900" },
@@ -90,9 +91,9 @@ export function TokenCard({
             </div>
           )}
           {token.metadata?.ipType && (
-            <span className="absolute top-2 left-2 text-[10px] font-semibold px-2 py-0.5 rounded-md bg-black/70 text-white backdrop-blur-sm leading-4">
-              {token.metadata.ipType}
-            </span>
+            <div className="absolute top-2 left-2">
+              <IpTypeBadge ipType={token.metadata.ipType} size="sm" />
+            </div>
           )}
           {(token.metadataStatus === "PENDING" || token.metadataStatus === "FETCHING") && (
             <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-background/85 backdrop-blur-sm rounded-full px-2 py-0.5">

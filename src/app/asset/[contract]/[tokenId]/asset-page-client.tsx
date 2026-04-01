@@ -9,7 +9,7 @@ import { useToken, useTokenHistory } from "@/hooks/use-tokens";
 import { useTokenListings } from "@/hooks/use-orders";
 import { useCollection } from "@/hooks/use-collections";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { IpTypeBadge } from "@/components/shared/ip-type-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PurchaseDialog } from "@/components/marketplace/purchase-dialog";
 import { ListingDialog } from "@/components/marketplace/listing-dialog";
@@ -342,7 +342,7 @@ export default function AssetPageClient() {
                 </div>
               )}
               {token.metadata?.ipType && (
-                <Badge variant="secondary" className="mb-2">{token.metadata.ipType}</Badge>
+                <IpTypeBadge ipType={token.metadata.ipType} size="md" className="mb-2" />
               )}
               <h1 className="text-3xl lg:text-5xl font-bold">{name}</h1>
               {description && (
