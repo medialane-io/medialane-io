@@ -33,7 +33,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         <div className="absolute top-3 left-3 z-50 flex items-center gap-1.5">
           <SidebarTrigger />
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/icon.png" alt="Medialane" className="h-7 w-7 rounded-sm opacity-90 md:hidden" />
+          <img src="/icon.png" alt="Medialane" className="h-5 w-5 opacity-90 md:hidden" />
         </div>
         {/* SessionPreferencesSwitch hidden — surfaced inside account/wallet settings instead */}
         <main className="flex-1 bg-background overflow-x-hidden">{children}</main>
