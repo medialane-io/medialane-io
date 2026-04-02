@@ -130,7 +130,7 @@ export function AirdropSection() {
       <div className="w-full overflow-x-auto scrollbar-hide">
         <div className="flex gap-3 snap-x snap-mandatory pb-2" style={{ width: "max-content" }}>
           {FEATURES.map((f) => (
-            <div key={f.label} className="w-44 sm:w-52 snap-start shrink-0">
+            <div key={f.label} className="w-56 sm:w-64 snap-start shrink-0">
               <ServiceCard feature={f} />
             </div>
           ))}

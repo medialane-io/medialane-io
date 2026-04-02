@@ -270,8 +270,6 @@ export function AppSidebar() {
           </SidebarMenu>
         </SidebarGroup>
 
-        <SidebarSeparator />
-
         {/* ── Explore (Collections + Creators) ────────────── */}
         <SidebarGroup>
           <SidebarMenu>
@@ -285,8 +283,6 @@ export function AppSidebar() {
             />
           </SidebarMenu>
         </SidebarGroup>
-
-        <SidebarSeparator />
 
         {/* ── Resources (Docs + DAO merged) ───────────────── */}
         <SidebarGroup>
@@ -315,9 +311,9 @@ export function AppSidebar() {
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
-            <ThemeToggleItem />
             <CartItem />
             <NotificationsItem />
+            <ThemeToggleItem />
           </SidebarMenu>
         </SidebarGroup>
 

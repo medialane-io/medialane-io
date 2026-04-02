@@ -10,10 +10,20 @@ import { AppSidebar } from "@/components/layout/app-sidebar";
 import { CartDrawer } from "@/components/layout/cart-drawer";
 import { SessionPreferencesSwitch } from "@/components/chipi/session-preferences-switch";
 import { Aurora } from "@/components/ui/aurora";
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { MedialaneLogo } from "@/components/brand/medialane-logo";
 import { SWRConfig } from "swr";
 import { ChipiSessionUnlockProvider } from "@/contexts/chipi-session-unlock-context";
+
+function MobileIconTrigger() {
+  const { toggleSidebar } = useSidebar();
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <button onClick={toggleSidebar} className="md:hidden flex items-center focus-visible:outline-none">
+      <img src="/icon.png" alt="Medialane" className="h-5 w-5 opacity-90" />
+    </button>
+  );
+}
 
 function Shell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -32,8 +42,7 @@ function Shell({ children }: { children: React.ReactNode }) {
       <SidebarInset>
         <div className="absolute top-3 left-3 z-50 flex items-center gap-1.5">
           <SidebarTrigger />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/icon.png" alt="Medialane" className="h-5 w-5 opacity-90 md:hidden" />
+          <MobileIconTrigger />
         </div>
         {/* SessionPreferencesSwitch hidden — surfaced inside account/wallet settings instead */}
         <main className="flex-1 bg-background overflow-x-hidden">{children}</main>
