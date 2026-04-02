@@ -52,6 +52,7 @@ const LAUNCHPAD_SUB = [
 const EXPLORE_SUB = [
   { href: "/collections", label: "Collections", icon: LayoutGrid },
   { href: "/creators",    label: "Creators",    icon: Users      },
+  { href: "/activities",  label: "Activity",    icon: Activity   },
 ];
 
 const RESOURCES_SUB = [
@@ -192,17 +193,15 @@ export function AppSidebar() {
 
   // Whether to auto-expand collapsible groups on load
   const onLaunchpad = !!(pathname?.startsWith("/launchpad") || pathname?.startsWith("/create"));
-  const onExplore   = !!(pathname === "/collections" || pathname?.startsWith("/creators"));
+  const onExplore   = !!(pathname === "/collections" || pathname?.startsWith("/creators") || pathname === "/activities");
   const onResources = !!(["/learn", "/docs", "/about", "/contact", "/support"].some(
     (p) => pathname === p || pathname?.startsWith(p + "/")
   ));
 
   // Top-level flat nav (no collapsible)
   const TOP_NAV = [
-    { href: "/discover",   label: "Discover",    icon: Telescope, exact: true  },
-    { href: "/marketplace",label: "Marketplace", icon: Compass,   exact: true  },
-    { href: "/portfolio",  label: "Portfolio",   icon: Briefcase, exact: false, prefetch: false },
-    { href: "/activities", label: "Activity",    icon: Activity,  exact: true  },
+    { href: "/discover",   label: "Discover",    icon: Telescope, exact: true,  prefetch: undefined },
+    { href: "/marketplace",label: "Marketplace", icon: Compass,   exact: true,  prefetch: undefined },
   ];
 
   return (
@@ -266,21 +265,6 @@ export function AppSidebar() {
                       {unreadOffers > 9 ? "9+" : unreadOffers}
                     </span>
                   )}
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
-            {/* Activity */}
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname === "/activities"}
-                tooltip="Activity"
-                onClick={closeSidebar}
-              >
-                <Link href="/activities">
-                  <Activity />
-                  <span>Activity</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
