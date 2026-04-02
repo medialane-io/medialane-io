@@ -12,7 +12,6 @@ import { SessionPreferencesSwitch } from "@/components/chipi/session-preferences
 import { Aurora } from "@/components/ui/aurora";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { MedialaneLogo } from "@/components/brand/medialane-logo";
-import Image from "next/image";
 import { SWRConfig } from "swr";
 import { ChipiSessionUnlockProvider } from "@/contexts/chipi-session-unlock-context";
 
@@ -33,9 +32,8 @@ function Shell({ children }: { children: React.ReactNode }) {
       <SidebarInset>
         <div className="absolute top-3 left-3 z-50 flex items-center gap-1.5">
           <SidebarTrigger />
-          <div className="flex md:hidden items-center">
-            <Image src="/icon.png" alt="Medialane" width={26} height={26} className="rounded-sm opacity-90" priority />
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/icon.png" alt="Medialane" className="h-7 w-7 rounded-sm opacity-90 md:hidden" />
         </div>
         {/* SessionPreferencesSwitch hidden — surfaced inside account/wallet settings instead */}
         <main className="flex-1 bg-background overflow-x-hidden">{children}</main>
