@@ -18,13 +18,11 @@ export function HomePage() {
         <ActivityTicker limit={14} />
       </div>
 
-      {/* Platform features showcase */}
-      <AirdropSection />
-
       {/* Padded content sections */}
-      <div className="container mx-auto px-4 sm:px-6 space-y-20 mt-20">
+      <div className="container mx-auto px-4 sm:px-6 space-y-20 mt-16">
         <TrendingCollections />
         <NewOnMarketplace />
+        <AirdropSection />
         <LearnDocsCta />
       </div>
     </div>
