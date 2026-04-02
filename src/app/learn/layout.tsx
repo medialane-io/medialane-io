@@ -11,6 +11,7 @@ const LEARN_NAV = [
   { label: "Marketplace",            href: "/learn/marketplace" },
   { label: "POP Protocol",           href: "/learn/pop-protocol" },
   { label: "Collection Drop",        href: "/learn/collection-drop" },
+  { label: "Remix & Derivatives",    href: "/learn/remix" },
   { label: "Web3 & Starknet",        href: "/learn/web3" },
   { label: "Protect Your IP",        href: "/learn/protect-your-ip" },
   { label: "Programmable Licensing", href: "/learn/programmable-licensing" },

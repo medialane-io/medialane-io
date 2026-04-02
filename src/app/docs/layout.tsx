@@ -7,9 +7,12 @@ import { cn } from "@/lib/utils";
 const DOCS_NAV = [
   { label: "Overview",             href: "/docs" },
   { label: "Developers",           href: "/docs/developers" },
-  { label: "User Guidelines",      href: "/docs/user-guidelines" },
   { label: "API Docs",             href: "/docs/api" },
   { label: "Protocol",             href: "/docs/protocol" },
+  { label: "Security",             href: "/docs/security" },
+  { label: "Compliance",           href: "/docs/compliance" },
+  { label: "Governance & DAO",     href: "/docs/governance" },
+  { label: "User Guidelines",      href: "/docs/user-guidelines" },
   { label: "Community Guidelines", href: "/docs/community-guidelines" },
 ];
 

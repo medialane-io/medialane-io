@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Code2, Users, Terminal, Network, MessageSquare, ArrowRight } from "lucide-react";
+import { Code2, Users, Terminal, Network, MessageSquare, Shield, Scale, Vote, ArrowRight } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Docs | Medialane",
@@ -15,12 +15,6 @@ const SECTIONS = [
     description: "API reference, SDK usage, authentication, and integration guides for building on top of Medialane.",
   },
   {
-    href: "/docs/user-guidelines",
-    icon: Users,
-    title: "User Guidelines",
-    description: "How to use the Medialane platform responsibly — account rules, content standards, and best practices.",
-  },
-  {
     href: "/docs/api",
     icon: Terminal,
     title: "API Docs",
@@ -31,6 +25,30 @@ const SECTIONS = [
     icon: Network,
     title: "Protocol",
     description: "Technical specification of the Medialane onchain protocol — contracts, events, data structures, and standards.",
+  },
+  {
+    href: "/docs/security",
+    icon: Shield,
+    title: "Security",
+    description: "Defense-in-depth architecture, audit reports, decentralized storage, monitoring, and responsible disclosure.",
+  },
+  {
+    href: "/docs/compliance",
+    icon: Scale,
+    title: "Compliance",
+    description: "KYC/AML policy, securities regulations, IP law alignment (Berne Convention, DMCA), sanctions, and data protection.",
+  },
+  {
+    href: "/docs/governance",
+    icon: Vote,
+    title: "Governance & DAO",
+    description: "Medialane DAO LLC — governance charter, membership, voting, treasury, and the path to full community autonomy.",
+  },
+  {
+    href: "/docs/user-guidelines",
+    icon: Users,
+    title: "User Guidelines",
+    description: "How to use the Medialane platform responsibly — account rules, content standards, and best practices.",
   },
   {
     href: "/docs/community-guidelines",
