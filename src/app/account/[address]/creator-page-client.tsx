@@ -267,7 +267,7 @@ export default function CreatorPageClient() {
 
   return (
     <div
-      className="pb-20 min-h-screen"
+      className="relative z-0 min-h-screen pb-20"
       style={dynamicTheme ? (dynamicTheme as React.CSSProperties) : {}}
     >
       {/* Hidden extraction image for dominant color */}
@@ -283,64 +283,51 @@ export default function CreatorPageClient() {
         />
       )}
 
-      {hiddenStatus?.isHidden === true && <HiddenContentBanner />}
-
-      {/* ── Cinematic banner ─────────────────────────────────────────────── */}
-      <div className="relative h-48 sm:h-64 overflow-hidden">
-        {/* Layer 1 — blurred asset image */}
-        {bannerImage && (
-          <div className="absolute inset-0">
-            <NextImage
-              src={bannerImage}
-              alt=""
-              fill
-              className="object-cover scale-150"
-              style={{ opacity: 0.6, filter: "blur(48px) saturate(1.8) brightness(0.55)" }}
-              unoptimized
-              aria-hidden
-            />
-            <div className="absolute inset-0 bg-background/25" />
-          </div>
-        )}
-
-        {/* Layer 2 — address-derived mesh gradient (always present) */}
+      {/* ── Full-page atmospheric background (same technique as asset page) ── */}
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        {bannerImage ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={bannerImage}
+            alt=""
+            aria-hidden
+            className="absolute inset-0 w-full h-full object-cover scale-110"
+            style={{ opacity: 0.18, filter: "blur(60px) saturate(1.6)" }}
+          />
+        ) : null}
+        {/* Address-derived radial mesh — always present, intensity varies with image */}
         <div
           className="absolute inset-0"
           style={{
             background: `
-              radial-gradient(ellipse 90% 90% at 15% 60%, hsl(${h1}, 68%, 42% / ${bannerImage ? 0.28 : 0.52}) 0%, transparent 65%),
-              radial-gradient(ellipse 65% 65% at 85% 25%, hsl(${h2}, 68%, 38% / ${bannerImage ? 0.18 : 0.42}) 0%, transparent 60%),
-              radial-gradient(ellipse 45% 45% at 55% 85%, hsl(${h3}, 68%, 38% / ${bannerImage ? 0.12 : 0.30}) 0%, transparent 55%)
+              radial-gradient(ellipse 80% 80% at 20% 40%, hsl(${h1}, 68%, 42% / ${bannerImage ? 0.18 : 0.45}) 0%, transparent 60%),
+              radial-gradient(ellipse 60% 60% at 82% 20%, hsl(${h2}, 68%, 38% / ${bannerImage ? 0.12 : 0.32}) 0%, transparent 55%),
+              radial-gradient(ellipse 40% 40% at 55% 80%, hsl(${h3}, 68%, 38% / ${bannerImage ? 0.08 : 0.22}) 0%, transparent 50%)
             `,
           }}
         />
-
-        {/* Bottom fade to background */}
-        <div
-          className="absolute inset-x-0 bottom-0 h-28"
-          style={{ background: `linear-gradient(to bottom, transparent 0%, hsl(var(--background)) 100%)` }}
-        />
-
-        {/* Top edge fade */}
-        <div className="absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-background/15 to-transparent" />
+        <div className="absolute inset-0 bg-background/65" />
       </div>
+
+      {hiddenStatus?.isHidden === true && <HiddenContentBanner />}
 
       {/* ── Page body ────────────────────────────────────────────────────── */}
       <div className="px-6">
 
         {/* ── Identity row ─────────────────────────────────────────────── */}
-        <div className="-mt-14 sm:-mt-16 relative z-10">
-          <div className="flex flex-wrap items-end gap-x-4 gap-y-3 pb-6">
+        <div className="pt-16 pb-6 relative z-10">
+          <div className="flex flex-wrap items-end gap-x-5 gap-y-4">
+            {/* Avatar — token image or address-derived gradient */}
             <AddressAvatar
               address={address ?? "0x0"}
               image={latestImage}
-              size={88}
+              size={112}
               borderColor={dynamicTheme ? `hsl(var(--dynamic-primary))` : undefined}
             />
 
             <div className="flex-1 min-w-0 pb-1 space-y-1.5">
               <span className="pill-badge">Creator</span>
-              <h1 className="text-lg sm:text-xl font-bold font-mono tracking-tight leading-snug truncate text-foreground">
+              <h1 className="text-xl sm:text-2xl font-bold font-mono tracking-tight leading-snug truncate text-foreground">
                 {addr ? `${addr.slice(0, 10)}…${addr.slice(-8)}` : "—"}
               </h1>
               <AddressDisplay
