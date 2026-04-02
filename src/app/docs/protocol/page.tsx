@@ -37,24 +37,34 @@ export default function DocsProtocolPage() {
       <div className="space-y-8">
         <Section title="Contracts (Starknet Mainnet)">
           <div className="space-y-2">
-            <div className="bento-cell px-4 py-3 space-y-1">
-              <p className="text-sm font-semibold text-foreground">Marketplace Contract</p>
-              <p className="font-mono text-xs text-muted-foreground break-all">
-                0x059deafbbafbf7051c315cf75a94b03c5547892bc0c6dfa36d7ac7290d4cc33a
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Handles order creation, fulfillment, cancellation, and royalty distribution.
-              </p>
-            </div>
-            <div className="bento-cell px-4 py-3 space-y-1">
-              <p className="text-sm font-semibold text-foreground">Collection Registry Contract</p>
-              <p className="font-mono text-xs text-muted-foreground break-all">
-                0x05e73b7be06d82beeb390a0e0d655f2c9e7cf519658e04f05d9c690ccc41da03
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Factory for deploying IP NFT collections and registry for onchain collection IDs.
-              </p>
-            </div>
+            {[
+              {
+                name: "Marketplace Contract",
+                address: "0x059deafbbafbf7051c315cf75a94b03c5547892bc0c6dfa36d7ac7290d4cc33a",
+                desc: "Handles order creation, fulfillment, cancellation, and royalty distribution for all listings and offers.",
+              },
+              {
+                name: "Collection Registry Contract",
+                address: "0x05e73b7be06d82beeb390a0e0d655f2c9e7cf519658e04f05d9c690ccc41da03",
+                desc: "Factory for deploying IP NFT collections. Assigns a unique onchain collection ID to every deployed collection.",
+              },
+              {
+                name: "POP Protocol Factory",
+                address: "see NEXT_PUBLIC env — deployed per environment",
+                desc: "Factory contract for creating POP (Proof of Participation) events. Each event deploys a soulbound NFT contract. Manages provider registration and event lifecycle.",
+              },
+              {
+                name: "Collection Drop Factory",
+                address: "see NEXT_PUBLIC env — deployed per environment",
+                desc: "Factory for launching timed NFT drop events. Enforces supply caps, mint windows, allowlists, per-wallet limits, and mint prices onchain.",
+              },
+            ].map(({ name, address, desc }) => (
+              <div key={name} className="bento-cell px-4 py-3 space-y-1">
+                <p className="text-sm font-semibold text-foreground">{name}</p>
+                <p className="font-mono text-xs text-muted-foreground break-all">{address}</p>
+                <p className="text-xs text-muted-foreground mt-1">{desc}</p>
+              </div>
+            ))}
           </div>
         </Section>
 

@@ -29,7 +29,7 @@ const PILLARS = [
     icon: Users,
     title: "Creator-Governed",
     description:
-      "Medialane is moving toward DAO governance. Creators, collectors, and developers will shape the platform's future through onchain voting and community proposals.",
+      "Medialane is building toward community governance. Creators, collectors, and developers will shape the platform's future through onchain proposals and collective decision-making.",
   },
 ];
 
@@ -90,15 +90,22 @@ export default function AboutPage() {
         <p className="text-muted-foreground leading-relaxed">
           Medialane is built on <strong className="text-foreground">Starknet</strong>, an
           Ethereum Layer 2 network using ZK-STARK proofs for validity and scalability.
-          Our smart contracts are written in <strong className="text-foreground">Cairo</strong>,
-          Starknet&apos;s native language, and our off-chain services run on a high-performance
-          indexer and REST API that powers the web application.
+          Our smart contracts are written in <strong className="text-foreground">Cairo 2</strong>,
+          Starknet&apos;s native language, and cover the full platform: marketplace, collection
+          registry, POP Protocol, Collection Drop, on-chain comments, and gated content.
         </p>
         <p className="text-muted-foreground leading-relaxed">
-          The frontend is built with <strong className="text-foreground">Next.js 15</strong>,
-          and authentication is handled by <strong className="text-foreground">Clerk</strong>
-          with wallet derivation via <strong className="text-foreground">ChipiPay</strong> —
-          so users never need to manage private keys manually.
+          The off-chain layer is a high-performance indexer and REST API. The frontend is
+          built with <strong className="text-foreground">Next.js 15</strong> and authentication
+          is handled by <strong className="text-foreground">Clerk</strong> with wallet
+          derivation via <strong className="text-foreground">ChipiPay</strong> — including
+          passkey (biometric) support so users never need to manage private keys or
+          remember seed phrases.
+        </p>
+        <p className="text-muted-foreground leading-relaxed">
+          All platform data is accessible through the{" "}
+          <strong className="text-foreground">Medialane SDK</strong> — an open TypeScript
+          package that developers can use to build on top of the protocol.
         </p>
       </div>
 

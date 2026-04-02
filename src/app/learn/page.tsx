@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { BookOpen, Image, Rocket, Store, Globe, Shield, FileText, ArrowRight } from "lucide-react";
+import { BookOpen, Image, Rocket, Store, Globe, Shield, FileText, Award, Package, ArrowRight } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Learn | Medialane",
@@ -24,7 +24,19 @@ const TOPICS = [
     href: "/learn/marketplace",
     icon: Store,
     title: "Marketplace",
-    description: "Discover how to list, buy, sell, and make offers on IP assets in the Medialane marketplace.",
+    description: "Discover how to list, buy, sell, make offers, and trade IP assets — including supported currencies and royalties.",
+  },
+  {
+    href: "/learn/pop-protocol",
+    icon: Award,
+    title: "POP Protocol",
+    description: "Issue and claim on-chain proof-of-participation credentials — soulbound NFTs for events, communities, and milestones.",
+  },
+  {
+    href: "/learn/collection-drop",
+    icon: Package,
+    title: "Collection Drop",
+    description: "Launch time-limited NFT drop events with supply caps, mint windows, allowlists, and gasless onchain settlement.",
   },
   {
     href: "/learn/web3",

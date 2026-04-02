@@ -13,7 +13,11 @@ const FAQS = [
   },
   {
     q: "I forgot my PIN. What do I do?",
-    a: "Your PIN is used to encrypt your session key. If you forget it, you can generate a new session key from the onboarding flow. Your wallet and assets are never lost — they are tied to your authentication identity, not your PIN.",
+    a: "Your PIN is used to encrypt your session key. If you forget it, you can generate a new session key from the onboarding flow. Your wallet and assets are never lost — they are tied to your authentication identity, not your PIN. If your device supports biometrics, you can also set up Passkey authentication to sign transactions without a PIN.",
+  },
+  {
+    q: "Can I use passkeys instead of a PIN?",
+    a: "Yes. If your device supports WebAuthn (Face ID, Touch ID, Windows Hello, or a hardware security key), you can authenticate transactions with a passkey instead of entering your PIN each time. Set it up from Portfolio → Settings or during the session setup flow.",
   },
   {
     q: "My NFT minted but doesn't appear in my Portfolio.",
@@ -33,7 +37,7 @@ const FAQS = [
   },
   {
     q: "What currencies does Medialane support?",
-    a: "Medialane currently supports STRK and ETH on Starknet mainnet for marketplace transactions. Additional currencies may be added in future updates.",
+    a: "Medialane supports STRK, ETH, USDC, USDT, and WBTC on Starknet mainnet for marketplace listings and offers. You can filter the marketplace by token and set prices in any supported currency.",
   },
   {
     q: "How do royalties work?",
@@ -42,6 +46,14 @@ const FAQS = [
   {
     q: "I think someone copied my work. How do I report it?",
     a: "Send a DMCA notice to dmca@medialane.io with links to the infringing content, your original work, and a statement of ownership. We aim to respond within 3 business days.",
+  },
+  {
+    q: "What is the POP Protocol and how do I claim a credential?",
+    a: "The POP Protocol issues soulbound (non-transferable) NFTs as proof-of-participation for events, communities, and milestones. To claim one, go to Launchpad → POP Protocol, find an active event you participated in, and click Claim. It's free — gas is sponsored. Claimed credentials appear in your Portfolio.",
+  },
+  {
+    q: "How do I participate in a Collection Drop?",
+    a: "Go to Launchpad → Collection Drop to see active and upcoming drops. Click Mint on a drop you're eligible for, confirm with your PIN, and the NFT is sent to your wallet. Drop eligibility is enforced onchain — if your wallet is on the allowlist, you'll see the option automatically.",
   },
   {
     q: "Is Medialane available worldwide?",
@@ -158,6 +170,8 @@ export default function SupportPage() {
               <option value="minting">Minting issue</option>
               <option value="marketplace">Marketplace / trading</option>
               <option value="missing">Missing asset or listing</option>
+              <option value="pop">POP Protocol / credentials</option>
+              <option value="drop">Collection Drop</option>
               <option value="technical">Technical / API</option>
               <option value="other">Other</option>
             </select>

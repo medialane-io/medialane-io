@@ -95,11 +95,35 @@ export default function LearnMarketplacePage() {
           </p>
         </Section>
 
+        <Section title="Counter-Offers">
+          <p>
+            When you receive an offer on one of your assets, you can accept it, decline it,
+            or send a <strong className="text-foreground">counter-offer</strong>. A counter-offer
+            proposes a different price to the buyer — they can then accept, decline, or
+            counter again. Counter-offers are managed from{" "}
+            <strong className="text-foreground">Portfolio → Offers received</strong>.
+          </p>
+          <p>
+            Like all orders, counter-offers are signed intents and do not lock any funds
+            until accepted. Both parties can cancel at any time before acceptance.
+          </p>
+        </Section>
+
         <Section title="Supported Currencies">
           <p>
-            The Medialane marketplace currently supports <strong className="text-foreground">STRK</strong>{" "}
-            and <strong className="text-foreground">ETH</strong> on Starknet mainnet.
-            Additional currencies may be added through community governance in the future.
+            The Medialane marketplace supports the following tokens on Starknet mainnet:
+          </p>
+          <ul className="list-disc list-inside space-y-1.5 text-sm">
+            <li><strong className="text-foreground">STRK</strong> — Starknet&apos;s native token</li>
+            <li><strong className="text-foreground">ETH</strong> — Bridged Ethereum</li>
+            <li><strong className="text-foreground">USDC</strong> — USD Coin (Circle)</li>
+            <li><strong className="text-foreground">USDT</strong> — Tether USD</li>
+            <li><strong className="text-foreground">WBTC</strong> — Wrapped Bitcoin</li>
+          </ul>
+          <p>
+            The currency filter in the marketplace lets you browse listings and offers
+            by token. Price inputs are always in human-readable units — the protocol
+            handles precision conversion automatically.
           </p>
         </Section>
       </div>
