@@ -79,21 +79,22 @@ function CollapsibleNavItem({
 }: CollapsibleNavItemProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(defaultOpen);
-  const { state, isMobile } = useSidebar();
+  const { state, isMobile, setOpen: setSidebarOpen } = useSidebar();
   const collapsed = !isMobile && state === "collapsed";
 
-  // When sidebar collapses to icon-only, keep the group visually "closed"
-  // but don't change the open state so it restores on expand
   const isAnySubActive = sub.some((s) => pathname === s.href || pathname?.startsWith(s.href + "/"));
 
   if (collapsed) {
-    // In collapsed mode, show icon only — sub items accessible via tooltip
+    // In icon-only mode: clicking expands the sidebar and opens the group
     return (
       <SidebarMenuItem>
         <SidebarMenuButton
           tooltip={tooltip ?? label}
           isActive={isAnySubActive}
-          onClick={() => setOpen(true)}
+          onClick={() => {
+            setSidebarOpen(true);
+            setOpen(true);
+          }}
         >
           <Icon />
           <span>{label}</span>
