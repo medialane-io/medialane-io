@@ -9,7 +9,7 @@ import {
   Telescope, Compass, Briefcase, Plus, Activity,
   LayoutGrid, Users, BookOpen, FileCode2, Info, Mail, LifeBuoy,
   Sun, Moon, ShoppingBag, LogIn, PlusCircle, Search,
-  ChevronRight, ImagePlus, Layers, Award, Package,
+  ChevronRight,
 } from "lucide-react";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useUnreadOffers } from "@/hooks/use-unread-offers";
@@ -40,14 +40,6 @@ import { MedialaneIcon } from "../brand/medialane-icon";
 import { NotificationsItem } from "@/components/layout/notifications-sheet";
 
 // ── Sub-menu data ────────────────────────────────────────────────────────────
-
-const LAUNCHPAD_SUB = [
-  { href: "/launchpad",           label: "All Services",      icon: LayoutGrid },
-  { href: "/create/asset",        label: "Mint IP Asset",     icon: ImagePlus  },
-  { href: "/create/collection",   label: "Create Collection", icon: Layers     },
-  { href: "/launchpad/pop",       label: "POP Protocol",      icon: Award      },
-  { href: "/launchpad/drop",      label: "Collection Drop",   icon: Package    },
-];
 
 const EXPLORE_SUB = [
   { href: "/collections", label: "Collections", icon: LayoutGrid },
@@ -240,15 +232,20 @@ export function AppSidebar() {
               </SidebarMenuItem>
             ))}
 
-            {/* Launchpad — collapsible with Plus icon */}
-            <CollapsibleNavItem
-              label="Launchpad"
-              icon={Plus}
-              sub={LAUNCHPAD_SUB}
-              defaultOpen={onLaunchpad}
-              tooltip="Launchpad"
-              onClose={closeSidebar}
-            />
+            {/* Launchpad — direct link */}
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={onLaunchpad}
+                tooltip="Launchpad"
+                onClick={closeSidebar}
+              >
+                <Link href="/launchpad">
+                  <Plus />
+                  <span>Launchpad</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
 
             {/* Portfolio with unread badge */}
             <SidebarMenuItem>

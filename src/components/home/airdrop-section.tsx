@@ -10,6 +10,8 @@ import {
   Layers,
   ArrowRight,
   Rocket,
+  BookOpen,
+  FileCode2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -17,81 +19,93 @@ const FEATURES = [
   {
     icon: Paintbrush,
     label: "Mint IP Assets",
-    description: "Publish music, art, video and creative works as NFTs with programmable licensing — zero fees.",
     accent: "from-violet-500 to-purple-600",
-    shadow: "shadow-violet-500/15",
     href: "/create/asset",
     tag: "Live",
   },
   {
     icon: ShoppingBag,
     label: "Marketplace",
-    description: "Buy, sell, and make offers on IP assets. Gasless trading settled atomically on Starknet.",
     accent: "from-blue-500 to-cyan-500",
-    shadow: "shadow-blue-500/15",
     href: "/marketplace",
     tag: "Live",
   },
   {
     icon: Layers,
     label: "Collections",
-    description: "Deploy smart contract collections, set royalties, and manage your IP portfolio onchain.",
     accent: "from-sky-500 to-blue-600",
-    shadow: "shadow-sky-500/15",
     href: "/create/collection",
     tag: "Live",
   },
   {
     icon: Award,
     label: "POP Protocol",
-    description: "Issue on-chain proof-of-participation credentials for events, communities, and milestones.",
     accent: "from-emerald-400 to-teal-500",
-    shadow: "shadow-emerald-500/15",
     href: "/launchpad/pop",
     tag: "Live",
   },
   {
     icon: Package,
     label: "Collection Drop",
-    description: "Launch time-limited NFT drop events with allowlists, schedules, and onchain settlement.",
     accent: "from-orange-400 to-rose-500",
-    shadow: "shadow-orange-500/15",
     href: "/launchpad/drop",
     tag: "Live",
   },
   {
     icon: Bot,
     label: "AI Agent Ready",
-    description: "Autonomous agents can participate onchain — list, buy, license, and remix IP autonomously.",
     accent: "from-pink-500 to-fuchsia-600",
-    shadow: "shadow-pink-500/15",
     href: "/launchpad",
     tag: "Beta",
   },
+  {
+    icon: BookOpen,
+    label: "Learn",
+    accent: "from-violet-500 to-indigo-600",
+    href: "/learn",
+    tag: "Guide",
+  },
+  {
+    icon: FileCode2,
+    label: "Developer Docs",
+    accent: "from-slate-600 to-blue-700",
+    href: "/docs",
+    tag: "Dev",
+  },
 ] as const;
 
-function FeatureCard({ feature }: { feature: typeof FEATURES[number] }) {
-  const { icon: Icon, label, description, accent, shadow, href, tag } = feature;
+function ServiceCard({ feature }: { feature: typeof FEATURES[number] }) {
+  const { icon: Icon, label, accent, href, tag } = feature;
   return (
-    <Link
-      href={href}
-      className="group flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 hover:border-border/80 hover:bg-muted/30 transition-all duration-200 h-full"
-    >
-      <div className="flex items-start justify-between">
-        <div className={`h-10 w-10 rounded-xl flex items-center justify-center bg-gradient-to-br shadow-lg shrink-0 ${accent} ${shadow}`}>
-          <Icon className="h-4.5 w-4.5 text-white" />
+    <Link href={href} className="group block">
+      <div className="card-base overflow-hidden">
+        <div className={`relative aspect-[3/4] w-full bg-gradient-to-br ${accent}`}>
+          {/* Radial highlight */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_25%,rgba(255,255,255,0.14),transparent_60%)]" />
+
+          {/* Icon */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="h-20 w-20 rounded-3xl bg-white/10 backdrop-blur-sm flex items-center justify-center ring-1 ring-white/20 group-hover:bg-white/15 transition-colors duration-300">
+              <Icon className="h-10 w-10 text-white" />
+            </div>
+          </div>
+
+          {/* Tag */}
+          <div className="absolute top-3 right-3">
+            <span className="text-[9px] font-bold uppercase tracking-widest text-white/80 bg-black/25 backdrop-blur-md px-2 py-0.5 rounded-full">
+              {tag}
+            </span>
+          </div>
+
+          {/* Bottom overlay */}
+          <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/55 to-transparent" />
+
+          {/* Label */}
+          <div className="absolute bottom-0 left-0 right-0 px-3 pb-3">
+            <p className="font-bold text-sm text-white leading-snug">{label}</p>
+          </div>
         </div>
-        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 mt-1">
-          {tag}
-        </span>
       </div>
-      <div className="flex-1 space-y-1.5">
-        <p className="font-bold text-sm text-foreground group-hover:text-foreground/90 transition-colors leading-snug">
-          {label}
-        </p>
-        <p className="text-xs text-muted-foreground leading-relaxed">{description}</p>
-      </div>
-      <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/30 group-hover:text-primary group-hover:translate-x-1 transition-all duration-200" />
     </Link>
   );
 }
@@ -116,8 +130,8 @@ export function AirdropSection() {
       <div className="w-full overflow-x-auto scrollbar-hide">
         <div className="flex gap-3 snap-x snap-mandatory pb-2" style={{ width: "max-content" }}>
           {FEATURES.map((f) => (
-            <div key={f.label} className="w-56 sm:w-64 snap-start shrink-0">
-              <FeatureCard feature={f} />
+            <div key={f.label} className="w-44 sm:w-52 snap-start shrink-0">
+              <ServiceCard feature={f} />
             </div>
           ))}
         </div>

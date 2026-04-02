@@ -4,7 +4,6 @@ import { HeroSlider } from "./hero-slider";
 import { AirdropSection } from "./airdrop-section";
 import { TrendingCollections } from "./trending-collections";
 import { NewOnMarketplace } from "./new-on-marketplace";
-import { LearnDocsCta } from "./learn-docs-cta";
 import { ActivityTicker } from "@/components/shared/activity-ticker";
 
 export function HomePage() {
@@ -23,7 +22,6 @@ export function HomePage() {
         <TrendingCollections />
         <NewOnMarketplace />
         <AirdropSection />
-        <LearnDocsCta />
       </div>
     </div>
   );

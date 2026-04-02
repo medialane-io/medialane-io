@@ -12,6 +12,7 @@ import { SessionPreferencesSwitch } from "@/components/chipi/session-preferences
 import { Aurora } from "@/components/ui/aurora";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { MedialaneLogo } from "@/components/brand/medialane-logo";
+import Image from "next/image";
 import { SWRConfig } from "swr";
 import { ChipiSessionUnlockProvider } from "@/contexts/chipi-session-unlock-context";
 
@@ -30,7 +31,12 @@ function Shell({ children }: { children: React.ReactNode }) {
       <ChipiSessionUnlockProvider>
       <AppSidebar />
       <SidebarInset>
-        <SidebarTrigger className="absolute top-3 left-3 z-50" />
+        <div className="absolute top-3 left-3 z-50 flex items-center gap-1.5">
+          <SidebarTrigger />
+          <div className="flex md:hidden items-center">
+            <Image src="/icon.png" alt="Medialane" width={26} height={26} className="rounded-sm opacity-90" priority />
+          </div>
+        </div>
         {/* SessionPreferencesSwitch hidden — surfaced inside account/wallet settings instead */}
         <main className="flex-1 bg-background overflow-x-hidden">{children}</main>
         <footer className="bg-background border-t border-border/60 px-6 py-8 mt-auto">
@@ -72,7 +78,20 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <Aurora />
         <Shell>{children}</Shell>
         <CartDrawer />
-        <Toaster richColors position="bottom-right" />
+        <Toaster
+          richColors
+          position="bottom-right"
+          closeButton
+          gap={6}
+          toastOptions={{
+            classNames: {
+              toast: "rounded-2xl shadow-2xl border border-border/40 font-sans",
+              title: "font-semibold tracking-tight text-[13px]",
+              description: "text-xs opacity-75",
+              closeButton: "rounded-full border-border/50 hover:bg-muted",
+            },
+          }}
+        />
       </SWRConfig>
     </ThemeProvider>
   );
