@@ -21,6 +21,7 @@ import { ipfsToHttp, timeUntil, timeAgo, formatDisplayPrice } from "@/lib/utils"
 import { ShoppingCart, Tag, ExternalLink, Clock, HandCoins, ArrowRightLeft, X, CheckCircle, DollarSign, GitBranch, UserCheck, Globe, Bot, Percent, Shield, Calendar, ChevronRight, Flag, Loader2 } from "lucide-react";
 import { FloatingCommentsButton } from "@/components/asset/floating-comments-button";
 import { ReportDialog } from "@/components/report-dialog";
+import { ShareButton } from "@/components/shared/share-button";
 import { HiddenContentBanner } from "@/components/hidden-content-banner";
 import { LICENSE_TRAIT_TYPES } from "@/types/ip";
 import type { IPType } from "@/types/ip";
@@ -609,6 +610,7 @@ export default function AssetPageClient() {
                   <span className="text-xs font-medium truncate group-hover:text-primary transition-colors max-w-[120px]">{collection.name}</span>
                 </Link>
               )}
+              <ShareButton title={name ?? `Token #${token?.tokenId}`} variant="ghost" size="icon" />
               <Button
                 variant="ghost"
                 size="icon"

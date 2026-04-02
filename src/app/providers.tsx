@@ -48,9 +48,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         <main className="flex-1 bg-background overflow-x-hidden">{children}</main>
         <footer className="bg-background border-t border-border/60 px-6 py-8 mt-auto">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <MedialaneLogo />
-            </div>
+            <p className="text-xs">© {new Date().getFullYear()} Medialane DAO</p>
             <nav className="flex items-center gap-4 flex-wrap justify-center">
               <Link href="/marketplace" className="hover:text-foreground transition-colors">Trade</Link>
               <Link href="/launchpad" className="hover:text-foreground transition-colors">Launch</Link>
@@ -62,7 +60,9 @@ function Shell({ children }: { children: React.ReactNode }) {
               <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
               <a href="https://x.com/medialane_io" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">X</a>
             </nav>
-            <p className="text-xs">© {new Date().getFullYear()} Medialane DAO</p>
+            <div className="flex items-center gap-2">
+              <MedialaneLogo />
+            </div>
           </div>
         </footer>
       </SidebarInset>

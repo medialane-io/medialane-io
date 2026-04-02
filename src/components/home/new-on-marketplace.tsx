@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Store } from "lucide-react";
+import { ArrowRight, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useOrders } from "@/hooks/use-orders";
 import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listing-card";
@@ -20,10 +20,10 @@ export function NewOnMarketplace() {
     <section className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center shadow-lg shadow-rose-500/20">
-            <Store className="h-4 w-4 text-white" />
+          <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center shadow-md shadow-rose-500/20">
+            <Tag className="h-3.5 w-3.5 text-white" />
           </div>
-          <h2 className="text-xl sm:text-2xl font-black">New listings</h2>
+          <h2 className="text-lg sm:text-xl font-semibold">New listings</h2>
         </div>
         <Button variant="ghost" size="sm" asChild>
           <Link href="/marketplace" className="flex items-center gap-1 text-muted-foreground hover:text-foreground">

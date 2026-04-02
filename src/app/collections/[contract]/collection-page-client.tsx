@@ -15,6 +15,7 @@ import { AddressDisplay } from "@/components/shared/address-display";
 import { ArrowLeft, Loader2, Flag, Inbox, Lock, Unlock, Play, FileText, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ReportDialog } from "@/components/report-dialog";
+import { ShareButton } from "@/components/shared/share-button";
 import { TraitFilter } from "@/components/collection/trait-filter";
 import { SweepBar } from "@/components/collection/sweep-bar";
 import { HiddenContentBanner } from "@/components/hidden-content-banner";
@@ -354,6 +355,7 @@ export default function CollectionPageClient() {
               chars={6}
               className="text-xs text-muted-foreground/70"
             />
+            <ShareButton title={collection.name ?? "Collection"} variant="ghost" size="icon" />
             <button
               onClick={() => setReportOpen(true)}
               title="Report this collection"

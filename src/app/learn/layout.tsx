@@ -21,16 +21,19 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
 
   return (
-    <div className="container mx-auto px-4 pt-12 pb-16 max-w-6xl space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">Learn</h1>
-        <p className="text-muted-foreground mt-1 text-sm">
+    <div className="container mx-auto px-4 pt-10 pb-16 max-w-6xl space-y-0">
+      {/* Header */}
+      <div className="pb-6 border-b border-border/50">
+        <p className="text-xs font-semibold uppercase tracking-widest text-primary/70 mb-2">Education</p>
+        <h1 className="text-2xl font-bold">Learn</h1>
+        <p className="text-muted-foreground mt-1 text-sm max-w-xl">
           Understand IP ownership, blockchain technology, and how Medialane works.
         </p>
       </div>
 
-      <nav className="overflow-x-auto scrollbar-hide -mx-4 px-4 border-b border-border/60">
-        <div className="flex items-center gap-0 min-w-max">
+      {/* Pill tab nav */}
+      <nav className="overflow-x-auto scrollbar-hide py-4">
+        <div className="flex items-center gap-1.5 min-w-max">
           {LEARN_NAV.map((item) => {
             const active =
               item.href === "/learn"
@@ -41,10 +44,10 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "px-4 py-2.5 text-sm whitespace-nowrap transition-colors border-b-2 -mb-px",
+                  "px-3 py-1.5 text-sm rounded-full whitespace-nowrap transition-all font-medium",
                   active
-                    ? "text-foreground font-medium border-primary"
-                    : "text-muted-foreground hover:text-foreground border-transparent"
+                    ? "bg-foreground text-background"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                 )}
               >
                 {item.label}
@@ -54,7 +57,8 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
         </div>
       </nav>
 
-      <div>{children}</div>
+      {/* Content */}
+      <div className="pt-2">{children}</div>
     </div>
   );
 }

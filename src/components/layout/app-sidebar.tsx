@@ -9,7 +9,7 @@ import {
   Telescope, Compass, Briefcase, Plus, Activity,
   LayoutGrid, Users, BookOpen, FileCode2, Info, Mail, LifeBuoy,
   Sun, Moon, ShoppingBag, LogIn, PlusCircle, Search,
-  ChevronRight,
+  ChevronRight, Music, Palette, Film, Camera, Gem,
 } from "lucide-react";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useUnreadOffers } from "@/hooks/use-unread-offers";
@@ -42,9 +42,14 @@ import { NotificationsItem } from "@/components/layout/notifications-sheet";
 // ── Sub-menu data ────────────────────────────────────────────────────────────
 
 const EXPLORE_SUB = [
-  { href: "/collections", label: "Collections", icon: LayoutGrid },
-  { href: "/creators",    label: "Creators",    icon: Users      },
-  { href: "/activities",  label: "Activity",    icon: Activity   },
+  { href: "/collections",  label: "Collections",  icon: LayoutGrid },
+  { href: "/creators",     label: "Creators",     icon: Users      },
+  { href: "/activities",   label: "Activity",     icon: Activity   },
+  { href: "/audio",        label: "Audio",        icon: Music      },
+  { href: "/art",          label: "Art",          icon: Palette    },
+  { href: "/video",        label: "Video",        icon: Film       },
+  { href: "/photography",  label: "Photography",  icon: Camera     },
+  { href: "/nft",          label: "NFT",          icon: Gem        },
 ];
 
 const RESOURCES_SUB = [

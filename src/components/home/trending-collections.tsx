@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Clock } from "lucide-react";
+import { ArrowRight, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCollections } from "@/hooks/use-collections";
 import { CollectionCard, CollectionCardSkeleton } from "@/components/shared/collection-card";
@@ -14,10 +14,10 @@ export function TrendingCollections() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
-            <Clock className="h-4 w-4 text-white" />
+          <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shadow-md shadow-violet-500/20">
+            <TrendingUp className="h-3.5 w-3.5 text-white" />
           </div>
-          <h2 className="text-xl sm:text-2xl font-black">Onchain Collections</h2>
+          <h2 className="text-lg sm:text-xl font-semibold">Onchain Collections</h2>
         </div>
         <Button variant="ghost" size="sm" asChild>
           <Link href="/collections" className="flex items-center gap-1 text-muted-foreground hover:text-foreground">

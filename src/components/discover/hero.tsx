@@ -3,11 +3,14 @@
 import { motion } from "framer-motion";
 import { usePlatformStats } from "@/hooks/use-stats";
 import { useOrders } from "@/hooks/use-orders";
+import { useMemo } from "react";
 import { KineticWords, EASE_OUT } from "@/components/ui/motion-primitives";
 import { ActivityTicker } from "@/components/shared/activity-ticker";
 
 export function Hero() {
   const { stats } = usePlatformStats();
+  const { orders } = useOrders({ status: "ACTIVE", limit: 100, page: 1 });
+  const listingsCount = useMemo(() => orders.filter((o) => o.offer.itemType === "ERC721").length, [orders]);
 
   return (
     <div className="space-y-6 pt-2 pb-6 border-b border-border/50">
@@ -67,6 +70,7 @@ export function Hero() {
           {[
             { label: "Collections", value: stats.collections },
             { label: "Assets", value: stats.tokens },
+            { label: "Listings", value: listingsCount || null },
             { label: "Sales", value: stats.sales },
           ].map(({ label, value }) => (
             <div

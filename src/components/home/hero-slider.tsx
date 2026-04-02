@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 import { useCollections } from "@/hooks/use-collections";
@@ -29,16 +30,24 @@ function HeroSlide({
         active ? "opacity-100" : "opacity-0 pointer-events-none"
       )}
     >
-      {/* Background image */}
+      {/* Background image with Ken Burns motion */}
       {imageUrl ? (
-        <Image
-          src={imageUrl}
-          alt={name}
-          fill
-          className="object-cover scale-105"
-          priority={active}
-          unoptimized
-        />
+        <motion.div
+          className="absolute inset-0"
+          key={collection.contractAddress + (active ? "-active" : "-idle")}
+          initial={{ scale: 1.04, x: 0, y: 0 }}
+          animate={active ? { scale: 1.12, x: -12, y: -6 } : { scale: 1.04 }}
+          transition={{ duration: 8, ease: "linear" }}
+        >
+          <Image
+            src={imageUrl}
+            alt={name}
+            fill
+            className="object-cover"
+            priority={active}
+            unoptimized
+          />
+        </motion.div>
       ) : (
         <div className="absolute inset-0 bg-gradient-to-br from-brand-purple/40 via-brand-blue/20 to-brand-navy/60" />
       )}
@@ -98,7 +107,6 @@ function HeroPlaceholder() {
 
 // ---- Main slider ----
 export function HeroSlider() {
-  // Fetch the 3 most recent featured (isKnown=true) collections from the API
   const { collections, isLoading } = useCollections(1, 3, true, "recent");
   const [current, setCurrent] = useState(0);
   const count = collections.length;
@@ -111,14 +119,12 @@ export function HeroSlider() {
     if (count > 1) setCurrent((c) => (c - 1 + count) % count);
   }, [count]);
 
-  // Auto-advance every 5s
   useEffect(() => {
     if (count <= 1) return;
-    const id = setInterval(next, 5000);
+    const id = setInterval(next, 7000);
     return () => clearInterval(id);
   }, [count, next]);
 
-  // Loading shimmer
   if (isLoading) {
     return (
       <section className="relative w-full h-[78vw] min-h-[420px] max-h-[768px] sm:h-[72vh] sm:max-h-[816px] bg-muted animate-pulse" />
@@ -135,7 +141,6 @@ export function HeroSlider() {
             <HeroSlide key={col.contractAddress} collection={col} active={i === current} />
           ))}
 
-          {/* Prev / Next arrows */}
           {count > 1 && (
             <>
               <button
@@ -155,7 +160,6 @@ export function HeroSlider() {
             </>
           )}
 
-          {/* Dot indicators */}
           {count > 1 && (
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
               {collections.map((_, i) => (

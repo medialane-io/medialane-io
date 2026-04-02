@@ -2,16 +2,8 @@
 
 import Link from "next/link";
 import {
-  Paintbrush,
-  ShoppingBag,
-  Bot,
-  Award,
-  Package,
-  Layers,
-  ArrowRight,
-  Rocket,
-  BookOpen,
-  FileCode2,
+  Paintbrush, ShoppingBag, Bot, Award, Package, Layers,
+  ArrowRight, Rocket, BookOpen, FileCode2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -19,63 +11,63 @@ const FEATURES = [
   {
     icon: Paintbrush,
     label: "Mint IP Assets",
+    subtitle: "Zero fees, permanent record on Starknet",
     accent: "from-violet-500 to-purple-600",
     href: "/create/asset",
-    tag: "Live",
   },
   {
     icon: ShoppingBag,
     label: "Marketplace",
+    subtitle: "Gasless trading, settled atomically",
     accent: "from-blue-500 to-cyan-500",
     href: "/marketplace",
-    tag: "Live",
   },
   {
     icon: Layers,
     label: "Collections",
+    subtitle: "Deploy your branded IP catalog",
     accent: "from-sky-500 to-blue-600",
     href: "/create/collection",
-    tag: "Live",
   },
   {
     icon: Award,
     label: "POP Protocol",
+    subtitle: "Soulbound event credentials",
     accent: "from-emerald-400 to-teal-500",
     href: "/launchpad/pop",
-    tag: "Live",
   },
   {
     icon: Package,
     label: "Collection Drop",
+    subtitle: "Limited-edition NFT releases",
     accent: "from-orange-400 to-rose-500",
     href: "/launchpad/drop",
-    tag: "Live",
   },
   {
     icon: Bot,
     label: "AI Agent Ready",
+    subtitle: "Autonomous IP participation",
     accent: "from-pink-500 to-fuchsia-600",
     href: "/launchpad",
-    tag: "Beta",
   },
   {
     icon: BookOpen,
     label: "Learn",
+    subtitle: "Creator education & guides",
     accent: "from-violet-500 to-indigo-600",
     href: "/learn",
-    tag: "Guide",
   },
   {
     icon: FileCode2,
     label: "Developer Docs",
+    subtitle: "API, contracts & protocol reference",
     accent: "from-slate-600 to-blue-700",
     href: "/docs",
-    tag: "Dev",
   },
 ] as const;
 
 function ServiceCard({ feature }: { feature: typeof FEATURES[number] }) {
-  const { icon: Icon, label, accent, href, tag } = feature;
+  const { icon: Icon, label, subtitle, accent, href } = feature;
   return (
     <Link href={href} className="group block">
       <div className="card-base overflow-hidden">
@@ -83,26 +75,23 @@ function ServiceCard({ feature }: { feature: typeof FEATURES[number] }) {
           {/* Radial highlight */}
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_25%,rgba(255,255,255,0.14),transparent_60%)]" />
 
-          {/* Icon */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="h-20 w-20 rounded-3xl bg-white/10 backdrop-blur-sm flex items-center justify-center ring-1 ring-white/20 group-hover:bg-white/15 transition-colors duration-300">
-              <Icon className="h-10 w-10 text-white" />
+          {/* Large decorative icon (background) */}
+          <div className="absolute -bottom-6 -right-6 opacity-[0.12] pointer-events-none">
+            <Icon className="h-36 w-36 text-white" />
+          </div>
+
+          {/* Card layout */}
+          <div className="absolute inset-0 flex flex-col justify-between p-4">
+            {/* Top: small icon */}
+            <div className="h-11 w-11 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center ring-1 ring-white/20 group-hover:bg-white/18 transition-colors duration-300">
+              <Icon className="h-5.5 w-5.5 text-white" />
             </div>
-          </div>
 
-          {/* Tag */}
-          <div className="absolute top-3 right-3">
-            <span className="text-[9px] font-bold uppercase tracking-widest text-white/80 bg-black/25 backdrop-blur-md px-2 py-0.5 rounded-full">
-              {tag}
-            </span>
-          </div>
-
-          {/* Bottom overlay */}
-          <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/55 to-transparent" />
-
-          {/* Label */}
-          <div className="absolute bottom-0 left-0 right-0 px-3 pb-3">
-            <p className="font-bold text-sm text-white leading-snug">{label}</p>
+            {/* Bottom: title + subtitle */}
+            <div>
+              <p className="text-lg font-black text-white leading-tight tracking-tight">{label}</p>
+              <p className="text-xs text-white/65 mt-1.5 leading-relaxed">{subtitle}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -115,10 +104,10 @@ export function AirdropSection() {
     <section className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg shadow-primary/20">
-            <Rocket className="h-4 w-4 text-white" />
+          <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-md shadow-primary/20">
+            <Rocket className="h-3.5 w-3.5 text-white" />
           </div>
-          <h2 className="text-xl sm:text-2xl font-black">Creator Launchpad</h2>
+          <h2 className="text-lg sm:text-xl font-semibold">Creator Launchpad</h2>
         </div>
         <Button variant="ghost" size="sm" asChild>
           <Link href="/launchpad" className="flex items-center gap-1 text-muted-foreground hover:text-foreground">

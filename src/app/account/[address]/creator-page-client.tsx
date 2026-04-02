@@ -33,6 +33,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { ReportDialog } from "@/components/report-dialog";
+import { ShareButton } from "@/components/shared/share-button";
 import { HiddenContentBanner } from "@/components/hidden-content-banner";
 import type { ApiActivity } from "@medialane/sdk";
 import { cn } from "@/lib/utils";
@@ -350,17 +351,7 @@ export default function CreatorPageClient() {
             </div>
 
             <div className="pb-1 shrink-0 flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  navigator.clipboard.writeText(window.location.href);
-                  toast.success("Link copied");
-                }}
-              >
-                <Share2 className="h-3.5 w-3.5 mr-1.5" />
-                Share
-              </Button>
+              <ShareButton title="Creator Profile" />
               <Button
                 variant="ghost"
                 size="icon"

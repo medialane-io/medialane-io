@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { useUser } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useUserOrders } from "@/hooks/use-orders";
@@ -17,7 +16,7 @@ import {
   Zap, ImagePlus, Layers, ArrowRight,
   Package, Tag, ShoppingCart,
   GitBranch, Users, RefreshCw, Ticket, Coins, TrendingUp,
-  Lock, Globe, ExternalLink, Award, Search, X,
+  Lock, Globe, ExternalLink, Award,
 } from "lucide-react";
 
 // ── Hero stats ──────────────────────────────────────────────────────────────
@@ -260,7 +259,7 @@ function ServiceCard({ s }: { s: ServiceDef }) {
         {/* Text */}
         <div className="space-y-1.5">
           <p className={cn(
-            "text-[17px] font-semibold leading-snug tracking-tight",
+            "text-xl sm:text-2xl font-bold leading-snug tracking-tight",
             !active && "text-foreground/40"
           )}>
             {s.title}
@@ -346,26 +345,7 @@ export function LaunchpadContent() {
   const { isSignedIn } = useUser();
   const { walletAddress } = useSessionKey();
 
-  const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<"all" | ServiceCategory>("all");
-
-  const filtered = useMemo(() => SERVICES.filter((s) => {
-    const q = search.toLowerCase();
-    const matchesSearch = !q
-      || s.title.toLowerCase().includes(q)
-      || s.subtitle.toLowerCase().includes(q)
-      || s.description.toLowerCase().includes(q)
-      || s.features.some((f) => f.toLowerCase().includes(q));
-    const matchesFilter = filter === "all" || s.category === filter;
-    return matchesSearch && matchesFilter;
-  }), [search, filter]);
-
-  const counts = useMemo(() => ({
-    all:      SERVICES.length,
-    create:   SERVICES.filter((s) => s.category === "create").length,
-    launch:   SERVICES.filter((s) => s.category === "launch").length,
-    monetize: SERVICES.filter((s) => s.category === "monetize").length,
-  }), []);
+  const filtered = SERVICES;
 
   return (
     <div className="pb-16 space-y-10">
@@ -400,71 +380,17 @@ export function LaunchpadContent() {
       {/* ── Services ─────────────────────────────────────────────── */}
       <section className="px-4 space-y-5">
 
-        {/* Search + filter */}
-        <FadeIn>
-          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-
-            {/* Search */}
-            <div className="relative w-full sm:max-w-xs">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-              <Input
-                placeholder="Search…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 pr-9 h-9 bg-muted/30 border-border/40 text-sm rounded-full"
-              />
-              {search && (
-                <button
-                  type="button"
-                  onClick={() => setSearch("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              )}
-            </div>
-
-            {/* Intent filters */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <FilterChip active={filter === "all"}      onClick={() => setFilter("all")}>
-                All <span className="opacity-40 text-xs ml-0.5">{counts.all}</span>
-              </FilterChip>
-              <FilterChip active={filter === "create"}   onClick={() => setFilter("create")}>
-                Create
-              </FilterChip>
-              <FilterChip active={filter === "launch"}   onClick={() => setFilter("launch")}>
-                Launch
-              </FilterChip>
-              <FilterChip active={filter === "monetize"} onClick={() => setFilter("monetize")}>
-                Monetize
-              </FilterChip>
-            </div>
-
-          </div>
-        </FadeIn>
-
         {/* Grid */}
-        {filtered.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-border/40 p-16 text-center space-y-3">
-            <Search className="h-7 w-7 text-muted-foreground/20 mx-auto" />
-            <p className="text-sm text-muted-foreground">No services match your search.</p>
-            <Button variant="ghost" size="sm" onClick={() => { setSearch(""); setFilter("all"); }}>
-              Clear
-            </Button>
-          </div>
-        ) : (
-          <motion.div
-            key={filter + "|" + search}
-            className="grid grid-cols-1 sm:grid-cols-2 gap-4"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-          >
-            {filtered.map((s) => (
-              <ServiceCard key={s.title} s={s} />
-            ))}
-          </motion.div>
-        )}
+        <motion.div
+          className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+        >
+          {filtered.map((s) => (
+            <ServiceCard key={s.title} s={s} />
+          ))}
+        </motion.div>
 
       </section>
 
