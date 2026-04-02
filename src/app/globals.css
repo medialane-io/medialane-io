@@ -261,6 +261,15 @@
   100% { transform: translateX(-50%); }
 }
 
+@keyframes kenburns {
+  0%   { transform: scale(1.0) translate(0%, 0%); }
+  100% { transform: scale(1.08) translate(-1.5%, -1%); }
+}
+.animate-kenburns {
+  animation: kenburns 8s ease-in-out infinite alternate;
+  transform-origin: center center;
+}
+
 /* Hide browser number input spinners — price inputs use custom currency suffix */
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {

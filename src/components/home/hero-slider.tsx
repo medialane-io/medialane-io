@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 import { useCollections } from "@/hooks/use-collections";
@@ -30,24 +29,20 @@ function HeroSlide({
         active ? "opacity-100" : "opacity-0 pointer-events-none"
       )}
     >
-      {/* Background image with Ken Burns motion */}
+      {/* Background image with continuous Ken Burns CSS animation */}
       {imageUrl ? (
-        <motion.div
-          className="absolute inset-0"
-          key={collection.contractAddress + (active ? "-active" : "-idle")}
-          initial={{ scale: 1.04, x: 0, y: 0 }}
-          animate={active ? { scale: 1.12, x: -12, y: -6 } : { scale: 1.04 }}
-          transition={{ duration: 8, ease: "linear" }}
-        >
-          <Image
-            src={imageUrl}
-            alt={name}
-            fill
-            className="object-cover"
-            priority={active}
-            unoptimized
-          />
-        </motion.div>
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="animate-kenburns absolute inset-0">
+            <Image
+              src={imageUrl}
+              alt={name}
+              fill
+              className="object-cover"
+              priority={active}
+              unoptimized
+            />
+          </div>
+        </div>
       ) : (
         <div className="absolute inset-0 bg-gradient-to-br from-brand-purple/40 via-brand-blue/20 to-brand-navy/60" />
       )}
