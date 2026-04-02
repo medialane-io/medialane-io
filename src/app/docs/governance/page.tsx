@@ -16,7 +16,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 export default function DocsGovernancePage() {
   return (
-    <div className="space-y-10 max-w-3xl">
+    <div className="space-y-10">
       <div className="space-y-2">
         <h2 className="text-2xl font-bold">Governance & DAO</h2>
         <p className="text-muted-foreground text-lg leading-relaxed">

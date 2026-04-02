@@ -33,7 +33,7 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 pt-12 pb-16 max-w-4xl space-y-12">
+    <div className="container mx-auto px-4 pt-12 pb-16 max-w-6xl space-y-12">
       {/* Header */}
       <div className="space-y-3">
         <h1 className="text-3xl font-bold">Reach Us</h1>

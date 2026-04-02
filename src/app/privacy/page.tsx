@@ -18,7 +18,7 @@ function Section({ num, title, children }: { num: string; title: string; childre
 
 export default function PrivacyPage() {
   return (
-    <div className="container mx-auto px-4 pt-12 pb-16 max-w-3xl space-y-10">
+    <div className="container mx-auto px-4 pt-12 pb-16 max-w-5xl space-y-10">
       <div className="space-y-3">
         <h1 className="text-3xl font-bold">Privacy Policy</h1>
         <p className="text-muted-foreground text-sm">Last updated: March 14, 2026</p>

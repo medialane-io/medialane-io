@@ -48,7 +48,7 @@ const PILLARS = [
 
 export default function AboutPage() {
   return (
-    <div className="container mx-auto px-4 pt-12 pb-16 max-w-4xl space-y-16">
+    <div className="container mx-auto px-4 pt-12 pb-16 max-w-6xl space-y-16">
 
       {/* Hero */}
       <div className="space-y-5">
