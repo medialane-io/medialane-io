@@ -254,27 +254,14 @@ export default function CreatorPageClient() {
 
       {hiddenStatus?.isHidden === true && <HiddenContentBanner />}
 
-      {/* ── Profile header — no wasted space ─────────────────────────────── */}
-      <div className="relative px-6 pt-8 pb-6 overflow-hidden">
-        {/* Address-hued top accent line */}
-        <div className="absolute top-0 left-0 right-0 h-[3px]"
-          style={{ background: `linear-gradient(90deg, hsl(${h1},65%,52%), hsl(${h2},60%,48%), hsl(${h3},55%,50%))` }} />
-
-        <div className="flex items-start gap-5">
-          <AddressAvatar address={address ?? "0x0"} image={null} size={72} />
-          <div className="flex-1 min-w-0 pt-1 space-y-1">
-            <span className="pill-badge block w-fit">Creator</span>
-            <h1 className="text-xl sm:text-2xl font-bold font-mono tracking-tight truncate leading-tight">
-              {addr ? `${addr.slice(0, 10)}…${addr.slice(-8)}` : "—"}
-            </h1>
-            <AddressDisplay address={address ?? ""} chars={8} className="text-xs text-muted-foreground" />
-          </div>
-          <div className="flex items-center gap-2 pt-1 shrink-0">
-            <ShareButton title="Creator Profile" size="sm" variant="outline" />
-            <Button variant="ghost" size="icon" onClick={() => setReportOpen(true)} title="Report">
-              <Flag className="w-4 h-4" />
-            </Button>
-          </div>
+      {/* ── Header ───────────────────────────────────────────────────────── */}
+      <div className="px-6 pt-6 pb-4 flex items-center gap-3">
+        <AddressDisplay address={address ?? ""} chars={10} className="text-sm font-mono font-semibold flex-1 min-w-0" />
+        <div className="flex items-center gap-1 shrink-0">
+          <ShareButton title="Creator Profile" size="icon" variant="ghost" />
+          <Button variant="ghost" size="icon" onClick={() => setReportOpen(true)}>
+            <Flag className="w-4 h-4 text-muted-foreground" />
+          </Button>
         </div>
       </div>
 
