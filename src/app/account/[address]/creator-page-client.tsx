@@ -9,7 +9,6 @@ import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useUserOrders } from "@/hooks/use-orders";
 import { useActivitiesByAddress } from "@/hooks/use-activities";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
-import { useDominantColor } from "@/hooks/use-dominant-color";
 import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listing-card";
@@ -236,19 +235,11 @@ export default function CreatorPageClient() {
   const { collections, isLoading: collectionsLoading } = useCollectionsByOwner(activeTab === "collections" ? addr : null);
   const { activities,  isLoading: activitiesLoading  } = useActivitiesByAddress(activeTab === "activity" ? addr : null);
 
-  // One token for the hero backdrop
-  const { tokens: heroTokens } = useTokensByOwner(addr, 1, 1);
-
   const activeListings = orders.filter(
     (o) => o.status === "ACTIVE" && o.offer.itemType === "ERC721"
   );
 
   const { h1, h2, h3 } = addressPalette(addr ?? "0x0");
-
-  const heroRaw = heroTokens[0]?.metadata?.image ? ipfsToHttp(heroTokens[0].metadata.image) : null;
-  const heroImage = heroRaw && heroRaw !== "/placeholder.svg" ? heroRaw : null;
-
-  const { imgRef, dynamicTheme } = useDominantColor(heroImage);
 
   // Tab count badges — only shown once that tab has been visited and loaded
   const tabBadge: Partial<Record<TabId, number>> = {
@@ -259,71 +250,47 @@ export default function CreatorPageClient() {
   };
 
   return (
-    <div
-      className="relative z-0 min-h-screen pb-20"
-      style={dynamicTheme ? (dynamicTheme as React.CSSProperties) : {}}
-    >
-      {/* Hidden color extractor */}
-      {heroImage && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img ref={imgRef} src={heroImage} crossOrigin="anonymous" aria-hidden alt="" style={{ display: "none" }} />
-      )}
+    <div className="min-h-screen pb-20">
 
       {hiddenStatus?.isHidden === true && <HiddenContentBanner />}
 
-      {/* ── Cinematic hero — image + identity overlaid ───────────────────── */}
-      <div className="relative w-full h-[56vw] min-h-[300px] max-h-[500px] overflow-hidden bg-muted">
-        {/* Featured token image */}
-        {heroImage ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={heroImage} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover" />
-        ) : (
-          <div
-            className="absolute inset-0"
-            style={{ background: `linear-gradient(135deg, hsl(${h1},55%,30%) 0%, hsl(${h2},50%,22%) 50%, hsl(${h3},45%,25%) 100%)` }}
-          />
-        )}
+      {/* ── Address identity header ──────────────────────────────────────── */}
+      <div
+        className="relative h-36 sm:h-44 overflow-hidden"
+        style={{ background: `linear-gradient(135deg, hsl(${h1},52%,26%) 0%, hsl(${h2},48%,18%) 55%, hsl(${h3},44%,21%) 100%)` }}
+      >
+        {/* Address-derived aurora blobs */}
+        <div className="absolute rounded-full pointer-events-none"
+          style={{ width: 480, height: 480, top: -160, left: -80, background: `hsl(${h1},70%,58%)`, filter: "blur(90px)", opacity: 0.22 }} />
+        <div className="absolute rounded-full pointer-events-none"
+          style={{ width: 320, height: 320, bottom: -100, right: 60, background: `hsl(${h2},65%,52%)`, filter: "blur(100px)", opacity: 0.18 }} />
+        <div className="absolute rounded-full pointer-events-none"
+          style={{ width: 220, height: 220, top: -40, right: 200, background: `hsl(${h3},60%,50%)`, filter: "blur(80px)", opacity: 0.14 }} />
 
-        {/* Gradient scrim — strong at bottom for legible text, light at top */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/0" />
-
-        {/* Actions — top right */}
+        {/* Actions */}
         <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
-          <ShareButton
-            title="Creator Profile"
-            variant="outline"
-            size="sm"
-            className="bg-black/40 backdrop-blur-sm border-white/20 text-white hover:bg-black/60 hover:text-white"
-          />
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 bg-black/40 backdrop-blur-sm text-white/70 hover:text-white hover:bg-black/60"
-            onClick={() => setReportOpen(true)}
-          >
+          <ShareButton title="Creator Profile" variant="outline" size="sm"
+            className="bg-black/30 backdrop-blur-sm border-white/20 text-white hover:bg-black/50 hover:text-white" />
+          <Button variant="ghost" size="icon"
+            className="h-8 w-8 bg-black/30 backdrop-blur-sm text-white/70 hover:text-white hover:bg-black/50"
+            onClick={() => setReportOpen(true)}>
             <Flag className="w-4 h-4" />
           </Button>
         </div>
-
-        {/* Identity — bottom of hero, white text on scrim */}
-        <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-8 flex items-end gap-4">
-          <AddressAvatar
-            address={address ?? "0x0"}
-            image={null}
-            size={72}
-          />
-          <div className="flex-1 min-w-0">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-white/50 mb-1">Creator</p>
-            <h1 className="text-xl sm:text-2xl font-bold text-white font-mono tracking-tight truncate leading-tight">
-              {addr ? `${addr.slice(0, 10)}…${addr.slice(-8)}` : "—"}
-            </h1>
-            <AddressDisplay address={address ?? ""} chars={8} className="text-white/50 text-xs mt-0.5" />
-          </div>
-        </div>
       </div>
 
-      {/* ── Page body ────────────────────────────────────────────────────── */}
+      {/* ── Identity ─────────────────────────────────────────────────────── */}
       <div className="px-6">
+        <div className="-mt-9 relative z-10 flex items-end gap-4 pb-5">
+          <AddressAvatar address={address ?? "0x0"} image={null} size={72} />
+          <div className="flex-1 min-w-0 pb-0.5">
+            <span className="pill-badge mb-1.5 block w-fit">Creator</span>
+            <h1 className="text-lg sm:text-xl font-bold font-mono tracking-tight truncate leading-tight">
+              {addr ? `${addr.slice(0, 10)}…${addr.slice(-8)}` : "—"}
+            </h1>
+            <AddressDisplay address={address ?? ""} chars={8} className="text-xs text-muted-foreground mt-0.5" />
+          </div>
+        </div>
 
         <ReportDialog
           target={{
@@ -370,9 +337,7 @@ export default function CreatorPageClient() {
                     <span
                       className="absolute bottom-0 inset-x-0 h-0.5 rounded-full"
                       style={{
-                        background: dynamicTheme
-                          ? `linear-gradient(90deg, hsl(var(--dynamic-primary)), hsl(var(--dynamic-accent)))`
-                          : `linear-gradient(90deg, hsl(${h1}, 68%, 62%), hsl(${h2}, 68%, 58%))`,
+                        background: `linear-gradient(90deg, hsl(${h1}, 68%, 62%), hsl(${h2}, 68%, 58%))`,
                       }}
                     />
                   )}
