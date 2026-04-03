@@ -236,8 +236,8 @@ export default function CreatorPageClient() {
   const { collections, isLoading: collectionsLoading } = useCollectionsByOwner(activeTab === "collections" ? addr : null);
   const { activities,  isLoading: activitiesLoading  } = useActivitiesByAddress(activeTab === "activity" ? addr : null);
 
-  // Fetch a handful of tokens for the mosaic banner
-  const { tokens: mosaicTokens } = useTokensByOwner(addr, 1, 4);
+  // One token for the hero backdrop
+  const { tokens: heroTokens } = useTokensByOwner(addr, 1, 1);
 
   const activeListings = orders.filter(
     (o) => o.status === "ACTIVE" && o.offer.itemType === "ERC721"
@@ -245,11 +245,10 @@ export default function CreatorPageClient() {
 
   const { h1, h2, h3 } = addressPalette(addr ?? "0x0");
 
-  const mosaicImages = mosaicTokens
-    .map((t) => (t.metadata?.image ? ipfsToHttp(t.metadata.image) : null))
-    .filter((img): img is string => !!img && img !== "/placeholder.svg");
+  const heroRaw = heroTokens[0]?.metadata?.image ? ipfsToHttp(heroTokens[0].metadata.image) : null;
+  const heroImage = heroRaw && heroRaw !== "/placeholder.svg" ? heroRaw : null;
 
-  const { imgRef, dynamicTheme } = useDominantColor(mosaicImages[0] ?? null);
+  const { imgRef, dynamicTheme } = useDominantColor(heroImage);
 
   // Tab count badges — only shown once that tab has been visited and loaded
   const tabBadge: Partial<Record<TabId, number>> = {
@@ -264,36 +263,32 @@ export default function CreatorPageClient() {
       className="relative z-0 min-h-screen pb-20"
       style={dynamicTheme ? (dynamicTheme as React.CSSProperties) : {}}
     >
-      {/* Hidden extraction image for dominant color */}
-      {mosaicImages[0] && (
+      {/* Hidden color extractor */}
+      {heroImage && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img ref={imgRef} src={mosaicImages[0]} crossOrigin="anonymous" aria-hidden alt="" style={{ display: "none" }} />
+        <img ref={imgRef} src={heroImage} crossOrigin="anonymous" aria-hidden alt="" style={{ display: "none" }} />
       )}
 
       {hiddenStatus?.isHidden === true && <HiddenContentBanner />}
 
-      {/* ── Token mosaic strip ───────────────────────────────────────────── */}
-      <div className="relative h-44 sm:h-56 overflow-hidden bg-muted">
-        {/* Image panels */}
-        <div className="absolute inset-0 flex gap-px">
-          {mosaicImages.length > 0 ? (
-            mosaicImages.slice(0, 4).map((img, i) => (
-              <div key={i} className="relative flex-1 overflow-hidden">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={img} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover" />
-              </div>
-            ))
-          ) : (
-            <div
-              className="flex-1"
-              style={{ background: `linear-gradient(135deg, hsl(${h1},60%,35%), hsl(${h2},55%,28%), hsl(${h3},50%,30%))` }}
-            />
-          )}
-        </div>
-        {/* Bottom fade to background */}
-        <div className="absolute inset-x-0 bottom-0 h-16" style={{ background: "linear-gradient(to bottom, transparent, hsl(var(--background)))" }} />
-        {/* Floating actions */}
-        <div className="absolute top-3 right-3 flex items-center gap-1.5 z-10">
+      {/* ── Cinematic hero — image + identity overlaid ───────────────────── */}
+      <div className="relative w-full h-[56vw] min-h-[300px] max-h-[500px] overflow-hidden bg-muted">
+        {/* Featured token image */}
+        {heroImage ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={heroImage} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover" />
+        ) : (
+          <div
+            className="absolute inset-0"
+            style={{ background: `linear-gradient(135deg, hsl(${h1},55%,30%) 0%, hsl(${h2},50%,22%) 50%, hsl(${h3},45%,25%) 100%)` }}
+          />
+        )}
+
+        {/* Gradient scrim — strong at bottom for legible text, light at top */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/0" />
+
+        {/* Actions — top right */}
+        <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
           <ShareButton
             title="Creator Profile"
             variant="outline"
@@ -303,33 +298,32 @@ export default function CreatorPageClient() {
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 bg-black/40 backdrop-blur-sm text-white/80 hover:text-white hover:bg-black/60"
+            className="h-8 w-8 bg-black/40 backdrop-blur-sm text-white/70 hover:text-white hover:bg-black/60"
             onClick={() => setReportOpen(true)}
           >
             <Flag className="w-4 h-4" />
           </Button>
         </div>
+
+        {/* Identity — bottom of hero, white text on scrim */}
+        <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-8 flex items-end gap-4">
+          <AddressAvatar
+            address={address ?? "0x0"}
+            image={null}
+            size={72}
+          />
+          <div className="flex-1 min-w-0">
+            <p className="text-[11px] font-bold uppercase tracking-widest text-white/50 mb-1">Creator</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-white font-mono tracking-tight truncate leading-tight">
+              {addr ? `${addr.slice(0, 10)}…${addr.slice(-8)}` : "—"}
+            </h1>
+            <AddressDisplay address={address ?? ""} chars={8} className="text-white/50 text-xs mt-0.5" />
+          </div>
+        </div>
       </div>
 
       {/* ── Page body ────────────────────────────────────────────────────── */}
       <div className="px-6">
-
-        {/* ── Identity ─────────────────────────────────────────────────── */}
-        <div className="-mt-9 relative z-10 flex flex-wrap items-end gap-x-4 gap-y-3 pb-5">
-          <AddressAvatar
-            address={address ?? "0x0"}
-            image={mosaicImages[0] ?? null}
-            size={88}
-            borderColor={dynamicTheme ? `hsl(var(--dynamic-primary))` : undefined}
-          />
-          <div className="flex-1 min-w-0 pb-0.5 space-y-0.5">
-            <span className="pill-badge">Creator</span>
-            <h1 className="text-lg sm:text-xl font-bold font-mono tracking-tight truncate">
-              {addr ? `${addr.slice(0, 10)}…${addr.slice(-8)}` : "—"}
-            </h1>
-            <AddressDisplay address={address ?? ""} chars={8} className="text-xs text-muted-foreground" />
-          </div>
-        </div>
 
         <ReportDialog
           target={{
