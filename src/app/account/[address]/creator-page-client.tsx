@@ -5,7 +5,6 @@ import useSWR from "swr";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import NextImage from "next/image";
-import { toast } from "sonner";
 import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useUserOrders } from "@/hooks/use-orders";
 import { useActivitiesByAddress } from "@/hooks/use-activities";
@@ -27,7 +26,6 @@ import {
   Image as ImageIcon,
   LayoutGrid,
   ShoppingBag,
-  Share2,
   LayoutList,
   Flag,
   Sparkles,
@@ -283,40 +281,68 @@ export default function CreatorPageClient() {
         />
       )}
 
-      {/* ── Full-page atmospheric background (same technique as asset page) ── */}
-      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        {bannerImage ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={bannerImage}
-            alt=""
-            aria-hidden
-            className="absolute inset-0 w-full h-full object-cover scale-110"
-            style={{ opacity: 0.18, filter: "blur(60px) saturate(1.6)" }}
-          />
-        ) : null}
-        {/* Address-derived radial mesh — always present, intensity varies with image */}
+      {hiddenStatus?.isHidden === true && <HiddenContentBanner />}
+
+      {/* ── Hero banner ──────────────────────────────────────────────────── */}
+      <div className="relative h-56 sm:h-80 overflow-hidden">
+        {/* Layer 1 — blurred token image */}
+        {bannerImage && (
+          <div className="absolute inset-0">
+            <NextImage
+              src={bannerImage}
+              alt=""
+              fill
+              className="object-cover scale-150"
+              style={{ opacity: 0.6, filter: "blur(48px) saturate(1.8) brightness(0.55)" }}
+              unoptimized
+              aria-hidden
+            />
+            <div className="absolute inset-0 bg-background/20" />
+          </div>
+        )}
+        {/* Layer 2 — address-derived gradient mesh */}
         <div
           className="absolute inset-0"
           style={{
             background: `
-              radial-gradient(ellipse 80% 80% at 20% 40%, hsl(${h1}, 68%, 42% / ${bannerImage ? 0.18 : 0.45}) 0%, transparent 60%),
-              radial-gradient(ellipse 60% 60% at 82% 20%, hsl(${h2}, 68%, 38% / ${bannerImage ? 0.12 : 0.32}) 0%, transparent 55%),
-              radial-gradient(ellipse 40% 40% at 55% 80%, hsl(${h3}, 68%, 38% / ${bannerImage ? 0.08 : 0.22}) 0%, transparent 50%)
+              radial-gradient(ellipse 90% 90% at 15% 60%, hsl(${h1}, 68%, 42% / ${bannerImage ? 0.28 : 0.52}) 0%, transparent 65%),
+              radial-gradient(ellipse 65% 65% at 85% 25%, hsl(${h2}, 68%, 38% / ${bannerImage ? 0.18 : 0.42}) 0%, transparent 60%),
+              radial-gradient(ellipse 45% 45% at 55% 85%, hsl(${h3}, 68%, 38% / ${bannerImage ? 0.12 : 0.30}) 0%, transparent 55%)
             `,
           }}
         />
-        <div className="absolute inset-0 bg-background/65" />
+        {/* Bottom fade */}
+        <div
+          className="absolute inset-x-0 bottom-0 h-32"
+          style={{ background: `linear-gradient(to bottom, transparent 0%, hsl(var(--background)) 100%)` }}
+        />
+        {/* Top edge fade */}
+        <div className="absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-background/15 to-transparent" />
+        {/* Floating action buttons */}
+        <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
+          <ShareButton
+            title="Creator Profile"
+            variant="outline"
+            className="bg-background/60 backdrop-blur-sm border-white/20 text-white hover:bg-background/80 hover:text-white h-8 px-3 text-sm"
+          />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 bg-background/60 backdrop-blur-sm text-white/70 hover:text-white hover:bg-background/80"
+            onClick={() => setReportOpen(true)}
+            title="Report this creator"
+          >
+            <Flag className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
-
-      {hiddenStatus?.isHidden === true && <HiddenContentBanner />}
 
       {/* ── Page body ────────────────────────────────────────────────────── */}
       <div className="px-6">
 
-        {/* ── Identity row ─────────────────────────────────────────────── */}
-        <div className="pt-16 pb-6 relative z-10">
-          <div className="flex flex-wrap items-end gap-x-5 gap-y-4">
+        {/* ── Identity section ─────────────────────────────────────────── */}
+        <div className="-mt-14 sm:-mt-18 relative z-10 space-y-4 pb-6">
+          <div className="flex flex-wrap items-end gap-x-5 gap-y-3">
             {/* Avatar — token image or address-derived gradient */}
             <AddressAvatar
               address={address ?? "0x0"}
@@ -325,7 +351,7 @@ export default function CreatorPageClient() {
               borderColor={dynamicTheme ? `hsl(var(--dynamic-primary))` : undefined}
             />
 
-            <div className="flex-1 min-w-0 pb-1 space-y-1.5">
+            <div className="flex-1 min-w-0 pb-1 space-y-1">
               <span className="pill-badge">Creator</span>
               <h1 className="text-xl sm:text-2xl font-bold font-mono tracking-tight leading-snug truncate text-foreground">
                 {addr ? `${addr.slice(0, 10)}…${addr.slice(-8)}` : "—"}
@@ -335,19 +361,6 @@ export default function CreatorPageClient() {
                 chars={8}
                 className="text-xs text-muted-foreground"
               />
-            </div>
-
-            <div className="pb-1 shrink-0 flex items-center gap-2">
-              <ShareButton title="Creator Profile" />
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-muted-foreground hover:text-foreground"
-                onClick={() => setReportOpen(true)}
-                title="Report this creator"
-              >
-                <Flag className="w-4 h-4" />
-              </Button>
             </div>
           </div>
         </div>
