@@ -254,43 +254,31 @@ export default function CreatorPageClient() {
 
       {hiddenStatus?.isHidden === true && <HiddenContentBanner />}
 
-      {/* ── Address identity header ──────────────────────────────────────── */}
-      <div
-        className="relative h-36 sm:h-44 overflow-hidden"
-        style={{ background: `linear-gradient(135deg, hsl(${h1},52%,26%) 0%, hsl(${h2},48%,18%) 55%, hsl(${h3},44%,21%) 100%)` }}
-      >
-        {/* Address-derived aurora blobs */}
-        <div className="absolute rounded-full pointer-events-none"
-          style={{ width: 480, height: 480, top: -160, left: -80, background: `hsl(${h1},70%,58%)`, filter: "blur(90px)", opacity: 0.22 }} />
-        <div className="absolute rounded-full pointer-events-none"
-          style={{ width: 320, height: 320, bottom: -100, right: 60, background: `hsl(${h2},65%,52%)`, filter: "blur(100px)", opacity: 0.18 }} />
-        <div className="absolute rounded-full pointer-events-none"
-          style={{ width: 220, height: 220, top: -40, right: 200, background: `hsl(${h3},60%,50%)`, filter: "blur(80px)", opacity: 0.14 }} />
+      {/* ── Profile header — no wasted space ─────────────────────────────── */}
+      <div className="relative px-6 pt-8 pb-6 overflow-hidden">
+        {/* Address-hued top accent line */}
+        <div className="absolute top-0 left-0 right-0 h-[3px]"
+          style={{ background: `linear-gradient(90deg, hsl(${h1},65%,52%), hsl(${h2},60%,48%), hsl(${h3},55%,50%))` }} />
 
-        {/* Actions */}
-        <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
-          <ShareButton title="Creator Profile" variant="outline" size="sm"
-            className="bg-black/30 backdrop-blur-sm border-white/20 text-white hover:bg-black/50 hover:text-white" />
-          <Button variant="ghost" size="icon"
-            className="h-8 w-8 bg-black/30 backdrop-blur-sm text-white/70 hover:text-white hover:bg-black/50"
-            onClick={() => setReportOpen(true)}>
-            <Flag className="w-4 h-4" />
-          </Button>
+        <div className="flex items-start gap-5">
+          <AddressAvatar address={address ?? "0x0"} image={null} size={72} />
+          <div className="flex-1 min-w-0 pt-1 space-y-1">
+            <span className="pill-badge block w-fit">Creator</span>
+            <h1 className="text-xl sm:text-2xl font-bold font-mono tracking-tight truncate leading-tight">
+              {addr ? `${addr.slice(0, 10)}…${addr.slice(-8)}` : "—"}
+            </h1>
+            <AddressDisplay address={address ?? ""} chars={8} className="text-xs text-muted-foreground" />
+          </div>
+          <div className="flex items-center gap-2 pt-1 shrink-0">
+            <ShareButton title="Creator Profile" size="sm" variant="outline" />
+            <Button variant="ghost" size="icon" onClick={() => setReportOpen(true)} title="Report">
+              <Flag className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* ── Identity ─────────────────────────────────────────────────────── */}
       <div className="px-6">
-        <div className="-mt-9 relative z-10 flex items-end gap-4 pb-5">
-          <AddressAvatar address={address ?? "0x0"} image={null} size={72} />
-          <div className="flex-1 min-w-0 pb-0.5">
-            <span className="pill-badge mb-1.5 block w-fit">Creator</span>
-            <h1 className="text-lg sm:text-xl font-bold font-mono tracking-tight truncate leading-tight">
-              {addr ? `${addr.slice(0, 10)}…${addr.slice(-8)}` : "—"}
-            </h1>
-            <AddressDisplay address={address ?? ""} chars={8} className="text-xs text-muted-foreground mt-0.5" />
-          </div>
-        </div>
 
         <ReportDialog
           target={{
