@@ -236,8 +236,8 @@ export default function CreatorPageClient() {
   const { collections, isLoading: collectionsLoading } = useCollectionsByOwner(activeTab === "collections" ? addr : null);
   const { activities,  isLoading: activitiesLoading  } = useActivitiesByAddress(activeTab === "activity" ? addr : null);
 
-  // Always fetch one token for the banner image
-  const { tokens: bannerTokens } = useTokensByOwner(addr, 1, 1);
+  // Fetch a handful of tokens for the mosaic banner
+  const { tokens: mosaicTokens } = useTokensByOwner(addr, 1, 4);
 
   const activeListings = orders.filter(
     (o) => o.status === "ACTIVE" && o.offer.itemType === "ERC721"
@@ -245,15 +245,11 @@ export default function CreatorPageClient() {
 
   const { h1, h2, h3 } = addressPalette(addr ?? "0x0");
 
-  const latestToken  = bannerTokens[0];
-  const latestRawImg = latestToken?.metadata?.image;
-  const latestImage  = latestRawImg ? ipfsToHttp(latestRawImg) : null;
-  const bannerImage  = latestImage && latestImage !== "/placeholder.svg" ? latestImage : null;
+  const mosaicImages = mosaicTokens
+    .map((t) => (t.metadata?.image ? ipfsToHttp(t.metadata.image) : null))
+    .filter((img): img is string => !!img && img !== "/placeholder.svg");
 
-  const { imgRef, dynamicTheme } = useDominantColor(bannerImage);
-  const dynamicPrimary = dynamicTheme
-    ? `hsl(var(--dynamic-primary))`
-    : `hsl(${h1}, 72%, 62%)`;
+  const { imgRef, dynamicTheme } = useDominantColor(mosaicImages[0] ?? null);
 
   // Tab count badges — only shown once that tab has been visited and loaded
   const tabBadge: Partial<Record<TabId, number>> = {
@@ -269,68 +265,46 @@ export default function CreatorPageClient() {
       style={dynamicTheme ? (dynamicTheme as React.CSSProperties) : {}}
     >
       {/* Hidden extraction image for dominant color */}
-      {bannerImage && (
+      {mosaicImages[0] && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img
-          ref={imgRef}
-          src={bannerImage}
-          crossOrigin="anonymous"
-          aria-hidden
-          alt=""
-          style={{ display: "none" }}
-        />
+        <img ref={imgRef} src={mosaicImages[0]} crossOrigin="anonymous" aria-hidden alt="" style={{ display: "none" }} />
       )}
 
       {hiddenStatus?.isHidden === true && <HiddenContentBanner />}
 
-      {/* ── Hero banner ──────────────────────────────────────────────────── */}
-      <div className="relative h-56 sm:h-80 overflow-hidden">
-        {/* Layer 1 — blurred token image */}
-        {bannerImage && (
-          <div className="absolute inset-0">
-            <NextImage
-              src={bannerImage}
-              alt=""
-              fill
-              className="object-cover scale-150"
-              style={{ opacity: 0.6, filter: "blur(48px) saturate(1.8) brightness(0.55)" }}
-              unoptimized
-              aria-hidden
+      {/* ── Token mosaic strip ───────────────────────────────────────────── */}
+      <div className="relative h-44 sm:h-56 overflow-hidden bg-muted">
+        {/* Image panels */}
+        <div className="absolute inset-0 flex gap-px">
+          {mosaicImages.length > 0 ? (
+            mosaicImages.slice(0, 4).map((img, i) => (
+              <div key={i} className="relative flex-1 overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={img} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover" />
+              </div>
+            ))
+          ) : (
+            <div
+              className="flex-1"
+              style={{ background: `linear-gradient(135deg, hsl(${h1},60%,35%), hsl(${h2},55%,28%), hsl(${h3},50%,30%))` }}
             />
-            <div className="absolute inset-0 bg-background/20" />
-          </div>
-        )}
-        {/* Layer 2 — address-derived gradient mesh */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background: `
-              radial-gradient(ellipse 90% 90% at 15% 60%, hsl(${h1}, 68%, 42% / ${bannerImage ? 0.28 : 0.52}) 0%, transparent 65%),
-              radial-gradient(ellipse 65% 65% at 85% 25%, hsl(${h2}, 68%, 38% / ${bannerImage ? 0.18 : 0.42}) 0%, transparent 60%),
-              radial-gradient(ellipse 45% 45% at 55% 85%, hsl(${h3}, 68%, 38% / ${bannerImage ? 0.12 : 0.30}) 0%, transparent 55%)
-            `,
-          }}
-        />
-        {/* Bottom fade */}
-        <div
-          className="absolute inset-x-0 bottom-0 h-32"
-          style={{ background: `linear-gradient(to bottom, transparent 0%, hsl(var(--background)) 100%)` }}
-        />
-        {/* Top edge fade */}
-        <div className="absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-background/15 to-transparent" />
-        {/* Floating action buttons */}
-        <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
+          )}
+        </div>
+        {/* Bottom fade to background */}
+        <div className="absolute inset-x-0 bottom-0 h-16" style={{ background: "linear-gradient(to bottom, transparent, hsl(var(--background)))" }} />
+        {/* Floating actions */}
+        <div className="absolute top-3 right-3 flex items-center gap-1.5 z-10">
           <ShareButton
             title="Creator Profile"
             variant="outline"
-            className="bg-background/60 backdrop-blur-sm border-white/20 text-white hover:bg-background/80 hover:text-white h-8 px-3 text-sm"
+            size="sm"
+            className="bg-black/40 backdrop-blur-sm border-white/20 text-white hover:bg-black/60 hover:text-white"
           />
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 bg-background/60 backdrop-blur-sm text-white/70 hover:text-white hover:bg-background/80"
+            className="h-8 w-8 bg-black/40 backdrop-blur-sm text-white/80 hover:text-white hover:bg-black/60"
             onClick={() => setReportOpen(true)}
-            title="Report this creator"
           >
             <Flag className="w-4 h-4" />
           </Button>
@@ -340,28 +314,20 @@ export default function CreatorPageClient() {
       {/* ── Page body ────────────────────────────────────────────────────── */}
       <div className="px-6">
 
-        {/* ── Identity section ─────────────────────────────────────────── */}
-        <div className="-mt-14 sm:-mt-18 relative z-10 space-y-4 pb-6">
-          <div className="flex flex-wrap items-end gap-x-5 gap-y-3">
-            {/* Avatar — token image or address-derived gradient */}
-            <AddressAvatar
-              address={address ?? "0x0"}
-              image={latestImage}
-              size={112}
-              borderColor={dynamicTheme ? `hsl(var(--dynamic-primary))` : undefined}
-            />
-
-            <div className="flex-1 min-w-0 pb-1 space-y-1">
-              <span className="pill-badge">Creator</span>
-              <h1 className="text-xl sm:text-2xl font-bold font-mono tracking-tight leading-snug truncate text-foreground">
-                {addr ? `${addr.slice(0, 10)}…${addr.slice(-8)}` : "—"}
-              </h1>
-              <AddressDisplay
-                address={address ?? ""}
-                chars={8}
-                className="text-xs text-muted-foreground"
-              />
-            </div>
+        {/* ── Identity ─────────────────────────────────────────────────── */}
+        <div className="-mt-9 relative z-10 flex flex-wrap items-end gap-x-4 gap-y-3 pb-5">
+          <AddressAvatar
+            address={address ?? "0x0"}
+            image={mosaicImages[0] ?? null}
+            size={88}
+            borderColor={dynamicTheme ? `hsl(var(--dynamic-primary))` : undefined}
+          />
+          <div className="flex-1 min-w-0 pb-0.5 space-y-0.5">
+            <span className="pill-badge">Creator</span>
+            <h1 className="text-lg sm:text-xl font-bold font-mono tracking-tight truncate">
+              {addr ? `${addr.slice(0, 10)}…${addr.slice(-8)}` : "—"}
+            </h1>
+            <AddressDisplay address={address ?? ""} chars={8} className="text-xs text-muted-foreground" />
           </div>
         </div>
 
