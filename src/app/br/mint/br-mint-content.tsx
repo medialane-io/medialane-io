@@ -8,60 +8,57 @@ import { useSessionKey } from "@/hooks/use-session-key";
 import { byteArray, CallData } from "starknet";
 import {
   Sparkles,
-  Zap,
-  Shield,
   ExternalLink,
   CheckCircle2,
   Loader2,
   RefreshCw,
   XCircle,
-  Gift,
-  Droplets,
   ArrowRight,
-  Wallet,
-  User,
-  MapPin,
+  Trophy,
+  Camera,
+  Star,
+  Users,
 } from "lucide-react";
 import { PinInput, validatePin } from "@/components/ui/pin-input";
 import { Button } from "@/components/ui/button";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { EXPLORER_URL, BR_MINT_CONTRACT, BR_NFT_URI, BR_NFT_IMAGE_URL } from "@/lib/constants";
 
-// ─── NFT preview card ─────────────────────────────────────────────────────────
+// ─── Exclusive item card ──────────────────────────────────────────────────────
 
-function NftCard({ minted = false }: { minted?: boolean }) {
+function EventCard({ claimed = false }: { claimed?: boolean }) {
   const imgSrc = BR_NFT_IMAGE_URL || "/genesis.jpg";
   return (
-    <div className="relative w-72 sm:w-80 rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-primary/30">
+    <div className="relative w-full max-w-sm rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-primary/20 mx-auto">
       <Image
         src={imgSrc}
-        alt="NFT Exclusivo Brasil — Medialane"
-        width={400}
-        height={400}
+        alt="Brinde exclusivo do evento Medialane Brasil"
+        width={480}
+        height={480}
         className="w-full aspect-square object-cover"
         priority
       />
-      <div className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-black/60 backdrop-blur-sm px-2.5 py-1 border border-white/10">
-        <MapPin className="h-3 w-3 text-emerald-400" />
-        <span className="text-[11px] font-semibold text-white">Evento Brasil</span>
+      <div className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-black/70 backdrop-blur-sm px-3 py-1.5 border border-white/10">
+        <Trophy className="h-3 w-3 text-yellow-400" />
+        <span className="text-[11px] font-bold text-white">Airdrop de Prêmios</span>
       </div>
-      {minted && (
-        <div className="absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-black/60 backdrop-blur-sm px-2.5 py-1 border border-emerald-500/40">
+      {claimed && (
+        <div className="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-full bg-black/70 backdrop-blur-sm px-3 py-1.5 border border-emerald-500/40">
           <CheckCircle2 className="h-3 w-3 text-emerald-400" />
-          <span className="text-[11px] font-semibold text-emerald-400">Mintado</span>
+          <span className="text-[11px] font-bold text-emerald-400">Participação confirmada</span>
         </div>
       )}
     </div>
   );
 }
 
-// ─── Benefits grid ────────────────────────────────────────────────────────────
+// ─── Benefits ────────────────────────────────────────────────────────────────
 
 const BENEFITS = [
-  { icon: Gift, label: "Gratuito", sub: "Sem taxas de protocolo" },
-  { icon: Zap, label: "Sem gas", sub: "Patrocinado pela ChipiPay" },
-  { icon: Droplets, label: "Passaporte airdrop", sub: "Distribuições futuras" },
-  { icon: Shield, label: "IP programável", sub: "Propriedade imutável" },
+  { icon: Trophy, label: "R$10 mil em prêmios", sub: "Sorteios e airdrop exclusivo" },
+  { icon: Camera, label: "Publique e ganhe", sub: "Fotos, vídeos, músicas e mais" },
+  { icon: Star, label: "Acesso grátis", sub: "Sem CPF, cartão ou aprovação" },
+  { icon: Users, label: "Só sua conta Google", sub: "Cadastro em menos de 1 minuto" },
 ];
 
 function BenefitsGrid() {
@@ -70,7 +67,7 @@ function BenefitsGrid() {
       {BENEFITS.map(({ icon: Icon, label, sub }) => (
         <div
           key={label}
-          className="flex items-start gap-2.5 rounded-xl border border-border/60 bg-muted/20 p-3 hover:border-primary/30 transition-colors"
+          className="flex items-start gap-2.5 rounded-xl border border-border/60 bg-muted/20 p-3"
         >
           <div className="mt-0.5 h-7 w-7 shrink-0 rounded-lg bg-primary/10 flex items-center justify-center">
             <Icon className="h-3.5 w-3.5 text-primary" />
@@ -85,47 +82,6 @@ function BenefitsGrid() {
   );
 }
 
-// ─── Steps indicator ──────────────────────────────────────────────────────────
-
-function StepsIndicator({ current }: { current: 0 | 1 | 2 }) {
-  const steps = ["Criar conta", "Carteira invisível", "Mintar NFT"];
-  return (
-    <div className="flex items-center gap-2">
-      {steps.map((label, i) => {
-        const done = i < current;
-        const active = i === current;
-        return (
-          <div key={label} className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5">
-              <div
-                className={`h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
-                  done
-                    ? "bg-emerald-500 text-white"
-                    : active
-                    ? "bg-primary text-white"
-                    : "bg-muted/40 text-muted-foreground"
-                }`}
-              >
-                {done ? <CheckCircle2 className="h-3 w-3" /> : i + 1}
-              </div>
-              <span
-                className={`text-[11px] font-medium whitespace-nowrap ${
-                  active ? "text-foreground" : done ? "text-emerald-400" : "text-muted-foreground"
-                }`}
-              >
-                {label}
-              </span>
-            </div>
-            {i < steps.length - 1 && (
-              <div className={`h-px w-4 shrink-0 ${i < current ? "bg-emerald-500" : "bg-border"}`} />
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
 // ─── Main component ───────────────────────────────────────────────────────────
 
 type MintStep = "ready" | "enter-pin" | "minting" | "success" | "error";
@@ -133,7 +89,7 @@ type MintStep = "ready" | "enter-pin" | "minting" | "success" | "error";
 export function BrMintContent() {
   const { isSignedIn, isLoaded, user } = useUser();
   const { walletAddress, hasWallet, isLoadingWallet } = useSessionKey();
-  const { executeTransaction, status, statusMessage, error: txError, reset } = useChipiTransaction();
+  const { executeTransaction, status, error: txError, reset } = useChipiTransaction();
 
   const [mintStep, setMintStep] = useState<MintStep>("ready");
   const [mintPin, setMintPin] = useState("");
@@ -145,7 +101,6 @@ export function BrMintContent() {
   const userId = user?.id;
   const storageKey = userId ? `ml_br_mint_${userId}` : null;
 
-  // Restore minted state
   useEffect(() => {
     if (!storageKey) return;
     const stored = localStorage.getItem(storageKey);
@@ -155,34 +110,34 @@ export function BrMintContent() {
     }
   }, [storageKey]);
 
-  // ── Mint ──────────────────────────────────────────────────────────────────
+  // ── Claim ─────────────────────────────────────────────────────────────────
 
-  const handleMint = useCallback(async () => {
+  const handleClaim = useCallback(async () => {
     const err = validatePin(mintPin);
     if (err) { setMintPinError(err); return; }
     setMintPinError(null);
     setMintError(null);
     setMintStep("minting");
-    setMintStatusMsg("Preparando seu NFT…");
+    setMintStatusMsg("Preparando seu brinde…");
 
     try {
-      if (!walletAddress) throw new Error("Endereço da carteira não encontrado.");
-      if (!BR_MINT_CONTRACT) throw new Error("Contrato de mint não configurado.");
+      if (!walletAddress) throw new Error("Conta não encontrada. Tente novamente.");
+      if (!BR_MINT_CONTRACT) throw new Error("Distribuição não iniciada ainda.");
 
       let tokenUri = BR_NFT_URI;
       if (!tokenUri) {
-        setMintStatusMsg("Enviando metadados do NFT…");
+        setMintStatusMsg("Registrando brinde…");
         const form = new FormData();
-        form.append("name", "Medialane Brasil");
-        form.append("description", "NFT exclusivo do evento Medialane no Brasil.");
+        form.append("name", "Medialane Brasil — Evento Exclusivo");
+        form.append("description", "Brinde exclusivo do evento Medialane no Brasil. Passaporte para o airdrop de prêmios.");
         form.append("external_url", "https://medialane.io/br/mint");
         const res = await fetch("/api/pinata", { method: "POST", body: form });
         const data = await res.json();
-        if (data.error) throw new Error("Falha no upload dos metadados: " + data.error);
+        if (data.error) throw new Error("Falha ao registrar. Tente novamente.");
         tokenUri = data.uri;
       }
 
-      setMintStatusMsg("Enviando transação…");
+      setMintStatusMsg("Confirmando participação…");
       const encodedUri = byteArray.byteArrayFromString(tokenUri);
       const calldata = CallData.compile([walletAddress, encodedUri]);
 
@@ -197,11 +152,11 @@ export function BrMintContent() {
         setCompletedTxHash(result.txHash);
         if (storageKey) localStorage.setItem(storageKey, result.txHash);
       } else {
-        throw new Error(result.revertReason || "Transação revertida na blockchain.");
+        throw new Error("Não foi possível confirmar. Tente novamente.");
       }
     } catch (err: unknown) {
       setMintStep("error");
-      setMintError(err instanceof Error ? err.message : "Falha no mint. Tente novamente.");
+      setMintError(err instanceof Error ? err.message : "Algo deu errado. Tente novamente.");
     }
   }, [mintPin, walletAddress, storageKey, executeTransaction]);
 
@@ -213,40 +168,41 @@ export function BrMintContent() {
     setMintStep("ready");
   };
 
-  // ── Layout wrapper ────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Top bar */}
-      <header className="px-6 py-4 flex items-center justify-between border-b border-border/40">
+
+      {/* Header */}
+      <header className="px-5 py-4 flex items-center justify-between border-b border-border/40">
         <Link href="/" className="flex items-center gap-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/icon.png" alt="Medialane" className="h-7 w-7" />
           <span className="font-bold text-sm tracking-tight">Medialane</span>
         </Link>
         <div className="flex items-center gap-1.5 rounded-full border border-border/60 bg-muted/20 px-3 py-1">
-          <MapPin className="h-3 w-3 text-emerald-400" />
-          <span className="text-[11px] font-semibold text-emerald-400">Brasil</span>
+          <Trophy className="h-3 w-3 text-yellow-400" />
+          <span className="text-[11px] font-semibold text-yellow-400">Airdrop Brasil</span>
         </div>
       </header>
 
-      {/* Main content */}
-      <div className="flex-1 container mx-auto px-4 py-8 max-w-4xl">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+      {/* Content */}
+      <div className="flex-1 container mx-auto px-4 py-6 max-w-4xl">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
 
-          {/* Left: NFT card */}
+          {/* Image */}
           <div className="flex justify-center">
-            <NftCard minted={mintStep === "success"} />
+            <EventCard claimed={mintStep === "success"} />
           </div>
 
-          {/* Right: interactive panel */}
+          {/* Panel */}
           <div className="space-y-5">
 
-            {/* ── Loading ── */}
+            {/* Loading */}
             {(!isLoaded || (isLoaded && isSignedIn && isLoadingWallet)) && (
               <div className="space-y-4">
-                <div className="h-8 w-40 rounded-lg bg-muted/40 animate-pulse" />
-                <div className="h-20 rounded-xl bg-muted/30 animate-pulse" />
+                <div className="h-8 w-48 rounded-lg bg-muted/40 animate-pulse" />
+                <div className="h-24 rounded-xl bg-muted/30 animate-pulse" />
                 <div className="h-12 rounded-xl bg-muted/20 animate-pulse" />
               </div>
             )}
@@ -255,75 +211,60 @@ export function BrMintContent() {
             {isLoaded && !isSignedIn && (
               <div className="space-y-5">
                 <div>
-                  <StepsIndicator current={0} />
-                </div>
-
-                <div className="space-y-1">
                   <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight leading-[1.1]">
-                    Seu NFT{" "}
-                    <span className="bg-gradient-to-r from-primary via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                      exclusivo
+                    Airdrop de{" "}
+                    <span className="bg-gradient-to-r from-yellow-400 via-orange-400 to-primary bg-clip-text text-transparent">
+                      Prêmios
                     </span>
-                    {" "}do Brasil
                   </h1>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    Você foi convidado para o evento Medialane no Brasil. Cadastre-se e receba seu NFT comemorativo — completamente grátis, sem taxas de gás.
+                  <p className="text-sm text-muted-foreground leading-relaxed mt-2">
+                    Publique fotos, vídeos e músicas e receba por isso. Concorra a <strong className="text-foreground">R$10 mil em prêmios</strong> — acesso completamente grátis.
                   </p>
                 </div>
 
                 <BenefitsGrid />
 
                 <div className="space-y-2.5">
-                  <SignUpButton
-                    mode="modal"
-                    forceRedirectUrl="/onboarding?from=br"
-                  >
+                  <SignUpButton mode="modal" forceRedirectUrl="/onboarding?from=br">
                     <Button
                       size="lg"
-                      className="w-full rounded-xl h-12 text-base font-bold gap-2 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 shadow-lg shadow-primary/25"
+                      className="w-full rounded-xl h-13 text-base font-bold gap-2 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 shadow-lg shadow-primary/25"
                     >
                       <Sparkles className="h-4 w-4" />
-                      Criar conta com Google
+                      Participar com minha conta Google
                     </Button>
                   </SignUpButton>
                   <SignInButton mode="modal">
-                    <Button
-                      size="lg"
-                      variant="outline"
-                      className="w-full rounded-xl h-12 text-base font-medium"
-                    >
-                      <User className="h-4 w-4" />
-                      Já tenho conta
+                    <Button size="lg" variant="outline" className="w-full rounded-xl h-12 text-sm font-medium">
+                      Já tenho conta — entrar
                     </Button>
                   </SignInButton>
                 </div>
 
                 <p className="text-xs text-center text-muted-foreground">
-                  Sem seed phrase · Sem taxas · Starknet Mainnet
+                  Não precisa de CPF, cartão ou aprovação de cadastro
                 </p>
               </div>
             )}
 
-            {/* ── Signed in, no wallet: send to onboarding ── */}
+            {/* ── Signed in, account not secured yet ── */}
             {isLoaded && !isLoadingWallet && isSignedIn && !hasWallet && (
               <div className="space-y-5">
-                <StepsIndicator current={1} />
-
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2 text-sm">
+                <div>
+                  <div className="flex items-center gap-2 text-sm mb-3">
                     <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
                     <span className="text-emerald-400 font-medium">
-                      Conta criada — {user?.primaryEmailAddress?.emailAddress}
+                      Conta conectada — {user?.primaryEmailAddress?.emailAddress}
                     </span>
                   </div>
                   <h2 className="text-3xl font-extrabold tracking-tight leading-[1.1]">
-                    Configure sua{" "}
+                    Proteja sua{" "}
                     <span className="bg-gradient-to-r from-primary via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                      carteira
+                      conta
                     </span>
                   </h2>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    Um passo rápido antes de mintar — configure sua carteira invisível com passkey ou PIN. Sem seed phrases, sem taxas de gás.
+                  <p className="text-sm text-muted-foreground leading-relaxed mt-2">
+                    Crie um código de segurança de 6 dígitos para ativar sua participação no airdrop e proteger seus prêmios. Rápido e grátis.
                   </p>
                 </div>
 
@@ -333,136 +274,129 @@ export function BrMintContent() {
                   asChild
                 >
                   <Link href="/onboarding?from=br">
-                    <Wallet className="h-4 w-4" />
-                    Configurar minha carteira
+                    Ativar minha conta
                     <ArrowRight className="h-4 w-4 ml-auto" />
                   </Link>
                 </Button>
 
                 <p className="text-xs text-center text-muted-foreground">
-                  Menos de 1 minuto · Passkey ou PIN
+                  Menos de 1 minuto · Sem taxa
                 </p>
               </div>
             )}
 
-            {/* ── Has wallet: mint flow ── */}
+            {/* ── Account ready: claim flow ── */}
             {isLoaded && !isLoadingWallet && isSignedIn && hasWallet && (
               <div className="space-y-5">
 
-                {mintStep !== "success" && (
-                  <div className="space-y-1">
-                    <StepsIndicator current={2} />
-                    <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight leading-[1.1] pt-2">
-                      Mintar seu{" "}
-                      <span className="bg-gradient-to-r from-primary via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                        NFT exclusivo
-                      </span>
-                    </h1>
-                  </div>
-                )}
-
-                {/* ── Ready ── */}
+                {/* Ready */}
                 {mintStep === "ready" && (
                   <>
+                    <div>
+                      <div className="flex items-center gap-2 text-sm mb-3">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                        <span className="text-emerald-400 font-medium">Conta ativa</span>
+                      </div>
+                      <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight leading-[1.1]">
+                        Garanta sua{" "}
+                        <span className="bg-gradient-to-r from-yellow-400 via-orange-400 to-primary bg-clip-text text-transparent">
+                          participação
+                        </span>
+                      </h1>
+                      <p className="text-sm text-muted-foreground leading-relaxed mt-2">
+                        Receba seu brinde exclusivo do evento e entre automaticamente no airdrop de prêmios.
+                      </p>
+                    </div>
                     <BenefitsGrid />
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       <Button
                         size="lg"
-                        className="w-full rounded-xl h-12 text-base font-bold gap-2 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 shadow-lg shadow-primary/25"
+                        className="w-full rounded-xl h-12 text-base font-bold gap-2 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 shadow-lg shadow-primary/25 disabled:opacity-50"
                         onClick={() => setMintStep("enter-pin")}
                         disabled={!BR_MINT_CONTRACT}
                       >
                         <Sparkles className="h-4 w-4" />
-                        {BR_MINT_CONTRACT ? "Mintar agora — Grátis" : "Em breve"}
-                        <ArrowRight className="h-4 w-4 ml-auto" />
+                        {BR_MINT_CONTRACT ? "Garantir minha participação — Grátis" : "Distribuição abrindo em breve"}
+                        {BR_MINT_CONTRACT && <ArrowRight className="h-4 w-4 ml-auto" />}
                       </Button>
                       <p className="text-xs text-center text-muted-foreground">
-                        Edição limitada · Evento Brasil · Gas patrocinado
+                        Brinde exclusivo · Acesso ao airdrop · Gratuito
                       </p>
                     </div>
                   </>
                 )}
 
-                {/* ── Enter PIN ── */}
+                {/* Enter security code */}
                 {mintStep === "enter-pin" && (
-                  <div className="space-y-4">
-                    <div className="rounded-2xl border border-border/60 bg-card/50 p-5 space-y-4">
-                      <div>
-                        <p className="font-semibold mb-1">Confirme com o PIN da sua carteira</p>
-                        <p className="text-sm text-muted-foreground">
-                          Digite o PIN criado ao configurar sua carteira. Isso autoriza o mint gratuito.
-                        </p>
-                      </div>
+                  <div className="rounded-2xl border border-border/60 bg-card/50 p-5 space-y-4">
+                    <div>
+                      <p className="font-semibold">Confirme com seu código de segurança</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Digite o código de 6 dígitos que você criou ao ativar sua conta.
+                      </p>
+                    </div>
 
-                      {/* Transaction summary */}
-                      <div className="rounded-lg bg-muted/30 px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-                        <span className="text-muted-foreground">NFT</span>
-                        <span className="font-medium">Medialane Brasil</span>
-                        <span className="text-muted-foreground">Preço</span>
-                        <span className="font-medium text-emerald-400">Gratuito</span>
-                        <span className="text-muted-foreground">Gas</span>
-                        <span className="font-medium text-emerald-400">Patrocinado</span>
-                        <span className="text-muted-foreground">Rede</span>
-                        <span className="font-medium">Starknet</span>
-                      </div>
+                    <div className="rounded-lg bg-muted/30 px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                      <span className="text-muted-foreground">Brinde</span>
+                      <span className="font-medium">Exclusivo Brasil</span>
+                      <span className="text-muted-foreground">Valor</span>
+                      <span className="font-medium text-emerald-400">Grátis</span>
+                      <span className="text-muted-foreground">Taxas</span>
+                      <span className="font-medium text-emerald-400">Nenhuma</span>
+                    </div>
 
-                      <PinInput
-                        value={mintPin}
-                        onChange={(v) => { setMintPin(v); setMintPinError(null); }}
-                        placeholder="PIN da sua carteira"
-                        error={mintPinError}
-                        autoFocus
-                      />
+                    <PinInput
+                      value={mintPin}
+                      onChange={(v) => { setMintPin(v); setMintPinError(null); }}
+                      placeholder="Seu código de segurança"
+                      error={mintPinError}
+                      autoFocus
+                    />
 
-                      <div className="flex gap-2">
-                        <Button
-                          size="lg"
-                          className="flex-1 rounded-xl h-11 font-bold gap-2 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90"
-                          onClick={handleMint}
-                          disabled={mintPin.length < 6}
-                        >
-                          <Sparkles className="h-4 w-4" />
-                          Mintar
-                        </Button>
-                        <Button
-                          size="lg"
-                          variant="outline"
-                          className="rounded-xl h-11"
-                          onClick={() => { setMintPin(""); setMintPinError(null); setMintStep("ready"); }}
-                        >
-                          Cancelar
-                        </Button>
-                      </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="lg"
+                        className="flex-1 rounded-xl h-11 font-bold bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90"
+                        onClick={handleClaim}
+                        disabled={mintPin.length < 6}
+                      >
+                        Confirmar
+                      </Button>
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        className="rounded-xl h-11"
+                        onClick={() => { setMintPin(""); setMintPinError(null); setMintStep("ready"); }}
+                      >
+                        Cancelar
+                      </Button>
                     </div>
                   </div>
                 )}
 
-                {/* ── Minting ── */}
+                {/* Processing */}
                 {mintStep === "minting" && (
                   <div className="rounded-2xl border border-border/60 bg-card/50 p-6">
                     <div className="flex items-center gap-4">
-                      <div className="relative h-12 w-12 shrink-0">
-                        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                      </div>
+                      <Loader2 className="h-10 w-10 animate-spin text-primary shrink-0" />
                       <div>
-                        <p className="font-semibold">Mintando seu NFT do Brasil…</p>
+                        <p className="font-semibold">Registrando sua participação…</p>
                         <p className="text-sm text-muted-foreground mt-0.5">
-                          {mintStatusMsg || statusMessage || "Aguarde…"}
+                          {mintStatusMsg || "Aguarde um momento…"}
                         </p>
                       </div>
                     </div>
                     <div className="mt-4 space-y-1.5">
                       {[
-                        { label: "Enviar metadados", done: status !== "idle" },
-                        { label: "Enviar transação", done: status === "confirming" || status === "confirmed" },
-                        { label: "Confirmar no Starknet", done: status === "confirmed" },
+                        { label: "Preparando brinde exclusivo", done: status !== "idle" },
+                        { label: "Registrando participação", done: status === "confirming" || status === "confirmed" },
+                        { label: "Confirmando no sistema", done: status === "confirmed" },
                       ].map(({ label, done }) => (
                         <div key={label} className="flex items-center gap-2 text-xs text-muted-foreground">
-                          {done ? (
-                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
-                          ) : (
-                            <div className="h-3.5 w-3.5 rounded-full border border-muted-foreground/30" />
-                          )}
+                          {done
+                            ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                            : <div className="h-3.5 w-3.5 rounded-full border border-muted-foreground/30" />
+                          }
                           <span className={done ? "text-foreground" : ""}>{label}</span>
                         </div>
                       ))}
@@ -470,40 +404,42 @@ export function BrMintContent() {
                   </div>
                 )}
 
-                {/* ── Success ── */}
+                {/* Success */}
                 {mintStep === "success" && (
                   <div className="space-y-5">
-                    <div className="space-y-1">
-                      <StepsIndicator current={3 as never} />
-                      <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-[1.1] pt-2">
-                        Bem-vindo{" "}
+                    <div>
+                      <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-[1.1]">
+                        Você está{" "}
                         <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
-                          ao Medialane!
+                          dentro!
                         </span>
                       </h1>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Sua participação no airdrop está confirmada.
+                      </p>
                     </div>
 
-                    <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-5 space-y-4">
+                    <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-5 space-y-3">
                       <div className="flex items-center gap-3">
-                        <div className="h-12 w-12 rounded-full bg-emerald-500/15 flex items-center justify-center shrink-0">
-                          <CheckCircle2 className="h-6 w-6 text-emerald-400" />
+                        <div className="h-11 w-11 rounded-full bg-emerald-500/15 flex items-center justify-center shrink-0">
+                          <CheckCircle2 className="h-5 w-5 text-emerald-400" />
                         </div>
                         <div>
-                          <p className="font-bold text-emerald-300 text-lg">NFT mintado!</p>
-                          <p className="text-sm text-muted-foreground">
-                            Você faz parte da comunidade Medialane.
+                          <p className="font-bold text-emerald-300">Participação confirmada!</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            Você está elegível para o airdrop de prêmios.
                           </p>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 gap-2 text-sm">
+                      <div className="space-y-2 text-sm">
                         <div className="flex items-center gap-2 rounded-lg bg-emerald-500/5 border border-emerald-500/20 px-3 py-2">
-                          <Droplets className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-                          <span>Passaporte para airdrops futuros</span>
+                          <Trophy className="h-3.5 w-3.5 text-yellow-400 shrink-0" />
+                          <span>Elegível para R$10 mil em prêmios</span>
                         </div>
                         <div className="flex items-center gap-2 rounded-lg bg-emerald-500/5 border border-emerald-500/20 px-3 py-2">
-                          <Shield className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-                          <span>Propriedade imutável na blockchain</span>
+                          <Camera className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                          <span>Publique conteúdo e aumente suas chances</span>
                         </div>
                       </div>
 
@@ -524,23 +460,23 @@ export function BrMintContent() {
 
                     <div className="flex flex-col sm:flex-row gap-2.5">
                       <Button size="lg" className="flex-1" asChild>
-                        <Link href="/marketplace">Explorar marketplace</Link>
+                        <Link href="/create/asset">Publicar meu primeiro conteúdo</Link>
                       </Button>
                       <Button size="lg" variant="outline" className="flex-1" asChild>
-                        <Link href="/create/asset">Criar seu primeiro ativo</Link>
+                        <Link href="/marketplace">Explorar o app</Link>
                       </Button>
                     </div>
                   </div>
                 )}
 
-                {/* ── Error ── */}
+                {/* Error */}
                 {mintStep === "error" && (
                   <div className="space-y-4">
                     <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-5 space-y-3">
                       <div className="flex items-start gap-3">
                         <XCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
                         <div>
-                          <p className="font-semibold text-sm">Mint falhou</p>
+                          <p className="font-semibold text-sm">Não foi possível registrar</p>
                           {(mintError || txError) && (
                             <p className="text-xs text-muted-foreground mt-1">
                               {mintError || txError}
@@ -567,7 +503,7 @@ export function BrMintContent() {
         <Link href="/terms" className="hover:text-foreground transition-colors">Termos</Link>
         <Link href="/privacy" className="hover:text-foreground transition-colors">Privacidade</Link>
         <Link href="/about" className="hover:text-foreground transition-colors">Sobre</Link>
-        <span>© {new Date().getFullYear()} Medialane DAO</span>
+        <span>© {new Date().getFullYear()} Medialane</span>
       </footer>
     </div>
   );
