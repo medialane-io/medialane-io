@@ -479,7 +479,6 @@ export default function AssetPageClient() {
               </div>
             ) : (
               <div className="rounded-xl border border-border p-5 space-y-3">
-                <p className="text-muted-foreground text-sm">Not listed for sale.</p>
                 {isOwner ? (
                   <div className="space-y-2">
                     <div className="btn-border-animated p-[1px] rounded-xl">

@@ -130,14 +130,12 @@ export function TokenCard({
         </div>
 
         {/* Info */}
-        <div className={cn("p-3 space-y-1", hasActions && "pb-14 sm:pb-3")}>
+        <div className="p-3 space-y-1">
           <p className="font-semibold text-sm truncate leading-snug">{name}</p>
-          {token.metadata?.description ? (
+          {token.metadata?.description && (
             <p className="text-[11px] text-muted-foreground line-clamp-2 leading-snug">
               {token.metadata.description}
             </p>
-          ) : (
-            <p className="text-[11px] text-muted-foreground">#{token.tokenId}</p>
           )}
           {activeOrder && !isOwner && (
             <p className="text-sm font-medium pt-0.5">
@@ -148,120 +146,114 @@ export function TokenCard({
             </p>
           )}
         </div>
+      </Link>
 
-        {/* Action bar — always visible on mobile, hover-revealed on desktop */}
-        {hasActions && (
-          <div
-            className={cn(
-              "absolute bottom-0 inset-x-0 p-2 flex gap-2",
-              "bg-background/90 backdrop-blur-sm border-t border-border/40",
-              "opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-150"
-            )}
-          >
-            {isOwner && activeOrder && (
-              <>
-                {onCancel && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="flex-1 h-8 text-xs text-destructive hover:text-destructive"
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); onCancel(token); }}
-                  >
-                    <X className="h-3 w-3 mr-1" />
-                    Cancel
-                  </Button>
-                )}
-                {onTransfer && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-8 w-8 p-0 shrink-0"
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); onTransfer(token); }}
-                    aria-label="Transfer"
-                  >
-                    <ArrowRightLeft className="h-3.5 w-3.5" />
-                  </Button>
-                )}
-              </>
-            )}
-            {isOwner && !activeOrder && (
-              <>
-                {onList && (
-                  <Button
-                    size="sm"
-                    variant="default"
-                    className="flex-1 h-8 text-xs"
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); onList(token); }}
-                  >
-                    <Tag className="h-3 w-3 mr-1" />
-                    List for sale
-                  </Button>
-                )}
-                {onTransfer && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-8 w-8 p-0 shrink-0"
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); onTransfer(token); }}
-                    aria-label="Transfer"
-                  >
-                    <ArrowRightLeft className="h-3.5 w-3.5" />
-                  </Button>
-                )}
-              </>
-            )}
-            {!isOwner && activeOrder && !onOffer && !onRemix && (
-              <>
-                {showBuyButton && onBuy && (
-                  <Button
-                    size="sm"
-                    className="flex-1 h-8 text-xs bg-brand-purple text-white"
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); onBuy(token); }}
-                  >
-                    Buy
-                  </Button>
-                )}
+      {/* Action bar — always visible, normal flow (works on mobile) */}
+      {hasActions && (
+        <div className="px-2 pb-2 flex gap-2 border-t border-border/40">
+          {isOwner && activeOrder && (
+            <>
+              {onCancel && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex-1 h-8 text-xs text-destructive hover:text-destructive"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onCancel(token); }}
+                >
+                  <X className="h-3 w-3 mr-1" />
+                  Cancel
+                </Button>
+              )}
+              {onTransfer && (
                 <Button
                   size="sm"
                   variant="outline"
                   className="h-8 w-8 p-0 shrink-0"
-                  onClick={handleAddToCart}
-                  disabled={inCart}
-                  aria-label={inCart ? "In cart" : "Add to cart"}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onTransfer(token); }}
+                  aria-label="Transfer"
                 >
-                  <ShoppingCart className={cn("h-3.5 w-3.5", inCart && "opacity-40")} />
+                  <ArrowRightLeft className="h-3.5 w-3.5" />
                 </Button>
-              </>
-            )}
-            {!isOwner && (onOffer || onRemix) && (
-              <>
-                {onOffer && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="flex-1 h-8 text-xs border-brand-purple/40 text-brand-purple hover:bg-brand-purple/10"
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOffer(token); }}
-                  >
-                    <HandCoins className="h-3 w-3 mr-1" />
-                    Offer
-                  </Button>
-                )}
-                {onRemix && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="flex-1 h-8 text-xs border-brand-rose/40 text-brand-rose hover:bg-brand-rose/10"
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); onRemix(token); }}
-                  >
-                    <GitBranch className="h-3 w-3 mr-1" />
-                    Remix
-                  </Button>
-                )}
-              </>
-            )}
-          </div>
-        )}
-      </Link>
+              )}
+            </>
+          )}
+          {isOwner && !activeOrder && (
+            <>
+              {onList && (
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="flex-1 h-8 text-xs"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onList(token); }}
+                >
+                  <Tag className="h-3 w-3 mr-1" />
+                  List for sale
+                </Button>
+              )}
+              {onTransfer && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 w-8 p-0 shrink-0"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onTransfer(token); }}
+                  aria-label="Transfer"
+                >
+                  <ArrowRightLeft className="h-3.5 w-3.5" />
+                </Button>
+              )}
+            </>
+          )}
+          {!isOwner && activeOrder && !onOffer && !onRemix && (
+            <>
+              {showBuyButton && onBuy && (
+                <Button
+                  size="sm"
+                  className="flex-1 h-8 text-xs bg-brand-purple text-white"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onBuy(token); }}
+                >
+                  Buy
+                </Button>
+              )}
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 w-8 p-0 shrink-0"
+                onClick={handleAddToCart}
+                disabled={inCart}
+                aria-label={inCart ? "In cart" : "Add to cart"}
+              >
+                <ShoppingCart className={cn("h-3.5 w-3.5", inCart && "opacity-40")} />
+              </Button>
+            </>
+          )}
+          {!isOwner && (onOffer || onRemix) && (
+            <>
+              {onOffer && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex-1 h-8 text-xs border-brand-purple/40 text-brand-purple hover:bg-brand-purple/10"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOffer(token); }}
+                >
+                  <HandCoins className="h-3 w-3 mr-1" />
+                  Offer
+                </Button>
+              )}
+              {onRemix && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex-1 h-8 text-xs border-brand-rose/40 text-brand-rose hover:bg-brand-rose/10"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onRemix(token); }}
+                >
+                  <GitBranch className="h-3 w-3 mr-1" />
+                  Remix
+                </Button>
+              )}
+            </>
+          )}
+        </div>
+      )}
     </MotionCard>
   );
 }
