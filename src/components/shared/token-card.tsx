@@ -6,7 +6,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MotionCard } from "@/components/ui/motion-primitives";
-import { ShoppingCart, Tag, ArrowRightLeft, X, Loader2 } from "lucide-react";
+import { ShoppingCart, Tag, ArrowRightLeft, X, Loader2, HandCoins, GitBranch } from "lucide-react";
 import { cn, ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
 import type { RarityTier } from "@/lib/rarity";
@@ -28,6 +28,10 @@ interface TokenCardProps {
   onList?: (token: ApiToken) => void;
   onTransfer?: (token: ApiToken) => void;
   onCancel?: (token: ApiToken) => void;
+  /** Discovery pages: open an offer dialog */
+  onOffer?: (token: ApiToken) => void;
+  /** Discovery pages: navigate to remix creation */
+  onRemix?: (token: ApiToken) => void;
   isOwner?: boolean;
   rarityTier?: RarityTier;
 }
@@ -39,6 +43,8 @@ export function TokenCard({
   onList,
   onTransfer,
   onCancel,
+  onOffer,
+  onRemix,
   isOwner = false,
   rarityTier,
 }: TokenCardProps) {
@@ -51,7 +57,8 @@ export function TokenCard({
 
   const hasActions =
     (isOwner && (onList || onTransfer || onCancel)) ||
-    (!isOwner && activeOrder && (showBuyButton || true));
+    (!isOwner && activeOrder && (showBuyButton || true)) ||
+    (!isOwner && (onOffer || onRemix));
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -203,7 +210,7 @@ export function TokenCard({
                 )}
               </>
             )}
-            {!isOwner && activeOrder && (
+            {!isOwner && activeOrder && !onOffer && !onRemix && (
               <>
                 {showBuyButton && onBuy && (
                   <Button
@@ -224,6 +231,32 @@ export function TokenCard({
                 >
                   <ShoppingCart className={cn("h-3.5 w-3.5", inCart && "opacity-40")} />
                 </Button>
+              </>
+            )}
+            {!isOwner && (onOffer || onRemix) && (
+              <>
+                {onOffer && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1 h-8 text-xs border-brand-purple/40 text-brand-purple hover:bg-brand-purple/10"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOffer(token); }}
+                  >
+                    <HandCoins className="h-3 w-3 mr-1" />
+                    Offer
+                  </Button>
+                )}
+                {onRemix && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1 h-8 text-xs border-brand-rose/40 text-brand-rose hover:bg-brand-rose/10"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); onRemix(token); }}
+                  >
+                    <GitBranch className="h-3 w-3 mr-1" />
+                    Remix
+                  </Button>
+                )}
               </>
             )}
           </div>

@@ -2,147 +2,24 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { Loader2, Tag, SlidersHorizontal, HandCoins, GitBranch, Search, X as XIcon } from "lucide-react";
+import { Loader2, SlidersHorizontal, Search, X as XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { AnimatePresence, motion } from "framer-motion";
-import { MotionCard } from "@/components/ui/motion-primitives";
 import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useTokensByIpType } from "@/hooks/use-tokens-by-ip-type";
 import { IP_TYPE_MAP, IP_TYPE_CONFIG } from "@/lib/ip-type-config";
-import { ipfsToHttp, formatDisplayPrice, cn } from "@/lib/utils";
-import { IP_TYPE_CONFIG as IP_TYPE_CONFIG_LIST } from "@/lib/ip-type-config";
+import { cn } from "@/lib/utils";
+import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
 import { OfferDialog } from "@/components/marketplace/offer-dialog";
 import type { ApiToken } from "@medialane/sdk";
 
 const PAGE_SIZE = 24;
-
-// ---- Single token card ----
-function TokenBrowseCard({ token }: { token: ApiToken }) {
-  const { isSignedIn } = useAuth();
-  const router = useRouter();
-  const [offerOpen, setOfferOpen] = useState(false);
-  const [imgError, setImgError] = useState(false);
-
-  const image = ipfsToHttp(token.metadata?.image);
-  const name = token.metadata?.name ?? `#${token.tokenId}`;
-  const activeOrder = token.activeOrders?.[0];
-  const price = activeOrder?.price;
-  const ipType = token.metadata?.ipType;
-  const typeConfig = ipType
-    ? IP_TYPE_CONFIG.find((c) => c.apiValue === ipType) ?? null
-    : IP_TYPE_CONFIG.find((c) => c.slug === "nft") ?? null;
-
-  return (
-    <MotionCard className="card-base flex flex-col">
-      {/* Image + info — clickable to asset page */}
-      <Link href={`/asset/${token.contractAddress}/${token.tokenId}`} className="block flex-1">
-        <div className="aspect-square overflow-hidden bg-muted relative">
-          {image && !imgError ? (
-            <Image
-              src={image}
-              alt={name}
-              fill
-              className="object-cover group-hover:scale-105 transition-transform duration-500"
-              unoptimized
-              onError={() => setImgError(true)}
-            />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-br from-muted-foreground/10 to-muted/30 flex items-center justify-center">
-              {typeConfig && (
-                <typeConfig.icon className={cn("h-10 w-10 opacity-20", typeConfig.colorClass)} />
-              )}
-            </div>
-          )}
-          {price?.formatted && (
-            <div className="absolute top-2 right-2">
-              <Badge className="text-[10px] bg-black/70 text-white border-0 backdrop-blur-sm gap-1">
-                <Tag className="h-2.5 w-2.5" />
-                {formatDisplayPrice(price.formatted)} {price.currency}
-              </Badge>
-            </div>
-          )}
-        </div>
-        <div className="p-3 space-y-1">
-          <p className="font-semibold text-sm truncate group-hover:text-primary transition-colors">
-            {name}
-          </p>
-          {price?.formatted ? (
-            <p className="text-xs text-muted-foreground">
-              Listed · {formatDisplayPrice(price.formatted)}{" "}
-              <span className="text-muted-foreground/70">{price.currency}</span>
-            </p>
-          ) : (
-            <p className="text-xs text-muted-foreground">Not listed</p>
-          )}
-        </div>
-      </Link>
-
-      {/* Action row — outside Link to prevent navigation on button click */}
-      <div className="px-2 pb-2 flex gap-1.5">
-        {isSignedIn ? (
-          <>
-            <div className="btn-border-animated p-[1px] rounded-lg flex-1">
-              <button
-                className="w-full h-8 rounded-[7px] flex items-center justify-center gap-1 text-xs font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-purple"
-                onClick={(e) => { e.preventDefault(); setOfferOpen(true); }}
-              >
-                <HandCoins className="h-3 w-3" />
-                Offer
-              </button>
-            </div>
-            <div className="btn-border-animated p-[1px] rounded-lg flex-1">
-              <button
-                className="w-full h-8 rounded-[7px] flex items-center justify-center gap-1 text-xs font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-rose"
-                onClick={(e) => { e.preventDefault(); router.push(`/create/remix/${token.contractAddress}/${token.tokenId}`); }}
-              >
-                <GitBranch className="h-3 w-3" />
-                Remix
-              </button>
-            </div>
-          </>
-        ) : (
-          <p className="text-[10px] text-muted-foreground text-center w-full py-1.5">
-            <Link href="/sign-in" className="hover:text-foreground underline-offset-2 hover:underline">
-              Sign in
-            </Link>{" "}to trade
-          </p>
-        )}
-      </div>
-
-      <OfferDialog
-        open={offerOpen}
-        onOpenChange={setOfferOpen}
-        assetContract={token.contractAddress}
-        tokenId={token.tokenId}
-        tokenName={token.metadata?.name ?? `#${token.tokenId}`}
-      />
-    </MotionCard>
-  );
-}
-
-function TokenBrowseCardSkeleton() {
-  return (
-    <div className="card-base flex flex-col">
-      <Skeleton className="aspect-square w-full rounded-none" />
-      <div className="p-3 space-y-2">
-        <Skeleton className="h-4 w-3/4" />
-        <Skeleton className="h-3 w-1/2" />
-      </div>
-      <div className="px-2 pb-2 pt-0 flex gap-1.5">
-        <Skeleton className="h-8 flex-1 rounded-lg" />
-        <Skeleton className="h-8 flex-1 rounded-lg" />
-      </div>
-    </div>
-  );
-}
 
 // ---- Main page ----
 interface IpTypePageClientProps {
@@ -152,10 +29,13 @@ interface IpTypePageClientProps {
 export function IpTypePageClient({ slug }: IpTypePageClientProps) {
   const config = IP_TYPE_MAP[slug];
   const Icon = config?.icon;
+  const { isSignedIn } = useAuth();
+  const router = useRouter();
 
   const [page, setPage] = useState(1);
   const [listedOnly, setListedOnly] = useState(false);
   const [allTokens, setAllTokens] = useState<ApiToken[]>([]);
+  const [offerToken, setOfferToken] = useState<ApiToken | null>(null);
   const prevSlug = useRef(slug);
 
   // Filter + sort state
@@ -424,7 +304,7 @@ export function IpTypePageClient({ slug }: IpTypePageClientProps) {
       {isInitialLoading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {Array.from({ length: PAGE_SIZE }).map((_, i) => (
-            <TokenBrowseCardSkeleton key={i} />
+            <TokenCardSkeleton key={i} />
           ))}
         </div>
       ) : displayed.length === 0 ? (
@@ -452,9 +332,11 @@ export function IpTypePageClient({ slug }: IpTypePageClientProps) {
         <div className="space-y-6">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {displayed.map((token) => (
-              <TokenBrowseCard
+              <TokenCard
                 key={`${token.contractAddress}:${token.tokenId}`}
                 token={token}
+                onOffer={isSignedIn ? (t) => setOfferToken(t) : undefined}
+                onRemix={isSignedIn ? (t) => router.push(`/create/remix/${t.contractAddress}/${t.tokenId}`) : undefined}
               />
             ))}
           </div>
@@ -479,6 +361,16 @@ export function IpTypePageClient({ slug }: IpTypePageClientProps) {
             </div>
           )}
         </div>
+      )}
+
+      {offerToken && (
+        <OfferDialog
+          open={!!offerToken}
+          onOpenChange={(v) => { if (!v) setOfferToken(null); }}
+          assetContract={offerToken.contractAddress}
+          tokenId={offerToken.tokenId}
+          tokenName={offerToken.metadata?.name ?? `#${offerToken.tokenId}`}
+        />
       )}
     </div>
   );
