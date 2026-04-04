@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MotionCard } from "@/components/ui/motion-primitives";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ShoppingCart, Check, MoreHorizontal, ExternalLink, Layers, ArrowRightLeft, Flag, GitBranch } from "lucide-react";
-import { cn, ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
+import { cn, ipfsToHttp, formatDisplayPrice, timeAgo } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
 import { ReportDialog } from "@/components/report-dialog";
 import { HelpIcon } from "@/components/ui/help-icon";
@@ -18,9 +18,11 @@ import type { ApiOrder } from "@medialane/sdk";
 interface ListingCardProps {
   order: ApiOrder;
   onBuy?: (order: ApiOrder) => void;
+  /** Compact mode: tighter layout, no action buttons. For dense grids. */
+  compact?: boolean;
 }
 
-export function ListingCard({ order, onBuy }: ListingCardProps) {
+export function ListingCard({ order, onBuy, compact = false }: ListingCardProps) {
   const router = useRouter();
   const { addItem, items } = useCart();
   const inCart = items.some((i) => i.orderHash === order.orderHash);
@@ -30,6 +32,45 @@ export function ListingCard({ order, onBuy }: ListingCardProps) {
 
   const name = order.token?.name ?? `Token #${order.nftTokenId}`;
   const image = order.token?.image ? ipfsToHttp(order.token.image) : null;
+
+  // ─── Compact variant ─────────────────────────────────────────────────────────
+  if (compact) {
+    return (
+      <MotionCard className="card-base">
+        <Link href={`/asset/${order.nftContract}/${order.nftTokenId}`} className="block">
+          <div className="relative aspect-square bg-muted overflow-hidden">
+            {image && !imgError ? (
+              <Image
+                src={image}
+                alt={name}
+                fill
+                unoptimized
+                sizes="(max-width: 640px) 33vw, 20vw"
+                className="object-cover group-hover:scale-105 transition-transform duration-500"
+                onError={() => setImgError(true)}
+              />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-brand-purple/15 to-brand-blue/15">
+                <span className="text-xl font-mono text-muted-foreground">#{order.nftTokenId}</span>
+              </div>
+            )}
+          </div>
+          <div className="p-2.5 space-y-0.5">
+            <p className="text-xs font-semibold truncate">{name}</p>
+            {order.price && (
+              <p className="text-[11px] font-bold price-value">
+                {formatDisplayPrice(order.price.formatted)}{" "}
+                <span className="text-muted-foreground font-normal">{order.price.currency}</span>
+              </p>
+            )}
+            <p className="text-[10px] text-muted-foreground">{timeAgo(order.createdAt)}</p>
+          </div>
+        </Link>
+      </MotionCard>
+    );
+  }
+
+  // ─── Full variant ─────────────────────────────────────────────────────────────
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();

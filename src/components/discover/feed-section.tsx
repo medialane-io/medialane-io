@@ -1,64 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { useOrders } from "@/hooks/use-orders";
+import { ArrowRight, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FadeIn } from "@/components/ui/motion-primitives";
 import { CommunityActivity } from "@/components/home/community-activity";
+import { ListingCard } from "@/components/marketplace/listing-card";
 import { BRAND } from "@/lib/brand";
-import { ipfsToHttp, timeAgo, formatDisplayPrice } from "@/lib/utils";
-import {
-  ArrowRight,
-  Tag,
-  Image as ImageIcon,
-} from "lucide-react";
-import type { ApiOrder } from "@medialane/sdk";
-
-// ─── Listing card ─────────────────────────────────────────────────────────────
-
-function ListingCard({ order }: { order: ApiOrder }) {
-  const [imgError, setImgError] = useState(false);
-  const name = order.token?.name ?? `#${order.nftTokenId}`;
-  const image = order.token?.image && !imgError ? ipfsToHttp(order.token.image) : null;
-
-  return (
-    <Link
-      href={`/asset/${order.nftContract}/${order.nftTokenId}`}
-      className="group block"
-    >
-      <div className="rounded-xl border border-border overflow-hidden hover:border-border/80 transition-colors">
-        <div className="aspect-square bg-muted relative overflow-hidden">
-          {image ? (
-            <Image
-              src={image}
-              alt={name}
-              fill
-              className="object-cover group-hover:scale-105 transition-transform duration-500"
-              onError={() => setImgError(true)}
-              unoptimized
-            />
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-brand-purple/10 to-brand-blue/10">
-              <ImageIcon className="h-6 w-6 text-muted-foreground/30" />
-            </div>
-          )}
-        </div>
-        <div className="p-2.5 bg-card">
-          <p className="text-xs font-semibold truncate">{name}</p>
-          {order.price && (
-            <p className="text-[11px] font-bold text-brand-orange mt-0.5">
-              {formatDisplayPrice(order.price.formatted)} {order.price.currency}
-            </p>
-          )}
-          <p className="text-[10px] text-muted-foreground mt-0.5">{timeAgo(order.createdAt)}</p>
-        </div>
-      </div>
-    </Link>
-  );
-}
+import { useOrders } from "@/hooks/use-orders";
 
 function ListingCardSkeleton() {
   return (
@@ -72,10 +22,8 @@ function ListingCardSkeleton() {
   );
 }
 
-// ─── Feed section ─────────────────────────────────────────────────────────────
-
 export function FeedSection() {
-  const { orders, isLoading: ordersLoading } = useOrders({ status: "ACTIVE", sort: "recent", limit: 6 });
+  const { orders, isLoading } = useOrders({ status: "ACTIVE", sort: "recent", limit: 6 });
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -97,7 +45,7 @@ export function FeedSection() {
             </Button>
           </div>
 
-          {ordersLoading ? (
+          {isLoading ? (
             <div className="grid grid-cols-3 gap-3">
               {Array.from({ length: 6 }).map((_, i) => <ListingCardSkeleton key={i} />)}
             </div>
@@ -107,13 +55,13 @@ export function FeedSection() {
             </div>
           ) : (
             <div className="grid grid-cols-3 gap-3">
-              {orders.map((o) => <ListingCard key={o.orderHash} order={o} />)}
+              {orders.map((o) => <ListingCard key={o.orderHash} order={o} compact />)}
             </div>
           )}
         </div>
       </FadeIn>
 
-      {/* Recent Activity — uses the same CommunityActivity widget from the homepage */}
+      {/* Recent Activity */}
       <FadeIn delay={0.08}>
         <CommunityActivity />
       </FadeIn>
