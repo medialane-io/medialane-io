@@ -10,9 +10,17 @@ function normalizeAddress(addr: string): string {
 }
 
 export async function POST(req: NextRequest) {
-  const { userId } = await auth();
+  const { userId, getToken } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Forward the Clerk JWT so the backend can derive reporterUserId from it.
+  // The backend's clerkJwtOnly middleware validates this token — reporterUserId
+  // is never accepted from the request body.
+  const clerkToken = await getToken();
+  if (!clerkToken) {
+    return NextResponse.json({ error: "Could not obtain session token" }, { status: 401 });
   }
 
   let body: {
@@ -43,7 +51,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid targetType" }, { status: 400 });
   }
 
-  // Normalize addresses before computing targetKey
   const normalizedContract = body.targetContract
     ? normalizeAddress(body.targetContract)
     : undefined;
@@ -51,7 +58,6 @@ export async function POST(req: NextRequest) {
     ? normalizeAddress(body.targetAddress)
     : undefined;
 
-  // Compute canonical targetKey
   let targetKey: string;
   if (body.targetType === "TOKEN" && normalizedContract && body.targetTokenId) {
     targetKey = `TOKEN:${normalizedContract}:${body.targetTokenId}`;
@@ -72,7 +78,10 @@ export async function POST(req: NextRequest) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      // x-api-key for tenant auth (global apiKeyAuth middleware)
       "x-api-key": API_KEY,
+      // Clerk JWT for reporter identity (clerkJwtOnly middleware derives reporterUserId from it)
+      "Authorization": `Bearer ${clerkToken}`,
     },
     body: JSON.stringify({
       targetType: body.targetType,
@@ -81,9 +90,9 @@ export async function POST(req: NextRequest) {
       targetTokenId: body.targetTokenId,
       targetAddress: normalizedAddress,
       targetId: body.targetId,
-      reporterUserId: userId,
       categories: body.categories,
       description: body.description,
+      // reporterUserId intentionally omitted — backend derives it from the JWT sub claim
     }),
   });
 
