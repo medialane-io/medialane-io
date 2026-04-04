@@ -11,7 +11,6 @@ import { ipfsToHttp } from "@/lib/utils";
 import Image from "next/image";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL!;
-const ADMIN_KEY   = process.env.NEXT_PUBLIC_ADMIN_API_KEY!;
 const TENANT_KEY  = process.env.NEXT_PUBLIC_MEDIALANE_API_KEY!;
 const EXPLORER    = "https://voyager.online";
 
@@ -50,8 +49,8 @@ export default function AdminTokensPage() {
     setRefreshing(true);
     try {
       const res = await fetch(
-        `${BACKEND_URL}/admin/tokens/${contract.trim()}/${tokenId.trim()}/refresh`,
-        { method: "POST", headers: { "x-api-key": ADMIN_KEY } }
+        `/api/admin/tokens/${contract.trim()}/${tokenId.trim()}/refresh`,
+        { method: "POST", headers: { "Content-Type": "application/json" } }
       );
       if (!res.ok) throw new Error();
       const data = await res.json();

@@ -2,7 +2,7 @@ import { auth, clerkClient } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL!;
-const ADMIN_KEY = process.env.NEXT_PUBLIC_ADMIN_API_KEY!;
+const ADMIN_KEY = process.env.ADMIN_API_KEY!;
 
 async function getPendingReportCount(): Promise<number> {
   try {

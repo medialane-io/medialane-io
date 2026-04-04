@@ -1,6 +1,6 @@
 const BACKEND_URL = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL!;
-// Admin endpoints require API_SECRET_KEY — use NEXT_PUBLIC_ADMIN_API_KEY (not tenant key)
-const ADMIN_KEY = process.env.NEXT_PUBLIC_ADMIN_API_KEY!;
+// Admin endpoints require API_SECRET_KEY — use ADMIN_API_KEY (server-only, not exposed to browser)
+const ADMIN_KEY = process.env.ADMIN_API_KEY!;
 const TENANT_KEY = process.env.NEXT_PUBLIC_MEDIALANE_API_KEY!;
 
 async function getStats() {

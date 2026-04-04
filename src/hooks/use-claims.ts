@@ -6,14 +6,10 @@ import type {
   AdminCollectionRecord,
 } from "@/types/admin";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL!;
-// Admin endpoints (/admin/claims, /admin/collections) require the API_SECRET_KEY, not the tenant key.
-// NEXT_PUBLIC_ADMIN_API_KEY must be set in .env.local and Railway env vars.
-const ADMIN_KEY = process.env.NEXT_PUBLIC_ADMIN_API_KEY!;
-const adminHeaders = {
-  "x-api-key": ADMIN_KEY,
-  "Content-Type": "application/json",
-};
+// All admin calls go through /api/admin/[...path] which adds the secret server-side.
+// No API key is needed here — the proxy handles auth via Clerk admin role check.
+const adminFetch = (url: string, options?: RequestInit) =>
+  fetch(url, { ...options, headers: { "Content-Type": "application/json", ...(options?.headers as Record<string, string>) } });
 
 export function useAdminClaims(status?: string, page = 1) {
   const params = new URLSearchParams({ page: String(page), limit: "20" });
@@ -21,7 +17,7 @@ export function useAdminClaims(status?: string, page = 1) {
   const { data, error, isLoading, mutate } = useSWR(
     `admin-claims-${status}-${page}`,
     async () => {
-      const res = await fetch(`${BACKEND_URL}/admin/claims?${params}`, { headers: adminHeaders });
+      const res = await adminFetch(`/api/admin/claims?${params}`);
       return res.json();
     },
     { revalidateOnFocus: false }
@@ -35,7 +31,7 @@ export function useAdminUsernameClaims(status?: string, page = 1) {
   const { data, error, isLoading, mutate } = useSWR(
     `admin-username-claims-${status}-${page}`,
     async () => {
-      const res = await fetch(`${BACKEND_URL}/admin/username-claims?${params}`, { headers: adminHeaders });
+      const res = await adminFetch(`/api/admin/username-claims?${params}`);
       return res.json();
     },
     { revalidateOnFocus: false }
@@ -49,7 +45,7 @@ export function useAdminCreators(status?: string, page = 1) {
   const { data, error, isLoading, mutate } = useSWR(
     `admin-username-claims-all-${status}-${page}`,
     async () => {
-      const res = await fetch(`${BACKEND_URL}/admin/username-claims?${params}`, { headers: adminHeaders });
+      const res = await adminFetch(`/api/admin/username-claims?${params}`);
       return res.json();
     },
     { revalidateOnFocus: false }
@@ -65,7 +61,7 @@ export function useAdminCollections(filters: { source?: string; metadataStatus?:
   const { data, error, isLoading, mutate } = useSWR(
     `admin-collections-${JSON.stringify(filters)}`,
     async () => {
-      const res = await fetch(`${BACKEND_URL}/admin/collections?${params}`, { headers: adminHeaders });
+      const res = await adminFetch(`/api/admin/collections?${params}`);
       return res.json();
     },
     { revalidateOnFocus: false }

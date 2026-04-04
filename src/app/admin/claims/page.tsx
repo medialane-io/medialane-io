@@ -12,8 +12,7 @@ import { formatDistanceToNow } from "date-fns";
 import { AtSign, FileCheck } from "lucide-react";
 import type { AdminCollectionClaimRecord, AdminUsernameClaimRecord } from "@/types/admin";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL!;
-const API_KEY = process.env.NEXT_PUBLIC_ADMIN_API_KEY!;
+
 
 const STATUS_STYLE: Record<string, string> = {
   PENDING:       "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
@@ -43,9 +42,9 @@ function CollectionClaimsTab() {
     if (!selected) return;
     setProcessing(true);
     try {
-      const res = await fetch(`${BACKEND_URL}/admin/claims/${selected.id}`, {
+      const res = await fetch(`/api/admin/claims/${selected.id}`, {
         method: "PATCH",
-        headers: { "x-api-key": API_KEY, "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status, adminNotes, ...(status === "APPROVED" ? { source } : {}) }),
       });
       if (!res.ok) throw new Error();
@@ -132,9 +131,9 @@ function UsernameClaimsTab() {
     if (!selected) return;
     setProcessing(true);
     try {
-      const res = await fetch(`${BACKEND_URL}/admin/username-claims/${selected.id}`, {
+      const res = await fetch(`/api/admin/username-claims/${selected.id}`, {
         method: "PATCH",
-        headers: { "x-api-key": API_KEY, "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status, adminNotes }),
       });
       if (!res.ok) throw new Error();

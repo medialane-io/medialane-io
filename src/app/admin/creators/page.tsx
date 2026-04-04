@@ -10,8 +10,6 @@ import { toast } from "sonner";
 import { ExternalLink, Wrench } from "lucide-react";
 import type { AdminCreatorRecord } from "@/types/admin";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL!;
-const ADMIN_KEY   = process.env.NEXT_PUBLIC_ADMIN_API_KEY!;
 
 const STATUS_STYLE: Record<string, string> = {
   APPROVED: "bg-green-500/20 text-green-400",
@@ -41,10 +39,10 @@ export default function AdminCreatorsPage() {
     setFixing(true);
     try {
       const res = await fetch(
-        `${BACKEND_URL}/admin/creators/${fixCreator.walletAddress}/fix-wallet`,
+        `/api/admin/creators/${fixCreator.walletAddress}/fix-wallet`,
         {
           method: "PATCH",
-          headers: { "x-api-key": ADMIN_KEY, "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ newAddress: newWallet.trim() }),
         }
       );

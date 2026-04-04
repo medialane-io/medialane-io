@@ -9,12 +9,15 @@ import { RefreshCw, Activity, Database, Zap, GitMerge } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL!;
-const ADMIN_KEY   = process.env.NEXT_PUBLIC_ADMIN_API_KEY!;
 
-function adminPost(path: string) {
-  return fetch(`${BACKEND_URL}${path}`, {
+// All admin mutations go through /api/admin/[...path] — proxy adds the secret server-side.
+// path must start with /admin/  e.g.  /admin/collections/backfill-registry
+function adminPost(path: string, body?: unknown) {
+  const proxyPath = path.replace(/^\/admin\//, "/api/admin/");
+  return fetch(proxyPath, {
     method: "POST",
-    headers: { "x-api-key": ADMIN_KEY },
+    headers: { "Content-Type": "application/json" },
+    ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
   });
 }
 
@@ -85,11 +88,7 @@ export default function AdminMaintenancePage() {
     setTransferRunning(true);
     setTransferResult(null);
     try {
-      const res = await fetch(`${BACKEND_URL}/admin/collections/${transferContract.trim()}/backfill-transfers`, {
-        method: "POST",
-        headers: { "x-api-key": ADMIN_KEY, "Content-Type": "application/json" },
-        body: JSON.stringify({ fromBlock }),
-      });
+      const res = await adminPost(`/admin/collections/${transferContract.trim()}/backfill-transfers`, { fromBlock });
       if (!res.ok) throw new Error();
       const data = await res.json();
       setTransferResult(data.data);

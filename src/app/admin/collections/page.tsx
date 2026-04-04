@@ -14,8 +14,6 @@ import { ExternalLink, RefreshCw, Plus, Download, EyeOff, Eye, Trash2 } from "lu
 import type { AdminCollectionRecord } from "@/types/admin";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL!;
-// Must match API_SECRET_KEY on the backend — set NEXT_PUBLIC_ADMIN_API_KEY in .env.local and Railway
-const ADMIN_KEY = process.env.NEXT_PUBLIC_ADMIN_API_KEY!;
 
 const SOURCE_STYLE: Record<string, string> = {
   MEDIALANE_REGISTRY: "bg-blue-500/20 text-blue-400",
@@ -55,9 +53,11 @@ export default function AdminCollectionsPage() {
   }
 
   async function adminFetch(path: string, opts: RequestInit = {}) {
-    return fetch(`${BACKEND_URL}${path}`, {
+    // Route through /api/admin/[...path] proxy — adds API key server-side
+    const proxyPath = path.replace(/^\/admin\//, "/api/admin/");
+    return fetch(proxyPath, {
       ...opts,
-      headers: { "x-api-key": ADMIN_KEY, "Content-Type": "application/json", ...opts.headers },
+      headers: { "Content-Type": "application/json", ...(opts.headers as Record<string, string>) },
     });
   }
 
