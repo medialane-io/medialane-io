@@ -38,6 +38,7 @@ function CreatorChip({ creator }: { creator: ApiCreatorProfile }) {
             src={resolvedBanner}
             alt=""
             aria-hidden
+            loading="lazy"
             className="absolute inset-0 w-full h-full object-cover"
           />
         ) : (
@@ -50,7 +51,7 @@ function CreatorChip({ creator }: { creator: ApiCreatorProfile }) {
             style={!resolvedAvatar ? { background: fallbackGradient } : {}}
           >
             {resolvedAvatar ? (
-              <img src={resolvedAvatar} alt={displayName} className="h-full w-full object-cover" />
+              <img src={resolvedAvatar} alt={displayName} loading="lazy" className="h-full w-full object-cover" />
             ) : (
               <span className="text-xs font-black text-white">{displayName.charAt(0).toUpperCase()}</span>
             )}

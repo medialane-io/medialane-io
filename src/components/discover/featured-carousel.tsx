@@ -22,6 +22,7 @@ function Slide({ collection }: { collection: ApiCollection }) {
         <img
           src={image}
           alt={name}
+          loading="lazy"
           className="absolute inset-0 w-full h-full object-cover"
         />
       ) : (

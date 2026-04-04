@@ -48,7 +48,7 @@ function CounterOfferFetcher({
   return (
     <div className="flex items-center gap-4 px-4 py-3 hover:bg-muted/40 transition-colors">
       <div className="relative h-12 w-12 rounded-lg overflow-hidden border border-border shrink-0 bg-gradient-to-br from-muted to-muted-foreground/20">
-        {image && <Image src={image} alt={name} fill className="object-cover" />}
+        {image && <Image src={image} alt={name} fill unoptimized sizes="48px" className="object-cover" />}
       </div>
 
       <div className="flex-1 min-w-0">

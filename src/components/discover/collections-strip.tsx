@@ -27,6 +27,7 @@ function CollectionChip({ collection }: { collection: ApiCollection }) {
             <img
               src={image}
               alt={collection.name ?? ""}
+              loading="lazy"
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               onError={() => setImgError(true)}
             />

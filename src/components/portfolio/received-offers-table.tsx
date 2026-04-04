@@ -52,7 +52,7 @@ function ReceivedOfferRow({
     )}>
       {/* Thumbnail */}
       <div className="relative h-12 w-12 rounded-lg overflow-hidden border border-border shrink-0 bg-gradient-to-br from-muted to-muted-foreground/20">
-        {image && <Image src={image} alt={name} fill className="object-cover" />}
+        {image && <Image src={image} alt={name} fill unoptimized sizes="48px" className="object-cover" />}
       </div>
 
       {/* Asset */}
