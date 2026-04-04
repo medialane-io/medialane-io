@@ -3,16 +3,13 @@
 import { useState, useCallback, Suspense } from "react";
 import { useAuth, useUser, useClerk } from "@clerk/nextjs";
 import { useSearchParams } from "next/navigation";
-import { useChipiWallet, useGetWallet, isWebAuthnSupported, createWalletPasskey } from "@chipi-stack/nextjs";
-import { byteArray, CallData } from "starknet";
+import { useChipiWallet, isWebAuthnSupported, createWalletPasskey } from "@chipi-stack/nextjs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PinInput, validatePin } from "@/components/ui/pin-input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, ShieldCheck, CheckCircle2, AlertCircle, KeyRound } from "lucide-react";
 import { completeOnboarding } from "./_actions";
-import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
-import { LAUNCH_MINT_CONTRACT, GENESIS_NFT_URI } from "@/lib/constants";
 
 export default function OnboardingPage() {
   return (
@@ -27,8 +24,7 @@ function OnboardingContent() {
   const { user } = useUser();
   const { session } = useClerk();
   const searchParams = useSearchParams();
-  // Onboarding always ends at /welcome — ignore any redirect_url for the mint flow
-  void searchParams;
+  const fromBr = searchParams.get("from") === "br";
 
   const getBearerToken = useCallback(
     () => getToken({ template: process.env.NEXT_PUBLIC_CLERK_TEMPLATE_NAME || "chipipay" }),
@@ -41,22 +37,19 @@ function OnboardingContent() {
     enabled: false,
   });
 
-  const { fetchWallet } = useGetWallet();
-  const { executeTransaction } = useChipiTransaction();
-
   const [passkeySupported] = useState(
     () => typeof window !== "undefined" && isWebAuthnSupported()
   );
   const [showPinFallback, setShowPinFallback] = useState(false);
   const [pin, setPin] = useState("");
   const [pinError, setPinError] = useState<string | null>(null);
-  const [step, setStep] = useState<"pin" | "minting" | "done">("pin");
+  const [step, setStep] = useState<"pin" | "done">("pin");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const isLoading = isCreating || isSubmitting;
 
-  // ── Shared wallet creation + mint ─────────────────────────────────────────
+  // ── Wallet creation ───────────────────────────────────────────────────────
 
   const createWalletWithKey = async (encryptKey: string) => {
     const wallet = await createWallet({ encryptKey });
@@ -65,52 +58,6 @@ function OnboardingContent() {
       throw new Error("Wallet creation returned invalid data");
     }
 
-    // ── Genesis mint ──────────────────────────────────────────────────────
-    // Run BEFORE completeOnboarding/reload/touch so the bearer token is still
-    // in its original valid state (session.touch() can briefly invalidate getToken).
-    if (LAUNCH_MINT_CONTRACT && GENESIS_NFT_URI && userId) {
-      setStep("minting");
-      try {
-        // createWallet() response may omit encryptedPrivateKey — fetch if needed
-        let encryptedPrivateKey = wallet.encryptedPrivateKey;
-        if (!encryptedPrivateKey) {
-          const fetched = await fetchWallet({
-            params: { externalUserId: userId },
-            getBearerToken,
-          });
-          encryptedPrivateKey = fetched?.encryptedPrivateKey ?? "";
-        }
-
-        if (!encryptedPrivateKey) {
-          throw new Error("Could not retrieve wallet credentials for mint");
-        }
-
-        const encodedUri = byteArray.byteArrayFromString(GENESIS_NFT_URI);
-        const calldata = CallData.compile([walletKey, encodedUri]);
-        const mintResult = await executeTransaction({
-          pin: encryptKey,
-          contractAddress: LAUNCH_MINT_CONTRACT,
-          wallet: {
-            publicKey: wallet.publicKey,
-            encryptedPrivateKey,
-          },
-          calls: [
-            {
-              contractAddress: LAUNCH_MINT_CONTRACT,
-              entrypoint: "mint_item",
-              calldata,
-            },
-          ],
-        });
-        if (mintResult.status === "confirmed") {
-          localStorage.setItem(`ml_genesis_${userId}`, mintResult.txHash);
-        }
-      } catch (mintErr) {
-        console.error("[onboarding] genesis mint failed (non-fatal):", mintErr);
-      }
-    }
-
-    // ── Clerk sync (after mint so token stays valid during the transaction) ─
     const result = await completeOnboarding({ publicKey: walletKey });
     if (result.error) throw new Error(result.error);
 
@@ -119,7 +66,7 @@ function OnboardingContent() {
 
     sessionStorage.setItem("ml_fresh_onboarding", "1");
     setStep("done");
-    setTimeout(() => { window.location.href = "/welcome"; }, 1500);
+    setTimeout(() => { window.location.href = fromBr ? "/br/mint" : "/welcome"; }, 1500);
   };
 
   // ── Passkey flow ──────────────────────────────────────────────────────────
@@ -158,35 +105,6 @@ function OnboardingContent() {
       setIsSubmitting(false);
     }
   };
-
-  // ── Minting step ──────────────────────────────────────────────────────────
-
-  if (step === "minting") {
-    return (
-      <div className="min-h-[80vh] flex items-center justify-center px-4">
-        <Card className="w-full max-w-sm text-center">
-          <CardHeader>
-            <div className="flex justify-center mb-4">
-              <Loader2 className="h-10 w-10 animate-spin text-primary" />
-            </div>
-            <CardTitle>Sending your welcome gift…</CardTitle>
-            <CardDescription>Minting your Genesis NFT on Starknet</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2 pb-6">
-            {["Upload metadata", "Submit transaction", "Confirm on Starknet"].map((label) => (
-              <div
-                key={label}
-                className="flex items-center gap-2 text-xs text-muted-foreground justify-center"
-              >
-                <div className="h-3 w-3 rounded-full border border-muted-foreground/30 animate-pulse shrink-0" />
-                <span>{label}</span>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   // ── Done state ────────────────────────────────────────────────────────────
 

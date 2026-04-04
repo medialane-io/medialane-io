@@ -14,6 +14,7 @@ import { SidebarInset, SidebarProvider, SidebarTrigger, useSidebar } from "@/com
 import { MedialaneLogo } from "@/components/brand/medialane-logo";
 import { SWRConfig } from "swr";
 import { ChipiSessionUnlockProvider } from "@/contexts/chipi-session-unlock-context";
+import { usePathname } from "next/navigation";
 
 function MobileIconTrigger() {
   const { toggleSidebar } = useSidebar();
@@ -25,7 +26,15 @@ function MobileIconTrigger() {
   );
 }
 
-function Shell({ children }: { children: React.ReactNode }) {
+function StandaloneShell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen bg-background flex flex-col">
+      <main className="flex-1">{children}</main>
+    </div>
+  );
+}
+
+function MainShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (sessionStorage.getItem("ml-mainnet-notice-shown")) return;
     sessionStorage.setItem("ml-mainnet-notice-shown", "1");
@@ -69,6 +78,14 @@ function Shell({ children }: { children: React.ReactNode }) {
       </ChipiSessionUnlockProvider>
     </SidebarProvider>
   );
+}
+
+function Shell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  if (pathname === "/br" || pathname.startsWith("/br/")) {
+    return <StandaloneShell>{children}</StandaloneShell>;
+  }
+  return <MainShell>{children}</MainShell>;
 }
 
 export function Providers({ children }: { children: React.ReactNode }) {
