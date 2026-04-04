@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
+import { fetchCreatorProfile } from "@/lib/api-server";
 import CreatorUsernamePageClient from "./creator-username-client";
 
 export const revalidate = 60;
@@ -10,10 +11,29 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { address } = await params;
-  // For address-based routes, title will be set after redirect
+
+  // Wallet addresses redirect server-side — metadata will be picked up by /account/[address]
+  if (address.startsWith("0x") || address.startsWith("0X")) {
+    return { title: `${address.slice(0, 8)}… | Medialane` };
+  }
+
+  const profile = await fetchCreatorProfile(address);
+  const name = profile?.displayName ?? profile?.username ?? `@${address}`;
+  const bio = profile?.bio ?? `Creator profile for ${name} on Medialane.`;
+
   return {
-    title: `@${address} | Medialane`,
-    description: `Creator profile for @${address} on Medialane.`,
+    title: name,
+    description: bio.length > 160 ? `${bio.slice(0, 157)}…` : bio,
+    openGraph: {
+      title: `${name} | Medialane`,
+      description: bio.length > 160 ? `${bio.slice(0, 157)}…` : bio,
+      type: "profile",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${name} | Medialane`,
+      description: bio.length > 160 ? `${bio.slice(0, 157)}…` : bio,
+    },
   };
 }
 

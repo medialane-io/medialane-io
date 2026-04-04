@@ -38,3 +38,14 @@ export async function fetchCollectionMeta(contract: string) {
     `/v1/collections/${contract}`
   );
 }
+
+export async function fetchCreatorProfile(username: string) {
+  return apiFetch<{
+    walletAddress?: string;
+    username?: string;
+    displayName?: string;
+    bio?: string;
+    avatarImage?: string;
+    bannerImage?: string;
+  }>(`/v1/creators/by-username/${encodeURIComponent(username.toLowerCase())}`);
+}
