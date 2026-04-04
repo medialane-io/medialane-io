@@ -8,6 +8,7 @@ import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { MotionCard } from "@/components/ui/motion-primitives";
 import { ipfsToHttp } from "@/lib/utils";
 import { Search, Layers, ImageIcon, Users, AtSign, X } from "lucide-react";
 import type { ApiSearchResult, ApiSearchCreatorResult } from "@medialane/sdk";
@@ -17,9 +18,10 @@ function TokenCard({ token }: { token: NonNullable<ApiSearchResult["tokens"]>[nu
   const image = token.image ? ipfsToHttp(token.image) : null;
 
   return (
+    <MotionCard className="card-base">
     <Link
       href={`/asset/${token.contractAddress}/${token.tokenId}`}
-      className="group rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all"
+      className="group block"
     >
       <div className="relative aspect-square bg-gradient-to-br from-muted to-muted/50 overflow-hidden">
         {image && !imgError ? (
@@ -48,6 +50,7 @@ function TokenCard({ token }: { token: NonNullable<ApiSearchResult["tokens"]>[nu
         </p>
       </div>
     </Link>
+    </MotionCard>
   );
 }
 
@@ -60,7 +63,7 @@ function CollectionCard({ col }: { col: NonNullable<ApiSearchResult["collections
   return (
     <Link
       href={`/collections/${col.contractAddress}`}
-      className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 hover:border-primary/30 hover:bg-muted/30 transition-all"
+      className="card-base flex items-center gap-3 p-4 hover:border-primary/30 hover:bg-muted/30 transition-all"
     >
       <div className="relative h-10 w-10 rounded-lg bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center text-base font-bold shrink-0 overflow-hidden">
         {showImage ? (
@@ -92,7 +95,7 @@ function CreatorCard({ creator }: { creator: ApiSearchCreatorResult }) {
   return (
     <Link
       href={`/creator/${creator.username}`}
-      className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 hover:border-primary/30 hover:bg-muted/30 transition-all"
+      className="card-base flex items-center gap-3 p-3 hover:border-primary/30 hover:bg-muted/30 transition-all"
     >
       <div className="h-9 w-9 rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 flex items-center justify-center shrink-0 overflow-hidden">
         {avatarUrl ? (
@@ -219,7 +222,7 @@ function SearchResults() {
         <div className="space-y-6">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {Array.from({ length: 10 }).map((_, i) => (
-              <div key={i} className="rounded-xl border border-border overflow-hidden">
+              <div key={i} className="card-base">
                 <Skeleton className="aspect-square w-full" />
                 <div className="p-3 space-y-2">
                   <Skeleton className="h-4 w-3/4" />

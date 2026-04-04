@@ -12,6 +12,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { AnimatePresence, motion } from "framer-motion";
+import { MotionCard } from "@/components/ui/motion-primitives";
 import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useTokensByIpType } from "@/hooks/use-tokens-by-ip-type";
@@ -40,7 +41,7 @@ function TokenBrowseCard({ token }: { token: ApiToken }) {
     : IP_TYPE_CONFIG.find((c) => c.slug === "nft") ?? null;
 
   return (
-    <div className="group rounded-xl border border-border overflow-hidden hover:border-primary/40 transition-all bg-card hover:shadow-lg hover:shadow-black/20 flex flex-col">
+    <MotionCard className="card-base flex flex-col">
       {/* Image + info — clickable to asset page */}
       <Link href={`/asset/${token.contractAddress}/${token.tokenId}`} className="block flex-1">
         <div className="aspect-square overflow-hidden bg-muted relative">
@@ -85,7 +86,7 @@ function TokenBrowseCard({ token }: { token: ApiToken }) {
       </Link>
 
       {/* Action row — outside Link to prevent navigation on button click */}
-      <div className="px-2 pb-2 pt-0 flex gap-1.5">
+      <div className="px-2 pb-2 flex gap-1.5">
         {isSignedIn ? (
           <>
             <div className="btn-border-animated p-[1px] rounded-lg flex-1">
@@ -123,13 +124,13 @@ function TokenBrowseCard({ token }: { token: ApiToken }) {
         tokenId={token.tokenId}
         tokenName={token.metadata?.name ?? `#${token.tokenId}`}
       />
-    </div>
+    </MotionCard>
   );
 }
 
 function TokenBrowseCardSkeleton() {
   return (
-    <div className="rounded-xl border border-border overflow-hidden bg-card flex flex-col">
+    <div className="card-base flex flex-col">
       <Skeleton className="aspect-square w-full rounded-none" />
       <div className="p-3 space-y-2">
         <Skeleton className="h-4 w-3/4" />
