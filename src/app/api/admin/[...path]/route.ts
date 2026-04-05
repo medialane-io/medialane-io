@@ -30,6 +30,15 @@ async function handler(
   }
 
   const { path } = await params;
+
+  // Reject traversal attempts — empty segments, ".", and ".." are all disallowed.
+  // Without this guard, a crafted path like ["..","v1","portal","keys"] would resolve
+  // to /v1/portal/keys on the backend with the admin API key already injected.
+  const isSafe = path.every((seg) => seg !== "" && seg !== "." && seg !== "..");
+  if (!isSafe) {
+    return NextResponse.json({ error: "Invalid path" }, { status: 400 });
+  }
+
   const url = new URL(req.url);
   const targetUrl = `${BACKEND_URL}/admin/${path.join("/")}${url.search}`;
 
