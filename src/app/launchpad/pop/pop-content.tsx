@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { Award, Calendar, Users, Plus } from "lucide-react";
+import { Award, Calendar, Users, Plus, LayoutList } from "lucide-react";
 import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion-primitives";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -140,12 +140,20 @@ export function PopContent() {
               <p className="section-label">Available</p>
               <h2 className="text-xl font-bold mt-0.5">Open for claiming</h2>
             </div>
-            <Button asChild size="sm" className="bg-green-600 hover:bg-green-700 text-white gap-1.5">
-              <Link href="/launchpad/pop/create">
-                <Plus className="h-3.5 w-3.5" />
-                Create Event
-              </Link>
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button asChild variant="outline" size="sm" className="gap-1.5">
+                <Link href="/launchpad/pop/my-events">
+                  <LayoutList className="h-3.5 w-3.5" />
+                  My Events
+                </Link>
+              </Button>
+              <Button asChild size="sm" className="bg-green-600 hover:bg-green-700 text-white gap-1.5">
+                <Link href="/launchpad/pop/create">
+                  <Plus className="h-3.5 w-3.5" />
+                  Create Event
+                </Link>
+              </Button>
+            </div>
           </div>
         </FadeIn>
 

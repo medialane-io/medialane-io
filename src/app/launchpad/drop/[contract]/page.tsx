@@ -5,13 +5,14 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   Package, ArrowLeft, Users, Clock, DollarSign,
-  ShieldCheck, Calendar,
+  ShieldCheck, Calendar, Settings,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FadeIn } from "@/components/ui/motion-primitives";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CollectionDropMintButton } from "@/components/claim/collection-drop-mint-button";
 import { useDropInfo, getDropStatus, type DropConditions } from "@/hooks/use-drops";
+import { useSessionKey } from "@/hooks/use-session-key";
 import { ipfsToHttp } from "@/lib/utils";
 import { getListableTokens } from "@medialane/sdk";
 import { cn } from "@/lib/utils";
@@ -99,6 +100,7 @@ export default function DropDetailPage({
   params: Promise<{ contract: string }>;
 }) {
   const { contract } = use(params);
+  const { walletAddress } = useSessionKey();
   const { dropInfo, isLoading } = useDropInfo(contract);
 
   if (isLoading) {
@@ -129,18 +131,32 @@ export default function DropDetailPage({
   const status = getDropStatus(conditions, totalMinted);
   const maxSupply = conditions ? parseInt(conditions.maxSupply, 10) : 0;
   const imageUrl = dropInfo.image ? ipfsToHttp(dropInfo.image) : null;
+  const isOwner =
+    walletAddress &&
+    dropInfo.owner &&
+    walletAddress.toLowerCase() === dropInfo.owner.toLowerCase();
 
   return (
     <div className="container max-w-2xl mx-auto px-4 pt-10 pb-16 space-y-8">
 
-      {/* Back */}
+      {/* Back + manage */}
       <FadeIn>
-        <Button asChild variant="ghost" size="sm" className="-ml-2">
-          <Link href="/launchpad/drop">
-            <ArrowLeft className="h-3.5 w-3.5 mr-1.5" />
-            All drops
-          </Link>
-        </Button>
+        <div className="flex items-center justify-between">
+          <Button asChild variant="ghost" size="sm" className="-ml-2">
+            <Link href="/launchpad/drop">
+              <ArrowLeft className="h-3.5 w-3.5 mr-1.5" />
+              All drops
+            </Link>
+          </Button>
+          {isOwner && (
+            <Button asChild variant="outline" size="sm" className="gap-1.5">
+              <Link href={`/launchpad/drop/${contract}/manage`}>
+                <Settings className="h-3.5 w-3.5" />
+                Manage
+              </Link>
+            </Button>
+          )}
+        </div>
       </FadeIn>
 
       {/* Hero image */}

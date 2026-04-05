@@ -57,6 +57,12 @@ export const BR_NFT_URI =
 export const BR_NFT_IMAGE_URL =
   process.env.NEXT_PUBLIC_BR_NFT_IMAGE_URL || "";
 
+export const DROP_FACTORY_CONTRACT =
+  (process.env.NEXT_PUBLIC_DROP_FACTORY_CONTRACT as `0x${string}`) || ("" as `0x${string}`);
+
+export const POP_FACTORY_CONTRACT =
+  (process.env.NEXT_PUBLIC_POP_FACTORY_CONTRACT as `0x${string}`) || ("" as `0x${string}`);
+
 /** Delay (ms) before re-fetching after a write op, allowing the indexer to process the block. */
 export const INDEXER_REVALIDATION_DELAY_MS = 10_000;
 
