@@ -25,6 +25,9 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
+    // All external images are proxied server-side through /api/ipfs and /api/img,
+    // so Vercel's /_next/image optimizer is not needed and hits quota on free plan.
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",
