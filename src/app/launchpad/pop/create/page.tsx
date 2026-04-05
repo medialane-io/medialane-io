@@ -8,10 +8,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { Contract } from "starknet";
 import { starknetProvider } from "@/lib/starknet";
-import { Contract as StarknetContract } from "starknet";
 import {
   Award, Mic2, Code2, Wrench, Zap, Users, BookOpen, Star,
-  Loader2, ImagePlus, X, Mail, CheckCircle2,
+  Loader2, ImagePlus, X, CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,26 +20,24 @@ import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useUser } from "@clerk/nextjs";
-import { useIsPOPProvider } from "@/hooks/use-organizer-status";
 import { toast } from "sonner";
-import { BRAND } from "@/lib/brand";
 import { FadeIn } from "@/components/ui/motion-primitives";
-import { POPFactoryABI, POP_FACTORY_CONTRACT_MAINNET } from "@medialane/sdk";
-import type { PopEventType } from "@medialane/sdk";
+import { POPFactoryABI, POP_FACTORY_CONTRACT, type PopEventType } from "@/lib/launchpad-contracts";
+import { cn } from "@/lib/utils";
 
 const EVENT_TYPES: { value: PopEventType; label: string; icon: React.ElementType; description: string }[] = [
-  { value: "Conference",  label: "Conference",  icon: Mic2,     description: "Talks & panels"    },
-  { value: "Bootcamp",    label: "Bootcamp",    icon: Code2,    description: "Intensive training" },
-  { value: "Workshop",    label: "Workshop",    icon: Wrench,   description: "Hands-on learning"  },
-  { value: "Hackathon",   label: "Hackathon",   icon: Zap,      description: "Build & compete"    },
+  { value: "Conference",  label: "Conference",  icon: Mic2,     description: "Talks & panels"     },
+  { value: "Bootcamp",    label: "Bootcamp",    icon: Code2,    description: "Intensive training"  },
+  { value: "Workshop",    label: "Workshop",    icon: Wrench,   description: "Hands-on learning"   },
+  { value: "Hackathon",   label: "Hackathon",   icon: Zap,      description: "Build & compete"     },
   { value: "Meetup",      label: "Meetup",      icon: Users,    description: "Community gathering" },
   { value: "Course",      label: "Course",      icon: BookOpen, description: "Structured learning" },
-  { value: "Other",       label: "Other",       icon: Star,     description: "Something unique"   },
+  { value: "Other",       label: "Other",       icon: Star,     description: "Something unique"    },
 ];
 
 const schema = z.object({
-  name:   z.string().min(1, "Event name required").max(100),
-  symbol: z.string().min(1, "Symbol required").max(10).regex(/^[A-Z0-9]+$/, "Uppercase letters and numbers only"),
+  name:         z.string().min(1, "Event name required").max(100),
+  symbol:       z.string().min(1, "Symbol required").max(10).regex(/^[A-Z0-9]+$/, "Uppercase letters and numbers only"),
   claimEndDate: z.string().min(1, "Claim end date required"),
   claimEndTime: z.string().default("23:59"),
 });
@@ -50,7 +47,6 @@ type FormValues = z.infer<typeof schema>;
 export default function CreatePOPPage() {
   const { isSignedIn } = useUser();
   const { walletAddress, hasWallet } = useSessionKey();
-  const { isProvider, isLoading: checkingProvider } = useIsPOPProvider(walletAddress);
   const { executeTransaction, isSubmitting } = useChipiTransaction();
 
   const [eventType, setEventType] = useState<PopEventType>("Conference");
@@ -59,7 +55,6 @@ export default function CreatePOPPage() {
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
   const [done, setDone] = useState(false);
 
-  // Image upload
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
@@ -101,6 +96,10 @@ export default function CreatePOPPage() {
   };
 
   const onSubmit = (values: FormValues) => {
+    if (!POP_FACTORY_CONTRACT) {
+      toast.error("POP Factory contract not configured");
+      return;
+    }
     if (!hasWallet) { setWalletSetupOpen(true); return; }
     setPendingValues(values);
     setPinOpen(true);
@@ -110,7 +109,6 @@ export default function CreatePOPPage() {
     setPinOpen(false);
     if (!pendingValues || !walletAddress) return;
 
-    // Build baseUri from image metadata
     let baseUri = "";
     if (imageUri) {
       try {
@@ -124,13 +122,12 @@ export default function CreatePOPPage() {
       } catch { /* non-fatal */ }
     }
 
-    // Convert date + time → Unix timestamp
     const claimEndTimestamp = Math.floor(
       new Date(`${pendingValues.claimEndDate}T${pendingValues.claimEndTime}:00`).getTime() / 1000
     );
 
     try {
-      const factory = new Contract(POPFactoryABI as any, POP_FACTORY_CONTRACT_MAINNET, starknetProvider);
+      const factory = new Contract(POPFactoryABI as any, POP_FACTORY_CONTRACT, starknetProvider);
       const call = factory.populate("create_collection", [
         pendingValues.name,
         pendingValues.symbol,
@@ -141,8 +138,12 @@ export default function CreatePOPPage() {
 
       const result = await executeTransaction({
         pin,
-        contractAddress: POP_FACTORY_CONTRACT_MAINNET,
-        calls: [{ contractAddress: POP_FACTORY_CONTRACT_MAINNET, entrypoint: "create_collection", calldata: call.calldata as string[] }],
+        contractAddress: POP_FACTORY_CONTRACT,
+        calls: [{
+          contractAddress: POP_FACTORY_CONTRACT,
+          entrypoint: "create_collection",
+          calldata: call.calldata as string[],
+        }],
       });
 
       if (result.status === "confirmed") {
@@ -155,7 +156,7 @@ export default function CreatePOPPage() {
     }
   };
 
-  // ── Success state ──────────────────────────────────────────────────────────
+  // ── Success ────────────────────────────────────────────────────────────────
   if (done) {
     return (
       <div className="container max-w-lg mx-auto px-4 pt-24 pb-8 text-center space-y-6">
@@ -174,8 +175,10 @@ export default function CreatePOPPage() {
           <Button asChild variant="outline">
             <Link href="/launchpad/pop">Back to POP launchpad</Link>
           </Button>
-          <Button onClick={() => { setDone(false); form.reset(); setImagePreview(null); setImageUri(null); setEventType("Conference"); }}
-            className="bg-green-600 hover:bg-green-700 text-white">
+          <Button
+            onClick={() => { setDone(false); form.reset(); setImagePreview(null); setImageUri(null); setEventType("Conference"); }}
+            className="bg-green-600 hover:bg-green-700 text-white"
+          >
             Create another
           </Button>
         </div>
@@ -189,47 +192,7 @@ export default function CreatePOPPage() {
       <div className="container max-w-lg mx-auto px-4 pt-24 pb-8 text-center space-y-4">
         <Award className="h-10 w-10 text-green-500 mx-auto" />
         <h1 className="text-2xl font-bold">Sign in to create a POP event</h1>
-        <p className="text-muted-foreground">You need to be signed in and registered as an event provider.</p>
-      </div>
-    );
-  }
-
-  // ── Checking provider status ───────────────────────────────────────────────
-  if (checkingProvider) {
-    return (
-      <div className="container max-w-lg mx-auto px-4 pt-24 flex justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
-  // ── Not a registered provider ──────────────────────────────────────────────
-  if (!isProvider) {
-    return (
-      <div className="container max-w-lg mx-auto px-4 pt-24 pb-8 space-y-6">
-        <FadeIn>
-          <div className="bento-cell p-8 text-center space-y-5">
-            <div className="h-16 w-16 rounded-2xl bg-green-500/10 flex items-center justify-center mx-auto">
-              <Award className="h-8 w-8 text-green-500" />
-            </div>
-            <div className="space-y-2">
-              <h1 className="text-xl font-bold">Provider access required</h1>
-              <p className="text-sm text-muted-foreground leading-relaxed max-w-sm mx-auto">
-                To issue POP credentials you need to be a registered event provider.
-                We onboard protocols, bootcamps, DAOs, and conference organizers.
-              </p>
-            </div>
-            <Button asChild className="bg-green-600 hover:bg-green-700 text-white gap-2">
-              <a href="mailto:hello@medialane.io?subject=POP Provider Application">
-                <Mail className="h-4 w-4" />
-                Apply to become a provider
-              </a>
-            </Button>
-            <p className="text-xs text-muted-foreground">
-              Already registered? Make sure you&apos;re connected with the right wallet.
-            </p>
-          </div>
-        </FadeIn>
+        <p className="text-muted-foreground">Sign in to deploy a credential collection on Starknet.</p>
       </div>
     );
   }
@@ -239,7 +202,6 @@ export default function CreatePOPPage() {
     <>
       <div className="container max-w-xl mx-auto px-4 pt-10 pb-16 space-y-8">
 
-        {/* Header */}
         <FadeIn>
           <div className="space-y-1">
             <span className="pill-badge inline-flex gap-1.5">
@@ -253,25 +215,23 @@ export default function CreatePOPPage() {
           </div>
         </FadeIn>
 
-        {/* Event type selector — the centrepiece */}
+        {/* Event type selector */}
         <FadeIn delay={0.06}>
           <div className="space-y-3">
             <p className="text-sm font-medium">What kind of event is this?</p>
             <div className="grid grid-cols-4 gap-2">
-              {EVENT_TYPES.map(({ value, label, icon: Icon, description }) => {
+              {EVENT_TYPES.map(({ value, label, icon: Icon }) => {
                 const selected = eventType === value;
                 return (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setEventType(value)}
-                    className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border text-center transition-all ${
+                  <button key={value} type="button" onClick={() => setEventType(value)}
+                    className={cn(
+                      "flex flex-col items-center gap-1.5 p-3 rounded-xl border text-center transition-all",
                       selected
                         ? "border-green-500 bg-green-500/10 text-green-600 dark:text-green-400"
                         : "border-border bg-muted/30 hover:border-green-500/40 hover:bg-green-500/5 text-muted-foreground"
-                    }`}
+                    )}
                   >
-                    <Icon className={`h-5 w-5 ${selected ? "text-green-500" : ""}`} />
+                    <Icon className={cn("h-5 w-5", selected && "text-green-500")} />
                     <span className="text-[11px] font-semibold leading-tight">{label}</span>
                   </button>
                 );
@@ -312,7 +272,9 @@ export default function CreatePOPPage() {
                       onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageSelect(f); }} />
                     <Button type="button" variant="outline" size="sm" disabled={imageUploading}
                       onClick={() => fileInputRef.current?.click()}>
-                      {imageUploading ? <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />Uploading…</> : imagePreview ? "Change" : "Upload badge art"}
+                      {imageUploading
+                        ? <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />Uploading…</>
+                        : imagePreview ? "Change" : "Upload badge art"}
                     </Button>
                     {imagePreview && (
                       <button type="button" onClick={() => { setImagePreview(null); setImageUri(null); }}
@@ -321,7 +283,9 @@ export default function CreatePOPPage() {
                       </button>
                     )}
                     <p className="text-xs text-muted-foreground">
-                      {imageUri ? <span className="text-green-500">✓ Uploaded to IPFS</span> : "JPG, PNG, SVG or WebP · max 10 MB"}
+                      {imageUri
+                        ? <span className="text-green-500">✓ Uploaded to IPFS</span>
+                        : "JPG, PNG, SVG or WebP · max 10 MB"}
                     </p>
                   </div>
                 </div>
@@ -345,7 +309,9 @@ export default function CreatePOPPage() {
                 <FormItem>
                   <FormLabel>Symbol *</FormLabel>
                   <FormControl>
-                    <Input placeholder="SKHACK" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} className="max-w-[160px]" />
+                    <Input placeholder="SKHACK" {...field}
+                      onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                      className="max-w-[160px]" />
                   </FormControl>
                   <FormDescription>Short ticker shown in wallets.</FormDescription>
                   <FormMessage />
@@ -367,7 +333,6 @@ export default function CreatePOPPage() {
                   <FormField control={form.control} name="claimEndTime" render={({ field }) => (
                     <FormItem className="w-28">
                       <FormControl><Input type="time" {...field} /></FormControl>
-                      <FormMessage />
                     </FormItem>
                   )} />
                 </div>
@@ -377,22 +342,26 @@ export default function CreatePOPPage() {
 
             {/* Submit */}
             <FadeIn delay={0.2}>
-              <div className={`btn-border-animated p-[1px] rounded-xl mt-2 ${isSubmitting || imageUploading ? "opacity-40 pointer-events-none" : ""}`}>
-                <button type="submit"
-                  className="w-full h-12 text-base font-semibold text-white rounded-[11px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] bg-green-600">
-                  {isSubmitting
-                    ? <><Loader2 className="h-4 w-4 animate-spin" />Creating event…</>
-                    : <><Award className="h-4 w-4" />Create Event</>}
-                </button>
-              </div>
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full bg-green-600 hover:bg-green-700 text-white mt-2"
+                disabled={isSubmitting || imageUploading}
+              >
+                {isSubmitting
+                  ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Creating event…</>
+                  : <><Award className="h-4 w-4 mr-2" />Create Event</>}
+              </Button>
               <p className="text-xs text-center text-muted-foreground mt-2">Gas is free. Your PIN signs the transaction.</p>
             </FadeIn>
+
           </form>
         </Form>
       </div>
 
       <PinDialog open={pinOpen} onSubmit={handlePin} onCancel={() => setPinOpen(false)}
-        title="Deploy POP collection" description="Enter your PIN to deploy your event credential collection on Starknet." />
+        title="Deploy POP collection"
+        description="Enter your PIN to deploy your event credential collection on Starknet." />
       <WalletSetupDialog open={walletSetupOpen} onOpenChange={setWalletSetupOpen}
         onSuccess={() => { setWalletSetupOpen(false); setPinOpen(true); }} />
     </>

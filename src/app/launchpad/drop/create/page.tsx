@@ -10,7 +10,7 @@ import { Contract } from "starknet";
 import { starknetProvider } from "@/lib/starknet";
 import {
   Package, Layers, DollarSign, Clock, ShieldCheck,
-  Loader2, ImagePlus, X, Mail, CheckCircle2, ChevronDown,
+  Loader2, ImagePlus, X, CheckCircle2, ChevronDown,
   Zap, Coins,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,19 +21,13 @@ import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useUser } from "@clerk/nextjs";
-import { useIsDropOrganizer } from "@/hooks/use-organizer-status";
 import { toast } from "sonner";
 import { FadeIn } from "@/components/ui/motion-primitives";
-import { DropFactoryABI, DROP_FACTORY_CONTRACT_MAINNET } from "@medialane/sdk";
+import { getListableTokens } from "@medialane/sdk";
+import { DropFactoryABI, DROP_FACTORY_CONTRACT } from "@/lib/launchpad-contracts";
 import { cn } from "@/lib/utils";
 
-// Payment tokens supported on Starknet mainnet
-const PAYMENT_TOKENS = [
-  { symbol: "ETH",  address: "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7" },
-  { symbol: "STRK", address: "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d" },
-  { symbol: "USDC", address: "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8" },
-  { symbol: "USDT", address: "0x068f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8" },
-];
+const PAYMENT_TOKENS = getListableTokens().map((t) => ({ symbol: t.symbol, address: t.address }));
 
 const SUPPLY_PRESETS = [
   { label: "100",   value: 100 },
@@ -43,16 +37,16 @@ const SUPPLY_PRESETS = [
 ];
 
 const schema = z.object({
-  name:            z.string().min(1, "Collection name required").max(100),
-  symbol:          z.string().min(1, "Symbol required").max(10).regex(/^[A-Z0-9]+$/, "Uppercase letters and numbers only"),
-  supplyCustom:    z.string().optional(),
-  priceAmount:     z.string().optional(),
-  paymentToken:    z.string().default(PAYMENT_TOKENS[0].address),
-  startDate:       z.string().min(1, "Start date required"),
-  startTime:       z.string().default("00:00"),
-  endDate:         z.string().min(1, "End date required"),
-  endTime:         z.string().default("23:59"),
-  maxPerWallet:    z.string().default("1"),
+  name:         z.string().min(1, "Collection name required").max(100),
+  symbol:       z.string().min(1, "Symbol required").max(10).regex(/^[A-Z0-9]+$/, "Uppercase letters and numbers only"),
+  supplyCustom: z.string().optional(),
+  priceAmount:  z.string().optional(),
+  paymentToken: z.string().default(PAYMENT_TOKENS[0].address),
+  startDate:    z.string().min(1, "Start date required"),
+  startTime:    z.string().default("00:00"),
+  endDate:      z.string().min(1, "End date required"),
+  endTime:      z.string().default("23:59"),
+  maxPerWallet: z.string().default("1"),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -60,14 +54,10 @@ type FormValues = z.infer<typeof schema>;
 export default function CreateDropPage() {
   const { isSignedIn } = useUser();
   const { walletAddress, hasWallet } = useSessionKey();
-  const { isOrganizer, isLoading: checkingOrganizer } = useIsDropOrganizer(walletAddress);
   const { executeTransaction, isSubmitting } = useChipiTransaction();
 
-  // Supply preset selection ("custom" = manual input)
   const [supplyPreset, setSupplyPreset] = useState<number | "custom">(1000);
-  // Price mode
   const [priceFree, setPriceFree] = useState(true);
-  // Token selector dropdown
   const [tokenDropdownOpen, setTokenDropdownOpen] = useState(false);
   const [selectedToken, setSelectedToken] = useState(PAYMENT_TOKENS[0]);
 
@@ -76,7 +66,6 @@ export default function CreateDropPage() {
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
   const [done, setDone] = useState(false);
 
-  // Cover image upload
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
@@ -132,10 +121,7 @@ export default function CreateDropPage() {
   };
 
   const onSubmit = (values: FormValues) => {
-    if (resolvedSupply() <= 0n) {
-      toast.error("Set a valid max supply");
-      return;
-    }
+    if (resolvedSupply() <= 0n) { toast.error("Set a valid max supply"); return; }
     if (!hasWallet) { setWalletSetupOpen(true); return; }
     setPendingValues(values);
     setPinOpen(true);
@@ -145,7 +131,6 @@ export default function CreateDropPage() {
     setPinOpen(false);
     if (!pendingValues || !walletAddress) return;
 
-    // Build baseUri from collection metadata
     let baseUri = "";
     if (imageUri) {
       try {
@@ -159,17 +144,9 @@ export default function CreateDropPage() {
       } catch { /* non-fatal */ }
     }
 
-    const startTs = Math.floor(
-      new Date(`${pendingValues.startDate}T${pendingValues.startTime}:00`).getTime() / 1000
-    );
-    const endTs = Math.floor(
-      new Date(`${pendingValues.endDate}T${pendingValues.endTime}:00`).getTime() / 1000
-    );
-
-    const priceWei = priceFree
-      ? 0n
-      : BigInt(Math.round(parseFloat(pendingValues.priceAmount ?? "0") * 1e18));
-
+    const startTs = Math.floor(new Date(`${pendingValues.startDate}T${pendingValues.startTime}:00`).getTime() / 1000);
+    const endTs   = Math.floor(new Date(`${pendingValues.endDate}T${pendingValues.endTime}:00`).getTime() / 1000);
+    const priceWei = priceFree ? 0n : BigInt(Math.round(parseFloat(pendingValues.priceAmount ?? "0") * 1e18));
     const maxPerWallet = BigInt(parseInt(pendingValues.maxPerWallet ?? "1", 10));
     const maxSupply = resolvedSupply();
 
@@ -182,7 +159,7 @@ export default function CreateDropPage() {
     };
 
     try {
-      const factory = new Contract(DropFactoryABI as any, DROP_FACTORY_CONTRACT_MAINNET, starknetProvider);
+      const factory = new Contract(DropFactoryABI as any, DROP_FACTORY_CONTRACT, starknetProvider);
       const call = factory.populate("create_drop", [
         pendingValues.name,
         pendingValues.symbol,
@@ -193,9 +170,9 @@ export default function CreateDropPage() {
 
       const result = await executeTransaction({
         pin,
-        contractAddress: DROP_FACTORY_CONTRACT_MAINNET,
+        contractAddress: DROP_FACTORY_CONTRACT,
         calls: [{
-          contractAddress: DROP_FACTORY_CONTRACT_MAINNET,
+          contractAddress: DROP_FACTORY_CONTRACT,
           entrypoint: "create_drop",
           calldata: call.calldata as string[],
         }],
@@ -254,47 +231,7 @@ export default function CreateDropPage() {
       <div className="container max-w-lg mx-auto px-4 pt-24 pb-8 text-center space-y-4">
         <Package className="h-10 w-10 text-orange-500 mx-auto" />
         <h1 className="text-2xl font-bold">Sign in to launch a drop</h1>
-        <p className="text-muted-foreground">You need to be signed in and registered as an organizer.</p>
-      </div>
-    );
-  }
-
-  // ── Checking organizer status ──────────────────────────────────────────────
-  if (checkingOrganizer) {
-    return (
-      <div className="container max-w-lg mx-auto px-4 pt-24 flex justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
-  // ── Not an organizer ───────────────────────────────────────────────────────
-  if (!isOrganizer) {
-    return (
-      <div className="container max-w-lg mx-auto px-4 pt-24 pb-8 space-y-6">
-        <FadeIn>
-          <div className="bento-cell p-8 text-center space-y-5">
-            <div className="h-16 w-16 rounded-2xl bg-orange-500/10 flex items-center justify-center mx-auto">
-              <Package className="h-8 w-8 text-orange-500" />
-            </div>
-            <div className="space-y-2">
-              <h1 className="text-xl font-bold">Organizer access required</h1>
-              <p className="text-sm text-muted-foreground leading-relaxed max-w-sm mx-auto">
-                To launch Collection Drops you need to be a registered organizer.
-                We onboard projects, DAOs, artists, and brands launching limited editions.
-              </p>
-            </div>
-            <Button asChild className="bg-orange-600 hover:bg-orange-700 text-white gap-2">
-              <a href="mailto:hello@medialane.io?subject=Collection Drop Organizer Application">
-                <Mail className="h-4 w-4" />
-                Contact us to become an organizer
-              </a>
-            </Button>
-            <p className="text-xs text-muted-foreground">
-              Already registered? Make sure you&apos;re connected with the right wallet.
-            </p>
-          </div>
-        </FadeIn>
+        <p className="text-muted-foreground">Sign in to deploy a limited-edition collection on Starknet.</p>
       </div>
     );
   }
@@ -304,7 +241,6 @@ export default function CreateDropPage() {
     <>
       <div className="container max-w-2xl mx-auto px-4 pt-10 pb-16 space-y-8">
 
-        {/* Header */}
         <FadeIn>
           <div className="space-y-1">
             <span className="pill-badge inline-flex gap-1.5">
@@ -321,17 +257,14 @@ export default function CreateDropPage() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 
-            {/* ── Panel 1: Identity ─────────────────────────────────────────── */}
+            {/* ── Identity ── */}
             <FadeIn delay={0.06}>
               <div className="bento-cell p-5 space-y-5">
                 <div className="flex items-center gap-2 text-sm font-semibold">
                   <Layers className="h-4 w-4 text-orange-500" />
                   Identity
                 </div>
-
-                {/* Cover image + name + symbol */}
                 <div className="flex gap-4 items-start">
-                  {/* Cover thumbnail */}
                   <div
                     role="button"
                     tabIndex={0}
@@ -378,7 +311,6 @@ export default function CreateDropPage() {
                     )} />
                   </div>
                 </div>
-
                 {imageUri && (
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-orange-500">✓ Cover uploaded to IPFS</span>
@@ -391,79 +323,61 @@ export default function CreateDropPage() {
               </div>
             </FadeIn>
 
-            {/* ── Panel 2: Supply ───────────────────────────────────────────── */}
+            {/* ── Supply cap ── */}
             <FadeIn delay={0.1}>
               <div className="bento-cell p-5 space-y-4">
                 <div className="flex items-center gap-2 text-sm font-semibold">
                   <ShieldCheck className="h-4 w-4 text-orange-500" />
                   Supply cap
                 </div>
-
-                <div className="space-y-3">
-                  <p className="text-xs text-muted-foreground">How many tokens can ever be minted?</p>
-                  <div className="flex flex-wrap gap-2">
-                    {SUPPLY_PRESETS.map((p) => (
-                      <button
-                        key={p.value}
-                        type="button"
-                        onClick={() => { setSupplyPreset(p.value); form.setValue("supplyCustom", ""); }}
-                        className={cn(
-                          "px-4 py-2 rounded-lg border text-sm font-semibold transition-all",
-                          supplyPreset === p.value
-                            ? "border-orange-500 bg-orange-500/10 text-orange-600 dark:text-orange-400"
-                            : "border-border bg-muted/30 hover:border-orange-500/40 text-muted-foreground"
-                        )}
-                      >
-                        {p.label}
-                      </button>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={() => setSupplyPreset("custom")}
+                <p className="text-xs text-muted-foreground">How many tokens can ever be minted?</p>
+                <div className="flex flex-wrap gap-2">
+                  {SUPPLY_PRESETS.map((p) => (
+                    <button key={p.value} type="button"
+                      onClick={() => { setSupplyPreset(p.value); form.setValue("supplyCustom", ""); }}
                       className={cn(
                         "px-4 py-2 rounded-lg border text-sm font-semibold transition-all",
-                        supplyPreset === "custom"
+                        supplyPreset === p.value
                           ? "border-orange-500 bg-orange-500/10 text-orange-600 dark:text-orange-400"
                           : "border-border bg-muted/30 hover:border-orange-500/40 text-muted-foreground"
                       )}
                     >
-                      Custom
+                      {p.label}
                     </button>
-                  </div>
-
-                  {supplyPreset === "custom" && (
-                    <FormField control={form.control} name="supplyCustom" render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            placeholder="Enter max supply…"
-                            min={1}
-                            className="max-w-[200px]"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                  )}
+                  ))}
+                  <button type="button" onClick={() => setSupplyPreset("custom")}
+                    className={cn(
+                      "px-4 py-2 rounded-lg border text-sm font-semibold transition-all",
+                      supplyPreset === "custom"
+                        ? "border-orange-500 bg-orange-500/10 text-orange-600 dark:text-orange-400"
+                        : "border-border bg-muted/30 hover:border-orange-500/40 text-muted-foreground"
+                    )}
+                  >
+                    Custom
+                  </button>
                 </div>
+                {supplyPreset === "custom" && (
+                  <FormField control={form.control} name="supplyCustom" render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input type="number" placeholder="Enter max supply…" min={1} className="max-w-[200px]" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                )}
               </div>
             </FadeIn>
 
-            {/* ── Panel 3: Economics ────────────────────────────────────────── */}
+            {/* ── Economics ── */}
             <FadeIn delay={0.14}>
               <div className="bento-cell p-5 space-y-4">
                 <div className="flex items-center gap-2 text-sm font-semibold">
                   <DollarSign className="h-4 w-4 text-orange-500" />
                   Economics
                 </div>
-
-                {/* Free / Paid toggle */}
                 <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setPriceFree(true)}
+                  <button type="button" onClick={() => setPriceFree(true)}
                     className={cn(
                       "flex items-center gap-1.5 px-4 py-2 rounded-lg border text-sm font-semibold transition-all",
                       priceFree
@@ -471,12 +385,9 @@ export default function CreateDropPage() {
                         : "border-border bg-muted/30 hover:border-orange-500/40 text-muted-foreground"
                     )}
                   >
-                    <Zap className="h-3.5 w-3.5" />
-                    Free mint
+                    <Zap className="h-3.5 w-3.5" /> Free mint
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setPriceFree(false)}
+                  <button type="button" onClick={() => setPriceFree(false)}
                     className={cn(
                       "flex items-center gap-1.5 px-4 py-2 rounded-lg border text-sm font-semibold transition-all",
                       !priceFree
@@ -484,8 +395,7 @@ export default function CreateDropPage() {
                         : "border-border bg-muted/30 hover:border-orange-500/40 text-muted-foreground"
                     )}
                   >
-                    <Coins className="h-3.5 w-3.5" />
-                    Paid mint
+                    <Coins className="h-3.5 w-3.5" /> Paid mint
                   </button>
                 </div>
 
@@ -500,28 +410,17 @@ export default function CreateDropPage() {
                         <FormMessage />
                       </FormItem>
                     )} />
-
-                    {/* Token selector */}
                     <div className="relative mt-[22px]">
-                      <button
-                        type="button"
-                        onClick={() => setTokenDropdownOpen((o) => !o)}
-                        className="flex items-center gap-1.5 h-10 px-3 rounded-md border border-border bg-muted/30 text-sm font-semibold hover:border-orange-500/50 transition-colors"
-                      >
+                      <button type="button" onClick={() => setTokenDropdownOpen((o) => !o)}
+                        className="flex items-center gap-1.5 h-10 px-3 rounded-md border border-border bg-muted/30 text-sm font-semibold hover:border-orange-500/50 transition-colors">
                         {selectedToken.symbol}
                         <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
                       </button>
                       {tokenDropdownOpen && (
                         <div className="absolute top-11 right-0 z-50 w-28 rounded-lg border border-border bg-background shadow-lg py-1">
                           {PAYMENT_TOKENS.map((t) => (
-                            <button
-                              key={t.address}
-                              type="button"
-                              onClick={() => {
-                                setSelectedToken(t);
-                                form.setValue("paymentToken", t.address);
-                                setTokenDropdownOpen(false);
-                              }}
+                            <button key={t.address} type="button"
+                              onClick={() => { setSelectedToken(t); form.setValue("paymentToken", t.address); setTokenDropdownOpen(false); }}
                               className={cn(
                                 "w-full text-left px-3 py-1.5 text-sm hover:bg-muted transition-colors",
                                 selectedToken.address === t.address && "text-orange-500 font-semibold"
@@ -536,7 +435,6 @@ export default function CreateDropPage() {
                   </div>
                 )}
 
-                {/* Per-wallet limit */}
                 <FormField control={form.control} name="maxPerWallet" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Max per wallet</FormLabel>
@@ -550,14 +448,13 @@ export default function CreateDropPage() {
               </div>
             </FadeIn>
 
-            {/* ── Panel 4: Mint window ──────────────────────────────────────── */}
+            {/* ── Mint window ── */}
             <FadeIn delay={0.18}>
               <div className="bento-cell p-5 space-y-4">
                 <div className="flex items-center gap-2 text-sm font-semibold">
                   <Clock className="h-4 w-4 text-orange-500" />
                   Mint window
                 </div>
-
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Opens</p>
@@ -575,7 +472,6 @@ export default function CreateDropPage() {
                       )} />
                     </div>
                   </div>
-
                   <div className="space-y-1.5">
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Closes</p>
                     <div className="flex gap-2">
@@ -596,18 +492,18 @@ export default function CreateDropPage() {
               </div>
             </FadeIn>
 
-            {/* ── Submit ────────────────────────────────────────────────────── */}
+            {/* ── Submit ── */}
             <FadeIn delay={0.22}>
-              <div className={`btn-border-animated p-[1px] rounded-xl ${isSubmitting || imageUploading ? "opacity-40 pointer-events-none" : ""}`}>
-                <button
-                  type="submit"
-                  className="w-full h-12 text-base font-semibold text-white rounded-[11px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] bg-orange-600"
-                >
-                  {isSubmitting
-                    ? <><Loader2 className="h-4 w-4 animate-spin" />Launching…</>
-                    : <><Package className="h-4 w-4" />Launch Drop</>}
-                </button>
-              </div>
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full bg-orange-600 hover:bg-orange-700 text-white"
+                disabled={isSubmitting || imageUploading}
+              >
+                {isSubmitting
+                  ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Launching…</>
+                  : <><Package className="h-4 w-4 mr-2" />Launch Drop</>}
+              </Button>
               <p className="text-xs text-center text-muted-foreground mt-2">Gas is free. Your PIN signs the transaction.</p>
             </FadeIn>
 
