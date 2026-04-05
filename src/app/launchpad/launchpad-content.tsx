@@ -55,6 +55,8 @@ interface ServiceDef {
   icon: React.ElementType;
   href?: string;
   buttonLabel?: string;
+  browseHref?: string;
+  browseLinkLabel?: string;
   // Gradient: 3-stop diagonal, richer than before
   gradient: string;
   // Tinted border color for live cards
@@ -124,8 +126,10 @@ const SERVICES: ServiceDef[] = [
     description: "Issue non-transferable on-chain credentials for bootcamps, hackathons, and conferences. Each attendee claims one soulbound badge — permanently tied to their wallet.",
     features: ["Soulbound · non-transferable", "One credential per wallet", "Optional allowlist gating"],
     icon: Award,
-    href: "/launchpad/pop",
-    buttonLabel: "View POP events",
+    href: "/launchpad/pop/create",
+    buttonLabel: "Create Event",
+    browseHref: "/launchpad/pop",
+    browseLinkLabel: "Browse events",
     gradient: "from-emerald-500/10 via-green-400/4 to-transparent",
     borderColor: "border-emerald-500/20",
     iconColor: "text-emerald-500",
@@ -140,8 +144,10 @@ const SERVICES: ServiceDef[] = [
     description: "Launch a fixed-supply ERC-721 drop with a defined mint window and per-wallet limit. Set your open date and let your community race to collect.",
     features: ["Fixed supply cap", "Timed mint window", "Free or paid mint"],
     icon: Package,
-    href: "/launchpad/drop",
-    buttonLabel: "View drops",
+    href: "/launchpad/drop/create",
+    buttonLabel: "Launch Drop",
+    browseHref: "/launchpad/drop",
+    browseLinkLabel: "Browse drops",
     gradient: "from-orange-500/10 via-amber-400/4 to-transparent",
     borderColor: "border-orange-500/20",
     iconColor: "text-orange-500",
@@ -296,18 +302,29 @@ function ServiceCard({ s }: { s: ServiceDef }) {
 
         {/* CTA */}
         {live ? (
-          <Link
-            href={s.href!}
-            className={cn(
-              "flex items-center justify-between w-full h-10 px-4 rounded-xl",
-              "text-sm font-semibold text-white",
-              "transition-all duration-200 active:scale-[0.98]",
-              s.buttonColor
+          <div className="space-y-2">
+            <Link
+              href={s.href!}
+              className={cn(
+                "flex items-center justify-between w-full h-10 px-4 rounded-xl",
+                "text-sm font-semibold text-white",
+                "transition-all duration-200 active:scale-[0.98]",
+                s.buttonColor
+              )}
+            >
+              {s.buttonLabel}
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+            {s.browseHref && (
+              <Link
+                href={s.browseHref}
+                className="flex items-center justify-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors py-1"
+              >
+                {s.browseLinkLabel}
+                <ArrowRight className="h-3 w-3" />
+              </Link>
             )}
-          >
-            {s.buttonLabel}
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
+          </div>
         ) : (
           <div className="flex items-center gap-2 h-10 text-sm text-muted-foreground/30 font-medium">
             <Lock className="h-3.5 w-3.5" />

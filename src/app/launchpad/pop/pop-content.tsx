@@ -9,8 +9,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { PopClaimButton } from "@/components/claim/pop-claim-button";
 import { usePopCollections } from "@/hooks/use-pop";
-import { useIsPOPProvider } from "@/hooks/use-organizer-status";
-import { useSessionKey } from "@/hooks/use-session-key";
 import { ipfsToHttp } from "@/lib/utils";
 import { BRAND } from "@/lib/brand";
 
@@ -94,8 +92,6 @@ function PopCollectionCardSkeleton() {
 
 export function PopContent() {
   const { collections, isLoading } = usePopCollections();
-  const { walletAddress } = useSessionKey();
-  const { isProvider } = useIsPOPProvider(walletAddress);
 
   return (
     <div className="pb-16 space-y-10">
@@ -144,14 +140,12 @@ export function PopContent() {
               <p className="section-label">Available</p>
               <h2 className="text-xl font-bold mt-0.5">Open for claiming</h2>
             </div>
-            {isProvider && (
-              <Button asChild size="sm" className="bg-green-600 hover:bg-green-700 text-white gap-1.5">
-                <Link href="/launchpad/pop/create">
-                  <Plus className="h-3.5 w-3.5" />
-                  Create Event
-                </Link>
-              </Button>
-            )}
+            <Button asChild size="sm" className="bg-green-600 hover:bg-green-700 text-white gap-1.5">
+              <Link href="/launchpad/pop/create">
+                <Plus className="h-3.5 w-3.5" />
+                Create Event
+              </Link>
+            </Button>
           </div>
         </FadeIn>
 

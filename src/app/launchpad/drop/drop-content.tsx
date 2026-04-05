@@ -9,8 +9,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { CollectionDropMintButton } from "@/components/claim/collection-drop-mint-button";
 import { useDropCollections } from "@/hooks/use-drops";
-import { useIsDropOrganizer } from "@/hooks/use-organizer-status";
-import { useSessionKey } from "@/hooks/use-session-key";
 import { ipfsToHttp } from "@/lib/utils";
 import { BRAND } from "@/lib/brand";
 
@@ -93,8 +91,6 @@ function DropCollectionCardSkeleton() {
 
 export function DropContent() {
   const { collections, isLoading } = useDropCollections();
-  const { walletAddress } = useSessionKey();
-  const { isOrganizer } = useIsDropOrganizer(walletAddress);
 
   return (
     <div className="pb-16 space-y-10">
@@ -143,14 +139,12 @@ export function DropContent() {
               <p className="section-label">Active</p>
               <h2 className="text-xl font-bold mt-0.5">Open for minting</h2>
             </div>
-            {isOrganizer && (
-              <Button asChild size="sm" className="bg-orange-600 hover:bg-orange-700 text-white gap-1.5">
-                <Link href="/launchpad/drop/create">
-                  <Plus className="h-3.5 w-3.5" />
-                  Create Drop
-                </Link>
-              </Button>
-            )}
+            <Button asChild size="sm" className="bg-orange-600 hover:bg-orange-700 text-white gap-1.5">
+              <Link href="/launchpad/drop/create">
+                <Plus className="h-3.5 w-3.5" />
+                Create Drop
+              </Link>
+            </Button>
           </div>
         </FadeIn>
 
