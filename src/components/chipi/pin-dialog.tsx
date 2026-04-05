@@ -11,9 +11,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { PinInput, validatePin } from "@/components/ui/pin-input";
-import { isWebAuthnSupported } from "@chipi-stack/nextjs";
-import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
 
+// Kept for backward-compatibility with wallet transfer handlers that pass usedPasskey.
 export type PinDialogSubmitOptions = { usedPasskey?: boolean };
 
 interface PinDialogProps {
@@ -22,6 +21,7 @@ interface PinDialogProps {
   onCancel: () => void;
   title?: string;
   description?: string;
+  /** @deprecated No-op. Passkey switching is managed in the wallet settings, not here. */
   allowPasskey?: boolean;
 }
 
@@ -31,16 +31,9 @@ export function PinDialog({
   onCancel,
   title = "Enter your PIN",
   description = "Your wallet is protected — enter your PIN to continue.",
-  allowPasskey = true,
 }: PinDialogProps) {
   const [pin, setPin] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [isAuthenticatingPasskey, setIsAuthenticatingPasskey] = useState(false);
-  const { authenticate, encryptKey } = usePasskeyAuth();
-
-  const [passkeySupported] = useState(
-    () => typeof window !== "undefined" && isWebAuthnSupported()
-  );
 
   const handleSubmit = () => {
     const err = validatePin(pin);
@@ -54,29 +47,6 @@ export function PinDialog({
     setPin("");
     setError(null);
     onCancel();
-  };
-
-  const handleUsePasskey = async () => {
-    setIsAuthenticatingPasskey(true);
-    setError(null);
-    try {
-      if (encryptKey) {
-        await onSubmit(encryptKey, { usedPasskey: true });
-        setPin("");
-        setError(null);
-        return;
-      }
-      const derived = await authenticate();
-      if (!derived) throw new Error("Passkey authentication failed.");
-      await onSubmit(derived, { usedPasskey: true });
-      setPin("");
-      setError(null);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Passkey authentication failed";
-      setError(msg);
-    } finally {
-      setIsAuthenticatingPasskey(false);
-    }
   };
 
   return (
@@ -94,19 +64,6 @@ export function PinDialog({
             autoFocus
           />
         </div>
-        {allowPasskey && passkeySupported && (
-          <div className="py-1">
-            <Button
-              type="button"
-              variant="ghost"
-              className="w-full"
-              disabled={isAuthenticatingPasskey}
-              onClick={handleUsePasskey}
-            >
-              {isAuthenticatingPasskey ? "Authenticating passkey…" : "Use passkey instead"}
-            </Button>
-          </div>
-        )}
         <DialogFooter>
           <Button variant="outline" onClick={handleCancel}>Cancel</Button>
           <Button disabled={pin.length < 6} onClick={handleSubmit}>
