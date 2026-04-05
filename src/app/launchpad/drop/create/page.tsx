@@ -26,6 +26,7 @@ import { FadeIn } from "@/components/ui/motion-primitives";
 import { getListableTokens } from "@medialane/sdk";
 import { DropFactoryABI, DROP_FACTORY_CONTRACT } from "@/lib/launchpad-contracts";
 import { cn } from "@/lib/utils";
+import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
 
 const PAYMENT_TOKENS = getListableTokens().map((t) => ({ symbol: t.symbol, address: t.address }));
 
@@ -120,6 +121,62 @@ export default function CreateDropPage() {
     return BigInt(supplyPreset);
   };
 
+  const persistDropConditions = async (
+    ownerAddress: string,
+    maxSupply: bigint,
+    claimConditions: {
+      start_time: number;
+      end_time: number;
+      price: bigint;
+      payment_token: string;
+      max_quantity_per_wallet: bigint;
+    }
+  ) => {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (MEDIALANE_API_KEY) headers["x-api-key"] = MEDIALANE_API_KEY;
+    const base = MEDIALANE_BACKEND_URL.replace(/\/$/, "");
+
+    // Poll up to 30s for the newly indexed collection (indexer ~6s cycle)
+    let collectionAddress: string | null = null;
+    for (let attempt = 0; attempt < 10; attempt++) {
+      await new Promise((r) => setTimeout(r, 3000));
+      try {
+        const res = await fetch(
+          `${base}/v1/collections?source=COLLECTION_DROP&owner=${ownerAddress}&sort=recent&limit=1`,
+          { headers }
+        );
+        const json = await res.json();
+        const latest = json?.data?.[0];
+        if (latest?.contractAddress) {
+          collectionAddress = latest.contractAddress;
+          break;
+        }
+      } catch {
+        // keep polling
+      }
+    }
+
+    if (!collectionAddress) return;
+
+    try {
+      await fetch(`${base}/v1/drop/conditions`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          collectionAddress,
+          maxSupply: maxSupply.toString(),
+          price: claimConditions.price.toString(),
+          paymentToken: claimConditions.payment_token,
+          startTime: claimConditions.start_time,
+          endTime: claimConditions.end_time,
+          maxPerWallet: claimConditions.max_quantity_per_wallet.toString(),
+        }),
+      });
+    } catch {
+      // Non-fatal
+    }
+  };
+
   const onSubmit = (values: FormValues) => {
     if (resolvedSupply() <= 0n) { toast.error("Set a valid max supply"); return; }
     if (!hasWallet) { setWalletSetupOpen(true); return; }
@@ -179,6 +236,10 @@ export default function CreateDropPage() {
       });
 
       if (result.status === "confirmed") {
+        // Fire-and-forget: persist conditions once collection is indexed (~6-30s)
+        if (walletAddress) {
+          persistDropConditions(walletAddress, maxSupply, claimConditions);
+        }
         setDone(true);
       } else {
         toast.error(result.revertReason ?? "Transaction reverted");
