@@ -7,71 +7,107 @@ import { Package, Users, Plus } from "lucide-react";
 import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion-primitives";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { CollectionDropMintButton } from "@/components/claim/collection-drop-mint-button";
-import { useDropCollections } from "@/hooks/use-drops";
+import { useDropCollections, getDropStatus } from "@/hooks/use-drops";
 import { ipfsToHttp } from "@/lib/utils";
 import { BRAND } from "@/lib/brand";
+import { cn } from "@/lib/utils";
+
+function DropStatusBadge({ status }: { status: ReturnType<typeof getDropStatus> }) {
+  if (status === "live") {
+    return (
+      <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-green-400 bg-green-500/10 rounded-full px-2 py-0.5">
+        <span className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
+        Live
+      </span>
+    );
+  }
+  if (status === "upcoming") {
+    return (
+      <span className={cn("inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-blue-400 bg-blue-500/10 rounded-full px-2 py-0.5")}>
+        Upcoming
+      </span>
+    );
+  }
+  if (status === "sold_out") {
+    return (
+      <span className={cn("inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-orange-400 bg-orange-500/10 rounded-full px-2 py-0.5")}>
+        Sold out
+      </span>
+    );
+  }
+  return (
+    <span className={cn("inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground bg-muted rounded-full px-2 py-0.5")}>
+      Ended
+    </span>
+  );
+}
 
 function DropCollectionCard({ collection }: { collection: any }) {
   const [imgError, setImgError] = useState(false);
   const imageUrl = collection.image ? ipfsToHttp(collection.image) : null;
   const showImage = imageUrl && !imgError;
   const initial = (collection.name ?? "D").charAt(0).toUpperCase();
+  // Without per-card conditions fetch, default to "live" for list view
+  const status = getDropStatus(null, collection.totalSupply ?? 0);
 
   return (
-    <div className="bento-cell overflow-hidden flex flex-col">
-      {/* Cover */}
-      <div className="relative aspect-video w-full overflow-hidden bg-muted shrink-0">
-        {showImage ? (
-          <Image
-            src={imageUrl}
-            alt={collection.name ?? "Drop Collection"}
-            fill
-            className="object-cover"
-            onError={() => setImgError(true)}
-            unoptimized
-          />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-orange-500/40 via-amber-500/30 to-orange-900/50 flex items-center justify-center">
-            <span className="text-7xl font-black text-white/10 select-none">{initial}</span>
+    <Link href={`/launchpad/drop/${collection.contractAddress}`} className="block">
+      <div className="bento-cell overflow-hidden flex flex-col hover:border-orange-500/40 transition-colors">
+        {/* Cover */}
+        <div className="relative aspect-video w-full overflow-hidden bg-muted shrink-0">
+          {showImage ? (
+            <Image
+              src={imageUrl}
+              alt={collection.name ?? "Drop Collection"}
+              fill
+              className="object-cover"
+              onError={() => setImgError(true)}
+              unoptimized
+            />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-500/40 via-amber-500/30 to-orange-900/50 flex items-center justify-center">
+              <span className="text-7xl font-black text-white/10 select-none">{initial}</span>
+            </div>
+          )}
+          <div className="absolute top-2 right-2 flex items-center gap-1.5">
+            <DropStatusBadge status={status} />
+            <span className="text-[9px] font-bold uppercase tracking-widest text-white bg-black/50 backdrop-blur-sm rounded-full px-2 py-0.5">
+              DROP
+            </span>
           </div>
-        )}
-        <span className="absolute top-2 right-2 text-[9px] font-bold uppercase tracking-widest text-white bg-black/50 backdrop-blur-sm rounded-full px-2 py-0.5">
-          DROP
-        </span>
-      </div>
-
-      {/* Body */}
-      <div className="p-4 flex flex-col gap-3 flex-1">
-        <div className="flex-1 space-y-1">
-          <p className="font-bold text-sm leading-tight">{collection.name ?? "Unnamed Drop"}</p>
-          {collection.description && (
-            <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-              {collection.description}
-            </p>
-          )}
         </div>
 
-        {/* Stats */}
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          {collection.totalSupply != null && (
-            <span className="flex items-center gap-1">
-              <Users className="h-3 w-3" />
-              {collection.totalSupply.toLocaleString()} minted
-            </span>
-          )}
-          {collection.symbol && (
-            <span className="flex items-center gap-1">
-              <Package className="h-3 w-3" />
-              {collection.symbol}
-            </span>
-          )}
-        </div>
+        {/* Body */}
+        <div className="p-4 flex flex-col gap-3 flex-1">
+          <div className="flex-1 space-y-1">
+            <p className="font-bold text-sm leading-tight">{collection.name ?? "Unnamed Drop"}</p>
+            {collection.description && (
+              <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                {collection.description}
+              </p>
+            )}
+          </div>
 
-        {/* Mint */}
-        <CollectionDropMintButton collectionAddress={collection.contractAddress} />
+          {/* Stats */}
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            {collection.totalSupply != null && (
+              <span className="flex items-center gap-1">
+                <Users className="h-3 w-3" />
+                {collection.totalSupply.toLocaleString()} minted
+              </span>
+            )}
+            {collection.symbol && (
+              <span className="flex items-center gap-1">
+                <Package className="h-3 w-3" />
+                {collection.symbol}
+              </span>
+            )}
+          </div>
+
+          <div className="text-xs text-orange-500 font-medium">View drop →</div>
+        </div>
       </div>
-    </div>
+    </Link>
   );
 }
 
@@ -112,7 +148,7 @@ export function DropContent() {
           </FadeIn>
           <FadeIn delay={0.16}>
             <p className="text-muted-foreground text-base max-w-xl leading-relaxed">
-              Timed NFT drops with a fixed supply cap. Organizers set the mint window and max quantity —
+              Timed NFT drops with a fixed supply cap. Creators set the mint window and max quantity —
               the community races to collect.
             </p>
           </FadeIn>
@@ -139,12 +175,17 @@ export function DropContent() {
               <p className="section-label">Active</p>
               <h2 className="text-xl font-bold mt-0.5">Open for minting</h2>
             </div>
-            <Button asChild size="sm" className="bg-orange-600 hover:bg-orange-700 text-white gap-1.5">
-              <Link href="/launchpad/drop/create">
-                <Plus className="h-3.5 w-3.5" />
-                Create Drop
-              </Link>
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button asChild size="sm" variant="outline">
+                <Link href="/launchpad/drop/my-drops">My Drops</Link>
+              </Button>
+              <Button asChild size="sm" className="bg-orange-600 hover:bg-orange-700 text-white gap-1.5">
+                <Link href="/launchpad/drop/create">
+                  <Plus className="h-3.5 w-3.5" />
+                  Create Drop
+                </Link>
+              </Button>
+            </div>
           </div>
         </FadeIn>
 
