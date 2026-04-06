@@ -50,6 +50,7 @@ export default function CreatePOPPage() {
   const { executeTransaction, isSubmitting } = useChipiTransaction();
 
   const [eventType, setEventType] = useState<PopEventType>("Conference");
+  const [isPublic, setIsPublic] = useState(false);
   const [pinOpen, setPinOpen] = useState(false);
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
@@ -110,17 +111,23 @@ export default function CreatePOPPage() {
     if (!pendingValues || !walletAddress) return;
 
     let baseUri = "";
-    if (imageUri) {
-      try {
-        const r = await fetch("/api/pinata/json", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: pendingValues.name, image: imageUri }),
-        });
-        const d = await r.json();
-        if (d.uri) baseUri = d.uri;
-      } catch { /* non-fatal */ }
-    }
+    try {
+      const metadata: Record<string, unknown> = {
+        name: pendingValues.name,
+        attributes: [
+          { trait_type: "Visibility", value: isPublic ? "Public" : "Private" },
+          { trait_type: "Event Type", value: eventType },
+        ],
+      };
+      if (imageUri) metadata.image = imageUri;
+      const r = await fetch("/api/pinata/json", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(metadata),
+      });
+      const d = await r.json();
+      if (d.uri) baseUri = d.uri;
+    } catch { /* non-fatal */ }
 
     const claimEndTimestamp = Math.floor(
       new Date(`${pendingValues.claimEndDate}T${pendingValues.claimEndTime}:00`).getTime() / 1000
@@ -340,18 +347,51 @@ export default function CreatePOPPage() {
               </div>
             </FadeIn>
 
+            {/* Visibility */}
+            <FadeIn delay={0.18}>
+              <div className="flex items-center justify-between p-4 rounded-xl border border-border bg-muted/20">
+                <div className="space-y-0.5">
+                  <p className="text-sm font-medium">Event visibility</p>
+                  <p className="text-xs text-muted-foreground">
+                    {isPublic
+                      ? "Listed publicly on the POP launchpad"
+                      : "Only accessible via direct link"}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={isPublic}
+                  onClick={() => setIsPublic((v) => !v)}
+                  className={cn(
+                    "relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    isPublic ? "bg-green-500" : "bg-muted-foreground/30"
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "pointer-events-none block h-5 w-5 rounded-full bg-white shadow-sm transition-transform",
+                      isPublic ? "translate-x-5" : "translate-x-0"
+                    )}
+                  />
+                </button>
+              </div>
+            </FadeIn>
+
             {/* Submit */}
             <FadeIn delay={0.2}>
-              <Button
-                type="submit"
-                size="lg"
-                className="w-full bg-green-600 hover:bg-green-700 text-white mt-2"
-                disabled={isSubmitting || imageUploading}
-              >
-                {isSubmitting
-                  ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Creating event…</>
-                  : <><Award className="h-4 w-4 mr-2" />Create Event</>}
-              </Button>
+              <div className="btn-border-animated p-[1px] rounded-xl mt-2">
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="w-full rounded-xl bg-background text-foreground hover:bg-muted/60"
+                  disabled={isSubmitting || imageUploading}
+                >
+                  {isSubmitting
+                    ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Creating event…</>
+                    : <><Award className="h-4 w-4 mr-2" />Create Event</>}
+                </Button>
+              </div>
               <p className="text-xs text-center text-muted-foreground mt-2">Gas is free. Your PIN signs the transaction.</p>
             </FadeIn>
 
