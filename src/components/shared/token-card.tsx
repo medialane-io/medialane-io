@@ -13,7 +13,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   ShoppingCart, Tag, ArrowRightLeft, X, Loader2, HandCoins,
-  GitBranch, Check, MoreHorizontal, Layers, Flag, ExternalLink,
+  GitBranch, Check, MoreHorizontal, Layers, Flag, ArrowUpRight,
+  UserCircle2,
 } from "lucide-react";
 import { cn, ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
@@ -69,6 +70,14 @@ export function TokenCard({
   const collectionHref = `/collections/${token.contractAddress}`;
   const remixHref = `/create/remix/${token.contractAddress}/${token.tokenId}`;
 
+  const creatorAddress = (
+    token.metadata as { attributes?: { trait_type: string; value: string }[] } | undefined
+  )?.attributes?.find((a) => a.trait_type === "Creator")?.value;
+  const creatorHref = creatorAddress ? `/creator/${creatorAddress}` : null;
+  const creatorShort = creatorAddress
+    ? `${creatorAddress.slice(0, 6)}…${creatorAddress.slice(-4)}`
+    : null;
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -88,11 +97,22 @@ export function TokenCard({
     });
   };
 
+  // ── Derive action row state ────────────────────────────────────────────────
+  // Priority order: buy > view > offer/list > remix > transfer > collection > account > report
+  // We show at most 3 slots in the action row: primary (flex-1) + up to 2 icon buttons + ⋯ overflow
+
+  const showBuy = !isOwner && !!activeOrder && showBuyButton;
+  const showOffer = !isOwner && !!onOffer;
+  const showRemix = !isOwner && !!onRemix;
+  const showList = isOwner && !activeOrder && !!onList;
+  const showCancel = isOwner && !!activeOrder && !!onCancel;
+  const showTransfer = isOwner && !!onTransfer;
+
   return (
     <>
       <MotionCard className="card-base group relative overflow-hidden flex flex-col">
 
-        {/* ── Image ──────────────────────────────────────────────────────── */}
+        {/* ── Image — full bleed, clickable ──────────────────────────── */}
         <Link href={assetHref} className="block relative shrink-0">
           <div className="relative aspect-square bg-muted overflow-hidden">
             {!imgError ? (
@@ -130,7 +150,7 @@ export function TokenCard({
               </div>
             )}
 
-            {/* Price pill */}
+            {/* Price pill — top right when listed (only when no rarity badge) */}
             {activeOrder && !rarityTier && (
               <div className="absolute top-2 right-2 bg-black/55 backdrop-blur-sm rounded-full px-2 py-0.5 border border-white/10">
                 <span className="text-[11px] font-bold text-white leading-none">
@@ -147,193 +167,182 @@ export function TokenCard({
                 <span className="text-[10px] text-white/70">Indexing…</span>
               </div>
             )}
-
-            {/* Name gradient overlay */}
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent pt-8 pb-2.5 px-3 pointer-events-none">
-              <p className="text-[12px] font-semibold text-white truncate leading-snug drop-shadow-sm">{name}</p>
-            </div>
           </div>
         </Link>
 
-        {/* ── Action row ─────────────────────────────────────────────────── */}
-        <div className="flex items-center gap-1.5 px-2 py-2">
-
-          {/* ── Non-owner, unlisted ── */}
-          {!isOwner && !activeOrder && (
-            <>
-              {/* Offer — brand purple */}
-              <Button
-                size="sm"
-                className="flex-1 h-8 text-xs gap-1.5 bg-brand-purple/15 text-brand-purple border border-brand-purple/30 hover:bg-brand-purple/25 hover:border-brand-purple/50 shadow-none"
-                onClick={(e) => {
-                  e.preventDefault(); e.stopPropagation();
-                  if (onOffer) onOffer(token); else router.push(assetHref);
-                }}
-              >
-                <HandCoins className="h-3.5 w-3.5 shrink-0" />
-                Offer
-              </Button>
-
-              {/* Remix — brand rose */}
-              <Button
-                size="sm"
-                className="flex-1 h-8 text-xs gap-1.5 bg-brand-rose/15 text-brand-rose border border-brand-rose/30 hover:bg-brand-rose/25 hover:border-brand-rose/50 shadow-none"
-                onClick={(e) => {
-                  e.preventDefault(); e.stopPropagation();
-                  if (onRemix) onRemix(token); else router.push(remixHref);
-                }}
-              >
-                <GitBranch className="h-3.5 w-3.5 shrink-0" />
-                Remix
-              </Button>
-            </>
-          )}
-
-          {/* ── Non-owner, listed ── */}
-          {!isOwner && activeOrder && (
-            <>
-              {/* Buy — brand blue solid */}
-              {showBuyButton && (
-                onBuy ? (
-                  <Button
-                    size="sm"
-                    className="flex-1 h-8 text-xs gap-1.5 bg-brand-blue hover:bg-brand-blue/90 text-white border-0 shadow-none"
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); onBuy(token); }}
-                  >
-                    <ShoppingCart className="h-3.5 w-3.5 shrink-0" />
-                    Buy
-                  </Button>
-                ) : (
-                  <Button size="sm" className="flex-1 h-8 text-xs gap-1.5 bg-brand-blue hover:bg-brand-blue/90 text-white border-0 shadow-none" asChild>
-                    <Link href={assetHref}><ShoppingCart className="h-3.5 w-3.5 shrink-0" />Buy</Link>
-                  </Button>
-                )
-              )}
-
-              {/* Cart — orange tint */}
-              <Button
-                size="sm"
-                className={cn(
-                  "h-8 w-8 p-0 shrink-0 border shadow-none",
-                  inCart
-                    ? "bg-brand-orange/20 border-brand-orange/40 text-brand-orange"
-                    : "bg-transparent border-border text-muted-foreground hover:border-brand-orange/40 hover:text-brand-orange hover:bg-brand-orange/10"
+        {/* ── Info section ───────────────────────────────────────────── */}
+        <div className="px-3 pt-2.5 pb-1 flex-1">
+          <Link href={assetHref} className="block space-y-0.5 mb-2">
+            <p className="text-[13px] font-semibold truncate leading-tight">{name}</p>
+            {creatorShort ? (
+              <p className="text-[10px] text-muted-foreground truncate">
+                by{" "}
+                <span className="font-mono">{creatorShort}</span>
+              </p>
+            ) : (
+              <p className="text-[10px] text-muted-foreground tabular-nums">
+                #{token.tokenId}
+                {token.metadata?.ipType && (
+                  <span className="ml-1 opacity-60">· {token.metadata.ipType}</span>
                 )}
-                onClick={handleAddToCart}
-                disabled={inCart}
-                title={inCart ? "In cart" : "Add to cart"}
-              >
-                {inCart ? <Check className="h-3.5 w-3.5" /> : <ShoppingCart className="h-3.5 w-3.5" />}
-              </Button>
+              </p>
+            )}
+          </Link>
+        </div>
 
-              {/* Remix — rose tint */}
-              <Button
-                size="sm"
-                className="h-8 w-8 p-0 shrink-0 bg-brand-rose/15 text-brand-rose border border-brand-rose/30 hover:bg-brand-rose/25 shadow-none"
-                onClick={(e) => {
-                  e.preventDefault(); e.stopPropagation();
-                  if (onRemix) onRemix(token); else router.push(remixHref);
-                }}
-                title="Remix this IP"
-              >
-                <GitBranch className="h-3.5 w-3.5" />
-              </Button>
-            </>
+        {/* ── Action row — priority: buy > view > offer/list > remix ─── */}
+        <div className="flex items-center gap-1.5 px-2 pb-2">
+
+          {/* 1. BUY — primary when listed (non-owner) */}
+          {showBuy ? (
+            <Button
+              size="sm"
+              className="flex-1 h-8 text-xs gap-1.5 bg-brand-blue text-white hover:bg-brand-blue/90 shadow-none border-0"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (onBuy) onBuy(token); else router.push(assetHref);
+              }}
+            >
+              <ShoppingCart className="h-3.5 w-3.5 shrink-0" />
+              Buy
+            </Button>
+          ) : (
+            /* 2. VIEW — primary when not listed or owner */
+            <Button
+              size="sm"
+              className="flex-1 h-8 text-xs gap-1.5 bg-brand-blue/10 text-brand-blue border border-brand-blue/25 hover:bg-brand-blue/20 hover:border-brand-blue/40 shadow-none"
+              asChild
+            >
+              <Link href={assetHref}>
+                <ArrowUpRight className="h-3.5 w-3.5 shrink-0" />
+                View
+              </Link>
+            </Button>
           )}
 
-          {/* ── Owner ── */}
-          {isOwner && (
-            <>
-              {activeOrder && onCancel ? (
-                <Button
-                  size="sm"
-                  className="flex-1 h-8 text-xs gap-1.5 bg-destructive/10 text-destructive border border-destructive/30 hover:bg-destructive/20 shadow-none"
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onCancel(token); }}
-                >
-                  <X className="h-3.5 w-3.5 shrink-0" />
-                  Cancel
-                </Button>
-              ) : !activeOrder && onList ? (
-                <Button
-                  size="sm"
-                  className="flex-1 h-8 text-xs gap-1.5 bg-brand-blue/15 text-brand-blue border border-brand-blue/30 hover:bg-brand-blue/25 shadow-none"
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onList(token); }}
-                >
-                  <Tag className="h-3.5 w-3.5 shrink-0" />
-                  List
-                </Button>
-              ) : (
-                <div className="flex-1" />
-              )}
-              {onTransfer && (
-                <Button
-                  size="sm"
-                  className="h-8 w-8 p-0 shrink-0 bg-transparent border border-border text-muted-foreground hover:border-primary/40 hover:text-foreground shadow-none"
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onTransfer(token); }}
-                  title="Transfer"
-                >
-                  <ArrowRightLeft className="h-3.5 w-3.5" />
-                </Button>
-              )}
-            </>
+          {/* When Buy is primary, also show compact View icon */}
+          {showBuy && (
+            <Button
+              size="sm"
+              className="h-8 w-8 p-0 shrink-0 bg-brand-blue/10 text-brand-blue border border-brand-blue/25 hover:bg-brand-blue/20 shadow-none"
+              asChild
+              title="View asset"
+            >
+              <Link href={assetHref}>
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              </Link>
+            </Button>
           )}
 
-          {/* ⋯ overflow menu — always present */}
+          {/* 3a. OFFER — second icon for non-owners (no active order or no buy button) */}
+          {!isOwner && !showBuy && showOffer && (
+            <Button
+              size="sm"
+              className="h-8 w-8 p-0 shrink-0 bg-brand-purple/10 text-brand-purple border border-brand-purple/25 hover:bg-brand-purple/20 shadow-none"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOffer!(token); }}
+              title="Make an offer"
+            >
+              <HandCoins className="h-3.5 w-3.5" />
+            </Button>
+          )}
+
+          {/* 3b. LIST / CANCEL — owner's primary action */}
+          {showList && (
+            <Button
+              size="sm"
+              className="h-8 w-8 p-0 shrink-0 bg-brand-orange/10 text-brand-orange border border-brand-orange/25 hover:bg-brand-orange/20 shadow-none"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onList!(token); }}
+              title="List for sale"
+            >
+              <Tag className="h-3.5 w-3.5" />
+            </Button>
+          )}
+          {showCancel && (
+            <Button
+              size="sm"
+              className="h-8 w-8 p-0 shrink-0 bg-destructive/10 text-destructive border border-destructive/25 hover:bg-destructive/20 shadow-none"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onCancel!(token); }}
+              title="Cancel listing"
+            >
+              <X className="h-3.5 w-3.5" />
+            </Button>
+          )}
+
+          {/* ⋯ overflow — all remaining actions in priority order */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-8 w-8 p-0 shrink-0 text-muted-foreground/60 hover:text-foreground"
+                className="h-8 w-8 p-0 shrink-0 text-muted-foreground/50 hover:text-foreground"
                 onClick={(e) => e.preventDefault()}
                 aria-label="More actions"
               >
                 <MoreHorizontal className="h-3.5 w-3.5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem asChild>
-                <Link href={assetHref} className="flex items-center gap-2">
-                  <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
-                  View details
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href={collectionHref} className="flex items-center gap-2">
-                  <Layers className="h-3.5 w-3.5 text-muted-foreground" />
-                  View collection
-                </Link>
-              </DropdownMenuItem>
+            <DropdownMenuContent align="end" className="w-52">
 
-              {!isOwner && (
-                <>
-                  <DropdownMenuSeparator />
-                  {activeOrder && (
-                    <DropdownMenuItem className="flex items-center gap-2" onClick={handleAddToCart} disabled={inCart}>
-                      {inCart ? <Check className="h-3.5 w-3.5 text-muted-foreground" /> : <ShoppingCart className="h-3.5 w-3.5 text-muted-foreground" />}
-                      {inCart ? "Added to cart" : "Add to cart"}
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem
-                    className="flex items-center gap-2 text-brand-purple focus:text-brand-purple"
-                    onClick={() => { if (onOffer) onOffer(token); else router.push(assetHref); }}
-                  >
-                    <HandCoins className="h-3.5 w-3.5" />
-                    Make an offer
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="flex items-center gap-2 text-brand-rose focus:text-brand-rose"
-                    onClick={() => { if (onRemix) onRemix(token); else router.push(remixHref); }}
-                  >
-                    <GitBranch className="h-3.5 w-3.5" />
-                    Remix this IP
-                  </DropdownMenuItem>
-                </>
+              {/* Buy — top of menu if there's an active order and showBuyButton */}
+              {!isOwner && activeOrder && showBuyButton && (
+                <DropdownMenuItem
+                  className="flex items-center gap-2 text-brand-blue focus:text-brand-blue"
+                  onClick={() => { if (onBuy) onBuy(token); else router.push(assetHref); }}
+                >
+                  <ShoppingCart className="h-3.5 w-3.5" />
+                  Buy now — {formatDisplayPrice(activeOrder.price.formatted)} {activeOrder.price.currency}
+                </DropdownMenuItem>
               )}
 
+              {!isOwner && activeOrder && showBuyButton && <DropdownMenuSeparator />}
+
+              <DropdownMenuItem asChild>
+                <Link href={assetHref} className="flex items-center gap-2">
+                  <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
+                  View asset
+                </Link>
+              </DropdownMenuItem>
+
+              {/* Offer */}
+              {!isOwner && (
+                <DropdownMenuItem
+                  className="flex items-center gap-2 text-brand-purple focus:text-brand-purple"
+                  onClick={() => { if (onOffer) onOffer(token); else router.push(assetHref); }}
+                >
+                  <HandCoins className="h-3.5 w-3.5" />
+                  Make an offer
+                </DropdownMenuItem>
+              )}
+
+              {/* Add to cart */}
+              {!isOwner && activeOrder && (
+                <DropdownMenuItem
+                  className="flex items-center gap-2"
+                  onClick={handleAddToCart}
+                  disabled={inCart}
+                >
+                  {inCart
+                    ? <Check className="h-3.5 w-3.5 text-muted-foreground" />
+                    : <ShoppingCart className="h-3.5 w-3.5 text-muted-foreground" />}
+                  {inCart ? "Added to cart" : "Add to cart"}
+                </DropdownMenuItem>
+              )}
+
+              {/* Remix */}
+              {!isOwner && (
+                <DropdownMenuItem
+                  className="flex items-center gap-2 text-brand-rose focus:text-brand-rose"
+                  onClick={() => { if (onRemix) onRemix(token); else router.push(remixHref); }}
+                >
+                  <GitBranch className="h-3.5 w-3.5" />
+                  Remix this IP
+                </DropdownMenuItem>
+              )}
+
+              {/* Owner: List / Cancel */}
               {isOwner && (
                 <>
-                  <DropdownMenuSeparator />
                   {!activeOrder && onList && (
                     <DropdownMenuItem className="flex items-center gap-2" onClick={() => onList(token)}>
                       <Tag className="h-3.5 w-3.5 text-muted-foreground" />
@@ -341,25 +350,56 @@ export function TokenCard({
                     </DropdownMenuItem>
                   )}
                   {activeOrder && onCancel && (
-                    <DropdownMenuItem className="flex items-center gap-2 text-destructive focus:text-destructive" onClick={() => onCancel(token)}>
+                    <DropdownMenuItem
+                      className="flex items-center gap-2 text-destructive focus:text-destructive"
+                      onClick={() => onCancel(token)}
+                    >
                       <X className="h-3.5 w-3.5" />
                       Cancel listing
-                    </DropdownMenuItem>
-                  )}
-                  {onTransfer && (
-                    <DropdownMenuItem className="flex items-center gap-2" onClick={() => onTransfer(token)}>
-                      <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground" />
-                      Transfer
                     </DropdownMenuItem>
                   )}
                 </>
               )}
 
+              {/* Transfer */}
+              {showTransfer && (
+                <DropdownMenuItem className="flex items-center gap-2" onClick={() => onTransfer!(token)}>
+                  <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground" />
+                  Transfer
+                </DropdownMenuItem>
+              )}
+
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="flex items-center gap-2 text-muted-foreground" onClick={() => setReportOpen(true)}>
+
+              {/* Collection */}
+              <DropdownMenuItem asChild>
+                <Link href={collectionHref} className="flex items-center gap-2">
+                  <Layers className="h-3.5 w-3.5 text-muted-foreground" />
+                  View collection
+                </Link>
+              </DropdownMenuItem>
+
+              {/* Creator account */}
+              {creatorHref && (
+                <DropdownMenuItem asChild>
+                  <Link href={creatorHref} className="flex items-center gap-2">
+                    <UserCircle2 className="h-3.5 w-3.5 text-muted-foreground" />
+                    View creator account
+                  </Link>
+                </DropdownMenuItem>
+              )}
+
+              <DropdownMenuSeparator />
+
+              {/* Report */}
+              <DropdownMenuItem
+                className="flex items-center gap-2 text-muted-foreground"
+                onClick={() => setReportOpen(true)}
+              >
                 <Flag className="h-3.5 w-3.5" />
                 Report
               </DropdownMenuItem>
+
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -379,9 +419,13 @@ export function TokenCardSkeleton() {
   return (
     <div className="card-base overflow-hidden">
       <Skeleton className="aspect-square w-full rounded-none" />
-      <div className="px-2 py-2 flex gap-1.5">
+      <div className="px-3 pt-2.5 pb-1 space-y-1">
+        <Skeleton className="h-3.5 w-3/4" />
+        <Skeleton className="h-2.5 w-2/5" />
+      </div>
+      <div className="px-2 pb-2 flex gap-1.5">
         <Skeleton className="h-8 flex-1 rounded-md" />
-        <Skeleton className="h-8 flex-1 rounded-md" />
+        <Skeleton className="h-8 w-8 rounded-md shrink-0" />
         <Skeleton className="h-8 w-8 rounded-md shrink-0" />
       </div>
     </div>
