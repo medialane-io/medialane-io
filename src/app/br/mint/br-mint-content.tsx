@@ -2,8 +2,10 @@
 
 import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
-import { useUser, SignInButton, SignUpButton } from "@clerk/nextjs";
+import { useAuth, useUser, SignInButton, SignUpButton } from "@clerk/nextjs";
+import { useClerk } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
+import { useChipiWallet, isWebAuthnSupported, createWalletPasskey } from "@chipi-stack/nextjs";
 import { byteArray, CallData } from "starknet";
 import {
   Sparkles,
@@ -19,12 +21,17 @@ import {
   ImageIcon,
   Gift,
   Coins,
+  ShieldCheck,
+  KeyRound,
+  AlertCircle,
 } from "lucide-react";
 import { PinInput, validatePin } from "@/components/ui/pin-input";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MedialaneLogo } from "@/components/brand/medialane-logo";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { EXPLORER_URL, BR_MINT_CONTRACT, BR_NFT_URI, BR_NFT_IMAGE_URL } from "@/lib/constants";
+import { completeOnboarding } from "@/app/onboarding/_actions";
 
 // ─── Event image card ─────────────────────────────────────────────────────────
 
@@ -69,7 +76,7 @@ const BENEFITS = [
   { icon: Coins,  label: "R$10 mil em prêmios", sub: "Sorteios e airdrop exclusivo" },
   { icon: Camera, label: "Publique e ganhe",     sub: "Fotos, vídeos, músicas e mais" },
   { icon: Gift,   label: "Acesso grátis",        sub: "Sem CPF, cartão ou aprovação" },
-  { icon: Users,  label: "Só sua conta Google",  sub: "Cadastro em menos de 1 minuto" },
+  { icon: Users,  label: "Acesso com Google",  sub: "Cadastro grátis em segundos" },
 ];
 
 function BenefitsGrid() {
@@ -93,6 +100,203 @@ function BenefitsGrid() {
   );
 }
 
+// ─── Inline wallet setup ──────────────────────────────────────────────────────
+
+type WalletSetupStep = "choose" | "pin" | "passkey" | "creating" | "done";
+
+function WalletSetup({
+  email,
+  onDone,
+}: {
+  email?: string | null;
+  onDone: () => void;
+}) {
+  const { getToken } = useAuth();
+  const { user } = useUser();
+  const { session } = useClerk();
+
+  const getBearerToken = useCallback(
+    () => getToken({ template: process.env.NEXT_PUBLIC_CLERK_TEMPLATE_NAME || "chipipay" }),
+    [getToken]
+  );
+
+  const { createWallet } = useChipiWallet({
+    externalUserId: user?.id ?? null,
+    getBearerToken,
+    enabled: false,
+  });
+
+  const [passkeySupported] = useState(
+    () => typeof window !== "undefined" && isWebAuthnSupported()
+  );
+  const [step, setStep] = useState<WalletSetupStep>(passkeySupported ? "choose" : "pin");
+  const [pin, setPin] = useState("");
+  const [pinError, setPinError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const createWalletWithKey = async (encryptKey: string) => {
+    const wallet = await createWallet({ encryptKey });
+    const walletKey = wallet.normalizedPublicKey ?? wallet.publicKey;
+    if (!walletKey) throw new Error("Erro ao criar carteira. Tente novamente.");
+    const result = await completeOnboarding({ publicKey: walletKey });
+    if (result.error) throw new Error(result.error);
+    await user?.reload();
+    await session?.touch();
+    setStep("done");
+    setTimeout(onDone, 1200);
+  };
+
+  const handlePasskey = async () => {
+    setIsSubmitting(true);
+    setError(null);
+    setStep("passkey");
+    try {
+      const userName = user?.primaryEmailAddress?.emailAddress ?? user?.username ?? "user";
+      const { encryptKey } = await createWalletPasskey(user?.id ?? "", userName);
+      setStep("creating");
+      await createWalletWithKey(encryptKey);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro na configuração. Tente o código PIN.");
+      setStep("pin");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handlePin = async () => {
+    const err = validatePin(pin);
+    if (err) { setPinError(err); return; }
+    setPinError(null);
+    setIsSubmitting(true);
+    setError(null);
+    setStep("creating");
+    try {
+      await createWalletWithKey(pin);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Falha ao ativar conta. Tente novamente.");
+      setStep("pin");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (step === "creating" || step === "passkey") {
+    return (
+      <div className="rounded-2xl border border-border/60 bg-card/50 p-6 flex flex-col items-center gap-4 text-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div>
+          <p className="font-bold">Ativando sua conta…</p>
+          <p className="text-sm text-muted-foreground mt-1">Estamos preparando tudo para você.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "done") {
+    return (
+      <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-6 flex flex-col items-center gap-3 text-center">
+        <CheckCircle2 className="h-8 w-8 text-emerald-500" />
+        <div>
+          <p className="font-bold text-emerald-600 dark:text-emerald-300">Conta ativada!</p>
+          <p className="text-sm text-muted-foreground mt-1">Preparando sua participação…</p>
+        </div>
+        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-5">
+      <div>
+        {email && (
+          <div className="flex items-center gap-2 text-sm mb-3">
+            <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+            <span className="text-emerald-600 dark:text-emerald-400 font-medium">{email}</span>
+          </div>
+        )}
+        <h2 className="text-3xl font-black tracking-tight leading-[1.1]">
+          Proteja sua{" "}
+          <span className="bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
+            conta
+          </span>
+        </h2>
+        <p className="text-sm text-muted-foreground leading-relaxed mt-2">
+          {passkeySupported && step === "choose"
+            ? "Escolha como proteger sua conta — biometria (Face ID / digital) ou código de 6 dígitos."
+            : "Crie um código de segurança de 6 dígitos. Você vai usá-lo para confirmar sua participação."}
+        </p>
+      </div>
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {step === "choose" && passkeySupported && (
+        <div className="space-y-3">
+          <Button
+            size="lg"
+            className="w-full rounded-xl h-12 font-bold gap-2 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 shadow-lg shadow-primary/25"
+            onClick={handlePasskey}
+            disabled={isSubmitting}
+          >
+            <ShieldCheck className="h-4 w-4" />
+            Usar biometria (Face ID / digital)
+          </Button>
+          <Button
+            size="lg"
+            variant="ghost"
+            className="w-full rounded-xl text-sm text-muted-foreground hover:text-foreground"
+            onClick={() => setStep("pin")}
+          >
+            Usar código de 6 dígitos
+          </Button>
+        </div>
+      )}
+
+      {step === "pin" && (
+        <div className="rounded-2xl border border-border/60 bg-card/50 p-5 space-y-4">
+          <div className="flex items-center gap-2">
+            <KeyRound className="h-4 w-4 text-primary" />
+            <p className="font-semibold text-sm">Crie seu código de segurança</p>
+          </div>
+          <PinInput
+            value={pin}
+            onChange={(v) => { setPin(v); setPinError(null); }}
+            error={pinError}
+            autoFocus
+          />
+          <div className="flex gap-2">
+            <Button
+              size="lg"
+              className="flex-1 rounded-xl h-11 font-bold bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90"
+              onClick={handlePin}
+              disabled={pin.length < 6 || isSubmitting}
+            >
+              Ativar minha conta
+            </Button>
+            {passkeySupported && (
+              <Button
+                size="lg"
+                variant="outline"
+                className="rounded-xl h-11"
+                onClick={() => { setStep("choose"); setPin(""); setPinError(null); setError(null); }}
+              >
+                Voltar
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+
+      <p className="text-xs text-center text-muted-foreground">Menos de 1 minuto · Gratuito · Sem taxa</p>
+    </div>
+  );
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 type MintStep = "ready" | "enter-pin" | "minting" | "success" | "error";
@@ -108,6 +312,7 @@ export function BrMintContent() {
   const [mintError, setMintError] = useState<string | null>(null);
   const [mintStatusMsg, setMintStatusMsg] = useState("");
   const [completedTxHash, setCompletedTxHash] = useState<string | null>(null);
+  const [walletJustCreated, setWalletJustCreated] = useState(false);
 
   const userId = user?.id;
   const storageKey = userId ? `ml_br_mint_${userId}` : null;
@@ -174,6 +379,12 @@ export function BrMintContent() {
     setMintStep("ready");
   };
 
+  // After wallet creation completes, reload so useSessionKey picks up the new wallet
+  const handleWalletCreated = useCallback(() => {
+    setWalletJustCreated(true);
+    window.location.reload();
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col">
 
@@ -190,7 +401,7 @@ export function BrMintContent() {
           <div className="space-y-6 order-1 lg:order-2">
 
             {/* Loading */}
-            {(!isLoaded || (isLoaded && isSignedIn && isLoadingWallet)) && (
+            {(!isLoaded || (isLoaded && isSignedIn && isLoadingWallet) || walletJustCreated) && (
               <div className="space-y-4">
                 <div className="h-10 w-48 rounded-lg bg-muted/40 animate-pulse" />
                 <div className="h-24 rounded-xl bg-muted/30 animate-pulse" />
@@ -199,7 +410,7 @@ export function BrMintContent() {
             )}
 
             {/* Not signed in */}
-            {isLoaded && !isSignedIn && (
+            {isLoaded && !isSignedIn && !walletJustCreated && (
               <div className="space-y-6">
                 <div className="space-y-3">
                   <p className="text-xs font-semibold uppercase tracking-widest text-primary/60">Evento exclusivo · Brasil 2026</p>
@@ -218,7 +429,7 @@ export function BrMintContent() {
                 <BenefitsGrid />
 
                 <div className="space-y-3 pt-2">
-                  <SignUpButton mode="modal" forceRedirectUrl="/onboarding?from=br">
+                  <SignUpButton mode="modal" forceRedirectUrl="/br/mint">
                     <Button
                       size="lg"
                       className="w-full rounded-2xl py-7 text-base font-bold gap-2.5 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 shadow-lg shadow-primary/25"
@@ -227,7 +438,7 @@ export function BrMintContent() {
                       Participar com minha conta Google
                     </Button>
                   </SignUpButton>
-                  <SignInButton mode="modal">
+                  <SignInButton mode="modal" forceRedirectUrl="/br/mint">
                     <Button size="lg" variant="ghost" className="w-full rounded-xl text-sm text-muted-foreground hover:text-foreground">
                       Já tenho conta — entrar
                     </Button>
@@ -240,38 +451,16 @@ export function BrMintContent() {
               </div>
             )}
 
-            {/* Signed in, no wallet */}
-            {isLoaded && !isLoadingWallet && isSignedIn && !hasWallet && (
-              <div className="space-y-5">
-                <div>
-                  <div className="flex items-center gap-2 text-sm mb-3">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
-                    <span className="text-emerald-600 dark:text-emerald-400 font-medium">
-                      {user?.primaryEmailAddress?.emailAddress}
-                    </span>
-                  </div>
-                  <h2 className="text-3xl font-black tracking-tight leading-[1.1]">
-                    Proteja sua{" "}
-                    <span className="bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
-                      conta
-                    </span>
-                  </h2>
-                  <p className="text-sm text-muted-foreground leading-relaxed mt-2">
-                    Crie um código de segurança de 6 dígitos para ativar sua participação e proteger seus prêmios.
-                  </p>
-                </div>
-                <Button size="lg" className="w-full rounded-xl h-12 font-bold gap-2 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 shadow-lg shadow-primary/25" asChild>
-                  <Link href="/onboarding?from=br">
-                    Ativar minha conta
-                    <ArrowRight className="h-4 w-4 ml-auto" />
-                  </Link>
-                </Button>
-                <p className="text-xs text-center text-muted-foreground">Menos de 1 minuto · Sem taxa</p>
-              </div>
+            {/* Signed in, no wallet — inline setup in Portuguese */}
+            {isLoaded && !isLoadingWallet && isSignedIn && !hasWallet && !walletJustCreated && (
+              <WalletSetup
+                email={user?.primaryEmailAddress?.emailAddress}
+                onDone={handleWalletCreated}
+              />
             )}
 
             {/* Has wallet: claim flow */}
-            {isLoaded && !isLoadingWallet && isSignedIn && hasWallet && (
+            {isLoaded && !isLoadingWallet && isSignedIn && hasWallet && !walletJustCreated && (
               <div className="space-y-5">
 
                 {mintStep === "ready" && (
@@ -282,14 +471,11 @@ export function BrMintContent() {
                         <span className="text-emerald-600 dark:text-emerald-400 font-medium">Conta ativa</span>
                       </div>
                       <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-[1.05]">
-                        Garanta sua{" "}
+                        Airdrop de {" "}
                         <span className="bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
-                          participação
+                          Prêmios
                         </span>
                       </h1>
-                      <p className="text-sm text-muted-foreground leading-relaxed mt-3">
-                        Receba seu brinde exclusivo e entre automaticamente no airdrop de prêmios.
-                      </p>
                     </div>
                     <BenefitsGrid />
                     <div className="space-y-2 pt-1">
@@ -300,11 +486,11 @@ export function BrMintContent() {
                         disabled={!BR_MINT_CONTRACT}
                       >
                         <Sparkles className="h-4 w-4" />
-                        {BR_MINT_CONTRACT ? "Garantir minha participação — Grátis" : "Distribuição abrindo em breve"}
+                        {BR_MINT_CONTRACT ? "Criar certificado de participação" : "Certificado não disponível"}
                         {BR_MINT_CONTRACT && <ArrowRight className="h-4 w-4 ml-auto" />}
                       </Button>
                       <p className="text-xs text-center text-muted-foreground">
-                        Brinde exclusivo · Airdrop de prêmios · Gratuito
+                        Este será seu passaporte de acesso aos prêmios!
                       </p>
                     </div>
                   </>
@@ -355,9 +541,9 @@ export function BrMintContent() {
                     </div>
                     <div className="mt-4 space-y-1.5">
                       {[
-                        { label: "Preparando brinde exclusivo", done: status !== "idle" },
+                        { label: "Preparando seu passaporte", done: status !== "idle" },
                         { label: "Registrando participação", done: status === "confirming" || status === "confirmed" },
-                        { label: "Confirmando no sistema", done: status === "confirmed" },
+                        { label: "Confirmando!", done: status === "confirmed" },
                       ].map(({ label, done }) => (
                         <div key={label} className="flex items-center gap-2 text-xs text-muted-foreground">
                           {done ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> : <div className="h-3.5 w-3.5 rounded-full border border-muted-foreground/30" />}
@@ -384,17 +570,17 @@ export function BrMintContent() {
                         </div>
                         <div>
                           <p className="font-bold text-emerald-600 dark:text-emerald-300">Participação confirmada!</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">Elegível para o airdrop de R$10 mil.</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">Seja bem vindo à Medialane.</p>
                         </div>
                       </div>
                       <div className="space-y-2 text-sm">
                         <div className="flex items-center gap-2 rounded-xl bg-emerald-500/5 border border-emerald-500/20 px-3 py-2.5">
                           <Trophy className="h-3.5 w-3.5 text-yellow-500 shrink-0" />
-                          <span>Elegível para R$10 mil em prêmios</span>
+                          <span>Elegível para airdop de prêmios</span>
                         </div>
                         <div className="flex items-center gap-2 rounded-xl bg-emerald-500/5 border border-emerald-500/20 px-3 py-2.5">
                           <Camera className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                          <span>Publique e aumente suas chances</span>
+                          <span>Publique e ganhe com seu conteúdo</span>
                         </div>
                       </div>
                       {completedTxHash && (
@@ -405,8 +591,8 @@ export function BrMintContent() {
                       )}
                     </div>
                     <div className="flex flex-col sm:flex-row gap-2.5">
-                      <Button size="lg" className="flex-1" asChild><Link href="/create/asset">Publicar meu primeiro conteúdo</Link></Button>
-                      <Button size="lg" variant="outline" className="flex-1" asChild><Link href="/marketplace">Explorar o app</Link></Button>
+                      <Button size="lg" className="flex-1 p-4" asChild><Link href="/create/asset">Publicar conteúdo</Link></Button>
+                      <Button size="lg" variant="outline" className="flex-1 p-4" asChild><Link href="/marketplace">Explorar o app</Link></Button>
                     </div>
                   </div>
                 )}
