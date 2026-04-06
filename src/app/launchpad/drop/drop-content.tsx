@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { Package, Users, Plus } from "lucide-react";
+import { Package, Users, Plus, Zap, Timer, Layers } from "lucide-react";
 import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion-primitives";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -47,13 +47,11 @@ function DropCollectionCard({ collection }: { collection: any }) {
   const imageUrl = collection.image ? ipfsToHttp(collection.image) : null;
   const showImage = imageUrl && !imgError;
   const initial = (collection.name ?? "D").charAt(0).toUpperCase();
-  // Without per-card conditions fetch, default to "live" for list view
   const status = getDropStatus(null, collection.totalSupply ?? 0);
 
   return (
     <Link href={`/launchpad/drop/${collection.contractAddress}`} className="block">
       <div className="bento-cell overflow-hidden flex flex-col hover:border-orange-500/40 transition-colors">
-        {/* Cover */}
         <div className="relative aspect-video w-full overflow-hidden bg-muted shrink-0">
           {showImage ? (
             <Image
@@ -76,8 +74,6 @@ function DropCollectionCard({ collection }: { collection: any }) {
             </span>
           </div>
         </div>
-
-        {/* Body */}
         <div className="p-4 flex flex-col gap-3 flex-1">
           <div className="flex-1 space-y-1">
             <p className="font-bold text-sm leading-tight">{collection.name ?? "Unnamed Drop"}</p>
@@ -87,8 +83,6 @@ function DropCollectionCard({ collection }: { collection: any }) {
               </p>
             )}
           </div>
-
-          {/* Stats */}
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
             {collection.totalSupply != null && (
               <span className="flex items-center gap-1">
@@ -103,7 +97,6 @@ function DropCollectionCard({ collection }: { collection: any }) {
               </span>
             )}
           </div>
-
           <div className="text-xs text-orange-500 font-medium">View drop →</div>
         </div>
       </div>
@@ -125,8 +118,38 @@ function DropCollectionCardSkeleton() {
   );
 }
 
+const DROP_FEATURES = [
+  {
+    icon: Package,
+    title: "Fixed Supply Cap",
+    desc: "Creator sets the max — scarcity is guaranteed on-chain.",
+  },
+  {
+    icon: Timer,
+    title: "Timed Mint Window",
+    desc: "Mint opens and closes at exact on-chain timestamps.",
+  },
+  {
+    icon: Zap,
+    title: "Gas-Free Minting",
+    desc: "Collectors mint without paying gas fees.",
+  },
+  {
+    icon: Layers,
+    title: "Transferable ERC-721",
+    desc: "Standard NFTs — trade freely in any marketplace.",
+  },
+];
+
 export function DropContent() {
   const { collections, isLoading } = useDropCollections();
+
+  // Filter: show only collections without a Private visibility attribute.
+  // Inert until backend indexes collection attributes — safe for legacy collections.
+  const publicCollections = collections.filter(
+    (c) =>
+      (c as any).attributes?.find((a: any) => a.trait_type === "Visibility")?.value !== "Private"
+  );
 
   return (
     <div className="pb-16 space-y-10">
@@ -167,6 +190,21 @@ export function DropContent() {
         </div>
       </section>
 
+      {/* Features grid */}
+      <section className="px-4">
+        <FadeIn>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {DROP_FEATURES.map(({ icon: Icon, title, desc }) => (
+              <div key={title} className="bento-cell p-4 space-y-2">
+                <Icon className="h-5 w-5 text-orange-500" />
+                <p className="text-sm font-semibold leading-tight">{title}</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </FadeIn>
+      </section>
+
       {/* Collections grid */}
       <section className="px-4 space-y-4">
         <FadeIn>
@@ -193,7 +231,7 @@ export function DropContent() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {Array.from({ length: 6 }).map((_, i) => <DropCollectionCardSkeleton key={i} />)}
           </div>
-        ) : collections.length === 0 ? (
+        ) : publicCollections.length === 0 ? (
           <FadeIn>
             <div className="bento-cell border-dashed p-16 text-center space-y-3">
               <div className="flex justify-center">
@@ -206,7 +244,7 @@ export function DropContent() {
           </FadeIn>
         ) : (
           <Stagger className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {collections.map((col) => (
+            {publicCollections.map((col) => (
               <StaggerItem key={col.contractAddress}>
                 <DropCollectionCard collection={col} />
               </StaggerItem>
