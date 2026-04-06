@@ -31,6 +31,7 @@ interface MintProgressDialogProps {
   imagePreview: string | null;
   txHash: string | null;
   error: string | null;
+  syncWarning?: string | null;
   onMintAnother: () => void;
   listingStep?: ListingStep;
   listingError?: string | null;
@@ -63,6 +64,7 @@ export function MintProgressDialog({
   imagePreview,
   txHash,
   error,
+  syncWarning,
   onMintAnother,
   listingStep = "idle",
   listingError,
@@ -271,6 +273,15 @@ export function MintProgressDialog({
                 <div>
                   <p className="text-sm font-medium text-yellow-600 dark:text-yellow-400">Listing failed</p>
                   <p className="text-xs text-muted-foreground mt-0.5">{listingError} — you can list it from your portfolio.</p>
+                </div>
+              </div>
+            )}
+            {syncWarning && (
+              <div className="w-full rounded-xl border border-yellow-500/30 bg-yellow-500/5 px-4 py-3 flex items-start gap-2">
+                <Tag className="h-4 w-4 text-yellow-500 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-yellow-600 dark:text-yellow-400">Token sync delayed</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{syncWarning}</p>
                 </div>
               </div>
             )}

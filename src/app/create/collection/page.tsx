@@ -25,7 +25,9 @@ import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
+import { usePreferredEncryption } from "@/hooks/use-preferred-encryption";
 import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
+import { formatStarknetInfrastructureError } from "@/lib/infrastructure-error-message";
 import { Layers, Loader2, ImagePlus, X } from "lucide-react";
 import { toast } from "sonner";
 import type { ChipiCall } from "@/hooks/use-chipi-transaction";
@@ -52,6 +54,7 @@ type FormValues = z.infer<typeof schema>;
 export default function CreateCollectionPage() {
   const { executeTransaction, status, txHash } = useChipiTransaction();
   const { walletAddress } = useSessionKey();
+  const { preferredEncryption } = usePreferredEncryption(walletAddress ?? null);
   const client = useMedialaneClient();
 
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
@@ -59,6 +62,8 @@ export default function CreateCollectionPage() {
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
   const [collectionStep, setCollectionStep] = useState<CollectionStep>("idle");
   const [collectionError, setCollectionError] = useState<string | null>(null);
+  /** Set when on-chain tx succeeded but `/collections/sync-tx` failed — drives error dialog + sonner details. */
+  const [syncFailureTxHash, setSyncFailureTxHash] = useState<string | null>(null);
 
   // Image upload state
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -146,6 +151,7 @@ export default function CreateCollectionPage() {
     if (!pendingValues || !walletAddress) return;
 
     setCollectionError(null);
+    setSyncFailureTxHash(null);
     setCollectionStep("processing");
 
     try {
@@ -192,29 +198,75 @@ export default function CreateCollectionPage() {
       });
 
       if (result.status === "reverted") {
-        throw new Error(result.revertReason || "Collection transaction reverted on chain");
+        throw new Error(
+          result.revertReason ||
+            "Collection transaction reverted on chain or could not be confirmed."
+        );
       }
 
       // Immediately register the collection from the tx so it appears in portfolio without waiting for the indexer.
-      // Await with a 6s timeout so invalidatePortfolioCache fires AFTER the collection is in the DB.
+      // Must check response status: Alchemy/RPC 429 on the backend still returns 500 JSON while the tx may be valid on-chain.
+      let syncWarning: string | null = null;
       if (result.txHash) {
+        const syncUrl = `${MEDIALANE_BACKEND_URL}/v1/collections/sync-tx`;
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json",
+          ...(MEDIALANE_API_KEY ? { "x-api-key": MEDIALANE_API_KEY } : {}),
+        };
         try {
-          await Promise.race([
-            fetch(`${MEDIALANE_BACKEND_URL}/v1/collections/sync-tx`, {
+          const res = await Promise.race([
+            fetch(syncUrl, {
               method: "POST",
-              headers: { "Content-Type": "application/json", ...(MEDIALANE_API_KEY ? { "x-api-key": MEDIALANE_API_KEY } : {}) },
+              headers,
               body: JSON.stringify({ txHash: result.txHash }),
             }),
-            new Promise<never>((_, reject) => setTimeout(() => reject(), 6000)),
+            new Promise<never>((_, reject) =>
+              setTimeout(() => reject(new Error("timeout")), 6000)
+            ),
           ]);
-        } catch {
-          // timeout or error — indexer will catch up regardless
+          if (!res.ok) {
+            const j = (await res.json().catch(() => ({}))) as { error?: string };
+            const raw =
+              typeof j.error === "string" ? j.error : `HTTP ${res.status}`;
+            syncWarning = formatStarknetInfrastructureError(raw, {
+              txHash: result.txHash,
+              operation: "Saving your collection to Medialane",
+            });
+          }
+        } catch (e) {
+          const raw = e instanceof Error ? e.message : String(e);
+          syncWarning = formatStarknetInfrastructureError(
+            raw === "timeout" ? "Request timed out" : raw,
+            {
+              txHash: result.txHash,
+              operation: "Saving your collection to Medialane",
+            }
+          );
         }
+      }
+
+      if (syncWarning) {
+        toast.error("Collection not deployed", {
+          description: syncWarning,
+          duration: 22_000,
+          classNames: {
+            toast: "group border-destructive/40 bg-card text-card-foreground shadow-lg",
+            title: "!text-destructive !font-semibold",
+            description: "!text-muted-foreground !text-sm !leading-relaxed",
+            icon: "!text-destructive",
+          },
+        });
+        setSyncFailureTxHash(result.txHash);
+        setCollectionError(null);
+        setCollectionStep("error");
+        invalidatePortfolioCache(walletAddress);
+        return;
       }
 
       setCollectionStep("success");
       invalidatePortfolioCache(walletAddress);
     } catch (err: unknown) {
+      setSyncFailureTxHash(null);
       setCollectionError(err instanceof Error ? err.message : "Something went wrong");
       setCollectionStep("error");
     }
@@ -223,6 +275,7 @@ export default function CreateCollectionPage() {
   const handleCreateAnother = () => {
     setCollectionStep("idle");
     setCollectionError(null);
+    setSyncFailureTxHash(null);
     form.reset();
     clearImage();
   };
@@ -237,6 +290,7 @@ export default function CreateCollectionPage() {
         imagePreview={imagePreview}
         txHash={txHash}
         error={collectionError}
+        syncFailureTxHash={syncFailureTxHash}
         onCreateAnother={handleCreateAnother}
       />
 
@@ -417,6 +471,8 @@ export default function CreateCollectionPage() {
         onCancel={() => setPinOpen(false)}
         title="Confirm collection creation"
         description="Enter your PIN to deploy your collection on Starknet."
+        preferredMethod={preferredEncryption}
+        allowPasskey={preferredEncryption !== "PIN"}
       />
 
       <WalletSetupDialog

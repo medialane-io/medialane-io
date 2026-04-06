@@ -2,9 +2,12 @@
 
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { getMedialaneClient } from "@/lib/medialane-client";
+import { patchCreatorPreferredEncryption } from "@/lib/creator-encryption-preference";
 
 interface WalletData {
   publicKey: string;
+  /** How the wallet encryption key was established (PIN vs passkey). */
+  preferredEncryption: "PIN" | "PASSKEY";
 }
 
 export async function completeOnboarding(walletData: WalletData) {
@@ -16,7 +19,9 @@ export async function completeOnboarding(walletData: WalletData) {
     await client.users.updateUser(userId, {
       publicMetadata: {
         walletCreated: true,
+        // Keep both keys for backward compatibility across old/new readers.
         publicKey: walletData.publicKey,
+        walletAddress: walletData.publicKey,
       },
     });
 
@@ -26,7 +31,14 @@ export async function completeOnboarding(walletData: WalletData) {
       const token = await getToken({
         template: process.env.NEXT_PUBLIC_CLERK_TEMPLATE_NAME || "chipipay",
       });
-      if (token) await getMedialaneClient().api.upsertMyWallet(token);
+      if (token) {
+        await getMedialaneClient().api.upsertMyWallet(token);
+        await patchCreatorPreferredEncryption(
+          walletData.publicKey,
+          walletData.preferredEncryption,
+          token
+        ).catch(() => {});
+      }
     } catch {
       // non-fatal: wallet address is still in Clerk publicMetadata
     }

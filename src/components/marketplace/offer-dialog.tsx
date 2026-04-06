@@ -148,6 +148,7 @@ export function OfferDialog({
       currencySymbol: pendingValues.currency,
       durationSeconds: pendingValues.durationSeconds,
       pin,
+      signingMethod: "PIN",
     });
     setPin("");
     setStep("form");
@@ -170,6 +171,7 @@ export function OfferDialog({
         currencySymbol: pendingValues.currency,
         durationSeconds: pendingValues.durationSeconds,
         pin: derived,
+        signingMethod: "PASSKEY",
       });
 
       setPin("");

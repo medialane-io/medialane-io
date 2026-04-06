@@ -16,6 +16,18 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/s
 import { MedialaneLogo } from "@/components/brand/medialane-logo";
 import { SWRConfig } from "swr";
 import { ChipiSessionUnlockProvider } from "@/contexts/chipi-session-unlock-context";
+import { useSessionKey } from "@/hooks/use-session-key";
+
+function FloatingSessionPreferences() {
+  const { hasWallet } = useSessionKey();
+  if (!hasWallet) return null;
+
+  return (
+    <div className="fixed bottom-4 right-4 z-40 w-[280px] max-w-[calc(100vw-2rem)]">
+      <SessionPreferencesSwitch variant="compact" />
+    </div>
+  );
+}
 
 function Shell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -29,12 +41,13 @@ function Shell({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarProvider defaultOpen={false}>
-      <ChipiSessionUnlockProvider>
       <AppSidebar />
       <SidebarInset>
         <SidebarTrigger className="absolute top-3 left-3 z-50" />
         {/* <SessionExpiryBanner /> */}
-        {/* SessionPreferencesSwitch hidden — surfaced inside account/wallet settings instead */}
+        <SignedIn>
+          <FloatingSessionPreferences />
+        </SignedIn>
         <main className="flex-1 bg-background overflow-x-hidden">{children}</main>
         <footer className="bg-background border-t border-border/60 px-6 py-8 mt-auto">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
@@ -56,7 +69,7 @@ function Shell({ children }: { children: React.ReactNode }) {
           </div>
         </footer>
       </SidebarInset>
-      </ChipiSessionUnlockProvider>
+      <CartDrawer />
     </SidebarProvider>
   );
 }
@@ -72,10 +85,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
           },
         }}
       >
-        <Aurora />
-        <Shell>{children}</Shell>
-        <CartDrawer />
-        <Toaster richColors position="bottom-right" />
+        <ChipiSessionUnlockProvider>
+          <Aurora />
+          <Shell>{children}</Shell>
+          <Toaster richColors position="bottom-right" />
+        </ChipiSessionUnlockProvider>
       </SWRConfig>
     </ThemeProvider>
   );

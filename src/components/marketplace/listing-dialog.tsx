@@ -150,6 +150,7 @@ export function ListingDialog({
       currencySymbol: pendingValues.currency,
       durationSeconds: pendingValues.durationSeconds,
       pin,
+      signingMethod: "PIN",
     });
     setPin("");
     setStep("form");
@@ -172,6 +173,7 @@ export function ListingDialog({
         currencySymbol: pendingValues.currency,
         durationSeconds: pendingValues.durationSeconds,
         pin: derived,
+        signingMethod: "PASSKEY",
       });
 
       setPin("");

@@ -125,7 +125,10 @@ export function CounterOfferDialog({
     }
   };
 
-  const execWithPin = async (pinValue: string) => {
+  const execWithPin = async (
+    pinValue: string,
+    signingMethod: "PIN" | "PASSKEY"
+  ) => {
     if (!pendingValues) return;
     await makeCounterOffer({
       originalOrderHash,
@@ -134,6 +137,7 @@ export function CounterOfferDialog({
       message: pendingValues.message || undefined,
       tokenName,
       pin: pinValue,
+      signingMethod,
     });
     setPin("");
     setStep("form");
@@ -143,7 +147,7 @@ export function CounterOfferDialog({
     const err = validatePin(pin);
     if (err) { setPinError(err); return; }
     setPinError(null);
-    await execWithPin(pin);
+    await execWithPin(pin, "PIN");
   };
 
   const handleUsePasskey = async () => {
@@ -152,7 +156,7 @@ export function CounterOfferDialog({
     try {
       const derived = encryptKey ?? (await authenticate());
       if (!derived) throw new Error("Passkey authentication failed.");
-      await execWithPin(derived);
+      await execWithPin(derived, "PASSKEY");
     } catch (err: unknown) {
       toast.error("Passkey authentication failed", {
         description: err instanceof Error ? err.message : "Passkey authentication failed",

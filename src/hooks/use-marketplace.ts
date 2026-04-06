@@ -5,22 +5,31 @@
  *
  * Write flow (listing / offer / fulfill / cancel):
  *  1. Create intent via backend → { id, typedData }
- *  2. Sign typedData with session/owner key (SNIP-12, client-side)
+ *  2. Sign typedData with owner key (SNIP-12, client-side) — session keys must NOT sign SNIP-12
  *  3. Submit signature → backend returns fully-built calls array
- *  4. Execute calls via ChipiPay (gasless)
- *
- * The backend owns all SNIP-12 struct building, nonce fetching, calldata encoding,
- * and approve-call prepending. The frontend only signs and executes.
+ *  4. Execute calls via ChipiPay: session path (executeWithSessionAsync) when remember-session
+ *     is on and a session exists; else owner path (callAnyContractAsync)
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { useSWRConfig } from "swr";
 import { toast } from "sonner";
-import { useChipiTransaction } from "./use-chipi-transaction";
+import { useCallAnyContract, useExecuteWithSession } from "@chipi-stack/nextjs";
 import { useSessionKey } from "./use-session-key";
 import { useMedialaneClient } from "./use-medialane-client";
+import { useChipiSessionUnlock } from "@/contexts/chipi-session-unlock-context";
+import {
+  executeMarketplaceCalls,
+  walletSupportsSessionKeys,
+} from "@/lib/chipi/wallet/marketplace-call-execution";
 import { MARKETPLACE_CONTRACT, SUPPORTED_TOKENS, INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
+import {
+  maybeSavePreferredEncryptionIfUnset,
+  type WalletEncryptionPreference,
+} from "@/lib/creator-encryption-preference";
 import type { ChipiCall } from "./use-chipi-transaction";
+import type { ChipiTransactionStatus } from "./use-chipi-transaction";
 
 /** Resolve a currency symbol (e.g. "USDC") to its on-chain contract address.
  *  Returns the input unchanged if it already looks like an address. */
@@ -69,6 +78,8 @@ export interface CreateListingInput {
   price: string;
   currencySymbol: string;
   durationSeconds: number;
+  /** When set, persisted to creator profile after a successful intent if not already saved. */
+  signingMethod?: WalletEncryptionPreference;
 }
 
 export interface MakeOfferInput {
@@ -78,37 +89,50 @@ export interface MakeOfferInput {
   price: string;
   currencySymbol: string;
   durationSeconds: number;
+  signingMethod?: WalletEncryptionPreference;
 }
 
 export interface FulfillOrderInput {
   orderHash: string;
-  // Legacy fields — kept for call-site compatibility, no longer used internally
   considerationToken?: string;
   considerationAmount?: string;
   nftContract?: string;
   nftTokenId?: string;
+  signingMethod?: WalletEncryptionPreference;
 }
 
 export interface CancelOrderInput {
   orderHash: string;
+  signingMethod?: WalletEncryptionPreference;
 }
 
 export interface MakeCounterOfferInput {
   originalOrderHash: string;
-  /** Raw wei price (not human-readable) */
   counterPriceRaw: string;
-  /** Duration in seconds (3600–2592000) */
   durationSeconds: number;
   message?: string;
   tokenName?: string;
+  signingMethod?: WalletEncryptionPreference;
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────
 
 export function useMarketplace() {
-  const { executeTransaction, status, txHash, error: txError, reset } =
-    useChipiTransaction();
+  const { getToken } = useAuth();
+  const { callAnyContractAsync } = useCallAnyContract();
+  const { executeWithSessionAsync } = useExecuteWithSession();
+  const { sessionUnlockKey, setSessionUnlockKey } = useChipiSessionUnlock();
+
+  const getBearerToken = useCallback(
+    () =>
+      getToken({
+        template: process.env.NEXT_PUBLIC_CLERK_TEMPLATE_NAME || "chipipay",
+      }),
+    [getToken]
+  );
+
   const {
+    wallet,
     walletAddress,
     hasWallet,
     isLoadingWallet,
@@ -117,11 +141,28 @@ export function useMarketplace() {
     setupSession,
     signTypedData,
     maybeClearSessionForAmountCap,
+    storedSession,
+    sessionPreferences,
   } = useSessionKey();
+
+  const rememberSessionUiOn = useMemo(
+    () =>
+      sessionPreferences?.enabled === true &&
+      walletSupportsSessionKeys(wallet),
+    [sessionPreferences?.enabled, wallet]
+  );
+
+  const useSessionExecution = useMemo(
+    () =>
+      rememberSessionUiOn &&
+      hasActiveSession &&
+      storedSession != null,
+    [rememberSessionUiOn, hasActiveSession, storedSession]
+  );
+
   const client = useMedialaneClient();
   const { mutate } = useSWRConfig();
 
-  /** Invalidate all order + token caches after a write operation. */
   const invalidate = useCallback(() => {
     mutate((key) => {
       if (typeof key !== "string") return false;
@@ -140,34 +181,68 @@ export function useMarketplace() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hash, setHash] = useState<string | null>(null);
+  const [txStatus, setTxStatus] = useState<ChipiTransactionStatus>("idle");
 
   const resetState = useCallback(() => {
     setIsProcessing(false);
     setError(null);
     setHash(null);
-    reset();
-  }, [reset]);
+    setTxStatus("idle");
+  }, []);
 
-  /** Execute pre-built calls via ChipiPay (gasless). */
-  const execWithPin = useCallback(
+  const execCalls = useCallback(
     async (pin: string, calls: ChipiCall[]) => {
-      const result = await executeTransaction({
-        pin,
-        // Always use the marketplace contract so ChipiPay can locate the correct session key.
-        // calls[0] is the NFT/ERC-20 approve — using it as contractAddress would mismatch the session.
-        contractAddress: MARKETPLACE_CONTRACT,
-        calls,
-      });
-      setHash(result.txHash);
-      return result;
+      const bearerToken = await getBearerToken();
+      if (!bearerToken) throw new Error("No bearer token. Please sign in again.");
+
+      setTxStatus("submitting");
+      setError(null);
+      setHash(null);
+
+      try {
+        const result = await executeMarketplaceCalls({
+          bearerToken,
+          wallet,
+          storedSession,
+          encryptKey: pin,
+          sessionUnlockKey,
+          useSessionExecution,
+          contractAddress: MARKETPLACE_CONTRACT,
+          calls,
+          callAnyContractAsync,
+          executeWithSessionAsync,
+          onSubmitted: (txHash) => {
+            setHash(txHash);
+            setTxStatus("confirming");
+          },
+        });
+
+        setHash(result.txHash);
+        if (result.status === "reverted") {
+          setTxStatus("reverted");
+          setError(result.revertReason ?? "Transaction reverted");
+          return result;
+        }
+        setTxStatus("confirmed");
+        return result;
+      } catch (err: unknown) {
+        setTxStatus("error");
+        const msg = err instanceof Error ? err.message : "Transaction failed";
+        setError(msg);
+        throw err;
+      }
     },
-    [executeTransaction]
+    [
+      getBearerToken,
+      wallet,
+      storedSession,
+      sessionUnlockKey,
+      useSessionExecution,
+      callAnyContractAsync,
+      executeWithSessionAsync,
+    ]
   );
 
-  /**
-   * Poll GET /v1/intents/:id until the backend settles to CONFIRMED or FAILED,
-   * or until the timeout is reached.
-   */
   const pollIntentUntilTerminal = useCallback(
     async (id: string): Promise<"CONFIRMED" | "FAILED"> => {
       const MAX_ATTEMPTS = 10;
@@ -185,16 +260,12 @@ export function useMarketplace() {
     [client]
   );
 
-  /**
-   * Shared intent flow:
-   *  create intent → sign typedData → submit signature → execute via ChipiPay
-   *  → POST txHash to backend → poll until CONFIRMED or FAILED
-   */
   const runIntent = useCallback(
     async (
       pin: string,
       intentFn: () => Promise<{ data: { id: string; typedData: unknown; calls: unknown } }>,
-      successMsg: string
+      successMsg: string,
+      options?: { signingMethod?: WalletEncryptionPreference }
     ): Promise<string | undefined> => {
       if (!walletAddress) throw new Error("Wallet not ready. Please wait a moment.");
 
@@ -202,41 +273,54 @@ export function useMarketplace() {
       const { id, typedData } = intentRes.data ?? {};
       if (!id || !typedData) throw new Error("Intent creation failed: no data returned");
 
-      // Sanitize typed data: replace any bare currency symbols (e.g. "USDC")
-      // with their contract addresses so starknet.js can convert them to BigInt.
       const sig = await signTypedData(sanitizeTypedData(typedData), pin);
 
       const signedRes = await client.api.submitIntentSignature(id, sig);
       const calls = signedRes.data.calls as ChipiCall[];
       if (!calls?.length) throw new Error("No calls returned from intent");
 
-      const result = await execWithPin(pin, calls);
+      const result = await execCalls(pin, calls);
       if (result.status === "reverted") {
         throw new Error(result.revertReason || "Transaction reverted on chain");
       }
 
-      // Submit tx hash to backend — verifies receipt + marketplace events server-side
       await client.api.confirmIntent(id, result.txHash);
 
-      // Poll until backend reports terminal status (CONFIRMED or FAILED)
       const finalStatus = await pollIntentUntilTerminal(id);
       if (finalStatus === "FAILED") {
         throw new Error(
           "Transaction was submitted but the marketplace operation did not complete onchain. " +
-          "Please check your token balance and try again."
+            "Please check your token balance and try again."
         );
       }
 
+      setSessionUnlockKey(pin);
       toast.success(successMsg);
       invalidate();
-      // Re-invalidate after indexer processes the block (~10s) to reflect chain state
       setTimeout(() => invalidate(), INDEXER_REVALIDATION_DELAY_MS);
+
+      if (options?.signingMethod) {
+        void maybeSavePreferredEncryptionIfUnset(
+          walletAddress,
+          options.signingMethod,
+          getBearerToken,
+          client
+        );
+      }
+
       return result.txHash;
     },
-    [walletAddress, signTypedData, client, execWithPin, invalidate, pollIntentUntilTerminal]
+    [
+      walletAddress,
+      signTypedData,
+      client,
+      execCalls,
+      invalidate,
+      pollIntentUntilTerminal,
+      setSessionUnlockKey,
+      getBearerToken,
+    ]
   );
-
-  // ── createListing ──────────────────────────────────────────────────────
 
   const createListing = useCallback(
     async (input: CreateListingInput & { pin: string }) => {
@@ -246,15 +330,17 @@ export function useMarketplace() {
         const endTime = Math.floor(Date.now() / 1000) + input.durationSeconds;
         return await runIntent(
           input.pin,
-          () => client.api.createListingIntent({
-            offerer: walletAddress!,
-            nftContract: input.assetContract,
-            tokenId: input.tokenId,
-            currency: resolveCurrencyAddress(input.currencySymbol),
-            price: input.price,
-            endTime,
-          }),
-          `${input.tokenName || `Token #${input.tokenId}`} listed for ${input.price} ${input.currencySymbol}`
+          () =>
+            client.api.createListingIntent({
+              offerer: walletAddress!,
+              nftContract: input.assetContract,
+              tokenId: input.tokenId,
+              currency: resolveCurrencyAddress(input.currencySymbol),
+              price: input.price,
+              endTime,
+            }),
+          `${input.tokenName || `Token #${input.tokenId}`} listed for ${input.price} ${input.currencySymbol}`,
+          input.signingMethod ? { signingMethod: input.signingMethod } : undefined
         );
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Failed to create listing";
@@ -267,8 +353,6 @@ export function useMarketplace() {
     [walletAddress, runIntent, client]
   );
 
-  // ── fulfillOrder (buy) ─────────────────────────────────────────────────
-
   const fulfillOrder = useCallback(
     async (input: FulfillOrderInput & { pin: string }) => {
       setIsProcessing(true);
@@ -276,11 +360,13 @@ export function useMarketplace() {
       try {
         return await runIntent(
           input.pin,
-          () => client.api.createFulfillIntent({
-            fulfiller: walletAddress!,
-            orderHash: input.orderHash,
-          }),
-          "Purchase complete!"
+          () =>
+            client.api.createFulfillIntent({
+              fulfiller: walletAddress!,
+              orderHash: input.orderHash,
+            }),
+          "Purchase complete!",
+          input.signingMethod ? { signingMethod: input.signingMethod } : undefined
         );
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Purchase failed";
@@ -293,8 +379,6 @@ export function useMarketplace() {
     [walletAddress, runIntent, client]
   );
 
-  // ── makeOffer ──────────────────────────────────────────────────────────
-
   const makeOffer = useCallback(
     async (input: MakeOfferInput & { pin: string }) => {
       setIsProcessing(true);
@@ -303,15 +387,17 @@ export function useMarketplace() {
         const endTime = Math.floor(Date.now() / 1000) + input.durationSeconds;
         return await runIntent(
           input.pin,
-          () => client.api.createOfferIntent({
-            offerer: walletAddress!,
-            nftContract: input.assetContract,
-            tokenId: input.tokenId,
-            currency: resolveCurrencyAddress(input.currencySymbol),
-            price: input.price,
-            endTime,
-          }),
-          `Offer submitted for ${input.tokenName || `Token #${input.tokenId}`}`
+          () =>
+            client.api.createOfferIntent({
+              offerer: walletAddress!,
+              nftContract: input.assetContract,
+              tokenId: input.tokenId,
+              currency: resolveCurrencyAddress(input.currencySymbol),
+              price: input.price,
+              endTime,
+            }),
+          `Offer submitted for ${input.tokenName || `Token #${input.tokenId}`}`,
+          input.signingMethod ? { signingMethod: input.signingMethod } : undefined
         );
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Failed to submit offer";
@@ -324,8 +410,6 @@ export function useMarketplace() {
     [walletAddress, runIntent, client]
   );
 
-  // ── makeCounterOffer ───────────────────────────────────────────────────
-
   const makeCounterOffer = useCallback(
     async (input: MakeCounterOfferInput & { pin: string }) => {
       setIsProcessing(true);
@@ -333,14 +417,16 @@ export function useMarketplace() {
       try {
         return await runIntent(
           input.pin,
-          () => client.api.createCounterOfferIntent({
-            sellerAddress: walletAddress!,
-            originalOrderHash: input.originalOrderHash,
-            durationSeconds: input.durationSeconds,
-            counterPrice: input.counterPriceRaw,
-            message: input.message,
-          }),
-          `Counter-offer sent${input.tokenName ? ` for ${input.tokenName}` : ""}!`
+          () =>
+            client.api.createCounterOfferIntent({
+              sellerAddress: walletAddress!,
+              originalOrderHash: input.originalOrderHash,
+              durationSeconds: input.durationSeconds,
+              counterPrice: input.counterPriceRaw,
+              message: input.message,
+            }),
+          `Counter-offer sent${input.tokenName ? ` for ${input.tokenName}` : ""}!`,
+          input.signingMethod ? { signingMethod: input.signingMethod } : undefined
         );
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Counter-offer failed";
@@ -350,10 +436,8 @@ export function useMarketplace() {
         setIsProcessing(false);
       }
     },
-    [walletAddress, runIntent]
+    [walletAddress, runIntent, client]
   );
-
-  // ── cancelOrder ────────────────────────────────────────────────────────
 
   const cancelOrder = useCallback(
     async (input: CancelOrderInput & { pin: string }) => {
@@ -362,16 +446,13 @@ export function useMarketplace() {
       try {
         return await runIntent(
           input.pin,
-          () => client.api.createCancelIntent({
-            offerer: walletAddress!,
-            orderHash: input.orderHash,
-          }),
-          "Order cancelled."
-          // No requiredEventFrom — a confirmed cancel tx is always successful.
-          // The event guard is only needed for fulfillOrder where ChipiPay's
-          // multicall wrapper can report SUCCEEDED while the inner call panics
-          // (e.g. insufficient ERC-20 balance). That silent-failure path does
-          // not exist for cancel_order.
+          () =>
+            client.api.createCancelIntent({
+              offerer: walletAddress!,
+              orderHash: input.orderHash,
+            }),
+          "Order cancelled.",
+          input.signingMethod ? { signingMethod: input.signingMethod } : undefined
         );
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Cancellation failed";
@@ -397,9 +478,9 @@ export function useMarketplace() {
     isSettingUpSession,
     setupSession,
     isProcessing,
-    txStatus: status,
-    txHash: hash ?? txHash,
-    error: error ?? txError,
+    txStatus,
+    txHash: hash,
+    error,
     resetState,
     maybeClearSessionForAmountCap,
   };

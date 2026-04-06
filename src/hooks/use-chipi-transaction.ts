@@ -4,6 +4,7 @@ import { useState, useCallback, useRef } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useChipiWallet, useCallAnyContract } from "@chipi-stack/nextjs";
 import { starknetProvider } from "@/lib/starknet";
+import { formatStarknetInfrastructureError } from "@/lib/infrastructure-error-message";
 import type { WalletCredentials } from "@/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────
@@ -129,7 +130,12 @@ export function useChipiTransaction() {
           setStatus("confirmed");
           return { txHash: result, status: "confirmed" };
         } catch (receiptError: unknown) {
-          const reason = receiptError instanceof Error ? receiptError.message : "Transaction failed on L2";
+          const raw =
+            receiptError instanceof Error ? receiptError.message : "Transaction failed on L2";
+          const reason = formatStarknetInfrastructureError(raw, {
+            txHash: result,
+            operation: "Confirming your transaction on Starknet",
+          });
           setStatus("reverted");
           setError(reason);
           return { txHash: result, status: "reverted", revertReason: reason };

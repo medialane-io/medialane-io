@@ -4,8 +4,11 @@ import useSWR from "swr";
 import { useMedialaneClient } from "./use-medialane-client";
 import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
 import type { ApiCollection, ApiResponse } from "@medialane/sdk";
+import { normalizeAddress } from "@/lib/utils";
 
 export type CollectionSort = "recent" | "supply" | "floor" | "volume" | "name";
+const visibleRefresh = (ms: number) =>
+  typeof document !== "undefined" && document.hidden ? 0 : ms;
 
 export function useCollections(
   page = 1,
@@ -59,11 +62,12 @@ export function useCollection(contract: string | null) {
 
 export function useCollectionsByOwner(owner: string | null) {
   const client = useMedialaneClient();
+  const normalized = owner ? normalizeAddress(owner) : null;
 
   const { data, error, isLoading, mutate } = useSWR(
-    owner ? `collections-owner-${owner}` : null,
-    () => client.api.getCollectionsByOwner(owner!),
-    { revalidateOnFocus: false, refreshInterval: 12000 }
+    normalized ? `collections-owner-${normalized}` : null,
+    () => client.api.getCollectionsByOwner(normalized!),
+    { revalidateOnFocus: false, refreshInterval: () => visibleRefresh(25000) }
   );
 
   return { collections: data?.data ?? [], isLoading, error, mutate };

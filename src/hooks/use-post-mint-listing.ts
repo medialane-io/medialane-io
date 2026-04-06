@@ -15,6 +15,7 @@ interface RunParams {
   durationSeconds: number;
   tokenName: string;
   pin: string;
+  signingMethod?: "PIN" | "PASSKEY";
 }
 
 const POLL_ATTEMPTS = 20;
@@ -35,6 +36,7 @@ export function usePostMintListing() {
     durationSeconds,
     tokenName,
     pin,
+    signingMethod,
   }: RunParams) {
     setListingStep("polling");
     try {
@@ -76,6 +78,7 @@ export function usePostMintListing() {
           currencySymbol,
           durationSeconds,
           tokenName,
+          signingMethod,
         });
         setListingStep("listed");
       } else {

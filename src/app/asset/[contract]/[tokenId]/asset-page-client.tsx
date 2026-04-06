@@ -16,7 +16,7 @@ import { ListingDialog } from "@/components/marketplace/listing-dialog";
 import { OfferDialog } from "@/components/marketplace/offer-dialog";
 import { TransferDialog } from "@/components/marketplace/transfer-dialog";
 import { AddressDisplay } from "@/components/shared/address-display";
-import { PinDialog } from "@/components/chipi/pin-dialog";
+import { PinDialog, type PinDialogSubmitOptions } from "@/components/chipi/pin-dialog";
 import { ipfsToHttp, timeUntil, timeAgo, formatDisplayPrice } from "@/lib/utils";
 import { ShoppingCart, Tag, ExternalLink, Clock, HandCoins, ArrowRightLeft, X, CheckCircle, DollarSign, GitBranch, UserCheck, Globe, Bot, Percent, Shield, Calendar, ChevronRight, Flag, Loader2, MessageSquare } from "lucide-react";
 import { ReportDialog } from "@/components/report-dialog";
@@ -138,13 +138,14 @@ export default function AssetPageClient() {
     setCancelPinOpen(true);
   };
 
-  const handleCancelPin = async (pin: string) => {
+  const handleCancelPin = async (pin: string, opts?: PinDialogSubmitOptions) => {
     setCancelPinOpen(false);
     if (!orderToCancel) return;
     setCancelStep("processing");
     setCancelError(null);
+    const signingMethod = opts?.usedPasskey ? "PASSKEY" : "PIN";
     try {
-      await cancelOrder({ orderHash: orderToCancel.orderHash, pin });
+      await cancelOrder({ orderHash: orderToCancel.orderHash, pin, signingMethod });
       setCancelStep("success");
       mutateListings();
     } catch (err: unknown) {
@@ -158,10 +159,14 @@ export default function AssetPageClient() {
     setAcceptPinOpen(true);
   };
 
-  const handleAcceptPin = async (pin: string) => {
+  const handleAcceptPin = async (pin: string, opts?: PinDialogSubmitOptions) => {
     setAcceptPinOpen(false);
     if (!orderToAccept) return;
-    await fulfillOrder({ orderHash: orderToAccept.orderHash, pin });
+    await fulfillOrder({
+      orderHash: orderToAccept.orderHash,
+      pin,
+      signingMethod: opts?.usedPasskey ? "PASSKEY" : "PIN",
+    });
     setOrderToAccept(null);
     mutateListings();
   };

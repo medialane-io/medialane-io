@@ -30,6 +30,8 @@ interface CollectionProgressDialogProps {
   imagePreview: string | null;
   txHash: string | null;
   error: string | null;
+  /** When sync-tx failed after a confirmed on-chain tx — error UI + details go to sonner toast. */
+  syncFailureTxHash?: string | null;
   onCreateAnother: () => void;
 }
 
@@ -60,6 +62,7 @@ export function CollectionProgressDialog({
   imagePreview,
   txHash,
   error,
+  syncFailureTxHash,
   onCreateAnother,
 }: CollectionProgressDialogProps) {
   const router = useRouter();
@@ -88,7 +91,13 @@ export function CollectionProgressDialog({
         {...(isProcessing ? { hideClose: true } : {})}
       >
         <DialogTitle className="sr-only">
-          {isProcessing ? "Creating collection…" : isSuccess ? "Collection created!" : "Creation failed"}
+          {isProcessing
+            ? "Creating collection…"
+            : isSuccess
+              ? "Collection created!"
+              : syncFailureTxHash
+                ? "Collection not deployed"
+                : "Creation failed"}
         </DialogTitle>
 
         {/* ── Processing ── */}
@@ -199,8 +208,47 @@ export function CollectionProgressDialog({
           </div>
         )}
 
-        {/* ── Error ── */}
-        {isError && (
+        {/* ── Error (sync-tx failed after chain success) ── */}
+        {isError && syncFailureTxHash && (
+          <div className="flex flex-col items-center gap-5 py-2">
+            <div className="relative">
+              <div className="h-16 w-16 rounded-full border-2 border-destructive/30 bg-destructive/10 flex items-center justify-center">
+                <XCircle className="h-10 w-10 text-destructive" strokeWidth={2} />
+              </div>
+            </div>
+
+            <div className="text-center space-y-2 max-w-sm">
+              <p className="font-bold text-xl text-foreground tracking-tight">
+                Collection not deployed
+              </p>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                We couldn&apos;t confirm your collection in Medialane. Check the{" "}
+                <span className="text-foreground font-medium">notification</span> for full details
+                (RPC limits, transaction hash).{" "}
+                <span className="text-foreground font-medium">Contact support</span> if you need help.
+              </p>
+            </div>
+
+            <a
+              href={`${EXPLORER_URL}/tx/${syncFailureTxHash}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <span>
+                {syncFailureTxHash.slice(0, 10)}…{syncFailureTxHash.slice(-8)}
+              </span>
+              <ExternalLink className="h-3 w-3" />
+            </a>
+
+            <Button variant="outline" className="w-full h-11" onClick={onCreateAnother}>
+              Try again
+            </Button>
+          </div>
+        )}
+
+        {/* ── Error (generic: tx revert, intent error, etc.) ── */}
+        {isError && !syncFailureTxHash && (
           <div className="flex flex-col items-center gap-5 py-2">
             <div className="h-16 w-16 rounded-full bg-destructive/10 flex items-center justify-center">
               <XCircle className="h-9 w-9 text-destructive" />
@@ -209,11 +257,11 @@ export function CollectionProgressDialog({
             <div className="text-center space-y-1">
               <p className="font-bold text-xl">Creation failed</p>
               {error && (
-                <p className="text-sm text-muted-foreground max-w-xs mx-auto">{error}</p>
+                <p className="text-sm text-muted-foreground max-w-xs mx-auto leading-relaxed">{error}</p>
               )}
             </div>
 
-            <Button variant="outline" className="w-full" onClick={onCreateAnother}>
+            <Button variant="outline" className="w-full h-11" onClick={onCreateAnother}>
               Try again
             </Button>
           </div>

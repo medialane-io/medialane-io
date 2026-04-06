@@ -56,7 +56,10 @@ function OnboardingContent() {
 
   // ── Shared wallet creation ────────────────────────────────────────────────
 
-  const createWalletWithKey = async (encryptKey: string) => {
+  const createWalletWithKey = async (
+    encryptKey: string,
+    preferredEncryption: "PIN" | "PASSKEY"
+  ) => {
     const wallet = await createWallet({ encryptKey });
     // ChipiPay API may return the address as `walletPublicKey` or `publicKey`
     
@@ -67,6 +70,7 @@ function OnboardingContent() {
 
     const result = await completeOnboarding({
       publicKey: walletKey,
+      preferredEncryption,
     });
 
     if (result.error) throw new Error(result.error);
@@ -90,7 +94,7 @@ function OnboardingContent() {
       const userName =
         user?.primaryEmailAddress?.emailAddress ?? user?.username ?? "user";
       const { encryptKey } = await createWalletPasskey(user?.id ?? "", userName);
-      await createWalletWithKey(encryptKey);
+      await createWalletWithKey(encryptKey, "PASSKEY");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Passkey setup failed";
       setError(msg);
@@ -109,7 +113,7 @@ function OnboardingContent() {
     setIsSubmitting(true);
     setError(null);
     try {
-      await createWalletWithKey(pin);
+      await createWalletWithKey(pin, "PIN");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to secure your account. Please try again.");
       setStep("pin");

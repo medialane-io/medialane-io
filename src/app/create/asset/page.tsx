@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -29,17 +29,20 @@ import {
 } from "@/components/ui/collapsible";
 import { Skeleton } from "@/components/ui/skeleton";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
-import { PinDialog } from "@/components/chipi/pin-dialog";
+import { PinDialog, type PinDialogSubmitOptions } from "@/components/chipi/pin-dialog";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { usePostMintListing } from "@/hooks/use-post-mint-listing";
+import { usePreferredEncryption } from "@/hooks/use-preferred-encryption";
 import { MintProgressDialog } from "@/components/marketplace/mint-progress-dialog";
 import type { MintStep } from "@/components/marketplace/mint-progress-dialog";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 import { cn } from "@/lib/utils";
-import { DURATION_OPTIONS } from "@/lib/constants";
+import { maybeSavePreferredEncryptionIfUnset } from "@/lib/creator-encryption-preference";
+import { useAuth } from "@clerk/nextjs";
+import { DURATION_OPTIONS, MEDIALANE_API_KEY, MEDIALANE_BACKEND_URL } from "@/lib/constants";
 import { getListableTokens } from "@medialane/sdk";
 import {
   IP_TYPES,
@@ -122,8 +125,17 @@ function ToggleGroup({
 }
 
 export default function CreateAssetPage() {
+  const { getToken } = useAuth();
+  const getBearerToken = useCallback(
+    () =>
+      getToken({
+        template: process.env.NEXT_PUBLIC_CLERK_TEMPLATE_NAME || "chipipay",
+      }),
+    [getToken]
+  );
   const { executeTransaction, status, txHash, error, statusMessage } = useChipiTransaction();
   const { walletAddress } = useSessionKey();
+  const { preferredEncryption } = usePreferredEncryption(walletAddress ?? null);
   const client = useMedialaneClient();
   const { listingStep, listingError, runPostMintListing, resetListing } = usePostMintListing();
 
@@ -146,6 +158,7 @@ export default function CreateAssetPage() {
   const [listDuration, setListDuration] = useState<number>(DURATION_OPTIONS[0]?.seconds ?? 86400);
   const [mintStep, setMintStep] = useState<MintStep>("idle");
   const [mintError, setMintError] = useState<string | null>(null);
+  const [syncWarning, setSyncWarning] = useState<string | null>(null);
   const [templateFields, setTemplateFields] = useState<Record<string, string>>({});
   const pinRef = useRef<string | null>(null);
   const previewUrlRef = useRef<string | null>(null);
@@ -204,12 +217,13 @@ export default function CreateAssetPage() {
     setPinOpen(true);
   };
 
-  const handlePin = async (pin: string) => {
+  const handlePin = async (pin: string, opts?: PinDialogSubmitOptions) => {
     setPinOpen(false);
     if (!pendingValues || !walletAddress) return;
 
     pinRef.current = pin;
     setMintError(null);
+    setSyncWarning(null);
     resetListing();
     setMintStep("uploading");
 
@@ -269,8 +283,45 @@ export default function CreateAssetPage() {
         throw new Error(result.revertReason || "Mint transaction reverted on chain");
       }
 
+      // Sync minted token(s) from tx receipt so portfolio can show them immediately even if mirror lags.
+      if (result.txHash) {
+        try {
+          const res = await fetch(`${MEDIALANE_BACKEND_URL}/v1/tokens/sync-tx`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(MEDIALANE_API_KEY ? { "x-api-key": MEDIALANE_API_KEY } : {}),
+            },
+            body: JSON.stringify({ txHash: result.txHash }),
+          });
+          const json = (await res.json().catch(() => ({}))) as {
+            error?: string;
+            data?: { synced?: number; message?: string };
+          };
+          if (!res.ok || !json.data || (json.data.synced ?? 0) <= 0) {
+            setSyncWarning(
+              json.error ??
+                json.data?.message ??
+                "Minted on-chain, but local token sync is delayed. It should appear after indexer catch-up."
+            );
+          }
+        } catch {
+          setSyncWarning(
+            "Minted on-chain, but local token sync request failed. Your asset should appear after indexer catch-up."
+          );
+        }
+      }
+
       setMintStep("success");
       invalidatePortfolioCache(walletAddress);
+
+      const encryptionPref = opts?.usedPasskey ? "PASSKEY" : "PIN";
+      void maybeSavePreferredEncryptionIfUnset(
+        walletAddress,
+        encryptionPref,
+        getBearerToken,
+        client
+      );
 
       // ── Optional listing after mint ──────────────────────────────────────
       const col = collections.find((c) => c.collectionId === pendingValues.collectionId);
@@ -286,6 +337,7 @@ export default function CreateAssetPage() {
           durationSeconds: listDuration,
           tokenName: pendingValues.name,
           pin: savedPin,
+          signingMethod: encryptionPref,
         });
       } else {
         pinRef.current = null;
@@ -300,6 +352,7 @@ export default function CreateAssetPage() {
   const handleMintAnother = () => {
     setMintStep("idle");
     setMintError(null);
+    setSyncWarning(null);
     resetListing();
     pinRef.current = null;
     form.reset();
@@ -319,6 +372,7 @@ export default function CreateAssetPage() {
         imagePreview={imagePreview}
         txHash={txHash}
         error={mintError}
+        syncWarning={syncWarning}
         onMintAnother={handleMintAnother}
         listingStep={listingStep}
         listingError={listingError}
@@ -765,6 +819,8 @@ export default function CreateAssetPage() {
         onCancel={() => setPinOpen(false)}
         title="Confirm mint"
         description="Enter your PIN to mint this asset on Starknet."
+        preferredMethod={preferredEncryption}
+        allowPasskey={preferredEncryption !== "PIN"}
       />
 
       <WalletSetupDialog

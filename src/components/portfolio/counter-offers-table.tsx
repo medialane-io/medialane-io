@@ -5,7 +5,7 @@ import { useUserOrders, useCounterOffers } from "@/hooks/use-orders";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyOrError } from "@/components/ui/empty-or-error";
-import { PinDialog } from "@/components/chipi/pin-dialog";
+import { PinDialog, type PinDialogSubmitOptions } from "@/components/chipi/pin-dialog";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { ipfsToHttp, formatDisplayPrice, cn } from "@/lib/utils";
 import { ArrowLeftRight, ExternalLink, Inbox } from "lucide-react";
@@ -135,10 +135,11 @@ export function CounterOffersTable({ address }: { address: string }) {
     setPinOpen(true);
   };
 
-  const handlePin = async (pin: string) => {
+  const handlePin = async (pin: string, opts?: PinDialogSubmitOptions) => {
     setPinOpen(false);
     if (!selectedCounter) return;
-    await fulfillOrder({ orderHash: selectedCounter.orderHash, pin });
+    const signingMethod = opts?.usedPasskey ? "PASSKEY" : "PIN";
+    await fulfillOrder({ orderHash: selectedCounter.orderHash, pin, signingMethod });
     mutate();
   };
 

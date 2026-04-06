@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { PurchaseDialog } from "@/components/marketplace/purchase-dialog";
-import { PinDialog } from "@/components/chipi/pin-dialog";
+import { PinDialog, type PinDialogSubmitOptions } from "@/components/chipi/pin-dialog";
 import { useCart } from "@/hooks/use-cart";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { useMarketplace } from "@/hooks/use-marketplace";
@@ -113,10 +113,11 @@ export function CartDrawer() {
 
   const validItems = items.filter((i) => !staleHashes.has(i.orderHash));
 
-  const handleBatchCheckout = async (pin: string) => {
+  const handleBatchCheckout = async (pin: string, opts?: PinDialogSubmitOptions) => {
     setBatchPinOpen(false);
     if (validItems.length === 0) return;
 
+    const signingMethod = opts?.usedPasskey ? "PASSKEY" : "PIN";
     setBatchProgress({ total: validItems.length, current: 0, done: 0, failed: [] });
 
     const failed: string[] = [];
@@ -124,7 +125,7 @@ export function CartDrawer() {
       const item = validItems[i];
       setBatchProgress((p) => p ? { ...p, current: i + 1 } : p);
       try {
-        await fulfillOrder({ orderHash: item.orderHash, pin });
+        await fulfillOrder({ orderHash: item.orderHash, pin, signingMethod });
         removeItem(item.orderHash);
         setBatchProgress((p) => p ? { ...p, done: p.done + 1 } : p);
       } catch {

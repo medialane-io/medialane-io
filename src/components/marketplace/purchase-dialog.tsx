@@ -104,6 +104,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
     await fulfillOrder({
       orderHash: order.orderHash,
       pin,
+      signingMethod: "PIN",
     });
     setPin("");
     setStep("details");
@@ -119,6 +120,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
       await fulfillOrder({
         orderHash: order.orderHash,
         pin: derived,
+        signingMethod: "PASSKEY",
       });
 
       setPin("");

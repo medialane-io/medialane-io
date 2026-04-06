@@ -5,7 +5,7 @@ import { useTokensByOwner } from "@/hooks/use-tokens";
 import { TokenCard } from "@/components/shared/token-card";
 import { ListingDialog } from "@/components/marketplace/listing-dialog";
 import { TransferDialog } from "@/components/marketplace/transfer-dialog";
-import { PinDialog } from "@/components/chipi/pin-dialog";
+import { PinDialog, type PinDialogSubmitOptions } from "@/components/chipi/pin-dialog";
 import { EmptyOrError } from "@/components/ui/empty-or-error";
 import { Button } from "@/components/ui/button";
 import { ImageIcon, Loader2 } from "lucide-react";
@@ -25,7 +25,16 @@ export function AssetsGrid({ address }: AssetsGridProps) {
 
   // Accumulate pages
   useEffect(() => {
-    setAllTokens((prev) => (page === 1 ? tokens : [...prev, ...tokens]));
+    setAllTokens((prev) => {
+      const incoming = page === 1 ? tokens : [...prev, ...tokens];
+      const seen = new Set<string>();
+      return incoming.filter((token) => {
+        const key = `${token.contractAddress}-${token.tokenId}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    });
   }, [tokens, page]);
 
   // Reset when address changes
@@ -56,11 +65,12 @@ export function AssetsGrid({ address }: AssetsGridProps) {
     setCancelPinOpen(true);
   };
 
-  const handleCancelPin = async (pin: string) => {
+  const handleCancelPin = async (pin: string, opts?: PinDialogSubmitOptions) => {
     setCancelPinOpen(false);
     const orderHash = cancelToken?.activeOrders?.[0]?.orderHash;
     if (!orderHash) return;
-    await cancelOrder({ orderHash, pin });
+    const signingMethod = opts?.usedPasskey ? "PASSKEY" : "PIN";
+    await cancelOrder({ orderHash, pin, signingMethod });
     setCancelToken(null);
     handleSuccess();
   };

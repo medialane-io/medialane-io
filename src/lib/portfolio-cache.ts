@@ -1,4 +1,5 @@
 import { mutate } from "swr";
+import { normalizeAddress } from "@/lib/utils";
 
 /**
  * Immediately invalidates SWR caches for both owned tokens and user collections
@@ -7,6 +8,7 @@ import { mutate } from "swr";
  * next auto-refresh cycle.
  */
 export function invalidatePortfolioCache(address: string) {
-  mutate((key) => typeof key === "string" && key.startsWith(`tokens-owned-${address}-`), undefined, { revalidate: true });
-  mutate((key) => typeof key === "string" && key.startsWith(`collections-owner-${address}`), undefined, { revalidate: true });
+  const normalized = normalizeAddress(address);
+  mutate((key) => typeof key === "string" && key.startsWith(`tokens-owned-${normalized}-`), undefined, { revalidate: true });
+  mutate((key) => typeof key === "string" && key.startsWith(`collections-owner-${normalized}`), undefined, { revalidate: true });
 }

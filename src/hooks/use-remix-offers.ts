@@ -46,14 +46,29 @@ export function useRemixOffers(role: "creator" | "requester", status?: string) {
 export function useTokenRemixes(contract: string | null, tokenId: string | null) {
   const { data, error, isLoading, mutate } = useSWR<{ data: PublicRemix[]; meta: { total: number } }>(
     contract && tokenId ? `token-remixes-${contract}-${tokenId}` : null,
-    () =>
-      fetch(`${MEDIALANE_BACKEND_URL}/v1/tokens/${contract}/${tokenId}/remixes`, {
+    async () => {
+      const res = await fetch(`${MEDIALANE_BACKEND_URL}/v1/tokens/${contract}/${tokenId}/remixes`, {
         headers: { "x-api-key": MEDIALANE_API_KEY },
-      }).then((r) => r.json()),
+      });
+
+      // Backend branch may not expose this route yet (404) or may return non-standard payloads.
+      // Keep asset page stable by degrading to an empty remix list.
+      if (!res.ok) return { data: [], meta: { total: 0 } };
+
+      const json = (await res.json().catch(() => ({}))) as {
+        data?: PublicRemix[];
+        meta?: { total?: number };
+      };
+
+      return {
+        data: Array.isArray(json.data) ? json.data : [],
+        meta: { total: json.meta?.total ?? 0 },
+      };
+    },
     { refreshInterval: 60000, revalidateOnFocus: false }
   );
 
-  return { remixes: data?.data ?? [], total: data?.meta.total ?? 0, isLoading, error, mutate };
+  return { remixes: data?.data ?? [], total: data?.meta?.total ?? 0, isLoading, error, mutate };
 }
 
 // ─── Mutation helpers ─────────────────────────────────────────────────────────

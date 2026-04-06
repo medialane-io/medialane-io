@@ -3,9 +3,12 @@
 import useSWR from "swr";
 import { useMedialaneClient } from "./use-medialane-client";
 import type { ApiToken, ApiResponse } from "@medialane/sdk";
+import { normalizeAddress } from "@/lib/utils";
 
 // Stable empty array — prevents useEffect dependency loops when SWR has no data yet
 const EMPTY_TOKENS: ApiToken[] = [];
+const visibleRefresh = (ms: number) =>
+  typeof document !== "undefined" && document.hidden ? 0 : ms;
 
 export function useToken(contract: string | null, tokenId: string | null) {
   const client = useMedialaneClient();
@@ -21,11 +24,19 @@ export function useToken(contract: string | null, tokenId: string | null) {
 
 export function useTokensByOwner(address: string | null, page = 1, limit = 20) {
   const client = useMedialaneClient();
+  const normalized = address ? normalizeAddress(address) : null;
 
   const { data, error, isLoading, mutate } = useSWR(
-    address ? `tokens-owned-${address}-${page}` : null,
-    () => client.api.getTokensByOwner(address!, page, limit),
-    { revalidateOnFocus: false, refreshInterval: 12000, revalidateOnMount: true }
+    normalized ? `tokens-owned-${normalized}-${page}` : null,
+    () => client.api.getTokensByOwner(normalized!, page, limit),
+    {
+      revalidateOnFocus: false,
+      refreshInterval: () => visibleRefresh(20000),
+      revalidateOnMount: true,
+      shouldRetryOnError: true,
+      errorRetryInterval: 5000,
+      errorRetryCount: 3,
+    }
   );
 
   return {

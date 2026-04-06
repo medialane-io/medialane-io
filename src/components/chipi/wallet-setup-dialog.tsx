@@ -61,6 +61,7 @@ export function WalletSetupDialog({ open, onOpenChange, onSuccess }: WalletSetup
 
       const result = await completeOnboarding({
         publicKey: walletKey,
+        preferredEncryption: "PIN",
       });
       if (result.error) throw new Error(result.error);
 

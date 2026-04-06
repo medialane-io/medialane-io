@@ -5,6 +5,9 @@ import { useMedialaneClient } from "./use-medialane-client";
 import type { ApiOrdersQuery, ApiOrder, ApiResponse } from "@medialane/sdk";
 import { normalizeAddress } from "@/lib/utils";
 
+const visibleRefresh = (ms: number) =>
+  typeof document !== "undefined" && document.hidden ? 0 : ms;
+
 export function useOrders(query: ApiOrdersQuery = {}) {
   const client = useMedialaneClient();
   const key = JSON.stringify({ op: "orders", ...query });
@@ -12,7 +15,11 @@ export function useOrders(query: ApiOrdersQuery = {}) {
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<ApiOrder[]>>(
     key,
     () => client.api.getOrders(query),
-    { revalidateOnFocus: false, refreshInterval: 30000, dedupingInterval: 5000 }
+    {
+      revalidateOnFocus: false,
+      refreshInterval: () => visibleRefresh(45000),
+      dedupingInterval: 10000,
+    }
   );
 
   return {
@@ -55,7 +62,11 @@ export function useUserOrders(address: string | null) {
   const { data, error, isLoading, mutate } = useSWR(
     normalized ? `user-orders-${normalized}` : null,
     () => client.api.getOrdersByUser(normalized!),
-    { revalidateOnFocus: false, refreshInterval: 20000, dedupingInterval: 5000 }
+    {
+      revalidateOnFocus: false,
+      refreshInterval: () => visibleRefresh(30000),
+      dedupingInterval: 10000,
+    }
   );
 
   return { orders: data?.data ?? [], isLoading, error, mutate };
@@ -84,7 +95,11 @@ export function useCounterOffers({
       ...(originalOrderHash ? { originalOrderHash } : {}),
       ...(normalized ? { sellerAddress: normalized } : {}),
     }),
-    { revalidateOnFocus: false, refreshInterval: 20000, dedupingInterval: 5000 }
+    {
+      revalidateOnFocus: false,
+      refreshInterval: () => visibleRefresh(30000),
+      dedupingInterval: 10000,
+    }
   );
 
   return {

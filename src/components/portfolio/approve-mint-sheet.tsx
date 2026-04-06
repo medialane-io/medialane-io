@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PinDialog } from "@/components/chipi/pin-dialog";
+import { PinDialog, type PinDialogSubmitOptions } from "@/components/chipi/pin-dialog";
 import { toast } from "sonner";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { useSessionKey } from "@/hooks/use-session-key";
@@ -21,6 +21,7 @@ import { Check, GitBranch, Loader2 } from "lucide-react";
 import type { RemixOffer } from "@/types/remix-offers";
 import type { ChipiCall } from "@/hooks/use-chipi-transaction";
 import { INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
+import { maybeSavePreferredEncryptionIfUnset } from "@/lib/creator-encryption-preference";
 
 interface Props {
   offer: RemixOffer | null;
@@ -31,6 +32,13 @@ interface Props {
 
 export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props) {
   const { getToken } = useAuth();
+  const getBearerToken = useCallback(
+    () =>
+      getToken({
+        template: process.env.NEXT_PUBLIC_CLERK_TEMPLATE_NAME || "chipipay",
+      }),
+    [getToken]
+  );
   const { walletAddress } = useSessionKey();
   const { executeTransaction } = useChipiTransaction();
   const { createListing } = useMarketplace();
@@ -80,10 +88,12 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
     setPinOpen(true);
   };
 
-  const handlePin = async (pin: string) => {
+  const handlePin = async (pin: string, opts?: PinDialogSubmitOptions) => {
     setPinOpen(false);
     if (!offer || !walletAddress || !effectiveCollectionId || !selectedCollection) return;
     setLoading(true);
+
+    const encryptionPref = opts?.usedPasskey ? "PASSKEY" : "PIN";
 
     try {
       // 1. Upload remix IPFS metadata
@@ -128,6 +138,13 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
       });
       if (mintResult.status === "reverted") throw new Error(mintResult.revertReason ?? "Mint reverted");
 
+      void maybeSavePreferredEncryptionIfUnset(
+        walletAddress,
+        encryptionPref,
+        getBearerToken,
+        client
+      );
+
       // 3. Poll for new tokenId
       let remixTokenId: string | undefined;
       const mintDeadline = Date.now() + 10_000;
@@ -153,6 +170,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
         currencySymbol,
         durationSeconds: 30 * 24 * 60 * 60, // 30 days
         pin,
+        signingMethod: encryptionPref,
       });
 
       // 5. Poll for listing to get orderHash
