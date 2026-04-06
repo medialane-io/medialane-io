@@ -28,7 +28,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { PinInput, validatePin } from "@/components/ui/pin-input";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
-import { SessionSetupDialog } from "@/components/chipi/session-setup-dialog";
 import { useAuth, SignInButton } from "@clerk/nextjs";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
@@ -78,7 +77,6 @@ export function CounterOfferDialog({
     makeCounterOffer,
     hasWallet,
     hasActiveSession,
-    isSettingUpSession,
     setupSession,
     isProcessing,
     txStatus,
@@ -88,7 +86,6 @@ export function CounterOfferDialog({
   } = useMarketplace();
 
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
-  const [sessionSetupOpen, setSessionSetupOpen] = useState(false);
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
   const [pin, setPin] = useState("");
   const [pinError, setPinError] = useState<string | null>(null);
@@ -98,6 +95,7 @@ export function CounterOfferDialog({
     () => typeof window !== "undefined" && isWebAuthnSupported()
   );
   const [isAuthenticatingPasskey, setIsAuthenticatingPasskey] = useState(false);
+  const [isActivatingSession, setIsActivatingSession] = useState(false);
   const { authenticate, encryptKey } = usePasskeyAuth();
 
   const form = useForm<FormValues>({
@@ -109,22 +107,24 @@ export function CounterOfferDialog({
     if (!isSignedIn) return;
     setPendingValues(values);
     if (!hasWallet) { setWalletSetupOpen(true); return; }
-    if (!hasActiveSession) { setSessionSetupOpen(true); return; }
     setStep("pin");
-  };
-
-  const handleSessionSetup = async (pin: string) => {
-    try {
-      await setupSession(pin);
-      setSessionSetupOpen(false);
-      setStep("pin");
-    } catch {
-      toast.error("Session setup failed. Please try again.");
-    }
   };
 
   const execWithPin = async (pinValue: string) => {
     if (!pendingValues) return;
+
+    if (!hasActiveSession) {
+      setIsActivatingSession(true);
+      try {
+        await setupSession(pinValue);
+      } catch (err: unknown) {
+        setPinError(err instanceof Error ? err.message : "Session setup failed. Please try again.");
+        return;
+      } finally {
+        setIsActivatingSession(false);
+      }
+    }
+
     await makeCounterOffer({
       originalOrderHash,
       counterPriceRaw: toRawWei(pendingValues.price, currencyDecimals),
@@ -219,6 +219,11 @@ export function CounterOfferDialog({
                 </Button>
               )}
               <Button className="w-full" onClick={() => handleClose(false)}>Done</Button>
+            </div>
+          ) : isActivatingSession ? (
+            <div className="flex flex-col items-center gap-4 py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-sm text-muted-foreground">Activating wallet session…</p>
             </div>
           ) : isProcessing ? (
             <div className="flex flex-col items-center gap-4 py-8">
@@ -383,23 +388,12 @@ export function CounterOfferDialog({
         </DialogContent>
       </Dialog>
 
-      <SessionSetupDialog
-        open={sessionSetupOpen}
-        onOpenChange={setSessionSetupOpen}
-        onSetup={handleSessionSetup}
-        isProcessing={isSettingUpSession}
-      />
-
       <WalletSetupDialog
         open={walletSetupOpen}
         onOpenChange={setWalletSetupOpen}
         onSuccess={() => {
           setWalletSetupOpen(false);
-          if (!hasActiveSession) {
-            setSessionSetupOpen(true);
-          } else {
-            setStep("pin");
-          }
+          setStep("pin");
         }}
       />
     </>
