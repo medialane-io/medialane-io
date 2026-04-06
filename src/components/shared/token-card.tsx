@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MotionCard } from "@/components/ui/motion-primitives";
-import { ShoppingCart, Tag, ArrowRightLeft, X, Loader2, HandCoins, GitBranch, Check } from "lucide-react";
+import { ShoppingCart, Tag, ArrowRightLeft, X, Loader2, HandCoins, GitBranch, Check, ExternalLink } from "lucide-react";
 import { cn, ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
 import type { RarityTier } from "@/lib/rarity";
@@ -252,36 +252,44 @@ export function TokenCard({
         {/* ── Non-owner: unlisted token ───────────────────────────────── */}
         {!isOwner && !activeOrder && (
           <>
-            {/* Offer */}
+            {/* View — primary CTA */}
+            <Button size="sm" variant="outline" className="flex-1 h-8 text-xs gap-1" asChild>
+              <Link href={assetHref}>
+                <ExternalLink className="h-3 w-3" />
+                View
+              </Link>
+            </Button>
+
+            {/* Offer — icon */}
             <Button
               size="sm"
               variant="outline"
-              className="flex-1 h-8 text-xs gap-1 border-brand-purple/30 text-brand-purple hover:bg-brand-purple/10 hover:border-brand-purple/50"
+              className="h-8 w-8 p-0 shrink-0 border-brand-purple/30 text-brand-purple hover:bg-brand-purple/10"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 if (onOffer) onOffer(token);
                 else router.push(assetHref);
               }}
+              title="Make an offer"
             >
-              <HandCoins className="h-3 w-3" />
-              Offer
+              <HandCoins className="h-3.5 w-3.5" />
             </Button>
 
-            {/* Remix */}
+            {/* Remix — icon */}
             <Button
               size="sm"
               variant="outline"
-              className="flex-1 h-8 text-xs gap-1 border-brand-rose/30 text-brand-rose hover:bg-brand-rose/10 hover:border-brand-rose/50"
+              className="h-8 w-8 p-0 shrink-0 border-brand-rose/30 text-brand-rose hover:bg-brand-rose/10"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 if (onRemix) onRemix(token);
                 else router.push(remixHref);
               }}
+              title="Remix this IP"
             >
-              <GitBranch className="h-3 w-3" />
-              Remix
+              <GitBranch className="h-3.5 w-3.5" />
             </Button>
           </>
         )}
