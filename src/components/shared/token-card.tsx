@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   ShoppingCart, Tag, ArrowRightLeft, X, Loader2, HandCoins,
-  GitBranch, Check, ExternalLink, MoreHorizontal, Layers, Flag,
+  GitBranch, Check, MoreHorizontal, Layers, Flag, ExternalLink,
 } from "lucide-react";
 import { cn, ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
@@ -88,102 +88,10 @@ export function TokenCard({
     });
   };
 
-  // Shared "more actions" dropdown — adapts based on context
-  const MoreMenu = () => (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          size="sm"
-          variant="outline"
-          className="h-8 w-8 p-0 shrink-0"
-          onClick={(e) => e.preventDefault()}
-          aria-label="More actions"
-        >
-          <MoreHorizontal className="h-3.5 w-3.5" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuItem asChild>
-          <Link href={assetHref} className="flex items-center gap-2">
-            <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
-            View details
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href={collectionHref} className="flex items-center gap-2">
-            <Layers className="h-3.5 w-3.5 text-muted-foreground" />
-            View collection
-          </Link>
-        </DropdownMenuItem>
-
-        {!isOwner && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="flex items-center gap-2 text-brand-purple focus:text-brand-purple"
-              onClick={() => { if (onOffer) onOffer(token); else router.push(assetHref); }}
-            >
-              <HandCoins className="h-3.5 w-3.5" />
-              Make an offer
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="flex items-center gap-2 text-brand-rose focus:text-brand-rose"
-              onClick={() => { if (onRemix) onRemix(token); else router.push(remixHref); }}
-            >
-              <GitBranch className="h-3.5 w-3.5" />
-              Remix this IP
-            </DropdownMenuItem>
-          </>
-        )}
-
-        {isOwner && (
-          <>
-            <DropdownMenuSeparator />
-            {!activeOrder && onList && (
-              <DropdownMenuItem
-                className="flex items-center gap-2"
-                onClick={() => onList(token)}
-              >
-                <Tag className="h-3.5 w-3.5 text-muted-foreground" />
-                List for sale
-              </DropdownMenuItem>
-            )}
-            {activeOrder && onCancel && (
-              <DropdownMenuItem
-                className="flex items-center gap-2 text-destructive focus:text-destructive"
-                onClick={() => onCancel(token)}
-              >
-                <X className="h-3.5 w-3.5" />
-                Cancel listing
-              </DropdownMenuItem>
-            )}
-            {onTransfer && (
-              <DropdownMenuItem
-                className="flex items-center gap-2"
-                onClick={() => onTransfer && onTransfer(token)}
-              >
-                <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground" />
-                Transfer
-              </DropdownMenuItem>
-            )}
-          </>
-        )}
-
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          className="flex items-center gap-2 text-muted-foreground"
-          onClick={() => setReportOpen(true)}
-        >
-          <Flag className="h-3.5 w-3.5" />
-          Report
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-
   return (
     <>
       <MotionCard className="card-base group relative overflow-hidden flex flex-col">
+
         {/* ── Image ──────────────────────────────────────────────────────── */}
         <Link href={assetHref} className="block relative shrink-0">
           <div className="relative aspect-square bg-muted overflow-hidden">
@@ -210,8 +118,8 @@ export function TokenCard({
               </div>
             )}
 
-            {/* Rarity badge — top right */}
-            {rarityTier && !isOwner && RARITY_STYLE[rarityTier] && (
+            {/* Rarity — top right */}
+            {rarityTier && RARITY_STYLE[rarityTier] && (
               <div className="absolute top-2 right-2 z-10">
                 <span className={cn(
                   "inline-flex items-center px-1.5 py-0.5 rounded-md backdrop-blur-sm text-[10px] font-bold leading-none",
@@ -222,7 +130,7 @@ export function TokenCard({
               </div>
             )}
 
-            {/* Price pill — top right for listed tokens */}
+            {/* Price pill */}
             {activeOrder && !rarityTier && (
               <div className="absolute top-2 right-2 bg-black/55 backdrop-blur-sm rounded-full px-2 py-0.5 border border-white/10">
                 <span className="text-[11px] font-bold text-white leading-none">
@@ -232,7 +140,7 @@ export function TokenCard({
               </div>
             )}
 
-            {/* Indexing indicator */}
+            {/* Indexing */}
             {(token.metadataStatus === "PENDING" || token.metadataStatus === "FETCHING") && (
               <div className="absolute bottom-0 inset-x-0 flex items-center justify-center gap-1.5 bg-black/50 backdrop-blur-sm py-1.5">
                 <Loader2 className="h-3 w-3 animate-spin text-white/70" />
@@ -240,104 +148,220 @@ export function TokenCard({
               </div>
             )}
 
-            {/* Name overlay — bottom gradient */}
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent pt-10 pb-2.5 px-3 pointer-events-none">
-              <p className="text-[13px] font-semibold text-white truncate leading-snug drop-shadow-sm">
-                {name}
-              </p>
+            {/* Name gradient overlay */}
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent pt-8 pb-2.5 px-3 pointer-events-none">
+              <p className="text-[12px] font-semibold text-white truncate leading-snug drop-shadow-sm">{name}</p>
             </div>
           </div>
         </Link>
 
-        {/* ── Action bar — always visible ─────────────────────────────── */}
-        <div className="px-2 py-2 flex items-center gap-1.5">
+        {/* ── Action row ─────────────────────────────────────────────────── */}
+        <div className="flex items-center gap-1.5 px-2 py-2">
 
-          {/* ── Non-owner: listed ─────────────────────────────────────── */}
+          {/* ── Non-owner, unlisted ── */}
+          {!isOwner && !activeOrder && (
+            <>
+              {/* Offer — brand purple */}
+              <Button
+                size="sm"
+                className="flex-1 h-8 text-xs gap-1.5 bg-brand-purple/15 text-brand-purple border border-brand-purple/30 hover:bg-brand-purple/25 hover:border-brand-purple/50 shadow-none"
+                onClick={(e) => {
+                  e.preventDefault(); e.stopPropagation();
+                  if (onOffer) onOffer(token); else router.push(assetHref);
+                }}
+              >
+                <HandCoins className="h-3.5 w-3.5 shrink-0" />
+                Offer
+              </Button>
+
+              {/* Remix — brand rose */}
+              <Button
+                size="sm"
+                className="flex-1 h-8 text-xs gap-1.5 bg-brand-rose/15 text-brand-rose border border-brand-rose/30 hover:bg-brand-rose/25 hover:border-brand-rose/50 shadow-none"
+                onClick={(e) => {
+                  e.preventDefault(); e.stopPropagation();
+                  if (onRemix) onRemix(token); else router.push(remixHref);
+                }}
+              >
+                <GitBranch className="h-3.5 w-3.5 shrink-0" />
+                Remix
+              </Button>
+            </>
+          )}
+
+          {/* ── Non-owner, listed ── */}
           {!isOwner && activeOrder && (
             <>
-              <span className="text-xs font-bold price-value mr-auto shrink-0">
-                {formatDisplayPrice(activeOrder.price.formatted)}{" "}
-                <span className="text-muted-foreground font-normal text-[10px]">{activeOrder.price.currency}</span>
-              </span>
-
+              {/* Buy — brand blue solid */}
               {showBuyButton && (
                 onBuy ? (
                   <Button
                     size="sm"
-                    className="h-8 w-8 p-0 shrink-0 bg-brand-purple hover:brightness-110 text-white border-0"
+                    className="flex-1 h-8 text-xs gap-1.5 bg-brand-blue hover:bg-brand-blue/90 text-white border-0 shadow-none"
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); onBuy(token); }}
-                    title="Buy now"
                   >
-                    <ShoppingCart className="h-3.5 w-3.5" />
+                    <ShoppingCart className="h-3.5 w-3.5 shrink-0" />
+                    Buy
                   </Button>
                 ) : (
-                  <Button size="sm" className="h-8 w-8 p-0 shrink-0 bg-brand-purple hover:brightness-110 text-white border-0" asChild title="Buy now">
-                    <Link href={assetHref}><ShoppingCart className="h-3.5 w-3.5" /></Link>
+                  <Button size="sm" className="flex-1 h-8 text-xs gap-1.5 bg-brand-blue hover:bg-brand-blue/90 text-white border-0 shadow-none" asChild>
+                    <Link href={assetHref}><ShoppingCart className="h-3.5 w-3.5 shrink-0" />Buy</Link>
                   </Button>
                 )
               )}
 
+              {/* Cart — orange tint */}
               <Button
                 size="sm"
-                variant="outline"
-                className={cn("h-8 w-8 p-0 shrink-0", inCart && "border-brand-orange/50 bg-brand-orange/10 text-brand-orange")}
+                className={cn(
+                  "h-8 w-8 p-0 shrink-0 border shadow-none",
+                  inCart
+                    ? "bg-brand-orange/20 border-brand-orange/40 text-brand-orange"
+                    : "bg-transparent border-border text-muted-foreground hover:border-brand-orange/40 hover:text-brand-orange hover:bg-brand-orange/10"
+                )}
                 onClick={handleAddToCart}
                 disabled={inCart}
                 title={inCart ? "In cart" : "Add to cart"}
               >
-                {inCart ? <Check className="h-3.5 w-3.5" /> : <ShoppingCart className="h-3.5 w-3.5 opacity-70" />}
+                {inCart ? <Check className="h-3.5 w-3.5" /> : <ShoppingCart className="h-3.5 w-3.5" />}
               </Button>
 
-              <MoreMenu />
+              {/* Remix — rose tint */}
+              <Button
+                size="sm"
+                className="h-8 w-8 p-0 shrink-0 bg-brand-rose/15 text-brand-rose border border-brand-rose/30 hover:bg-brand-rose/25 shadow-none"
+                onClick={(e) => {
+                  e.preventDefault(); e.stopPropagation();
+                  if (onRemix) onRemix(token); else router.push(remixHref);
+                }}
+                title="Remix this IP"
+              >
+                <GitBranch className="h-3.5 w-3.5" />
+              </Button>
             </>
           )}
 
-          {/* ── Non-owner: unlisted ───────────────────────────────────── */}
-          {!isOwner && !activeOrder && (
-            <>
-              <Button size="sm" variant="outline" className="flex-1 h-8 text-xs gap-1.5" asChild>
-                <Link href={assetHref}>
-                  <ExternalLink className="h-3 w-3" />
-                  View
-                </Link>
-              </Button>
-              <MoreMenu />
-            </>
-          )}
-
-          {/* ── Owner ─────────────────────────────────────────────────── */}
+          {/* ── Owner ── */}
           {isOwner && (
             <>
               {activeOrder && onCancel ? (
                 <Button
                   size="sm"
-                  variant="outline"
-                  className="flex-1 h-8 text-xs text-destructive border-destructive/30 hover:bg-destructive/10"
+                  className="flex-1 h-8 text-xs gap-1.5 bg-destructive/10 text-destructive border border-destructive/30 hover:bg-destructive/20 shadow-none"
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); onCancel(token); }}
                 >
-                  <X className="h-3 w-3 mr-1" />
-                  Cancel listing
+                  <X className="h-3.5 w-3.5 shrink-0" />
+                  Cancel
                 </Button>
               ) : !activeOrder && onList ? (
                 <Button
                   size="sm"
-                  className="flex-1 h-8 text-xs"
+                  className="flex-1 h-8 text-xs gap-1.5 bg-brand-blue/15 text-brand-blue border border-brand-blue/30 hover:bg-brand-blue/25 shadow-none"
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); onList(token); }}
                 >
-                  <Tag className="h-3 w-3 mr-1" />
+                  <Tag className="h-3.5 w-3.5 shrink-0" />
                   List
                 </Button>
               ) : (
-                <Button size="sm" variant="outline" className="flex-1 h-8 text-xs gap-1.5" asChild>
-                  <Link href={assetHref}>
-                    <ExternalLink className="h-3 w-3" />
-                    View
-                  </Link>
+                <div className="flex-1" />
+              )}
+              {onTransfer && (
+                <Button
+                  size="sm"
+                  className="h-8 w-8 p-0 shrink-0 bg-transparent border border-border text-muted-foreground hover:border-primary/40 hover:text-foreground shadow-none"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onTransfer(token); }}
+                  title="Transfer"
+                >
+                  <ArrowRightLeft className="h-3.5 w-3.5" />
                 </Button>
               )}
-              <MoreMenu />
             </>
           )}
+
+          {/* ⋯ overflow menu — always present */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0 shrink-0 text-muted-foreground/60 hover:text-foreground"
+                onClick={(e) => e.preventDefault()}
+                aria-label="More actions"
+              >
+                <MoreHorizontal className="h-3.5 w-3.5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem asChild>
+                <Link href={assetHref} className="flex items-center gap-2">
+                  <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+                  View details
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href={collectionHref} className="flex items-center gap-2">
+                  <Layers className="h-3.5 w-3.5 text-muted-foreground" />
+                  View collection
+                </Link>
+              </DropdownMenuItem>
+
+              {!isOwner && (
+                <>
+                  <DropdownMenuSeparator />
+                  {activeOrder && (
+                    <DropdownMenuItem className="flex items-center gap-2" onClick={handleAddToCart} disabled={inCart}>
+                      {inCart ? <Check className="h-3.5 w-3.5 text-muted-foreground" /> : <ShoppingCart className="h-3.5 w-3.5 text-muted-foreground" />}
+                      {inCart ? "Added to cart" : "Add to cart"}
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem
+                    className="flex items-center gap-2 text-brand-purple focus:text-brand-purple"
+                    onClick={() => { if (onOffer) onOffer(token); else router.push(assetHref); }}
+                  >
+                    <HandCoins className="h-3.5 w-3.5" />
+                    Make an offer
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="flex items-center gap-2 text-brand-rose focus:text-brand-rose"
+                    onClick={() => { if (onRemix) onRemix(token); else router.push(remixHref); }}
+                  >
+                    <GitBranch className="h-3.5 w-3.5" />
+                    Remix this IP
+                  </DropdownMenuItem>
+                </>
+              )}
+
+              {isOwner && (
+                <>
+                  <DropdownMenuSeparator />
+                  {!activeOrder && onList && (
+                    <DropdownMenuItem className="flex items-center gap-2" onClick={() => onList(token)}>
+                      <Tag className="h-3.5 w-3.5 text-muted-foreground" />
+                      List for sale
+                    </DropdownMenuItem>
+                  )}
+                  {activeOrder && onCancel && (
+                    <DropdownMenuItem className="flex items-center gap-2 text-destructive focus:text-destructive" onClick={() => onCancel(token)}>
+                      <X className="h-3.5 w-3.5" />
+                      Cancel listing
+                    </DropdownMenuItem>
+                  )}
+                  {onTransfer && (
+                    <DropdownMenuItem className="flex items-center gap-2" onClick={() => onTransfer(token)}>
+                      <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground" />
+                      Transfer
+                    </DropdownMenuItem>
+                  )}
+                </>
+              )}
+
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="flex items-center gap-2 text-muted-foreground" onClick={() => setReportOpen(true)}>
+                <Flag className="h-3.5 w-3.5" />
+                Report
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
         </div>
       </MotionCard>
@@ -355,7 +379,8 @@ export function TokenCardSkeleton() {
   return (
     <div className="card-base overflow-hidden">
       <Skeleton className="aspect-square w-full rounded-none" />
-      <div className="p-2 flex gap-1.5">
+      <div className="px-2 py-2 flex gap-1.5">
+        <Skeleton className="h-8 flex-1 rounded-md" />
         <Skeleton className="h-8 flex-1 rounded-md" />
         <Skeleton className="h-8 w-8 rounded-md shrink-0" />
       </div>
