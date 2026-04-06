@@ -55,6 +55,11 @@ export function TokenCard({
   const activeOrder = token.activeOrders?.[0];
   const inCart = activeOrder ? items.some((i) => i.orderHash === activeOrder.orderHash) : false;
 
+  const ipType = token.metadata?.ipType as string | undefined;
+  const licenseValue = (
+    token.metadata as { attributes?: { trait_type: string; value: string }[] } | undefined
+  )?.attributes?.find((a) => a.trait_type === "License")?.value;
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -151,6 +156,22 @@ export function TokenCard({
           </div>
         </div>
       </Link>
+
+      {/* IP type + license strip */}
+      {(ipType || licenseValue) && (
+        <div className="px-2.5 py-1.5 flex items-center justify-between gap-2 border-t border-border/40">
+          {ipType ? (
+            <span className="text-[10px] font-medium text-muted-foreground truncate">{ipType}</span>
+          ) : (
+            <span />
+          )}
+          {licenseValue && (
+            <span className="text-[10px] font-medium text-muted-foreground/70 shrink-0 truncate max-w-[50%] text-right">
+              {licenseValue}
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Discovery actions: Offer + Remix */}
       {showDiscoveryActions && (
