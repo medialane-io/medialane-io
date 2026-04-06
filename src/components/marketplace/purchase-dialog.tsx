@@ -4,14 +4,13 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { toast } from "sonner";
-import { CheckCircle2, AlertCircle, ExternalLink, ShoppingCart, RefreshCw, ArrowLeft, Sparkles, Zap } from "lucide-react";
+import { CheckCircle2, AlertCircle, ExternalLink, Loader2, ShoppingCart, RefreshCw, ArrowLeft, Sparkles, Zap } from "lucide-react";
 import { fireConfetti } from "@/lib/confetti";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PinInput, validatePin } from "@/components/ui/pin-input";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
-import { SessionSetupDialog } from "@/components/chipi/session-setup-dialog";
 import { TxStatus } from "@/components/chipi/tx-status";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { EXPLORER_URL } from "@/lib/constants";
@@ -80,7 +79,6 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
     fulfillOrder,
     hasWallet,
     hasActiveSession,
-    isSettingUpSession,
     setupSession,
     maybeClearSessionForAmountCap,
     isProcessing,
@@ -91,7 +89,6 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
   } = useMarketplace();
 
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
-  const [sessionSetupOpen, setSessionSetupOpen] = useState(false);
   const [pin, setPin] = useState("");
   const [pinError, setPinError] = useState<string | null>(null);
   const [step, setStep] = useState<"details" | "pin">("details");
@@ -100,6 +97,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
     () => typeof window !== "undefined" && isWebAuthnSupported()
   );
   const [isAuthenticatingPasskey, setIsAuthenticatingPasskey] = useState(false);
+  const [isActivatingSession, setIsActivatingSession] = useState(false);
   const { authenticate, encryptKey } = usePasskeyAuth();
 
   const handleBuyClick = async () => {
@@ -113,30 +111,28 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
     if (cleared) {
       toast.info("Large purchase — fresh signing session", {
         description:
-          "Your saved session was cleared for this transaction size. Register a new session to continue.",
+          "Your saved session was cleared for this transaction size. A new session will be activated automatically.",
       });
     }
-    if (cleared || !hasActiveSession) {
-      setSessionSetupOpen(true);
-      return;
-    }
     setStep("pin");
-  };
-
-  const handleSessionSetup = async (pin: string) => {
-    try {
-      await setupSession(pin);
-      setSessionSetupOpen(false);
-      setStep("pin");
-    } catch {
-      toast.error("Session setup failed. Please try again.");
-    }
   };
 
   const handlePin = async () => {
     const err = validatePin(pin);
     if (err) { setPinError(err); return; }
     setPinError(null);
+
+    if (!hasActiveSession) {
+      setIsActivatingSession(true);
+      try {
+        await setupSession(pin);
+      } catch (err: unknown) {
+        setPinError(err instanceof Error ? err.message : "Session setup failed. Please try again.");
+        return;
+      } finally {
+        setIsActivatingSession(false);
+      }
+    }
 
     await fulfillOrder({
       orderHash: order.orderHash,
@@ -152,6 +148,10 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
     try {
       const derived = encryptKey ?? (await authenticate());
       if (!derived) throw new Error("Passkey authentication failed.");
+
+      if (!hasActiveSession) {
+        await setupSession(derived);
+      }
 
       await fulfillOrder({
         orderHash: order.orderHash,
@@ -245,6 +245,12 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
               </div>
             </div>
 
+          ) : isActivatingSession ? (
+            <div className="flex flex-col items-center gap-4 p-6 py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-sm text-muted-foreground">Activating wallet session…</p>
+            </div>
+
           ) : (isProcessing || txStatus === "confirming") ? (
             <div className="p-6">
               <TxStatus status={txStatus} txHash={txHash} error={error} statusMessage={
@@ -334,23 +340,12 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
         </DialogContent>
       </Dialog>
 
-      <SessionSetupDialog
-        open={sessionSetupOpen}
-        onOpenChange={setSessionSetupOpen}
-        onSetup={handleSessionSetup}
-        isProcessing={isSettingUpSession}
-      />
-
       <WalletSetupDialog
         open={walletSetupOpen}
         onOpenChange={setWalletSetupOpen}
         onSuccess={() => {
           setWalletSetupOpen(false);
-          if (!hasActiveSession) {
-            setSessionSetupOpen(true);
-          } else {
-            setStep("pin");
-          }
+          setStep("pin");
         }}
       />
     </>
