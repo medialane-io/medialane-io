@@ -3,10 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MotionCard } from "@/components/ui/motion-primitives";
-import { ShoppingCart, Tag, ArrowRightLeft, X, Loader2, HandCoins, GitBranch } from "lucide-react";
+import { ShoppingCart, Tag, ArrowRightLeft, X, Loader2, HandCoins, GitBranch, Check } from "lucide-react";
 import { cn, ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
 import type { RarityTier } from "@/lib/rarity";
@@ -28,9 +29,7 @@ interface TokenCardProps {
   onList?: (token: ApiToken) => void;
   onTransfer?: (token: ApiToken) => void;
   onCancel?: (token: ApiToken) => void;
-  /** Discovery pages: open an offer dialog */
   onOffer?: (token: ApiToken) => void;
-  /** Discovery pages: navigate to remix creation */
   onRemix?: (token: ApiToken) => void;
   isOwner?: boolean;
   rarityTier?: RarityTier;
@@ -48,17 +47,17 @@ export function TokenCard({
   isOwner = false,
   rarityTier,
 }: TokenCardProps) {
+  const router = useRouter();
   const { addItem, items } = useCart();
   const [imgError, setImgError] = useState(false);
+
   const name = token.metadata?.name || `Token #${token.tokenId}`;
   const image = ipfsToHttp(token.metadata?.image);
   const activeOrder = token.activeOrders?.[0];
   const inCart = activeOrder ? items.some((i) => i.orderHash === activeOrder.orderHash) : false;
 
-  const ipType = token.metadata?.ipType as string | undefined;
-  const licenseValue = (
-    token.metadata as { attributes?: { trait_type: string; value: string }[] } | undefined
-  )?.attributes?.find((a) => a.trait_type === "License")?.value;
+  const assetHref = `/asset/${token.contractAddress}/${token.tokenId}`;
+  const remixHref = `/create/remix/${token.contractAddress}/${token.tokenId}`;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -79,14 +78,10 @@ export function TokenCard({
     });
   };
 
-  const showDiscoveryActions = !isOwner && (onOffer || onRemix);
-  const showBuyActions = !isOwner && activeOrder && !onOffer && !onRemix && (showBuyButton || true);
-  const showOwnerActions = isOwner && (onList || onTransfer || onCancel);
-
   return (
-    <MotionCard className="card-base group relative overflow-hidden">
-      <Link href={`/asset/${token.contractAddress}/${token.tokenId}`} className="block relative">
-        {/* Image */}
+    <MotionCard className="card-base group relative overflow-hidden flex flex-col">
+      {/* ── Image ──────────────────────────────────────────────────────── */}
+      <Link href={assetHref} className="block relative shrink-0">
         <div className="relative aspect-square bg-muted overflow-hidden">
           {!imgError ? (
             <Image
@@ -148,7 +143,7 @@ export function TokenCard({
             </div>
           )}
 
-          {/* Bottom gradient + name overlay */}
+          {/* Name overlay — bottom gradient */}
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent pt-10 pb-2.5 px-3 pointer-events-none">
             <p className="text-[13px] font-semibold text-white truncate leading-snug drop-shadow-sm">
               {name}
@@ -157,112 +152,141 @@ export function TokenCard({
         </div>
       </Link>
 
-      {/* IP type + license strip */}
-      {(ipType || licenseValue) && (
-        <div className="px-2.5 py-1.5 flex items-center justify-between gap-2 border-t border-border/40">
-          {ipType ? (
-            <span className="text-[10px] font-medium text-muted-foreground truncate">{ipType}</span>
-          ) : (
-            <span />
-          )}
-          {licenseValue && (
-            <span className="text-[10px] font-medium text-muted-foreground/70 shrink-0 truncate max-w-[50%] text-right">
-              {licenseValue}
-            </span>
-          )}
-        </div>
-      )}
+      {/* ── Action bar — always visible, never hover-gated ─────────────── */}
+      <div className="px-2 py-2 flex items-center gap-1.5 flex-1">
 
-      {/* Discovery actions: Offer + Remix */}
-      {showDiscoveryActions && (
-        <div className="px-2 pt-1.5 pb-2 flex gap-1.5">
-          {onOffer && (
+        {/* ── Owner actions ──────────────────────────────────────────── */}
+        {isOwner && (
+          <>
+            {activeOrder && onCancel ? (
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-1 h-8 text-xs text-destructive border-destructive/30 hover:bg-destructive/10"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onCancel(token); }}
+              >
+                <X className="h-3 w-3 mr-1" />
+                Cancel listing
+              </Button>
+            ) : !activeOrder && onList ? (
+              <Button
+                size="sm"
+                className="flex-1 h-8 text-xs"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onList(token); }}
+              >
+                <Tag className="h-3 w-3 mr-1" />
+                List
+              </Button>
+            ) : null}
+            {onTransfer && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 w-8 p-0 shrink-0"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onTransfer(token); }}
+                title="Transfer"
+              >
+                <ArrowRightLeft className="h-3.5 w-3.5" />
+              </Button>
+            )}
+          </>
+        )}
+
+        {/* ── Non-owner: listed token ─────────────────────────────────── */}
+        {!isOwner && activeOrder && (
+          <>
+            {/* Price label */}
+            <span className="text-xs font-bold price-value shrink-0 mr-auto">
+              {formatDisplayPrice(activeOrder.price.formatted)}{" "}
+              <span className="text-muted-foreground font-normal text-[10px]">{activeOrder.price.currency}</span>
+            </span>
+
+            {/* Buy */}
+            {showBuyButton && (
+              onBuy ? (
+                <Button
+                  size="sm"
+                  className="h-8 w-8 p-0 shrink-0 bg-brand-purple hover:brightness-110 text-white border-0"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onBuy(token); }}
+                  title="Buy now"
+                >
+                  <ShoppingCart className="h-3.5 w-3.5" />
+                </Button>
+              ) : (
+                <Button size="sm" className="h-8 w-8 p-0 shrink-0 bg-brand-purple hover:brightness-110 text-white border-0" asChild title="Buy now">
+                  <Link href={assetHref}><ShoppingCart className="h-3.5 w-3.5" /></Link>
+                </Button>
+              )
+            )}
+
+            {/* Add to cart */}
             <Button
               size="sm"
               variant="outline"
-              className="flex-1 h-7 text-xs gap-1 border-brand-purple/40 text-brand-purple hover:bg-brand-purple/10 hover:border-brand-purple/60"
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOffer(token); }}
+              className={cn("h-8 w-8 p-0 shrink-0", inCart && "border-brand-orange/50 bg-brand-orange/10 text-brand-orange")}
+              onClick={handleAddToCart}
+              disabled={inCart}
+              title={inCart ? "In cart" : "Add to cart"}
+            >
+              {inCart ? <Check className="h-3.5 w-3.5" /> : <ShoppingCart className="h-3.5 w-3.5 opacity-70" />}
+            </Button>
+
+            {/* Remix */}
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 w-8 p-0 shrink-0 border-brand-purple/30 text-brand-purple hover:bg-brand-purple/10"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (onRemix) onRemix(token);
+                else router.push(remixHref);
+              }}
+              title="Create a Remix"
+            >
+              <GitBranch className="h-3.5 w-3.5" />
+            </Button>
+          </>
+        )}
+
+        {/* ── Non-owner: unlisted token ───────────────────────────────── */}
+        {!isOwner && !activeOrder && (
+          <>
+            {/* Offer */}
+            <Button
+              size="sm"
+              variant="outline"
+              className="flex-1 h-8 text-xs gap-1 border-brand-purple/30 text-brand-purple hover:bg-brand-purple/10 hover:border-brand-purple/50"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (onOffer) onOffer(token);
+                else router.push(assetHref);
+              }}
             >
               <HandCoins className="h-3 w-3" />
               Offer
             </Button>
-          )}
-          {onRemix && (
+
+            {/* Remix */}
             <Button
               size="sm"
               variant="outline"
-              className="flex-1 h-7 text-xs gap-1 border-brand-rose/40 text-brand-rose hover:bg-brand-rose/10 hover:border-brand-rose/60"
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onRemix(token); }}
+              className="flex-1 h-8 text-xs gap-1 border-brand-rose/30 text-brand-rose hover:bg-brand-rose/10 hover:border-brand-rose/50"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (onRemix) onRemix(token);
+                else router.push(remixHref);
+              }}
             >
               <GitBranch className="h-3 w-3" />
               Remix
             </Button>
-          )}
-        </div>
-      )}
+          </>
+        )}
 
-      {/* Buy actions */}
-      {showBuyActions && (
-        <div className="px-2 pt-1.5 pb-2 flex gap-1.5">
-          {showBuyButton && onBuy && (
-            <Button
-              size="sm"
-              className="flex-1 h-7 text-xs bg-brand-purple text-white hover:brightness-110"
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onBuy(token); }}
-            >
-              Buy
-            </Button>
-          )}
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-7 w-7 p-0 shrink-0"
-            onClick={handleAddToCart}
-            disabled={inCart}
-            aria-label={inCart ? "In cart" : "Add to cart"}
-          >
-            <ShoppingCart className={cn("h-3 w-3", inCart && "opacity-40")} />
-          </Button>
-        </div>
-      )}
-
-      {/* Owner actions */}
-      {showOwnerActions && (
-        <div className="px-2 pt-1.5 pb-2 flex gap-1.5">
-          {isOwner && activeOrder && onCancel && (
-            <Button
-              size="sm"
-              variant="outline"
-              className="flex-1 h-7 text-xs text-destructive hover:text-destructive"
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onCancel(token); }}
-            >
-              <X className="h-3 w-3 mr-1" />
-              Cancel
-            </Button>
-          )}
-          {isOwner && !activeOrder && onList && (
-            <Button
-              size="sm"
-              className="flex-1 h-7 text-xs"
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onList(token); }}
-            >
-              <Tag className="h-3 w-3 mr-1" />
-              List for sale
-            </Button>
-          )}
-          {onTransfer && (
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-7 w-7 p-0 shrink-0"
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onTransfer(token); }}
-              aria-label="Transfer"
-            >
-              <ArrowRightLeft className="h-3 w-3" />
-            </Button>
-          )}
-        </div>
-      )}
+      </div>
     </MotionCard>
   );
 }
@@ -272,8 +296,8 @@ export function TokenCardSkeleton() {
     <div className="card-base overflow-hidden">
       <Skeleton className="aspect-square w-full rounded-none" />
       <div className="p-2 flex gap-1.5">
-        <Skeleton className="h-7 flex-1 rounded-md" />
-        <Skeleton className="h-7 flex-1 rounded-md" />
+        <Skeleton className="h-8 flex-1 rounded-md" />
+        <Skeleton className="h-8 flex-1 rounded-md" />
       </div>
     </div>
   );
