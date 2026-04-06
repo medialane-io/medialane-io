@@ -11,10 +11,9 @@ import { useUserOrders } from "@/hooks/use-orders";
 import { useActivitiesByAddress } from "@/hooks/use-activities";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { useDominantColor } from "@/hooks/use-dominant-color";
-import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listing-card";
-import { CollectionCard, CollectionCardSkeleton } from "@/components/shared/collection-card";
+import { CollectionCarouselRow } from "@/components/creator/collection-carousel-row";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { timeAgo, formatDisplayPrice, ipfsToHttp } from "@/lib/utils";
@@ -24,11 +23,8 @@ import {
   TrendingUp,
   ArrowRightLeft,
   Activity,
-  Image as ImageIcon,
-  LayoutGrid,
   ShoppingBag,
   Share2,
-  LayoutList,
   Flag,
   Sparkles,
   BarChart2,
@@ -189,11 +185,9 @@ function ActivityRow({ event, isLast }: { event: ApiActivity; isLast: boolean })
 // ─── Tab config ──────────────────────────────────────────────────────────────
 
 const TABS = [
-  { id: "assets",      label: "Assets",      Icon: LayoutGrid },
-  { id: "listings",    label: "Listings",    Icon: ShoppingBag },
-  { id: "collections", label: "Collections", Icon: LayoutList },
-  { id: "analytics",   label: "Analytics",   Icon: BarChart2 },
-  { id: "activity",    label: "Activity",    Icon: Activity },
+  { id: "listings",  label: "Listings",  Icon: ShoppingBag },
+  { id: "analytics", label: "Analytics", Icon: BarChart2 },
+  { id: "activity",  label: "Activity",  Icon: Activity },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -226,7 +220,7 @@ function EmptyState({
 
 export default function CreatorPageClient() {
   const { address } = useParams<{ address: string }>();
-  const [activeTab, setActiveTab] = useState<TabId>("assets");
+  const [activeTab, setActiveTab] = useState<TabId>("listings");
   const [reportOpen, setReportOpen] = useState(false);
 
   const addr = address ?? null;
@@ -239,9 +233,8 @@ export default function CreatorPageClient() {
   );
 
   // Lazy data fetching — only load when tab is active
-  const { tokens,      isLoading: tokensLoading      } = useTokensByOwner(activeTab === "assets"      ? addr : null);
-  const { orders,      isLoading: ordersLoading      } = useUserOrders(activeTab === "listings"    ? addr : null);
-  const { collections, isLoading: collectionsLoading } = useCollectionsByOwner(activeTab === "collections" ? addr : null);
+  const { orders,      isLoading: ordersLoading      } = useUserOrders(activeTab === "listings"  ? addr : null);
+  const { collections, isLoading: collectionsLoading } = useCollectionsByOwner(addr);
   const { activities,  isLoading: activitiesLoading  } = useActivitiesByAddress(addr);
 
   // Always fetch one token for the banner image
@@ -265,9 +258,7 @@ export default function CreatorPageClient() {
 
   // Tab count badges — only shown once that tab has been visited and loaded
   const tabBadge: Partial<Record<TabId, number>> = {
-    ...(activeTab === "assets"      && !tokensLoading      && { assets:      tokens.length }),
-    ...(activeTab === "listings"    && !ordersLoading      && { listings:    activeListings.length }),
-    ...(activeTab === "collections" && !collectionsLoading && { collections: collections.length }),
+    ...(activeTab === "listings" && !ordersLoading && { listings: activeListings.length }),
     ...(!activitiesLoading && { activity: activities.length }),
   };
 
@@ -398,22 +389,16 @@ export default function CreatorPageClient() {
 
           {/* Stats bar */}
           <div className="flex flex-wrap items-center gap-2">
-            {tokens.length > 0 && (
+            {!collectionsLoading && collections.length > 0 && (
               <div className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-1.5 text-sm">
-                <span className="font-bold tabular-nums">{tokens.length}</span>
-                <span className="text-muted-foreground">Assets</span>
+                <span className="font-bold tabular-nums">{collections.length}</span>
+                <span className="text-muted-foreground">Collections</span>
               </div>
             )}
             {activeListings.length > 0 && (
               <div className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-1.5 text-sm">
                 <span className="font-bold tabular-nums">{activeListings.length}</span>
                 <span className="text-muted-foreground">Listed</span>
-              </div>
-            )}
-            {collections.length > 0 && (
-              <div className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-1.5 text-sm">
-                <span className="font-bold tabular-nums">{collections.length}</span>
-                <span className="text-muted-foreground">Collections</span>
               </div>
             )}
           </div>
@@ -479,6 +464,30 @@ export default function CreatorPageClient() {
           onOpenChange={setReportOpen}
         />
 
+        {/* ── Collection carousels ──────────────────────────────────────── */}
+        {(collectionsLoading || collections.length > 0) && (
+          <div className="space-y-8 pb-8 border-b border-border/50 mb-6">
+            {collectionsLoading
+              ? Array.from({ length: 2 }).map((_, i) => (
+                  <div key={i} className="space-y-2">
+                    <Skeleton className="h-4 w-36" />
+                    <div className="flex gap-3">
+                      {Array.from({ length: 4 }).map((_, j) => (
+                        <Skeleton key={j} className="shrink-0 w-40 aspect-square rounded-xl" />
+                      ))}
+                    </div>
+                  </div>
+                ))
+              : collections.map((col) => (
+                  <CollectionCarouselRow
+                    key={col.contractAddress}
+                    collection={col}
+                    dynamicPrimary={dynamicPrimary}
+                  />
+                ))}
+          </div>
+        )}
+
         {/* ── Tab navigation ────────────────────────────────────────────── */}
         <div className="sticky top-0 z-10 -mx-6 px-6 bg-background/95 backdrop-blur-sm border-b border-border">
           <div className="flex items-center gap-0.5 overflow-x-auto scrollbar-none -mb-px">
@@ -529,27 +538,6 @@ export default function CreatorPageClient() {
         {/* ── Tab content ───────────────────────────────────────────────── */}
         <div className="mt-6">
 
-          {/* Assets */}
-          {activeTab === "assets" && (
-            tokensLoading ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {Array.from({ length: 8 }).map((_, i) => <TokenCardSkeleton key={i} />)}
-              </div>
-            ) : tokens.length === 0 ? (
-              <EmptyState
-                icon={ImageIcon}
-                heading="No assets yet"
-                body="This creator hasn't minted any IP assets on Medialane yet."
-              />
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {tokens.map((t) => (
-                  <TokenCard key={`${t.contractAddress}-${t.tokenId}`} token={t} />
-                ))}
-              </div>
-            )
-          )}
-
           {/* Listings */}
           {activeTab === "listings" && (
             ordersLoading ? (
@@ -566,27 +554,6 @@ export default function CreatorPageClient() {
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 {activeListings.map((o) => (
                   <ListingCard key={o.orderHash} order={o} />
-                ))}
-              </div>
-            )
-          )}
-
-          {/* Collections */}
-          {activeTab === "collections" && (
-            collectionsLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {Array.from({ length: 3 }).map((_, i) => <CollectionCardSkeleton key={i} />)}
-              </div>
-            ) : collections.length === 0 ? (
-              <EmptyState
-                icon={LayoutList}
-                heading="No collections yet"
-                body="This creator hasn't deployed any collections on Medialane yet."
-              />
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {collections.map((c) => (
-                  <CollectionCard key={c.contractAddress} collection={c} />
                 ))}
               </div>
             )
