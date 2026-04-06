@@ -202,9 +202,23 @@ export function WelcomePageClient() {
         </div>
       </FadeIn>
 
+      {/* ── Genesis NFT (if not yet minted) ── */}
+      {!mintTxHash && (
+        <FadeIn delay={0.1}>
+          <div className="mt-10">
+            <div className="max-w-5xl mx-auto px-4 mb-4">
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                Your welcome gift
+              </p>
+            </div>
+            <LaunchMint />
+          </div>
+        </FadeIn>
+      )}
+
       {/* ── Journey cards ── */}
-      <FadeIn delay={0.1}>
-        <div className="max-w-5xl mx-auto px-4 mt-8">
+      <FadeIn delay={mintTxHash ? 0.1 : 0.16}>
+        <div className="max-w-5xl mx-auto px-4 mt-10">
           <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">
             Start here
           </p>
@@ -236,20 +250,6 @@ export function WelcomePageClient() {
           </Stagger>
         </div>
       </FadeIn>
-
-      {/* ── Genesis NFT (if not yet minted) ── */}
-      {!mintTxHash && (
-        <FadeIn delay={0.16}>
-          <div className="mt-10">
-            <div className="max-w-5xl mx-auto px-4 mb-4">
-              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                Your welcome gift
-              </p>
-            </div>
-            <LaunchMint />
-          </div>
-        </FadeIn>
-      )}
 
       {/* ── Platform highlights ── */}
       <FadeIn delay={mintTxHash ? 0.16 : 0.22}>
