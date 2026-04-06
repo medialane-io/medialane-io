@@ -10,6 +10,12 @@ import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useUserOrders } from "@/hooks/use-orders";
 import { useActivitiesByAddress } from "@/hooks/use-activities";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
+import { useSessionKey } from "@/hooks/use-session-key";
+import { useMarketplace } from "@/hooks/use-marketplace";
+import { OfferDialog } from "@/components/marketplace/offer-dialog";
+import { ListingDialog } from "@/components/marketplace/listing-dialog";
+import { PinDialog } from "@/components/chipi/pin-dialog";
+import type { ApiToken } from "@medialane/sdk";
 import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listing-card";
@@ -221,10 +227,22 @@ function EmptyState({
 export default function CreatorPageClient() {
   const { address } = useParams<{ address: string }>();
   const [activeTab, setActiveTab] = useState<TabId>("assets");
-  const [reportOpen, setReportOpen] = useState(false);
+  const [reportOpen,    setReportOpen]    = useState(false);
+  const [offerTarget,   setOfferTarget]   = useState<{ contract: string; tokenId: string; name?: string } | null>(null);
+  const [listTarget,    setListTarget]    = useState<{ contract: string; tokenId: string; name?: string } | null>(null);
+  const [cancelToken,   setCancelToken]   = useState<ApiToken | null>(null);
+  const [cancelPinOpen, setCancelPinOpen] = useState(false);
 
   const addr = address ?? null;
   const router = useRouter();
+
+  // Ownership detection
+  const { walletAddress } = useSessionKey();
+  const isOwner = !!walletAddress &&
+    walletAddress.toLowerCase() === (address ?? "").toLowerCase();
+
+  // Cancel listing
+  const { cancelOrder } = useMarketplace();
 
   // Fetch one token for the atmospheric background
   const { tokens: bgTokens } = useTokensByOwner(addr, 1, 1);
@@ -249,6 +267,14 @@ export default function CreatorPageClient() {
   );
 
   const { h1, h2, h3 } = addressPalette(addr ?? "0x0");
+
+  const handleCancelPin = async (pin: string) => {
+    setCancelPinOpen(false);
+    const orderHash = cancelToken?.activeOrders?.[0]?.orderHash;
+    if (!orderHash) return;
+    await cancelOrder({ orderHash, pin });
+    setCancelToken(null);
+  };
 
   // Tab count badges — only shown once that tab has been visited and loaded
   const tabBadge: Partial<Record<TabId, number>> = {
@@ -396,7 +422,23 @@ export default function CreatorPageClient() {
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                 {tokens.map((t) => (
-                  <TokenCard key={`${t.contractAddress}-${t.tokenId}`} token={t} />
+                  <TokenCard
+                    key={`${t.contractAddress}-${t.tokenId}`}
+                    token={t}
+                    isOwner={isOwner}
+                    onOffer={!isOwner ? (t: ApiToken) => setOfferTarget({
+                      contract: t.contractAddress,
+                      tokenId: t.tokenId,
+                      name: t.metadata?.name ?? undefined,
+                    }) : undefined}
+                    onRemix={!isOwner ? (t: ApiToken) => router.push(`/create/remix/${t.contractAddress}/${t.tokenId}`) : undefined}
+                    onList={isOwner ? (t: ApiToken) => setListTarget({
+                      contract: t.contractAddress,
+                      tokenId: t.tokenId,
+                      name: t.metadata?.name ?? undefined,
+                    }) : undefined}
+                    onCancel={isOwner ? (t: ApiToken) => { setCancelToken(t); setCancelPinOpen(true); } : undefined}
+                  />
                 ))}
               </div>
             )
@@ -485,6 +527,33 @@ export default function CreatorPageClient() {
 
         </div>
       </div>
+
+      {/* ── Action dialogs ────────────────────────────────────────────────── */}
+      {offerTarget && (
+        <OfferDialog
+          open={!!offerTarget}
+          onOpenChange={(v) => { if (!v) setOfferTarget(null); }}
+          assetContract={offerTarget.contract}
+          tokenId={offerTarget.tokenId}
+          tokenName={offerTarget.name}
+        />
+      )}
+      {listTarget && (
+        <ListingDialog
+          open={!!listTarget}
+          onOpenChange={(v) => { if (!v) setListTarget(null); }}
+          assetContract={listTarget.contract}
+          tokenId={listTarget.tokenId}
+          tokenName={listTarget.name}
+        />
+      )}
+      <PinDialog
+        open={cancelPinOpen}
+        onSubmit={handleCancelPin}
+        onCancel={() => { setCancelPinOpen(false); setCancelToken(null); }}
+        title="Cancel listing"
+        description={`Enter PIN to cancel the listing for ${cancelToken?.metadata?.name || `Token #${cancelToken?.tokenId}`}.`}
+      />
     </div>
   );
 }
