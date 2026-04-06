@@ -21,8 +21,6 @@ import {
 } from "@/components/ui/dialog";
 import { PinInput, validatePin } from "@/components/ui/pin-input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { isWebAuthnSupported } from "@chipi-stack/nextjs";
-import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
 
 interface SessionSetupDialogProps {
   open: boolean;
@@ -42,11 +40,6 @@ export function SessionSetupDialog({
   const [pin, setPin] = useState("");
   const [step, setStep] = useState<"pin" | "done" | "error">("pin");
   const [error, setError] = useState<string | null>(null);
-  const [isAuthenticatingPasskey, setIsAuthenticatingPasskey] = useState(false);
-  const { authenticate, encryptKey } = usePasskeyAuth();
-  const [passkeySupported] = useState(
-    () => typeof window !== "undefined" && isWebAuthnSupported()
-  );
 
   const handleSetup = async () => {
     const err = validatePin(pin);
@@ -58,22 +51,6 @@ export function SessionSetupDialog({
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Session setup failed. Please try again.");
       setStep("error");
-    }
-  };
-
-  const handleUsePasskey = async () => {
-    setIsAuthenticatingPasskey(true);
-    setError(null);
-    try {
-      const derived = encryptKey ?? (await authenticate());
-      if (!derived) throw new Error("Passkey authentication failed.");
-      await onSetup(derived);
-      setStep("done");
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Passkey setup failed. Please try again.");
-      setStep("error");
-    } finally {
-      setIsAuthenticatingPasskey(false);
     }
   };
 
@@ -136,17 +113,6 @@ export function SessionSetupDialog({
               error={null}
               autoFocus
             />
-            {passkeySupported && (
-              <Button
-                type="button"
-                variant="ghost"
-                className="w-full"
-                disabled={isAuthenticatingPasskey || isProcessing}
-                onClick={handleUsePasskey}
-              >
-                {isAuthenticatingPasskey ? "Authenticating passkey…" : "Use passkey instead"}
-              </Button>
-            )}
             <p className="text-xs text-muted-foreground text-center">
               This registers a time-limited session key on your Starknet account.
             </p>
