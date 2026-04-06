@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { Award, Calendar, Users, Plus, LayoutList } from "lucide-react";
+import { Award, Calendar, Users, Plus, LayoutList, Zap, ShieldCheck } from "lucide-react";
 import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion-primitives";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -36,7 +36,6 @@ function PopCollectionCard({ collection }: { collection: any }) {
             <span className="text-7xl font-black text-white/10 select-none">{initial}</span>
           </div>
         )}
-        {/* Source badge */}
         <span className="absolute top-2 right-2 text-[9px] font-bold uppercase tracking-widest text-white bg-black/50 backdrop-blur-sm rounded-full px-2 py-0.5">
           POP
         </span>
@@ -52,8 +51,6 @@ function PopCollectionCard({ collection }: { collection: any }) {
             </p>
           )}
         </div>
-
-        {/* Stats */}
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           {collection.totalSupply != null && (
             <span className="flex items-center gap-1">
@@ -68,8 +65,6 @@ function PopCollectionCard({ collection }: { collection: any }) {
             </span>
           )}
         </div>
-
-        {/* Claim */}
         <PopClaimButton collectionAddress={collection.contractAddress} />
       </div>
     </div>
@@ -90,8 +85,38 @@ function PopCollectionCardSkeleton() {
   );
 }
 
+const POP_FEATURES = [
+  {
+    icon: Award,
+    title: "Soulbound Credential",
+    desc: "Non-transferable — permanently tied to your wallet address on Starknet.",
+  },
+  {
+    icon: Users,
+    title: "One Per Address",
+    desc: "Each participant claims exactly one credential per event.",
+  },
+  {
+    icon: Zap,
+    title: "Gas-Free Claiming",
+    desc: "Participants claim for free — no wallet balance required.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Verifiable On-Chain",
+    desc: "Credentials are permanently readable and provable on Starknet.",
+  },
+];
+
 export function PopContent() {
   const { collections, isLoading } = usePopCollections();
+
+  // Filter: show only collections without a Private visibility attribute.
+  // Inert until backend indexes collection attributes — safe for legacy collections.
+  const publicCollections = collections.filter(
+    (c) =>
+      (c as any).attributes?.find((a: any) => a.trait_type === "Visibility")?.value !== "Private"
+  );
 
   return (
     <div className="pb-16 space-y-10">
@@ -132,6 +157,21 @@ export function PopContent() {
         </div>
       </section>
 
+      {/* Features grid */}
+      <section className="px-4">
+        <FadeIn>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {POP_FEATURES.map(({ icon: Icon, title, desc }) => (
+              <div key={title} className="bento-cell p-4 space-y-2">
+                <Icon className="h-5 w-5 text-green-500" />
+                <p className="text-sm font-semibold leading-tight">{title}</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </FadeIn>
+      </section>
+
       {/* Collections grid */}
       <section className="px-4 space-y-4">
         <FadeIn>
@@ -161,7 +201,7 @@ export function PopContent() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {Array.from({ length: 6 }).map((_, i) => <PopCollectionCardSkeleton key={i} />)}
           </div>
-        ) : collections.length === 0 ? (
+        ) : publicCollections.length === 0 ? (
           <FadeIn>
             <div className="bento-cell border-dashed p-16 text-center space-y-3">
               <div className="flex justify-center">
@@ -174,7 +214,7 @@ export function PopContent() {
           </FadeIn>
         ) : (
           <Stagger className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {collections.map((col) => (
+            {publicCollections.map((col) => (
               <StaggerItem key={col.contractAddress}>
                 <PopCollectionCard collection={col} />
               </StaggerItem>
