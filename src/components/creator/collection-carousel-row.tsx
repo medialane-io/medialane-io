@@ -1,27 +1,94 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
-import { LayoutGrid, ChevronRight } from "lucide-react";
+import Image from "next/image";
+import { LayoutGrid, ChevronRight, CheckCircle2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { MotionCard } from "@/components/ui/motion-primitives";
 import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
-import { CollectionCard, CollectionCardSkeleton } from "@/components/shared/collection-card";
+import { HelpIcon } from "@/components/ui/help-icon";
 import { useCollectionTokens } from "@/hooks/use-collections";
+import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import type { ApiCollection } from "@medialane/sdk";
 
+// Square collection cover card — matches TokenCard's aspect-square + overlay style
+function CollectionCoverCard({ collection }: { collection: ApiCollection }) {
+  const [imgError, setImgError] = useState(false);
+  const imageUrl = collection.image ? ipfsToHttp(collection.image) : null;
+  const showImage = imageUrl && !imgError;
+  const initial = (collection.name ?? "C").charAt(0).toUpperCase();
+
+  return (
+    <MotionCard className="card-base group">
+      <Link href={`/collections/${collection.contractAddress}`} className="block relative">
+        <div className="relative aspect-square w-full overflow-hidden bg-muted">
+          {showImage ? (
+            <Image
+              src={imageUrl}
+              alt={collection.name ?? "Collection"}
+              fill
+              className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+              onError={() => setImgError(true)}
+              unoptimized
+            />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-purple/30 via-brand-blue/20 to-brand-navy/40 flex items-center justify-center">
+              <span className="text-6xl font-black text-white/10 select-none">{initial}</span>
+            </div>
+          )}
+
+          {/* Bottom overlay: name + stats */}
+          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-10 pb-3 px-3">
+            <p className="text-[13px] font-bold text-white truncate leading-snug drop-shadow-sm flex items-center gap-1">
+              {collection.name ?? "Unnamed"}
+              {collection.isKnown && (
+                <>
+                  <CheckCircle2 className="inline h-3 w-3 text-blue-400 shrink-0" />
+                  <HelpIcon content="Verified collection" side="top" className="shrink-0" />
+                </>
+              )}
+            </p>
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
+              {collection.totalSupply != null && (
+                <span className="text-[10px] text-white/70">
+                  {collection.totalSupply.toLocaleString()} items
+                </span>
+              )}
+              {collection.floorPrice && (
+                <span className="text-[10px] font-semibold text-white/90">
+                  Floor {formatDisplayPrice(collection.floorPrice)}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* "Collection" label — top right */}
+          <div className="absolute top-2 right-2 bg-black/55 backdrop-blur-sm rounded-full px-2 py-0.5 border border-white/10">
+            <span className="text-[10px] font-bold text-white/80 uppercase tracking-wide">Collection</span>
+          </div>
+        </div>
+      </Link>
+    </MotionCard>
+  );
+}
+
+// Square "View all" end card — matches TokenCard height
 function ViewAllCard({ href }: { href: string }) {
   return (
-    <Link href={href} className="snap-start shrink-0 w-52 block h-full self-stretch">
-      <div className="card-base border-dashed h-full flex flex-col items-center justify-center gap-3 p-6 hover:border-primary/40 transition-colors min-h-[220px]">
-        <div className="h-10 w-10 rounded-full border border-dashed border-border flex items-center justify-center">
-          <LayoutGrid className="h-4 w-4 text-muted-foreground" />
+    <Link href={href} className="snap-start shrink-0 w-52 block">
+      <MotionCard className="card-base border-dashed">
+        <div className="aspect-square flex flex-col items-center justify-center gap-3 p-4">
+          <div className="h-10 w-10 rounded-full border border-dashed border-border/60 flex items-center justify-center">
+            <LayoutGrid className="h-4 w-4 text-muted-foreground/60" />
+          </div>
+          <div className="text-center space-y-0.5">
+            <p className="text-xs font-semibold">View all</p>
+            <p className="text-[10px] text-muted-foreground">in collection</p>
+          </div>
+          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/60" />
         </div>
-        <div className="text-center space-y-0.5">
-          <p className="text-xs font-semibold">View collection</p>
-          <p className="text-[10px] text-muted-foreground">See all assets</p>
-        </div>
-        <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
-      </div>
+      </MotionCard>
     </Link>
   );
 }
@@ -71,7 +138,7 @@ export function CollectionCarouselRow({
         </Link>
       </div>
 
-      {/* Horizontal scroll strip — items vertically aligned by top */}
+      {/* Scroll strip — all cards are w-52 with aspect-square so heights are uniform */}
       <div
         ref={scrollRef}
         className="flex items-start gap-3 overflow-x-auto scrollbar-none snap-x snap-mandatory cursor-grab active:cursor-grabbing pb-1"
@@ -80,9 +147,9 @@ export function CollectionCarouselRow({
         onMouseUp={onMouseUp}
         onMouseLeave={onMouseUp}
       >
-        {/* Collection cover card — portrait (3:4) */}
-        <div className="snap-start shrink-0 w-44">
-          <CollectionCard collection={collection} />
+        {/* Collection cover — square, same size as token cards */}
+        <div className="snap-start shrink-0 w-52">
+          <CollectionCoverCard collection={collection} />
         </div>
 
         {/* Token cards */}
