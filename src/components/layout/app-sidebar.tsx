@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useUser, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { useUser, useClerk, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import {
   Telescope, Compass, Briefcase, Plus, Activity,
   LayoutGrid, Users, BookOpen, FileCode2, Info, Mail, LifeBuoy,
   Sun, Moon, ShoppingBag, LogIn, PlusCircle, Search,
-  ChevronRight, Music, Palette, Film, Camera, Gem,
+  ChevronRight, Music, Palette, Film, Camera, Gem, LogOut,
 } from "lucide-react";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useUnreadOffers } from "@/hooks/use-unread-offers";
@@ -180,6 +180,7 @@ function CartItem() {
 export function AppSidebar() {
   const pathname = usePathname();
   const { user, isLoaded, isSignedIn } = useUser();
+  const { signOut } = useClerk();
   const { walletAddress } = useSessionKey();
   const unreadOffers = useUnreadOffers(isSignedIn ? walletAddress : null);
   const { setOpen, setOpenMobile, isMobile, state } = useSidebar();
@@ -335,14 +336,24 @@ export function AppSidebar() {
               )}>
                 <UserButton afterSignOutUrl="/" />
                 {(isMobile || state === "expanded") && (
-                  <div className="grid flex-1 text-left text-sm leading-tight min-w-0">
-                    <span className="truncate font-medium text-sidebar-foreground">
-                      {user?.fullName ?? user?.username ?? "Account"}
-                    </span>
-                    <span className="truncate text-xs text-sidebar-foreground/60">
-                      {user?.primaryEmailAddress?.emailAddress}
-                    </span>
-                  </div>
+                  <>
+                    <div className="grid flex-1 text-left text-sm leading-tight min-w-0">
+                      <span className="truncate font-medium text-sidebar-foreground">
+                        {user?.fullName ?? user?.username ?? "Account"}
+                      </span>
+                      <span className="truncate text-xs text-sidebar-foreground/60">
+                        {user?.primaryEmailAddress?.emailAddress}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => signOut({ redirectUrl: "/" })}
+                      className="h-7 w-7 rounded-md flex items-center justify-center text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors shrink-0"
+                      title="Sign out"
+                      aria-label="Sign out"
+                    >
+                      <LogOut className="h-3.5 w-3.5" />
+                    </button>
+                  </>
                 )}
               </div>
             ) : (

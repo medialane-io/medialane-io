@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAuth, useUser } from "@clerk/nextjs";
+import { useAuth, useUser, useClerk } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useCreatorProfile } from "@/hooks/use-profiles";
 import { useMyUsernameClaim, submitUsernameClaim, checkUsernameAvailability } from "@/hooks/use-username-claims";
@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { AtSign, CheckCircle2, Clock, XCircle, Loader2 } from "lucide-react";
+import { AtSign, CheckCircle2, Clock, XCircle, Loader2, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type CheckState = "idle" | "checking" | "available" | "taken";
@@ -80,6 +80,7 @@ function UsernameClaimInput({
 export default function ProfileSettingsPage() {
   const { getToken } = useAuth();
   const { user } = useUser();
+  const { signOut } = useClerk();
   const { walletAddress } = useSessionKey();
   const { profile, isLoading: profileLoading, mutate } = useCreatorProfile(walletAddress ?? undefined);
   const { username: approvedUsername, claim, mutate: mutateClaim } = useMyUsernameClaim();
@@ -374,6 +375,24 @@ export default function ProfileSettingsPage() {
       <Button onClick={handleSave} disabled={saving || !walletAddress || profileLoading}>
         {saving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving…</> : "Save Changes"}
       </Button>
+
+      {/* Sign out */}
+      <div className="space-y-4 pt-4">
+        <div>
+          <h3 className="text-sm font-semibold text-foreground">Account</h3>
+          <p className="text-xs text-muted-foreground mt-0.5">Manage your session</p>
+        </div>
+        <div className="border-t border-border pt-4">
+          <Button
+            variant="outline"
+            className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
+            onClick={() => signOut({ redirectUrl: "/" })}
+          >
+            <LogOut className="h-4 w-4" />
+            Sign out
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
