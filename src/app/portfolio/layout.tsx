@@ -19,23 +19,27 @@ import { cn } from "@/lib/utils";
 
 const NAV_GROUPS = [
   {
-    label: "My Activity",
+    label: "My Items",
     items: [
       { label: "Assets",            href: "/portfolio/assets" },
-      { label: "Listings",          href: "/portfolio/listings" },
-      { label: "Offers sent",       href: "/portfolio/offers" },
-      { label: "Offers received",   href: "/portfolio/received", badge: "offers" as const },
-      { label: "Remixes",           href: "/portfolio/remix-offers", badge: "remixes" as const },
-      { label: "Counter-offers",    href: "/portfolio/counter-offers", badge: "counters" as const },
-      { label: "Activity",          href: "/portfolio/activity" },
+      { label: "Collections",       href: "/portfolio/collections" },
     ],
   },
   {
-    label: "Manage",
+    label: "Trading",
     items: [
+      { label: "Listings",          href: "/portfolio/listings" },
+      { label: "Offers received",   href: "/portfolio/received", badge: "offers" as const },
+      { label: "Offers sent",       href: "/portfolio/offers" },
+      { label: "Counter-offers",    href: "/portfolio/counter-offers", badge: "counters" as const },
+      { label: "Remixes",           href: "/portfolio/remix-offers", badge: "remixes" as const },
+    ],
+  },
+  {
+    label: "Account",
+    items: [
+      { label: "Activity",          href: "/portfolio/activity" },
       { label: "Wallet",            href: "/portfolio/wallet" },
-      { label: "Collections",       href: "/portfolio/collections" },
-      { label: "Claim Collection",  href: "/portfolio/claim" },
       { label: "Settings",          href: "/portfolio/settings" },
     ],
   },

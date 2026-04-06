@@ -7,9 +7,10 @@ import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { Button } from "@/components/ui/button";
 import { EmptyOrError } from "@/components/ui/empty-or-error";
 import { ipfsToHttp } from "@/lib/utils";
-import { Layers, Plus, Settings, ImageIcon } from "lucide-react";
+import { Layers, Plus, Settings, ImageIcon, Download } from "lucide-react";
 import type { ApiCollection } from "@medialane/sdk";
 import { formatDisplayPrice } from "@/lib/utils";
+import { ClaimCollectionPanel } from "@/components/claim/claim-collection-panel";
 
 function CollectionCard({ col }: { col: ApiCollection }) {
   const imgUrl = col.image ? ipfsToHttp(col.image) : null;
@@ -117,6 +118,18 @@ export default function PortfolioCollectionsPage() {
           ))}
         </div>
       </EmptyOrError>
+
+      {/* Claim an existing collection */}
+      <div className="pt-6 border-t border-border space-y-4">
+        <div className="flex items-center gap-2">
+          <Download className="h-4 w-4 text-muted-foreground" />
+          <h3 className="text-sm font-semibold">Claim a collection</h3>
+        </div>
+        <p className="text-xs text-muted-foreground -mt-2">
+          Import an existing Starknet ERC-721 collection into your Medialane profile.
+        </p>
+        <ClaimCollectionPanel />
+      </div>
     </div>
   );
 }
