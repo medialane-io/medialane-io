@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import useSWR from "swr";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { useDominantColor } from "@/hooks/use-dominant-color";
 import Link from "next/link";
 import NextImage from "next/image";
 import { useTokensByOwner } from "@/hooks/use-tokens";
@@ -223,6 +224,14 @@ export default function CreatorPageClient() {
   const [reportOpen, setReportOpen] = useState(false);
 
   const addr = address ?? null;
+  const router = useRouter();
+
+  // Fetch one token for the atmospheric background
+  const { tokens: bgTokens } = useTokensByOwner(addr, 1, 1);
+  const bgRawImg = bgTokens[0]?.metadata?.image;
+  const bgImage = bgRawImg ? ipfsToHttp(bgRawImg) : null;
+
+  const { imgRef, dynamicTheme } = useDominantColor(bgImage);
 
   const { data: hiddenStatus } = useSWR<{ isHidden: boolean }>(
     address ? `/api/creators/${address}/hidden` : null,
@@ -250,14 +259,61 @@ export default function CreatorPageClient() {
   };
 
   return (
-    <div className="min-h-screen pb-20">
+    <div
+      className="min-h-screen pb-20"
+      style={dynamicTheme ? (dynamicTheme as React.CSSProperties) : {}}
+    >
+      {/* Hidden extraction image for dominant color */}
+      {bgImage && (
+        <img
+          ref={imgRef}
+          src={bgImage}
+          crossOrigin="anonymous"
+          aria-hidden
+          alt=""
+          style={{ display: "none" }}
+        />
+      )}
+
+      {/* Fixed atmospheric background */}
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        {bgImage && (
+          <img
+            src={bgImage}
+            alt=""
+            aria-hidden
+            className="absolute inset-0 w-full h-full object-cover opacity-[0.15] scale-110"
+            style={{ filter: "blur(60px) saturate(1.5)" }}
+          />
+        )}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: dynamicTheme ? `hsl(var(--dynamic-primary) / 0.06)` : "transparent",
+          }}
+        />
+      </div>
 
       {hiddenStatus?.isHidden === true && <HiddenContentBanner />}
 
       {/* ── Header ───────────────────────────────────────────────────────── */}
-      <div className="px-6 pt-6 pb-4 flex items-center gap-3">
-        <AddressDisplay address={address ?? ""} chars={10} className="text-sm font-mono font-semibold flex-1 min-w-0" />
-        <div className="flex items-center gap-1 shrink-0">
+      <div className="px-6 pt-8 pb-2 flex items-start justify-between gap-3">
+        <div className="space-y-1.5 min-w-0">
+          <AddressDisplay
+            address={address ?? ""}
+            chars={10}
+            className="text-base font-mono font-semibold"
+          />
+          {(() => {
+            const parts: string[] = [];
+            if (tabBadge.assets      !== undefined) parts.push(`${tabBadge.assets} ${tabBadge.assets === 1 ? "asset" : "assets"}`);
+            if (tabBadge.listings    !== undefined && tabBadge.listings    > 0) parts.push(`${tabBadge.listings} ${tabBadge.listings === 1 ? "listing" : "listings"}`);
+            if (tabBadge.collections !== undefined && tabBadge.collections > 0) parts.push(`${tabBadge.collections} ${tabBadge.collections === 1 ? "collection" : "collections"}`);
+            if (parts.length === 0) return null;
+            return <p className="text-xs text-muted-foreground">{parts.join(" · ")}</p>;
+          })()}
+        </div>
+        <div className="flex items-center gap-1 shrink-0 pt-1">
           <ShareButton title="Creator Profile" size="icon" variant="ghost" />
           <Button variant="ghost" size="icon" onClick={() => setReportOpen(true)}>
             <Flag className="w-4 h-4 text-muted-foreground" />
