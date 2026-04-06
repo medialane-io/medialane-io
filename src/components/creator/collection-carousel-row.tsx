@@ -18,7 +18,7 @@ function TokenMiniCard({ token }: { token: ApiToken }) {
   return (
     <Link
       href={`/asset/${token.contractAddress}/${token.tokenId}`}
-      className="snap-start shrink-0 w-40 block"
+      className="snap-start shrink-0 w-48 block"
     >
       <div className="bento-cell overflow-hidden hover:border-primary/40 transition-colors">
         <div className="relative aspect-square w-full overflow-hidden bg-muted">
@@ -62,7 +62,7 @@ function CollectionCoverCard({
   return (
     <Link
       href={`/collections/${collection.contractAddress}`}
-      className="snap-start shrink-0 w-44 block"
+      className="snap-start shrink-0 w-56 block"
     >
       <div
         className="rounded-xl overflow-hidden border border-border/60 hover:border-primary/50 transition-colors h-full"
@@ -104,7 +104,7 @@ function CollectionCoverCard({
 
 function ViewAllCard({ href }: { href: string }) {
   return (
-    <Link href={href} className="snap-start shrink-0 w-40 block h-full">
+    <Link href={href} className="snap-start shrink-0 w-48 block h-full">
       <div className="bento-cell border-dashed h-full flex flex-col items-center justify-center gap-2 p-4 hover:border-primary/40 transition-colors min-h-[160px]">
         <div className="h-9 w-9 rounded-full border border-dashed border-border flex items-center justify-center">
           <LayoutGrid className="h-4 w-4 text-muted-foreground" />
@@ -181,7 +181,7 @@ export function CollectionCarouselRow({
         {/* Token mini cards */}
         {isLoading
           ? Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="snap-start shrink-0 w-40">
+              <div key={i} className="snap-start shrink-0 w-48">
                 <div className="bento-cell overflow-hidden">
                   <Skeleton className="aspect-square w-full" />
                   <div className="p-2">
