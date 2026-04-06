@@ -27,7 +27,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { PinInput, validatePin } from "@/components/ui/pin-input";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
-import { SessionSetupDialog } from "@/components/chipi/session-setup-dialog";
 import { useAuth, SignInButton } from "@clerk/nextjs";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { EXPLORER_URL, DURATION_OPTIONS } from "@/lib/constants";
@@ -68,7 +67,6 @@ export function OfferDialog({
     makeOffer,
     hasWallet,
     hasActiveSession,
-    isSettingUpSession,
     setupSession,
     maybeClearSessionForAmountCap,
     isProcessing,
@@ -79,7 +77,6 @@ export function OfferDialog({
   } = useMarketplace();
 
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
-  const [sessionSetupOpen, setSessionSetupOpen] = useState(false);
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
   const [pin, setPin] = useState("");
   const [pinError, setPinError] = useState<string | null>(null);
@@ -89,6 +86,7 @@ export function OfferDialog({
     () => typeof window !== "undefined" && isWebAuthnSupported()
   );
   const [isAuthenticatingPasskey, setIsAuthenticatingPasskey] = useState(false);
+  const [isActivatingSession, setIsActivatingSession] = useState(false);
   const { authenticate, encryptKey } = usePasskeyAuth();
 
   const form = useForm<FormValues>({
@@ -108,24 +106,10 @@ export function OfferDialog({
     if (cleared) {
       toast.info("Large offer — fresh signing session", {
         description:
-          "Your saved session was cleared for this transaction size. Register a new session to continue.",
+          "Your saved session was cleared for this transaction size. A new session will be activated automatically.",
       });
     }
-    if (cleared || !hasActiveSession) {
-      setSessionSetupOpen(true);
-      return;
-    }
     setStep("pin");
-  };
-
-  const handleSessionSetup = async (pin: string) => {
-    try {
-      await setupSession(pin);
-      setSessionSetupOpen(false);
-      setStep("pin");
-    } catch {
-      toast.error("Session setup failed. Please try again.");
-    }
   };
 
   const handlePin = async () => {
@@ -133,6 +117,18 @@ export function OfferDialog({
     if (err) { setPinError(err); return; }
     setPinError(null);
     if (!pendingValues) return;
+
+    if (!hasActiveSession) {
+      setIsActivatingSession(true);
+      try {
+        await setupSession(pin);
+      } catch (err: unknown) {
+        setPinError(err instanceof Error ? err.message : "Session setup failed. Please try again.");
+        return;
+      } finally {
+        setIsActivatingSession(false);
+      }
+    }
 
     await makeOffer({
       assetContract,
@@ -155,6 +151,10 @@ export function OfferDialog({
 
       const derived = encryptKey ?? (await authenticate());
       if (!derived) throw new Error("Passkey authentication failed.");
+
+      if (!hasActiveSession) {
+        await setupSession(derived);
+      }
 
       await makeOffer({
         assetContract,
@@ -260,6 +260,11 @@ export function OfferDialog({
                 </a>
               )}
               <Button className="w-full" onClick={() => onOpenChange(false)}>Done</Button>
+            </div>
+          ) : isActivatingSession ? (
+            <div className="flex flex-col items-center gap-4 py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-sm text-muted-foreground">Activating wallet session…</p>
             </div>
           ) : isProcessing ? (
             <div className="flex flex-col items-center gap-4 py-8">
@@ -424,23 +429,12 @@ export function OfferDialog({
         </DialogContent>
       </Dialog>
 
-      <SessionSetupDialog
-        open={sessionSetupOpen}
-        onOpenChange={setSessionSetupOpen}
-        onSetup={handleSessionSetup}
-        isProcessing={isSettingUpSession}
-      />
-
       <WalletSetupDialog
         open={walletSetupOpen}
         onOpenChange={setWalletSetupOpen}
         onSuccess={() => {
           setWalletSetupOpen(false);
-          if (!hasActiveSession) {
-            setSessionSetupOpen(true);
-          } else {
-            setStep("pin");
-          }
+          setStep("pin");
         }}
       />
     </>
