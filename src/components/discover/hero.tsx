@@ -2,15 +2,11 @@
 
 import { motion } from "framer-motion";
 import { usePlatformStats } from "@/hooks/use-stats";
-import { useOrders } from "@/hooks/use-orders";
-import { useMemo } from "react";
 import { KineticWords, EASE_OUT } from "@/components/ui/motion-primitives";
 import { ActivityTicker } from "@/components/shared/activity-ticker";
 
 export function Hero() {
   const { stats } = usePlatformStats();
-  const { orders } = useOrders({ status: "ACTIVE", limit: 100, page: 1 });
-  const listingsCount = useMemo(() => orders.filter((o) => o.offer.itemType === "ERC721").length, [orders]);
 
   return (
     <div className="space-y-6 pt-2 pb-6 border-b border-border/50">
@@ -38,27 +34,6 @@ export function Hero() {
         <KineticWords text="NFT — gasless." />
       </motion.div>
 
-      {/* CTAs 
-      <motion.div
-        className="flex flex-wrap gap-3"
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.25, ease: EASE_OUT }}
-      >
-        <Button asChild className="gap-2 bg-brand-blue hover:bg-brand-blue/90 text-white">
-          <Link href="/marketplace">
-            <Compass className="h-4 w-4" />
-            Explore market
-          </Link>
-        </Button>
-        <Button variant="outline" asChild className="gap-2">
-          <Link href="/create">
-            <Sparkles className="h-4 w-4" />
-            Create
-          </Link>
-        </Button>
-      </motion.div>*/}
-
       {/* Stats chips */}
       {stats && (
         <motion.div
@@ -69,9 +44,8 @@ export function Hero() {
         >
           {[
             { label: "Collections", value: stats.collections },
-            { label: "Assets", value: stats.tokens },
-            { label: "Listings", value: listingsCount || null },
-            { label: "Sales", value: stats.sales },
+            { label: "Assets",      value: stats.tokens },
+            { label: "Sales",       value: stats.sales },
           ].map(({ label, value }) => (
             <div
               key={label}

@@ -10,8 +10,8 @@ export function DiscoverPage() {
     <div className="container mx-auto px-4 pt-10 pb-16 space-y-10">
       <Hero />
       <CollectionsStrip />
-      <CreatorsStrip />
       <FeedSection />
+      <CreatorsStrip />
     </div>
   );
 }
