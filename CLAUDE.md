@@ -219,6 +219,11 @@ All previously noted bugs were fixed. No outstanding known bugs.
 - [x] IP Types & Templates: 12 canonical IP types (Audio, Art, Video, Photography, NFT, Patents, Posts, Publications, Documents, RWA, Software, Custom); dynamic template fields per type; Media tab on asset page with embed players ✓ 2026-03-20
 - [x] UI polish: removed duplicate floating buy button on mobile asset page; homepage full-width (removed max-w-7xl); creators page title "Meet the Creators" + friendlier subtitle; creator cards redesigned — larger avatar (h-14), 4-col grid, collection image fallback for creators without banner/avatar ✓ 2026-03-20
 - [x] ChipiPay wallet panel: upgraded @chipi-stack/nextjs to v14; new ChipiWalletPanel component + use-wallet-with-balance hook; passkey support ✓ 2026-03-20
+- [x] Unified TokenCard: single modular component across all pages — solid brand-colored buttons (rounded-[11px], hover:brightness-110) matching asset page; title text-xl font-bold; creator attribution from IPFS attributes; ownership auto-detected per-token via token.owner vs walletAddress ✓ 2026-04-06
+- [x] Cart redesigned as centered Dialog with blurred backdrop (backdrop-blur-[48px]) — item thumbnails, individual Buy buttons, "Buy all N items" batch checkout, Clear all, responsive max-w-sm/md ✓ 2026-04-06
+- [x] Collection page: ownership detection per token — owners see List/Cancel/Transfer dialogs directly from the Items grid ✓ 2026-04-06
+- [x] Creator page carousel: w-64 cards (~4.5 visible), CollectionCard (aspect-[3/4]) as cover instead of custom square ✓ 2026-04-06
+- [x] IpTypeBadge component on token cards — top-left overlay from token.metadata.ipType ✓ 2026-04-06
 
 ---
 
@@ -268,6 +273,9 @@ layout.tsx (server)
 | `src/app/globals.css` | HSL theme tokens, `.glass`, `.gradient-text` |
 | `src/app/providers.tsx` | Global shell: SidebarProvider + AppSidebar + SidebarInset + top bar |
 | `src/components/layout/app-sidebar.tsx` | Shadcn sidebar: brand, nav, Clerk user footer |
+| `src/components/layout/cart-drawer.tsx` | Cart as centered Dialog (not Sheet) — blurred backdrop, item thumbnails, batch checkout |
+| `src/components/shared/token-card.tsx` | **Unified modular asset card** — used on all pages; brand buttons; ownership-aware |
+| `src/components/creator/collection-carousel-row.tsx` | Horizontal drag carousel for creator profile — w-64 cards, CollectionCard cover |
 | `src/middleware.ts` | Clerk route protection (/portfolio, /create/*) |
 | `src/hooks/use-comments.ts` | `useComments(contract, tokenId)` SWR hook — fetches via SDK `getTokenComments()` |
 | `src/hooks/use-gated-content.ts` | `useGatedContent(contract?)` — discriminated union state hook for holder-only content (`not_signed_in \| loading \| not_holder \| unlocked \| error`) |

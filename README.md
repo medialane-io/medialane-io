@@ -42,23 +42,36 @@ Medialane is a platform for the **creative economy on Starknet**. It bridges Web
 ### NFT Marketplace
 - Browse, search, and filter all Medialane IP assets
 - Buy NFTs directly or make offers with USDC, USDT, ETH, STRK, or WBTC
-- Batch cart checkout — buy multiple items in one PIN-authenticated session
+- **Cart dialog** — centered modal with blurred atmospheric backdrop, item thumbnails, individual Buy buttons, and "Buy all N items" batch checkout with a single PIN
 - Accept, cancel, and manage listings and offers from the portfolio
 - Asset pages with Details, License, Listings, Offers, and History tabs
 - Dynamic color theming derived from the asset image (CSS custom properties, WCAG contrast-checked)
-- Atmospheric blurred background on asset pages for immersive browsing
+- Atmospheric blurred background on asset pages and all action dialogs for immersive browsing
 - Marketplace filters: currency, price range (min/max), order type (listings/offers)
+
+### Asset Cards (unified `TokenCard` component)
+- Single modular `TokenCard` used consistently across collection pages, creator carousels, portfolio, search, and account pages
+- Action row with solid brand-colored buttons matching the asset page style (`rounded-[11px]`, `hover:brightness-110`):
+  - **Listed (non-owner)**: Buy (blue) + Add to cart (orange → green when added) + ⋯ overflow
+  - **Unlisted (non-owner)**: View (blue) + Offer (purple) + ⋯ overflow
+  - **Owner**: View (blue) + List/Cancel icon + ⋯ with Transfer
+- ⋯ menu: View asset · Make an offer · Add to cart · Remix this IP · List/Cancel · Transfer · View collection · View owner (Voyager) · View creator · Report
+- Token title doubled in size (`text-xl font-bold`) with `line-clamp-2` for creative visual impact
+- Creator attribution "by 0xAddress" from IPFS `Creator` attribute
+- Ownership auto-detected on collection pages via `token.owner` vs connected wallet
 
 ### Collections
 - Browse all NFT collections with sort options: Recent (default), Most assets, Top volume, Floor price, A→Z
 - Filter by verified collections only
 - Collection pages with `aspect-video` parallax banner, animated stats, and sticky tabs (Items / Listings / Offers)
+- Collection Items tab detects ownership per-token — owners see List/Cancel/Transfer dialogs directly from the grid
 - Infinite scroll with "Load more" pagination — shows remaining count
 - Creator profile pages with address-derived color identity and blurred asset banner
 
 ### Creators
 - Dedicated `/creators` page showcasing verified creators in a 4-column card grid
 - Creator cards display banner, avatar, bio, and social links
+- Creator profile page: horizontal collection carousels with `w-64` cards (~4.5 visible), vertical `aspect-[3/4]` collection cover matching frontpage style
 - Creators without uploaded images automatically fall back to their latest collection image
 - Profile pages with activity timeline, owned assets, collections, and listing history
 
