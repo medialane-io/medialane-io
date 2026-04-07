@@ -14,9 +14,10 @@ import {
 import {
   ShoppingCart, Tag, ArrowRightLeft, X, Loader2, HandCoins,
   GitBranch, Check, MoreHorizontal, Layers, Flag, ArrowUpRight,
-  UserCircle2,
+  UserCircle2, ExternalLink,
 } from "lucide-react";
 import { cn, ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
+import { EXPLORER_URL } from "@/lib/constants";
 import { useCart } from "@/hooks/use-cart";
 import { ReportDialog } from "@/components/report-dialog";
 import type { RarityTier } from "@/lib/rarity";
@@ -30,6 +31,9 @@ const RARITY_STYLE: Record<RarityTier, { label: string; className: string } | nu
   uncommon:  { label: "Uncommon",  className: "bg-emerald-500/85 text-white" },
   common:    null,
 };
+
+// Matches asset-page button style exactly
+const BTN_BASE = "h-8 rounded-[11px] flex items-center justify-center gap-1.5 text-xs font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] shadow-none border-0";
 
 interface TokenCardProps {
   token: ApiToken;
@@ -76,6 +80,9 @@ export function TokenCard({
   const creatorHref = creatorAddress ? `/creator/${creatorAddress}` : null;
   const creatorShort = creatorAddress
     ? `${creatorAddress.slice(0, 6)}…${creatorAddress.slice(-4)}`
+    : null;
+  const onchainAccountHref = creatorAddress
+    ? `${EXPLORER_URL}/contract/${creatorAddress}`
     : null;
 
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -149,7 +156,7 @@ export function TokenCard({
               </div>
             )}
 
-            {/* Price pill — top right when listed, no rarity badge */}
+            {/* Price pill */}
             {activeOrder && !rarityTier && (
               <div className="absolute top-2 right-2 bg-black/55 backdrop-blur-sm rounded-full px-2 py-0.5 border border-white/10">
                 <span className="text-[11px] font-bold text-white leading-none">
@@ -172,7 +179,8 @@ export function TokenCard({
         {/* ── Info ──────────────────────────────────────────────────── */}
         <div className="px-3 pt-2.5 pb-1 flex-1">
           <Link href={assetHref} className="block space-y-0.5 mb-2">
-            <p className="text-[13px] font-semibold truncate leading-tight">{name}</p>
+            {/* Title — 2× the previous 13px → ~text-xl */}
+            <p className="text-xl font-bold line-clamp-2 leading-tight">{name}</p>
             {creatorShort ? (
               <p className="text-[10px] text-muted-foreground truncate">
                 by <span className="font-mono">{creatorShort}</span>
@@ -190,21 +198,20 @@ export function TokenCard({
 
         {/* ── Action row ────────────────────────────────────────────── */}
         {/*
-          Priority: buy > view > offer/list > remix > transfer > collection > account > report
-          Row slots: [PRIMARY flex-1] [SECONDARY icon] [⋯ overflow]
-          - Non-owner + listed  → Buy (blue solid) | Offer (purple)
-          - Non-owner + unlisted → View (blue tint) | Offer (purple)
-          - Owner + listed       → View (blue tint) | Cancel (red)
-          - Owner + unlisted     → View (blue tint) | List (orange)
-          Offer/Remix always shown — fall back to asset page if no callback
+          Solid brand colors matching the asset page exactly.
+          Priority: buy > view > offer/list > remix
+          Row: [PRIMARY flex-1] [SECONDARY icon] [⋯]
+          - Non-owner + listed  → Buy (blue)  | Offer (purple)
+          - Non-owner + unlisted → View (blue) | Offer (purple)
+          - Owner + listed       → View (blue) | Cancel (rose)
+          - Owner + unlisted     → View (blue) | List (orange)
         */}
         <div className="flex items-center gap-1.5 px-2 pb-2">
 
           {/* PRIMARY */}
           {!isOwner && activeOrder && showBuyButton ? (
-            <Button
-              size="sm"
-              className="flex-1 h-8 text-xs gap-1.5 bg-brand-blue text-white hover:bg-brand-blue/90 shadow-none border-0"
+            <button
+              className={cn(BTN_BASE, "flex-1 bg-brand-blue")}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -213,51 +220,39 @@ export function TokenCard({
             >
               <ShoppingCart className="h-3.5 w-3.5 shrink-0" />
               Buy
-            </Button>
+            </button>
           ) : (
-            <Button
-              size="sm"
-              className="flex-1 h-8 text-xs gap-1.5 bg-brand-blue/10 text-brand-blue border border-brand-blue/25 hover:bg-brand-blue/20 hover:border-brand-blue/40 shadow-none"
-              asChild
-            >
-              <Link href={assetHref}>
-                <ArrowUpRight className="h-3.5 w-3.5 shrink-0" />
-                View
-              </Link>
-            </Button>
+            <Link href={assetHref} className={cn(BTN_BASE, "flex-1 bg-brand-blue")}>
+              <ArrowUpRight className="h-3.5 w-3.5 shrink-0" />
+              View
+            </Link>
           )}
 
-          {/* SECONDARY ICON */}
+          {/* SECONDARY ICON — solid brand color, square */}
           {!isOwner ? (
-            /* Offer — always visible for non-owners */
-            <Button
-              size="sm"
-              className="h-8 w-8 p-0 shrink-0 bg-brand-purple/10 text-brand-purple border border-brand-purple/25 hover:bg-brand-purple/20 hover:border-brand-purple/40 shadow-none"
+            <button
+              className={cn(BTN_BASE, "w-8 shrink-0 bg-brand-purple")}
               onClick={handleOffer}
               title="Make an offer"
             >
               <HandCoins className="h-3.5 w-3.5" />
-            </Button>
+            </button>
           ) : activeOrder && onCancel ? (
-            /* Owner — cancel active listing */
-            <Button
-              size="sm"
-              className="h-8 w-8 p-0 shrink-0 bg-destructive/10 text-destructive border border-destructive/25 hover:bg-destructive/20 shadow-none"
+            <button
+              className={cn(BTN_BASE, "w-8 shrink-0 bg-brand-rose")}
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); onCancel(token); }}
               title="Cancel listing"
             >
               <X className="h-3.5 w-3.5" />
-            </Button>
+            </button>
           ) : !activeOrder && onList ? (
-            /* Owner — list for sale */
-            <Button
-              size="sm"
-              className="h-8 w-8 p-0 shrink-0 bg-brand-orange/10 text-brand-orange border border-brand-orange/25 hover:bg-brand-orange/20 shadow-none"
+            <button
+              className={cn(BTN_BASE, "w-8 shrink-0 bg-brand-orange")}
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); onList(token); }}
               title="List for sale"
             >
               <Tag className="h-3.5 w-3.5" />
-            </Button>
+            </button>
           ) : null}
 
           {/* ⋯ OVERFLOW */}
@@ -266,7 +261,7 @@ export function TokenCard({
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-8 w-8 p-0 shrink-0 text-muted-foreground/50 hover:text-foreground"
+                className="h-8 w-8 p-0 shrink-0 rounded-[11px] text-muted-foreground/50 hover:text-foreground"
                 onClick={(e) => e.preventDefault()}
                 aria-label="More actions"
               >
@@ -275,7 +270,7 @@ export function TokenCard({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-52">
 
-              {/* Buy now (if listed, non-owner) */}
+              {/* Buy now */}
               {!isOwner && activeOrder && showBuyButton && (
                 <>
                   <DropdownMenuItem
@@ -297,7 +292,7 @@ export function TokenCard({
                 </Link>
               </DropdownMenuItem>
 
-              {/* Offer (non-owner) */}
+              {/* Offer */}
               {!isOwner && (
                 <DropdownMenuItem
                   className="flex items-center gap-2 text-brand-purple focus:text-brand-purple"
@@ -308,7 +303,7 @@ export function TokenCard({
                 </DropdownMenuItem>
               )}
 
-              {/* Add to cart (non-owner, listed) */}
+              {/* Add to cart */}
               {!isOwner && activeOrder && (
                 <DropdownMenuItem
                   className="flex items-center gap-2"
@@ -322,7 +317,7 @@ export function TokenCard({
                 </DropdownMenuItem>
               )}
 
-              {/* Remix — always for non-owners */}
+              {/* Remix */}
               {!isOwner && (
                 <DropdownMenuItem
                   className="flex items-center gap-2 text-brand-rose focus:text-brand-rose"
@@ -370,7 +365,17 @@ export function TokenCard({
                 </Link>
               </DropdownMenuItem>
 
-              {/* Creator account */}
+              {/* Onchain account — Voyager */}
+              {onchainAccountHref && (
+                <DropdownMenuItem asChild>
+                  <a href={onchainAccountHref} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+                    <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+                    View onchain account
+                  </a>
+                </DropdownMenuItem>
+              )}
+
+              {/* Creator profile */}
               {creatorHref && (
                 <DropdownMenuItem asChild>
                   <Link href={creatorHref} className="flex items-center gap-2">
@@ -409,14 +414,14 @@ export function TokenCardSkeleton() {
   return (
     <div className="card-base overflow-hidden">
       <Skeleton className="aspect-square w-full rounded-none" />
-      <div className="px-3 pt-2.5 pb-1 space-y-1">
-        <Skeleton className="h-3.5 w-3/4" />
+      <div className="px-3 pt-2.5 pb-2 space-y-1.5">
+        <Skeleton className="h-5 w-3/4" />
         <Skeleton className="h-2.5 w-2/5" />
       </div>
       <div className="px-2 pb-2 flex gap-1.5">
-        <Skeleton className="h-8 flex-1 rounded-md" />
-        <Skeleton className="h-8 w-8 rounded-md shrink-0" />
-        <Skeleton className="h-8 w-8 rounded-md shrink-0" />
+        <Skeleton className="h-8 flex-1 rounded-[11px]" />
+        <Skeleton className="h-8 w-8 rounded-[11px] shrink-0" />
+        <Skeleton className="h-8 w-8 rounded-[11px] shrink-0" />
       </div>
     </div>
   );
