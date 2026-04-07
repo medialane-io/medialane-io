@@ -410,7 +410,7 @@ export default function CreatorPageClient() {
           {/* Assets */}
           {activeTab === "assets" && (
             tokensLoading ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 {Array.from({ length: 8 }).map((_, i) => <TokenCardSkeleton key={i} />)}
               </div>
             ) : tokens.length === 0 ? (
@@ -420,7 +420,7 @@ export default function CreatorPageClient() {
                 body="This creator hasn't minted any IP assets on Medialane yet."
               />
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 {tokens.map((t) => (
                   <TokenCard
                     key={`${t.contractAddress}-${t.tokenId}`}

@@ -368,7 +368,7 @@ export function TokenCard({
               <DropdownMenuItem asChild>
                 <a href={onchainAccountHref} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
                   <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
-                  View onchain account
+                  View owner
                 </a>
               </DropdownMenuItem>
 
