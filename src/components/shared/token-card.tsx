@@ -81,9 +81,8 @@ export function TokenCard({
   const creatorShort = creatorAddress
     ? `${creatorAddress.slice(0, 6)}…${creatorAddress.slice(-4)}`
     : null;
-  const onchainAccountHref = creatorAddress
-    ? `${EXPLORER_URL}/contract/${creatorAddress}`
-    : null;
+  // Always available — token.owner is the current holder
+  const onchainAccountHref = `${EXPLORER_URL}/contract/${token.owner}`;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -365,15 +364,13 @@ export function TokenCard({
                 </Link>
               </DropdownMenuItem>
 
-              {/* Onchain account — Voyager */}
-              {onchainAccountHref && (
-                <DropdownMenuItem asChild>
-                  <a href={onchainAccountHref} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
-                    <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
-                    View onchain account
-                  </a>
-                </DropdownMenuItem>
-              )}
+              {/* Onchain account — Voyager (always available, links to current owner) */}
+              <DropdownMenuItem asChild>
+                <a href={onchainAccountHref} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+                  <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+                  View onchain account
+                </a>
+              </DropdownMenuItem>
 
               {/* Creator profile */}
               {creatorHref && (
