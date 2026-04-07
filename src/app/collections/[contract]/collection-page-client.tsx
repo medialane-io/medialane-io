@@ -25,6 +25,11 @@ import { computeRarity } from "@/lib/rarity";
 import { useCollectionProfile } from "@/hooks/use-profiles";
 import { useGatedContent, type GatedContentState } from "@/hooks/use-gated-content";
 import { CollectionServiceAction } from "@/components/services/collection-service-action";
+import { ListingDialog } from "@/components/marketplace/listing-dialog";
+import { TransferDialog } from "@/components/marketplace/transfer-dialog";
+import { PinDialog } from "@/components/chipi/pin-dialog";
+import { useSessionKey } from "@/hooks/use-session-key";
+import { useMarketplace } from "@/hooks/use-marketplace";
 import type { ApiToken } from "@medialane/sdk";
 
 const PAGE_SIZE = 24;
@@ -69,7 +74,29 @@ function CollectionItems({ contract }: { contract: string }) {
   const [page, setPage] = useState(1);
   const [allTokens, setAllTokens] = useState<ApiToken[]>([]);
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string>>({});
-  const { tokens, meta, isLoading } = useCollectionTokens(contract, page, PAGE_SIZE);
+  const { tokens, meta, isLoading, mutate } = useCollectionTokens(contract, page, PAGE_SIZE);
+
+  // Ownership + dialogs — same pattern as portfolio/assets-grid
+  const { walletAddress } = useSessionKey();
+  const { cancelOrder } = useMarketplace();
+  const [selectedToken, setSelectedToken] = useState<ApiToken | null>(null);
+  const [listOpen, setListOpen] = useState(false);
+  const [transferToken, setTransferToken] = useState<ApiToken | null>(null);
+  const [transferOpen, setTransferOpen] = useState(false);
+  const [cancelToken, setCancelToken] = useState<ApiToken | null>(null);
+  const [cancelPinOpen, setCancelPinOpen] = useState(false);
+
+  const handleList = (token: ApiToken) => { setSelectedToken(token); setListOpen(true); };
+  const handleTransfer = (token: ApiToken) => { setTransferToken(token); setTransferOpen(true); };
+  const handleCancelRequest = (token: ApiToken) => { setCancelToken(token); setCancelPinOpen(true); };
+  const handleCancelPin = async (pin: string) => {
+    setCancelPinOpen(false);
+    const orderHash = cancelToken?.activeOrders?.[0]?.orderHash;
+    if (!orderHash) return;
+    await cancelOrder({ orderHash, pin });
+    setCancelToken(null);
+    setPage(1); setAllTokens([]); mutate();
+  };
 
   useEffect(() => {
     if (tokens.length > 0) {
@@ -95,7 +122,6 @@ function CollectionItems({ contract }: { contract: string }) {
   }, [allTokens, selectedFilters]);
 
   const rarityMap = useMemo(() => computeRarity(allTokens), [allTokens]);
-
   const hasMore = meta ? allTokens.length < meta.total! : false;
 
   if (isLoading && allTokens.length === 0) {
@@ -116,41 +142,75 @@ function CollectionItems({ contract }: { contract: string }) {
   }
 
   return (
-    <div className="space-y-4">
-      <TraitFilter
-        tokens={allTokens}
-        selected={selectedFilters}
-        onChange={setSelectedFilters}
-      />
-      {filteredTokens.length === 0 && Object.keys(selectedFilters).length > 0 ? (
-        <EmptyState
-          title="No items match these filters"
-          body="Try removing some filters to see more results."
+    <>
+      <div className="space-y-4">
+        <TraitFilter
+          tokens={allTokens}
+          selected={selectedFilters}
+          onChange={setSelectedFilters}
         />
-      ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-          {filteredTokens.map((t) => (
-            <TokenCard
-              key={`${t.contractAddress}-${t.tokenId}`}
-              token={t}
-              rarityTier={rarityMap.get(t.tokenId)?.tier}
-            />
-          ))}
-        </div>
+        {filteredTokens.length === 0 && Object.keys(selectedFilters).length > 0 ? (
+          <EmptyState
+            title="No items match these filters"
+            body="Try removing some filters to see more results."
+          />
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+            {filteredTokens.map((t) => {
+              const isOwner = !!walletAddress && t.owner.toLowerCase() === walletAddress.toLowerCase();
+              return (
+                <TokenCard
+                  key={`${t.contractAddress}-${t.tokenId}`}
+                  token={t}
+                  rarityTier={rarityMap.get(t.tokenId)?.tier}
+                  isOwner={isOwner}
+                  onList={isOwner ? handleList : undefined}
+                  onTransfer={isOwner ? handleTransfer : undefined}
+                  onCancel={isOwner ? handleCancelRequest : undefined}
+                />
+              );
+            })}
+          </div>
+        )}
+        {hasMore && (
+          <div className="flex justify-center">
+            <Button
+              variant="outline"
+              onClick={() => setPage((p) => p + 1)}
+              disabled={isLoading}
+            >
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Load more
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Owner dialogs */}
+      {selectedToken && (
+        <ListingDialog
+          token={selectedToken}
+          open={listOpen}
+          onOpenChange={(o) => { setListOpen(o); if (!o) setSelectedToken(null); }}
+          onSuccess={() => { setListOpen(false); setSelectedToken(null); setPage(1); setAllTokens([]); mutate(); }}
+        />
       )}
-      {hasMore && (
-        <div className="flex justify-center">
-          <Button
-            variant="outline"
-            onClick={() => setPage((p) => p + 1)}
-            disabled={isLoading}
-          >
-            {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-            Load more
-          </Button>
-        </div>
+      {transferToken && (
+        <TransferDialog
+          token={transferToken}
+          open={transferOpen}
+          onOpenChange={(o) => { setTransferOpen(o); if (!o) setTransferToken(null); }}
+          onSuccess={() => { setTransferOpen(false); setTransferToken(null); setPage(1); setAllTokens([]); mutate(); }}
+        />
       )}
-    </div>
+      <PinDialog
+        open={cancelPinOpen}
+        title="Cancel listing"
+        description="Enter your PIN to cancel this listing."
+        onConfirm={handleCancelPin}
+        onCancel={() => { setCancelPinOpen(false); setCancelToken(null); }}
+      />
+    </>
   );
 }
 
