@@ -84,9 +84,9 @@ export function TokenCard({
   // Always available — token.owner is the current holder
   const onchainAccountHref = `${EXPLORER_URL}/contract/${token.owner}`;
 
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleAddToCart = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
     if (!activeOrder || inCart) return;
     addItem({
       orderHash: activeOrder.orderHash,
@@ -227,8 +227,19 @@ export function TokenCard({
             </Link>
           )}
 
-          {/* SECONDARY ICON — solid brand color, square */}
-          {!isOwner ? (
+          {/* SECONDARY ICON */}
+          {!isOwner && activeOrder ? (
+            /* Listed: show Add to cart (cart icon, orange) — Offer moves to ⋯ */
+            <button
+              className={cn(BTN_BASE, "w-8 shrink-0", inCart ? "bg-emerald-600" : "bg-brand-orange")}
+              onClick={handleAddToCart}
+              title={inCart ? "In cart" : "Add to cart"}
+              disabled={inCart}
+            >
+              {inCart ? <Check className="h-3.5 w-3.5" /> : <ShoppingCart className="h-3.5 w-3.5" />}
+            </button>
+          ) : !isOwner ? (
+            /* Unlisted: show Offer (purple) */
             <button
               className={cn(BTN_BASE, "w-8 shrink-0 bg-brand-purple")}
               onClick={handleOffer}

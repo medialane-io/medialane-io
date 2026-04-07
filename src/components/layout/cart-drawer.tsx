@@ -228,8 +228,8 @@ export function CartDrawer() {
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="w-full max-w-sm sm:max-w-md p-0 overflow-hidden gap-0 flex flex-col max-h-[90svh]">
 
-          {/* ── Header ─────────────────────────────────────────── */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-border/60">
+          {/* ── Header ── pr-10 leaves room for the Dialog's built-in close button ── */}
+          <div className="flex items-center justify-between pr-10 pl-5 py-4 border-b border-border/60">
             <DialogTitle className="flex items-center gap-2 text-base font-bold">
               <ShoppingBag className="h-5 w-5 text-brand-blue" />
               Cart
