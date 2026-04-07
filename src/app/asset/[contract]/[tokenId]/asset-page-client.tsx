@@ -863,7 +863,7 @@ export default function AssetPageClient() {
         <SheetContent
           side={isMobile ? "bottom" : "right"}
           className="h-[85svh] sm:h-full sm:max-w-md p-0 flex flex-col"
-          overlayClassName="bg-black/10 backdrop-blur-[24px] backdrop-saturate-[150%] backdrop-brightness-75"
+          overlayClassName="bg-background/10 backdrop-blur-[48px] backdrop-saturate-[150%] backdrop-brightness-75"
         >
           <SheetHeader className="px-4 pt-4 pb-3 shrink-0 border-b border-brand-blue/20" style={{ background: "linear-gradient(135deg, hsl(var(--brand-blue) / 0.10), hsl(var(--brand-purple) / 0.08))" }}>
             <SheetTitle className="flex items-center gap-3 text-sm font-semibold">

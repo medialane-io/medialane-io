@@ -360,7 +360,7 @@ export default function CreatorPageClient() {
         />
 
         {/* ── Tab navigation ────────────────────────────────────────────── */}
-        <div className="sticky top-0 z-10 -mx-6 px-6 bg-background/95 backdrop-blur-sm border-b border-border">
+        <div className="sticky top-0 z-10 -mx-6 px-6 bg-background/75 backdrop-blur-sm border-b border-border">
           <div className="flex items-center gap-0.5 overflow-x-auto scrollbar-none -mb-px">
             {TABS.map(({ id, label, Icon }) => {
               const count = tabBadge[id];
