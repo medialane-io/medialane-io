@@ -7,7 +7,7 @@ import { useUser } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useNotifications } from "@/hooks/use-notifications";
 import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { formatDisplayPrice } from "@/lib/utils";
@@ -161,13 +161,13 @@ export function NotificationsItem() {
         </SidebarMenuButton>
       </SidebarMenuItem>
 
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="right" className="w-80 p-0 flex flex-col gap-0">
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="w-full max-w-sm p-0 overflow-hidden gap-0 flex flex-col max-h-[85svh]">
 
-          {/* Header — pr-10 to clear the default SheetClose button */}
-          <SheetHeader className="flex-row items-center justify-between px-4 py-3 border-b border-border shrink-0 space-y-0 pr-10">
+          {/* Header — pr-10 to clear the Dialog's built-in close button */}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0 pr-10">
             <div className="flex items-center gap-2">
-              <SheetTitle className="text-sm font-semibold">Notifications</SheetTitle>
+              <DialogTitle className="text-sm font-semibold">Notifications</DialogTitle>
               {unreadCount > 0 && (
                 <span className="inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-blue-500 text-[9px] font-bold text-white">
                   {unreadCount}
@@ -184,7 +184,7 @@ export function NotificationsItem() {
                 Mark read
               </Button>
             )}
-          </SheetHeader>
+          </div>
 
           {/* Body */}
           <div className="flex-1 overflow-y-auto">
@@ -232,8 +232,8 @@ export function NotificationsItem() {
             </Link>
           </div>
 
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

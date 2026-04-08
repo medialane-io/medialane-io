@@ -52,24 +52,26 @@ export function PinDialog({
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) handleCancel(); }}>
       <DialogContent className="sm:max-w-sm">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
-        </DialogHeader>
-        <div className="py-2">
-          <PinInput
-            value={pin}
-            onChange={(v) => { setPin(v); setError(null); }}
-            error={error}
-            autoFocus
-          />
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={handleCancel}>Cancel</Button>
-          <Button disabled={pin.length < 6} onClick={handleSubmit}>
-            Continue
-          </Button>
-        </DialogFooter>
+        <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
+          <DialogHeader>
+            <DialogTitle>{title}</DialogTitle>
+            <DialogDescription>{description}</DialogDescription>
+          </DialogHeader>
+          <div className="py-2">
+            <PinInput
+              value={pin}
+              onChange={(v) => { setPin(v); setError(null); }}
+              error={error}
+              autoFocus
+            />
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={handleCancel}>Cancel</Button>
+            <Button type="submit" disabled={pin.length < 6}>
+              Continue
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
