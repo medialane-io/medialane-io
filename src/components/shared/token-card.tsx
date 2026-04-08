@@ -334,7 +334,7 @@ export function TokenCard({
                   onClick={handleRemix}
                 >
                   <GitBranch className="h-3.5 w-3.5" />
-                  Remix this IP
+                  Remix
                 </DropdownMenuItem>
               )}
 
@@ -344,7 +344,7 @@ export function TokenCard({
                   {!activeOrder && onList && (
                     <DropdownMenuItem className="flex items-center gap-2" onClick={() => onList(token)}>
                       <Tag className="h-3.5 w-3.5 text-muted-foreground" />
-                      List for sale
+                      List on Marketplace
                     </DropdownMenuItem>
                   )}
                   {activeOrder && onCancel && (

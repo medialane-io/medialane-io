@@ -79,7 +79,7 @@ export function CollectionsStrip() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <p className="section-label">Trending</p>
+            <p className="section-label">NFT</p>
             <div className="flex items-center gap-2 mt-0.5">
               <Layers className={`h-4 w-4 ${BRAND.blue.text}`} />
               <h2 className="text-lg font-bold">Collections</h2>

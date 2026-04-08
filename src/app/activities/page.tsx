@@ -13,10 +13,10 @@ export default function ActivitiesPage() {
       <div className="space-y-2">
         <div className="flex items-center gap-2 text-primary">
           <Activity className="h-5 w-5" />
-          <span className="text-sm font-semibold uppercase tracking-wider">Activity</span>
+          <span className="text-sm font-semibold uppercase tracking-wider">Medialane</span>
         </div>
-        <h1 className="text-3xl font-bold">Global Activity</h1>
-        <p className="text-muted-foreground">Marketplace events — sales, listings, and offers.</p>
+        <h1 className="text-3xl font-bold">Onchain Activity</h1>
+        <p className="text-muted-foreground">Mint, Markets, events, and more.</p>
       </div>
       <ActivitiesFeed />
     </div>

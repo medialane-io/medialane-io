@@ -427,7 +427,7 @@ export default function AssetPageClient() {
                         onClick={() => setPurchaseOrder(cheapest)}
                       >
                         <ShoppingCart className="h-5 w-5" />
-                        Buy now
+                        Buy
                       </button>
                     </div>
                     <div className="grid grid-cols-2 gap-2">

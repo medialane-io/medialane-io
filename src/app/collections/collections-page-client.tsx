@@ -93,7 +93,7 @@ export default function CollectionsPageClient() {
       <div className="space-y-2">
         <div className="flex items-center gap-2 text-primary">
           <Layers className="h-5 w-5" />
-          <span className="text-sm font-semibold uppercase tracking-wider">Programmable IP</span>
+          <span className="text-sm font-semibold uppercase tracking-wider">NFT</span>
         </div>
         <h1 className="text-3xl font-bold">Onchain Collections</h1>
         <div className="flex flex-wrap items-center gap-2 mt-1">

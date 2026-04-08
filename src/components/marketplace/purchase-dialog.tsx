@@ -293,7 +293,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
                 </Button>
               </div>
               <p className="text-[10px] text-center text-muted-foreground pb-2">
-                Gas fees are sponsored by Medialane. Your PIN authorizes this transaction.
+                Transaction gas fees are sponsored by Medialane.
               </p>
               </div>
             </div>
@@ -312,7 +312,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
                     {txHash && (
                       <Button variant="outline" size="sm" className="w-full" asChild>
                         <a href={`${EXPLORER_URL}/tx/${txHash}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
-                          View transaction on Voyager <ExternalLink className="h-3 w-3" />
+                          View transaction on external explorer <ExternalLink className="h-3 w-3" />
                         </a>
                       </Button>
                     )}
@@ -331,7 +331,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
                 )}
 
                 <p className="text-[10px] text-center text-muted-foreground">
-                  Gas fees are sponsored by Medialane. Your PIN authorizes this transaction.
+                  Atomic transactions onchain. Gas fees are sponsored by Medialane.
                 </p>
               </div>
             </div>

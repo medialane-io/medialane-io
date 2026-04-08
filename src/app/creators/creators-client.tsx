@@ -135,7 +135,7 @@ export default function CreatorsPageClient() {
           <FadeIn>
             <span className="pill-badge mb-5 inline-flex">
               <Users className="h-3 w-3" />
-              Creator Network
+              Media
             </span>
           </FadeIn>
           <FadeIn delay={0.08}>
@@ -146,7 +146,7 @@ export default function CreatorsPageClient() {
           </FadeIn>
           <FadeIn delay={0.16}>
             <p className="text-muted-foreground text-base max-w-lg leading-relaxed mb-6">
-              Discover the artists, writers, and builders publishing their work on Medialane.
+              Discover the artists, writers, and creators bulding onchain.
             </p>
           </FadeIn>
 

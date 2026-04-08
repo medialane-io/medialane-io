@@ -30,8 +30,7 @@ export function Hero() {
         <span className="gradient-text">
           <KineticWords text="Create, license & trade" />
         </span>
-        <br />
-        <KineticWords text="NFT — gasless." />
+        <KineticWords text="NFTs" />
       </motion.div>
 
       {/* Stats chips */}

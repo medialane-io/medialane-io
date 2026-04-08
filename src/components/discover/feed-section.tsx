@@ -32,10 +32,10 @@ export function FeedSection() {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div>
-              <p className="section-label">NFTs</p>
+              <p className="section-label">Markets</p>
               <div className="flex items-center gap-2 mt-0.5">
                 <Tag className={`h-4 w-4 ${BRAND.rose.text}`} />
-                <h2 className="text-lg font-bold">Fresh Markets</h2>
+                <h2 className="text-lg font-bold">Activity</h2>
               </div>
             </div>
             <Button variant="ghost" size="sm" asChild className="gap-1 text-muted-foreground">

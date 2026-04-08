@@ -345,7 +345,7 @@ export function CartDrawer() {
                   </button>
                 )}
                 <p className="text-[10px] text-center text-muted-foreground">
-                  Gas is free · PIN authorises each purchase · Starknet
+                  Free Transactions · Onchain Secured · Atomic Trades
                 </p>
               </div>
             </>

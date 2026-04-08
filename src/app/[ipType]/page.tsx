@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const config = IP_TYPE_MAP[ipType];
   if (!config) return {};
   const title = `${config.label} Assets`;
-  const description = `Browse all ${config.label} IP assets indexed on Medialane — the Starknet creator launchpad.`;
+  const description = `Browse all ${config.label} IP assets indexed on Medialane — Creator Launchpad + NFT Marketplace.`;
   return {
     title,
     description,

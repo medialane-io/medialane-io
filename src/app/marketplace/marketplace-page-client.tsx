@@ -69,7 +69,7 @@ function SearchBar() {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search tokens, collections…"
+          placeholder="Search creative works"
           value={query}
           onChange={(e) => handleChange(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -249,12 +249,9 @@ export default function MarketplacePageClient() {
       <div className="space-y-2">
         <div className="flex items-center gap-2 text-primary">
           <Store className="h-5 w-5" />
-          <span className="text-sm font-semibold uppercase tracking-wider">Marketplace</span>
+          <span className="text-sm font-semibold uppercase tracking-wider">NFT Marketplace</span>
         </div>
-        <h1 className="text-3xl font-bold">Discover IP Assets</h1>
-        <p className="text-muted-foreground">
-          Browse, buy, and license creative works on Starknet — gasless for everyone.
-        </p>
+        <h1 className="text-3xl font-bold">Discover and trade</h1>
         <PlatformStatsBar />
       </div>
 

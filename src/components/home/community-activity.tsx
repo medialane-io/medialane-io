@@ -38,7 +38,7 @@ export function CommunityActivity() {
           </div>
           <div>
             <h2 className="text-xl sm:text-2xl font-black leading-none">
-              Market & Community
+              Community
             </h2>
             <p className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-1">
               <RefreshCw className="h-2.5 w-2.5" />

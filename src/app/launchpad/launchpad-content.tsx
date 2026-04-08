@@ -72,7 +72,7 @@ const SERVICES: ServiceDef[] = [
   // ── Create ─────────────────────────────────────────────────────────────
   {
     title: "Mint IP Asset",
-    subtitle: "Register any creative work on Starknet",
+    subtitle: "Register any creative work onchain",
     description: "Turn any creative file into a programmable IP NFT. Gasless, permanent, and immediately tradeable.",
     features: ["Gasless via ChipiPay", "IPFS metadata", "Programmable licensing"],
     icon: ImagePlus,
@@ -82,7 +82,7 @@ const SERVICES: ServiceDef[] = [
     borderColor: "border-blue-500/20",
     iconColor: "text-blue-500",
     buttonColor: "bg-brand-blue hover:bg-brand-blue/90",
-    badge: "Live",
+    badge: "Create",
     status: "live",
     category: "create",
   },
@@ -98,12 +98,12 @@ const SERVICES: ServiceDef[] = [
     borderColor: "border-violet-500/20",
     iconColor: "text-violet-500",
     buttonColor: "bg-brand-purple hover:bg-brand-purple/90",
-    badge: "Live",
+    badge: "Create",
     status: "live",
     category: "create",
   },
   {
-    title: "Remix an Asset",
+    title: "Remix Asset",
     subtitle: "Derivative works with on-chain attribution",
     description: "Create a licensed derivative of any IP asset with full provenance and attribution flowing back to the original creator.",
     features: ["On-chain attribution", "License-enforced at mint", "Royalties to original creator"],
@@ -114,7 +114,7 @@ const SERVICES: ServiceDef[] = [
     borderColor: "border-rose-500/20",
     iconColor: "text-rose-500",
     buttonColor: "bg-brand-rose hover:bg-brand-rose/90",
-    badge: "Live",
+    badge: "Remix",
     status: "live",
     category: "create",
   },
@@ -134,7 +134,7 @@ const SERVICES: ServiceDef[] = [
     borderColor: "border-emerald-500/20",
     iconColor: "text-emerald-500",
     buttonColor: "bg-green-600 hover:bg-green-700",
-    badge: "Live",
+    badge: "Launch",
     status: "live",
     category: "launch",
   },
@@ -152,7 +152,7 @@ const SERVICES: ServiceDef[] = [
     borderColor: "border-orange-500/20",
     iconColor: "text-orange-500",
     buttonColor: "bg-orange-600 hover:bg-orange-700",
-    badge: "Live",
+    badge: "Launch",
     status: "live",
     category: "launch",
   },
@@ -165,7 +165,7 @@ const SERVICES: ServiceDef[] = [
     gradient: "from-teal-500/7 via-cyan-400/3 to-transparent",
     borderColor: "border-teal-500/15",
     iconColor: "text-teal-500",
-    badge: "Building",
+    badge: "Soon",
     status: "building",
     category: "launch",
   },
@@ -373,12 +373,12 @@ export function LaunchpadContent() {
           <FadeIn>
             <span className="pill-badge mb-5 inline-flex">
               <Zap className="h-3 w-3" />
-              Starknet
+              Creator
             </span>
           </FadeIn>
           <FadeIn delay={0.08}>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight mb-3">
-              <span className="gradient-text">Creator Launchpad</span>
+              <span className="gradient-text">Launchpad</span>
             </h1>
           </FadeIn>
           <FadeIn delay={0.16}>
