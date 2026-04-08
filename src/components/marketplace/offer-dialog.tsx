@@ -310,11 +310,11 @@ export function OfferDialog({
                   onClick={handlePin}
                 >
                   <HandCoins className="h-4 w-4 mr-2" />
-                  Submit offer
+                  Send offer
                 </Button>
               </div>
               <p className="text-[10px] text-center text-muted-foreground">
-                Gas is free. Your ERC-20 balance is locked until the offer expires or is accepted.
+                Your offer will be pushed onchain. Transaction sponsored by Medialane.
               </p>
             </div>
           ) : (
@@ -420,7 +420,7 @@ export function OfferDialog({
                     {hasWallet ? "Submit offer" : "Secure account & offer"}
                   </Button>
                   <p className="text-[10px] text-center text-muted-foreground">
-                    Gas is free. Your ERC-20 balance is locked until the offer expires or is accepted.
+                    Your offer will be pushed onchain. Transaction sponsored by Medialane.
                   </p>
                 </form>
               </Form>

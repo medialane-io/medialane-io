@@ -379,7 +379,7 @@ export function CounterOfferDialog({
                     {hasWallet ? "Send counter-offer" : "Set up wallet & counter"}
                   </Button>
                   <p className="text-[10px] text-center text-muted-foreground">
-                    Gas is free. Currency is locked to the buyer&apos;s original bid token.
+                    Your offer will be pushed onchain. Transaction sponsored by Medialane.
                   </p>
                 </form>
               </Form>

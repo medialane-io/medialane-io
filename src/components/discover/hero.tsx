@@ -16,7 +16,7 @@ export function Hero() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: EASE_OUT }}
       >
-        <span className="pill-badge">Powered on Starknet</span>
+        <span className="pill-badge">Creative Works</span>
       </motion.div>
 
       {/* Headline */}
@@ -28,9 +28,8 @@ export function Hero() {
         transition={{ duration: 0.5, delay: 0.1, ease: EASE_OUT }}
       >
         <span className="gradient-text">
-          <KineticWords text="Create, license & trade" />
+          <KineticWords text="Create, share & explore" />
         </span>
-        <KineticWords text="NFTs" />
       </motion.div>
 
       {/* Stats chips */}
