@@ -821,6 +821,7 @@ export default function AssetPageClient() {
               // ── Event type config ───────────────────────────────────────────
               const EVENT_STYLE: Record<string, { label: string; icon: React.ReactNode; badgeCls: string }> = {
                 sale:      { label: "Sale",      icon: <ShoppingCart className="h-3.5 w-3.5" />, badgeCls: "bg-emerald-500/15 text-emerald-500 border-emerald-500/20" },
+                mint:      { label: "Minted",    icon: <CheckCircle className="h-3.5 w-3.5" />,  badgeCls: "bg-teal-500/15 text-teal-500 border-teal-500/20"          },
                 listing:   { label: "Listed",    icon: <Tag className="h-3.5 w-3.5" />,          badgeCls: "bg-blue-500/15 text-blue-500 border-blue-500/20"         },
                 offer:     { label: "Offer",     icon: <HandCoins className="h-3.5 w-3.5" />,    badgeCls: "bg-amber-500/15 text-amber-500 border-amber-500/20"       },
                 transfer:  { label: "Transfer",  icon: <ArrowRightLeft className="h-3.5 w-3.5" />, badgeCls: "bg-purple-500/15 text-purple-500 border-purple-500/20"  },
@@ -919,7 +920,14 @@ export default function AssetPageClient() {
                           {historyTyped.map((event, i) => {
                             const style = EVENT_STYLE[event.type] ?? { label: event.type, icon: <Activity className="h-3.5 w-3.5" />, badgeCls: "bg-muted/60 text-muted-foreground border-border" };
                             const actor = event.offerer ?? (event as any).from ?? "";
-                            const counterpart = event.fulfiller && event.fulfiller !== actor ? event.fulfiller : null;
+                            // For transfers/mints use `to`; for sales use `fulfiller`
+                            const toAddr = (event as any).to as string | undefined;
+                            const counterpart = event.fulfiller && event.fulfiller !== actor
+                              ? event.fulfiller
+                              : (event.type === "transfer" || event.type === "mint") && toAddr
+                              ? toAddr
+                              : null;
+                            const amount = (event as any).amount as string | undefined;
                             const txLink = event.txHash ? `${EXPLORER_URL}/tx/${event.txHash}` : null;
                             const voyagerActor = actor ? `${EXPLORER_URL}/contract/${actor}` : null;
 
@@ -976,8 +984,13 @@ export default function AssetPageClient() {
                                       </div>
                                     </div>
 
-                                    {/* Price + time + tx link */}
+                                    {/* Price + amount + time + tx link */}
                                     <div className="flex items-center gap-2 shrink-0">
+                                      {amount && BigInt(amount) > 1n && (
+                                        <span className="text-[11px] text-muted-foreground font-mono bg-muted/60 px-1.5 py-0.5 rounded">
+                                          ×{amount}
+                                        </span>
+                                      )}
                                       {event.price?.formatted && (
                                         <span className="text-sm font-bold inline-flex items-center gap-1">
                                           {formatDisplayPrice(event.price.formatted)}
