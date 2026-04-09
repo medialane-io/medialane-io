@@ -2,7 +2,9 @@ import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL!;
-const API_KEY = process.env.NEXT_PUBLIC_MEDIALANE_API_KEY!;
+// MEDIALANE_API_KEY is server-only (no NEXT_PUBLIC_ prefix) — keeps it out of the client bundle.
+// Set it to the same value as NEXT_PUBLIC_MEDIALANE_API_KEY in your .env.local.
+const API_KEY = process.env.MEDIALANE_API_KEY!;
 
 function normalizeAddress(addr: string): string {
   const hex = addr.toLowerCase().replace(/^0x/, "");

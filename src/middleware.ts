@@ -5,6 +5,7 @@ const isProtectedRoute = createRouteMatcher([
   "/portfolio(.*)",
   "/create(.*)",
   "/admin(.*)",
+  "/api/admin(.*)", // defence-in-depth: per-route requireAdmin() remains the primary guard
 ]);
 
 /**
@@ -31,7 +32,9 @@ export default clerkMiddleware(async (auth, req) => {
   }
 
   if (userId) {
-    const isAdminRoute = req.nextUrl.pathname.startsWith("/admin");
+    const isAdminRoute =
+      req.nextUrl.pathname.startsWith("/admin") ||
+      req.nextUrl.pathname.startsWith("/api/admin");
     let hasWallet = hasWalletClaim(sessionClaims as Record<string, unknown> | null);
     let isAdmin = hasAdminClaim(sessionClaims as Record<string, unknown> | null);
 

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL
-const API_KEY = process.env.NEXT_PUBLIC_MEDIALANE_API_KEY
+// MEDIALANE_API_KEY is server-only (no NEXT_PUBLIC_ prefix) — keeps it out of the client bundle.
+const API_KEY = process.env.MEDIALANE_API_KEY
 
 export async function GET(
   _req: NextRequest,

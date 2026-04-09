@@ -8,8 +8,8 @@
  *   file            File?    — cover image (JPG/PNG/GIF/SVG/WebP, max 10 MB)
  *   name            string   — asset name (required)
  *   description     string?  — asset description
- *   external_url    string?  — canonical URL (default: https://medialane.io)
- *   creator         string?  — creator wallet address (stored as attribute)
+ *   external_url    string?  — canonical URL (must be http/https if provided)
+ *   imageUri        string?  — pre-uploaded ipfs:// URI (must start with ipfs://)
  *   ipType          string?  — e.g. "Art", "Music", "Video", …
  *   licenseType     string?  — e.g. "CC BY", "All Rights Reserved", …
  *   commercialUse   string?  — "Yes" | "No"
@@ -19,14 +19,17 @@
  *   aiPolicy        string?  — "Allowed" | "Not Allowed" | "Training Only"
  *   royalty         string?  — "0%"–"50%" or bare number
  *   edition         string?  — e.g. "Genesis" (legacy genesis-mint field)
- *   tmpl_{key}      string?  — template field for selected IP type (e.g. "tmpl_Artist", "tmpl_Spotify URL")
- *                              Any number of these. Stored as standard attributes with trait_type = key.
+ *   tmpl_{key}      string?  — template field for selected IP type (e.g. "tmpl_Artist")
+ *                              Max 20 fields. Reserved trait names are silently ignored.
+ *
+ * Note: "creator" is NOT accepted from the client — it is derived server-side from
+ * the authenticated Clerk session to prevent impersonation.
  *
  * Response: { uri: "ipfs://...", imageUri: "ipfs://..." | null, cid: string }
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { PinataSDK } from "pinata";
 
 const pinata = new PinataSDK({
@@ -43,12 +46,24 @@ const ALLOWED_IMAGE_TYPES = new Set([
 ]);
 const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10 MB (server-side fallback guard)
 
+// Trait names that are set by this route and must not be overridden by tmpl_* fields.
+const RESERVED_TRAITS = new Set([
+  "Creator", "IP Type", "License", "Commercial Use", "Derivatives",
+  "Attribution", "Territory", "AI Policy", "Royalty", "Edition",
+  "Standard", "Registration",
+]);
+
 export async function POST(req: NextRequest) {
   // ── Auth ─────────────────────────────────────────────────────────────────────
   const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  // Derive creator wallet server-side from Clerk — never trust client-supplied value.
+  const client = await clerkClient();
+  const clerkUser = await client.users.getUser(userId);
+  const creator = (clerkUser.publicMetadata?.publicKey as string | undefined) ?? null;
 
   try {
     const formData = await req.formData();
@@ -59,8 +74,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "name is required" }, { status: 400 });
     }
     const description = (formData.get("description") as string | null) ?? "";
-    const externalUrl = (formData.get("external_url") as string | null) ?? "https://medialane.io";
-    const creator = (formData.get("creator") as string | null) ?? null;
+
+    // external_url — must be http/https if provided
+    const rawExternalUrl = (formData.get("external_url") as string | null)?.trim() ?? "";
+    const externalUrl = rawExternalUrl || "https://medialane.io";
+    if (rawExternalUrl && !/^https?:\/\//i.test(rawExternalUrl)) {
+      return NextResponse.json(
+        { error: "external_url must be a valid http or https URL" },
+        { status: 400 }
+      );
+    }
 
     // ── IP / licensing fields ─────────────────────────────────────────────────
     const ipType = formData.get("ipType") as string | null;
@@ -77,6 +100,14 @@ export async function POST(req: NextRequest) {
     // Preferred path: client uploaded image directly via signed URL and passes
     // back the resulting ipfs:// URI. No file bytes flow through this route.
     let imageUri: string | null = (formData.get("imageUri") as string | null) || null;
+
+    // imageUri must be an ipfs:// URI — reject arbitrary URLs to prevent metadata poisoning.
+    if (imageUri && !imageUri.startsWith("ipfs://")) {
+      return NextResponse.json(
+        { error: "imageUri must be an ipfs:// URI" },
+        { status: 400 }
+      );
+    }
 
     if (!imageUri) {
       // Fallback: file sent through this route (subject to body size limits)
@@ -123,12 +154,19 @@ export async function POST(req: NextRequest) {
     // Edition (legacy genesis-mint field)
     if (edition) attributes.push({ trait_type: "Edition", value: edition });
 
-    // Template-specific fields — stored as standard NFT attributes
-    for (const [key, value] of formData.entries()) {
-      if (typeof key === "string" && key.startsWith("tmpl_") && value) {
-        const traitType = key.slice(5); // strip "tmpl_" prefix → exact trait_type
-        attributes.push({ trait_type: traitType, value: String(value) });
-      }
+    // Template-specific fields — stored as standard NFT attributes.
+    // Max 20 fields; reserved trait names are silently skipped to prevent spoofing.
+    const tmplEntries = [...formData.entries()].filter(
+      ([k]) => typeof k === "string" && k.startsWith("tmpl_")
+    );
+    if (tmplEntries.length > 20) {
+      return NextResponse.json({ error: "Too many template fields (max 20)" }, { status: 400 });
+    }
+    for (const [key, value] of tmplEntries) {
+      const traitType = (key as string).slice(5).trim();
+      if (!traitType || RESERVED_TRAITS.has(traitType)) continue;
+      if (traitType.length > 64 || String(value).length > 512) continue;
+      attributes.push({ trait_type: traitType, value: String(value) });
     }
 
     // Berne Convention marker — only when licensing data is provided

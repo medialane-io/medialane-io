@@ -19,7 +19,7 @@ import {
   useCreateSessionKey,
   useAddSessionKeyToContract,
 } from "@chipi-stack/nextjs";
-import { Account, stark } from "starknet";
+import { Account, stark, hash } from "starknet";
 // crypto-es: must match ChipiPay's AES encryption scheme — do not swap to Web Crypto without coordinating with ChipiPay
 import CryptoES from "crypto-es";
 import { starknetProvider } from "@/lib/starknet";
@@ -131,7 +131,31 @@ export function useSessionKey() {
             sessionPublicKey: session.publicKey,
             validUntil: session.validUntil,
             maxCalls,
-            allowedEntrypoints: [], // all entrypoints allowed
+            // Whitelist all entrypoints the app actually uses.
+            // Empty array would allow ANY selector — explicitly listing known ones
+            // prevents a compromised session key from calling arbitrary contract functions.
+            allowedEntrypoints: [
+              // Marketplace
+              hash.getSelectorFromName("register_order"),
+              hash.getSelectorFromName("fulfill_order"),
+              hash.getSelectorFromName("cancel_order"),
+              // ERC-20 / ERC-721 token operations
+              hash.getSelectorFromName("approve"),
+              hash.getSelectorFromName("transfer"),
+              hash.getSelectorFromName("transfer_from"),
+              // Minting
+              hash.getSelectorFromName("mint_item"),
+              hash.getSelectorFromName("claim"),
+              // Launchpad
+              hash.getSelectorFromName("create_drop"),
+              hash.getSelectorFromName("create_collection"),
+              hash.getSelectorFromName("set_allowlist_enabled"),
+              hash.getSelectorFromName("batch_add_to_allowlist"),
+              hash.getSelectorFromName("remove_from_allowlist"),
+              hash.getSelectorFromName("withdraw_payments"),
+              // Comments
+              hash.getSelectorFromName("add_comment"),
+            ],
           },
         },
         bearerToken,

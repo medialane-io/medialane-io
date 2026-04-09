@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 
 const RPC_URL = process.env.ALCHEMY_URL || process.env.STARKNET_RPC_URL_SERVER || "";
 
@@ -10,8 +11,50 @@ const RPC_URL = process.env.ALCHEMY_URL || process.env.STARKNET_RPC_URL_SERVER |
  * Alchemy 429 → no-CORS-header failure that caused waitForTransaction to hang.
  *
  * Client usage: set NEXT_PUBLIC_STARKNET_RPC_URL=/api/rpc
+ *
+ * Security:
+ *  - Requires an active Clerk session (prevents unauthenticated quota exhaustion).
+ *  - Only forwards methods in ALLOWED_METHODS (prevents abuse of expensive trace/debug methods).
+ *  - Handles both single requests and JSON-RPC batch arrays.
  */
+
+// Only forward the RPC methods the app actually uses.
+const ALLOWED_METHODS = new Set([
+  "starknet_call",
+  "starknet_getTransactionReceipt",
+  "starknet_getTransaction",
+  "starknet_getBlockWithTxHashes",
+  "starknet_getBlockWithTxs",
+  "starknet_chainId",
+  "starknet_blockNumber",
+  "starknet_estimateFee",
+  "starknet_getNonce",
+  "starknet_getClassAt",
+  "starknet_getClass",
+  "starknet_getStorageAt",
+  "starknet_simulateTransactions",
+  "starknet_addInvokeTransaction",
+  "starknet_getEvents",
+]);
+
+function isAllowedMethod(body: unknown): boolean {
+  if (Array.isArray(body)) {
+    return body.every((item) => isAllowedMethod(item));
+  }
+  if (body && typeof body === "object") {
+    const method = (body as Record<string, unknown>).method;
+    return typeof method === "string" && ALLOWED_METHODS.has(method);
+  }
+  return false;
+}
+
 export async function POST(req: NextRequest) {
+  // Require an active Clerk session — all on-chain interactions in this app require login.
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   if (!RPC_URL) {
     return NextResponse.json({ error: "RPC not configured" }, { status: 503 });
   }
@@ -21,6 +64,10 @@ export async function POST(req: NextRequest) {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
+  if (!isAllowedMethod(body)) {
+    return NextResponse.json({ error: "Method not allowed" }, { status: 403 });
   }
 
   const response = await fetch(RPC_URL, {
