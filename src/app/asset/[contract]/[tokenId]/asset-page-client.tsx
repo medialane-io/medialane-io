@@ -538,6 +538,40 @@ export default function AssetPageClient() {
               </div>
             )}
 
+            {/* My active offer banner — visible to the bidder only */}
+            {!isOwner && walletAddress && (() => {
+              const myBid = activeBids.find(
+                (b) => b.offerer.toLowerCase() === walletAddress.toLowerCase()
+              );
+              if (!myBid) return null;
+              return (
+                <div className="rounded-xl border border-amber-500/30 bg-amber-500/8 px-4 py-3 flex items-center justify-between gap-3">
+                  <div className="min-w-0 flex items-center gap-2.5">
+                    <HandCoins className="h-4 w-4 text-amber-500 shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-amber-500">Your active offer</p>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                        <span className="font-bold text-foreground inline-flex items-center gap-1">
+                          {formatDisplayPrice(myBid.price.formatted)}
+                          <CurrencyIcon symbol={myBid.price.currency ?? ""} size={12} />
+                        </span>
+                        <span>·</span>
+                        <Clock className="h-3 w-3" />
+                        {timeUntil(myBid.endTime)}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    className="shrink-0 text-xs font-semibold text-red-400 hover:text-red-300 transition-colors flex items-center gap-1"
+                    onClick={() => handleCancelClick(myBid)}
+                  >
+                    <X className="h-3.5 w-3.5" />
+                    Cancel
+                  </button>
+                </div>
+              );
+            })()}
+
             {/* Incoming offers — visible to owner only */}
             {isOwner && activeBids.length > 0 && (
               <div className="rounded-xl border border-border p-5 space-y-3">
