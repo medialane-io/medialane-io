@@ -18,23 +18,38 @@ const RPC_URL = process.env.ALCHEMY_URL || process.env.STARKNET_RPC_URL_SERVER |
  *  - Handles both single requests and JSON-RPC batch arrays.
  */
 
-// Only forward the RPC methods the app actually uses.
+// Allowlist of JSON-RPC methods forwarded to Alchemy.
+// Covers all features: mint, listing, offer, cancel, comments, launchpad,
+// create collection/asset, remix — plus starknet.js v6 internal calls.
+// Dangerous methods (trace, declare, deploy-account) are intentionally excluded.
 const ALLOWED_METHODS = new Set([
+  // ── Core read/write ───────────────────────────────────────────────────────
   "starknet_call",
+  "starknet_addInvokeTransaction",
+  // ── Transaction lifecycle ─────────────────────────────────────────────────
   "starknet_getTransactionReceipt",
   "starknet_getTransactionStatus",
-  "starknet_getTransaction",
-  "starknet_getBlockWithTxHashes",
-  "starknet_getBlockWithTxs",
-  "starknet_chainId",
-  "starknet_blockNumber",
+  "starknet_getTransactionByHash",    // starknet.js v6 replacement for getTransaction
+  "starknet_getTransaction",          // kept for older SDK paths
+  "starknet_getBlockWithReceipts",    // waitForTransaction fallback path in starknet.js v6
+  // ── Fee estimation & nonce ────────────────────────────────────────────────
   "starknet_estimateFee",
   "starknet_getNonce",
+  "starknet_simulateTransactions",
+  // ── Provider initialisation (called automatically by starknet.js) ─────────
+  "starknet_specVersion",             // version handshake on every provider init
+  "starknet_chainId",
+  "starknet_blockNumber",
+  "starknet_blockHashAndNumber",
+  // ── Block queries ─────────────────────────────────────────────────────────
+  "starknet_getBlockWithTxHashes",
+  "starknet_getBlockWithTxs",
+  // ── Contract / account introspection ─────────────────────────────────────
   "starknet_getClassAt",
   "starknet_getClass",
+  "starknet_getClassHashAt",          // Cairo 0 vs Cairo 1 account detection
   "starknet_getStorageAt",
-  "starknet_simulateTransactions",
-  "starknet_addInvokeTransaction",
+  // ── Events (used by SDK hooks and activity feeds) ─────────────────────────
   "starknet_getEvents",
 ]);
 
