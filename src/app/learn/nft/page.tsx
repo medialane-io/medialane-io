@@ -69,16 +69,54 @@ export default function LearnNFTPage() {
 
         <Section title="NFTs on Starknet">
           <p>
-            Medialane uses the SNIP-2 NFT standard on Starknet — equivalent to ERC-721 on
-            Ethereum — with extensions for programmable licensing metadata. Starknet&apos;s
-            ZK-rollup architecture means transactions are fast, cheap, and secured by
-            Ethereum&apos;s consensus layer.
+            Medialane supports two NFT standards on Starknet, both anchored to Ethereum
+            through Starknet&apos;s ZK-rollup architecture — meaning transactions are fast,
+            cheap, and settled with Ethereum-level security.
           </p>
           <p>
             Every asset minted through Medialane is stored on IPFS for decentralised content
             availability, with the IPFS content identifier (CID) anchored to the NFT&apos;s
             onchain metadata. This ensures the artwork and license terms cannot be silently
             modified after minting.
+          </p>
+        </Section>
+
+        <Section title="ERC-721 vs ERC-1155 — Two Token Standards">
+          <p>
+            Not all NFTs are the same kind of token. Medialane supports two standards,
+            each suited to different use cases:
+          </p>
+          <div className="space-y-3">
+            <div className="bento-cell px-4 py-3 space-y-1">
+              <p className="text-sm font-semibold text-foreground">ERC-721 — Unique, one-of-one assets</p>
+              <p className="text-xs">
+                Each token ID has exactly one owner at a time. Transferring it passes full
+                ownership. Ideal for original artworks, documents, patents, and any asset
+                where uniqueness is the point. Medialane IP assets and collection registry
+                NFTs use ERC-721 (SNIP-2 on Starknet).
+              </p>
+            </div>
+            <div className="bento-cell px-4 py-3 space-y-1">
+              <p className="text-sm font-semibold text-foreground">ERC-1155 — Multi-edition tokens</p>
+              <p className="text-xs">
+                A single token ID can be owned by many wallets simultaneously, each holding
+                a quantity. Think of it like a limited print run — token ID #1 might have
+                500 copies, with 500 different collectors each holding one. Collection Drops
+                on Medialane use ERC-1155, allowing large releases where every minter
+                receives the same edition token.
+              </p>
+            </div>
+          </div>
+          <p>
+            Medialane automatically detects the standard of each collection using the
+            ERC-165 <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">supportsInterface</code> call.
+            The API returns <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">collection.standard</code>{" "}
+            as <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">&quot;ERC721&quot;</code> or{" "}
+            <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">&quot;ERC1155&quot;</code>, and{" "}
+            <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">token.balances</code> on individual
+            token fetches lists every current holder with their quantity — replacing the
+            single <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">owner</code> field
+            used for ERC-721.
           </p>
         </Section>
 

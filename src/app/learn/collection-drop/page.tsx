@@ -89,6 +89,23 @@ export default function LearnCollectionDropPage() {
           </div>
         </Section>
 
+        <Section title="ERC-1155 Token Standard">
+          <p>
+            Collection Drop NFTs use the <strong className="text-foreground">ERC-1155</strong> token
+            standard — unlike the ERC-721 standard used for individual IP assets, ERC-1155
+            supports multiple owners per token ID with quantities.
+          </p>
+          <p>
+            In practice, this means that in a drop of 500 copies, there is one token ID
+            but 500 holders — each owning a quantity of 1. The Medialane marketplace and
+            portfolio display the correct holder count and edition number automatically.
+            On the API, <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">token.balances</code>{" "}
+            returns all holders with their amounts, and{" "}
+            <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">collection.totalSupply</code>{" "}
+            reflects the sum of all quantities minted — not just the number of unique token IDs.
+          </p>
+        </Section>
+
         <Section title="Onchain Settlement">
           <p>
             Collection Drop contracts are deployed on Starknet. Every mint is an onchain

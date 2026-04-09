@@ -68,17 +68,38 @@ export default function DocsProtocolPage() {
           </div>
         </Section>
 
-        <Section title="NFT Standard">
+        <Section title="NFT Standards">
           <p>
-            Medialane collections implement <strong className="text-foreground">SNIP-2</strong>,
-            the Starknet equivalent of ERC-721. Each token has a unique{" "}
-            <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">token_id</code> (u256)
-            and a <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">token_uri</code>{" "}
-            returning a ByteArray pointing to IPFS metadata.
+            Medialane supports two token standards, both auto-detected at index time via
+            ERC-165 <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">supportsInterface</code>.
+            The detected standard is stored on <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">Collection.standard</code>{" "}
+            and returned in every <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">ApiCollection</code> response.
           </p>
+          <div className="space-y-2 text-sm">
+            {[
+              {
+                name: "SNIP-2 / ERC-721",
+                interfaceId: "0x80ac58cd",
+                desc: "One owner per token ID. Each token has a unique token_id (u256) and a token_uri() returning a ByteArray pointing to IPFS metadata. Used by IP assets, creator collections, and POP Protocol tokens.",
+              },
+              {
+                name: "ERC-1155",
+                interfaceId: "0xd9b67a26",
+                desc: "Multiple owners per token ID, each holding a quantity. Metadata resolved via uri(token_id) with EIP-1155 {id} substitution (64-char zero-padded lowercase hex). Used by Collection Drops and multi-edition releases.",
+              },
+            ].map(({ name, interfaceId, desc }) => (
+              <div key={name} className="bento-cell px-4 py-3 space-y-1">
+                <div className="flex items-center gap-3">
+                  <p className="text-sm font-semibold text-foreground">{name}</p>
+                  <code className="text-xs font-mono text-muted-foreground">{interfaceId}</code>
+                </div>
+                <p className="text-xs text-muted-foreground">{desc}</p>
+              </div>
+            ))}
+          </div>
           <p>
-            The metadata JSON conforms to the OpenSea/ERC-721 metadata standard with
-            Medialane-specific extensions for licensing attributes (see below).
+            The metadata JSON for both standards conforms to the OpenSea metadata
+            specification with Medialane-specific extensions for licensing attributes.
           </p>
         </Section>
 
@@ -124,6 +145,27 @@ export default function DocsProtocolPage() {
               ["OrderCreated", "Emitted when a listing or offer intent is submitted. Contains order_hash only — full params fetched via get_order_details()."],
               ["OrderFulfilled", "Emitted when a buyer executes a listing or a creator accepts an offer."],
               ["OrderCancelled", "Emitted when an order is cancelled by the maker."],
+            ].map(([name, desc]) => (
+              <div key={name} className="bento-cell px-4 py-3 space-y-1">
+                <code className="text-xs font-mono text-foreground">{name}</code>
+                <p className="text-xs text-muted-foreground">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </Section>
+
+        <Section title="Transfer Events">
+          <p>
+            The indexer tracks token ownership changes for both ERC-721 and ERC-1155
+            collections. Ownership state is maintained in a <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">TokenBalance</code> table
+            that records each (contract, tokenId, owner) balance — updated atomically
+            with every transfer event.
+          </p>
+          <div className="space-y-2 text-sm">
+            {[
+              ["Transfer", "ERC-721 ownership transfer. Keys: from, to, tokenId (u256 low/high). Always quantity 1."],
+              ["TransferSingle", "ERC-1155 single-item transfer. Keys: operator, from, to. Data: token_id (u256), value (u256)."],
+              ["TransferBatch", "ERC-1155 batch transfer. Keys: operator, from, to. Data: array of (token_id, value) pairs."],
             ].map(([name, desc]) => (
               <div key={name} className="bento-cell px-4 py-3 space-y-1">
                 <code className="text-xs font-mono text-foreground">{name}</code>

@@ -59,21 +59,35 @@ export default function DocsDevsPage() {
         <Section title="TypeScript SDK">
           <p>
             The official <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">@medialane/sdk</code> package
-            provides a typed client for all public API endpoints.
+            provides a fully-typed client for all API endpoints, on-chain operations, and ERC-1155 ownership checks.
           </p>
-          <Code>{`npm install @medialane/sdk`}</Code>
+          <Code>{`npm install @medialane/sdk starknet`}</Code>
           <Code>{`import { MedialaneClient } from "@medialane/sdk";
 
 const client = new MedialaneClient({
-  baseUrl: "https://medialane-backend-production.up.railway.app/v1",
+  network: "mainnet",
+  backendUrl: "https://medialane-backend-production.up.railway.app",
   apiKey: "ml_live_your_api_key_here",
 });
 
-// Fetch collections
-const { data } = await client.getCollections({ limit: 20 });
+// Fetch collections (newest first by default)
+const { data: collections } = await client.api.getCollections(1, 20);
 
-// Fetch tokens owned by an address
-const tokens = await client.getTokensByOwner("0x...");`}</Code>
+// Fetch tokens owned by a wallet
+const { data: tokens } = await client.api.getTokensByOwner("0x...");
+
+// Single token — includes balances for ERC-1155 multi-holder ownership
+const { data: token } = await client.api.getToken("0x...", "1");
+console.log(token.balances);      // [{ owner: "0x...", amount: "1" }, ...]
+console.log(token.activeOrders);  // active listings / offers`}</Code>
+          <p>
+            For ERC-1155 tokens, <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">token.balances</code> lists
+            every current holder with their quantity. For ERC-721,{" "}
+            <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">token.balances</code> contains
+            a single entry with <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">amount: &quot;1&quot;</code>.
+            The legacy <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">token.owner</code> field
+            is deprecated and always <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">null</code>.
+          </p>
         </Section>
 
         <Section title="Key Endpoints">
@@ -116,13 +130,26 @@ const tokens = await client.getTokensByOwner("0x...");`}</Code>
 
         <Section title="Rate Limits">
           <p>
-            Public endpoints are rate-limited to <strong className="text-foreground">60 requests per minute</strong> per
-            IP address. Authenticated API keys receive higher limits based on the plan.
-            Rate limit headers are included in every response:
+            Limits are applied per API key. Every response includes rate limit headers:
           </p>
-          <Code>{`X-RateLimit-Limit: 60
-X-RateLimit-Remaining: 58
-X-RateLimit-Reset: 1710000000`}</Code>
+          <div className="space-y-2 text-sm">
+            {[
+              ["FREE", "50 requests / calendar month"],
+              ["PREMIUM", "3,000 requests / minute"],
+            ].map(([plan, limit]) => (
+              <div key={plan} className="bento-cell px-4 py-2.5 flex items-center gap-4">
+                <span className="font-mono text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded shrink-0">{plan}</span>
+                <span className="text-xs text-muted-foreground">{limit}</span>
+              </div>
+            ))}
+          </div>
+          <Code>{`X-RateLimit-Limit: 50
+X-RateLimit-Remaining: 48
+X-RateLimit-Reset: 1714521600`}</Code>
+          <p>
+            Portal endpoints (<code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">/v1/portal/*</code>) are
+            excluded from the monthly quota count.
+          </p>
         </Section>
 
         <Section title="IPFS & Media">
