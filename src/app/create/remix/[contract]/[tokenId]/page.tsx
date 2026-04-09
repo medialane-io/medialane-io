@@ -28,7 +28,7 @@ import {
 import { submitRemixOffer, confirmSelfRemix } from "@/hooks/use-remix-offers";
 import { getListableTokens, getTokenBySymbol } from "@medialane/sdk";
 import { IP_TYPES, LICENSE_TYPES, type IPType } from "@/types/ip";
-import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
+import { ipfsToHttp, formatDisplayPrice, checkIsOwner } from "@/lib/utils";
 import { INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import {
@@ -99,10 +99,7 @@ export default function CreateRemixPage() {
     useCollectionsByOwner(walletAddress ?? null);
   const eligibleCollections = allCollections.filter((c) => c.collectionId != null);
 
-  const isOwner = !!(
-    token && walletAddress &&
-    token.owner.toLowerCase() === walletAddress.toLowerCase()
-  );
+  const isOwner = checkIsOwner(token, walletAddress);
 
   const originalName = token?.metadata?.name ?? `Token #${tokenId}`;
   const originalImage = token?.metadata?.image ? ipfsToHttp(token.metadata.image) : null;

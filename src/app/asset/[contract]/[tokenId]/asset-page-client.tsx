@@ -17,7 +17,7 @@ import { OfferDialog } from "@/components/marketplace/offer-dialog";
 import { TransferDialog } from "@/components/marketplace/transfer-dialog";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { PinDialog } from "@/components/chipi/pin-dialog";
-import { ipfsToHttp, timeUntil, timeAgo, formatDisplayPrice } from "@/lib/utils";
+import { ipfsToHttp, timeUntil, timeAgo, formatDisplayPrice, checkIsOwner } from "@/lib/utils";
 import { ShoppingCart, Tag, ExternalLink, Clock, HandCoins, ArrowRightLeft, X, CheckCircle, DollarSign, GitBranch, UserCheck, Globe, Bot, Percent, Shield, Calendar, ChevronRight, Flag, Loader2, TrendingUp, Activity, ArrowRight, Fingerprint } from "lucide-react";
 import { FloatingCommentsButton } from "@/components/asset/floating-comments-button";
 import { ReportDialog } from "@/components/report-dialog";
@@ -116,10 +116,7 @@ export default function AssetPageClient() {
     BigInt(a.consideration.startAmount) < BigInt(b.consideration.startAmount) ? -1 : 1
   )[0];
 
-  const isOwner = !!(
-    token && walletAddress &&
-    token.owner.toLowerCase() === walletAddress.toLowerCase()
-  );
+  const isOwner = checkIsOwner(token, walletAddress);
 
   const myListing = isOwner
     ? activeListings.find((l) => l.offerer.toLowerCase() === walletAddress!.toLowerCase())
@@ -350,12 +347,14 @@ export default function AssetPageClient() {
                 <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
               </div>
             )}
-              <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
-                <span>Owned by</span>
-                <Link href={`/creator/${token.owner}`} className="hover:text-primary transition-colors">
-                  <AddressDisplay address={token.owner} />
-                </Link>
-              </div>
+              {(token.balances?.[0]?.owner ?? token.owner) && (
+                <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+                  <span>Owned by</span>
+                  <Link href={`/creator/${token.balances?.[0]?.owner ?? token.owner}`} className="hover:text-primary transition-colors">
+                    <AddressDisplay address={(token.balances?.[0]?.owner ?? token.owner)!} />
+                  </Link>
+                </div>
+              )}
             </div>
 
             {/* Price / action box */}

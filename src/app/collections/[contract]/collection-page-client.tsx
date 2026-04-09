@@ -20,7 +20,7 @@ import { TraitFilter } from "@/components/collection/trait-filter";
 import { SweepBar } from "@/components/collection/sweep-bar";
 import { HiddenContentBanner } from "@/components/hidden-content-banner";
 import Image from "next/image";
-import { ipfsToHttp, formatDisplayPrice, cn } from "@/lib/utils";
+import { ipfsToHttp, formatDisplayPrice, cn, checkIsOwner } from "@/lib/utils";
 import { computeRarity } from "@/lib/rarity";
 import { useCollectionProfile } from "@/hooks/use-profiles";
 import { useGatedContent, type GatedContentState } from "@/hooks/use-gated-content";
@@ -157,7 +157,7 @@ function CollectionItems({ contract }: { contract: string }) {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
             {filteredTokens.map((t) => {
-              const isOwner = !!walletAddress && t.owner.toLowerCase() === walletAddress.toLowerCase();
+              const isOwner = checkIsOwner(t, walletAddress);
               return (
                 <TokenCard
                   key={`${t.contractAddress}-${t.tokenId}`}

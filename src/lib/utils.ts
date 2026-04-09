@@ -100,6 +100,25 @@ export function timeAgo(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString();
 }
 
+/**
+ * Check if a wallet address owns (or co-owns) a token.
+ * Checks `balances` first (ERC-721 and ERC-1155 via TokenBalance).
+ * Falls back to the legacy `owner` field for backward compatibility.
+ */
+export function checkIsOwner(
+  token: { owner?: string | null; balances?: Array<{ owner: string; amount: string }> | null } | null | undefined,
+  walletAddress: string | null | undefined
+): boolean {
+  if (!token || !walletAddress) return false;
+  if (token.balances != null && token.balances.length > 0) {
+    return token.balances.some(
+      (b) => b.owner.toLowerCase() === walletAddress.toLowerCase() && BigInt(b.amount) > 0n
+    );
+  }
+  if (!token.owner) return false;
+  return token.owner.toLowerCase() === walletAddress.toLowerCase();
+}
+
 export function timeUntil(dateStr: string | number): string {
   // Accept Unix seconds as number, numeric string (BigInt serialized), or ISO date string.
   const raw = typeof dateStr === "string" && /^\d+$/.test(dateStr.trim())
