@@ -22,6 +22,7 @@ const RPC_URL = process.env.ALCHEMY_URL || process.env.STARKNET_RPC_URL_SERVER |
 const ALLOWED_METHODS = new Set([
   "starknet_call",
   "starknet_getTransactionReceipt",
+  "starknet_getTransactionStatus",
   "starknet_getTransaction",
   "starknet_getBlockWithTxHashes",
   "starknet_getBlockWithTxs",
