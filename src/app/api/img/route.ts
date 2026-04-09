@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { fetchHttpsWithSafeRedirects } from "@/lib/safe-https-fetch";
 
 const ALLOWED_CONTENT_TYPES = new Set([
   "image/jpeg",
@@ -22,6 +23,9 @@ const ALLOWED_CONTENT_TYPES = new Set([
  *
  * Cached aggressively at the CDN layer — repeat requests for the same URL
  * are served from edge cache without invoking the function.
+ *
+ * SSRF hardening: hostnames must resolve only to public IPs; each redirect hop is
+ * validated so a first-hop public URL cannot bounce to loopback or metadata IPs.
  */
 export async function GET(req: NextRequest) {
   const raw = req.nextUrl.searchParams.get("url");
@@ -43,10 +47,23 @@ export async function GET(req: NextRequest) {
 
   let upstream: Response;
   try {
-    upstream = await fetch(parsed.toString(), {
+    upstream = await fetchHttpsWithSafeRedirects(parsed, {
       next: { revalidate: 3600 },
     });
-  } catch {
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Failed to fetch image";
+    const policyBlock =
+      msg.includes("not allowed") ||
+      msg.includes("Only https") ||
+      msg.includes("credentials") ||
+      msg.includes("Could not resolve") ||
+      msg.includes("Host not allowed");
+    if (policyBlock) {
+      return NextResponse.json({ error: msg }, { status: 400 });
+    }
+    if (msg === "Too many redirects") {
+      return NextResponse.json({ error: msg }, { status: 502 });
+    }
     return NextResponse.json({ error: "Failed to fetch image" }, { status: 502 });
   }
 
