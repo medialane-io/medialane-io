@@ -228,7 +228,7 @@ export default function CreatorPageClient() {
   const { address } = useParams<{ address: string }>();
   const [activeTab, setActiveTab] = useState<TabId>("assets");
   const [reportOpen,    setReportOpen]    = useState(false);
-  const [offerTarget,   setOfferTarget]   = useState<{ contract: string; tokenId: string; name?: string } | null>(null);
+  const [offerTarget,   setOfferTarget]   = useState<{ contract: string; tokenId: string; name?: string; image?: string } | null>(null);
   const [listTarget,    setListTarget]    = useState<{ contract: string; tokenId: string; name?: string } | null>(null);
   const [cancelToken,   setCancelToken]   = useState<ApiToken | null>(null);
   const [cancelPinOpen, setCancelPinOpen] = useState(false);
@@ -430,6 +430,7 @@ export default function CreatorPageClient() {
                       contract: t.contractAddress,
                       tokenId: t.tokenId,
                       name: t.metadata?.name ?? undefined,
+                      image: t.metadata?.image ? ipfsToHttp(t.metadata.image) : undefined,
                     }) : undefined}
                     onRemix={!isOwner ? (t: ApiToken) => router.push(`/create/remix/${t.contractAddress}/${t.tokenId}`) : undefined}
                     onList={isOwner ? (t: ApiToken) => setListTarget({
@@ -536,6 +537,7 @@ export default function CreatorPageClient() {
           assetContract={offerTarget.contract}
           tokenId={offerTarget.tokenId}
           tokenName={offerTarget.name}
+          tokenImage={offerTarget.image}
         />
       )}
       {listTarget && (

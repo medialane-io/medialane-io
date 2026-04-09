@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import Image from "next/image";
 import { CheckCircle2, AlertCircle, HandCoins, ExternalLink, Loader2, LogIn, ArrowLeft, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { fireConfetti } from "@/lib/confetti";
@@ -53,6 +54,7 @@ interface OfferDialogProps {
   assetContract: string;
   tokenId: string;
   tokenName?: string;
+  tokenImage?: string;
 }
 
 export function OfferDialog({
@@ -61,6 +63,7 @@ export function OfferDialog({
   assetContract,
   tokenId,
   tokenName,
+  tokenImage,
 }: OfferDialogProps) {
   const { isSignedIn } = useAuth();
   const {
@@ -276,7 +279,13 @@ export function OfferDialog({
           ) : step === "pin" ? (
             <div className="space-y-4">
               <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                <Badge variant="outline" className="font-mono">#{tokenId}</Badge>
+                {tokenImage ? (
+                  <div className="relative h-10 w-10 rounded-lg overflow-hidden shrink-0 ring-1 ring-border">
+                    <Image src={tokenImage} alt={tokenName || `#${tokenId}`} fill className="object-cover" unoptimized />
+                  </div>
+                ) : (
+                  <Badge variant="outline" className="font-mono shrink-0">#{tokenId}</Badge>
+                )}
                 <span className="text-sm font-medium truncate">
                   {pendingValues?.price} {pendingValues?.currency} · {tokenName || `Token #${tokenId}`}
                 </span>
@@ -320,7 +329,13 @@ export function OfferDialog({
           ) : (
             <div className="space-y-4">
               <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                <Badge variant="outline" className="font-mono">#{tokenId}</Badge>
+                {tokenImage ? (
+                  <div className="relative h-10 w-10 rounded-lg overflow-hidden shrink-0 ring-1 ring-border">
+                    <Image src={tokenImage} alt={tokenName || `#${tokenId}`} fill className="object-cover" unoptimized />
+                  </div>
+                ) : (
+                  <Badge variant="outline" className="font-mono shrink-0">#{tokenId}</Badge>
+                )}
                 <span className="text-sm font-medium truncate">{tokenName || `Token #${tokenId}`}</span>
               </div>
 
@@ -415,10 +430,16 @@ export function OfferDialog({
                     </Alert>
                   )}
 
-                  <Button type="submit" className="w-full h-11" disabled={isProcessing}>
-                    <HandCoins className="h-4 w-4 mr-2" />
-                    {hasWallet ? "Submit offer" : "Secure account & offer"}
-                  </Button>
+                  <div className={`btn-border-animated p-[1px] rounded-xl ${isProcessing ? "opacity-50 pointer-events-none" : ""}`}>
+                    <button
+                      type="submit"
+                      disabled={isProcessing}
+                      className="w-full h-11 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-background/30"
+                    >
+                      <HandCoins className="h-4 w-4" />
+                      {hasWallet ? "Submit offer" : "Secure account & offer"}
+                    </button>
+                  </div>
                   <p className="text-[10px] text-center text-muted-foreground">
                     Your offer will be pushed onchain. Transaction sponsored by Medialane.
                   </p>

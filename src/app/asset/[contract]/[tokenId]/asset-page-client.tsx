@@ -1085,6 +1085,7 @@ export default function AssetPageClient() {
         assetContract={contract}
         tokenId={tokenId}
         tokenName={name}
+        tokenImage={imageUrl ?? undefined}
       />
 
       <PinDialog
