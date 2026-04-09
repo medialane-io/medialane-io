@@ -4,28 +4,13 @@ const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
   // X-XSS-Protection removed — deprecated in all modern browsers and actively
-  // harmful in some older IE versions. CSP below is the correct replacement.
+  // harmful in some older IE versions. CSP is the correct replacement but requires
+  // mapping all Clerk/ChipiPay domains first — deferred until domains are confirmed.
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
   {
     key: "Strict-Transport-Security",
     value: "max-age=63072000; includeSubDomains; preload",
-  },
-  {
-    // Starter CSP — progressively tighten by removing unsafe-* directives after
-    // verifying no violations in the browser console (DevTools → Console → CSP).
-    // unsafe-inline/eval are required for Clerk and ChipiPay SDK scripts for now.
-    key: "Content-Security-Policy",
-    value: [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.com https://*.clerk.accounts.dev https://*.chipi.io",
-      "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https:",
-      "connect-src 'self' https: wss:",
-      "font-src 'self' data:",
-      "frame-src https://*.clerk.com https://*.clerk.accounts.dev",
-      "frame-ancestors 'none'",
-    ].join("; "),
   },
 ];
 
