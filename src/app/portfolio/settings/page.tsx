@@ -157,7 +157,18 @@ export default function ProfileSettingsPage() {
     try {
       const token = await getToken();
       if (!token) throw new Error("Not authenticated");
-      const result = await getMedialaneClient().api.updateCreatorProfile(walletAddress, form, token) as any;
+      // Backend Zod schema rejects empty strings for URL fields — send null to clear them
+      const payload = {
+        displayName: form.displayName || null,
+        bio: form.bio || null,
+        avatarImage: form.avatarImage || null,
+        bannerImage: form.bannerImage || null,
+        websiteUrl: form.websiteUrl || null,
+        twitterUrl: form.twitterUrl || null,
+        discordUrl: form.discordUrl || null,
+        telegramUrl: form.telegramUrl || null,
+      };
+      const result = await getMedialaneClient().api.updateCreatorProfile(walletAddress, payload, token) as any;
       if (!result?.walletAddress) {
         throw new Error(result?.error ?? "Save failed — please try again");
       }
