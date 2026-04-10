@@ -45,7 +45,7 @@ export default function DocsProtocolPage() {
               },
               {
                 name: "Collection Registry Contract",
-                address: "0x05e73b7be06d82beeb390a0e0d655f2c9e7cf519658e04f05d9c690ccc41da03",
+                address: "0x05c49ee5d3208a2c2e150fdd0c247d1195ed9ab54fa2d5dea7a633f39e4b205b",
                 desc: "Factory for deploying IP NFT collections. Assigns a unique onchain collection ID to every deployed collection.",
               },
               {
