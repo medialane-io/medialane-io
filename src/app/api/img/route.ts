@@ -1,5 +1,4 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 
 const ALLOWED_CONTENT_TYPES = new Set([
   "image/jpeg",
@@ -22,9 +21,9 @@ const ALLOWED_CONTENT_TYPES = new Set([
  *  - Vercel image optimizer quota (/_next/image 402 errors on free plan)
  *
  * Security:
- *  - Requires an active Clerk session (prevents open relay abuse).
  *  - Blocks private/link-local hostnames to prevent SSRF against internal services.
  *  - Only returns responses with image content-types.
+ *  - Public route — images must be accessible to unauthenticated users on public pages.
  *
  * Cached aggressively at the CDN layer — repeat requests for the same URL
  * are served from edge cache without invoking the function.
@@ -47,12 +46,6 @@ function isPrivateHost(hostname: string): boolean {
 }
 
 export async function GET(req: NextRequest) {
-  // Require an active Clerk session — prevents using this endpoint as an open HTTP relay.
-  const { userId } = await auth();
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   const raw = req.nextUrl.searchParams.get("url");
 
   if (!raw) {
