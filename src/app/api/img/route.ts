@@ -77,7 +77,10 @@ export async function GET(req: NextRequest) {
   let upstream: Response;
   try {
     upstream = await fetch(parsed.toString(), {
-      next: { revalidate: 3600 },
+      cache: "no-store",
+      headers: {
+        "User-Agent": "Mozilla/5.0 (compatible; Medialane/1.0; +https://www.medialane.io)",
+      },
     });
   } catch {
     return NextResponse.json({ error: "Failed to fetch image" }, { status: 502 });
