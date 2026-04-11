@@ -59,12 +59,6 @@ function EventCard({ claimed = false }: { claimed?: boolean }) {
           />
         )}
 
-        {claimed && (
-          <div className="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-full bg-black/60 backdrop-blur-sm px-3 py-1.5 border border-emerald-500/40">
-            <CheckCircle2 className="h-3 w-3 text-emerald-400" />
-            <span className="text-[11px] font-bold text-emerald-300">Participação confirmada</span>
-          </div>
-        )}
       </div>
     </div>
   );
