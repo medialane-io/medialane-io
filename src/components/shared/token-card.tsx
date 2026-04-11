@@ -246,11 +246,20 @@ export function TokenCard({
               </button>
             </>
           ) : !isOwner ? (
-            /* Unlisted non-owner → View as primary, Make offer in dropdown */
-            <Link href={assetHref} className={cn(BTN_OUTLINE, "flex-1")}>
-              <ArrowUpRight className="h-3.5 w-3.5 shrink-0" />
-              View
-            </Link>
+            /* Unlisted non-owner → View (primary) + Make offer icon */
+            <>
+              <Link href={assetHref} className={cn(BTN_OUTLINE, "flex-1")}>
+                <ArrowUpRight className="h-3.5 w-3.5 shrink-0" />
+                View
+              </Link>
+              <button
+                className={cn(BTN_OUTLINE, "w-8 shrink-0 text-brand-orange border-brand-orange/40 hover:bg-brand-orange/10")}
+                onClick={handleOffer}
+                aria-label="Make an offer"
+              >
+                <HandCoins className="h-3.5 w-3.5" />
+              </button>
+            </>
           ) : activeOrder && onCancel ? (
             <button
               className={cn(BTN_SOLID, "flex-1 bg-brand-rose")}
