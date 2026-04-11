@@ -246,13 +246,11 @@ export function TokenCard({
               </button>
             </>
           ) : !isOwner ? (
-            <button
-              className={cn(BTN_SOLID, "flex-1 bg-brand-orange")}
-              onClick={handleOffer}
-            >
-              <HandCoins className="h-3.5 w-3.5 shrink-0" />
-              Make offer
-            </button>
+            /* Unlisted non-owner → View as primary, Make offer in dropdown */
+            <Link href={assetHref} className={cn(BTN_OUTLINE, "flex-1")}>
+              <ArrowUpRight className="h-3.5 w-3.5 shrink-0" />
+              View
+            </Link>
           ) : activeOrder && onCancel ? (
             <button
               className={cn(BTN_SOLID, "flex-1 bg-brand-rose")}
