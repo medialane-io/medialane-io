@@ -186,14 +186,15 @@ export function TokenCard({
               <p className="text-[10px] text-muted-foreground truncate">
                 by <span className="font-mono">{creatorShort}</span>
               </p>
-            ) : (
-              <p className="text-[10px] text-muted-foreground tabular-nums">
-                #{token.tokenId}
-                {token.metadata?.ipType && (
-                  <span className="ml-1 opacity-60">· {token.metadata.ipType}</span>
-                )}
+            ) : token.metadata?.description ? (
+              <p className="text-[10px] text-muted-foreground truncate leading-snug">
+                {token.metadata.description}
               </p>
-            )}
+            ) : token.metadata?.ipType ? (
+              <p className="text-[10px] text-muted-foreground opacity-70">
+                {token.metadata.ipType}
+              </p>
+            ) : null}
           </Link>
         </div>
 
@@ -208,7 +209,12 @@ export function TokenCard({
         */}
         <div className="flex items-center gap-1.5 px-2 pb-2">
 
-          {/* PRIMARY CTA */}
+          {/* PRIMARY CTA
+              - Non-owner + listed   → Buy (animated border)
+              - Non-owner + unlisted → View (outline) — offer is in overflow
+              - Owner + listed       → Cancel (rose)
+              - Owner + unlisted     → List for sale (blue)
+          */}
           {!isOwner && activeOrder && showBuyButton ? (
             /* Animated gradient border wrap */
             <div className="btn-border-animated p-[1.5px] rounded-[12px] flex-1 h-8">
@@ -225,13 +231,10 @@ export function TokenCard({
               </button>
             </div>
           ) : !isOwner ? (
-            <button
-              className={cn(BTN_SOLID, "flex-1 bg-brand-orange")}
-              onClick={handleOffer}
-            >
-              <HandCoins className="h-3.5 w-3.5 shrink-0" />
-              Make offer
-            </button>
+            <Link href={assetHref} className={cn(BTN_OUTLINE, "flex-1")}>
+              <ArrowUpRight className="h-3.5 w-3.5 shrink-0" />
+              View
+            </Link>
           ) : activeOrder && onCancel ? (
             <button
               className={cn(BTN_SOLID, "flex-1 bg-brand-rose")}
