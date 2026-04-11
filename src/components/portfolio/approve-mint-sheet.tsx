@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -199,84 +199,93 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
 
   return (
     <>
-      <Sheet open={open} onOpenChange={handleOpenChange}>
-        <SheetContent side="bottom" className="h-[90dvh] overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle className="flex items-center gap-2">
-              <GitBranch className="h-4 w-4 text-primary" />
-              Approve Remix
-            </SheetTitle>
-          </SheetHeader>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent className="w-full max-w-sm p-0 overflow-hidden gap-0 flex flex-col max-h-[90svh]">
 
-          {done ? (
-            <div className="flex flex-col items-center gap-4 py-12 text-center">
-              <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-                <Check className="h-8 w-8 text-primary" />
-              </div>
-              <p className="text-lg font-semibold">Remix minted!</p>
-              <p className="text-sm text-muted-foreground">The buyer will see "Complete Purchase" in their portfolio.</p>
-              {newAssetLink && (
-                <Button variant="outline" size="sm" asChild>
-                  <a href={newAssetLink}>View new asset</a>
-                </Button>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-5 pt-4">
-              {offer && (
-                <div className="rounded-xl border border-border bg-muted/30 p-3 text-sm space-y-1">
-                  <p><span className="text-muted-foreground">Token</span> #{offer.originalTokenId}</p>
-                  <p><span className="text-muted-foreground">License</span> {offer.licenseType}</p>
-                  <p><span className="text-muted-foreground">Price</span> {priceDisplay}</p>
-                  {offer.message && <p className="text-muted-foreground italic">"{offer.message}"</p>}
+          {/* Header */}
+          <div className="flex items-center gap-2 pr-10 pl-5 py-4 border-b border-border/60">
+            <GitBranch className="h-4 w-4 text-primary shrink-0" />
+            <DialogTitle className="text-base font-bold">Approve Remix</DialogTitle>
+          </div>
+
+          {/* Body */}
+          <div className="flex-1 overflow-y-auto px-5 py-4">
+            {done ? (
+              <div className="flex flex-col items-center gap-4 py-8 text-center">
+                <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Check className="h-8 w-8 text-primary" />
                 </div>
-              )}
-
-              <div className="space-y-1.5">
-                <Label>Remix Name</Label>
-                <Input
-                  placeholder={effectiveName}
-                  value={remixName}
-                  onChange={(e) => setRemixName(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label>Mint into collection</Label>
-                {eligibleCollections.length === 0 ? (
-                  <p className="text-xs text-destructive">No eligible collections.</p>
-                ) : (
-                  <Select
-                    value={effectiveCollectionId ?? ""}
-                    onValueChange={setSelectedCollectionId}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select collection" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {eligibleCollections.map((c) => (
-                        <SelectItem key={c.collectionId!} value={c.collectionId!}>
-                          {c.name ?? c.contractAddress.slice(0, 14) + "…"}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <p className="text-lg font-semibold">Remix minted!</p>
+                <p className="text-sm text-muted-foreground">The buyer will see "Complete Purchase" in their portfolio.</p>
+                {newAssetLink && (
+                  <Button variant="outline" size="sm" asChild>
+                    <a href={newAssetLink}>View new asset</a>
+                  </Button>
                 )}
               </div>
+            ) : (
+              <div className="space-y-5">
+                {offer && (
+                  <div className="rounded-xl border border-border bg-muted/30 p-3 text-sm space-y-1">
+                    <p><span className="text-muted-foreground">Token</span> #{offer.originalTokenId}</p>
+                    <p><span className="text-muted-foreground">License</span> {offer.licenseType}</p>
+                    <p><span className="text-muted-foreground">Price</span> {priceDisplay}</p>
+                    {offer.message && <p className="text-muted-foreground italic">"{offer.message}"</p>}
+                  </div>
+                )}
 
-              <Button
-                className="w-full"
+                <div className="space-y-1.5">
+                  <Label>Remix Name</Label>
+                  <Input
+                    placeholder={effectiveName}
+                    value={remixName}
+                    onChange={(e) => setRemixName(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label>Mint into collection</Label>
+                  {eligibleCollections.length === 0 ? (
+                    <p className="text-xs text-destructive">No eligible collections.</p>
+                  ) : (
+                    <Select
+                      value={effectiveCollectionId ?? ""}
+                      onValueChange={setSelectedCollectionId}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select collection" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {eligibleCollections.map((c) => (
+                          <SelectItem key={c.collectionId!} value={c.collectionId!}>
+                            {c.name ?? c.contractAddress.slice(0, 14) + "…"}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          {!done && (
+            <div className="px-5 pt-3 pb-5 border-t border-border/60 space-y-3">
+              <button
+                className="w-full h-11 rounded-[11px] bg-brand-purple text-white text-sm font-semibold flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
                 onClick={handleApprove}
                 disabled={loading || eligibleCollections.length === 0}
               >
-                {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <GitBranch className="h-4 w-4 mr-2" />}
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <GitBranch className="h-4 w-4" />}
                 Mint & List for Buyer
-              </Button>
-              <p className="text-xs text-center text-muted-foreground">Two ChipiPay operations (mint + listing). Gas is free.</p>
+              </button>
+              <p className="text-[10px] text-center text-muted-foreground">Two ChipiPay operations (mint + listing). Gas is free.</p>
             </div>
           )}
-        </SheetContent>
-      </Sheet>
+
+        </DialogContent>
+      </Dialog>
 
       <PinDialog
         open={pinOpen}

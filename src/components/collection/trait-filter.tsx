@@ -2,9 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { SlidersHorizontal, X, ChevronDown, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import type { ApiToken } from "@medialane/sdk";
 
@@ -122,28 +121,29 @@ export function TraitFilter({ tokens, selected, onChange }: TraitFilterProps) {
       </div>
 
       {/* Filter panel */}
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="right" className="w-72 p-0 flex flex-col">
-          <SheetHeader className="px-5 py-4 border-b border-border shrink-0">
-            <div className="flex items-center justify-between">
-              <SheetTitle className="text-sm font-semibold">
-                Filters
-                {activeCount > 0 && (
-                  <Badge variant="secondary" className="ml-2 text-[11px] font-medium">
-                    {activeCount} active
-                  </Badge>
-                )}
-              </SheetTitle>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="w-full max-w-sm p-0 overflow-hidden gap-0 flex flex-col max-h-[85svh]">
+
+          {/* Header */}
+          <div className="flex items-center justify-between pr-10 pl-5 py-4 border-b border-border/60 shrink-0">
+            <DialogTitle className="text-base font-bold flex items-center gap-2">
+              <SlidersHorizontal className="h-4 w-4" />
+              Filters
               {activeCount > 0 && (
-                <button
-                  onClick={clearAll}
-                  className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline transition-colors"
-                >
-                  Clear all
-                </button>
+                <Badge variant="secondary" className="text-[11px] font-medium">
+                  {activeCount} active
+                </Badge>
               )}
-            </div>
-          </SheetHeader>
+            </DialogTitle>
+            {activeCount > 0 && (
+              <button
+                onClick={clearAll}
+                className="text-[11px] text-muted-foreground hover:text-foreground underline-offset-2 hover:underline transition-colors"
+              >
+                Clear all
+              </button>
+            )}
+          </div>
 
           {/* Trait sections */}
           <div className="flex-1 overflow-y-auto">
@@ -196,7 +196,6 @@ export function TraitFilter({ tokens, selected, onChange }: TraitFilterProps) {
                             }`}
                           >
                             <div className="flex items-center gap-2.5 min-w-0">
-                              {/* Radio indicator */}
                               <span
                                 className={`h-4 w-4 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors ${
                                   isSelected
@@ -226,19 +225,19 @@ export function TraitFilter({ tokens, selected, onChange }: TraitFilterProps) {
           </div>
 
           {/* Footer */}
-          <div className="px-5 py-4 border-t border-border shrink-0">
-            <Button
-              className="w-full"
-              size="sm"
+          <div className="px-5 pt-3 pb-5 border-t border-border/60 shrink-0">
+            <button
+              className="w-full h-11 rounded-[11px] bg-brand-purple text-white text-sm font-semibold flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.98] transition-all"
               onClick={() => setOpen(false)}
             >
               {activeCount > 0
                 ? `Show results (${activeCount} filter${activeCount > 1 ? "s" : ""})`
                 : "Close"}
-            </Button>
+            </button>
           </div>
-        </SheetContent>
-      </Sheet>
+
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

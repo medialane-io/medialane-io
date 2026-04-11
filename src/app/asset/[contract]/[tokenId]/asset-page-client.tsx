@@ -32,9 +32,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import type { ApiActivity, ApiOrder } from "@medialane/sdk";
 import { PriceHistoryChart } from "@/components/asset/price-history-chart";
 import { CommentsSection } from "@/components/asset/comments-section";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useComments } from "@/hooks/use-comments";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { EXPLORER_URL } from "@/lib/constants";
 import { useAuth, SignInButton } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
@@ -99,7 +97,6 @@ export default function AssetPageClient() {
   const [reportOpen, setReportOpen] = useState(false);
   const [commentOpen, setCommentOpen] = useState(false);
 
-  const isMobile = useIsMobile();
   const { comments, total: commentTotal } = useComments(contract, tokenId);
   const { total: remixCount } = useTokenRemixes(contract, tokenId);
 
@@ -1071,37 +1068,44 @@ export default function AssetPageClient() {
 
       <FloatingCommentsButton onClick={() => setCommentOpen(true)} commentTotal={commentTotal} />
 
-      {/* Comments Sheet — bottom drawer on mobile, right panel on desktop */}
-      <Sheet open={commentOpen} onOpenChange={setCommentOpen}>
-        <SheetContent
-          side={isMobile ? "bottom" : "right"}
-          className="h-[85svh] sm:h-full sm:max-w-md p-0 flex flex-col"
-          overlayClassName="bg-background/10 backdrop-blur-[48px] backdrop-saturate-[150%] backdrop-brightness-75"
-        >
-          <SheetHeader className="px-4 pt-4 pb-3 shrink-0 border-b border-brand-blue/20" style={{ background: "linear-gradient(135deg, hsl(var(--brand-blue) / 0.10), hsl(var(--brand-purple) / 0.08))" }}>
-            <SheetTitle className="flex items-center gap-3 text-sm font-semibold">
-              {/* Asset avatar */}
-              <div className="relative h-9 w-9 rounded-full overflow-hidden shrink-0 ring-2 ring-white/20" style={{ background: "linear-gradient(135deg, hsl(var(--brand-blue) / 0.3), hsl(var(--brand-purple) / 0.3))" }}>
-                {imageUrl && (
-                  <Image src={imageUrl} alt={name} fill className="object-cover" unoptimized />
-                )}
-              </div>
-              <div className="min-w-0">
-                <p className="text-[10px] font-medium uppercase tracking-wider" style={{ color: "hsl(var(--brand-blue))" }}>Comments</p>
-                <p className="text-sm font-semibold truncate text-foreground">{name}</p>
-              </div>
-              {commentTotal > 0 && (
-                <span className="ml-auto shrink-0 text-xs font-bold rounded-full px-2 py-0.5 text-white" style={{ background: "hsl(var(--brand-blue))" }}>
-                  {commentTotal}
-                </span>
+      {/* Comments Dialog — centered panel with blurred backdrop */}
+      <Dialog open={commentOpen} onOpenChange={setCommentOpen}>
+        <DialogContent className="w-full max-w-md p-0 overflow-hidden gap-0 flex flex-col max-h-[85svh]">
+          {/* Header */}
+          <div
+            className="flex items-center gap-3 pr-10 pl-4 pt-4 pb-3 shrink-0 border-b border-brand-blue/20"
+            style={{ background: "linear-gradient(135deg, hsl(var(--brand-blue) / 0.10), hsl(var(--brand-purple) / 0.08))" }}
+          >
+            {/* Asset avatar */}
+            <div
+              className="relative h-9 w-9 rounded-full overflow-hidden shrink-0 ring-2 ring-white/20"
+              style={{ background: "linear-gradient(135deg, hsl(var(--brand-blue) / 0.3), hsl(var(--brand-purple) / 0.3))" }}
+            >
+              {imageUrl && (
+                <Image src={imageUrl} alt={name} fill className="object-cover" unoptimized />
               )}
-            </SheetTitle>
-          </SheetHeader>
+            </div>
+            <div className="min-w-0 flex-1">
+              <DialogTitle asChild>
+                <p className="text-[10px] font-medium uppercase tracking-wider" style={{ color: "hsl(var(--brand-blue))" }}>Comments</p>
+              </DialogTitle>
+              <p className="text-sm font-semibold truncate text-foreground">{name}</p>
+            </div>
+            {commentTotal > 0 && (
+              <span
+                className="shrink-0 text-xs font-bold rounded-full px-2 py-0.5 text-white"
+                style={{ background: "hsl(var(--brand-blue))" }}
+              >
+                {commentTotal}
+              </span>
+            )}
+          </div>
+          {/* Body */}
           <div className="flex-1 overflow-hidden">
             <CommentsSection contract={contract} tokenId={tokenId} className="h-full rounded-none border-0" />
           </div>
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
 
       {/* Dialogs */}
       {purchaseOrder && (
