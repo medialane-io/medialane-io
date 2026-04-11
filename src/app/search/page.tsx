@@ -10,46 +10,53 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { MotionCard } from "@/components/ui/motion-primitives";
 import { ipfsToHttp } from "@/lib/utils";
-import { Search, Layers, ImageIcon, Users, AtSign, X } from "lucide-react";
+import { Search, Layers, ImageIcon, Users, AtSign, X, ArrowUpRight } from "lucide-react";
 import type { ApiSearchResult, ApiSearchCreatorResult } from "@medialane/sdk";
 
 function TokenCard({ token }: { token: NonNullable<ApiSearchResult["tokens"]>[number] }) {
   const [imgError, setImgError] = useState(false);
   const image = token.image ? ipfsToHttp(token.image) : null;
+  const name = token.name ?? `Token #${token.tokenId}`;
+  const href = `/asset/${token.contractAddress}/${token.tokenId}`;
 
   return (
-    <MotionCard className="card-base">
-    <Link
-      href={`/asset/${token.contractAddress}/${token.tokenId}`}
-      className="group block"
-    >
-      <div className="relative aspect-square bg-gradient-to-br from-muted to-muted/50 overflow-hidden">
-        {image && !imgError ? (
-          <Image
-            src={image}
-            alt={token.name ?? `Token #${token.tokenId}`}
-            fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-            onError={() => setImgError(true)}
-          />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-purple-500/5" />
-            <span className="text-2xl font-mono text-muted-foreground z-10">
-              #{token.tokenId}
-            </span>
-          </div>
-        )}
+    <MotionCard className="card-base group relative overflow-hidden flex flex-col">
+      <Link href={href} className="block relative shrink-0">
+        <div className="relative aspect-square bg-muted overflow-hidden">
+          {image && !imgError ? (
+            <Image
+              src={image}
+              alt={name}
+              fill
+              unoptimized
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 22vw"
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              onError={() => setImgError(true)}
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-brand-purple/15 to-brand-blue/15">
+              <span className="text-2xl font-mono text-muted-foreground">#{token.tokenId}</span>
+            </div>
+          )}
+        </div>
+      </Link>
+      <div className="px-3 pt-2.5 pb-1 flex-1">
+        <Link href={href} className="block space-y-0.5 mb-2">
+          <p className="text-xl font-bold line-clamp-2 leading-tight">{name}</p>
+          <p className="text-[10px] text-muted-foreground font-mono truncate">
+            {token.contractAddress.slice(0, 14)}…
+          </p>
+        </Link>
       </div>
-      <div className="p-3">
-        <p className="font-semibold text-sm truncate">
-          {token.name ?? `Token #${token.tokenId}`}
-        </p>
-        <p className="text-xs text-muted-foreground font-mono truncate mt-0.5">
-          {token.contractAddress.slice(0, 14)}…
-        </p>
+      <div className="flex items-center gap-1.5 px-2 pb-2">
+        <Link
+          href={href}
+          className="h-8 rounded-[11px] flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold border border-border/60 text-foreground hover:bg-muted/60 transition-all active:scale-[0.98]"
+        >
+          <ArrowUpRight className="h-3.5 w-3.5 shrink-0" />
+          View
+        </Link>
       </div>
-    </Link>
     </MotionCard>
   );
 }

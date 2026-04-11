@@ -30,7 +30,7 @@ import { TransferDialog } from "@/components/marketplace/transfer-dialog";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useMarketplace } from "@/hooks/use-marketplace";
-import type { ApiToken } from "@medialane/sdk";
+import type { ApiToken, ApiOrder } from "@medialane/sdk";
 
 const PAGE_SIZE = 24;
 
@@ -70,11 +70,20 @@ function parsePriceDisplay(raw: string | null | undefined): { numStr: string; sy
   return { numStr: clean || "—", symbol: sym };
 }
 
-function CollectionItems({ contract }: { contract: string }) {
+function CollectionItems({ contract, activeListings }: { contract: string; activeListings: ApiOrder[] }) {
   const [page, setPage] = useState(1);
   const [allTokens, setAllTokens] = useState<ApiToken[]>([]);
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string>>({});
   const { tokens, meta, isLoading, mutate } = useCollectionTokens(contract, page, PAGE_SIZE);
+
+  // Build tokenId → listing map so Items tab can show Buy buttons for listed tokens
+  const listingByTokenId = useMemo(() => {
+    const map = new Map<string, ApiOrder>();
+    for (const o of activeListings) {
+      if (o.nftTokenId) map.set(o.nftTokenId, o);
+    }
+    return map;
+  }, [activeListings]);
 
   // Ownership + dialogs — same pattern as portfolio/assets-grid
   const { walletAddress } = useSessionKey();
@@ -108,10 +117,20 @@ function CollectionItems({ contract }: { contract: string }) {
     }
   }, [tokens, page]);
 
+  // Enrich tokens with listing data so listed items show Buy button
+  const enrichedTokens = useMemo(() => {
+    if (listingByTokenId.size === 0) return allTokens;
+    return allTokens.map((t) => {
+      const listing = listingByTokenId.get(t.tokenId);
+      if (!listing || (t.activeOrders?.length ?? 0) > 0) return t;
+      return { ...t, activeOrders: [listing] };
+    });
+  }, [allTokens, listingByTokenId]);
+
   const filteredTokens = useMemo(() => {
     const filterEntries = Object.entries(selectedFilters);
-    if (filterEntries.length === 0) return allTokens;
-    return allTokens.filter((token) => {
+    if (filterEntries.length === 0) return enrichedTokens;
+    return enrichedTokens.filter((token) => {
       const attrs = Array.isArray(token.metadata?.attributes)
         ? (token.metadata.attributes as { trait_type?: string; value?: string }[])
         : [];
@@ -119,7 +138,7 @@ function CollectionItems({ contract }: { contract: string }) {
         attrs.some((a) => a.trait_type === traitType && String(a.value) === value)
       );
     });
-  }, [allTokens, selectedFilters]);
+  }, [enrichedTokens, selectedFilters]);
 
   const rarityMap = useMemo(() => computeRarity(allTokens), [allTokens]);
   const hasMore = meta ? allTokens.length < meta.total! : false;
@@ -461,7 +480,7 @@ export default function CollectionPageClient() {
           </div>
 
           <TabsContent value="items" className="mt-4">
-            <CollectionItems contract={contract} />
+            <CollectionItems contract={contract} activeListings={activeListings} />
           </TabsContent>
 
           <TabsContent value="listings" className="mt-4">
