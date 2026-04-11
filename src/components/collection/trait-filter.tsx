@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { SlidersHorizontal, X, ChevronDown, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
