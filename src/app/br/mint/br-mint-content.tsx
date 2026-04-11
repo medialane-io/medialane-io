@@ -431,8 +431,8 @@ export function BrMintContent() {
                     </span>
                   </h1>
                   <p className="text-[15px] text-muted-foreground leading-relaxed">
-                    Publique fotos, vídeos e músicas e receba por isso. Concorra a{" "}
-                    <strong className="text-foreground font-semibold">R$10 mil em prêmios</strong> — acesso completamente grátis.
+                    Concorra a{" "}
+                    <strong className="text-foreground font-semibold">R$10 mil em prêmios</strong> criando sua conta grátis.
                   </p>
                 </div>
 
