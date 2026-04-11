@@ -210,31 +210,49 @@ export function TokenCard({
         <div className="flex items-center gap-1.5 px-2 pb-2">
 
           {/* PRIMARY CTA
-              - Non-owner + listed   → Buy (animated border)
-              - Non-owner + unlisted → View (outline) — offer is in overflow
-              - Owner + listed       → Cancel (rose)
-              - Owner + unlisted     → List for sale (blue)
+              Non-owner + listed   → Buy (animated) + cart icon
+              Non-owner + unlisted → Make offer (orange)
+              Owner + listed       → Cancel (rose)
+              Owner + unlisted     → List for sale (blue)
+              Fallback             → View (outline)
           */}
           {!isOwner && activeOrder && showBuyButton ? (
-            /* Animated gradient border wrap */
-            <div className="btn-border-animated p-[1.5px] rounded-[12px] flex-1 h-8">
+            <>
+              {/* Animated gradient border Buy */}
+              <div className="btn-border-animated p-[1.5px] rounded-[12px] flex-1 h-8">
+                <button
+                  className="w-full h-full rounded-[11px] bg-background flex items-center justify-center gap-1.5 text-xs font-semibold text-foreground hover:bg-muted/60 transition-all active:scale-[0.98]"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (onBuy) onBuy(token); else router.push(assetHref);
+                  }}
+                >
+                  <Zap className="h-3.5 w-3.5 shrink-0" />
+                  Buy
+                </button>
+              </div>
+              {/* Cart icon button */}
               <button
-                className="w-full h-full rounded-[11px] bg-background flex items-center justify-center gap-1.5 text-xs font-semibold text-foreground hover:bg-muted/60 transition-all active:scale-[0.98]"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  if (onBuy) onBuy(token); else router.push(assetHref);
-                }}
+                className={cn(
+                  BTN_OUTLINE, "w-8 shrink-0",
+                  inCart && "border-brand-orange/50 bg-brand-orange/10 text-brand-orange"
+                )}
+                onClick={handleAddToCart}
+                disabled={inCart}
+                aria-label={inCart ? "In cart" : "Add to cart"}
               >
-                <Zap className="h-3.5 w-3.5 shrink-0" />
-                Buy
+                {inCart ? <Check className="h-3.5 w-3.5" /> : <ShoppingCart className="h-3.5 w-3.5" />}
               </button>
-            </div>
+            </>
           ) : !isOwner ? (
-            <Link href={assetHref} className={cn(BTN_OUTLINE, "flex-1")}>
-              <ArrowUpRight className="h-3.5 w-3.5 shrink-0" />
-              View
-            </Link>
+            <button
+              className={cn(BTN_SOLID, "flex-1 bg-brand-orange")}
+              onClick={handleOffer}
+            >
+              <HandCoins className="h-3.5 w-3.5 shrink-0" />
+              Make offer
+            </button>
           ) : activeOrder && onCancel ? (
             <button
               className={cn(BTN_SOLID, "flex-1 bg-brand-rose")}
