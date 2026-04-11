@@ -53,7 +53,7 @@ function EventCard({ claimed = false }: { claimed?: boolean }) {
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={src}
-            alt="Brinde exclusivo do evento Medialane Brasil"
+            alt="NFT exclusivo do evento Medialane Brasil"
             className="w-full aspect-square object-cover"
             onError={() => setErrored(true)}
           />
@@ -67,7 +67,7 @@ function EventCard({ claimed = false }: { claimed?: boolean }) {
 // ─── Benefits ────────────────────────────────────────────────────────────────
 
 const BENEFITS = [
-  { icon: Coins,  label: "R$10 mil em prêmios", sub: "Sorteios e airdrop exclusivo" },
+  { icon: Coins,  label: "R$10 mil em prêmios", sub: "Sorteios e airdrop de prêmios" },
   { icon: Camera, label: "Publique e ganhe",     sub: "Fotos, vídeos, músicas e mais" },
   { icon: Gift,   label: "Acesso grátis",        sub: "Sem CPF, cartão ou aprovação" },
   { icon: Users,  label: "Acesso com Google",  sub: "Cadastro grátis em segundos" },
@@ -349,8 +349,8 @@ export function BrMintContent() {
       if (!tokenUri) {
         setMintStatusMsg("Registrando brinde…");
         const form = new FormData();
-        form.append("name", "Medialane Brasil — Evento Exclusivo");
-        form.append("description", "Brinde exclusivo do evento Medialane no Brasil. Passaporte para o airdrop de prêmios.");
+        form.append("name", "Lançamento Medialane no Brasil");
+        form.append("description", "Registre-se e participe do airdrop de prêmios.");
         form.append("external_url", "https://medialane.io/br/mint");
         const res = await fetch("/api/pinata", { method: "POST", body: form });
         const data = await res.json();
@@ -423,7 +423,7 @@ export function BrMintContent() {
             {isLoaded && !isSignedIn && !walletJustCreated && (
               <div className="space-y-6">
                 <div className="space-y-3">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-primary/60">Evento exclusivo · Brasil 2026</p>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-primary/60">Lançamento Medialane</p>
                   <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-[1.05]">
                     Airdrop de{" "}
                     <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
@@ -515,8 +515,8 @@ export function BrMintContent() {
                       </p>
                     </div>
                     <div className="rounded-xl bg-muted/30 px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-                      <span className="text-muted-foreground">Brinde</span>
-                      <span className="font-medium">Exclusivo Brasil</span>
+                      <span className="text-muted-foreground">NFT</span>
+                      <span className="font-medium">Exclusivo</span>
                       <span className="text-muted-foreground">Valor</span>
                       <span className="font-medium text-emerald-600 dark:text-emerald-400">Grátis</span>
                       <span className="text-muted-foreground">Taxas</span>
