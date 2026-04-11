@@ -502,7 +502,7 @@ export function BrMintContent() {
                         disabled={!BR_MINT_CONTRACT}
                       >
                         <Sparkles className="h-4 w-4" />
-                        {BR_MINT_CONTRACT ? "Criar certificado de participação" : "Certificado não disponível"}
+                        {BR_MINT_CONTRACT ? "Gerar meu certificado de participação" : "Certificado não disponível"}
                         {BR_MINT_CONTRACT && <ArrowRight className="h-4 w-4 ml-auto" />}
                       </Button>
                       <p className="text-xs text-center text-muted-foreground">
