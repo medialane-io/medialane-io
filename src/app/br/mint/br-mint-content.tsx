@@ -222,9 +222,9 @@ function WalletSetup({
           </span>
         </h2>
         <p className="text-sm text-muted-foreground leading-relaxed mt-2">
-          {passkeySupported && step === "choose"
-            ? "Escolha como proteger sua conta — biometria (Face ID / digital) ou código de 6 dígitos."
-            : "Crie um código de segurança de 6 dígitos. Você vai usá-lo para confirmar sua participação."}
+          {step === "pin"
+            ? "Crie um código de segurança de 6 dígitos. Você vai usá-lo para confirmar sua participação."
+            : "Complete seu registro configurando seu passkey ou pin (senha numérica)."}
         </p>
       </div>
 
@@ -248,13 +248,27 @@ function WalletSetup({
           </Button>
           <Button
             size="lg"
-            variant="ghost"
-            className="w-full rounded-xl text-sm text-muted-foreground hover:text-foreground"
+            className="w-full rounded-xl h-12 font-bold gap-2 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 shadow-lg shadow-primary/25"
             onClick={() => setStep("pin")}
+            disabled={isSubmitting}
           >
-            Usar código de 6 dígitos
+            <KeyRound className="h-4 w-4" />
+            Criar senha PIN (6 dígitos)
           </Button>
         </div>
+      )}
+
+      {/* PIN-only devices (no passkey support) */}
+      {step === "choose" && !passkeySupported && (
+        <Button
+          size="lg"
+          className="w-full rounded-xl h-12 font-bold gap-2 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 shadow-lg shadow-primary/25"
+          onClick={() => setStep("pin")}
+          disabled={isSubmitting}
+        >
+          <KeyRound className="h-4 w-4" />
+          Criar senha PIN (6 dígitos)
+        </Button>
       )}
 
       {step === "pin" && (
@@ -292,7 +306,9 @@ function WalletSetup({
         </div>
       )}
 
-      <p className="text-xs text-center text-muted-foreground">Menos de 1 minuto · Gratuito · Sem taxa</p>
+      <p className="text-xs text-center text-muted-foreground">
+        Seu passkey ou pin é utilizado para garantir sua segurança e não será compartilhado.
+      </p>
     </div>
   );
 }
