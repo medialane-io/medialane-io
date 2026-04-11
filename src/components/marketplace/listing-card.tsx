@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MotionCard } from "@/components/ui/motion-primitives";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ShoppingCart, Check, MoreHorizontal, ExternalLink, Layers, ArrowRightLeft, Flag, GitBranch, HandCoins, ArrowUpRight } from "lucide-react";
+import { ShoppingCart, Check, MoreHorizontal, Layers, ArrowRightLeft, Flag, GitBranch, HandCoins, ArrowUpRight, Zap, UserCircle2 } from "lucide-react";
+import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { cn, ipfsToHttp, formatDisplayPrice, timeAgo } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
 import { ReportDialog } from "@/components/report-dialog";
@@ -142,8 +143,8 @@ export function ListingCard({ order, onBuy, compact = false }: ListingCardProps)
                     className="w-full h-full rounded-[9px] bg-background flex items-center justify-center gap-1.5 text-xs font-semibold text-foreground hover:bg-muted/60 transition-all active:scale-[0.98]"
                     onClick={(e) => { e.preventDefault(); onBuy(order); }}
                   >
-                    <ShoppingCart className="h-3.5 w-3.5 shrink-0" />
-                    Buy Now
+                    <Zap className="h-3.5 w-3.5 shrink-0" />
+                    Buy
                   </button>
                 </div>
               )}
@@ -192,8 +193,12 @@ export function ListingCard({ order, onBuy, compact = false }: ListingCardProps)
                       className="flex items-center gap-2 text-brand-blue focus:text-brand-blue"
                       onClick={(e) => { e.preventDefault(); onBuy(order); }}
                     >
-                      <ShoppingCart className="h-3.5 w-3.5" />
-                      Buy — {formatDisplayPrice(order.price.formatted)} {order.price.currency}
+                      <Zap className="h-3.5 w-3.5" />
+                      <span className="flex items-center gap-1">
+                        Buy —
+                        <CurrencyIcon symbol={order.price.currency} size={12} />
+                        {formatDisplayPrice(order.price.formatted)}
+                      </span>
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuItem
@@ -229,6 +234,14 @@ export function ListingCard({ order, onBuy, compact = false }: ListingCardProps)
                       View collection
                     </Link>
                   </DropdownMenuItem>
+                  {order.offerer && (
+                    <DropdownMenuItem asChild>
+                      <Link href={`/account/${order.offerer}`} className="flex items-center gap-2">
+                        <UserCircle2 className="h-3.5 w-3.5 text-muted-foreground" />
+                        View owner
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem asChild>
                     <Link href={`/asset/${order.nftContract}/${order.nftTokenId}`} className="flex items-center gap-2">
                       <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground" />

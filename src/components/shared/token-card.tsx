@@ -14,10 +14,10 @@ import {
 import {
   ShoppingCart, Tag, ArrowRightLeft, X, Loader2, HandCoins,
   GitBranch, Check, MoreHorizontal, Layers, Flag, ArrowUpRight,
-  UserCircle2, ExternalLink,
+  UserCircle2, Zap,
 } from "lucide-react";
+import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { cn, ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
-import { EXPLORER_URL } from "@/lib/constants";
 import { useCart } from "@/hooks/use-cart";
 import { ReportDialog } from "@/components/report-dialog";
 import type { RarityTier } from "@/lib/rarity";
@@ -84,7 +84,7 @@ export function TokenCard({
     : null;
   // Current holder: use first balance entry if available, fall back to legacy owner field
   const currentOwner = token.balances?.[0]?.owner ?? token.owner ?? null;
-  const onchainAccountHref = currentOwner ? `${EXPLORER_URL}/contract/${currentOwner}` : null;
+  const ownerAccountHref = currentOwner ? `/account/${currentOwner}` : null;
 
   const handleAddToCart = (e?: React.MouseEvent) => {
     e?.preventDefault();
@@ -220,8 +220,8 @@ export function TokenCard({
                   if (onBuy) onBuy(token); else router.push(assetHref);
                 }}
               >
-                <ShoppingCart className="h-3.5 w-3.5 shrink-0" />
-                Buy now
+                <Zap className="h-3.5 w-3.5 shrink-0" />
+                Buy
               </button>
             </div>
           ) : !isOwner ? (
@@ -288,8 +288,12 @@ export function TokenCard({
                       className="flex items-center gap-2 text-brand-blue focus:text-brand-blue"
                       onClick={() => { if (onBuy) onBuy(token); else router.push(assetHref); }}
                     >
-                      <ShoppingCart className="h-3.5 w-3.5" />
-                      Buy — {formatDisplayPrice(activeOrder.price.formatted)} {activeOrder.price.currency}
+                      <Zap className="h-3.5 w-3.5" />
+                      <span className="flex items-center gap-1">
+                        Buy —
+                        <CurrencyIcon symbol={activeOrder.price.currency} size={12} />
+                        {formatDisplayPrice(activeOrder.price.formatted)}
+                      </span>
                     </DropdownMenuItem>
                   )}
                   {activeOrder && (
@@ -371,12 +375,12 @@ export function TokenCard({
                   View collection
                 </Link>
               </DropdownMenuItem>
-              {onchainAccountHref && (
+              {ownerAccountHref && (
                 <DropdownMenuItem asChild>
-                  <a href={onchainAccountHref} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
-                    <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+                  <Link href={ownerAccountHref} className="flex items-center gap-2">
+                    <UserCircle2 className="h-3.5 w-3.5 text-muted-foreground" />
                     View owner
-                  </a>
+                  </Link>
                 </DropdownMenuItem>
               )}
 
