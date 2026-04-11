@@ -261,21 +261,43 @@ export function TokenCard({
               </button>
             </>
           ) : activeOrder && onCancel ? (
-            <button
-              className={cn(BTN_SOLID, "flex-1 bg-brand-rose")}
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onCancel(token); }}
-            >
-              <X className="h-3.5 w-3.5 shrink-0" />
-              Cancel listing
-            </button>
+            <>
+              <button
+                className={cn(BTN_SOLID, "flex-1 bg-brand-rose")}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onCancel(token); }}
+              >
+                <X className="h-3.5 w-3.5 shrink-0" />
+                Cancel listing
+              </button>
+              {onTransfer && (
+                <button
+                  className={cn(BTN_OUTLINE, "w-8 shrink-0")}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onTransfer(token); }}
+                  aria-label="Transfer"
+                >
+                  <ArrowRightLeft className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </>
           ) : onList ? (
-            <button
-              className={cn(BTN_SOLID, "flex-1 bg-brand-blue")}
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onList(token); }}
-            >
-              <Tag className="h-3.5 w-3.5 shrink-0" />
-              List for sale
-            </button>
+            <>
+              <button
+                className={cn(BTN_SOLID, "flex-1 bg-brand-blue")}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onList(token); }}
+              >
+                <Tag className="h-3.5 w-3.5 shrink-0" />
+                List for sale
+              </button>
+              {onTransfer && (
+                <button
+                  className={cn(BTN_OUTLINE, "w-8 shrink-0")}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onTransfer(token); }}
+                  aria-label="Transfer"
+                >
+                  <ArrowRightLeft className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </>
           ) : (
             <Link href={assetHref} className={cn(BTN_OUTLINE, "flex-1")}>
               <ArrowUpRight className="h-3.5 w-3.5 shrink-0" />
