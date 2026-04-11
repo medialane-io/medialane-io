@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { CheckCircle2, Loader2, Settings2 } from "lucide-react";
 import { HelpIcon } from "@/components/ui/help-icon";
 import { MotionCard } from "@/components/ui/motion-primitives";
 import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
@@ -12,9 +12,11 @@ import type { ApiCollection } from "@medialane/sdk";
 
 interface CollectionCardProps {
   collection: ApiCollection;
+  /** When provided, renders a settings gear icon linking to this path (portfolio use) */
+  settingsHref?: string;
 }
 
-export function CollectionCard({ collection }: CollectionCardProps) {
+export function CollectionCard({ collection, settingsHref }: CollectionCardProps) {
   const [imgError, setImgError] = useState(false);
   const imageUrl = collection.image ? ipfsToHttp(collection.image) : null;
   const showImage = imageUrl && !imgError;
@@ -23,6 +25,17 @@ export function CollectionCard({ collection }: CollectionCardProps) {
 
   return (
     <MotionCard className="card-base group">
+      {/* Settings gear — absolute top-right, only in portfolio */}
+      {settingsHref && (
+        <Link
+          href={settingsHref}
+          onClick={(e) => e.stopPropagation()}
+          className="absolute top-2 right-2 z-10 h-7 w-7 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white/70 hover:text-white hover:bg-black/60 transition-colors"
+          aria-label="Collection settings"
+        >
+          <Settings2 className="h-3.5 w-3.5" />
+        </Link>
+      )}
       <Link href={`/collections/${collection.contractAddress}`} className="block relative h-full">
         {/* Image area */}
         <div className="relative aspect-[3/4] w-full overflow-hidden bg-muted">

@@ -32,8 +32,9 @@ const RARITY_STYLE: Record<RarityTier, { label: string; className: string } | nu
   common:    null,
 };
 
-// Matches asset-page button style exactly
-const BTN_BASE = "h-8 rounded-[11px] flex items-center justify-center gap-1.5 text-xs font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] shadow-none border-0";
+const BTN_BASE = "h-8 rounded-[11px] flex items-center justify-center gap-1.5 text-xs font-semibold transition-all active:scale-[0.98] shadow-none border-0";
+const BTN_SOLID = cn(BTN_BASE, "text-white hover:brightness-110");
+const BTN_OUTLINE = cn(BTN_BASE, "border border-border/60 text-foreground hover:bg-muted/60");
 
 interface TokenCardProps {
   token: ApiToken;
@@ -128,7 +129,7 @@ export function TokenCard({
                 fill
                 unoptimized
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 22vw"
-                className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                className="object-cover transition-transform duration-500 group-hover:scale-105"
                 onError={() => setImgError(true)}
               />
             ) : (
@@ -198,31 +199,34 @@ export function TokenCard({
 
         {/* ── Action row ────────────────────────────────────────────── */}
         {/*
-          Two-element row: [PRIMARY full-width CTA] [⋯ overflow]
-          All secondary actions live in the overflow — no ambiguous icon buttons.
-          - Non-owner + listed   → Buy now (blue)
-          - Non-owner + unlisted → Make offer (purple)
+          [PRIMARY full-width CTA] [⋯ overflow]
+          - Non-owner + listed   → Buy now (animated border)
+          - Non-owner + unlisted → Make offer (orange)
           - Owner + listed       → Cancel listing (rose)
-          - Owner + unlisted     → List for sale (orange)
+          - Owner + unlisted     → List for sale (blue)
+          - Fallback             → View (outline)
         */}
         <div className="flex items-center gap-1.5 px-2 pb-2">
 
           {/* PRIMARY CTA */}
           {!isOwner && activeOrder && showBuyButton ? (
-            <button
-              className={cn(BTN_BASE, "flex-1 bg-brand-blue")}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                if (onBuy) onBuy(token); else router.push(assetHref);
-              }}
-            >
-              <ShoppingCart className="h-3.5 w-3.5 shrink-0" />
-              Buy now
-            </button>
+            /* Animated gradient border wrap */
+            <div className="btn-border-animated p-[1.5px] rounded-[12px] flex-1 h-8">
+              <button
+                className="w-full h-full rounded-[11px] bg-background flex items-center justify-center gap-1.5 text-xs font-semibold text-foreground hover:bg-muted/60 transition-all active:scale-[0.98]"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (onBuy) onBuy(token); else router.push(assetHref);
+                }}
+              >
+                <ShoppingCart className="h-3.5 w-3.5 shrink-0" />
+                Buy now
+              </button>
+            </div>
           ) : !isOwner ? (
             <button
-              className={cn(BTN_BASE, "flex-1 bg-brand-purple")}
+              className={cn(BTN_SOLID, "flex-1 bg-brand-orange")}
               onClick={handleOffer}
             >
               <HandCoins className="h-3.5 w-3.5 shrink-0" />
@@ -230,7 +234,7 @@ export function TokenCard({
             </button>
           ) : activeOrder && onCancel ? (
             <button
-              className={cn(BTN_BASE, "flex-1 bg-brand-rose")}
+              className={cn(BTN_SOLID, "flex-1 bg-brand-rose")}
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); onCancel(token); }}
             >
               <X className="h-3.5 w-3.5 shrink-0" />
@@ -238,14 +242,14 @@ export function TokenCard({
             </button>
           ) : onList ? (
             <button
-              className={cn(BTN_BASE, "flex-1 bg-brand-orange")}
+              className={cn(BTN_SOLID, "flex-1 bg-brand-blue")}
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); onList(token); }}
             >
               <Tag className="h-3.5 w-3.5 shrink-0" />
               List for sale
             </button>
           ) : (
-            <Link href={assetHref} className={cn(BTN_BASE, "flex-1 bg-brand-blue")}>
+            <Link href={assetHref} className={cn(BTN_OUTLINE, "flex-1")}>
               <ArrowUpRight className="h-3.5 w-3.5 shrink-0" />
               View
             </Link>
@@ -274,11 +278,11 @@ export function TokenCard({
                 </Link>
               </DropdownMenuItem>
 
-              {/* Non-owner actions */}
+              <DropdownMenuSeparator />
+
+              {/* Non-owner market actions */}
               {!isOwner && (
                 <>
-                  <DropdownMenuSeparator />
-
                   {activeOrder && showBuyButton && (
                     <DropdownMenuItem
                       className="flex items-center gap-2 text-brand-blue focus:text-brand-blue"
@@ -288,7 +292,6 @@ export function TokenCard({
                       Buy — {formatDisplayPrice(activeOrder.price.formatted)} {activeOrder.price.currency}
                     </DropdownMenuItem>
                   )}
-
                   {activeOrder && (
                     <DropdownMenuItem
                       className="flex items-center gap-2"
@@ -301,17 +304,15 @@ export function TokenCard({
                       {inCart ? "In cart" : "Add to cart"}
                     </DropdownMenuItem>
                   )}
-
                   <DropdownMenuItem
-                    className="flex items-center gap-2 text-brand-purple focus:text-brand-purple"
+                    className="flex items-center gap-2 text-brand-orange focus:text-brand-orange"
                     onClick={handleOffer}
                   >
                     <HandCoins className="h-3.5 w-3.5" />
                     Make an offer
                   </DropdownMenuItem>
-
                   <DropdownMenuItem
-                    className="flex items-center gap-2 text-brand-rose focus:text-brand-rose"
+                    className="flex items-center gap-2 text-brand-purple focus:text-brand-purple"
                     onClick={handleRemix}
                   >
                     <GitBranch className="h-3.5 w-3.5" />
@@ -323,9 +324,11 @@ export function TokenCard({
               {/* Owner actions */}
               {isOwner && (
                 <>
-                  <DropdownMenuSeparator />
                   {!activeOrder && onList && (
-                    <DropdownMenuItem className="flex items-center gap-2 text-brand-orange focus:text-brand-orange" onClick={() => onList(token)}>
+                    <DropdownMenuItem
+                      className="flex items-center gap-2 text-brand-blue focus:text-brand-blue"
+                      onClick={() => onList(token)}
+                    >
                       <Tag className="h-3.5 w-3.5" />
                       List for sale
                     </DropdownMenuItem>
@@ -340,7 +343,10 @@ export function TokenCard({
                     </DropdownMenuItem>
                   )}
                   {onTransfer && (
-                    <DropdownMenuItem className="flex items-center gap-2" onClick={() => onTransfer(token)}>
+                    <DropdownMenuItem
+                      className="flex items-center gap-2"
+                      onClick={() => onTransfer(token)}
+                    >
                       <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground" />
                       Transfer
                     </DropdownMenuItem>
@@ -350,7 +356,7 @@ export function TokenCard({
 
               <DropdownMenuSeparator />
 
-              {/* Creator */}
+              {/* Navigation */}
               {creatorHref && (
                 <DropdownMenuItem asChild>
                   <Link href={creatorHref} className="flex items-center gap-2">
@@ -359,16 +365,12 @@ export function TokenCard({
                   </Link>
                 </DropdownMenuItem>
               )}
-
-              {/* Collection */}
               <DropdownMenuItem asChild>
                 <Link href={collectionHref} className="flex items-center gap-2">
                   <Layers className="h-3.5 w-3.5 text-muted-foreground" />
                   View collection
                 </Link>
               </DropdownMenuItem>
-
-              {/* Owner on explorer */}
               {onchainAccountHref && (
                 <DropdownMenuItem asChild>
                   <a href={onchainAccountHref} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
