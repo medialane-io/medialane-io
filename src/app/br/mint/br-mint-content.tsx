@@ -345,7 +345,11 @@ export function BrMintContent() {
       if (!walletAddress) throw new Error("Conta não encontrada. Tente novamente.");
       if (!BR_MINT_CONTRACT) throw new Error("Distribuição não iniciada ainda.");
 
-      let tokenUri = BR_NFT_URI;
+      let tokenUri = BR_NFT_URI
+        ? BR_NFT_URI.startsWith("ipfs://") || BR_NFT_URI.startsWith("ar://")
+          ? BR_NFT_URI
+          : `ipfs://${BR_NFT_URI}`
+        : "";
       if (!tokenUri) {
         setMintStatusMsg("Registrando brinde…");
         const form = new FormData();
