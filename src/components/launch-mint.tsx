@@ -129,8 +129,12 @@ export function LaunchMint() {
       if (!recipientAddress) throw new Error("Wallet address not found.");
       if (!LAUNCH_MINT_CONTRACT) throw new Error("Mint contract not configured.");
 
-      // Resolve token URI
-      let tokenUri = GENESIS_NFT_URI;
+      // Resolve token URI — normalize bare CIDs to ipfs:// scheme
+      let tokenUri = GENESIS_NFT_URI
+        ? GENESIS_NFT_URI.startsWith("ipfs://") || GENESIS_NFT_URI.startsWith("ar://")
+          ? GENESIS_NFT_URI
+          : `ipfs://${GENESIS_NFT_URI}`
+        : "";
       if (!tokenUri) {
         setMintStatusMsg("Uploading NFT metadata…");
         const form = new FormData();
