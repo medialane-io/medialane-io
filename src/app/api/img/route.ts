@@ -34,14 +34,15 @@ const ALLOWED_CONTENT_TYPES = new Set([
  * that should never be reachable from a public proxy.
  */
 function isPrivateHost(hostname: string): boolean {
-  const h = hostname.toLowerCase();
+  // Strip IPv6 brackets for uniform matching
+  const h = hostname.toLowerCase().replace(/^\[|\]$/g, "");
   if (h === "localhost" || h === "127.0.0.1" || h === "0.0.0.0") return true;
-  if (/^\[?::1\]?$/.test(h)) return true;
+  if (/^::1$/.test(h) || /^::ffff:127\./i.test(h)) return true; // loopback + IPv4-mapped loopback
   if (/^10\./.test(h)) return true;
   if (/^172\.(1[6-9]|2\d|3[01])\./.test(h)) return true;
   if (/^192\.168\./.test(h)) return true;
   if (/^169\.254\./.test(h)) return true; // AWS metadata endpoint
-  if (/^\[?fe80:/i.test(h)) return true;  // IPv6 link-local
+  if (/^(fe80|fc00|fd[0-9a-f]{2}):/i.test(h)) return true; // IPv6 link-local + ULA (full fc00::/7 range)
   return false;
 }
 
