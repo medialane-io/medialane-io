@@ -7,6 +7,7 @@ const config = {
     "./src/components/**/*.{ts,tsx}",
     "./src/app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}",
+    "./node_modules/@medialane/ui/dist/**/*.js",
   ],
   prefix: "",
   theme: {

@@ -15,6 +15,7 @@
     "@clerk/nextjs": "^6",
     "@hookform/resolvers": "^3",
     "@medialane/sdk": "^0.6.7",
+    "@medialane/ui": "file:../medialane-ui",
     "@radix-ui/react-accordion": "latest",
     "@radix-ui/react-alert-dialog": "latest",
     "@radix-ui/react-avatar": "^1.1.11",
