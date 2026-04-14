@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { IP_TYPE_CONFIG } from "@/lib/ip-type-config";
+import { IP_TYPE_CONFIG } from "@medialane/ui";
 import { cn } from "@/lib/utils";
 
 export function IpTypeNav() {

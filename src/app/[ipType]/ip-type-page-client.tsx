@@ -13,7 +13,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useTokensByIpType } from "@/hooks/use-tokens-by-ip-type";
-import { IP_TYPE_MAP, IP_TYPE_CONFIG } from "@/lib/ip-type-config";
+import { IP_TYPE_MAP, IP_TYPE_CONFIG } from "@medialane/ui";
 import { cn, ipfsToHttp } from "@/lib/utils";
 import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
 import { OfferDialog } from "@/components/marketplace/offer-dialog";

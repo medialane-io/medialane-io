@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { IP_TYPE_CONFIG } from "@/lib/ip-type-config";
+import { IP_TYPE_DATA } from "@medialane/ui";
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://medialane.io";
 const BACKEND_URL =
@@ -35,7 +35,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   // IP type browse pages
-  const ipTypeRoutes: MetadataRoute.Sitemap = IP_TYPE_CONFIG.map(({ slug }) => ({
+  const ipTypeRoutes: MetadataRoute.Sitemap = IP_TYPE_DATA.map(({ slug }) => ({
     url: `${BASE_URL}/${slug}`,
     changeFrequency: "daily" as const,
     priority: 0.7,

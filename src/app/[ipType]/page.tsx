@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { IP_TYPE_MAP } from "@/lib/ip-type-config";
+import { IP_TYPE_DATA_MAP } from "@medialane/ui";
 import { IpTypePageClient } from "./ip-type-page-client";
 
 interface Props {
@@ -9,7 +9,7 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { ipType } = await params;
-  const config = IP_TYPE_MAP[ipType];
+  const config = IP_TYPE_DATA_MAP[ipType];
   if (!config) return {};
   const title = `${config.label} Assets`;
   const description = `Browse all ${config.label} IP assets indexed on Medialane — Creator Launchpad + NFT Marketplace.`;
@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function IpTypePage({ params }: Props) {
   const { ipType } = await params;
-  const config = IP_TYPE_MAP[ipType];
+  const config = IP_TYPE_DATA_MAP[ipType];
   if (!config) notFound();
 
   return <IpTypePageClient slug={ipType} />;
