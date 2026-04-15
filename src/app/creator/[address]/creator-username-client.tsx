@@ -9,7 +9,7 @@ import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { useUserOrders } from "@/hooks/use-orders";
 import { useActivitiesByAddress } from "@/hooks/use-activities";
 import { useDominantColor } from "@/hooks/use-dominant-color";
-import { CollectionCarouselRow } from "@/components/creator/collection-carousel-row";
+import { CreatorCollectionGrid } from "@/components/creator/creator-collection-grid";
 import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listing-card";
 import { CreatorAnalytics } from "@/components/creator/creator-analytics";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,7 @@ import {
   TrendingUp, Sparkles, LayoutGrid,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { ApiCollection, ApiActivity } from "@medialane/sdk";
+import type { ApiActivity } from "@medialane/sdk";
 
 interface Props {
   username: string;
@@ -198,19 +198,22 @@ export default function CreatorUsernamePageClient({ username }: Props) {
       )}
 
       {/* ── Cinematic hero ─────────────────────────────────────────────── */}
-      <div className="relative w-full h-[40vw] min-h-[240px] max-h-[420px] overflow-hidden bg-muted">
+      <div className="relative w-full h-64 sm:h-96 overflow-hidden bg-muted">
         {heroImage ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={heroImage} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover" />
+          <img
+            src={heroImage}
+            alt=""
+            aria-hidden
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{ filter: "brightness(0.72) saturate(1.3)" }}
+          />
         ) : (
           <div
             className="absolute inset-0"
             style={{ background: `linear-gradient(135deg, hsl(${h1},55%,30%) 0%, hsl(${h2},50%,22%) 50%, hsl(${h3},45%,25%) 100%)` }}
           />
         )}
-        {/* Multi-layer cinematic overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-background/40 via-transparent to-transparent" />
 
         {/* Full profile link — top right */}
         {creator.walletAddress && (
@@ -225,66 +228,74 @@ export default function CreatorUsernamePageClient({ username }: Props) {
         )}
       </div>
 
-      {/* ── Identity (overlaps banner bottom edge) ──────────────────────── */}
-      <div className="px-6 -mt-16 relative z-10 pb-1">
-        <div className="flex items-end gap-4 mb-3">
+      {/* ── Identity card — overlaps hero ───────────────────────────────── */}
+      <div className="px-6 -mt-20 sm:-mt-24 relative z-10">
+        <div className="flex flex-col sm:flex-row sm:items-end gap-4 mb-4">
           {/* Avatar */}
           <div
-            className="rounded-full shrink-0 ring-[3px] ring-background overflow-hidden flex items-center justify-center text-white font-bold"
+            className="rounded-full shrink-0 ring-4 ring-background overflow-hidden flex items-center justify-center text-white font-bold"
             style={{
-              width: 72, height: 72,
+              width: 88, height: 88,
               background: showAvatar ? "transparent" : `linear-gradient(145deg, hsl(${h1},72%,60%), hsl(${h2},72%,50%))`,
-              fontSize: 72 * 0.33,
-              boxShadow: `0 0 0 2px ${dynamicPrimary}55, 0 8px 24px rgba(0,0,0,0.3)`,
+              fontSize: 88 * 0.33,
+              boxShadow: `0 0 0 2px ${dynamicPrimary}55, 0 8px 32px rgba(0,0,0,0.35)`,
             }}
           >
             {showAvatar ? (
-              <NextImage src={avatarRaw!} alt={displayName} width={72} height={72}
+              <NextImage src={avatarRaw!} alt={displayName} width={88} height={88}
                 className="w-full h-full object-cover" unoptimized onError={() => setAvatarErr(true)} />
             ) : (
               displayName.charAt(0).toUpperCase()
             )}
           </div>
 
-          {/* Name + handle */}
-          <div className="flex-1 min-w-0 pb-1">
-            <div className="flex items-center gap-1.5 text-muted-foreground text-xs font-medium mb-0.5">
-              <AtSign className="h-3 w-3" />{creator.username}
+          {/* Name + handle + stats */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <AtSign className="h-3 w-3 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground font-medium">{creator.username}</span>
+              {/* Dynamic "Creator" pill */}
+              <span
+                className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider"
+                style={{ background: `${dynamicPrimary}22`, color: dynamicPrimary }}
+              >
+                Creator
+              </span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold truncate leading-tight">{displayName}</h1>
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight leading-tight truncate">{displayName}</h1>
+            {/* Stat chips */}
+            <div className="flex items-center gap-3 mt-2 flex-wrap">
+              {!colsLoading && (
+                <div className="flex flex-col items-center leading-none">
+                  <span className="text-base font-black tabular-nums">{collections.length}</span>
+                  <span className="text-[10px] text-muted-foreground mt-0.5">Collections</span>
+                </div>
+              )}
+              {activeListings.length > 0 && (
+                <div className="flex flex-col items-center leading-none">
+                  <span className="text-base font-black tabular-nums">{activeListings.length}</span>
+                  <span className="text-[10px] text-muted-foreground mt-0.5">Listed</span>
+                </div>
+              )}
+              {/* Socials */}
+              {(creator.websiteUrl || creator.twitterUrl || creator.discordUrl || creator.telegramUrl) && (
+                <div className="flex items-center gap-2 sm:ml-4">
+                  {creator.websiteUrl && <a href={creator.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors"><Globe className="h-4 w-4" /></a>}
+                  {creator.twitterUrl && <a href={creator.twitterUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors"><Twitter className="h-4 w-4" /></a>}
+                  {creator.discordUrl && <a href={creator.discordUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors"><MessageCircle className="h-4 w-4" /></a>}
+                  {creator.telegramUrl && <a href={creator.telegramUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors"><Send className="h-4 w-4" /></a>}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Bio */}
         {creator.bio && (
-          <p className="text-sm text-muted-foreground leading-relaxed max-w-xl line-clamp-2 mb-3">
+          <p className="text-sm text-muted-foreground leading-relaxed max-w-xl line-clamp-2 mb-2">
             {creator.bio}
           </p>
         )}
-
-        {/* Stats + socials row */}
-        <div className="flex items-center gap-3 flex-wrap">
-          {!colsLoading && collections.length > 0 && (
-            <span className="text-sm">
-              <span className="font-bold tabular-nums">{collections.length}</span>
-              <span className="text-muted-foreground ml-1">Collections</span>
-            </span>
-          )}
-          {activeListings.length > 0 && (
-            <span className="text-sm">
-              <span className="font-bold tabular-nums">{activeListings.length}</span>
-              <span className="text-muted-foreground ml-1">Listed</span>
-            </span>
-          )}
-          {(creator.websiteUrl || creator.twitterUrl || creator.discordUrl || creator.telegramUrl) && (
-            <div className="flex items-center gap-2 ml-auto">
-              {creator.websiteUrl && <a href={creator.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors"><Globe className="h-4 w-4" /></a>}
-              {creator.twitterUrl && <a href={creator.twitterUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors"><Twitter className="h-4 w-4" /></a>}
-              {creator.discordUrl && <a href={creator.discordUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors"><MessageCircle className="h-4 w-4" /></a>}
-              {creator.telegramUrl && <a href={creator.telegramUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors"><Send className="h-4 w-4" /></a>}
-            </div>
-          )}
-        </div>
       </div>
 
       {/* ── Tab navigation (sticky, right below identity) ────────────────── */}
@@ -331,20 +342,9 @@ export default function CreatorUsernamePageClient({ username }: Props) {
       {/* ── Tab content ─────────────────────────────────────────────────── */}
       <div className="px-6 mt-6">
 
-        {/* Collections — carousel rows */}
+        {/* Collections — grid */}
         {activeTab === "collections" && (
-          colsLoading ? (
-            <div className="space-y-8">
-              {Array.from({ length: 2 }).map((_, i) => (
-                <div key={i} className="space-y-3">
-                  <Skeleton className="h-4 w-40" />
-                  <div className="flex gap-3">
-                    {Array.from({ length: 4 }).map((_, j) => <Skeleton key={j} className="shrink-0 w-48 aspect-square rounded-xl" />)}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : collections.length === 0 ? (
+          collections.length === 0 && !colsLoading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
               <div className="h-14 w-14 rounded-2xl border border-border/60 bg-muted/40 flex items-center justify-center">
                 <LayoutGrid className="h-6 w-6 text-muted-foreground/60" />
@@ -355,11 +355,7 @@ export default function CreatorUsernamePageClient({ username }: Props) {
               </div>
             </div>
           ) : (
-            <div className="space-y-10">
-              {collections.map((col: ApiCollection) => (
-                <CollectionCarouselRow key={col.contractAddress} collection={col} dynamicPrimary={dynamicPrimary} />
-              ))}
-            </div>
+            <CreatorCollectionGrid collections={collections} isLoading={colsLoading} />
           )
         )}
 

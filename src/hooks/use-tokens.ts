@@ -23,7 +23,7 @@ export function useTokensByOwner(address: string | null, page = 1, limit = 20) {
   const client = useMedialaneClient();
 
   const { data, error, isLoading, mutate } = useSWR(
-    address ? `tokens-owned-${address}-${page}` : null,
+    address ? `tokens-owned-${address}-${page}-${limit}` : null,
     () => client.api.getTokensByOwner(address!, page, limit),
     { revalidateOnFocus: false, refreshInterval: 12000, revalidateOnMount: true }
   );
