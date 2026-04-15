@@ -5,7 +5,6 @@ import Link from "next/link";
 import { LayoutGrid, ChevronRight } from "lucide-react";
 import { MotionCard } from "@/components/ui/motion-primitives";
 import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
-import { CollectionCard, CollectionCardSkeleton } from "@/components/shared/collection-card";
 import { useCollectionTokens } from "@/hooks/use-collections";
 import type { ApiCollection } from "@medialane/sdk";
 
@@ -29,11 +28,7 @@ function ViewAllCard({ href }: { href: string }) {
   );
 }
 
-export function CollectionCarouselRow({
-  collection,
-}: {
-  collection: ApiCollection;
-}) {
+export function CollectionCarouselRow({ collection }: { collection: ApiCollection }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
   const startX = useRef(0);
@@ -82,20 +77,15 @@ export function CollectionCarouselRow({
         onMouseUp={onMouseUp}
         onMouseLeave={onMouseUp}
       >
-        {/* Collection cover — vertical aspect-[3/4] matching frontpage CollectionCard */}
-        <div className="snap-start shrink-0 w-64">
-          <CollectionCard collection={collection} />
-        </div>
-
-        {/* Token cards */}
+        {/* Token cards — uniform size, no mixed aspect ratios */}
         {isLoading
           ? Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="snap-start shrink-0 w-64">
+              <div key={i} className="snap-start shrink-0 w-56">
                 <TokenCardSkeleton />
               </div>
             ))
           : tokens.map((token) => (
-              <div key={`${token.contractAddress}-${token.tokenId}`} className="snap-start shrink-0 w-64">
+              <div key={`${token.contractAddress}-${token.tokenId}`} className="snap-start shrink-0 w-56">
                 <TokenCard token={token} showBuyButton={false} />
               </div>
             ))}

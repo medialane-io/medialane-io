@@ -4,11 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import NextImage from "next/image";
 import { useCreatorByUsername } from "@/hooks/use-username-claims";
-import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { useUserOrders } from "@/hooks/use-orders";
 import { useActivitiesByAddress } from "@/hooks/use-activities";
-import { useDominantColor } from "@/hooks/use-dominant-color";
 import { CollectionCarouselRow } from "@/components/creator/collection-carousel-row";
 import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listing-card";
 import { CreatorAnalytics } from "@/components/creator/creator-analytics";
@@ -113,29 +111,17 @@ export default function CreatorUsernamePageClient({ username }: Props) {
   const { creator, isLoading, error } = useCreatorByUsername(username);
   const walletAddress = creator?.walletAddress ? normalizeAddress(creator.walletAddress) : null;
 
-  const { tokens: bannerTokens } = useTokensByOwner(walletAddress, 1, 1);
   const { collections, isLoading: colsLoading } = useCollectionsByOwner(walletAddress);
   const { orders, isLoading: ordersLoading } = useUserOrders(activeTab === "listings" ? walletAddress : null);
   const { activities, isLoading: activitiesLoading } = useActivitiesByAddress(walletAddress);
 
   const activeListings = orders.filter((o) => o.status === "ACTIVE" && o.offer.itemType === "ERC721");
 
-  const heroRaw = creator?.bannerImage
-    ? ipfsToHttp(creator.bannerImage)
-    : creator?.avatarImage
-    ? ipfsToHttp(creator.avatarImage)
-    : bannerTokens[0]?.metadata?.image
-    ? ipfsToHttp(bannerTokens[0].metadata.image)
-    : null;
-  const heroImage = heroRaw && heroRaw !== "/placeholder.svg" ? heroRaw : null;
-
   const avatarRaw = creator?.avatarImage ? ipfsToHttp(creator.avatarImage) : null;
   const [avatarErr, setAvatarErr] = useState(false);
   const showAvatar = avatarRaw && avatarRaw !== "/placeholder.svg" && !avatarErr;
 
-  const { imgRef, dynamicTheme } = useDominantColor(heroImage);
   const { h1, h2, h3 } = addressPalette(walletAddress ?? username);
-  const dynamicPrimary = dynamicTheme ? `hsl(var(--dynamic-primary))` : `hsl(${h1}, 72%, 62%)`;
   const displayName = creator?.displayName || `@${username}`;
 
   const tabBadge: Partial<Record<TabId, number>> = {
@@ -147,11 +133,11 @@ export default function CreatorUsernamePageClient({ username }: Props) {
   if (isLoading) {
     return (
       <div className="pb-20 min-h-screen">
-        <Skeleton className="w-full h-[40vw] min-h-[240px] max-h-[420px] rounded-none" />
-        <div className="px-6 pt-5 space-y-4">
-          <div className="flex items-center gap-3">
-            <Skeleton className="h-14 w-14 rounded-full shrink-0" />
-            <div className="flex-1 space-y-2">
+        <Skeleton className="w-full h-40 rounded-none" />
+        <div className="px-6 pt-3 space-y-4">
+          <div className="flex items-center gap-3 -mt-8">
+            <Skeleton className="h-16 w-16 rounded-full shrink-0 ring-4 ring-background" />
+            <div className="flex-1 space-y-2 pt-6">
               <Skeleton className="h-5 w-40" />
               <Skeleton className="h-3.5 w-24" />
             </div>
@@ -159,12 +145,12 @@ export default function CreatorUsernamePageClient({ username }: Props) {
           <div className="flex gap-2 border-b border-border pb-3">
             {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-8 w-24 rounded-full" />)}
           </div>
-          <div className="space-y-6">
+          <div className="space-y-8">
             {Array.from({ length: 2 }).map((_, i) => (
-              <div key={i} className="space-y-2">
+              <div key={i} className="space-y-3">
                 <Skeleton className="h-4 w-36" />
                 <div className="flex gap-3">
-                  {Array.from({ length: 4 }).map((_, j) => <Skeleton key={j} className="shrink-0 w-48 aspect-square rounded-xl" />)}
+                  {Array.from({ length: 4 }).map((_, j) => <Skeleton key={j} className="shrink-0 w-56 aspect-square rounded-xl" />)}
                 </div>
               </div>
             ))}
@@ -190,32 +176,25 @@ export default function CreatorUsernamePageClient({ username }: Props) {
   }
 
   return (
-    <div className="pb-20 min-h-screen" style={dynamicTheme ? (dynamicTheme as React.CSSProperties) : {}}>
-      {/* Hidden color extractor */}
-      {heroImage && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img ref={imgRef} src={heroImage} crossOrigin="anonymous" aria-hidden alt="" style={{ display: "none" }} />
-      )}
+    <div className="pb-20 min-h-screen">
 
-      {/* ── Cinematic hero ─────────────────────────────────────────────── */}
-      <div className="relative w-full h-[40vw] min-h-[240px] max-h-[420px] overflow-hidden bg-muted">
-        {heroImage ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={heroImage} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover" />
-        ) : (
-          <div
-            className="absolute inset-0"
-            style={{ background: `linear-gradient(135deg, hsl(${h1},55%,30%) 0%, hsl(${h2},50%,22%) 50%, hsl(${h3},45%,25%) 100%)` }}
-          />
-        )}
-        {/* Multi-layer cinematic overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-background/40 via-transparent to-transparent" />
-
-        {/* Full profile link — top right */}
+      {/* ── Banner — clean address-derived gradient, no random image ───── */}
+      <div
+        className="relative w-full h-40 sm:h-52 overflow-hidden"
+        style={{
+          background: `linear-gradient(135deg, hsl(${h1},60%,22%) 0%, hsl(${h2},55%,18%) 55%, hsl(${h3},50%,20%) 100%)`,
+        }}
+      >
+        {/* Subtle radial highlight */}
+        <div
+          className="absolute inset-0"
+          style={{ background: `radial-gradient(ellipse at 20% 60%, hsl(${h1},70%,45%) 0%, transparent 55%)`, opacity: 0.25 }}
+        />
+        {/* Full profile button */}
         {creator.walletAddress && (
-          <div className="absolute top-4 right-4 z-10">
-            <Button size="sm" variant="outline" asChild className="bg-black/40 backdrop-blur-sm border-white/20 text-white hover:bg-black/60 hover:text-white">
+          <div className="absolute top-4 right-4">
+            <Button size="sm" variant="outline" asChild
+              className="bg-black/30 backdrop-blur-sm border-white/20 text-white hover:bg-black/50 hover:text-white">
               <Link href={`/account/${creator.walletAddress}`}>
                 <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
                 Full profile
@@ -225,70 +204,86 @@ export default function CreatorUsernamePageClient({ username }: Props) {
         )}
       </div>
 
-      {/* ── Identity (overlaps banner bottom edge) ──────────────────────── */}
-      <div className="px-6 -mt-16 relative z-10 pb-1">
-        <div className="flex items-end gap-4 mb-3">
-          {/* Avatar */}
-          <div
-            className="rounded-full shrink-0 ring-[3px] ring-background overflow-hidden flex items-center justify-center text-white font-bold"
-            style={{
-              width: 72, height: 72,
-              background: showAvatar ? "transparent" : `linear-gradient(145deg, hsl(${h1},72%,60%), hsl(${h2},72%,50%))`,
-              fontSize: 72 * 0.33,
-              boxShadow: `0 0 0 2px ${dynamicPrimary}55, 0 8px 24px rgba(0,0,0,0.3)`,
-            }}
-          >
-            {showAvatar ? (
-              <NextImage src={avatarRaw!} alt={displayName} width={72} height={72}
-                className="w-full h-full object-cover" unoptimized onError={() => setAvatarErr(true)} />
-            ) : (
-              displayName.charAt(0).toUpperCase()
-            )}
-          </div>
-
-          {/* Name + handle */}
-          <div className="flex-1 min-w-0 pb-1">
-            <div className="flex items-center gap-1.5 text-muted-foreground text-xs font-medium mb-0.5">
-              <AtSign className="h-3 w-3" />{creator.username}
-            </div>
-            <h1 className="text-xl sm:text-2xl font-bold truncate leading-tight">{displayName}</h1>
-          </div>
+      {/* ── Identity — avatar overlaps banner ───────────────────────────── */}
+      <div className="px-6 -mt-8 flex items-end justify-between gap-4">
+        {/* Avatar */}
+        <div
+          className="rounded-full shrink-0 ring-4 ring-background overflow-hidden flex items-center justify-center text-white font-bold"
+          style={{
+            width: 72, height: 72,
+            background: showAvatar ? "transparent" : `linear-gradient(145deg, hsl(${h1},72%,58%), hsl(${h2},68%,48%))`,
+            fontSize: 24,
+          }}
+        >
+          {showAvatar ? (
+            <NextImage src={avatarRaw!} alt={displayName} width={72} height={72}
+              className="w-full h-full object-cover" unoptimized onError={() => setAvatarErr(true)} />
+          ) : (
+            displayName.charAt(0).toUpperCase()
+          )}
         </div>
 
-        {/* Bio */}
+        {/* Socials — top-right of identity row */}
+        {(creator.websiteUrl || creator.twitterUrl || creator.discordUrl || creator.telegramUrl) && (
+          <div className="flex items-center gap-2 pb-1">
+            {creator.websiteUrl && (
+              <a href={creator.websiteUrl} target="_blank" rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-foreground transition-colors">
+                <Globe className="h-4 w-4" />
+              </a>
+            )}
+            {creator.twitterUrl && (
+              <a href={creator.twitterUrl} target="_blank" rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-foreground transition-colors">
+                <Twitter className="h-4 w-4" />
+              </a>
+            )}
+            {creator.discordUrl && (
+              <a href={creator.discordUrl} target="_blank" rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-foreground transition-colors">
+                <MessageCircle className="h-4 w-4" />
+              </a>
+            )}
+            {creator.telegramUrl && (
+              <a href={creator.telegramUrl} target="_blank" rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-foreground transition-colors">
+                <Send className="h-4 w-4" />
+              </a>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ── Name + bio + stats ───────────────────────────────────────────── */}
+      <div className="px-6 pt-3 space-y-1">
+        <h1 className="text-xl font-bold leading-tight">{displayName}</h1>
+        <p className="text-sm text-muted-foreground flex items-center gap-1">
+          <AtSign className="h-3 w-3" />{creator.username}
+        </p>
         {creator.bio && (
-          <p className="text-sm text-muted-foreground leading-relaxed max-w-xl line-clamp-2 mb-3">
+          <p className="text-sm text-muted-foreground leading-relaxed max-w-xl pt-0.5 line-clamp-2">
             {creator.bio}
           </p>
         )}
-
-        {/* Stats + socials row */}
-        <div className="flex items-center gap-3 flex-wrap">
-          {!colsLoading && collections.length > 0 && (
-            <span className="text-sm">
+        {/* Stats */}
+        <div className="flex items-center gap-4 pt-1 text-sm">
+          {!colsLoading && (
+            <span>
               <span className="font-bold tabular-nums">{collections.length}</span>
               <span className="text-muted-foreground ml-1">Collections</span>
             </span>
           )}
           {activeListings.length > 0 && (
-            <span className="text-sm">
+            <span>
               <span className="font-bold tabular-nums">{activeListings.length}</span>
               <span className="text-muted-foreground ml-1">Listed</span>
             </span>
           )}
-          {(creator.websiteUrl || creator.twitterUrl || creator.discordUrl || creator.telegramUrl) && (
-            <div className="flex items-center gap-2 ml-auto">
-              {creator.websiteUrl && <a href={creator.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors"><Globe className="h-4 w-4" /></a>}
-              {creator.twitterUrl && <a href={creator.twitterUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors"><Twitter className="h-4 w-4" /></a>}
-              {creator.discordUrl && <a href={creator.discordUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors"><MessageCircle className="h-4 w-4" /></a>}
-              {creator.telegramUrl && <a href={creator.telegramUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors"><Send className="h-4 w-4" /></a>}
-            </div>
-          )}
         </div>
       </div>
 
-      {/* ── Tab navigation (sticky, right below identity) ────────────────── */}
-      <div className="sticky top-0 z-20 px-6 bg-background/95 backdrop-blur-sm border-b border-border mt-4">
+      {/* ── Tab navigation ───────────────────────────────────────────────── */}
+      <div className="sticky top-0 z-20 px-6 bg-background/95 backdrop-blur-sm border-b border-border mt-5">
         <div className="flex items-center gap-0.5 overflow-x-auto scrollbar-none -mb-px">
           {TABS.map(({ id, label, Icon }) => {
             const count = tabBadge[id];
@@ -315,11 +310,7 @@ export default function CreatorUsernamePageClient({ username }: Props) {
                 {isActive && (
                   <span
                     className="absolute bottom-0 inset-x-0 h-0.5 rounded-full"
-                    style={{
-                      background: dynamicTheme
-                        ? `linear-gradient(90deg, hsl(var(--dynamic-primary)), hsl(var(--dynamic-accent)))`
-                        : `linear-gradient(90deg, hsl(${h1}, 68%, 62%), hsl(${h2}, 68%, 58%))`,
-                    }}
+                    style={{ background: `linear-gradient(90deg, hsl(${h1}, 68%, 62%), hsl(${h2}, 68%, 58%))` }}
                   />
                 )}
               </button>
@@ -331,7 +322,7 @@ export default function CreatorUsernamePageClient({ username }: Props) {
       {/* ── Tab content ─────────────────────────────────────────────────── */}
       <div className="px-6 mt-6">
 
-        {/* Collections — carousel rows */}
+        {/* Collections */}
         {activeTab === "collections" && (
           colsLoading ? (
             <div className="space-y-8">
@@ -339,7 +330,7 @@ export default function CreatorUsernamePageClient({ username }: Props) {
                 <div key={i} className="space-y-3">
                   <Skeleton className="h-4 w-40" />
                   <div className="flex gap-3">
-                    {Array.from({ length: 4 }).map((_, j) => <Skeleton key={j} className="shrink-0 w-48 aspect-square rounded-xl" />)}
+                    {Array.from({ length: 4 }).map((_, j) => <Skeleton key={j} className="shrink-0 w-56 aspect-square rounded-xl" />)}
                   </div>
                 </div>
               ))}
@@ -357,7 +348,7 @@ export default function CreatorUsernamePageClient({ username }: Props) {
           ) : (
             <div className="space-y-10">
               {collections.map((col: ApiCollection) => (
-                <CollectionCarouselRow key={col.contractAddress} collection={col} dynamicPrimary={dynamicPrimary} />
+                <CollectionCarouselRow key={col.contractAddress} collection={col} />
               ))}
             </div>
           )
