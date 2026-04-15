@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useUserOrders } from "@/hooks/use-orders";
 import { Button } from "@/components/ui/button";
 import { EmptyOrError } from "@/components/ui/empty-or-error";
-import { PinDialog } from "@/components/chipi/pin-dialog";
+import { CancelOrderDialog } from "@/components/marketplace/cancel-order-dialog";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { ipfsToHttp, formatDisplayPrice, cn } from "@/lib/utils";
 import { ExternalLink, HandCoins } from "lucide-react";
@@ -99,8 +99,8 @@ function OfferRow({
 
 export function OffersTable({ address }: OffersTableProps) {
   const { orders, isLoading, error, mutate } = useUserOrders(address);
-  const { cancelOrder, isProcessing } = useMarketplace();
-  const [pinOpen, setPinOpen] = useState(false);
+  const { isProcessing } = useMarketplace();
+  const [cancelOpen, setCancelOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<ApiOrder | null>(null);
 
   const myOffers = orders.filter(
@@ -120,14 +120,7 @@ export function OffersTable({ address }: OffersTableProps) {
 
   const handleCancel = (order: ApiOrder) => {
     setSelectedOrder(order);
-    setPinOpen(true);
-  };
-
-  const handlePin = async (pin: string) => {
-    setPinOpen(false);
-    if (!selectedOrder) return;
-    await cancelOrder({ orderHash: selectedOrder.orderHash, pin });
-    mutate();
+    setCancelOpen(true);
   };
 
   return (
@@ -171,12 +164,12 @@ export function OffersTable({ address }: OffersTableProps) {
         </div>
       </EmptyOrError>
 
-      <PinDialog
-        open={pinOpen}
-        onSubmit={handlePin}
-        onCancel={() => { setPinOpen(false); setSelectedOrder(null); }}
-        title="Cancel offer"
-        description={`Enter your PIN to cancel your offer on token #${selectedOrder?.nftTokenId}.`}
+      <CancelOrderDialog
+        order={selectedOrder}
+        open={cancelOpen}
+        onOpenChange={(v) => { setCancelOpen(v); if (!v) setSelectedOrder(null); }}
+        onSuccess={mutate}
+        variant="offer"
       />
     </>
   );

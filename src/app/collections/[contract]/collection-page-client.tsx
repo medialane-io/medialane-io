@@ -27,9 +27,8 @@ import { useGatedContent, type GatedContentState } from "@/hooks/use-gated-conte
 import { CollectionServiceAction } from "@/components/services/collection-service-action";
 import { ListingDialog } from "@/components/marketplace/listing-dialog";
 import { TransferDialog } from "@/components/marketplace/transfer-dialog";
-import { PinDialog } from "@/components/chipi/pin-dialog";
+import { CancelOrderDialog } from "@/components/marketplace/cancel-order-dialog";
 import { useSessionKey } from "@/hooks/use-session-key";
-import { useMarketplace } from "@/hooks/use-marketplace";
 import type { ApiToken, ApiOrder } from "@medialane/sdk";
 
 const PAGE_SIZE = 24;
@@ -87,25 +86,16 @@ function CollectionItems({ contract, activeListings }: { contract: string; activ
 
   // Ownership + dialogs — same pattern as portfolio/assets-grid
   const { walletAddress } = useSessionKey();
-  const { cancelOrder } = useMarketplace();
   const [selectedToken, setSelectedToken] = useState<ApiToken | null>(null);
   const [listOpen, setListOpen] = useState(false);
   const [transferToken, setTransferToken] = useState<ApiToken | null>(null);
   const [transferOpen, setTransferOpen] = useState(false);
   const [cancelToken, setCancelToken] = useState<ApiToken | null>(null);
-  const [cancelPinOpen, setCancelPinOpen] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
 
   const handleList = (token: ApiToken) => { setSelectedToken(token); setListOpen(true); };
   const handleTransfer = (token: ApiToken) => { setTransferToken(token); setTransferOpen(true); };
-  const handleCancelRequest = (token: ApiToken) => { setCancelToken(token); setCancelPinOpen(true); };
-  const handleCancelPin = async (pin: string) => {
-    setCancelPinOpen(false);
-    const orderHash = cancelToken?.activeOrders?.[0]?.orderHash;
-    if (!orderHash) return;
-    await cancelOrder({ orderHash, pin });
-    setCancelToken(null);
-    setPage(1); setAllTokens([]); mutate();
-  };
+  const handleCancelRequest = (token: ApiToken) => { setCancelToken(token); setCancelOpen(true); };
 
   useEffect(() => {
     if (tokens.length > 0) {
@@ -222,12 +212,12 @@ function CollectionItems({ contract, activeListings }: { contract: string; activ
           onSuccess={() => { setTransferOpen(false); setTransferToken(null); setPage(1); setAllTokens([]); mutate(); }}
         />
       )}
-      <PinDialog
-        open={cancelPinOpen}
-        title="Cancel listing"
-        description="Enter your PIN to cancel this listing."
-        onConfirm={handleCancelPin}
-        onCancel={() => { setCancelPinOpen(false); setCancelToken(null); }}
+      <CancelOrderDialog
+        order={cancelToken?.activeOrders?.[0] ?? null}
+        open={cancelOpen}
+        onOpenChange={(v) => { setCancelOpen(v); if (!v) setCancelToken(null); }}
+        onSuccess={() => { setPage(1); setAllTokens([]); mutate(); }}
+        variant="listing"
       />
     </>
   );
