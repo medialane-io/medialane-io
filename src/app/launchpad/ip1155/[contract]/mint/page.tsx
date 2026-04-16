@@ -27,10 +27,9 @@ import { useSessionKey } from "@/hooks/use-session-key";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { FadeIn } from "@/components/ui/motion-primitives";
-import { IPCollection1155ABI } from "@medialane/sdk";
+import { IPCollection1155ABI, normalizeAddress } from "@medialane/sdk";
 import { Contract } from "starknet";
 import { starknetProvider } from "@/lib/starknet";
-import { normalizeAddress } from "@medialane/sdk";
 
 const schema = z.object({
   tokenId: z
@@ -62,6 +61,7 @@ export default function MintIP1155Page() {
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
   const [done, setDone] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
+  const [ownerCheck, setOwnerCheck] = useState<"loading" | "ok" | "denied">("loading");
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -88,6 +88,23 @@ export default function MintIP1155Page() {
       form.setValue("recipient", walletAddress);
     }
   }, [walletAddress, form]);
+
+  // Verify the connected wallet is the collection owner before showing the form
+  useEffect(() => {
+    if (!walletAddress || !collectionAddress) return;
+    const OWNER_ABI = [{
+      type: "function", name: "owner",
+      inputs: [], outputs: [{ type: "core::starknet::contract_address::ContractAddress" }],
+      state_mutability: "view",
+    }];
+    const contract = new Contract(OWNER_ABI as any, collectionAddress, starknetProvider);
+    (contract as any).owner()
+      .then((raw: unknown) => {
+        const onChainOwner = normalizeAddress(String(raw));
+        setOwnerCheck(onChainOwner === normalizeAddress(walletAddress) ? "ok" : "denied");
+      })
+      .catch(() => setOwnerCheck("ok")); // If check fails, allow through — contract will enforce it
+  }, [walletAddress, collectionAddress]);
 
   const handleImageSelect = async (file: File) => {
     if (file.size > 10 * 1024 * 1024) { toast.error("Max 10 MB"); return; }
@@ -225,6 +242,22 @@ export default function MintIP1155Page() {
         <Sparkles className="h-10 w-10 text-violet-500 mx-auto" />
         <h1 className="text-2xl font-bold">Sign in to mint</h1>
         <p className="text-muted-foreground">Sign in to mint tokens into your ERC-1155 collection.</p>
+      </div>
+    );
+  }
+
+  // ── Ownership check ───────────────────────────────────────────────────────
+  if (ownerCheck === "denied") {
+    return (
+      <div className="container max-w-lg mx-auto px-4 pt-24 pb-8 text-center space-y-4">
+        <Sparkles className="h-10 w-10 text-muted-foreground mx-auto" />
+        <h1 className="text-2xl font-bold">Not the owner</h1>
+        <p className="text-muted-foreground">
+          Only the collection owner can mint tokens. Connect the wallet that deployed this collection.
+        </p>
+        <Button asChild variant="outline">
+          <Link href="/launchpad">Back to Launchpad</Link>
+        </Button>
       </div>
     );
   }

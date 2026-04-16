@@ -24,9 +24,11 @@ import { useSessionKey } from "@/hooks/use-session-key";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { FadeIn } from "@/components/ui/motion-primitives";
-import { IPCollection1155FactoryABI, ERC1155_FACTORY_CONTRACT_MAINNET } from "@medialane/sdk";
-import { Contract } from "starknet";
+import { IPCollection1155FactoryABI, ERC1155_FACTORY_CONTRACT_MAINNET, normalizeAddress } from "@medialane/sdk";
+import { Contract, hash } from "starknet";
 import { starknetProvider } from "@/lib/starknet";
+
+const COLLECTION_DEPLOYED_SELECTOR = hash.getSelectorFromName("CollectionDeployed");
 
 const FACTORY = ERC1155_FACTORY_CONTRACT_MAINNET as `0x${string}`;
 
@@ -51,6 +53,7 @@ export default function CreateIP1155CollectionPage() {
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
   const [done, setDone] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
+  const [deployedAddress, setDeployedAddress] = useState<string | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -90,6 +93,19 @@ export default function CreateIP1155CollectionPage() {
 
       if (result.status === "confirmed") {
         setTxHash(result.txHash);
+
+        // Extract deployed collection address from the CollectionDeployed event
+        try {
+          const receipt = await starknetProvider.getTransactionReceipt(result.txHash);
+          const events = (receipt as any)?.events ?? [];
+          const deployEvent = events.find((e: any) =>
+            e.keys?.[0] && BigInt(e.keys[0]) === BigInt(COLLECTION_DEPLOYED_SELECTOR)
+          );
+          if (deployEvent?.keys?.[1]) {
+            setDeployedAddress(normalizeAddress(deployEvent.keys[1]));
+          }
+        } catch { /* non-fatal — user can still navigate manually */ }
+
         setDone(true);
       } else {
         toast.error(result.revertReason ?? "Transaction reverted");
@@ -111,26 +127,32 @@ export default function CreateIP1155CollectionPage() {
         <div className="space-y-2">
           <h1 className="text-2xl font-bold">Collection deployed</h1>
           <p className="text-muted-foreground">
-            Your ERC-1155 IP collection is live on Starknet. It will appear in your portfolio
-            within a minute once indexed.
+            Your ERC-1155 IP collection is live on Starknet. You can mint tokens into it now.
           </p>
-          {txHash && (
-            <p className="text-xs text-muted-foreground break-all">
-              Tx: {txHash}
+          {deployedAddress && (
+            <p className="text-xs text-muted-foreground font-mono break-all">
+              {deployedAddress}
             </p>
           )}
         </div>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Button asChild variant="outline">
-            <Link href="/portfolio">View portfolio</Link>
-          </Button>
+          {deployedAddress ? (
+            <Button asChild className="bg-violet-600 hover:bg-violet-700 text-white">
+              <Link href={`/launchpad/ip1155/${deployedAddress}/mint`}>Mint tokens</Link>
+            </Button>
+          ) : (
+            <Button asChild variant="outline">
+              <Link href="/portfolio">View portfolio</Link>
+            </Button>
+          )}
           <Button
+            variant="outline"
             onClick={() => {
               setDone(false);
               setTxHash(null);
+              setDeployedAddress(null);
               form.reset();
             }}
-            className="bg-violet-600 hover:bg-violet-700 text-white"
           >
             Deploy another
           </Button>
