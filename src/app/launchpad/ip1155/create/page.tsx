@@ -201,6 +201,7 @@ export default function CreateIP1155CollectionPage() {
       // 2. Execute deploy_collection on the factory.
       // starknet.js 6.x encodes ByteArray as felt252 shortstring via contract.populate(),
       // producing wrong calldata. Build it manually using byteArray.byteArrayFromString().
+      // v2 factory signature: deploy_collection(name, symbol, base_uri)
       const result = await executeTransaction({
         pin,
         contractAddress: FACTORY,
@@ -210,6 +211,7 @@ export default function CreateIP1155CollectionPage() {
           calldata: [
             ...serializeByteArray(pendingValues.name),
             ...serializeByteArray(pendingValues.symbol),
+            ...serializeByteArray(collectionMetaUri ?? ""),
           ],
         }],
       });
@@ -240,18 +242,14 @@ export default function CreateIP1155CollectionPage() {
         try {
           const headers: Record<string, string> = { "Content-Type": "application/json" };
           if (MEDIALANE_API_KEY) headers["x-api-key"] = MEDIALANE_API_KEY;
-          await fetch(`${MEDIALANE_BACKEND_URL.replace(/\/$/, "")}/v1/collections`, {
+          // Register the collection so it appears in the portfolio immediately.
+          // name, symbol, and base_uri come from the on-chain event — the indexer
+          // will populate them. We only send fields not available on-chain.
+          await fetch(`${MEDIALANE_BACKEND_URL.replace(/\/$/, "")}/v1/collections/register`, {
             method: "POST",
             headers,
             body: JSON.stringify({
               contractAddress: addr,
-              name: pendingValues.name,
-              symbol: pendingValues.symbol,
-              description: pendingValues.description || undefined,
-              image: imageUri || undefined,
-              baseUri: collectionMetaUri || undefined,
-              owner: walletAddress,
-              standard: "ERC1155",
               startBlock: 0,
             }),
           });
