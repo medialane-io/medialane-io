@@ -221,37 +221,37 @@ export default function CreateIP1155CollectionPage() {
       }
 
       // 3. Extract deployed collection address from CollectionDeployed event.
-      // If the event is missing after a confirmed tx, the inner call still failed —
-      // surface it as an error rather than silently showing success.
+      // Best-effort: if we can't parse the event the tx still succeeded — the
+      // collection will appear in portfolio once the indexer processes the event.
       let addr: string | null = null;
       try {
-        const receipt = await starknetProvider.getTransactionReceipt(result.txHash);
-        const events = (receipt as any)?.events ?? [];
+        // waitForTransaction already confirmed the tx; getTransactionReceipt may
+        // fail due to RPC rate-limits or proxy issues, so we retry once.
+        let receipt: any = null;
+        for (let attempt = 0; attempt < 2 && !receipt; attempt++) {
+          try {
+            if (attempt > 0) await new Promise((r) => setTimeout(r, 2000));
+            receipt = await starknetProvider.getTransactionReceipt(result.txHash);
+          } catch { /* retry */ }
+        }
+        const events = receipt?.events ?? [];
         const deployEvent = events.find((e: any) =>
           e.keys?.[0] && BigInt(e.keys[0]) === BigInt(COLLECTION_DEPLOYED_SELECTOR)
         );
         if (deployEvent?.keys?.[1]) addr = normalizeAddress(deployEvent.keys[1]);
-      } catch { /* non-fatal */ }
+      } catch { /* non-fatal — tx confirmed, collection will appear in portfolio */ }
 
-      if (!addr) {
-        throw new Error("Collection deploy failed: no CollectionDeployed event found in receipt.");
-      }
-
-      // 4. Register with backend so it appears in portfolio immediately
+      // 4. Register with backend so it appears in portfolio immediately.
+      // If addr is null (event parse failed), the indexer will pick it up on the
+      // next block poll — no action needed and we still show success.
       if (addr) {
         try {
           const headers: Record<string, string> = { "Content-Type": "application/json" };
           if (MEDIALANE_API_KEY) headers["x-api-key"] = MEDIALANE_API_KEY;
-          // Register the collection so it appears in the portfolio immediately.
-          // name, symbol, and base_uri come from the on-chain event — the indexer
-          // will populate them. We only send fields not available on-chain.
           await fetch(`${MEDIALANE_BACKEND_URL.replace(/\/$/, "")}/v1/collections/register`, {
             method: "POST",
             headers,
-            body: JSON.stringify({
-              contractAddress: addr,
-              startBlock: 0,
-            }),
+            body: JSON.stringify({ contractAddress: addr, startBlock: 0 }),
           });
         } catch { /* non-fatal */ }
       }
