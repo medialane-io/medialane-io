@@ -29,12 +29,22 @@ import { useSessionKey } from "@/hooks/use-session-key";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 import {
-  IPCollection1155FactoryABI,
   ERC1155_FACTORY_CONTRACT_MAINNET,
   normalizeAddress,
 } from "@medialane/sdk";
-import { Contract, hash } from "starknet";
+import { hash, byteArray as starkByteArray } from "starknet";
 import { starknetProvider } from "@/lib/starknet";
+
+/** Serialize a JS string into Cairo ByteArray calldata felts. */
+function serializeByteArray(str: string): string[] {
+  const ba = starkByteArray.byteArrayFromString(str);
+  return [
+    ba.data.length.toString(),
+    ...ba.data.map(String),
+    String(ba.pending_word),
+    ba.pending_word_len.toString(),
+  ];
+}
 import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
 
 const FACTORY = ERC1155_FACTORY_CONTRACT_MAINNET as `0x${string}`;
@@ -188,17 +198,19 @@ export default function CreateIP1155CollectionPage() {
         } catch { /* non-fatal */ }
       }
 
-      // 2. Execute deploy_collection on the factory
-      const factory = new Contract(IPCollection1155FactoryABI as any, FACTORY, starknetProvider);
-      const call = factory.populate("deploy_collection", [pendingValues.name, pendingValues.symbol]);
-
+      // 2. Execute deploy_collection on the factory.
+      // starknet.js 6.x encodes ByteArray as felt252 shortstring via contract.populate(),
+      // producing wrong calldata. Build it manually using byteArray.byteArrayFromString().
       const result = await executeTransaction({
         pin,
         contractAddress: FACTORY,
         calls: [{
           contractAddress: FACTORY,
           entrypoint: "deploy_collection",
-          calldata: call.calldata as string[],
+          calldata: [
+            ...serializeByteArray(pendingValues.name),
+            ...serializeByteArray(pendingValues.symbol),
+          ],
         }],
       });
 
@@ -206,7 +218,9 @@ export default function CreateIP1155CollectionPage() {
         throw new Error(result.revertReason ?? "Transaction reverted");
       }
 
-      // 3. Extract deployed collection address from CollectionDeployed event
+      // 3. Extract deployed collection address from CollectionDeployed event.
+      // If the event is missing after a confirmed tx, the inner call still failed —
+      // surface it as an error rather than silently showing success.
       let addr: string | null = null;
       try {
         const receipt = await starknetProvider.getTransactionReceipt(result.txHash);
@@ -216,6 +230,10 @@ export default function CreateIP1155CollectionPage() {
         );
         if (deployEvent?.keys?.[1]) addr = normalizeAddress(deployEvent.keys[1]);
       } catch { /* non-fatal */ }
+
+      if (!addr) {
+        throw new Error("Collection deploy failed: no CollectionDeployed event found in receipt.");
+      }
 
       // 4. Register with backend so it appears in portfolio immediately
       if (addr) {

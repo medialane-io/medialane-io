@@ -27,9 +27,28 @@ import { useSessionKey } from "@/hooks/use-session-key";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { FadeIn } from "@/components/ui/motion-primitives";
-import { IPCollection1155ABI, normalizeAddress } from "@medialane/sdk";
-import { Contract } from "starknet";
+import { normalizeAddress } from "@medialane/sdk";
+import { Contract, byteArray as starkByteArray } from "starknet";
 import { starknetProvider } from "@/lib/starknet";
+
+/** Serialize a JS string into Cairo ByteArray calldata felts. */
+function serializeByteArray(str: string): string[] {
+  const ba = starkByteArray.byteArrayFromString(str);
+  return [
+    ba.data.length.toString(),
+    ...ba.data.map(String),
+    String(ba.pending_word),
+    ba.pending_word_len.toString(),
+  ];
+}
+
+/** Encode a BigInt as Cairo u256 calldata: [low128, high128]. */
+function encodeU256(n: bigint): [string, string] {
+  return [
+    (n & BigInt("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")).toString(),
+    (n >> BigInt(128)).toString(),
+  ];
+}
 
 const schema = z.object({
   tokenId: z
@@ -162,17 +181,10 @@ export default function MintIP1155Page() {
     } catch { /* fall back to raw image URI */ }
 
     try {
-      const collection = new Contract(
-        IPCollection1155ABI as any,
-        collectionAddress,
-        starknetProvider
-      );
-      const call = collection.populate("mint_item", [
-        pendingValues.recipient,
-        BigInt(pendingValues.tokenId),
-        BigInt(pendingValues.value),
-        tokenUri,
-      ]);
+      // Build calldata manually — starknet.js 6.x encodes ByteArray as felt252 via
+      // contract.populate(), so we serialize each field explicitly.
+      const [tokenIdLow, tokenIdHigh] = encodeU256(BigInt(pendingValues.tokenId));
+      const [valueLow, valueHigh]     = encodeU256(BigInt(pendingValues.value));
 
       const result = await executeTransaction({
         pin,
@@ -180,7 +192,12 @@ export default function MintIP1155Page() {
         calls: [{
           contractAddress: collectionAddress,
           entrypoint: "mint_item",
-          calldata: call.calldata as string[],
+          calldata: [
+            pendingValues.recipient,       // to: ContractAddress
+            tokenIdLow, tokenIdHigh,       // token_id: u256
+            valueLow, valueHigh,           // value: u256
+            ...serializeByteArray(tokenUri), // token_uri: ByteArray
+          ],
         }],
       });
 
