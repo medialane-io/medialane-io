@@ -94,6 +94,7 @@ export function TokenCard({
       orderHash: activeOrder.orderHash,
       nftContract: token.contractAddress,
       nftTokenId: token.tokenId,
+      itemType: (activeOrder.offer.itemType === "ERC1155" ? "ERC1155" : "ERC721"),
       name,
       image,
       price: formatDisplayPrice(activeOrder.price.formatted),

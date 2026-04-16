@@ -28,7 +28,7 @@ function cartItemToOrder(item: CartItem): ApiOrder {
     offerer: item.offerer,
     status: "ACTIVE",
     offer: {
-      itemType: "ERC721",
+      itemType: item.itemType,
       token: item.nftContract,
       identifier: item.nftTokenId,
       startAmount: "1",

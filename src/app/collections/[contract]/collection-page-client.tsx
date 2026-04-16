@@ -266,7 +266,7 @@ export default function CollectionPageClient() {
     setDescClamped(true);
   }, [collection?.description]);
 
-  const activeListings = orders.filter((o) => o.status === "ACTIVE" && o.offer.itemType === "ERC721");
+  const activeListings = orders.filter((o) => o.status === "ACTIVE" && (o.offer.itemType === "ERC721" || o.offer.itemType === "ERC1155"));
   const activeBids = orders.filter((o) => o.status === "ACTIVE" && o.offer.itemType === "ERC20");
 
   const floorParsed = parsePriceDisplay(collection?.floorPrice);

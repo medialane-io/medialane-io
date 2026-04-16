@@ -50,6 +50,8 @@ export interface CartItem {
   orderHash: string;
   nftContract: string;
   nftTokenId: string;
+  /** Token standard of the listed asset — used to route fulfillment correctly. */
+  itemType: "ERC721" | "ERC1155";
   name: string;
   image: string;
   price: string;

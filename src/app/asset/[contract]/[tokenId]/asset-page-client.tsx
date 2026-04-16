@@ -100,9 +100,9 @@ export default function AssetPageClient() {
   const { comments, total: commentTotal } = useComments(contract, tokenId);
   const { total: remixCount } = useTokenRemixes(contract, tokenId);
 
-  // Listings = ERC721 in offer (someone selling the NFT)
+  // Listings = NFT in offer (ERC721 or ERC1155 — someone selling the token)
   const activeListings = listings.filter(
-    (l) => l.status === "ACTIVE" && l.offer.itemType === "ERC721"
+    (l) => l.status === "ACTIVE" && (l.offer.itemType === "ERC721" || l.offer.itemType === "ERC1155")
   );
   // Bids = ERC20 in offer (someone bidding to buy the NFT)
   const activeBids = listings.filter(
@@ -128,6 +128,7 @@ export default function AssetPageClient() {
         orderHash: cheapest.orderHash,
         nftContract: contract,
         nftTokenId: tokenId,
+        itemType: (cheapest.offer.itemType === "ERC1155" ? "ERC1155" : "ERC721"),
         name,
         image: ipfsToHttp(token?.metadata?.image) ?? "",
         price: formatDisplayPrice(cheapest.price.formatted),

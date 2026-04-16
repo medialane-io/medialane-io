@@ -29,6 +29,7 @@ import { PinInput, validatePin } from "@/components/ui/pin-input";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { useAuth, SignInButton } from "@clerk/nextjs";
 import { useMarketplace } from "@/hooks/use-marketplace";
+import { useCollection } from "@/hooks/use-collections";
 import { EXPLORER_URL, DURATION_OPTIONS } from "@/lib/constants";
 import { parseFormPriceUsdc } from "@/lib/chipi/session-preferences";
 import { getListableTokens } from "@medialane/sdk";
@@ -68,7 +69,11 @@ export function ListingDialog({
   tokenStandard,
   onSuccess,
 }: ListingDialogProps) {
-  const is1155 = tokenStandard === "ERC1155";
+  // Fall back to useCollection when parent doesn't know the standard (e.g. portfolio grid).
+  // SWR deduplicates — if the parent already fetched the collection it costs nothing.
+  const { collection } = useCollection(tokenStandard == null ? assetContract : null);
+  const resolvedStandard = tokenStandard ?? collection?.standard;
+  const is1155 = resolvedStandard === "ERC1155";
   const { isSignedIn } = useAuth();
   const {
     createListing,
@@ -102,6 +107,14 @@ export function ListingDialog({
 
   const onSubmit = async (values: FormValues) => {
     if (!isSignedIn) return;
+    // Validate amount for ERC-1155 (schema can't reference runtime is1155)
+    if (is1155) {
+      const qty = parseInt(values.amount ?? "", 10);
+      if (!values.amount || isNaN(qty) || qty < 1) {
+        form.setError("amount", { message: "Enter a quantity of at least 1" });
+        return;
+      }
+    }
     setPendingValues(values);
     if (!hasWallet) {
       setWalletSetupOpen(true);

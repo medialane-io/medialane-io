@@ -19,6 +19,7 @@ function orderToCartItem(order: ApiOrder) {
     orderHash: order.orderHash,
     nftContract: order.nftContract ?? "",
     nftTokenId: order.nftTokenId ?? "",
+    itemType: (order.offer.itemType === "ERC1155" ? "ERC1155" : "ERC721") as "ERC721" | "ERC1155",
     name: order.token?.name ?? `Token #${order.nftTokenId}`,
     image: order.token?.image ?? "",
     price: order.price?.formatted ?? "0",

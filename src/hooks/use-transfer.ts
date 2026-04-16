@@ -67,6 +67,9 @@ export function useTransfer() {
 
         // useChipiTransaction resolves its own wallet internally via useChipiWallet.
         // No walletOverride needed here — avoids coupling to ChipiPay's internal key shape.
+        if (input.tokenStandard === "UNKNOWN" || !input.tokenStandard) {
+          throw new Error("Token standard could not be determined. Please try again or contact support.");
+        }
         const isERC1155 = input.tokenStandard === "ERC1155";
         const call: ChipiCall = isERC1155
           ? {
