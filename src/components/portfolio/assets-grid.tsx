@@ -125,6 +125,11 @@ export function AssetsGrid({ address }: AssetsGridProps) {
           assetContract={selectedToken.contractAddress}
           tokenId={selectedToken.tokenId}
           tokenName={selectedToken.metadata?.name ?? undefined}
+          tokenStandard={
+            selectedToken.activeOrders?.some((o) => o.offer.itemType === "ERC1155")
+              ? "ERC1155"
+              : undefined
+          }
           onSuccess={handleSuccess}
         />
       )}
@@ -148,6 +153,11 @@ export function AssetsGrid({ address }: AssetsGridProps) {
           tokenId={transferToken.tokenId}
           tokenName={transferToken.metadata?.name ?? undefined}
           hasActiveListing={!!transferToken.activeOrders?.[0]}
+          tokenStandard={
+            transferToken.activeOrders?.some((o) => o.offer.itemType === "ERC1155")
+              ? "ERC1155"
+              : undefined
+          }
           onSuccess={handleSuccess}
         />
       )}

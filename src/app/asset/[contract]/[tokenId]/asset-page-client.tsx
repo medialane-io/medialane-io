@@ -1123,6 +1123,7 @@ export default function AssetPageClient() {
         assetContract={contract}
         tokenId={tokenId}
         tokenName={name}
+        tokenStandard={collection?.standard}
         onSuccess={mutateListings}
       />
 
@@ -1208,6 +1209,7 @@ export default function AssetPageClient() {
         tokenId={tokenId}
         tokenName={name}
         hasActiveListing={activeListings.length > 0}
+        tokenStandard={collection?.standard}
         onSuccess={mutateListings}
       />
     </div>

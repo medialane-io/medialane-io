@@ -28,7 +28,7 @@ export function ListingCard({ order, onBuy, compact = false }: ListingCardProps)
   const inCart = items.some((i) => i.orderHash === order.orderHash);
   const [imgError, setImgError] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
-  const isListing = order.offer.itemType === "ERC721";
+  const isListing = order.offer.itemType === "ERC721" || order.offer.itemType === "ERC1155";
 
   const name = order.token?.name ?? `Token #${order.nftTokenId}`;
   const image = order.token?.image ? ipfsToHttp(order.token.image) : null;

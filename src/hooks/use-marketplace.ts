@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import { useChipiTransaction } from "./use-chipi-transaction";
 import { useSessionKey } from "./use-session-key";
 import { useMedialaneClient } from "./use-medialane-client";
-import { MARKETPLACE_CONTRACT, SUPPORTED_TOKENS, INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
+import { MARKETPLACE_CONTRACT, MARKETPLACE_1155_CONTRACT, SUPPORTED_TOKENS, INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
 import type { ChipiCall } from "./use-chipi-transaction";
 
 /** Resolve a currency symbol (e.g. "USDC") to its on-chain contract address.
@@ -69,6 +69,9 @@ export interface CreateListingInput {
   price: string;
   currencySymbol: string;
   durationSeconds: number;
+  /** Number of units to list. Required for ERC-1155, omit for ERC-721. */
+  amount?: string;
+  tokenStandard?: "ERC721" | "ERC1155" | "UNKNOWN";
 }
 
 export interface MakeOfferInput {
@@ -148,14 +151,15 @@ export function useMarketplace() {
     reset();
   }, [reset]);
 
-  /** Execute pre-built calls via ChipiPay (gasless). */
+  /** Execute pre-built calls via ChipiPay (gasless).
+   *  @param marketplaceContract — the marketplace contract address used for session key lookup.
+   *  Defaults to the ERC-721 marketplace. Pass `MARKETPLACE_1155_CONTRACT` for ERC-1155 ops.
+   */
   const execWithPin = useCallback(
-    async (pin: string, calls: ChipiCall[]) => {
+    async (pin: string, calls: ChipiCall[], marketplaceContract: string = MARKETPLACE_CONTRACT) => {
       const result = await executeTransaction({
         pin,
-        // Always use the marketplace contract so ChipiPay can locate the correct session key.
-        // calls[0] is the NFT/ERC-20 approve — using it as contractAddress would mismatch the session.
-        contractAddress: MARKETPLACE_CONTRACT,
+        contractAddress: marketplaceContract,
         calls,
       });
       setHash(result.txHash);
@@ -194,7 +198,8 @@ export function useMarketplace() {
     async (
       pin: string,
       intentFn: () => Promise<{ data: { id: string; typedData: unknown; calls: unknown } }>,
-      successMsg: string
+      successMsg: string,
+      marketplaceContract?: string
     ): Promise<string | undefined> => {
       if (!walletAddress) throw new Error("Wallet not ready. Please wait a moment.");
 
@@ -210,7 +215,7 @@ export function useMarketplace() {
       const calls = signedRes.data.calls as ChipiCall[];
       if (!calls?.length) throw new Error("No calls returned from intent");
 
-      const result = await execWithPin(pin, calls);
+      const result = await execWithPin(pin, calls, marketplaceContract);
       if (result.status === "reverted") {
         throw new Error(result.revertReason || "Transaction reverted on chain");
       }
@@ -244,6 +249,7 @@ export function useMarketplace() {
       setError(null);
       try {
         const endTime = Math.floor(Date.now() / 1000) + input.durationSeconds;
+        const is1155 = input.tokenStandard === "ERC1155";
         return await runIntent(
           input.pin,
           () => client.api.createListingIntent({
@@ -253,8 +259,10 @@ export function useMarketplace() {
             currency: resolveCurrencyAddress(input.currencySymbol),
             price: input.price,
             endTime,
+            ...(is1155 && input.amount ? { amount: input.amount } : {}),
           }),
-          `${input.tokenName || `Token #${input.tokenId}`} listed for ${input.price} ${input.currencySymbol}`
+          `${input.tokenName || `Token #${input.tokenId}`} listed for ${input.price} ${input.currencySymbol}`,
+          is1155 ? MARKETPLACE_1155_CONTRACT : MARKETPLACE_CONTRACT
         );
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Failed to create listing";

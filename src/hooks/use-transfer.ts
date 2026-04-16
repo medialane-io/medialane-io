@@ -13,6 +13,7 @@ export interface TransferInput {
   tokenId: string;         // Token ID — decimal ("42") or hex ("0x2a")
   toAddress: string;       // Recipient Starknet address
   pin: string;             // ChipiPay PIN to decrypt wallet key
+  tokenStandard?: "ERC721" | "ERC1155" | "UNKNOWN";
 }
 
 /**
@@ -66,11 +67,19 @@ export function useTransfer() {
 
         // useChipiTransaction resolves its own wallet internally via useChipiWallet.
         // No walletOverride needed here — avoids coupling to ChipiPay's internal key shape.
-        const call: ChipiCall = {
-          contractAddress: input.contractAddress,
-          entrypoint: "transfer_from",
-          calldata: [walletAddress, input.toAddress, tokenIdLow, tokenIdHigh],
-        };
+        const isERC1155 = input.tokenStandard === "ERC1155";
+        const call: ChipiCall = isERC1155
+          ? {
+              contractAddress: input.contractAddress,
+              entrypoint: "safe_transfer_from",
+              // safe_transfer_from(from, to, id: u256, value: u256, data: Array<felt252>)
+              calldata: [walletAddress, input.toAddress, tokenIdLow, tokenIdHigh, "1", "0", "0"],
+            }
+          : {
+              contractAddress: input.contractAddress,
+              entrypoint: "transfer_from",
+              calldata: [walletAddress, input.toAddress, tokenIdLow, tokenIdHigh],
+            };
 
         const result = await executeTransaction({
           pin: input.pin,

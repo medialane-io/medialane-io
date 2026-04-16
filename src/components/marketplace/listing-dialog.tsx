@@ -44,6 +44,7 @@ const schema = z.object({
   price: marketplacePriceField,
   currency: marketplaceCurrencyField,
   durationSeconds: marketplaceDurationField,
+  amount: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -54,6 +55,7 @@ interface ListingDialogProps {
   assetContract: string;
   tokenId: string;
   tokenName?: string;
+  tokenStandard?: "ERC721" | "ERC1155" | "UNKNOWN";
   onSuccess?: () => void;
 }
 
@@ -63,8 +65,10 @@ export function ListingDialog({
   assetContract,
   tokenId,
   tokenName,
+  tokenStandard,
   onSuccess,
 }: ListingDialogProps) {
+  const is1155 = tokenStandard === "ERC1155";
   const { isSignedIn } = useAuth();
   const {
     createListing,
@@ -93,7 +97,7 @@ export function ListingDialog({
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { price: "", currency: "USDC", durationSeconds: 2592000 },
+    defaultValues: { price: "", currency: "USDC", durationSeconds: 2592000, amount: "1" },
   });
 
   const onSubmit = async (values: FormValues) => {
@@ -139,6 +143,8 @@ export function ListingDialog({
       price: pendingValues.price,
       currencySymbol: pendingValues.currency,
       durationSeconds: pendingValues.durationSeconds,
+      tokenStandard,
+      amount: is1155 ? (pendingValues.amount || "1") : undefined,
       pin,
     });
     setPin("");
@@ -165,6 +171,8 @@ export function ListingDialog({
         price: pendingValues.price,
         currencySymbol: pendingValues.currency,
         durationSeconds: pendingValues.durationSeconds,
+        tokenStandard,
+        amount: is1155 ? (pendingValues.amount || "1") : undefined,
         pin: derived,
       });
 
@@ -279,7 +287,10 @@ export function ListingDialog({
               <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
                 <Badge variant="outline" className="font-mono">#{tokenId}</Badge>
                 <span className="text-sm font-medium truncate">
-                  {pendingValues?.price} {pendingValues?.currency} · {tokenName || `Token #${tokenId}`}
+                  {pendingValues?.price} {pendingValues?.currency}
+                  {is1155 && pendingValues?.amount && pendingValues.amount !== "1"
+                    ? ` × ${pendingValues.amount}`
+                    : ""} · {tokenName || `Token #${tokenId}`}
                 </span>
               </div>
               <p className="text-sm text-muted-foreground">
@@ -328,6 +339,28 @@ export function ListingDialog({
 
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  {is1155 && (
+                    <FormField
+                      control={form.control}
+                      name="amount"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Quantity</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min="1"
+                              step="1"
+                              placeholder="1"
+                              disabled={isProcessing}
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
                   <FormField
                     control={form.control}
                     name="price"

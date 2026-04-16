@@ -32,6 +32,7 @@ import { Badge } from "@/components/ui/badge";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { useTransfer } from "@/hooks/use-transfer";
+import { useCollection } from "@/hooks/use-collections";
 import { EXPLORER_URL } from "@/lib/constants";
 
 // Schema defined outside component — no component-level variables needed.
@@ -56,6 +57,7 @@ interface TransferDialogProps {
   tokenName?: string;
   onSuccess?: () => void;
   hasActiveListing?: boolean;
+  tokenStandard?: "ERC721" | "ERC1155" | "UNKNOWN";
 }
 
 export function TransferDialog({
@@ -66,6 +68,7 @@ export function TransferDialog({
   tokenName,
   onSuccess,
   hasActiveListing = false,
+  tokenStandard,
 }: TransferDialogProps) {
   const {
     transferToken,
@@ -78,6 +81,11 @@ export function TransferDialog({
     error,
     resetState,
   } = useTransfer();
+
+  // Auto-detect token standard when the caller doesn't know it.
+  // SWR-cached — no extra request when the collection was already fetched.
+  const { collection } = useCollection(contractAddress);
+  const resolvedStandard = tokenStandard ?? collection?.standard;
 
   const [pinOpen, setPinOpen] = useState(false);
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
@@ -112,7 +120,7 @@ export function TransferDialog({
   const handlePin = async (pin: string) => {
     setPinOpen(false);
     if (!pendingAddress) return;
-    await transferToken({ contractAddress, tokenId, toAddress: pendingAddress, pin });
+    await transferToken({ contractAddress, tokenId, toAddress: pendingAddress, pin, tokenStandard: resolvedStandard });
   };
 
   const handleClose = (v: boolean) => {

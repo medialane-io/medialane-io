@@ -64,7 +64,7 @@ export function ListingsGrid({ sort = "recent", currency, orderType = "", minPri
   // in the browse grid and are accessible via the "Offers" filter tab.
   const displayedOrders = orderType === "offers"
     ? allOrders.filter((o) => o.offer.itemType === "ERC20")
-    : allOrders.filter((o) => o.offer.itemType === "ERC721");
+    : allOrders.filter((o) => o.offer.itemType === "ERC721" || o.offer.itemType === "ERC1155");
 
   const isInitialLoading = isLoading && allOrders.length === 0;
   const isLoadingMore = isLoading && allOrders.length > 0;

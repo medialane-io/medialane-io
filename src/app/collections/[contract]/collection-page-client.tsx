@@ -74,6 +74,8 @@ function CollectionItems({ contract, activeListings }: { contract: string; activ
   const [allTokens, setAllTokens] = useState<ApiToken[]>([]);
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string>>({});
   const { tokens, meta, isLoading, mutate } = useCollectionTokens(contract, page, PAGE_SIZE);
+  // SWR deduplicates — the parent also calls this hook; no extra network request.
+  const { collection } = useCollection(contract);
 
   // Build tokenId → listing map so Items tab can show Buy buttons for listed tokens
   const listingByTokenId = useMemo(() => {
@@ -166,7 +168,13 @@ function CollectionItems({ contract, activeListings }: { contract: string; activ
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
             {filteredTokens.map((t) => {
-              const isOwner = checkIsOwner(t, walletAddress);
+              // For ERC-1155 list responses, balances and owner are always null —
+              // the API doesn't return per-holder data in collection token lists.
+              // Show owner actions for all tokens when the user has a wallet;
+              // the on-chain call will revert if they hold none.
+              const isOwner = collection?.standard === "ERC1155"
+                ? !!walletAddress
+                : checkIsOwner(t, walletAddress);
               return (
                 <TokenCard
                   key={`${t.contractAddress}-${t.tokenId}`}
@@ -198,17 +206,24 @@ function CollectionItems({ contract, activeListings }: { contract: string; activ
       {/* Owner dialogs */}
       {selectedToken && (
         <ListingDialog
-          token={selectedToken}
           open={listOpen}
           onOpenChange={(o) => { setListOpen(o); if (!o) setSelectedToken(null); }}
+          assetContract={selectedToken.contractAddress}
+          tokenId={selectedToken.tokenId}
+          tokenName={selectedToken.metadata?.name ?? undefined}
+          tokenStandard={collection?.standard}
           onSuccess={() => { setListOpen(false); setSelectedToken(null); setPage(1); setAllTokens([]); mutate(); }}
         />
       )}
       {transferToken && (
         <TransferDialog
-          token={transferToken}
           open={transferOpen}
           onOpenChange={(o) => { setTransferOpen(o); if (!o) setTransferToken(null); }}
+          contractAddress={transferToken.contractAddress}
+          tokenId={transferToken.tokenId}
+          tokenName={transferToken.metadata?.name ?? undefined}
+          hasActiveListing={!!transferToken.activeOrders?.[0]}
+          tokenStandard={collection?.standard}
           onSuccess={() => { setTransferOpen(false); setTransferToken(null); setPage(1); setAllTokens([]); mutate(); }}
         />
       )}

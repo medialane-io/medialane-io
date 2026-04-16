@@ -80,7 +80,7 @@ export function CancelOrderDialog({
   const [pinError, setPinError] = useState<string | null>(null);
 
   const resolvedVariant: "listing" | "offer" =
-    variant ?? (order?.offer.itemType === "ERC721" ? "listing" : "offer");
+    variant ?? (order?.offer.itemType === "ERC721" || order?.offer.itemType === "ERC1155" ? "listing" : "offer");
 
   useEffect(() => {
     if (open) {
