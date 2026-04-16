@@ -5,8 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import Image from "next/image";
-import Link from "next/link";
-import { Layers, Loader2, CheckCircle2, ImagePlus, X } from "lucide-react";
+import { Layers, Loader2, ImagePlus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,11 +20,19 @@ import {
 } from "@/components/ui/form";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
+import {
+  CollectionProgressDialog,
+  type CollectionStep,
+} from "@/components/marketplace/collection-progress-dialog";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
-import { IPCollection1155FactoryABI, ERC1155_FACTORY_CONTRACT_MAINNET, normalizeAddress } from "@medialane/sdk";
+import {
+  IPCollection1155FactoryABI,
+  ERC1155_FACTORY_CONTRACT_MAINNET,
+  normalizeAddress,
+} from "@medialane/sdk";
 import { Contract, hash } from "starknet";
 import { starknetProvider } from "@/lib/starknet";
 import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
@@ -55,12 +62,14 @@ type FormValues = z.infer<typeof schema>;
 export default function CreateIP1155CollectionPage() {
   const { isSignedIn } = useUser();
   const { walletAddress, hasWallet } = useSessionKey();
-  const { executeTransaction, isSubmitting } = useChipiTransaction();
+  const { executeTransaction, status: txStatus, txHash } = useChipiTransaction();
 
   const [pinOpen, setPinOpen] = useState(false);
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
-  const [done, setDone] = useState(false);
+
+  const [collectionStep, setCollectionStep] = useState<CollectionStep>("idle");
+  const [collectionError, setCollectionError] = useState<string | null>(null);
   const [deployedAddress, setDeployedAddress] = useState<string | null>(null);
 
   // Image upload state
@@ -80,7 +89,6 @@ export default function CreateIP1155CollectionPage() {
     defaultValues: { name: "", symbol: "", description: "", external_link: "" },
   });
 
-  // Pre-fill external_link with creator profile URL
   useEffect(() => {
     if (walletAddress && !form.getValues("external_link")) {
       form.setValue("external_link", `https://medialane.io/account/${walletAddress}`);
@@ -134,6 +142,15 @@ export default function CreateIP1155CollectionPage() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
+  const handleReset = () => {
+    setCollectionStep("idle");
+    setCollectionError(null);
+    setDeployedAddress(null);
+    setPendingValues(null);
+    form.reset();
+    clearImage();
+  };
+
   const onSubmit = (values: FormValues) => {
     if (imageFile && !imageUri && !imageUploading) {
       toast.error("Image upload failed", { description: "Please re-upload your collection image." });
@@ -148,8 +165,11 @@ export default function CreateIP1155CollectionPage() {
     setPinOpen(false);
     if (!pendingValues || !walletAddress) return;
 
+    setCollectionError(null);
+    setCollectionStep("processing");
+
     try {
-      // 1. Pin metadata JSON to IPFS so the collection has rich metadata from day one
+      // 1. Pin metadata JSON to IPFS
       let collectionMetaUri: string | undefined;
       if (imageUri) {
         try {
@@ -168,7 +188,7 @@ export default function CreateIP1155CollectionPage() {
         } catch { /* non-fatal */ }
       }
 
-      // 2. Execute the factory deploy_collection transaction
+      // 2. Execute deploy_collection on the factory
       const factory = new Contract(IPCollection1155FactoryABI as any, FACTORY, starknetProvider);
       const call = factory.populate("deploy_collection", [pendingValues.name, pendingValues.symbol]);
 
@@ -183,8 +203,7 @@ export default function CreateIP1155CollectionPage() {
       });
 
       if (result.status !== "confirmed") {
-        toast.error(result.revertReason ?? "Transaction reverted");
-        return;
+        throw new Error(result.revertReason ?? "Transaction reverted");
       }
 
       // 3. Extract deployed collection address from CollectionDeployed event
@@ -198,8 +217,7 @@ export default function CreateIP1155CollectionPage() {
         if (deployEvent?.keys?.[1]) addr = normalizeAddress(deployEvent.keys[1]);
       } catch { /* non-fatal */ }
 
-      // 4. Register collection in backend with image + description so it's
-      //    immediately searchable without waiting for the indexer cycle
+      // 4. Register with backend so it appears in portfolio immediately
       if (addr) {
         try {
           const headers: Record<string, string> = { "Content-Type": "application/json" };
@@ -214,70 +232,21 @@ export default function CreateIP1155CollectionPage() {
               description: pendingValues.description || undefined,
               image: imageUri || undefined,
               baseUri: collectionMetaUri || undefined,
+              owner: walletAddress,
+              standard: "ERC1155",
               startBlock: 0,
             }),
           });
-        } catch { /* non-fatal — indexer will catch up */ }
+        } catch { /* non-fatal */ }
       }
 
       setDeployedAddress(addr);
-      setDone(true);
+      setCollectionStep("success");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to deploy collection");
+      setCollectionError(err instanceof Error ? err.message : "Something went wrong");
+      setCollectionStep("error");
     }
   };
-
-  // ── Success ──────────────────────────────────────────────────────────────────
-  if (done) {
-    return (
-      <div className="container max-w-lg mx-auto px-4 pt-24 pb-8 text-center space-y-6">
-        <div className="flex justify-center">
-          {imagePreview ? (
-            <div className="relative h-24 w-24 rounded-2xl overflow-hidden border border-border">
-              <Image src={imagePreview} alt="Collection" fill className="object-cover" />
-            </div>
-          ) : (
-            <div className="h-20 w-20 rounded-full bg-violet-500/10 flex items-center justify-center">
-              <CheckCircle2 className="h-10 w-10 text-violet-500" />
-            </div>
-          )}
-        </div>
-        <div className="space-y-2">
-          <h1 className="text-2xl font-bold">Collection deployed</h1>
-          <p className="text-muted-foreground">
-            <span className="font-medium">{pendingValues?.name}</span> is live on Starknet.
-            You can mint tokens into it now.
-          </p>
-          {deployedAddress && (
-            <p className="text-xs text-muted-foreground font-mono break-all">{deployedAddress}</p>
-          )}
-        </div>
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          {deployedAddress ? (
-            <Button asChild className="bg-violet-600 hover:bg-violet-700 text-white">
-              <Link href={`/launchpad/ip1155/${deployedAddress}/mint`}>Mint tokens</Link>
-            </Button>
-          ) : (
-            <Button asChild variant="outline">
-              <Link href="/portfolio">View portfolio</Link>
-            </Button>
-          )}
-          <Button
-            variant="outline"
-            onClick={() => {
-              setDone(false);
-              setDeployedAddress(null);
-              setPendingValues(null);
-              form.reset();
-              clearImage();
-            }}
-          >
-            Deploy another
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   // ── Not signed in ─────────────────────────────────────────────────────────
   if (!isSignedIn) {
@@ -290,9 +259,23 @@ export default function CreateIP1155CollectionPage() {
     );
   }
 
-  // ── Create form ────────────────────────────────────────────────────────────
   return (
     <>
+      <CollectionProgressDialog
+        open={collectionStep !== "idle"}
+        collectionStep={collectionStep}
+        txStatus={txStatus}
+        collectionName={pendingValues?.name ?? ""}
+        imagePreview={imagePreview}
+        txHash={txHash}
+        error={collectionError}
+        onCreateAnother={handleReset}
+        createAnotherLabel="Deploy another"
+        firstStepLabel="Prepare metadata"
+        mintHref={deployedAddress ? `/launchpad/ip1155/${deployedAddress}/mint` : undefined}
+        deployedAddress={deployedAddress}
+      />
+
       <div className="container max-w-2xl mx-auto px-4 pt-14 pb-8 space-y-8">
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-primary">
@@ -399,11 +382,7 @@ export default function CreateIP1155CollectionPage() {
               <FormItem>
                 <FormLabel>Description</FormLabel>
                 <FormControl>
-                  <Textarea
-                    placeholder="Describe your collection and what kind of work it contains…"
-                    rows={3}
-                    {...field}
-                  />
+                  <Textarea placeholder="Describe your collection and what kind of work it contains…" rows={3} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -420,15 +399,14 @@ export default function CreateIP1155CollectionPage() {
             )} />
 
             {/* ── Submit ── */}
-            <div className={`btn-border-animated p-[1px] rounded-xl ${isSubmitting || imageUploading ? "opacity-40 pointer-events-none" : ""}`}>
+            <div className={`btn-border-animated p-[1px] rounded-xl ${collectionStep !== "idle" || imageUploading ? "opacity-40 pointer-events-none" : ""}`}>
               <button
                 type="submit"
-                disabled={isSubmitting || imageUploading}
+                disabled={collectionStep !== "idle" || imageUploading}
                 className="w-full h-12 text-base font-semibold text-white rounded-[11px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] bg-violet-600"
               >
-                {isSubmitting
-                  ? <><Loader2 className="h-4 w-4 animate-spin" />Deploying…</>
-                  : <><Layers className="h-4 w-4" />Deploy Collection</>}
+                <Layers className="h-4 w-4" />
+                Deploy Collection
               </button>
             </div>
             <p className="text-xs text-center text-muted-foreground">
