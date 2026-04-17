@@ -168,12 +168,12 @@ function CollectionItems({ contract, activeListings }: { contract: string; activ
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
             {filteredTokens.map((t) => {
-              // For ERC-1155 list responses, balances and owner are always null —
-              // the API doesn't return per-holder data in collection token lists.
-              // Show owner actions for all tokens when the user has a wallet;
-              // the on-chain call will revert if they hold none.
+              // ERC-1155 collection list responses don't include per-holder balances,
+              // so we can't determine ownership here. Non-owners must not see owner
+              // actions (List / Transfer). Holders can manage tokens from Portfolio
+              // where per-token balance data is available.
               const isOwner = collection?.standard === "ERC1155"
-                ? !!walletAddress
+                ? false
                 : checkIsOwner(t, walletAddress);
               return (
                 <TokenCard

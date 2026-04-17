@@ -18,7 +18,7 @@ import { TransferDialog } from "@/components/marketplace/transfer-dialog";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { ipfsToHttp, timeUntil, timeAgo, formatDisplayPrice, checkIsOwner } from "@/lib/utils";
-import { ShoppingCart, Tag, ExternalLink, Clock, HandCoins, ArrowRightLeft, X, CheckCircle, DollarSign, GitBranch, UserCheck, Globe, Bot, Percent, Shield, Calendar, ChevronRight, Flag, Loader2, TrendingUp, Activity, ArrowRight, Fingerprint } from "lucide-react";
+import { ShoppingCart, Tag, ExternalLink, Clock, HandCoins, ArrowRightLeft, X, CheckCircle, DollarSign, GitBranch, UserCheck, Globe, Bot, Percent, Shield, Calendar, ChevronRight, Flag, Loader2, TrendingUp, Activity, ArrowRight, Fingerprint, Layers } from "lucide-react";
 import { FloatingCommentsButton } from "@/components/asset/floating-comments-button";
 import { ReportDialog } from "@/components/report-dialog";
 import { ShareButton } from "@/components/shared/share-button";
@@ -114,6 +114,7 @@ export default function AssetPageClient() {
   )[0];
 
   const isOwner = checkIsOwner(token, walletAddress);
+  const isERC1155 = collection?.standard === "ERC1155";
 
   const myListing = isOwner
     ? activeListings.find((l) => l.offerer.toLowerCase() === walletAddress!.toLowerCase())
@@ -336,23 +337,51 @@ export default function AssetPageClient() {
                   />
                 </div>
               )}
-              {token.metadata?.ipType && (
-                <IpTypeBadge ipType={token.metadata.ipType} size="md" className="mb-2" />
-              )}
+              <div className="flex items-center gap-2 flex-wrap mb-2">
+                {token.metadata?.ipType && (
+                  <IpTypeBadge ipType={token.metadata.ipType} size="md" />
+                )}
+                {isERC1155 && (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-violet-500/30 bg-violet-500/10 text-violet-500">
+                    <Layers className="h-3 w-3" />
+                    Multi-edition
+                  </span>
+                )}
+              </div>
               <h1 className="text-3xl lg:text-5xl font-bold">{name}</h1>
               {description && (
               <div>
                 <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
               </div>
             )}
-              {(token.balances?.[0]?.owner ?? token.owner) && (
+              {/* Ownership display — single owner for ERC-721, holder list for ERC-1155 */}
+              {isERC1155 ? (
+                token.balances && token.balances.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      {token.balances.length === 1 ? "Holder" : `${token.balances.length} holders`}
+                    </p>
+                    {token.balances.slice(0, 3).map((b) => (
+                      <div key={b.owner} className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Link href={`/creator/${b.owner}`} className="hover:text-primary transition-colors">
+                          <AddressDisplay address={b.owner} />
+                        </Link>
+                        <span className="text-xs text-muted-foreground/60">× {b.amount}</span>
+                      </div>
+                    ))}
+                    {token.balances.length > 3 && (
+                      <p className="text-xs text-muted-foreground/60">+{token.balances.length - 3} more</p>
+                    )}
+                  </div>
+                )
+              ) : (token.balances?.[0]?.owner ?? token.owner) ? (
                 <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
                   <span>Owned by</span>
                   <Link href={`/creator/${token.balances?.[0]?.owner ?? token.owner}`} className="hover:text-primary transition-colors">
                     <AddressDisplay address={(token.balances?.[0]?.owner ?? token.owner)!} />
                   </Link>
                 </div>
-              )}
+              ) : null}
             </div>
 
             {/* Price / action box */}
@@ -389,7 +418,7 @@ export default function AssetPageClient() {
                         onClick={() => setListOpen(true)}
                       >
                         <Tag className="h-4 w-4" />
-                        Create new listing
+                        {isERC1155 ? "List edition for sale" : "Create new listing"}
                       </button>
                     </div>
                     <div className="btn-border-animated p-[1px] rounded-2xl">
@@ -421,7 +450,7 @@ export default function AssetPageClient() {
                         onClick={() => setPurchaseOrder(cheapest)}
                       >
                         <ShoppingCart className="h-5 w-5" />
-                        Buy
+                        {isERC1155 ? "Buy Edition" : "Buy Asset"}
                       </button>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
@@ -481,7 +510,7 @@ export default function AssetPageClient() {
                         onClick={() => setListOpen(true)}
                       >
                         <Tag className="h-4 w-4" />
-                        List for sale
+                        {isERC1155 ? "List edition for sale" : "List for sale"}
                       </button>
                     </div>
                     <div className="btn-border-animated p-[1px] rounded-2xl">
