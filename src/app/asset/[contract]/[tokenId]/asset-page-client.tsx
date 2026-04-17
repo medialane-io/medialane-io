@@ -1154,6 +1154,7 @@ export default function AssetPageClient() {
         tokenId={tokenId}
         tokenName={name}
         tokenStandard={collection?.standard}
+        tokenImage={imageUrl}
         onSuccess={mutateListings}
       />
 

@@ -487,6 +487,7 @@ export function TokenCard({
         tokenId={token.tokenId}
         tokenName={name}
         tokenStandard={token.standard}
+        tokenImage={image}
         onSuccess={() => setListOpen(false)}
       />
     </>

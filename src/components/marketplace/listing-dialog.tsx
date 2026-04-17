@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { CheckCircle2, AlertCircle, Tag, ExternalLink, Loader2, LogIn, ArrowLeft, Sparkles } from "lucide-react";
+import { CheckCircle2, AlertCircle, Tag, ExternalLink, Loader2, LogIn, ArrowLeft, Sparkles, Layers, Info } from "lucide-react";
 import { fireConfetti } from "@/lib/confetti";
 import {
   Dialog,
@@ -57,6 +57,8 @@ interface ListingDialogProps {
   tokenId: string;
   tokenName?: string;
   tokenStandard?: "ERC721" | "ERC1155" | "UNKNOWN";
+  /** Optional resolved image URL (already converted from IPFS) for the asset preview. */
+  tokenImage?: string | null;
   onSuccess?: () => void;
 }
 
@@ -67,6 +69,7 @@ export function ListingDialog({
   tokenId,
   tokenName,
   tokenStandard,
+  tokenImage,
   onSuccess,
 }: ListingDialogProps) {
   // Fall back to useCollection when parent doesn't know the standard (e.g. portfolio grid).
@@ -344,11 +347,48 @@ export function ListingDialog({
             </div>
           ) : (
             <div className="space-y-4">
-              {/* Asset info */}
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                <Badge variant="outline" className="font-mono">#{tokenId}</Badge>
-                <span className="text-sm font-medium truncate">{tokenName || `Token #${tokenId}`}</span>
+              {/* Asset preview */}
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 border border-border/50">
+                {tokenImage ? (
+                  <div className="h-14 w-14 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={tokenImage}
+                      alt={tokenName || `Token #${tokenId}`}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="h-14 w-14 rounded-lg bg-muted flex-shrink-0 flex items-center justify-center">
+                    <Tag className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <p className="font-semibold text-sm truncate">{tokenName || `Token #${tokenId}`}</p>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <Badge variant="outline" className="font-mono text-[10px] px-1.5 py-0">#{tokenId}</Badge>
+                    {is1155 && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full border border-violet-500/30 bg-violet-500/10 text-violet-500">
+                        <Layers className="h-2.5 w-2.5" />
+                        Multi-edition
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
+
+              {/* ERC-1155 explainer */}
+              {is1155 && (
+                <div className="flex gap-2.5 p-3 rounded-lg bg-violet-500/8 border border-violet-500/20">
+                  <Info className="h-4 w-4 text-violet-400 flex-shrink-0 mt-0.5" />
+                  <div className="text-xs text-muted-foreground space-y-1">
+                    <p className="font-semibold text-violet-400">Listing editions</p>
+                    <p>
+                      You hold multiple copies of this token. Set a <span className="font-medium text-foreground">quantity</span> to list and a <span className="font-medium text-foreground">price per unit</span> — buyers can purchase one or more copies at that price.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
