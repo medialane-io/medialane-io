@@ -28,10 +28,7 @@ import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
-import {
-  ERC1155_FACTORY_CONTRACT_MAINNET,
-  normalizeAddress,
-} from "@medialane/sdk";
+import { normalizeAddress } from "@medialane/sdk";
 import { hash, byteArray as starkByteArray } from "starknet";
 import { starknetProvider } from "@/lib/starknet";
 
@@ -47,7 +44,8 @@ function serializeByteArray(str: string): string[] {
 }
 import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
 
-const FACTORY = ERC1155_FACTORY_CONTRACT_MAINNET as `0x${string}`;
+// v2 ERC-1155 factory — hardcoded to avoid stale SDK npm cache
+const FACTORY = "0x006b2dc7ca7c4f466bb4575ba043d934310f052074f849caf853a86bcb819fd6" as `0x${string}`;
 const COLLECTION_DEPLOYED_SELECTOR = hash.getSelectorFromName("CollectionDeployed");
 
 const schema = z.object({
