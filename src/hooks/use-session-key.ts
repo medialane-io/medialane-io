@@ -143,6 +143,8 @@ export function useSessionKey() {
               hash.getSelectorFromName("approve"),
               hash.getSelectorFromName("transfer"),
               hash.getSelectorFromName("transfer_from"),
+              // ERC-1155 operator approval (required for ERC-1155 marketplace listings)
+              hash.getSelectorFromName("set_approval_for_all"),
               // Minting
               hash.getSelectorFromName("mint_item"),
               hash.getSelectorFromName("claim"),
