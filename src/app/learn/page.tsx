@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { BookOpen, Image, Rocket, Store, Globe, Shield, FileText, Award, Package, GitBranch, ArrowRight } from "lucide-react";
+import { BookOpen, Image, Rocket, Store, Globe, Shield, FileText, Award, Package, GitBranch, Layers, ArrowRight } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Learn | Medialane",
@@ -37,6 +37,12 @@ const TOPICS = [
     icon: Package,
     title: "Collection Drop",
     description: "Launch time-limited NFT drop events with supply caps, mint windows, allowlists, and gasless onchain settlement.",
+  },
+  {
+    href: "/learn/ip-collection-1155",
+    icon: Layers,
+    title: "IP Collection 1155",
+    description: "Deploy a multi-edition ERC-1155 collection for music, art series, and any creative work where multiple people should own the same piece.",
   },
   {
     href: "/learn/remix",

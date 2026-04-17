@@ -84,39 +84,41 @@ export default function LearnNFTPage() {
         <Section title="ERC-721 vs ERC-1155 — Two Token Standards">
           <p>
             Not all NFTs are the same kind of token. Medialane supports two standards,
-            each suited to different use cases:
+            each suited to different creative formats:
           </p>
           <div className="space-y-3">
-            <div className="bento-cell px-4 py-3 space-y-1">
-              <p className="text-sm font-semibold text-foreground">ERC-721 — Unique, one-of-one assets</p>
-              <p className="text-xs">
-                Each token ID has exactly one owner at a time. Transferring it passes full
-                ownership. Ideal for original artworks, documents, patents, and any asset
-                where uniqueness is the point. Medialane IP assets and collection registry
-                NFTs use ERC-721 (SNIP-2 on Starknet).
+            <div className="bento-cell px-4 py-3 space-y-2">
+              <p className="text-sm font-semibold text-foreground">ERC-721 — The unique original</p>
+              <p className="text-xs leading-relaxed">
+                Think of it like a physical painting. There is only one original —
+                and no copy will ever carry the same on-chain identity. Each ERC-721 token
+                has exactly one owner at a time. Transferring it passes full, provable ownership
+                of that specific piece. Ideal for 1-of-1 artworks, IP certificates, patents,
+                and anything where uniqueness is the point.
+              </p>
+              <p className="text-xs text-muted-foreground/70 italic">
+                Used by: IP Assets, Creator Collections, POP Protocol credentials, Collection Drops.
               </p>
             </div>
-            <div className="bento-cell px-4 py-3 space-y-1">
-              <p className="text-sm font-semibold text-foreground">ERC-1155 — Multi-edition tokens</p>
-              <p className="text-xs">
-                A single token ID can be owned by many wallets simultaneously, each holding
-                a quantity. Think of it like a limited print run — token ID #1 might have
-                500 copies, with 500 different collectors each holding one. Collection Drops
-                on Medialane use ERC-1155, allowing large releases where every minter
-                receives the same edition token.
+            <div className="bento-cell px-4 py-3 space-y-2">
+              <p className="text-sm font-semibold text-foreground">ERC-1155 — The printing press</p>
+              <p className="text-xs leading-relaxed">
+                Think of it like a printing press. You can print 100 identical copies of a
+                magazine — each reader holds an authentic copy, but they are not unique from
+                one another. A single ERC-1155 contract can manage unlimited token types and
+                quantities. Mint 50 copies of a music track, 200 editions of a poster, or
+                1,000 membership passes — all in one transaction.
+              </p>
+              <p className="text-xs text-muted-foreground/70 italic">
+                Used by: IP Collection 1155 — Medialane&apos;s multi-edition format for music,
+                art series, and any creative work with multiple copies.
               </p>
             </div>
           </div>
           <p>
-            Medialane automatically detects the standard of each collection using the
-            ERC-165 <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">supportsInterface</code> call.
-            The API returns <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">collection.standard</code>{" "}
-            as <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">&quot;ERC721&quot;</code> or{" "}
-            <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">&quot;ERC1155&quot;</code>, and{" "}
-            <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">token.balances</code> on individual
-            token fetches lists every current holder with their quantity — replacing the
-            single <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">owner</code> field
-            used for ERC-721.
+            The right choice depends on your creative intent. If scarcity and uniqueness define
+            the value of your work, choose ERC-721. If you want to release editions — letting
+            many people own the same authentic piece — choose ERC-1155 via IP Collection 1155.
           </p>
         </Section>
 

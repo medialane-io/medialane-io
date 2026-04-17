@@ -43,11 +43,26 @@ export default function LearnCreatorLaunchpadPage() {
             an art series, a music catalogue, a portfolio of photographs.
           </p>
           <p>
-            From the <strong className="text-foreground">Create → Collection</strong> page,
-            choose a name, symbol, and upload a cover image. Medialane deploys the
-            collection contract to Starknet mainnet and registers it in the platform&apos;s
-            onchain registry so it appears in search and discovery.
+            Medialane supports two collection formats, each deployed from the Launchpad:
           </p>
+          <div className="bento-cell px-4 py-3 space-y-1">
+            <p className="text-sm font-semibold text-foreground">ERC-721 Collection</p>
+            <p className="text-xs leading-relaxed">
+              From <strong>Create → Collection</strong>, choose a name, symbol, and cover image.
+              Medialane deploys an ERC-721 contract and registers it in the onchain registry.
+              Each asset you mint into it will be a unique, 1-of-1 token with its own owner.
+            </p>
+          </div>
+          <div className="bento-cell px-4 py-3 space-y-1">
+            <p className="text-sm font-semibold text-foreground">IP Collection 1155 — Multi-Edition</p>
+            <p className="text-xs leading-relaxed">
+              From <strong>Launchpad → IP Collection 1155 → Create Collection</strong>, deploy an
+              ERC-1155 contract for multi-edition releases. Once deployed, the collection appears
+              in your Launchpad with a <em>Mint</em> button — mint new token editions directly
+              into it, each with its own supply, metadata, and price. Best for music tracks,
+              art series, or any creative work you want multiple people to own.
+            </p>
+          </div>
         </Section>
 
         <Section title="Step 3 — Mint an IP Asset">
@@ -92,12 +107,20 @@ export default function LearnCreatorLaunchpadPage() {
           </p>
         </Section>
 
-        <Section title="Launchpad Features">
+        <Section title="Launchpad Services">
           <p>
-            The Launchpad section of Medialane features curated drops from verified
-            creators. If your collection is ready for a wider audience, contact us to
-            apply for a featured launch slot with dedicated promotion and early-access
-            minting for the community.
+            Beyond collections and individual assets, the Launchpad gives creators access
+            to a growing suite of onchain tools:
+          </p>
+          <ul className="list-disc list-inside space-y-1 text-sm">
+            <li><strong className="text-foreground">POP Protocol</strong> — Issue soulbound credentials for events, bootcamps, and milestones</li>
+            <li><strong className="text-foreground">Collection Drop</strong> — Launch a fixed-supply ERC-721 drop with a timed mint window</li>
+            <li><strong className="text-foreground">IP Collection 1155</strong> — Deploy a multi-edition ERC-1155 collection and mint token editions into it</li>
+            <li><strong className="text-foreground">Remix</strong> — Create licensed derivative works with on-chain attribution back to the original</li>
+          </ul>
+          <p>
+            All services are permissionless — no approval required. Your contract is
+            deployed directly to Starknet mainnet, owned by your wallet.
           </p>
         </Section>
       </div>

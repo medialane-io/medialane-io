@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { useUser } from "@clerk/nextjs";
@@ -9,14 +10,16 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useUserOrders } from "@/hooks/use-orders";
+import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { FadeIn } from "@/components/ui/motion-primitives";
+import { ipfsToHttp } from "@/lib/utils";
 import { BRAND } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 import {
   Zap, ImagePlus, Layers, ArrowRight,
   Package, Tag, ShoppingCart,
   GitBranch, Users, RefreshCw, Ticket, Coins, TrendingUp,
-  Lock, Globe, ExternalLink, Award,
+  Lock, Globe, ExternalLink, Award, Sparkles,
 } from "lucide-react";
 
 // ── Hero stats ──────────────────────────────────────────────────────────────
@@ -57,9 +60,7 @@ interface ServiceDef {
   buttonLabel?: string;
   browseHref?: string;
   browseLinkLabel?: string;
-  // Gradient: 3-stop diagonal, richer than before
   gradient: string;
-  // Tinted border color for live cards
   borderColor: string;
   iconColor: string;
   buttonColor?: string;
@@ -158,9 +159,9 @@ const SERVICES: ServiceDef[] = [
   },
   {
     title: "IP Collection 1155",
-    subtitle: "Multi-edition ERC-1155 IP collections",
-    description: "Deploy a multi-edition ERC-1155 collection for music tracks, art series, or any IP with multiple copies. Immutable provenance recorded at first mint.",
-    features: ["Multi-edition ERC-1155", "Immutable provenance", "Tradeable on Medialane1155"],
+    subtitle: "Multi-edition ERC-1155 collections",
+    description: "Deploy a multi-edition collection for music tracks, art series, or any IP with multiple copies. Mint unlimited editions in a single transaction.",
+    features: ["Multi-edition ERC-1155", "Immutable provenance", "Tradeable on Medialane"],
     icon: Layers,
     href: "/launchpad/ip1155/create",
     buttonLabel: "Create Collection",
@@ -353,6 +354,79 @@ function ServiceCard({ s }: { s: ServiceDef }) {
   );
 }
 
+// ── My ERC-1155 Collections ─────────────────────────────────────────────────
+function MyERC1155Collections({ address }: { address: string }) {
+  const { collections, isLoading } = useCollectionsByOwner(address);
+  const erc1155 = useMemo(
+    () => collections.filter((c) => c.standard === "ERC1155"),
+    [collections]
+  );
+
+  if (!isLoading && erc1155.length === 0) return null;
+
+  return (
+    <section className="px-4 space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="section-label">ERC-1155</p>
+          <h2 className="text-xl font-bold mt-0.5">Your IP Collections</h2>
+          <p className="text-sm text-muted-foreground mt-1">Select a collection to mint new token editions into it.</p>
+        </div>
+        <Link
+          href="/launchpad/ip1155/create"
+          className="shrink-0 h-9 px-4 rounded-xl flex items-center gap-2 text-sm font-semibold text-white bg-violet-600 hover:bg-violet-700 transition-colors"
+        >
+          <Layers className="h-3.5 w-3.5" />
+          New collection
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {isLoading
+          ? Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-24 rounded-2xl" />
+            ))
+          : erc1155.map((col) => {
+              const imageUrl = col.image ? ipfsToHttp(col.image) : null;
+              return (
+                <div
+                  key={col.contractAddress}
+                  className="group flex items-center gap-4 p-4 rounded-2xl border border-border/50 bg-muted/20 hover:bg-muted/40 transition-colors"
+                >
+                  {/* Thumbnail */}
+                  <div className="h-14 w-14 rounded-xl overflow-hidden shrink-0 bg-muted flex items-center justify-center">
+                    {imageUrl ? (
+                      <Image src={imageUrl} alt={col.name ?? ""} width={56} height={56} className="object-cover w-full h-full" />
+                    ) : (
+                      <Layers className="h-6 w-6 text-muted-foreground/40" />
+                    )}
+                  </div>
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm truncate">{col.name ?? "Unnamed"}</p>
+                    <p className="text-xs text-muted-foreground font-mono">{col.symbol}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {col.totalSupply != null ? `${col.totalSupply} minted` : "No tokens yet"}
+                    </p>
+                  </div>
+
+                  {/* Action */}
+                  <Link
+                    href={`/launchpad/ip1155/${col.contractAddress}/mint`}
+                    className="shrink-0 h-8 px-3 rounded-lg flex items-center gap-1.5 text-xs font-semibold text-white bg-violet-600 hover:bg-violet-700 transition-colors"
+                  >
+                    <Sparkles className="h-3 w-3" />
+                    Mint
+                  </Link>
+                </div>
+              );
+            })}
+      </div>
+    </section>
+  );
+}
+
 // ── Filter chip ─────────────────────────────────────────────────────────────
 function FilterChip({
   active, onClick, children,
@@ -410,10 +484,13 @@ export function LaunchpadContent() {
         </div>
       </section>
 
+      {/* ── My ERC-1155 Collections ───────────────────────────────── */}
+      {isSignedIn && walletAddress && (
+        <MyERC1155Collections address={walletAddress} />
+      )}
+
       {/* ── Services ─────────────────────────────────────────────── */}
       <section className="px-4 space-y-5">
-
-        {/* Grid */}
         <motion.div
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
           initial={{ opacity: 0, y: 8 }}
@@ -424,7 +501,6 @@ export function LaunchpadContent() {
             <ServiceCard key={s.title} s={s} />
           ))}
         </motion.div>
-
       </section>
 
       {/* ── Drop Pages promo ──────────────────────────────────────── */}

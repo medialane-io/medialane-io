@@ -58,6 +58,11 @@ export default function DocsProtocolPage() {
                 address: "see NEXT_PUBLIC env — deployed per environment",
                 desc: "Factory for launching timed NFT drop events. Enforces supply caps, mint windows, allowlists, per-wallet limits, and mint prices onchain.",
               },
+              {
+                name: "IP Collection 1155 Factory",
+                address: "0x006b2dc7ca7c4f466bb4575ba043d934310f052074f849caf853a86bcb819fd6",
+                desc: "Factory for deploying multi-edition ERC-1155 IP collections. Each deploy_collection() call deploys a new ERC-1155 contract owned by the caller and emits a CollectionDeployed event with the contract address, name, symbol, and base_uri.",
+              },
             ].map(({ name, address, desc }) => (
               <div key={name} className="bento-cell px-4 py-3 space-y-1">
                 <p className="text-sm font-semibold text-foreground">{name}</p>
@@ -85,7 +90,7 @@ export default function DocsProtocolPage() {
               {
                 name: "ERC-1155",
                 interfaceId: "0xd9b67a26",
-                desc: "Multiple owners per token ID, each holding a quantity. Metadata resolved via uri(token_id) with EIP-1155 {id} substitution (64-char zero-padded lowercase hex). Used by Collection Drops and multi-edition releases.",
+                desc: "Multiple owners per token ID, each holding a quantity. Metadata resolved via uri(token_id) with EIP-1155 {id} substitution (64-char zero-padded lowercase hex). Used by IP Collection 1155 — Medialane's multi-edition format for music tracks, art series, and editions.",
               },
             ].map(({ name, interfaceId, desc }) => (
               <div key={name} className="bento-cell px-4 py-3 space-y-1">
@@ -180,12 +185,22 @@ export default function DocsProtocolPage() {
             <div className="bento-cell px-4 py-3 space-y-1">
               <code className="text-xs font-mono text-foreground">CollectionCreated</code>
               <p className="text-xs text-muted-foreground">
-                Emitted when a new collection is deployed through the factory.
+                Emitted by the ERC-721 Collection Registry when a new collection is deployed.
                 Data contains <code className="font-mono">collection_id</code> (u256 low/high),
                 owner address, and name/symbol/base_uri ByteArrays.
                 The actual ERC-721 contract address (<code className="font-mono">ip_nft</code>) is
                 resolved by calling <code className="font-mono">get_collection(collection_id)</code>
                 on the registry.
+              </p>
+            </div>
+            <div className="bento-cell px-4 py-3 space-y-1">
+              <code className="text-xs font-mono text-foreground">CollectionDeployed</code>
+              <p className="text-xs text-muted-foreground">
+                Emitted by the IP Collection 1155 Factory when a new ERC-1155 collection is deployed.
+                Data contains the deployed contract address, caller (owner), name, symbol, and base_uri
+                (IPFS URI pointing to collection-level metadata JSON with name, description, image fields).
+                The indexer reads these fields directly from the event — no RPC call is needed to fetch
+                name/symbol/base_uri for ERC-1155 collections.
               </p>
             </div>
           </div>
