@@ -20,6 +20,8 @@ import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { cn, ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
 import { ReportDialog } from "@/components/report-dialog";
+import { OfferDialog } from "@/components/marketplace/offer-dialog";
+import { ListingDialog } from "@/components/marketplace/listing-dialog";
 import type { RarityTier } from "@/lib/rarity";
 import type { ApiToken } from "@medialane/sdk";
 import { IpTypeBadge } from "@/components/shared/ip-type-badge";
@@ -65,6 +67,8 @@ export function TokenCard({
   const { addItem, items } = useCart();
   const [imgError, setImgError] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [offerOpen, setOfferOpen] = useState(false);
+  const [listOpen, setListOpen] = useState(false);
 
   const name = token.metadata?.name || `Token #${token.tokenId}`;
   const image = ipfsToHttp(token.metadata?.image);
@@ -109,11 +113,140 @@ export function TokenCard({
   const handleOffer = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (onOffer) onOffer(token); else router.push(assetHref);
+    if (onOffer) onOffer(token); else setOfferOpen(true);
   };
 
   const handleRemix = () => {
     if (onRemix) onRemix(token); else router.push(remixHref);
+  };
+
+  const renderActions = () => {
+    // Non-owner + listed → Buy + Cart + Offer
+    if (!isOwner && activeOrder && showBuyButton) {
+      return (
+        <>
+          <div className="btn-border-animated p-[1.5px] rounded-[12px] flex-1 h-8">
+            <button
+              className="w-full h-full rounded-[11px] bg-background flex items-center justify-center gap-1.5 text-xs font-semibold text-foreground hover:bg-muted/60 transition-all active:scale-[0.98]"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (onBuy) onBuy(token); else router.push(assetHref);
+              }}
+            >
+              <Zap className="h-3.5 w-3.5 shrink-0" />
+              Buy
+            </button>
+          </div>
+          <button
+            className={cn(
+              BTN_OUTLINE, "w-8 shrink-0",
+              inCart && "border-brand-orange/50 bg-brand-orange/10 text-brand-orange"
+            )}
+            onClick={handleAddToCart}
+            disabled={inCart}
+            aria-label={inCart ? "In cart" : "Add to cart"}
+          >
+            {inCart ? <Check className="h-3.5 w-3.5" /> : <ShoppingCart className="h-3.5 w-3.5" />}
+          </button>
+          <button
+            className={cn(BTN_OUTLINE, "w-8 shrink-0 text-brand-orange border-brand-orange/40 hover:bg-brand-orange/10")}
+            onClick={handleOffer}
+            aria-label="Make an offer"
+          >
+            <HandCoins className="h-3.5 w-3.5" />
+          </button>
+        </>
+      );
+    }
+
+    // Non-owner + unlisted → View + Offer
+    if (!isOwner) {
+      return (
+        <>
+          <Link href={assetHref} className={cn(BTN_OUTLINE, "flex-1")}>
+            <ArrowUpRight className="h-3.5 w-3.5 shrink-0" />
+            View
+          </Link>
+          <button
+            className={cn(BTN_OUTLINE, "w-8 shrink-0 text-brand-orange border-brand-orange/40 hover:bg-brand-orange/10")}
+            onClick={handleOffer}
+            aria-label="Make an offer"
+          >
+            <HandCoins className="h-3.5 w-3.5" />
+          </button>
+        </>
+      );
+    }
+
+    // Owner + listed → Cancel + Transfer
+    if (activeOrder && onCancel) {
+      return (
+        <>
+          <button
+            className={cn(BTN_SOLID, "flex-1 bg-brand-rose")}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onCancel(token); }}
+          >
+            <X className="h-3.5 w-3.5 shrink-0" />
+            Cancel listing
+          </button>
+          {onTransfer && (
+            <button
+              className={cn(BTN_OUTLINE, "w-8 shrink-0")}
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onTransfer(token); }}
+              aria-label="Transfer"
+            >
+              <ArrowRightLeft className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </>
+      );
+    }
+
+    // Owner + unlisted + onList prop → delegate to parent
+    if (onList) {
+      return (
+        <>
+          <button
+            className={cn(BTN_SOLID, "flex-1 bg-brand-blue")}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onList(token); }}
+          >
+            <Tag className="h-3.5 w-3.5 shrink-0" />
+            List for sale
+          </button>
+          {onTransfer && (
+            <button
+              className={cn(BTN_OUTLINE, "w-8 shrink-0")}
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onTransfer(token); }}
+              aria-label="Transfer"
+            >
+              <ArrowRightLeft className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </>
+      );
+    }
+
+    // Owner + unlisted + no onList prop → internal ListingDialog
+    if (isOwner) {
+      return (
+        <button
+          className={cn(BTN_SOLID, "flex-1 bg-brand-blue")}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setListOpen(true); }}
+        >
+          <Tag className="h-3.5 w-3.5 shrink-0" />
+          List for sale
+        </button>
+      );
+    }
+
+    // Fallback → View
+    return (
+      <Link href={assetHref} className={cn(BTN_OUTLINE, "flex-1")}>
+        <ArrowUpRight className="h-3.5 w-3.5 shrink-0" />
+        View
+      </Link>
+    );
   };
 
   return (
@@ -158,15 +291,6 @@ export function TokenCard({
               </div>
             )}
 
-            {/* Price pill */}
-            {activeOrder && !rarityTier && (
-              <div className="absolute top-2 right-2 bg-black/55 backdrop-blur-sm rounded-full px-2 py-0.5 border border-white/10">
-                <span className="text-[11px] font-bold text-white leading-none">
-                  {formatDisplayPrice(activeOrder.price.formatted)}{" "}
-                  <span className="text-white/60 font-normal">{activeOrder.price.currency}</span>
-                </span>
-              </div>
-            )}
 
             {/* Indexing */}
             {(token.metadataStatus === "PENDING" || token.metadataStatus === "FETCHING") && (
@@ -183,6 +307,13 @@ export function TokenCard({
           <Link href={assetHref} className="block space-y-0.5 mb-2">
             {/* Title — 2× the previous 13px → ~text-xl */}
             <p className="text-xl font-bold line-clamp-2 leading-tight">{name}</p>
+            {activeOrder && (
+              <p className="flex items-center gap-1 text-[11px] font-semibold text-foreground/80">
+                <CurrencyIcon symbol={activeOrder.price.currency} size={11} />
+                {formatDisplayPrice(activeOrder.price.formatted)}
+                <span className="font-normal text-muted-foreground">{activeOrder.price.currency}</span>
+              </p>
+            )}
             {creatorShort ? (
               <p className="text-[10px] text-muted-foreground truncate">
                 by <span className="font-mono">{creatorShort}</span>
@@ -200,111 +331,9 @@ export function TokenCard({
         </div>
 
         {/* ── Action row ────────────────────────────────────────────── */}
-        {/*
-          [PRIMARY full-width CTA] [⋯ overflow]
-          - Non-owner + listed   → Buy now (animated border)
-          - Non-owner + unlisted → Make offer (orange)
-          - Owner + listed       → Cancel listing (rose)
-          - Owner + unlisted     → List for sale (blue)
-          - Fallback             → View (outline)
-        */}
         <div className="flex items-center gap-1.5 px-2 pb-2">
 
-          {/* PRIMARY CTA
-              Non-owner + listed   → Buy (animated) + cart icon
-              Non-owner + unlisted → Make offer (orange)
-              Owner + listed       → Cancel (rose)
-              Owner + unlisted     → List for sale (blue)
-              Fallback             → View (outline)
-          */}
-          {!isOwner && activeOrder && showBuyButton ? (
-            <>
-              {/* Animated gradient border Buy */}
-              <div className="btn-border-animated p-[1.5px] rounded-[12px] flex-1 h-8">
-                <button
-                  className="w-full h-full rounded-[11px] bg-background flex items-center justify-center gap-1.5 text-xs font-semibold text-foreground hover:bg-muted/60 transition-all active:scale-[0.98]"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (onBuy) onBuy(token); else router.push(assetHref);
-                  }}
-                >
-                  <Zap className="h-3.5 w-3.5 shrink-0" />
-                  Buy
-                </button>
-              </div>
-              {/* Cart icon button */}
-              <button
-                className={cn(
-                  BTN_OUTLINE, "w-8 shrink-0",
-                  inCart && "border-brand-orange/50 bg-brand-orange/10 text-brand-orange"
-                )}
-                onClick={handleAddToCart}
-                disabled={inCart}
-                aria-label={inCart ? "In cart" : "Add to cart"}
-              >
-                {inCart ? <Check className="h-3.5 w-3.5" /> : <ShoppingCart className="h-3.5 w-3.5" />}
-              </button>
-            </>
-          ) : !isOwner ? (
-            /* Unlisted non-owner → View (primary) + Make offer icon */
-            <>
-              <Link href={assetHref} className={cn(BTN_OUTLINE, "flex-1")}>
-                <ArrowUpRight className="h-3.5 w-3.5 shrink-0" />
-                View
-              </Link>
-              <button
-                className={cn(BTN_OUTLINE, "w-8 shrink-0 text-brand-orange border-brand-orange/40 hover:bg-brand-orange/10")}
-                onClick={handleOffer}
-                aria-label="Make an offer"
-              >
-                <HandCoins className="h-3.5 w-3.5" />
-              </button>
-            </>
-          ) : activeOrder && onCancel ? (
-            <>
-              <button
-                className={cn(BTN_SOLID, "flex-1 bg-brand-rose")}
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onCancel(token); }}
-              >
-                <X className="h-3.5 w-3.5 shrink-0" />
-                Cancel listing
-              </button>
-              {onTransfer && (
-                <button
-                  className={cn(BTN_OUTLINE, "w-8 shrink-0")}
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onTransfer(token); }}
-                  aria-label="Transfer"
-                >
-                  <ArrowRightLeft className="h-3.5 w-3.5" />
-                </button>
-              )}
-            </>
-          ) : onList ? (
-            <>
-              <button
-                className={cn(BTN_SOLID, "flex-1 bg-brand-blue")}
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onList(token); }}
-              >
-                <Tag className="h-3.5 w-3.5 shrink-0" />
-                List for sale
-              </button>
-              {onTransfer && (
-                <button
-                  className={cn(BTN_OUTLINE, "w-8 shrink-0")}
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onTransfer(token); }}
-                  aria-label="Transfer"
-                >
-                  <ArrowRightLeft className="h-3.5 w-3.5" />
-                </button>
-              )}
-            </>
-          ) : (
-            <Link href={assetHref} className={cn(BTN_OUTLINE, "flex-1")}>
-              <ArrowUpRight className="h-3.5 w-3.5 shrink-0" />
-              View
-            </Link>
-          )}
+          {renderActions()}
 
           {/* ⋯ OVERFLOW — all secondary actions */}
           <DropdownMenu>
@@ -455,6 +484,25 @@ export function TokenCard({
         target={{ type: "TOKEN", contract: token.contractAddress, tokenId: token.tokenId, name }}
         open={reportOpen}
         onOpenChange={setReportOpen}
+      />
+
+      <OfferDialog
+        open={offerOpen}
+        onOpenChange={setOfferOpen}
+        assetContract={token.contractAddress}
+        tokenId={token.tokenId}
+        tokenName={name}
+        tokenImage={image}
+      />
+
+      <ListingDialog
+        open={listOpen}
+        onOpenChange={setListOpen}
+        assetContract={token.contractAddress}
+        tokenId={token.tokenId}
+        tokenName={name}
+        tokenStandard={token.standard}
+        onSuccess={() => setListOpen(false)}
       />
     </>
   );
