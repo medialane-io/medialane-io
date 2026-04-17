@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import Image from "next/image";
 import Link from "next/link";
-import { Sparkles, Loader2, ImagePlus, X, CheckCircle2 } from "lucide-react";
+import { Sparkles, Loader2, ImagePlus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,6 +22,10 @@ import {
 } from "@/components/ui/form";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
+import {
+  MintProgressDialog,
+  type MintStep,
+} from "@/components/marketplace/mint-progress-dialog";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useUser } from "@clerk/nextjs";
@@ -73,13 +77,13 @@ export default function MintIP1155Page() {
 
   const { isSignedIn } = useUser();
   const { walletAddress, hasWallet } = useSessionKey();
-  const { executeTransaction, isSubmitting } = useChipiTransaction();
+  const { executeTransaction, status: txStatus, txHash } = useChipiTransaction();
 
   const [pinOpen, setPinOpen] = useState(false);
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
-  const [done, setDone] = useState(false);
-  const [txHash, setTxHash] = useState<string | null>(null);
+  const [mintStep, setMintStep] = useState<MintStep>("idle");
+  const [mintError, setMintError] = useState<string | null>(null);
   const [ownerCheck, setOwnerCheck] = useState<"loading" | "ok" | "denied">("loading");
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -122,7 +126,7 @@ export default function MintIP1155Page() {
         const onChainOwner = normalizeAddress(String(raw));
         setOwnerCheck(onChainOwner === normalizeAddress(walletAddress) ? "ok" : "denied");
       })
-      .catch(() => setOwnerCheck("ok")); // If check fails, allow through — contract will enforce it
+      .catch(() => setOwnerCheck("ok"));
   }, [walletAddress, collectionAddress]);
 
   const handleImageSelect = async (file: File) => {
@@ -163,6 +167,9 @@ export default function MintIP1155Page() {
     setPinOpen(false);
     if (!pendingValues || !walletAddress || !imageUri) return;
 
+    setMintStep("uploading");
+    setMintError(null);
+
     // Build and pin metadata JSON
     let tokenUri = imageUri;
     try {
@@ -180,9 +187,9 @@ export default function MintIP1155Page() {
       if (d.uri) tokenUri = d.uri;
     } catch { /* fall back to raw image URI */ }
 
+    setMintStep("processing");
+
     try {
-      // Build calldata manually — starknet.js 6.x encodes ByteArray as felt252 via
-      // contract.populate(), so we serialize each field explicitly.
       const [tokenIdLow, tokenIdHigh] = encodeU256(BigInt(pendingValues.tokenId));
       const [valueLow, valueHigh]     = encodeU256(BigInt(pendingValues.value));
 
@@ -193,64 +200,33 @@ export default function MintIP1155Page() {
           contractAddress: collectionAddress,
           entrypoint: "mint_item",
           calldata: [
-            pendingValues.recipient,       // to: ContractAddress
-            tokenIdLow, tokenIdHigh,       // token_id: u256
-            valueLow, valueHigh,           // value: u256
-            ...serializeByteArray(tokenUri), // token_uri: ByteArray
+            pendingValues.recipient,
+            tokenIdLow, tokenIdHigh,
+            valueLow, valueHigh,
+            ...serializeByteArray(tokenUri),
           ],
         }],
       });
 
       if (result.status === "confirmed") {
-        setTxHash(result.txHash);
-        setDone(true);
+        setMintStep("success");
       } else {
-        toast.error(result.revertReason ?? "Transaction reverted");
+        setMintError(result.revertReason ?? "Transaction reverted");
+        setMintStep("error");
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to mint token");
+      setMintError(err instanceof Error ? err.message : "Failed to mint token");
+      setMintStep("error");
     }
   };
 
-  // ── Success ──────────────────────────────────────────────────────────────────
-  if (done) {
-    return (
-      <div className="container max-w-lg mx-auto px-4 pt-24 pb-8 text-center space-y-6">
-        <div className="flex justify-center">
-          <div className="h-20 w-20 rounded-full bg-violet-500/10 flex items-center justify-center">
-            <CheckCircle2 className="h-10 w-10 text-violet-500" />
-          </div>
-        </div>
-        <div className="space-y-2">
-          <h1 className="text-2xl font-bold">Token minted</h1>
-          <p className="text-muted-foreground">
-            Your ERC-1155 IP asset is live on Starknet. It will appear in your portfolio
-            within a minute once indexed.
-          </p>
-          {txHash && (
-            <p className="text-xs text-muted-foreground break-all">Tx: {txHash}</p>
-          )}
-        </div>
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Button asChild variant="outline">
-            <Link href="/portfolio">View portfolio</Link>
-          </Button>
-          <Button
-            onClick={() => {
-              setDone(false);
-              setTxHash(null);
-              setImagePreview(null);
-              setImageUri(null);
-              form.reset({ tokenId: "", value: "1", recipient: walletAddress ?? "", name: "", description: "" });
-            }}
-            className="bg-violet-600 hover:bg-violet-700 text-white"
-          >
-            Mint another
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  const handleMintAnother = () => {
+    setMintStep("idle");
+    setMintError(null);
+    setImagePreview(null);
+    setImageUri(null);
+    form.reset({ tokenId: "", value: "1", recipient: walletAddress ?? "", name: "", description: "" });
+  };
 
   // ── Not signed in ─────────────────────────────────────────────────────────
   if (!isSignedIn) {
@@ -427,11 +403,10 @@ export default function MintIP1155Page() {
                   type="submit"
                   size="lg"
                   className="w-full rounded-xl bg-background text-foreground hover:bg-muted/60"
-                  disabled={isSubmitting || imageUploading}
+                  disabled={imageUploading || mintStep !== "idle"}
                 >
-                  {isSubmitting
-                    ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Minting…</>
-                    : <><Sparkles className="h-4 w-4 mr-2" />Mint Token</>}
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Mint Token
                 </Button>
               </div>
               <p className="text-xs text-center text-muted-foreground mt-2">
@@ -454,6 +429,16 @@ export default function MintIP1155Page() {
         open={walletSetupOpen}
         onOpenChange={setWalletSetupOpen}
         onSuccess={() => { setWalletSetupOpen(false); setPinOpen(true); }}
+      />
+      <MintProgressDialog
+        open={mintStep !== "idle"}
+        mintStep={mintStep}
+        txStatus={txStatus}
+        assetName={form.getValues("name")}
+        imagePreview={imagePreview}
+        txHash={txHash}
+        error={mintError}
+        onMintAnother={handleMintAnother}
       />
     </>
   );
