@@ -19,6 +19,7 @@ import {
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { cn, ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
+import { toast } from "sonner";
 import { ReportDialog } from "@/components/report-dialog";
 import { OfferDialog } from "@/components/marketplace/offer-dialog";
 import { ListingDialog } from "@/components/marketplace/listing-dialog";
@@ -79,13 +80,6 @@ export function TokenCard({
   const collectionHref = `/collections/${token.contractAddress}`;
   const remixHref = `/create/remix/${token.contractAddress}/${token.tokenId}`;
 
-  const creatorAddress = (
-    token.metadata as { attributes?: { trait_type: string; value: string }[] } | undefined
-  )?.attributes?.find((a) => a.trait_type === "Creator")?.value;
-  const creatorHref = creatorAddress ? `/creator/${creatorAddress}` : null;
-  const creatorShort = creatorAddress
-    ? `${creatorAddress.slice(0, 6)}…${creatorAddress.slice(-4)}`
-    : null;
   // Current holder: use first balance entry if available, fall back to legacy owner field
   const currentOwner = token.balances?.[0]?.owner ?? token.owner ?? null;
   const ownerAccountHref = currentOwner ? `/account/${currentOwner}` : null;
@@ -107,6 +101,9 @@ export function TokenCard({
       offerer: activeOrder.offerer ?? "",
       considerationToken: activeOrder.consideration.token ?? "",
       considerationAmount: activeOrder.consideration.startAmount ?? "",
+    });
+    toast.success("Added to cart", {
+      description: name,
     });
   };
 
@@ -314,11 +311,7 @@ export function TokenCard({
                 <span className="font-normal text-muted-foreground">{activeOrder.price.currency}</span>
               </p>
             )}
-            {creatorShort ? (
-              <p className="text-[10px] text-muted-foreground truncate">
-                by <span className="font-mono">{creatorShort}</span>
-              </p>
-            ) : token.metadata?.description ? (
+            {token.metadata?.description ? (
               <p className="text-[10px] text-muted-foreground truncate leading-snug">
                 {token.metadata.description}
               </p>
@@ -441,14 +434,6 @@ export function TokenCard({
               <DropdownMenuSeparator />
 
               {/* Navigation */}
-              {creatorHref && (
-                <DropdownMenuItem asChild>
-                  <Link href={creatorHref} className="flex items-center gap-2">
-                    <UserCircle2 className="h-3.5 w-3.5 text-muted-foreground" />
-                    View creator
-                  </Link>
-                </DropdownMenuItem>
-              )}
               <DropdownMenuItem asChild>
                 <Link href={collectionHref} className="flex items-center gap-2">
                   <Layers className="h-3.5 w-3.5 text-muted-foreground" />
