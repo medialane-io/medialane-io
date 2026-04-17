@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CheckCircle2, Loader2, Settings2 } from "lucide-react";
+import { Loader2, Settings2 } from "lucide-react";
 import { HelpIcon } from "@/components/ui/help-icon";
 import { MotionCard } from "@/components/ui/motion-primitives";
 import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
@@ -70,12 +70,6 @@ export function CollectionCard({ collection, settingsHref }: CollectionCardProps
                 style={{ textShadow: "0 1px 6px rgba(0,0,0,0.5)" }}
               >
                 {collection.name ?? "Unnamed Collection"}
-                {collection.isKnown && (
-                  <CheckCircle2 className="inline-block h-3 w-3 text-blue-400 ml-1.5 shrink-0 align-middle" />
-                )}
-                {collection.isKnown && (
-                  <HelpIcon content="Verified collection — identity confirmed by Medialane" side="top" className="ml-1" />
-                )}
               </p>
             )}
 
