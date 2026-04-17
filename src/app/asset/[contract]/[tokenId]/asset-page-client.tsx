@@ -10,6 +10,7 @@ import { useTokenListings } from "@/hooks/use-orders";
 import { useCollection } from "@/hooks/use-collections";
 import { Button } from "@/components/ui/button";
 import { IpTypeBadge } from "@/components/shared/ip-type-badge";
+import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PurchaseDialog } from "@/components/marketplace/purchase-dialog";
 import { ListingDialog } from "@/components/marketplace/listing-dialog";
