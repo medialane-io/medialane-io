@@ -12,7 +12,7 @@ import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddressDisplay } from "@/components/shared/address-display";
-import { ArrowLeft, Loader2, Flag, Inbox, Lock, Unlock, Play, FileText, Link2 } from "lucide-react";
+import { ArrowLeft, Loader2, Flag, Inbox, Lock, Unlock, Play, FileText, Link2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ReportDialog } from "@/components/report-dialog";
 import { ShareButton } from "@/components/shared/share-button";
@@ -246,6 +246,7 @@ export default function CollectionPageClient() {
   const [descOverflows, setDescOverflows] = useState(false);
   const descRef = useRef<HTMLParagraphElement>(null);
 
+  const { walletAddress } = useSessionKey();
   const { collection, isLoading: colLoading } = useCollection(contract);
   const { profile } = useCollectionProfile(contract);
   const gatedState = useGatedContent(profile?.hasGatedContent ? contract : undefined);
@@ -391,19 +392,33 @@ export default function CollectionPageClient() {
       {/* ── Meta section ── */}
       {!colLoading && collection && (
         <div className="px-4 sm:px-6 pt-4 pb-2 space-y-1.5">
-          {collection.owner && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span>by</span>
-              <Link href={`/creator/${collection.owner}`} className="hover:underline underline-offset-2">
-                <AddressDisplay
-                  address={collection.owner}
-                  chars={6}
-                  showCopy={false}
-                  className="font-medium text-foreground"
-                />
+          <div className="flex items-center justify-between gap-3">
+            {collection.owner && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span>by</span>
+                <Link href={`/creator/${collection.owner}`} className="hover:underline underline-offset-2">
+                  <AddressDisplay
+                    address={collection.owner}
+                    chars={6}
+                    showCopy={false}
+                    className="font-medium text-foreground"
+                  />
+                </Link>
+              </div>
+            )}
+            {/* Mint button — only for ERC-1155 collection owner */}
+            {collection.source === "ERC1155_FACTORY" &&
+              walletAddress &&
+              collection.owner?.toLowerCase() === walletAddress.toLowerCase() && (
+              <Link
+                href={`/launchpad/ip1155/${contract}/mint`}
+                className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold text-white bg-fuchsia-600 hover:bg-fuchsia-700 transition-colors"
+              >
+                <Sparkles className="h-3 w-3" />
+                Mint editions
               </Link>
-            </div>
-          )}
+            )}
+          </div>
 
           {collection.description && (
             <>
