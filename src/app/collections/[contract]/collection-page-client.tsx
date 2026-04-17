@@ -544,15 +544,7 @@ function ParallaxBanner({ imageUrl, contract }: { imageUrl: string | null; contr
   const y = useTransform(scrollY, [0, 500], [0, shouldReduce ? 0 : 150]);
 
   if (!imageUrl) {
-    const hex = contract.replace(/^0x/i, "");
-    const a = `#${hex.slice(-6, -3).padStart(6, "a")}`;
-    const b = `#${hex.slice(-3).padStart(6, "5")}`;
-    return (
-      <div
-        className="absolute inset-0 w-full h-full"
-        style={{ background: `linear-gradient(135deg, ${a}, ${b})` }}
-      />
-    );
+    return <div className="absolute inset-0 w-full h-full bg-muted" />;
   }
 
   return (
