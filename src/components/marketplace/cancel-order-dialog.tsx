@@ -95,7 +95,7 @@ export function CancelOrderDialog({
     if (err) { setPinError(err); return; }
     if (!order) return;
     setPinError(null);
-    await cancelOrder({ orderHash: order.orderHash, pin });
+    await cancelOrder({ orderHash: order.orderHash, pin, tokenStandard: order.offer.itemType });
     setPin("");
   };
 

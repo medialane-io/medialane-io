@@ -137,6 +137,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
     await fulfillOrder({
       orderHash: order.orderHash,
       pin,
+      tokenStandard: order.offer.itemType,
     });
     setPin("");
     setStep("details");
@@ -156,6 +157,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
       await fulfillOrder({
         orderHash: order.orderHash,
         pin: derived,
+        tokenStandard: order.offer.itemType,
       });
 
       setPin("");

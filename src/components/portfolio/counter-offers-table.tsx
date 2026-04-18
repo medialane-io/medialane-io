@@ -138,7 +138,7 @@ export function CounterOffersTable({ address }: { address: string }) {
   const handlePin = async (pin: string) => {
     setPinOpen(false);
     if (!selectedCounter) return;
-    await fulfillOrder({ orderHash: selectedCounter.orderHash, pin });
+    await fulfillOrder({ orderHash: selectedCounter.orderHash, pin, tokenStandard: selectedCounter.consideration.itemType });
     mutate();
   };
 

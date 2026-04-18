@@ -270,9 +270,9 @@ export default function CreatorPageClient() {
 
   const handleCancelPin = async (pin: string) => {
     setCancelPinOpen(false);
-    const orderHash = cancelToken?.activeOrders?.[0]?.orderHash;
-    if (!orderHash) return;
-    await cancelOrder({ orderHash, pin });
+    const activeOrder = cancelToken?.activeOrders?.[0];
+    if (!activeOrder?.orderHash) return;
+    await cancelOrder({ orderHash: activeOrder.orderHash, pin, tokenStandard: activeOrder.offer.itemType });
     setCancelToken(null);
   };
 

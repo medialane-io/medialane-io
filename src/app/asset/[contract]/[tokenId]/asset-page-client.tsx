@@ -138,7 +138,7 @@ export default function AssetPageClient() {
     setCancelStep("processing");
     setCancelError(null);
     try {
-      await cancelOrder({ orderHash: orderToCancel.orderHash, pin });
+      await cancelOrder({ orderHash: orderToCancel.orderHash, pin, tokenStandard: orderToCancel.offer.itemType });
       setCancelStep("success");
       mutateListings();
     } catch (err: unknown) {
@@ -155,7 +155,7 @@ export default function AssetPageClient() {
   const handleAcceptPin = async (pin: string) => {
     setAcceptPinOpen(false);
     if (!orderToAccept) return;
-    await fulfillOrder({ orderHash: orderToAccept.orderHash, pin });
+    await fulfillOrder({ orderHash: orderToAccept.orderHash, pin, tokenStandard: orderToAccept.offer.itemType });
     setOrderToAccept(null);
     mutateListings();
   };

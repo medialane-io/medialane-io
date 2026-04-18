@@ -85,6 +85,7 @@ export interface MakeOfferInput {
 
 export interface FulfillOrderInput {
   orderHash: string;
+  tokenStandard?: string;
   // Legacy fields — kept for call-site compatibility, no longer used internally
   considerationToken?: string;
   considerationAmount?: string;
@@ -94,6 +95,7 @@ export interface FulfillOrderInput {
 
 export interface CancelOrderInput {
   orderHash: string;
+  tokenStandard?: string;
 }
 
 export interface MakeCounterOfferInput {
@@ -319,13 +321,17 @@ export function useMarketplace() {
       setIsProcessing(true);
       setError(null);
       try {
+        const marketplaceContract = input.tokenStandard === "ERC1155"
+          ? MARKETPLACE_1155_CONTRACT
+          : MARKETPLACE_CONTRACT;
         return await runIntent(
           input.pin,
           () => client.api.createFulfillIntent({
             fulfiller: walletAddress!,
             orderHash: input.orderHash,
           }),
-          "Purchase complete!"
+          "Purchase complete!",
+          marketplaceContract
         );
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Purchase failed";
@@ -405,18 +411,17 @@ export function useMarketplace() {
       setIsProcessing(true);
       setError(null);
       try {
+        const marketplaceContract = input.tokenStandard === "ERC1155"
+          ? MARKETPLACE_1155_CONTRACT
+          : MARKETPLACE_CONTRACT;
         return await runIntent(
           input.pin,
           () => client.api.createCancelIntent({
             offerer: walletAddress!,
             orderHash: input.orderHash,
           }),
-          "Order cancelled."
-          // No requiredEventFrom — a confirmed cancel tx is always successful.
-          // The event guard is only needed for fulfillOrder where ChipiPay's
-          // multicall wrapper can report SUCCEEDED while the inner call panics
-          // (e.g. insufficient ERC-20 balance). That silent-failure path does
-          // not exist for cancel_order.
+          "Order cancelled.",
+          marketplaceContract
         );
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Cancellation failed";

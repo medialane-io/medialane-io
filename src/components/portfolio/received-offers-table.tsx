@@ -153,7 +153,7 @@ export function ReceivedOffersTable({ address }: ReceivedOffersTableProps) {
   const handlePin = async (pin: string) => {
     setPinOpen(false);
     if (!selectedOrder) return;
-    await fulfillOrder({ orderHash: selectedOrder.orderHash, pin });
+    await fulfillOrder({ orderHash: selectedOrder.orderHash, pin, tokenStandard: selectedOrder.consideration.itemType });
     mutate();
   };
 
