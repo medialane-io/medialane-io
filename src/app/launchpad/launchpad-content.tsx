@@ -12,10 +12,13 @@ import { FadeIn } from "@/components/ui/motion-primitives";
 import { BRAND } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 import {
-  Zap, ImagePlus, Layers, ArrowRight,
-  Package, Tag, ShoppingCart,
-  GitBranch, Users, RefreshCw, Ticket, Coins, TrendingUp,
-  Lock, Globe, ExternalLink, Award, PlusCircle,
+  LaunchpadServicesGrid,
+  LAUNCHPAD_SERVICE_DEFINITIONS,
+} from "@medialane/ui";
+import type { ServiceCardProps } from "@medialane/ui";
+import {
+  Zap, Package, Tag, ShoppingCart,
+  Layers, Globe, ExternalLink, ArrowRight,
 } from "lucide-react";
 
 // ── Hero stats ──────────────────────────────────────────────────────────────
@@ -42,361 +45,31 @@ function HeroStats({ address }: { address: string }) {
   );
 }
 
-// ── Service definitions ─────────────────────────────────────────────────────
-type ServiceStatus = "live" | "building" | "soon";
-type ServiceCategory = "create" | "launch" | "monetize";
+// Inject io-specific hrefs for each service key
+const IO_HREFS: Record<string, Pick<ServiceCardProps, "href" | "buttonLabel" | "browseHref">> = {
+  "mint-ip-asset":      { href: "/create/asset",           buttonLabel: "Mint asset"         },
+  "create-collection":  { href: "/create/collection",      buttonLabel: "Create collection"  },
+  "remix-asset":        { href: "/marketplace",            buttonLabel: "Browse to remix"    },
+  "pop-protocol":       { href: "/launchpad/pop/create",   buttonLabel: "Create Event",      browseHref: "/launchpad/pop"  },
+  "collection-drop":    { href: "/launchpad/drop/create",  buttonLabel: "Launch Drop",       browseHref: "/launchpad/drop" },
+  "ip-collection-1155": { href: "/launchpad/ip1155/create",buttonLabel: "Create Collection"  },
+  "mint-editions":      { href: "/launchpad/ip1155",       buttonLabel: "Mint editions"      },
+};
 
-interface ServiceDef {
-  title: string;
-  subtitle: string;
-  description: string;
-  features: string[];
-  icon: React.ElementType;
-  href?: string;
-  buttonLabel?: string;
-  browseHref?: string;
-  browseLinkLabel?: string;
-  gradient: string;
-  borderColor: string;
-  iconColor: string;
-  buttonColor?: string;
-  badge: string;
-  status: ServiceStatus;
-  category: ServiceCategory;
-}
-
-const SERVICES: ServiceDef[] = [
-  // ── Create ─────────────────────────────────────────────────────────────
-  {
-    title: "Mint IP Asset",
-    subtitle: "Register any creative work onchain",
-    description: "Turn any creative file into a programmable IP NFT. Gasless, permanent, and immediately tradeable.",
-    features: ["Gasless via ChipiPay", "IPFS metadata", "Programmable licensing"],
-    icon: ImagePlus,
-    href: "/create/asset",
-    buttonLabel: "Mint asset",
-    gradient: "from-blue-500/10 via-sky-400/4 to-transparent",
-    borderColor: "border-blue-500/20",
-    iconColor: "text-blue-500",
-    buttonColor: "bg-brand-blue hover:bg-brand-blue/90",
-    badge: "Create",
-    status: "live",
-    category: "create",
-  },
-  {
-    title: "Create Collection",
-    subtitle: "Deploy a named ERC-721 catalog",
-    description: "Deploy a branded collection with its own page, metadata, and on-chain identity — ready to populate with assets.",
-    features: ["Factory-deployed ERC-721", "Branded collection page", "Add assets at any time"],
-    icon: Layers,
-    href: "/create/collection",
-    buttonLabel: "Create collection",
-    gradient: "from-violet-500/10 via-purple-400/4 to-transparent",
-    borderColor: "border-violet-500/20",
-    iconColor: "text-violet-500",
-    buttonColor: "bg-brand-purple hover:bg-brand-purple/90",
-    badge: "Create",
-    status: "live",
-    category: "create",
-  },
-  {
-    title: "Remix Asset",
-    subtitle: "Derivative works with on-chain attribution",
-    description: "Create a licensed derivative of any IP asset with full provenance and attribution flowing back to the original creator.",
-    features: ["On-chain attribution", "License-enforced at mint", "Royalties to original creator"],
-    icon: GitBranch,
-    href: "/marketplace",
-    buttonLabel: "Browse to remix",
-    gradient: "from-rose-500/10 via-pink-400/4 to-transparent",
-    borderColor: "border-rose-500/20",
-    iconColor: "text-rose-500",
-    buttonColor: "bg-brand-rose hover:bg-brand-rose/90",
-    badge: "Remix",
-    status: "live",
-    category: "create",
-  },
-
-  // ── Launch ─────────────────────────────────────────────────────────────
-  {
-    title: "POP Protocol",
-    subtitle: "Soulbound credentials for events & education",
-    description: "Issue non-transferable on-chain credentials for bootcamps, hackathons, and conferences. Each attendee claims one soulbound badge — permanently tied to their wallet.",
-    features: ["Soulbound · non-transferable", "One credential per wallet", "Optional allowlist gating"],
-    icon: Award,
-    href: "/launchpad/pop/create",
-    buttonLabel: "Create Event",
-    browseHref: "/launchpad/pop",
-    browseLinkLabel: "Browse events",
-    gradient: "from-emerald-500/10 via-green-400/4 to-transparent",
-    borderColor: "border-emerald-500/20",
-    iconColor: "text-emerald-500",
-    buttonColor: "bg-green-600 hover:bg-green-700",
-    badge: "Launch",
-    status: "live",
-    category: "launch",
-  },
-  {
-    title: "Collection Drop",
-    subtitle: "Limited-edition timed releases",
-    description: "Launch a fixed-supply ERC-721 drop with a defined mint window and per-wallet limit. Set your open date and let your community race to collect.",
-    features: ["Fixed supply cap", "Timed mint window", "Free or paid mint"],
-    icon: Package,
-    href: "/launchpad/drop/create",
-    buttonLabel: "Launch Drop",
-    browseHref: "/launchpad/drop",
-    browseLinkLabel: "Browse drops",
-    gradient: "from-orange-500/10 via-amber-400/4 to-transparent",
-    borderColor: "border-orange-500/20",
-    iconColor: "text-orange-500",
-    buttonColor: "bg-orange-600 hover:bg-orange-700",
-    badge: "Launch",
-    status: "live",
-    category: "launch",
-  },
-  {
-    title: "IP Collection 1155",
-    subtitle: "Multi-edition ERC-1155 collections",
-    description: "Deploy a multi-edition collection for music tracks, art series, or any IP with multiple copies. Mint unlimited editions in a single transaction.",
-    features: ["Multi-edition ERC-1155", "Immutable provenance", "Tradeable on Medialane"],
-    icon: Layers,
-    href: "/launchpad/ip1155/create",
-    buttonLabel: "Create Collection",
-    gradient: "from-violet-500/10 via-purple-400/4 to-transparent",
-    borderColor: "border-violet-500/20",
-    iconColor: "text-violet-500",
-    buttonColor: "bg-violet-600 hover:bg-violet-700",
-    badge: "Launch",
-    status: "live",
-    category: "launch",
-  },
-  {
-    title: "Mint Editions",
-    subtitle: "Add new tokens to an existing collection",
-    description: "Select one of your IP Collection 1155 contracts and mint new token editions into it — set supply, upload artwork, and release to collectors.",
-    features: ["Choose any 1155 collection", "Set edition supply", "IPFS metadata"],
-    icon: PlusCircle,
-    href: "/launchpad/ip1155",
-    buttonLabel: "Mint editions",
-    gradient: "from-fuchsia-500/10 via-violet-400/4 to-transparent",
-    borderColor: "border-fuchsia-500/20",
-    iconColor: "text-fuchsia-500",
-    buttonColor: "bg-fuchsia-600 hover:bg-fuchsia-700",
-    badge: "Launch",
-    status: "live",
-    category: "launch",
-  },
-  {
-    title: "IP Tickets",
-    subtitle: "Gate real-world experiences with NFTs",
-    description: "Distribute tickets for concerts, workshops, and events. Each ticket is verifiable on-chain proof of attendance.",
-    features: ["NFT-based event gating", "Proof of attendance", "Transferable or soulbound"],
-    icon: Ticket,
-    gradient: "from-teal-500/7 via-cyan-400/3 to-transparent",
-    borderColor: "border-teal-500/15",
-    iconColor: "text-teal-500",
-    badge: "Soon",
-    status: "building",
-    category: "launch",
-  },
-  {
-    title: "Membership",
-    subtitle: "Token-gated access passes",
-    description: "Create tiered membership passes that unlock exclusive content, private communities, and experiences for your most loyal fans.",
-    features: ["Token-gated content", "Tiered access levels", "Community alignment"],
-    icon: Users,
-    gradient: "from-indigo-500/6 via-violet-400/2 to-transparent",
-    borderColor: "border-indigo-500/10",
-    iconColor: "text-indigo-400",
-    badge: "Soon",
-    status: "soon",
-    category: "launch",
-  },
-
-  // ── Monetize ───────────────────────────────────────────────────────────
-  {
-    title: "Subscriptions",
-    subtitle: "Recurring on-chain revenue",
-    description: "Monthly licensing, creator support tiers, and access passes — all auto-renewed without intermediaries.",
-    features: ["Recurring revenue", "Auto-renewal protocol", "No middlemen"],
-    icon: RefreshCw,
-    gradient: "from-sky-500/6 via-blue-400/2 to-transparent",
-    borderColor: "border-sky-500/10",
-    iconColor: "text-sky-400",
-    badge: "Soon",
-    status: "soon",
-    category: "monetize",
-  },
-  {
-    title: "IP Coins",
-    subtitle: "Fractional ownership of intellectual property",
-    description: "Tokenize your IP catalog as fungible tokens. Enable fractional ownership and liquid markets around your creative work.",
-    features: ["Fungible IP tokens", "Fractional ownership", "Liquid secondary markets"],
-    icon: Coins,
-    gradient: "from-amber-500/6 via-yellow-400/2 to-transparent",
-    borderColor: "border-amber-500/10",
-    iconColor: "text-amber-400",
-    badge: "Soon",
-    status: "soon",
-    category: "monetize",
-  },
-  {
-    title: "Creator Coins",
-    subtitle: "Personal social token for fans",
-    description: "Launch a social token tied to your creative career. Let fans invest directly in your work — full economic alignment between creator and community.",
-    features: ["Personal social token", "Fan investment", "Creator-community alignment"],
-    icon: TrendingUp,
-    gradient: "from-pink-500/6 via-rose-400/2 to-transparent",
-    borderColor: "border-pink-500/10",
-    iconColor: "text-pink-400",
-    badge: "Soon",
-    status: "soon",
-    category: "monetize",
-  },
-];
-
-// ── Service card ────────────────────────────────────────────────────────────
-function ServiceCard({ s }: { s: ServiceDef }) {
-  const live = s.status === "live";
-  const building = s.status === "building";
-  const active = live || building;
-
-  return (
-    <div className={cn(
-      "group relative rounded-2xl border overflow-hidden transition-all duration-300 flex flex-col",
-      `bg-gradient-to-br ${s.gradient}`,
-      active ? s.borderColor : "border-border/20",
-      live && "hover:-translate-y-[3px] hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20",
-      !active && "opacity-60"
-    )}>
-      <div className="flex flex-col flex-1 p-7 gap-6">
-
-        {/* Icon + badge */}
-        <div className="flex items-start justify-between">
-          <s.icon className={cn(
-            "h-9 w-9 transition-transform duration-300",
-            active ? s.iconColor : "text-muted-foreground/25",
-            live && "group-hover:scale-110"
-          )} />
-          <span className={cn(
-            "text-[10px] font-semibold tracking-widest uppercase rounded-full px-2.5 py-1 flex items-center gap-1.5",
-            live
-              ? "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10"
-              : building
-                ? "text-amber-600 dark:text-amber-400 bg-amber-500/10"
-                : "text-muted-foreground/40 bg-muted/30"
-          )}>
-            {live && <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />}
-            {!active && <Lock className="h-2.5 w-2.5" />}
-            {s.badge}
-          </span>
-        </div>
-
-        {/* Text */}
-        <div className="space-y-1.5">
-          <p className={cn(
-            "text-xl sm:text-2xl font-bold leading-snug tracking-tight",
-            !active && "text-foreground/40"
-          )}>
-            {s.title}
-          </p>
-          <p className={cn(
-            "text-xs leading-relaxed",
-            active ? "text-muted-foreground" : "text-muted-foreground/30"
-          )}>
-            {s.subtitle}
-          </p>
-        </div>
-
-        {/* Description */}
-        <p className={cn(
-          "text-sm leading-relaxed flex-1",
-          active ? "text-muted-foreground" : "text-muted-foreground/30"
-        )}>
-          {s.description}
-        </p>
-
-        {/* Feature chips */}
-        <div className="flex flex-wrap gap-1.5">
-          {s.features.map((f) => (
-            <span key={f} className={cn(
-              "text-[11px] px-2.5 py-1 rounded-full border font-medium",
-              active
-                ? "bg-background/50 border-border/50 text-muted-foreground"
-                : "bg-muted/10 border-border/15 text-muted-foreground/25"
-            )}>
-              {f}
-            </span>
-          ))}
-        </div>
-
-        {/* CTA */}
-        {live ? (
-          <div className="space-y-2">
-            <Link
-              href={s.href!}
-              className={cn(
-                "flex items-center justify-between w-full h-10 px-4 rounded-xl",
-                "text-sm font-semibold text-white",
-                "transition-all duration-200 active:scale-[0.98]",
-                s.buttonColor
-              )}
-            >
-              {s.buttonLabel}
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-            {s.browseHref && (
-              <Link
-                href={s.browseHref}
-                className="flex items-center justify-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors py-1"
-              >
-                {s.browseLinkLabel}
-                <ArrowRight className="h-3 w-3" />
-              </Link>
-            )}
-          </div>
-        ) : (
-          <div className="flex items-center gap-2 h-10 text-sm text-muted-foreground/30 font-medium">
-            <Lock className="h-3.5 w-3.5" />
-            {building ? "In development" : "Coming soon"}
-          </div>
-        )}
-
-      </div>
-    </div>
-  );
-}
-
-// ── Filter chip ─────────────────────────────────────────────────────────────
-function FilterChip({
-  active, onClick, children,
-}: { active: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "px-4 py-1.5 rounded-full text-sm font-medium transition-all border",
-        active
-          ? "bg-foreground text-background border-transparent"
-          : "bg-transparent text-muted-foreground border-border/50 hover:border-border hover:text-foreground"
-      )}
-    >
-      {children}
-    </button>
-  );
-}
+const SERVICES: ServiceCardProps[] = LAUNCHPAD_SERVICE_DEFINITIONS.map((def) => ({
+  ...def,
+  ...(IO_HREFS[def.key] ?? {}),
+}));
 
 // ── Page ────────────────────────────────────────────────────────────────────
 export function LaunchpadContent() {
   const { isSignedIn } = useUser();
   const { walletAddress } = useSessionKey();
 
-  const filtered = SERVICES;
-
   return (
     <div className="pb-16 space-y-10">
 
-      {/* ── Hero ─────────────────────────────────────────────────── */}
+      {/* ── Hero ─────────────────────────────────────────────── */}
       <section className="relative overflow-hidden border-b border-border/50">
         <div className="px-4 py-14 sm:py-20">
           <FadeIn>
@@ -423,21 +96,18 @@ export function LaunchpadContent() {
         </div>
       </section>
 
-      {/* ── Services ─────────────────────────────────────────────── */}
-      <section className="px-4 space-y-5">
+      {/* ── Services grid (from @medialane/ui) ───────────────── */}
+      <section className="px-4">
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
         >
-          {filtered.map((s) => (
-            <ServiceCard key={s.title} s={s} />
-          ))}
+          <LaunchpadServicesGrid services={SERVICES} />
         </motion.div>
       </section>
 
-      {/* ── Drop Pages promo ──────────────────────────────────────── */}
+      {/* ── Drop Pages promo ──────────────────────────────────── */}
       <section className="px-4">
         <FadeIn>
           <div className="rounded-2xl border border-border/40 p-5 sm:p-8 bg-gradient-to-br from-brand-purple/[0.08] via-brand-blue/[0.05] to-transparent overflow-hidden relative">
@@ -479,7 +149,7 @@ export function LaunchpadContent() {
         </FadeIn>
       </section>
 
-      {/* ── Portfolio shortcut ────────────────────────────────────── */}
+      {/* ── Portfolio shortcut ────────────────────────────────── */}
       {isSignedIn && (
         <section className="px-4">
           <FadeIn>

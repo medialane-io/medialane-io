@@ -11,7 +11,7 @@
         "@clerk/nextjs": "^6",
         "@hookform/resolvers": "^3",
         "@medialane/sdk": "0.7.1",
-        "@medialane/ui": "0.1.6",
+        "@medialane/ui": "0.4.0",
         "@radix-ui/react-accordion": "latest",
         "@radix-ui/react-alert-dialog": "latest",
         "@radix-ui/react-avatar": "^1.1.11",
@@ -176,7 +176,7 @@
 
     "@medialane/sdk": ["@medialane/sdk@0.7.1", "", { "dependencies": { "zod": "^3.23.8" }, "peerDependencies": { "starknet": ">=6.0.0" } }, "sha512-B/rTF3gtPOB6GpG9D1IEo50fKsWIuwj91hq87Qb1mu5McRDI/gQX1x5jVif/a1/4jjDYncWdKS33PrhAIcO6ZQ=="],
 
-    "@medialane/ui": ["@medialane/ui@0.1.6", "", { "peerDependencies": { "clsx": ">=2.0.0", "lucide-react": ">=0.400.0", "next": ">=14.0.0", "next-themes": ">=0.3.0", "react": ">=18.0.0", "react-dom": ">=18.0.0", "tailwind-merge": ">=2.0.0" } }, "sha512-q2O8Gt+8jzX01umDVJaQCsh9gQhQ6sI49OQwIqksOYPRAI3+JyhcxeS9NvkfzncHrfJwbxN5IkUF1JchuUqYJA=="],
+    "@medialane/ui": ["@medialane/ui@0.4.0", "", { "peerDependencies": { "@medialane/sdk": ">=0.6.0", "clsx": ">=2.0.0", "framer-motion": ">=10.0.0", "lucide-react": ">=0.400.0", "next": ">=14.0.0", "next-themes": ">=0.3.0", "react": ">=18.0.0", "react-dom": ">=18.0.0", "sonner": ">=1.0.0", "tailwind-merge": ">=2.0.0" } }, "sha512-Idqx9gqxtwavNXLE3ScFdSI3TlwSPZDQYOFmVfQpzzdwwTsokm+BNIcp4j4jxe/DccJI/plKxC4yjUcBYyRNsQ=="],
 
     "@next/env": ["@next/env@15.5.12", "", {}, "sha512-pUvdJN1on574wQHjaBfNGDt9Mz5utDSZFsIIQkMzPgNS8ZvT4H2mwOrOIClwsQOb6EGx5M76/CZr6G8i6pSpLg=="],
 
