@@ -6,10 +6,9 @@ import { Button } from "@/components/ui/button";
 import { EmptyOrError } from "@/components/ui/empty-or-error";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { useMarketplace } from "@/hooks/use-marketplace";
-import { ipfsToHttp, formatDisplayPrice, cn } from "@/lib/utils";
+import { ipfsToHttp, formatDisplayPrice, formatExpiry, cn } from "@/lib/utils";
 import { ExternalLink, Inbox } from "lucide-react";
 import { EXPLORER_URL, SUPPORTED_TOKENS } from "@/lib/constants";
-import { formatDistanceToNow } from "date-fns";
 import { getSeenOffers } from "@/hooks/use-unread-offers";
 import { CounterOfferDialog } from "@/components/marketplace/counter-offer-dialog";
 import Image from "next/image";
@@ -20,13 +19,6 @@ interface ReceivedOffersTableProps {
   address: string;
 }
 
-function formatExpiry(endTime: string | bigint) {
-  const expiry = new Date(Number(endTime) * 1000);
-  const now = new Date();
-  if (expiry < now) return { label: "Expired", urgent: false, expired: true };
-  const urgent = expiry.getTime() - now.getTime() < 86400000;
-  return { label: formatDistanceToNow(expiry, { addSuffix: true }), urgent, expired: false };
-}
 
 function ReceivedOfferRow({
   order,

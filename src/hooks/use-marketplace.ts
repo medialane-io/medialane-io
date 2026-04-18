@@ -205,64 +205,31 @@ export function useMarketplace() {
     ): Promise<string | undefined> => {
       if (!walletAddress) throw new Error("Wallet not ready. Please wait a moment.");
 
-      // ── DEBUG: intent creation ──────────────────────────────────────────
-      console.group("[marketplace:debug] runIntent");
-      console.log("walletAddress:", walletAddress);
-      console.log("marketplaceContract:", marketplaceContract);
-
       const intentRes = await intentFn();
       const { id, typedData } = intentRes.data ?? {};
       if (!id || !typedData) throw new Error("Intent creation failed: no data returned");
 
-      console.log("intent id:", id);
-      console.log("typedData (raw):", JSON.stringify(typedData, null, 2));
-
       // Sanitize typed data: replace any bare currency symbols (e.g. "USDC")
       // with their contract addresses so starknet.js can convert them to BigInt.
       const sanitized = sanitizeTypedData(typedData);
-      console.log("typedData (sanitized):", JSON.stringify(sanitized, null, 2));
 
-      let sig: string[];
-      try {
-        sig = await signTypedData(sanitized, pin);
-        console.log("signature:", sig);
-      } catch (err) {
-        console.error("signTypedData failed:", err);
-        console.groupEnd();
-        throw err;
-      }
+      const sig = await signTypedData(sanitized, pin);
 
       const signedRes = await client.api.submitIntentSignature(id, sig);
       const calls = signedRes.data.calls as ChipiCall[];
       if (!calls?.length) throw new Error("No calls returned from intent");
 
-      console.log("populated calls:", JSON.stringify(calls, null, 2));
-
-      let result: Awaited<ReturnType<typeof execWithPin>>;
-      try {
-        result = await execWithPin(pin, calls, marketplaceContract);
-        console.log("tx result:", result);
-      } catch (err) {
-        console.error("execWithPin failed:", err);
-        console.groupEnd();
-        throw err;
-      }
+      const result = await execWithPin(pin, calls, marketplaceContract);
 
       if (result.status === "reverted") {
-        console.error("tx reverted:", result.revertReason);
-        console.groupEnd();
         throw new Error(result.revertReason || "Transaction reverted on chain");
       }
-
-      console.log("txHash:", result.txHash);
 
       // Submit tx hash to backend — verifies receipt + marketplace events server-side
       await client.api.confirmIntent(id, result.txHash);
 
       // Poll until backend reports terminal status (CONFIRMED or FAILED)
       const finalStatus = await pollIntentUntilTerminal(id);
-      console.log("final backend status:", finalStatus);
-      console.groupEnd();
 
       if (finalStatus === "FAILED") {
         throw new Error(
@@ -427,11 +394,16 @@ export function useMarketplace() {
         const msg = err instanceof Error ? err.message : "Cancellation failed";
         setError(msg);
         toast.error("Cancellation failed", { description: msg });
+        // Invalidate after failure: the backend may have synced the order to CANCELLED
+        // (e.g. the order was already cancelled on-chain but DB was stale). This ensures
+        // the UI reflects the corrected state instead of continuing to show a stale listing.
+        invalidate();
+        setTimeout(() => invalidate(), INDEXER_REVALIDATION_DELAY_MS);
       } finally {
         setIsProcessing(false);
       }
     },
-    [walletAddress, runIntent, client]
+    [walletAddress, runIntent, client, invalidate]
   );
 
   return {

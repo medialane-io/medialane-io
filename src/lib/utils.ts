@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { formatDistanceToNow } from "date-fns";
 import { SUPPORTED_TOKENS } from "./constants";
 
 export function cn(...inputs: ClassValue[]) {
@@ -117,6 +118,14 @@ export function checkIsOwner(
   }
   if (!token.owner) return false;
   return token.owner.toLowerCase() === walletAddress.toLowerCase();
+}
+
+export function formatExpiry(endTime: string | bigint): { label: string; urgent: boolean; expired: boolean } {
+  const expiry = new Date(Number(endTime) * 1000);
+  const now = new Date();
+  if (expiry < now) return { label: "Expired", urgent: false, expired: true };
+  const urgent = expiry.getTime() - now.getTime() < 86400000;
+  return { label: formatDistanceToNow(expiry, { addSuffix: true }), urgent, expired: false };
 }
 
 export function timeUntil(dateStr: string | number): string {

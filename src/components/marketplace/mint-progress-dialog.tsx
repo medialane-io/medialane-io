@@ -106,9 +106,18 @@ export function MintProgressDialog({
         {isProcessing && (
           <div className="flex flex-col items-center gap-6 py-4">
             <div className="relative">
-              <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
+              {imagePreview ? (
+                <div className="relative h-20 w-20 rounded-2xl overflow-hidden border border-border shadow-md">
+                  <img src={imagePreview} alt={assetName} className="h-full w-full object-cover" />
+                  <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
+                    <Loader2 className="h-7 w-7 animate-spin text-primary" />
+                  </div>
+                </div>
+              ) : (
+                <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              )}
             </div>
 
             <div className="text-center space-y-1">
@@ -195,23 +204,30 @@ export function MintProgressDialog({
         {/* ── Full success (mint + listed) ── */}
         {isFullSuccess && (
           <div className="flex flex-col items-center gap-5 py-2">
-            <div className="relative">
-              <div className="h-16 w-16 rounded-full bg-emerald-500/15 flex items-center justify-center">
-                <CheckCircle2 className="h-9 w-9 text-emerald-500" />
+            {imagePreview ? (
+              <div className="relative">
+                <div className="h-32 w-32 rounded-2xl overflow-hidden border border-border shadow-lg">
+                  <img src={imagePreview} alt={assetName} className="h-full w-full object-cover" />
+                </div>
+                <div className="absolute -bottom-2 -right-2 h-9 w-9 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg border-2 border-background">
+                  <CheckCircle2 className="h-5 w-5 text-white" />
+                </div>
+                <Sparkles className="absolute -top-2 -right-2 h-5 w-5 text-yellow-400" />
               </div>
-              <Sparkles className="absolute -top-1 -right-1 h-5 w-5 text-yellow-400" />
-            </div>
+            ) : (
+              <div className="relative">
+                <div className="h-16 w-16 rounded-full bg-emerald-500/15 flex items-center justify-center">
+                  <CheckCircle2 className="h-9 w-9 text-emerald-500" />
+                </div>
+                <Sparkles className="absolute -top-1 -right-1 h-5 w-5 text-yellow-400" />
+              </div>
+            )}
             <div className="text-center space-y-1">
               <p className="font-bold text-xl">Minted & Listed!</p>
               <p className="text-sm text-muted-foreground">
                 <span className="font-medium text-foreground">{assetName || "Your asset"}</span> is now live on the marketplace.
               </p>
             </div>
-            {imagePreview && (
-              <div className="h-28 w-28 rounded-xl overflow-hidden border border-border shadow-md">
-                <img src={imagePreview} alt={assetName} className="h-full w-full object-cover" />
-              </div>
-            )}
             {txHash && (
               <a
                 href={`${EXPLORER_URL}/tx/${txHash}`}
@@ -237,23 +253,30 @@ export function MintProgressDialog({
         {/* ── Mint success only (no listing, or listing failed) ── */}
         {isSuccess && (
           <div className="flex flex-col items-center gap-5 py-2">
-            <div className="relative">
-              <div className="h-16 w-16 rounded-full bg-emerald-500/15 flex items-center justify-center">
-                <CheckCircle2 className="h-9 w-9 text-emerald-500" />
+            {imagePreview ? (
+              <div className="relative">
+                <div className="h-32 w-32 rounded-2xl overflow-hidden border border-border shadow-lg">
+                  <img src={imagePreview} alt={assetName} className="h-full w-full object-cover" />
+                </div>
+                <div className="absolute -bottom-2 -right-2 h-9 w-9 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg border-2 border-background">
+                  <CheckCircle2 className="h-5 w-5 text-white" />
+                </div>
+                <Sparkles className="absolute -top-2 -right-2 h-5 w-5 text-yellow-400" />
               </div>
-              <Sparkles className="absolute -top-1 -right-1 h-5 w-5 text-yellow-400" />
-            </div>
+            ) : (
+              <div className="relative">
+                <div className="h-16 w-16 rounded-full bg-emerald-500/15 flex items-center justify-center">
+                  <CheckCircle2 className="h-9 w-9 text-emerald-500" />
+                </div>
+                <Sparkles className="absolute -top-1 -right-1 h-5 w-5 text-yellow-400" />
+              </div>
+            )}
             <div className="text-center space-y-1">
               <p className="font-bold text-xl">Minted!</p>
               <p className="text-sm text-muted-foreground">
                 <span className="font-medium text-foreground">{assetName || "Your asset"}</span> is now live on Starknet.
               </p>
             </div>
-            {imagePreview && (
-              <div className="h-28 w-28 rounded-xl overflow-hidden border border-border shadow-md">
-                <img src={imagePreview} alt={assetName} className="h-full w-full object-cover" />
-              </div>
-            )}
             {txHash && (
               <a
                 href={`${EXPLORER_URL}/tx/${txHash}`}
