@@ -233,8 +233,8 @@ export function useMarketplace() {
 
       if (finalStatus === "FAILED") {
         throw new Error(
-          "Transaction was submitted but the marketplace operation did not complete onchain. " +
-          "Please check your token balance and try again."
+          "Transaction was submitted but the marketplace order could not be confirmed onchain. " +
+          "The order may have already been filled or expired — please refresh and try again."
         );
       }
 

@@ -4,14 +4,16 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { toast } from "sonner";
-import { CheckCircle2, AlertCircle, ExternalLink, Loader2, ShoppingCart, RefreshCw, ArrowLeft, Sparkles, Zap } from "lucide-react";
+import {
+  CheckCircle2, AlertCircle, ExternalLink, Loader2,
+  ShoppingCart, RefreshCw, ArrowLeft, Sparkles, Zap,
+} from "lucide-react";
 import { fireConfetti } from "@/lib/confetti";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PinInput, validatePin } from "@/components/ui/pin-input";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
-import { TxStatus } from "@/components/chipi/tx-status";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { EXPLORER_URL } from "@/lib/constants";
 import type { ApiOrder } from "@medialane/sdk";
@@ -35,7 +37,6 @@ function TokenHero({ order }: { order: ApiOrder }) {
 
   return (
     <div>
-      {/* Full-bleed image */}
       <div className="relative h-48 w-full bg-muted overflow-hidden">
         {image ? (
           <img src={image} alt={name} className="h-full w-full object-cover" />
@@ -44,11 +45,9 @@ function TokenHero({ order }: { order: ApiOrder }) {
             #{order.nftTokenId}
           </div>
         )}
-        {/* Subtle gradient fade into dialog bg */}
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
       </div>
 
-      {/* Name + price row */}
       <div className="flex items-end justify-between px-6 pt-3 pb-1">
         <div className="min-w-0">
           <p className="font-bold text-lg leading-tight truncate">{name}</p>
@@ -102,16 +101,12 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
 
   const handleBuyClick = async () => {
     if (!isSignedIn) return;
-    if (!hasWallet) {
-      setWalletSetupOpen(true);
-      return;
-    }
+    if (!hasWallet) { setWalletSetupOpen(true); return; }
     const priceUsdc = orderPriceToUsdcNumber(order);
     const cleared = await maybeClearSessionForAmountCap(priceUsdc);
     if (cleared) {
       toast.info("Large purchase — fresh signing session", {
-        description:
-          "Your saved session was cleared for this transaction size. A new session will be activated automatically.",
+        description: "Your saved session was cleared for this transaction size. A new session will be activated automatically.",
       });
     }
     setStep("pin");
@@ -134,11 +129,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
       }
     }
 
-    await fulfillOrder({
-      orderHash: order.orderHash,
-      pin,
-      tokenStandard: order.offer.itemType,
-    });
+    await fulfillOrder({ orderHash: order.orderHash, pin, tokenStandard: order.offer.itemType });
     setPin("");
     setStep("details");
   };
@@ -149,32 +140,19 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
     try {
       const derived = encryptKey ?? (await authenticate());
       if (!derived) throw new Error("Passkey authentication failed.");
-
-      if (!hasActiveSession) {
-        await setupSession(derived);
-      }
-
-      await fulfillOrder({
-        orderHash: order.orderHash,
-        pin: derived,
-        tokenStandard: order.offer.itemType,
-      });
-
+      if (!hasActiveSession) await setupSession(derived);
+      await fulfillOrder({ orderHash: order.orderHash, pin: derived, tokenStandard: order.offer.itemType });
       setPin("");
       setStep("details");
     } catch (err: unknown) {
-      const msg = err instanceof Error
-        ? err.message
-        : "Passkey authentication failed";
+      const msg = err instanceof Error ? err.message : "Passkey authentication failed";
       toast.error("Passkey authentication failed", { description: msg });
     } finally {
       setIsAuthenticatingPasskey(false);
     }
   };
 
-  const handleClose = (v: boolean) => {
-    if (!isProcessing) onOpenChange(v);
-  };
+  const handleClose = (v: boolean) => { if (!isProcessing) onOpenChange(v); };
 
   useEffect(() => {
     if (open) {
@@ -188,18 +166,27 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
   const isSuccess = !isProcessing && txStatus === "confirmed" && !error;
 
   useEffect(() => {
-    if (isSuccess && !confettiFired.current) {
-      confettiFired.current = true;
-      fireConfetti();
-    }
+    if (isSuccess && !confettiFired.current) { confettiFired.current = true; fireConfetti(); }
     if (!isSuccess) confettiFired.current = false;
   }, [isSuccess]);
+
+  // While isProcessing and the on-chain tx has confirmed, keep showing "confirming"
+  // so the user doesn't see the green checkmark while backend polling is still running.
+  const displayTxStatus = isProcessing && txStatus === "confirmed" ? "confirming" : txStatus;
+  const processingMessage =
+    txStatus === "submitting" ? "Submitting purchase…" :
+    txStatus === "confirmed"  ? "Verifying marketplace order…" :
+    "Confirming on Starknet…";
 
   return (
     <>
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-md p-0 overflow-hidden gap-0">
+          <DialogTitle className="sr-only">
+            {isSuccess ? "Purchase complete" : isProcessing ? "Processing purchase" : "Buy now"}
+          </DialogTitle>
 
+          {/* ── Success ──────────────────────────────────────────────────── */}
           {isSuccess ? (
             <div className="flex flex-col items-center gap-5 p-6 py-8">
               <div className="relative">
@@ -254,56 +241,84 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
             </div>
 
           ) : (isProcessing || txStatus === "confirming") ? (
-            <div className="p-6">
-              <TxStatus status={txStatus} txHash={txHash} error={error} statusMessage={
-                txStatus === "submitting" ? "Submitting purchase…" : "Confirming on Starknet…"
-              } />
+            /* Processing — override "confirmed" txStatus while backend polling is running
+               to prevent a premature green checkmark before the order is verified. */
+            <div className="flex flex-col items-center gap-4 p-6 py-10">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <div className="text-center space-y-1">
+                <p className="text-sm font-medium">{processingMessage}</p>
+                {displayTxStatus === "confirming" && txStatus === "confirmed" && txHash && (
+                  <a
+                    href={`${EXPLORER_URL}/tx/${txHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <span className="font-mono">{txHash.slice(0, 10)}…{txHash.slice(-8)}</span>
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">Please wait, do not close this window.</p>
             </div>
 
           ) : step === "pin" ? (
+            /* ── PIN step ──────────────────────────────────────────────── */
             <div className="space-y-4">
               <TokenHero order={order} />
-              <div className="px-6 space-y-4">
-              <p className="text-sm text-muted-foreground">Enter your PIN to confirm this purchase.</p>
-              <PinInput
-                value={pin}
-                onChange={(v) => { setPin(v); setPinError(null); }}
-                error={pinError}
-                autoFocus
-              />
-              {error && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-              <div className="flex gap-2 pt-1">
-                <Button
-                  variant="outline"
-                  className="gap-1.5"
-                  onClick={() => { setStep("details"); setPin(""); setPinError(null); }}
-                >
-                  <ArrowLeft className="h-4 w-4" /> Back
-                </Button>
-                <Button
-                  className="flex-1 h-11"
-                  disabled={pin.length < 6}
-                  onClick={handlePin}
-                >
-                  <ShoppingCart className="h-4 w-4 mr-2" />
-                  Buy now
-                </Button>
-              </div>
-              <p className="text-[10px] text-center text-muted-foreground pb-2">
-                Transaction gas fees are sponsored by Medialane.
-              </p>
+              <div className="px-6 pb-6 space-y-4">
+                <p className="text-sm text-muted-foreground">Enter your PIN to confirm this purchase.</p>
+                <PinInput
+                  value={pin}
+                  onChange={(v) => { setPin(v); setPinError(null); }}
+                  error={pinError}
+                  autoFocus
+                />
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+                <div className="flex gap-2 pt-1">
+                  <Button
+                    variant="outline"
+                    className="gap-1.5"
+                    onClick={() => { setStep("details"); setPin(""); setPinError(null); }}
+                  >
+                    <ArrowLeft className="h-4 w-4" /> Back
+                  </Button>
+                  <Button
+                    className="flex-1 h-11"
+                    disabled={pin.length < 6}
+                    onClick={handlePin}
+                  >
+                    <ShoppingCart className="h-4 w-4 mr-2" />
+                    Buy now
+                  </Button>
+                </div>
+                {passkeySupported && (
+                  <Button
+                    variant="outline"
+                    className="w-full text-xs"
+                    disabled={isAuthenticatingPasskey}
+                    onClick={handleUsePasskey}
+                  >
+                    {isAuthenticatingPasskey
+                      ? <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />Authenticating…</>
+                      : "Use passkey instead"}
+                  </Button>
+                )}
+                <p className="text-[10px] text-center text-muted-foreground">
+                  Transaction gas fees are sponsored by Medialane.
+                </p>
               </div>
             </div>
 
           ) : (
+            /* ── Details step ──────────────────────────────────────────── */
             <div className="space-y-0">
               <TokenHero order={order} />
-
               <div className="px-6 pb-6 pt-3 space-y-3">
                 {error && (
                   <>
@@ -313,8 +328,13 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
                     </Alert>
                     {txHash && (
                       <Button variant="outline" size="sm" className="w-full" asChild>
-                        <a href={`${EXPLORER_URL}/tx/${txHash}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
-                          View transaction on external explorer <ExternalLink className="h-3 w-3" />
+                        <a
+                          href={`${EXPLORER_URL}/tx/${txHash}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2"
+                        >
+                          View transaction on Voyager <ExternalLink className="h-3 w-3" />
                         </a>
                       </Button>
                     )}
@@ -345,10 +365,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
       <WalletSetupDialog
         open={walletSetupOpen}
         onOpenChange={setWalletSetupOpen}
-        onSuccess={() => {
-          setWalletSetupOpen(false);
-          setStep("pin");
-        }}
+        onSuccess={() => { setWalletSetupOpen(false); setStep("pin"); }}
       />
     </>
   );
