@@ -1,116 +1,106 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { ExternalLink, Flag } from "lucide-react";
+import { useState } from "react";
+import { useAdminReports } from "@/hooks/use-claims";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
+  ExternalLink, Flag, ChevronLeft, ChevronRight,
+  ShieldAlert, Eye, EyeOff, XCircle, RotateCcw, Clock,
+} from "lucide-react";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { timeAgo, ipfsToHttp } from "@/lib/utils";
+import type { AdminReport, ReportStatus } from "@/types/admin";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL!;
-
-type ReportStatus =
-  | "PENDING"
-  | "UNDER_REVIEW"
-  | "HIDDEN"
-  | "DISMISSED"
-  | "RESTORED";
-
-interface Report {
-  id: string;
-  targetType: "COLLECTION" | "TOKEN" | "CREATOR";
-  targetKey: string;
-  targetContract: string | null;
-  targetTokenId: string | null;
-  targetAddress: string | null;
-  reporterUserId: string;
-  categories: string[];
-  description: string | null;
-  status: ReportStatus;
-  adminNotes: string | null;
-  reviewedAt: string | null;
-  createdAt: string;
-  targetName: string | null;
-  targetImage: string | null;
-}
+const PAGE_SIZE = 20;
 
 const STATUS_TABS: { label: string; value: string }[] = [
-  { label: "Pending", value: "PENDING" },
+  { label: "Pending",      value: "PENDING" },
   { label: "Under Review", value: "UNDER_REVIEW" },
-  { label: "Hidden", value: "HIDDEN" },
-  { label: "Dismissed", value: "DISMISSED" },
-  { label: "All", value: "" },
+  { label: "Hidden",       value: "HIDDEN" },
+  { label: "Dismissed",    value: "DISMISSED" },
+  { label: "All",          value: "" },
 ];
 
-const CATEGORY_LABELS: Record<string, string> = {
-  COPYRIGHT_PIRACY: "Copyright / Piracy",
-  VIOLENCE_GRAPHIC: "Violence / Graphic",
-  HATE_SPEECH: "Hate Speech",
-  SCAM_FRAUD: "Scam / Fraud",
-  SPAM: "Spam",
-  NSFW: "NSFW",
-  OTHER: "Other",
+const STATUS_STYLE: Record<string, string> = {
+  PENDING:      "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+  UNDER_REVIEW: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+  HIDDEN:       "bg-red-500/20 text-red-400 border-red-500/30",
+  DISMISSED:    "bg-gray-500/20 text-gray-400 border-gray-500/30",
+  RESTORED:     "bg-green-500/20 text-green-400 border-green-500/30",
 };
 
-const HIGH_SEVERITY = new Set(["HATE_SPEECH", "VIOLENCE_GRAPHIC"]);
+const CATEGORY_LABELS: Record<string, string> = {
+  COPYRIGHT_PIRACY:  "Copyright / Piracy",
+  VIOLENCE_GRAPHIC:  "Violence / Graphic",
+  HATE_SPEECH:       "Hate Speech",
+  SCAM_FRAUD:        "Scam / Fraud",
+  SPAM:              "Spam",
+  NSFW:              "NSFW",
+  OTHER:             "Other",
+};
 
-function targetPageUrl(report: Report): string {
-  if (report.targetType === "TOKEN" && report.targetContract && report.targetTokenId) {
+const HIGH_SEVERITY = new Set(["HATE_SPEECH", "VIOLENCE_GRAPHIC", "SCAM_FRAUD"]);
+
+function targetPageUrl(report: AdminReport): string {
+  if (report.targetType === "TOKEN" && report.targetContract && report.targetTokenId)
     return `/asset/${report.targetContract}/${report.targetTokenId}`;
-  }
-  if (report.targetType === "COLLECTION" && report.targetContract) {
+  if (report.targetType === "COLLECTION" && report.targetContract)
     return `/collection/${report.targetContract}`;
-  }
-  if (report.targetType === "CREATOR" && report.targetAddress) {
+  if (report.targetType === "CREATOR" && report.targetAddress)
     return `/creator/${report.targetAddress}`;
-  }
   return "#";
+}
+
+function ReportSkeleton() {
+  return (
+    <div className="flex items-center gap-4 p-4 border border-border rounded-lg">
+      <Skeleton className="h-12 w-12 rounded-lg shrink-0" />
+      <div className="flex-1 space-y-2">
+        <Skeleton className="h-4 w-48" />
+        <Skeleton className="h-3 w-32" />
+      </div>
+      <Skeleton className="h-5 w-20" />
+      <Skeleton className="h-5 w-16" />
+    </div>
+  );
 }
 
 export default function ReportsPage() {
   const [statusFilter, setStatusFilter] = useState("PENDING");
-  const [reports, setReports] = useState<Report[]>([]);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState<Report | null>(null);
+  const [page, setPage] = useState(1);
+  const { reports, total, isLoading, mutate } = useAdminReports(statusFilter || undefined, page);
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  const [selected, setSelected] = useState<AdminReport | null>(null);
   const [adminNotes, setAdminNotes] = useState("");
   const [acting, setActing] = useState(false);
 
-  const fetchReports = useCallback(async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams({ limit: "50" });
-      if (statusFilter) params.set("status", statusFilter);
-      const res = await fetch(`/api/admin/reports?${params}`);
-      const data = await res.json();
-      setReports(data.reports ?? []);
-      setTotal(data.total ?? 0);
-    } catch {
-      toast.error("Failed to load reports");
-    } finally {
-      setLoading(false);
-    }
-  }, [statusFilter]);
+  function openReport(report: AdminReport) {
+    setSelected(report);
+    setAdminNotes(report.adminNotes ?? "");
+  }
 
-  useEffect(() => {
-    fetchReports();
-  }, [fetchReports]);
+  function closeDialog() {
+    setSelected(null);
+    setAdminNotes("");
+  }
+
+  function switchTab(value: string) {
+    setStatusFilter(value);
+    setPage(1);
+  }
 
   const handleAction = async (newStatus: ReportStatus) => {
     if (!selected) return;
-    if (
-      (newStatus === "HIDDEN" || newStatus === "DISMISSED") &&
-      !adminNotes.trim()
-    ) {
-      toast.error("Admin notes are required for this action");
+    if ((newStatus === "HIDDEN" || newStatus === "DISMISSED") && !adminNotes.trim()) {
+      toast.error("Admin notes are required for Hide / Dismiss");
       return;
     }
     setActing(true);
@@ -118,16 +108,12 @@ export default function ReportsPage() {
       const res = await fetch(`/api/admin/reports/${selected.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          status: newStatus,
-          adminNotes: adminNotes.trim() || undefined,
-        }),
+        body: JSON.stringify({ status: newStatus, adminNotes: adminNotes.trim() || undefined }),
       });
       if (!res.ok) throw new Error();
-      toast.success(`Report marked as ${newStatus.toLowerCase().replace("_", " ")}`);
-      setSelected(null);
-      setAdminNotes("");
-      fetchReports();
+      toast.success(`Report ${newStatus.toLowerCase().replace(/_/g, " ")}`);
+      closeDialog();
+      await mutate();
     } catch {
       toast.error("Action failed. Please try again.");
     } finally {
@@ -135,24 +121,34 @@ export default function ReportsPage() {
     }
   };
 
+  const highCount = (cats: string[]) => cats.filter(c => HIGH_SEVERITY.has(c)).length;
+
   return (
-    <div>
-      <div className="flex items-center gap-3 mb-6">
-        <Flag className="w-5 h-5" />
-        <h1 className="text-xl font-semibold">Community Reports</h1>
-        <span className="text-sm text-muted-foreground ml-auto">{total} total</span>
+    <div className="space-y-4">
+
+      {/* Header */}
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-semibold flex items-center gap-2">
+            <Flag className="h-5 w-5" />
+            Community Reports
+          </h2>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {isLoading ? "Loading…" : `${total.toLocaleString()} report${total !== 1 ? "s" : ""}${statusFilter ? ` · ${statusFilter.toLowerCase().replace("_", " ")}` : ""}`}
+          </p>
+        </div>
       </div>
 
-      {/* Filter tabs */}
-      <div className="flex gap-2 mb-6 border-b border-border pb-3">
+      {/* Status tabs */}
+      <div className="flex gap-1 border-b border-border pb-1">
         {STATUS_TABS.map((tab) => (
           <button
             key={tab.value}
-            onClick={() => setStatusFilter(tab.value)}
-            className={`text-sm px-3 py-1 rounded-md transition-colors ${
+            onClick={() => switchTab(tab.value)}
+            className={`text-sm px-3 py-1.5 rounded-md transition-colors ${
               statusFilter === tab.value
                 ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
             }`}
           >
             {tab.label}
@@ -160,193 +156,222 @@ export default function ReportsPage() {
         ))}
       </div>
 
-      {/* Reports list */}
-      {loading ? (
-        <p className="text-sm text-muted-foreground">Loading...</p>
+      {/* List */}
+      {isLoading ? (
+        <div className="space-y-2">
+          {[...Array(5)].map((_, i) => <ReportSkeleton key={i} />)}
+        </div>
       ) : reports.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No reports found.</p>
+        <div className="text-center py-16 text-muted-foreground">
+          <ShieldAlert className="h-8 w-8 mx-auto mb-3 opacity-40" />
+          <p className="font-medium">No reports</p>
+          <p className="text-sm mt-1">Nothing here for the current filter.</p>
+        </div>
       ) : (
         <div className="space-y-2">
-          {reports.map((report) => (
-            <div
-              key={report.id}
-              className="flex items-center gap-4 p-4 border border-border rounded-lg hover:bg-muted/30 cursor-pointer transition-colors"
-              onClick={() => {
-                setSelected(report);
-                setAdminNotes(report.adminNotes ?? "");
-              }}
-            >
-              {report.targetImage && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={report.targetImage}
-                  alt=""
-                  className="w-10 h-10 rounded object-cover shrink-0"
-                />
-              )}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">
-                  {report.targetName ?? report.targetKey}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {report.targetType} ·{" "}
-                  {new Date(report.createdAt).toLocaleDateString()}
-                </p>
+          {reports.map((report) => {
+            const img = report.targetImage ? ipfsToHttp(report.targetImage) : null;
+            const isHigh = highCount(report.categories) > 0;
+            return (
+              <div
+                key={report.id}
+                className={`flex items-center gap-4 p-4 border rounded-lg hover:bg-muted/30 cursor-pointer transition-colors ${
+                  isHigh ? "border-red-500/40" : "border-border"
+                }`}
+                onClick={() => openReport(report)}
+              >
+                {/* Thumbnail */}
+                <div className="h-12 w-12 rounded-lg overflow-hidden bg-muted shrink-0 border border-border">
+                  {img
+                    ? <img src={img} alt="" className="h-full w-full object-cover" />
+                    : <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-muted to-muted-foreground/20">
+                        <Flag className="h-4 w-4 text-muted-foreground/50" />
+                      </div>
+                  }
+                </div>
+
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">
+                    {report.targetName ?? report.targetKey}
+                  </p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 capitalize">
+                      {report.targetType.toLowerCase()}
+                    </Badge>
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Clock className="h-3 w-3" />{timeAgo(report.createdAt)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Categories */}
+                <div className="hidden sm:flex flex-wrap gap-1 justify-end max-w-[180px]">
+                  {report.categories.slice(0, 2).map((cat) => (
+                    <Badge
+                      key={cat}
+                      variant={HIGH_SEVERITY.has(cat) ? "destructive" : "secondary"}
+                      className="text-[10px]"
+                    >
+                      {CATEGORY_LABELS[cat] ?? cat}
+                    </Badge>
+                  ))}
+                  {report.categories.length > 2 && (
+                    <Badge variant="outline" className="text-[10px]">+{report.categories.length - 2}</Badge>
+                  )}
+                </div>
+
+                {/* Status */}
+                <Badge variant="outline" className={`shrink-0 text-[10px] ${STATUS_STYLE[report.status] ?? ""}`}>
+                  {report.status.replace(/_/g, " ")}
+                </Badge>
               </div>
-              <div className="flex flex-wrap gap-1 justify-end max-w-[200px]">
-                {report.categories.map((cat) => (
-                  <Badge
-                    key={cat}
-                    variant={HIGH_SEVERITY.has(cat) ? "destructive" : "secondary"}
-                    className="text-xs"
-                  >
-                    {CATEGORY_LABELS[cat] ?? cat}
-                  </Badge>
-                ))}
-              </div>
-              <Badge variant="outline" className="shrink-0 text-xs">
-                {report.status}
-              </Badge>
-            </div>
-          ))}
+            );
+          })}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between pt-2">
+          <p className="text-sm text-muted-foreground">Page {page} of {totalPages}</p>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(p => p - 1)}>
+              <ChevronLeft className="h-4 w-4" />Prev
+            </Button>
+            <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>
+              Next<ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       )}
 
       {/* Review dialog */}
-      <Dialog
-        open={!!selected}
-        onOpenChange={(open) => {
-          if (!open) {
-            setSelected(null);
-            setAdminNotes("");
-          }
-        }}
-      >
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              Review Report
-              {selected && (
-                <a
-                  href={targetPageUrl(selected)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="ml-auto"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <ExternalLink className="w-4 h-4 text-muted-foreground hover:text-foreground" />
-                </a>
-              )}
-            </DialogTitle>
-          </DialogHeader>
+      <Dialog open={!!selected} onOpenChange={(open) => { if (!open) closeDialog(); }}>
+        <DialogContent className="max-w-lg p-0 overflow-hidden gap-0">
 
-          {selected && (
-            <div className="space-y-4">
-              {/* Target preview */}
-              <div className="flex items-center gap-3">
-                {selected.targetImage && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={selected.targetImage}
-                    alt=""
-                    className="w-12 h-12 rounded object-cover"
-                  />
-                )}
-                <div>
-                  <p className="font-medium text-sm">
-                    {selected.targetName ?? selected.targetKey}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {selected.targetType}
-                  </p>
-                </div>
-              </div>
-
-              {/* Categories */}
-              <div className="flex flex-wrap gap-1">
-                {selected.categories.map((cat) => (
-                  <Badge
-                    key={cat}
-                    variant={HIGH_SEVERITY.has(cat) ? "destructive" : "secondary"}
-                  >
-                    {CATEGORY_LABELS[cat] ?? cat}
-                  </Badge>
-                ))}
-              </div>
-
-              {/* Reporter description */}
-              {selected.description && (
-                <div>
-                  <Label className="text-xs text-muted-foreground mb-1 block">
-                    Reporter note
-                  </Label>
-                  <p className="text-sm bg-muted rounded p-3">
-                    {selected.description}
-                  </p>
-                </div>
-              )}
-
-              {/* Admin notes */}
-              <div className="space-y-1">
-                <Label htmlFor="admin-notes" className="text-sm font-medium">
-                  Admin notes{" "}
-                  <span className="text-muted-foreground font-normal">
-                    (required for Hide / Dismiss)
-                  </span>
-                </Label>
-                <Textarea
-                  id="admin-notes"
-                  value={adminNotes}
-                  onChange={(e) => setAdminNotes(e.target.value)}
-                  placeholder="Internal note about this decision..."
-                  className="resize-none h-20"
-                />
-              </div>
-
-              <p className="text-xs text-muted-foreground">
-                Current status: <strong>{selected.status}</strong>
-              </p>
+          {/* Hero image */}
+          {selected?.targetImage && (
+            <div className="relative h-40 w-full bg-muted overflow-hidden shrink-0">
+              <img
+                src={ipfsToHttp(selected.targetImage)}
+                alt=""
+                className="h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
+              <Badge
+                variant="outline"
+                className={`absolute bottom-3 left-4 text-[10px] ${STATUS_STYLE[selected.status] ?? ""}`}
+              >
+                {selected.status.replace(/_/g, " ")}
+              </Badge>
             </div>
           )}
 
-          <DialogFooter className="flex-wrap gap-2">
+          <div className="p-6 space-y-4">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <span className="truncate">{selected?.targetName ?? selected?.targetKey}</span>
+                {selected && (
+                  <a
+                    href={targetPageUrl(selected)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="ml-auto shrink-0"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <ExternalLink className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+                  </a>
+                )}
+              </DialogTitle>
+            </DialogHeader>
+
+            {selected && (
+              <div className="space-y-4">
+                {/* Meta */}
+                <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
+                  <Badge variant="outline" className="capitalize text-[10px]">
+                    {selected.targetType.toLowerCase()}
+                  </Badge>
+                  {!selected.targetImage && (
+                    <Badge variant="outline" className={`text-[10px] ${STATUS_STYLE[selected.status] ?? ""}`}>
+                      {selected.status.replace(/_/g, " ")}
+                    </Badge>
+                  )}
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    {timeAgo(selected.createdAt)}
+                  </span>
+                  {selected.reviewedAt && (
+                    <span>Reviewed {timeAgo(selected.reviewedAt)}</span>
+                  )}
+                </div>
+
+                {/* Categories */}
+                <div className="flex flex-wrap gap-1.5">
+                  {selected.categories.map((cat) => (
+                    <Badge
+                      key={cat}
+                      variant={HIGH_SEVERITY.has(cat) ? "destructive" : "secondary"}
+                    >
+                      {CATEGORY_LABELS[cat] ?? cat}
+                    </Badge>
+                  ))}
+                </div>
+
+                {/* Reporter note */}
+                {selected.description && (
+                  <div>
+                    <Label className="text-xs text-muted-foreground mb-1 block">Reporter note</Label>
+                    <p className="text-sm bg-muted rounded-lg p-3 italic">"{selected.description}"</p>
+                  </div>
+                )}
+
+                {/* Admin notes */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="admin-notes" className="text-sm font-medium">
+                    Admin notes{" "}
+                    <span className="text-muted-foreground font-normal text-xs">(required for Hide / Dismiss)</span>
+                  </Label>
+                  <Textarea
+                    id="admin-notes"
+                    value={adminNotes}
+                    onChange={(e) => setAdminNotes(e.target.value)}
+                    placeholder="Internal note about this decision…"
+                    className="resize-none h-20"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="flex-wrap gap-2 px-6 pb-6 pt-0">
             {selected?.status !== "UNDER_REVIEW" && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleAction("UNDER_REVIEW")}
-                disabled={acting}
-              >
-                Mark Under Review
+              <Button variant="outline" size="sm" disabled={acting} onClick={() => handleAction("UNDER_REVIEW")}>
+                <Eye className="h-3.5 w-3.5 mr-1.5" />
+                Under Review
               </Button>
             )}
             {selected?.status !== "DISMISSED" && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleAction("DISMISSED")}
-                disabled={acting}
-              >
+              <Button variant="ghost" size="sm" disabled={acting} onClick={() => handleAction("DISMISSED")}>
+                <XCircle className="h-3.5 w-3.5 mr-1.5" />
                 Dismiss
               </Button>
             )}
             {selected?.status === "HIDDEN" ? (
               <Button
-                variant="outline"
                 size="sm"
-                className="border-green-600 text-green-600 hover:bg-green-50 dark:hover:bg-green-950"
-                onClick={() => handleAction("RESTORED")}
+                variant="outline"
+                className="border-emerald-500/50 text-emerald-500 hover:bg-emerald-500/10"
                 disabled={acting}
+                onClick={() => handleAction("RESTORED")}
               >
-                Restore Visibility
+                <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+                Restore
               </Button>
             ) : (
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => handleAction("HIDDEN")}
-                disabled={acting}
-              >
+              <Button variant="destructive" size="sm" disabled={acting} onClick={() => handleAction("HIDDEN")}>
+                <EyeOff className="h-3.5 w-3.5 mr-1.5" />
                 Hide from Platform
               </Button>
             )}

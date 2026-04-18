@@ -4,6 +4,7 @@ import type {
   AdminUsernameClaimRecord,
   AdminCreatorRecord,
   AdminCollectionRecord,
+  AdminReport,
 } from "@/types/admin";
 
 // All admin calls go through /api/admin/[...path] which adds the secret server-side.
@@ -51,6 +52,20 @@ export function useAdminCreators(status?: string, page = 1) {
     { revalidateOnFocus: false }
   );
   return { creators: (data?.claims ?? []) as AdminCreatorRecord[], total: data?.total ?? 0, isLoading, error, mutate };
+}
+
+export function useAdminReports(status?: string, page = 1) {
+  const params = new URLSearchParams({ page: String(page), limit: "20" });
+  if (status) params.set("status", status);
+  const { data, error, isLoading, mutate } = useSWR(
+    `admin-reports-${status}-${page}`,
+    async () => {
+      const res = await adminFetch(`/api/admin/reports?${params}`);
+      return res.json();
+    },
+    { revalidateOnFocus: false }
+  );
+  return { reports: (data?.reports ?? []) as AdminReport[], total: data?.total ?? 0, isLoading, error, mutate };
 }
 
 export function useAdminCollections(filters: {

@@ -1,4 +1,24 @@
 // Local types for admin backend API responses.
+
+export type ReportStatus = "PENDING" | "UNDER_REVIEW" | "HIDDEN" | "DISMISSED" | "RESTORED";
+
+export interface AdminReport {
+  id: string;
+  targetType: "COLLECTION" | "TOKEN" | "CREATOR";
+  targetKey: string;
+  targetContract: string | null;
+  targetTokenId: string | null;
+  targetAddress: string | null;
+  reporterUserId: string;
+  categories: string[];
+  description: string | null;
+  status: ReportStatus;
+  adminNotes: string | null;
+  reviewedAt: string | null;
+  createdAt: string;
+  targetName: string | null;
+  targetImage: string | null;
+}
 // These endpoints are internal and not exported by @medialane/sdk.
 
 export interface AdminCollectionClaimRecord {
