@@ -53,11 +53,20 @@ export function useAdminCreators(status?: string, page = 1) {
   return { creators: (data?.claims ?? []) as AdminCreatorRecord[], total: data?.total ?? 0, isLoading, error, mutate };
 }
 
-export function useAdminCollections(filters: { source?: string; metadataStatus?: string; search?: string; page?: number } = {}) {
+export function useAdminCollections(filters: {
+  source?: string;
+  metadataStatus?: string;
+  search?: string;
+  page?: number;
+  isFeatured?: boolean;
+  isHidden?: boolean;
+} = {}) {
   const params = new URLSearchParams({ page: String(filters.page ?? 1), limit: "20" });
   if (filters.source) params.set("source", filters.source);
   if (filters.metadataStatus) params.set("metadataStatus", filters.metadataStatus);
   if (filters.search) params.set("search", filters.search);
+  if (filters.isFeatured != null) params.set("isFeatured", String(filters.isFeatured));
+  if (filters.isHidden != null) params.set("isHidden", String(filters.isHidden));
   const { data, error, isLoading, mutate } = useSWR(
     `admin-collections-${JSON.stringify(filters)}`,
     async () => {

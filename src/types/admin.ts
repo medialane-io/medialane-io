@@ -32,10 +32,17 @@ export interface AdminCreatorRecord {
 export interface AdminCollectionRecord {
   id: string;
   name?: string;
+  symbol?: string | null;
   contractAddress: string;
   source: string;
   metadataStatus: "FETCHED" | "PENDING" | "FETCHING" | "FAILED";
+  standard?: "ERC721" | "ERC1155" | "UNKNOWN";
   isFeatured: boolean;
   isHidden: boolean;
-  claimedBy?: string;
+  claimedBy?: string | null;
+  image?: string | null;
+  totalSupply?: number | null;
+  holderCount?: number | null;
+  floorPrice?: string | null;
+  createdAt?: string;
 }
