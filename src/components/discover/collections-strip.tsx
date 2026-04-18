@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { FadeIn } from "@/components/ui/motion-primitives";
 import { BRAND } from "@/lib/brand";
 import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
-import { Layers, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Layers, ArrowRight } from "lucide-react";
 import type { ApiCollection } from "@medialane/sdk";
 
 function CollectionChip({ collection }: { collection: ApiCollection }) {
@@ -40,9 +40,6 @@ function CollectionChip({ collection }: { collection: ApiCollection }) {
         <div className="p-3 space-y-0.5">
           <div className="flex items-center gap-1 min-w-0">
             <p className="text-sm font-semibold truncate">{collection.name ?? "Unnamed"}</p>
-            {collection.isKnown && (
-              <CheckCircle2 className="h-3 w-3 text-blue-400 shrink-0" />
-            )}
           </div>
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>{collection.totalSupply ?? 0} items</span>

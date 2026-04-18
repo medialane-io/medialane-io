@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDisplayPrice, ipfsToHttp } from "@/lib/utils";
 import { HelpIcon } from "@/components/ui/help-icon";
@@ -55,14 +55,8 @@ function CollectionCover({
               Indexing…
             </span>
           ) : (
-            <p className="font-bold text-sm text-white leading-tight truncate flex items-center gap-1.5">
+            <p className="font-bold text-sm text-white leading-tight truncate">
               {collection.name ?? "Unnamed Collection"}
-              {collection.isKnown && (
-                <>
-                  <CheckCircle2 className="h-3 w-3 text-blue-400 shrink-0" />
-                  <HelpIcon content="Verified collection" side="top" className="text-white/60" />
-                </>
-              )}
             </p>
           )}
 

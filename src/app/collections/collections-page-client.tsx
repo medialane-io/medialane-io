@@ -29,7 +29,7 @@ const SOURCE_TABS = [
 export default function CollectionsPageClient() {
   const { stats } = usePlatformStats();
   const [sort, setSort]           = useState<CollectionSort>("recent");
-  const [verified, setVerified]   = useState(false);
+  const [featured, setFeatured]   = useState(false);
   const [hideEmpty, setHideEmpty] = useState(true);
   const [source, setSource]       = useState<string | undefined>(undefined);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -39,22 +39,22 @@ export default function CollectionsPageClient() {
   const { collections, meta, isLoading } = useCollections(
     page,
     PAGE_SIZE,
-    verified ? true : undefined,
+    featured ? true : undefined,
     sort,
     source === "POP_PROTOCOL" ? false : hideEmpty,
     source
   );
 
   // Reset accumulated list whenever filters change
-  const prevFilters = useRef({ sort, verified, hideEmpty, source });
+  const prevFilters = useRef({ sort, featured, hideEmpty, source });
   useEffect(() => {
     const f = prevFilters.current;
-    if (f.sort !== sort || f.verified !== verified || f.hideEmpty !== hideEmpty || f.source !== source) {
-      prevFilters.current = { sort, verified, hideEmpty, source };
+    if (f.sort !== sort || f.featured !== featured || f.hideEmpty !== hideEmpty || f.source !== source) {
+      prevFilters.current = { sort, featured, hideEmpty, source };
       setPage(1);
       setAllCollections([]);
     }
-  }, [sort, verified, hideEmpty, source]);
+  }, [sort, featured, hideEmpty, source]);
 
   // Append new page to accumulated list
   useEffect(() => {
@@ -69,11 +69,11 @@ export default function CollectionsPageClient() {
   const hasMore = meta?.total != null ? allCollections.length < meta.total : false;
   const isInitialLoading = isLoading && allCollections.length === 0;
 
-  const activeFilters = [sort !== "recent", verified, !hideEmpty].filter(Boolean).length;
+  const activeFilters = [sort !== "recent", featured, !hideEmpty].filter(Boolean).length;
 
   const resetAll = () => {
     setSort("recent");
-    setVerified(false);
+    setFeatured(false);
     setHideEmpty(true);
   };
 
@@ -147,11 +147,11 @@ export default function CollectionsPageClient() {
             <button onClick={() => setSort("recent")} className="ml-0.5 hover:text-primary/60">×</button>
           </span>
         )}
-        {verified && (
+        {featured && (
           <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border border-primary/40 bg-primary/10 text-primary">
             <BadgeCheck className="h-3 w-3" />
-            Verified
-            <button onClick={() => setVerified(false)} className="ml-0.5 hover:text-primary/60">×</button>
+            Featured
+            <button onClick={() => setFeatured(false)} className="ml-0.5 hover:text-primary/60">×</button>
           </span>
         )}
         {!hideEmpty && (
@@ -229,17 +229,17 @@ export default function CollectionsPageClient() {
               <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Show</p>
               <div className="flex flex-col gap-2">
                 <button
-                  onClick={() => setVerified((v) => !v)}
+                  onClick={() => setFeatured((v) => !v)}
                   className={cn(
                     "flex items-center gap-2 text-sm px-3 py-2 rounded-lg border transition-colors text-left",
-                    verified
+                    featured
                       ? "border-primary bg-primary/10 text-primary"
                       : "border-border text-muted-foreground hover:border-primary/50"
                   )}
                 >
                   <BadgeCheck className="h-4 w-4 shrink-0" />
-                  Verified only
-                  <HelpIcon content="Show only collections with a confirmed identity verified by Medialane" side="right" />
+                  Featured only
+                  <HelpIcon content="Show only collections featured by Medialane" side="right" />
                 </button>
                 <button
                   onClick={() => setHideEmpty((v) => !v)}
@@ -279,8 +279,8 @@ export default function CollectionsPageClient() {
           <Layers className="h-12 w-12 text-muted-foreground/30" />
           <p className="text-2xl font-bold">No collections found</p>
           <p className="text-muted-foreground max-w-sm">
-            {verified
-              ? "No verified collections match the current filters."
+            {featured
+              ? "No featured collections match the current filters."
               : hideEmpty
               ? "No collections with assets yet."
               : "Deploy the first collection on Medialane."}

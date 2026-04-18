@@ -72,7 +72,7 @@ export default function DocsAPIPage() {
           <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono mx-1">limit</code>,
           <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono mx-1">sort</code> (createdAt|totalSupply|floorPrice|totalVolume),
           <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono mx-1">owner</code>,
-          <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono mx-1">isKnown</code>.</p>
+          <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono mx-1">isFeatured</code>.</p>
         </Section>
 
         <Section title="Tokens">

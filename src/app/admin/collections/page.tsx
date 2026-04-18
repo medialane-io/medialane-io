@@ -68,9 +68,9 @@ export default function AdminCollectionsPage() {
     } catch { toast.error("Refresh failed"); }
   }
 
-  async function handleIsKnown(contractAddress: string, current: boolean) {
+  async function handleIsFeatured(contractAddress: string, current: boolean) {
     try {
-      await adminFetch(`/admin/collections/${contractAddress}`, { method: "PATCH", body: JSON.stringify({ isKnown: !current }) });
+      await adminFetch(`/admin/collections/${contractAddress}`, { method: "PATCH", body: JSON.stringify({ isFeatured: !current }) });
       await mutate();
     } catch { toast.error("Failed to update"); }
   }
@@ -163,7 +163,7 @@ export default function AdminCollectionsPage() {
               </div>
               <div className="flex items-center gap-3 shrink-0">
                 <div className="flex items-center gap-1.5">
-                  <Switch checked={col.isKnown} onCheckedChange={() => handleIsKnown(col.contractAddress, col.isKnown)} id={`k-${col.id}`} />
+                  <Switch checked={col.isFeatured} onCheckedChange={() => handleIsFeatured(col.contractAddress, col.isFeatured)} id={`k-${col.id}`} />
                   <Label htmlFor={`k-${col.id}`} className="text-xs cursor-pointer">Featured</Label>
                 </div>
                 <Button

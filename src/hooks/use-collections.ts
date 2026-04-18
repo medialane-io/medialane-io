@@ -10,12 +10,12 @@ export type CollectionSort = "recent" | "supply" | "floor" | "volume" | "name";
 export function useCollections(
   page = 1,
   limit = 20,
-  isKnown?: boolean,
+  isFeatured?: boolean,
   sort: CollectionSort = "recent",
   hideEmpty = true,
   source?: string
 ) {
-  const key = `collections-${page}-${limit}-${isKnown}-${sort}-${hideEmpty}-${source ?? ""}`;
+  const key = `collections-${page}-${limit}-${isFeatured}-${sort}-${hideEmpty}-${source ?? ""}`;
 
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<ApiCollection[]>>(
     key,
@@ -25,7 +25,7 @@ export function useCollections(
         limit: String(limit),
         sort,
       });
-      if (isKnown !== undefined) params.set("isKnown", String(isKnown));
+      if (isFeatured !== undefined) params.set("isFeatured", String(isFeatured));
       if (hideEmpty) params.set("hideEmpty", "true");
       if (source) params.set("source", source);
       const url = `${MEDIALANE_BACKEND_URL.replace(/\/$/, "")}/v1/collections?${params}`;

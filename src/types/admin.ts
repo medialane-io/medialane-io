@@ -35,7 +35,7 @@ export interface AdminCollectionRecord {
   contractAddress: string;
   source: string;
   metadataStatus: "FETCHED" | "PENDING" | "FETCHING" | "FAILED";
-  isKnown: boolean;
+  isFeatured: boolean;
   isHidden: boolean;
   claimedBy?: string;
 }
