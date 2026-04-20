@@ -95,7 +95,7 @@ export default function AssetPageClient() {
   )[0];
 
   const isOwner = checkIsOwner(token, walletAddress);
-  const isERC1155 = collection?.standard === "ERC1155";
+  const isERC1155 = (token?.standard ?? collection?.standard) === "ERC1155";
 
   const myListing = isOwner
     ? activeListings.find((l) => l.offerer.toLowerCase() === walletAddress!.toLowerCase())
@@ -854,7 +854,7 @@ export default function AssetPageClient() {
         assetContract={contract}
         tokenId={tokenId}
         tokenName={name}
-        tokenStandard={collection?.standard}
+        tokenStandard={token?.standard ?? collection?.standard}
         tokenImage={imageUrl}
         onSuccess={mutateListings}
       />
@@ -941,7 +941,7 @@ export default function AssetPageClient() {
         tokenId={tokenId}
         tokenName={name}
         hasActiveListing={activeListings.length > 0}
-        tokenStandard={collection?.standard}
+        tokenStandard={token?.standard ?? collection?.standard}
         onSuccess={mutateListings}
       />
     </div>

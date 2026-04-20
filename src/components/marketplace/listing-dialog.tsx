@@ -101,6 +101,7 @@ export function ListingDialog({
   const { collection } = useCollection(tokenStandard == null ? assetContract : null);
   const resolvedStandard = tokenStandard ?? collection?.standard;
   const is1155 = resolvedStandard === "ERC1155";
+  const standardResolved = resolvedStandard != null;
   const { isSignedIn } = useAuth();
   const {
     createListing,
@@ -541,7 +542,7 @@ export function ListingDialog({
                     )}
 
                     <div className="pt-1 space-y-2">
-                      <Button type="submit" className="w-full h-11 bg-brand-blue hover:brightness-110 text-white" disabled={isProcessing}>
+                      <Button type="submit" className="w-full h-11 bg-brand-blue hover:brightness-110 text-white" disabled={isProcessing || !standardResolved}>
                         <Tag className="h-4 w-4 mr-2" />
                         {hasWallet ? "List for sale" : "Secure account & list"}
                       </Button>
