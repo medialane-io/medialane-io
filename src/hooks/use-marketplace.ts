@@ -296,6 +296,7 @@ export function useMarketplace() {
           () => client.api.createFulfillIntent({
             fulfiller: walletAddress!,
             orderHash: input.orderHash,
+            tokenStandard: input.tokenStandard,
           }),
           "Purchase complete!",
           marketplaceContract
@@ -386,6 +387,7 @@ export function useMarketplace() {
           () => client.api.createCancelIntent({
             offerer: walletAddress!,
             orderHash: input.orderHash,
+            tokenStandard: input.tokenStandard,
           }),
           "Order cancelled.",
           marketplaceContract
