@@ -14,7 +14,7 @@
     "@chipi-stack/nextjs": "14.2.0",
     "@clerk/nextjs": "^6",
     "@hookform/resolvers": "^3",
-    "@medialane/sdk": "0.7.5",
+    "@medialane/sdk": "0.7.6",
     "@medialane/ui": "0.4.0",
     "@radix-ui/react-accordion": "latest",
     "@radix-ui/react-alert-dialog": "latest",

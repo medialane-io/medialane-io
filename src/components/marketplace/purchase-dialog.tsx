@@ -31,9 +31,13 @@ interface PurchaseDialogProps {
 }
 
 // ── Token hero — full-bleed image + name/price ───────────────────────────────
-function TokenHero({ order }: { order: ApiOrder }) {
+function TokenHero({ order, quantity }: { order: ApiOrder; quantity: number }) {
   const image = order.token?.image ? ipfsToHttp(order.token.image) : null;
   const name = order.token?.name || `Token #${order.nftTokenId}`;
+
+  const unitPrice = order.price?.formatted ? parseFloat(order.price.formatted) : null;
+  const totalPrice = unitPrice !== null ? unitPrice * quantity : null;
+  const showTotal = quantity > 1 && totalPrice !== null;
 
   return (
     <div>
@@ -60,9 +64,17 @@ function TokenHero({ order }: { order: ApiOrder }) {
           <div className="shrink-0 text-right ml-4">
             <p className="flex items-center gap-1.5 font-bold text-2xl justify-end">
               <CurrencyIcon symbol={order.price.currency} size={18} />
-              {formatDisplayPrice(order.price.formatted)}
+              {showTotal
+                ? formatDisplayPrice(totalPrice!.toFixed(order.price.decimals <= 6 ? 2 : 4))
+                : formatDisplayPrice(order.price.formatted)}
             </p>
-            <p className="text-xs text-muted-foreground">{order.price.currency}</p>
+            {showTotal ? (
+              <p className="text-xs text-muted-foreground">
+                {formatDisplayPrice(order.price.formatted)} × {quantity} {order.price.currency}
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">{order.price.currency}</p>
+            )}
           </div>
         )}
       </div>
@@ -275,7 +287,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
           ) : step === "pin" ? (
             /* ── PIN step ──────────────────────────────────────────────── */
             <div className="space-y-4">
-              <TokenHero order={order} />
+              <TokenHero order={order} quantity={quantity} />
               <div className="px-6 pb-6 space-y-4">
                 <p className="text-sm text-muted-foreground">Enter your PIN to confirm this purchase.</p>
                 <PinInput
@@ -328,7 +340,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
           ) : (
             /* ── Details step ──────────────────────────────────────────── */
             <div className="space-y-0">
-              <TokenHero order={order} />
+              <TokenHero order={order} quantity={quantity} />
               <div className="px-6 pb-6 pt-3 space-y-3">
                 {error && (
                   <>
