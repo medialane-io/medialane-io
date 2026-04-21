@@ -86,6 +86,8 @@ export interface MakeOfferInput {
 export interface FulfillOrderInput {
   orderHash: string;
   tokenStandard?: string;
+  /** ERC-1155 only: units to purchase. Defaults to 1 if omitted. */
+  quantity?: string;
   // Legacy fields — kept for call-site compatibility, no longer used internally
   considerationToken?: string;
   considerationAmount?: string;
@@ -297,6 +299,7 @@ export function useMarketplace() {
             fulfiller: walletAddress!,
             orderHash: input.orderHash,
             tokenStandard: input.tokenStandard,
+            quantity: input.quantity,
           }),
           "Purchase complete!",
           marketplaceContract

@@ -6,7 +6,7 @@ import { useAuth } from "@clerk/nextjs";
 import { toast } from "sonner";
 import {
   CheckCircle2, AlertCircle, ExternalLink, Loader2,
-  ShoppingCart, RefreshCw, ArrowLeft, Sparkles, Zap,
+  ShoppingCart, RefreshCw, ArrowLeft, Sparkles, Zap, Minus, Plus,
 } from "lucide-react";
 import { fireConfetti } from "@/lib/confetti";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -91,6 +91,13 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
   const [pin, setPin] = useState("");
   const [pinError, setPinError] = useState<string | null>(null);
   const [step, setStep] = useState<"details" | "pin">("details");
+  const [quantity, setQuantity] = useState(1);
+
+  const is1155 = order.offer?.itemType === "ERC1155";
+  // Use remainingAmount if known (set after first partial fill); fall back to offerStartAmount for fresh listings
+  const maxQty = is1155
+    ? Math.max(1, parseInt(order.remainingAmount ?? order.offerStartAmount ?? "1", 10))
+    : 1;
 
   const [passkeySupported] = useState(
     () => typeof window !== "undefined" && isWebAuthnSupported()
@@ -129,7 +136,8 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
       }
     }
 
-    await fulfillOrder({ orderHash: order.orderHash, pin, tokenStandard: order.offer.itemType });
+    const qty = is1155 ? String(quantity) : undefined;
+    await fulfillOrder({ orderHash: order.orderHash, pin, tokenStandard: order.offer.itemType, quantity: qty });
     setPin("");
     setStep("details");
   };
@@ -141,7 +149,8 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
       const derived = encryptKey ?? (await authenticate());
       if (!derived) throw new Error("Passkey authentication failed.");
       if (!hasActiveSession) await setupSession(derived);
-      await fulfillOrder({ orderHash: order.orderHash, pin: derived, tokenStandard: order.offer.itemType });
+      const qty = is1155 ? String(quantity) : undefined;
+      await fulfillOrder({ orderHash: order.orderHash, pin: derived, tokenStandard: order.offer.itemType, quantity: qty });
       setPin("");
       setStep("details");
     } catch (err: unknown) {
@@ -160,6 +169,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
       setPin("");
       setPinError(null);
       setStep("details");
+      setQuantity(1);
     }
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -339,6 +349,30 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
                       </Button>
                     )}
                   </>
+                )}
+
+                {is1155 && maxQty > 1 && (
+                  <div className="flex items-center justify-between py-1">
+                    <span className="text-sm text-muted-foreground">Quantity</span>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline" size="icon" className="h-7 w-7"
+                        disabled={quantity <= 1}
+                        onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                      >
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                      <span className="w-8 text-center text-sm font-medium">{quantity}</span>
+                      <Button
+                        variant="outline" size="icon" className="h-7 w-7"
+                        disabled={quantity >= maxQty}
+                        onClick={() => setQuantity(q => Math.min(maxQty, q + 1))}
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                      <span className="text-xs text-muted-foreground ml-1">/ {maxQty}</span>
+                    </div>
+                  </div>
                 )}
 
                 {!isSignedIn ? (
