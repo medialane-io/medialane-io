@@ -57,6 +57,27 @@ export default function LearnMarketplacePage() {
           </p>
         </Section>
 
+        <Section title="Buying Multi-Edition Assets (ERC-1155)">
+          <p>
+            Multi-edition IP assets — music tracks, art series, and other works deployed
+            as ERC-1155 collections — support <strong className="text-foreground">partial fills</strong>.
+            Instead of purchasing all available copies at once, you choose exactly how many
+            editions you want.
+          </p>
+          <p>
+            When you open the buy dialog on a multi-edition listing, a quantity selector
+            appears showing the number of units still available. Adjust the quantity with
+            the <strong className="text-foreground">−</strong> and <strong className="text-foreground">+</strong>{" "}
+            buttons — the total price updates in real time. The order stays active on-chain
+            after your purchase so other collectors can buy the remaining editions.
+          </p>
+          <p>
+            The total you pay is always{" "}
+            <strong className="text-foreground">price per unit × quantity</strong>, with
+            ERC-2981 royalties applied to the full purchase value automatically.
+          </p>
+        </Section>
+
         <Section title="Offers (Bids)">
           <p>
             If an asset is not listed or you want to negotiate a price, you can make an
