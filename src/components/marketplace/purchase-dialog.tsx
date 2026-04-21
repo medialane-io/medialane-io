@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import {
   AlertCircle, ExternalLink, Loader2,
   ShoppingCart, RefreshCw, ArrowLeft, Sparkles, Zap, Minus, Plus,
-  CheckCircle2, Star, Trophy, Package,
+  CheckCircle2, Package,
 } from "lucide-react";
 import { fireConfetti } from "@/lib/confetti";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -107,62 +107,39 @@ function SuccessScreen({
   const totalPrice = unitPrice !== null ? unitPrice * quantity : null;
 
   return (
-    <div className="flex flex-col items-center text-center">
-      {/* Hero banner with blurred image background */}
-      <div className="relative w-full h-36 overflow-hidden bg-gradient-to-br from-emerald-950 via-emerald-900/80 to-teal-900/60">
-        {image && (
-          <img
-            src={image}
-            alt=""
-            className="absolute inset-0 w-full h-full object-cover opacity-20 blur-lg scale-110"
-          />
-        )}
-        {/* Floating sparkles */}
-        <div className="absolute top-3 left-6 text-yellow-400/60">
-          <Star className="h-4 w-4 fill-current animate-pulse" />
-        </div>
-        <div className="absolute top-5 right-8 text-emerald-400/60">
-          <Sparkles className="h-5 w-5 animate-pulse" style={{ animationDelay: "0.3s" }} />
-        </div>
-        <div className="absolute bottom-4 left-12 text-teal-400/50">
-          <Star className="h-3 w-3 fill-current animate-pulse" style={{ animationDelay: "0.6s" }} />
-        </div>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Trophy className="h-12 w-12 text-emerald-400/80" />
-        </div>
-      </div>
-
-      {/* Token image floating over the banner */}
-      <div className="relative -mt-14 mb-3">
-        <div className="h-28 w-28 rounded-2xl overflow-hidden border-4 border-background shadow-2xl ring-2 ring-emerald-500/40">
-          {image ? (
+    <div className="flex flex-col items-center gap-5 p-6 py-8">
+      {/* Token image + badge */}
+      <div className="relative">
+        {image ? (
+          <div className="h-32 w-32 rounded-2xl overflow-hidden border border-border shadow-lg">
             <img src={image} alt={name} className="h-full w-full object-cover" />
-          ) : (
-            <div className="h-full w-full bg-gradient-to-br from-primary/30 to-purple-500/20 flex items-center justify-center text-2xl font-bold text-muted-foreground/50">
-              #{order.nftTokenId}
-            </div>
-          )}
+          </div>
+        ) : (
+          <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+            <CheckCircle2 className="h-9 w-9 text-primary" />
+          </div>
+        )}
+        <div className="absolute -bottom-2 -right-2 h-9 w-9 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg border-2 border-background">
+          <CheckCircle2 className="h-5 w-5 text-white" />
         </div>
-        <div className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg border-2 border-background">
-          <CheckCircle2 className="h-4 w-4 text-white" />
-        </div>
+        <Sparkles className="absolute -top-2 -right-2 h-5 w-5 text-yellow-400" />
       </div>
 
       {/* Headline */}
-      <div className="px-6 space-y-1 mb-4">
-        <h2 className="text-2xl font-extrabold tracking-tight">
+      <div className="text-center space-y-1">
+        <p className="font-bold text-xl">
           {is1155 && quantity > 1 ? `You own ${quantity}×` : "You own it!"}
-        </h2>
-        <p className="text-base font-semibold text-foreground/80 leading-snug">{name}</p>
+        </p>
         <p className="text-sm text-muted-foreground">
+          <span className="font-medium text-foreground">{name}</span>{" "}
           {is1155 && quantity > 1
-            ? `${quantity} editions are now in your portfolio`
-            : "This IP asset is now in your portfolio"}
+            ? "editions are now in your portfolio."
+            : "is now in your portfolio."}
         </p>
       </div>
 
-      {/* Purchase summary card */}
-      <div className="mx-6 w-[calc(100%-3rem)] rounded-xl border border-emerald-500/20 bg-emerald-500/5 divide-y divide-emerald-500/10 mb-4 text-sm">
+      {/* Summary rows */}
+      <div className="w-full rounded-xl border border-border divide-y divide-border text-sm">
         {order.price && (
           <div className="flex items-center justify-between px-4 py-2.5">
             <span className="text-muted-foreground">Price paid</span>
@@ -177,8 +154,15 @@ function SuccessScreen({
         <div className="flex items-center justify-between px-4 py-2.5">
           <span className="text-muted-foreground">Network</span>
           <span className="font-medium flex items-center gap-1.5">
-            <Zap className="h-3.5 w-3.5 text-emerald-500" />
+            <Zap className="h-3.5 w-3.5 text-primary" />
             Starknet · Gasless
+          </span>
+        </div>
+        <div className="flex items-center justify-between px-4 py-2.5">
+          <span className="text-muted-foreground">Ownership</span>
+          <span className="font-medium flex items-center gap-1.5">
+            <Package className="h-3.5 w-3.5" />
+            Immutable on-chain
           </span>
         </div>
         {txHash && (
@@ -188,29 +172,22 @@ function SuccessScreen({
               href={`${EXPLORER_URL}/tx/${txHash}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 font-mono text-xs text-primary hover:text-primary/80 transition-colors group"
+              className="inline-flex items-center gap-1.5 font-mono text-xs text-primary hover:underline transition-colors"
             >
               {txHash.slice(0, 8)}…{txHash.slice(-6)}
-              <ExternalLink className="h-3 w-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+              <ExternalLink className="h-3 w-3" />
             </a>
           </div>
         )}
-        <div className="flex items-center justify-between px-4 py-2.5">
-          <span className="text-muted-foreground">Ownership</span>
-          <span className="font-medium text-emerald-400 flex items-center gap-1">
-            <Package className="h-3.5 w-3.5" />
-            Immutable on-chain
-          </span>
-        </div>
       </div>
 
       {/* CTAs */}
-      <div className="px-6 pb-6 w-full flex flex-col gap-2">
-        <Button className="w-full h-11 text-sm font-semibold" onClick={onViewPortfolio}>
-          View in portfolio
+      <div className="flex flex-col sm:flex-row gap-2 w-full pt-1">
+        <Button variant="outline" className="flex-1" onClick={onClose}>
+          Close
         </Button>
-        <Button variant="ghost" className="w-full h-9 text-sm text-muted-foreground" onClick={onClose}>
-          Continue browsing
+        <Button className="flex-1" onClick={onViewPortfolio}>
+          View portfolio
         </Button>
       </div>
     </div>
