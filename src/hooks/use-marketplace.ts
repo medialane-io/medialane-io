@@ -227,8 +227,11 @@ export function useMarketplace() {
         throw new Error(result.revertReason || "Transaction reverted on chain");
       }
 
+      // Normalize: Starknet hashes are felt252 and may lack leading zeros — pad to 0x+64 chars
+      const normalizedHash = "0x" + result.txHash.replace(/^0x/, "").padStart(64, "0");
+
       // Submit tx hash to backend — verifies receipt + marketplace events server-side
-      await client.api.confirmIntent(id, result.txHash);
+      await client.api.confirmIntent(id, normalizedHash);
 
       // Poll until backend reports terminal status (CONFIRMED or FAILED)
       const finalStatus = await pollIntentUntilTerminal(id);
