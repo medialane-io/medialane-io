@@ -15,6 +15,7 @@ import { MedialaneLogo } from "@/components/brand/medialane-logo";
 import { SWRConfig } from "swr";
 import { ChipiSessionUnlockProvider } from "@/contexts/chipi-session-unlock-context";
 import { usePathname } from "next/navigation";
+import { GoogleAnalytics } from '@next/third-parties/google'
 
 function MobileIconTrigger() {
   const { toggleSidebar } = useSidebar();
@@ -99,7 +100,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
           },
         }}
       >
-        <Aurora />
+        {/* <Aurora /> */}
+        <GoogleAnalytics gaId="AW-18112836088" />
         <Shell>{children}</Shell>
         <CartDrawer />
         <Toaster

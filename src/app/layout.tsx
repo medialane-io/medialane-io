@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ChipiProvider } from "@chipi-stack/nextjs";
 import { Providers } from "./providers";
+import { GoogleAnalytics } from '@next/third-parties/google'
+
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
