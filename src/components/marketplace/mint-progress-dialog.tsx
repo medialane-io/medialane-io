@@ -227,6 +227,9 @@ export function MintProgressDialog({
               <p className="text-sm text-muted-foreground">
                 <span className="font-medium text-foreground">{assetName || "Your asset"}</span> is now live on the marketplace.
               </p>
+              <p className="text-xs text-muted-foreground/70 pt-1">
+                It may take 1–2 minutes for your asset to appear on the platform while it&apos;s being indexed onchain.
+              </p>
             </div>
             {txHash && (
               <a
@@ -275,6 +278,9 @@ export function MintProgressDialog({
               <p className="font-bold text-xl">Minted!</p>
               <p className="text-sm text-muted-foreground">
                 <span className="font-medium text-foreground">{assetName || "Your asset"}</span> is now live on Starknet.
+              </p>
+              <p className="text-xs text-muted-foreground/70 pt-1">
+                It may take 1–2 minutes for your asset to appear on the platform while it&apos;s being indexed onchain.
               </p>
             </div>
             {txHash && (

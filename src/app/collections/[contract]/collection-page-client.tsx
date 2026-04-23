@@ -347,11 +347,22 @@ export default function CollectionPageClient() {
                 {collection?.name ?? "Unnamed Collection"}
               </h1>
               {/* Symbol + Verified as small separate pills, not grouped in the title */}
-              {collection?.symbol && (
+              {(collection?.symbol || collection?.standard) && (
                 <div className="flex items-center gap-2 mt-2 flex-wrap">
-                  <span className="font-mono text-[11px] bg-black/20 dark:bg-black/40 text-white/90 border border-white/15 backdrop-blur-sm rounded-full px-2.5 py-0.5">
-                    {collection.symbol}
-                  </span>
+                  {collection.symbol && (
+                    <span className="font-mono text-[11px] bg-black/20 dark:bg-black/40 text-white/90 border border-white/15 backdrop-blur-sm rounded-full px-2.5 py-0.5">
+                      {collection.symbol}
+                    </span>
+                  )}
+                  {collection.standard === "ERC1155" ? (
+                    <span className="text-[11px] font-semibold bg-violet-500/30 text-violet-200 border border-violet-400/30 backdrop-blur-sm rounded-full px-2.5 py-0.5">
+                      Multi-edition NFT
+                    </span>
+                  ) : collection.standard === "ERC721" ? (
+                    <span className="text-[11px] font-semibold bg-black/20 dark:bg-black/40 text-white/80 border border-white/15 backdrop-blur-sm rounded-full px-2.5 py-0.5">
+                      Single NFT
+                    </span>
+                  ) : null}
                 </div>
               )}
             </div>

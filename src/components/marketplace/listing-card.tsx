@@ -58,9 +58,9 @@ export function ListingCard({ order, onBuy, compact = false }: ListingCardProps)
           <div className="p-2.5 space-y-0.5">
             <p className="text-xs font-semibold truncate">{name}</p>
             {order.price && (
-              <p className="text-[11px] font-bold price-value">
-                {formatDisplayPrice(order.price.formatted)}{" "}
-                <span className="text-muted-foreground font-normal">{order.price.currency}</span>
+              <p className="text-[11px] font-bold price-value flex items-center gap-1">
+                <CurrencyIcon symbol={order.price.currency} size={11} />
+                {formatDisplayPrice(order.price.formatted)}
               </p>
             )}
             <p className="text-[10px] text-muted-foreground">{timeAgo(order.createdAt)}</p>

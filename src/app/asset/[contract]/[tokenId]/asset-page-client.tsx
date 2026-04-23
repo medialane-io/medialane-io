@@ -329,27 +329,8 @@ export default function AssetPageClient() {
                   </span>
                 )}
               </div>
-              {/* Ownership label — shown above the title */}
-              {isERC1155 ? (
-                token.balances && token.balances.length > 0 && (
-                  <div className="mb-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                      {token.balances.length === 1 ? "Owner" : `${token.balances.length} owners`}
-                    </span>
-                    {token.balances.slice(0, 3).map((b) => (
-                      <span key={b.owner} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <Link href={`/creator/${b.owner}`} className="hover:text-primary transition-colors font-medium">
-                          <AddressDisplay address={b.owner} />
-                        </Link>
-                        <span className="text-muted-foreground/50">× {b.amount}</span>
-                      </span>
-                    ))}
-                    {token.balances.length > 3 && (
-                      <span className="text-xs text-muted-foreground/50">+{token.balances.length - 3} more</span>
-                    )}
-                  </div>
-                )
-              ) : (token.balances?.[0]?.owner ?? token.owner) ? (
+              {/* ERC-721 ownership — shown above the title */}
+              {!isERC1155 && (token.balances?.[0]?.owner ?? token.owner) ? (
                 <div className="mb-1 flex items-center gap-1.5 text-xs text-muted-foreground">
                   <span className="font-semibold uppercase tracking-wider">Owner</span>
                   <Link href={`/creator/${token.balances?.[0]?.owner ?? token.owner}`} className="hover:text-primary transition-colors font-medium">
@@ -618,6 +599,28 @@ export default function AssetPageClient() {
                       </Button>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* ERC-1155 ownership — shown after marketplace buttons */}
+            {isERC1155 && token.balances && token.balances.length > 0 && (
+              <div className="rounded-xl border border-border px-4 py-3 space-y-2">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {token.balances.length === 1 ? "Owner" : `${token.balances.length} owners`}
+                </p>
+                <div className="flex flex-col gap-1.5">
+                  {token.balances.slice(0, 5).map((b) => (
+                    <div key={b.owner} className="flex items-center justify-between gap-2">
+                      <Link href={`/creator/${b.owner}`} className="hover:text-primary transition-colors font-medium text-sm truncate">
+                        <AddressDisplay address={b.owner} chars={6} showCopy={false} />
+                      </Link>
+                      <span className="text-xs text-muted-foreground shrink-0">× {b.amount}</span>
+                    </div>
+                  ))}
+                  {token.balances.length > 5 && (
+                    <p className="text-xs text-muted-foreground/60">+{token.balances.length - 5} more holders</p>
+                  )}
                 </div>
               </div>
             )}
