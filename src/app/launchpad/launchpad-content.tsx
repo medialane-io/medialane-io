@@ -43,30 +43,90 @@ function HeroStats({ address }: { address: string }) {
 }
 
 // ── Brand color map per service key ─────────────────────────────────────────
-const SERVICE_COLORS: Record<string, { icon: string; button: string }> = {
-  "mint-ip-asset":      { icon: BRAND.blue.text,   button: "bg-brand-blue"   },
-  "create-collection":  { icon: BRAND.purple.text, button: "bg-brand-purple" },
-  "ip-collection-1155": { icon: BRAND.purple.text, button: "bg-brand-purple" },
-  "mint-editions":      { icon: BRAND.purple.text, button: "bg-brand-purple" },
-  "remix-asset":        { icon: BRAND.rose.text,   button: "bg-brand-rose"   },
-  "pop-protocol":       { icon: BRAND.orange.text, button: "bg-brand-orange" },
-  "collection-drop":    { icon: BRAND.orange.text, button: "bg-brand-orange" },
-  "ip-tickets":         { icon: BRAND.blue.text,   button: "bg-brand-blue"   },
-  "membership":         { icon: BRAND.purple.text, button: "bg-brand-purple" },
-  "subscriptions":      { icon: BRAND.blue.text,   button: "bg-brand-blue"   },
-  "ip-coins":           { icon: BRAND.orange.text, button: "bg-brand-orange" },
-  "creator-coins":      { icon: BRAND.rose.text,   button: "bg-brand-rose"   },
+const SERVICE_COLORS: Record<string, { icon: string; button: string; chip: string; gradient: string }> = {
+  "mint-ip-asset":      { icon: BRAND.blue.text,   button: "bg-brand-blue",   chip: "border-blue-500/30 text-blue-400 bg-blue-500/10",     gradient: "from-blue-500/50 via-cyan-400/20 to-blue-600/30"      },
+  "create-collection":  { icon: BRAND.purple.text, button: "bg-brand-purple", chip: "border-purple-500/30 text-purple-400 bg-purple-500/10", gradient: "from-purple-500/50 via-violet-400/20 to-purple-700/30" },
+  "ip-collection-1155": { icon: BRAND.rose.text,   button: "bg-brand-rose",   chip: "border-rose-500/30 text-rose-400 bg-rose-500/10",       gradient: "from-rose-500/50 via-pink-400/20 to-rose-700/30"      },
+  "mint-editions":      { icon: BRAND.orange.text, button: "bg-brand-orange", chip: "border-orange-500/30 text-orange-400 bg-orange-500/10", gradient: "from-orange-500/50 via-amber-400/20 to-orange-700/30"  },
+  "remix-asset":        { icon: BRAND.navy.text,   button: "bg-brand-navy",   chip: "border-indigo-700/30 text-indigo-300 bg-indigo-900/20", gradient: "from-blue-900/60 via-indigo-700/20 to-blue-800/30"     },
+  "pop-protocol":       { icon: BRAND.orange.text, button: "bg-brand-orange", chip: "border-orange-500/30 text-orange-400 bg-orange-500/10", gradient: "from-orange-500/50 via-amber-400/20 to-orange-700/30"  },
+  "collection-drop":    { icon: BRAND.rose.text,   button: "bg-brand-rose",   chip: "border-rose-500/30 text-rose-400 bg-rose-500/10",       gradient: "from-rose-500/50 via-red-400/20 to-rose-700/30"       },
+  "ip-tickets":         { icon: BRAND.blue.text,   button: "bg-brand-blue",   chip: "border-blue-500/30 text-blue-400 bg-blue-500/10",     gradient: "from-blue-500/50 via-cyan-400/20 to-blue-600/30"      },
+  "membership":         { icon: BRAND.purple.text, button: "bg-brand-purple", chip: "border-purple-500/30 text-purple-400 bg-purple-500/10", gradient: "from-purple-500/50 via-violet-400/20 to-purple-700/30" },
+  "subscriptions":      { icon: BRAND.blue.text,   button: "bg-brand-blue",   chip: "border-blue-500/30 text-blue-400 bg-blue-500/10",     gradient: "from-blue-500/50 via-cyan-400/20 to-blue-600/30"      },
+  "ip-coins":           { icon: BRAND.orange.text, button: "bg-brand-orange", chip: "border-orange-500/30 text-orange-400 bg-orange-500/10", gradient: "from-orange-500/50 via-amber-400/20 to-orange-700/30"  },
+  "creator-coins":      { icon: BRAND.rose.text,   button: "bg-brand-rose",   chip: "border-rose-500/30 text-rose-400 bg-rose-500/10",       gradient: "from-rose-500/50 via-pink-400/20 to-rose-700/30"      },
+};
+
+// ── Local content overrides (title, subtitle, description, features, example)
+interface ServiceContent {
+  title: string;
+  subtitle: string;
+  description: string;
+  features: string[];
+  example: string;
+}
+const SERVICE_CONTENT: Record<string, ServiceContent> = {
+  "mint-ip-asset": {
+    title: "Mint NFT",
+    subtitle: "Publish your creative work on Starknet",
+    description: "Upload any photo, video, audio, or document and mint it as an IP NFT — with licensing, provenance, and ownership all locked on-chain.",
+    features: ["Gasless via ChipiPay", "IPFS metadata", "Programmable licensing"],
+    example: "e.g. A song, a photo, an ebook, a short film",
+  },
+  "create-collection": {
+    title: "Create NFT Collection",
+    subtitle: "Group your NFTs under a shared identity",
+    description: "Deploy a branded ERC-721 collection with its own page and on-chain identity. Add assets to it at any time and share it with collectors.",
+    features: ["Factory-deployed ERC-721", "Branded collection page", "Add assets at any time"],
+    example: "e.g. A photography portfolio, a music catalog, a comic series",
+  },
+  "ip-collection-1155": {
+    title: "Limited Editions",
+    subtitle: "Deploy a contract for multi-copy NFT releases",
+    description: "Create a collection built for editions — release music tracks, art prints, or any IP in numbered multiples. Each edition token is tradeable on Medialane.",
+    features: ["Multi-edition ERC-1155", "Numbered tokens", "Tradeable on Medialane"],
+    example: "e.g. 50 copies of a limited print, a music EP released in 100 editions",
+  },
+  "mint-editions": {
+    title: "Mint Limited Edition",
+    subtitle: "Add new editions to an existing collection",
+    description: "Pick one of your Limited Edition contracts, upload artwork, set the supply, and release to collectors — all in a few clicks.",
+    features: ["Choose any edition collection", "Set edition supply", "IPFS metadata"],
+    example: "e.g. Drop 25 numbered prints from your art series",
+  },
+  "remix-asset": {
+    title: "Remix Asset",
+    subtitle: "Derivative works with on-chain attribution",
+    description: "Create a licensed derivative of any IP asset with full provenance and attribution flowing back to the original creator on-chain.",
+    features: ["On-chain attribution", "License-enforced at mint", "Royalties to original creator"],
+    example: "e.g. A remix of a song, a derivative artwork inspired by an original",
+  },
+  "pop-protocol": {
+    title: "POP Protocol",
+    subtitle: "Proof-of-participation for events & communities",
+    description: "Issue soulbound credentials to your community — one non-transferable badge per wallet, permanently on-chain. No transferring, no faking.",
+    features: ["Soulbound · non-transferable", "One credential per wallet", "Optional allowlist gating"],
+    example: "e.g. Hackathon attendance badge, community membership, conference pass",
+  },
+  "collection-drop": {
+    title: "Collection Drop",
+    subtitle: "Timed NFT releases with mint windows",
+    description: "Launch a time-gated mint campaign — set a price, supply cap, start and end time, and let collectors mint directly from your drop page.",
+    features: ["Timed mint window", "Price + supply cap", "Branded drop page"],
+    example: "e.g. A 48-hour drop of 200 NFTs at 5 USDC each",
+  },
 };
 
 // ── App-specific hrefs per service key ──────────────────────────────────────
 const IO_HREFS: Record<string, { href?: string; buttonLabel?: string; browseHref?: string }> = {
-  "mint-ip-asset":      { href: "/create/asset",            buttonLabel: "Mint asset"        },
-  "create-collection":  { href: "/create/collection",       buttonLabel: "Create collection" },
-  "remix-asset":        { href: "/marketplace",             buttonLabel: "Browse to remix"   },
+  "mint-ip-asset":      { href: "/create/asset",            buttonLabel: "Mint NFT"               },
+  "create-collection":  { href: "/create/collection",       buttonLabel: "Create NFT Collection"   },
+  "remix-asset":        { href: "/marketplace",             buttonLabel: "Browse to remix"         },
   "pop-protocol":       { href: "/launchpad/pop/create",    buttonLabel: "Create event",     browseHref: "/launchpad/pop"  },
   "collection-drop":    { href: "/launchpad/drop/create",   buttonLabel: "Launch drop",      browseHref: "/launchpad/drop" },
-  "ip-collection-1155": { href: "/launchpad/nfteditions/create", buttonLabel: "Create collection" },
-  "mint-editions":      { href: "/launchpad/nfteditions",        buttonLabel: "Mint editions"     },
+  "ip-collection-1155": { href: "/launchpad/nfteditions/create", buttonLabel: "Create Limited Edition contract" },
+  "mint-editions":      { href: "/launchpad/nfteditions",        buttonLabel: "Mint Limited Edition"           },
 };
 
 // ── Service card ─────────────────────────────────────────────────────────────
@@ -81,18 +141,25 @@ function ServiceCard({
   buttonLabel?: string;
   browseHref?: string;
 }) {
-  const { key, title, subtitle, description, features, icon: Icon, badge, status, browseLinkLabel } = def;
+  const { key, icon: Icon, badge, status, browseLinkLabel } = def;
+  const content = SERVICE_CONTENT[key] ?? {
+    title: def.title,
+    subtitle: def.subtitle,
+    description: def.description,
+    features: def.features,
+    example: "",
+  };
+  const { title, subtitle, description, features, example } = content;
   const live = status === "live";
   const building = status === "building";
   const active = live || building;
-  const colors = SERVICE_COLORS[key] ?? { icon: BRAND.blue.text, button: "bg-brand-blue" };
+  const colors = SERVICE_COLORS[key] ?? { icon: BRAND.blue.text, button: "bg-brand-blue", chip: "border-border/50 text-muted-foreground bg-muted/30", gradient: "from-border/40 to-border/20" };
 
-  return (
+  const card = (
     <div
       className={cn(
-        "rounded-2xl border border-border/40 bg-card flex flex-col overflow-hidden",
-        "transition-all duration-200",
-        live && "hover:-translate-y-0.5 hover:border-border/70 hover:shadow-md hover:shadow-black/20",
+        "rounded-[15px] bg-card flex flex-col overflow-hidden min-h-[420px]",
+        "transition-all duration-200 flex-1",
         !active && "opacity-60",
       )}
     >
@@ -104,7 +171,6 @@ function ServiceCard({
             className={cn(
               "h-9 w-9 transition-transform duration-300",
               active ? colors.icon : "text-muted-foreground/25",
-              live && "group-hover:scale-110",
             )}
           />
           <span
@@ -134,9 +200,14 @@ function ServiceCard({
         </div>
 
         {/* Description */}
-        <p className={cn("text-sm leading-relaxed flex-1", active ? "text-muted-foreground" : "text-muted-foreground/30")}>
-          {description}
-        </p>
+        <div className="flex-1 space-y-2">
+          <p className={cn("text-sm leading-relaxed", active ? "text-muted-foreground" : "text-muted-foreground/30")}>
+            {description}
+          </p>
+          {example && active && (
+            <p className="text-xs text-muted-foreground/60 italic">{example}</p>
+          )}
+        </div>
 
         {/* Feature chips */}
         <div className="flex flex-wrap gap-1.5">
@@ -146,7 +217,7 @@ function ServiceCard({
               className={cn(
                 "text-[11px] px-2.5 py-1 rounded-full border font-medium",
                 active
-                  ? "bg-muted/30 border-border/50 text-muted-foreground"
+                  ? colors.chip
                   : "bg-muted/10 border-border/15 text-muted-foreground/25",
               )}
             >
@@ -188,6 +259,16 @@ function ServiceCard({
         )}
 
       </div>
+    </div>
+  );
+
+  return live ? (
+    <div className={cn("p-[1px] rounded-2xl bg-gradient-to-br", colors.gradient, "transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/25 flex flex-col")}>
+      {card}
+    </div>
+  ) : (
+    <div className="rounded-2xl border border-border/25 flex flex-col">
+      {card}
     </div>
   );
 }
