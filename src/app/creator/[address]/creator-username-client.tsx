@@ -215,7 +215,7 @@ export default function CreatorUsernamePageClient({ username }: Props) {
         {/* Full profile link — top right */}
         {creator.walletAddress && (
           <div className="absolute top-4 right-4 z-10">
-            <Button size="sm" variant="outline" asChild className="bg-black/40 backdrop-blur-sm border-white/20 text-white hover:bg-black/60 hover:text-white">
+            <Button size="sm" variant="outline" asChild className="bg-background/40 backdrop-blur-sm border-white/20 text-foreground hover:bg-background/60 hover:text-white">
               <Link href={`/account/${creator.walletAddress}`}>
                 <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
                 Full profile
