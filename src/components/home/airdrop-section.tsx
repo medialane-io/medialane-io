@@ -3,90 +3,73 @@
 import Link from "next/link";
 import {
   Paintbrush, ShoppingBag, Award, Package, Layers,
-  ArrowRight, Rocket, BookOpen, FileCode2,
+  ArrowRight, Rocket, BookOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BRAND } from "@/lib/brand";
+import { cn } from "@/lib/utils";
 
 const FEATURES = [
   {
     icon: Paintbrush,
     label: "Mint IP Assets",
-    subtitle: "Zero fees, permanent record on Starknet",
-    accent: "from-violet-500 to-purple-600",
+    subtitle: "Publish any creative work on Starknet",
+    color: BRAND.purple.text,
     href: "/create/asset",
   },
   {
     icon: ShoppingBag,
     label: "Marketplace",
     subtitle: "Gasless trading, settled atomically",
-    accent: "from-blue-500 to-cyan-500",
+    color: BRAND.blue.text,
     href: "/marketplace",
   },
   {
     icon: Layers,
     label: "Collections",
     subtitle: "Deploy your branded IP catalog",
-    accent: "from-sky-500 to-blue-600",
+    color: BRAND.blue.text,
     href: "/create/collection",
   },
   {
     icon: Award,
     label: "POP Protocol",
     subtitle: "Soulbound event credentials",
-    accent: "from-emerald-400 to-teal-500",
+    color: BRAND.orange.text,
     href: "/launchpad/pop",
   },
   {
     icon: Package,
     label: "Collection Drop",
     subtitle: "Limited-edition NFT releases",
-    accent: "from-orange-400 to-rose-500",
+    color: BRAND.orange.text,
     href: "/launchpad/drop",
   },
   {
     icon: BookOpen,
     label: "Learn",
     subtitle: "Creator education & guides",
-    accent: "from-violet-500 to-indigo-600",
+    color: BRAND.purple.text,
     href: "/learn",
-  },
-  {
-    icon: FileCode2,
-    label: "Developer Docs",
-    subtitle: "API, contracts & protocol reference",
-    accent: "from-slate-600 to-blue-700",
-    href: "/docs",
   },
 ] as const;
 
 function ServiceCard({ feature }: { feature: typeof FEATURES[number] }) {
-  const { icon: Icon, label, subtitle, accent, href } = feature;
+  const { icon: Icon, label, subtitle, color, href } = feature;
   return (
     <Link href={href} className="group block">
-      <div className="card-base overflow-hidden">
-        <div className={`relative aspect-[3/4] w-full bg-gradient-to-br ${accent}`}>
-          {/* Radial highlight */}
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_25%,rgba(255,255,255,0.14),transparent_60%)]" />
-
-          {/* Large decorative icon (background) */}
-          <div className="absolute -bottom-6 -right-6 opacity-[0.12] pointer-events-none">
-            <Icon className="h-36 w-36 text-white" />
-          </div>
-
-          {/* Card layout */}
-          <div className="absolute inset-0 flex flex-col justify-between p-4">
-            {/* Top: small icon */}
-            <div className="h-11 w-11 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center ring-1 ring-white/20 group-hover:bg-white/18 transition-colors duration-300">
-              <Icon className="h-5.5 w-5.5 text-white" />
-            </div>
-
-            {/* Bottom: title + subtitle */}
-            <div>
-              <p className="text-lg font-black text-white leading-tight tracking-tight">{label}</p>
-              <p className="text-xs text-white/65 mt-1.5 leading-relaxed">{subtitle}</p>
-            </div>
-          </div>
+      <div className={cn(
+        "rounded-2xl border border-border/40 bg-card p-5",
+        "flex flex-col gap-4 h-full",
+        "transition-all duration-200",
+        "hover:border-border/70 hover:-translate-y-0.5 hover:shadow-md hover:shadow-black/20",
+      )}>
+        <Icon className={cn("h-8 w-8 transition-transform duration-200 group-hover:scale-110", color)} />
+        <div className="flex-1 space-y-1">
+          <p className="font-bold text-sm leading-tight">{label}</p>
+          <p className="text-xs text-muted-foreground leading-relaxed">{subtitle}</p>
         </div>
+        <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/50 group-hover:text-foreground transition-colors" />
       </div>
     </Link>
   );
@@ -112,7 +95,7 @@ export function AirdropSection() {
       <div className="w-full overflow-x-auto scrollbar-hide">
         <div className="flex gap-3 snap-x snap-mandatory pb-2" style={{ width: "max-content" }}>
           {FEATURES.map((f) => (
-            <div key={f.label} className="w-56 sm:w-64 snap-start shrink-0">
+            <div key={f.label} className="w-44 sm:w-52 snap-start shrink-0">
               <ServiceCard feature={f} />
             </div>
           ))}

@@ -286,7 +286,7 @@ export default function CreateIP1155CollectionPage() {
         onCreateAnother={handleReset}
         createAnotherLabel="Deploy another"
         firstStepLabel="Prepare metadata"
-        mintHref={deployedAddress ? `/launchpad/ip1155/${deployedAddress}/mint` : undefined}
+        mintHref={deployedAddress ? `/launchpad/nfteditions/${deployedAddress}/mint` : undefined}
         deployedAddress={deployedAddress}
       />
 

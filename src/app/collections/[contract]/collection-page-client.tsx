@@ -422,7 +422,7 @@ export default function CollectionPageClient() {
               walletAddress &&
               collection.owner?.toLowerCase() === walletAddress.toLowerCase() && (
               <Link
-                href={`/launchpad/ip1155/${contract}/mint`}
+                href={`/launchpad/nfteditions/${contract}/mint`}
                 className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold text-white bg-fuchsia-600 hover:bg-fuchsia-700 transition-colors"
               >
                 <Sparkles className="h-3 w-3" />

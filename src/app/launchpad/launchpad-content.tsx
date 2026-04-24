@@ -65,8 +65,8 @@ const IO_HREFS: Record<string, { href?: string; buttonLabel?: string; browseHref
   "remix-asset":        { href: "/marketplace",             buttonLabel: "Browse to remix"   },
   "pop-protocol":       { href: "/launchpad/pop/create",    buttonLabel: "Create event",     browseHref: "/launchpad/pop"  },
   "collection-drop":    { href: "/launchpad/drop/create",   buttonLabel: "Launch drop",      browseHref: "/launchpad/drop" },
-  "ip-collection-1155": { href: "/launchpad/ip1155/create", buttonLabel: "Create collection" },
-  "mint-editions":      { href: "/launchpad/ip1155",        buttonLabel: "Mint editions"     },
+  "ip-collection-1155": { href: "/launchpad/nfteditions/create", buttonLabel: "Create collection" },
+  "mint-editions":      { href: "/launchpad/nfteditions",        buttonLabel: "Mint editions"     },
 };
 
 // ── Service card ─────────────────────────────────────────────────────────────
