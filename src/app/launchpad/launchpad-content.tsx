@@ -11,14 +11,11 @@ import { useUserOrders } from "@/hooks/use-orders";
 import { FadeIn } from "@/components/ui/motion-primitives";
 import { BRAND } from "@/lib/brand";
 import { cn } from "@/lib/utils";
-import {
-  LaunchpadServicesGrid,
-  LAUNCHPAD_SERVICE_DEFINITIONS,
-} from "@medialane/ui";
-import type { ServiceCardProps } from "@medialane/ui";
+import { LAUNCHPAD_SERVICE_DEFINITIONS } from "@medialane/ui";
+import type { ServiceDefinition } from "@medialane/ui";
 import {
   Zap, Package, Tag, ShoppingCart,
-  Layers, Globe, ExternalLink, ArrowRight,
+  Layers, Globe, ExternalLink, ArrowRight, Lock,
 } from "lucide-react";
 
 // ── Hero stats ──────────────────────────────────────────────────────────────
@@ -45,21 +42,112 @@ function HeroStats({ address }: { address: string }) {
   );
 }
 
-// Inject io-specific hrefs for each service key
-const IO_HREFS: Record<string, Pick<ServiceCardProps, "href" | "buttonLabel" | "browseHref">> = {
-  "mint-ip-asset":      { href: "/create/asset",           buttonLabel: "Mint asset"         },
-  "create-collection":  { href: "/create/collection",      buttonLabel: "Create collection"  },
-  "remix-asset":        { href: "/marketplace",            buttonLabel: "Browse to remix"    },
-  "pop-protocol":       { href: "/launchpad/pop/create",   buttonLabel: "Create Event",      browseHref: "/launchpad/pop"  },
-  "collection-drop":    { href: "/launchpad/drop/create",  buttonLabel: "Launch Drop",       browseHref: "/launchpad/drop" },
-  "ip-collection-1155": { href: "/launchpad/ip1155/create",buttonLabel: "Create Collection"  },
-  "mint-editions":      { href: "/launchpad/ip1155",       buttonLabel: "Mint editions"      },
+// ── Portrait gradients per service key ──────────────────────────────────────
+const SERVICE_GRADIENTS: Record<string, string> = {
+  "mint-ip-asset":      "from-blue-500 to-cyan-500",
+  "create-collection":  "from-violet-500 to-purple-600",
+  "ip-collection-1155": "from-violet-600 to-fuchsia-600",
+  "mint-editions":      "from-fuchsia-500 to-violet-600",
+  "remix-asset":        "from-rose-500 to-pink-600",
+  "pop-protocol":       "from-emerald-400 to-teal-500",
+  "collection-drop":    "from-orange-400 to-rose-500",
+  "ip-tickets":         "from-teal-500 to-cyan-600",
+  "membership":         "from-indigo-500 to-violet-600",
+  "subscriptions":      "from-sky-500 to-blue-600",
+  "ip-coins":           "from-amber-500 to-yellow-500",
+  "creator-coins":      "from-pink-500 to-rose-600",
 };
 
-const SERVICES: ServiceCardProps[] = LAUNCHPAD_SERVICE_DEFINITIONS.map((def) => ({
-  ...def,
-  ...(IO_HREFS[def.key] ?? {}),
-}));
+interface ServiceHref {
+  href?: string;
+  buttonLabel?: string;
+  browseHref?: string;
+}
+
+const IO_HREFS: Record<string, ServiceHref> = {
+  "mint-ip-asset":      { href: "/create/asset",            buttonLabel: "Mint asset"        },
+  "create-collection":  { href: "/create/collection",       buttonLabel: "Create collection" },
+  "remix-asset":        { href: "/marketplace",             buttonLabel: "Browse to remix"   },
+  "pop-protocol":       { href: "/launchpad/pop/create",    buttonLabel: "Create event",     browseHref: "/launchpad/pop"  },
+  "collection-drop":    { href: "/launchpad/drop/create",   buttonLabel: "Launch drop",      browseHref: "/launchpad/drop" },
+  "ip-collection-1155": { href: "/launchpad/ip1155/create", buttonLabel: "Create collection" },
+  "mint-editions":      { href: "/launchpad/ip1155",        buttonLabel: "Mint editions"     },
+};
+
+// ── Portrait service card ────────────────────────────────────────────────────
+function PortraitServiceCard({ def, href, buttonLabel }: { def: ServiceDefinition; href?: string; buttonLabel?: string }) {
+  const { key, title, subtitle, icon: Icon, status, badge } = def;
+  const gradient = SERVICE_GRADIENTS[key] ?? "from-slate-500 to-slate-600";
+  const live = status === "live";
+  const building = status === "building";
+
+  const inner = (
+    <div
+      className={cn(
+        "relative rounded-2xl overflow-hidden aspect-[3/4] bg-gradient-to-br transition-all duration-300",
+        gradient,
+        live && "group-hover:-translate-y-0.5 group-hover:shadow-lg group-hover:shadow-black/20",
+        building && "opacity-65",
+        status === "soon" && "opacity-50",
+      )}
+    >
+      {/* Radial highlight */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_25%,rgba(255,255,255,0.14),transparent_60%)]" />
+
+      {/* Large ghost icon */}
+      <div className="absolute -bottom-6 -right-6 opacity-[0.12] pointer-events-none">
+        <Icon className="h-36 w-36 text-white" />
+      </div>
+
+      <div className="absolute inset-0 flex flex-col justify-between p-4">
+        {/* Top row: icon widget + status badge */}
+        <div className="flex items-start justify-between gap-2">
+          <div className="h-11 w-11 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center ring-1 ring-white/20 shrink-0 transition-colors duration-300 group-hover:bg-white/[0.18]">
+            <Icon className="h-5 w-5 text-white" />
+          </div>
+          <span
+            className={cn(
+              "text-[9px] font-bold tracking-widest uppercase rounded-full px-2 py-1 flex items-center gap-1 mt-0.5",
+              live    ? "bg-emerald-500/25 text-emerald-200" :
+              building ? "bg-amber-500/25 text-amber-200"   :
+                         "bg-white/10 text-white/40"
+            )}
+          >
+            {live && <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />}
+            {!live && !building && <Lock className="h-2.5 w-2.5 shrink-0" />}
+            {badge}
+          </span>
+        </div>
+
+        {/* Bottom: title + subtitle + cta hint */}
+        <div className="space-y-1">
+          <p className="text-base font-black text-white leading-tight tracking-tight">{title}</p>
+          <p className="text-xs text-white/65 leading-relaxed">{subtitle}</p>
+          {live && (
+            <div className="flex items-center gap-1 text-white/80 text-xs font-semibold pt-1">
+              {buttonLabel ?? "Get started"} <ArrowRight className="h-3 w-3" />
+            </div>
+          )}
+          {building && (
+            <p className="text-[11px] text-white/40 font-medium pt-1">In development</p>
+          )}
+          {status === "soon" && (
+            <p className="text-[11px] text-white/40 font-medium pt-1">Coming soon</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  if (live && href) {
+    return (
+      <Link href={href} className="group block">
+        {inner}
+      </Link>
+    );
+  }
+  return <div className="group">{inner}</div>;
+}
 
 // ── Page ────────────────────────────────────────────────────────────────────
 export function LaunchpadContent() {
@@ -96,14 +184,25 @@ export function LaunchpadContent() {
         </div>
       </section>
 
-      {/* ── Services grid (from @medialane/ui) ───────────────── */}
+      {/* ── Services grid ─────────────────────────────────────── */}
       <section className="px-4">
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3"
         >
-          <LaunchpadServicesGrid services={SERVICES} />
+          {LAUNCHPAD_SERVICE_DEFINITIONS.map((def) => {
+            const { href, buttonLabel } = IO_HREFS[def.key] ?? {};
+            return (
+              <PortraitServiceCard
+                key={def.key}
+                def={def}
+                href={href}
+                buttonLabel={buttonLabel}
+              />
+            );
+          })}
         </motion.div>
       </section>
 

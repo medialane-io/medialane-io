@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import {
-  Paintbrush, ShoppingBag, Bot, Award, Package, Layers,
+  Paintbrush, ShoppingBag, Award, Package, Layers,
   ArrowRight, Rocket, BookOpen, FileCode2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -42,13 +42,6 @@ const FEATURES = [
     subtitle: "Limited-edition NFT releases",
     accent: "from-orange-400 to-rose-500",
     href: "/launchpad/drop",
-  },
-  {
-    icon: Bot,
-    label: "AI Agent Ready",
-    subtitle: "Autonomous IP participation",
-    accent: "from-pink-500 to-fuchsia-600",
-    href: "/launchpad",
   },
   {
     icon: BookOpen,
