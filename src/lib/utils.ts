@@ -79,13 +79,14 @@ export function ipfsToHttp(uri: string | null | undefined): string {
     const cid = uri.slice(7); // strips "ipfs://"
     return `/api/ipfs/${cid}`;
   }
-  if (uri.startsWith("https://")) {
-    // Route external HTTPS images through the server-side proxy to avoid:
+  if (uri.startsWith("https://") || uri.startsWith("http://")) {
+    // Route external images through the server-side proxy to avoid:
     //  - CORS blocks on R2 buckets and CDNs without Access-Control-Allow-Origin
     //  - Vercel image optimizer quota (/_next/image 402 on free plan)
     return `/api/img?url=${encodeURIComponent(uri)}`;
   }
-  return uri;
+  // Reject javascript:, data:, blob:, and any other non-allowlisted protocols.
+  return "/placeholder.svg";
 }
 
 export function timeAgo(dateStr: string): string {
