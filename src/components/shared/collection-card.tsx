@@ -7,13 +7,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2, Settings2 } from "lucide-react";
 import { MotionCard } from "@/components/ui/motion-primitives";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
-import { ipfsToHttp } from "@/lib/utils";
+import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import type { ApiCollection } from "@medialane/sdk";
 
-/** Splits "55.00 STRK" → { amount: "55.00", symbol: "STRK" } */
+/**
+ * Formats and splits a floor price string.
+ * "0.00002100 WBTC" → { amount: "0.000021", symbol: "WBTC" }
+ * "0.990000 USDC"   → { amount: "0.99", symbol: "USDC" }
+ * "25.00 STRK"      → { amount: "25", symbol: "STRK" }
+ */
 function parseFloorPrice(floor: string | null): { amount: string; symbol: string } | null {
   if (!floor) return null;
-  const parts = floor.trim().split(/\s+/);
+  const formatted = formatDisplayPrice(floor);
+  const parts = formatted.trim().split(/\s+/);
   if (parts.length < 2) return null;
   const symbol = parts[parts.length - 1];
   const amount = parts.slice(0, -1).join(" ");
