@@ -77,23 +77,48 @@ function HeroSlide({
 // ---- Fallback when no featured collections are available ----
 function HeroPlaceholder() {
   return (
-    <div className="absolute inset-0 bg-gradient-to-br from-brand-purple/30 via-brand-blue/20 to-brand-navy/50 flex flex-col items-center justify-center gap-4 text-center px-6 overflow-hidden">
-      <div className="absolute aurora-purple w-[600px] h-[600px] opacity-20 -top-24 -left-24" />
-      <div className="absolute aurora-blue w-[400px] h-[400px] opacity-15 -bottom-16 -right-16" />
-      <h2 className="text-4xl sm:text-6xl font-black gradient-text relative z-10">Medialane</h2>
-      <p className="text-muted-foreground text-lg relative z-10 max-w-md">
-        New monetization revenues for creative works
-      </p>
+    <div className="absolute inset-0 overflow-hidden flex flex-col items-center justify-center gap-6 text-center px-6"
+      style={{ background: "linear-gradient(135deg, hsl(var(--brand-purple) / 0.25) 0%, hsl(var(--brand-blue) / 0.15) 50%, hsl(var(--brand-navy) / 0.40) 100%)" }}
+    >
+      {/* Aurora blobs */}
+      <div className="absolute aurora-purple w-[700px] h-[700px] opacity-25 -top-32 -left-32 pointer-events-none" />
+      <div className="absolute aurora-blue w-[500px] h-[500px] opacity-20 -bottom-20 -right-20 pointer-events-none" />
+      {/* Subtle grid overlay */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(hsl(var(--foreground) / 0.04) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground) / 0.04) 1px, transparent 1px)",
+          backgroundSize: "40px 40px",
+        }}
+      />
+
+      {/* Content */}
+      <div className="relative z-10 space-y-4">
+        <p className="text-xs font-bold uppercase tracking-[0.25em] text-white/50">
+          IP Marketplace on Starknet
+        </p>
+        <h2 className="text-5xl sm:text-7xl font-black leading-none gradient-text">
+          Mint. License.<br />Trade IP.
+        </h2>
+        <p className="text-white/60 text-base sm:text-lg max-w-sm mx-auto leading-relaxed">
+          Tokenize your creative work, set licensing terms on-chain, and earn from every trade.
+        </p>
+      </div>
+
       <div className="flex gap-3 relative z-10">
-        <Button asChild>
-          <Link href="/marketplace">Markets</Link>
+        <Button
+          asChild
+          className="bg-white text-black hover:bg-white/90 font-semibold h-11 px-6"
+        >
+          <Link href="/launchpad">Start creating</Link>
         </Button>
         <Button
           asChild
           variant="outline"
-          className="bg-background/20 backdrop-blur-sm border-white/20 text-white hover:bg-white/10"
+          className="bg-black/20 backdrop-blur-sm border-white/20 text-white hover:bg-white/10 font-semibold h-11 px-6"
         >
-          <Link href="/create/asset">Create</Link>
+          <Link href="/marketplace">Browse market</Link>
         </Button>
       </div>
     </div>
