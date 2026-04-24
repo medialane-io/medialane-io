@@ -12,7 +12,7 @@ export function NewOnMarketplace() {
   const { orders, isLoading } = useOrders({ status: "ACTIVE", limit: 10, page: 1 });
   const [buyOrder, setBuyOrder] = useState<ApiOrder | null>(null);
 
-  const listings = orders.filter((o) => o.offer.itemType === "ERC721").slice(0, 10);
+  const listings = orders.filter((o) => o.offer.itemType === "ERC721" || o.offer.itemType === "ERC1155").slice(0, 10);
 
   return (
     <>
