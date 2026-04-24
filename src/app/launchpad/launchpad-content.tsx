@@ -42,29 +42,24 @@ function HeroStats({ address }: { address: string }) {
   );
 }
 
-// ── Portrait gradients per service key ──────────────────────────────────────
-const SERVICE_GRADIENTS: Record<string, string> = {
-  "mint-ip-asset":      "from-blue-500 to-cyan-500",
-  "create-collection":  "from-violet-500 to-purple-600",
-  "ip-collection-1155": "from-violet-600 to-fuchsia-600",
-  "mint-editions":      "from-fuchsia-500 to-violet-600",
-  "remix-asset":        "from-rose-500 to-pink-600",
-  "pop-protocol":       "from-emerald-400 to-teal-500",
-  "collection-drop":    "from-orange-400 to-rose-500",
-  "ip-tickets":         "from-teal-500 to-cyan-600",
-  "membership":         "from-indigo-500 to-violet-600",
-  "subscriptions":      "from-sky-500 to-blue-600",
-  "ip-coins":           "from-amber-500 to-yellow-500",
-  "creator-coins":      "from-pink-500 to-rose-600",
+// ── Brand color map per service key ─────────────────────────────────────────
+const SERVICE_COLORS: Record<string, { icon: string; button: string }> = {
+  "mint-ip-asset":      { icon: BRAND.blue.text,   button: "bg-brand-blue"   },
+  "create-collection":  { icon: BRAND.purple.text, button: "bg-brand-purple" },
+  "ip-collection-1155": { icon: BRAND.purple.text, button: "bg-brand-purple" },
+  "mint-editions":      { icon: BRAND.purple.text, button: "bg-brand-purple" },
+  "remix-asset":        { icon: BRAND.rose.text,   button: "bg-brand-rose"   },
+  "pop-protocol":       { icon: BRAND.orange.text, button: "bg-brand-orange" },
+  "collection-drop":    { icon: BRAND.orange.text, button: "bg-brand-orange" },
+  "ip-tickets":         { icon: BRAND.blue.text,   button: "bg-brand-blue"   },
+  "membership":         { icon: BRAND.purple.text, button: "bg-brand-purple" },
+  "subscriptions":      { icon: BRAND.blue.text,   button: "bg-brand-blue"   },
+  "ip-coins":           { icon: BRAND.orange.text, button: "bg-brand-orange" },
+  "creator-coins":      { icon: BRAND.rose.text,   button: "bg-brand-rose"   },
 };
 
-interface ServiceHref {
-  href?: string;
-  buttonLabel?: string;
-  browseHref?: string;
-}
-
-const IO_HREFS: Record<string, ServiceHref> = {
+// ── App-specific hrefs per service key ──────────────────────────────────────
+const IO_HREFS: Record<string, { href?: string; buttonLabel?: string; browseHref?: string }> = {
   "mint-ip-asset":      { href: "/create/asset",            buttonLabel: "Mint asset"        },
   "create-collection":  { href: "/create/collection",       buttonLabel: "Create collection" },
   "remix-asset":        { href: "/marketplace",             buttonLabel: "Browse to remix"   },
@@ -74,79 +69,127 @@ const IO_HREFS: Record<string, ServiceHref> = {
   "mint-editions":      { href: "/launchpad/ip1155",        buttonLabel: "Mint editions"     },
 };
 
-// ── Portrait service card ────────────────────────────────────────────────────
-function PortraitServiceCard({ def, href, buttonLabel }: { def: ServiceDefinition; href?: string; buttonLabel?: string }) {
-  const { key, title, subtitle, icon: Icon, status, badge } = def;
-  const gradient = SERVICE_GRADIENTS[key] ?? "from-slate-500 to-slate-600";
+// ── Service card ─────────────────────────────────────────────────────────────
+function ServiceCard({
+  def,
+  href,
+  buttonLabel,
+  browseHref,
+}: {
+  def: ServiceDefinition;
+  href?: string;
+  buttonLabel?: string;
+  browseHref?: string;
+}) {
+  const { key, title, subtitle, description, features, icon: Icon, badge, status, browseLinkLabel } = def;
   const live = status === "live";
   const building = status === "building";
+  const active = live || building;
+  const colors = SERVICE_COLORS[key] ?? { icon: BRAND.blue.text, button: "bg-brand-blue" };
 
-  const inner = (
+  return (
     <div
       className={cn(
-        "relative rounded-2xl overflow-hidden aspect-[3/4] bg-gradient-to-br transition-all duration-300",
-        gradient,
-        live && "group-hover:-translate-y-0.5 group-hover:shadow-lg group-hover:shadow-black/20",
-        building && "opacity-65",
-        status === "soon" && "opacity-50",
+        "rounded-2xl border border-border/40 bg-card flex flex-col overflow-hidden",
+        "transition-all duration-200",
+        live && "hover:-translate-y-0.5 hover:border-border/70 hover:shadow-md hover:shadow-black/20",
+        !active && "opacity-60",
       )}
     >
-      {/* Radial highlight */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_25%,rgba(255,255,255,0.14),transparent_60%)]" />
+      <div className="flex flex-col flex-1 p-6 gap-5">
 
-      {/* Large ghost icon */}
-      <div className="absolute -bottom-6 -right-6 opacity-[0.12] pointer-events-none">
-        <Icon className="h-36 w-36 text-white" />
-      </div>
-
-      <div className="absolute inset-0 flex flex-col justify-between p-4">
-        {/* Top row: icon widget + status badge */}
-        <div className="flex items-start justify-between gap-2">
-          <div className="h-11 w-11 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center ring-1 ring-white/20 shrink-0 transition-colors duration-300 group-hover:bg-white/[0.18]">
-            <Icon className="h-5 w-5 text-white" />
-          </div>
+        {/* Icon + status badge */}
+        <div className="flex items-start justify-between">
+          <Icon
+            className={cn(
+              "h-9 w-9 transition-transform duration-300",
+              active ? colors.icon : "text-muted-foreground/25",
+              live && "group-hover:scale-110",
+            )}
+          />
           <span
             className={cn(
-              "text-[9px] font-bold tracking-widest uppercase rounded-full px-2 py-1 flex items-center gap-1 mt-0.5",
-              live    ? "bg-emerald-500/25 text-emerald-200" :
-              building ? "bg-amber-500/25 text-amber-200"   :
-                         "bg-white/10 text-white/40"
+              "text-[10px] font-semibold tracking-widest uppercase rounded-full px-2.5 py-1 flex items-center gap-1.5",
+              live
+                ? "text-emerald-500 bg-emerald-500/10"
+                : building
+                  ? "text-amber-500 bg-amber-500/10"
+                  : "text-muted-foreground/40 bg-muted/30",
             )}
           >
-            {live && <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />}
-            {!live && !building && <Lock className="h-2.5 w-2.5 shrink-0" />}
+            {live && <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />}
+            {!active && <Lock className="h-2.5 w-2.5" />}
             {badge}
           </span>
         </div>
 
-        {/* Bottom: title + subtitle + cta hint */}
-        <div className="space-y-1">
-          <p className="text-base font-black text-white leading-tight tracking-tight">{title}</p>
-          <p className="text-xs text-white/65 leading-relaxed">{subtitle}</p>
-          {live && (
-            <div className="flex items-center gap-1 text-white/80 text-xs font-semibold pt-1">
-              {buttonLabel ?? "Get started"} <ArrowRight className="h-3 w-3" />
-            </div>
-          )}
-          {building && (
-            <p className="text-[11px] text-white/40 font-medium pt-1">In development</p>
-          )}
-          {status === "soon" && (
-            <p className="text-[11px] text-white/40 font-medium pt-1">Coming soon</p>
-          )}
+        {/* Title + subtitle */}
+        <div className="space-y-1.5">
+          <p className={cn("text-xl font-bold leading-snug tracking-tight", !active && "text-foreground/40")}>
+            {title}
+          </p>
+          <p className={cn("text-xs leading-relaxed", active ? "text-muted-foreground" : "text-muted-foreground/30")}>
+            {subtitle}
+          </p>
         </div>
+
+        {/* Description */}
+        <p className={cn("text-sm leading-relaxed flex-1", active ? "text-muted-foreground" : "text-muted-foreground/30")}>
+          {description}
+        </p>
+
+        {/* Feature chips */}
+        <div className="flex flex-wrap gap-1.5">
+          {features.map((f) => (
+            <span
+              key={f}
+              className={cn(
+                "text-[11px] px-2.5 py-1 rounded-full border font-medium",
+                active
+                  ? "bg-muted/30 border-border/50 text-muted-foreground"
+                  : "bg-muted/10 border-border/15 text-muted-foreground/25",
+              )}
+            >
+              {f}
+            </span>
+          ))}
+        </div>
+
+        {/* CTA */}
+        {live && href ? (
+          <div className="space-y-2">
+            <Link
+              href={href}
+              className={cn(
+                "flex items-center justify-between w-full h-10 px-4 rounded-xl",
+                "text-sm font-semibold text-white",
+                "transition-all hover:brightness-110 active:scale-[0.98]",
+                colors.button,
+              )}
+            >
+              {buttonLabel ?? "Get started"}
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+            {browseHref && browseLinkLabel && (
+              <Link
+                href={browseHref}
+                className="flex items-center justify-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors py-1"
+              >
+                {browseLinkLabel}
+                <ArrowRight className="h-3 w-3" />
+              </Link>
+            )}
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 h-10 text-sm text-muted-foreground/30 font-medium">
+            <Lock className="h-3.5 w-3.5" />
+            {building ? "In development" : "Coming soon"}
+          </div>
+        )}
+
       </div>
     </div>
   );
-
-  if (live && href) {
-    return (
-      <Link href={href} className="group block">
-        {inner}
-      </Link>
-    );
-  }
-  return <div className="group">{inner}</div>;
 }
 
 // ── Page ────────────────────────────────────────────────────────────────────
@@ -190,16 +233,17 @@ export function LaunchpadContent() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
         >
           {LAUNCHPAD_SERVICE_DEFINITIONS.map((def) => {
-            const { href, buttonLabel } = IO_HREFS[def.key] ?? {};
+            const { href, buttonLabel, browseHref } = IO_HREFS[def.key] ?? {};
             return (
-              <PortraitServiceCard
+              <ServiceCard
                 key={def.key}
                 def={def}
                 href={href}
                 buttonLabel={buttonLabel}
+                browseHref={browseHref}
               />
             );
           })}
@@ -231,7 +275,7 @@ export function LaunchpadContent() {
                   href="/create/collection"
                   className={cn(
                     "h-9 px-4 rounded-xl flex items-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98]",
-                    BRAND.purple.bgSolid
+                    BRAND.purple.bgSolid,
                   )}
                 >
                   Create a collection
