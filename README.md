@@ -38,12 +38,18 @@ Medialane is a platform for the **creative economy on Starknet**. It bridges Web
 - Direct Pinata upload — metadata stored on IPFS, not on centralized servers
 - Create and deploy ERC-721 collections on Starknet (gasless)
 - Collection metadata JSON uploaded to IPFS at creation time — `baseUri` set onchain so any dApp can resolve collection images permissionlessly
+- **NFT Editions** (`/launchpad/nfteditions`) — mint multi-edition ERC-1155 tokens into your IP Collection 1155 contracts; each edition has its own artwork, supply, and on-chain provenance
 
 ### NFT Marketplace
 - Browse, search, and filter all Medialane IP assets
 - Buy NFTs directly or make offers with USDC, USDT, ETH, STRK, or WBTC
 - **Cart dialog** — centered modal with blurred atmospheric backdrop, item thumbnails, individual Buy buttons, and "Buy all N items" batch checkout with a single PIN
 - Accept, cancel, and manage listings and offers from the portfolio
+- **Service-specific asset pages** — each asset type gets a tailored experience:
+  - **POP Protocol** — soulbound credential view, claim-only, no secondary market
+  - **Collection Drop** — drop context panel (supply progress bar, mint window, price), secondary market
+  - **NFT Edition (ERC-1155)** — multi-edition stats (total minted, unique owners), holders grid, full marketplace
+  - **Standard (ERC-721)** — full IP detail with license, remix, and marketplace tabs
 - Asset pages with Details, License, Listings, Offers, and History tabs
 - Dynamic color theming derived from the asset image (CSS custom properties, WCAG contrast-checked)
 - Atmospheric blurred background on asset pages and all action dialogs for immersive browsing
@@ -246,7 +252,7 @@ bun lint         # ESLint
 src/
   app/
     api/pinata/       # Universal IP asset upload (Clerk-gated, direct Pinata)
-    asset/            # /asset/[contract]/[tokenId] — asset detail page + License tab
+    asset/            # /asset/[contract]/[tokenId] — dispatcher routes to POP/Drop/Edition/Standard page
     create/           # /create/asset + /create/collection + /create/remix/[contract]/[tokenId]
     marketplace/      # /marketplace — browse + filter + search
     portfolio/        # /portfolio — owned tokens, listings, offers, activity, remix-offers

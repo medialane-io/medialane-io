@@ -224,6 +224,10 @@ All previously noted bugs were fixed. No outstanding known bugs.
 - [x] Collection page: ownership detection per token — owners see List/Cancel/Transfer dialogs directly from the Items grid ✓ 2026-04-06
 - [x] Creator page carousel: w-64 cards (~4.5 visible), CollectionCard (aspect-[3/4]) as cover instead of custom square ✓ 2026-04-06
 - [x] IpTypeBadge component on token cards — top-left overlay from token.metadata.ipType ✓ 2026-04-06
+- [x] Service-specific asset pages: dispatcher (`asset-page-client.tsx`) routes by `collection.source` + `collection.standard` → POP Protocol (soulbound/claim-only), Collection Drop (drop panel + secondary market), NFT Edition ERC-1155 (multi-edition stats + holders grid), Standard ERC-721 (full IP + remix) ✓ 2026-04-24
+- [x] Launchpad service cards redesigned: flat dark `bg-card border border-border/40`, brand-colored icons (`BRAND.*`), solid brand-color CTA buttons, 1-col mobile / 2-col tablet / 3-col desktop grid — same aesthetic carried into homepage Creator Launchpad strip ✓ 2026-04-24
+- [x] `/launchpad/ip1155` renamed to `/launchpad/nfteditions` — git mv with history preserved ✓ 2026-04-24
+- [x] `useOrderActions` hook + `CancelListingDialog` component — cancel/accept state machine extracted from all three asset page variants (standard, drop, edition); edition page passes `tokenStandard: "ERC1155"` ✓ 2026-04-24
 
 ---
 
@@ -281,6 +285,13 @@ layout.tsx (server)
 | `src/hooks/use-gated-content.ts` | `useGatedContent(contract?)` — discriminated union state hook for holder-only content (`not_signed_in \| loading \| not_holder \| unlocked \| error`) |
 | `src/components/asset/comments-section.tsx` | Messenger-style chat bubble panel (480px fixed height). Own comments right-aligned, others left with gradient avatar. Per-comment Voyager link. Enhanced compose bar with "Post on-chain" CTA. |
 | `src/app/api/reports/route.ts` | Reports proxy to backend — handles `COMMENT` type, builds `COMMENT::<commentId>` targetKey |
+| `src/app/asset/[contract]/[tokenId]/asset-page-client.tsx` | Dispatcher: `detectAssetType(source, standard)` → routes to pop/drop/edition/standard |
+| `src/app/asset/[contract]/[tokenId]/asset-page-pop.tsx` | POP Protocol view — soulbound credential, emerald theme, claim-only |
+| `src/app/asset/[contract]/[tokenId]/asset-page-drop.tsx` | Collection Drop view — drop info panel (supply, window, price), secondary market |
+| `src/app/asset/[contract]/[tokenId]/asset-page-edition.tsx` | NFT Edition ERC-1155 view — edition stats, holders grid, full marketplace |
+| `src/app/asset/[contract]/[tokenId]/asset-page-standard.tsx` | Standard ERC-721 view — IP + license + remix + marketplace tabs |
+| `src/app/asset/[contract]/[tokenId]/use-order-actions.ts` | Shared cancel/accept order state machine; optional `tokenStandard` param for ERC-1155 |
+| `src/app/asset/[contract]/[tokenId]/cancel-listing-dialog.tsx` | Shared cancel status dialog (processing/success/error) |
 | `src/hooks/use-session-key.ts` | Wallet derivation + SNIP-9 session key |
 | `src/hooks/use-marketplace.ts` | All marketplace write operations |
 | `src/hooks/use-chipi-transaction.ts` | ChipiPay tx execution + status |
