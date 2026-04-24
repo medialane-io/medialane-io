@@ -5,10 +5,20 @@ import Link from "next/link";
 import Image from "next/image";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2, Settings2 } from "lucide-react";
-import { HelpIcon } from "@/components/ui/help-icon";
 import { MotionCard } from "@/components/ui/motion-primitives";
-import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
+import { CurrencyIcon } from "@/components/shared/currency-icon";
+import { ipfsToHttp } from "@/lib/utils";
 import type { ApiCollection } from "@medialane/sdk";
+
+/** Splits "55.00 STRK" → { amount: "55.00", symbol: "STRK" } */
+function parseFloorPrice(floor: string | null): { amount: string; symbol: string } | null {
+  if (!floor) return null;
+  const parts = floor.trim().split(/\s+/);
+  if (parts.length < 2) return null;
+  const symbol = parts[parts.length - 1];
+  const amount = parts.slice(0, -1).join(" ");
+  return { amount, symbol };
+}
 
 interface CollectionCardProps {
   collection: ApiCollection;
@@ -21,11 +31,10 @@ export function CollectionCard({ collection, settingsHref }: CollectionCardProps
   const imageUrl = collection.image ? ipfsToHttp(collection.image) : null;
   const showImage = imageUrl && !imgError;
   const initial = (collection.name ?? collection.contractAddress).charAt(0).toUpperCase();
-  const hasFloor = !!collection.floorPrice;
+  const floor = parseFloorPrice(collection.floorPrice);
 
   return (
     <MotionCard className="card-base group">
-      {/* Settings gear — absolute top-right, only in portfolio */}
       {settingsHref && (
         <Link
           href={settingsHref}
@@ -36,8 +45,9 @@ export function CollectionCard({ collection, settingsHref }: CollectionCardProps
           <Settings2 className="h-3.5 w-3.5" />
         </Link>
       )}
+
       <Link href={`/collections/${collection.contractAddress}`} className="block relative h-full">
-        {/* Image area */}
+        {/* Image */}
         <div className="relative aspect-[3/4] w-full overflow-hidden bg-muted">
           {showImage ? (
             <Image
@@ -56,9 +66,9 @@ export function CollectionCard({ collection, settingsHref }: CollectionCardProps
             </div>
           )}
 
-          {/* Floating badges — no bar, each element gets its own blur */}
-          <div className="absolute bottom-0 left-0 right-0 px-2.5 pb-2.5 flex flex-col gap-1.5 items-start">
-            {/* Name badge */}
+          {/* Bottom overlay */}
+          <div className="absolute bottom-0 left-0 right-0 px-3 pb-3 flex flex-col gap-1.5 items-start">
+            {/* Name */}
             {!collection.name && collection.metadataStatus === "PENDING" ? (
               <span className="flex items-center gap-1 text-[10px] text-white/60 backdrop-blur-md bg-black/30 rounded-full px-2 py-0.5">
                 <Loader2 className="h-2.5 w-2.5 animate-spin" />
@@ -73,17 +83,18 @@ export function CollectionCard({ collection, settingsHref }: CollectionCardProps
               </p>
             )}
 
-            {/* Stats badges */}
+            {/* Stats row */}
             <div className="flex items-center gap-1.5 flex-wrap">
               {collection.totalSupply != null && (
                 <span className="text-[10px] font-medium text-white/80 backdrop-blur-md bg-black/30 rounded-full px-2 py-0.5">
                   {collection.totalSupply.toLocaleString()} items
                 </span>
               )}
-              {hasFloor && (
-                <span className="flex items-center gap-1 text-[10px] font-bold text-white/90 backdrop-blur-md bg-black/30 rounded-full px-2 py-0.5">
-                  Floor {formatDisplayPrice(collection.floorPrice)}
-                  <HelpIcon content="Lowest active listing price in this collection" side="top" />
+              {floor && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-white/90 backdrop-blur-md bg-black/30 rounded-full px-2 py-0.5">
+                  Floor
+                  <CurrencyIcon symbol={floor.symbol} size={10} />
+                  {floor.amount}
                 </span>
               )}
             </div>
