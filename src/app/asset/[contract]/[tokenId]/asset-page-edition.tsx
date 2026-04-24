@@ -56,7 +56,8 @@ import { useComments } from "@/hooks/use-comments";
 import { EXPLORER_URL } from "@/lib/constants";
 import { useAuth, SignInButton } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
-import { useMarketplace } from "@/hooks/use-marketplace";
+import { useOrderActions } from "./use-order-actions";
+import { CancelListingDialog } from "./cancel-listing-dialog";
 import { useCart } from "@/hooks/use-cart";
 import { toast } from "sonner";
 import { useDominantColor } from "@/hooks/use-dominant-color";
@@ -73,7 +74,14 @@ export function AssetPageEdition() {
   const { token } = useToken(contract, tokenId);
   const { listings, mutate: mutateListings } = useTokenListings(contract, tokenId);
   const { history } = useTokenHistory(contract, tokenId);
-  const { cancelOrder, fulfillOrder, isProcessing } = useMarketplace();
+  const {
+    isProcessing,
+    orderToCancel, cancelPinOpen, cancelStep, cancelError,
+    orderToAccept, acceptPinOpen,
+    handleCancelClick, handleCancelPin,
+    handleAcceptClick, handleAcceptPin,
+    dismissCancelPin, dismissAcceptPin, resetCancelStep,
+  } = useOrderActions({ mutateListings, tokenStandard: "ERC1155" });
   const { addItem, items: cartItems, setIsOpen: setCartOpen } = useCart();
   const shouldReduce = useReducedMotion();
 
@@ -84,12 +92,6 @@ export function AssetPageEdition() {
   const [purchaseOrder, setPurchaseOrder] = useState<ApiOrder | null>(null);
   const [listOpen, setListOpen] = useState(false);
   const [offerOpen, setOfferOpen] = useState(false);
-  const [orderToCancel, setOrderToCancel] = useState<ApiOrder | null>(null);
-  const [cancelPinOpen, setCancelPinOpen] = useState(false);
-  const [cancelStep, setCancelStep] = useState<"idle" | "processing" | "success" | "error">("idle");
-  const [cancelError, setCancelError] = useState<string | null>(null);
-  const [orderToAccept, setOrderToAccept] = useState<ApiOrder | null>(null);
-  const [acceptPinOpen, setAcceptPinOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [commentOpen, setCommentOpen] = useState(false);
@@ -138,39 +140,6 @@ export function AssetPageEdition() {
     toast.success("Added to cart", {
       action: { label: "View cart", onClick: () => setCartOpen(true) },
     });
-  };
-
-  const handleCancelClick = (order: ApiOrder) => {
-    setOrderToCancel(order);
-    setCancelPinOpen(true);
-  };
-
-  const handleCancelPin = async (pin: string) => {
-    setCancelPinOpen(false);
-    if (!orderToCancel) return;
-    setCancelStep("processing");
-    setCancelError(null);
-    try {
-      await cancelOrder({ orderHash: orderToCancel.orderHash, pin, tokenStandard: "ERC1155" });
-      setCancelStep("success");
-      mutateListings();
-    } catch (err: unknown) {
-      setCancelStep("error");
-      setCancelError(err instanceof Error ? err.message : "Cancellation failed");
-    }
-  };
-
-  const handleAcceptClick = (order: ApiOrder) => {
-    setOrderToAccept(order);
-    setAcceptPinOpen(true);
-  };
-
-  const handleAcceptPin = async (pin: string) => {
-    setAcceptPinOpen(false);
-    if (!orderToAccept) return;
-    await fulfillOrder({ orderHash: orderToAccept.orderHash, pin, tokenStandard: "ERC1155" });
-    setOrderToAccept(null);
-    mutateListings();
   };
 
   if (!token) return null;
@@ -765,7 +734,7 @@ export function AssetPageEdition() {
       <PinDialog
         open={cancelPinOpen}
         onSubmit={handleCancelPin}
-        onCancel={() => { setCancelPinOpen(false); setOrderToCancel(null); }}
+        onCancel={dismissCancelPin}
         title="Cancel listing"
         description={`Enter your PIN to cancel the listing for ${name}.`}
       />
@@ -773,49 +742,14 @@ export function AssetPageEdition() {
       <PinDialog
         open={acceptPinOpen}
         onSubmit={handleAcceptPin}
-        onCancel={() => { setAcceptPinOpen(false); setOrderToAccept(null); }}
+        onCancel={dismissAcceptPin}
         title="Accept offer"
         description={orderToAccept
           ? `Accept ${formatDisplayPrice(orderToAccept.price.formatted)} ${orderToAccept.price.currency} for ${name}?`
           : "Enter your PIN to accept this offer."}
       />
 
-      <Dialog
-        open={cancelStep !== "idle"}
-        onOpenChange={(v) => { if (!v) { setCancelStep("idle"); setCancelError(null); } }}
-      >
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>
-              {cancelStep === "processing" && "Cancelling listing…"}
-              {cancelStep === "success" && "Listing cancelled"}
-              {cancelStep === "error" && "Cancellation failed"}
-            </DialogTitle>
-            {cancelStep === "processing" && (
-              <DialogDescription>
-                Submitting your cancellation to the network. Please wait.
-              </DialogDescription>
-            )}
-          </DialogHeader>
-          <div className="flex flex-col items-center gap-4 py-4">
-            {cancelStep === "processing" && <Loader2 className="h-10 w-10 animate-spin text-primary" />}
-            {cancelStep === "success" && (
-              <>
-                <CheckCircle className="h-10 w-10 text-green-500" />
-                <p className="text-sm text-center text-muted-foreground">Your listing has been cancelled successfully.</p>
-                <Button className="w-full" onClick={() => { setCancelStep("idle"); setCancelError(null); }}>Done</Button>
-              </>
-            )}
-            {cancelStep === "error" && (
-              <>
-                <X className="h-10 w-10 text-destructive" />
-                <p className="text-sm text-center text-muted-foreground">{cancelError ?? "Something went wrong. Please try again."}</p>
-                <Button variant="outline" className="w-full" onClick={() => { setCancelStep("idle"); setCancelError(null); }}>Dismiss</Button>
-              </>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <CancelListingDialog cancelStep={cancelStep} cancelError={cancelError} onReset={resetCancelStep} />
 
       <TransferDialog
         open={transferOpen}

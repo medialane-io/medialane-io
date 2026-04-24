@@ -94,7 +94,7 @@ function CollectionRow({ col }: { col: any }) {
         <div className="flex items-center gap-2">
           <Link
             href={`/launchpad/nfteditions/${col.contractAddress}/mint`}
-            className="flex items-center gap-2 h-9 px-4 rounded-xl text-sm font-semibold text-white bg-fuchsia-600 hover:bg-fuchsia-700 transition-colors"
+            className="flex items-center gap-2 h-9 px-4 rounded-xl text-sm font-semibold text-white bg-brand-purple hover:brightness-110 transition-colors"
           >
             <Sparkles className="h-3.5 w-3.5" />
             Mint editions
@@ -164,7 +164,7 @@ export function IP1155Content() {
             <div className="mt-6 flex items-center gap-3">
               <Link
                 href="/launchpad/nfteditions/create"
-                className="flex items-center gap-2 h-10 px-5 rounded-xl text-sm font-semibold text-white bg-violet-600 hover:bg-violet-700 transition-colors"
+                className="flex items-center gap-2 h-10 px-5 rounded-xl text-sm font-semibold text-white bg-brand-purple hover:brightness-110 transition-colors"
               >
                 <Plus className="h-4 w-4" />
                 New collection
@@ -214,7 +214,7 @@ export function IP1155Content() {
               </div>
               <Link
                 href="/launchpad/nfteditions/create"
-                className="flex items-center gap-2 h-9 px-4 rounded-xl text-sm font-semibold text-white bg-violet-600 hover:bg-violet-700 transition-colors"
+                className="flex items-center gap-2 h-9 px-4 rounded-xl text-sm font-semibold text-white bg-brand-purple hover:brightness-110 transition-colors"
               >
                 <Plus className="h-4 w-4" />
                 Create your first collection
