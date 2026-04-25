@@ -62,6 +62,13 @@ export const BR_NFT_URI =
 export const BR_NFT_IMAGE_URL =
   process.env.NEXT_PUBLIC_BR_NFT_IMAGE_URL || "";
 
+// Global airdrop campaign (/mint)
+export const MINT_NFT_URI =
+  process.env.NEXT_PUBLIC_MINT_NFT_URI || "";
+
+export const MINT_NFT_IMAGE_URL =
+  process.env.NEXT_PUBLIC_MINT_NFT_IMAGE_URL || "";
+
 export const DROP_FACTORY_CONTRACT =
   (process.env.NEXT_PUBLIC_DROP_FACTORY_CONTRACT as `0x${string}`) || ("" as `0x${string}`);
 
