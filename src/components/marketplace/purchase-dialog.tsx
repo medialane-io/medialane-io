@@ -59,7 +59,7 @@ function TokenHero({ order, quantity }: { order: ApiOrder; quantity: number }) {
           <p className="font-bold text-lg leading-tight truncate">{name}</p>
           <div className="flex items-center gap-1 mt-1">
             <Zap className="h-3 w-3 text-emerald-500" />
-            <span className="text-[11px] font-medium text-emerald-500">Gasless · Starknet</span>
+            <span className="text-[11px] font-medium text-emerald-500">Digital Asset Ownership</span>
           </div>
         </div>
         {order.price && (
@@ -336,7 +336,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
   return (
     <>
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="max-w-[calc(100%-6px)] sm:max-w-md p-0 overflow-hidden gap-0 rounded-2xl">
+        <DialogContent className="max-w-[calc(100%-12px)] sm:max-w-md p-0 overflow-hidden gap-0 rounded-2xl">
           <DialogTitle className="sr-only">
             {step === "success" ? "Purchase complete" : step === "processing" ? "Processing purchase" : "Buy now"}
           </DialogTitle>
@@ -498,7 +498,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
                 )}
 
                 <p className="text-[10px] text-center text-muted-foreground">
-                  Atomic transactions onchain. Gas fees are sponsored by Medialane.
+                  All orders are registered onchain with immutable smart contract with atomic transactions. Gas fees are sponsored on us!
                 </p>
               </div>
             </div>
