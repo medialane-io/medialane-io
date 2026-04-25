@@ -90,6 +90,28 @@ NEXT_PUBLIC_GENESIS_NFT_IMAGE_URL=       # optional: direct image URL for card p
 ```
 When `LAUNCH_MINT_CONTRACT` or `GENESIS_NFT_URI` are empty the button renders as "Mint opening soon" (disabled).
 
+## Airdrop Campaigns
+
+### Brazil Campaign (`/br/mint`)
+Portuguese language. Files: `src/app/br/mint/br-mint-content.tsx` + `src/app/br/mint/page.tsx`.
+Storage key: `ml_br_mint_${userId}`. Contract: `BR_MINT_CONTRACT`.
+```
+NEXT_PUBLIC_BR_MINT_CONTRACT=0x...
+NEXT_PUBLIC_BR_NFT_URI=ipfs://...
+NEXT_PUBLIC_BR_NFT_IMAGE_URL=     # optional direct image URL
+```
+
+### Global English Campaign (`/mint`)
+English language, worldwide. Files: `src/app/mint/mint-content.tsx` + `src/app/mint/page.tsx`.
+Storage key: `ml_mint_${userId}`. Contract: `MINT_CONTRACT`.
+```
+NEXT_PUBLIC_MINT_CONTRACT=0x...
+NEXT_PUBLIC_MINT_NFT_URI=ipfs://...
+NEXT_PUBLIC_MINT_NFT_IMAGE_URL=   # optional direct image URL
+```
+Mint flow: Sign in (Clerk) → create wallet if needed (inline WalletSetup) → PIN dialog → `executeTransaction` with `mint_item(recipient, ByteArray(tokenURI))` → success state.
+When `MINT_CONTRACT` or `MINT_NFT_URI` are empty the CTA button is disabled.
+
 ## Key File Locations
 
 - Contract addresses & RPC URL: `src/lib/constants.ts`
