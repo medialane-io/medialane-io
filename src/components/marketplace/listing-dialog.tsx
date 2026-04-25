@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
   CheckCircle2, AlertCircle, Tag, ExternalLink, Loader2,
-  LogIn, ArrowLeft, Sparkles, Layers, Zap, Info,
+  LogIn, ArrowLeft, Sparkles, Layers, Zap, Info, ShieldCheck,
 } from "lucide-react";
 import { fireConfetti } from "@/lib/confetti";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -17,7 +17,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { PinInput, validatePin } from "@/components/ui/pin-input";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { useAuth, SignInButton } from "@clerk/nextjs";
@@ -75,8 +74,6 @@ function ListingHero({
           <Tag className="h-12 w-12 text-brand-blue/30" />
         </div>
       )}
-      {/* Fade into dialog bg */}
-      <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent" />
       {/* Badges */}
       {is1155 && (
         <span className="absolute top-3 left-3 inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-violet-500/40 bg-violet-500/20 text-violet-300 backdrop-blur-sm">
@@ -376,14 +373,16 @@ export function ListingDialog({
                   >
                     <ArrowLeft className="h-4 w-4" /> Back
                   </Button>
-                  <Button
-                    className="flex-1 h-11 bg-brand-blue hover:brightness-110 text-white"
-                    disabled={pin.length < 6}
-                    onClick={handlePin}
-                  >
-                    <Tag className="h-4 w-4 mr-2" />
-                    List for sale
-                  </Button>
+                  <div className={`btn-border-animated p-[1px] rounded-xl flex-1 ${pin.length < 6 ? "opacity-50 pointer-events-none" : ""}`}>
+                    <button
+                      className="w-full h-11 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-background/30"
+                      disabled={pin.length < 6}
+                      onClick={handlePin}
+                    >
+                      <Tag className="h-4 w-4" />
+                      List for sale
+                    </button>
+                  </div>
                 </div>
                 {passkeySupported && (
                   <Button
@@ -397,9 +396,12 @@ export function ListingDialog({
                       : "Use passkey instead"}
                   </Button>
                 )}
-                <p className="text-[10px] text-center text-muted-foreground">
-                  Transaction gas fees are sponsored by Medialane.
-                </p>
+                <div className="flex items-start justify-center gap-1.5">
+                  <ShieldCheck className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
+                  <p className="text-[10px] text-center text-muted-foreground">
+                    Listings are registered &amp; protected onchain via our permissionless protocol. Gas fees are sponsored by Medialane.
+                  </p>
+                </div>
               </div>
             </>
 
@@ -413,9 +415,6 @@ export function ListingDialog({
               <div className="flex items-center justify-between px-6 pt-3 pb-1">
                 <div className="min-w-0">
                   <p className="font-bold text-base leading-tight truncate">{name}</p>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <Badge variant="outline" className="font-mono text-[10px] px-1.5 py-0">#{tokenId}</Badge>
-                  </div>
                 </div>
               </div>
 
@@ -542,13 +541,22 @@ export function ListingDialog({
                     )}
 
                     <div className="pt-1 space-y-2">
-                      <Button type="submit" className="w-full h-11 bg-brand-blue hover:brightness-110 text-white" disabled={isProcessing || !standardResolved}>
-                        <Tag className="h-4 w-4 mr-2" />
-                        {hasWallet ? "List for sale" : "Secure account & list"}
-                      </Button>
-                      <p className="text-[10px] text-center text-muted-foreground">
-                        Transaction gas fees are sponsored by Medialane.
-                      </p>
+                      <div className={`btn-border-animated p-[1px] rounded-xl ${(isProcessing || !standardResolved) ? "opacity-50 pointer-events-none" : ""}`}>
+                        <button
+                          type="submit"
+                          className="w-full h-11 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-background/30"
+                          disabled={isProcessing || !standardResolved}
+                        >
+                          <Tag className="h-4 w-4" />
+                          {hasWallet ? "List for sale" : "Secure account & list"}
+                        </button>
+                      </div>
+                      <div className="flex items-start justify-center gap-1.5 pt-0.5">
+                        <ShieldCheck className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
+                        <p className="text-[10px] text-center text-muted-foreground">
+                          Listings are registered &amp; protected onchain via our permissionless protocol. Gas fees are sponsored by Medialane.
+                        </p>
+                      </div>
                     </div>
 
                   </form>
