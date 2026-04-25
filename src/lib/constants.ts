@@ -2,6 +2,7 @@ import {
   MARKETPLACE_CONTRACT_MAINNET,
   MARKETPLACE_1155_CONTRACT_MAINNET,
   COLLECTION_CONTRACT_MAINNET,
+  NFTCOMMENTS_CONTRACT_MAINNET,
   SUPPORTED_TOKENS,
 } from "@medialane/sdk";
 
@@ -39,7 +40,8 @@ export const MINT_CONTRACT =
   (process.env.NEXT_PUBLIC_MINT_CONTRACT as `0x${string}`) || ("" as `0x${string}`);
 
 export const COMMENTS_CONTRACT =
-  (process.env.NEXT_PUBLIC_COMMENTS_CONTRACT as `0x${string}`) || ("" as `0x${string}`);
+  (process.env.NEXT_PUBLIC_COMMENTS_CONTRACT as `0x${string}`) ||
+  NFTCOMMENTS_CONTRACT_MAINNET;
 
 // Genesis launch mint (alias kept for env compat)
 export const LAUNCH_MINT_CONTRACT =
