@@ -3,7 +3,7 @@
 import { useState } from "react";
 import {
   ShoppingCart, HandCoins, Check, Flag, ArrowUpRight,
-  UserCircle2, Layers, Zap, Minus, Plus,
+  Layers, Zap, Minus, Plus,
 } from "lucide-react";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { PurchaseDialog } from "@/components/marketplace/purchase-dialog";
@@ -13,7 +13,7 @@ import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
 import { toast } from "sonner";
 import {
-  PreviewHero, PreviewFooter, PreviewActionList,
+  PreviewHero, PreviewFooter, PreviewActionList, PreviewMeta, PreviewOwnerRow,
   type AssetPreviewContentProps, type PreviewAction,
 } from "./asset-preview-dialog";
 
@@ -82,15 +82,12 @@ export function AssetPreviewEdition({ token, isOwner, onClose }: AssetPreviewCon
     { icon: <Layers className="h-4 w-4" />, label: "View collection", href: collectionHref, onClick: onClose },
   );
 
-  if (ownerHref) {
-    secondaryActions.push({ icon: <UserCircle2 className="h-4 w-4" />, label: "View owner", href: ownerHref, onClick: onClose });
-  }
-
   secondaryActions.push({
     icon: <Flag className="h-4 w-4" />,
     label: "Report",
     onClick: () => setReportOpen(true),
     className: "text-muted-foreground/60",
+    fullWidth: true,
   });
 
   return (
@@ -125,6 +122,9 @@ export function AssetPreviewEdition({ token, isOwner, onClose }: AssetPreviewCon
           </div>
         )}
       </div>
+
+      <PreviewMeta token={token} />
+      {currentOwner && <PreviewOwnerRow owner={currentOwner} />}
 
       {/* Actions */}
       <div className="px-5 pb-2 pt-3 space-y-3 flex-1 overflow-y-auto">
@@ -174,9 +174,7 @@ export function AssetPreviewEdition({ token, isOwner, onClose }: AssetPreviewCon
           </>
         )}
 
-        <div className="pt-1">
-          <PreviewActionList actions={secondaryActions} />
-        </div>
+        <PreviewActionList actions={secondaryActions} />
       </div>
 
       <PreviewFooter />

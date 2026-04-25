@@ -5,7 +5,7 @@ import { Sparkles, ArrowUpRight, Layers, Flag } from "lucide-react";
 import { ReportDialog } from "@/components/report-dialog";
 import { ipfsToHttp } from "@/lib/utils";
 import {
-  PreviewHero, PreviewFooter, PreviewActionList,
+  PreviewHero, PreviewFooter, PreviewActionList, PreviewMeta,
   type AssetPreviewContentProps, type PreviewAction,
 } from "./asset-preview-dialog";
 
@@ -26,6 +26,7 @@ export function AssetPreviewDrop({ token, onClose }: AssetPreviewContentProps) {
       label: "Report",
       onClick: () => setReportOpen(true),
       className: "text-muted-foreground/60",
+      fullWidth: true,
     },
   ];
 
@@ -51,6 +52,8 @@ export function AssetPreviewDrop({ token, onClose }: AssetPreviewContentProps) {
         )}
       </div>
 
+      <PreviewMeta token={token} />
+
       {/* Join Drop CTA + actions */}
       <div className="px-5 pb-2 pt-3 space-y-2 flex-1 overflow-y-auto">
         <a
@@ -61,9 +64,7 @@ export function AssetPreviewDrop({ token, onClose }: AssetPreviewContentProps) {
           <Sparkles className="h-4 w-4" />
           Join drop
         </a>
-        <div className="pt-1">
-          <PreviewActionList actions={secondaryActions} />
-        </div>
+        <PreviewActionList actions={secondaryActions} />
       </div>
 
       <PreviewFooter />

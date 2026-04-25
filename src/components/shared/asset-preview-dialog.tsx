@@ -1,6 +1,6 @@
 "use client";
 
-import { ShieldCheck, Tag } from "lucide-react";
+import { ShieldCheck, Tag, UserCircle2 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { IpTypeBadge } from "@/components/shared/ip-type-badge";
 import type { ApiToken } from "@medialane/sdk";
@@ -52,6 +52,42 @@ export function PreviewHero({
   );
 }
 
+export function PreviewMeta({ token }: { token: ApiToken }) {
+  const licenseAttr = token.metadata?.attributes?.find((a) => a.trait_type === "License");
+  const shortContract = `${token.contractAddress.slice(0, 8)}…${token.contractAddress.slice(-6)}`;
+  return (
+    <div className="flex flex-wrap items-center gap-1.5 px-5 pt-1 pb-2 shrink-0">
+      <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-muted/60 text-[10px] font-mono text-muted-foreground">
+        #{token.tokenId}
+      </span>
+      <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-muted/60 text-[10px] font-mono text-muted-foreground">
+        {shortContract}
+      </span>
+      {licenseAttr?.value && (
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-brand-blue/10 border border-brand-blue/20 text-[10px] text-brand-blue/80">
+          {String(licenseAttr.value)}
+        </span>
+      )}
+    </div>
+  );
+}
+
+export function PreviewOwnerRow({ owner, label = "Owned by" }: { owner: string; label?: string }) {
+  const short = `${owner.slice(0, 8)}…${owner.slice(-6)}`;
+  return (
+    <a
+      href={`/account/${owner}`}
+      className="flex items-center gap-2 px-5 py-1.5 shrink-0 border-b border-border/30 hover:bg-muted/30 transition-colors group"
+    >
+      <UserCircle2 className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" />
+      <span className="text-[11px] text-muted-foreground">{label}</span>
+      <span className="text-[11px] font-mono text-foreground/60 ml-auto group-hover:text-foreground/90 transition-colors">
+        {short}
+      </span>
+    </a>
+  );
+}
+
 export function PreviewFooter() {
   return (
     <div className="px-5 py-3 border-t border-border/40 shrink-0">
@@ -72,31 +108,33 @@ export interface PreviewAction {
   onClick?: () => void;
   className?: string;
   disabled?: boolean;
+  fullWidth?: boolean;
 }
 
 export function PreviewActionList({ actions }: { actions: PreviewAction[] }) {
   return (
-    <div className="space-y-0.5">
+    <div className="grid grid-cols-2 gap-1">
       {actions.map((action, i) => {
         const cls = [
-          "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
+          "flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors",
           "hover:bg-muted/60 active:bg-muted text-left",
           action.disabled ? "opacity-50 pointer-events-none" : "",
+          action.fullWidth ? "col-span-2" : "",
           action.className ?? "",
-        ].join(" ");
+        ].filter(Boolean).join(" ");
 
         if (action.href) {
           return (
             <a key={i} href={action.href} className={cls} onClick={action.onClick}>
               {action.icon}
-              {action.label}
+              <span className="truncate">{action.label}</span>
             </a>
           );
         }
         return (
           <button key={i} type="button" className={cls} onClick={action.onClick} disabled={action.disabled}>
             {action.icon}
-            {action.label}
+            <span className="truncate">{action.label}</span>
           </button>
         );
       })}

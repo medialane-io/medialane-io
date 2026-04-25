@@ -45,6 +45,10 @@ export function TokenCard({
   const image = ipfsToHttp(token.metadata?.image);
   const activeOrder = token.activeOrders?.[0];
 
+  // Creator wallet from IPFS metadata attributes
+  const creatorAttr = token.metadata?.attributes?.find((a) => a.trait_type === "Creator");
+  const creator = typeof creatorAttr?.value === "string" ? creatorAttr.value : null;
+
   return (
     <>
       <button
@@ -70,12 +74,14 @@ export function TokenCard({
             </div>
           )}
 
+          {/* IP type badge — top left */}
           {token.metadata?.ipType && (
-            <div className="absolute top-2 left-2">
+            <div className="absolute top-2 left-2 z-10">
               <IpTypeBadge ipType={token.metadata.ipType} size="sm" />
             </div>
           )}
 
+          {/* Rarity — top right */}
           {rarityTier && RARITY_STYLE[rarityTier] && (
             <div className="absolute top-2 right-2 z-10">
               <span className={cn(
@@ -87,6 +93,18 @@ export function TokenCard({
             </div>
           )}
 
+          {/* Price chip — bottom right overlay */}
+          {activeOrder && (
+            <div className="absolute bottom-2 right-2 z-10">
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-bold bg-background/90 backdrop-blur-sm border border-border/40 shadow-sm">
+                <CurrencyIcon symbol={activeOrder.price.currency ?? ""} size={10} />
+                {formatDisplayPrice(activeOrder.price.formatted)}
+                <span className="text-muted-foreground font-normal">{activeOrder.price.currency}</span>
+              </span>
+            </div>
+          )}
+
+          {/* Indexing indicator */}
           {(token.metadataStatus === "PENDING" || token.metadataStatus === "FETCHING") && (
             <div className="absolute bottom-0 inset-x-0 flex items-center justify-center gap-1.5 bg-black/50 backdrop-blur-sm py-1.5">
               <Loader2 className="h-3 w-3 animate-spin text-white/70" />
@@ -97,20 +115,17 @@ export function TokenCard({
 
         {/* ── Info ────────────────────────────────────────────────── */}
         <div className="px-3 pt-2.5 pb-3 flex-1">
-          <p className="text-xl font-bold line-clamp-2 leading-tight">{name}</p>
-          {activeOrder && (
-            <p className="flex items-center gap-1 text-[11px] font-semibold text-foreground/80 mt-0.5">
-              <CurrencyIcon symbol={activeOrder.price.currency ?? ""} size={11} />
-              {formatDisplayPrice(activeOrder.price.formatted)}
-              <span className="font-normal text-muted-foreground">{activeOrder.price.currency}</span>
+          <p className="text-base font-bold line-clamp-2 leading-snug">{name}</p>
+          {creator ? (
+            <p className="text-[10px] font-mono text-muted-foreground/60 mt-1 truncate">
+              {creator.slice(0, 8)}…{creator.slice(-6)}
             </p>
-          )}
-          {token.metadata?.description ? (
-            <p className="text-[10px] text-muted-foreground truncate leading-snug mt-0.5">
+          ) : token.metadata?.description ? (
+            <p className="text-[10px] text-muted-foreground truncate leading-snug mt-1">
               {token.metadata.description}
             </p>
           ) : token.metadata?.ipType ? (
-            <p className="text-[10px] text-muted-foreground opacity-70 mt-0.5">
+            <p className="text-[10px] text-muted-foreground/60 mt-1">
               {token.metadata.ipType}
             </p>
           ) : null}
@@ -136,7 +151,7 @@ export function TokenCardSkeleton() {
     <div className="card-base overflow-hidden">
       <Skeleton className="aspect-square w-full rounded-none" />
       <div className="px-3 pt-2.5 pb-3 space-y-1.5">
-        <Skeleton className="h-5 w-3/4" />
+        <Skeleton className="h-4 w-3/4" />
         <Skeleton className="h-2.5 w-2/5" />
       </div>
     </div>

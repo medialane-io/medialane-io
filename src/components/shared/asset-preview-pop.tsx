@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { ShieldCheck, ArrowUpRight, Layers, UserCircle2, Flag, Award } from "lucide-react";
+import { ShieldCheck, ArrowUpRight, Layers, Flag, Award } from "lucide-react";
 import { ReportDialog } from "@/components/report-dialog";
 import { ipfsToHttp } from "@/lib/utils";
 import {
-  PreviewHero, PreviewFooter, PreviewActionList,
+  PreviewHero, PreviewFooter, PreviewActionList, PreviewMeta, PreviewOwnerRow,
   type AssetPreviewContentProps, type PreviewAction,
 } from "./asset-preview-dialog";
 
@@ -23,18 +23,14 @@ export function AssetPreviewPop({ token, onClose }: AssetPreviewContentProps) {
   const secondaryActions: PreviewAction[] = [
     { icon: <ArrowUpRight className="h-4 w-4" />, label: "View details", href: assetHref, onClick: onClose },
     { icon: <Layers className="h-4 w-4" />, label: "View collection", href: collectionHref, onClick: onClose },
+    {
+      icon: <Flag className="h-4 w-4" />,
+      label: "Report",
+      onClick: () => setReportOpen(true),
+      className: "text-muted-foreground/60",
+      fullWidth: true,
+    },
   ];
-
-  if (creatorHref) {
-    secondaryActions.push({ icon: <UserCircle2 className="h-4 w-4" />, label: "View creator", href: creatorHref, onClick: onClose });
-  }
-
-  secondaryActions.push({
-    icon: <Flag className="h-4 w-4" />,
-    label: "Report",
-    onClick: () => setReportOpen(true),
-    className: "text-muted-foreground/60",
-  });
 
   return (
     <>
@@ -60,6 +56,9 @@ export function AssetPreviewPop({ token, onClose }: AssetPreviewContentProps) {
         </div>
       </div>
 
+      <PreviewMeta token={token} />
+      {creatorOwner && <PreviewOwnerRow owner={creatorOwner} label="Creator" />}
+
       {/* Claim CTA + actions */}
       <div className="px-5 pb-2 pt-3 space-y-2 flex-1 overflow-y-auto">
         <a
@@ -70,9 +69,7 @@ export function AssetPreviewPop({ token, onClose }: AssetPreviewContentProps) {
           <ShieldCheck className="h-4 w-4" />
           Claim credential
         </a>
-        <div className="pt-1">
-          <PreviewActionList actions={secondaryActions} />
-        </div>
+        <PreviewActionList actions={secondaryActions} />
       </div>
 
       <PreviewFooter />
