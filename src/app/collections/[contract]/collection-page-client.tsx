@@ -179,6 +179,7 @@ function CollectionItems({ contract, activeListings }: { contract: string; activ
                 <TokenCard
                   key={`${t.contractAddress}-${t.tokenId}`}
                   token={t}
+                  serviceSource={collection?.source}
                   rarityTier={rarityMap.get(t.tokenId)?.tier}
                   isOwner={isOwner}
                   onList={isOwner ? handleList : undefined}

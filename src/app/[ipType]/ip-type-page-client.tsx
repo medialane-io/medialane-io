@@ -10,13 +10,10 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { AnimatePresence, motion } from "framer-motion";
-import { useAuth } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
 import { useTokensByIpType } from "@/hooks/use-tokens-by-ip-type";
 import { IP_TYPE_MAP, IP_TYPE_CONFIG } from "@medialane/ui";
-import { cn, ipfsToHttp } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
-import { OfferDialog } from "@/components/marketplace/offer-dialog";
 import type { ApiToken } from "@medialane/sdk";
 
 const PAGE_SIZE = 24;
@@ -29,13 +26,9 @@ interface IpTypePageClientProps {
 export function IpTypePageClient({ slug }: IpTypePageClientProps) {
   const config = IP_TYPE_MAP[slug];
   const Icon = config?.icon;
-  const { isSignedIn } = useAuth();
-  const router = useRouter();
-
   const [page, setPage] = useState(1);
   const [listedOnly, setListedOnly] = useState(false);
   const [allTokens, setAllTokens] = useState<ApiToken[]>([]);
-  const [offerToken, setOfferToken] = useState<ApiToken | null>(null);
   const prevSlug = useRef(slug);
 
   // Filter + sort state
@@ -335,8 +328,6 @@ export function IpTypePageClient({ slug }: IpTypePageClientProps) {
               <TokenCard
                 key={`${token.contractAddress}:${token.tokenId}`}
                 token={token}
-                onOffer={isSignedIn ? (t) => setOfferToken(t) : undefined}
-                onRemix={isSignedIn ? (t) => router.push(`/create/remix/${t.contractAddress}/${t.tokenId}`) : undefined}
               />
             ))}
           </div>
@@ -363,16 +354,6 @@ export function IpTypePageClient({ slug }: IpTypePageClientProps) {
         </div>
       )}
 
-      {offerToken && (
-        <OfferDialog
-          open={!!offerToken}
-          onOpenChange={(v) => { if (!v) setOfferToken(null); }}
-          assetContract={offerToken.contractAddress}
-          tokenId={offerToken.tokenId}
-          tokenName={offerToken.metadata?.name ?? `#${offerToken.tokenId}`}
-          tokenImage={offerToken.metadata?.image ? ipfsToHttp(offerToken.metadata.image) : undefined}
-        />
-      )}
     </div>
   );
 }

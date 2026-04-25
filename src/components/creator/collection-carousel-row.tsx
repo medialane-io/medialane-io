@@ -96,7 +96,7 @@ export function CollectionCarouselRow({
             ))
           : tokens.map((token) => (
               <div key={`${token.contractAddress}-${token.tokenId}`} className="snap-start shrink-0 w-64">
-                <TokenCard token={token} showBuyButton={false} />
+                <TokenCard token={token} />
               </div>
             ))}
 

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import useSWR from "swr";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useDominantColor } from "@/hooks/use-dominant-color";
 import Link from "next/link";
 import NextImage from "next/image";
@@ -12,7 +12,6 @@ import { useActivitiesByAddress } from "@/hooks/use-activities";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useMarketplace } from "@/hooks/use-marketplace";
-import { OfferDialog } from "@/components/marketplace/offer-dialog";
 import { ListingDialog } from "@/components/marketplace/listing-dialog";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import type { ApiToken } from "@medialane/sdk";
@@ -228,13 +227,11 @@ export default function CreatorPageClient() {
   const { address } = useParams<{ address: string }>();
   const [activeTab, setActiveTab] = useState<TabId>("assets");
   const [reportOpen,    setReportOpen]    = useState(false);
-  const [offerTarget,   setOfferTarget]   = useState<{ contract: string; tokenId: string; name?: string; image?: string } | null>(null);
   const [listTarget,    setListTarget]    = useState<{ contract: string; tokenId: string; name?: string } | null>(null);
   const [cancelToken,   setCancelToken]   = useState<ApiToken | null>(null);
   const [cancelPinOpen, setCancelPinOpen] = useState(false);
 
   const addr = address ?? null;
-  const router = useRouter();
 
   // Ownership detection
   const { walletAddress } = useSessionKey();
@@ -426,13 +423,6 @@ export default function CreatorPageClient() {
                     key={`${t.contractAddress}-${t.tokenId}`}
                     token={t}
                     isOwner={isOwner}
-                    onOffer={!isOwner ? (t: ApiToken) => setOfferTarget({
-                      contract: t.contractAddress,
-                      tokenId: t.tokenId,
-                      name: t.metadata?.name ?? undefined,
-                      image: t.metadata?.image ? ipfsToHttp(t.metadata.image) : undefined,
-                    }) : undefined}
-                    onRemix={!isOwner ? (t: ApiToken) => router.push(`/create/remix/${t.contractAddress}/${t.tokenId}`) : undefined}
                     onList={isOwner ? (t: ApiToken) => setListTarget({
                       contract: t.contractAddress,
                       tokenId: t.tokenId,
@@ -530,16 +520,6 @@ export default function CreatorPageClient() {
       </div>
 
       {/* ── Action dialogs ────────────────────────────────────────────────── */}
-      {offerTarget && (
-        <OfferDialog
-          open={!!offerTarget}
-          onOpenChange={(v) => { if (!v) setOfferTarget(null); }}
-          assetContract={offerTarget.contract}
-          tokenId={offerTarget.tokenId}
-          tokenName={offerTarget.name}
-          tokenImage={offerTarget.image}
-        />
-      )}
       {listTarget && (
         <ListingDialog
           open={!!listTarget}
