@@ -174,7 +174,7 @@ All write ops follow: create intent → sign typed data → submit signature →
 
 ---
 
-## Known Bugs (as of 2026-03-20)
+## Known Bugs (as of 2026-04-25)
 
 All previously noted bugs were fixed. No outstanding known bugs.
 
@@ -250,6 +250,11 @@ All previously noted bugs were fixed. No outstanding known bugs.
 - [x] Launchpad service cards redesigned: flat dark `bg-card border border-border/40`, brand-colored icons (`BRAND.*`), solid brand-color CTA buttons, 1-col mobile / 2-col tablet / 3-col desktop grid — same aesthetic carried into homepage Creator Launchpad strip ✓ 2026-04-24
 - [x] `/launchpad/ip1155` renamed to `/launchpad/nfteditions` — git mv with history preserved ✓ 2026-04-24
 - [x] `useOrderActions` hook + `CancelListingDialog` component — cancel/accept state machine extracted from all three asset page variants (standard, drop, edition); edition page passes `tokenStandard: "ERC1155"` ✓ 2026-04-24
+- [x] SDK v0.8.0: immutable contract redeployments (ERC-721 + ERC-1155 marketplaces, NFTComments); `NFTCOMMENTS_CONTRACT_MAINNET` exported; `INDEXER_START_BLOCK_MAINNET` → 9130000; `COMMENTS_CONTRACT` falls back to SDK constant ✓ 2026-04-25
+- [x] `MedialaneClient` singleton now explicitly passes all three contracts (`marketplaceContract`, `marketplace1155Contract`, `collectionContract`) instead of relying on SDK defaults for ERC-1155 and collection ✓ 2026-04-25
+- [x] Purchase/offer/listing/cancel dialogs: image fade overlay removed (no color wash over creator work); buy-now CTA upgraded to `btn-border-animated` gradient button; mobile 6px margin (`max-w-[calc(100%-12px)]`) + `rounded-2xl` so blurred background peeks through on mobile ✓ 2026-04-25
+- [x] Global English airdrop page `/mint` — port of `/br/mint` in English; uses `MINT_CONTRACT`, `MINT_NFT_URI`, `MINT_NFT_IMAGE_URL`; storage key `ml_mint_${userId}` ✓ 2026-04-25
+- [x] Comments "Post onchain" button: tooltip explains unavailability when `COMMENTS_CONTRACT` is not set, instead of silently staying disabled ✓ 2026-04-25
 
 ---
 
@@ -286,7 +291,7 @@ layout.tsx (server)
 | Path | Purpose |
 |---|---|
 | `src/lib/constants.ts` | All env vars + contract addresses |
-| `src/lib/medialane-client.ts` | SDK singleton (MedialaneClient) |
+| `src/lib/medialane-client.ts` | SDK singleton (MedialaneClient) — explicitly sets `marketplaceContract`, `marketplace1155Contract`, `collectionContract` |
 | `src/lib/utils.ts` | `ipfsToHttp`, `timeUntil`, `formatPrice`, `cn` |
 | `src/types/index.ts` | Local TypeScript types (CartItem, etc.) |
 | `src/types/ip.ts` | IP/licensing constants: `LICENSE_TYPES`, `IP_TYPES`, `GEOGRAPHIC_SCOPES`, `AI_POLICIES`, `DERIVATIVES_OPTIONS`, `LICENSE_TRAIT_TYPES` |
