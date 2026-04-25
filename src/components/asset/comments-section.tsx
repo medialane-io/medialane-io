@@ -17,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { COMMENTS_CONTRACT, EXPLORER_URL } from "@/lib/constants";
 import { MessageCircle, Loader2, Send, CheckCircle, X, ExternalLink, Flag, Zap } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ReportDialog, type ReportTarget } from "@/components/report-dialog";
 import { cn } from "@/lib/utils";
 
@@ -334,19 +335,32 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
                       {byteLen}/{MAX_LEN}
                     </span>
                   )}
-                  <button
-                    onClick={() => setPinOpen(true)}
-                    disabled={!canSubmit || isProcessing}
-                    className="flex items-center gap-1.5 h-7 px-3 text-xs font-semibold rounded-full text-white transition-all hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
-                    style={{ background: "linear-gradient(135deg, hsl(var(--brand-blue)), hsl(var(--brand-purple)))" }}
-                  >
-                    {isProcessing ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : (
-                      <Send className="h-3 w-3" />
-                    )}
-                    Post onchain
-                  </button>
+                  <TooltipProvider delayDuration={300}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className={!canSubmit && !isProcessing ? "cursor-not-allowed" : undefined}>
+                          <button
+                            onClick={() => setPinOpen(true)}
+                            disabled={!canSubmit || isProcessing}
+                            className="flex items-center gap-1.5 h-7 px-3 text-xs font-semibold rounded-full text-white transition-all hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                            style={{ background: "linear-gradient(135deg, hsl(var(--brand-blue)), hsl(var(--brand-purple)))" }}
+                          >
+                            {isProcessing ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <Send className="h-3 w-3" />
+                            )}
+                            Post onchain
+                          </button>
+                        </span>
+                      </TooltipTrigger>
+                      {!COMMENTS_CONTRACT && (
+                        <TooltipContent side="top" className="text-xs max-w-[200px] text-center">
+                          On-chain comments are not available on this network
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               </div>
             </div>
