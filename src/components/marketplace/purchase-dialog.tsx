@@ -44,7 +44,7 @@ function TokenHero({ order, quantity }: { order: ApiOrder; quantity: number }) {
 
   return (
     <div>
-      <div className="relative h-48 w-full bg-muted overflow-hidden">
+      <div className="relative h-52 w-full bg-muted overflow-hidden shrink-0">
         {image ? (
           <img src={image} alt={name} className="h-full w-full object-cover" />
         ) : (
@@ -52,10 +52,9 @@ function TokenHero({ order, quantity }: { order: ApiOrder; quantity: number }) {
             #{order.nftTokenId}
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
       </div>
 
-      <div className="flex items-end justify-between px-6 pt-3 pb-1">
+      <div className="flex items-center justify-between px-5 pt-4 pb-1">
         <div className="min-w-0">
           <p className="font-bold text-lg leading-tight truncate">{name}</p>
           <div className="flex items-center gap-1 mt-1">
@@ -337,7 +336,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
   return (
     <>
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-md p-0 overflow-hidden gap-0">
+        <DialogContent className="max-w-[calc(100%-6px)] sm:max-w-md p-0 overflow-hidden gap-0 rounded-2xl">
           <DialogTitle className="sr-only">
             {step === "success" ? "Purchase complete" : step === "processing" ? "Processing purchase" : "Buy now"}
           </DialogTitle>
@@ -403,14 +402,16 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
                   >
                     <ArrowLeft className="h-4 w-4" /> Back
                   </Button>
-                  <Button
-                    className="flex-1 h-11"
-                    disabled={pin.length < 6}
-                    onClick={handlePin}
-                  >
-                    <ShoppingCart className="h-4 w-4 mr-2" />
-                    Buy now
-                  </Button>
+                  <div className={`btn-border-animated p-[1px] rounded-xl flex-1 ${pin.length < 6 ? "opacity-50 pointer-events-none" : ""}`}>
+                    <button
+                      disabled={pin.length < 6}
+                      onClick={handlePin}
+                      className="w-full h-11 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-background/30"
+                    >
+                      <ShoppingCart className="h-4 w-4" />
+                      Buy now
+                    </button>
+                  </div>
                 </div>
                 {passkeySupported && (
                   <Button
@@ -485,10 +486,15 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
                     Sign in to purchase this asset.
                   </p>
                 ) : (
-                  <Button className="w-full h-12 text-base font-semibold" onClick={handleBuyClick}>
-                    {error ? <RefreshCw className="h-4 w-4 mr-2" /> : <ShoppingCart className="h-4 w-4 mr-2" />}
-                    {error ? "Try again" : hasWallet ? "Buy now" : "Secure account & buy"}
-                  </Button>
+                  <div className="btn-border-animated p-[1px] rounded-xl">
+                    <button
+                      className="w-full h-12 rounded-[11px] flex items-center justify-center gap-2 text-base font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-background/30"
+                      onClick={handleBuyClick}
+                    >
+                      {error ? <RefreshCw className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
+                      {error ? "Try again" : hasWallet ? "Buy now" : "Secure account & buy"}
+                    </button>
+                  </div>
                 )}
 
                 <p className="text-[10px] text-center text-muted-foreground">

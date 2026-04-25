@@ -239,7 +239,7 @@ export function ListingDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-md p-0 overflow-hidden gap-0 flex flex-col max-h-[92svh]">
+        <DialogContent className="max-w-[calc(100%-6px)] sm:max-w-md p-0 overflow-hidden gap-0 rounded-2xl flex flex-col max-h-[92svh]">
 
           {/* ── Success ─────────────────────────────────────────────────── */}
           {isSuccess ? (

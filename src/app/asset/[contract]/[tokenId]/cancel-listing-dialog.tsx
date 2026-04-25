@@ -16,7 +16,7 @@ export function CancelListingDialog({ cancelStep, cancelError, onReset }: Cancel
       open={cancelStep !== "idle"}
       onOpenChange={(v) => { if (!v) onReset(); }}
     >
-      <DialogContent className="sm:max-w-sm">
+      <DialogContent className="max-w-[calc(100%-6px)] sm:max-w-sm rounded-2xl">
         <DialogHeader>
           <DialogTitle>
             {cancelStep === "processing" && "Cancelling listing…"}

@@ -69,7 +69,6 @@ function OfferHero({
           <HandCoins className="h-12 w-12 text-brand-blue/30" />
         </div>
       )}
-      <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent" />
     </div>
   );
 }
@@ -212,7 +211,7 @@ export function OfferDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-md p-0 overflow-hidden gap-0 flex flex-col max-h-[92svh]">
+        <DialogContent className="max-w-[calc(100%-6px)] sm:max-w-md p-0 overflow-hidden gap-0 rounded-2xl flex flex-col max-h-[92svh]">
 
           {/* ── Success ─────────────────────────────────────────────────── */}
           {isSuccess ? (
