@@ -25,6 +25,7 @@ import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { getDefaultClaimWindow, suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
 import { PopCreateForm } from "../pop-create-form";
 import { popCreateSchema, type PopCreateFormValues } from "../pop-create-schema";
+import { LaunchpadSuccessState } from "@/components/launchpad/launchpad-success-state";
 
 export default function CreatePOPPage() {
   const { isSignedIn } = useUser();
@@ -74,6 +75,22 @@ export default function CreatePOPPage() {
       setAutoSymbol(suggestedSymbol);
     }
   }, [autoSymbol, eventName, form]);
+
+  const handleCreateAnother = () => {
+    const defaults = getDefaultClaimWindow();
+    setDone(false);
+    form.reset({
+      name: "",
+      symbol: "",
+      claimEndDate: defaults.claimEndDate,
+      claimEndTime: defaults.claimEndTime,
+    });
+    clearImage();
+    setPendingValues(null);
+    setEventType("Conference");
+    setIsPublic(false);
+    setAutoSymbol("");
+  };
 
   const onSubmit = (values: PopCreateFormValues) => {
     if (!POP_FACTORY_CONTRACT) {
@@ -140,30 +157,18 @@ export default function CreatePOPPage() {
   // ── Success ────────────────────────────────────────────────────────────────
   if (done) {
     return (
-      <div className="container max-w-lg mx-auto px-4 pt-24 pb-8 text-center space-y-6">
-        <div className="flex justify-center">
-          <div className="h-20 w-20 rounded-full bg-green-500/10 flex items-center justify-center">
-            <CheckCircle2 className="h-10 w-10 text-green-500" />
-          </div>
-        </div>
-        <div className="space-y-2">
-          <h1 className="text-2xl font-bold">Event created</h1>
-          <p className="text-muted-foreground">
-            Your POP credential collection is live on Starknet. It will appear in the launchpad within a minute once indexed.
-          </p>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Button asChild variant="outline">
-            <Link href="/launchpad/pop">Back to POP launchpad</Link>
-          </Button>
-          <Button
-            onClick={() => { setDone(false); form.reset(); clearImage(); setEventType("Conference"); }}
-            className="bg-green-600 hover:bg-green-700 text-white"
-          >
-            Create another
-          </Button>
-        </div>
-      </div>
+      <LaunchpadSuccessState
+        icon={CheckCircle2}
+        accentClassName="bg-green-500/10"
+        iconClassName="text-green-500"
+        actionClassName="bg-green-600 hover:bg-green-700 text-white"
+        title="Event created"
+        description="Your POP credential collection is live on Starknet. It will appear in the launchpad within a minute once indexed."
+        backHref="/launchpad/pop"
+        backLabel="Back to POP launchpad"
+        actionLabel="Create another"
+        onAction={handleCreateAnother}
+      />
     );
   }
 

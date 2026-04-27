@@ -27,6 +27,7 @@ import { dropCreateSchema, type DropCreateFormValues } from "../drop-create-sche
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { getDefaultDropSchedule, suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
+import { LaunchpadSuccessState } from "@/components/launchpad/launchpad-success-state";
 
 const PAYMENT_TOKENS = getListableTokens().map((t) => ({ symbol: t.symbol, address: t.address }));
 
@@ -106,6 +107,31 @@ export default function CreateDropPage() {
       return BigInt(isNaN(v) || v <= 0 ? 0 : v);
     }
     return BigInt(supplyPreset);
+  };
+
+  const handleLaunchAnother = () => {
+    const defaults = getDefaultDropSchedule();
+    setDone(false);
+    form.reset({
+      name: "",
+      symbol: "",
+      supplyCustom: "",
+      priceAmount: "",
+      paymentToken: PAYMENT_TOKENS[0].address,
+      startDate: defaults.startDate,
+      startTime: defaults.startTime,
+      endDate: defaults.endDate,
+      endTime: defaults.endTime,
+      maxPerWallet: "1",
+    });
+    clearImage();
+    setPendingValues(null);
+    setSupplyPreset(1000);
+    setPriceFree(true);
+    setIsPublic(true);
+    setSelectedToken(PAYMENT_TOKENS[0]);
+    setTokenDropdownOpen(false);
+    setAutoSymbol("");
   };
 
   const persistDropConditions = async (
@@ -240,36 +266,18 @@ export default function CreateDropPage() {
   // ── Success ──────────────────────────────────────────────────────────────────
   if (done) {
     return (
-      <div className="container max-w-lg mx-auto px-4 pt-24 pb-8 text-center space-y-6">
-        <div className="flex justify-center">
-          <div className="h-20 w-20 rounded-full bg-orange-500/10 flex items-center justify-center">
-            <CheckCircle2 className="h-10 w-10 text-orange-500" />
-          </div>
-        </div>
-        <div className="space-y-2">
-          <h1 className="text-2xl font-bold">Drop launched</h1>
-          <p className="text-muted-foreground">
-            Your Collection Drop is live on Starknet. It will appear in the launchpad within a minute once indexed.
-          </p>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Button asChild variant="outline">
-            <Link href="/launchpad/drop">Back to Drops</Link>
-          </Button>
-          <Button
-            onClick={() => {
-              setDone(false);
-              form.reset();
-              clearImage();
-              setSupplyPreset(1000);
-              setPriceFree(true);
-            }}
-            className="bg-orange-600 hover:bg-orange-700 text-white"
-          >
-            Launch another
-          </Button>
-        </div>
-      </div>
+      <LaunchpadSuccessState
+        icon={CheckCircle2}
+        accentClassName="bg-orange-500/10"
+        iconClassName="text-orange-500"
+        actionClassName="bg-orange-600 hover:bg-orange-700 text-white"
+        title="Drop launched"
+        description="Your Collection Drop is live on Starknet. It will appear in the launchpad within a minute once indexed."
+        backHref="/launchpad/drop"
+        backLabel="Back to Drops"
+        actionLabel="Launch another"
+        onAction={handleLaunchAnother}
+      />
     );
   }
 
