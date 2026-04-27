@@ -99,6 +99,9 @@ export function PopCreateForm({
           <p className="text-xs text-muted-foreground">
             {EVENT_TYPES.find((event) => event.value === eventType)?.description}
           </p>
+          <p className="text-xs text-muted-foreground">
+            This helps label the credential collection and makes the event easier to understand at a glance.
+          </p>
         </div>
       </FadeIn>
 
@@ -187,6 +190,7 @@ export function PopCreateForm({
               <FormControl>
                 <Input placeholder="Starknet Hackathon 2026" {...field} />
               </FormControl>
+              <FormDescription>The event or program name participants will recognize immediately.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -208,7 +212,7 @@ export function PopCreateForm({
                   className="max-w-[160px]"
                 />
               </FormControl>
-              <FormDescription>Short ticker shown in wallets.</FormDescription>
+              <FormDescription>Short ticker shown in wallets. We suggest one from the event name.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -244,7 +248,7 @@ export function PopCreateForm({
             />
           </div>
           <p className="text-xs text-muted-foreground">
-            Participants can only claim credentials before this time.
+            Participants can only claim credentials before this time. After it closes, the collection remains as the onchain record.
           </p>
         </div>
       </FadeIn>
@@ -275,6 +279,9 @@ export function PopCreateForm({
             />
           </button>
         </div>
+        <p className="text-xs text-muted-foreground">
+          Private events remain claimable by link, but won’t appear in the public POP directory.
+        </p>
       </FadeIn>
 
       <FadeIn delay={0.2}>
@@ -299,7 +306,7 @@ export function PopCreateForm({
           </Button>
         </div>
         <p className="text-xs text-center text-muted-foreground mt-2">
-          Gas is free. Your PIN signs the transaction.
+          Gas is free. Your PIN signs the transaction and publishes the credential rules onchain.
         </p>
       </FadeIn>
     </div>

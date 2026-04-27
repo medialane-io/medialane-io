@@ -110,6 +110,7 @@ export function NftEditionsCreateForm({
               JPG, PNG, GIF, SVG or WebP · max 10 MB
               {imageUri ? <span className="ml-2 text-emerald-500 font-medium">✓ Uploaded to IPFS</span> : null}
             </p>
+            <p className="text-xs text-muted-foreground">This becomes the visual identity for the collection metadata.</p>
           </div>
         </div>
       </div>
@@ -118,7 +119,7 @@ export function NftEditionsCreateForm({
         <FormItem>
           <FormLabel>Collection name *</FormLabel>
           <FormControl><Input placeholder="My Creative Works" {...field} /></FormControl>
-          <FormDescription>The display name for your collection.</FormDescription>
+          <FormDescription>The main title collectors see across the collection page, wallets, and future listings.</FormDescription>
           <FormMessage />
         </FormItem>
       )} />
@@ -133,7 +134,7 @@ export function NftEditionsCreateForm({
               onChange={(event) => field.onChange(event.target.value.toUpperCase())}
             />
           </FormControl>
-          <FormDescription>Short ticker (2–10 uppercase letters). Shown in wallets and explorers.</FormDescription>
+          <FormDescription>Short ticker (2–10 uppercase letters). We suggest one from the collection name.</FormDescription>
           <FormMessage />
         </FormItem>
       )} />
@@ -144,6 +145,7 @@ export function NftEditionsCreateForm({
           <FormControl>
             <Textarea placeholder="Describe your collection and what kind of work it contains…" rows={3} {...field} />
           </FormControl>
+          <FormDescription>Use this to explain the creative direction, media type, or audience for the collection.</FormDescription>
           <FormMessage />
         </FormItem>
       )} />
@@ -168,7 +170,7 @@ export function NftEditionsCreateForm({
         </button>
       </div>
       <p className="text-xs text-center text-muted-foreground">
-        Gas is free. Your PIN signs the transaction.
+        Gas is free. Your PIN signs the transaction and deploys the collection contract onchain.
       </p>
     </div>
   );

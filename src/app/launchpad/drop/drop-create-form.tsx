@@ -119,7 +119,7 @@ export function DropCreateForm({
               )} />
             ) : null}
           </div>
-          <p className="text-xs text-muted-foreground">How many tokens can ever be minted.</p>
+          <p className="text-xs text-muted-foreground">Set the maximum number of tokens collectors will ever be able to mint.</p>
         </div>
       </FadeIn>
 
@@ -154,6 +154,9 @@ export function DropCreateForm({
               <span className="text-[11px] font-semibold leading-tight">Paid</span>
             </button>
           </div>
+          <p className="text-xs text-muted-foreground">
+            Choose a free claim or set a fixed mint price for every token in this drop.
+          </p>
         </div>
       </FadeIn>
 
@@ -228,6 +231,7 @@ export function DropCreateForm({
           <FormItem>
             <FormLabel>Collection name *</FormLabel>
             <FormControl><Input placeholder="Genesis Series" {...field} /></FormControl>
+            <FormDescription>The name collectors will see across the drop page, wallet, and marketplace.</FormDescription>
             <FormMessage />
           </FormItem>
         )} />
@@ -245,7 +249,7 @@ export function DropCreateForm({
                 className="max-w-[160px]"
               />
             </FormControl>
-            <FormDescription>Short ticker shown in wallets.</FormDescription>
+            <FormDescription>Short ticker shown in wallets and explorers. We suggest one from the collection name.</FormDescription>
             <FormMessage />
           </FormItem>
         )} />
@@ -261,6 +265,7 @@ export function DropCreateForm({
                   <FormControl>
                     <Input type="number" placeholder="0.01" step="any" min={0} {...field} />
                   </FormControl>
+                  <FormDescription>Amount each collector pays per token before fees.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )} />
@@ -376,6 +381,9 @@ export function DropCreateForm({
             />
           </button>
         </div>
+        <p className="text-xs text-muted-foreground">
+          Hidden drops still work onchain. They simply stay out of the public launchpad index.
+        </p>
       </FadeIn>
 
       <FadeIn delay={0.24}>
@@ -399,7 +407,7 @@ export function DropCreateForm({
             )}
           </Button>
         </div>
-        <p className="text-xs text-center text-muted-foreground mt-2">Gas is free. Your PIN signs the transaction.</p>
+        <p className="text-xs text-center text-muted-foreground mt-2">Gas is free. Your PIN signs the transaction and the launch settings are recorded onchain.</p>
       </FadeIn>
     </div>
   );

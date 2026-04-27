@@ -108,6 +108,7 @@ export function NftEditionsMintForm({
                   "JPG, PNG, SVG or WebP · max 10 MB"
                 )}
               </p>
+              <p className="text-xs text-muted-foreground">This media and metadata are pinned before the first mint is submitted.</p>
             </div>
           </div>
         </div>
@@ -118,7 +119,7 @@ export function NftEditionsMintForm({
           <FormItem>
             <FormLabel>Token name *</FormLabel>
             <FormControl><Input placeholder="Genesis Track #1" {...field} /></FormControl>
-            <FormDescription>Stored in the metadata JSON on IPFS.</FormDescription>
+            <FormDescription>The title collectors will see for this token edition. Stored in metadata on IPFS.</FormDescription>
             <FormMessage />
           </FormItem>
         )} />
@@ -131,6 +132,7 @@ export function NftEditionsMintForm({
             <FormControl>
               <Textarea placeholder="Describe this IP asset…" rows={3} {...field} />
             </FormControl>
+            <FormDescription>Add context, utility, or creative notes for this token edition.</FormDescription>
             <FormMessage />
           </FormItem>
         )} />
@@ -144,7 +146,7 @@ export function NftEditionsMintForm({
               <Input type="number" min={0} placeholder="1" className="max-w-[180px]" {...field} />
             </FormControl>
             <FormDescription>
-              Unique identifier for this token type within the collection. Immutable once minted.
+              Unique identifier for this token type within the collection. Choose carefully because it becomes permanent after mint.
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -190,7 +192,7 @@ export function NftEditionsMintForm({
           </Button>
         </div>
         <p className="text-xs text-center text-muted-foreground mt-2">
-          Gas is free. Your PIN signs the transaction.
+          Gas is free. Your PIN signs the transaction and mints the edition directly to the chosen wallet.
         </p>
       </FadeIn>
     </div>
