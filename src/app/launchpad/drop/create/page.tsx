@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
@@ -26,6 +26,7 @@ import { DropCreateForm, type PaymentTokenOption } from "../drop-create-form";
 import { dropCreateSchema, type DropCreateFormValues } from "../drop-create-schema";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
+import { getDefaultDropSchedule, suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
 
 const PAYMENT_TOKENS = getListableTokens().map((t) => ({ symbol: t.symbol, address: t.address }));
 
@@ -51,6 +52,7 @@ export default function CreateDropPage() {
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
   const [pendingValues, setPendingValues] = useState<DropCreateFormValues | null>(null);
   const [done, setDone] = useState(false);
+  const [autoSymbol, setAutoSymbol] = useState("");
   const {
     imagePreview,
     imageUri,
@@ -73,6 +75,30 @@ export default function CreateDropPage() {
       maxPerWallet: "1",
     },
   });
+  const collectionName = form.watch("name");
+
+  useEffect(() => {
+    const defaults = getDefaultDropSchedule();
+    if (!form.getValues("startDate")) {
+      form.setValue("startDate", defaults.startDate, { shouldDirty: false });
+      form.setValue("startTime", defaults.startTime, { shouldDirty: false });
+    }
+    if (!form.getValues("endDate")) {
+      form.setValue("endDate", defaults.endDate, { shouldDirty: false });
+      form.setValue("endTime", defaults.endTime, { shouldDirty: false });
+    }
+  }, [form]);
+
+  useEffect(() => {
+    const suggestedSymbol = suggestLaunchpadSymbol(collectionName);
+    if (!suggestedSymbol) return;
+
+    const currentSymbol = form.getValues("symbol");
+    if (!currentSymbol || currentSymbol === autoSymbol) {
+      form.setValue("symbol", suggestedSymbol, { shouldDirty: false });
+      setAutoSymbol(suggestedSymbol);
+    }
+  }, [autoSymbol, collectionName, form]);
 
   const resolvedSupply = (): bigint => {
     if (supplyPreset === "custom") {

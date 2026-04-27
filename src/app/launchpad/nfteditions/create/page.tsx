@@ -23,6 +23,7 @@ import { hash, byteArray as starkByteArray } from "starknet";
 import { starknetProvider } from "@/lib/starknet";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
+import { suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
 import { NftEditionsCreateForm } from "../nfteditions-create-form";
 import {
   nftEditionsCreateSchema,
@@ -53,6 +54,7 @@ export default function CreateIP1155CollectionPage() {
   const [pinOpen, setPinOpen] = useState(false);
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
   const [pendingValues, setPendingValues] = useState<NftEditionsCreateFormValues | null>(null);
+  const [autoSymbol, setAutoSymbol] = useState("");
 
   const [collectionStep, setCollectionStep] = useState<CollectionStep>("idle");
   const [collectionError, setCollectionError] = useState<string | null>(null);
@@ -77,12 +79,24 @@ export default function CreateIP1155CollectionPage() {
     resolver: zodResolver(nftEditionsCreateSchema),
     defaultValues: { name: "", symbol: "", description: "", external_link: "" },
   });
+  const collectionName = form.watch("name");
 
   useEffect(() => {
     if (walletAddress && !form.getValues("external_link")) {
       form.setValue("external_link", `https://medialane.io/account/${walletAddress}`);
     }
   }, [walletAddress, form]);
+
+  useEffect(() => {
+    const suggestedSymbol = suggestLaunchpadSymbol(collectionName);
+    if (!suggestedSymbol) return;
+
+    const currentSymbol = form.getValues("symbol");
+    if (!currentSymbol || currentSymbol === autoSymbol) {
+      form.setValue("symbol", suggestedSymbol, { shouldDirty: false });
+      setAutoSymbol(suggestedSymbol);
+    }
+  }, [autoSymbol, collectionName, form]);
 
   const handleReset = () => {
     setCollectionStep("idle");

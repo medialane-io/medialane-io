@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -26,6 +26,7 @@ import { POPFactoryABI, POP_FACTORY_CONTRACT, type PopEventType } from "@/lib/la
 import { cn } from "@/lib/utils";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
+import { getDefaultClaimWindow, suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
 
 const EVENT_TYPES: { value: PopEventType; label: string; icon: React.ElementType; description: string }[] = [
   { value: "Conference",  label: "Conference",  icon: Mic2,     description: "Talks & panels"     },
@@ -57,6 +58,7 @@ export default function CreatePOPPage() {
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
   const [done, setDone] = useState(false);
+  const [autoSymbol, setAutoSymbol] = useState("");
   const {
     imagePreview,
     imageUri,
@@ -73,6 +75,26 @@ export default function CreatePOPPage() {
     resolver: zodResolver(schema),
     defaultValues: { name: "", symbol: "", claimEndDate: "", claimEndTime: "23:59" },
   });
+  const eventName = form.watch("name");
+
+  useEffect(() => {
+    const defaults = getDefaultClaimWindow();
+    if (!form.getValues("claimEndDate")) {
+      form.setValue("claimEndDate", defaults.claimEndDate, { shouldDirty: false });
+      form.setValue("claimEndTime", defaults.claimEndTime, { shouldDirty: false });
+    }
+  }, [form]);
+
+  useEffect(() => {
+    const suggestedSymbol = suggestLaunchpadSymbol(eventName);
+    if (!suggestedSymbol) return;
+
+    const currentSymbol = form.getValues("symbol");
+    if (!currentSymbol || currentSymbol === autoSymbol) {
+      form.setValue("symbol", suggestedSymbol, { shouldDirty: false });
+      setAutoSymbol(suggestedSymbol);
+    }
+  }, [autoSymbol, eventName, form]);
 
   const onSubmit = (values: FormValues) => {
     if (!POP_FACTORY_CONTRACT) {
