@@ -11,12 +11,7 @@ import { useCollection } from "@/hooks/use-collections";
 import { Button } from "@/components/ui/button";
 import { IpTypeBadge } from "@/components/shared/ip-type-badge";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
-import { PurchaseDialog } from "@/components/marketplace/purchase-dialog";
-import { ListingDialog } from "@/components/marketplace/listing-dialog";
-import { OfferDialog } from "@/components/marketplace/offer-dialog";
-import { TransferDialog } from "@/components/marketplace/transfer-dialog";
 import { AddressDisplay } from "@/components/shared/address-display";
-import { PinDialog } from "@/components/chipi/pin-dialog";
 import { ipfsToHttp, timeUntil, formatDisplayPrice, checkIsOwner } from "@/lib/utils";
 import {
   ShoppingCart,
@@ -65,6 +60,10 @@ import { useTokenRemixes } from "@/hooks/use-remix-offers";
 import { HelpIcon } from "@/components/ui/help-icon";
 import { AssetMarketsTab } from "./asset-markets-tab";
 import { AssetProvenanceTab } from "./asset-provenance-tab";
+import {
+  AssetMarketplaceDialogs,
+  useAssetMarketplaceDialogState,
+} from "./asset-marketplace-dialogs";
 
 export function AssetPageEdition() {
   const { contract, tokenId } = useParams<{ contract: string; tokenId: string }>();
@@ -89,10 +88,16 @@ export function AssetPageEdition() {
   const { imgRef, dynamicTheme } = useDominantColor(imageUrl);
 
   const [imgError, setImgError] = useState(false);
-  const [purchaseOrder, setPurchaseOrder] = useState<ApiOrder | null>(null);
-  const [listOpen, setListOpen] = useState(false);
-  const [offerOpen, setOfferOpen] = useState(false);
-  const [transferOpen, setTransferOpen] = useState(false);
+  const {
+    purchaseOrder,
+    setPurchaseOrder,
+    listOpen,
+    setListOpen,
+    offerOpen,
+    setOfferOpen,
+    transferOpen,
+    setTransferOpen,
+  } = useAssetMarketplaceDialogState();
   const [reportOpen, setReportOpen] = useState(false);
   const [commentOpen, setCommentOpen] = useState(false);
 
@@ -701,66 +706,32 @@ export function AssetPageEdition() {
         </DialogContent>
       </Dialog>
 
-      {/* Dialogs */}
-      {purchaseOrder && (
-        <PurchaseDialog
-          order={purchaseOrder}
-          open
-          onOpenChange={(v) => { if (!v) setPurchaseOrder(null); }}
-          onSuccess={mutateListings}
-        />
-      )}
-
-      <ListingDialog
-        open={listOpen}
-        onOpenChange={setListOpen}
-        assetContract={contract}
+      <AssetMarketplaceDialogs
+        contract={contract}
         tokenId={tokenId}
         tokenName={name}
-        tokenStandard="ERC1155"
         tokenImage={imageUrl}
-        onSuccess={mutateListings}
-      />
-
-      <OfferDialog
-        open={offerOpen}
-        onOpenChange={setOfferOpen}
-        assetContract={contract}
-        tokenId={tokenId}
-        tokenName={name}
-        tokenImage={imageUrl ?? undefined}
         tokenStandard="ERC1155"
-      />
-
-      <PinDialog
-        open={cancelPinOpen}
-        onSubmit={handleCancelPin}
-        onCancel={dismissCancelPin}
-        title="Cancel listing"
-        description={`Enter your PIN to cancel the listing for ${name}.`}
-      />
-
-      <PinDialog
-        open={acceptPinOpen}
-        onSubmit={handleAcceptPin}
-        onCancel={dismissAcceptPin}
-        title="Accept offer"
-        description={orderToAccept
-          ? `Accept ${formatDisplayPrice(orderToAccept.price.formatted)} ${orderToAccept.price.currency} for ${name}?`
-          : "Enter your PIN to accept this offer."}
-      />
-
-      <CancelListingDialog cancelStep={cancelStep} cancelError={cancelError} onReset={resetCancelStep} />
-
-      <TransferDialog
-        open={transferOpen}
-        onOpenChange={setTransferOpen}
-        contractAddress={contract}
-        tokenId={tokenId}
-        tokenName={name}
         hasActiveListing={activeListings.length > 0}
-        tokenStandard="ERC1155"
-        onSuccess={mutateListings}
+        mutateListings={mutateListings}
+        purchaseOrder={purchaseOrder}
+        setPurchaseOrder={setPurchaseOrder}
+        listOpen={listOpen}
+        setListOpen={setListOpen}
+        offerOpen={offerOpen}
+        setOfferOpen={setOfferOpen}
+        transferOpen={transferOpen}
+        setTransferOpen={setTransferOpen}
+        cancelPinOpen={cancelPinOpen}
+        handleCancelPin={handleCancelPin}
+        dismissCancelPin={dismissCancelPin}
+        acceptPinOpen={acceptPinOpen}
+        handleAcceptPin={handleAcceptPin}
+        dismissAcceptPin={dismissAcceptPin}
+        orderToAccept={orderToAccept}
+        cancelStep={cancelStep}
+        cancelError={cancelError}
+        resetCancelStep={resetCancelStep}
       />
     </div>
   );
