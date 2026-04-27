@@ -1,4 +1,12 @@
 import type { Metadata } from "next";
+import {
+  COLLECTION_721_CONTRACT,
+  COLLECTION_1155_CONTRACT,
+  DROP_FACTORY_CONTRACT,
+  MARKETPLACE_721_CONTRACT,
+  MARKETPLACE_1155_CONTRACT,
+  POP_FACTORY_CONTRACT,
+} from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "Protocol | Docs | Medialane",
@@ -28,9 +36,9 @@ export default function DocsProtocolPage() {
       <div className="space-y-2">
         <h2 className="text-2xl font-bold">Protocol Specification</h2>
         <p className="text-muted-foreground text-lg leading-relaxed">
-          The Medialane protocol consists of two onchain contracts on Starknet mainnet
-          and an off-chain indexer/API layer. This document describes the contracts,
-          their interfaces, and the event model used by the indexer.
+          The Medialane protocol suite combines marketplace, collection, and launchpad
+          contracts on Starknet mainnet with an off-chain indexer/API layer. This document
+          describes the contracts, their interfaces, and the event model used by the indexer.
         </p>
       </div>
 
@@ -39,28 +47,33 @@ export default function DocsProtocolPage() {
           <div className="space-y-2">
             {[
               {
-                name: "Marketplace Contract",
-                address: "0x059deafbbafbf7051c315cf75a94b03c5547892bc0c6dfa36d7ac7290d4cc33a",
-                desc: "Handles order creation, fulfillment, cancellation, and royalty distribution for all listings and offers.",
+                name: "Marketplace ERC-721 Protocol",
+                address: MARKETPLACE_721_CONTRACT,
+                desc: "Handles ERC-721 order creation, fulfillment, cancellation, offers, and royalty distribution.",
               },
               {
-                name: "Collection Registry Contract",
-                address: "0x05c49ee5d3208a2c2e150fdd0c247d1195ed9ab54fa2d5dea7a633f39e4b205b",
-                desc: "Factory for deploying IP NFT collections. Assigns a unique onchain collection ID to every deployed collection.",
+                name: "Marketplace ERC-1155 Protocol",
+                address: MARKETPLACE_1155_CONTRACT,
+                desc: "Handles ERC-1155 listings, offers, fulfillment, cancellation, and quantity-aware marketplace actions.",
+              },
+              {
+                name: "Collection ERC-721 Protocol",
+                address: COLLECTION_721_CONTRACT,
+                desc: "Factory for deploying ERC-721 IP NFT collections. Assigns a unique onchain collection ID to every deployed collection.",
               },
               {
                 name: "POP Protocol Factory",
-                address: "see NEXT_PUBLIC env — deployed per environment",
+                address: POP_FACTORY_CONTRACT,
                 desc: "Factory contract for creating POP (Proof of Participation) events. Each event deploys a soulbound NFT contract. Manages provider registration and event lifecycle.",
               },
               {
                 name: "Collection Drop Factory",
-                address: "see NEXT_PUBLIC env — deployed per environment",
+                address: DROP_FACTORY_CONTRACT,
                 desc: "Factory for launching timed NFT drop events. Enforces supply caps, mint windows, allowlists, per-wallet limits, and mint prices onchain.",
               },
               {
-                name: "IP Collection 1155 Factory",
-                address: "0x006b2dc7ca7c4f466bb4575ba043d934310f052074f849caf853a86bcb819fd6",
+                name: "Collection ERC-1155 Protocol",
+                address: COLLECTION_1155_CONTRACT,
                 desc: "Factory for deploying multi-edition ERC-1155 IP collections. Each deploy_collection() call deploys a new ERC-1155 contract owned by the caller and emits a CollectionDeployed event with the contract address, name, symbol, and base_uri.",
               },
             ].map(({ name, address, desc }) => (

@@ -31,6 +31,7 @@ import {
   nftEditionsCreateSchema,
   type NftEditionsCreateFormValues,
 } from "../nfteditions-create-schema";
+import { COLLECTION_1155_CONTRACT, MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
 
 /** Serialize a JS string into Cairo ByteArray calldata felts. */
 function serializeByteArray(str: string): string[] {
@@ -42,10 +43,7 @@ function serializeByteArray(str: string): string[] {
     ba.pending_word_len.toString(),
   ];
 }
-import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
 
-// v2 ERC-1155 factory — hardcoded to avoid stale SDK npm cache
-const FACTORY = "0x006b2dc7ca7c4f466bb4575ba043d934310f052074f849caf853a86bcb819fd6" as `0x${string}`;
 const COLLECTION_DEPLOYED_SELECTOR = hash.getSelectorFromName("CollectionDeployed");
 
 export default function CreateIP1155CollectionPage() {
@@ -148,9 +146,9 @@ export default function CreateIP1155CollectionPage() {
       // v2 factory signature: deploy_collection(name, symbol, base_uri)
       const result = await executeTransaction({
         pin,
-        contractAddress: FACTORY,
+        contractAddress: COLLECTION_1155_CONTRACT,
         calls: [{
-          contractAddress: FACTORY,
+          contractAddress: COLLECTION_1155_CONTRACT,
           entrypoint: "deploy_collection",
           calldata: [
             ...serializeByteArray(pendingValues.name),
