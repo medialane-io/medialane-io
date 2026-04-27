@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import type { RefObject } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import Image from "next/image";
@@ -73,6 +74,31 @@ export function DropCreateForm({
   onSelectToken,
   onSetPublic,
 }: DropCreateFormProps) {
+  const tokenDropdownRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!tokenDropdownOpen) return;
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (!tokenDropdownRef.current?.contains(event.target as Node)) {
+        onSetTokenDropdownOpen(false);
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onSetTokenDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [onSetTokenDropdownOpen, tokenDropdownOpen]);
+
   return (
     <div className="space-y-5">
       <FadeIn delay={0.06}>
@@ -269,21 +295,28 @@ export function DropCreateForm({
                   <FormMessage />
                 </FormItem>
               )} />
-              <div className="relative mt-[22px]">
+              <div ref={tokenDropdownRef} className="relative mt-[22px]">
                 <button
                   type="button"
                   onClick={() => onSetTokenDropdownOpen(!tokenDropdownOpen)}
+                  aria-expanded={tokenDropdownOpen}
+                  aria-haspopup="listbox"
                   className="flex items-center gap-1.5 h-10 px-3 rounded-md border border-border bg-muted/30 text-sm font-semibold hover:border-orange-500/50 transition-colors"
                 >
                   {selectedToken.symbol}
                   <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
                 </button>
                 {tokenDropdownOpen ? (
-                  <div className="absolute top-11 right-0 z-50 w-28 rounded-lg border border-border bg-background shadow-lg py-1">
+                  <div
+                    role="listbox"
+                    className="absolute top-11 right-0 z-50 w-28 rounded-lg border border-border bg-background shadow-lg py-1"
+                  >
                     {paymentTokens.map((token) => (
                       <button
                         key={token.address}
                         type="button"
+                        role="option"
+                        aria-selected={selectedToken.address === token.address}
                         onClick={() => onSelectToken(token)}
                         className={cn(
                           "w-full text-left px-3 py-1.5 text-sm hover:bg-muted transition-colors",

@@ -103,6 +103,13 @@ export default function CreateDropPage() {
     }
   }, [autoSymbol, collectionName, form]);
 
+  useEffect(() => {
+    if (priceFree) {
+      form.setValue("priceAmount", "", { shouldDirty: false });
+      setTokenDropdownOpen(false);
+    }
+  }, [form, priceFree]);
+
   const resolvedSupply = (): bigint => {
     if (supplyPreset === "custom") {
       const v = parseInt(form.getValues("supplyCustom") ?? "0", 10);
