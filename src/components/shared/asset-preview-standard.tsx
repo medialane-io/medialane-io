@@ -206,6 +206,7 @@ export function AssetPreviewStandard({
         tokenId={token.tokenId}
         tokenName={name}
         tokenImage={image ?? undefined}
+        tokenStandard={token.standard}
       />
       <ListingDialog
         open={listOpen}

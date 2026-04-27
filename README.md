@@ -230,8 +230,10 @@ bun dev
 | `NEXT_PUBLIC_MEDIALANE_BACKEND_URL` | Medialane API base URL |
 | `NEXT_PUBLIC_MEDIALANE_API_KEY` | Medialane API key (from portal) |
 | `NEXT_PUBLIC_STARKNET_RPC_URL` | Starknet RPC endpoint |
-| `NEXT_PUBLIC_MARKETPLACE_CONTRACT` | Marketplace contract address |
-| `NEXT_PUBLIC_COLLECTION_CONTRACT` | Collection factory contract address |
+| `NEXT_PUBLIC_MARKETPLACE_721_CONTRACT_MAINNET` | ERC-721 marketplace protocol contract |
+| `NEXT_PUBLIC_MARKETPLACE_1155_CONTRACT_MAINNET` | ERC-1155 marketplace protocol contract |
+| `NEXT_PUBLIC_COLLECTION_721_CONTRACT_MAINNET` | ERC-721 mint protocol contract |
+| `NEXT_PUBLIC_COLLECTION_1155_CONTRACT_MAINNET` | ERC-1155 mint protocol contract |
 | `PINATA_JWT` | Pinata JWT (server-side, not exposed to client) |
 | `NEXT_PUBLIC_PINATA_GATEWAY` | Pinata IPFS gateway URL |
 

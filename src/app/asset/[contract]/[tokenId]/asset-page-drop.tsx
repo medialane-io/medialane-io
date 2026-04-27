@@ -467,7 +467,7 @@ export function AssetPageDrop() {
 
       {purchaseOrder && <PurchaseDialog order={purchaseOrder} open onOpenChange={(v) => { if (!v) setPurchaseOrder(null); }} onSuccess={mutateListings} />}
       <ListingDialog open={listOpen} onOpenChange={setListOpen} assetContract={contract} tokenId={tokenId} tokenName={name} tokenStandard="ERC721" tokenImage={imageUrl} onSuccess={mutateListings} />
-      <OfferDialog open={offerOpen} onOpenChange={setOfferOpen} assetContract={contract} tokenId={tokenId} tokenName={name} tokenImage={imageUrl ?? undefined} />
+      <OfferDialog open={offerOpen} onOpenChange={setOfferOpen} assetContract={contract} tokenId={tokenId} tokenName={name} tokenImage={imageUrl ?? undefined} tokenStandard="ERC721" />
       <PinDialog open={cancelPinOpen} onSubmit={handleCancelPin} onCancel={dismissCancelPin} title="Cancel listing" description={`Enter your PIN to cancel the listing for ${name}.`} />
       <PinDialog open={acceptPinOpen} onSubmit={handleAcceptPin} onCancel={dismissAcceptPin} title="Accept offer" description={orderToAccept ? `Accept ${formatDisplayPrice(orderToAccept.price.formatted)} ${orderToAccept.price.currency} for ${name}?` : "Enter your PIN to accept this offer."} />
       <CancelListingDialog cancelStep={cancelStep} cancelError={cancelError} onReset={resetCancelStep} />

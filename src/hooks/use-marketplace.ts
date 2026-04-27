@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import { useChipiTransaction } from "./use-chipi-transaction";
 import { useSessionKey } from "./use-session-key";
 import { useMedialaneClient } from "./use-medialane-client";
-import { MARKETPLACE_CONTRACT, MARKETPLACE_1155_CONTRACT, SUPPORTED_TOKENS, INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
+import { MARKETPLACE_721_CONTRACT, MARKETPLACE_1155_CONTRACT, SUPPORTED_TOKENS, INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
 import type { ChipiCall } from "./use-chipi-transaction";
 
 /** Resolve a currency symbol (e.g. "USDC") to its on-chain contract address.
@@ -81,6 +81,7 @@ export interface MakeOfferInput {
   price: string;
   currencySymbol: string;
   durationSeconds: number;
+  tokenStandard?: "ERC721" | "ERC1155" | "UNKNOWN";
 }
 
 export interface FulfillOrderInput {
@@ -160,7 +161,7 @@ export function useMarketplace() {
    *  Defaults to the ERC-721 marketplace. Pass `MARKETPLACE_1155_CONTRACT` for ERC-1155 ops.
    */
   const execWithPin = useCallback(
-    async (pin: string, calls: ChipiCall[], marketplaceContract: string = MARKETPLACE_CONTRACT) => {
+    async (pin: string, calls: ChipiCall[], marketplaceContract: string = MARKETPLACE_721_CONTRACT) => {
       const result = await executeTransaction({
         pin,
         contractAddress: marketplaceContract,
@@ -273,7 +274,7 @@ export function useMarketplace() {
             ...(is1155 && input.amount ? { amount: input.amount } : {}),
           }),
           `${input.tokenName || `Token #${input.tokenId}`} listed for ${input.price} ${input.currencySymbol}`,
-          is1155 ? MARKETPLACE_1155_CONTRACT : MARKETPLACE_CONTRACT
+          is1155 ? MARKETPLACE_1155_CONTRACT : MARKETPLACE_721_CONTRACT
         );
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Failed to create listing";
@@ -295,7 +296,7 @@ export function useMarketplace() {
       try {
         const marketplaceContract = input.tokenStandard === "ERC1155"
           ? MARKETPLACE_1155_CONTRACT
-          : MARKETPLACE_CONTRACT;
+          : MARKETPLACE_721_CONTRACT;
         return await runIntent(
           input.pin,
           () => client.api.createFulfillIntent({
@@ -326,6 +327,9 @@ export function useMarketplace() {
       setError(null);
       try {
         const endTime = Math.floor(Date.now() / 1000) + input.durationSeconds;
+        const marketplaceContract = input.tokenStandard === "ERC1155"
+          ? MARKETPLACE_1155_CONTRACT
+          : MARKETPLACE_721_CONTRACT;
         return await runIntent(
           input.pin,
           () => client.api.createOfferIntent({
@@ -336,7 +340,8 @@ export function useMarketplace() {
             price: input.price,
             endTime,
           }),
-          `Offer submitted for ${input.tokenName || `Token #${input.tokenId}`}`
+          `Offer submitted for ${input.tokenName || `Token #${input.tokenId}`}`,
+          marketplaceContract
         );
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Failed to submit offer";
@@ -387,7 +392,7 @@ export function useMarketplace() {
       try {
         const marketplaceContract = input.tokenStandard === "ERC1155"
           ? MARKETPLACE_1155_CONTRACT
-          : MARKETPLACE_CONTRACT;
+          : MARKETPLACE_721_CONTRACT;
         return await runIntent(
           input.pin,
           () => client.api.createCancelIntent({

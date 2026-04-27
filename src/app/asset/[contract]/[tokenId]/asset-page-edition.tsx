@@ -729,6 +729,7 @@ export function AssetPageEdition() {
         tokenId={tokenId}
         tokenName={name}
         tokenImage={imageUrl ?? undefined}
+        tokenStandard="ERC1155"
       />
 
       <PinDialog

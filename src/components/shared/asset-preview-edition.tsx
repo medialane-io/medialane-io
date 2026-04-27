@@ -194,6 +194,7 @@ export function AssetPreviewEdition({ token, isOwner, onClose }: AssetPreviewCon
         tokenId={token.tokenId}
         tokenName={name}
         tokenImage={image ?? undefined}
+        tokenStandard="ERC1155"
       />
       <ReportDialog
         target={{ type: "TOKEN", contract: token.contractAddress, tokenId: token.tokenId, name }}

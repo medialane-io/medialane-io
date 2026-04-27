@@ -839,6 +839,7 @@ export function AssetPageStandard() {
         tokenId={tokenId}
         tokenName={name}
         tokenImage={imageUrl ?? undefined}
+        tokenStandard={token?.standard ?? collection?.standard}
       />
 
       <PinDialog

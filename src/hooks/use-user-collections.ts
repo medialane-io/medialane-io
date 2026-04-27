@@ -3,7 +3,7 @@
 import useSWR from "swr";
 import { Contract, cairo, num } from "starknet";
 import { starknetProvider } from "@/lib/starknet";
-import { COLLECTION_CONTRACT } from "@/lib/constants";
+import { COLLECTION_721_CONTRACT } from "@/lib/constants";
 import { CollectionRegistryABI } from "@medialane/sdk";
 
 export interface UserCollection {
@@ -16,7 +16,7 @@ export interface UserCollection {
 }
 
 async function fetchUserCollections(address: string): Promise<UserCollection[]> {
-  const contract = new Contract(CollectionRegistryABI as any, COLLECTION_CONTRACT, starknetProvider);
+  const contract = new Contract(CollectionRegistryABI as any, COLLECTION_721_CONTRACT, starknetProvider);
 
   // Use "latest" block — Alchemy v0_10 does not support the default "pending" block tag
   const rawIds = await contract.call("list_user_collections", [address], {

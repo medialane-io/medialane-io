@@ -22,6 +22,7 @@ import { PinInput, validatePin } from "@/components/ui/pin-input";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { useAuth, SignInButton } from "@clerk/nextjs";
 import { useMarketplace } from "@/hooks/use-marketplace";
+import { useCollection } from "@/hooks/use-collections";
 import { EXPLORER_URL, DURATION_OPTIONS } from "@/lib/constants";
 import { parseFormPriceUsdc } from "@/lib/chipi/session-preferences";
 import { isWebAuthnSupported } from "@chipi-stack/nextjs";
@@ -47,6 +48,7 @@ interface OfferDialogProps {
   tokenId: string;
   tokenName?: string;
   tokenImage?: string;
+  tokenStandard?: "ERC721" | "ERC1155" | "UNKNOWN";
 }
 
 // ── Hero image strip shared by form + pin steps ──────────────────────────────
@@ -80,7 +82,10 @@ export function OfferDialog({
   tokenId,
   tokenName,
   tokenImage,
+  tokenStandard,
 }: OfferDialogProps) {
+  const { collection } = useCollection(tokenStandard == null ? assetContract : null);
+  const resolvedStandard = tokenStandard ?? collection?.standard;
   const { isSignedIn } = useAuth();
   const {
     makeOffer,
@@ -152,6 +157,7 @@ export function OfferDialog({
       price: pendingValues.price,
       currencySymbol: pendingValues.currency,
       durationSeconds: pendingValues.durationSeconds,
+      tokenStandard: resolvedStandard,
       pin,
     });
     setPin("");
@@ -173,6 +179,7 @@ export function OfferDialog({
         price: pendingValues.price,
         currencySymbol: pendingValues.currency,
         durationSeconds: pendingValues.durationSeconds,
+        tokenStandard: resolvedStandard,
         pin: derived,
       });
       setPin("");

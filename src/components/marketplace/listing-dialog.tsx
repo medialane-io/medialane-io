@@ -175,7 +175,7 @@ export function ListingDialog({
       price: pendingValues.price,
       currencySymbol: pendingValues.currency,
       durationSeconds: pendingValues.durationSeconds,
-      tokenStandard,
+      tokenStandard: resolvedStandard,
       amount: is1155 ? (pendingValues.amount || "1") : undefined,
       pin,
     });
@@ -196,7 +196,7 @@ export function ListingDialog({
         price: pendingValues.price,
         currencySymbol: pendingValues.currency,
         durationSeconds: pendingValues.durationSeconds,
-        tokenStandard,
+        tokenStandard: resolvedStandard,
         amount: is1155 ? (pendingValues.amount || "1") : undefined,
         pin: derived,
       });
