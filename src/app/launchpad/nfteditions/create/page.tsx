@@ -22,6 +22,7 @@ import { normalizeAddress } from "@medialane/sdk";
 import { hash, byteArray as starkByteArray } from "starknet";
 import { starknetProvider } from "@/lib/starknet";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
+import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { NftEditionsCreateForm } from "../nfteditions-create-form";
 import {
   nftEditionsCreateSchema,
@@ -114,18 +115,13 @@ export default function CreateIP1155CollectionPage() {
       let collectionMetaUri: string | undefined;
       if (imageUri) {
         try {
-          const r = await fetch("/api/pinata/json", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              name: pendingValues.name,
-              description: pendingValues.description || "",
-              image: imageUri,
-              external_link: pendingValues.external_link || "",
-            }),
+          const uri = await pinLaunchpadMetadata({
+            name: pendingValues.name,
+            description: pendingValues.description || "",
+            image: imageUri,
+            external_link: pendingValues.external_link || "",
           });
-          const d = await r.json();
-          if (d.uri) collectionMetaUri = d.uri;
+          if (uri) collectionMetaUri = uri;
         } catch { /* non-fatal */ }
       }
 

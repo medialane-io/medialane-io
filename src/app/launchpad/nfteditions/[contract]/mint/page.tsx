@@ -24,6 +24,7 @@ import { normalizeAddress } from "@medialane/sdk";
 import { Contract, byteArray as starkByteArray } from "starknet";
 import { starknetProvider } from "@/lib/starknet";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
+import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { NftEditionsMintConfirmDialog } from "../../nfteditions-mint-confirm-dialog";
 import { NftEditionsMintForm } from "../../nfteditions-mint-form";
 import {
@@ -131,13 +132,8 @@ export default function MintIP1155Page() {
         image: imageUri,
       };
       if (pendingValues.description) metadata.description = pendingValues.description;
-      const r = await fetch("/api/pinata/json", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(metadata),
-      });
-      const d = await r.json();
-      if (d.uri) tokenUri = d.uri;
+      const uri = await pinLaunchpadMetadata(metadata);
+      if (uri) tokenUri = uri;
     } catch { /* fall back to raw image URI */ }
 
     setMintStep("processing");

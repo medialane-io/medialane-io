@@ -25,6 +25,7 @@ import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
 import { DropCreateForm, type PaymentTokenOption } from "../drop-create-form";
 import { dropCreateSchema, type DropCreateFormValues } from "../drop-create-schema";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
+import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 
 const PAYMENT_TOKENS = getListableTokens().map((t) => ({ symbol: t.symbol, address: t.address }));
 
@@ -158,13 +159,8 @@ export default function CreateDropPage() {
         ],
       };
       if (imageUri) metadata.image = imageUri;
-      const r = await fetch("/api/pinata/json", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(metadata),
-      });
-      const d = await r.json();
-      if (d.uri) baseUri = d.uri;
+      const uri = await pinLaunchpadMetadata(metadata);
+      if (uri) baseUri = uri;
     } catch { /* non-fatal */ }
 
     const startTs = Math.floor(new Date(`${pendingValues.startDate}T${pendingValues.startTime}:00`).getTime() / 1000);

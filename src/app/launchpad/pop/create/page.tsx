@@ -25,6 +25,7 @@ import { FadeIn } from "@/components/ui/motion-primitives";
 import { POPFactoryABI, POP_FACTORY_CONTRACT, type PopEventType } from "@/lib/launchpad-contracts";
 import { cn } from "@/lib/utils";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
+import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 
 const EVENT_TYPES: { value: PopEventType; label: string; icon: React.ElementType; description: string }[] = [
   { value: "Conference",  label: "Conference",  icon: Mic2,     description: "Talks & panels"     },
@@ -97,13 +98,8 @@ export default function CreatePOPPage() {
         ],
       };
       if (imageUri) metadata.image = imageUri;
-      const r = await fetch("/api/pinata/json", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(metadata),
-      });
-      const d = await r.json();
-      if (d.uri) baseUri = d.uri;
+      const uri = await pinLaunchpadMetadata(metadata);
+      if (uri) baseUri = uri;
     } catch { /* non-fatal */ }
 
     const claimEndTimestamp = Math.floor(
