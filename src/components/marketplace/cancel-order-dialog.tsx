@@ -1,20 +1,18 @@
 "use client";
 
 import { useEffect } from "react";
-import { CheckCircle2, AlertCircle, X } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { PinInput } from "@/components/ui/pin-input";
 import { TxStatus } from "@/components/chipi/tx-status";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { useAuth } from "@clerk/nextjs";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { useMarketplaceActionFlow } from "@/hooks/use-marketplace-action-flow";
+import { MarketplacePinStep } from "@/components/marketplace/marketplace-dialog-primitives";
 import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import { useState } from "react";
-import Image from "next/image";
 import { isWebAuthnSupported } from "@chipi-stack/nextjs";
 import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
 import type { ApiOrder } from "@medialane/sdk";
@@ -196,54 +194,27 @@ export function CancelOrderDialog({
           order && (
             <div className="space-y-0">
               <TokenHero order={order} variant={resolvedVariant} />
-              <div className="px-6 pb-6 pt-4 space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Enter your PIN to cancel this {resolvedVariant}. This action cannot be undone.
-                </p>
-                <PinInput
-                  value={pin}
-                  onChange={(v) => { setPin(v); setPinError(null); }}
-                  error={pinError}
-                  autoFocus
-                />
-                {error && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
+              <MarketplacePinStep
+                description={`Enter your PIN to cancel this ${resolvedVariant}. This action cannot be undone.`}
+                pin={pin}
+                onPinChange={(value) => { setPin(value); setPinError(null); }}
+                pinError={pinError}
+                error={error}
+                secondaryLabel="Keep it"
+                onSecondary={() => onOpenChange(false)}
+                primaryLabel={`Cancel ${resolvedVariant}`}
+                onPrimary={handlePin}
+                primaryDisabled={pin.length < 6}
+                primaryVariant="destructive"
+                passkeySupported={passkeySupported}
+                isAuthenticatingPasskey={isAuthenticatingPasskey}
+                onUsePasskey={handleUsePasskey}
+                footer={(
+                  <p className="text-[10px] text-center text-muted-foreground">
+                    Transaction gas fees are sponsored by Medialane.
+                  </p>
                 )}
-                <div className="flex gap-2 pt-1">
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => onOpenChange(false)}
-                  >
-                    <X className="h-4 w-4 mr-1.5" />
-                    Keep it
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    className="flex-1 h-11"
-                    disabled={pin.length < 6}
-                    onClick={handlePin}
-                  >
-                    Cancel {resolvedVariant}
-                  </Button>
-                </div>
-                {passkeySupported && (
-                  <Button
-                    variant="outline"
-                    className="w-full text-xs"
-                    disabled={isAuthenticatingPasskey}
-                    onClick={handleUsePasskey}
-                  >
-                    {isAuthenticatingPasskey ? "Authenticating…" : "Use passkey instead"}
-                  </Button>
-                )}
-                <p className="text-[10px] text-center text-muted-foreground">
-                  Transaction gas fees are sponsored by Medialane.
-                </p>
-              </div>
+              />
             </div>
           )
         )}

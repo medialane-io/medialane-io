@@ -17,12 +17,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { PinInput, validatePin } from "@/components/ui/pin-input";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { useAuth, SignInButton } from "@clerk/nextjs";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { useMarketplaceActionFlow } from "@/hooks/use-marketplace-action-flow";
 import { useResolvedTokenStandard } from "@/hooks/use-resolved-token-standard";
+import {
+  MarketplacePinStep,
+  MarketplaceProcessingState,
+  MarketplaceTxLink,
+} from "@/components/marketplace/marketplace-dialog-primitives";
 import { EXPLORER_URL, DURATION_OPTIONS } from "@/lib/constants";
 import { parseFormPriceUsdc } from "@/lib/chipi/session-preferences";
 import { getListableTokens } from "@medialane/sdk";
@@ -236,15 +240,7 @@ export function ListingDialog({
                 </p>
               </div>
               {txHash && (
-                <a
-                  href={`${EXPLORER_URL}/tx/${txHash}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <span className="font-mono">{txHash.slice(0, 10)}…{txHash.slice(-8)}</span>
-                  <ExternalLink className="h-3 w-3" />
-                </a>
+                <MarketplaceTxLink txHash={txHash} explorerUrl={EXPLORER_URL} />
               )}
               <Button className="w-full h-11" onClick={() => { onOpenChange(false); onSuccess?.(); }}>
                 Done
@@ -258,24 +254,11 @@ export function ListingDialog({
             </div>
 
           ) : isProcessing ? (
-            <div className="flex flex-col items-center gap-5 p-6 py-8">
-              {tokenImage ? (
-                <div className="relative h-20 w-20 rounded-2xl overflow-hidden border border-border shadow-md">
-                  <img src={tokenImage} alt={name} className="h-full w-full object-cover" />
-                  <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
-                    <Loader2 className="h-7 w-7 animate-spin text-primary" />
-                  </div>
-                </div>
-              ) : (
-                <Loader2 className="h-10 w-10 animate-spin text-primary" />
-              )}
-              <div className="text-center space-y-1">
-                <p className="font-semibold">
-                  {txStatus === "submitting" ? "Submitting listing…" : "Confirming on Starknet…"}
-                </p>
-                <p className="text-sm text-muted-foreground">Please wait, do not close this window.</p>
-              </div>
-            </div>
+            <MarketplaceProcessingState
+              title={txStatus === "submitting" ? "Submitting listing…" : "Confirming on Starknet…"}
+              imageUrl={tokenImage}
+              imageAlt={name}
+            />
 
           ) : !isSignedIn ? (
             <div className="flex flex-col items-center gap-4 p-6 py-10 text-center">
@@ -315,58 +298,30 @@ export function ListingDialog({
               </div>
 
               {/* PIN entry */}
-              <div className="px-6 pb-6 pt-3 space-y-4">
-                <p className="text-sm text-muted-foreground">Enter your PIN to sign this listing.</p>
-                <PinInput
-                  value={pin}
-                  onChange={(v) => { setPin(v); setPinError(null); }}
-                  error={pinError}
-                  autoFocus
-                />
-                {error && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
-                )}
-                <div className="flex gap-2 pt-1">
-                  <Button
-                    variant="outline"
-                    className="gap-1.5"
-                    onClick={() => { setStep("form"); setPin(""); setPinError(null); }}
-                  >
-                    <ArrowLeft className="h-4 w-4" /> Back
-                  </Button>
-                  <div className={`btn-border-animated p-[1px] rounded-xl flex-1 ${pin.length < 6 ? "opacity-50 pointer-events-none" : ""}`}>
-                    <button
-                      className="w-full h-11 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-background/30"
-                      disabled={pin.length < 6}
-                      onClick={handlePin}
-                    >
-                      <Tag className="h-4 w-4" />
-                      List for sale
-                    </button>
+              <MarketplacePinStep
+                description="Enter your PIN to sign this listing."
+                pin={pin}
+                onPinChange={(value) => { setPin(value); setPinError(null); }}
+                pinError={pinError}
+                error={error}
+                secondaryLabel="Back"
+                onSecondary={() => { setStep("form"); setPin(""); setPinError(null); }}
+                primaryLabel="List for sale"
+                onPrimary={handlePin}
+                primaryDisabled={pin.length < 6}
+                primaryIcon={<Tag className="h-4 w-4" />}
+                passkeySupported={passkeySupported}
+                isAuthenticatingPasskey={isAuthenticatingPasskey}
+                onUsePasskey={handleUsePasskey}
+                footer={(
+                  <div className="flex items-start justify-center gap-1.5">
+                    <ShieldCheck className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
+                    <p className="text-[10px] text-center text-muted-foreground">
+                      Listings are registered &amp; protected onchain via our permissionless protocol. Gas fees are sponsored by Medialane.
+                    </p>
                   </div>
-                </div>
-                {passkeySupported && (
-                  <Button
-                    variant="outline"
-                    className="w-full text-xs"
-                    disabled={isAuthenticatingPasskey}
-                    onClick={handleUsePasskey}
-                  >
-                    {isAuthenticatingPasskey
-                      ? <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />Authenticating…</>
-                      : "Use passkey instead"}
-                  </Button>
                 )}
-                <div className="flex items-start justify-center gap-1.5">
-                  <ShieldCheck className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
-                  <p className="text-[10px] text-center text-muted-foreground">
-                    Listings are registered &amp; protected onchain via our permissionless protocol. Gas fees are sponsored by Medialane.
-                  </p>
-                </div>
-              </div>
+              />
             </>
 
           ) : (

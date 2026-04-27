@@ -6,7 +6,7 @@ import { useAuth } from "@clerk/nextjs";
 import { toast } from "sonner";
 import {
   AlertCircle, ExternalLink, Loader2,
-  ShoppingCart, RefreshCw, ArrowLeft, Sparkles, Zap, Minus, Plus,
+  ShoppingCart, RefreshCw, Sparkles, Zap, Minus, Plus,
   CheckCircle2, Package,
 } from "lucide-react";
 import { fireConfetti } from "@/lib/confetti";
@@ -17,6 +17,11 @@ import { PinInput } from "@/components/ui/pin-input";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { useMarketplaceActionFlow } from "@/hooks/use-marketplace-action-flow";
+import {
+  MarketplacePinStep,
+  MarketplaceProcessingState,
+  MarketplaceTxLink,
+} from "@/components/marketplace/marketplace-dialog-primitives";
 import { EXPLORER_URL } from "@/lib/constants";
 import type { ApiOrder } from "@medialane/sdk";
 import { formatDisplayPrice, ipfsToHttp } from "@/lib/utils";
@@ -324,17 +329,9 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
                 <p className="text-sm font-medium">
                   {isActivatingSession ? "Activating wallet session…" : processingMessage}
                 </p>
-                {txHash && step === "processing" && (
-                  <a
-                    href={`${EXPLORER_URL}/tx/${txHash}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors mt-1"
-                  >
-                    <span className="font-mono">{txHash.slice(0, 10)}…{txHash.slice(-8)}</span>
-                    <ExternalLink className="h-3 w-3" />
-                  </a>
-                )}
+                {txHash && step === "processing" ? (
+                  <MarketplaceTxLink txHash={txHash} explorerUrl={EXPLORER_URL} className="mt-1" />
+                ) : null}
               </div>
               <p className="text-xs text-muted-foreground">Please wait, do not close this window.</p>
             </div>
@@ -343,55 +340,27 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
             /* ── PIN step ──────────────────────────────────────────────── */
             <div className="space-y-4">
               <TokenHero order={order} quantity={quantity} />
-              <div className="px-6 pb-6 space-y-4">
-                <p className="text-sm text-muted-foreground">Enter your PIN to confirm this purchase.</p>
-                <PinInput
-                  value={pin}
-                  onChange={(v) => { setPin(v); setPinError(null); }}
-                  error={pinError}
-                  autoFocus
-                />
-                {error && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
+              <MarketplacePinStep
+                description="Enter your PIN to confirm this purchase."
+                pin={pin}
+                onPinChange={(value) => { setPin(value); setPinError(null); }}
+                pinError={pinError}
+                error={error}
+                secondaryLabel="Back"
+                onSecondary={() => { setStep("details"); setPin(""); setPinError(null); }}
+                primaryLabel="Buy now"
+                onPrimary={handlePin}
+                primaryDisabled={pin.length < 6}
+                primaryIcon={<ShoppingCart className="h-4 w-4" />}
+                passkeySupported={passkeySupported}
+                isAuthenticatingPasskey={isAuthenticatingPasskey}
+                onUsePasskey={handleUsePasskey}
+                footer={(
+                  <p className="text-[10px] text-center text-muted-foreground">
+                    Transaction gas fees are sponsored by Medialane.
+                  </p>
                 )}
-                <div className="flex gap-2 pt-1">
-                  <Button
-                    variant="outline"
-                    className="gap-1.5"
-                    onClick={() => { setStep("details"); setPin(""); setPinError(null); }}
-                  >
-                    <ArrowLeft className="h-4 w-4" /> Back
-                  </Button>
-                  <div className={`btn-border-animated p-[1px] rounded-xl flex-1 ${pin.length < 6 ? "opacity-50 pointer-events-none" : ""}`}>
-                    <button
-                      disabled={pin.length < 6}
-                      onClick={handlePin}
-                      className="w-full h-11 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-background/30"
-                    >
-                      <ShoppingCart className="h-4 w-4" />
-                      Buy now
-                    </button>
-                  </div>
-                </div>
-                {passkeySupported && (
-                  <Button
-                    variant="outline"
-                    className="w-full text-xs"
-                    disabled={isAuthenticatingPasskey}
-                    onClick={handleUsePasskey}
-                  >
-                    {isAuthenticatingPasskey
-                      ? <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />Authenticating…</>
-                      : "Use passkey instead"}
-                  </Button>
-                )}
-                <p className="text-[10px] text-center text-muted-foreground">
-                  Transaction gas fees are sponsored by Medialane.
-                </p>
-              </div>
+              />
             </div>
 
           ) : (

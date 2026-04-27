@@ -18,12 +18,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { PinInput } from "@/components/ui/pin-input";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { useAuth, SignInButton } from "@clerk/nextjs";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { useMarketplaceActionFlow } from "@/hooks/use-marketplace-action-flow";
 import { useResolvedTokenStandard } from "@/hooks/use-resolved-token-standard";
+import {
+  MarketplacePinStep,
+  MarketplaceProcessingState,
+  MarketplaceTxLink,
+} from "@/components/marketplace/marketplace-dialog-primitives";
 import { EXPLORER_URL, DURATION_OPTIONS } from "@/lib/constants";
 import { parseFormPriceUsdc } from "@/lib/chipi/session-preferences";
 import { isWebAuthnSupported } from "@chipi-stack/nextjs";
@@ -212,15 +216,7 @@ export function OfferDialog({
                 </p>
               </div>
               {txHash && (
-                <a
-                  href={`${EXPLORER_URL}/tx/${txHash}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <span className="font-mono">{txHash.slice(0, 10)}…{txHash.slice(-8)}</span>
-                  <ExternalLink className="h-3 w-3" />
-                </a>
+                <MarketplaceTxLink txHash={txHash} explorerUrl={EXPLORER_URL} />
               )}
               <Button className="w-full h-11" onClick={() => onOpenChange(false)}>Done</Button>
             </div>
@@ -232,24 +228,11 @@ export function OfferDialog({
             </div>
 
           ) : isProcessing ? (
-            <div className="flex flex-col items-center gap-5 p-6 py-8">
-              {tokenImage ? (
-                <div className="relative h-20 w-20 rounded-2xl overflow-hidden border border-border shadow-md">
-                  <img src={tokenImage} alt={name} className="h-full w-full object-cover" />
-                  <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
-                    <Loader2 className="h-7 w-7 animate-spin text-primary" />
-                  </div>
-                </div>
-              ) : (
-                <Loader2 className="h-10 w-10 animate-spin text-primary" />
-              )}
-              <div className="text-center space-y-1">
-                <p className="font-semibold">
-                  {txStatus === "submitting" ? "Submitting offer…" : "Confirming on Starknet…"}
-                </p>
-                <p className="text-sm text-muted-foreground">Please wait, do not close this window.</p>
-              </div>
-            </div>
+            <MarketplaceProcessingState
+              title={txStatus === "submitting" ? "Submitting offer…" : "Confirming on Starknet…"}
+              imageUrl={tokenImage}
+              imageAlt={name}
+            />
 
           ) : !isSignedIn ? (
             <div className="flex flex-col items-center gap-4 p-6 py-10 text-center">
@@ -285,53 +268,27 @@ export function OfferDialog({
               </div>
 
               {/* PIN entry */}
-              <div className="px-6 pb-6 pt-3 space-y-4">
-                <p className="text-sm text-muted-foreground">Enter your PIN to sign the offer.</p>
-                <PinInput
-                  value={pin}
-                  onChange={(v) => { setPin(v); setPinError(null); }}
-                  error={pinError}
-                  autoFocus
-                />
-                {error && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
+              <MarketplacePinStep
+                description="Enter your PIN to sign the offer."
+                pin={pin}
+                onPinChange={(value) => { setPin(value); setPinError(null); }}
+                pinError={pinError}
+                error={error}
+                secondaryLabel="Back"
+                onSecondary={() => { setStep("form"); setPin(""); setPinError(null); }}
+                primaryLabel="Send offer"
+                onPrimary={handlePin}
+                primaryDisabled={pin.length < 6}
+                primaryIcon={<HandCoins className="h-4 w-4" />}
+                passkeySupported={passkeySupported}
+                isAuthenticatingPasskey={isAuthenticatingPasskey}
+                onUsePasskey={handleUsePasskey}
+                footer={(
+                  <p className="text-[10px] text-center text-muted-foreground">
+                    Transaction gas fees are sponsored by Medialane.
+                  </p>
                 )}
-                <div className="flex gap-2 pt-1">
-                  <Button
-                    variant="outline"
-                    className="gap-1.5"
-                    onClick={() => { setStep("form"); setPin(""); setPinError(null); }}
-                  >
-                    <ArrowLeft className="h-4 w-4" /> Back
-                  </Button>
-                  <Button
-                    className="flex-1 h-11"
-                    disabled={pin.length < 6}
-                    onClick={handlePin}
-                  >
-                    <HandCoins className="h-4 w-4 mr-2" />
-                    Send offer
-                  </Button>
-                </div>
-                {passkeySupported && (
-                  <Button
-                    variant="outline"
-                    className="w-full text-xs"
-                    disabled={isAuthenticatingPasskey}
-                    onClick={handleUsePasskey}
-                  >
-                    {isAuthenticatingPasskey
-                      ? <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />Authenticating…</>
-                      : "Use passkey instead"}
-                  </Button>
-                )}
-                <p className="text-[10px] text-center text-muted-foreground">
-                  Transaction gas fees are sponsored by Medialane.
-                </p>
-              </div>
+              />
             </>
 
           ) : (
