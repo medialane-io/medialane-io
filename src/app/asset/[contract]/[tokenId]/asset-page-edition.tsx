@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useParams } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import { useToken, useTokenHistory } from "@/hooks/use-tokens";
 import { useTokenListings } from "@/hooks/use-orders";
@@ -54,6 +53,11 @@ import {
   AssetMarketplaceDialogs,
   useAssetMarketplaceDialogState,
 } from "./asset-marketplace-dialogs";
+import {
+  AssetHeaderBlock,
+  AssetMediaColumn,
+  buildEditionStats,
+} from "./asset-top-sections";
 
 export function AssetPageEdition() {
   const { contract, tokenId } = useParams<{ contract: string; tokenId: string }>();
@@ -209,50 +213,19 @@ export function AssetPageEdition() {
         </nav>
 
         <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] lg:gap-10 gap-8 items-start">
-          {/* Image */}
-          <motion.div
-            initial={shouldReduce ? false : { scale: 1.0, opacity: 0 }}
-            animate={{ scale: 1.02, opacity: 1 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="overflow-hidden rounded-xl lg:sticky lg:top-16"
-          >
-            <div className="rounded-2xl overflow-hidden border border-border bg-muted">
-              {image && !imgError ? (
-                <Image
-                  src={image}
-                  alt={name}
-                  width={0}
-                  height={0}
-                  sizes="(max-width: 1024px) 100vw, 66vw"
-                  className="w-full h-auto"
-                  onError={() => setImgError(true)}
-                  priority
-                />
-              ) : (
-                <div className="aspect-square flex items-center justify-center bg-gradient-to-br from-violet-500/20 to-purple-600/20">
-                  <Layers className="h-24 w-24 text-violet-500/40" />
-                </div>
-              )}
-            </div>
-
-            {/* Edition stats below image */}
-            <div className="grid grid-cols-2 gap-3 mt-4">
-              <div className="rounded-xl border border-border bg-muted/20 p-4 text-center">
-                <p className="text-2xl font-black">{totalEditions.toLocaleString()}</p>
-                <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground mt-1">
-                  <Layers className="h-3 w-3" />
-                  editions minted
-                </div>
+          <AssetMediaColumn
+            shouldReduce={Boolean(shouldReduce)}
+            image={image}
+            imageAlt={name}
+            imgError={imgError}
+            onImageError={() => setImgError(true)}
+            fallback={(
+              <div className="aspect-square flex items-center justify-center bg-gradient-to-br from-violet-500/20 to-purple-600/20">
+                <Layers className="h-24 w-24 text-violet-500/40" />
               </div>
-              <div className="rounded-xl border border-border bg-muted/20 p-4 text-center">
-                <p className="text-2xl font-black">{uniqueOwners.toLocaleString()}</p>
-                <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground mt-1">
-                  <Users className="h-3 w-3" />
-                  unique owners
-                </div>
-              </div>
-            </div>
-          </motion.div>
+            )}
+            stats={buildEditionStats(totalEditions, uniqueOwners)}
+          />
 
           {/* Right column */}
           <motion.div
@@ -261,22 +234,12 @@ export function AssetPageEdition() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="space-y-6"
           >
-            {/* Header */}
-            <div>
-              <div className="flex items-center gap-2 flex-wrap mb-2">
-                {token.metadata?.ipType && (
-                  <IpTypeBadge ipType={token.metadata.ipType} size="md" />
-                )}
-                <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-violet-500/30 bg-violet-500/10 text-violet-500">
-                  <Layers className="h-3 w-3" />
-                  Multi-Edition
-                </span>
-              </div>
-              <h1 className="text-3xl lg:text-5xl font-bold">{name}</h1>
-              {description && (
-                <p className="text-sm text-muted-foreground leading-relaxed mt-1">{description}</p>
-              )}
-            </div>
+            <AssetHeaderBlock
+              name={name}
+              description={description}
+              ipType={token.metadata?.ipType}
+              showMultiEditionBadge={true}
+            />
 
             <AssetMarketplacePanel
               cheapest={cheapest}

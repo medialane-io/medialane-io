@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import { useToken, useTokenHistory } from "@/hooks/use-tokens";
 import { useTokenListings } from "@/hooks/use-orders";
@@ -46,6 +45,7 @@ import {
   AssetOwnersPanel,
 } from "./asset-side-panels";
 import { AssetOverviewContent } from "./asset-overview-content";
+import { AssetHeaderBlock, AssetMediaColumn } from "./asset-top-sections";
 import { useOrderActions } from "./use-order-actions";
 
 export function AssetPageStandard() {
@@ -250,32 +250,18 @@ export function AssetPageStandard() {
 
         {/* Top: image + info */}
         <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] lg:gap-10 gap-8 items-start">
-          {/* Image — sticky on desktop */}
-          <motion.div
-            initial={shouldReduce ? false : { scale: 1.0, opacity: 0 }}
-            animate={{ scale: 1.02, opacity: 1 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="overflow-hidden rounded-xl lg:sticky lg:top-16"
-          >
-            <div className="rounded-2xl overflow-hidden border border-border bg-muted">
-              {image && !imgError ? (
-                <Image
-                  src={image}
-                  alt={name}
-                  width={0}
-                  height={0}
-                  sizes="(max-width: 1024px) 100vw, 66vw"
-                  className="w-full h-auto"
-                  onError={() => setImgError(true)}
-                  priority
-                />
-              ) : (
-                <div className="aspect-square flex items-center justify-center bg-gradient-to-br from-primary/10 to-purple-500/10">
-                  <span className="text-5xl font-mono text-muted-foreground">#{tokenId}</span>
-                </div>
-              )}
-            </div>
-          </motion.div>
+          <AssetMediaColumn
+            shouldReduce={Boolean(shouldReduce)}
+            image={image}
+            imageAlt={name}
+            imgError={imgError}
+            onImageError={() => setImgError(true)}
+            fallback={(
+              <div className="aspect-square flex items-center justify-center bg-gradient-to-br from-primary/10 to-purple-500/10">
+                <span className="text-5xl font-mono text-muted-foreground">#{tokenId}</span>
+              </div>
+            )}
+          />
 
           {/* Right column */}
           <motion.div
@@ -284,41 +270,15 @@ export function AssetPageStandard() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="space-y-6"
           >
-            <div>
-              {parentContract && parentTokenId && (
-                <div className="mb-3">
-                  <ParentAttributionBanner
-                    parentContract={parentContract}
-                    parentTokenId={parentTokenId}
-                    parentName={`Token #${parentTokenId}`}
-                  />
-                </div>
-              )}
-              <div className="flex items-center gap-2 flex-wrap mb-2">
-                {token.metadata?.ipType && (
-                  <IpTypeBadge ipType={token.metadata.ipType} size="md" />
-                )}
-                {isERC1155 && (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-violet-500/30 bg-violet-500/10 text-violet-500">
-                    <Layers className="h-3 w-3" />
-                    Multi-edition
-                  </span>
-                )}
-              </div>
-              {/* ERC-721 ownership — shown above the title */}
-              {!isERC1155 && (token.balances?.[0]?.owner ?? token.owner) ? (
-                <div className="mb-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <span className="font-semibold uppercase tracking-wider">Owner</span>
-                  <Link href={`/creator/${token.balances?.[0]?.owner ?? token.owner}`} className="hover:text-primary transition-colors font-medium">
-                    <AddressDisplay address={(token.balances?.[0]?.owner ?? token.owner)!} />
-                  </Link>
-                </div>
-              ) : null}
-              <h1 className="text-3xl lg:text-5xl font-bold">{name}</h1>
-              {description && (
-                <p className="text-sm text-muted-foreground leading-relaxed mt-1">{description}</p>
-              )}
-            </div>
+            <AssetHeaderBlock
+              name={name}
+              description={description}
+              ipType={token.metadata?.ipType}
+              showMultiEditionBadge={Boolean(isERC1155)}
+              parentContract={parentContract}
+              parentTokenId={parentTokenId}
+              ownerAddress={!isERC1155 ? (token.balances?.[0]?.owner ?? token.owner ?? null) : null}
+            />
 
             <AssetMarketplacePanel
               cheapest={cheapest}
