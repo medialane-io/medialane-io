@@ -14,7 +14,7 @@ import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { ipfsToHttp, timeUntil, formatDisplayPrice, checkIsOwner } from "@/lib/utils";
-import { ShoppingCart, Tag, ExternalLink, Clock, HandCoins, ArrowRightLeft, X, CheckCircle, DollarSign, GitBranch, UserCheck, Globe, Bot, Percent, Shield, Calendar, ChevronRight, Flag, Loader2, Layers } from "lucide-react";
+import { ExternalLink, DollarSign, UserCheck, Globe, Bot, Percent, Shield, Calendar, ChevronRight, Flag, Layers, GitBranch } from "lucide-react";
 import { FloatingCommentsButton } from "@/components/asset/floating-comments-button";
 import { ReportDialog } from "@/components/report-dialog";
 import { ShareButton } from "@/components/shared/share-button";
@@ -40,6 +40,7 @@ import { HelpIcon } from "@/components/ui/help-icon";
 import { AssetMarketsTab } from "./asset-markets-tab";
 import { AssetProvenanceTab } from "./asset-provenance-tab";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { AssetMarketplacePanel } from "./asset-marketplace-panel";
 import {
   AssetMarketplaceDialogs,
   useAssetMarketplaceDialogState,
@@ -318,264 +319,26 @@ export function AssetPageStandard() {
               )}
             </div>
 
-            {/* Price / action box */}
-            {cheapest ? (
-              <div className="rounded-2xl border border-border p-5 space-y-4">
-                <div className="flex items-center gap-2">
-                  <CurrencyIcon symbol={cheapest.price.currency ?? ""} size={22} />
-                  <span className="text-3xl font-bold">
-                    {formatDisplayPrice(cheapest.price.formatted)}
-                  </span>
-                  <HelpIcon
-                    content={`${isOwner ? "Your listing" : "Current price"} · Expires ${timeUntil(cheapest.endTime)}`}
-                    side="top"
-                  />
-                </div>
-
-                {isOwner ? (
-                  <div className="space-y-2">
-                    {myListing && (
-                    <div className="btn-border-animated p-[1px] rounded-2xl">
-                      <button
-                        className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-destructive disabled:opacity-50"
-                        disabled={isProcessing}
-                        onClick={() => handleCancelClick(myListing)}
-                      >
-                        {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
-                        Cancel listing
-                      </button>
-                    </div>
-                    )}
-                    <div className="btn-border-animated p-[1px] rounded-2xl">
-                      <button
-                        className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-blue"
-                        onClick={() => setListOpen(true)}
-                      >
-                        <Tag className="h-4 w-4" />
-                        {isERC1155 ? "List edition for sale" : "Create new listing"}
-                      </button>
-                    </div>
-                    <div className="btn-border-animated p-[1px] rounded-2xl">
-                      <button
-                        className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-orange"
-                        onClick={() => setTransferOpen(true)}
-                      >
-                        <ArrowRightLeft className="h-4 w-4" />
-                        Transfer
-                      </button>
-                    </div>
-                    <div className="btn-border-animated p-[1px] rounded-2xl">
-                      <button
-                        className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-purple"
-                        onClick={() => router.push(`/create/remix/${contract}/${tokenId}`)}
-                      >
-                        <GitBranch className="h-4 w-4" />
-                        Create a Remix
-                        <HelpIcon content="Build a licensed derivative of this IP asset — your remix is minted as a new onchain NFT linked to the original" side="top" />
-                      </button>
-                    </div>
-                  </div>
-                ) : isSignedIn ? (
-                  <div className="space-y-2">
-                    {/* Buy Now — flat bg/30, animated gradient border */}
-                    <div className="btn-border-animated p-[1px] rounded-2xl">
-                      <button
-                        className="w-full h-12 text-base font-semibold text-white rounded-[15px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] bg-background/30"
-                        onClick={() => setPurchaseOrder(cheapest)}
-                      >
-                        <ShoppingCart className="h-5 w-5" />
-                        {isERC1155 ? "Buy Edition" : "Buy Asset"}
-                      </button>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      {/* Add to cart — flat brand-orange, animated gradient border */}
-                      <div className={`btn-border-animated p-[1px] rounded-2xl ${inCart ? "opacity-40 pointer-events-none" : ""}`}>
-                        <button
-                          className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-blue"
-                          disabled={inCart}
-                          onClick={handleAddToCart}
-                        >
-                          <ShoppingCart className="h-4 w-4" />
-                          {inCart ? "In cart" : "Add to cart"}
-                        </button>
-                      </div>
-                      {/* Make offer — flat brand-purple, animated gradient border */}
-                      <div className="btn-border-animated p-[1px] rounded-2xl">
-                        <button
-                          className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-orange"
-                          onClick={() => setOfferOpen(true)}
-                        >
-                          <HandCoins className="h-4 w-4" />
-                          Make offer
-                        </button>
-                      </div>
-                    </div>
-                    {/* Create a Remix */}
-                    {!isOwner && (
-                      <div className="btn-border-animated p-[1px] rounded-2xl">
-                        <button
-                          className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-purple"
-                          onClick={handleAutoRemix}
-                        >
-                          <GitBranch className="h-4 w-4" />
-                          Create a Remix
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <SignInButton mode="modal">
-                    <div className="btn-border-animated p-[1px] rounded-2xl">
-                    <Button className="w-full h-12 text-base bg-background/30 text-white rounded-[15px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98]">
-                      <ShoppingCart className="h-5 w-5 mr-2" />
-                      Sign in to trade
-                    </Button>
-                    </div>
-                  </SignInButton>
-                )}
-              </div>
-            ) : (
-              <div className="rounded-xl border border-border p-5 space-y-3">
-                {isOwner ? (
-                  <div className="space-y-2">
-                    <div className="btn-border-animated p-[1px] rounded-2xl">
-                      <button
-                        className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-background/30"
-                        onClick={() => setListOpen(true)}
-                      >
-                        <Tag className="h-4 w-4" />
-                        {isERC1155 ? "List edition for sale" : "List for sale"}
-                      </button>
-                    </div>
-                    <div className="btn-border-animated p-[1px] rounded-2xl">
-                      <button
-                        className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-orange"
-                        onClick={() => setTransferOpen(true)}
-                      >
-                        <ArrowRightLeft className="h-4 w-4" />
-                        Transfer
-                      </button>
-                    </div>
-                    <div className="btn-border-animated p-[1px] rounded-2xl">
-                      <button
-                        className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-purple"
-                        onClick={() => router.push(`/create/remix/${contract}/${tokenId}`)}
-                      >
-                        <GitBranch className="h-4 w-4" />
-                        Create a Remix
-                        <HelpIcon content="Build a licensed derivative of this IP asset — your remix is minted as a new onchain NFT linked to the original" side="top" />
-                      </button>
-                    </div>
-                  </div>
-                ) : isSignedIn ? (
-                  <div className="space-y-2">
-                    <div className="btn-border-animated p-[1px] rounded-2xl">
-                      <button
-                        className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-orange"
-                        onClick={() => setOfferOpen(true)}
-                      >
-                        <HandCoins className="h-4 w-4" />
-                        Make offer
-                      </button>
-                    </div>
-                    <div className="btn-border-animated p-[1px] rounded-2xl">
-                      <button
-                        className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-purple"
-                        onClick={handleAutoRemix}
-                      >
-                        <GitBranch className="h-4 w-4" />
-                        Create a Remix
-                        <HelpIcon content="Build a licensed derivative of this IP asset — your remix is minted as a new onchain NFT linked to the original" side="top" />
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <SignInButton mode="modal">
-                    <Button variant="outline" className="w-full">
-                      Sign in to make an offer
-                    </Button>
-                  </SignInButton>
-                )}
-              </div>
-            )}
-
-            {/* My active offer banner — visible to the bidder only */}
-            {!isOwner && walletAddress && (() => {
-              const myBid = activeBids.find(
-                (b) => b.offerer.toLowerCase() === walletAddress.toLowerCase()
-              );
-              if (!myBid) return null;
-              return (
-                <div className="rounded-xl border border-amber-500/30 bg-amber-500/8 px-4 py-3 flex items-center justify-between gap-3">
-                  <div className="min-w-0 flex items-center gap-2.5">
-                    <HandCoins className="h-4 w-4 text-amber-500 shrink-0" />
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold text-amber-500">Your active offer</p>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
-                        <span className="font-bold text-foreground inline-flex items-center gap-1">
-                          {formatDisplayPrice(myBid.price.formatted)}
-                          <CurrencyIcon symbol={myBid.price.currency ?? ""} size={12} />
-                        </span>
-                        <span>·</span>
-                        <Clock className="h-3 w-3" />
-                        {timeUntil(myBid.endTime)}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    className="shrink-0 text-xs font-semibold text-red-400 hover:text-red-300 transition-colors flex items-center gap-1"
-                    onClick={() => handleCancelClick(myBid)}
-                  >
-                    <X className="h-3.5 w-3.5" />
-                    Cancel
-                  </button>
-                </div>
-              );
-            })()}
-
-            {/* Incoming offers — visible to owner only */}
-            {isOwner && activeBids.length > 0 && (
-              <div className="rounded-xl border border-border p-5 space-y-3">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Incoming offers ({activeBids.length})
-                </p>
-                <div className="space-y-2">
-                  {activeBids.map((bid) => (
-                    <div
-                      key={bid.orderHash}
-                      className="flex items-center justify-between gap-3 rounded-lg bg-muted/30 px-3 py-2"
-                    >
-                      <div className="min-w-0">
-                        <p className="text-sm font-bold">
-                          <span className="inline-flex items-center gap-1.5">{formatDisplayPrice(bid.price.formatted)} <CurrencyIcon symbol={bid.price.currency ?? ""} size={14} /></span>
-                        </p>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <AddressDisplay
-                            address={bid.offerer}
-                            chars={4}
-                            showCopy={false}
-                            className="text-xs text-muted-foreground"
-                          />
-                          <span className="text-xs text-muted-foreground">·</span>
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <Clock className="h-3 w-3" />
-                            {timeUntil(bid.endTime)}
-                          </div>
-                        </div>
-                      </div>
-                      <Button
-                        size="sm"
-                        disabled={isProcessing}
-                        onClick={() => handleAcceptClick(bid)}
-                      >
-                        <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
-                        Accept
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            <AssetMarketplacePanel
+              cheapest={cheapest}
+              isOwner={isOwner}
+              isSignedIn={!!isSignedIn}
+              isProcessing={isProcessing}
+              isERC1155={isERC1155}
+              myListing={myListing ?? null}
+              activeBids={activeBids}
+              walletAddress={walletAddress}
+              inCart={inCart}
+              remixEnabled
+              onCancelClick={handleCancelClick}
+              onAcceptBid={handleAcceptClick}
+              onOpenListing={() => setListOpen(true)}
+              onOpenTransfer={() => setTransferOpen(true)}
+              onOpenPurchase={setPurchaseOrder}
+              onAddToCart={handleAddToCart}
+              onOpenOffer={() => setOfferOpen(true)}
+              onOpenRemix={handleAutoRemix}
+            />
 
             {/* ERC-1155 ownership — shown after marketplace buttons */}
             {isERC1155 && token.balances && token.balances.length > 0 && (
