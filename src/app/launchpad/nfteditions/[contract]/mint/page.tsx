@@ -114,8 +114,8 @@ export default function MintIP1155Page() {
 
   const onSubmit = (values: NftEditionsMintFormValues) => {
     if (!imageUri) { toast.error("Upload an image first"); return; }
-    if (!hasWallet) { setWalletSetupOpen(true); return; }
     setPendingValues(values);
+    if (!hasWallet) { setWalletSetupOpen(true); return; }
     setPinOpen(true);
   };
 
@@ -174,6 +174,7 @@ export default function MintIP1155Page() {
   const handleMintAnother = () => {
     setMintStep("idle");
     setMintError(null);
+    setPendingValues(null);
     clearImage();
     form.reset({ tokenId: "", value: "1", recipient: walletAddress ?? "", name: "", description: "" });
   };

@@ -99,8 +99,8 @@ export default function CreatePOPPage() {
       toast.error("POP Factory contract not configured");
       return;
     }
-    if (!hasWallet) { setWalletSetupOpen(true); return; }
     setPendingValues(values);
+    if (!hasWallet) { setWalletSetupOpen(true); return; }
     setPinOpen(true);
   };
 

@@ -105,6 +105,7 @@ export default function CreateIP1155CollectionPage() {
     setCollectionError(null);
     setDeployedAddress(null);
     setPendingValues(null);
+    setAutoSymbol("");
     form.reset();
     clearImage();
   };
@@ -114,8 +115,8 @@ export default function CreateIP1155CollectionPage() {
       toast.error("Image upload failed", { description: "Please re-upload your collection image." });
       return;
     }
-    if (!hasWallet) { setWalletSetupOpen(true); return; }
     setPendingValues(values);
+    if (!hasWallet) { setWalletSetupOpen(true); return; }
     setPinOpen(true);
   };
 

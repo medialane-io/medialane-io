@@ -201,8 +201,8 @@ export default function CreateDropPage() {
 
   const onSubmit = (values: DropCreateFormValues) => {
     if (resolvedSupply() <= 0n) { toast.error("Set a valid max supply"); return; }
-    if (!hasWallet) { setWalletSetupOpen(true); return; }
     setPendingValues(values);
+    if (!hasWallet) { setWalletSetupOpen(true); return; }
     setPinOpen(true);
   };
 
