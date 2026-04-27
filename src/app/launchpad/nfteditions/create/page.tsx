@@ -24,6 +24,8 @@ import { starknetProvider } from "@/lib/starknet";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
+import { LaunchpadPageIntro } from "@/components/launchpad/launchpad-page-intro";
+import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { NftEditionsCreateForm } from "../nfteditions-create-form";
 import {
   nftEditionsCreateSchema,
@@ -208,11 +210,12 @@ export default function CreateIP1155CollectionPage() {
   // ── Not signed in ─────────────────────────────────────────────────────────
   if (!isSignedIn) {
     return (
-      <div className="container max-w-lg mx-auto px-4 pt-24 pb-8 text-center space-y-4">
-        <Layers className="h-10 w-10 text-violet-500 mx-auto" />
-        <h1 className="text-2xl font-bold">Sign in to create a collection</h1>
-        <p className="text-muted-foreground">Deploy a multi-edition ERC-1155 IP collection on Starknet.</p>
-      </div>
+      <LaunchpadSignedOutState
+        icon={Layers}
+        iconClassName="text-violet-500"
+        title="Sign in to create a collection"
+        description="Deploy a multi-edition ERC-1155 IP collection on Starknet."
+      />
     );
   }
 
@@ -234,16 +237,12 @@ export default function CreateIP1155CollectionPage() {
       />
 
       <div className="container max-w-2xl mx-auto px-4 pt-14 pb-8 space-y-8">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-primary">
-            <Layers className="h-5 w-5" />
-            <span className="text-sm font-semibold uppercase tracking-wider">IP Collection · ERC-1155</span>
-          </div>
-          <h1 className="text-3xl font-bold">Create IP Collection</h1>
-          <p className="text-muted-foreground">
-            Deploy a multi-edition ERC-1155 collection on Starknet. Gas is free.
-          </p>
-        </div>
+        <LaunchpadPageIntro
+          icon={Layers}
+          badge="IP Collection · ERC-1155"
+          title="Create IP Collection"
+          description="Deploy a multi-edition ERC-1155 collection on Starknet. Gas is free."
+        />
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">

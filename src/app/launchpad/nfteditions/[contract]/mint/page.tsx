@@ -25,6 +25,8 @@ import { Contract, byteArray as starkByteArray } from "starknet";
 import { starknetProvider } from "@/lib/starknet";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
+import { LaunchpadPageIntro } from "@/components/launchpad/launchpad-page-intro";
+import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { NftEditionsMintConfirmDialog } from "../../nfteditions-mint-confirm-dialog";
 import { NftEditionsMintForm } from "../../nfteditions-mint-form";
 import {
@@ -179,11 +181,12 @@ export default function MintIP1155Page() {
   // ── Not signed in ─────────────────────────────────────────────────────────
   if (!isSignedIn) {
     return (
-      <div className="container max-w-lg mx-auto px-4 pt-24 pb-8 text-center space-y-4">
-        <Sparkles className="h-10 w-10 text-violet-500 mx-auto" />
-        <h1 className="text-2xl font-bold">Sign in to create</h1>
-        <p className="text-muted-foreground">Sign in to mint tokens into multi-editions collection.</p>
-      </div>
+      <LaunchpadSignedOutState
+        icon={Sparkles}
+        iconClassName="text-violet-500"
+        title="Sign in to create"
+        description="Sign in to mint tokens into multi-editions collection."
+      />
     );
   }
 
@@ -208,20 +211,16 @@ export default function MintIP1155Page() {
     <>
       <div className="container max-w-xl mx-auto px-4 pt-10 pb-16 space-y-8">
         <FadeIn>
-          <div className="space-y-1">
-            <span className="pill-badge inline-flex gap-1.5">
-              <Sparkles className="h-3 w-3" />
-              ERC-1155 · Mint
-            </span>
-            <h1 className="text-3xl font-bold mt-3">Mint IP Asset</h1>
-            <p className="text-muted-foreground text-sm">
-              Mint a new token type into your ERC-1155 collection. The URI and authorship
-              are recorded permanently on-chain at first mint.
-            </p>
+          <LaunchpadPageIntro
+            icon={Sparkles}
+            badge="ERC-1155 · Mint"
+            title="Mint IP Asset"
+            description="Mint a new token type into your ERC-1155 collection. The URI and authorship are recorded permanently on-chain at first mint."
+          >
             <p className="text-xs text-muted-foreground font-mono break-all">
               Collection: {collectionAddress}
             </p>
-          </div>
+          </LaunchpadPageIntro>
         </FadeIn>
 
         <Form {...form}>

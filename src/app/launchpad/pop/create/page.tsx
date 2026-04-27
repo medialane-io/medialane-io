@@ -26,6 +26,8 @@ import { getDefaultClaimWindow, suggestLaunchpadSymbol } from "@/lib/launchpad-d
 import { PopCreateForm } from "../pop-create-form";
 import { popCreateSchema, type PopCreateFormValues } from "../pop-create-schema";
 import { LaunchpadSuccessState } from "@/components/launchpad/launchpad-success-state";
+import { LaunchpadPageIntro } from "@/components/launchpad/launchpad-page-intro";
+import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 
 export default function CreatePOPPage() {
   const { isSignedIn } = useUser();
@@ -175,11 +177,12 @@ export default function CreatePOPPage() {
   // ── Not signed in ──────────────────────────────────────────────────────────
   if (!isSignedIn) {
     return (
-      <div className="container max-w-lg mx-auto px-4 pt-24 pb-8 text-center space-y-4">
-        <Award className="h-10 w-10 text-green-500 mx-auto" />
-        <h1 className="text-2xl font-bold">Sign in to create a POP event</h1>
-        <p className="text-muted-foreground">Sign in to deploy a credential collection on Starknet.</p>
-      </div>
+      <LaunchpadSignedOutState
+        icon={Award}
+        iconClassName="text-green-500"
+        title="Sign in to create a POP event"
+        description="Sign in to deploy a credential collection on Starknet."
+      />
     );
   }
 
@@ -189,16 +192,13 @@ export default function CreatePOPPage() {
       <div className="container max-w-xl mx-auto px-4 pt-10 pb-16 space-y-8">
 
         <FadeIn>
-          <div className="space-y-1">
-            <span className="pill-badge inline-flex gap-1.5">
-              <Award className="h-3 w-3" />
-              Proof of Participation
-            </span>
-            <h1 className="text-3xl font-bold mt-3">Create Event</h1>
-            <p className="text-muted-foreground text-sm">
-              Deploy a soulbound credential collection for your event or program.
-            </p>
-          </div>
+          <LaunchpadPageIntro
+            icon={Award}
+            badge="Proof of Participation"
+            title="Create Event"
+            description="Deploy a soulbound credential collection for your event or program."
+            className="text-green-600 dark:text-green-400"
+          />
         </FadeIn>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">

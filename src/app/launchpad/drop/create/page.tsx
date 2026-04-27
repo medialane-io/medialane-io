@@ -28,6 +28,8 @@ import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { getDefaultDropSchedule, suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
 import { LaunchpadSuccessState } from "@/components/launchpad/launchpad-success-state";
+import { LaunchpadPageIntro } from "@/components/launchpad/launchpad-page-intro";
+import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 
 const PAYMENT_TOKENS = getListableTokens().map((t) => ({ symbol: t.symbol, address: t.address }));
 
@@ -284,11 +286,12 @@ export default function CreateDropPage() {
   // ── Not signed in ─────────────────────────────────────────────────────────
   if (!isSignedIn) {
     return (
-      <div className="container max-w-lg mx-auto px-4 pt-24 pb-8 text-center space-y-4">
-        <Package className="h-10 w-10 text-orange-500 mx-auto" />
-        <h1 className="text-2xl font-bold">Sign in to launch a drop</h1>
-        <p className="text-muted-foreground">Sign in to deploy a limited-edition collection on Starknet.</p>
-      </div>
+      <LaunchpadSignedOutState
+        icon={Package}
+        iconClassName="text-orange-500"
+        title="Sign in to launch a drop"
+        description="Sign in to deploy a limited-edition collection on Starknet."
+      />
     );
   }
 
@@ -298,16 +301,13 @@ export default function CreateDropPage() {
       <div className="container max-w-xl mx-auto px-4 pt-10 pb-16 space-y-8">
 
         <FadeIn>
-          <div className="space-y-1">
-            <span className="pill-badge inline-flex gap-1.5">
-              <Package className="h-3 w-3" />
-              Collection Drop
-            </span>
-            <h1 className="text-3xl font-bold mt-3">Launch Drop</h1>
-            <p className="text-muted-foreground text-sm">
-              Deploy a limited-edition ERC-721 collection with a fixed supply cap and mint window.
-            </p>
-          </div>
+          <LaunchpadPageIntro
+            icon={Package}
+            badge="Collection Drop"
+            title="Launch Drop"
+            description="Deploy a limited-edition ERC-721 collection with a fixed supply cap and mint window."
+            className="text-orange-600 dark:text-orange-400"
+          />
         </FadeIn>
 
         <Form {...form}>
