@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Layers } from "lucide-react";
@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { normalizeAddress } from "@medialane/sdk";
 import { hash, byteArray as starkByteArray } from "starknet";
 import { starknetProvider } from "@/lib/starknet";
+import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { NftEditionsCreateForm } from "../nfteditions-create-form";
 import {
   nftEditionsCreateSchema,
@@ -55,18 +56,21 @@ export default function CreateIP1155CollectionPage() {
   const [collectionStep, setCollectionStep] = useState<CollectionStep>("idle");
   const [collectionError, setCollectionError] = useState<string | null>(null);
   const [deployedAddress, setDeployedAddress] = useState<string | null>(null);
-
-  // Image upload state
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [imageUri, setImageUri] = useState<string | null>(null);
-  const [imageUploading, setImageUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const previewUrlRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    return () => { if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current); };
-  }, []);
+  const {
+    imageFile,
+    imagePreview,
+    imageUri,
+    imageUploading,
+    fileInputRef,
+    handleImageSelect,
+    clearImage,
+  } = useLaunchpadImageUpload({
+    allowedTypes: ["image/jpeg", "image/png", "image/gif", "image/svg+xml", "image/webp"],
+    successMessage: "Image uploaded to IPFS",
+    failureMessage: "Image upload failed",
+    invalidTypeTitle: "Unsupported format",
+    invalidTypeDescription: "Please upload a JPG, PNG, GIF, SVG, or WebP image.",
+  });
 
   const form = useForm<NftEditionsCreateFormValues>({
     resolver: zodResolver(nftEditionsCreateSchema),
@@ -78,53 +82,6 @@ export default function CreateIP1155CollectionPage() {
       form.setValue("external_link", `https://medialane.io/account/${walletAddress}`);
     }
   }, [walletAddress, form]);
-
-  const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/svg+xml", "image/webp"];
-
-  const handleImageSelect = async (file: File) => {
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      toast.error("Unsupported format", { description: "Please upload a JPG, PNG, GIF, SVG, or WebP image." });
-      return;
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("Image too large", { description: `Max 10 MB. Your file is ${(file.size / 1024 / 1024).toFixed(1)} MB.` });
-      return;
-    }
-    setImageFile(file);
-    if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
-    const objectUrl = URL.createObjectURL(file);
-    previewUrlRef.current = objectUrl;
-    setImagePreview(objectUrl);
-    setImageUri(null);
-    setImageUploading(true);
-    try {
-      const signedRes = await fetch("/api/pinata/signed-url", { method: "POST" });
-      const signedData = await signedRes.json();
-      if (!signedRes.ok || !signedData.url) throw new Error("Failed to get upload URL");
-      const fd = new FormData();
-      fd.append("file", file, file.name);
-      fd.append("network", "public");
-      fd.append("name", file.name);
-      const uploadRes = await fetch(signedData.url, { method: "POST", body: fd });
-      if (!uploadRes.ok) throw new Error("Upload failed");
-      const { data } = await uploadRes.json();
-      if (!data?.cid) throw new Error("No CID returned");
-      setImageUri(`ipfs://${data.cid}`);
-      toast.success("Image uploaded to IPFS");
-    } catch (err) {
-      toast.error("Image upload failed", { description: err instanceof Error ? err.message : undefined });
-      setImageUri(null);
-    } finally {
-      setImageUploading(false);
-    }
-  };
-
-  const clearImage = () => {
-    setImageFile(null);
-    setImagePreview(null);
-    setImageUri(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
 
   const handleReset = () => {
     setCollectionStep("idle");

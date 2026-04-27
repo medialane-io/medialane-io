@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,6 +23,7 @@ import { FadeIn } from "@/components/ui/motion-primitives";
 import { normalizeAddress } from "@medialane/sdk";
 import { Contract, byteArray as starkByteArray } from "starknet";
 import { starknetProvider } from "@/lib/starknet";
+import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { NftEditionsMintConfirmDialog } from "../../nfteditions-mint-confirm-dialog";
 import { NftEditionsMintForm } from "../../nfteditions-mint-form";
 import {
@@ -61,14 +62,17 @@ export default function MintIP1155Page() {
   const [mintStep, setMintStep] = useState<MintStep>("idle");
   const [mintError, setMintError] = useState<string | null>(null);
   const [ownerCheck, setOwnerCheck] = useState<"loading" | "ok" | "denied">("loading");
-
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [imageUri, setImageUri] = useState<string | null>(null);
-  const [imageUploading, setImageUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const previewRef = useRef<string | null>(null);
-
-  useEffect(() => () => { if (previewRef.current) URL.revokeObjectURL(previewRef.current); }, []);
+  const {
+    imagePreview,
+    imageUri,
+    imageUploading,
+    fileInputRef,
+    handleImageSelect,
+    clearImage,
+  } = useLaunchpadImageUpload({
+    successMessage: "Image uploaded to IPFS",
+    failureMessage: "Image upload failed",
+  });
 
   const form = useForm<NftEditionsMintFormValues>({
     resolver: zodResolver(nftEditionsMintSchema),
@@ -104,33 +108,6 @@ export default function MintIP1155Page() {
       })
       .catch(() => setOwnerCheck("ok"));
   }, [walletAddress, collectionAddress]);
-
-  const handleImageSelect = async (file: File) => {
-    if (file.size > 10 * 1024 * 1024) { toast.error("Max 10 MB"); return; }
-    if (previewRef.current) URL.revokeObjectURL(previewRef.current);
-    const url = URL.createObjectURL(file);
-    previewRef.current = url;
-    setImagePreview(url);
-    setImageUri(null);
-    setImageUploading(true);
-    try {
-      const signedRes = await fetch("/api/pinata/signed-url", { method: "POST" });
-      const { url: uploadUrl } = await signedRes.json();
-      const fd = new FormData();
-      fd.append("file", file, file.name);
-      fd.append("network", "public");
-      fd.append("name", file.name);
-      const up = await fetch(uploadUrl, { method: "POST", body: fd });
-      const { data } = await up.json();
-      if (!data?.cid) throw new Error("No CID");
-      setImageUri(`ipfs://${data.cid}`);
-      toast.success("Image uploaded to IPFS");
-    } catch {
-      toast.error("Image upload failed");
-    } finally {
-      setImageUploading(false);
-    }
-  };
 
   const onSubmit = (values: NftEditionsMintFormValues) => {
     if (!imageUri) { toast.error("Upload an image first"); return; }
@@ -199,8 +176,7 @@ export default function MintIP1155Page() {
   const handleMintAnother = () => {
     setMintStep("idle");
     setMintError(null);
-    setImagePreview(null);
-    setImageUri(null);
+    clearImage();
     form.reset({ tokenId: "", value: "1", recipient: walletAddress ?? "", name: "", description: "" });
   };
 
@@ -263,7 +239,7 @@ export default function MintIP1155Page() {
               mintDisabled={imageUploading || mintStep !== "idle"}
               fileInputRef={fileInputRef}
               onImageSelect={handleImageSelect}
-              onClearImage={() => { setImagePreview(null); setImageUri(null); }}
+              onClearImage={clearImage}
             />
           </form>
         </Form>

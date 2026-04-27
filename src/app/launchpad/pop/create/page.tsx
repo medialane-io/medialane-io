@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -24,6 +24,7 @@ import { toast } from "sonner";
 import { FadeIn } from "@/components/ui/motion-primitives";
 import { POPFactoryABI, POP_FACTORY_CONTRACT, type PopEventType } from "@/lib/launchpad-contracts";
 import { cn } from "@/lib/utils";
+import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 
 const EVENT_TYPES: { value: PopEventType; label: string; icon: React.ElementType; description: string }[] = [
   { value: "Conference",  label: "Conference",  icon: Mic2,     description: "Talks & panels"     },
@@ -55,46 +56,22 @@ export default function CreatePOPPage() {
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
   const [done, setDone] = useState(false);
-
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [imageUri, setImageUri] = useState<string | null>(null);
-  const [imageUploading, setImageUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const previewRef = useRef<string | null>(null);
-
-  useEffect(() => () => { if (previewRef.current) URL.revokeObjectURL(previewRef.current); }, []);
+  const {
+    imagePreview,
+    imageUri,
+    imageUploading,
+    fileInputRef,
+    handleImageSelect,
+    clearImage,
+  } = useLaunchpadImageUpload({
+    successMessage: "Badge image uploaded",
+    failureMessage: "Image upload failed",
+  });
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { name: "", symbol: "", claimEndDate: "", claimEndTime: "23:59" },
   });
-
-  const handleImageSelect = async (file: File) => {
-    if (file.size > 10 * 1024 * 1024) { toast.error("Max 10 MB"); return; }
-    if (previewRef.current) URL.revokeObjectURL(previewRef.current);
-    const url = URL.createObjectURL(file);
-    previewRef.current = url;
-    setImagePreview(url);
-    setImageUri(null);
-    setImageUploading(true);
-    try {
-      const signedRes = await fetch("/api/pinata/signed-url", { method: "POST" });
-      const { url: uploadUrl } = await signedRes.json();
-      const fd = new FormData();
-      fd.append("file", file, file.name);
-      fd.append("network", "public");
-      fd.append("name", file.name);
-      const up = await fetch(uploadUrl, { method: "POST", body: fd });
-      const { data } = await up.json();
-      if (!data?.cid) throw new Error("No CID");
-      setImageUri(`ipfs://${data.cid}`);
-      toast.success("Badge image uploaded");
-    } catch {
-      toast.error("Image upload failed");
-    } finally {
-      setImageUploading(false);
-    }
-  };
 
   const onSubmit = (values: FormValues) => {
     if (!POP_FACTORY_CONTRACT) {
@@ -183,7 +160,7 @@ export default function CreatePOPPage() {
             <Link href="/launchpad/pop">Back to POP launchpad</Link>
           </Button>
           <Button
-            onClick={() => { setDone(false); form.reset(); setImagePreview(null); setImageUri(null); setEventType("Conference"); }}
+            onClick={() => { setDone(false); form.reset(); clearImage(); setEventType("Conference"); }}
             className="bg-green-600 hover:bg-green-700 text-white"
           >
             Create another
@@ -284,7 +261,7 @@ export default function CreatePOPPage() {
                         : imagePreview ? "Change" : "Upload badge art"}
                     </Button>
                     {imagePreview && (
-                      <button type="button" onClick={() => { setImagePreview(null); setImageUri(null); }}
+                      <button type="button" onClick={clearImage}
                         className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors">
                         <X className="h-3 w-3" /> Remove
                       </button>

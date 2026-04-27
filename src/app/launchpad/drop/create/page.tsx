@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
@@ -24,6 +24,7 @@ import { DropFactoryABI, DROP_FACTORY_CONTRACT } from "@/lib/launchpad-contracts
 import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
 import { DropCreateForm, type PaymentTokenOption } from "../drop-create-form";
 import { dropCreateSchema, type DropCreateFormValues } from "../drop-create-schema";
+import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 
 const PAYMENT_TOKENS = getListableTokens().map((t) => ({ symbol: t.symbol, address: t.address }));
 
@@ -49,14 +50,17 @@ export default function CreateDropPage() {
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
   const [pendingValues, setPendingValues] = useState<DropCreateFormValues | null>(null);
   const [done, setDone] = useState(false);
-
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [imageUri, setImageUri] = useState<string | null>(null);
-  const [imageUploading, setImageUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const previewRef = useRef<string | null>(null);
-
-  useEffect(() => () => { if (previewRef.current) URL.revokeObjectURL(previewRef.current); }, []);
+  const {
+    imagePreview,
+    imageUri,
+    imageUploading,
+    fileInputRef,
+    handleImageSelect,
+    clearImage,
+  } = useLaunchpadImageUpload({
+    successMessage: "Cover image uploaded",
+    failureMessage: "Image upload failed",
+  });
 
   const form = useForm<DropCreateFormValues>({
     resolver: zodResolver(dropCreateSchema),
@@ -68,33 +72,6 @@ export default function CreateDropPage() {
       maxPerWallet: "1",
     },
   });
-
-  const handleImageSelect = async (file: File) => {
-    if (file.size > 10 * 1024 * 1024) { toast.error("Max 10 MB"); return; }
-    if (previewRef.current) URL.revokeObjectURL(previewRef.current);
-    const url = URL.createObjectURL(file);
-    previewRef.current = url;
-    setImagePreview(url);
-    setImageUri(null);
-    setImageUploading(true);
-    try {
-      const signedRes = await fetch("/api/pinata/signed-url", { method: "POST" });
-      const { url: uploadUrl } = await signedRes.json();
-      const fd = new FormData();
-      fd.append("file", file, file.name);
-      fd.append("network", "public");
-      fd.append("name", file.name);
-      const up = await fetch(uploadUrl, { method: "POST", body: fd });
-      const { data } = await up.json();
-      if (!data?.cid) throw new Error("No CID");
-      setImageUri(`ipfs://${data.cid}`);
-      toast.success("Cover image uploaded");
-    } catch {
-      toast.error("Image upload failed");
-    } finally {
-      setImageUploading(false);
-    }
-  };
 
   const resolvedSupply = (): bigint => {
     if (supplyPreset === "custom") {
@@ -261,8 +238,7 @@ export default function CreateDropPage() {
             onClick={() => {
               setDone(false);
               form.reset();
-              setImagePreview(null);
-              setImageUri(null);
+              clearImage();
               setSupplyPreset(1000);
               setPriceFree(true);
             }}
@@ -321,7 +297,7 @@ export default function CreateDropPage() {
               tokenDropdownOpen={tokenDropdownOpen}
               fileInputRef={fileInputRef}
               onImageSelect={handleImageSelect}
-              onClearImage={() => { setImagePreview(null); setImageUri(null); }}
+              onClearImage={clearImage}
               onSetPriceFree={setPriceFree}
               onSetSupplyPreset={(value) => {
                 setSupplyPreset(value);
