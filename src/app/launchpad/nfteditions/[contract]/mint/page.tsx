@@ -95,7 +95,7 @@ function MintConfirmDialog({
           {imagePreview ? (
             <img src={imagePreview} alt={assetName} className="h-full w-full object-cover" />
           ) : (
-            <div className="h-full w-full bg-gradient-to-br from-violet-500/20 via-brand-purple/10 to-transparent flex items-center justify-center">
+            <div className="h-full w-full bg-gradient-to-br from-brand-blue/20 via-brand-purple/10 to-transparent flex items-center justify-center">
               <Layers className="h-14 w-14 text-violet-400/40" />
             </div>
           )}
@@ -113,7 +113,7 @@ function MintConfirmDialog({
             <p className="font-bold text-lg leading-tight truncate">{assetName || "New Token"}</p>
             <div className="flex items-center gap-1 mt-1">
               <Zap className="h-3 w-3 text-emerald-500" />
-              <span className="text-[11px] font-medium text-emerald-500">Gasless · Starknet</span>
+              <span className="text-[11px] font-medium text-emerald-500">Immutable · Sovereign</span>
             </div>
           </div>
           <div className="shrink-0 text-right ml-4 space-y-0.5">
@@ -332,8 +332,8 @@ export default function MintIP1155Page() {
     return (
       <div className="container max-w-lg mx-auto px-4 pt-24 pb-8 text-center space-y-4">
         <Sparkles className="h-10 w-10 text-violet-500 mx-auto" />
-        <h1 className="text-2xl font-bold">Sign in to mint</h1>
-        <p className="text-muted-foreground">Sign in to mint tokens into your ERC-1155 collection.</p>
+        <h1 className="text-2xl font-bold">Sign in to create</h1>
+        <p className="text-muted-foreground">Sign in to mint tokens into multi-editions collection.</p>
       </div>
     );
   }

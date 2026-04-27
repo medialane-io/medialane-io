@@ -3,11 +3,12 @@
 import useSWR from "swr";
 import { useMedialaneClient } from "./use-medialane-client";
 import type { ApiOrdersQuery, ApiOrder, ApiResponse } from "@medialane/sdk";
+import { queryKeys } from "@/lib/query-keys";
 import { normalizeAddress } from "@/lib/utils";
 
 export function useOrders(query: ApiOrdersQuery = {}) {
   const client = useMedialaneClient();
-  const key = JSON.stringify({ op: "orders", ...query });
+  const key = queryKeys.orders(query);
 
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<ApiOrder[]>>(
     key,
@@ -28,7 +29,7 @@ export function useOrder(orderHash: string | null) {
   const client = useMedialaneClient();
 
   const { data, error, isLoading } = useSWR(
-    orderHash ? `order-${orderHash}` : null,
+    orderHash ? queryKeys.order(orderHash) : null,
     () => client.api.getOrder(orderHash!),
     { revalidateOnFocus: false }
   );
@@ -40,7 +41,7 @@ export function useTokenListings(contract: string | null, tokenId: string | null
   const client = useMedialaneClient();
 
   const { data, error, isLoading, mutate } = useSWR(
-    contract && tokenId ? `listings-${contract}-${tokenId}` : null,
+    contract && tokenId ? queryKeys.listings(contract, tokenId) : null,
     () => client.api.getActiveOrdersForToken(contract!, tokenId!),
     { revalidateOnFocus: false, refreshInterval: 20000, dedupingInterval: 5000 }
   );
@@ -53,7 +54,7 @@ export function useUserOrders(address: string | null) {
   const normalized = address ? normalizeAddress(address) : null;
 
   const { data, error, isLoading, mutate } = useSWR(
-    normalized ? `user-orders-${normalized}` : null,
+    normalized ? queryKeys.userOrders(normalized) : null,
     () => client.api.getOrdersByUser(normalized!),
     { revalidateOnFocus: false, refreshInterval: 20000, dedupingInterval: 5000 }
   );
@@ -73,9 +74,9 @@ export function useCounterOffers({
   const normalized = sellerAddress ? normalizeAddress(sellerAddress) : null;
   const key =
     originalOrderHash
-      ? `counter-offers-${originalOrderHash}`
+      ? queryKeys.counterOffersByOrder(originalOrderHash)
       : normalized
-      ? `counter-offers-seller-${normalized}`
+      ? queryKeys.counterOffersBySeller(normalized)
       : null;
 
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<ApiOrder[]>>(
@@ -98,7 +99,7 @@ export function useCounterOffers({
 
 export function useCollectionFloorListings(contract: string | null, limit = 20) {
   const client = useMedialaneClient();
-  const key = contract ? `floor-listings-${contract}-${limit}` : null;
+  const key = contract ? queryKeys.floorListings(contract, limit) : null;
 
   const { data, error, isLoading } = useSWR<ApiResponse<ApiOrder[]>>(
     key,

@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useChipiTransaction } from "./use-chipi-transaction";
 import { useSessionKey } from "./use-session-key";
 import { INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
+import { QUERY_PREFIX } from "@/lib/query-keys";
 import type { ChipiCall } from "./use-chipi-transaction";
 
 export interface TransferInput {
@@ -42,7 +43,7 @@ export function useTransfer() {
     mutate(
       (key) => {
         if (typeof key !== "string") return false;
-        return key.startsWith("tokens-owned-") || key.startsWith("token-");
+        return key.startsWith(`${QUERY_PREFIX.tokensOwned}-`) || key.startsWith(`${QUERY_PREFIX.token}-`);
       },
       undefined,
       { revalidate: true }

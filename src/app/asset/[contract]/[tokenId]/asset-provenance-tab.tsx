@@ -145,7 +145,7 @@ export function AssetProvenanceTab({ history, contract, tokenId, remixCount }: A
                 const toAddr = (event as any).to as string | undefined;
                 const counterpart = event.fulfiller && event.fulfiller !== actor
                   ? event.fulfiller
-                  : (event.type === "transfer" || event.type === "mint") && toAddr
+                  : event.type === "transfer" && toAddr
                   ? toAddr
                   : null;
                 const amount = (event as any).amount as string | undefined;

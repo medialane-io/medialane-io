@@ -18,11 +18,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { PinInput, validatePin } from "@/components/ui/pin-input";
+import { PinInput } from "@/components/ui/pin-input";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { useAuth, SignInButton } from "@clerk/nextjs";
 import { useMarketplace } from "@/hooks/use-marketplace";
-import { useCollection } from "@/hooks/use-collections";
+import { useMarketplaceActionFlow } from "@/hooks/use-marketplace-action-flow";
+import { useResolvedTokenStandard } from "@/hooks/use-resolved-token-standard";
 import { EXPLORER_URL, DURATION_OPTIONS } from "@/lib/constants";
 import { parseFormPriceUsdc } from "@/lib/chipi/session-preferences";
 import { isWebAuthnSupported } from "@chipi-stack/nextjs";
@@ -84,8 +85,7 @@ export function OfferDialog({
   tokenImage,
   tokenStandard,
 }: OfferDialogProps) {
-  const { collection } = useCollection(tokenStandard == null ? assetContract : null);
-  const resolvedStandard = tokenStandard ?? collection?.standard;
+  const { tokenStandard: resolvedStandard } = useResolvedTokenStandard(assetContract, tokenStandard);
   const { isSignedIn } = useAuth();
   const {
     makeOffer,
@@ -100,18 +100,51 @@ export function OfferDialog({
     resetState,
   } = useMarketplace();
 
-  const [walletSetupOpen, setWalletSetupOpen] = useState(false);
-  const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
-  const [pin, setPin] = useState("");
-  const [pinError, setPinError] = useState<string | null>(null);
-  const [step, setStep] = useState<"form" | "pin">("form");
-
   const [passkeySupported] = useState(
     () => typeof window !== "undefined" && isWebAuthnSupported()
   );
-  const [isAuthenticatingPasskey, setIsAuthenticatingPasskey] = useState(false);
-  const [isActivatingSession, setIsActivatingSession] = useState(false);
   const { authenticate, encryptKey } = usePasskeyAuth();
+
+  const {
+    walletSetupOpen,
+    setWalletSetupOpen,
+    pendingValues,
+    pin,
+    setPin,
+    pinError,
+    setPinError,
+    step,
+    setStep,
+    isAuthenticatingPasskey,
+    isActivatingSession,
+    beginAction,
+    handlePin,
+    handleUsePasskey,
+    resetActionFlow,
+  } = useMarketplaceActionFlow<FormValues>({
+    isSignedIn,
+    hasWallet,
+    hasActiveSession,
+    setupSession,
+    maybeClearSessionForAmountCap,
+    authenticate,
+    encryptKey,
+    sessionRefreshTitle: "Large offer — fresh signing session",
+    sessionRefreshDescription:
+      "Your saved session was cleared for this transaction size. A new session will be activated automatically.",
+    executeAction: async (values, pinOrDerivedKey) => {
+      await makeOffer({
+        assetContract,
+        tokenId,
+        tokenName,
+        price: values.price,
+        currencySymbol: values.currency,
+        durationSeconds: values.durationSeconds,
+        tokenStandard: resolvedStandard,
+        pin: pinOrDerivedKey,
+      });
+    },
+  });
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -119,77 +152,7 @@ export function OfferDialog({
   });
 
   const onSubmit = async (values: FormValues) => {
-    if (!isSignedIn) return;
-    setPendingValues(values);
-    if (!hasWallet) { setWalletSetupOpen(true); return; }
-    const priceUsdc = parseFormPriceUsdc(values.price);
-    const cleared = await maybeClearSessionForAmountCap(priceUsdc);
-    if (cleared) {
-      toast.info("Large offer — fresh signing session", {
-        description: "Your saved session was cleared for this transaction size. A new session will be activated automatically.",
-      });
-    }
-    setStep("pin");
-  };
-
-  const handlePin = async () => {
-    const err = validatePin(pin);
-    if (err) { setPinError(err); return; }
-    setPinError(null);
-    if (!pendingValues) return;
-
-    if (!hasActiveSession) {
-      setIsActivatingSession(true);
-      try {
-        await setupSession(pin);
-      } catch (err: unknown) {
-        setPinError(err instanceof Error ? err.message : "Session setup failed. Please try again.");
-        return;
-      } finally {
-        setIsActivatingSession(false);
-      }
-    }
-
-    await makeOffer({
-      assetContract,
-      tokenId,
-      tokenName,
-      price: pendingValues.price,
-      currencySymbol: pendingValues.currency,
-      durationSeconds: pendingValues.durationSeconds,
-      tokenStandard: resolvedStandard,
-      pin,
-    });
-    setPin("");
-    setStep("form");
-  };
-
-  const handleUsePasskey = async () => {
-    setPinError(null);
-    setIsAuthenticatingPasskey(true);
-    try {
-      if (!pendingValues) return;
-      const derived = encryptKey ?? (await authenticate());
-      if (!derived) throw new Error("Passkey authentication failed.");
-      if (!hasActiveSession) await setupSession(derived);
-      await makeOffer({
-        assetContract,
-        tokenId,
-        tokenName,
-        price: pendingValues.price,
-        currencySymbol: pendingValues.currency,
-        durationSeconds: pendingValues.durationSeconds,
-        tokenStandard: resolvedStandard,
-        pin: derived,
-      });
-      setPin("");
-      setStep("form");
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Passkey authentication failed";
-      toast.error("Passkey authentication failed", { description: msg });
-    } finally {
-      setIsAuthenticatingPasskey(false);
-    }
+    await beginAction(values, parseFormPriceUsdc(values.price));
   };
 
   const handleClose = (v: boolean) => { if (!isProcessing) onOpenChange(v); };
@@ -198,10 +161,7 @@ export function OfferDialog({
     if (open) {
       resetState();
       form.reset();
-      setPendingValues(null);
-      setPin("");
-      setPinError(null);
-      setStep("form");
+      resetActionFlow();
     }
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 

@@ -20,6 +20,9 @@ import { useChipiTransaction } from "./use-chipi-transaction";
 import { useSessionKey } from "./use-session-key";
 import { useMedialaneClient } from "./use-medialane-client";
 import { MARKETPLACE_721_CONTRACT, MARKETPLACE_1155_CONTRACT, SUPPORTED_TOKENS, INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
+import { getMarketplaceContractForStandard } from "@/lib/protocol/contracts";
+import { isErc1155Standard } from "@/lib/protocol/token-standard";
+import { QUERY_PREFIX, queryKeys } from "@/lib/query-keys";
 import type { ChipiCall } from "./use-chipi-transaction";
 
 /** Resolve a currency symbol (e.g. "USDC") to its on-chain contract address.
@@ -134,13 +137,13 @@ export function useMarketplace() {
     mutate((key) => {
       if (typeof key !== "string") return false;
       return (
-        key.includes('"op":"orders"') ||
-        key.startsWith("order-") ||
-        key.startsWith("listings-") ||
-        key.startsWith("user-orders-") ||
-        key.startsWith("token-") ||
-        key.startsWith("tokens-owned-") ||
-        key.startsWith("counter-offers-")
+        key.includes(`"op":"${QUERY_PREFIX.orders}"`) ||
+        key.startsWith(`${QUERY_PREFIX.order}-`) ||
+        key.startsWith(`${QUERY_PREFIX.listings}-`) ||
+        key.startsWith(`${QUERY_PREFIX.userOrders}-`) ||
+        key.startsWith(`${QUERY_PREFIX.token}-`) ||
+        key.startsWith(`${QUERY_PREFIX.tokensOwned}-`) ||
+        key.startsWith(`${QUERY_PREFIX.counterOffers}-`)
       );
     }, undefined, { revalidate: true });
   }, [mutate]);
@@ -261,7 +264,7 @@ export function useMarketplace() {
       setError(null);
       try {
         const endTime = Math.floor(Date.now() / 1000) + input.durationSeconds;
-        const is1155 = input.tokenStandard === "ERC1155";
+        const is1155 = isErc1155Standard(input.tokenStandard);
         return await runIntent(
           input.pin,
           () => client.api.createListingIntent({
@@ -274,7 +277,7 @@ export function useMarketplace() {
             ...(is1155 && input.amount ? { amount: input.amount } : {}),
           }),
           `${input.tokenName || `Token #${input.tokenId}`} listed for ${input.price} ${input.currencySymbol}`,
-          is1155 ? MARKETPLACE_1155_CONTRACT : MARKETPLACE_721_CONTRACT
+          getMarketplaceContractForStandard(input.tokenStandard)
         );
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Failed to create listing";
@@ -294,9 +297,7 @@ export function useMarketplace() {
       setIsProcessing(true);
       setError(null);
       try {
-        const marketplaceContract = input.tokenStandard === "ERC1155"
-          ? MARKETPLACE_1155_CONTRACT
-          : MARKETPLACE_721_CONTRACT;
+        const marketplaceContract = getMarketplaceContractForStandard(input.tokenStandard);
         return await runIntent(
           input.pin,
           () => client.api.createFulfillIntent({
@@ -327,9 +328,7 @@ export function useMarketplace() {
       setError(null);
       try {
         const endTime = Math.floor(Date.now() / 1000) + input.durationSeconds;
-        const marketplaceContract = input.tokenStandard === "ERC1155"
-          ? MARKETPLACE_1155_CONTRACT
-          : MARKETPLACE_721_CONTRACT;
+        const marketplaceContract = getMarketplaceContractForStandard(input.tokenStandard);
         return await runIntent(
           input.pin,
           () => client.api.createOfferIntent({
@@ -390,9 +389,7 @@ export function useMarketplace() {
       setIsProcessing(true);
       setError(null);
       try {
-        const marketplaceContract = input.tokenStandard === "ERC1155"
-          ? MARKETPLACE_1155_CONTRACT
-          : MARKETPLACE_721_CONTRACT;
+        const marketplaceContract = getMarketplaceContractForStandard(input.tokenStandard);
         return await runIntent(
           input.pin,
           () => client.api.createCancelIntent({

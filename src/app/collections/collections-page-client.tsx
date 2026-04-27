@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Layers, Loader2, BadgeCheck, Eye, SlidersHorizontal, Award } from "lucide-react";
 import { HelpIcon } from "@/components/ui/help-icon";
 import { cn } from "@/lib/utils";
-import type { ApiCollection } from "@medialane/sdk";
+import type { ApiCollection, CollectionSource } from "@medialane/sdk";
 
 const PAGE_SIZE = 18;
 
@@ -31,7 +31,7 @@ export default function CollectionsPageClient() {
   const [sort, setSort]           = useState<CollectionSort>("recent");
   const [featured, setFeatured]   = useState(false);
   const [hideEmpty, setHideEmpty] = useState(true);
-  const [source, setSource]       = useState<string | undefined>(undefined);
+  const [source, setSource]       = useState<CollectionSource | undefined>(undefined);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [page, setPage]           = useState(1);
   const [allCollections, setAllCollections] = useState<ApiCollection[]>([]);
@@ -77,7 +77,7 @@ export default function CollectionsPageClient() {
     setHideEmpty(true);
   };
 
-  const handleSourceChange = (val: string | undefined) => {
+  const handleSourceChange = (val: CollectionSource | undefined) => {
     setSource(val);
   };
 

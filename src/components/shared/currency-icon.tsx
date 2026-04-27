@@ -11,27 +11,28 @@ const CURRENCY_ICONS: Record<string, string> = {
 };
 
 export interface CurrencyIconProps {
-  symbol: string;
+  symbol: string | null | undefined;
   size?: number;
   className?: string;
 }
 
 export interface CurrencyAmountProps {
-  symbol: string;
+  symbol: string | null | undefined;
   amount: string;
   size?: number;
   className?: string;
 }
 
 export function CurrencyIcon({ symbol, size = 16, className = "" }: CurrencyIconProps) {
-  const src = CURRENCY_ICONS[symbol?.toUpperCase()];
+  const normalized = symbol?.toUpperCase();
+  const src = normalized ? CURRENCY_ICONS[normalized] : undefined;
   if (!src) {
-    return <span className={`text-xs font-semibold text-white/70 ${className}`}>{symbol}</span>;
+    return <span className={`text-xs font-semibold text-white/70 ${className}`}>{symbol ?? ""}</span>;
   }
   return (
     <Image
       src={src}
-      alt={symbol}
+      alt={symbol ?? "Currency"}
       width={size}
       height={size}
       className={`inline-block shrink-0 ${className}`}

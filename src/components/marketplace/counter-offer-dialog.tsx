@@ -26,10 +26,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { PinInput, validatePin } from "@/components/ui/pin-input";
+import { PinInput } from "@/components/ui/pin-input";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { useAuth, SignInButton } from "@clerk/nextjs";
 import { useMarketplace } from "@/hooks/use-marketplace";
+import { useMarketplaceActionFlow } from "@/hooks/use-marketplace-action-flow";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { EXPLORER_URL, DURATION_OPTIONS } from "@/lib/constants";
 import { marketplacePriceField, counterOfferDurationField } from "@/lib/marketplace-schemas";
@@ -85,89 +86,60 @@ export function CounterOfferDialog({
     resetState,
   } = useMarketplace();
 
-  const [walletSetupOpen, setWalletSetupOpen] = useState(false);
-  const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
-  const [pin, setPin] = useState("");
-  const [pinError, setPinError] = useState<string | null>(null);
-  const [step, setStep] = useState<"form" | "pin">("form");
-
   const [passkeySupported] = useState(
     () => typeof window !== "undefined" && isWebAuthnSupported()
   );
-  const [isAuthenticatingPasskey, setIsAuthenticatingPasskey] = useState(false);
-  const [isActivatingSession, setIsActivatingSession] = useState(false);
   const { authenticate, encryptKey } = usePasskeyAuth();
+
+  const {
+    walletSetupOpen,
+    setWalletSetupOpen,
+    pendingValues,
+    pin,
+    setPin,
+    pinError,
+    setPinError,
+    step,
+    setStep,
+    isAuthenticatingPasskey,
+    isActivatingSession,
+    beginAction,
+    handlePin,
+    handleUsePasskey,
+    resetActionFlow,
+  } = useMarketplaceActionFlow<FormValues>({
+    isSignedIn,
+    hasWallet,
+    hasActiveSession,
+    setupSession,
+    authenticate,
+    encryptKey,
+    executeAction: async (values, pinOrDerivedKey) => {
+      await makeCounterOffer({
+        originalOrderHash,
+        counterPriceRaw: toRawWei(values.price, currencyDecimals),
+        durationSeconds: values.durationSeconds,
+        message: values.message || undefined,
+        tokenName,
+        pin: pinOrDerivedKey,
+      });
+    },
+  });
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { price: "", durationSeconds: 604800, message: "" },
   });
 
-  const onSubmit = (values: FormValues) => {
-    if (!isSignedIn) return;
-    setPendingValues(values);
-    if (!hasWallet) { setWalletSetupOpen(true); return; }
-    setStep("pin");
-  };
-
-  const execWithPin = async (pinValue: string) => {
-    if (!pendingValues) return;
-
-    if (!hasActiveSession) {
-      setIsActivatingSession(true);
-      try {
-        await setupSession(pinValue);
-      } catch (err: unknown) {
-        setPinError(err instanceof Error ? err.message : "Session setup failed. Please try again.");
-        return;
-      } finally {
-        setIsActivatingSession(false);
-      }
-    }
-
-    await makeCounterOffer({
-      originalOrderHash,
-      counterPriceRaw: toRawWei(pendingValues.price, currencyDecimals),
-      durationSeconds: pendingValues.durationSeconds,
-      message: pendingValues.message || undefined,
-      tokenName,
-      pin: pinValue,
-    });
-    setPin("");
-    setStep("form");
-  };
-
-  const handlePin = async () => {
-    const err = validatePin(pin);
-    if (err) { setPinError(err); return; }
-    setPinError(null);
-    await execWithPin(pin);
-  };
-
-  const handleUsePasskey = async () => {
-    setPinError(null);
-    setIsAuthenticatingPasskey(true);
-    try {
-      const derived = encryptKey ?? (await authenticate());
-      if (!derived) throw new Error("Passkey authentication failed.");
-      await execWithPin(derived);
-    } catch (err: unknown) {
-      toast.error("Passkey authentication failed", {
-        description: err instanceof Error ? err.message : "Passkey authentication failed",
-      });
-    } finally {
-      setIsAuthenticatingPasskey(false);
-    }
+  const onSubmit = async (values: FormValues) => {
+    await beginAction(values, 0);
   };
 
   const handleClose = (v: boolean) => {
     if (!isProcessing) {
       resetState();
       form.reset();
-      setPendingValues(null);
-      setPin("");
-      setPinError(null);
-      setStep("form");
+      resetActionFlow();
       onOpenChange(v);
     }
   };

@@ -4,6 +4,7 @@ import useSWR from "swr";
 import { Contract, cairo, num } from "starknet";
 import { starknetProvider } from "@/lib/starknet";
 import { COLLECTION_721_CONTRACT } from "@/lib/constants";
+import { queryKeys } from "@/lib/query-keys";
 import { CollectionRegistryABI } from "@medialane/sdk";
 
 export interface UserCollection {
@@ -68,7 +69,7 @@ async function fetchUserCollections(address: string): Promise<UserCollection[]> 
  */
 export function useUserCollections(address: string | null | undefined) {
   const { data, error, isLoading, mutate } = useSWR(
-    address ? `user-collections-${address}` : null,
+    address ? queryKeys.userCollections(address) : null,
     () => fetchUserCollections(address!),
     { revalidateOnFocus: false, refreshInterval: 12000 }
   );

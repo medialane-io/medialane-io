@@ -1,4 +1,5 @@
 import { mutate } from "swr";
+import { queryKeyPrefix, QUERY_PREFIX, queryKeys } from "./query-keys";
 
 /**
  * Immediately invalidates SWR caches for both owned tokens and user collections
@@ -7,6 +8,6 @@ import { mutate } from "swr";
  * next auto-refresh cycle.
  */
 export function invalidatePortfolioCache(address: string) {
-  mutate((key) => typeof key === "string" && key.startsWith(`tokens-owned-${address}-`), undefined, { revalidate: true });
-  mutate((key) => typeof key === "string" && key.startsWith(`collections-owner-${address}`), undefined, { revalidate: true });
+  mutate((key) => typeof key === "string" && key.startsWith(`${queryKeyPrefix(QUERY_PREFIX.tokensOwned)}${address}-`), undefined, { revalidate: true });
+  mutate((key) => typeof key === "string" && key.startsWith(queryKeys.collectionsOwner(address)), undefined, { revalidate: true });
 }

@@ -13,9 +13,10 @@ import { fireConfetti } from "@/lib/confetti";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { PinInput, validatePin } from "@/components/ui/pin-input";
+import { PinInput } from "@/components/ui/pin-input";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { useMarketplace } from "@/hooks/use-marketplace";
+import { useMarketplaceActionFlow } from "@/hooks/use-marketplace-action-flow";
 import { EXPLORER_URL } from "@/lib/constants";
 import type { ApiOrder } from "@medialane/sdk";
 import { formatDisplayPrice, ipfsToHttp } from "@/lib/utils";
@@ -208,37 +209,19 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
     resetState,
   } = useMarketplace();
 
-  const [walletSetupOpen, setWalletSetupOpen] = useState(false);
-  const [pin, setPin] = useState("");
-  const [pinError, setPinError] = useState<string | null>(null);
   const [step, setStep] = useState<Step>("details");
   const [quantity, setQuantity] = useState(1);
   const [successTxHash, setSuccessTxHash] = useState<string | null>(null);
 
   const is1155 = order.offer?.itemType === "ERC1155";
   const maxQty = is1155
-    ? Math.max(1, parseInt(order.remainingAmount ?? order.offerStartAmount ?? "1", 10))
+    ? Math.max(1, parseInt(order.remainingAmount ?? order.offer.startAmount ?? "1", 10))
     : 1;
 
   const [passkeySupported] = useState(
     () => typeof window !== "undefined" && isWebAuthnSupported()
   );
-  const [isAuthenticatingPasskey, setIsAuthenticatingPasskey] = useState(false);
-  const [isActivatingSession, setIsActivatingSession] = useState(false);
   const { authenticate, encryptKey } = usePasskeyAuth();
-
-  const handleBuyClick = async () => {
-    if (!isSignedIn) return;
-    if (!hasWallet) { setWalletSetupOpen(true); return; }
-    const priceUsdc = orderPriceToUsdcNumber(order);
-    const cleared = await maybeClearSessionForAmountCap(priceUsdc);
-    if (cleared) {
-      toast.info("Large purchase — fresh signing session", {
-        description: "Your saved session was cleared for this transaction size.",
-      });
-    }
-    setStep("pin");
-  };
 
   const handlePurchaseSuccess = (hash: string | null) => {
     setSuccessTxHash(hash ?? null);
@@ -246,70 +229,51 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
     fireConfetti();
   };
 
-  const handlePin = async () => {
-    const err = validatePin(pin);
-    if (err) { setPinError(err); return; }
-    setPinError(null);
-
-    if (!hasActiveSession) {
-      setIsActivatingSession(true);
-      try {
-        await setupSession(pin);
-      } catch (err: unknown) {
-        setPinError(err instanceof Error ? err.message : "Session setup failed. Please try again.");
-        return;
-      } finally {
-        setIsActivatingSession(false);
-      }
-    }
-
-    setStep("processing");
-    const qty = is1155 ? String(quantity) : undefined;
-    const hash = await fulfillOrder({
-      orderHash: order.orderHash,
-      pin,
-      tokenStandard: order.offer.itemType,
-      quantity: qty,
-    });
-    setPin("");
-
-    if (hash) {
-      handlePurchaseSuccess(hash);
-    } else {
-      // error is set in useMarketplace; go back to details to show it
-      setStep("details");
-    }
-  };
-
-  const handleUsePasskey = async () => {
-    setPinError(null);
-    setIsAuthenticatingPasskey(true);
-    try {
-      const derived = encryptKey ?? (await authenticate());
-      if (!derived) throw new Error("Passkey authentication failed.");
-      if (!hasActiveSession) await setupSession(derived);
+  const {
+    walletSetupOpen,
+    setWalletSetupOpen,
+    pin,
+    setPin,
+    pinError,
+    setPinError,
+    isAuthenticatingPasskey,
+    isActivatingSession,
+    beginAction,
+    handlePin,
+    handleUsePasskey,
+    resetActionFlow,
+  } = useMarketplaceActionFlow<{ quantity: number }>({
+    isSignedIn,
+    hasWallet,
+    hasActiveSession,
+    setupSession,
+    maybeClearSessionForAmountCap,
+    authenticate,
+    encryptKey,
+    sessionRefreshTitle: "Large purchase — fresh signing session",
+    sessionRefreshDescription: "Your saved session was cleared for this transaction size.",
+    executeAction: async (values, pinOrDerivedKey) => {
       setStep("processing");
-      const qty = is1155 ? String(quantity) : undefined;
+      const qty = is1155 ? String(values.quantity) : undefined;
       const hash = await fulfillOrder({
         orderHash: order.orderHash,
-        pin: derived,
+        pin: pinOrDerivedKey,
         tokenStandard: order.offer.itemType,
         quantity: qty,
       });
-      setPin("");
 
       if (hash) {
         handlePurchaseSuccess(hash);
       } else {
         setStep("details");
       }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Passkey authentication failed";
-      toast.error("Passkey authentication failed", { description: msg });
-      setStep("details");
-    } finally {
-      setIsAuthenticatingPasskey(false);
-    }
+    },
+  });
+
+  const handleBuyClick = async () => {
+    const priceUsdc = orderPriceToUsdcNumber(order) * quantity;
+    await beginAction({ quantity }, priceUsdc);
+    setStep("pin");
   };
 
   const handleClose = (v: boolean) => {
@@ -320,8 +284,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
   useEffect(() => {
     if (open) {
       resetState();
-      setPin("");
-      setPinError(null);
+      resetActionFlow();
       setStep("details");
       setQuantity(1);
       setSuccessTxHash(null);

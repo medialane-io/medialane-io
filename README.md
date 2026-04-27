@@ -219,6 +219,21 @@ cp .env.example .env.local
 bun dev
 ```
 
+## Local Verification
+
+Use Bun as the source-of-truth package manager for this repo.
+
+```bash
+bun run typecheck
+bun run build
+bun run lint
+```
+
+Notes:
+
+- `bun.lock` is the canonical lockfile used for deploys
+- `next/font/google` fetches remote fonts during builds, so fully offline build environments may need a network connection or a future self-hosted font setup
+
 ### Required Environment Variables
 
 | Variable | Purpose |

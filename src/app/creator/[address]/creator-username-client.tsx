@@ -357,7 +357,7 @@ export default function CreatorUsernamePageClient({ username }: Props) {
           ) : (
             <div className="space-y-10">
               {collections.map((col: ApiCollection) => (
-                <CollectionCarouselRow key={col.contractAddress} collection={col} dynamicPrimary={dynamicPrimary} />
+                <CollectionCarouselRow key={col.contractAddress} collection={col} />
               ))}
             </div>
           )

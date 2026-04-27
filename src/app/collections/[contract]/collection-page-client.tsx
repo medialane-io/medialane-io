@@ -419,7 +419,7 @@ export default function CollectionPageClient() {
               </div>
             )}
             {/* Mint button — only for ERC-1155 collection owner */}
-            {collection.source === "ERC1155_FACTORY" &&
+            {collection.standard === "ERC1155" &&
               walletAddress &&
               collection.owner?.toLowerCase() === walletAddress.toLowerCase() && (
               <Link

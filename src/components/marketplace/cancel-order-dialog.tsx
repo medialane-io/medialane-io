@@ -1,17 +1,22 @@
 "use client";
 
 import { useEffect } from "react";
-import { CheckCircle2, AlertCircle, X, Loader2 } from "lucide-react";
+import { CheckCircle2, AlertCircle, X } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { PinInput, validatePin } from "@/components/ui/pin-input";
+import { PinInput } from "@/components/ui/pin-input";
 import { TxStatus } from "@/components/chipi/tx-status";
+import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
+import { useAuth } from "@clerk/nextjs";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { useMarketplace } from "@/hooks/use-marketplace";
+import { useMarketplaceActionFlow } from "@/hooks/use-marketplace-action-flow";
 import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import { useState } from "react";
 import Image from "next/image";
+import { isWebAuthnSupported } from "@chipi-stack/nextjs";
+import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
 import type { ApiOrder } from "@medialane/sdk";
 
 interface CancelOrderDialogProps {
@@ -67,8 +72,12 @@ export function CancelOrderDialog({
   onSuccess,
   variant,
 }: CancelOrderDialogProps) {
+  const { isSignedIn } = useAuth();
   const {
     cancelOrder,
+    hasWallet,
+    hasActiveSession,
+    setupSession,
     isProcessing,
     txStatus,
     txHash,
@@ -76,8 +85,37 @@ export function CancelOrderDialog({
     resetState,
   } = useMarketplace();
 
-  const [pin, setPin] = useState("");
-  const [pinError, setPinError] = useState<string | null>(null);
+  const [passkeySupported] = useState(
+    () => typeof window !== "undefined" && isWebAuthnSupported()
+  );
+  const { authenticate, encryptKey } = usePasskeyAuth();
+  const {
+    walletSetupOpen,
+    setWalletSetupOpen,
+    setPendingValues,
+    pin,
+    setPin,
+    pinError,
+    setPinError,
+    isAuthenticatingPasskey,
+    handlePin,
+    handleUsePasskey,
+    resetActionFlow,
+  } = useMarketplaceActionFlow<{ orderHash: string; tokenStandard: string }>({
+    isSignedIn,
+    hasWallet,
+    hasActiveSession,
+    setupSession,
+    authenticate,
+    encryptKey,
+    executeAction: async (values, pinOrDerivedKey) => {
+      await cancelOrder({
+        orderHash: values.orderHash,
+        pin: pinOrDerivedKey,
+        tokenStandard: values.tokenStandard,
+      });
+    },
+  });
 
   const resolvedVariant: "listing" | "offer" =
     variant ?? (order?.offer.itemType === "ERC721" || order?.offer.itemType === "ERC1155" ? "listing" : "offer");
@@ -85,19 +123,15 @@ export function CancelOrderDialog({
   useEffect(() => {
     if (open) {
       resetState();
-      setPin("");
-      setPinError(null);
+      resetActionFlow();
+      if (order) {
+        setPendingValues({
+          orderHash: order.orderHash,
+          tokenStandard: order.offer.itemType,
+        });
+      }
     }
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleSubmit = async () => {
-    const err = validatePin(pin);
-    if (err) { setPinError(err); return; }
-    if (!order) return;
-    setPinError(null);
-    await cancelOrder({ orderHash: order.orderHash, pin, tokenStandard: order.offer.itemType });
-    setPin("");
-  };
 
   const handleClose = (v: boolean) => {
     if (!isProcessing) onOpenChange(v);
@@ -191,11 +225,21 @@ export function CancelOrderDialog({
                     variant="destructive"
                     className="flex-1 h-11"
                     disabled={pin.length < 6}
-                    onClick={handleSubmit}
+                    onClick={handlePin}
                   >
                     Cancel {resolvedVariant}
                   </Button>
                 </div>
+                {passkeySupported && (
+                  <Button
+                    variant="outline"
+                    className="w-full text-xs"
+                    disabled={isAuthenticatingPasskey}
+                    onClick={handleUsePasskey}
+                  >
+                    {isAuthenticatingPasskey ? "Authenticating…" : "Use passkey instead"}
+                  </Button>
+                )}
                 <p className="text-[10px] text-center text-muted-foreground">
                   Transaction gas fees are sponsored by Medialane.
                 </p>
@@ -205,6 +249,11 @@ export function CancelOrderDialog({
         )}
 
       </DialogContent>
+      <WalletSetupDialog
+        open={walletSetupOpen}
+        onOpenChange={setWalletSetupOpen}
+        onSuccess={() => setWalletSetupOpen(false)}
+      />
     </Dialog>
   );
 }

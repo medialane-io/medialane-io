@@ -32,7 +32,7 @@ import { Badge } from "@/components/ui/badge";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { useTransfer } from "@/hooks/use-transfer";
-import { useCollection } from "@/hooks/use-collections";
+import { useResolvedTokenStandard } from "@/hooks/use-resolved-token-standard";
 import { EXPLORER_URL } from "@/lib/constants";
 
 // Schema defined outside component — no component-level variables needed.
@@ -82,10 +82,7 @@ export function TransferDialog({
     resetState,
   } = useTransfer();
 
-  // Auto-detect token standard when the caller doesn't know it.
-  // SWR-cached — no extra request when the collection was already fetched.
-  const { collection } = useCollection(contractAddress);
-  const resolvedStandard = tokenStandard ?? collection?.standard;
+  const { tokenStandard: resolvedStandard } = useResolvedTokenStandard(contractAddress, tokenStandard);
 
   const [pinOpen, setPinOpen] = useState(false);
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
