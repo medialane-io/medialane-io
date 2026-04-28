@@ -193,7 +193,12 @@ export default function CreateIP1155CollectionPage() {
           await fetch(`${MEDIALANE_BACKEND_URL.replace(/\/$/, "")}/v1/collections/register`, {
             method: "POST",
             headers,
-            body: JSON.stringify({ contractAddress: addr, startBlock: 0 }),
+            body: JSON.stringify({
+              contractAddress: addr,
+              startBlock: 0,
+              standard: "ERC1155",
+              source: "ERC1155_FACTORY",
+            }),
           });
         } catch { /* non-fatal */ }
       }
