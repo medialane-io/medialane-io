@@ -52,6 +52,12 @@ export function MarketplaceDebugPanel({
       </summary>
 
       <div className="mt-3 space-y-3">
+        <p className="rounded-lg border border-amber-400/20 bg-amber-400/10 p-2 text-[11px] leading-relaxed text-amber-100/80">
+          Copy this payload after a failure, or run{" "}
+          <span className="font-mono text-amber-100">window.__MEDIALANE_MARKETPLACE_DEBUG__</span>{" "}
+          in the browser console.
+        </p>
+
         <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground">
           <DebugField label="Operation" value={snapshot.operation} />
           <DebugField label="Standard" value={snapshot.tokenStandard} />
@@ -73,7 +79,7 @@ export function MarketplaceDebugPanel({
 
         <Button type="button" size="sm" variant="outline" className="h-8 w-full gap-2" onClick={copy}>
           {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-          {copied ? "Copied" : "Copy debug payload"}
+          {copied ? "Copied" : "Copy full debug JSON"}
         </Button>
       </div>
     </details>

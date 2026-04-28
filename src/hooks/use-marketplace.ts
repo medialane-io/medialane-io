@@ -13,7 +13,7 @@
  * and approve-call prepending. The frontend only signs and executes.
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useSWRConfig } from "swr";
 import { toast } from "sonner";
 import { useChipiTransaction } from "./use-chipi-transaction";
@@ -24,6 +24,12 @@ import { getMarketplaceContractForStandard } from "@/lib/protocol/contracts";
 import { isErc1155Standard } from "@/lib/protocol/token-standard";
 import { QUERY_PREFIX, queryKeys } from "@/lib/query-keys";
 import type { ChipiCall } from "./use-chipi-transaction";
+
+declare global {
+  interface Window {
+    __MEDIALANE_MARKETPLACE_DEBUG__?: MarketplaceDebugSnapshot;
+  }
+}
 
 /** Resolve a currency symbol (e.g. "USDC") to its on-chain contract address.
  *  Returns the input unchanged if it already looks like an address. */
@@ -143,6 +149,14 @@ export interface MarketplaceDebugSnapshot {
   txStatus?: string;
   error?: string;
   calls?: Array<{ contractAddress?: string; entrypoint?: string; calldataLength?: number }>;
+  terminalIntent?: {
+    id?: string;
+    type?: string;
+    status?: string;
+    txHash?: string | null;
+    orderHash?: string | null;
+    updatedAt?: string;
+  };
   typedDataSummary?: {
     domain?: unknown;
     primaryType?: unknown;
@@ -155,6 +169,10 @@ export interface MarketplaceDebugSnapshot {
 
 type MarketplaceDebugContext = Omit<MarketplaceDebugSnapshot, "step" | "updatedAt">;
 type MarketplaceDebugPatch = Partial<MarketplaceDebugContext> & { step: MarketplaceDebugStep };
+type TerminalIntentResult = {
+  status: "CONFIRMED" | "FAILED";
+  intent: Record<string, unknown>;
+};
 
 // ─── Hook ─────────────────────────────────────────────────────────────────
 
@@ -194,24 +212,28 @@ export function useMarketplace() {
   const [error, setError] = useState<string | null>(null);
   const [hash, setHash] = useState<string | null>(null);
   const [debugSnapshot, setDebugSnapshot] = useState<MarketplaceDebugSnapshot | null>(null);
+  const debugSnapshotRef = useRef<MarketplaceDebugSnapshot | null>(null);
 
   const updateDebug = useCallback((patch: MarketplaceDebugPatch) => {
-    setDebugSnapshot((previous) => {
-      const next = {
-        ...(previous ?? {}),
-        ...patch,
-        updatedAt: new Date().toISOString(),
-      } as MarketplaceDebugSnapshot;
+    const next = {
+      ...(debugSnapshotRef.current ?? {}),
+      ...patch,
+      updatedAt: new Date().toISOString(),
+    } as MarketplaceDebugSnapshot;
 
-      if (typeof window !== "undefined") {
-        const log = patch.step === "error" || patch.step === "intent_failed"
-          ? console.error
-          : console.info;
-        log("[Medialane marketplace debug]", next);
-      }
+    debugSnapshotRef.current = next;
+    setDebugSnapshot(next);
 
-      return next;
-    });
+    if (typeof window !== "undefined") {
+      const log = patch.step === "error" || patch.step === "intent_failed"
+        ? console.error
+        : console.info;
+      const json = JSON.stringify(next, null, 2);
+
+      window.__MEDIALANE_MARKETPLACE_DEBUG__ = next;
+      log("[Medialane marketplace debug]", next);
+      log(`[Medialane marketplace debug JSON]\n${json}`);
+    }
   }, []);
 
   const resetState = useCallback(() => {
@@ -219,6 +241,7 @@ export function useMarketplace() {
     setError(null);
     setHash(null);
     setDebugSnapshot(null);
+    debugSnapshotRef.current = null;
     reset();
   }, [reset]);
 
@@ -244,14 +267,17 @@ export function useMarketplace() {
    * or until the timeout is reached.
    */
   const pollIntentUntilTerminal = useCallback(
-    async (id: string): Promise<"CONFIRMED" | "FAILED"> => {
+    async (id: string): Promise<TerminalIntentResult> => {
       const MAX_ATTEMPTS = 10;
       const INTERVAL_MS = 3000;
       for (let i = 0; i < MAX_ATTEMPTS; i++) {
         if (i > 0) await new Promise<void>((r) => setTimeout(r, INTERVAL_MS));
         const res = await client.api.getIntent(id);
-        const status = res.data.status;
-        if (status === "CONFIRMED" || status === "FAILED") return status;
+        const intent = res.data as unknown as Record<string, unknown>;
+        const status = intent.status;
+        if (status === "CONFIRMED" || status === "FAILED") {
+          return { status, intent };
+        }
       }
       throw new Error(
         "Verification timed out. Check your wallet for the transaction status."
@@ -318,13 +344,17 @@ export function useMarketplace() {
       updateDebug({ step: "tx_confirm_sent", txHash: normalizedHash });
 
       // Poll until backend reports terminal status (CONFIRMED or FAILED)
-      const finalStatus = await pollIntentUntilTerminal(id);
+      const terminal = await pollIntentUntilTerminal(id);
+      const terminalIntent = summarizeTerminalIntent(terminal.intent);
       updateDebug({
-        step: finalStatus === "CONFIRMED" ? "intent_confirmed" : "intent_failed",
-        intentStatus: finalStatus,
+        step: terminal.status === "CONFIRMED" ? "intent_confirmed" : "intent_failed",
+        intentStatus: terminal.status,
+        txHash: terminalIntent.txHash ?? normalizedHash,
+        orderHash: terminalIntent.orderHash ?? undefined,
+        terminalIntent,
       });
 
-      if (finalStatus === "FAILED") {
+      if (terminal.status === "FAILED") {
         throw new Error(
           "Transaction was submitted but the marketplace order could not be confirmed onchain. " +
           "The order may have already been filled or expired — please refresh and try again."
@@ -587,4 +617,15 @@ function summarizeCalls(calls: ChipiCall[]): MarketplaceDebugSnapshot["calls"] {
     entrypoint: call.entrypoint,
     calldataLength: Array.isArray(call.calldata) ? call.calldata.length : undefined,
   }));
+}
+
+function summarizeTerminalIntent(intent: Record<string, unknown>): NonNullable<MarketplaceDebugSnapshot["terminalIntent"]> {
+  return {
+    id: typeof intent.id === "string" ? intent.id : undefined,
+    type: typeof intent.type === "string" ? intent.type : undefined,
+    status: typeof intent.status === "string" ? intent.status : undefined,
+    txHash: typeof intent.txHash === "string" || intent.txHash === null ? intent.txHash : undefined,
+    orderHash: typeof intent.orderHash === "string" || intent.orderHash === null ? intent.orderHash : undefined,
+    updatedAt: typeof intent.updatedAt === "string" ? intent.updatedAt : undefined,
+  };
 }
