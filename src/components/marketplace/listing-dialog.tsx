@@ -10,7 +10,7 @@ import {
   LogIn, ArrowLeft, Sparkles, Layers, Zap, Info, ShieldCheck,
 } from "lucide-react";
 import { fireConfetti } from "@/lib/confetti";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
@@ -210,6 +210,9 @@ export function ListingDialog({
           <DialogTitle className="sr-only">
             List {name} for sale
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Set pricing, quantity, currency, and duration to create an onchain marketplace listing.
+          </DialogDescription>
 
           {/* ── Success ─────────────────────────────────────────────────── */}
           {isSuccess ? (

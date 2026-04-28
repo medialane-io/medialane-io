@@ -264,6 +264,11 @@ export function useMarketplace() {
     ): Promise<string | undefined> => {
       if (!walletAddress) throw new Error("Wallet not ready. Please wait a moment.");
 
+      updateDebug({
+        ...(debugContext ?? { operation: "marketplace" }),
+        step: "idle",
+        marketplaceContract,
+      });
       const intentRes = await intentFn();
       const { id, typedData } = intentRes.data ?? {};
       if (!id || !typedData) throw new Error("Intent creation failed: no data returned");
