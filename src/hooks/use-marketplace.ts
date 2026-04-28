@@ -196,11 +196,22 @@ export function useMarketplace() {
   const [debugSnapshot, setDebugSnapshot] = useState<MarketplaceDebugSnapshot | null>(null);
 
   const updateDebug = useCallback((patch: MarketplaceDebugPatch) => {
-    setDebugSnapshot((previous) => ({
-      ...(previous ?? {}),
-      ...patch,
-      updatedAt: new Date().toISOString(),
-    } as MarketplaceDebugSnapshot));
+    setDebugSnapshot((previous) => {
+      const next = {
+        ...(previous ?? {}),
+        ...patch,
+        updatedAt: new Date().toISOString(),
+      } as MarketplaceDebugSnapshot;
+
+      if (typeof window !== "undefined") {
+        const log = patch.step === "error" || patch.step === "intent_failed"
+          ? console.error
+          : console.info;
+        log("[Medialane marketplace debug]", next);
+      }
+
+      return next;
+    });
   }, []);
 
   const resetState = useCallback(() => {

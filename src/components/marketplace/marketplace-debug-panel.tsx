@@ -9,11 +9,13 @@ import { Button } from "@/components/ui/button";
 interface MarketplaceDebugPanelProps {
   snapshot: MarketplaceDebugSnapshot | null;
   label?: string;
+  forceOpen?: boolean;
 }
 
 export function MarketplaceDebugPanel({
   snapshot,
   label = "Marketplace debug",
+  forceOpen = false,
 }: MarketplaceDebugPanelProps) {
   const [copied, setCopied] = useState(false);
   const payload = useMemo(() => {
@@ -35,7 +37,10 @@ export function MarketplaceDebugPanel({
   };
 
   return (
-    <details className="rounded-xl border border-dashed border-amber-400/40 bg-amber-400/5 p-3 text-xs">
+    <details
+      open={forceOpen || snapshot.step === "error" || snapshot.step === "intent_failed"}
+      className="rounded-xl border border-dashed border-amber-400/40 bg-amber-400/5 p-3 text-xs"
+    >
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
         <span className="inline-flex items-center gap-2 font-semibold text-amber-300">
           <Bug className="h-3.5 w-3.5" />

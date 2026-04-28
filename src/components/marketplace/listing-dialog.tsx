@@ -468,11 +468,11 @@ export function ListingDialog({
 
                     {error && (
                       <>
+                        <MarketplaceDebugPanel snapshot={debugSnapshot} forceOpen />
                         <Alert variant="destructive">
                           <AlertCircle className="h-4 w-4" />
                           <AlertDescription>{error}</AlertDescription>
                         </Alert>
-                        <MarketplaceDebugPanel snapshot={debugSnapshot} />
                       </>
                     )}
 
