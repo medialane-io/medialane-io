@@ -114,6 +114,48 @@ export interface MakeCounterOfferInput {
   tokenName?: string;
 }
 
+export type MarketplaceDebugStep =
+  | "idle"
+  | "intent_created"
+  | "typed_data_signed"
+  | "signature_submitted"
+  | "tx_executed"
+  | "tx_confirm_sent"
+  | "intent_confirmed"
+  | "intent_failed"
+  | "error";
+
+export interface MarketplaceDebugSnapshot {
+  operation: string;
+  step: MarketplaceDebugStep;
+  tokenStandard?: string;
+  marketplaceContract?: string;
+  assetContract?: string;
+  tokenId?: string;
+  orderHash?: string;
+  amount?: string;
+  quantity?: string;
+  currency?: string;
+  price?: string;
+  intentId?: string;
+  intentStatus?: string;
+  txHash?: string;
+  txStatus?: string;
+  error?: string;
+  calls?: Array<{ contractAddress?: string; entrypoint?: string; calldataLength?: number }>;
+  typedDataSummary?: {
+    domain?: unknown;
+    primaryType?: unknown;
+    messageKeys?: string[];
+    offerItemType?: unknown;
+    considerationItemType?: unknown;
+  };
+  updatedAt: string;
+}
+
+type MarketplaceDebugContext = Omit<MarketplaceDebugSnapshot, "step" | "updatedAt">;
+type MarketplaceDebugPatch = Partial<MarketplaceDebugContext> & { step: MarketplaceDebugStep };
+
 // ─── Hook ─────────────────────────────────────────────────────────────────
 
 export function useMarketplace() {
@@ -151,11 +193,21 @@ export function useMarketplace() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hash, setHash] = useState<string | null>(null);
+  const [debugSnapshot, setDebugSnapshot] = useState<MarketplaceDebugSnapshot | null>(null);
+
+  const updateDebug = useCallback((patch: MarketplaceDebugPatch) => {
+    setDebugSnapshot((previous) => ({
+      ...(previous ?? {}),
+      ...patch,
+      updatedAt: new Date().toISOString(),
+    } as MarketplaceDebugSnapshot));
+  }, []);
 
   const resetState = useCallback(() => {
     setIsProcessing(false);
     setError(null);
     setHash(null);
+    setDebugSnapshot(null);
     reset();
   }, [reset]);
 
@@ -207,25 +259,36 @@ export function useMarketplace() {
       pin: string,
       intentFn: () => Promise<{ data: { id: string; typedData: unknown; calls: unknown } }>,
       successMsg: string,
-      marketplaceContract?: string
+      marketplaceContract?: string,
+      debugContext?: MarketplaceDebugContext
     ): Promise<string | undefined> => {
       if (!walletAddress) throw new Error("Wallet not ready. Please wait a moment.");
 
       const intentRes = await intentFn();
       const { id, typedData } = intentRes.data ?? {};
       if (!id || !typedData) throw new Error("Intent creation failed: no data returned");
+      updateDebug({
+        ...(debugContext ?? { operation: "marketplace" }),
+        step: "intent_created",
+        intentId: id,
+        marketplaceContract,
+        typedDataSummary: summarizeTypedData(typedData),
+      });
 
       // Sanitize typed data: replace any bare currency symbols (e.g. "USDC")
       // with their contract addresses so starknet.js can convert them to BigInt.
       const sanitized = sanitizeTypedData(typedData);
 
       const sig = await signTypedData(sanitized, pin);
+      updateDebug({ step: "typed_data_signed", typedDataSummary: summarizeTypedData(sanitized) });
 
       const signedRes = await client.api.submitIntentSignature(id, sig);
       const calls = signedRes.data.calls as ChipiCall[];
       if (!calls?.length) throw new Error("No calls returned from intent");
+      updateDebug({ step: "signature_submitted", calls: summarizeCalls(calls) });
 
       const result = await execWithPin(pin, calls, marketplaceContract);
+      updateDebug({ step: "tx_executed", txHash: result.txHash, txStatus: result.status });
 
       if (result.status === "reverted") {
         throw new Error(result.revertReason || "Transaction reverted on chain");
@@ -236,9 +299,14 @@ export function useMarketplace() {
 
       // Submit tx hash to backend — verifies receipt + marketplace events server-side
       await client.api.confirmIntent(id, normalizedHash);
+      updateDebug({ step: "tx_confirm_sent", txHash: normalizedHash });
 
       // Poll until backend reports terminal status (CONFIRMED or FAILED)
       const finalStatus = await pollIntentUntilTerminal(id);
+      updateDebug({
+        step: finalStatus === "CONFIRMED" ? "intent_confirmed" : "intent_failed",
+        intentStatus: finalStatus,
+      });
 
       if (finalStatus === "FAILED") {
         throw new Error(
@@ -253,7 +321,7 @@ export function useMarketplace() {
       setTimeout(() => invalidate(), INDEXER_REVALIDATION_DELAY_MS);
       return result.txHash;
     },
-    [walletAddress, signTypedData, client, execWithPin, invalidate, pollIntentUntilTerminal]
+    [walletAddress, signTypedData, client, execWithPin, invalidate, pollIntentUntilTerminal, updateDebug]
   );
 
   // ── createListing ──────────────────────────────────────────────────────
@@ -265,6 +333,7 @@ export function useMarketplace() {
       try {
         const endTime = Math.floor(Date.now() / 1000) + input.durationSeconds;
         const is1155 = isErc1155Standard(input.tokenStandard);
+        const marketplaceContract = getMarketplaceContractForStandard(input.tokenStandard);
         return await runIntent(
           input.pin,
           () => client.api.createListingIntent({
@@ -277,11 +346,22 @@ export function useMarketplace() {
             ...(is1155 && input.amount ? { amount: input.amount } : {}),
           }),
           `${input.tokenName || `Token #${input.tokenId}`} listed for ${input.price} ${input.currencySymbol}`,
-          getMarketplaceContractForStandard(input.tokenStandard)
+          marketplaceContract,
+          {
+            operation: "create_listing",
+            tokenStandard: input.tokenStandard,
+            marketplaceContract,
+            assetContract: input.assetContract,
+            tokenId: input.tokenId,
+            amount: input.amount,
+            currency: input.currencySymbol,
+            price: input.price,
+          }
         );
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Failed to create listing";
         setError(msg);
+        updateDebug({ step: "error", error: msg });
         toast.error("Listing failed", { description: msg });
       } finally {
         setIsProcessing(false);
@@ -307,11 +387,19 @@ export function useMarketplace() {
             quantity: input.quantity,
           }),
           "Purchase complete!",
-          marketplaceContract
+          marketplaceContract,
+          {
+            operation: "fulfill_order",
+            tokenStandard: input.tokenStandard,
+            marketplaceContract,
+            orderHash: input.orderHash,
+            quantity: input.quantity,
+          }
         );
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Purchase failed";
         setError(msg);
+        updateDebug({ step: "error", error: msg });
         toast.error("Purchase failed", { description: msg });
       } finally {
         setIsProcessing(false);
@@ -340,11 +428,21 @@ export function useMarketplace() {
             endTime,
           }),
           `Offer submitted for ${input.tokenName || `Token #${input.tokenId}`}`,
-          marketplaceContract
+          marketplaceContract,
+          {
+            operation: "make_offer",
+            tokenStandard: input.tokenStandard,
+            marketplaceContract,
+            assetContract: input.assetContract,
+            tokenId: input.tokenId,
+            currency: input.currencySymbol,
+            price: input.price,
+          }
         );
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Failed to submit offer";
         setError(msg);
+        updateDebug({ step: "error", error: msg });
         toast.error("Offer failed", { description: msg });
       } finally {
         setIsProcessing(false);
@@ -369,11 +467,18 @@ export function useMarketplace() {
             counterPrice: input.counterPriceRaw,
             message: input.message,
           }),
-          `Counter-offer sent${input.tokenName ? ` for ${input.tokenName}` : ""}!`
+          `Counter-offer sent${input.tokenName ? ` for ${input.tokenName}` : ""}!`,
+          undefined,
+          {
+            operation: "counter_offer",
+            orderHash: input.originalOrderHash,
+            price: input.counterPriceRaw,
+          }
         );
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Counter-offer failed";
         setError(msg);
+        updateDebug({ step: "error", error: msg });
         toast.error("Counter-offer failed", { description: msg });
       } finally {
         setIsProcessing(false);
@@ -398,11 +503,18 @@ export function useMarketplace() {
             tokenStandard: input.tokenStandard,
           }),
           "Order cancelled.",
-          marketplaceContract
+          marketplaceContract,
+          {
+            operation: "cancel_order",
+            tokenStandard: input.tokenStandard,
+            marketplaceContract,
+            orderHash: input.orderHash,
+          }
         );
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Cancellation failed";
         setError(msg);
+        updateDebug({ step: "error", error: msg });
         toast.error("Cancellation failed", { description: msg });
         // Invalidate after failure: the backend may have synced the order to CANCELLED
         // (e.g. the order was already cancelled on-chain but DB was stale). This ensures
@@ -432,7 +544,31 @@ export function useMarketplace() {
     txStatus: status,
     txHash: hash ?? txHash,
     error: error ?? txError,
+    debugSnapshot,
     resetState,
     maybeClearSessionForAmountCap,
   };
+}
+
+function summarizeTypedData(typedData: unknown): MarketplaceDebugSnapshot["typedDataSummary"] {
+  if (!typedData || typeof typedData !== "object") return undefined;
+  const data = typedData as Record<string, any>;
+  const message = data.message && typeof data.message === "object"
+    ? data.message as Record<string, any>
+    : undefined;
+  return {
+    domain: data.domain,
+    primaryType: data.primaryType,
+    messageKeys: message ? Object.keys(message) : undefined,
+    offerItemType: message?.offer?.item_type,
+    considerationItemType: message?.consideration?.item_type,
+  };
+}
+
+function summarizeCalls(calls: ChipiCall[]): MarketplaceDebugSnapshot["calls"] {
+  return calls.map((call) => ({
+    contractAddress: call.contractAddress,
+    entrypoint: call.entrypoint,
+    calldataLength: Array.isArray(call.calldata) ? call.calldata.length : undefined,
+  }));
 }

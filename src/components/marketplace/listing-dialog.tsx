@@ -10,7 +10,7 @@ import {
   LogIn, ArrowLeft, Sparkles, Layers, Zap, Info, ShieldCheck,
 } from "lucide-react";
 import { fireConfetti } from "@/lib/confetti";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
@@ -34,6 +34,7 @@ import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { marketplacePriceField, marketplaceCurrencyField, marketplaceDurationField } from "@/lib/marketplace-schemas";
 import { isWebAuthnSupported } from "@chipi-stack/nextjs";
 import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
+import { MarketplaceDebugPanel } from "@/components/marketplace/marketplace-debug-panel";
 
 const CURRENCIES = getListableTokens().map((t) => t.symbol);
 
@@ -114,6 +115,7 @@ export function ListingDialog({
     txStatus,
     txHash,
     error,
+    debugSnapshot,
     resetState,
   } = useMarketplace();
 
@@ -205,6 +207,9 @@ export function ListingDialog({
     <>
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="max-w-[calc(100%-6px)] sm:max-w-md p-0 overflow-hidden gap-0 rounded-2xl flex flex-col max-h-[92svh]">
+          <DialogTitle className="sr-only">
+            List {name} for sale
+          </DialogTitle>
 
           {/* ── Success ─────────────────────────────────────────────────── */}
           {isSuccess ? (
@@ -245,6 +250,9 @@ export function ListingDialog({
               <Button className="w-full h-11" onClick={() => { onOpenChange(false); onSuccess?.(); }}>
                 Done
               </Button>
+              <div className="w-full">
+                <MarketplaceDebugPanel snapshot={debugSnapshot} />
+              </div>
             </div>
 
           ) : isActivatingSession ? (
@@ -322,6 +330,9 @@ export function ListingDialog({
                   </div>
                 )}
               />
+              <div className="px-6 pb-5">
+                <MarketplaceDebugPanel snapshot={debugSnapshot} />
+              </div>
             </>
 
           ) : (
@@ -453,10 +464,13 @@ export function ListingDialog({
                     />
 
                     {error && (
-                      <Alert variant="destructive">
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertDescription>{error}</AlertDescription>
-                      </Alert>
+                      <>
+                        <Alert variant="destructive">
+                          <AlertCircle className="h-4 w-4" />
+                          <AlertDescription>{error}</AlertDescription>
+                        </Alert>
+                        <MarketplaceDebugPanel snapshot={debugSnapshot} />
+                      </>
                     )}
 
                     <div className="pt-1 space-y-2">
