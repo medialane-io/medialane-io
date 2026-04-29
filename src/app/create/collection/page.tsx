@@ -213,7 +213,7 @@ export default function CreateCollectionPage() {
       // Await with a 6s timeout so invalidatePortfolioCache fires AFTER the collection is in the DB.
       if (result.txHash) {
         try {
-          await Promise.race([
+          const syncRes = await Promise.race([
             fetch(`${MEDIALANE_BACKEND_URL}/v1/collections/sync-tx`, {
               method: "POST",
               headers: { "Content-Type": "application/json", ...(MEDIALANE_API_KEY ? { "x-api-key": MEDIALANE_API_KEY } : {}) },
@@ -221,6 +221,10 @@ export default function CreateCollectionPage() {
             }),
             new Promise<never>((_, reject) => setTimeout(() => reject(), 6000)),
           ]);
+          if (!syncRes.ok) {
+            const error = await syncRes.json().catch(() => ({}));
+            console.warn("[Medialane collection sync]", { txHash: result.txHash, status: syncRes.status, error });
+          }
         } catch {
           // timeout or error — indexer will catch up regardless
         }
