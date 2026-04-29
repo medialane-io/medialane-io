@@ -472,6 +472,8 @@ export function useMarketplace() {
             currency: resolveCurrencyAddress(input.currencySymbol),
             price: input.price,
             endTime,
+            tokenStandard: input.tokenStandard,
+            quantity: isErc1155Standard(input.tokenStandard) ? "1" : undefined,
           }),
           `Offer submitted for ${input.tokenName || `Token #${input.tokenId}`}`,
           marketplaceContract,
