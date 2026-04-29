@@ -49,6 +49,24 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
+async function syncCollectionFromTx(txHash: string) {
+  const maxAttempts = 5;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const syncRes = await fetch(`${MEDIALANE_BACKEND_URL}/v1/collections/sync-tx`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...(MEDIALANE_API_KEY ? { "x-api-key": MEDIALANE_API_KEY } : {}) },
+      body: JSON.stringify({ txHash }),
+    });
+    const payload = await syncRes.json().catch(() => ({}));
+    if (syncRes.ok && Number(payload?.data?.synced ?? 0) > 0) return payload;
+    if (attempt === maxAttempts) {
+      console.warn("[Medialane collection sync]", { txHash, status: syncRes.status, payload });
+      return payload;
+    }
+    await new Promise((resolve) => setTimeout(resolve, attempt * 1500));
+  }
+}
+
 export default function CreateCollectionPage() {
   const { executeTransaction, status, txHash } = useChipiTransaction();
   const { walletAddress } = useSessionKey();
@@ -210,21 +228,13 @@ export default function CreateCollectionPage() {
       }
 
       // Immediately register the collection from the tx so it appears in portfolio without waiting for the indexer.
-      // Await with a 6s timeout so invalidatePortfolioCache fires AFTER the collection is in the DB.
+      // Await with a timeout so invalidatePortfolioCache fires AFTER the collection is in the DB.
       if (result.txHash) {
         try {
-          const syncRes = await Promise.race([
-            fetch(`${MEDIALANE_BACKEND_URL}/v1/collections/sync-tx`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json", ...(MEDIALANE_API_KEY ? { "x-api-key": MEDIALANE_API_KEY } : {}) },
-              body: JSON.stringify({ txHash: result.txHash }),
-            }),
-            new Promise<never>((_, reject) => setTimeout(() => reject(), 6000)),
+          await Promise.race([
+            syncCollectionFromTx(result.txHash),
+            new Promise<never>((_, reject) => setTimeout(() => reject(), 12000)),
           ]);
-          if (!syncRes.ok) {
-            const error = await syncRes.json().catch(() => ({}));
-            console.warn("[Medialane collection sync]", { txHash: result.txHash, status: syncRes.status, error });
-          }
         } catch {
           // timeout or error — indexer will catch up regardless
         }
