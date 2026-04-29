@@ -32,14 +32,14 @@ import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
-import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { usePostMintListing } from "@/hooks/use-post-mint-listing";
 import { MintProgressDialog } from "@/components/marketplace/mint-progress-dialog";
+import { MarketplaceDebugPanel } from "@/components/marketplace/marketplace-debug-panel";
 import type { MintStep } from "@/components/marketplace/mint-progress-dialog";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 import { cn } from "@/lib/utils";
-import { DURATION_OPTIONS } from "@/lib/constants";
+import { DURATION_OPTIONS, MEDIALANE_API_KEY, MEDIALANE_BACKEND_URL } from "@/lib/constants";
 import { getListableTokens } from "@medialane/sdk";
 import {
   IP_TYPES,
@@ -90,6 +90,182 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
+type MintDebugSnapshot = {
+  operation: "mint_erc721";
+  step: string;
+  updatedAt: string;
+  walletAddress?: string | null;
+  collectionId?: string | null;
+  collectionContract?: string | null;
+  collectionName?: string | null;
+  tokenUri?: string | null;
+  backendUrl?: string;
+  request?: Record<string, unknown>;
+  responseStatus?: number;
+  responseText?: string;
+  responseJson?: unknown;
+  intentId?: string;
+  calls?: Array<{ contractAddress?: string; entrypoint?: string; calldataLength?: number }>;
+  txHash?: string | null;
+  txStatus?: string;
+  intentStatus?: string;
+  terminalIntent?: Record<string, unknown>;
+  error?: string;
+};
+
+async function createMintIntentWithDebug(
+  body: { owner: string; collectionId: string; recipient: string; tokenUri: string },
+  updateDebug: (patch: Partial<MintDebugSnapshot>) => MintDebugSnapshot
+) {
+  updateDebug({
+    step: "intent_request",
+    backendUrl: MEDIALANE_BACKEND_URL,
+    request: { ...body, tokenUri: body.tokenUri },
+  });
+
+  const res = await fetch(`${MEDIALANE_BACKEND_URL}/v1/intents/mint`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(MEDIALANE_API_KEY ? { "x-api-key": MEDIALANE_API_KEY } : {}),
+    },
+    body: JSON.stringify(body),
+  });
+
+  const responseText = await res.text();
+  let responseJson: unknown = null;
+  try {
+    responseJson = responseText ? JSON.parse(responseText) : null;
+  } catch {
+    responseJson = null;
+  }
+
+  updateDebug({
+    step: res.ok ? "intent_response" : "intent_failed",
+    responseStatus: res.status,
+    responseText: responseText.slice(0, 2000),
+    responseJson,
+  });
+
+  if (!res.ok) {
+    const serverError =
+      responseJson &&
+      typeof responseJson === "object" &&
+      "error" in responseJson &&
+      typeof responseJson.error === "string"
+        ? responseJson.error
+        : responseText || `Mint intent failed with HTTP ${res.status}`;
+    throw new Error(serverError);
+  }
+
+  return responseJson as { data?: { id?: string; calls?: { contractAddress: string; entrypoint?: string; calldata?: unknown[] }[] } };
+}
+
+async function confirmMintIntentWithDebug(
+  id: string,
+  txHash: string,
+  updateDebug: (patch: Partial<MintDebugSnapshot>) => MintDebugSnapshot
+) {
+  const normalizedHash = "0x" + txHash.replace(/^0x/, "").padStart(64, "0");
+  updateDebug({ step: "tx_confirm_request", txHash: normalizedHash });
+
+  const res = await fetch(`${MEDIALANE_BACKEND_URL}/v1/intents/${id}/confirm`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      ...(MEDIALANE_API_KEY ? { "x-api-key": MEDIALANE_API_KEY } : {}),
+    },
+    body: JSON.stringify({ txHash: normalizedHash }),
+  });
+
+  const responseText = await res.text();
+  let responseJson: unknown = null;
+  try {
+    responseJson = responseText ? JSON.parse(responseText) : null;
+  } catch {
+    responseJson = null;
+  }
+
+  updateDebug({
+    step: res.ok ? "tx_confirm_sent" : "tx_confirm_failed",
+    responseStatus: res.status,
+    responseText: responseText.slice(0, 2000),
+    responseJson,
+    txHash: normalizedHash,
+  });
+
+  if (!res.ok) {
+    const serverError =
+      responseJson &&
+      typeof responseJson === "object" &&
+      "error" in responseJson &&
+      typeof responseJson.error === "string"
+        ? responseJson.error
+        : responseText || `Mint confirmation failed with HTTP ${res.status}`;
+    throw new Error(serverError);
+  }
+
+  return normalizedHash;
+}
+
+async function pollMintIntentUntilTerminal(
+  id: string,
+  updateDebug: (patch: Partial<MintDebugSnapshot>) => MintDebugSnapshot
+) {
+  const MAX_ATTEMPTS = 10;
+  const INTERVAL_MS = 3000;
+
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    if (attempt > 0) await new Promise<void>((resolve) => setTimeout(resolve, INTERVAL_MS));
+
+    const res = await fetch(`${MEDIALANE_BACKEND_URL}/v1/intents/${id}`, {
+      headers: {
+        ...(MEDIALANE_API_KEY ? { "x-api-key": MEDIALANE_API_KEY } : {}),
+      },
+    });
+
+    const responseText = await res.text();
+    let responseJson: unknown = null;
+    try {
+      responseJson = responseText ? JSON.parse(responseText) : null;
+    } catch {
+      responseJson = null;
+    }
+
+    if (!res.ok) {
+      updateDebug({
+        step: "intent_poll_failed",
+        responseStatus: res.status,
+        responseText: responseText.slice(0, 2000),
+        responseJson,
+      });
+      throw new Error(responseText || `Mint verification poll failed with HTTP ${res.status}`);
+    }
+
+    const intent =
+      responseJson &&
+      typeof responseJson === "object" &&
+      "data" in responseJson &&
+      responseJson.data &&
+      typeof responseJson.data === "object"
+        ? (responseJson.data as Record<string, unknown>)
+        : null;
+    const status = typeof intent?.status === "string" ? intent.status : undefined;
+
+    updateDebug({
+      step: status === "CONFIRMED" ? "intent_confirmed" : status === "FAILED" ? "intent_failed" : "intent_polling",
+      intentStatus: status,
+      terminalIntent: intent ?? undefined,
+    });
+
+    if (status === "CONFIRMED" || status === "FAILED") {
+      return { status, intent };
+    }
+  }
+
+  throw new Error("Mint verification timed out. Check the transaction status and refresh the collection.");
+}
+
 function ToggleGroup({
   value,
   options,
@@ -124,7 +300,6 @@ function ToggleGroup({
 export default function CreateAssetPage() {
   const { executeTransaction, status, txHash, error, statusMessage } = useChipiTransaction();
   const { walletAddress } = useSessionKey();
-  const client = useMedialaneClient();
   const { listingStep, listingError, runPostMintListing, resetListing } = usePostMintListing();
 
   // Fetch user's collections from the API (collectionId field contains onchain registry ID)
@@ -146,6 +321,8 @@ export default function CreateAssetPage() {
   const [listDuration, setListDuration] = useState<number>(DURATION_OPTIONS[0]?.seconds ?? 86400);
   const [mintStep, setMintStep] = useState<MintStep>("idle");
   const [mintError, setMintError] = useState<string | null>(null);
+  const [mintDebug, setMintDebug] = useState<MintDebugSnapshot | null>(null);
+  const mintDebugRef = useRef<MintDebugSnapshot | null>(null);
   const [templateFields, setTemplateFields] = useState<Record<string, string>>({});
   const pinRef = useRef<string | null>(null);
   const previewUrlRef = useRef<string | null>(null);
@@ -157,6 +334,22 @@ export default function CreateAssetPage() {
   }, []);
 
   const hasWallet = !!walletAddress;
+
+  const updateMintDebug = (patch: Partial<MintDebugSnapshot>) => {
+    const next: MintDebugSnapshot = {
+      ...(mintDebugRef.current ?? { operation: "mint_erc721" as const, step: "idle", updatedAt: new Date().toISOString() }),
+      ...patch,
+      updatedAt: new Date().toISOString(),
+    };
+    mintDebugRef.current = next;
+    setMintDebug(next);
+    if (typeof window !== "undefined") {
+      (window as unknown as { __MEDIALANE_MINT_DEBUG__?: MintDebugSnapshot }).__MEDIALANE_MINT_DEBUG__ = next;
+      console.warn("[Medialane mint debug]", next);
+      console.warn(`[Medialane mint debug JSON]\n${JSON.stringify(next, null, 2)}`);
+    }
+    return next;
+  };
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -210,10 +403,21 @@ export default function CreateAssetPage() {
 
     pinRef.current = pin;
     setMintError(null);
+    setMintDebug(null);
+    mintDebugRef.current = null;
     resetListing();
     setMintStep("uploading");
 
     try {
+      const selectedCollection = collections.find((c) => c.collectionId === pendingValues.collectionId);
+      updateMintDebug({
+        step: "uploading",
+        walletAddress,
+        collectionId: pendingValues.collectionId,
+        collectionContract: selectedCollection?.contractAddress ?? null,
+        collectionName: selectedCollection?.name ?? selectedCollection?.symbol ?? null,
+      });
+
       // 1. Upload image + metadata to IPFS via /api/pinata
       const formData = new FormData();
       formData.set("name", pendingValues.name);
@@ -257,21 +461,31 @@ export default function CreateAssetPage() {
       }
       const tokenUri: string = uploadData.uri;
       if (!tokenUri) throw new Error("IPFS upload returned no URI");
+      updateMintDebug({ step: "metadata_uploaded", tokenUri });
 
       setMintStep("processing");
 
       // 2. Create mint intent — backend validates ownership onchain + encodes Cairo calldata
-      const intentRes = await client.api.createMintIntent({
+      const intentRes = await createMintIntentWithDebug({
         owner: walletAddress,
         collectionId: pendingValues.collectionId,
         recipient: walletAddress,
         tokenUri,
-      });
+      }, updateMintDebug);
 
-      const intentData = intentRes.data as { calls?: { contractAddress: string; [key: string]: unknown }[] } | undefined;
+      const intentData = intentRes.data as { id?: string; calls?: { contractAddress: string; [key: string]: unknown }[] } | undefined;
       if (!intentData?.calls?.length) {
         throw new Error("Mint intent returned no calls");
       }
+      updateMintDebug({
+        step: "intent_created",
+        intentId: typeof intentData.id === "string" ? intentData.id : undefined,
+        calls: intentData.calls.map((call) => ({
+          contractAddress: typeof call.contractAddress === "string" ? call.contractAddress : undefined,
+          entrypoint: typeof call.entrypoint === "string" ? call.entrypoint : undefined,
+          calldataLength: Array.isArray(call.calldata) ? call.calldata.length : undefined,
+        })),
+      });
 
       // 3. Execute via ChipiPay
       const result = await executeTransaction({
@@ -282,6 +496,18 @@ export default function CreateAssetPage() {
 
       if (result.status === "reverted") {
         throw new Error(result.revertReason || "Mint transaction reverted on chain");
+      }
+      updateMintDebug({ step: "tx_executed", txHash: result.txHash, txStatus: result.status });
+
+      const intentId = intentData.id;
+      if (!intentId) {
+        throw new Error("Mint intent returned no id");
+      }
+
+      await confirmMintIntentWithDebug(intentId, result.txHash, updateMintDebug);
+      const terminal = await pollMintIntentUntilTerminal(intentId, updateMintDebug);
+      if (terminal.status === "FAILED") {
+        throw new Error("Mint transaction confirmed, but backend receipt hydration failed.");
       }
 
       setMintStep("success");
@@ -307,7 +533,9 @@ export default function CreateAssetPage() {
       }
     } catch (err: unknown) {
       pinRef.current = null;
-      setMintError(err instanceof Error ? err.message : "Something went wrong");
+      const message = err instanceof Error ? err.message : "Something went wrong";
+      updateMintDebug({ step: "error", error: message, txHash, txStatus: status });
+      setMintError(message);
       setMintStep("error");
     }
   };
@@ -315,6 +543,8 @@ export default function CreateAssetPage() {
   const handleMintAnother = () => {
     setMintStep("idle");
     setMintError(null);
+    setMintDebug(null);
+    mintDebugRef.current = null;
     resetListing();
     pinRef.current = null;
     form.reset();
@@ -340,6 +570,12 @@ export default function CreateAssetPage() {
       />
 
       <div className="container max-w-2xl mx-auto px-4 pt-14 pb-8 space-y-8">
+        <MarketplaceDebugPanel
+          snapshot={mintDebug as any}
+          label="Mint debug"
+          forceOpen={mintStep === "error" || mintDebug?.step === "intent_failed"}
+        />
+
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-primary">
             <ImagePlus className="h-5 w-5" />
