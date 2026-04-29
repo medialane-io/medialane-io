@@ -17,6 +17,7 @@ import {
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { IpTypeBadge } from "@/components/shared/ip-type-badge";
 import { ReportDialog } from "@/components/report-dialog";
+import { OfferDialog } from "@/components/marketplace/offer-dialog";
 import { useCart } from "@/hooks/use-cart";
 import { cn, ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import type { RarityTier } from "@/lib/rarity";
@@ -56,6 +57,7 @@ export function TokenCard({
   const { addItem, items } = useCart();
   const [imgError, setImgError] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [offerOpen, setOfferOpen] = useState(false);
 
   const name = token.metadata?.name || `Token #${token.tokenId}`;
   const image = ipfsToHttp(token.metadata?.image);
@@ -108,7 +110,7 @@ export function TokenCard({
     e.preventDefault();
     e.stopPropagation();
     if (onOffer) onOffer(token);
-    else router.push(assetHref);
+    else setOfferOpen(true);
   };
 
   return (
@@ -169,7 +171,7 @@ export function TokenCard({
           </div>
 
           {/* Info */}
-          <div className="px-3 pt-2.5 pb-2 flex-1">
+          <div className="px-3 pt-2.5 pb-4 flex-1">
             <p className="text-base font-bold line-clamp-2 leading-snug">{name}</p>
             <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
               {ipType && <IpTypeBadge ipType={ipType} size="sm" />}
@@ -193,12 +195,12 @@ export function TokenCard({
           <Button
             size="sm"
             variant="outline"
-            className="h-8 w-8 p-0 shrink-0 rounded-[9px]"
+            className="h-8 shrink-0 rounded-[9px] gap-1.5 px-3 text-xs font-semibold"
             asChild
-            aria-label="View asset"
           >
             <Link href={assetHref}>
               <ArrowUpRight className="h-3.5 w-3.5" />
+              Expand
             </Link>
           </Button>
 
@@ -300,9 +302,9 @@ export function TokenCard({
                 </Link>
               </DropdownMenuItem>
 
-              {owner && (
+              {(owner ?? creator) && (
                 <DropdownMenuItem asChild>
-                  <Link href={`/account/${owner}`} className="flex items-center gap-2">
+                  <Link href={`/account/${owner ?? creator}`} className="flex items-center gap-2">
                     <UserCircle2 className="h-3.5 w-3.5 text-muted-foreground" />
                     View owner
                   </Link>
@@ -355,6 +357,18 @@ export function TokenCard({
           </DropdownMenu>
         </div>
       </div>
+
+      {offerOpen && (
+        <OfferDialog
+          open={offerOpen}
+          onOpenChange={setOfferOpen}
+          assetContract={token.contractAddress}
+          tokenId={token.tokenId}
+          tokenName={token.metadata?.name ?? undefined}
+          tokenImage={image ?? undefined}
+          tokenStandard={token.standard ?? undefined}
+        />
+      )}
 
       {reportOpen && (
         <ReportDialog
