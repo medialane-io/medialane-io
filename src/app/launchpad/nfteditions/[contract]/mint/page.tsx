@@ -21,13 +21,14 @@ import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { FadeIn } from "@/components/ui/motion-primitives";
 import { normalizeAddress } from "@medialane/sdk";
-import { Contract, byteArray as starkByteArray } from "starknet";
+import { Contract } from "starknet";
 import { starknetProvider } from "@/lib/starknet";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { LaunchpadPageIntro } from "@/components/launchpad/launchpad-page-intro";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
+import { serializeByteArray, encodeU256 } from "@/lib/cairo-calldata";
 import { NftEditionsMintConfirmDialog } from "../../nfteditions-mint-confirm-dialog";
 import { NftEditionsMintForm } from "../../nfteditions-mint-form";
 import {
@@ -35,22 +36,6 @@ import {
   type NftEditionsMintFormValues,
 } from "../../nfteditions-mint-schema";
 
-function serializeByteArray(str: string): string[] {
-  const ba = starkByteArray.byteArrayFromString(str);
-  return [
-    ba.data.length.toString(),
-    ...ba.data.map(String),
-    String(ba.pending_word),
-    ba.pending_word_len.toString(),
-  ];
-}
-
-function encodeU256(n: bigint): [string, string] {
-  return [
-    (n & BigInt("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")).toString(),
-    (n >> BigInt(128)).toString(),
-  ];
-}
 
 export default function MintIP1155Page() {
   const { contract: rawContract } = useParams<{ contract: string }>();

@@ -19,7 +19,7 @@ import { useSessionKey } from "@/hooks/use-session-key";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { normalizeAddress } from "@medialane/sdk";
-import { hash, byteArray as starkByteArray } from "starknet";
+import { hash } from "starknet";
 import { starknetProvider } from "@/lib/starknet";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
@@ -33,17 +33,7 @@ import {
 } from "../nfteditions-create-schema";
 import { COLLECTION_1155_CONTRACT, MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
-
-/** Serialize a JS string into Cairo ByteArray calldata felts. */
-function serializeByteArray(str: string): string[] {
-  const ba = starkByteArray.byteArrayFromString(str);
-  return [
-    ba.data.length.toString(),
-    ...ba.data.map(String),
-    String(ba.pending_word),
-    ba.pending_word_len.toString(),
-  ];
-}
+import { serializeByteArray } from "@/lib/cairo-calldata";
 
 const COLLECTION_DEPLOYED_SELECTOR = hash.getSelectorFromName("CollectionDeployed");
 
