@@ -5,8 +5,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
-  Loader2, ArrowUpRight, MoreHorizontal, Zap, HandCoins,
-  ShoppingCart, Check, Layers, GitBranch, Flag, UserCircle2, ArrowRightLeft,
+  Loader2, ArrowUpRight, MoreHorizontal, Zap, HandCoins, Tag,
+  ShoppingCart, Check, Layers, GitBranch, Flag, UserCircle2, ArrowRightLeft, X,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -204,8 +204,30 @@ export function TokenCard({
             </Link>
           </Button>
 
-          {/* Buy or Make Offer — fills remaining space */}
-          {listingOrder ? (
+          {/* Owner: List Asset / Cancel Listing — Buyer: Buy / Make Offer */}
+          {isOwner ? (
+            listingOrder ? (
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-1 h-8 rounded-[9px] text-xs font-semibold text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onCancel?.(token); }}
+              >
+                <X className="h-3.5 w-3.5 mr-1.5" />
+                Cancel Listing
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-1 h-8 rounded-[9px] text-xs font-semibold text-brand-purple border-brand-purple/30 hover:bg-brand-purple/10 hover:text-brand-purple"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onList?.(token); }}
+              >
+                <Tag className="h-3.5 w-3.5 mr-1.5" />
+                List Asset
+              </Button>
+            )
+          ) : listingOrder ? (
             <div className="btn-border-animated p-[1.5px] rounded-[10px] flex-1 h-8">
               <button
                 className="w-full h-full rounded-[9px] bg-background flex items-center justify-center gap-1.5 text-xs font-semibold text-foreground hover:bg-muted/60 transition-all active:scale-[0.98]"
@@ -250,40 +272,72 @@ export function TokenCard({
 
               <DropdownMenuSeparator />
 
-              {listingOrder && (
-                <DropdownMenuItem
-                  className="flex items-center gap-2 text-brand-blue focus:text-brand-blue"
-                  onClick={handleBuy}
-                >
-                  <Zap className="h-3.5 w-3.5" />
-                  <span className="flex items-center gap-1">
-                    Buy —
-                    <CurrencyIcon symbol={listingOrder.price.currency} size={12} />
-                    {formatDisplayPrice(listingOrder.price.formatted)}
-                  </span>
-                </DropdownMenuItem>
+              {isOwner ? (
+                <>
+                  {!listingOrder && onList && (
+                    <DropdownMenuItem
+                      className="flex items-center gap-2 text-brand-purple focus:text-brand-purple"
+                      onClick={() => onList(token)}
+                    >
+                      <Tag className="h-3.5 w-3.5" />
+                      List for sale
+                    </DropdownMenuItem>
+                  )}
+                  {listingOrder && onCancel && (
+                    <DropdownMenuItem
+                      className="flex items-center gap-2 text-destructive focus:text-destructive"
+                      onClick={() => onCancel(token)}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                      Cancel listing
+                    </DropdownMenuItem>
+                  )}
+                  {onTransfer && (
+                    <DropdownMenuItem
+                      className="flex items-center gap-2"
+                      onClick={() => onTransfer(token)}
+                    >
+                      <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground" />
+                      Transfer asset
+                    </DropdownMenuItem>
+                  )}
+                </>
+              ) : (
+                <>
+                  {listingOrder && (
+                    <DropdownMenuItem
+                      className="flex items-center gap-2 text-brand-blue focus:text-brand-blue"
+                      onClick={handleBuy}
+                    >
+                      <Zap className="h-3.5 w-3.5" />
+                      <span className="flex items-center gap-1">
+                        Buy —
+                        <CurrencyIcon symbol={listingOrder.price.currency} size={12} />
+                        {formatDisplayPrice(listingOrder.price.formatted)}
+                      </span>
+                    </DropdownMenuItem>
+                  )}
+                  {listingOrder && (
+                    <DropdownMenuItem
+                      className="flex items-center gap-2"
+                      onClick={handleAddToCart}
+                      disabled={inCart}
+                    >
+                      {inCart
+                        ? <Check className="h-3.5 w-3.5 text-muted-foreground" />
+                        : <ShoppingCart className="h-3.5 w-3.5 text-muted-foreground" />}
+                      {inCart ? "In cart" : "Add to cart"}
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem
+                    className="flex items-center gap-2 text-brand-orange focus:text-brand-orange"
+                    onClick={handleOffer}
+                  >
+                    <HandCoins className="h-3.5 w-3.5" />
+                    Make an offer
+                  </DropdownMenuItem>
+                </>
               )}
-
-              {listingOrder && (
-                <DropdownMenuItem
-                  className="flex items-center gap-2"
-                  onClick={handleAddToCart}
-                  disabled={inCart}
-                >
-                  {inCart
-                    ? <Check className="h-3.5 w-3.5 text-muted-foreground" />
-                    : <ShoppingCart className="h-3.5 w-3.5 text-muted-foreground" />}
-                  {inCart ? "In cart" : "Add to cart"}
-                </DropdownMenuItem>
-              )}
-
-              <DropdownMenuItem
-                className="flex items-center gap-2 text-brand-orange focus:text-brand-orange"
-                onClick={handleOffer}
-              >
-                <HandCoins className="h-3.5 w-3.5" />
-                Make an offer
-              </DropdownMenuItem>
 
               <DropdownMenuItem
                 className="flex items-center gap-2 text-brand-purple focus:text-brand-purple"
@@ -309,38 +363,6 @@ export function TokenCard({
                     View owner
                   </Link>
                 </DropdownMenuItem>
-              )}
-
-              {isOwner && (
-                <>
-                  {onList && (
-                    <DropdownMenuItem
-                      className="flex items-center gap-2"
-                      onClick={() => onList(token)}
-                    >
-                      <Zap className="h-3.5 w-3.5 text-muted-foreground" />
-                      List for sale
-                    </DropdownMenuItem>
-                  )}
-                  {onCancel && listingOrder && (
-                    <DropdownMenuItem
-                      className="flex items-center gap-2"
-                      onClick={() => onCancel(token)}
-                    >
-                      <Check className="h-3.5 w-3.5 text-muted-foreground" />
-                      Cancel listing
-                    </DropdownMenuItem>
-                  )}
-                  {onTransfer && (
-                    <DropdownMenuItem
-                      className="flex items-center gap-2"
-                      onClick={() => onTransfer(token)}
-                    >
-                      <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground" />
-                      Transfer asset
-                    </DropdownMenuItem>
-                  )}
-                </>
               )}
 
               <DropdownMenuSeparator />
