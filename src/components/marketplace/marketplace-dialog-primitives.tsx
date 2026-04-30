@@ -334,7 +334,7 @@ export function MarketplacePinStep({
       )}
     >
       <button
-        className="w-full h-11 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-background/30"
+        className="w-full h-11 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-transparent"
         disabled={primaryDisabled}
         onClick={onPrimary}
       >
