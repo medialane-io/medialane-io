@@ -647,7 +647,7 @@ export function BrMintContent() {
       <footer className="px-6 py-5 border-t border-border/40 flex items-center justify-center gap-5 text-xs text-muted-foreground">
         <Link href="/terms" className="hover:text-foreground transition-colors">Termos</Link>
         <Link href="/privacy" className="hover:text-foreground transition-colors">Privacidade</Link>
-        <Link href="/about" className="hover:text-foreground transition-colors">Sobre</Link>
+        <a href="https://docs.medialane.io/about" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">Sobre</a>
         <span>© {new Date().getFullYear()} Medialane</span>
       </footer>
     </div>

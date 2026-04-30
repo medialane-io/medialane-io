@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { AlertCircle, Tag, Layers, Zap, Info, ShieldCheck } from "lucide-react";
+import { AlertCircle, Tag, Layers, Zap, ShieldCheck } from "lucide-react";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { fireConfetti } from "@/lib/confetti";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -167,7 +167,7 @@ export function ListingDialog({
     <div className="flex items-start justify-center gap-1.5">
       <ShieldCheck className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
       <p className="text-[10px] text-center text-muted-foreground">
-        Listings are registered &amp; protected onchain via our permissionless protocol. Gas fees are sponsored by Medialane.
+        All listings are fully onchain &amp; permissionless — your asset stays in your wallet until a trade settles. Gas is sponsored by Medialane.
       </p>
     </div>
   );
@@ -283,59 +283,70 @@ export function ListingDialog({
                   </span>
                 ) : undefined}
               />
-              <div className="flex items-center justify-between px-6 pt-3 pb-1">
+              <div className="flex items-center justify-between px-5 pt-3 pb-0">
                 <p className="font-bold text-base leading-tight truncate">{name}</p>
               </div>
 
-              <div className="flex-1 overflow-y-auto px-6 pb-5 pt-2 space-y-4">
-                {is1155 && (
-                  <div className="flex gap-2.5 p-3 rounded-xl bg-violet-500/8 border border-violet-500/20">
-                    <Info className="h-4 w-4 text-violet-400 shrink-0 mt-0.5" />
-                    <div className="text-xs text-muted-foreground space-y-0.5">
-                      <p className="font-semibold text-violet-400">Listing editions</p>
-                      <p>Set a <span className="font-medium text-foreground">quantity</span> and <span className="font-medium text-foreground">price per unit</span> — buyers can purchase copies at that fixed price.</p>
-                    </div>
-                  </div>
-                )}
-
+              <div className="px-5 pb-4 pt-2 space-y-3">
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
 
-                    {is1155 && (
+                    {is1155 ? (
+                      <div className="grid grid-cols-2 gap-3 items-start">
+                        <FormField
+                          control={form.control}
+                          name="amount"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Qty</FormLabel>
+                              <FormControl>
+                                <Input type="number" min="1" step="1" placeholder="1" disabled={isProcessing} {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="price"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Price / edition</FormLabel>
+                              <div className="relative">
+                                <FormControl>
+                                  <Input type="number" step="any" placeholder="0.00" className="pr-16" disabled={isProcessing} {...field} />
+                                </FormControl>
+                                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
+                                  <CurrencyIcon symbol={form.watch("currency")} size={13} />
+                                  <span className="text-[11px] font-bold">{form.watch("currency")}</span>
+                                </div>
+                              </div>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    ) : (
                       <FormField
                         control={form.control}
-                        name="amount"
+                        name="price"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Quantity to list</FormLabel>
-                            <FormControl>
-                              <Input type="number" min="1" step="1" placeholder="1" disabled={isProcessing} className="max-w-[140px]" {...field} />
-                            </FormControl>
+                            <FormLabel>Price</FormLabel>
+                            <div className="relative">
+                              <FormControl>
+                                <Input type="number" step="any" placeholder="0.00" className="pr-20" disabled={isProcessing} {...field} />
+                              </FormControl>
+                              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
+                                <CurrencyIcon symbol={form.watch("currency")} size={14} />
+                                <span className="text-xs font-bold">{form.watch("currency")}</span>
+                              </div>
+                            </div>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
                     )}
-
-                    <FormField
-                      control={form.control}
-                      name="price"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{is1155 ? "Price per edition" : "Price"}</FormLabel>
-                          <div className="relative">
-                            <FormControl>
-                              <Input type="number" step="any" placeholder="0.00" className="pr-20" disabled={isProcessing} {...field} />
-                            </FormControl>
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
-                              <CurrencyIcon symbol={form.watch("currency")} size={14} />
-                              <span className="text-xs font-bold">{form.watch("currency")}</span>
-                            </div>
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
 
                     <FormField
                       control={form.control}

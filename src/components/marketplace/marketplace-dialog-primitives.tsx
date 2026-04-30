@@ -198,7 +198,7 @@ export function MarketplaceDialogHero({
 }: MarketplaceDialogHeroProps) {
   const name = tokenName || `Token #${tokenId}`;
   return (
-    <div className="relative h-44 w-full bg-muted overflow-hidden shrink-0">
+    <div className="relative h-32 w-full bg-muted overflow-hidden shrink-0">
       {tokenImage ? (
         <img src={tokenImage} alt={name} className="h-full w-full object-cover" />
       ) : (
@@ -256,7 +256,7 @@ interface DurationPickerProps {
 
 export function DurationPicker({ options, value, onChange, disabled }: DurationPickerProps) {
   return (
-    <div className="grid grid-cols-4 gap-2">
+    <div className="grid grid-cols-3 gap-2">
       {options.map((opt) => (
         <Button
           key={opt.label}

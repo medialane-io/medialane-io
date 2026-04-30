@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import {
   Telescope, Compass, Briefcase, Plus, Activity,
-  LayoutGrid, Users, BookOpen, FileCode2, Info, Mail, LifeBuoy,
+  LayoutGrid, Users, BookOpen,
   Sun, Moon, ShoppingBag, LogIn, PlusCircle, Search,
   ChevronRight, Music, Palette, Film, Camera, Gem, LogOut,
 } from "lucide-react";
@@ -50,14 +50,6 @@ const EXPLORE_SUB = [
   { href: "/video",        label: "Video",        icon: Film       },
   { href: "/photography",  label: "Photography",  icon: Camera     },
   { href: "/nft",          label: "NFT",          icon: Gem        },
-];
-
-const RESOURCES_SUB = [
-  { href: "/learn",   label: "Learn",   icon: BookOpen  },
-  { href: "/docs",    label: "Docs",    icon: FileCode2 },
-  { href: "/about",   label: "About",   icon: Info      },
-  { href: "/contact", label: "Contact", icon: Mail      },
-  { href: "/support", label: "Support", icon: LifeBuoy  },
 ];
 
 // ── Collapsible nav group ────────────────────────────────────────────────────
@@ -193,9 +185,6 @@ export function AppSidebar() {
   // Whether to auto-expand collapsible groups on load
   const onLaunchpad = !!(pathname?.startsWith("/launchpad") || pathname?.startsWith("/create"));
   const onExplore   = !!(pathname === "/collections" || pathname?.startsWith("/creators") || pathname === "/activities");
-  const onResources = !!(["/learn", "/docs", "/about", "/contact", "/support"].some(
-    (p) => pathname === p || pathname?.startsWith(p + "/")
-  ));
 
   // Top-level flat nav (no collapsible)
   const TOP_NAV = [
@@ -290,17 +279,17 @@ export function AppSidebar() {
           </SidebarMenu>
         </SidebarGroup>
 
-        {/* ── Resources (Docs + DAO merged) ───────────────── */}
+        {/* ── Docs portal ─────────────────────────────────── */}
         <SidebarGroup>
           <SidebarMenu>
-            <CollapsibleNavItem
-              label="Resources"
-              icon={BookOpen}
-              sub={RESOURCES_SUB}
-              defaultOpen={onResources}
-              tooltip="Resources"
-              onClose={closeSidebar}
-            />
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Docs" onClick={closeSidebar}>
+                <a href="https://docs.medialane.io" target="_blank" rel="noopener noreferrer">
+                  <BookOpen />
+                  <span>Docs</span>
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
 

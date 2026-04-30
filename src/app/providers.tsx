@@ -62,10 +62,7 @@ function MainShell({ children }: { children: React.ReactNode }) {
             <nav className="flex items-center gap-4 flex-wrap justify-center">
               <Link href="/marketplace" className="hover:text-foreground transition-colors">Trade</Link>
               <Link href="/launchpad" className="hover:text-foreground transition-colors">Launch</Link>
-              <Link href="/about" className="hover:text-foreground transition-colors">About</Link>
-              <Link href="/learn" className="hover:text-foreground transition-colors">Learn</Link>
-              <Link href="/docs" className="hover:text-foreground transition-colors">Docs</Link>
-              <Link href="/contact" className="hover:text-foreground transition-colors">Contact</Link>
+              <a href="https://docs.medialane.io" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">Docs</a>
               <Link href="/terms" className="hover:text-foreground transition-colors">Terms</Link>
               <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
               <a href="https://x.com/medialane_io" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">X</a>
