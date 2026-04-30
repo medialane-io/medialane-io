@@ -32,6 +32,7 @@ import {
   type NftEditionsCreateFormValues,
 } from "../nfteditions-create-schema";
 import { COLLECTION_1155_CONTRACT, MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
+import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 
 /** Serialize a JS string into Cairo ByteArray calldata felts. */
 function serializeByteArray(str: string): string[] {
@@ -203,6 +204,7 @@ export default function CreateIP1155CollectionPage() {
         } catch { /* non-fatal */ }
       }
 
+      if (walletAddress) invalidatePortfolioCache(walletAddress);
       setDeployedAddress(addr);
       setCollectionStep("success");
     } catch (err) {

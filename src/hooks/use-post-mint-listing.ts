@@ -15,6 +15,7 @@ interface RunParams {
   durationSeconds: number;
   tokenName: string;
   pin: string;
+  tokenStandard?: string;
 }
 
 const POLL_ATTEMPTS = 20;
@@ -35,6 +36,7 @@ export function usePostMintListing() {
     durationSeconds,
     tokenName,
     pin,
+    tokenStandard,
   }: RunParams) {
     setListingStep("polling");
     try {
@@ -76,6 +78,7 @@ export function usePostMintListing() {
           currencySymbol,
           durationSeconds,
           tokenName,
+          tokenStandard: tokenStandard as "ERC721" | "ERC1155" | "UNKNOWN" | undefined,
         });
         setListingStep("listed");
       } else {

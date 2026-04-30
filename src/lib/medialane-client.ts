@@ -6,6 +6,7 @@ import {
   MARKETPLACE_721_CONTRACT,
   MARKETPLACE_1155_CONTRACT,
   COLLECTION_721_CONTRACT,
+  COLLECTION_1155_CONTRACT,
 } from "./constants";
 
 let _client: MedialaneClient | null = null;
@@ -19,6 +20,7 @@ export function getMedialaneClient(): MedialaneClient {
       marketplaceContract: MARKETPLACE_721_CONTRACT,
       marketplace1155Contract: MARKETPLACE_1155_CONTRACT,
       collectionContract: COLLECTION_721_CONTRACT,
+      collection1155Contract: COLLECTION_1155_CONTRACT,
       network: "mainnet",
     });
   }

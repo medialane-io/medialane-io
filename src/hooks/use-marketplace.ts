@@ -91,6 +91,8 @@ export interface MakeOfferInput {
   currencySymbol: string;
   durationSeconds: number;
   tokenStandard?: "ERC721" | "ERC1155" | "UNKNOWN";
+  /** ERC-1155 only: number of units to offer on. Defaults to "1". */
+  quantity?: string;
 }
 
 export interface FulfillOrderInput {
@@ -389,7 +391,7 @@ export function useMarketplace() {
             currency: resolveCurrencyAddress(input.currencySymbol),
             price: input.price,
             endTime,
-            ...(is1155 && input.amount ? { amount: input.amount } : {}),
+            ...(is1155 ? { amount: input.amount || "1" } : {}),
           }),
           `${input.tokenName || `Token #${input.tokenId}`} listed for ${input.price} ${input.currencySymbol}`,
           marketplaceContract,
@@ -473,7 +475,7 @@ export function useMarketplace() {
             price: input.price,
             endTime,
             tokenStandard: input.tokenStandard,
-            quantity: isErc1155Standard(input.tokenStandard) ? "1" : undefined,
+            quantity: isErc1155Standard(input.tokenStandard) ? (input.quantity || "1") : undefined,
           }),
           `Offer submitted for ${input.tokenName || `Token #${input.tokenId}`}`,
           marketplaceContract,

@@ -27,6 +27,7 @@ import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { LaunchpadPageIntro } from "@/components/launchpad/launchpad-page-intro";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
+import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 import { NftEditionsMintConfirmDialog } from "../../nfteditions-mint-confirm-dialog";
 import { NftEditionsMintForm } from "../../nfteditions-mint-form";
 import {
@@ -160,6 +161,7 @@ export default function MintIP1155Page() {
       });
 
       if (result.status === "confirmed") {
+        if (walletAddress) invalidatePortfolioCache(walletAddress);
         setMintStep("success");
       } else {
         setMintError(result.revertReason ?? "Transaction reverted");

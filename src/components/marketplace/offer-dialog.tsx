@@ -42,6 +42,7 @@ const schema = z.object({
   price: marketplacePriceField,
   currency: marketplaceCurrencyField,
   durationSeconds: marketplaceDurationField,
+  quantity: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -145,14 +146,17 @@ export function OfferDialog({
         currencySymbol: values.currency,
         durationSeconds: values.durationSeconds,
         tokenStandard: resolvedStandard,
+        quantity: values.quantity,
         pin: pinOrDerivedKey,
       });
     },
   });
 
+  const is1155 = resolvedStandard === "ERC1155";
+
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { price: "", currency: "USDC", durationSeconds: 2592000 },
+    defaultValues: { price: "", currency: "USDC", durationSeconds: 2592000, quantity: "1" },
   });
 
   const onSubmit = async (values: FormValues) => {
@@ -337,6 +341,29 @@ export function OfferDialog({
                         </FormItem>
                       )}
                     />
+
+                    {is1155 && (
+                      <FormField
+                        control={form.control}
+                        name="quantity"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Quantity</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                min="1"
+                                step="1"
+                                placeholder="1"
+                                disabled={isProcessing}
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
 
                     <FormField
                       control={form.control}

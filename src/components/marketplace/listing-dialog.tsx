@@ -103,7 +103,7 @@ export function ListingDialog({
 }: ListingDialogProps) {
   const { tokenStandard: resolvedStandard } = useResolvedTokenStandard(assetContract, tokenStandard);
   const is1155 = resolvedStandard === "ERC1155";
-  const standardResolved = resolvedStandard != null;
+  const standardResolved = resolvedStandard != null && resolvedStandard !== "UNKNOWN";
   const { isSignedIn } = useAuth();
   const {
     createListing,
