@@ -6,7 +6,7 @@ import type { ApiOrder } from "@medialane/sdk";
 
 interface UseOrderActionsOptions {
   mutateListings: () => void;
-  /** Force a specific token standard for cancel/accept (e.g. "ERC1155"). Falls back to order.offer.itemType when omitted. */
+  /** Force a specific token standard for cancel/accept (e.g. "ERC1155"). Falls back to the order's NFT item type (consideration.itemType for bids, offer.itemType for listings). */
   tokenStandard?: string;
 }
 
@@ -31,10 +31,14 @@ export function useOrderActions({ mutateListings, tokenStandard }: UseOrderActio
     setCancelStep("processing");
     setCancelError(null);
     try {
+      // For bid orders, offer.itemType is "ERC20" and the NFT standard is in consideration.itemType
+      const orderNftStandard = orderToCancel.offer.itemType === "ERC20"
+        ? orderToCancel.consideration.itemType
+        : orderToCancel.offer.itemType;
       await cancelOrder({
         orderHash: orderToCancel.orderHash,
         pin,
-        tokenStandard: tokenStandard ?? orderToCancel.offer.itemType,
+        tokenStandard: tokenStandard ?? orderNftStandard,
       });
       setCancelStep("success");
       mutateListings();
@@ -52,10 +56,14 @@ export function useOrderActions({ mutateListings, tokenStandard }: UseOrderActio
   const handleAcceptPin = async (pin: string) => {
     setAcceptPinOpen(false);
     if (!orderToAccept) return;
+    // For bid orders, offer.itemType is "ERC20" and the NFT standard is in consideration.itemType
+    const orderNftStandard = orderToAccept.offer.itemType === "ERC20"
+      ? orderToAccept.consideration.itemType
+      : orderToAccept.offer.itemType;
     await fulfillOrder({
       orderHash: orderToAccept.orderHash,
       pin,
-      tokenStandard: tokenStandard ?? orderToAccept.offer.itemType,
+      tokenStandard: tokenStandard ?? orderNftStandard,
     });
     setOrderToAccept(null);
     mutateListings();
