@@ -15,6 +15,7 @@ import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { confirmRemixOffer } from "@/hooks/use-remix-offers";
+import { serializeByteArray, encodeU256 } from "@/lib/cairo-calldata";
 import { formatDisplayPrice } from "@/lib/utils";
 import { Check, GitBranch, Loader2 } from "lucide-react";
 import type { RemixOffer } from "@/types/remix-offers";
@@ -36,22 +37,29 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
   const client = useMedialaneClient();
 
   const { collections } = useCollectionsByOwner(walletAddress ?? null);
-  const eligibleCollections = collections.filter((c) => c.collectionId != null);
+  // ERC-721 collections need collectionId (registry-enrolled); ERC-1155 only need contractAddress
+  const eligibleCollections = collections.filter(
+    (c) => c.standard === "ERC1155" || c.collectionId != null
+  );
 
-  const defaultCollectionId =
-    eligibleCollections.find((c) => c.contractAddress === offer?.originalContract)?.collectionId ??
-    eligibleCollections[0]?.collectionId ??
+  // "collection key" is collectionId for ERC-721, contractAddress for ERC-1155
+  const collectionKey = (c: (typeof eligibleCollections)[0]) => c.collectionId ?? c.contractAddress;
+
+  const defaultCollectionKey =
+    collectionKey(eligibleCollections.find((c) => c.contractAddress === offer?.originalContract) ?? eligibleCollections[0] ?? {} as any) ??
     null;
 
-  const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
+  const [selectedCollectionKey, setSelectedCollectionKey] = useState<string | null>(null);
   const [remixName, setRemixName] = useState("");
   const [pinOpen, setPinOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [newAssetLink, setNewAssetLink] = useState<string | null>(null);
 
-  const effectiveCollectionId = selectedCollectionId ?? defaultCollectionId;
-  const selectedCollection = eligibleCollections.find((c) => c.collectionId === effectiveCollectionId);
+  const effectiveCollectionKey = selectedCollectionKey ?? defaultCollectionKey;
+  const selectedCollection = eligibleCollections.find((c) => collectionKey(c) === effectiveCollectionKey);
+  // For ERC-721 createMintIntent the collectionId is still required
+  const effectiveCollectionId = selectedCollection?.collectionId ?? null;
 
   const priceDisplay = offer?.price
     ? `${formatDisplayPrice(offer.price.formatted)} ${offer.price.currency}`
@@ -59,7 +67,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
 
   const handleOpenChange = (v: boolean) => {
     if (!v) {
-      setSelectedCollectionId(null);
+      setSelectedCollectionKey(null);
       setRemixName("");
       setDone(false);
       setNewAssetLink(null);
@@ -70,8 +78,12 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
   const effectiveName = remixName.trim() || `Remix of Token #${offer?.originalTokenId}`;
 
   const handleApprove = () => {
-    if (!effectiveCollectionId || !selectedCollection) {
+    if (!effectiveCollectionKey || !selectedCollection) {
       toast.error("No eligible collection");
+      return;
+    }
+    if (selectedCollection.standard !== "ERC1155" && !effectiveCollectionId) {
+      toast.error("Collection not enrolled in registry");
       return;
     }
     setPinOpen(true);
@@ -79,8 +91,10 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
 
   const handlePin = async (pin: string) => {
     setPinOpen(false);
-    if (!offer || !walletAddress || !effectiveCollectionId || !selectedCollection) return;
+    if (!offer || !walletAddress || !effectiveCollectionKey || !selectedCollection) return;
     setLoading(true);
+
+    const standard = selectedCollection.standard ?? "ERC721";
 
     try {
       // 1. Upload remix IPFS metadata
@@ -108,50 +122,75 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
       const pinData = await pinRes.json().catch(() => ({}));
       if (!pinRes.ok || !pinData.uri) throw new Error(pinData.error ?? "Metadata upload failed");
 
-      // 2. Mint via createMintIntent
-      const intentRes = await client.api.createMintIntent({
-        owner: walletAddress,
-        collectionId: effectiveCollectionId,
-        recipient: walletAddress,
-        tokenUri: pinData.uri,
-      });
-      const mintCalls = (intentRes.data as any)?.calls as ChipiCall[];
-      if (!mintCalls?.length) throw new Error("No mint calls returned");
+      // 2. Mint — branch on token standard
+      let remixTokenId: string;
 
-      const mintResult = await executeTransaction({
-        pin,
-        contractAddress: mintCalls[0].contractAddress,
-        calls: mintCalls,
-      });
-      if (mintResult.status === "reverted") throw new Error(mintResult.revertReason ?? "Mint reverted");
+      if (standard === "ERC1155") {
+        // ERC-1155: we choose the token ID ourselves (no registry) and call mint_item directly
+        remixTokenId = Date.now().toString();
+        const [tokenIdLow, tokenIdHigh] = encodeU256(BigInt(remixTokenId));
+        const [valueLow, valueHigh] = encodeU256(BigInt(1));
+        const result = await executeTransaction({
+          pin,
+          contractAddress: selectedCollection.contractAddress,
+          calls: [{
+            contractAddress: selectedCollection.contractAddress,
+            entrypoint: "mint_item",
+            calldata: [
+              walletAddress,
+              tokenIdLow, tokenIdHigh,
+              valueLow, valueHigh,
+              ...serializeByteArray(pinData.uri),
+            ],
+          }],
+        });
+        if (result.status === "reverted") throw new Error(result.revertReason ?? "Mint reverted");
+      } else {
+        // ERC-721: backend-mediated via createMintIntent, poll for assigned tokenId
+        const intentRes = await client.api.createMintIntent({
+          owner: walletAddress,
+          collectionId: effectiveCollectionId,
+          recipient: walletAddress,
+          tokenUri: pinData.uri,
+        });
+        const mintCalls = (intentRes.data as any)?.calls as ChipiCall[];
+        if (!mintCalls?.length) throw new Error("No mint calls returned");
 
-      // 3. Poll for new tokenId
-      let remixTokenId: string | undefined;
-      const mintDeadline = Date.now() + 10_000;
-      while (Date.now() < mintDeadline) {
-        await new Promise((r) => setTimeout(r, 2000));
-        try {
-          const tokensRes = await client.api.getTokensByOwner(walletAddress, 1, 5);
-          const newest = tokensRes.data?.find((t) => t.contractAddress === selectedCollection.contractAddress);
-          if (newest) {
-            remixTokenId = newest.tokenId;
-            break;
-          }
-        } catch { /* ignore */ }
+        const mintResult = await executeTransaction({
+          pin,
+          contractAddress: mintCalls[0].contractAddress,
+          calls: mintCalls,
+        });
+        if (mintResult.status === "reverted") throw new Error(mintResult.revertReason ?? "Mint reverted");
+
+        // Poll for the registry-assigned tokenId
+        let polledTokenId: string | undefined;
+        const mintDeadline = Date.now() + 10_000;
+        while (Date.now() < mintDeadline) {
+          await new Promise((r) => setTimeout(r, 2000));
+          try {
+            const tokensRes = await client.api.getTokensByOwner(walletAddress, 1, 5);
+            const newest = tokensRes.data?.find((t) => t.contractAddress === selectedCollection.contractAddress);
+            if (newest) { polledTokenId = newest.tokenId; break; }
+          } catch { /* ignore */ }
+        }
+        if (!polledTokenId) throw new Error("Could not determine remix token ID");
+        remixTokenId = polledTokenId;
       }
-      if (!remixTokenId) throw new Error("Could not determine remix token ID");
 
-      // 4. Create marketplace listing
+      // 3. Create marketplace listing for the buyer
       await createListing({
         assetContract: selectedCollection.contractAddress,
         tokenId: remixTokenId,
         price: offer.price?.raw ?? "0",
         currencySymbol: offer.price?.currency ?? "STRK",
-        durationSeconds: 30 * 24 * 60 * 60, // 30 days
+        durationSeconds: 30 * 24 * 60 * 60,
+        tokenStandard: standard === "ERC1155" ? "ERC1155" : undefined,
+        amount: standard === "ERC1155" ? "1" : undefined,
         pin,
       });
 
-      // 5. Poll for listing to get orderHash
+      // 4. Poll for listing to get orderHash
       let orderHash: string | undefined;
       const listingDeadline = Date.now() + 15_000;
       while (Date.now() < listingDeadline) {
@@ -162,17 +201,14 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
             remixTokenId
           );
           const listing = ordersRes.data?.find(
-            (o) => o.status === "ACTIVE" && o.offer.itemType === "ERC721"
+            (o) => o.status === "ACTIVE" && o.offer.itemType === standard
           );
-          if (listing) {
-            orderHash = listing.orderHash;
-            break;
-          }
+          if (listing) { orderHash = listing.orderHash; break; }
         } catch { /* ignore */ }
       }
       if (!orderHash) throw new Error("Could not confirm listing orderHash — check portfolio shortly");
 
-      // 6. Confirm offer in backend
+      // 5. Confirm offer in backend
       const clerkToken = await getToken();
       if (!clerkToken) throw new Error("Not authenticated");
       await confirmRemixOffer(
@@ -249,16 +285,21 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
                     <p className="text-xs text-destructive">No eligible collections.</p>
                   ) : (
                     <Select
-                      value={effectiveCollectionId ?? ""}
-                      onValueChange={setSelectedCollectionId}
+                      value={effectiveCollectionKey ?? ""}
+                      onValueChange={setSelectedCollectionKey}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select collection" />
                       </SelectTrigger>
                       <SelectContent>
                         {eligibleCollections.map((c) => (
-                          <SelectItem key={c.collectionId!} value={c.collectionId!}>
-                            {c.name ?? c.contractAddress.slice(0, 14) + "…"}
+                          <SelectItem key={c.collectionId ?? c.contractAddress} value={c.collectionId ?? c.contractAddress}>
+                            <span className="flex items-center gap-2">
+                              {c.name ?? c.contractAddress.slice(0, 14) + "…"}
+                              {c.standard && c.standard !== "UNKNOWN" && (
+                                <span className="text-[10px] font-mono text-muted-foreground">{c.standard}</span>
+                              )}
+                            </span>
                           </SelectItem>
                         ))}
                       </SelectContent>

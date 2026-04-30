@@ -35,7 +35,6 @@ import { useSessionKey } from "@/hooks/use-session-key";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { usePostMintListing } from "@/hooks/use-post-mint-listing";
 import { MintProgressDialog } from "@/components/marketplace/mint-progress-dialog";
-import { MarketplaceDebugPanel } from "@/components/marketplace/marketplace-debug-panel";
 import type { MintStep } from "@/components/marketplace/mint-progress-dialog";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 import { cn } from "@/lib/utils";
@@ -572,11 +571,6 @@ export default function CreateAssetPage() {
       />
 
       <div className="container max-w-2xl mx-auto px-4 pt-14 pb-8 space-y-8">
-        <MarketplaceDebugPanel
-          snapshot={mintDebug as any}
-          label="Mint debug"
-          forceOpen={mintStep === "error" || mintDebug?.step === "intent_failed"}
-        />
 
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-primary">

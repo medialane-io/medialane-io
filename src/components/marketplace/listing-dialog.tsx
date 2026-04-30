@@ -35,7 +35,6 @@ import { getListableTokens } from "@medialane/sdk";
 import { marketplacePriceField, marketplaceCurrencyField, marketplaceDurationField } from "@/lib/marketplace-schemas";
 import { isWebAuthnSupported } from "@chipi-stack/nextjs";
 import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
-import { MarketplaceDebugPanel } from "@/components/marketplace/marketplace-debug-panel";
 
 const CURRENCIES = getListableTokens().map((t) => t.symbol);
 
@@ -83,7 +82,6 @@ export function ListingDialog({
     txStatus,
     txHash,
     error,
-    debugSnapshot,
     resetState,
   } = useMarketplace();
 
@@ -202,7 +200,6 @@ export function ListingDialog({
               txHash={txHash}
               explorerUrl={EXPLORER_URL}
               onDone={() => { onOpenChange(false); onSuccess?.(); }}
-              footer={<div className="w-full"><MarketplaceDebugPanel snapshot={debugSnapshot} /></div>}
             />
 
           ) : isActivatingSession ? (
@@ -270,9 +267,6 @@ export function ListingDialog({
                 onUsePasskey={handleUsePasskey}
                 footer={shieldFooter}
               />
-              <div className="px-6 pb-5">
-                <MarketplaceDebugPanel snapshot={debugSnapshot} />
-              </div>
             </>
 
           ) : (
@@ -380,13 +374,10 @@ export function ListingDialog({
                     />
 
                     {error && (
-                      <>
-                        <MarketplaceDebugPanel snapshot={debugSnapshot} forceOpen />
-                        <Alert variant="destructive">
-                          <AlertCircle className="h-4 w-4" />
-                          <AlertDescription>{error}</AlertDescription>
-                        </Alert>
-                      </>
+                      <Alert variant="destructive">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription>{error}</AlertDescription>
+                      </Alert>
                     )}
 
                     <div className="pt-1 space-y-2">

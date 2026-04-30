@@ -26,6 +26,8 @@ import {
   Collapsible, CollapsibleContent, CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { submitRemixOffer, confirmSelfRemix } from "@/hooks/use-remix-offers";
+import { useMarketplace } from "@/hooks/use-marketplace";
+import { serializeByteArray, encodeU256 } from "@/lib/cairo-calldata";
 import { getListableTokens, getTokenBySymbol } from "@medialane/sdk";
 import { IP_TYPES, LICENSE_TYPES, type IPType } from "@/types/ip";
 import { ipfsToHttp, formatDisplayPrice, checkIsOwner } from "@/lib/utils";
@@ -93,11 +95,15 @@ export default function CreateRemixPage() {
   const { getToken } = useAuth();
   const { walletAddress } = useSessionKey();
   const { executeTransaction, status: txStatus } = useChipiTransaction();
+  const { createListing } = useMarketplace();
   const client = useMedialaneClient();
   const { token, isLoading: tokenLoading } = useToken(contract, tokenId);
   const { collections: allCollections, isLoading: collectionsLoading } =
     useCollectionsByOwner(walletAddress ?? null);
-  const eligibleCollections = allCollections.filter((c) => c.collectionId != null);
+  // ERC-721 collections need collectionId (registry-enrolled); ERC-1155 only need contractAddress
+  const eligibleCollections = allCollections.filter(
+    (c) => c.standard === "ERC1155" || c.collectionId != null
+  );
 
   const isOwner = checkIsOwner(token, walletAddress);
 
@@ -114,7 +120,8 @@ export default function CreateRemixPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [collectionId, setCollectionId] = useState("");
+  // "collection key" = collectionId for ERC-721 (registry-enrolled), contractAddress for ERC-1155
+  const [collectionKey, setCollectionKey] = useState("");
   const [ipType, setIpType] = useState<string>("Art");
   const [licenseType, setLicenseType] = useState("CC BY");
   const [commercial, setCommercial] = useState(false);
@@ -139,13 +146,15 @@ export default function CreateRemixPage() {
     if (token && !name) setName(`Remix of ${originalName}`);
   }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const getCollectionKey = (c: (typeof eligibleCollections)[0]) => c.collectionId ?? c.contractAddress;
+
   // Pre-fill collection to match original asset's collection if possible
   useEffect(() => {
-    if (eligibleCollections.length > 0 && !collectionId) {
+    if (eligibleCollections.length > 0 && !collectionKey) {
       const match = eligibleCollections.find(
         (c) => c.contractAddress.toLowerCase() === contract.toLowerCase()
       );
-      setCollectionId(match?.collectionId ?? eligibleCollections[0]?.collectionId ?? "");
+      setCollectionKey(getCollectionKey(match ?? eligibleCollections[0]!));
     }
   }, [eligibleCollections.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -187,7 +196,7 @@ export default function CreateRemixPage() {
 
   const validate = (): string | null => {
     if (!name.trim()) return "Remix name is required";
-    if (isOwner && !collectionId) return "Select a collection";
+    if (isOwner && !collectionKey) return "Select a collection";
     if (!isOwner && (!price || isNaN(parseFloat(price)) || parseFloat(price) <= 0))
       return "Enter a valid price offer";
     return null;
@@ -208,10 +217,11 @@ export default function CreateRemixPage() {
     setMintStep("uploading");
 
     try {
-      const selectedCollection = eligibleCollections.find((c) => c.collectionId === collectionId);
+      const selectedCollection = eligibleCollections.find((c) => getCollectionKey(c) === collectionKey);
       if (!selectedCollection) throw new Error("Collection not found");
+      const standard = selectedCollection.standard ?? "ERC721";
 
-      // 1. Build metadata
+      // 1. Build and upload metadata
       const metadata = {
         name: name.trim(),
         description: description.trim() || `Remix of ${originalName}`,
@@ -232,9 +242,7 @@ export default function CreateRemixPage() {
       let tokenUri: string;
 
       if (imageFile) {
-        // Upload via /api/pinata (image + metadata)
-        const formData = new FormData();
-        // Upload image directly to Pinata via signed URL (bypasses Next.js 4 MB body limit)
+        // Upload image via signed URL (bypasses Next.js 4 MB body limit) then full metadata via /api/pinata
         const signedRes = await fetch("/api/pinata/signed-url", { method: "POST" });
         const signedData = await signedRes.json();
         if (!signedRes.ok || !signedData.url) throw new Error("Failed to get upload URL");
@@ -247,6 +255,7 @@ export default function CreateRemixPage() {
         const imgJson = await imgRes.json();
         const imgCid = imgJson.data?.cid;
         if (!imgCid) throw new Error("Image upload returned no CID");
+        const formData = new FormData();
         formData.set("imageUri", `ipfs://${imgCid}`);
         formData.set("name", metadata.name);
         formData.set("description", metadata.description);
@@ -266,7 +275,6 @@ export default function CreateRemixPage() {
         if (!uploadRes.ok || !uploadData.uri) throw new Error(uploadData.error ?? "Upload failed");
         tokenUri = uploadData.uri;
       } else {
-        // Upload metadata JSON only
         const pinRes = await fetch("/api/pinata/json", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -279,33 +287,79 @@ export default function CreateRemixPage() {
 
       setMintStep("processing");
 
-      // 2. Mint intent
-      const intentRes = await client.api.createMintIntent({
-        owner: walletAddress,
-        collectionId,
-        recipient: walletAddress,
-        tokenUri,
-      });
-      const calls = (intentRes.data as any)?.calls as ChipiCall[];
-      if (!calls?.length) throw new Error("No calls returned from mint intent");
+      // 2. Mint — branch on token standard
+      let remixTokenId: string;
+      let txHash: string;
 
-      const result = await executeTransaction({ pin, contractAddress: calls[0].contractAddress, calls });
-      if (result.status === "reverted") throw new Error(result.revertReason ?? "Mint reverted");
+      if (standard === "ERC1155") {
+        // ERC-1155: we choose the token ID ourselves and call mint_item directly
+        remixTokenId = Date.now().toString();
+        const [tokenIdLow, tokenIdHigh] = encodeU256(BigInt(remixTokenId));
+        const [valueLow, valueHigh] = encodeU256(BigInt(1));
+        const result = await executeTransaction({
+          pin,
+          contractAddress: selectedCollection.contractAddress,
+          calls: [{
+            contractAddress: selectedCollection.contractAddress,
+            entrypoint: "mint_item",
+            calldata: [
+              walletAddress,
+              tokenIdLow, tokenIdHigh,
+              valueLow, valueHigh,
+              ...serializeByteArray(tokenUri),
+            ],
+          }],
+        });
+        if (result.status === "reverted") throw new Error(result.revertReason ?? "Mint reverted");
+        txHash = result.txHash ?? "";
+      } else {
+        // ERC-721: backend-mediated via createMintIntent, poll for registry-assigned tokenId
+        const intentRes = await client.api.createMintIntent({
+          owner: walletAddress,
+          collectionId: selectedCollection.collectionId!,
+          recipient: walletAddress,
+          tokenUri,
+        });
+        const calls = (intentRes.data as any)?.calls as ChipiCall[];
+        if (!calls?.length) throw new Error("No calls returned from mint intent");
 
-      // 3. Poll for new tokenId
-      let remixTokenId: string | undefined;
-      const deadline = Date.now() + 10_000;
-      while (Date.now() < deadline) {
-        await new Promise((r) => setTimeout(r, 2000));
-        try {
-          const res = await client.api.getTokensByOwner(walletAddress, 1, 5);
-          const newest = res.data?.find(
-            (t) => t.contractAddress.toLowerCase() === selectedCollection.contractAddress.toLowerCase()
-          );
-          if (newest) { remixTokenId = newest.tokenId; break; }
-        } catch { /* ignore */ }
+        const result = await executeTransaction({ pin, contractAddress: calls[0].contractAddress, calls });
+        if (result.status === "reverted") throw new Error(result.revertReason ?? "Mint reverted");
+        txHash = result.txHash ?? "";
+
+        let polledTokenId: string | undefined;
+        const deadline = Date.now() + 10_000;
+        while (Date.now() < deadline) {
+          await new Promise((r) => setTimeout(r, 2000));
+          try {
+            const res = await client.api.getTokensByOwner(walletAddress, 1, 5);
+            const newest = res.data?.find(
+              (t) => t.contractAddress.toLowerCase() === selectedCollection.contractAddress.toLowerCase()
+            );
+            if (newest) { polledTokenId = newest.tokenId; break; }
+          } catch { /* ignore */ }
+        }
+        if (!polledTokenId) throw new Error("Could not determine remix token ID — check portfolio shortly");
+        remixTokenId = polledTokenId;
       }
-      if (!remixTokenId) throw new Error("Could not determine remix token ID — check portfolio shortly");
+
+      // 3. Optional listing (if price was set)
+      const parsedPrice = parseFloat(price);
+      if (price && !isNaN(parsedPrice) && parsedPrice > 0) {
+        const tokenInfo = getTokenBySymbol(currency as any);
+        const decimals = tokenInfo?.decimals ?? 18;
+        const rawPrice = BigInt(Math.round(parsedPrice * 10 ** decimals)).toString();
+        await createListing({
+          assetContract: selectedCollection.contractAddress,
+          tokenId: remixTokenId,
+          price: rawPrice,
+          currencySymbol: currency,
+          durationSeconds: 30 * 24 * 60 * 60,
+          tokenStandard: standard === "ERC1155" ? "ERC1155" : undefined,
+          amount: standard === "ERC1155" ? "1" : undefined,
+          pin,
+        });
+      }
 
       // 4. Confirm self-remix in backend
       const clerkToken = await getToken();
@@ -316,7 +370,7 @@ export default function CreateRemixPage() {
           originalTokenId: tokenId,
           remixContract: selectedCollection.contractAddress,
           remixTokenId,
-          txHash: result.txHash ?? "",
+          txHash,
           licenseType,
           commercial,
           derivatives,
@@ -538,14 +592,19 @@ export default function CreateRemixPage() {
                     </Button>
                   </div>
                 ) : (
-                  <Select value={collectionId} onValueChange={setCollectionId}>
+                  <Select value={collectionKey} onValueChange={setCollectionKey}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select a collection" />
                     </SelectTrigger>
                     <SelectContent>
                       {eligibleCollections.map((c) => (
-                        <SelectItem key={c.collectionId!} value={c.collectionId!}>
-                          {c.name ?? c.contractAddress.slice(0, 14) + "…"}
+                        <SelectItem key={getCollectionKey(c)} value={getCollectionKey(c)}>
+                          <span className="flex items-center gap-2">
+                            {c.name ?? c.contractAddress.slice(0, 14) + "…"}
+                            {c.standard && c.standard !== "UNKNOWN" && (
+                              <span className="text-[10px] font-mono text-muted-foreground">{c.standard}</span>
+                            )}
+                          </span>
                         </SelectItem>
                       ))}
                     </SelectContent>
