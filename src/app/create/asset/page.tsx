@@ -326,6 +326,7 @@ export default function CreateAssetPage() {
   const [templateFields, setTemplateFields] = useState<Record<string, string>>({});
   const pinRef = useRef<string | null>(null);
   const previewUrlRef = useRef<string | null>(null);
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     return () => {
@@ -551,6 +552,7 @@ export default function CreateAssetPage() {
     setTemplateFields({});
     setImageFile(null);
     setImagePreview(null);
+    if (imageInputRef.current) imageInputRef.current.value = "";
     setListPrice("");
   };
 
@@ -643,8 +645,8 @@ export default function CreateAssetPage() {
                 role="button"
                 tabIndex={0}
                 aria-label="Upload image"
-                onClick={() => document.getElementById("image-upload")?.click()}
-                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); document.getElementById("image-upload")?.click(); } }}
+                onClick={() => imageInputRef.current?.click()}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); imageInputRef.current?.click(); } }}
               >
                 {imagePreview ? (
                   <img src={imagePreview} alt="Preview" className="mx-auto max-h-48 rounded-lg object-contain" />
@@ -655,7 +657,7 @@ export default function CreateAssetPage() {
                   </div>
                 )}
                 <input
-                  id="image-upload"
+                  ref={imageInputRef}
                   type="file"
                   accept="image/*"
                   className="hidden"
