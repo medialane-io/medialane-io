@@ -392,7 +392,7 @@ export function ListingDialog({
                     )}
 
                     <div className="pt-1 space-y-2">
-                      <div className={`btn-border-animated p-[1px] rounded-xl ${(isProcessing || !standardResolved) ? "opacity-50 pointer-events-none" : ""}`}>
+                      <div className={`btn-border-animated p-[1px] rounded-xl ${(isProcessing || !standardResolved) ? "pointer-events-none" : ""}`}>
                         <button
                           type="submit"
                           className="w-full h-11 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-transparent"

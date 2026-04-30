@@ -330,7 +330,7 @@ export function MarketplacePinStep({
     <div
       className={cn(
         "btn-border-animated p-[1px] rounded-xl flex-1",
-        primaryDisabled && "opacity-50 pointer-events-none"
+        primaryDisabled && "pointer-events-none"
       )}
     >
       <button
