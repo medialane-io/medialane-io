@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { AlertCircle, Tag, Layers, Zap, ShieldCheck } from "lucide-react";
+import { AlertCircle, Tag, Layers, Zap, ShieldCheck, Loader2 } from "lucide-react";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { fireConfetti } from "@/lib/confetti";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -70,6 +70,7 @@ export function ListingDialog({
 }: ListingDialogProps) {
   const { tokenStandard: resolvedStandard } = useResolvedTokenStandard(assetContract, tokenStandard);
   const is1155 = resolvedStandard === "ERC1155";
+  const standardResolved = resolvedStandard !== "UNKNOWN";
   const { isSignedIn } = useAuth();
   const {
     createListing,
@@ -124,7 +125,7 @@ export function ListingDialog({
         price: values.price,
         currencySymbol: values.currency,
         durationSeconds: values.durationSeconds,
-        tokenStandard: is1155 ? "ERC1155" : "ERC721",
+        tokenStandard: resolvedStandard,
         amount: is1155 ? (values.amount || "1") : undefined,
         pin: pinOrDerivedKey,
       });
@@ -391,14 +392,17 @@ export function ListingDialog({
                     )}
 
                     <div className="pt-1 space-y-2">
-                      <div className={`btn-border-animated p-[1px] rounded-xl ${isProcessing ? "pointer-events-none" : ""}`}>
+                      <div className={`btn-border-animated p-[1px] rounded-xl ${(isProcessing || !standardResolved) ? "pointer-events-none" : ""}`}>
                         <button
                           type="submit"
                           className="w-full h-11 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-transparent"
-                          disabled={isProcessing}
+                          disabled={isProcessing || !standardResolved}
                         >
-                          <Tag className="h-4 w-4" />
-                          {hasWallet ? "List for sale" : "Secure account & list"}
+                          {!standardResolved ? (
+                            <><Loader2 className="h-4 w-4 animate-spin" /> Resolving asset…</>
+                          ) : (
+                            <><Tag className="h-4 w-4" /> {hasWallet ? "List for sale" : "Secure account & list"}</>
+                          )}
                         </button>
                       </div>
                       {shieldFooter}
