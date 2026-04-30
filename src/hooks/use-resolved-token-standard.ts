@@ -9,11 +9,13 @@ export function useResolvedTokenStandard(
 ): {
   tokenStandard: TokenStandard;
   collectionStandard: string | null | undefined;
+  isResolving: boolean;
 } {
   const needsFetch = tokenStandard == null || tokenStandard === "UNKNOWN";
-  const { collection } = useCollection(needsFetch ? contractAddress : null);
+  const { collection, isLoading } = useCollection(needsFetch ? contractAddress : null);
   return {
     tokenStandard: resolveTokenStandard(tokenStandard, collection?.standard),
     collectionStandard: collection?.standard,
+    isResolving: needsFetch && isLoading,
   };
 }
