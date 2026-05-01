@@ -4,14 +4,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { AddressDisplay } from "@/components/shared/address-display";
-import { useToken } from "@/hooks/use-tokens";
 import { ipfsToHttp, timeAgo, formatDisplayPrice, cn } from "@/lib/utils";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { ACTIVITY_TYPE_CONFIG } from "@/lib/activity";
 import { EXPLORER_URL } from "@/lib/constants";
 import type { ApiActivity } from "@medialane/sdk";
 
-// Human-friendly sentence for each activity type.
 const ACTIVITY_MESSAGES: Record<string, (actor: string | null) => string> = {
   mint:      (actor) => actor ? `Minted by ${actor}` : "Newly minted",
   listing:   (actor) => actor ? `Listed by ${actor}` : "Listed for sale",
@@ -49,13 +47,18 @@ export function ActivityRow({
   const actor =
     activity.offerer ??
     activity.fulfiller ??
-    ((activity.type as string) === "mint" ? activity.to : activity.from) ??
+    (activity.type === "mint" ? activity.to : activity.from) ??
     null;
   const txLink = activity.txHash ? `${EXPLORER_URL}/tx/${activity.txHash}` : null;
 
-  const { token } = useToken(contract, tokenId);
-  const tokenName = token?.metadata?.name ?? (tokenId ? `#${tokenId}` : "—");
-  const tokenImage = token?.metadata?.image ? ipfsToHttp(token.metadata.image) : null;
+  // Use batch-enriched token data — avoids per-row API calls
+  const tokenName = activity.token?.name ?? (tokenId ? `#${tokenId}` : "—");
+  const rawImage = activity.token?.image ?? null;
+  const tokenImage = rawImage ? ipfsToHttp(rawImage) : null;
+
+  const is1155 = activity.tokenStandard === "ERC1155" ||
+    (activity.type === "mint" || activity.type === "transfer") && Number(activity.amount ?? "1") > 1;
+  const amount = activity.amount && Number(activity.amount) > 1 ? activity.amount : null;
 
   const messageFn = ACTIVITY_MESSAGES[activity.type];
   const shortActor = actor
@@ -91,7 +94,7 @@ export function ActivityRow({
       {/* Token thumbnail */}
       <div
         className={cn(
-          "rounded-md overflow-hidden shrink-0 bg-muted",
+          "rounded-md overflow-hidden shrink-0 bg-muted relative",
           compact ? "h-7 w-7" : "h-9 w-9"
         )}
       >
@@ -107,20 +110,33 @@ export function ActivityRow({
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-muted-foreground/10 to-muted-foreground/5" aria-hidden />
         )}
+        {/* ERC-1155 badge */}
+        {is1155 && (
+          <span className="absolute -bottom-1 -right-1 text-[8px] font-bold bg-violet-500 text-white rounded px-0.5 leading-tight">
+            1155
+          </span>
+        )}
       </div>
 
       {/* Content: asset name + friendly message */}
       <div className="flex-1 min-w-0">
-        {contract && tokenId ? (
-          <Link
-            href={`/asset/${contract}/${tokenId}`}
-            className="text-sm font-semibold hover:text-primary transition-colors truncate block leading-tight"
-          >
-            {tokenName}
-          </Link>
-        ) : (
-          <span className="text-sm font-semibold text-muted-foreground">—</span>
-        )}
+        <div className="flex items-center gap-1.5 leading-tight">
+          {contract && tokenId ? (
+            <Link
+              href={`/asset/${contract}/${tokenId}`}
+              className="text-sm font-semibold hover:text-primary transition-colors truncate block"
+            >
+              {tokenName}
+            </Link>
+          ) : (
+            <span className="text-sm font-semibold text-muted-foreground">—</span>
+          )}
+          {amount && (
+            <span className="text-[10px] font-medium text-violet-400 shrink-0">
+              ×{amount}
+            </span>
+          )}
+        </div>
         <p className="text-xs text-muted-foreground leading-tight truncate mt-0.5">
           {message}
           {showActor && actor && !messageFn && (

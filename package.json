@@ -16,7 +16,7 @@
     "@clerk/localizations": "^4.5.3",
     "@clerk/nextjs": "^6",
     "@hookform/resolvers": "^3",
-    "@medialane/sdk": "0.9.1",
+    "@medialane/sdk": "0.9.2",
     "@medialane/ui": "0.4.3",
     "@next/third-parties": "^16.2.4",
     "@radix-ui/react-accordion": "latest",
