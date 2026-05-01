@@ -149,7 +149,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
         // ERC-721: backend-mediated via createMintIntent, poll for assigned tokenId
         const intentRes = await client.api.createMintIntent({
           owner: walletAddress,
-          collectionId: effectiveCollectionId,
+          collectionId: effectiveCollectionId!,
           recipient: walletAddress,
           tokenUri: pinData.uri,
         });

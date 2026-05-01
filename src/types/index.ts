@@ -60,4 +60,6 @@ export interface CartItem {
   offerer: string;
   considerationToken: string;
   considerationAmount: string;
+  /** ERC-1155 only: number of units to purchase (defaults to "1") */
+  quantity?: string;
 }
