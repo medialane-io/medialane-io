@@ -12,6 +12,8 @@ const ALLOWED_CONTENT_TYPES = new Set([
   "image/tiff",
 ]);
 
+const MAX_REDIRECTS = 5;
+
 /**
  * GET /api/img?url=<encoded-https-url>
  *
@@ -21,29 +23,89 @@ const ALLOWED_CONTENT_TYPES = new Set([
  *  - Vercel image optimizer quota (/_next/image 402 errors on free plan)
  *
  * Security:
- *  - Blocks private/link-local hostnames to prevent SSRF against internal services.
+ *  - Blocks private/link-local/loopback hostnames on every redirect hop (SSRF).
+ *  - Rejects URLs with embedded credentials.
+ *  - Manual redirect handling — each hop is validated before following.
  *  - Only returns responses with image content-types.
- *  - Public route — images must be accessible to unauthenticated users on public pages.
- *
- * Cached aggressively at the CDN layer — repeat requests for the same URL
- * are served from edge cache without invoking the function.
  */
 
-/**
- * Returns true if the hostname is a private, loopback, or link-local address
- * that should never be reachable from a public proxy.
- */
 function isPrivateHost(hostname: string): boolean {
-  // Strip IPv6 brackets for uniform matching
   const h = hostname.toLowerCase().replace(/^\[|\]$/g, "");
+
+  // Loopback
   if (h === "localhost" || h === "127.0.0.1" || h === "0.0.0.0") return true;
-  if (/^::1$/.test(h) || /^::ffff:127\./i.test(h)) return true; // loopback + IPv4-mapped loopback
+
+  // IPv6 loopback — all spellings
+  if (h === "::1" || /^0*:0*:0*:0*:0*:0*:0*:0*1$/.test(h)) return true;
+
+  // IPv4-mapped IPv6 (::ffff:x.x.x.x) — check mapped address
+  const v4mapped = h.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/i);
+  if (v4mapped) return isPrivateHost(v4mapped[1]);
+
+  // Private IPv4 ranges
   if (/^10\./.test(h)) return true;
   if (/^172\.(1[6-9]|2\d|3[01])\./.test(h)) return true;
   if (/^192\.168\./.test(h)) return true;
-  if (/^169\.254\./.test(h)) return true; // AWS metadata endpoint
-  if (/^(fe80|fc00|fd[0-9a-f]{2}):/i.test(h)) return true; // IPv6 link-local + ULA (full fc00::/7 range)
+  if (/^169\.254\./.test(h)) return true; // link-local / AWS metadata
+  if (/^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./.test(h)) return true; // CGNAT 100.64/10
+
+  // IPv6 link-local, ULA (fc00::/7 covers fc and fd prefixes)
+  if (/^fe80:/i.test(h)) return true;
+  if (/^f[cd][0-9a-f]{2}:/i.test(h)) return true;
+
+  // .local mDNS hostnames
+  if (h.endsWith(".local")) return true;
+
   return false;
+}
+
+function validateUrl(raw: string): { url: URL } | { error: string; status: number } {
+  let parsed: URL;
+  try {
+    parsed = new URL(raw);
+  } catch {
+    return { error: "Invalid url", status: 400 };
+  }
+
+  if (parsed.protocol !== "https:") {
+    return { error: "Only https URLs allowed", status: 400 };
+  }
+
+  // Block embedded credentials — https://user:pass@host
+  if (parsed.username || parsed.password) {
+    return { error: "URL credentials not allowed", status: 400 };
+  }
+
+  if (isPrivateHost(parsed.hostname)) {
+    return { error: "URL not allowed", status: 400 };
+  }
+
+  return { url: parsed };
+}
+
+async function safeFetch(url: URL, hopsLeft: number): Promise<Response> {
+  if (hopsLeft < 0) throw new Error("Too many redirects");
+
+  const res = await fetch(url.toString(), {
+    redirect: "manual",
+    headers: {
+      "User-Agent": "Mozilla/5.0 (compatible; Medialane/1.0; +https://www.medialane.io)",
+    },
+  });
+
+  if (res.status >= 300 && res.status < 400) {
+    const location = res.headers.get("location");
+    if (!location) throw new Error("Redirect with no Location header");
+
+    // Resolve relative redirects against the current URL
+    const next = new URL(location, url);
+    const validated = validateUrl(next.toString());
+    if ("error" in validated) throw new Error(`Redirect blocked: ${validated.error}`);
+
+    return safeFetch(validated.url, hopsLeft - 1);
+  }
+
+  return res;
 }
 
 export async function GET(req: NextRequest) {
@@ -53,29 +115,14 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Missing url" }, { status: 400 });
   }
 
-  let parsed: URL;
-  try {
-    parsed = new URL(raw);
-  } catch {
-    return NextResponse.json({ error: "Invalid url" }, { status: 400 });
-  }
-
-  if (parsed.protocol !== "https:") {
-    return NextResponse.json({ error: "Only https URLs allowed" }, { status: 400 });
-  }
-
-  if (isPrivateHost(parsed.hostname)) {
-    return NextResponse.json({ error: "URL not allowed" }, { status: 400 });
+  const validated = validateUrl(raw);
+  if ("error" in validated) {
+    return NextResponse.json({ error: validated.error }, { status: validated.status });
   }
 
   let upstream: Response;
   try {
-    upstream = await fetch(parsed.toString(), {
-      cache: "no-store",
-      headers: {
-        "User-Agent": "Mozilla/5.0 (compatible; Medialane/1.0; +https://www.medialane.io)",
-      },
-    });
+    upstream = await safeFetch(validated.url, MAX_REDIRECTS);
   } catch {
     return NextResponse.json({ error: "Failed to fetch image" }, { status: 502 });
   }
