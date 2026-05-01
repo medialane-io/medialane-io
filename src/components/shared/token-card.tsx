@@ -195,12 +195,12 @@ export function TokenCard({
           <Button
             size="sm"
             variant="outline"
-            className="h-8 shrink-0 rounded-[9px] gap-1.5 px-3 text-xs font-semibold"
+            className="h-8 w-8 shrink-0 rounded-[9px] px-0"
             asChild
+            title="View asset"
           >
             <Link href={assetHref}>
               <ArrowUpRight className="h-3.5 w-3.5" />
-              Expand
             </Link>
           </Button>
 
@@ -245,7 +245,7 @@ export function TokenCard({
               onClick={handleOffer}
             >
               <HandCoins className="h-3.5 w-3.5 mr-1.5" />
-              Make Offer
+              Offer
             </Button>
           )}
 
