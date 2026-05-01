@@ -167,9 +167,57 @@ Validate:
 
 - resulting event appears correctly in launchpad or remains hidden when private
 
-## Section B: Marketplace Core
+## Section B: Remix Flow (added 2026-04-30)
 
-### B1. ERC-721 Listing
+### B0. Remix — ERC-721 Origin, ERC-721 Target (Owner Self-Mint)
+
+Path: `/create/remix/[721-contract]/[tokenId]`
+
+Checks:
+- collection selector shows all eligible collections with ERC-721/ERC-1155 badge
+- ERC-721 collection selected — mint uses `createMintIntent` path
+- IPFS metadata upload completes
+- remix name auto-fills as `Remix of [original name]`
+- parent attribution attributes embedded (`Parent Contract`, `Parent Token ID`)
+- optional price field: if filled, listing is created after mint
+- `confirmSelfRemix` backend call succeeds
+- redirects to new remix asset page after success
+
+### B1. Remix — ERC-721 Origin, ERC-1155 Target (Owner Self-Mint)
+
+Path: `/create/remix/[721-contract]/[tokenId]`
+
+Checks:
+- ERC-1155 collection visible in collection selector with `ERC-1155` badge
+- ERC-1155 collection selected — mint uses `mint_item` direct call (no registry poll)
+- token ID generated from `Date.now()` and minted successfully
+- listing created after mint with `tokenStandard: "ERC1155"` and `amount: "1"` when price set
+
+### B2. Remix — Offer Flow (Non-Owner → Creator Approve)
+
+Path: non-owner submits from `/create/remix/[contract]/[tokenId]`, creator approves in `/portfolio/remix-offers`
+
+Checks:
+- offer submitted and appears in creator portfolio
+- creator `ApproveMintSheet` opens correctly
+- collection selector shows correct collections including ERC-1155
+- ERC-1155 collection: `mint_item` called directly; listing created with correct standard
+- ERC-721 collection: `createMintIntent` used; listing created
+- listing search uses `collection.standard` as `itemType` filter (not hardcoded `"ERC721"`)
+- `confirmRemixOffer` backend call succeeds
+- buyer sees "Complete Purchase" in portfolio
+
+### B3. Remix — Cancel Bid Order (Regression Test)
+
+Checks:
+- user has an active bid order (offer placed, not yet accepted)
+- cancel the bid from portfolio offers page
+- backend receives `tokenStandard: "ERC721"` or `"ERC1155"` (never `"ERC20"`)
+- cancel succeeds with 200
+
+## Section C: Marketplace Core
+
+### C1. ERC-721 Listing
 
 Checks:
 
@@ -184,7 +232,7 @@ Validate:
 - correct marketplace contract is used
 - success and error states are consistent
 
-### B2. ERC-721 Offers
+### C2. ERC-721 Offers
 
 Checks:
 
@@ -198,7 +246,7 @@ Validate:
 - dialogs use the correct token standard
 - cache refreshes after offer lifecycle changes
 
-### B3. ERC-1155 Listing
+### C3. ERC-1155 Listing
 
 Checks:
 
@@ -212,7 +260,7 @@ Validate:
 - quantity handling is correct
 - UI reflects remaining listed quantity accurately
 
-### B4. ERC-1155 Offers
+### C4. ERC-1155 Offers
 
 Checks:
 
@@ -225,7 +273,7 @@ Validate:
 - no regression to ERC-721 routing
 - order state refreshes correctly
 
-### B5. Transfers
+### C5. Transfers
 
 Checks:
 
@@ -238,9 +286,9 @@ Validate:
 - transfer flow respects token standard
 - post-transfer ownership state updates correctly
 
-## Section C: Cross-Surface Consistency
+## Section D: Cross-Surface Consistency
 
-### C1. Asset Pages
+### D1. Asset Pages
 
 Checks:
 
@@ -255,7 +303,7 @@ Validate:
 - marketplace dialogs open with the correct asset data
 - overview and side panels render expected metadata
 
-### C2. Portfolio Surfaces
+### D2. Portfolio Surfaces
 
 Checks:
 
@@ -268,7 +316,7 @@ Validate:
 
 - state mutations from marketplace actions propagate into portfolio views
 
-### C3. Preview Surfaces
+### D3. Preview Surfaces
 
 Checks:
 
@@ -279,7 +327,7 @@ Validate:
 
 - preview-driven actions use the same routing and success behavior as full pages
 
-## Section D: Session and Wallet Continuity
+## Section E: Session and Wallet Continuity
 
 Run these scenarios intentionally:
 
@@ -308,8 +356,8 @@ Use this severity model:
 Suggested order for the team:
 
 1. creator account runs Section A
-2. collector account runs Section B buy/offer paths
-3. both accounts verify Section D continuity cases
+2. collector account runs Section C buy/offer paths
+3. both accounts verify Section E continuity cases
 4. consolidate findings into a small fix list
 5. ship only targeted fixes
 

@@ -174,9 +174,14 @@ All write ops follow: create intent → sign typed data → submit signature →
 
 ---
 
-## Known Bugs (as of 2026-04-25)
+## Known Bugs (as of 2026-04-30)
 
 All previously noted bugs were fixed. No outstanding known bugs.
+
+**Fixed in 2026-04-30 session:**
+- Cancel/accept bid order sent `tokenStandard: "ERC20"` to the backend. Root cause: `use-order-actions.ts` used `order.offer.itemType` as fallback — for bid orders `offer.itemType` is `"ERC20"` (currency). Fixed by deriving the NFT standard correctly: `consideration.itemType` for bids, `offer.itemType` for listings. This fix covers both cancel and accept paths.
+- Remix flow broken for ERC-1155 collections: collection selector filtered them out (`collectionId != null`), mint used ERC-721 `createMintIntent`, listing search hardcoded `offer.itemType === "ERC721"`. Fully fixed — see remix section in Implementation Backlog.
+- Owner remix page never created a marketplace listing even when price was entered — silent gap fixed.
 
 **Fixed in 2026-03-12 session (backend):**
 - Collections created via the frontend could get stuck with `metadataStatus: "PENDING"`, `description: null`, `image: null`, `totalSupply: 0` if the `COLLECTION_METADATA_FETCH` job failed to process. Root cause: the job could exhaust retries without updating the collection status, and `STATS_UPDATE` was never enqueued from within `handleCollectionMetadataFetch`. Fixed in `medialane-backend`: `handleCollectionMetadataFetch` now enqueues a `STATS_UPDATE` after success; admin `/refresh` endpoint uses `normalizeAddress` and also enqueues `STATS_UPDATE`; new `POST /admin/collections/:contract/stats-refresh` endpoint added for on-demand stats sync.
@@ -256,6 +261,39 @@ All previously noted bugs were fixed. No outstanding known bugs.
 - [x] Global English airdrop page `/mint` — port of `/br/mint` in English; uses `MINT_CONTRACT`, `MINT_NFT_URI`, `MINT_NFT_IMAGE_URL`; storage key `ml_mint_${userId}` ✓ 2026-04-25
 - [x] Comments "Post onchain" button: tooltip explains unavailability when `COMMENTS_CONTRACT` is not set, instead of silently staying disabled ✓ 2026-04-25
 
+### 2026-04-30 session — marketplace audit fixes + remix ERC-1155 upgrade
+
+**Marketplace audit fixes (IO-* issues from 2026-04-27 audit):**
+- [x] IO-1: `collection1155Contract: COLLECTION_1155_CONTRACT` added to `MedialaneClient` constructor in `src/lib/medialane-client.ts` ✓ 2026-04-30
+- [x] IO-2: `invalidatePortfolioCache(walletAddress)` added after ERC-1155 collection deploy (`/launchpad/nfteditions/create`) and after ERC-1155 mint (`/launchpad/nfteditions/[contract]/mint`) ✓ 2026-04-30
+- [x] IO-3: `amount` defaults to `"1"` in `use-marketplace.ts` `createListing` when falsy for ERC-1155 ✓ 2026-04-30
+- [x] IO-4: Quantity field added to `offer-dialog.tsx` for ERC-1155 tokens; `MakeOfferInput.quantity` added to `use-marketplace.ts` ✓ 2026-04-30
+- [x] IO-5: `invalidatePortfolioCache` called after ERC-1155 mint success ✓ 2026-04-30
+- [x] IO-6: `usePostMintListing` accepts and forwards `tokenStandard` prop ✓ 2026-04-30
+- [x] IO-7: `standardResolved` in `listing-dialog.tsx` now correctly treats `"UNKNOWN"` as unresolved (button stays disabled) ✓ 2026-04-30
+
+**Marketplace dialog refactor:**
+- [x] `marketplace-dialog-primitives.tsx` created — 9 shared components (`MarketplaceSuccessState`, `MarketplaceActivatingSession`, `MarketplaceSignInGate`, `MarketplaceDialogHero`, `MarketplacePinStep`, `MarketplaceTxLink`, `MarketplaceProcessingState`, `CurrencyPicker`, `DurationPicker`) ✓ 2026-04-30
+- [x] `listing-dialog.tsx` refactored from ~515 to ~290 lines using primitives ✓ 2026-04-30
+- [x] `offer-dialog.tsx` refactored from ~435 to ~270 lines using primitives ✓ 2026-04-30
+- [x] `src/lib/cairo-calldata.ts` extracted — `serializeByteArray()` and `encodeU256()` shared across launchpad, remix, and approve flows ✓ 2026-04-30
+
+**Cancel/accept bid order fix:**
+- [x] `use-order-actions.ts`: derive NFT standard correctly for cancel and accept — bid orders use `consideration.itemType`; listing orders use `offer.itemType`. Prevents `tokenStandard: "ERC20"` being sent to backend ✓ 2026-04-30
+
+**`useMarketplaceActionFlow` hook:**
+- [x] Extracted shared PIN/passkey/session activation state machine from `listing-dialog` and `offer-dialog` into `src/hooks/use-marketplace-action-flow.ts` — covers wallet setup, session refresh, PIN entry, passkey auth, and action execution ✓ 2026-04-30
+
+**Remix flow — full ERC-1155 support:**
+- [x] `create/remix/page.tsx`: collection selector now includes ERC-1155 collections (key = `collectionId ?? contractAddress`); mint branches on `collection.standard`: ERC-1155 calls `mint_item` directly with `Date.now()` tokenId (no registry poll needed), ERC-721 keeps `createMintIntent` path; owner path now creates marketplace listing when price is entered ✓ 2026-04-30
+- [x] `approve-mint-sheet.tsx`: same ERC-1155 mint branch; `createListing` passes `tokenStandard`/`amount` for ERC-1155; listing search uses `collection.standard` as `itemType` filter instead of hardcoded `"ERC721"`; collection selector shows ERC-721/ERC-1155 badge ✓ 2026-04-30
+- [x] Collection selector in both remix files shows `ERC-721` / `ERC-1155` label per collection ✓ 2026-04-30
+
+**Dead code removal + debug cleanup:**
+- [x] `src/components/asset/remix-offer-dialog.tsx` deleted — orphaned, never imported ✓ 2026-04-30
+- [x] `src/components/asset/self-remix-dialog.tsx` deleted — superseded by full `/create/remix` page flow ✓ 2026-04-30
+- [x] `MarketplaceDebugPanel` removed from `listing-dialog.tsx` (3 instances) and `create/asset/page.tsx` ✓ 2026-04-30
+
 ---
 
 ## App Shell Architecture (as of 2026-03-06)
@@ -291,7 +329,8 @@ layout.tsx (server)
 | Path | Purpose |
 |---|---|
 | `src/lib/constants.ts` | All env vars + contract addresses |
-| `src/lib/medialane-client.ts` | SDK singleton (MedialaneClient) — explicitly sets `marketplaceContract`, `marketplace1155Contract`, `collectionContract` |
+| `src/lib/medialane-client.ts` | SDK singleton (MedialaneClient) — explicitly sets `marketplaceContract`, `marketplace1155Contract`, `collectionContract`, `collection1155Contract` |
+| `src/lib/cairo-calldata.ts` | Cairo calldata helpers: `serializeByteArray(str)` → `string[]` for Cairo ByteArray; `encodeU256(n: bigint)` → `[low, high]`. Use these instead of manual felt encoding anywhere mint/transfer calldata is built. |
 | `src/lib/utils.ts` | `ipfsToHttp`, `timeUntil`, `formatPrice`, `cn` |
 | `src/types/index.ts` | Local TypeScript types (CartItem, etc.) |
 | `src/types/ip.ts` | IP/licensing constants: `LICENSE_TYPES`, `IP_TYPES`, `GEOGRAPHIC_SCOPES`, `AI_POLICIES`, `DERIVATIVES_OPTIONS`, `LICENSE_TRAIT_TYPES` |
@@ -317,15 +356,22 @@ layout.tsx (server)
 | `src/app/asset/[contract]/[tokenId]/asset-page-drop.tsx` | Collection Drop view — drop info panel (supply, window, price), secondary market |
 | `src/app/asset/[contract]/[tokenId]/asset-page-edition.tsx` | NFT Edition ERC-1155 view — edition stats, holders grid, full marketplace |
 | `src/app/asset/[contract]/[tokenId]/asset-page-standard.tsx` | Standard ERC-721 view — IP + license + remix + marketplace tabs |
-| `src/app/asset/[contract]/[tokenId]/use-order-actions.ts` | Shared cancel/accept order state machine; optional `tokenStandard` param for ERC-1155 |
+| `src/app/asset/[contract]/[tokenId]/use-order-actions.ts` | Shared cancel/accept order state machine. Derives NFT standard correctly: `consideration.itemType` for bid orders, `offer.itemType` for listings. Optional `tokenStandard` prop overrides both (used by ERC-1155 edition page). |
 | `src/app/asset/[contract]/[tokenId]/cancel-listing-dialog.tsx` | Shared cancel status dialog (processing/success/error) |
 | `src/hooks/use-session-key.ts` | Wallet derivation + SNIP-9 session key |
 | `src/hooks/use-marketplace.ts` | All marketplace write operations |
 | `src/hooks/use-chipi-transaction.ts` | ChipiPay tx execution + status |
 | `src/hooks/use-cart.ts` | Zustand cart store |
+| `src/components/marketplace/marketplace-dialog-primitives.tsx` | Shared marketplace dialog building blocks: `MarketplaceSuccessState`, `MarketplaceActivatingSession`, `MarketplaceSignInGate`, `MarketplaceDialogHero`, `MarketplacePinStep`, `MarketplaceTxLink`, `MarketplaceProcessingState`, `CurrencyPicker`, `DurationPicker` |
 | `src/components/marketplace/purchase-dialog.tsx` | Buy/fulfill flow |
-| `src/components/marketplace/listing-dialog.tsx` | Create listing flow |
-| `src/components/marketplace/offer-dialog.tsx` | Make offer flow |
+| `src/components/marketplace/listing-dialog.tsx` | Create listing flow — uses `marketplace-dialog-primitives`. No `MarketplaceDebugPanel` in production. |
+| `src/components/marketplace/offer-dialog.tsx` | Make offer flow — includes quantity field for ERC-1155 |
+| `src/hooks/use-marketplace-action-flow.ts` | Shared PIN/passkey/session activation state machine for marketplace dialogs. Handles wallet-setup gate, session refresh (with amount-cap clear), PIN entry, passkey auth, and action execution. Used by listing-dialog and offer-dialog. |
+| `src/hooks/use-remix-offers.ts` | SWR hooks + mutation helpers for remix offer lifecycle: `useRemixOffers`, `useTokenRemixes`, `submitRemixOffer`, `submitAutoRemixOffer`, `confirmSelfRemix`, `confirmRemixOffer`, `rejectRemixOffer`, `extendRemixOffer` |
+| `src/types/remix-offers.ts` | `RemixOffer`, `RemixOfferListResponse`, `PublicRemix` types; `OPEN_LICENSES` constant |
+| `src/app/create/remix/[contract]/[tokenId]/page.tsx` | Full remix creation page. Owner path: IPFS upload → branch on `collection.standard` (ERC-1155 uses `mint_item` direct call; ERC-721 uses `createMintIntent`) → optional listing → `confirmSelfRemix`. Non-owner path: `submitRemixOffer`. Collection key = `collectionId ?? contractAddress`. |
+| `src/components/portfolio/approve-mint-sheet.tsx` | Creator approval flow for incoming remix offers. Mints remix into selected collection (ERC-1155 or ERC-721), creates listing for buyer, polls for orderHash, calls `confirmRemixOffer`. |
+| `src/components/asset/remixes-tab.tsx` | Read-only: displays public remixes of a token + parent attribution banner |
 | `src/components/chipi/wallet-setup-dialog.tsx` | First-time wallet PIN creation |
 | `src/components/chipi/session-setup-dialog.tsx` | SNIP-9 session key registration |
 | `src/components/chipi/pin-dialog.tsx` | Generic PIN entry dialog |
