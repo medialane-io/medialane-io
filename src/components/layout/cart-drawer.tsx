@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { PurchaseDialog } from "@/components/marketplace/purchase-dialog";
@@ -12,7 +11,7 @@ import { useMarketplace } from "@/hooks/use-marketplace";
 import { ipfsToHttp } from "@/lib/utils";
 import {
   ShoppingBag, X, ShoppingCart, AlertCircle, Loader2,
-  CheckCircle2, ArrowRight,
+  CheckCircle2, ArrowRight, ShieldCheck, Zap,
 } from "lucide-react";
 import type { ApiOrder } from "@medialane/sdk";
 import type { CartItem } from "@/types";
@@ -80,7 +79,7 @@ function CartItemRow({
   onRemove: (orderHash: string) => void;
 }) {
   const [imgError, setImgError] = useState(false);
-  const imageUrl = ipfsToHttp(item.image);
+  const imageUrl = item.image ? ipfsToHttp(item.image) : null;
 
   return (
     <div
@@ -91,12 +90,10 @@ function CartItemRow({
       {/* Thumbnail */}
       <div className="relative h-16 w-16 rounded-lg overflow-hidden shrink-0 bg-muted">
         {imageUrl && !imgError ? (
-          <Image
+          <img
             src={imageUrl}
             alt={item.name}
-            fill
-            unoptimized
-            className="object-cover"
+            className="h-full w-full object-cover"
             onError={() => setImgError(true)}
           />
         ) : (
@@ -117,28 +114,36 @@ function CartItemRow({
         {isStale ? (
           <p className="text-xs text-destructive mt-0.5 font-medium">No longer available</p>
         ) : (
-          <p className="flex items-center gap-1 mt-1">
+          <div className="flex items-center gap-1 mt-0.5">
             <CurrencyIcon symbol={item.currency} size={12} />
             <span className="text-sm font-bold">{item.price}</span>
             <span className="text-xs text-muted-foreground">{item.currency}</span>
-          </p>
+          </div>
+        )}
+        {!isStale && (
+          <div className="flex items-center gap-1 mt-1">
+            <Zap className="h-2.5 w-2.5 text-emerald-500" />
+            <span className="text-[10px] text-emerald-500 font-medium">Gasless</span>
+          </div>
         )}
       </div>
 
       {/* Actions */}
       <div className="flex items-center gap-1.5 shrink-0">
         {!isStale && (
-          <button
-            className="h-8 px-3 rounded-[11px] bg-brand-blue text-white text-xs font-semibold flex items-center gap-1 hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
-            onClick={() => onBuy(item)}
-            disabled={batchActive}
-          >
-            <ShoppingCart className="h-3.5 w-3.5" />
-            Buy
-          </button>
+          <div className={`btn-border-animated p-[1px] rounded-[11px] ${batchActive ? "pointer-events-none" : ""}`}>
+            <button
+              className="h-8 px-3 rounded-[10px] text-white text-xs font-semibold flex items-center gap-1.5 hover:brightness-110 active:scale-[0.98] transition-all bg-transparent"
+              onClick={() => onBuy(item)}
+              disabled={batchActive}
+            >
+              <ShoppingCart className="h-3 w-3" />
+              Buy
+            </button>
+          </div>
         )}
         <button
-          className="h-8 w-8 rounded-[11px] flex items-center justify-center text-muted-foreground/60 hover:text-foreground hover:bg-muted/60 transition-colors"
+          className="h-8 w-8 rounded-[11px] flex items-center justify-center text-muted-foreground/50 hover:text-foreground hover:bg-muted/60 transition-colors"
           onClick={() => onRemove(item.orderHash)}
           aria-label="Remove from cart"
         >
@@ -226,7 +231,7 @@ export function CartDrawer() {
   return (
     <>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="w-full max-w-sm sm:max-w-md p-0 overflow-hidden gap-0 flex flex-col max-h-[90svh]">
+        <DialogContent className="max-w-[calc(100%-6px)] sm:max-w-md p-0 overflow-hidden gap-0 rounded-2xl flex flex-col max-h-[92svh]">
 
           {/* ── Header ── pr-10 leaves room for the Dialog's built-in close button ── */}
           <div className="flex items-center justify-between pr-10 pl-5 py-4 border-b border-border/60">
@@ -322,31 +327,37 @@ export function CartDrawer() {
               </div>
 
               {/* ── Footer ─────────────────────────────────────── */}
-              <div className="px-5 pt-3 pb-5 border-t border-border/60 space-y-3">
-                {/* Buy all */}
+              <div className="px-5 pt-3 pb-5 border-t border-border/60 space-y-2.5">
                 {validItems.length > 1 && (
-                  <button
-                    className="w-full h-11 rounded-[11px] bg-brand-purple text-white text-sm font-semibold flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
-                    disabled={!!batchProgress}
-                    onClick={() => setBatchPinOpen(true)}
-                  >
-                    <ShoppingBag className="h-4 w-4" />
-                    Buy all {validItems.length} items
-                  </button>
+                  <div className={`btn-border-animated p-[1px] rounded-xl ${batchProgress ? "pointer-events-none" : ""}`}>
+                    <button
+                      className="w-full h-11 rounded-[11px] text-white text-sm font-semibold flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.98] transition-all bg-transparent"
+                      disabled={!!batchProgress}
+                      onClick={() => setBatchPinOpen(true)}
+                    >
+                      <ShoppingBag className="h-4 w-4" />
+                      Buy all {validItems.length} items
+                    </button>
+                  </div>
                 )}
                 {validItems.length === 1 && (
-                  <button
-                    className="w-full h-11 rounded-[11px] bg-brand-blue text-white text-sm font-semibold flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
-                    disabled={!!batchProgress}
-                    onClick={() => handleBuy(validItems[0])}
-                  >
-                    <ShoppingCart className="h-4 w-4" />
-                    Buy now
-                  </button>
+                  <div className={`btn-border-animated p-[1px] rounded-xl ${batchProgress ? "pointer-events-none" : ""}`}>
+                    <button
+                      className="w-full h-11 rounded-[11px] text-white text-sm font-semibold flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.98] transition-all bg-transparent"
+                      disabled={!!batchProgress}
+                      onClick={() => handleBuy(validItems[0])}
+                    >
+                      <ShoppingCart className="h-4 w-4" />
+                      Buy now
+                    </button>
+                  </div>
                 )}
-                <p className="text-[10px] text-center text-muted-foreground">
-                  Free Transactions · Onchain Secured · Atomic Trades
-                </p>
+                <div className="flex items-start justify-center gap-1.5 pt-0.5">
+                  <ShieldCheck className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
+                  <p className="text-[10px] text-center text-muted-foreground">
+                    All purchases settle atomically onchain. Gas is sponsored by Medialane.
+                  </p>
+                </div>
               </div>
             </>
           )}

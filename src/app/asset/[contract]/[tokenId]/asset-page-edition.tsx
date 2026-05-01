@@ -126,7 +126,7 @@ export function AssetPageEdition() {
         nftTokenId: tokenId,
         itemType: "ERC1155",
         name,
-        image: ipfsToHttp(token?.metadata?.image) ?? "",
+        image: token?.metadata?.image ?? "",
         price: formatDisplayPrice(cheapest.price.formatted),
         currency: cheapest.price.currency ?? "",
         currencyDecimals: cheapest.price.decimals,

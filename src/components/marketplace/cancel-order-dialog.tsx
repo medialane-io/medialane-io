@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { CheckCircle2 } from "lucide-react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { CheckCircle2, ShieldCheck } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { TxStatus } from "@/components/chipi/tx-status";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
@@ -32,7 +32,7 @@ function TokenHero({ order, variant }: { order: ApiOrder; variant: "listing" | "
 
   return (
     <div>
-      <div className="relative h-44 w-full bg-muted overflow-hidden">
+      <div className="relative h-32 w-full bg-muted overflow-hidden">
         {image ? (
           <img src={image} alt={name} className="h-full w-full object-cover" />
         ) : (
@@ -40,7 +40,6 @@ function TokenHero({ order, variant }: { order: ApiOrder; variant: "listing" | "
             #{order.nftTokenId}
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
       </div>
       <div className="flex items-end justify-between px-6 pt-3 pb-1">
         <div className="min-w-0">
@@ -137,9 +136,15 @@ export function CancelOrderDialog({
 
   const isSuccess = !isProcessing && txStatus === "confirmed" && !error;
 
+  const resolvedName = order?.token?.name || `Token #${order?.nftTokenId}`;
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-[calc(100%-6px)] sm:max-w-md p-0 overflow-hidden gap-0 rounded-2xl">
+        <DialogTitle className="sr-only">Cancel {resolvedVariant} for {resolvedName}</DialogTitle>
+        <DialogDescription className="sr-only">
+          Enter your PIN to cancel this {resolvedVariant}. This action cannot be undone.
+        </DialogDescription>
 
         {/* ── Success ── */}
         {isSuccess ? (
@@ -210,9 +215,12 @@ export function CancelOrderDialog({
                 isAuthenticatingPasskey={isAuthenticatingPasskey}
                 onUsePasskey={handleUsePasskey}
                 footer={(
-                  <p className="text-[10px] text-center text-muted-foreground">
-                    Transaction gas fees are sponsored by Medialane.
-                  </p>
+                  <div className="flex items-start justify-center gap-1.5">
+                    <ShieldCheck className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
+                    <p className="text-[10px] text-center text-muted-foreground">
+                      Cancellation is recorded onchain — the order is permanently removed from the marketplace. Gas is sponsored by Medialane.
+                    </p>
+                  </div>
                 )}
               />
             </div>

@@ -89,7 +89,7 @@ export function TokenCard({
       nftTokenId: listingOrder.nftTokenId ?? "",
       itemType: listingOrder.offer.itemType === "ERC1155" ? "ERC1155" : "ERC721",
       name,
-      image: image ?? "",
+      image: token.metadata?.image ?? "",
       price: formatDisplayPrice(listingOrder.price.formatted),
       currency: listingOrder.price.currency ?? "",
       currencyDecimals: listingOrder.price.decimals,

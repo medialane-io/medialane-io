@@ -47,6 +47,22 @@ const SYMBOL_TO_ADDRESS: Record<string, string> = Object.fromEntries(
   SUPPORTED_TOKENS.map((t) => [t.symbol, t.address])
 );
 
+/** Strip "UNKNOWN" before sending to the backend — the API only accepts "ERC721" | "ERC1155" | undefined. */
+function toApiStandard(standard?: string): "ERC721" | "ERC1155" | undefined {
+  if (standard === "ERC1155") return "ERC1155";
+  if (standard === "ERC721") return "ERC721";
+  return undefined;
+}
+
+/** Map technical backend errors to a user-friendly support message. */
+function toFriendlyError(err: unknown, fallback: string): string {
+  const raw = err instanceof Error ? err.message : fallback;
+  if (/invalid body|400|bad request/i.test(raw)) {
+    return "Something went wrong processing your request. Please try again, or contact Medialane support if the issue persists.";
+  }
+  return raw;
+}
+
 /**
  * Walk typed data recursively and replace any plain currency symbol strings
  * (e.g. "USDC") with their contract addresses. Fixes backends that embed the
@@ -397,7 +413,7 @@ export function useMarketplace() {
           marketplaceContract,
           {
             operation: "create_listing",
-            tokenStandard: input.tokenStandard,
+            tokenStandard: toApiStandard(input.tokenStandard),
             marketplaceContract,
             assetContract: input.assetContract,
             tokenId: input.tokenId,
@@ -407,7 +423,7 @@ export function useMarketplace() {
           }
         );
       } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : "Failed to create listing";
+        const msg = toFriendlyError(err, "Failed to create listing");
         setError(msg);
         updateDebug({ step: "error", error: msg });
         toast.error("Listing failed", { description: msg });
@@ -431,7 +447,7 @@ export function useMarketplace() {
           () => client.api.createFulfillIntent({
             fulfiller: walletAddress!,
             orderHash: input.orderHash,
-            tokenStandard: input.tokenStandard,
+            tokenStandard: toApiStandard(input.tokenStandard),
             quantity: input.quantity,
           }),
           "Purchase complete!",
@@ -445,7 +461,7 @@ export function useMarketplace() {
           }
         );
       } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : "Purchase failed";
+        const msg = toFriendlyError(err, "Purchase failed");
         setError(msg);
         updateDebug({ step: "error", error: msg });
         toast.error("Purchase failed", { description: msg });
@@ -474,7 +490,7 @@ export function useMarketplace() {
             currency: resolveCurrencyAddress(input.currencySymbol),
             price: input.price,
             endTime,
-            tokenStandard: input.tokenStandard,
+            tokenStandard: toApiStandard(input.tokenStandard),
             quantity: isErc1155Standard(input.tokenStandard) ? (input.quantity || "1") : undefined,
           }),
           `Offer submitted for ${input.tokenName || `Token #${input.tokenId}`}`,
@@ -490,7 +506,7 @@ export function useMarketplace() {
           }
         );
       } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : "Failed to submit offer";
+        const msg = toFriendlyError(err, "Failed to submit offer");
         setError(msg);
         updateDebug({ step: "error", error: msg });
         toast.error("Offer failed", { description: msg });
@@ -526,7 +542,7 @@ export function useMarketplace() {
           }
         );
       } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : "Counter-offer failed";
+        const msg = toFriendlyError(err, "Counter-offer failed");
         setError(msg);
         updateDebug({ step: "error", error: msg });
         toast.error("Counter-offer failed", { description: msg });
@@ -550,7 +566,7 @@ export function useMarketplace() {
           () => client.api.createCancelIntent({
             offerer: walletAddress!,
             orderHash: input.orderHash,
-            tokenStandard: input.tokenStandard,
+            tokenStandard: toApiStandard(input.tokenStandard),
           }),
           "Order cancelled.",
           marketplaceContract,
@@ -562,7 +578,7 @@ export function useMarketplace() {
           }
         );
       } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : "Cancellation failed";
+        const msg = toFriendlyError(err, "Cancellation failed");
         setError(msg);
         updateDebug({ step: "error", error: msg });
         toast.error("Cancellation failed", { description: msg });

@@ -150,6 +150,7 @@ export function AssetMarketplaceDialogs({
         contractAddress={contract}
         tokenId={tokenId}
         tokenName={tokenName}
+        tokenImage={tokenImage}
         hasActiveListing={hasActiveListing}
         tokenStandard={tokenStandard}
         onSuccess={mutateListings}

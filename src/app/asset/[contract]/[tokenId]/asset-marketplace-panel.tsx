@@ -154,7 +154,7 @@ export function AssetMarketplacePanel({
                 label={isERC1155 ? "Buy Edition" : "Buy Asset"}
                 icon={<ShoppingCart className="h-5 w-5" />}
                 onClick={() => onOpenPurchase(cheapest)}
-                className="w-full h-12 text-base font-semibold text-white rounded-[15px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] bg-background/30"
+                className="w-full h-12 text-base font-semibold text-white rounded-[15px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] bg-transparent"
               />
               <div className="grid grid-cols-2 gap-2">
                 <ActionButton
@@ -183,7 +183,7 @@ export function AssetMarketplacePanel({
           ) : (
             <SignInButton mode="modal">
               <div className="btn-border-animated p-[1px] rounded-2xl">
-                <Button className="w-full h-12 text-base bg-background/30 text-white rounded-[15px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98]">
+                <Button className="w-full h-12 text-base bg-transparent text-white rounded-[15px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98]">
                   <ShoppingCart className="h-5 w-5 mr-2" />
                   Sign in to trade
                 </Button>
@@ -199,7 +199,7 @@ export function AssetMarketplacePanel({
                 label={isERC1155 ? "List edition for sale" : "List for sale"}
                 icon={<Tag className="h-4 w-4" />}
                 onClick={onOpenListing}
-                className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-background/30"
+                className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-transparent"
               />
               <ActionButton
                 label={isERC1155 ? "Transfer edition" : "Transfer"}

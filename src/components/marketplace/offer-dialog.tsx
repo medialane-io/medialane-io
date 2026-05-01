@@ -4,16 +4,15 @@ import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { AlertCircle, HandCoins, Zap } from "lucide-react";
+import { AlertCircle, HandCoins, Layers, ShieldCheck, Zap } from "lucide-react";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { fireConfetti } from "@/lib/confetti";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { useAuth } from "@clerk/nextjs";
 import { useMarketplace } from "@/hooks/use-marketplace";
@@ -152,11 +151,23 @@ export function OfferDialog({
   }, [isSuccess]);
 
   const name = tokenName || `Token #${tokenId}`;
+  const shieldFooter = (
+    <div className="flex items-start justify-center gap-1.5">
+      <ShieldCheck className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
+      <p className="text-[10px] text-center text-muted-foreground">
+        All offers are fully onchain &amp; permissionless — funds are escrowed until the trade settles. Gas is sponsored by Medialane.
+      </p>
+    </div>
+  );
 
   return (
     <>
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="max-w-[calc(100%-6px)] sm:max-w-md p-0 overflow-hidden gap-0 rounded-2xl flex flex-col max-h-[92svh]">
+          <DialogTitle className="sr-only">Make an offer on {name}</DialogTitle>
+          <DialogDescription className="sr-only">
+            Set your offer price, currency, and duration to place an onchain offer.
+          </DialogDescription>
 
           {isSuccess ? (
             <MarketplaceSuccessState
@@ -166,10 +177,10 @@ export function OfferDialog({
               description={
                 <>
                   Your offer of{" "}
-                  <span className="font-medium text-foreground">
+                  <span className="font-semibold text-foreground">
                     {pendingValues?.price} {pendingValues?.currency}
                   </span>{" "}
-                  on {name} is now active.
+                  on <span className="font-medium text-foreground">{name}</span> is now active.
                 </>
               }
               txHash={txHash}
@@ -200,6 +211,12 @@ export function OfferDialog({
                 tokenName={tokenName}
                 tokenId={tokenId}
                 fallbackIcon={<HandCoins className="h-12 w-12 text-brand-blue/30" />}
+                badge={is1155 ? (
+                  <span className="absolute top-3 left-3 inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-violet-500/40 bg-violet-500/20 text-violet-300 backdrop-blur-sm">
+                    <Layers className="h-3 w-3" />
+                    Multi-edition
+                  </span>
+                ) : undefined}
               />
               <div className="flex items-end justify-between px-6 pt-3 pb-1">
                 <div className="min-w-0">
@@ -214,10 +231,13 @@ export function OfferDialog({
                     {pendingValues?.price}{" "}
                     <span className="text-sm font-normal text-muted-foreground">{pendingValues?.currency}</span>
                   </p>
+                  {is1155 && pendingValues?.quantity && pendingValues.quantity !== "1" && (
+                    <p className="text-xs text-muted-foreground">×{pendingValues.quantity} editions</p>
+                  )}
                 </div>
               </div>
               <MarketplacePinStep
-                description="Enter your PIN to sign the offer."
+                description="Enter your PIN to sign this offer."
                 pin={pin}
                 onPinChange={(value) => { setPin(value); setPinError(null); }}
                 pinError={pinError}
@@ -231,11 +251,7 @@ export function OfferDialog({
                 passkeySupported={passkeySupported}
                 isAuthenticatingPasskey={isAuthenticatingPasskey}
                 onUsePasskey={handleUsePasskey}
-                footer={(
-                  <p className="text-[10px] text-center text-muted-foreground">
-                    Transaction gas fees are sponsored by Medialane.
-                  </p>
-                )}
+                footer={shieldFooter}
               />
             </>
 
@@ -246,50 +262,72 @@ export function OfferDialog({
                 tokenName={tokenName}
                 tokenId={tokenId}
                 fallbackIcon={<HandCoins className="h-12 w-12 text-brand-blue/30" />}
+                badge={is1155 ? (
+                  <span className="absolute top-3 left-3 inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-violet-500/40 bg-violet-500/20 text-violet-300 backdrop-blur-sm">
+                    <Layers className="h-3 w-3" />
+                    Multi-edition
+                  </span>
+                ) : undefined}
               />
-              <div className="flex items-center justify-between px-6 pt-3 pb-1">
-                <div className="min-w-0">
-                  <p className="font-bold text-base leading-tight truncate">{name}</p>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <Badge variant="outline" className="font-mono text-[10px] px-1.5 py-0">#{tokenId}</Badge>
-                  </div>
-                </div>
+              <div className="flex items-center justify-between px-5 pt-3 pb-0">
+                <p className="font-bold text-base leading-tight truncate">{name}</p>
               </div>
 
-              <div className="flex-1 overflow-y-auto px-6 pb-5 pt-2 space-y-4">
+              <div className="px-5 pb-4 pt-2 space-y-3">
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
 
-                    <FormField
-                      control={form.control}
-                      name="price"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Offer price</FormLabel>
-                          <div className="relative">
-                            <FormControl>
-                              <Input type="number" step="any" placeholder="0.00" className="pr-20" disabled={isProcessing} {...field} />
-                            </FormControl>
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
-                              <CurrencyIcon symbol={form.watch("currency")} size={14} />
-                              <span className="text-xs font-bold">{form.watch("currency")}</span>
-                            </div>
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    {is1155 && (
+                    {is1155 ? (
+                      <div className="grid grid-cols-2 gap-3 items-start">
+                        <FormField
+                          control={form.control}
+                          name="quantity"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Qty</FormLabel>
+                              <FormControl>
+                                <Input type="number" min="1" step="1" placeholder="1" disabled={isProcessing} {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="price"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Price / edition</FormLabel>
+                              <div className="relative">
+                                <FormControl>
+                                  <Input type="number" step="any" placeholder="0.00" className="pr-16" disabled={isProcessing} {...field} />
+                                </FormControl>
+                                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
+                                  <CurrencyIcon symbol={form.watch("currency")} size={13} />
+                                  <span className="text-[11px] font-bold">{form.watch("currency")}</span>
+                                </div>
+                              </div>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    ) : (
                       <FormField
                         control={form.control}
-                        name="quantity"
+                        name="price"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Quantity</FormLabel>
-                            <FormControl>
-                              <Input type="number" min="1" step="1" placeholder="1" disabled={isProcessing} {...field} />
-                            </FormControl>
+                            <FormLabel>Offer price</FormLabel>
+                            <div className="relative">
+                              <FormControl>
+                                <Input type="number" step="any" placeholder="0.00" className="pr-20" disabled={isProcessing} {...field} />
+                              </FormControl>
+                              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
+                                <CurrencyIcon symbol={form.watch("currency")} size={14} />
+                                <span className="text-xs font-bold">{form.watch("currency")}</span>
+                              </div>
+                            </div>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -340,19 +378,17 @@ export function OfferDialog({
                     )}
 
                     <div className="pt-1 space-y-2">
-                      <div className={`btn-border-animated p-[1px] rounded-xl ${isProcessing ? "opacity-50 pointer-events-none" : ""}`}>
+                      <div className={`btn-border-animated p-[1px] rounded-xl ${isProcessing ? "pointer-events-none" : ""}`}>
                         <button
                           type="submit"
                           disabled={isProcessing}
-                          className="w-full h-11 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-background/30"
+                          className="w-full h-11 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-transparent"
                         >
                           <HandCoins className="h-4 w-4" />
                           {hasWallet ? "Submit offer" : "Secure account & offer"}
                         </button>
                       </div>
-                      <p className="text-[10px] text-center text-muted-foreground">
-                        Transaction gas fees are sponsored by Medialane.
-                      </p>
+                      {shieldFooter}
                     </div>
 
                   </form>

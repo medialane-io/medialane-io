@@ -46,7 +46,7 @@ export function AssetPreviewEdition({ token, isOwner, onClose }: AssetPreviewCon
       nftTokenId: token.tokenId,
       itemType: "ERC1155",
       name,
-      image: image ?? "",
+      image: token.metadata?.image ?? "",
       price: formatDisplayPrice(activeOrder.price.formatted),
       currency: activeOrder.price.currency ?? "",
       currencyDecimals: activeOrder.price.decimals,

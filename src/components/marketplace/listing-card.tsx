@@ -81,7 +81,7 @@ export function ListingCard({ order, onBuy, compact = false }: ListingCardProps)
       nftTokenId: order.nftTokenId ?? "",
       itemType: (order.offer.itemType === "ERC1155" ? "ERC1155" : "ERC721"),
       name,
-      image: image ?? "",
+      image: order.token?.image ?? "",
       price: formatDisplayPrice(order.price.formatted),
       currency: order.price.currency ?? "",
       currencyDecimals: order.price.decimals,

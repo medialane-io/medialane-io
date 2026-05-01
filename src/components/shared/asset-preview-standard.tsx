@@ -47,7 +47,7 @@ export function AssetPreviewStandard({
       nftTokenId: token.tokenId,
       itemType: activeOrder.offer.itemType === "ERC1155" ? "ERC1155" : "ERC721",
       name,
-      image: image ?? "",
+      image: token.metadata?.image ?? "",
       price: formatDisplayPrice(activeOrder.price.formatted),
       currency: activeOrder.price.currency ?? "",
       currencyDecimals: activeOrder.price.decimals,

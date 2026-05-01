@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import {
   AlertCircle, ExternalLink, Loader2,
   ShoppingCart, RefreshCw, Sparkles, Zap, Minus, Plus,
-  CheckCircle2, Package,
+  CheckCircle2, Package, ShieldCheck,
 } from "lucide-react";
 import { fireConfetti } from "@/lib/confetti";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -50,7 +50,7 @@ function TokenHero({ order, quantity }: { order: ApiOrder; quantity: number }) {
 
   return (
     <div>
-      <div className="relative h-52 w-full bg-muted overflow-hidden shrink-0">
+      <div className="relative h-32 w-full bg-muted overflow-hidden shrink-0">
         {image ? (
           <img src={image} alt={name} className="h-full w-full object-cover" />
         ) : (
@@ -356,9 +356,12 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
                 isAuthenticatingPasskey={isAuthenticatingPasskey}
                 onUsePasskey={handleUsePasskey}
                 footer={(
-                  <p className="text-[10px] text-center text-muted-foreground">
-                    Transaction gas fees are sponsored by Medialane.
-                  </p>
+                  <div className="flex items-start justify-center gap-1.5">
+                    <ShieldCheck className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
+                    <p className="text-[10px] text-center text-muted-foreground">
+                      All purchases settle atomically onchain — your asset is transferred instantly with the payment. Gas is sponsored by Medialane.
+                    </p>
+                  </div>
                 )}
               />
             </div>
@@ -420,7 +423,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
                 ) : (
                   <div className="btn-border-animated p-[1px] rounded-xl">
                     <button
-                      className="w-full h-12 rounded-[11px] flex items-center justify-center gap-2 text-base font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-background/30"
+                      className="w-full h-12 rounded-[11px] flex items-center justify-center gap-2 text-base font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-transparent"
                       onClick={handleBuyClick}
                     >
                       {error ? <RefreshCw className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
@@ -429,9 +432,12 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
                   </div>
                 )}
 
-                <p className="text-[10px] text-center text-muted-foreground">
-                  All orders are registered onchain with immutable smart contract with atomic transactions. Gas fees are sponsored on us!
-                </p>
+                <div className="flex items-start justify-center gap-1.5">
+                  <ShieldCheck className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
+                  <p className="text-[10px] text-center text-muted-foreground">
+                    All purchases settle atomically onchain — your asset is transferred instantly with the payment. Gas is sponsored by Medialane.
+                  </p>
+                </div>
               </div>
             </div>
           )}

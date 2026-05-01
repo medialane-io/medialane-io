@@ -184,7 +184,7 @@ export function AssetPageDrop() {
         nftTokenId: tokenId,
         itemType: "ERC721",
         name,
-        image: ipfsToHttp(token?.metadata?.image) ?? "",
+        image: token?.metadata?.image ?? "",
         price: formatDisplayPrice(cheapest.price.formatted),
         currency: cheapest.price.currency ?? "",
         currencyDecimals: cheapest.price.decimals,
@@ -308,7 +308,7 @@ export function AssetPageDrop() {
                 ) : isSignedIn ? (
                   <div className="space-y-2">
                     <div className="btn-border-animated p-[1px] rounded-2xl">
-                      <button className="w-full h-12 text-base font-semibold text-white rounded-[15px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] bg-background/30" onClick={() => setPurchaseOrder(cheapest)}>
+                      <button className="w-full h-12 text-base font-semibold text-white rounded-[15px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] bg-transparent" onClick={() => setPurchaseOrder(cheapest)}>
                         <ShoppingCart className="h-5 w-5" />Buy Asset
                       </button>
                     </div>
@@ -328,7 +328,7 @@ export function AssetPageDrop() {
                 ) : (
                   <SignInButton mode="modal">
                     <div className="btn-border-animated p-[1px] rounded-2xl">
-                      <Button className="w-full h-12 text-base bg-background/30 text-white rounded-[15px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98]">
+                      <Button className="w-full h-12 text-base bg-transparent text-white rounded-[15px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98]">
                         <ShoppingCart className="h-5 w-5 mr-2" />Sign in to trade
                       </Button>
                     </div>
@@ -340,7 +340,7 @@ export function AssetPageDrop() {
                 {isOwner ? (
                   <>
                     <div className="btn-border-animated p-[1px] rounded-2xl">
-                      <button className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-background/30" onClick={() => setListOpen(true)}>
+                      <button className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-transparent" onClick={() => setListOpen(true)}>
                         <Tag className="h-4 w-4" />List for sale
                       </button>
                     </div>
