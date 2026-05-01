@@ -171,8 +171,8 @@ export function TransferDialog({
   const handleUsePasskey = async () => {
     setIsAuthenticatingPasskey(true);
     try {
-      const assertion = await authenticate();
-      const derivedKey = await encryptKey(assertion);
+      const derivedKey = encryptKey ?? (await authenticate());
+      if (!derivedKey) throw new Error("Passkey authentication failed");
       await executeTransfer(derivedKey);
     } catch {
       setPinError("Passkey authentication failed. Try your PIN instead.");

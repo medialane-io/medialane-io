@@ -530,7 +530,7 @@ export function useMarketplace() {
             sellerAddress: walletAddress!,
             originalOrderHash: input.originalOrderHash,
             durationSeconds: input.durationSeconds,
-            counterPrice: input.counterPriceRaw,
+            priceRaw: input.counterPriceRaw,
             message: input.message,
           }),
           `Counter-offer sent${input.tokenName ? ` for ${input.tokenName}` : ""}!`,
