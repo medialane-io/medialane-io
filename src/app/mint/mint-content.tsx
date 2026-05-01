@@ -66,10 +66,10 @@ function EventCard() {
 // ─── Benefits ────────────────────────────────────────────────────────────────
 
 const BENEFITS = [
-  { icon: Coins,  label: "Prize pool",         sub: "Airdrop rewards for early creators" },
-  { icon: Camera, label: "Publish & earn",      sub: "Photos, videos, music and more"     },
-  { icon: Gift,   label: "Free access",         sub: "No approval, card, or gas fees"     },
-  { icon: Users,  label: "Sign in with Google", sub: "Free signup in seconds"             },
+  { icon: Coins,  label: "Creator fund",          sub: "Community rewards for active participants" },
+  { icon: Camera, label: "Publish your work",      sub: "Photos, videos, music and more"           },
+  { icon: Gift,   label: "Free access",            sub: "No approval, card, or fees"               },
+  { icon: Users,  label: "Sign in with Google",    sub: "Free signup in seconds"                   },
 ];
 
 function BenefitsGrid() {
@@ -420,14 +420,15 @@ export function MintContent() {
                 <div className="space-y-3">
                   <p className="text-xs font-semibold uppercase tracking-widest text-primary/60">Medialane Launch</p>
                   <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-[1.05]">
-                    Prize{" "}
+                    Creator{" "}
                     <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-                      Airdrop
+                      Fund
                     </span>
                   </h1>
                   <p className="text-[15px] text-muted-foreground leading-relaxed">
-                    Win prizes by creating your{" "}
-                    <strong className="text-foreground font-semibold">free account</strong>. Publish your creative work on Starknet — no gas fees required.
+                    Join the Medialane launch and participate in the{" "}
+                    <strong className="text-foreground font-semibold">creator community fund</strong>{" "}
+                    — open to publishers, artists, and digital creators worldwide. Free, instant access.
                   </p>
                 </div>
 
@@ -476,9 +477,9 @@ export function MintContent() {
                         <span className="text-emerald-600 dark:text-emerald-400 font-medium">Account active</span>
                       </div>
                       <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-[1.05]">
-                        Prize{" "}
+                        Creator{" "}
                         <span className="bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
-                          Airdrop
+                          Fund
                         </span>
                       </h1>
                     </div>
@@ -495,7 +496,7 @@ export function MintContent() {
                         {MINT_CONTRACT && <ArrowRight className="h-4 w-4 ml-auto" />}
                       </Button>
                       <p className="text-xs text-center text-muted-foreground">
-                        This NFT is your passport to the prize draw!
+                        Your permanent record of early participation in the Medialane community.
                       </p>
                     </div>
                   </>
@@ -593,11 +594,11 @@ export function MintContent() {
                       <div className="space-y-2 text-sm">
                         <div className="flex items-center gap-2 rounded-xl bg-emerald-500/5 border border-emerald-500/20 px-3 py-2.5">
                           <Trophy className="h-3.5 w-3.5 text-yellow-500 shrink-0" />
-                          <span>Eligible for the prize airdrop</span>
+                          <span>Member of the Medialane creator fund</span>
                         </div>
                         <div className="flex items-center gap-2 rounded-xl bg-emerald-500/5 border border-emerald-500/20 px-3 py-2.5">
                           <Camera className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                          <span>Publish content and earn rewards</span>
+                          <span>Publish and share your creative work</span>
                         </div>
                       </div>
                       {completedTxHash && (
@@ -659,11 +660,20 @@ export function MintContent() {
       </div>
 
       {/* Footer */}
-      <footer className="px-6 py-5 border-t border-border/40 flex items-center justify-center gap-5 text-xs text-muted-foreground">
-        <Link href="/terms" className="hover:text-foreground transition-colors">Terms</Link>
-        <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
-        <a href="https://docs.medialane.io/about" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">About</a>
-        <span>© {new Date().getFullYear()} Medialane</span>
+      <footer className="border-t border-border/40">
+        <p className="text-[11px] text-center text-muted-foreground/50 px-6 pt-4">
+          Free participation · No purchase required · Fund distribution governed by Medialane DAO ·{" "}
+          <Link href="/campaign-terms" className="underline underline-offset-2 hover:text-muted-foreground/80 transition-colors">
+            Campaign terms
+          </Link>
+        </p>
+        <div className="px-6 py-4 flex items-center justify-center gap-5 text-xs text-muted-foreground">
+          <Link href="/terms" className="hover:text-foreground transition-colors">Terms</Link>
+          <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
+          <Link href="/campaign-terms" className="hover:text-foreground transition-colors">Campaign</Link>
+          <a href="https://docs.medialane.io/about" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">About</a>
+          <span>© {new Date().getFullYear()} Medialane</span>
+        </div>
       </footer>
     </div>
   );
