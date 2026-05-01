@@ -80,7 +80,11 @@ function MainShell({ children }: { children: React.ReactNode }) {
 
 function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  if (pathname === "/br" || pathname.startsWith("/br/")) {
+  if (
+    pathname === "/br" || pathname.startsWith("/br/") ||
+    pathname === "/mint" ||
+    pathname === "/airdrop"
+  ) {
     return <StandaloneShell>{children}</StandaloneShell>;
   }
   return <MainShell>{children}</MainShell>;

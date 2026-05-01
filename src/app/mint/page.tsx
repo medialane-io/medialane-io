@@ -5,21 +5,21 @@ import { MintContent } from "./mint-content";
 const OG_IMAGE = "https://crimson-improved-unicorn-113.mypinata.cloud/ipfs/bafybeiglhfpl3ilyaiulzfjxspolmudih2d3t7lr27imy327fjag2s5zrq";
 
 export const metadata: Metadata = {
-  title: "Prize Airdrop — Medialane",
+  title: "Creator's Airdrop — Medialane",
   description:
-    "Win prizes by creating your free account. Publish photos, videos, and music on Medialane — no gas fees, no approval required.",
+    "Claim your participation record and join the Medialane Creator's Airdrop. Free for everyone — no approval, no fees. Eligible for every community fund distribution.",
   openGraph: {
-    title: "Prize Airdrop — Medialane",
+    title: "Creator's Airdrop — Medialane",
     description:
-      "Win prizes by creating your free account. Publish photos, videos, and music on Medialane — no gas fees, no approval required.",
+      "Claim your participation record and join the Medialane Creator's Airdrop. Free for everyone — no approval, no fees.",
     locale: "en_US",
     type: "website",
-    images: [{ url: OG_IMAGE, width: 1024, height: 1024, alt: "Prize Airdrop — Medialane" }],
+    images: [{ url: OG_IMAGE, width: 1024, height: 1024, alt: "Creator's Airdrop — Medialane" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Prize Airdrop — Medialane",
-    description: "Win prizes by creating your free account on Medialane.",
+    title: "Creator's Airdrop — Medialane",
+    description: "Claim your free participation record in the Medialane creator community fund.",
     images: [OG_IMAGE],
   },
 };

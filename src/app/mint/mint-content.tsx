@@ -17,13 +17,15 @@ import {
   ArrowRight,
   Trophy,
   Camera,
-  Users,
   ImageIcon,
   Gift,
   Coins,
   ShieldCheck,
   KeyRound,
   AlertCircle,
+  FileCheck,
+  Zap,
+  Users,
 } from "lucide-react";
 import { PinInput, validatePin } from "@/components/ui/pin-input";
 import { Button } from "@/components/ui/button";
@@ -53,7 +55,7 @@ function EventCard() {
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={src}
-            alt="Medialane airdrop NFT"
+            alt="Medialane Creator's Airdrop"
             className="w-full aspect-square object-cover"
             onError={() => setErrored(true)}
           />
@@ -63,37 +65,150 @@ function EventCard() {
   );
 }
 
-// ─── Benefits ────────────────────────────────────────────────────────────────
+// ─── Below-fold sections (shown only when not signed in) ─────────────────────
 
-const BENEFITS = [
-  { icon: Coins,  label: "Creator fund",          sub: "Community rewards for active participants" },
-  { icon: Camera, label: "Publish your work",      sub: "Photos, videos, music and more"           },
-  { icon: Gift,   label: "Free access",            sub: "No approval, card, or fees"               },
-  { icon: Users,  label: "Sign in with Google",    sub: "Free signup in seconds"                   },
+const WHAT_YOU_GET = [
+  {
+    icon: FileCheck,
+    title: "Participation record",
+    desc: "A permanent, verifiable entry that proves your place in the Medialane airdrop — secured on a public network and yours forever.",
+    color: "text-blue-400",
+    bg: "bg-blue-500/10",
+  },
+  {
+    icon: Coins,
+    title: "Prize pool entry",
+    desc: "Automatically eligible for every distribution — Phase 1 at 5,000 members, Phase 2 at 10,000 members, and every annual cycle after.",
+    color: "text-yellow-400",
+    bg: "bg-yellow-500/10",
+  },
+  {
+    icon: Camera,
+    title: "Creator platform",
+    desc: "Publish photos, videos, music, and documents. Build a following, earn from your work, and connect with an audience worldwide.",
+    color: "text-purple-400",
+    bg: "bg-purple-500/10",
+  },
 ];
 
-function BenefitsGrid() {
+const HOW_IT_WORKS = [
+  {
+    step: "1",
+    title: "Create your account",
+    desc: "Sign up with your Google account in seconds. No approval, no ID, no credit card required.",
+  },
+  {
+    step: "2",
+    title: "Secure it",
+    desc: "Add a 6-digit PIN or biometrics (Face ID / fingerprint) to protect your participation.",
+  },
+  {
+    step: "3",
+    title: "Claim your record",
+    desc: "Confirm your airdrop participation with one tap. Your place in the fund is permanent.",
+  },
+];
+
+const PRIZE_PHASES = [
+  {
+    phase: "Phase 1",
+    trigger: "5,000 participants",
+    desc: "First distribution from the creator fund. All eligible members receive their proportional share.",
+    color: "border-blue-500/30 bg-blue-500/5",
+    badge: "text-blue-400",
+  },
+  {
+    phase: "Phase 2",
+    trigger: "10,000 participants",
+    desc: "Second distribution, plus all revenue accumulated since Phase 1. Community votes on the allocation.",
+    color: "border-purple-500/30 bg-purple-500/5",
+    badge: "text-purple-400",
+  },
+];
+
+function WhatYouGet() {
   return (
-    <div className="grid grid-cols-2 gap-2">
-      {BENEFITS.map(({ icon: Icon, label, sub }) => (
-        <div
-          key={label}
-          className="flex items-start gap-2.5 rounded-xl border border-border/50 bg-muted/15 p-3 hover:bg-muted/25 transition-colors"
-        >
-          <div className="mt-0.5 h-7 w-7 shrink-0 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Icon className="h-3.5 w-3.5 text-primary" />
+    <div className="py-14 border-t border-border/30">
+      <div className="text-center mb-8">
+        <p className="text-xs font-semibold uppercase tracking-widest text-primary/60 mb-2">What&apos;s included</p>
+        <h2 className="text-2xl font-black">Everything you get, free</h2>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {WHAT_YOU_GET.map(({ icon: Icon, title, desc, color, bg }) => (
+          <div key={title} className="rounded-2xl border border-border/40 bg-muted/10 p-6 space-y-3 hover:bg-muted/20 transition-colors">
+            <div className={`h-10 w-10 rounded-xl ${bg} flex items-center justify-center`}>
+              <Icon className={`h-5 w-5 ${color}`} />
+            </div>
+            <h3 className="font-bold text-sm">{title}</h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
           </div>
-          <div className="min-w-0">
-            <p className="text-xs font-semibold leading-tight">{label}</p>
-            <p className="text-[11px] text-muted-foreground leading-snug mt-0.5">{sub}</p>
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
 
-// ─── Inline wallet setup ──────────────────────────────────────────────────────
+function HowItWorks() {
+  return (
+    <div className="py-14 border-t border-border/30">
+      <div className="text-center mb-8">
+        <p className="text-xs font-semibold uppercase tracking-widest text-primary/60 mb-2">Simple process</p>
+        <h2 className="text-2xl font-black">How it works</h2>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 relative">
+        {HOW_IT_WORKS.map(({ step, title, desc }) => (
+          <div key={step} className="flex flex-col items-center text-center gap-4">
+            <div className="h-12 w-12 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center shrink-0">
+              <span className="text-lg font-black text-primary">{step}</span>
+            </div>
+            <div>
+              <h3 className="font-bold text-sm mb-1.5">{title}</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PrizePool() {
+  return (
+    <div className="py-14 border-t border-border/30">
+      <div className="text-center mb-8">
+        <p className="text-xs font-semibold uppercase tracking-widest text-primary/60 mb-2">Distribution schedule</p>
+        <h2 className="text-2xl font-black">The prize pool</h2>
+        <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
+          Platform revenue goes entirely to the community. No investors taking a cut.
+        </p>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+        {PRIZE_PHASES.map(({ phase, trigger, desc, color, badge }) => (
+          <div key={phase} className={`rounded-2xl border p-6 space-y-2 ${color}`}>
+            <div className="flex items-center justify-between gap-2">
+              <p className="font-bold text-sm">{phase}</p>
+              <span className={`text-xs font-semibold ${badge}`}>{trigger}</span>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
+          </div>
+        ))}
+      </div>
+      <div className="rounded-2xl border border-border/40 bg-muted/10 p-5 flex items-start gap-4">
+        <div className="h-9 w-9 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0 mt-0.5">
+          <Zap className="h-4 w-4 text-emerald-400" />
+        </div>
+        <div>
+          <p className="font-bold text-sm">Annual cycle — ongoing forever</p>
+          <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">
+            Every year the Medialane community votes on how to distribute that year&apos;s revenue. The fund repeats indefinitely — Medialane has no investors drawing revenue.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Inline account setup ─────────────────────────────────────────────────────
 
 type WalletSetupStep = "choose" | "pin" | "passkey" | "creating" | "done";
 
@@ -125,7 +240,7 @@ function WalletSetup({ email, onDone }: { email?: string | null; onDone: () => v
   const createWalletWithKey = async (encryptKey: string) => {
     const wallet = await createWallet({ encryptKey });
     const walletKey = wallet.normalizedPublicKey ?? wallet.publicKey;
-    if (!walletKey) throw new Error("Failed to create wallet. Please try again.");
+    if (!walletKey) throw new Error("Failed to activate account. Please try again.");
     const result = await completeOnboarding({ publicKey: walletKey });
     if (result.error) throw new Error(result.error);
     await user?.reload();
@@ -174,7 +289,7 @@ function WalletSetup({ email, onDone }: { email?: string | null; onDone: () => v
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
         <div>
           <p className="font-bold">Activating your account…</p>
-          <p className="text-sm text-muted-foreground mt-1">Getting everything ready for you.</p>
+          <p className="text-sm text-muted-foreground mt-1">Getting everything ready.</p>
         </div>
       </div>
     );
@@ -211,7 +326,7 @@ function WalletSetup({ email, onDone }: { email?: string | null; onDone: () => v
         <p className="text-sm text-muted-foreground leading-relaxed mt-2">
           {step === "pin"
             ? "Create a 6-digit security PIN. You'll use it to confirm your participation."
-            : "Complete your setup by choosing a passkey or a numeric PIN."}
+            : "Add biometrics or a PIN to protect your airdrop participation."}
         </p>
       </div>
 
@@ -293,7 +408,7 @@ function WalletSetup({ email, onDone }: { email?: string | null; onDone: () => v
       )}
 
       <p className="text-xs text-center text-muted-foreground">
-        Your passkey or PIN secures your account and is never shared.
+        Your PIN or passkey secures your account and is never shared.
       </p>
     </div>
   );
@@ -331,7 +446,7 @@ export function MintContent() {
     setMintPinError(null);
     setMintError(null);
     setMintStep("minting");
-    setMintStatusMsg("Preparing your NFT…");
+    setMintStatusMsg("Preparing your record…");
 
     try {
       if (!walletAddress) throw new Error("Account not found. Please try again.");
@@ -343,7 +458,7 @@ export function MintContent() {
           : `ipfs://${MINT_NFT_URI}`
         : "";
       if (!tokenUri) {
-        setMintStatusMsg("Registering NFT…");
+        setMintStatusMsg("Registering your participation…");
         const form = new FormData();
         form.append("name", "Medialane Launch Airdrop");
         form.append("description", "Early participant in the Medialane airdrop campaign.");
@@ -390,272 +505,327 @@ export function MintContent() {
     window.location.reload();
   }, []);
 
+  const showingSections = isLoaded && !isSignedIn && !walletJustCreated;
+
   return (
     <div className="min-h-screen flex flex-col">
 
       {/* Header */}
-      <header className="px-6 py-4 flex items-center border-b border-border/30">
+      <header className="px-6 py-4 flex items-center justify-between border-b border-border/30">
         <MedialaneLogo />
+        {isLoaded && !isSignedIn && (
+          <SignInButton mode="modal" forceRedirectUrl="/mint">
+            <Button variant="ghost" size="sm" className="text-sm text-muted-foreground hover:text-foreground">
+              Sign in
+            </Button>
+          </SignInButton>
+        )}
       </header>
 
-      {/* Content */}
-      <div className="flex-1 container mx-auto px-5 py-10 max-w-4xl">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+      {/* Hero */}
+      <div className="flex-1">
+        <div className="container mx-auto px-5 max-w-5xl">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center py-12 lg:py-20">
 
-          {/* Panel — first on mobile, right on desktop */}
-          <div className="space-y-6 order-1 lg:order-2">
+            {/* Action panel */}
+            <div className="space-y-6 order-1 lg:order-2">
 
-            {/* Loading skeleton */}
-            {(!isLoaded || (isLoaded && isSignedIn && isLoadingWallet) || walletJustCreated) && (
-              <div className="space-y-4">
-                <div className="h-10 w-48 rounded-lg bg-muted/40 animate-pulse" />
-                <div className="h-24 rounded-xl bg-muted/30 animate-pulse" />
-                <div className="h-12 rounded-xl bg-muted/20 animate-pulse" />
-              </div>
-            )}
-
-            {/* Not signed in */}
-            {isLoaded && !isSignedIn && !walletJustCreated && (
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-primary/60">Medialane Launch</p>
-                  <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-[1.05]">
-                    Creator{" "}
-                    <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-                      Fund
-                    </span>
-                  </h1>
-                  <p className="text-[15px] text-muted-foreground leading-relaxed">
-                    Join the Medialane launch and participate in the{" "}
-                    <strong className="text-foreground font-semibold">creator community fund</strong>{" "}
-                    — open to publishers, artists, and digital creators worldwide. Free, instant access.
-                  </p>
+              {/* Loading */}
+              {(!isLoaded || (isLoaded && isSignedIn && isLoadingWallet) || walletJustCreated) && (
+                <div className="space-y-4">
+                  <div className="h-10 w-48 rounded-lg bg-muted/40 animate-pulse" />
+                  <div className="h-24 rounded-xl bg-muted/30 animate-pulse" />
+                  <div className="h-12 rounded-xl bg-muted/20 animate-pulse" />
                 </div>
+              )}
 
-                <BenefitsGrid />
+              {/* Not signed in */}
+              {isLoaded && !isSignedIn && !walletJustCreated && (
+                <div className="space-y-6">
+                  <div className="space-y-3">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-primary/60">Medialane Launch</p>
+                    <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-[1.05]">
+                      Creator&apos;s{" "}
+                      <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
+                        Airdrop
+                      </span>
+                    </h1>
+                    <p className="text-[15px] text-muted-foreground leading-relaxed">
+                      Join the Medialane launch. Claim your participation record and become eligible for{" "}
+                      <strong className="text-foreground font-semibold">every distribution</strong>{" "}
+                      from the community fund — completely free.
+                    </p>
+                  </div>
 
-                <div className="space-y-3 pt-2">
-                  <SignUpButton mode="modal" forceRedirectUrl="/mint">
-                    <Button
-                      size="lg"
-                      className="w-full rounded-2xl py-7 text-base font-bold gap-2.5 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 shadow-lg shadow-primary/25"
-                    >
-                      <Sparkles className="h-5 w-5" />
-                      Join with Google — it's free
-                    </Button>
-                  </SignUpButton>
-                  <SignInButton mode="modal" forceRedirectUrl="/mint">
-                    <Button size="lg" variant="ghost" className="w-full rounded-xl text-sm text-muted-foreground hover:text-foreground">
-                      Already have an account — sign in
-                    </Button>
-                  </SignInButton>
-                </div>
-
-                <p className="text-xs text-center text-muted-foreground/70">
-                  Free · No approval or gas fees · Instant access
-                </p>
-              </div>
-            )}
-
-            {/* Signed in, no wallet */}
-            {isLoaded && !isLoadingWallet && isSignedIn && !hasWallet && !walletJustCreated && (
-              <WalletSetup
-                email={user?.primaryEmailAddress?.emailAddress}
-                onDone={handleWalletCreated}
-              />
-            )}
-
-            {/* Has wallet: claim flow */}
-            {isLoaded && !isLoadingWallet && isSignedIn && hasWallet && !walletJustCreated && (
-              <div className="space-y-5">
-
-                {mintStep === "ready" && (
-                  <>
-                    <div>
-                      <div className="flex items-center gap-2 text-sm mb-3">
-                        <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
-                        <span className="text-emerald-600 dark:text-emerald-400 font-medium">Account active</span>
-                      </div>
-                      <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-[1.05]">
-                        Creator{" "}
-                        <span className="bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
-                          Fund
-                        </span>
-                      </h1>
-                    </div>
-                    <BenefitsGrid />
-                    <div className="space-y-2 pt-1">
+                  <div className="space-y-3">
+                    <SignUpButton mode="modal" forceRedirectUrl="/mint">
                       <Button
                         size="lg"
-                        className="w-full rounded-xl h-12 text-base font-bold gap-2 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 shadow-lg shadow-primary/25 disabled:opacity-50"
-                        onClick={() => setMintStep("enter-pin")}
-                        disabled={!MINT_CONTRACT}
+                        className="w-full rounded-2xl py-7 text-base font-bold gap-2.5 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 shadow-lg shadow-primary/25"
                       >
-                        <Sparkles className="h-4 w-4" />
-                        {MINT_CONTRACT ? "Claim my participation NFT" : "Airdrop not started yet"}
-                        {MINT_CONTRACT && <ArrowRight className="h-4 w-4 ml-auto" />}
+                        <Sparkles className="h-5 w-5" />
+                        Join with Google — it&apos;s free
                       </Button>
-                      <p className="text-xs text-center text-muted-foreground">
-                        Your permanent record of early participation in the Medialane community.
-                      </p>
-                    </div>
-                  </>
-                )}
+                    </SignUpButton>
+                    <SignInButton mode="modal" forceRedirectUrl="/mint">
+                      <Button size="lg" variant="ghost" className="w-full rounded-xl text-sm text-muted-foreground hover:text-foreground">
+                        Already have an account — sign in
+                      </Button>
+                    </SignInButton>
+                  </div>
 
-                {mintStep === "enter-pin" && (
-                  <div className="rounded-2xl border border-border/60 bg-card/50 p-5 space-y-4">
-                    <div>
-                      <p className="font-bold">Confirm with your security code</p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Enter the 6-digit PIN you created when activating your account.
-                      </p>
+                  <div className="flex items-center gap-3 pt-1">
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground/70">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500/60" />
+                      <span>Free</span>
                     </div>
-                    <div className="rounded-xl bg-muted/30 px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-                      <span className="text-muted-foreground">NFT</span>
-                      <span className="font-medium">Exclusive</span>
-                      <span className="text-muted-foreground">Cost</span>
-                      <span className="font-medium text-emerald-600 dark:text-emerald-400">Free</span>
-                      <span className="text-muted-foreground">Gas fees</span>
-                      <span className="font-medium text-emerald-600 dark:text-emerald-400">None</span>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground/70">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500/60" />
+                      <span>No approval required</span>
                     </div>
-                    <PinInput
-                      value={mintPin}
-                      onChange={(v) => { setMintPin(v); setMintPinError(null); }}
-                      placeholder="Your security PIN"
-                      error={mintPinError}
-                      autoFocus
-                    />
-                    <div className="flex gap-2">
-                      <Button
-                        size="lg"
-                        className="flex-1 rounded-xl h-11 font-bold bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90"
-                        onClick={handleClaim}
-                        disabled={mintPin.length < 6}
-                      >
-                        Confirm
-                      </Button>
-                      <Button
-                        size="lg"
-                        variant="outline"
-                        className="rounded-xl h-11"
-                        onClick={() => { setMintPin(""); setMintPinError(null); setMintStep("ready"); }}
-                      >
-                        Cancel
-                      </Button>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground/70">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500/60" />
+                      <span>Instant access</span>
                     </div>
                   </div>
-                )}
+                </div>
+              )}
 
-                {mintStep === "minting" && (
-                  <div className="rounded-2xl border border-border/60 bg-card/50 p-6">
-                    <div className="flex items-center gap-4">
-                      <Loader2 className="h-10 w-10 animate-spin text-primary shrink-0" />
+              {/* Signed in, no wallet */}
+              {isLoaded && !isLoadingWallet && isSignedIn && !hasWallet && !walletJustCreated && (
+                <WalletSetup
+                  email={user?.primaryEmailAddress?.emailAddress}
+                  onDone={handleWalletCreated}
+                />
+              )}
+
+              {/* Has wallet: claim flow */}
+              {isLoaded && !isLoadingWallet && isSignedIn && hasWallet && !walletJustCreated && (
+                <div className="space-y-5">
+
+                  {mintStep === "ready" && (
+                    <>
                       <div>
-                        <p className="font-bold">Registering your participation…</p>
-                        <p className="text-sm text-muted-foreground mt-0.5">{mintStatusMsg || "Please wait…"}</p>
+                        <div className="flex items-center gap-2 text-sm mb-3">
+                          <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                          <span className="text-emerald-600 dark:text-emerald-400 font-medium">Account active</span>
+                        </div>
+                        <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-[1.05]">
+                          Creator&apos;s{" "}
+                          <span className="bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
+                            Airdrop
+                          </span>
+                        </h1>
+                        <p className="text-sm text-muted-foreground leading-relaxed mt-2">
+                          Claim your participation record to lock in your place in the community fund.
+                        </p>
                       </div>
-                    </div>
-                    <div className="mt-4 space-y-1.5">
-                      {[
-                        { label: "Preparing your NFT",           done: status !== "idle" },
-                        { label: "Submitting to the network",    done: status === "confirming" || status === "confirmed" },
-                        { label: "Confirmed on-chain!",          done: status === "confirmed" },
-                      ].map(({ label, done }) => (
-                        <div key={label} className="flex items-center gap-2 text-xs text-muted-foreground">
-                          {done
-                            ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-                            : <div className="h-3.5 w-3.5 rounded-full border border-muted-foreground/30" />}
-                          <span className={done ? "text-foreground" : ""}>{label}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {mintStep === "success" && (
-                  <div className="space-y-5">
-                    <div>
-                      <h1 className="text-5xl font-black tracking-tight leading-[1.05]">
-                        You&apos;re{" "}
-                        <span className="bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">in!</span>
-                      </h1>
-                      <p className="text-sm text-muted-foreground mt-2">Your participation in the airdrop is confirmed.</p>
-                    </div>
-                    <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-5 space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className="h-11 w-11 rounded-full bg-emerald-500/15 flex items-center justify-center shrink-0">
-                          <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-                        </div>
-                        <div>
-                          <p className="font-bold text-emerald-600 dark:text-emerald-300">Participation confirmed!</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">Welcome to Medialane.</p>
-                        </div>
+                      <div className="space-y-2">
+                        {[
+                          { icon: FileCheck, label: "Permanent participation record" },
+                          { icon: Coins,     label: "Eligible for all fund distributions" },
+                          { icon: Camera,    label: "Full platform access — publish your work" },
+                        ].map(({ icon: Icon, label }) => (
+                          <div key={label} className="flex items-center gap-3 text-sm">
+                            <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                              <Icon className="h-3.5 w-3.5 text-primary" />
+                            </div>
+                            <span>{label}</span>
+                          </div>
+                        ))}
                       </div>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex items-center gap-2 rounded-xl bg-emerald-500/5 border border-emerald-500/20 px-3 py-2.5">
-                          <Trophy className="h-3.5 w-3.5 text-yellow-500 shrink-0" />
-                          <span>Member of the Medialane creator fund</span>
-                        </div>
-                        <div className="flex items-center gap-2 rounded-xl bg-emerald-500/5 border border-emerald-500/20 px-3 py-2.5">
-                          <Camera className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                          <span>Publish and share your creative work</span>
-                        </div>
-                      </div>
-                      {completedTxHash && (
-                        <a
-                          href={`${EXPLORER_URL}/tx/${completedTxHash}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      <div className="space-y-2 pt-1">
+                        <Button
+                          size="lg"
+                          className="w-full rounded-xl h-12 text-base font-bold gap-2 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 shadow-lg shadow-primary/25 disabled:opacity-50"
+                          onClick={() => setMintStep("enter-pin")}
+                          disabled={!MINT_CONTRACT}
                         >
-                          <span className="font-mono">{completedTxHash.slice(0, 12)}…{completedTxHash.slice(-8)}</span>
-                          <ExternalLink className="h-3 w-3" />
-                        </a>
-                      )}
-                    </div>
-                    <div className="flex flex-col sm:flex-row gap-2.5">
-                      <Button size="lg" className="flex-1 p-4" asChild>
-                        <Link href="/create/asset">Publish content</Link>
-                      </Button>
-                      <Button size="lg" variant="outline" className="flex-1 p-4" asChild>
-                        <Link href="/marketplace">Explore the app</Link>
-                      </Button>
-                    </div>
-                  </div>
-                )}
+                          <Sparkles className="h-4 w-4" />
+                          {MINT_CONTRACT ? "Claim my participation record" : "Airdrop not started yet"}
+                          {MINT_CONTRACT && <ArrowRight className="h-4 w-4 ml-auto" />}
+                        </Button>
+                        <p className="text-xs text-center text-muted-foreground">
+                          Your permanent record of participation in Medialane.
+                        </p>
+                      </div>
+                    </>
+                  )}
 
-                {mintStep === "error" && (
-                  <div className="space-y-4">
-                    <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-5 space-y-3">
-                      <div className="flex items-start gap-3">
-                        <XCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+                  {mintStep === "enter-pin" && (
+                    <div className="rounded-2xl border border-border/60 bg-card/50 p-5 space-y-4">
+                      <div>
+                        <p className="font-bold">Confirm with your security code</p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Enter the 6-digit PIN you created when activating your account.
+                        </p>
+                      </div>
+                      <div className="rounded-xl bg-muted/30 px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                        <span className="text-muted-foreground">Record</span>
+                        <span className="font-medium">Unique · permanent</span>
+                        <span className="text-muted-foreground">Cost</span>
+                        <span className="font-medium text-emerald-600 dark:text-emerald-400">Free</span>
+                        <span className="text-muted-foreground">Fees</span>
+                        <span className="font-medium text-emerald-600 dark:text-emerald-400">None</span>
+                      </div>
+                      <PinInput
+                        value={mintPin}
+                        onChange={(v) => { setMintPin(v); setMintPinError(null); }}
+                        placeholder="Your security PIN"
+                        error={mintPinError}
+                        autoFocus
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          size="lg"
+                          className="flex-1 rounded-xl h-11 font-bold bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90"
+                          onClick={handleClaim}
+                          disabled={mintPin.length < 6}
+                        >
+                          Confirm
+                        </Button>
+                        <Button
+                          size="lg"
+                          variant="outline"
+                          className="rounded-xl h-11"
+                          onClick={() => { setMintPin(""); setMintPinError(null); setMintStep("ready"); }}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {mintStep === "minting" && (
+                    <div className="rounded-2xl border border-border/60 bg-card/50 p-6">
+                      <div className="flex items-center gap-4">
+                        <Loader2 className="h-10 w-10 animate-spin text-primary shrink-0" />
                         <div>
-                          <p className="font-bold text-sm">Could not complete</p>
-                          {(mintError || txError) && (
-                            <p className="text-xs text-muted-foreground mt-1">{mintError || txError}</p>
-                          )}
+                          <p className="font-bold">Registering your participation…</p>
+                          <p className="text-sm text-muted-foreground mt-0.5">{mintStatusMsg || "Please wait…"}</p>
                         </div>
                       </div>
-                      <Button size="sm" variant="outline" className="gap-2" onClick={handleRetry}>
-                        <RefreshCw className="h-3.5 w-3.5" />
-                        Try again
-                      </Button>
+                      <div className="mt-4 space-y-1.5">
+                        {[
+                          { label: "Preparing your record",       done: status !== "idle" },
+                          { label: "Submitting to the network",   done: status === "confirming" || status === "confirmed" },
+                          { label: "Confirmed!",                  done: status === "confirmed" },
+                        ].map(({ label, done }) => (
+                          <div key={label} className="flex items-center gap-2 text-xs text-muted-foreground">
+                            {done
+                              ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                              : <div className="h-3.5 w-3.5 rounded-full border border-muted-foreground/30" />}
+                            <span className={done ? "text-foreground" : ""}>{label}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                    <BenefitsGrid />
-                  </div>
-                )}
+                  )}
 
-              </div>
-            )}
-          </div>
+                  {mintStep === "success" && (
+                    <div className="space-y-5">
+                      <div>
+                        <h1 className="text-5xl font-black tracking-tight leading-[1.05]">
+                          You&apos;re{" "}
+                          <span className="bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">in!</span>
+                        </h1>
+                        <p className="text-sm text-muted-foreground mt-2">Your place in the Creator&apos;s Airdrop is confirmed.</p>
+                      </div>
+                      <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-5 space-y-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-11 w-11 rounded-full bg-emerald-500/15 flex items-center justify-center shrink-0">
+                            <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                          </div>
+                          <div>
+                            <p className="font-bold text-emerald-600 dark:text-emerald-300">Participation confirmed!</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">Welcome to Medialane.</p>
+                          </div>
+                        </div>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex items-center gap-2 rounded-xl bg-emerald-500/5 border border-emerald-500/20 px-3 py-2.5">
+                            <Trophy className="h-3.5 w-3.5 text-yellow-500 shrink-0" />
+                            <span>Eligible for the community creator fund</span>
+                          </div>
+                          <div className="flex items-center gap-2 rounded-xl bg-emerald-500/5 border border-emerald-500/20 px-3 py-2.5">
+                            <Camera className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                            <span>Publish and share your creative work</span>
+                          </div>
+                        </div>
+                        {completedTxHash && (
+                          <a
+                            href={`${EXPLORER_URL}/tx/${completedTxHash}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            <span className="font-mono">{completedTxHash.slice(0, 12)}…{completedTxHash.slice(-8)}</span>
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        )}
+                      </div>
+                      <div className="flex flex-col sm:flex-row gap-2.5">
+                        <Button size="lg" className="flex-1 p-4" asChild>
+                          <Link href="/create/asset">Publish content</Link>
+                        </Button>
+                        <Button size="lg" variant="outline" className="flex-1 p-4" asChild>
+                          <Link href="/marketplace">Explore the app</Link>
+                        </Button>
+                      </div>
+                    </div>
+                  )}
 
-          {/* Image — second on mobile, left on desktop */}
-          <div className="flex justify-center order-2 lg:order-1">
-            <div className="w-full max-w-sm">
-              <EventCard />
+                  {mintStep === "error" && (
+                    <div className="space-y-4">
+                      <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-5 space-y-3">
+                        <div className="flex items-start gap-3">
+                          <XCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+                          <div>
+                            <p className="font-bold text-sm">Could not complete</p>
+                            {(mintError || txError) && (
+                              <p className="text-xs text-muted-foreground mt-1">{mintError || txError}</p>
+                            )}
+                          </div>
+                        </div>
+                        <Button size="sm" variant="outline" className="gap-2" onClick={handleRetry}>
+                          <RefreshCw className="h-3.5 w-3.5" />
+                          Try again
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                </div>
+              )}
             </div>
+
+            {/* Image */}
+            <div className="flex justify-center order-2 lg:order-1">
+              <div className="w-full max-w-sm">
+                <EventCard />
+              </div>
+            </div>
+
           </div>
 
+          {/* Below-fold content: only for non-signed-in visitors */}
+          {showingSections && (
+            <>
+              <WhatYouGet />
+              <HowItWorks />
+              <PrizePool />
+              <div className="py-10">
+                <SignUpButton mode="modal" forceRedirectUrl="/mint">
+                  <Button
+                    size="lg"
+                    className="w-full rounded-2xl py-7 text-base font-bold gap-2.5 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 shadow-lg shadow-primary/25"
+                  >
+                    <Sparkles className="h-5 w-5" />
+                    Join with Google — it&apos;s free
+                  </Button>
+                </SignUpButton>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
