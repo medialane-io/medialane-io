@@ -67,10 +67,10 @@ function EventCard({ claimed = false }: { claimed?: boolean }) {
 // ─── Benefits ────────────────────────────────────────────────────────────────
 
 const BENEFITS = [
-  { icon: Coins,  label: "R$10 mil em prêmios", sub: "Sorteios e airdrop de prêmios" },
-  { icon: Camera, label: "Publique e ganhe",     sub: "Fotos, vídeos, músicas e mais" },
-  { icon: Gift,   label: "Acesso grátis",        sub: "Sem CPF, cartão ou aprovação" },
-  { icon: Users,  label: "Acesso com Google",  sub: "Cadastro grátis em segundos" },
+  { icon: Coins,  label: "Fundo de criadores",    sub: "Premiação para participantes ativos" },
+  { icon: Camera, label: "Publique seu conteúdo",  sub: "Fotos, vídeos, músicas e mais" },
+  { icon: Gift,   label: "Acesso grátis",          sub: "Sem CPF, cartão ou taxas" },
+  { icon: Users,  label: "Entrar com Google",      sub: "Cadastro em segundos" },
 ];
 
 function BenefitsGrid() {
@@ -427,16 +427,17 @@ export function BrMintContent() {
             {isLoaded && !isSignedIn && !walletJustCreated && (
               <div className="space-y-6">
                 <div className="space-y-3">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-primary/60">Lançamento Medialane</p>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-primary/60">Lançamento Medialane Brasil</p>
                   <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-[1.05]">
-                    Airdrop de{" "}
+                    Fundo de{" "}
                     <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-                      Prêmios
+                      Criadores
                     </span>
                   </h1>
                   <p className="text-[15px] text-muted-foreground leading-relaxed">
-                    Concorra a{" "}
-                    <strong className="text-foreground font-semibold">R$10 mil em prêmios</strong> criando sua conta grátis.
+                    Registre-se gratuitamente e faça parte do{" "}
+                    <strong className="text-foreground font-semibold">fundo de lançamento para criadores</strong>{" "}
+                    — aberto a publicadores, artistas e criadores digitais.
                   </p>
                 </div>
 
@@ -485,9 +486,9 @@ export function BrMintContent() {
                         <span className="text-emerald-600 dark:text-emerald-400 font-medium">Conta ativa</span>
                       </div>
                       <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-[1.05]">
-                        Airdrop de {" "}
+                        Fundo de{" "}
                         <span className="bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
-                          Prêmios
+                          Criadores
                         </span>
                       </h1>
                     </div>
@@ -504,7 +505,7 @@ export function BrMintContent() {
                         {BR_MINT_CONTRACT && <ArrowRight className="h-4 w-4 ml-auto" />}
                       </Button>
                       <p className="text-xs text-center text-muted-foreground">
-                        Este será seu passaporte de acesso aos prêmios!
+                        Seu registro permanente de participação na comunidade Medialane.
                       </p>
                     </div>
                   </>
@@ -590,11 +591,11 @@ export function BrMintContent() {
                       <div className="space-y-2 text-sm">
                         <div className="flex items-center gap-2 rounded-xl bg-emerald-500/5 border border-emerald-500/20 px-3 py-2.5">
                           <Trophy className="h-3.5 w-3.5 text-yellow-500 shrink-0" />
-                          <span>Elegível para airdop de prêmios</span>
+                          <span>Participante do fundo de criadores</span>
                         </div>
                         <div className="flex items-center gap-2 rounded-xl bg-emerald-500/5 border border-emerald-500/20 px-3 py-2.5">
                           <Camera className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                          <span>Publique e ganhe com seu conteúdo</span>
+                          <span>Publique e compartilhe seu conteúdo</span>
                         </div>
                       </div>
                       {completedTxHash && (
@@ -644,11 +645,20 @@ export function BrMintContent() {
       </div>
 
       {/* Footer */}
-      <footer className="px-6 py-5 border-t border-border/40 flex items-center justify-center gap-5 text-xs text-muted-foreground">
-        <Link href="/terms" className="hover:text-foreground transition-colors">Termos</Link>
-        <Link href="/privacy" className="hover:text-foreground transition-colors">Privacidade</Link>
-        <a href="https://docs.medialane.io/about" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">Sobre</a>
-        <span>© {new Date().getFullYear()} Medialane</span>
+      <footer className="border-t border-border/40">
+        <p className="text-[11px] text-center text-muted-foreground/50 px-6 pt-4">
+          Participação gratuita · Sem necessidade de compra · A distribuição do fundo é gerida pela comunidade Medialane DAO ·{" "}
+          <Link href="/campaign-terms" className="underline underline-offset-2 hover:text-muted-foreground/80 transition-colors">
+            Ver regulamento
+          </Link>
+        </p>
+        <div className="px-6 py-4 flex items-center justify-center gap-5 text-xs text-muted-foreground">
+          <Link href="/terms" className="hover:text-foreground transition-colors">Termos</Link>
+          <Link href="/privacy" className="hover:text-foreground transition-colors">Privacidade</Link>
+          <Link href="/campaign-terms" className="hover:text-foreground transition-colors">Campanha</Link>
+          <a href="https://docs.medialane.io/about" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">Sobre</a>
+          <span>© {new Date().getFullYear()} Medialane</span>
+        </div>
       </footer>
     </div>
   );
