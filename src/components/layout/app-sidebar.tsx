@@ -10,6 +10,7 @@ import {
   LayoutGrid, Users, BookOpen,
   Sun, Moon, ShoppingBag, LogIn, PlusCircle, Search,
   ChevronRight, Music, Palette, Film, Camera, Gem, LogOut,
+  Gift,
 } from "lucide-react";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useUnreadOffers } from "@/hooks/use-unread-offers";
@@ -26,7 +27,6 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-  SidebarSeparator,
   useSidebar,
 } from "@/components/ui/sidebar";
 import {
@@ -39,17 +39,14 @@ import { MedialaneLogo } from "../brand/medialane-logo";
 import { MedialaneIcon } from "../brand/medialane-icon";
 import { NotificationsItem } from "@/components/layout/notifications-sheet";
 
-// ── Sub-menu data ────────────────────────────────────────────────────────────
+// ── Explore sub-menu: IP types only ─────────────────────────────────────────
 
 const EXPLORE_SUB = [
-  { href: "/collections",  label: "Collections",  icon: LayoutGrid },
-  { href: "/creators",     label: "Creators",     icon: Users      },
-  { href: "/activities",   label: "Activity",     icon: Activity   },
-  { href: "/audio",        label: "Audio",        icon: Music      },
-  { href: "/art",          label: "Art",          icon: Palette    },
-  { href: "/video",        label: "Video",        icon: Film       },
-  { href: "/photography",  label: "Photography",  icon: Camera     },
-  { href: "/nft",          label: "NFT",          icon: Gem        },
+  { href: "/audio",        label: "Audio",        icon: Music   },
+  { href: "/art",          label: "Art",          icon: Palette },
+  { href: "/video",        label: "Video",        icon: Film    },
+  { href: "/photography",  label: "Photography",  icon: Camera  },
+  { href: "/nft",          label: "NFT",          icon: Gem     },
 ];
 
 // ── Collapsible nav group ────────────────────────────────────────────────────
@@ -74,7 +71,6 @@ function CollapsibleNavItem({
   const isAnySubActive = sub.some((s) => pathname === s.href || pathname?.startsWith(s.href + "/"));
 
   if (collapsed) {
-    // In icon-only mode: clicking expands the sidebar and opens the group
     return (
       <SidebarMenuItem>
         <SidebarMenuButton
@@ -108,7 +104,7 @@ function CollapsibleNavItem({
         <CollapsibleContent>
           <SidebarMenuSub>
             {sub.map(({ href, label: subLabel, icon: SubIcon }) => {
-              const active = pathname === href || (href !== "/launchpad" && pathname?.startsWith(href + "/"));
+              const active = pathname === href || pathname?.startsWith(href + "/");
               return (
                 <SidebarMenuSubItem key={href}>
                   <SidebarMenuSubButton asChild isActive={active} onClick={onClose}>
@@ -182,15 +178,12 @@ export function AppSidebar() {
     else setOpen(false);
   };
 
-  // Whether to auto-expand collapsible groups on load
   const onLaunchpad = !!(pathname?.startsWith("/launchpad") || pathname?.startsWith("/create"));
-  const onExplore   = !!(pathname === "/collections" || pathname?.startsWith("/creators") || pathname === "/activities");
-
-  // Top-level flat nav (no collapsible)
-  const TOP_NAV = [
-    { href: "/discover",   label: "Discover",    icon: Telescope, exact: true,  prefetch: undefined },
-    { href: "/marketplace",label: "Marketplace", icon: Compass,   exact: true,  prefetch: undefined },
-  ];
+  const onExplore   = !!(
+    pathname?.startsWith("/audio") || pathname?.startsWith("/art") ||
+    pathname?.startsWith("/video") || pathname?.startsWith("/photography") ||
+    pathname?.startsWith("/nft")
+  );
 
   return (
     <Sidebar collapsible="icon">
@@ -206,43 +199,32 @@ export function AppSidebar() {
 
       <SidebarContent>
 
-        {/* ── Main navigation ─────────────────────────────── */}
+        {/* ── Main navigation + Explore (single group, no gap) ── */}
         <SidebarGroup>
           <SidebarMenu>
 
-            {/* Flat items above Launchpad */}
-            {TOP_NAV.slice(0, 2).map(({ href, label, icon: Icon, exact, prefetch }) => (
-              <SidebarMenuItem key={href}>
-                <SidebarMenuButton
-                  asChild
-                  isActive={exact ? pathname === href : !!pathname?.startsWith(href)}
-                  tooltip={label}
-                  onClick={closeSidebar}
-                >
-                  <Link href={href} prefetch={prefetch}>
-                    <Icon />
-                    <span>{label}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-
-            {/* Launchpad — direct link */}
+            {/* Discover */}
             <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={onLaunchpad}
-                tooltip="Launchpad"
-                onClick={closeSidebar}
-              >
-                <Link href="/launchpad">
-                  <Plus />
-                  <span>Launchpad</span>
-                </Link>
+              <SidebarMenuButton asChild isActive={pathname === "/discover"} tooltip="Discover" onClick={closeSidebar}>
+                <Link href="/discover"><Telescope /><span>Discover</span></Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            {/* Portfolio with unread badge */}
+            {/* Marketplace */}
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={pathname === "/marketplace"} tooltip="Marketplace" onClick={closeSidebar}>
+                <Link href="/marketplace"><Compass /><span>Marketplace</span></Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            {/* Launchpad */}
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={onLaunchpad} tooltip="Launchpad" onClick={closeSidebar}>
+                <Link href="/launchpad"><Plus /><span>Launchpad</span></Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            {/* Portfolio */}
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
@@ -262,53 +244,76 @@ export function AppSidebar() {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-          </SidebarMenu>
-        </SidebarGroup>
+            {/* Collections */}
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={pathname === "/collections" || !!pathname?.startsWith("/collections/")} tooltip="Collections" onClick={closeSidebar}>
+                <Link href="/collections"><LayoutGrid /><span>Collections</span></Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
 
-        {/* ── Explore (Collections + Creators) ────────────── */}
-        <SidebarGroup>
-          <SidebarMenu>
+            {/* Creators */}
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={pathname === "/creators" || !!pathname?.startsWith("/creators/")} tooltip="Creators" onClick={closeSidebar}>
+                <Link href="/creators"><Users /><span>Creators</span></Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            {/* Activity */}
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={pathname === "/activities"} tooltip="Activity" onClick={closeSidebar}>
+                <Link href="/activities"><Activity /><span>Activity</span></Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            {/* Airdrop — featured item */}
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname === "/airdrop"}
+                tooltip="Creator's Airdrop"
+                onClick={closeSidebar}
+              >
+                <Link href="/airdrop" className="relative">
+                  <Gift className="text-yellow-500 shrink-0" />
+                  <span className="bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent font-semibold">
+                    Airdrop
+                  </span>
+                  <span className="ml-auto h-1.5 w-1.5 rounded-full bg-orange-400 animate-pulse shrink-0" />
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            {/* Explore — IP types collapsible, flush with nav above */}
             <CollapsibleNavItem
               label="Explore"
               icon={Compass}
               sub={EXPLORE_SUB}
               defaultOpen={onExplore}
-              tooltip="Explore"
+              tooltip="Explore by type"
               onClose={closeSidebar}
             />
+
           </SidebarMenu>
         </SidebarGroup>
-
-        {/* ── Docs portal ─────────────────────────────────── */}
-        <SidebarGroup>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Docs" onClick={closeSidebar}>
-                <a href="https://docs.medialane.io" target="_blank" rel="noopener noreferrer">
-                  <BookOpen />
-                  <span>Docs</span>
-                </a>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroup>
-
-        <SidebarSeparator />
 
         {/* ── Utilities ────────────────────────────────────── */}
         <SidebarGroup>
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="Search" onClick={closeSidebar}>
-                <Link href="/search">
-                  <Search />
-                  <span>Search</span>
-                </Link>
+                <Link href="/search"><Search /><span>Search</span></Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <CartItem />
             <NotificationsItem />
             <ThemeToggleItem />
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Docs" onClick={closeSidebar}>
+                <a href="https://docs.medialane.io" target="_blank" rel="noopener noreferrer">
+                  <BookOpen /><span>Docs</span>
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
 

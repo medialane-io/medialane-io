@@ -2,6 +2,7 @@
 
 import { HeroSlider } from "./hero-slider";
 import { AirdropSection } from "./airdrop-section";
+import { CreatorAirdropBanner } from "./creator-airdrop";
 import { TrendingCollections } from "./trending-collections";
 import { NewOnMarketplace } from "./new-on-marketplace";
 import { ActivityTicker } from "@/components/shared/activity-ticker";
@@ -21,6 +22,7 @@ export function HomePage() {
       <div className="container mx-auto px-4 sm:px-6 space-y-20 mt-16">
         <TrendingCollections />
         <NewOnMarketplace />
+        <CreatorAirdropBanner />
         <AirdropSection />
       </div>
     </div>
