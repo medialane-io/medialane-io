@@ -69,14 +69,9 @@ export function CreatorAirdropBanner() {
                 Join the Airdrop
                 <ArrowRight className="h-4 w-4" />
               </Link>
-              <Link
-                href="/br/mint"
-                className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold border border-orange-500/30 text-orange-300 hover:bg-orange-500/10 transition-colors"
-              >
-                Campanha Brasil →
-              </Link>
+              
               <p className="text-[10px] text-center text-muted-foreground/50">
-                Free · No purchase required
+                Free · Frictionless
               </p>
             </div>
 

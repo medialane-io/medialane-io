@@ -257,20 +257,11 @@ export default function AirdropPage() {
             >
               <div>
                 <p className="font-bold text-sm">Global campaign</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Creator&apos;s Airdrop — worldwide, in English</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Creator&apos;s Airdrop — worldwide</p>
               </div>
               <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
             </Link>
-            <Link
-              href="/br/mint"
-              className="group rounded-2xl border border-border/50 bg-card/50 hover:border-primary/40 hover:bg-muted/20 transition-all p-5 flex items-center justify-between gap-3"
-            >
-              <div>
-                <p className="font-bold text-sm">Campanha Brasil</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Airdrop de Prêmios — em português</p>
-              </div>
-              <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
-            </Link>
+            
           </div>
           <p className="text-[11px] text-center text-muted-foreground/50">
             Free participation · No purchase required · Fund distribution governed by Medialane DAO ·{" "}
