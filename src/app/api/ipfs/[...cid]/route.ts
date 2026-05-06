@@ -1,20 +1,16 @@
+import { auth } from "@clerk/nextjs/server";
 import { type NextRequest, NextResponse } from "next/server";
 
 const PINATA_JWT = process.env.PINATA_JWT;
-// Dedicated gateway takes precedence; falls back to Pinata public gateway.
-// Set PINATA_DEDICATED_GATEWAY in Vercel/Railway to your Pinata dedicated gateway URL.
-const GATEWAY =
-  process.env.PINATA_DEDICATED_GATEWAY ||
-  "https://gateway.pinata.cloud";
+const DEDICATED_GATEWAY = process.env.PINATA_DEDICATED_GATEWAY;
+const PUBLIC_GATEWAY = "https://gateway.pinata.cloud";
 
 /**
  * GET /api/ipfs/[...cid]
  *
- * Server-side IPFS proxy. Fetches content from Pinata using the server-only
- * PINATA_JWT, then streams it back to the browser. This avoids:
- *  - Pinata's Cross-Origin-Resource-Policy: same-origin header on free plans
- *  - Browser-visible rate limit (429) errors from the public gateway
- *  - The need for a dedicated Pinata gateway on the client
+ * Server-side IPFS proxy. For authenticated users, uses the dedicated
+ * Pinata gateway with JWT for better rate limits. For anonymous users,
+ * falls back to the public gateway without forwarding credentials.
  *
  * Supports paths: /api/ipfs/QmXxx  and  /api/ipfs/QmXxx/image.png
  */
@@ -31,12 +27,21 @@ export async function GET(
     return NextResponse.json({ error: "Invalid IPFS path" }, { status: 400 });
   }
 
-  const url = `${GATEWAY}/ipfs/${cidPath}`;
+  const { userId } = await auth();
+  const isAuthenticated = !!userId;
+
+  // Only attach PINATA_JWT and use the dedicated gateway for authenticated users.
+  // Anonymous users use the public gateway without credentials.
+  const gateway = isAuthenticated && DEDICATED_GATEWAY
+    ? DEDICATED_GATEWAY
+    : PUBLIC_GATEWAY;
 
   const headers: HeadersInit = {};
-  if (PINATA_JWT) {
+  if (isAuthenticated && PINATA_JWT) {
     headers["Authorization"] = `Bearer ${PINATA_JWT}`;
   }
+
+  const url = `${gateway}/ipfs/${cidPath}`;
 
   let upstream: Response;
   try {
@@ -59,9 +64,11 @@ export async function GET(
     status: 200,
     headers: {
       "Content-Type": contentType,
-      // Cache aggressively — IPFS content is immutable by CID
-      "Cache-Control": "public, max-age=31536000, immutable",
-      // Allow any origin to embed this content (images, etc.)
+      // IPFS content is immutable by CID. Authenticated responses must not be
+      // shared by CDN caches since they were fetched with service credentials.
+      "Cache-Control": isAuthenticated
+        ? "private, max-age=31536000, immutable"
+        : "public, max-age=31536000, immutable",
       "Access-Control-Allow-Origin": "*",
     },
   });
