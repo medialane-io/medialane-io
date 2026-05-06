@@ -376,3 +376,23 @@ layout.tsx (server)
 | `src/components/chipi/session-setup-dialog.tsx` | SNIP-9 session key registration |
 | `src/components/chipi/pin-dialog.tsx` | Generic PIN entry dialog |
 | `src/components/chipi/tx-status.tsx` | Transaction status display |
+
+---
+
+## Security Notes (as of 2026-05-06 audit)
+
+### ChipiPay Session Key Architecture (tracked — awaiting upstream fix)
+
+**Finding 3 (HIGH):** `signTypedData()` in `use-session-key.ts` decrypts the owner's Starknet private key into a plain JS string on the V8 heap. Any co-resident code (browser extension, XSS payload, malicious npm dependency) with access to the JS execution context can extract it. This is a structural constraint of ChipiPay's client-side AES decryption model.
+- **Mitigation we own:** Ensure no XSS entry points are introduced (no `dangerouslySetInnerHTML` with user content, audit new npm deps carefully).
+- **Full fix requires:** ChipiPay providing a signing API that never returns decrypted key material to the caller. Escalated.
+
+**Finding 4 (HIGH):** `SessionKeyData` (stored in `user.unsafeMetadata.chipiSession`) contains `encryptedPrivateKey`. Per Clerk docs, `unsafeMetadata` is client-writable and embedded in the session JWT. An attacker with a valid session token can read the encrypted session private key and attempt to brute-force the PIN.
+- **Mitigation we own:** Encourage passkey adoption (longer effective key); consider enforcing minimum 8-digit PINs.
+- **Full fix requires:** Moving session storage to `privateMetadata` (server-only). Requires ChipiPay SDK changes. Escalated.
+
+**Finding 14 (MEDIUM):** `approve` and `set_approval_for_all` were removed from the session key whitelist (2026-05-06). If marketplace listings break in production, these must be re-added and ChipiPay must be asked to enforce per-contract restrictions (not just per-selector). See `use-session-key.ts` comment for details.
+
+### NEXT_PUBLIC_MEDIALANE_API_KEY (accepted risk — read-only)
+
+`NEXT_PUBLIC_MEDIALANE_API_KEY` is intentionally public — it authorizes **read-only** operations on the Medialane backend API and is baked into the client bundle so SWR hooks in browser context can fetch marketplace/portfolio data directly. The backend must enforce that this key cannot create, update, or delete any data. If read endpoints ever expose sensitive PII, or if the key is granted write access, all client-side SDK calls must be proxied through server-side Next.js API routes using the server-only `MEDIALANE_API_KEY` variable (no `NEXT_PUBLIC_` prefix) — following the existing pattern in `api-server.ts`.
