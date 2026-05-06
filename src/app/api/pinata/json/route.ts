@@ -32,6 +32,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "JSON object body required" }, { status: 400 });
   }
 
+  // Only allow known NFT metadata fields — prevents arbitrary content pinning.
+  const ALLOWED_FIELDS = new Set([
+    "name", "description", "image", "external_link", "external_url", "attributes",
+  ]);
+  const unknownFields = Object.keys(body).filter((k) => !ALLOWED_FIELDS.has(k));
+  if (unknownFields.length > 0) {
+    return NextResponse.json(
+      { error: `Unexpected fields: ${unknownFields.join(", ")}` },
+      { status: 400 }
+    );
+  }
+
+  const MAX_BYTES = 50 * 1024; // 50 KB
+  if (JSON.stringify(body).length > MAX_BYTES) {
+    return NextResponse.json({ error: "Payload too large (max 50 KB)" }, { status: 413 });
+  }
+
   try {
     const pinata = getPinata();
     const blob = new Blob([JSON.stringify(body)], { type: "application/json" });
