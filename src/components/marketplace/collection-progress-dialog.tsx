@@ -16,6 +16,7 @@ import {
   ExternalLink,
   Sparkles,
   Layers,
+  Settings,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { ChipiTransactionStatus } from "@/hooks/use-chipi-transaction";
@@ -214,13 +215,25 @@ export function CollectionProgressDialog({
               )}
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-2 w-full pt-1">
-              <Button variant="outline" className="flex-1" onClick={onCreateAnother}>
-                {createAnotherLabel}
-              </Button>
-              <Button className="flex-1" onClick={() => router.push(mintHref ?? "/create/asset")}>
-                {mintHref ? "Mint tokens" : "Mint an asset"}
-              </Button>
+            <div className="flex flex-col gap-2 w-full pt-1">
+              {deployedAddress && (
+                <Button
+                  variant="outline"
+                  className="w-full border-primary/30 text-primary hover:bg-primary/5 hover:text-primary gap-2"
+                  onClick={() => router.push(`/portfolio/collections/${deployedAddress}/settings`)}
+                >
+                  <Settings className="h-4 w-4" />
+                  Set up your collection
+                </Button>
+              )}
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button variant="outline" className="flex-1" onClick={onCreateAnother}>
+                  {createAnotherLabel}
+                </Button>
+                <Button className="flex-1" onClick={() => router.push(mintHref ?? "/create/asset")}>
+                  {mintHref ? "Mint tokens" : "Mint an asset"}
+                </Button>
+              </div>
             </div>
           </div>
         )}

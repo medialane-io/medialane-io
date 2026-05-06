@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   User, Image as ImageIcon, Globe, Twitter, MessageCircle, Send,
   Lock, Unlock, Sparkles, ShieldCheck, CheckCircle2, ExternalLink,
-  Video, Music, Radio, FileText, Link2, Info,
+  Video, Music, Radio, FileText, Link2, Info, Gem,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -34,9 +34,9 @@ const CONTENT_TYPES = [
   { value: "LINK",     label: "Link",         icon: Link2,    hint: "Any URL" },
 ];
 
-function SectionCard({ children, className }: { children: React.ReactNode; className?: string }) {
+function SectionCard({ children, className, id }: { children: React.ReactNode; className?: string; id?: string }) {
   return (
-    <div className={cn("bg-card border border-border rounded-xl p-5 space-y-4", className)}>
+    <div id={id} className={cn("bg-card border border-border rounded-xl p-5 space-y-4", className)}>
       {children}
     </div>
   );
@@ -200,7 +200,7 @@ export default function CollectionSettingsPage({ params }: Props) {
       </div>
 
       {/* ── Identity ── */}
-      <SectionCard>
+      <SectionCard id="identity">
         <SectionHeader
           icon={User}
           title="Identity"
@@ -255,7 +255,7 @@ export default function CollectionSettingsPage({ params }: Props) {
       </SectionCard>
 
       {/* ── Media ── */}
-      <SectionCard>
+      <SectionCard id="media">
         <SectionHeader
           icon={ImageIcon}
           title="Media"
@@ -287,42 +287,11 @@ export default function CollectionSettingsPage({ params }: Props) {
         </div>
       </SectionCard>
 
-      {/* ── Links ── */}
-      <SectionCard>
-        <SectionHeader
-          icon={Globe}
-          title="Links"
-          description="Social and community links shown to collectors visiting your page."
-        />
-        <div className="space-y-4 pt-1 border-t border-border">
-          {([
-            { key: "websiteUrl" as const,  icon: Globe,          label: "Website",    placeholder: "https://myproject.xyz" },
-            { key: "twitterUrl" as const,  icon: Twitter,        label: "Twitter / X", placeholder: "https://twitter.com/…" },
-            { key: "discordUrl" as const,  icon: MessageCircle,  label: "Discord",    placeholder: "https://discord.gg/…" },
-            { key: "telegramUrl" as const, icon: Send,           label: "Telegram",   placeholder: "https://t.me/…" },
-          ] as const).map(({ key, icon: Icon, label, placeholder }) => (
-            <FieldRow key={key}>
-              <Label htmlFor={key} className="flex items-center gap-1.5">
-                <Icon className="h-3.5 w-3.5 text-muted-foreground" />
-                {label}
-              </Label>
-              <Input
-                id={key}
-                placeholder={placeholder}
-                value={form[key]}
-                onChange={set(key)}
-                disabled={isLoading}
-              />
-            </FieldRow>
-          ))}
-        </div>
-      </SectionCard>
-
-      {/* ── Token-Gated Content ── */}
-      <SectionCard className={form.gatedEnabled ? "border-emerald-500/30 bg-emerald-500/[0.03]" : ""}>
+      {/* ── Exclusive Content ── */}
+      <SectionCard id="exclusive" className={form.gatedEnabled ? "border-emerald-500/30 bg-emerald-500/[0.03]" : ""}>
         <SectionHeader
           icon={Lock}
-          title="Token-Gated Content"
+          title="Exclusive Content"
           description="Reward your holders with exclusive content — only wallets that own a token from this collection can access it."
           iconClass={form.gatedEnabled ? "text-emerald-500" : "text-muted-foreground"}
           bgClass={form.gatedEnabled ? "bg-emerald-500/15" : "bg-muted"}
@@ -346,8 +315,8 @@ export default function CollectionSettingsPage({ params }: Props) {
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {form.gatedEnabled
-                  ? `Holders see an "Exclusive" tab on your collection page.`
-                  : "Turn on to add a holder-only section to your collection page."}
+                  ? "Holders will see and unlock your exclusive content on the collection page."
+                  : "Add exclusive content that only token holders can access — video, audio, links, or documents."}
               </p>
             </div>
             <Switch
@@ -421,14 +390,14 @@ export default function CollectionSettingsPage({ params }: Props) {
                   </p>
                   <p className="text-sm font-semibold">{form.gatedContentTitle || "—"}</p>
                   <p className="text-xs text-muted-foreground">
-                    Verified holders can access this content by visiting the Exclusive tab on your collection page.
+                    Verified holders can access this content on your collection page.
                   </p>
                 </div>
               )}
             </div>
           )}
 
-          {/* What it means */}
+          {/* How it works */}
           {!form.gatedEnabled && (
             <div className="rounded-lg bg-muted/50 border border-border p-4 space-y-2">
               <p className="text-xs font-semibold text-foreground">How it works</p>
@@ -451,36 +420,59 @@ export default function CollectionSettingsPage({ params }: Props) {
         </div>
       </SectionCard>
 
-      {/* ── Collection Claim ── */}
-      {!collectionLoading && collection && !collection.claimedBy && (
-        <SectionCard className="border-amber-500/20 bg-amber-500/[0.03]">
-          <SectionHeader
-            icon={ShieldCheck}
-            title="Claim your collection"
-            description="Claim ownership to unlock profile editing, gated content, and verified creator status across Medialane."
-            iconClass="text-amber-500"
-            bgClass="bg-amber-500/15"
-            badge={
-              <Badge variant="outline" className="text-[10px] h-4 px-1.5 gap-1 text-amber-500 border-amber-500/30">
-                Unclaimed
-              </Badge>
-            }
-          />
-          <div className="pt-1 border-t border-border space-y-3">
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              You're editing this collection because you&apos;re the on-chain owner, but it hasn't been
-              officially claimed yet. Claiming ties your creator profile to this collection and unlocks
-              additional creator tools.
-            </p>
-            <Button variant="outline" size="sm" className="border-amber-500/30 text-amber-500 hover:bg-amber-500/10 hover:text-amber-500" asChild>
-              <Link href="/portfolio/collections">
-                <ShieldCheck className="h-3.5 w-3.5 mr-1.5" />
-                Claim in my portfolio
-              </Link>
-            </Button>
-          </div>
-        </SectionCard>
-      )}
+      {/* ── Links ── */}
+      <SectionCard id="links">
+        <SectionHeader
+          icon={Globe}
+          title="Links"
+          description="Social and community links shown to collectors visiting your page."
+        />
+        <div className="space-y-4 pt-1 border-t border-border">
+          {([
+            { key: "websiteUrl" as const,  icon: Globe,          label: "Website",    placeholder: "https://myproject.xyz" },
+            { key: "twitterUrl" as const,  icon: Twitter,        label: "Twitter / X", placeholder: "https://twitter.com/…" },
+            { key: "discordUrl" as const,  icon: MessageCircle,  label: "Discord",    placeholder: "https://discord.gg/…" },
+            { key: "telegramUrl" as const, icon: Send,           label: "Telegram",   placeholder: "https://t.me/…" },
+          ] as const).map(({ key, icon: Icon, label, placeholder }) => (
+            <FieldRow key={key}>
+              <Label htmlFor={key} className="flex items-center gap-1.5">
+                <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+                {label}
+              </Label>
+              <Input
+                id={key}
+                placeholder={placeholder}
+                value={form[key]}
+                onChange={set(key)}
+                disabled={isLoading}
+              />
+            </FieldRow>
+          ))}
+        </div>
+      </SectionCard>
+
+      {/* ── Claim your collection URL ── */}
+      <SectionCard className="border-primary/20 bg-primary/[0.02]">
+        <SectionHeader
+          icon={Gem}
+          title="Claim your collection URL"
+          description="Reserve a unique URL for your collection — medialane.io/collection/your-name"
+          iconClass="text-primary"
+          bgClass="bg-primary/15"
+          badge={
+            <Badge variant="outline" className="text-[10px] h-4 px-1.5 text-primary border-primary/30">
+              Coming soon
+            </Badge>
+          }
+        />
+        <div className="pt-1 border-t border-border">
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Claim a short, memorable URL for your collection — just like creator profiles have
+            custom handles. This feature is rolling out soon. You&apos;ll be notified when it&apos;s
+            available for your collection.
+          </p>
+        </div>
+      </SectionCard>
 
       {/* Save */}
       <div className="flex items-center gap-3 pt-2">
