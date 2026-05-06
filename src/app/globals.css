@@ -297,3 +297,8 @@ input[type="number"] {
   background-size: 300% 300%;
   animation: border-flow 5s ease infinite;
 }
+/* Wrapper that adds a 2px animated gradient border around a .card-base card */
+.card-exclusive-wrapper {
+  padding: 2px;
+  border-radius: calc(var(--radius) * 1.25 + 2px);
+}

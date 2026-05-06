@@ -18,6 +18,8 @@ import { ReportDialog } from "@/components/report-dialog";
 import { ShareButton } from "@/components/shared/share-button";
 import { TraitFilter } from "@/components/collection/trait-filter";
 import { SweepBar } from "@/components/collection/sweep-bar";
+import { GatedContentHero } from "@/components/collection/gated-content-hero";
+import { OwnerSetupPanel } from "@/components/collection/owner-setup-panel";
 import { HiddenContentBanner } from "@/components/hidden-content-banner";
 import Image from "next/image";
 import { ipfsToHttp, formatDisplayPrice, cn, checkIsOwner } from "@/lib/utils";
@@ -464,27 +466,6 @@ export default function CollectionPageClient() {
             </>
           )}
 
-          {/* Token-gated content stamp — visible to all, teases exclusive content */}
-          {profile?.hasGatedContent && (
-            <button
-              onClick={() => setActiveTab("exclusive")}
-              className="w-full flex items-center gap-3 rounded-xl border border-emerald-500/25 bg-emerald-500/5 hover:bg-emerald-500/10 px-4 py-3 transition-colors text-left group mt-1"
-            >
-              <div className="h-9 w-9 rounded-lg bg-emerald-500/15 flex items-center justify-center shrink-0">
-                <Lock className="h-4 w-4 text-emerald-500" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[10px] font-semibold text-emerald-500 uppercase tracking-widest leading-none mb-1">
-                  Holder exclusive
-                </p>
-                <p className="text-sm font-semibold text-foreground leading-tight truncate">
-                  {profile.gatedContentTitle ?? "Exclusive content for holders"}
-                </p>
-                <p className="text-xs text-muted-foreground mt-0.5">Own a token to unlock</p>
-              </div>
-              <Unlock className="h-4 w-4 text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-            </button>
-          )}
 
           {/* Service action slot (POP claim, Drop mint, etc.) */}
           <CollectionServiceAction
@@ -518,6 +499,24 @@ export default function CollectionPageClient() {
             onOpenChange={setReportOpen}
           />
         </div>
+      )}
+
+      {/* ── Gated content hero — visible to all visitors ── */}
+      {!colLoading && collection && profile && (
+        <GatedContentHero
+          profile={profile}
+          gatedState={gatedState}
+          onViewExclusive={() => setActiveTab("exclusive")}
+        />
+      )}
+
+      {/* ── Owner setup panel — visible only to collection owner ── */}
+      {!colLoading && collection && walletAddress &&
+        collection.owner?.toLowerCase() === walletAddress.toLowerCase() && (
+        <OwnerSetupPanel
+          contract={contract}
+          profile={profile ?? null}
+        />
       )}
 
       {/* ── Tabs ── */}

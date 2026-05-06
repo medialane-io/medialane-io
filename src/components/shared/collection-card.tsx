@@ -38,76 +38,84 @@ export function CollectionCard({ collection, settingsHref }: CollectionCardProps
   const showImage = imageUrl && !imgError;
   const initial = (collection.name ?? collection.contractAddress).charAt(0).toUpperCase();
   const floor = parseFloorPrice(collection.floorPrice);
+  const hasExclusiveContent = !!(collection as any).profile?.hasGatedContent;
 
   return (
-    <MotionCard className="card-base group">
-      {settingsHref && (
-        <Link
-          href={settingsHref}
-          onClick={(e) => e.stopPropagation()}
-          className="absolute top-2 right-2 z-10 h-7 w-7 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white/70 hover:text-white hover:bg-black/60 transition-colors"
-          aria-label="Collection settings"
-        >
-          <Settings2 className="h-3.5 w-3.5" />
-        </Link>
-      )}
+    <div className={cn(hasExclusiveContent && "card-exclusive-wrapper btn-border-animated")}>
+      <MotionCard className="card-base group">
+        {settingsHref && (
+          <Link
+            href={settingsHref}
+            onClick={(e) => e.stopPropagation()}
+            className="absolute top-2 right-2 z-10 h-7 w-7 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white/70 hover:text-white hover:bg-black/60 transition-colors"
+            aria-label="Collection settings"
+          >
+            <Settings2 className="h-3.5 w-3.5" />
+          </Link>
+        )}
 
-      <Link href={`/collections/${collection.contractAddress}`} className="block relative h-full">
-        {/* Image */}
-        <div className="relative aspect-[3/4] w-full overflow-hidden bg-muted">
-          {showImage ? (
-            <Image
-              src={imageUrl}
-              alt={collection.name ?? "Collection"}
-              fill
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
-              onError={() => setImgError(true)}
-              unoptimized
-            />
-          ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-brand-purple/30 via-brand-blue/20 to-brand-navy/40 flex items-center justify-center">
-              <span className="text-8xl font-black text-white/10 select-none tracking-tighter">
-                {initial}
-              </span>
-            </div>
-          )}
-
-          {/* Bottom overlay */}
-          <div className="absolute bottom-0 left-0 right-0 px-3 pb-3 flex flex-col gap-1.5 items-start">
-            {/* Name */}
-            {!collection.name && collection.metadataStatus === "PENDING" ? (
-              <span className="flex items-center gap-1 text-[10px] text-white/60 backdrop-blur-md bg-black/30 rounded-full px-2 py-0.5">
-                <Loader2 className="h-2.5 w-2.5 animate-spin" />
-                Indexing…
-              </span>
+        <Link href={`/collections/${collection.contractAddress}`} className="block relative h-full">
+          {/* Image */}
+          <div className="relative aspect-[3/4] w-full overflow-hidden bg-muted">
+            {showImage ? (
+              <Image
+                src={imageUrl}
+                alt={collection.name ?? "Collection"}
+                fill
+                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                onError={() => setImgError(true)}
+                unoptimized
+              />
             ) : (
-              <p
-                className="font-bold text-sm text-white leading-tight backdrop-blur-md bg-black/30 rounded-lg px-2.5 py-1 max-w-full truncate"
-                style={{ textShadow: "0 1px 6px rgba(0,0,0,0.5)" }}
-              >
-                {collection.name ?? "Unnamed Collection"}
-              </p>
+              <div className="absolute inset-0 bg-gradient-to-br from-brand-purple/30 via-brand-blue/20 to-brand-navy/40 flex items-center justify-center">
+                <span className="text-8xl font-black text-white/10 select-none tracking-tighter">
+                  {initial}
+                </span>
+              </div>
             )}
 
-            {/* Stats row */}
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {collection.totalSupply != null && (
-                <span className="text-[10px] font-medium text-white/80 backdrop-blur-md bg-black/30 rounded-full px-2 py-0.5">
-                  {collection.totalSupply.toLocaleString()} items
+            {/* Bottom overlay */}
+            <div className="absolute bottom-0 left-0 right-0 px-3 pb-3 flex flex-col gap-1.5 items-start">
+              {/* Name */}
+              {!collection.name && collection.metadataStatus === "PENDING" ? (
+                <span className="flex items-center gap-1 text-[10px] text-white/60 backdrop-blur-md bg-black/30 rounded-full px-2 py-0.5">
+                  <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                  Indexing…
                 </span>
+              ) : (
+                <p
+                  className="font-bold text-sm text-white leading-tight backdrop-blur-md bg-black/30 rounded-lg px-2.5 py-1 max-w-full truncate"
+                  style={{ textShadow: "0 1px 6px rgba(0,0,0,0.5)" }}
+                >
+                  {collection.name ?? "Unnamed Collection"}
+                </p>
               )}
-              {floor && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-white/90 backdrop-blur-md bg-black/30 rounded-full px-2 py-0.5">
-                  Floor
-                  <CurrencyIcon symbol={floor.symbol} size={10} />
-                  {floor.amount}
-                </span>
-              )}
+
+              {/* Stats row */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {collection.totalSupply != null && (
+                  <span className="text-[10px] font-medium text-white/80 backdrop-blur-md bg-black/30 rounded-full px-2 py-0.5">
+                    {collection.totalSupply.toLocaleString()} items
+                  </span>
+                )}
+                {floor && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-white/90 backdrop-blur-md bg-black/30 rounded-full px-2 py-0.5">
+                    Floor
+                    <CurrencyIcon symbol={floor.symbol} size={10} />
+                    {floor.amount}
+                  </span>
+                )}
+                {hasExclusiveContent && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-white backdrop-blur-md bg-black/50 rounded-full px-2 py-0.5">
+                    ✦ Exclusive
+                  </span>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      </Link>
-    </MotionCard>
+        </Link>
+      </MotionCard>
+    </div>
   );
 }
 

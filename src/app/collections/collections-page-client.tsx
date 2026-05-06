@@ -6,7 +6,7 @@ import { usePlatformStats } from "@/hooks/use-stats";
 import { CollectionCard, CollectionCardSkeleton } from "@/components/shared/collection-card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Layers, Loader2, BadgeCheck, Eye, SlidersHorizontal, Award } from "lucide-react";
+import { Layers, Loader2, BadgeCheck, Eye, SlidersHorizontal, Award, Sparkles } from "lucide-react";
 import { HelpIcon } from "@/components/ui/help-icon";
 import { cn } from "@/lib/utils";
 import type { ApiCollection, CollectionSource } from "@medialane/sdk";
@@ -31,6 +31,7 @@ export default function CollectionsPageClient() {
   const [sort, setSort]           = useState<CollectionSort>("recent");
   const [featured, setFeatured]   = useState(false);
   const [hideEmpty, setHideEmpty] = useState(true);
+  const [exclusive, setExclusive] = useState(false);
   const [source, setSource]       = useState<CollectionSource | undefined>(undefined);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [page, setPage]           = useState(1);
@@ -69,12 +70,17 @@ export default function CollectionsPageClient() {
   const hasMore = meta?.total != null ? allCollections.length < meta.total : false;
   const isInitialLoading = isLoading && allCollections.length === 0;
 
-  const activeFilters = [sort !== "recent", featured, !hideEmpty].filter(Boolean).length;
+  const activeFilters = [sort !== "recent", featured, !hideEmpty, exclusive].filter(Boolean).length;
+
+  const displayCollections = exclusive
+    ? allCollections.filter((c) => !!(c as any).profile?.hasGatedContent)
+    : allCollections;
 
   const resetAll = () => {
     setSort("recent");
     setFeatured(false);
     setHideEmpty(true);
+    setExclusive(false);
   };
 
   const handleSourceChange = (val: CollectionSource | undefined) => {
@@ -158,6 +164,13 @@ export default function CollectionsPageClient() {
           <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border border-primary/40 bg-primary/10 text-primary">
             Show empty
             <button onClick={() => setHideEmpty(true)} className="ml-0.5 hover:text-primary/60">×</button>
+          </span>
+        )}
+        {exclusive && (
+          <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border border-primary/40 bg-primary/10 text-primary">
+            <Sparkles className="h-3 w-3" />
+            Exclusive
+            <button onClick={() => setExclusive(false)} className="ml-0.5 hover:text-primary/60">×</button>
           </span>
         )}
       </div>
@@ -254,6 +267,19 @@ export default function CollectionsPageClient() {
                   Show empty collections
                   <HelpIcon content="Include collections with no minted assets yet — hidden by default to keep the feed clean" side="right" />
                 </button>
+                <button
+                  onClick={() => setExclusive((v) => !v)}
+                  className={cn(
+                    "flex items-center gap-2 text-sm px-3 py-2 rounded-lg border transition-colors text-left",
+                    exclusive
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border text-muted-foreground hover:border-primary/50"
+                  )}
+                >
+                  <Sparkles className="h-4 w-4 shrink-0" />
+                  Exclusive content only
+                  <HelpIcon content="Show only collections with holder-exclusive content" side="right" />
+                </button>
               </div>
             </div>
 
@@ -293,8 +319,15 @@ export default function CollectionsPageClient() {
         </div>
       ) : (
         <div className="space-y-6">
+          {exclusive && displayCollections.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
+              <Sparkles className="h-10 w-10 text-muted-foreground/30" />
+              <p className="text-base font-semibold text-muted-foreground">No exclusive collections in this batch</p>
+              <p className="text-sm text-muted-foreground/70 max-w-xs">Load more collections below, then the filter will catch them.</p>
+            </div>
+          )}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {allCollections.map((col) => (
+            {displayCollections.map((col) => (
               <CollectionCard key={col.contractAddress} collection={col} />
             ))}
           </div>
