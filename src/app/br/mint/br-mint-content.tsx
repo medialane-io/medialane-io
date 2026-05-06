@@ -499,6 +499,12 @@ export function BrMintContent() {
     setMintStep("ready");
   };
 
+  const handleResetMintGate = useCallback(() => {
+    if (storageKey) localStorage.removeItem(storageKey);
+    setCompletedTxHash(null);
+    setMintStep("ready");
+  }, [storageKey]);
+
   const handleWalletCreated = useCallback(() => {
     setWalletJustCreated(true);
     window.location.reload();
@@ -770,6 +776,12 @@ export function BrMintContent() {
                           <Link href="/marketplace">Explorar o app</Link>
                         </Button>
                       </div>
+                      <button
+                        className="text-xs text-muted-foreground underline underline-offset-2"
+                        onClick={handleResetMintGate}
+                      >
+                        Não recebeu seu token? Tente novamente
+                      </button>
                     </div>
                   )}
 

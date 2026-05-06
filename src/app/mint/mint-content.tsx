@@ -500,6 +500,12 @@ export function MintContent() {
     setMintStep("ready");
   };
 
+  const handleResetMintGate = useCallback(() => {
+    if (storageKey) localStorage.removeItem(storageKey);
+    setCompletedTxHash(null);
+    setMintStep("ready");
+  }, [storageKey]);
+
   const handleWalletCreated = useCallback(() => {
     setWalletJustCreated(true);
     window.location.reload();
@@ -771,6 +777,12 @@ export function MintContent() {
                           <Link href="/marketplace">Explore the app</Link>
                         </Button>
                       </div>
+                      <button
+                        className="text-xs text-muted-foreground underline underline-offset-2"
+                        onClick={handleResetMintGate}
+                      >
+                        Didn&apos;t receive your token? Try again
+                      </button>
                     </div>
                   )}
 

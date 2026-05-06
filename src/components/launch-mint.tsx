@@ -181,6 +181,12 @@ export function LaunchMint() {
     setMintStep("ready");
   };
 
+  const handleResetMintGate = useCallback(() => {
+    if (userId) localStorage.removeItem(`ml_genesis_${userId}`);
+    setCompletedTxHash(null);
+    setMintStep("ready");
+  }, [userId]);
+
   // ── Render ────────────────────────────────────────────────────────────────
 
   const isSuccess = mintStep === "success";
@@ -462,6 +468,12 @@ export function LaunchMint() {
                     <div className="space-y-2">
                       <LaunchCountdown />
                     </div>
+                    <button
+                      className="text-xs text-muted-foreground underline underline-offset-2"
+                      onClick={handleResetMintGate}
+                    >
+                      Didn&apos;t receive your NFT? Try again
+                    </button>
                   </div>
                 )}
 
