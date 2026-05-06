@@ -40,7 +40,19 @@ async function handler(
   }
 
   const url = new URL(req.url);
-  const targetUrl = `${BACKEND_URL}/admin/${path.join("/")}${url.search}`;
+
+  // Rebuild query string — reject any parameter key starting with '$' (NoSQL injection)
+  // or containing template expression characters, then forward the sanitized string.
+  const safeParams = new URLSearchParams();
+  url.searchParams.forEach((value, key) => {
+    if (/^\$/.test(key) || /[{}]/.test(key)) {
+      console.warn(`[admin-proxy] rejected query param: ${key}`);
+      return;
+    }
+    safeParams.append(key, value);
+  });
+  const safeSearch = safeParams.toString() ? `?${safeParams.toString()}` : "";
+  const targetUrl = `${BACKEND_URL}/admin/${path.join("/")}${safeSearch}`;
 
   const headers: Record<string, string> = {
     "x-api-key": ADMIN_API_KEY,
