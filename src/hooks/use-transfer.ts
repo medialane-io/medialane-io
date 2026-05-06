@@ -17,6 +17,13 @@ export interface TransferInput {
   tokenStandard?: "ERC721" | "ERC1155" | "UNKNOWN";
 }
 
+/** Returns true if addr is a valid non-zero Starknet address (0x + 1–64 hex chars). */
+function isValidStarknetAddress(addr: string): boolean {
+  if (!/^0x[0-9a-fA-F]{1,64}$/.test(addr)) return false;
+  const stripped = addr.replace(/^0x0*/, "");
+  return stripped.length > 0; // reject 0x0
+}
+
 /**
  * Encode a token ID (decimal or hex string) into two felt252 values
  * for Starknet u256 calldata: [low_128_bits, high_128_bits].
@@ -64,6 +71,12 @@ export function useTransfer() {
 
       try {
         if (!walletAddress) throw new Error("Wallet not ready. Please wait a moment.");
+        if (!isValidStarknetAddress(input.toAddress)) {
+          throw new Error("Invalid recipient address.");
+        }
+        if (!isValidStarknetAddress(input.contractAddress)) {
+          throw new Error("Invalid token contract address.");
+        }
         const [tokenIdLow, tokenIdHigh] = encodeTokenId(input.tokenId);
 
         // useChipiTransaction resolves its own wallet internally via useChipiWallet.
