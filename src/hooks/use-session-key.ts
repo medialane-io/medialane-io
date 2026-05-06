@@ -139,12 +139,9 @@ export function useSessionKey() {
               hash.getSelectorFromName("register_order"),
               hash.getSelectorFromName("fulfill_order"),
               hash.getSelectorFromName("cancel_order"),
-              // ERC-20 / ERC-721 token operations
-              hash.getSelectorFromName("approve"),
+              // ERC-721 / ERC-1155 transfers
               hash.getSelectorFromName("transfer"),
               hash.getSelectorFromName("transfer_from"),
-              // ERC-1155 operator approval (required for ERC-1155 marketplace listings)
-              hash.getSelectorFromName("set_approval_for_all"),
               // Minting
               hash.getSelectorFromName("mint_item"),
               hash.getSelectorFromName("claim"),
@@ -157,6 +154,12 @@ export function useSessionKey() {
               hash.getSelectorFromName("withdraw_payments"),
               // Comments
               hash.getSelectorFromName("add_comment"),
+              // NOTE: `approve` and `set_approval_for_all` intentionally removed.
+              // These were whitelisted by selector only (not by contract), meaning a
+              // stolen session key could approve arbitrary spenders. ChipiPay bundles
+              // approvals into its gasless relay — session keys should not need them.
+              // If marketplace listings break, re-add and escalate to ChipiPay for
+              // contract-level (selector + contract address) restriction.
             ],
           },
         },
