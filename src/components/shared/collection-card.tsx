@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2, Settings2 } from "lucide-react";
 import { MotionCard } from "@/components/ui/motion-primitives";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
-import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
+import { ipfsToHttp, formatDisplayPrice, cn } from "@/lib/utils";
 import type { ApiCollection } from "@medialane/sdk";
 
 /**
