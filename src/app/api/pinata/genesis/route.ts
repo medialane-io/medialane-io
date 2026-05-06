@@ -31,12 +31,13 @@ export async function POST(req: NextRequest) {
   const authHeader = req.headers.get("authorization") ?? "";
   const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
 
-  // Use constant-time comparison to prevent timing attacks
-  const secretBuf = Buffer.from(adminSecret);
-  const tokenBuf = Buffer.from(token);
-  const isAuthorized =
-    secretBuf.length === tokenBuf.length &&
-    crypto.timingSafeEqual(secretBuf, tokenBuf);
+  // HMAC both sides to a fixed 32-byte digest before comparing.
+  // This eliminates length leakage: timingSafeEqual always runs regardless
+  // of input length, so the short-circuit &&-length-check is avoided.
+  const hmacKey = "genesis-auth";
+  const expected = crypto.createHmac("sha256", hmacKey).update(adminSecret).digest();
+  const actual   = crypto.createHmac("sha256", hmacKey).update(token).digest();
+  const isAuthorized = crypto.timingSafeEqual(expected, actual);
 
   if (!isAuthorized) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
