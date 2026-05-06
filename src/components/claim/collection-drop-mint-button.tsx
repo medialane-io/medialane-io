@@ -17,10 +17,19 @@ interface CollectionDropMintButtonProps {
   conditions?: DropConditions;
 }
 
+// 10,000 tokens at 18 decimals — any drop priced above this is almost certainly
+// a tampered API response. Prevents unlimited ERC-20 approval from a bad backend.
+const MAX_APPROVAL_AMOUNT = 10_000n * 10n ** 18n;
+
 function getPriceBigInt(conditions?: DropConditions): bigint {
   if (!conditions || conditions.price === "0" || conditions.paymentToken === "0x0") return 0n;
   try {
-    return BigInt(conditions.price);
+    const price = BigInt(conditions.price);
+    if (price > MAX_APPROVAL_AMOUNT) {
+      console.error("[drop-mint] price exceeds sanity cap — possible API tampering", conditions.price);
+      return 0n;
+    }
+    return price;
   } catch {
     return 0n;
   }
@@ -77,6 +86,14 @@ export function CollectionDropMintButton({
       const calls: Array<{ contractAddress: string; entrypoint: string; calldata: string[] }> = [];
 
       if (isPaid && conditions && conditions.paymentToken !== "0x0") {
+        // Verify the payment token is a known listable token before approving
+        const knownToken = getListableTokens().find(
+          (t) => t.address.toLowerCase() === conditions.paymentToken.toLowerCase()
+        );
+        if (!knownToken) {
+          toast.error("Unknown payment token — cannot proceed");
+          return;
+        }
         // ERC-20 approve(collectionAddress, price as u256)
         const [priceLow, priceHigh] = u256CallData(price);
         calls.push({
