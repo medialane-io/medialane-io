@@ -32,8 +32,35 @@ const MAX_REDIRECTS = 5;
 function isPrivateHost(hostname: string): boolean {
   const h = hostname.toLowerCase().replace(/^\[|\]$/g, "");
 
-  // Loopback
+  // Loopback — standard dotted-decimal
   if (h === "localhost" || h === "127.0.0.1" || h === "0.0.0.0") return true;
+
+  // Decimal encoding: 2130706433 = 127.0.0.1, etc.
+  if (/^\d+$/.test(h)) {
+    const n = parseInt(h, 10);
+    if (
+      n === 2130706433 || // 127.0.0.1
+      n === 0 ||          // 0.0.0.0
+      (n >= 0xac100000 && n <= 0xac1fffff) || // 172.16.0.0/12
+      (n >= 0xc0a80000 && n <= 0xc0a8ffff) || // 192.168.0.0/16
+      (n >= 0x0a000000 && n <= 0x0affffff) || // 10.0.0.0/8
+      (n >= 0xa9fe0000 && n <= 0xa9feffff)    // 169.254.0.0/16 (IMDS)
+    ) return true;
+  }
+  // Hex encoding: 0x7f000001 = 127.0.0.1
+  if (/^0x[0-9a-f]+$/i.test(h)) {
+    const n = parseInt(h, 16);
+    if (
+      n === 0x7f000001 ||
+      n === 0 ||
+      (n >= 0xac100000 && n <= 0xac1fffff) ||
+      (n >= 0xc0a80000 && n <= 0xc0a8ffff) ||
+      (n >= 0x0a000000 && n <= 0x0affffff) ||
+      (n >= 0xa9fe0000 && n <= 0xa9feffff)
+    ) return true;
+  }
+  // Octal encoding: 0177.0.0.1
+  if (/^0\d+\.\d+\.\d+\.\d+$/.test(h)) return true;
 
   // IPv6 loopback — all spellings
   if (h === "::1" || /^0*:0*:0*:0*:0*:0*:0*:0*1$/.test(h)) return true;
@@ -46,15 +73,17 @@ function isPrivateHost(hostname: string): boolean {
   if (/^10\./.test(h)) return true;
   if (/^172\.(1[6-9]|2\d|3[01])\./.test(h)) return true;
   if (/^192\.168\./.test(h)) return true;
-  if (/^169\.254\./.test(h)) return true; // link-local / AWS metadata
+  if (/^169\.254\./.test(h)) return true; // link-local / AWS IMDS
   if (/^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./.test(h)) return true; // CGNAT 100.64/10
 
   // IPv6 link-local, ULA (fc00::/7 covers fc and fd prefixes)
   if (/^fe80:/i.test(h)) return true;
   if (/^f[cd][0-9a-f]{2}:/i.test(h)) return true;
 
-  // .local mDNS hostnames
+  // .local mDNS + known cloud IMDS hostnames
   if (h.endsWith(".local")) return true;
+  if (h === "metadata.google.internal") return true;
+  if (h === "metadata.azure.internal") return true;
 
   return false;
 }
