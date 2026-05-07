@@ -508,17 +508,17 @@ export function BrMintContent() {
               <div className="space-y-6">
                 <div className="inline-flex items-center gap-2 rounded-full border border-yellow-500/30 bg-yellow-500/5 px-3 py-1">
                   <Sparkles className="h-3.5 w-3.5 text-yellow-500" />
-                  <span className="text-xs font-semibold text-yellow-600 dark:text-yellow-400">Airdrop de Criadores — Campanha Brasil</span>
+                  <span className="text-xs font-semibold text-yellow-600 dark:text-yellow-400">Medialane Brasil</span>
                 </div>
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.05]">
-                  Participe do{" "}
+                  Participe da{" "}
                   <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-                    Airdrop de Criadores
+                    Campanha de Lançamento
                   </span>
                 </h1>
                 <GenesisMint />
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  A Medialane é uma plataforma para criadores — publique seu trabalho, construa uma audiência e ganhe. Quem participar durante o lançamento recebe uma fatia do fundo de criadores, completamente grátis.
+                  Medialane é um app para criadores publicar, compartilhar e monetizar conteúdo. Participação grátis.
                 </p>
                 <div className="flex items-center gap-4">
                   {["Grátis", "Sem cartão", "Imediato"].map((t) => (
@@ -538,17 +538,16 @@ export function BrMintContent() {
             </div>
           </section>
 
-          {/* ── O que você recebe ── */}
+          
           <section className="py-10 border-t border-border/30 space-y-6">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Benefícios</p>
-              <h2 className="text-2xl sm:text-3xl font-black">O que você recebe</h2>
+              <h2 className="text-2xl sm:text-3xl font-black">Fundo para Criadores</h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[
-                { icon: FileCheck, color: "text-blue-400",   bg: "bg-blue-500/10",   title: "Registro permanente", desc: "Um comprovante vinculado à sua conta para sempre. Não pode ser retirado." },
-                { icon: Coins,     color: "text-yellow-500", bg: "bg-yellow-500/10", title: "Fatia do fundo de criadores", desc: "Quando as metas forem atingidas, a receita é distribuída para todos os participantes." },
-                { icon: Users,     color: "text-purple-400", bg: "bg-purple-500/10", title: "Acesso completo", desc: "Publique, venda, colecione e colabore desde o primeiro dia." },
+                { icon: FileCheck, color: "text-blue-400",   bg: "bg-blue-500/10",   title: "Participe sem cadastro", desc: "Acesse grátis com sua conta Google" },
+                { icon: Coins,     color: "text-yellow-500", bg: "bg-yellow-500/10", title: "Fundo de criadores", desc: "Distribuição de fundos para todos os participantes." },
+                { icon: Users,     color: "text-purple-400", bg: "bg-purple-500/10", title: "Aumente suas chances", desc: "Crie, compartilhe e colecione!." },
               ].map(({ icon: Icon, color, bg, title, desc }) => (
                 <div key={title} className="flex flex-col gap-4 p-5 rounded-2xl border border-border/40 bg-card/30 hover:bg-card/50 transition-colors">
                   <div className={`h-11 w-11 rounded-xl ${bg} flex items-center justify-center shrink-0`}>
@@ -567,9 +566,9 @@ export function BrMintContent() {
           <section className="py-10 border-t border-border/30 space-y-6">
             <div className="max-w-2xl">
               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Como funciona</p>
-              <h2 className="text-2xl sm:text-3xl font-black">Cadastre-se. Só isso.</h2>
+              <h2 className="text-2xl sm:text-3xl font-black">Participe em poucos segundos.</h2>
               <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-                Criar uma conta é tudo o que você precisa para participar. Faça mais — ganhe mais.
+                Acesse com sua conta Google é tudo o que você precisa para participar.
               </p>
             </div>
 
@@ -581,11 +580,11 @@ export function BrMintContent() {
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-black text-lg">Cadastre-se</p>
+                    <p className="font-black text-lg">Acesso com Google</p>
                     <span className="text-xs font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 px-2.5 py-0.5 rounded-full">Mínimo — você está dentro</span>
                   </div>
                   <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-                    Crie sua conta e reivindique seu registro. Esse é o único requisito para participar do airdrop.
+                    Faça login com sua conta Google e defina uma senha ou passkey para proteger sua conta.
                   </p>
                 </div>
               </div>
@@ -630,7 +629,7 @@ export function BrMintContent() {
               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Distribuição</p>
               <h2 className="text-2xl sm:text-3xl font-black">Fases do fundo de criadores</h2>
               <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-                O fundo distribui a receita da plataforma para os participantes. As distribuições são baseadas em metas e sujeitas a votação da comunidade.
+                O fundo distribui a receita da plataforma para os participantes. As distribuições são baseadas em metas da comunidade.
               </p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -640,7 +639,7 @@ export function BrMintContent() {
                   <span className="text-xs font-semibold bg-blue-500/10 text-blue-400 px-2.5 py-1 rounded-full">5.000 membros</span>
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Primeira distribuição do fundo. Todos os participantes elegíveis recebem uma parte proporcional com base em sua atividade.
+                  Primeira distribuição. Todos os participantes elegíveis recebem uma parte proporcional com base em sua atividade.
                 </p>
               </div>
               <div className="rounded-2xl border border-purple-500/30 bg-purple-500/5 p-5 space-y-3">
@@ -692,9 +691,9 @@ export function BrMintContent() {
                   <h2 className="text-2xl font-black">Aviso legal</h2>
                 </div>
                 <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
-                  <p>A Medialane é uma plataforma de publicação e recompensas para criadores. Esta campanha não é um produto financeiro, esquema de investimento, loteria ou serviço de apostas.</p>
-                  <p>A participação não garante nenhum retorno financeiro. As distribuições, caso ocorram, são feitas a critério da comunidade e podem tomar a forma de créditos, ativos digitais ou outros recursos.</p>
-                  <p>O registro de participação é um comprovante digital de associação à comunidade Medialane. Não possui valor monetário intrínseco e não é um instrumento financeiro.</p>
+                  <p>A Medialane é uma plataforma para criação e monetização de conteúdo autoral e propriedade intelectual feita para criadores. Esta campanha não é um produto financeiro, esquema de investimento, loteria ou serviço de apostas.</p>
+                  <p>A participação não garante nenhum retorno financeiro. As distribuições serão realizadas a critério da comunidade e podem tomar a forma de créditos, ativos digitais ou outros recursos.</p>
+                  <p>O registro de participação é um comprovante digital de participação no lançamento Medialane. Não possui valor monetário intrínseco e não é um instrumento financeiro.</p>
                   <p>
                     Ao participar, você concorda com o{" "}
                     <Link href="/campaign-terms" className="underline underline-offset-2 hover:text-foreground transition-colors">Regulamento da Campanha</Link>
@@ -711,13 +710,13 @@ export function BrMintContent() {
             <section className="py-10 border-t border-border/30">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-black">Pronto para participar?</h2>
-                  <p className="text-sm text-muted-foreground mt-0.5">Grátis, imediato, sem cartão.</p>
+                  <h2 className="text-xl font-black">Participe grátis</h2>
+                  <p className="text-sm text-muted-foreground mt-0.5">Acesse com sua conta Google.</p>
                 </div>
                 <SignUpButton mode="modal" forceRedirectUrl="/br/mint">
                   <Button size="lg" className="gap-2 shrink-0 font-bold">
                     <Sparkles className="h-4 w-4" />
-                    Garantir meu lugar
+                    Garantir meu lugar!
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </SignUpButton>
