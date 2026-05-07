@@ -16,6 +16,7 @@ import {
   XCircle,
   Trophy,
   Camera,
+  ImageIcon,
   ShieldCheck,
   KeyRound,
   AlertCircle,
@@ -33,7 +34,34 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MedialaneLogo } from "@/components/brand/medialane-logo";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
-import { EXPLORER_URL, BR_MINT_CONTRACT, BR_NFT_URI } from "@/lib/constants";
+import { EXPLORER_URL, BR_MINT_CONTRACT, BR_NFT_URI, BR_NFT_IMAGE_URL } from "@/lib/constants";
+
+// ─── Imagem do NFT ────────────────────────────────────────────────────────────
+
+function EventCard() {
+  const [errored, setErrored] = useState(false);
+  const src = BR_NFT_IMAGE_URL || "/genesis.jpg";
+  return (
+    <div className="relative rounded-2xl overflow-hidden border border-border/40 shadow-xl shadow-black/10 aspect-square w-full">
+      {errored ? (
+        <div className="w-full h-full bg-muted/30 flex flex-col items-center justify-center gap-3">
+          <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+            <ImageIcon className="h-7 w-7 text-primary/40" />
+          </div>
+          <p className="text-xs text-muted-foreground font-medium">Medialane Brasil 2026</p>
+        </div>
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={src}
+          alt="Medialane Airdrop de Prêmios"
+          className="w-full h-full object-cover"
+          onError={() => setErrored(true)}
+        />
+      )}
+    </div>
+  );
+}
 import { completeOnboarding } from "@/app/onboarding/_actions";
 
 // ─── Configuração de conta ────────────────────────────────────────────────────
@@ -470,7 +498,7 @@ export function BrMintContent() {
       <div className="flex-1 max-w-lg mx-auto w-full px-5">
 
         {/* ── Hero ── */}
-        <section className="pt-10 pb-8 space-y-3">
+        <section className="pt-10 pb-8 space-y-5">
           <div className="inline-flex items-center gap-2 rounded-full border border-yellow-500/30 bg-yellow-500/5 px-3 py-1">
             <Sparkles className="h-3.5 w-3.5 text-yellow-500" />
             <span className="text-xs font-semibold text-yellow-600 dark:text-yellow-400">Airdrop de Criadores — Campanha Brasil</span>
@@ -484,10 +512,11 @@ export function BrMintContent() {
           <p className="text-base text-muted-foreground leading-relaxed">
             A Medialane é uma plataforma para criadores — publique seu trabalho, construa uma audiência e ganhe. Quem participar durante o lançamento recebe uma fatia do fundo de criadores, completamente grátis.
           </p>
-        </section>
 
-        {/* ── Componente de participação ── */}
-        <section className="pb-8">
+          {/* Imagem do NFT */}
+          <EventCard />
+
+          {/* Componente de participação */}
           <GenesisMint />
         </section>
 
@@ -681,7 +710,8 @@ export function BrMintContent() {
 
         {/* ── Repetir componente de participação ── */}
         {isLoaded && !isSignedIn && (
-          <section className="py-8 border-t border-border/30">
+          <section className="py-8 border-t border-border/30 space-y-4">
+            <p className="text-sm font-semibold text-center">Pronto para participar?</p>
             <GenesisMint />
           </section>
         )}
