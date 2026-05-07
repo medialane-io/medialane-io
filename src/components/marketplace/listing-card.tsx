@@ -5,18 +5,23 @@ import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSWRConfig } from "swr";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MotionCard } from "@/components/ui/motion-primitives";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ShoppingCart, Check, MoreHorizontal, Layers, ArrowRightLeft, Flag, GitBranch, HandCoins, ArrowUpRight, Zap, UserCircle2, XCircle } from "lucide-react";
+import { ShoppingCart, Check, MoreHorizontal, Layers, ArrowRightLeft, Flag, GitBranch, HandCoins, ArrowUpRight, Zap, UserCircle2, XCircle, Loader2 } from "lucide-react";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { cn, ipfsToHttp, formatDisplayPrice, timeAgo } from "@/lib/utils";
+import { validatePin } from "@/components/ui/pin-input";
 import { useCart } from "@/hooks/use-cart";
-import { useOrderActions } from "@/app/asset/[contract]/[tokenId]/use-order-actions";
+import { useMarketplace } from "@/hooks/use-marketplace";
+import { MarketplacePinStep } from "@/components/marketplace/marketplace-dialog-primitives";
 import { CancelListingDialog } from "@/app/asset/[contract]/[tokenId]/cancel-listing-dialog";
-import { PinDialog } from "@/components/chipi/pin-dialog";
 import { ReportDialog } from "@/components/report-dialog";
+import { isWebAuthnSupported } from "@chipi-stack/nextjs";
+import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
 import type { ApiOrder } from "@medialane/sdk";
 
 interface ListingCardProps {
@@ -32,14 +37,70 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
   const router = useRouter();
   const { mutate } = useSWRConfig();
   const { addItem, items } = useCart();
+  const { cancelOrder } = useMarketplace();
+  const { authenticate, encryptKey } = usePasskeyAuth();
+  const [passkeySupported] = useState(() => typeof window !== "undefined" && isWebAuthnSupported());
+  // User has passkey if WebAuthn is available AND they set up a passkey-derived encrypt key
+  const isPasskeyUser = passkeySupported && !!encryptKey;
+
   const inCart = items.some((i) => i.orderHash === order.orderHash);
   const [imgError, setImgError] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
-  const cancelActions = useOrderActions({
-    mutateListings: () => mutate((key) => typeof key === "string" && key.includes("/v1/orders"), undefined, { revalidate: true }),
-  });
-  const isListing = order.offer.itemType === "ERC721" || order.offer.itemType === "ERC1155";
 
+  // ─── Cancel flow state ────────────────────────────────────────────────────
+  const [cancelPinOpen, setCancelPinOpen] = useState(false);
+  const [cancelPin, setCancelPin] = useState("");
+  const [cancelPinError, setCancelPinError] = useState<string | null>(null);
+  const [cancelStep, setCancelStep] = useState<"idle" | "processing" | "success" | "error">("idle");
+  const [cancelError, setCancelError] = useState<string | null>(null);
+  const [isAuthenticatingPasskey, setIsAuthenticatingPasskey] = useState(false);
+
+  const invalidateOrders = () =>
+    mutate((key) => typeof key === "string" && key.includes("/v1/orders"), undefined, { revalidate: true });
+
+  const executeCancel = async (pinOrKey: string) => {
+    setCancelStep("processing");
+    try {
+      const nftStandard = order.offer.itemType === "ERC20"
+        ? order.consideration.itemType
+        : order.offer.itemType;
+      await cancelOrder({ orderHash: order.orderHash, pin: pinOrKey, tokenStandard: nftStandard });
+      setCancelStep("success");
+      invalidateOrders();
+    } catch (err) {
+      setCancelStep("error");
+      setCancelError(err instanceof Error ? err.message : "Cancellation failed");
+    }
+  };
+
+  const handleCancelClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (isPasskeyUser) {
+      setIsAuthenticatingPasskey(true);
+      try {
+        const derived = encryptKey ?? await authenticate();
+        if (!derived) throw new Error("Passkey authentication failed.");
+        await executeCancel(derived);
+      } catch (err) {
+        toast.error("Passkey failed", { description: err instanceof Error ? err.message : undefined });
+      } finally {
+        setIsAuthenticatingPasskey(false);
+      }
+    } else {
+      setCancelPinOpen(true);
+    }
+  };
+
+  const handlePinSubmit = async () => {
+    const err = validatePin(cancelPin);
+    if (err) { setCancelPinError(err); return; }
+    setCancelPinError(null);
+    setCancelPinOpen(false);
+    await executeCancel(cancelPin);
+    setCancelPin("");
+  };
+
+  const isListing = order.offer.itemType === "ERC721" || order.offer.itemType === "ERC1155";
   const name = order.token?.name ?? `Token #${order.nftTokenId}`;
   const image = order.token?.image ? ipfsToHttp(order.token.image) : null;
 
@@ -150,10 +211,13 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
               /* ── Owner view ── */
               <div className="flex items-center gap-1.5">
                 <button
-                  className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-[9px] border border-brand-orange/50 bg-brand-orange/10 text-brand-orange text-xs font-semibold hover:bg-brand-orange/20 transition-all active:scale-[0.98]"
-                  onClick={(e) => { e.preventDefault(); cancelActions.handleCancelClick(order); }}
+                  disabled={isAuthenticatingPasskey}
+                  className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-[9px] border border-brand-orange/50 bg-brand-orange/10 text-brand-orange text-xs font-semibold hover:bg-brand-orange/20 transition-all active:scale-[0.98] disabled:opacity-60 disabled:pointer-events-none"
+                  onClick={handleCancelClick}
                 >
-                  <XCircle className="h-3.5 w-3.5 shrink-0" />
+                  {isAuthenticatingPasskey
+                    ? <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
+                    : <XCircle className="h-3.5 w-3.5 shrink-0" />}
                   Cancel
                 </button>
 
@@ -180,7 +244,7 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       className="flex items-center gap-2 text-brand-orange focus:text-brand-orange"
-                      onClick={(e) => { e.preventDefault(); cancelActions.handleCancelClick(order); }}
+                      onClick={handleCancelClick}
                     >
                       <XCircle className="h-3.5 w-3.5" />
                       Cancel listing
@@ -350,17 +414,34 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
         />
       )}
 
-      <PinDialog
-        open={cancelActions.cancelPinOpen}
-        title="Cancel listing"
-        description="Enter your PIN to cancel this listing."
-        onSubmit={(pin) => cancelActions.handleCancelPin(pin)}
-        onCancel={cancelActions.dismissCancelPin}
-      />
+      {/* PIN dialog — only shown for PIN users */}
+      {!isPasskeyUser && (
+        <Dialog open={cancelPinOpen} onOpenChange={(v) => { if (!v) { setCancelPinOpen(false); setCancelPin(""); setCancelPinError(null); } }}>
+          <DialogContent className="max-w-[calc(100%-12px)] sm:max-w-sm rounded-2xl p-0 overflow-hidden">
+            <DialogHeader className="px-6 pt-6 pb-0">
+              <DialogTitle>Cancel listing</DialogTitle>
+            </DialogHeader>
+            <MarketplacePinStep
+              description="Enter your PIN to cancel this listing."
+              pin={cancelPin}
+              onPinChange={(v) => { setCancelPin(v); setCancelPinError(null); }}
+              pinError={cancelPinError}
+              secondaryLabel="Back"
+              onSecondary={() => { setCancelPinOpen(false); setCancelPin(""); setCancelPinError(null); }}
+              primaryLabel="Cancel listing"
+              primaryVariant="destructive"
+              onPrimary={handlePinSubmit}
+              primaryDisabled={cancelPin.length < 6}
+              passkeySupported={false}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
+
       <CancelListingDialog
-        cancelStep={cancelActions.cancelStep}
-        cancelError={cancelActions.cancelError}
-        onReset={cancelActions.resetCancelStep}
+        cancelStep={cancelStep}
+        cancelError={cancelError}
+        onReset={() => { setCancelStep("idle"); setCancelError(null); }}
       />
     </MotionCard>
   );
