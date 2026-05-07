@@ -132,8 +132,6 @@ export default function CreateIP1155CollectionPage() {
       }
 
       // 2. Execute deploy_collection on the factory.
-      // starknet.js 6.x encodes ByteArray as felt252 shortstring via contract.populate(),
-      // producing wrong calldata. Build it manually using byteArray.byteArrayFromString().
       // v2 factory signature: deploy_collection(name, symbol, base_uri)
       const result = await executeTransaction({
         pin,

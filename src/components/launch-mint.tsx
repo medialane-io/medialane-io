@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useUser, SignInButton, SignUpButton } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
-import { byteArray, CallData } from "starknet";
+import { serializeByteArray } from "@/lib/cairo-calldata";
 import {
   Sparkles,
   Zap,
@@ -151,8 +151,7 @@ export function LaunchMint() {
       }
 
       setMintStatusMsg("Submitting transaction…");
-      const encodedUri = byteArray.byteArrayFromString(tokenUri);
-      const calldata = CallData.compile([recipientAddress, encodedUri]);
+      const calldata = [recipientAddress, ...serializeByteArray(tokenUri)];
 
       const result = await executeTransaction({
         pin: mintPin,

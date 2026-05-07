@@ -6,7 +6,7 @@ import { useAuth, useUser, SignInButton, SignUpButton } from "@clerk/nextjs";
 import { useClerk } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useChipiWallet, isWebAuthnSupported, createWalletPasskey } from "@chipi-stack/nextjs";
-import { byteArray, CallData } from "starknet";
+import { serializeByteArray } from "@/lib/cairo-calldata";
 import {
   Sparkles,
   ExternalLink,
@@ -277,8 +277,7 @@ function GenesisMint() {
       }
 
       setMintStatusMsg("Confirmando participação…");
-      const encodedUri = byteArray.byteArrayFromString(tokenUri);
-      const calldata = CallData.compile([walletAddress, encodedUri]);
+      const calldata = [walletAddress, ...serializeByteArray(tokenUri)];
 
       const result = await executeTransaction({
         pin: mintPin,
