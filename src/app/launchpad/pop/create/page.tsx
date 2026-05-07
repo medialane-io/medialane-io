@@ -25,7 +25,7 @@ import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { getDefaultClaimWindow, suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
 import { PopCreateForm } from "../pop-create-form";
 import { popCreateSchema, type PopCreateFormValues } from "../pop-create-schema";
-import { LaunchpadSuccessState } from "@/components/launchpad/launchpad-success-state";
+import { LaunchpadSuccessState, LaunchpadErrorState } from "@/components/launchpad/launchpad-success-state";
 import { LaunchpadPageIntro } from "@/components/launchpad/launchpad-page-intro";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 
@@ -40,6 +40,7 @@ export default function CreatePOPPage() {
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
   const [pendingValues, setPendingValues] = useState<PopCreateFormValues | null>(null);
   const [done, setDone] = useState(false);
+  const [txError, setTxError] = useState<string | null>(null);
   const [autoSymbol, setAutoSymbol] = useState("");
   const {
     imagePreview,
@@ -149,12 +150,24 @@ export default function CreatePOPPage() {
       if (result.status === "confirmed") {
         setDone(true);
       } else {
-        toast.error(result.revertReason ?? "Transaction reverted");
+        setTxError(result.revertReason ?? "Transaction reverted");
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to create event");
+      setTxError(err instanceof Error ? err.message : "Failed to create event");
     }
   };
+
+  // ── Error ──────────────────────────────────────────────────────────────────
+  if (txError) {
+    return (
+      <LaunchpadErrorState
+        description={txError}
+        backHref="/launchpad/pop"
+        backLabel="Back to POP launchpad"
+        onRetry={() => setTxError(null)}
+      />
+    );
+  }
 
   // ── Success ────────────────────────────────────────────────────────────────
   if (done) {

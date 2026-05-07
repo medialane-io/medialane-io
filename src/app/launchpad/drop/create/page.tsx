@@ -27,7 +27,7 @@ import { dropCreateSchema, type DropCreateFormValues } from "../drop-create-sche
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { getDefaultDropSchedule, suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
-import { LaunchpadSuccessState } from "@/components/launchpad/launchpad-success-state";
+import { LaunchpadSuccessState, LaunchpadErrorState } from "@/components/launchpad/launchpad-success-state";
 import { LaunchpadPageIntro } from "@/components/launchpad/launchpad-page-intro";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 
@@ -55,6 +55,7 @@ export default function CreateDropPage() {
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
   const [pendingValues, setPendingValues] = useState<DropCreateFormValues | null>(null);
   const [done, setDone] = useState(false);
+  const [txError, setTxError] = useState<string | null>(null);
   const [autoSymbol, setAutoSymbol] = useState("");
   const {
     imagePreview,
@@ -265,12 +266,24 @@ export default function CreateDropPage() {
         }
         setDone(true);
       } else {
-        toast.error(result.revertReason ?? "Transaction reverted");
+        setTxError(result.revertReason ?? "Transaction reverted");
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to create drop");
+      setTxError(err instanceof Error ? err.message : "Failed to create drop");
     }
   };
+
+  // ── Error ────────────────────────────────────────────────────────────────────
+  if (txError) {
+    return (
+      <LaunchpadErrorState
+        description={txError}
+        backHref="/launchpad/drop"
+        backLabel="Back to Drops"
+        onRetry={() => setTxError(null)}
+      />
+    );
+  }
 
   // ── Success ──────────────────────────────────────────────────────────────────
   if (done) {

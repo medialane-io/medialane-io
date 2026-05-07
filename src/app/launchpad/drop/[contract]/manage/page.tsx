@@ -17,7 +17,7 @@ import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useDropInfo } from "@/hooks/use-drops";
 import { starknetProvider } from "@/lib/starknet";
-import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 // ── On-chain reads ────────────────────────────────────────────────────────────
@@ -217,6 +217,7 @@ export default function DropManagePage({
   const { executeTransaction, isSubmitting } = useChipiTransaction();
 
   const [pinOpen, setPinOpen] = useState(false);
+  const [txResult, setTxResult] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
   const [pendingCall, setPendingCall] = useState<{
     calls: Array<{ contractAddress: string; entrypoint: string; calldata: string[] }>;
@@ -251,13 +252,13 @@ export default function DropManagePage({
         calls,
       });
       if (result.status === "confirmed") {
-        toast.success(successMsg);
+        setTxResult({ type: "success", message: successMsg });
         mutateAllowlist();
       } else {
-        toast.error(result.revertReason ?? "Transaction reverted");
+        setTxResult({ type: "error", message: result.revertReason ?? "Transaction reverted" });
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Transaction failed");
+      setTxResult({ type: "error", message: err instanceof Error ? err.message : "Transaction failed" });
     }
   };
 
@@ -400,6 +401,33 @@ export default function DropManagePage({
           </div>
         </FadeIn>
       )}
+
+
+      <Dialog open={!!txResult} onOpenChange={(v) => { if (!v) setTxResult(null); }}>
+        <DialogContent className="max-w-[calc(100%-12px)] sm:max-w-sm rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>{txResult?.type === "success" ? "Done" : "Transaction failed"}</DialogTitle>
+            {txResult?.type === "error" && (
+              <DialogDescription>Review the error below and try again.</DialogDescription>
+            )}
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-4 py-4">
+            {txResult?.type === "success" ? (
+              <>
+                <CheckCircle2 className="h-10 w-10 text-emerald-500" />
+                <p className="text-sm text-center text-muted-foreground">{txResult.message}</p>
+                <Button className="w-full" onClick={() => setTxResult(null)}>Done</Button>
+              </>
+            ) : (
+              <>
+                <AlertCircle className="h-10 w-10 text-destructive" />
+                <p className="text-sm text-center text-muted-foreground">{txResult?.message}</p>
+                <Button variant="outline" className="w-full" onClick={() => setTxResult(null)}>Dismiss</Button>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <PinDialog
         open={pinOpen}
