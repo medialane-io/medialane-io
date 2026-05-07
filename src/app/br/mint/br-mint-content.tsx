@@ -319,10 +319,12 @@ function GenesisMint() {
 
   return (
     <div className="rounded-2xl border border-border/50 bg-card/50 p-5 space-y-4">
+      
+      {/* 
       <div className="flex items-center gap-2 pb-1 border-b border-border/30">
         <Sparkles className="h-4 w-4 text-yellow-500" />
-        <p className="font-bold text-sm">Reivindique seu registro de participação</p>
-      </div>
+        <p className="font-bold text-sm">Reivindique seu passaporte de participação</p>
+      </div>*/ }
 
       {(!isLoaded || (isLoaded && isSignedIn && isLoadingWallet) || walletJustCreated) && (
         <div className="flex items-center gap-3 py-2">
@@ -333,11 +335,11 @@ function GenesisMint() {
 
       {isLoaded && !isSignedIn && !walletJustCreated && (
         <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">Crie uma conta gratuita para garantir seu lugar.</p>
+          <p className="text-sm text-muted-foreground">Acesse com sua conta Google.</p>
           <SignUpButton mode="modal" forceRedirectUrl="/br/mint">
             <Button size="lg" className="w-full h-12 font-bold gap-2 rounded-xl">
               <Sparkles className="h-4 w-4" />
-              Participar com Google — é grátis
+              Participe grátis - Sem cadastro
             </Button>
           </SignUpButton>
           <SignInButton mode="modal" forceRedirectUrl="/br/mint">
@@ -359,7 +361,7 @@ function GenesisMint() {
             <>
               <div className="flex items-center gap-2 text-sm">
                 <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
-                <span className="text-emerald-600 dark:text-emerald-400 font-medium">Conta ativa — pronto para participar</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-medium">Conta ativa, minte seu passaporte</span>
               </div>
               <Button
                 size="lg"
@@ -453,7 +455,7 @@ function GenesisMint() {
                 </Button>
               </div>
               <button className="text-xs text-muted-foreground underline underline-offset-2 w-full text-center" onClick={handleResetMintGate}>
-                Não recebeu seu registro? Tente novamente
+                Não mintou seu passaporte? Tente novamente
               </button>
             </div>
           )}
