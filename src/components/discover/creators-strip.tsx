@@ -13,7 +13,7 @@ function CreatorChipSkeleton() {
 
 function CreatorChip({ creator, href }: { creator: ApiCreatorProfile; href: string }) {
   const [bannerError, setBannerError] = useState(false);
-  const rawSrc = creator.bannerImage ?? creator.avatarImage ?? (creator as any).collectionImage ?? null;
+  const rawSrc = creator.bannerImage || (creator as any).collectionImage || null;
   const bannerUrl = rawSrc && !bannerError ? ipfsToHttp(rawSrc) : null;
 
   return (
