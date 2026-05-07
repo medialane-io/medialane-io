@@ -6,6 +6,7 @@ import { useState, useRef } from "react";
 interface PinInputProps {
   value: string;
   onChange: (v: string) => void;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   placeholder?: string;
   error?: string | null;
   autoFocus?: boolean;
@@ -14,6 +15,7 @@ interface PinInputProps {
 export function PinInput({
   value,
   onChange,
+  onKeyDown,
   placeholder = "Enter 6–12 digit PIN",
   error,
   autoFocus = false,
@@ -44,6 +46,7 @@ export function PinInput({
           className="w-full rounded-lg border border-border/60 bg-muted/30 px-4 py-3 pr-12 text-lg tracking-widest font-mono placeholder:text-muted-foreground/40 placeholder:text-sm placeholder:tracking-normal focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
           autoComplete="off"
           autoFocus={autoFocus}
+          onKeyDown={onKeyDown}
         />
         <button
           type="button"

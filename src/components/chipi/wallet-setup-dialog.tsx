@@ -129,6 +129,7 @@ export function WalletSetupDialog({ open, onOpenChange, onSuccess }: WalletSetup
             <PinInput
               value={pin}
               onChange={(v) => { setPin(v); setPinError(null); }}
+              onKeyDown={(e) => { if (e.key === "Enter" && pin.length >= 6) handleCreate(); }}
               error={pinError}
               placeholder="Enter 6–12 digit PIN"
               autoFocus

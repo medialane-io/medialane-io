@@ -8,7 +8,6 @@ import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { useUserOrders } from "@/hooks/use-orders";
 import { useActivitiesByAddress } from "@/hooks/use-activities";
-import { useDominantColor } from "@/hooks/use-dominant-color";
 import { CollectionCarouselRow } from "@/components/creator/collection-carousel-row";
 import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listing-card";
 import { CreatorAnalytics } from "@/components/creator/creator-analytics";
@@ -27,13 +26,6 @@ interface Props {
   username: string;
 }
 
-function addressPalette(seed: string) {
-  const n = parseInt(seed.replace(/[^0-9a-f]/gi, "").slice(0, 8) || "a1b2c3d4", 16);
-  const h1 = n % 360;
-  const h2 = (h1 + 137) % 360;
-  const h3 = (h1 + 73) % 360;
-  return { h1, h2, h3 };
-}
 
 const ACTIVITY_META: Record<string, { label: string; textColor: string; bg: string }> = {
   mint:      { label: "Minted",    textColor: "text-yellow-400",  bg: "bg-yellow-500/8 border-yellow-500/15" },
@@ -133,9 +125,6 @@ export default function CreatorUsernamePageClient({ username }: Props) {
   const [avatarErr, setAvatarErr] = useState(false);
   const showAvatar = avatarRaw && avatarRaw !== "/placeholder.svg" && !avatarErr;
 
-  const { imgRef, dynamicTheme } = useDominantColor(heroImage);
-  const { h1, h2, h3 } = addressPalette(walletAddress ?? username);
-  const dynamicPrimary = dynamicTheme ? `hsl(var(--dynamic-primary))` : `hsl(${h1}, 72%, 62%)`;
   const displayName = creator?.displayName || `@${username}`;
 
   const tabBadge: Partial<Record<TabId, number>> = {
@@ -190,32 +179,16 @@ export default function CreatorUsernamePageClient({ username }: Props) {
   }
 
   return (
-    <div className="pb-20 min-h-screen" style={dynamicTheme ? (dynamicTheme as React.CSSProperties) : {}}>
-      {/* Hidden color extractor */}
-      {heroImage && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img ref={imgRef} src={heroImage} crossOrigin="anonymous" aria-hidden alt="" style={{ display: "none" }} />
-      )}
-
-      {/* ── Cinematic hero ─────────────────────────────────────────────── */}
-      <div className="relative w-full h-[40vw] min-h-[240px] max-h-[420px] overflow-hidden bg-muted">
-        {heroImage ? (
+    <div className="pb-20 min-h-screen overflow-x-hidden">
+      {/* ── Hero banner ────────────────────────────────────────────────── */}
+      <div className="relative w-full h-[38vw] min-h-[200px] max-h-[380px] overflow-hidden bg-muted">
+        {heroImage && (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={heroImage} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover" />
-        ) : (
-          <div
-            className="absolute inset-0"
-            style={{ background: `linear-gradient(135deg, hsl(${h1},55%,30%) 0%, hsl(${h2},50%,22%) 50%, hsl(${h3},45%,25%) 100%)` }}
-          />
         )}
-        {/* Multi-layer cinematic overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-background/40 via-transparent to-transparent" />
-
-        {/* Full profile link — top right */}
         {creator.walletAddress && (
           <div className="absolute top-4 right-4 z-10">
-            <Button size="sm" variant="outline" asChild className="bg-background/40 backdrop-blur-sm border-white/20 text-foreground hover:bg-background/60 hover:text-white">
+            <Button size="sm" variant="outline" asChild className="bg-background/60 backdrop-blur-sm">
               <Link href={`/account/${creator.walletAddress}`}>
                 <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
                 Full profile
@@ -225,21 +198,16 @@ export default function CreatorUsernamePageClient({ username }: Props) {
         )}
       </div>
 
-      {/* ── Identity (overlaps banner bottom edge) ──────────────────────── */}
-      <div className="px-6 -mt-16 relative z-10 pb-1">
-        <div className="flex items-end gap-4 mb-3">
+      {/* ── Identity ────────────────────────────────────────────────────── */}
+      <div className="px-6 pt-5 pb-1">
+        <div className="flex items-center gap-4 mb-3">
           {/* Avatar */}
           <div
-            className="rounded-full shrink-0 ring-[3px] ring-background overflow-hidden flex items-center justify-center text-white font-bold"
-            style={{
-              width: 72, height: 72,
-              background: showAvatar ? "transparent" : `linear-gradient(145deg, hsl(${h1},72%,60%), hsl(${h2},72%,50%))`,
-              fontSize: 72 * 0.33,
-              boxShadow: `0 0 0 2px ${dynamicPrimary}55, 0 8px 24px rgba(0,0,0,0.3)`,
-            }}
+            className="rounded-full shrink-0 ring-2 ring-border overflow-hidden flex items-center justify-center bg-muted text-muted-foreground font-bold"
+            style={{ width: 64, height: 64, fontSize: 22 }}
           >
             {showAvatar ? (
-              <NextImage src={avatarRaw!} alt={displayName} width={72} height={72}
+              <NextImage src={avatarRaw!} alt={displayName} width={64} height={64}
                 className="w-full h-full object-cover" unoptimized onError={() => setAvatarErr(true)} />
             ) : (
               displayName.charAt(0).toUpperCase()
@@ -247,7 +215,7 @@ export default function CreatorUsernamePageClient({ username }: Props) {
           </div>
 
           {/* Name + handle */}
-          <div className="flex-1 min-w-0 pb-1">
+          <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 text-muted-foreground text-xs font-medium mb-0.5">
               <AtSign className="h-3 w-3" />{creator.username}
             </div>
@@ -313,14 +281,7 @@ export default function CreatorUsernamePageClient({ username }: Props) {
                   </span>
                 )}
                 {isActive && (
-                  <span
-                    className="absolute bottom-0 inset-x-0 h-0.5 rounded-full"
-                    style={{
-                      background: dynamicTheme
-                        ? `linear-gradient(90deg, hsl(var(--dynamic-primary)), hsl(var(--dynamic-accent)))`
-                        : `linear-gradient(90deg, hsl(${h1}, 68%, 62%), hsl(${h2}, 68%, 58%))`,
-                    }}
-                  />
+                  <span className="absolute bottom-0 inset-x-0 h-0.5 rounded-full bg-primary" />
                 )}
               </button>
             );

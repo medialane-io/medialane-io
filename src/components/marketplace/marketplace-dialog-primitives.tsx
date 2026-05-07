@@ -351,6 +351,7 @@ export function MarketplacePinStep({
       <PinInput
         value={pin}
         onChange={onPinChange}
+        onKeyDown={(e) => { if (e.key === "Enter" && !primaryDisabled) onPrimary(); }}
         error={pinError}
         autoFocus
       />

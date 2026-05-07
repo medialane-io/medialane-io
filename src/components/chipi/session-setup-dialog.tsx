@@ -110,6 +110,7 @@ export function SessionSetupDialog({
             <PinInput
               value={pin}
               onChange={(v) => { setPin(v); setError(null); }}
+              onKeyDown={(e) => { if (e.key === "Enter" && pin.length >= 6) handleSetup(); }}
               error={null}
               autoFocus
             />
