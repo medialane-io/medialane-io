@@ -13,7 +13,7 @@ function CreatorChipSkeleton() {
 
 function CreatorChip({ creator, href }: { creator: ApiCreatorProfile; href: string }) {
   const [bannerError, setBannerError] = useState(false);
-  const rawSrc = creator.bannerImage ?? (creator as any).collectionImage ?? null;
+  const rawSrc = creator.bannerImage ?? creator.avatarImage ?? (creator as any).collectionImage ?? null;
   const bannerUrl = rawSrc && !bannerError ? ipfsToHttp(rawSrc) : null;
 
   return (
@@ -32,8 +32,8 @@ function CreatorChip({ creator, href }: { creator: ApiCreatorProfile; href: stri
             onError={() => setBannerError(true)}
           />
         )}
-        <div className="absolute bottom-0 inset-x-0 bg-black/55 backdrop-blur-[2px] px-3 py-2.5">
-          <p className="font-bold text-sm text-white truncate">@{creator.username}</p>
+        <div className="absolute bottom-0 inset-x-0 px-3 py-3">
+          <p className="font-bold text-2xl text-white truncate">{creator.username}</p>
         </div>
       </div>
     </Link>
