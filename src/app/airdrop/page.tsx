@@ -8,7 +8,7 @@ import {
   Shield,
   FileCheck,
   Coins,
-  Users,
+  Star,
   Camera,
   Music,
   Palette,
@@ -18,8 +18,7 @@ import {
   ShoppingCart,
 } from "lucide-react";
 import { MedialaneLogo } from "@/components/brand/medialane-logo";
-import { Button } from "@/components/ui/button";
-import { GenesisMint } from "@/components/airdrop/genesis-mint";
+import { GenesisMint, AirdropEventCard } from "@/components/airdrop/genesis-mint";
 
 export const metadata: Metadata = {
   title: "Creator's Airdrop — Medialane",
@@ -47,17 +46,9 @@ export default function AirdropPage() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
 
-      {/* Header */}
-      <header className="px-6 py-4 flex items-center justify-between border-b border-border/30 sticky top-0 bg-background/90 backdrop-blur-sm z-10">
+      {/* Header — logo only, no distractions */}
+      <header className="px-6 py-4 flex items-center border-b border-border/30 sticky top-0 bg-background/90 backdrop-blur-sm z-10">
         <MedialaneLogo />
-        <div className="flex items-center gap-2">
-          <Link href="/marketplace" className="hidden sm:block text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-lg hover:bg-muted/50">
-            Marketplace
-          </Link>
-          <Button asChild size="sm">
-            <Link href="/mint">Join now</Link>
-          </Button>
-        </div>
       </header>
 
       <div className="flex-1 w-full">
@@ -67,7 +58,7 @@ export default function AirdropPage() {
           <section className="py-14 lg:py-20">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
 
-              {/* Left: badge + title + description */}
+              {/* Left: badge + title + description + content types */}
               <div className="space-y-5">
                 <div className="inline-flex items-center gap-2 rounded-full border border-yellow-500/30 bg-yellow-500/5 px-3 py-1">
                   <Sparkles className="h-3.5 w-3.5 text-yellow-500" />
@@ -97,25 +88,47 @@ export default function AirdropPage() {
                 </div>
               </div>
 
-              {/* Right: claim component (sticky on desktop) */}
-              <div className="lg:sticky lg:top-24">
+              {/* Right: claim + image (sticky on desktop) */}
+              <div className="lg:sticky lg:top-24 space-y-4">
                 <GenesisMint />
+                <AirdropEventCard />
               </div>
 
             </div>
           </section>
 
-          {/* ── What you get ── */}
+          {/* ── Airdrop rewards ── */}
           <section className="py-10 border-t border-border/30 space-y-6">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Benefits</p>
-              <h2 className="text-2xl sm:text-3xl font-black">What you get</h2>
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Airdrop rewards</p>
+              <h2 className="text-2xl sm:text-3xl font-black">What early participants earn</h2>
+              <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
+                These rewards are exclusive to participants who join during the launch campaign.
+              </p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[
-                { icon: FileCheck, color: "text-blue-400",   bg: "bg-blue-500/10",   title: "Permanent participation record", desc: "A record tied to your account forever. Can't be taken away." },
-                { icon: Coins,     color: "text-yellow-500", bg: "bg-yellow-500/10", title: "Share of the creator fund",      desc: "When milestones are hit, revenue gets distributed back to participants." },
-                { icon: Users,     color: "text-purple-400", bg: "bg-purple-500/10", title: "Full platform access",           desc: "Publish, sell, collect, and collaborate with creators on day one." },
+                {
+                  icon: FileCheck,
+                  color: "text-blue-400",
+                  bg: "bg-blue-500/10",
+                  title: "Participation record",
+                  desc: "A permanent on-chain record of your early participation. Issued when you claim — tied to your account forever.",
+                },
+                {
+                  icon: Coins,
+                  color: "text-yellow-500",
+                  bg: "bg-yellow-500/10",
+                  title: "Share of creator fund distributions",
+                  desc: "When milestones are reached, platform revenue is distributed to participants. The more you contribute, the larger your share.",
+                },
+                {
+                  icon: Star,
+                  color: "text-orange-400",
+                  bg: "bg-orange-500/10",
+                  title: "Founding member status",
+                  desc: "Early participants are permanently recognized as founding members of the Medialane community.",
+                },
               ].map(({ icon: Icon, color, bg, title, desc }) => (
                 <div key={title} className="flex flex-col gap-4 p-5 rounded-2xl border border-border/40 bg-card/30 hover:bg-card/50 transition-colors">
                   <div className={`h-11 w-11 rounded-xl ${bg} flex items-center justify-center shrink-0`}>
@@ -219,31 +232,53 @@ export default function AirdropPage() {
             </div>
           </section>
 
-          {/* ── Eligibility + Disclaimer ── */}
+          {/* ── Rules + Disclaimer ── */}
           <section className="py-10 border-t border-border/30">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-              <div className="space-y-4">
+
+              {/* Rules */}
+              <div className="space-y-5">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Eligibility</p>
-                  <h2 className="text-2xl font-black">Who qualifies</h2>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Rules</p>
+                  <h2 className="text-2xl font-black">Participation rules</h2>
                 </div>
-                <div className="space-y-2.5 text-sm">
-                  {[
-                    { ok: true,  text: "Anyone who creates a free account." },
-                    { ok: true,  text: "Creators who publish original content get a higher share." },
-                    { ok: true,  text: "Active participants who trade or collaborate get the most." },
-                    { ok: false, text: "Automated tools and duplicate accounts are disqualified." },
-                    { ok: false, text: "Artificially inflated activity is disqualified." },
-                  ].map(({ ok, text }) => (
-                    <div key={text} className="flex items-start gap-3">
-                      <div className={`h-5 w-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${ok ? "bg-emerald-500/10" : "bg-destructive/10"}`}>
-                        {ok ? <CheckCircle2 className="h-3 w-3 text-emerald-500" /> : <XCircle className="h-3 w-3 text-destructive" />}
+
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Who can join</p>
+                  <div className="space-y-2">
+                    {[
+                      "Anyone who creates a free Medialane account.",
+                      "No ID, no card, no approval required.",
+                    ].map((text) => (
+                      <div key={text} className="flex items-start gap-3">
+                        <div className="h-5 w-5 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0 mt-0.5">
+                          <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                        </div>
+                        <span className="text-sm text-muted-foreground leading-relaxed">{text}</span>
                       </div>
-                      <span className="text-muted-foreground leading-relaxed">{text}</span>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-destructive/70">What gets you removed</p>
+                  <div className="space-y-2">
+                    {[
+                      "Automated bots or duplicate registrations.",
+                      "Artificially inflating activity or scores.",
+                    ].map((text) => (
+                      <div key={text} className="flex items-start gap-3">
+                        <div className="h-5 w-5 rounded-full bg-destructive/10 flex items-center justify-center shrink-0 mt-0.5">
+                          <XCircle className="h-3 w-3 text-destructive" />
+                        </div>
+                        <span className="text-sm text-muted-foreground leading-relaxed">{text}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
+
+              {/* Disclaimer */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <Shield className="h-4 w-4 text-muted-foreground" />
@@ -261,6 +296,7 @@ export default function AirdropPage() {
                   </p>
                 </div>
               </div>
+
             </div>
           </section>
 

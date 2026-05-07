@@ -17,13 +17,41 @@ import {
   ShieldCheck,
   KeyRound,
   AlertCircle,
+  ImageIcon,
 } from "lucide-react";
 import { PinInput, validatePin } from "@/components/ui/pin-input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
-import { EXPLORER_URL, MINT_CONTRACT, MINT_NFT_URI } from "@/lib/constants";
+import { EXPLORER_URL, MINT_CONTRACT, MINT_NFT_URI, MINT_NFT_IMAGE_URL } from "@/lib/constants";
 import { completeOnboarding } from "@/app/onboarding/_actions";
+
+// ─── Featured airdrop image ────────────────────────────────────────────────────
+
+export function AirdropEventCard() {
+  const [errored, setErrored] = useState(false);
+  const src = MINT_NFT_IMAGE_URL || "/genesis.jpg";
+  return (
+    <div className="relative rounded-2xl overflow-hidden border border-border/40 shadow-xl shadow-black/10 aspect-square w-full">
+      {errored ? (
+        <div className="w-full h-full bg-gradient-to-br from-yellow-500/10 via-orange-500/10 to-purple-500/10 flex flex-col items-center justify-center gap-3">
+          <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+            <ImageIcon className="h-7 w-7 text-primary/40" />
+          </div>
+          <p className="text-xs text-muted-foreground font-medium">Medialane Airdrop 2026</p>
+        </div>
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={src}
+          alt="Medialane Creator's Airdrop"
+          className="w-full h-full object-cover"
+          onError={() => setErrored(true)}
+        />
+      )}
+    </div>
+  );
+}
 
 // ─── Wallet setup ─────────────────────────────────────────────────────────────
 
