@@ -14,21 +14,19 @@ import {
   Loader2,
   RefreshCw,
   XCircle,
-  ArrowRight,
-  Trophy,
-  Camera,
-  ShieldCheck,
-  KeyRound,
   AlertCircle,
   FileCheck,
   Coins,
   Users,
-  Palette,
-  Globe,
-  Music,
+  ShieldCheck,
+  KeyRound,
   ImageIcon,
   Shield,
   Info,
+  PenLine,
+  ShoppingCart,
+  UserCheck,
+  ArrowRight,
 } from "lucide-react";
 import { PinInput, validatePin } from "@/components/ui/pin-input";
 import { Button } from "@/components/ui/button";
@@ -36,6 +34,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MedialaneLogo } from "@/components/brand/medialane-logo";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { EXPLORER_URL, MINT_CONTRACT, MINT_NFT_URI, MINT_NFT_IMAGE_URL } from "@/lib/constants";
+import { completeOnboarding } from "@/app/onboarding/_actions";
 
 // ─── Genesis NFT image ────────────────────────────────────────────────────────
 
@@ -43,13 +42,13 @@ function EventCard() {
   const [errored, setErrored] = useState(false);
   const src = MINT_NFT_IMAGE_URL || "/genesis.jpg";
   return (
-    <div className="relative rounded-2xl overflow-hidden border border-border/40 shadow-xl shadow-black/10 aspect-square w-full">
+    <div className="relative rounded-3xl overflow-hidden border border-border/40 shadow-2xl shadow-black/20 aspect-square w-full">
       {errored ? (
-        <div className="w-full h-full bg-muted/30 flex flex-col items-center justify-center gap-3">
-          <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center">
-            <ImageIcon className="h-7 w-7 text-primary/40" />
+        <div className="w-full h-full bg-gradient-to-br from-yellow-500/10 via-orange-500/10 to-purple-500/10 flex flex-col items-center justify-center gap-3">
+          <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center">
+            <ImageIcon className="h-8 w-8 text-primary/40" />
           </div>
-          <p className="text-xs text-muted-foreground font-medium">Medialane Airdrop 2026</p>
+          <p className="text-sm text-muted-foreground font-medium">Medialane Airdrop 2026</p>
         </div>
       ) : (
         // eslint-disable-next-line @next/next/no-img-element
@@ -63,7 +62,6 @@ function EventCard() {
     </div>
   );
 }
-import { completeOnboarding } from "@/app/onboarding/_actions";
 
 // ─── Wallet setup ─────────────────────────────────────────────────────────────
 
@@ -168,11 +166,9 @@ function WalletSetup({ email, onDone }: { email?: string | null; onDone: () => v
         </div>
       )}
       <div>
-        <p className="font-bold">Protect your account</p>
+        <p className="font-bold">One last step — secure your account</p>
         <p className="text-sm text-muted-foreground mt-0.5">
-          {step === "pin"
-            ? "Create a 6-digit PIN to confirm your participation."
-            : "Add Face ID, fingerprint, or a PIN."}
+          {step === "pin" ? "Create a 6-digit PIN to confirm actions." : "Add Face ID, fingerprint, or a PIN."}
         </p>
       </div>
       {error && (
@@ -189,7 +185,7 @@ function WalletSetup({ email, onDone }: { email?: string | null; onDone: () => v
           </Button>
           <Button size="lg" variant="outline" className="w-full h-12 gap-2" onClick={() => setStep("pin")} disabled={isSubmitting}>
             <KeyRound className="h-4 w-4" />
-            Create PIN instead
+            Create a PIN instead
           </Button>
         </div>
       )}
@@ -214,12 +210,12 @@ function WalletSetup({ email, onDone }: { email?: string | null; onDone: () => v
           </div>
         </div>
       )}
-      <p className="text-xs text-muted-foreground text-center">Your PIN or passkey is never shared or stored by us.</p>
+      <p className="text-xs text-muted-foreground text-center">Your PIN is never shared or stored by us.</p>
     </div>
   );
 }
 
-// ─── Claim flow (Genesis Mint) ────────────────────────────────────────────────
+// ─── Claim flow ────────────────────────────────────────────────────────────────
 
 type MintStep = "ready" | "enter-pin" | "minting" | "success" | "error";
 
@@ -317,8 +313,8 @@ function GenesisMint() {
   }, []);
 
   return (
-    <div className="rounded-2xl border border-border/50 bg-card/50 p-5 space-y-4">
-      <div className="flex items-center gap-2 pb-1 border-b border-border/30">
+    <div className="rounded-2xl border border-border/50 bg-card/60 backdrop-blur-sm p-5 space-y-4 shadow-lg shadow-black/5">
+      <div className="flex items-center gap-2 pb-2 border-b border-border/30">
         <Sparkles className="h-4 w-4 text-yellow-500" />
         <p className="font-bold text-sm">Claim your participation record</p>
       </div>
@@ -334,11 +330,11 @@ function GenesisMint() {
       {/* Not signed in */}
       {isLoaded && !isSignedIn && !walletJustCreated && (
         <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">Create a free account to claim your spot.</p>
+          <p className="text-sm text-muted-foreground">Sign up free — no card, no approval needed.</p>
           <SignUpButton mode="modal" forceRedirectUrl="/mint">
             <Button size="lg" className="w-full h-12 font-bold gap-2 rounded-xl">
               <Sparkles className="h-4 w-4" />
-              Join with Google — it&apos;s free
+              Join free — claim my spot
             </Button>
           </SignUpButton>
           <SignInButton mode="modal" forceRedirectUrl="/mint">
@@ -357,7 +353,6 @@ function GenesisMint() {
       {/* Mint states */}
       {isLoaded && !isLoadingWallet && isSignedIn && hasWallet && !walletJustCreated && (
         <div className="space-y-3">
-
           {mintStep === "ready" && (
             <>
               <div className="flex items-center gap-2 text-sm">
@@ -366,7 +361,7 @@ function GenesisMint() {
               </div>
               <Button
                 size="lg"
-                className="w-full h-12 font-bold gap-2 disabled:opacity-50"
+                className="w-full h-12 font-bold gap-2"
                 onClick={() => setMintStep("enter-pin")}
                 disabled={!MINT_CONTRACT}
               >
@@ -412,9 +407,9 @@ function GenesisMint() {
               </div>
               <div className="space-y-1.5 pl-9">
                 {[
-                  { label: "Preparing your record",   done: status !== "idle" },
-                  { label: "Submitting",              done: status === "confirming" || status === "confirmed" },
-                  { label: "Confirmed",               done: status === "confirmed" },
+                  { label: "Preparing your record",  done: status !== "idle" },
+                  { label: "Submitting",             done: status === "confirming" || status === "confirmed" },
+                  { label: "Confirmed",              done: status === "confirmed" },
                 ].map(({ label, done }) => (
                   <div key={label} className="flex items-center gap-2 text-xs text-muted-foreground">
                     {done ? <CheckCircle2 className="h-3 w-3 text-emerald-500" /> : <div className="h-3 w-3 rounded-full border border-muted-foreground/30" />}
@@ -475,7 +470,6 @@ function GenesisMint() {
               </Button>
             </div>
           )}
-
         </div>
       )}
     </div>
@@ -503,58 +497,41 @@ export function MintContent() {
       <div className="flex-1 w-full">
         <div className="max-w-5xl mx-auto px-5 sm:px-8">
 
-          {/* ── Hero: 2-col on desktop ── */}
+          {/* ── Hero ── */}
           <section className="py-12 lg:py-20">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
 
-              {/* Left: image + text */}
+              {/* Left: badge + title + claim */}
               <div className="space-y-6">
-                <div className="space-y-4">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-yellow-500/30 bg-yellow-500/5 px-3 py-1">
-                    <Sparkles className="h-3.5 w-3.5 text-yellow-500" />
-                    <span className="text-xs font-semibold text-yellow-600 dark:text-yellow-400">Creator&apos;s Airdrop — Launch Campaign</span>
-                  </div>
-                  <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.05]">
-                    Join the{" "}
-                    <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-                      Creator&apos;s Airdrop
-                    </span>
-                  </h1>
-                  <p className="text-base lg:text-lg text-muted-foreground leading-relaxed">
-                    Medialane is a platform for creators — publish your work, build an audience, and earn. Everyone who joins during the launch campaign gets a stake in the creator fund.
-                  </p>
+                <div className="inline-flex items-center gap-2 rounded-full border border-yellow-500/30 bg-yellow-500/5 px-3 py-1">
+                  <Sparkles className="h-3.5 w-3.5 text-yellow-500" />
+                  <span className="text-xs font-semibold text-yellow-600 dark:text-yellow-400">Creator&apos;s Airdrop — Launch Campaign</span>
                 </div>
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.05]">
+                  Join the{" "}
+                  <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
+                    Creator&apos;s Airdrop
+                  </span>
+                </h1>
+                <GenesisMint />
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Medialane is a platform for creators — publish your work, build an audience, and earn. Everyone who joins during the launch campaign gets a stake in the creator fund.
+                </p>
+                <div className="flex items-center gap-4">
+                  {["Free to join", "No card needed", "Instant"].map((t) => (
+                    <div key={t} className="flex items-center gap-1.5 text-xs text-muted-foreground/70">
+                      <CheckCircle2 className="h-3 w-3 text-emerald-500/60" />
+                      {t}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Right: image (sticky on desktop) */}
+              <div className="lg:sticky lg:top-24">
                 <EventCard />
               </div>
 
-              {/* Right: claim component (sticky on desktop) */}
-              <div className="lg:sticky lg:top-24">
-                <GenesisMint />
-              </div>
-            </div>
-          </section>
-
-          {/* ── What is Medialane ── */}
-          <section className="py-10 border-t border-border/30 space-y-6">
-            <div className="max-w-2xl">
-              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Platform</p>
-              <h2 className="text-2xl sm:text-3xl font-black">What is Medialane</h2>
-              <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-                Medialane is a creator platform where you publish, share, and monetize your work. Unlike traditional platforms, there are no middlemen taking a cut — the platform revenue goes back to the community.
-              </p>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {[
-                { icon: Camera,  label: "Photos & videos" },
-                { icon: Music,   label: "Music" },
-                { icon: Palette, label: "Digital art" },
-                { icon: Globe,   label: "Documents & posts" },
-              ].map(({ icon: Icon, label }) => (
-                <div key={label} className="flex items-center gap-3 rounded-xl border border-border/40 bg-card/30 px-4 py-3">
-                  <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <span className="text-sm font-medium">{label}</span>
-                </div>
-              ))}
             </div>
           </section>
 
@@ -562,7 +539,7 @@ export function MintContent() {
           <section className="py-10 border-t border-border/30 space-y-6">
             <div>
               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Benefits</p>
-              <h2 className="text-2xl sm:text-3xl font-black">What you receive</h2>
+              <h2 className="text-2xl sm:text-3xl font-black">What you get</h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[
@@ -570,25 +547,25 @@ export function MintContent() {
                   icon: FileCheck,
                   color: "text-blue-400",
                   bg: "bg-blue-500/10",
-                  title: "A permanent participation record",
-                  desc: "When you claim, a record of your participation is issued. It stays with your account permanently and cannot be taken away.",
+                  title: "Permanent participation record",
+                  desc: "A record tied to your account forever. Can't be taken away.",
                 },
                 {
                   icon: Coins,
                   color: "text-yellow-500",
                   bg: "bg-yellow-500/10",
-                  title: "Eligibility for creator fund payouts",
-                  desc: "Participants are eligible for distributions from the creator fund when milestones are reached. The more you create and engage, the larger your share.",
+                  title: "Share of the creator fund",
+                  desc: "When milestones are hit, revenue gets distributed back to participants.",
                 },
                 {
                   icon: Users,
                   color: "text-purple-400",
                   bg: "bg-purple-500/10",
                   title: "Full platform access",
-                  desc: "Publish content, build a profile, connect with other creators, and access the full Medialane marketplace from day one.",
+                  desc: "Publish, sell, collect, and collaborate with creators on day one.",
                 },
               ].map(({ icon: Icon, color, bg, title, desc }) => (
-                <div key={title} className="flex flex-col gap-4 p-5 rounded-2xl border border-border/40 bg-card/30">
+                <div key={title} className="flex flex-col gap-4 p-5 rounded-2xl border border-border/40 bg-card/30 hover:bg-card/50 transition-colors">
                   <div className={`h-11 w-11 rounded-xl ${bg} flex items-center justify-center shrink-0`}>
                     <Icon className={`h-5 w-5 ${color}`} />
                   </div>
@@ -601,32 +578,64 @@ export function MintContent() {
             </div>
           </section>
 
-          {/* ── How participation works ── */}
+          {/* ── Participation tiers ── */}
           <section className="py-10 border-t border-border/30 space-y-6">
             <div className="max-w-2xl">
-              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Rules</p>
-              <h2 className="text-2xl sm:text-3xl font-black">How participation works</h2>
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">How it works</p>
+              <h2 className="text-2xl sm:text-3xl font-black">Sign up. That&apos;s it.</h2>
               <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-                Participation is free and open to everyone. Signing up and claiming your record is the minimum to be eligible. Creators who publish original content and engage with the community receive a higher share of each distribution.
+                Creating an account is all you need to be eligible. Do more — earn more.
               </p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {[
-                { step: "1", title: "Create your account", desc: "Sign up with Google. No approval, no ID, no credit card required." },
-                { step: "2", title: "Protect it", desc: "Set a 6-digit PIN or use Face ID / fingerprint. This secures your account and confirms every action." },
-                { step: "3", title: "Claim your spot", desc: "Tap the claim button. Your participation record is issued and your eligibility is locked in." },
-                { step: "4", title: "Create and engage", desc: "Publish content, interact with other creators, and collect — the more you contribute, the larger your share." },
-              ].map(({ step, title, desc }) => (
-                <div key={step} className="flex gap-4 items-start p-4 rounded-2xl border border-border/40 bg-card/30">
-                  <div className="h-9 w-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
-                    <span className="text-xs font-black text-primary">{step}</span>
-                  </div>
-                  <div>
-                    <p className="font-bold text-sm">{title}</p>
-                    <p className="text-sm text-muted-foreground mt-0.5 leading-relaxed">{desc}</p>
-                  </div>
+
+            {/* Base tier — prominent */}
+            <div className="rounded-2xl border-2 border-emerald-500/30 bg-emerald-500/5 p-6">
+              <div className="flex items-start gap-4">
+                <div className="h-12 w-12 rounded-xl bg-emerald-500/15 flex items-center justify-center shrink-0">
+                  <UserCheck className="h-6 w-6 text-emerald-500" />
                 </div>
-              ))}
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-black text-lg">Register</p>
+                    <span className="text-xs font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 px-2.5 py-0.5 rounded-full">Minimum — you&apos;re in</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                    Sign up and claim your record. That&apos;s the only requirement to participate in the airdrop.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Bonus tiers */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="rounded-2xl border border-border/40 bg-card/30 p-5 space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
+                    <PenLine className="h-5 w-5 text-purple-400" />
+                  </div>
+                  <span className="text-xs font-semibold text-purple-400 bg-purple-500/10 px-2.5 py-1 rounded-full">Bonus</span>
+                </div>
+                <div>
+                  <p className="font-bold">Create content</p>
+                  <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                    Publish original work — photos, music, art, or writing. Creators get a larger share of each distribution.
+                  </p>
+                </div>
+              </div>
+              <div className="rounded-2xl border border-border/40 bg-card/30 p-5 space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-orange-500/10 flex items-center justify-center">
+                    <ShoppingCart className="h-5 w-5 text-orange-400" />
+                  </div>
+                  <span className="text-xs font-semibold text-orange-400 bg-orange-500/10 px-2.5 py-1 rounded-full">Biggest bonus</span>
+                </div>
+                <div>
+                  <p className="font-bold">Trade &amp; collect</p>
+                  <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                    Buy, sell, and collaborate with other creators. Active participants receive the highest share.
+                  </p>
+                </div>
+              </div>
             </div>
           </section>
 
@@ -636,7 +645,7 @@ export function MintContent() {
               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Distribution</p>
               <h2 className="text-2xl sm:text-3xl font-black">Creator fund phases</h2>
               <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-                The creator fund distributes platform revenue to participants. Distributions are milestone-based — they happen when the community reaches the thresholds below. All distributions are subject to a community vote.
+                When the community hits a milestone, platform revenue gets distributed to all participants.
               </p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -646,7 +655,7 @@ export function MintContent() {
                   <span className="text-xs font-semibold bg-blue-500/10 text-blue-400 px-2.5 py-1 rounded-full">5,000 members</span>
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  First distribution from the creator fund. All eligible participants receive a proportional share based on their activity.
+                  First distribution. All eligible participants get a proportional share based on their activity.
                 </p>
               </div>
               <div className="rounded-2xl border border-purple-500/30 bg-purple-500/5 p-5 space-y-3">
@@ -655,62 +664,54 @@ export function MintContent() {
                   <span className="text-xs font-semibold bg-purple-500/10 text-purple-400 px-2.5 py-1 rounded-full">10,000 members</span>
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Second distribution, including all revenue accumulated since Phase 1. Contribution scores are recalculated from all activity since launch.
+                  Second distribution, including all revenue since Phase 1. Activity scores recalculated from launch.
                 </p>
               </div>
             </div>
             <div className="rounded-2xl border border-border/40 bg-muted/10 p-4 flex items-start gap-3">
               <Info className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Phases 1 and 2 are the distributions for the first year of the platform. These milestones are targets, not guarantees — timing depends on platform growth and community vote.
+                Both phases are planned for the first year of the platform. Milestones are targets, not guarantees — timing depends on growth.
               </p>
             </div>
           </section>
 
-          {/* ── Eligibility + Disclaimer side by side on desktop ── */}
+          {/* ── Eligibility + Disclaimer ── */}
           <section className="py-10 border-t border-border/30">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-
-              {/* Eligibility */}
               <div className="space-y-4">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Eligibility</p>
                   <h2 className="text-2xl font-black">Who qualifies</h2>
                 </div>
-                <div className="space-y-2 text-sm">
+                <div className="space-y-2.5 text-sm">
                   {[
-                    { ok: true,  text: "Anyone who creates a free account and claims their record." },
-                    { ok: true,  text: "Accounts that publish original content receive a higher share." },
-                    { ok: true,  text: "Active participants who trade or collaborate receive the highest share." },
-                    { ok: false, text: "Accounts using automated tools or duplicate registrations are disqualified." },
-                    { ok: false, text: "Accounts found to be artificially inflating scores are disqualified." },
+                    { ok: true,  text: "Anyone who creates a free account." },
+                    { ok: true,  text: "Creators who publish original content get a higher share." },
+                    { ok: true,  text: "Active participants who trade or collaborate get the most." },
+                    { ok: false, text: "Automated tools and duplicate accounts are disqualified." },
+                    { ok: false, text: "Artificially inflated activity is disqualified." },
                   ].map(({ ok, text }) => (
                     <div key={text} className="flex items-start gap-3">
                       <div className={`h-5 w-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${ok ? "bg-emerald-500/10" : "bg-destructive/10"}`}>
-                        {ok ? <CheckCircle2 className="h-3 w-3 text-emerald-500" /> : <XCircle className="h-3 w-3 text-destructive" />}
+                        {ok
+                          ? <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                          : <XCircle className="h-3 w-3 text-destructive" />}
                       </div>
                       <span className="text-muted-foreground leading-relaxed">{text}</span>
                     </div>
                   ))}
                 </div>
               </div>
-
-              {/* Disclaimer */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <Shield className="h-4 w-4 text-muted-foreground" />
                   <h2 className="text-2xl font-black">Disclaimer</h2>
                 </div>
                 <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
-                  <p>
-                    Medialane is a content publishing and creator rewards platform. This campaign is not a financial product, investment scheme, lottery, or gambling service.
-                  </p>
-                  <p>
-                    Participation does not guarantee any financial return. Fund distributions, if any occur, are made at the sole discretion of Medialane community governance and may take the form of platform credits, digital assets, or other community resources as determined by vote.
-                  </p>
-                  <p>
-                    The participation record is a digital record of membership in the Medialane community. It has no inherent monetary value and is not a financial instrument.
-                  </p>
+                  <p>Medialane is a content publishing and creator rewards platform. This campaign is not a financial product, investment scheme, lottery, or gambling service.</p>
+                  <p>Participation does not guarantee any financial return. Fund distributions, if any occur, may take the form of platform credits, digital assets, or other community resources.</p>
+                  <p>The participation record is a digital record of community membership. It has no inherent monetary value and is not a financial instrument.</p>
                   <p>
                     By participating you agree to the{" "}
                     <Link href="/campaign-terms" className="underline underline-offset-2 hover:text-foreground transition-colors">Campaign Terms</Link>
@@ -719,15 +720,25 @@ export function MintContent() {
                   </p>
                 </div>
               </div>
-
             </div>
           </section>
 
-          {/* ── Bottom repeat claim ── */}
+          {/* ── Bottom CTA (only for logged-out) ── */}
           {isLoaded && !isSignedIn && (
-            <section className="py-10 border-t border-border/30 space-y-4 max-w-lg">
-              <p className="font-bold text-lg">Ready to join?</p>
-              <GenesisMint />
+            <section className="py-10 border-t border-border/30">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-black">Ready to join?</h2>
+                  <p className="text-sm text-muted-foreground mt-0.5">Free, instant, no card required.</p>
+                </div>
+                <SignUpButton mode="modal" forceRedirectUrl="/mint">
+                  <Button size="lg" className="gap-2 shrink-0 font-bold">
+                    <Sparkles className="h-4 w-4" />
+                    Claim my spot
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </SignUpButton>
+              </div>
             </section>
           )}
 
