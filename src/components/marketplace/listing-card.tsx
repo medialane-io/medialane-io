@@ -4,14 +4,18 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSWRConfig } from "swr";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MotionCard } from "@/components/ui/motion-primitives";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ShoppingCart, Check, MoreHorizontal, Layers, ArrowRightLeft, Flag, GitBranch, HandCoins, ArrowUpRight, Zap, UserCircle2, Settings2, XCircle } from "lucide-react";
+import { ShoppingCart, Check, MoreHorizontal, Layers, ArrowRightLeft, Flag, GitBranch, HandCoins, ArrowUpRight, Zap, UserCircle2, XCircle } from "lucide-react";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { cn, ipfsToHttp, formatDisplayPrice, timeAgo } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
+import { useOrderActions } from "@/app/asset/[contract]/[tokenId]/use-order-actions";
+import { CancelListingDialog } from "@/app/asset/[contract]/[tokenId]/cancel-listing-dialog";
+import { PinDialog } from "@/components/chipi/pin-dialog";
 import { ReportDialog } from "@/components/report-dialog";
 import type { ApiOrder } from "@medialane/sdk";
 
@@ -26,10 +30,14 @@ interface ListingCardProps {
 
 export function ListingCard({ order, onBuy, compact = false, isOwner = false }: ListingCardProps) {
   const router = useRouter();
+  const { mutate } = useSWRConfig();
   const { addItem, items } = useCart();
   const inCart = items.some((i) => i.orderHash === order.orderHash);
   const [imgError, setImgError] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const cancelActions = useOrderActions({
+    mutateListings: () => mutate((key) => typeof key === "string" && key.includes("/v1/orders"), undefined, { revalidate: true }),
+  });
   const isListing = order.offer.itemType === "ERC721" || order.offer.itemType === "ERC1155";
 
   const name = order.token?.name ?? `Token #${order.nftTokenId}`;
@@ -141,14 +149,13 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
             isOwner ? (
               /* ── Owner view ── */
               <div className="flex items-center gap-1.5">
-                <Link
-                  href={`/asset/${order.nftContract}/${order.nftTokenId}`}
-                  className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-[9px] border border-border text-xs font-semibold text-muted-foreground hover:bg-muted/60 transition-all"
-                  onClick={(e) => e.stopPropagation()}
+                <button
+                  className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-[9px] border border-brand-orange/50 bg-brand-orange/10 text-brand-orange text-xs font-semibold hover:bg-brand-orange/20 transition-all active:scale-[0.98]"
+                  onClick={(e) => { e.preventDefault(); cancelActions.handleCancelClick(order); }}
                 >
-                  <Settings2 className="h-3.5 w-3.5 shrink-0" />
-                  Manage listing
-                </Link>
+                  <XCircle className="h-3.5 w-3.5 shrink-0" />
+                  Cancel
+                </button>
 
                 {/* ⋯ More */}
                 <DropdownMenu>
@@ -171,11 +178,12 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link href={`/asset/${order.nftContract}/${order.nftTokenId}`} className="flex items-center gap-2 text-brand-orange focus:text-brand-orange">
-                        <XCircle className="h-3.5 w-3.5" />
-                        Cancel listing
-                      </Link>
+                    <DropdownMenuItem
+                      className="flex items-center gap-2 text-brand-orange focus:text-brand-orange"
+                      onClick={(e) => { e.preventDefault(); cancelActions.handleCancelClick(order); }}
+                    >
+                      <XCircle className="h-3.5 w-3.5" />
+                      Cancel listing
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       className="flex items-center gap-2 text-brand-purple focus:text-brand-purple"
@@ -341,6 +349,19 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
           onOpenChange={setReportOpen}
         />
       )}
+
+      <PinDialog
+        open={cancelActions.cancelPinOpen}
+        title="Cancel listing"
+        description="Enter your PIN to cancel this listing."
+        onSubmit={(pin) => cancelActions.handleCancelPin(pin)}
+        onCancel={cancelActions.dismissCancelPin}
+      />
+      <CancelListingDialog
+        cancelStep={cancelActions.cancelStep}
+        cancelError={cancelActions.cancelError}
+        onReset={cancelActions.resetCancelStep}
+      />
     </MotionCard>
   );
 }
