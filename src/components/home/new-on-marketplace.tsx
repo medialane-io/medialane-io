@@ -6,10 +6,12 @@ import { useOrders } from "@/hooks/use-orders";
 import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listing-card";
 import { ScrollSection } from "@/components/shared/scroll-section";
 import { PurchaseDialog } from "@/components/marketplace/purchase-dialog";
+import { useSessionKey } from "@/hooks/use-session-key";
 import type { ApiOrder } from "@medialane/sdk";
 
 export function NewOnMarketplace() {
   const { orders, isLoading } = useOrders({ status: "ACTIVE", limit: 10, page: 1 });
+  const { walletAddress } = useSessionKey();
   const [buyOrder, setBuyOrder] = useState<ApiOrder | null>(null);
 
   const listings = orders.filter((o) => o.offer.itemType === "ERC721" || o.offer.itemType === "ERC1155").slice(0, 10);
@@ -38,11 +40,19 @@ export function NewOnMarketplace() {
                 </a>
               </p>
             )
-          : listings.map((order) => (
-              <div key={order.orderHash} className="w-72 snap-start shrink-0">
-                <ListingCard order={order} onBuy={() => setBuyOrder(order)} />
-              </div>
-            ))}
+          : listings.map((order) => {
+              const isOwner = !!walletAddress && !!order.offerer &&
+                order.offerer.toLowerCase() === walletAddress.toLowerCase();
+              return (
+                <div key={order.orderHash} className="w-72 snap-start shrink-0">
+                  <ListingCard
+                    order={order}
+                    isOwner={isOwner}
+                    onBuy={isOwner ? undefined : () => setBuyOrder(order)}
+                  />
+                </div>
+              );
+            })}
       </ScrollSection>
 
       {buyOrder && (

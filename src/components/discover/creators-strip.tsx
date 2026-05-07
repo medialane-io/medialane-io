@@ -9,7 +9,11 @@ export function CreatorsStrip() {
 
   return (
     <DiscoverCreatorsStrip
-      creators={creators}
+      creators={creators.map((c) => ({
+        ...c,
+        bannerImage: c.bannerImage ?? (c as any).collectionImage ?? null,
+        avatarImage: c.avatarImage ?? (c as any).collectionImage ?? null,
+      }))}
       isLoading={isLoading}
       getHref={(c: ApiCreatorProfile) => `/creator/${c.username}`}
       allCreatorsHref="/creators"
