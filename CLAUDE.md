@@ -294,6 +294,28 @@ All previously noted bugs were fixed. No outstanding known bugs.
 - [x] `src/components/asset/self-remix-dialog.tsx` deleted — superseded by full `/create/remix` page flow ✓ 2026-04-30
 - [x] `MarketplaceDebugPanel` removed from `listing-dialog.tsx` (3 instances) and `create/asset/page.tsx` ✓ 2026-04-30
 
+### 2026-05-07 session — airdrop pages redesign + Unicode encoding fix
+
+**Airdrop pages redesign (`/mint`, `/br/mint`, `/airdrop`):**
+- [x] All three pages use `max-w-5xl` containers with multi-column desktop grids ✓ 2026-05-07
+- [x] `/mint` + `/br/mint` hero: left = badge → H1 → `<GenesisMint />` → description; right = genesis NFT image (sticky on desktop) ✓ 2026-05-07
+- [x] Participation section reframed: "Sign up — you're in" as big green base tier; Create and Trade/Collect shown as bonus tiers (not steps) — removed invented 4-step flow ✓ 2026-05-07
+- [x] `/airdrop` hero: left = badge → H1 → description → content-type chips; right = `<GenesisMint />` + genesis image (sticky) ✓ 2026-05-07
+- [x] `/airdrop` header stripped to logo only — no nav or CTA buttons (claim is inline) ✓ 2026-05-07
+- [x] Benefits section renamed "Airdrop rewards / What early participants earn"; removed misleading "Full platform access" card; replaced with "Founding member status" ✓ 2026-05-07
+- [x] Eligibility section replaced with cleaner "Participation rules" split: "Who can join" (green) vs "What gets you removed" (red) ✓ 2026-05-07
+- [x] All incorrect content removed: annual cycle, DAO/governance/MDLN jargon ✓ 2026-05-07
+
+**Shared airdrop component (`src/components/airdrop/genesis-mint.tsx`):**
+- [x] Extracted `WalletSetup` + `GenesisMint` + `AirdropEventCard` into shared component ✓ 2026-05-07
+- [x] `/mint`, `/airdrop` both import from this shared file — no duplication ✓ 2026-05-07
+
+**Unicode encoding fix (`serializeByteArray`):**
+- [x] `src/lib/cairo-calldata.ts`: replaced starknet.js `byteArrayFromString` (ASCII-only) with `TextEncoder`-based UTF-8 packer — supports any language, accented chars, CJK, emoji ✓ 2026-05-07
+- [x] All four direct `byteArray.byteArrayFromString` calls in mint flows migrated to `serializeByteArray`: `genesis-mint.tsx`, `br-mint-content.tsx`, `launch-mint.tsx` ✓ 2026-05-07
+- [x] Fixes ERC-1155 collection creation failure for names with non-ASCII characters (e.g. "Nó Samsara") ✓ 2026-05-07
+- [x] Symbol field `^[A-Z0-9]+$` intentionally kept ASCII — on-chain ticker symbols are ASCII by convention ✓ 2026-05-07
+
 ### 2026-05-06 session — ownership UX, dialog polish, creator images
 
 **Ownership-aware listing surfaces:**
@@ -352,7 +374,8 @@ layout.tsx (server)
 |---|---|
 | `src/lib/constants.ts` | All env vars + contract addresses |
 | `src/lib/medialane-client.ts` | SDK singleton (MedialaneClient) — explicitly sets `marketplaceContract`, `marketplace1155Contract`, `collectionContract`, `collection1155Contract` |
-| `src/lib/cairo-calldata.ts` | Cairo calldata helpers: `serializeByteArray(str)` → `string[]` for Cairo ByteArray; `encodeU256(n: bigint)` → `[low, high]`. Use these instead of manual felt encoding anywhere mint/transfer calldata is built. |
+| `src/lib/cairo-calldata.ts` | Cairo calldata helpers: `serializeByteArray(str)` → `string[]` for Cairo ByteArray (UTF-8 safe, supports any Unicode); `encodeU256(n: bigint)` → `[low, high]`. Use these instead of manual felt encoding anywhere mint/transfer calldata is built. Never use starknet.js `byteArrayFromString` directly — it is ASCII-only. |
+| `src/components/airdrop/genesis-mint.tsx` | Shared airdrop components: `GenesisMint` (full claim flow — sign-in gate, wallet setup, PIN, mint, success/error), `AirdropEventCard` (genesis NFT image with fallback). Used by `/mint` and `/airdrop`. |
 | `src/lib/utils.ts` | `ipfsToHttp`, `timeUntil`, `formatPrice`, `cn` |
 | `src/types/index.ts` | Local TypeScript types (CartItem, etc.) |
 | `src/types/ip.ts` | IP/licensing constants: `LICENSE_TYPES`, `IP_TYPES`, `GEOGRAPHIC_SCOPES`, `AI_POLICIES`, `DERIVATIVES_OPTIONS`, `LICENSE_TRAIT_TYPES` |
