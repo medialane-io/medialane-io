@@ -495,228 +495,206 @@ export function BrMintContent() {
         )}
       </header>
 
-      <div className="flex-1 max-w-lg mx-auto w-full px-5">
+      <div className="flex-1 w-full">
+        <div className="max-w-5xl mx-auto px-5 sm:px-8">
 
-        {/* ── Hero ── */}
-        <section className="pt-10 pb-8 space-y-5">
-          <div className="inline-flex items-center gap-2 rounded-full border border-yellow-500/30 bg-yellow-500/5 px-3 py-1">
-            <Sparkles className="h-3.5 w-3.5 text-yellow-500" />
-            <span className="text-xs font-semibold text-yellow-600 dark:text-yellow-400">Airdrop de Criadores — Campanha Brasil</span>
-          </div>
-          <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-[1.05]">
-            Participe do{" "}
-            <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-              Airdrop de Criadores
-            </span>
-          </h1>
-          <p className="text-base text-muted-foreground leading-relaxed">
-            A Medialane é uma plataforma para criadores — publique seu trabalho, construa uma audiência e ganhe. Quem participar durante o lançamento recebe uma fatia do fundo de criadores, completamente grátis.
-          </p>
-
-          {/* Imagem do NFT */}
-          <EventCard />
-
-          {/* Componente de participação */}
-          <GenesisMint />
-        </section>
-
-        {/* ── O que é a Medialane ── */}
-        <section className="py-8 border-t border-border/30 space-y-5">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Plataforma</p>
-            <h2 className="text-2xl font-black">O que é a Medialane</h2>
-            <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-              A Medialane é uma plataforma de criadores onde você publica, compartilha e monetiza seu trabalho. Ao contrário das plataformas tradicionais, não há intermediários tomando uma parte — a receita da plataforma volta para a comunidade.
-            </p>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { icon: Camera,  label: "Fotos e vídeos" },
-              { icon: Music,   label: "Música" },
-              { icon: Palette, label: "Arte digital" },
-              { icon: Globe,   label: "Documentos e posts" },
-            ].map(({ icon: Icon, label }) => (
-              <div key={label} className="flex items-center gap-3 rounded-xl border border-border/40 bg-card/30 px-4 py-3">
-                <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
-                <span className="text-sm font-medium">{label}</span>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* ── O que você recebe ── */}
-        <section className="py-8 border-t border-border/30 space-y-5">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Benefícios</p>
-            <h2 className="text-2xl font-black">O que você recebe</h2>
-          </div>
-          <div className="space-y-3">
-            {[
-              {
-                icon: FileCheck,
-                color: "text-blue-400",
-                bg: "bg-blue-500/10",
-                title: "Um registro permanente de participação",
-                desc: "Ao reivindicar, um comprovante da sua participação é emitido. Ele fica vinculado à sua conta permanentemente e não pode ser retirado.",
-              },
-              {
-                icon: Coins,
-                color: "text-yellow-500",
-                bg: "bg-yellow-500/10",
-                title: "Elegibilidade para pagamentos do fundo",
-                desc: "Participantes são elegíveis para distribuições do fundo de criadores quando as metas são atingidas. Quanto mais você cria e interage, maior sua fatia.",
-              },
-              {
-                icon: Users,
-                color: "text-purple-400",
-                bg: "bg-purple-500/10",
-                title: "Acesso completo à plataforma",
-                desc: "Publique conteúdo, monte seu perfil, conecte-se com outros criadores e acesse o marketplace completo da Medialane desde o primeiro dia.",
-              },
-            ].map(({ icon: Icon, color, bg, title, desc }) => (
-              <div key={title} className="flex gap-4 p-4 rounded-2xl border border-border/40 bg-card/30">
-                <div className={`h-10 w-10 rounded-xl ${bg} flex items-center justify-center shrink-0 mt-0.5`}>
-                  <Icon className={`h-5 w-5 ${color}`} />
+          {/* ── Hero: 2 colunas no desktop ── */}
+          <section className="py-12 lg:py-20">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-yellow-500/30 bg-yellow-500/5 px-3 py-1">
+                    <Sparkles className="h-3.5 w-3.5 text-yellow-500" />
+                    <span className="text-xs font-semibold text-yellow-600 dark:text-yellow-400">Airdrop de Criadores — Campanha Brasil</span>
+                  </div>
+                  <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.05]">
+                    Participe do{" "}
+                    <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
+                      Airdrop de Criadores
+                    </span>
+                  </h1>
+                  <p className="text-base lg:text-lg text-muted-foreground leading-relaxed">
+                    A Medialane é uma plataforma para criadores — publique seu trabalho, construa uma audiência e ganhe. Quem participar durante o lançamento recebe uma fatia do fundo de criadores, completamente grátis.
+                  </p>
                 </div>
-                <div>
-                  <p className="font-bold text-sm">{title}</p>
-                  <p className="text-sm text-muted-foreground mt-0.5 leading-relaxed">{desc}</p>
-                </div>
+                <EventCard />
               </div>
-            ))}
-          </div>
-        </section>
-
-        {/* ── Como funciona ── */}
-        <section className="py-8 border-t border-border/30 space-y-5">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Regras</p>
-            <h2 className="text-2xl font-black">Como funciona a participação</h2>
-            <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-              A participação é gratuita e aberta a todos. Criar conta e reivindicar seu registro é o mínimo para ser elegível. Criadores que publicam conteúdo original e interagem com a comunidade recebem uma pontuação maior, que determina sua parte proporcional em cada distribuição.
-            </p>
-          </div>
-          <div className="space-y-3">
-            {[
-              { step: "1", title: "Crie sua conta", desc: "Cadastre-se com o Google. Sem aprovação, sem CPF, sem cartão de crédito." },
-              { step: "2", title: "Proteja sua conta", desc: "Defina um PIN de 6 dígitos ou use Face ID / digital. Isso confirma cada ação na plataforma." },
-              { step: "3", title: "Garanta seu lugar", desc: "Toque no botão de participação. Seu registro é emitido e sua elegibilidade é confirmada." },
-              { step: "4", title: "Crie e interaja", desc: "Publique conteúdo, interaja com outros criadores e colecione — quanto mais você contribui, maior sua fatia." },
-            ].map(({ step, title, desc }) => (
-              <div key={step} className="flex gap-4 items-start">
-                <div className="h-9 w-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="text-xs font-black text-primary">{step}</span>
-                </div>
-                <div>
-                  <p className="font-bold text-sm">{title}</p>
-                  <p className="text-sm text-muted-foreground mt-0.5 leading-relaxed">{desc}</p>
-                </div>
+              <div className="lg:sticky lg:top-24">
+                <GenesisMint />
               </div>
-            ))}
-          </div>
-        </section>
-
-        {/* ── Fases de distribuição ── */}
-        <section className="py-8 border-t border-border/30 space-y-5">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Distribuição</p>
-            <h2 className="text-2xl font-black">Fases do fundo de criadores</h2>
-            <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-              O fundo distribui a receita da plataforma para os participantes. As distribuições são baseadas em metas — acontecem quando a comunidade atinge os marcos abaixo. Todas as distribuições passam por votação da comunidade antes de serem realizadas.
-            </p>
-          </div>
-          <div className="space-y-3">
-            <div className="rounded-2xl border border-blue-500/30 bg-blue-500/5 p-5 space-y-2">
-              <div className="flex items-center justify-between gap-3">
-                <p className="font-bold">Fase 1</p>
-                <span className="text-xs font-semibold bg-blue-500/10 text-blue-400 px-2.5 py-1 rounded-full">5.000 membros</span>
-              </div>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Primeira distribuição do fundo de criadores. Todos os participantes elegíveis recebem uma parte proporcional com base em sua pontuação de contribuição.
-              </p>
             </div>
-            <div className="rounded-2xl border border-purple-500/30 bg-purple-500/5 p-5 space-y-2">
-              <div className="flex items-center justify-between gap-3">
-                <p className="font-bold">Fase 2</p>
-                <span className="text-xs font-semibold bg-purple-500/10 text-purple-400 px-2.5 py-1 rounded-full">10.000 membros</span>
-              </div>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Segunda distribuição, incluindo toda a receita acumulada desde a Fase 1. As pontuações são recalculadas considerando toda a atividade desde o lançamento.
-              </p>
-            </div>
-          </div>
-          <div className="rounded-2xl border border-border/40 bg-muted/10 p-4 flex items-start gap-3">
-            <Info className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              As Fases 1 e 2 são as distribuições do primeiro ano da plataforma. Essas metas são objetivos, não garantias — o prazo depende do crescimento da plataforma e da votação da comunidade.
-            </p>
-          </div>
-        </section>
-
-        {/* ── Elegibilidade ── */}
-        <section className="py-8 border-t border-border/30 space-y-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Elegibilidade</p>
-            <h2 className="text-2xl font-black">Quem é elegível</h2>
-          </div>
-          <div className="space-y-2 text-sm">
-            {[
-              { ok: true,  text: "Qualquer pessoa que criar uma conta gratuita e reivindicar seu registro." },
-              { ok: true,  text: "Contas que publicam conteúdo original recebem uma fatia maior." },
-              { ok: true,  text: "Participantes ativos que negociam ou colaboram recebem a maior fatia." },
-              { ok: false, text: "Contas que usam ferramentas automatizadas ou cadastros duplicados são desqualificadas." },
-              { ok: false, text: "Contas flagradas inflando artificialmente suas pontuações são desqualificadas." },
-            ].map(({ ok, text }) => (
-              <div key={text} className="flex items-start gap-3">
-                <div className={`h-5 w-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${ok ? "bg-emerald-500/10" : "bg-destructive/10"}`}>
-                  {ok
-                    ? <CheckCircle2 className="h-3 w-3 text-emerald-500" />
-                    : <XCircle className="h-3 w-3 text-destructive" />}
-                </div>
-                <span className="text-muted-foreground leading-relaxed">{text}</span>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* ── Aviso legal ── */}
-        <section className="py-8 border-t border-border/30 space-y-4">
-          <div className="flex items-center gap-2">
-            <Shield className="h-4 w-4 text-muted-foreground" />
-            <h2 className="text-base font-bold">Aviso legal</h2>
-          </div>
-          <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
-            <p>
-              A Medialane é uma plataforma de publicação de conteúdo e recompensas para criadores. Esta campanha não é um produto financeiro, esquema de investimento, loteria ou serviço de apostas.
-            </p>
-            <p>
-              A participação não garante nenhum retorno financeiro. As distribuições do fundo, caso ocorram, são feitas a critério exclusivo da comunidade Medialane e podem tomar a forma de créditos na plataforma, ativos digitais ou outros recursos comunitários conforme determinado por votação.
-            </p>
-            <p>
-              O registro de participação emitido após a reivindicação é um registro digital de associação à comunidade Medialane. Não possui valor monetário intrínseco e não é um instrumento financeiro.
-            </p>
-            <p>
-              Ao participar, você confirma que leu e concorda com o{" "}
-              <Link href="/campaign-terms" className="underline underline-offset-2 hover:text-foreground transition-colors">
-                Regulamento da Campanha
-              </Link>
-              {" "}e com os{" "}
-              <Link href="/terms" className="underline underline-offset-2 hover:text-foreground transition-colors">
-                Termos de Uso
-              </Link>.
-            </p>
-          </div>
-        </section>
-
-        {/* ── Repetir componente de participação ── */}
-        {isLoaded && !isSignedIn && (
-          <section className="py-8 border-t border-border/30 space-y-4">
-            <p className="text-sm font-semibold text-center">Pronto para participar?</p>
-            <GenesisMint />
           </section>
-        )}
 
-        <div className="pb-10" />
+          {/* ── O que é a Medialane ── */}
+          <section className="py-10 border-t border-border/30 space-y-6">
+            <div className="max-w-2xl">
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Plataforma</p>
+              <h2 className="text-2xl sm:text-3xl font-black">O que é a Medialane</h2>
+              <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
+                A Medialane é uma plataforma de criadores onde você publica, compartilha e monetiza seu trabalho. Ao contrário das plataformas tradicionais, não há intermediários tomando uma parte — a receita da plataforma volta para a comunidade.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                { icon: Camera,  label: "Fotos e vídeos" },
+                { icon: Music,   label: "Música" },
+                { icon: Palette, label: "Arte digital" },
+                { icon: Globe,   label: "Documentos e posts" },
+              ].map(({ icon: Icon, label }) => (
+                <div key={label} className="flex items-center gap-3 rounded-xl border border-border/40 bg-card/30 px-4 py-3">
+                  <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <span className="text-sm font-medium">{label}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* ── O que você recebe ── */}
+          <section className="py-10 border-t border-border/30 space-y-6">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Benefícios</p>
+              <h2 className="text-2xl sm:text-3xl font-black">O que você recebe</h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {[
+                { icon: FileCheck, color: "text-blue-400",   bg: "bg-blue-500/10",   title: "Um registro permanente de participação", desc: "Ao reivindicar, um comprovante é emitido. Fica vinculado à sua conta para sempre e não pode ser retirado." },
+                { icon: Coins,     color: "text-yellow-500", bg: "bg-yellow-500/10", title: "Elegibilidade para pagamentos do fundo", desc: "Participantes são elegíveis para distribuições quando as metas são atingidas. Quanto mais você contribui, maior sua fatia." },
+                { icon: Users,     color: "text-purple-400", bg: "bg-purple-500/10", title: "Acesso completo à plataforma", desc: "Publique conteúdo, monte seu perfil, conecte-se com criadores e acesse o marketplace desde o primeiro dia." },
+              ].map(({ icon: Icon, color, bg, title, desc }) => (
+                <div key={title} className="flex flex-col gap-4 p-5 rounded-2xl border border-border/40 bg-card/30">
+                  <div className={`h-11 w-11 rounded-xl ${bg} flex items-center justify-center shrink-0`}>
+                    <Icon className={`h-5 w-5 ${color}`} />
+                  </div>
+                  <div>
+                    <p className="font-bold">{title}</p>
+                    <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* ── Como funciona ── */}
+          <section className="py-10 border-t border-border/30 space-y-6">
+            <div className="max-w-2xl">
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Regras</p>
+              <h2 className="text-2xl sm:text-3xl font-black">Como funciona a participação</h2>
+              <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
+                A participação é gratuita e aberta a todos. Criar conta e reivindicar seu registro é o mínimo para ser elegível. Criadores que publicam conteúdo original e interagem com a comunidade recebem uma parte maior de cada distribuição.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {[
+                { step: "1", title: "Crie sua conta", desc: "Cadastre-se com o Google. Sem aprovação, sem CPF, sem cartão de crédito." },
+                { step: "2", title: "Proteja sua conta", desc: "Defina um PIN de 6 dígitos ou use Face ID / digital. Isso confirma cada ação na plataforma." },
+                { step: "3", title: "Garanta seu lugar", desc: "Toque no botão de participação. Seu registro é emitido e sua elegibilidade é confirmada." },
+                { step: "4", title: "Crie e interaja", desc: "Publique conteúdo, interaja com outros criadores e colecione — quanto mais você contribui, maior sua fatia." },
+              ].map(({ step, title, desc }) => (
+                <div key={step} className="flex gap-4 items-start p-4 rounded-2xl border border-border/40 bg-card/30">
+                  <div className="h-9 w-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+                    <span className="text-xs font-black text-primary">{step}</span>
+                  </div>
+                  <div>
+                    <p className="font-bold text-sm">{title}</p>
+                    <p className="text-sm text-muted-foreground mt-0.5 leading-relaxed">{desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* ── Fases de distribuição ── */}
+          <section className="py-10 border-t border-border/30 space-y-6">
+            <div className="max-w-2xl">
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Distribuição</p>
+              <h2 className="text-2xl sm:text-3xl font-black">Fases do fundo de criadores</h2>
+              <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
+                O fundo distribui a receita da plataforma para os participantes. As distribuições são baseadas em metas e sujeitas a votação da comunidade.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="rounded-2xl border border-blue-500/30 bg-blue-500/5 p-5 space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="font-bold text-lg">Fase 1</p>
+                  <span className="text-xs font-semibold bg-blue-500/10 text-blue-400 px-2.5 py-1 rounded-full">5.000 membros</span>
+                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Primeira distribuição do fundo. Todos os participantes elegíveis recebem uma parte proporcional com base em sua atividade.
+                </p>
+              </div>
+              <div className="rounded-2xl border border-purple-500/30 bg-purple-500/5 p-5 space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="font-bold text-lg">Fase 2</p>
+                  <span className="text-xs font-semibold bg-purple-500/10 text-purple-400 px-2.5 py-1 rounded-full">10.000 membros</span>
+                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Segunda distribuição, incluindo toda a receita acumulada desde a Fase 1. As pontuações são recalculadas desde o lançamento.
+                </p>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-border/40 bg-muted/10 p-4 flex items-start gap-3">
+              <Info className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                As Fases 1 e 2 são as distribuições do primeiro ano da plataforma. Essas metas são objetivos, não garantias.
+              </p>
+            </div>
+          </section>
+
+          {/* ── Elegibilidade + Aviso legal ── */}
+          <section className="py-10 border-t border-border/30">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+              <div className="space-y-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Elegibilidade</p>
+                  <h2 className="text-2xl font-black">Quem é elegível</h2>
+                </div>
+                <div className="space-y-2 text-sm">
+                  {[
+                    { ok: true,  text: "Qualquer pessoa que criar uma conta gratuita e reivindicar seu registro." },
+                    { ok: true,  text: "Contas que publicam conteúdo original recebem uma fatia maior." },
+                    { ok: true,  text: "Participantes ativos que negociam ou colaboram recebem a maior fatia." },
+                    { ok: false, text: "Contas que usam ferramentas automatizadas ou cadastros duplicados são desqualificadas." },
+                    { ok: false, text: "Contas flagradas inflando artificialmente suas pontuações são desqualificadas." },
+                  ].map(({ ok, text }) => (
+                    <div key={text} className="flex items-start gap-3">
+                      <div className={`h-5 w-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${ok ? "bg-emerald-500/10" : "bg-destructive/10"}`}>
+                        {ok ? <CheckCircle2 className="h-3 w-3 text-emerald-500" /> : <XCircle className="h-3 w-3 text-destructive" />}
+                      </div>
+                      <span className="text-muted-foreground leading-relaxed">{text}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-muted-foreground" />
+                  <h2 className="text-2xl font-black">Aviso legal</h2>
+                </div>
+                <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
+                  <p>A Medialane é uma plataforma de publicação e recompensas para criadores. Esta campanha não é um produto financeiro, esquema de investimento, loteria ou serviço de apostas.</p>
+                  <p>A participação não garante nenhum retorno financeiro. As distribuições, caso ocorram, são feitas a critério da comunidade e podem tomar a forma de créditos, ativos digitais ou outros recursos.</p>
+                  <p>O registro de participação é um comprovante digital de associação à comunidade Medialane. Não possui valor monetário intrínseco e não é um instrumento financeiro.</p>
+                  <p>
+                    Ao participar, você concorda com o{" "}
+                    <Link href="/campaign-terms" className="underline underline-offset-2 hover:text-foreground transition-colors">Regulamento da Campanha</Link>
+                    {" "}e os{" "}
+                    <Link href="/terms" className="underline underline-offset-2 hover:text-foreground transition-colors">Termos de Uso</Link>.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* ── Repetir participação ── */}
+          {isLoaded && !isSignedIn && (
+            <section className="py-10 border-t border-border/30 space-y-4 max-w-lg">
+              <p className="font-bold text-lg">Pronto para participar?</p>
+              <GenesisMint />
+            </section>
+          )}
+
+          <div className="pb-12" />
+        </div>
       </div>
 
       {/* Rodapé */}
