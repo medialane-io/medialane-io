@@ -2,30 +2,29 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import NextImage from "next/image";
 import { useCreatorByUsername } from "@/hooks/use-username-claims";
 import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { useUserOrders } from "@/hooks/use-orders";
 import { useActivitiesByAddress } from "@/hooks/use-activities";
-import { CollectionCarouselRow } from "@/components/creator/collection-carousel-row";
 import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listing-card";
+import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
+import { CollectionCard, CollectionCardSkeleton } from "@/components/shared/collection-card";
 import { CreatorAnalytics } from "@/components/creator/creator-analytics";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ipfsToHttp, normalizeAddress, timeAgo, formatDisplayPrice } from "@/lib/utils";
 import {
-  AtSign, Globe, Twitter, ExternalLink, MessageCircle, Send,
+  Globe, Twitter, MessageCircle, Send,
   ShoppingBag, BarChart2, Activity, ArrowRightLeft, Tag, Handshake,
-  TrendingUp, Sparkles, LayoutGrid,
+  TrendingUp, Sparkles, LayoutGrid, Image as ImageIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { ApiCollection, ApiActivity } from "@medialane/sdk";
+import type { ApiActivity } from "@medialane/sdk";
 
 interface Props {
   username: string;
 }
-
 
 const ACTIVITY_META: Record<string, { label: string; textColor: string; bg: string }> = {
   mint:      { label: "Minted",    textColor: "text-yellow-400",  bg: "bg-yellow-500/8 border-yellow-500/15" },
@@ -90,7 +89,22 @@ function ActivityRow({ event, isLast }: { event: ApiActivity; isLast: boolean })
   );
 }
 
+function EmptyState({ icon: Icon, heading, body }: { icon: React.ElementType; heading: string; body: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
+      <div className="h-14 w-14 rounded-2xl border border-border/60 bg-muted/40 flex items-center justify-center">
+        <Icon className="h-6 w-6 text-muted-foreground/60" />
+      </div>
+      <div className="space-y-1.5">
+        <p className="text-sm font-semibold">{heading}</p>
+        <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">{body}</p>
+      </div>
+    </div>
+  );
+}
+
 const TABS = [
+  { id: "assets",      label: "Assets",      Icon: ImageIcon },
   { id: "collections", label: "Collections", Icon: LayoutGrid },
   { id: "listings",    label: "Listings",    Icon: ShoppingBag },
   { id: "analytics",   label: "Analytics",   Icon: BarChart2 },
@@ -100,12 +114,13 @@ const TABS = [
 type TabId = (typeof TABS)[number]["id"];
 
 export default function CreatorUsernamePageClient({ username }: Props) {
-  const [activeTab, setActiveTab] = useState<TabId>("collections");
+  const [activeTab, setActiveTab] = useState<TabId>("assets");
 
   const { creator, isLoading, error } = useCreatorByUsername(username);
   const walletAddress = creator?.walletAddress ? normalizeAddress(creator.walletAddress) : null;
 
   const { tokens: bannerTokens } = useTokensByOwner(walletAddress, 1, 1);
+  const { tokens, isLoading: tokensLoading } = useTokensByOwner(activeTab === "assets" ? walletAddress : null);
   const { collections, isLoading: colsLoading } = useCollectionsByOwner(walletAddress);
   const { orders, isLoading: ordersLoading } = useUserOrders(activeTab === "listings" ? walletAddress : null);
   const { activities, isLoading: activitiesLoading } = useActivitiesByAddress(walletAddress);
@@ -113,50 +128,37 @@ export default function CreatorUsernamePageClient({ username }: Props) {
   const activeListings = orders.filter((o) => o.status === "ACTIVE" && o.offer.itemType === "ERC721");
 
   const heroRaw = creator?.bannerImage
-    ? ipfsToHttp(creator.bannerImage)
-    : creator?.avatarImage
-    ? ipfsToHttp(creator.avatarImage)
-    : bannerTokens[0]?.metadata?.image
-    ? ipfsToHttp(bannerTokens[0].metadata.image)
-    : null;
-  const heroImage = heroRaw && heroRaw !== "/placeholder.svg" ? heroRaw : null;
+    || creator?.avatarImage
+    || bannerTokens[0]?.metadata?.image
+    || null;
+  const heroImage = heroRaw ? ipfsToHttp(heroRaw) : null;
 
-  const avatarRaw = creator?.avatarImage ? ipfsToHttp(creator.avatarImage) : null;
-  const [avatarErr, setAvatarErr] = useState(false);
-  const showAvatar = avatarRaw && avatarRaw !== "/placeholder.svg" && !avatarErr;
-
-  const displayName = creator?.displayName || `@${username}`;
+  // Show displayName if set, else username without @ prefix
+  const displayName = creator?.displayName || creator?.username || username;
+  // Show username as subtitle only when displayName is different
+  const showUsername = creator?.displayName && creator?.username && creator.displayName !== creator.username;
 
   const tabBadge: Partial<Record<TabId, number>> = {
-    ...(!colsLoading && { collections: collections.length }),
-    ...(activeTab === "listings" && !ordersLoading && { listings: activeListings.length }),
-    ...(!activitiesLoading && { activity: activities.length }),
+    ...(activeTab === "assets"      && !tokensLoading      && { assets:      tokens.length }),
+    ...(!colsLoading                                       && { collections: collections.length }),
+    ...(activeTab === "listings"    && !ordersLoading      && { listings:    activeListings.length }),
+    ...(!activitiesLoading                                 && { activity:    activities.length }),
   };
 
   if (isLoading) {
     return (
       <div className="pb-20 min-h-screen">
-        <Skeleton className="w-full h-[40vw] min-h-[240px] max-h-[420px] rounded-none" />
+        <Skeleton className="w-full h-[32vw] min-h-[180px] max-h-[320px] rounded-none" />
         <div className="px-6 pt-5 space-y-4">
-          <div className="flex items-center gap-3">
-            <Skeleton className="h-14 w-14 rounded-full shrink-0" />
-            <div className="flex-1 space-y-2">
-              <Skeleton className="h-5 w-40" />
-              <Skeleton className="h-3.5 w-24" />
-            </div>
+          <div className="space-y-2">
+            <Skeleton className="h-7 w-48" />
+            <Skeleton className="h-4 w-24" />
           </div>
           <div className="flex gap-2 border-b border-border pb-3">
-            {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-8 w-24 rounded-full" />)}
+            {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-8 w-20 rounded-full" />)}
           </div>
-          <div className="space-y-6">
-            {Array.from({ length: 2 }).map((_, i) => (
-              <div key={i} className="space-y-2">
-                <Skeleton className="h-4 w-36" />
-                <div className="flex gap-3">
-                  {Array.from({ length: 4 }).map((_, j) => <Skeleton key={j} className="shrink-0 w-48 aspect-square rounded-xl" />)}
-                </div>
-              </div>
-            ))}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            {Array.from({ length: 8 }).map((_, i) => <TokenCardSkeleton key={i} />)}
           </div>
         </div>
       </div>
@@ -180,82 +182,37 @@ export default function CreatorUsernamePageClient({ username }: Props) {
 
   return (
     <div className="pb-20 min-h-screen overflow-x-hidden">
-      {/* ── Hero banner ────────────────────────────────────────────────── */}
-      <div className="relative w-full h-[38vw] min-h-[200px] max-h-[380px] overflow-hidden bg-muted">
-        {heroImage && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={heroImage} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover" />
-        )}
-        {creator.walletAddress && (
-          <div className="absolute top-4 right-4 z-10">
-            <Button size="sm" variant="outline" asChild className="bg-background/60 backdrop-blur-sm">
-              <Link href={`/account/${creator.walletAddress}`}>
-                <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
-                Full profile
-              </Link>
-            </Button>
-          </div>
-        )}
-      </div>
+
+      {/* ── Hero banner ─────────────────────────────────────────────────── */}
+      {heroImage && (
+        <div className="w-full h-[32vw] min-h-[180px] max-h-[320px] overflow-hidden bg-muted">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={heroImage} alt="" aria-hidden className="w-full h-full object-cover" />
+        </div>
+      )}
 
       {/* ── Identity ────────────────────────────────────────────────────── */}
       <div className="px-6 pt-5 pb-1">
-        <div className="flex items-center gap-4 mb-3">
-          {/* Avatar */}
-          <div
-            className="rounded-full shrink-0 ring-2 ring-border overflow-hidden flex items-center justify-center bg-muted text-muted-foreground font-bold"
-            style={{ width: 64, height: 64, fontSize: 22 }}
-          >
-            {showAvatar ? (
-              <NextImage src={avatarRaw!} alt={displayName} width={64} height={64}
-                className="w-full h-full object-cover" unoptimized onError={() => setAvatarErr(true)} />
-            ) : (
-              displayName.charAt(0).toUpperCase()
-            )}
-          </div>
-
-          {/* Name + handle */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5 text-muted-foreground text-xs font-medium mb-0.5">
-              <AtSign className="h-3 w-3" />{creator.username}
-            </div>
-            <h1 className="text-xl sm:text-2xl font-bold truncate leading-tight">{displayName}</h1>
-          </div>
-        </div>
-
-        {/* Bio */}
+        <h1 className="text-2xl font-bold leading-tight">{displayName}</h1>
+        {showUsername && (
+          <p className="text-sm text-muted-foreground mt-0.5">{creator.username}</p>
+        )}
         {creator.bio && (
-          <p className="text-sm text-muted-foreground leading-relaxed max-w-xl line-clamp-2 mb-3">
+          <p className="text-sm text-muted-foreground leading-relaxed max-w-xl line-clamp-2 mt-2 mb-1">
             {creator.bio}
           </p>
         )}
-
-        {/* Stats + socials row */}
-        <div className="flex items-center gap-3 flex-wrap">
-          {!colsLoading && collections.length > 0 && (
-            <span className="text-sm">
-              <span className="font-bold tabular-nums">{collections.length}</span>
-              <span className="text-muted-foreground ml-1">Collections</span>
-            </span>
-          )}
-          {activeListings.length > 0 && (
-            <span className="text-sm">
-              <span className="font-bold tabular-nums">{activeListings.length}</span>
-              <span className="text-muted-foreground ml-1">Listed</span>
-            </span>
-          )}
-          {(creator.websiteUrl || creator.twitterUrl || creator.discordUrl || creator.telegramUrl) && (
-            <div className="flex items-center gap-2 ml-auto">
-              {creator.websiteUrl && <a href={creator.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors"><Globe className="h-4 w-4" /></a>}
-              {creator.twitterUrl && <a href={creator.twitterUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors"><Twitter className="h-4 w-4" /></a>}
-              {creator.discordUrl && <a href={creator.discordUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors"><MessageCircle className="h-4 w-4" /></a>}
-              {creator.telegramUrl && <a href={creator.telegramUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors"><Send className="h-4 w-4" /></a>}
-            </div>
-          )}
-        </div>
+        {(creator.websiteUrl || creator.twitterUrl || creator.discordUrl || creator.telegramUrl) && (
+          <div className="flex items-center gap-3 mt-3">
+            {creator.websiteUrl && <a href={creator.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors"><Globe className="h-4 w-4" /></a>}
+            {creator.twitterUrl && <a href={creator.twitterUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors"><Twitter className="h-4 w-4" /></a>}
+            {creator.discordUrl && <a href={creator.discordUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors"><MessageCircle className="h-4 w-4" /></a>}
+            {creator.telegramUrl && <a href={creator.telegramUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors"><Send className="h-4 w-4" /></a>}
+          </div>
+        )}
       </div>
 
-      {/* ── Tab navigation (sticky, right below identity) ────────────────── */}
+      {/* ── Tab navigation ──────────────────────────────────────────────── */}
       <div className="sticky top-0 z-20 px-6 bg-background/95 backdrop-blur-sm border-b border-border mt-4">
         <div className="flex items-center gap-0.5 overflow-x-auto scrollbar-none -mb-px">
           {TABS.map(({ id, label, Icon }) => {
@@ -280,9 +237,7 @@ export default function CreatorUsernamePageClient({ username }: Props) {
                     {count}
                   </span>
                 )}
-                {isActive && (
-                  <span className="absolute bottom-0 inset-x-0 h-0.5 rounded-full bg-primary" />
-                )}
+                {isActive && <span className="absolute bottom-0 inset-x-0 h-0.5 rounded-full bg-primary" />}
               </button>
             );
           })}
@@ -292,33 +247,35 @@ export default function CreatorUsernamePageClient({ username }: Props) {
       {/* ── Tab content ─────────────────────────────────────────────────── */}
       <div className="px-6 mt-6">
 
-        {/* Collections — carousel rows */}
-        {activeTab === "collections" && (
-          colsLoading ? (
-            <div className="space-y-8">
-              {Array.from({ length: 2 }).map((_, i) => (
-                <div key={i} className="space-y-3">
-                  <Skeleton className="h-4 w-40" />
-                  <div className="flex gap-3">
-                    {Array.from({ length: 4 }).map((_, j) => <Skeleton key={j} className="shrink-0 w-48 aspect-square rounded-xl" />)}
-                  </div>
-                </div>
+        {/* Assets */}
+        {activeTab === "assets" && (
+          tokensLoading ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {Array.from({ length: 8 }).map((_, i) => <TokenCardSkeleton key={i} />)}
+            </div>
+          ) : tokens.length === 0 ? (
+            <EmptyState icon={ImageIcon} heading="No assets yet" body="This creator hasn't minted any IP assets on Medialane yet." />
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {tokens.map((t) => (
+                <TokenCard key={`${t.contractAddress}-${t.tokenId}`} token={t} />
               ))}
             </div>
-          ) : collections.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
-              <div className="h-14 w-14 rounded-2xl border border-border/60 bg-muted/40 flex items-center justify-center">
-                <LayoutGrid className="h-6 w-6 text-muted-foreground/60" />
-              </div>
-              <div className="space-y-1.5">
-                <p className="text-sm font-semibold">No collections yet</p>
-                <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">This creator hasn&apos;t deployed any collections on Medialane yet.</p>
-              </div>
+          )
+        )}
+
+        {/* Collections */}
+        {activeTab === "collections" && (
+          colsLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Array.from({ length: 6 }).map((_, i) => <CollectionCardSkeleton key={i} />)}
             </div>
+          ) : collections.length === 0 ? (
+            <EmptyState icon={LayoutGrid} heading="No collections yet" body="This creator hasn't deployed any collections on Medialane yet." />
           ) : (
-            <div className="space-y-10">
-              {collections.map((col: ApiCollection) => (
-                <CollectionCarouselRow key={col.contractAddress} collection={col} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {collections.map((col) => (
+                <CollectionCard key={col.contractAddress} collection={col} />
               ))}
             </div>
           )
@@ -331,15 +288,7 @@ export default function CreatorUsernamePageClient({ username }: Props) {
               {Array.from({ length: 4 }).map((_, i) => <ListingCardSkeleton key={i} />)}
             </div>
           ) : activeListings.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
-              <div className="h-14 w-14 rounded-2xl border border-border/60 bg-muted/40 flex items-center justify-center">
-                <ShoppingBag className="h-6 w-6 text-muted-foreground/60" />
-              </div>
-              <div className="space-y-1.5">
-                <p className="text-sm font-semibold">No active listings</p>
-                <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">This creator has no IP assets listed for sale right now.</p>
-              </div>
-            </div>
+            <EmptyState icon={ShoppingBag} heading="No active listings" body="This creator has no IP assets listed for sale right now." />
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {activeListings.map((o) => <ListingCard key={o.orderHash} order={o} />)}
@@ -374,15 +323,7 @@ export default function CreatorUsernamePageClient({ username }: Props) {
                 ))}
               </div>
             ) : activities.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
-                <div className="h-14 w-14 rounded-2xl border border-border/60 bg-muted/40 flex items-center justify-center">
-                  <Activity className="h-6 w-6 text-muted-foreground/60" />
-                </div>
-                <div className="space-y-1.5">
-                  <p className="text-sm font-semibold">No activity yet</p>
-                  <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">On-chain events for this creator will appear here as they happen.</p>
-                </div>
-              </div>
+              <EmptyState icon={Activity} heading="No activity yet" body="On-chain events for this creator will appear here as they happen." />
             ) : (
               <div>
                 {activities.map((a, i) => (
