@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MotionCard } from "@/components/ui/motion-primitives";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ShoppingCart, Check, MoreHorizontal, Layers, ArrowRightLeft, Flag, GitBranch, HandCoins, ArrowUpRight, Zap, UserCircle2 } from "lucide-react";
+import { ShoppingCart, Check, MoreHorizontal, Layers, ArrowRightLeft, Flag, GitBranch, HandCoins, ArrowUpRight, Zap, UserCircle2, Settings2, XCircle } from "lucide-react";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { cn, ipfsToHttp, formatDisplayPrice, timeAgo } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
@@ -20,9 +20,11 @@ interface ListingCardProps {
   onBuy?: (order: ApiOrder) => void;
   /** Compact mode: tighter layout, no action buttons. For dense grids. */
   compact?: boolean;
+  /** True when the viewer owns this listing — shows owner actions instead of buyer actions. */
+  isOwner?: boolean;
 }
 
-export function ListingCard({ order, onBuy, compact = false }: ListingCardProps) {
+export function ListingCard({ order, onBuy, compact = false, isOwner = false }: ListingCardProps) {
   const router = useRouter();
   const { addItem, items } = useCart();
   const inCart = items.some((i) => i.orderHash === order.orderHash);
@@ -136,133 +138,198 @@ export function ListingCard({ order, onBuy, compact = false }: ListingCardProps)
           </p>
 
           {isListing && (
-            <div className="flex items-center gap-1.5">
-              {/* Buy Now — animated gradient border */}
-              {onBuy && (
-                <div className="btn-border-animated p-[1.5px] rounded-[10px] flex-1 h-9">
-                  <button
-                    className="w-full h-full rounded-[9px] bg-background flex items-center justify-center gap-1.5 text-xs font-semibold text-foreground hover:bg-muted/60 transition-all active:scale-[0.98]"
-                    onClick={(e) => { e.preventDefault(); onBuy(order); }}
-                  >
-                    <Zap className="h-3.5 w-3.5 shrink-0" />
-                    Buy
-                  </button>
-                </div>
-              )}
+            isOwner ? (
+              /* ── Owner view ── */
+              <div className="flex items-center gap-1.5">
+                <Link
+                  href={`/asset/${order.nftContract}/${order.nftTokenId}`}
+                  className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-[9px] border border-border text-xs font-semibold text-muted-foreground hover:bg-muted/60 transition-all"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Settings2 className="h-3.5 w-3.5 shrink-0" />
+                  Manage listing
+                </Link>
 
-              {/* Cart */}
-              <Button
-                size="sm"
-                variant="outline"
-                className={cn(
-                  "h-9 w-9 p-0 shrink-0 rounded-[9px] transition-colors",
-                  inCart && "border-brand-orange/50 bg-brand-orange/10 text-brand-orange"
-                )}
-                onClick={handleAddToCart}
-                disabled={inCart}
-                aria-label={inCart ? "Added to cart" : "Add to cart"}
-              >
-                {inCart ? <Check className="h-3.5 w-3.5" /> : <ShoppingCart className="h-3.5 w-3.5" />}
-              </Button>
-
-              {/* ⋯ More — complete menu */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-9 w-9 p-0 shrink-0 rounded-[9px]"
-                    onClick={(e) => e.preventDefault()}
-                    aria-label="More actions"
-                  >
-                    <MoreHorizontal className="h-3.5 w-3.5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-52">
-
-                  <DropdownMenuItem asChild>
-                    <Link href={`/asset/${order.nftContract}/${order.nftTokenId}`} className="flex items-center gap-2">
-                      <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
-                      View asset
-                    </Link>
-                  </DropdownMenuItem>
-
-                  <DropdownMenuSeparator />
-
-                  {onBuy && (
-                    <DropdownMenuItem
-                      className="flex items-center gap-2 text-brand-blue focus:text-brand-blue"
-                      onClick={(e) => { e.preventDefault(); onBuy(order); }}
+                {/* ⋯ More */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-9 w-9 p-0 shrink-0 rounded-[9px]"
+                      onClick={(e) => e.preventDefault()}
+                      aria-label="More actions"
                     >
-                      <Zap className="h-3.5 w-3.5" />
-                      <span className="flex items-center gap-1">
-                        Buy —
-                        <CurrencyIcon symbol={order.price.currency} size={12} />
-                        {formatDisplayPrice(order.price.formatted)}
-                      </span>
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem
-                    className="flex items-center gap-2"
-                    onClick={handleAddToCart}
-                    disabled={inCart}
-                  >
-                    {inCart
-                      ? <Check className="h-3.5 w-3.5 text-muted-foreground" />
-                      : <ShoppingCart className="h-3.5 w-3.5 text-muted-foreground" />}
-                    {inCart ? "In cart" : "Add to cart"}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="flex items-center gap-2 text-brand-orange focus:text-brand-orange"
-                    onClick={(e) => { e.preventDefault(); router.push(`/asset/${order.nftContract}/${order.nftTokenId}`); }}
-                  >
-                    <HandCoins className="h-3.5 w-3.5" />
-                    Make an offer
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="flex items-center gap-2 text-brand-purple focus:text-brand-purple"
-                    onClick={(e) => { e.preventDefault(); router.push(`/create/remix/${order.nftContract}/${order.nftTokenId}`); }}
-                  >
-                    <GitBranch className="h-3.5 w-3.5" />
-                    Create a remix
-                  </DropdownMenuItem>
-
-                  <DropdownMenuSeparator />
-
-                  <DropdownMenuItem asChild>
-                    <Link href={`/collections/${order.nftContract}`} className="flex items-center gap-2">
-                      <Layers className="h-3.5 w-3.5 text-muted-foreground" />
-                      View collection
-                    </Link>
-                  </DropdownMenuItem>
-                  {order.offerer && (
+                      <MoreHorizontal className="h-3.5 w-3.5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-52">
                     <DropdownMenuItem asChild>
-                      <Link href={`/account/${order.offerer}`} className="flex items-center gap-2">
-                        <UserCircle2 className="h-3.5 w-3.5 text-muted-foreground" />
-                        View owner
+                      <Link href={`/asset/${order.nftContract}/${order.nftTokenId}`} className="flex items-center gap-2">
+                        <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
+                        View asset
                       </Link>
                     </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href={`/asset/${order.nftContract}/${order.nftTokenId}`} className="flex items-center gap-2 text-brand-orange focus:text-brand-orange">
+                        <XCircle className="h-3.5 w-3.5" />
+                        Cancel listing
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="flex items-center gap-2 text-brand-purple focus:text-brand-purple"
+                      onClick={(e) => { e.preventDefault(); router.push(`/create/remix/${order.nftContract}/${order.nftTokenId}`); }}
+                    >
+                      <GitBranch className="h-3.5 w-3.5" />
+                      Create a remix
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href={`/collections/${order.nftContract}`} className="flex items-center gap-2">
+                        <Layers className="h-3.5 w-3.5 text-muted-foreground" />
+                        View collection
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href={`/asset/${order.nftContract}/${order.nftTokenId}`} className="flex items-center gap-2">
+                        <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground" />
+                        Transfer asset
+                      </Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            ) : (
+              /* ── Buyer view ── */
+              <div className="flex items-center gap-1.5">
+                {/* Buy Now — animated gradient border */}
+                {onBuy && (
+                  <div className="btn-border-animated p-[1.5px] rounded-[10px] flex-1 h-9">
+                    <button
+                      className="w-full h-full rounded-[9px] bg-background flex items-center justify-center gap-1.5 text-xs font-semibold text-foreground hover:bg-muted/60 transition-all active:scale-[0.98]"
+                      onClick={(e) => { e.preventDefault(); onBuy(order); }}
+                    >
+                      <Zap className="h-3.5 w-3.5 shrink-0" />
+                      Buy
+                    </button>
+                  </div>
+                )}
+
+                {/* Cart */}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className={cn(
+                    "h-9 w-9 p-0 shrink-0 rounded-[9px] transition-colors",
+                    inCart && "border-brand-orange/50 bg-brand-orange/10 text-brand-orange"
                   )}
-                  <DropdownMenuItem asChild>
-                    <Link href={`/asset/${order.nftContract}/${order.nftTokenId}`} className="flex items-center gap-2">
-                      <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground" />
-                      Transfer asset
-                    </Link>
-                  </DropdownMenuItem>
+                  onClick={handleAddToCart}
+                  disabled={inCart}
+                  aria-label={inCart ? "Added to cart" : "Add to cart"}
+                >
+                  {inCart ? <Check className="h-3.5 w-3.5" /> : <ShoppingCart className="h-3.5 w-3.5" />}
+                </Button>
 
-                  <DropdownMenuSeparator />
+                {/* ⋯ More — complete menu */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-9 w-9 p-0 shrink-0 rounded-[9px]"
+                      onClick={(e) => e.preventDefault()}
+                      aria-label="More actions"
+                    >
+                      <MoreHorizontal className="h-3.5 w-3.5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-52">
 
-                  <DropdownMenuItem
-                    className="flex items-center gap-2 text-muted-foreground focus:text-muted-foreground"
-                    onClick={(e) => { e.preventDefault(); setReportOpen(true); }}
-                  >
-                    <Flag className="h-3.5 w-3.5" />
-                    Report
-                  </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href={`/asset/${order.nftContract}/${order.nftTokenId}`} className="flex items-center gap-2">
+                        <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
+                        View asset
+                      </Link>
+                    </DropdownMenuItem>
 
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+                    <DropdownMenuSeparator />
+
+                    {onBuy && (
+                      <DropdownMenuItem
+                        className="flex items-center gap-2 text-brand-blue focus:text-brand-blue"
+                        onClick={(e) => { e.preventDefault(); onBuy(order); }}
+                      >
+                        <Zap className="h-3.5 w-3.5" />
+                        <span className="flex items-center gap-1">
+                          Buy —
+                          <CurrencyIcon symbol={order.price.currency} size={12} />
+                          {formatDisplayPrice(order.price.formatted)}
+                        </span>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem
+                      className="flex items-center gap-2"
+                      onClick={handleAddToCart}
+                      disabled={inCart}
+                    >
+                      {inCart
+                        ? <Check className="h-3.5 w-3.5 text-muted-foreground" />
+                        : <ShoppingCart className="h-3.5 w-3.5 text-muted-foreground" />}
+                      {inCart ? "In cart" : "Add to cart"}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="flex items-center gap-2 text-brand-orange focus:text-brand-orange"
+                      onClick={(e) => { e.preventDefault(); router.push(`/asset/${order.nftContract}/${order.nftTokenId}`); }}
+                    >
+                      <HandCoins className="h-3.5 w-3.5" />
+                      Make an offer
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="flex items-center gap-2 text-brand-purple focus:text-brand-purple"
+                      onClick={(e) => { e.preventDefault(); router.push(`/create/remix/${order.nftContract}/${order.nftTokenId}`); }}
+                    >
+                      <GitBranch className="h-3.5 w-3.5" />
+                      Create a remix
+                    </DropdownMenuItem>
+
+                    <DropdownMenuSeparator />
+
+                    <DropdownMenuItem asChild>
+                      <Link href={`/collections/${order.nftContract}`} className="flex items-center gap-2">
+                        <Layers className="h-3.5 w-3.5 text-muted-foreground" />
+                        View collection
+                      </Link>
+                    </DropdownMenuItem>
+                    {order.offerer && (
+                      <DropdownMenuItem asChild>
+                        <Link href={`/account/${order.offerer}`} className="flex items-center gap-2">
+                          <UserCircle2 className="h-3.5 w-3.5 text-muted-foreground" />
+                          View owner
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem asChild>
+                      <Link href={`/asset/${order.nftContract}/${order.nftTokenId}`} className="flex items-center gap-2">
+                        <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground" />
+                        Transfer asset
+                      </Link>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuSeparator />
+
+                    <DropdownMenuItem
+                      className="flex items-center gap-2 text-muted-foreground focus:text-muted-foreground"
+                      onClick={(e) => { e.preventDefault(); setReportOpen(true); }}
+                    >
+                      <Flag className="h-3.5 w-3.5" />
+                      Report
+                    </DropdownMenuItem>
+
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            )
           )}
         </div>
       </Link>

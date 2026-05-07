@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useOrders } from "@/hooks/use-orders";
+import { useSessionKey } from "@/hooks/use-session-key";
 import { ListingCard, ListingCardSkeleton } from "./listing-card";
 import { PurchaseDialog } from "./purchase-dialog";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ interface ListingsGridProps {
 }
 
 export function ListingsGrid({ sort = "recent", currency, orderType = "", minPrice, maxPrice }: ListingsGridProps = {}) {
+  const { walletAddress } = useSessionKey();
   const [page, setPage] = useState(1);
   const [allOrders, setAllOrders] = useState<ApiOrder[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<ApiOrder | null>(null);
@@ -109,9 +111,13 @@ export function ListingsGrid({ sort = "recent", currency, orderType = "", minPri
     <>
       <div className="space-y-6">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {displayedOrders.map((order) => (
-            <ListingCard key={order.orderHash} order={order} onBuy={handleBuy} />
-          ))}
+          {displayedOrders.map((order) => {
+            const isOwner = !!walletAddress && !!order.offerer &&
+              order.offerer.toLowerCase() === walletAddress.toLowerCase();
+            return (
+              <ListingCard key={order.orderHash} order={order} onBuy={isOwner ? undefined : handleBuy} isOwner={isOwner} />
+            );
+          })}
           {isLoadingMore &&
             Array.from({ length: PAGE_SIZE }).map((_, i) => (
               <ListingCardSkeleton key={`loading-${i}`} />

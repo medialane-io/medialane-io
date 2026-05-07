@@ -559,7 +559,11 @@ export default function CollectionPageClient() {
               />
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-                {activeListings.map((o) => <ListingCard key={o.orderHash} order={o} />)}
+                {activeListings.map((o) => {
+                  const isOwner = !!walletAddress && !!o.offerer &&
+                    o.offerer.toLowerCase() === walletAddress.toLowerCase();
+                  return <ListingCard key={o.orderHash} order={o} isOwner={isOwner} />;
+                })}
               </div>
             )}
           </TabsContent>
@@ -576,7 +580,11 @@ export default function CollectionPageClient() {
               />
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-                {activeBids.map((o) => <ListingCard key={o.orderHash} order={o} />)}
+                {activeBids.map((o) => {
+                  const isOwner = !!walletAddress && !!o.offerer &&
+                    o.offerer.toLowerCase() === walletAddress.toLowerCase();
+                  return <ListingCard key={o.orderHash} order={o} isOwner={isOwner} />;
+                })}
               </div>
             )}
           </TabsContent>
