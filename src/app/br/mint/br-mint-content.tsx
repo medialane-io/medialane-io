@@ -731,9 +731,9 @@ export function BrMintContent() {
                   <p>O registro de participação é um comprovante digital de participação no lançamento Medialane. Não possui valor monetário intrínseco e não é um instrumento financeiro.</p>
                   <p>
                     Ao participar, você concorda com o{" "}
-                    <Link href="/campaign-terms" className="underline underline-offset-2 hover:text-foreground transition-colors">Regulamento da Campanha</Link>
+                    <a href="https://docs.medialane.io/guidelines/campaign-terms" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-foreground transition-colors">Regulamento da Campanha</a>
                     {" "}e os{" "}
-                    <Link href="/terms" className="underline underline-offset-2 hover:text-foreground transition-colors">Termos de Uso</Link>.
+                    <a href="https://docs.medialane.io/guidelines/terms" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-foreground transition-colors">Termos de Uso</a>.
                   </p>
                 </div>
               </div>
@@ -767,14 +767,14 @@ export function BrMintContent() {
       <footer className="border-t border-border/40">
         <p className="text-[11px] text-center text-muted-foreground/50 px-5 pt-4">
           Participação gratuita · Sem necessidade de compra ·{" "}
-          <Link href="/campaign-terms" className="underline underline-offset-2 hover:text-muted-foreground/80 transition-colors">
+          <a href="https://docs.medialane.io/guidelines/campaign-terms" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-muted-foreground/80 transition-colors">
             Ver regulamento
-          </Link>
+          </a>
         </p>
         <div className="px-5 py-4 flex items-center justify-center gap-5 text-xs text-muted-foreground flex-wrap">
-          <Link href="/terms" className="hover:text-foreground transition-colors">Termos</Link>
-          <Link href="/privacy" className="hover:text-foreground transition-colors">Privacidade</Link>
-          <Link href="/campaign-terms" className="hover:text-foreground transition-colors">Campanha</Link>
+          <a href="https://docs.medialane.io/guidelines/terms" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">Termos</a>
+          <a href="https://docs.medialane.io/guidelines/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">Privacidade</a>
+          <a href="https://docs.medialane.io/guidelines/campaign-terms" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">Campanha</a>
           <a href="https://docs.medialane.io/about" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">Sobre</a>
           <span>© {new Date().getFullYear()} Medialane</span>
         </div>

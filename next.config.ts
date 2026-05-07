@@ -18,6 +18,13 @@ const nextConfig: NextConfig = {
   // Pre-existing TS error in launchpad/drop/create (DropFactoryABI missing from SDK).
   // Remove once the SDK export is added.
   typescript: { ignoreBuildErrors: true },
+  async redirects() {
+    return [
+      { source: "/terms",          destination: "https://docs.medialane.io/guidelines/terms",          permanent: true },
+      { source: "/privacy",        destination: "https://docs.medialane.io/guidelines/privacy",        permanent: true },
+      { source: "/campaign-terms", destination: "https://docs.medialane.io/guidelines/campaign-terms", permanent: true },
+    ];
+  },
   async headers() {
     return [
       {
