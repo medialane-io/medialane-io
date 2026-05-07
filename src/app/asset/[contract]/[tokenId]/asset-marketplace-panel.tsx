@@ -97,6 +97,14 @@ export function AssetMarketplacePanel({
     ? activeBids.find((bid) => bid.offerer.toLowerCase() === walletAddress.toLowerCase()) ?? null
     : null;
 
+  // For ERC-1155: a listing from a different seller is still purchasable even when the user owns some editions
+  const canBuyMore =
+    isERC1155 &&
+    isOwner &&
+    !!cheapest &&
+    !!walletAddress &&
+    cheapest.offerer.toLowerCase() !== walletAddress.toLowerCase();
+
   return (
     <>
       {cheapest ? (
@@ -107,7 +115,7 @@ export function AssetMarketplacePanel({
               {formatDisplayPrice(cheapest.price.formatted)}
             </span>
             <HelpIcon
-              content={`${isOwner ? "Your listing" : "Current price"} · Expires ${timeUntil(cheapest.endTime)}`}
+              content={`${isOwner && !canBuyMore ? "Your listing" : "Current price"} · Expires ${timeUntil(cheapest.endTime)}`}
               side="top"
             />
           </div>
@@ -147,6 +155,34 @@ export function AssetMarketplacePanel({
                   className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-purple"
                 />
               ) : null}
+
+              {/* ERC-1155: owner can still buy more editions from a different seller */}
+              {canBuyMore && (
+                <>
+                  <div className="border-t border-border/40 pt-2 mt-1" />
+                  <ActionButton
+                    label="Buy another edition"
+                    icon={<ShoppingCart className="h-5 w-5" />}
+                    onClick={() => onOpenPurchase(cheapest!)}
+                    className="w-full h-12 text-base font-semibold text-white rounded-[15px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] bg-transparent"
+                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <ActionButton
+                      label={inCart ? "In cart" : "Add to cart"}
+                      icon={<ShoppingCart className="h-4 w-4" />}
+                      onClick={onAddToCart}
+                      disabled={inCart}
+                      className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-blue"
+                    />
+                    <ActionButton
+                      label="Make offer"
+                      icon={<HandCoins className="h-4 w-4" />}
+                      onClick={onOpenOffer}
+                      className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-orange"
+                    />
+                  </div>
+                </>
+              )}
             </div>
           ) : isSignedIn ? (
             <div className="space-y-2">
