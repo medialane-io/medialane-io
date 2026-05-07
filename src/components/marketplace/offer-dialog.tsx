@@ -248,7 +248,7 @@ export function OfferDialog({
                 onPrimary={handlePin}
                 primaryDisabled={pin.length < 6}
                 primaryIcon={<HandCoins className="h-4 w-4" />}
-                passkeySupported={passkeySupported}
+                passkeySupported={passkeySupported && !!encryptKey}
                 isAuthenticatingPasskey={isAuthenticatingPasskey}
                 onUsePasskey={handleUsePasskey}
                 footer={shieldFooter}

@@ -211,7 +211,7 @@ export function CancelOrderDialog({
                 onPrimary={handlePin}
                 primaryDisabled={pin.length < 6}
                 primaryVariant="destructive"
-                passkeySupported={passkeySupported}
+                passkeySupported={passkeySupported && !!encryptKey}
                 isAuthenticatingPasskey={isAuthenticatingPasskey}
                 onUsePasskey={handleUsePasskey}
                 footer={(
