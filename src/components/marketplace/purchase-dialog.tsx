@@ -238,8 +238,6 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
     maybeClearSessionForAmountCap,
     authenticate,
     encryptKey,
-    sessionRefreshTitle: "Large purchase — fresh signing session",
-    sessionRefreshDescription: "Your saved session was cleared for this transaction size.",
     executeAction: async (values, pinOrDerivedKey) => {
       setStep("processing");
       const qty = is1155 ? String(values.quantity) : undefined;

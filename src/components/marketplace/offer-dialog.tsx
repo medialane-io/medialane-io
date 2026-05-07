@@ -110,9 +110,6 @@ export function OfferDialog({
     maybeClearSessionForAmountCap,
     authenticate,
     encryptKey,
-    sessionRefreshTitle: "Large offer — fresh signing session",
-    sessionRefreshDescription:
-      "Your saved session was cleared for this transaction size. A new session will be activated automatically.",
     executeAction: async (values, pinOrDerivedKey) => {
       await makeOffer({
         assetContract,

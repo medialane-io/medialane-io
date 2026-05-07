@@ -107,15 +107,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <CartDrawer />
         <Toaster
           richColors
-          position="bottom-right"
-          closeButton
-          gap={6}
+          position="bottom-center"
+          duration={3000}
+          gap={4}
           toastOptions={{
             classNames: {
-              toast: "rounded-2xl shadow-2xl border border-border/40 font-sans",
-              title: "font-semibold tracking-tight text-[13px]",
-              description: "text-xs opacity-75",
-              closeButton: "rounded-full border-border/50 hover:bg-muted",
+              toast: "rounded-xl shadow-lg border border-border/50 font-sans text-[13px] px-4 py-3",
+              title: "font-medium",
+              description: "text-xs opacity-70 mt-0.5",
+              actionButton: "rounded-lg text-xs font-medium",
+              cancelButton: "rounded-lg text-xs",
             },
           }}
         />

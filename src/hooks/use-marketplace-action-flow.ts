@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { toast } from "sonner";
 import { validatePin } from "@/components/ui/pin-input";
 
 interface UseMarketplaceActionFlowOptions<TValues> {
@@ -12,8 +11,6 @@ interface UseMarketplaceActionFlowOptions<TValues> {
   maybeClearSessionForAmountCap?: (amount: number) => Promise<boolean>;
   authenticate: () => Promise<string | null | undefined>;
   encryptKey?: string | null;
-  sessionRefreshTitle?: string;
-  sessionRefreshDescription?: string;
   executeAction: (values: TValues, pinOrDerivedKey: string) => Promise<unknown>;
 }
 
@@ -25,8 +22,6 @@ export function useMarketplaceActionFlow<TValues>({
   maybeClearSessionForAmountCap,
   authenticate,
   encryptKey,
-  sessionRefreshTitle,
-  sessionRefreshDescription,
   executeAction,
 }: UseMarketplaceActionFlowOptions<TValues>) {
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
@@ -47,11 +42,7 @@ export function useMarketplaceActionFlow<TValues>({
     const cleared = maybeClearSessionForAmountCap
       ? await maybeClearSessionForAmountCap(amountForSessionCap)
       : false;
-    if (cleared && sessionRefreshTitle && sessionRefreshDescription) {
-      toast.info(sessionRefreshTitle, {
-        description: sessionRefreshDescription,
-      });
-    }
+    void cleared; // session was cleared silently — user will re-enter PIN in the dialog
     setStep("pin");
     return true;
   };
@@ -95,7 +86,7 @@ export function useMarketplaceActionFlow<TValues>({
       setStep("form");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Passkey authentication failed";
-      toast.error("Passkey authentication failed", { description: msg });
+      setPinError(msg); // show inline in the dialog's PIN step
     } finally {
       setIsAuthenticatingPasskey(false);
     }

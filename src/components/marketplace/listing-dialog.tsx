@@ -113,9 +113,6 @@ export function ListingDialog({
     maybeClearSessionForAmountCap,
     authenticate,
     encryptKey,
-    sessionRefreshTitle: "Large listing — fresh signing session",
-    sessionRefreshDescription:
-      "Your saved session was cleared for this transaction size. A new session will be activated automatically.",
     executeAction: async (values, pinOrDerivedKey) => {
       await createListing({
         assetContract,

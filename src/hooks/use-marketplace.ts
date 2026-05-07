@@ -409,7 +409,7 @@ export function useMarketplace() {
             endTime,
             ...(is1155 ? { amount: input.amount || "1" } : {}),
           }),
-          `${input.tokenName || `Token #${input.tokenId}`} listed for ${input.price} ${input.currencySymbol}`,
+          null, // success shown in listing-dialog's MarketplaceSuccessState
           marketplaceContract,
           {
             operation: "create_listing",
@@ -426,7 +426,7 @@ export function useMarketplace() {
         const msg = toFriendlyError(err, "Failed to create listing");
         setError(msg);
         updateDebug({ step: "error", error: msg });
-        toast.error("Listing failed", { description: msg });
+        // error is shown inline in listing-dialog's Alert — no toast needed
       } finally {
         setIsProcessing(false);
       }
@@ -464,7 +464,7 @@ export function useMarketplace() {
         const msg = toFriendlyError(err, "Purchase failed");
         setError(msg);
         updateDebug({ step: "error", error: msg });
-        toast.error("Purchase failed", { description: msg });
+        // error is shown inline in purchase-dialog's Alert — no toast needed
       } finally {
         setIsProcessing(false);
       }
@@ -493,7 +493,7 @@ export function useMarketplace() {
             tokenStandard: toApiStandard(input.tokenStandard),
             quantity: isErc1155Standard(input.tokenStandard) ? (input.quantity || "1") : undefined,
           }),
-          `Offer submitted for ${input.tokenName || `Token #${input.tokenId}`}`,
+          null, // success shown in offer-dialog's MarketplaceSuccessState
           marketplaceContract,
           {
             operation: "make_offer",
@@ -509,7 +509,7 @@ export function useMarketplace() {
         const msg = toFriendlyError(err, "Failed to submit offer");
         setError(msg);
         updateDebug({ step: "error", error: msg });
-        toast.error("Offer failed", { description: msg });
+        // error is shown inline in offer-dialog's Alert — no toast needed
       } finally {
         setIsProcessing(false);
       }
@@ -545,7 +545,7 @@ export function useMarketplace() {
         const msg = toFriendlyError(err, "Counter-offer failed");
         setError(msg);
         updateDebug({ step: "error", error: msg });
-        toast.error("Counter-offer failed", { description: msg });
+        // error is surfaced via setError — dialogs read the error state directly
       } finally {
         setIsProcessing(false);
       }
@@ -568,7 +568,7 @@ export function useMarketplace() {
             orderHash: input.orderHash,
             tokenStandard: toApiStandard(input.tokenStandard),
           }),
-          "Order cancelled.",
+          null, // success shown in CancelListingDialog's success state
           marketplaceContract,
           {
             operation: "cancel_order",
@@ -581,7 +581,7 @@ export function useMarketplace() {
         const msg = toFriendlyError(err, "Cancellation failed");
         setError(msg);
         updateDebug({ step: "error", error: msg });
-        toast.error("Cancellation failed", { description: msg });
+        // error is shown in CancelListingDialog's error state — no toast needed
         // Invalidate after failure: the backend may have synced the order to CANCELLED
         // (e.g. the order was already cancelled on-chain but DB was stale). This ensures
         // the UI reflects the corrected state instead of continuing to show a stale listing.
