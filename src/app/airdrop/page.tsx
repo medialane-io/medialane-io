@@ -82,15 +82,6 @@ const PHASES = [
       "Contribution scores re-calculated from all activity since launch",
     ],
   },
-  {
-    phase: "Annual cycle",
-    trigger: "Every year, ongoing",
-    items: [
-      "Yearly community allocation voted on via governance",
-      "100% of platform revenue for the year added to the pool",
-      "The cycle repeats — Medialane has no investors drawing revenue",
-    ],
-  },
 ];
 
 export default function AirdropPage() {
@@ -142,7 +133,7 @@ export default function AirdropPage() {
             {[
               { label: "Platform revenue", value: "100% to fund" },
               { label: "Governed by",      value: "Community vote" },
-              { label: "Cycle",            value: "Annual + milestones" },
+              { label: "Distributions",    value: "Milestone-based" },
             ].map(({ label, value }) => (
               <div key={label} className="bg-muted/30 rounded-lg px-4 py-3 space-y-1">
                 <p className="text-xs text-muted-foreground">{label}</p>

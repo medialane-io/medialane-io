@@ -17,198 +17,28 @@ import {
   ArrowRight,
   Trophy,
   Camera,
-  ImageIcon,
-  Gift,
-  Coins,
   ShieldCheck,
   KeyRound,
   AlertCircle,
   FileCheck,
-  Zap,
+  Coins,
   Users,
+  Palette,
+  Globe,
+  Music,
+  ImageIcon,
+  Shield,
+  Info,
 } from "lucide-react";
 import { PinInput, validatePin } from "@/components/ui/pin-input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MedialaneLogo } from "@/components/brand/medialane-logo";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
-import { EXPLORER_URL, MINT_CONTRACT, MINT_NFT_URI, MINT_NFT_IMAGE_URL } from "@/lib/constants";
+import { EXPLORER_URL, MINT_CONTRACT, MINT_NFT_URI } from "@/lib/constants";
 import { completeOnboarding } from "@/app/onboarding/_actions";
 
-// ─── Event image card ─────────────────────────────────────────────────────────
-
-function EventCard() {
-  const [errored, setErrored] = useState(false);
-  const src = MINT_NFT_IMAGE_URL || "/genesis.jpg";
-
-  return (
-    <div className="relative w-full max-w-sm mx-auto">
-      <div className="relative rounded-3xl overflow-hidden border border-border/40 shadow-2xl shadow-black/20 ring-1 ring-white/5">
-        {errored ? (
-          <div className="w-full aspect-square bg-muted/30 flex flex-col items-center justify-center gap-3">
-            <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center">
-              <ImageIcon className="h-8 w-8 text-primary/40" />
-            </div>
-            <p className="text-xs text-muted-foreground font-medium">Medialane Airdrop 2026</p>
-          </div>
-        ) : (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={src}
-            alt="Medialane Creator's Airdrop"
-            className="w-full aspect-square object-cover"
-            onError={() => setErrored(true)}
-          />
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ─── Below-fold sections (shown only when not signed in) ─────────────────────
-
-const WHAT_YOU_GET = [
-  {
-    icon: FileCheck,
-    title: "Participation record",
-    desc: "A permanent, verifiable entry that proves your place in the Medialane airdrop — secured on a public network and yours forever.",
-    color: "text-blue-400",
-    bg: "bg-blue-500/10",
-  },
-  {
-    icon: Coins,
-    title: "Prize pool entry",
-    desc: "Automatically eligible for every distribution — Phase 1 at 5,000 members, Phase 2 at 10,000 members, and every annual cycle after.",
-    color: "text-yellow-400",
-    bg: "bg-yellow-500/10",
-  },
-  {
-    icon: Camera,
-    title: "Creator platform",
-    desc: "Publish photos, videos, music, and documents. Build a following, earn from your work, and connect with an audience worldwide.",
-    color: "text-purple-400",
-    bg: "bg-purple-500/10",
-  },
-];
-
-const HOW_IT_WORKS = [
-  {
-    step: "1",
-    title: "Create your account",
-    desc: "Sign up with your Google account in seconds. No approval, no ID, no credit card required.",
-  },
-  {
-    step: "2",
-    title: "Secure it",
-    desc: "Add a 6-digit PIN or biometrics (Face ID / fingerprint) to protect your participation.",
-  },
-  {
-    step: "3",
-    title: "Claim your record",
-    desc: "Confirm your airdrop participation with one tap. Your place in the fund is permanent.",
-  },
-];
-
-const PRIZE_PHASES = [
-  {
-    phase: "Phase 1",
-    trigger: "5,000 participants",
-    desc: "First distribution from the creator fund. All eligible members receive their proportional share.",
-    color: "border-blue-500/30 bg-blue-500/5",
-    badge: "text-blue-400",
-  },
-  {
-    phase: "Phase 2",
-    trigger: "10,000 participants",
-    desc: "Second distribution, plus all revenue accumulated since Phase 1. Community votes on the allocation.",
-    color: "border-purple-500/30 bg-purple-500/5",
-    badge: "text-purple-400",
-  },
-];
-
-function WhatYouGet() {
-  return (
-    <div className="py-14 border-t border-border/30">
-      <div className="text-center mb-8">
-        <p className="text-xs font-semibold uppercase tracking-widest text-primary/60 mb-2">What&apos;s included</p>
-        <h2 className="text-2xl font-black">Everything you get, free</h2>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {WHAT_YOU_GET.map(({ icon: Icon, title, desc, color, bg }) => (
-          <div key={title} className="rounded-2xl border border-border/40 bg-muted/10 p-6 space-y-3 hover:bg-muted/20 transition-colors">
-            <div className={`h-10 w-10 rounded-xl ${bg} flex items-center justify-center`}>
-              <Icon className={`h-5 w-5 ${color}`} />
-            </div>
-            <h3 className="font-bold text-sm">{title}</h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function HowItWorks() {
-  return (
-    <div className="py-14 border-t border-border/30">
-      <div className="text-center mb-8">
-        <p className="text-xs font-semibold uppercase tracking-widest text-primary/60 mb-2">Simple process</p>
-        <h2 className="text-2xl font-black">How it works</h2>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 relative">
-        {HOW_IT_WORKS.map(({ step, title, desc }) => (
-          <div key={step} className="flex flex-col items-center text-center gap-4">
-            <div className="h-12 w-12 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center shrink-0">
-              <span className="text-lg font-black text-primary">{step}</span>
-            </div>
-            <div>
-              <h3 className="font-bold text-sm mb-1.5">{title}</h3>
-              <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function PrizePool() {
-  return (
-    <div className="py-14 border-t border-border/30">
-      <div className="text-center mb-8">
-        <p className="text-xs font-semibold uppercase tracking-widest text-primary/60 mb-2">Distribution schedule</p>
-        <h2 className="text-2xl font-black">The prize pool</h2>
-        <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
-          Platform revenue goes entirely to the community. No investors taking a cut.
-        </p>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-        {PRIZE_PHASES.map(({ phase, trigger, desc, color, badge }) => (
-          <div key={phase} className={`rounded-2xl border p-6 space-y-2 ${color}`}>
-            <div className="flex items-center justify-between gap-2">
-              <p className="font-bold text-sm">{phase}</p>
-              <span className={`text-xs font-semibold ${badge}`}>{trigger}</span>
-            </div>
-            <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
-          </div>
-        ))}
-      </div>
-      <div className="rounded-2xl border border-border/40 bg-muted/10 p-5 flex items-start gap-4">
-        <div className="h-9 w-9 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0 mt-0.5">
-          <Zap className="h-4 w-4 text-emerald-400" />
-        </div>
-        <div>
-          <p className="font-bold text-sm">Annual cycle — ongoing forever</p>
-          <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">
-            Every year the Medialane community votes on how to distribute that year&apos;s revenue. The fund repeats indefinitely — Medialane has no investors drawing revenue.
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Inline account setup ─────────────────────────────────────────────────────
+// ─── Wallet setup ─────────────────────────────────────────────────────────────
 
 type WalletSetupStep = "choose" | "pin" | "passkey" | "creating" | "done";
 
@@ -228,9 +58,7 @@ function WalletSetup({ email, onDone }: { email?: string | null; onDone: () => v
     enabled: false,
   });
 
-  const [passkeySupported] = useState(
-    () => typeof window !== "undefined" && isWebAuthnSupported()
-  );
+  const [passkeySupported] = useState(() => typeof window !== "undefined" && isWebAuthnSupported());
   const [step, setStep] = useState<WalletSetupStep>(passkeySupported ? "choose" : "pin");
   const [pin, setPin] = useState("");
   const [pinError, setPinError] = useState<string | null>(null);
@@ -259,7 +87,7 @@ function WalletSetup({ email, onDone }: { email?: string | null; onDone: () => v
       setStep("creating");
       await createWalletWithKey(encryptKey);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Setup failed. Try using a PIN instead.");
+      setError(err instanceof Error ? err.message : "Setup failed. Try a PIN instead.");
       setStep("pin");
     } finally {
       setIsSubmitting(false);
@@ -276,7 +104,7 @@ function WalletSetup({ email, onDone }: { email?: string | null; onDone: () => v
     try {
       await createWalletWithKey(pin);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Account activation failed. Please try again.");
+      setError(err instanceof Error ? err.message : "Activation failed. Please try again.");
       setStep("pin");
     } finally {
       setIsSubmitting(false);
@@ -285,140 +113,90 @@ function WalletSetup({ email, onDone }: { email?: string | null; onDone: () => v
 
   if (step === "creating" || step === "passkey") {
     return (
-      <div className="rounded-2xl border border-border/60 bg-card/50 p-6 flex flex-col items-center gap-4 text-center">
+      <div className="flex flex-col items-center gap-4 py-6 text-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <div>
-          <p className="font-bold">Activating your account…</p>
-          <p className="text-sm text-muted-foreground mt-1">Getting everything ready.</p>
-        </div>
+        <p className="font-semibold text-sm text-muted-foreground">Activating your account…</p>
       </div>
     );
   }
 
   if (step === "done") {
     return (
-      <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-6 flex flex-col items-center gap-3 text-center">
-        <CheckCircle2 className="h-8 w-8 text-emerald-500" />
-        <div>
-          <p className="font-bold text-emerald-600 dark:text-emerald-300">Account activated!</p>
-          <p className="text-sm text-muted-foreground mt-1">Preparing your participation…</p>
+      <div className="flex flex-col items-center gap-3 py-6 text-center">
+        <div className="h-12 w-12 rounded-full bg-emerald-500/10 flex items-center justify-center">
+          <CheckCircle2 className="h-6 w-6 text-emerald-500" />
         </div>
+        <p className="font-semibold text-emerald-600 dark:text-emerald-300">Account activated!</p>
         <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
+      {email && (
+        <div className="flex items-center gap-2 text-sm">
+          <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+          <span className="text-emerald-600 dark:text-emerald-400 font-medium">{email}</span>
+        </div>
+      )}
       <div>
-        {email && (
-          <div className="flex items-center gap-2 text-sm mb-3">
-            <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
-            <span className="text-emerald-600 dark:text-emerald-400 font-medium">{email}</span>
-          </div>
-        )}
-        <h2 className="text-3xl font-black tracking-tight leading-[1.1]">
-          Secure your{" "}
-          <span className="bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
-            account
-          </span>
-        </h2>
-        <p className="text-sm text-muted-foreground leading-relaxed mt-2">
+        <p className="font-bold">Protect your account</p>
+        <p className="text-sm text-muted-foreground mt-0.5">
           {step === "pin"
-            ? "Create a 6-digit security PIN. You'll use it to confirm your participation."
-            : "Add biometrics or a PIN to protect your airdrop participation."}
+            ? "Create a 6-digit PIN to confirm your participation."
+            : "Add Face ID, fingerprint, or a PIN."}
         </p>
       </div>
-
       {error && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-
-      {step === "choose" && passkeySupported && (
-        <div className="space-y-3">
-          <Button
-            size="lg"
-            className="w-full rounded-xl h-12 font-bold gap-2 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 shadow-lg shadow-primary/25"
-            onClick={handlePasskey}
-            disabled={isSubmitting}
-          >
+      {step === "choose" && (
+        <div className="space-y-2">
+          <Button size="lg" className="w-full h-12 font-bold gap-2" onClick={handlePasskey} disabled={isSubmitting}>
             <ShieldCheck className="h-4 w-4" />
-            Use biometrics (Face ID / fingerprint)
+            Use Face ID / fingerprint
           </Button>
-          <Button
-            size="lg"
-            className="w-full rounded-xl h-12 font-bold gap-2 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 shadow-lg shadow-primary/25"
-            onClick={() => setStep("pin")}
-            disabled={isSubmitting}
-          >
+          <Button size="lg" variant="outline" className="w-full h-12 gap-2" onClick={() => setStep("pin")} disabled={isSubmitting}>
             <KeyRound className="h-4 w-4" />
-            Create PIN code (6 digits)
+            Create PIN instead
           </Button>
         </div>
       )}
-
-      {step === "choose" && !passkeySupported && (
-        <Button
-          size="lg"
-          className="w-full rounded-xl h-12 font-bold gap-2 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 shadow-lg shadow-primary/25"
-          onClick={() => setStep("pin")}
-          disabled={isSubmitting}
-        >
-          <KeyRound className="h-4 w-4" />
-          Create PIN code (6 digits)
-        </Button>
-      )}
-
       {step === "pin" && (
-        <div className="rounded-2xl border border-border/60 bg-card/50 p-5 space-y-4">
-          <div className="flex items-center gap-2">
-            <KeyRound className="h-4 w-4 text-primary" />
-            <p className="font-semibold text-sm">Create your security PIN</p>
-          </div>
+        <div className="space-y-3">
           <PinInput
             value={pin}
             onChange={(v) => { setPin(v); setPinError(null); }}
+            onKeyDown={(e) => { if (e.key === "Enter" && pin.length >= 6) handlePin(); }}
             error={pinError}
             autoFocus
           />
           <div className="flex gap-2">
-            <Button
-              size="lg"
-              className="flex-1 rounded-xl h-11 font-bold bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90"
-              onClick={handlePin}
-              disabled={pin.length < 6 || isSubmitting}
-            >
+            <Button size="lg" className="flex-1 h-12 font-bold" onClick={handlePin} disabled={pin.length < 6 || isSubmitting}>
               Activate my account
             </Button>
             {passkeySupported && (
-              <Button
-                size="lg"
-                variant="outline"
-                className="rounded-xl h-11"
-                onClick={() => { setStep("choose"); setPin(""); setPinError(null); setError(null); }}
-              >
+              <Button size="lg" variant="outline" className="h-12" onClick={() => { setStep("choose"); setPin(""); setPinError(null); setError(null); }}>
                 Back
               </Button>
             )}
           </div>
         </div>
       )}
-
-      <p className="text-xs text-center text-muted-foreground">
-        Your PIN or passkey secures your account and is never shared.
-      </p>
+      <p className="text-xs text-muted-foreground text-center">Your PIN or passkey is never shared or stored by us.</p>
     </div>
   );
 }
 
-// ─── Main ─────────────────────────────────────────────────────────────────────
+// ─── Claim flow (Genesis Mint) ────────────────────────────────────────────────
 
 type MintStep = "ready" | "enter-pin" | "minting" | "success" | "error";
 
-export function MintContent() {
+function GenesisMint() {
   const { isSignedIn, isLoaded, user } = useUser();
   const { walletAddress, hasWallet, isLoadingWallet } = useSessionKey();
   const { executeTransaction, status, error: txError, reset } = useChipiTransaction();
@@ -511,345 +289,421 @@ export function MintContent() {
     window.location.reload();
   }, []);
 
-  const showingSections = isLoaded && !isSignedIn && !walletJustCreated;
+  return (
+    <div className="rounded-2xl border border-border/50 bg-card/50 p-5 space-y-4">
+      <div className="flex items-center gap-2 pb-1 border-b border-border/30">
+        <Sparkles className="h-4 w-4 text-yellow-500" />
+        <p className="font-bold text-sm">Claim your participation record</p>
+      </div>
+
+      {/* Loading */}
+      {(!isLoaded || (isLoaded && isSignedIn && isLoadingWallet) || walletJustCreated) && (
+        <div className="flex items-center gap-3 py-2">
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">Loading…</p>
+        </div>
+      )}
+
+      {/* Not signed in */}
+      {isLoaded && !isSignedIn && !walletJustCreated && (
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">Create a free account to claim your spot.</p>
+          <SignUpButton mode="modal" forceRedirectUrl="/mint">
+            <Button size="lg" className="w-full h-12 font-bold gap-2 rounded-xl">
+              <Sparkles className="h-4 w-4" />
+              Join with Google — it&apos;s free
+            </Button>
+          </SignUpButton>
+          <SignInButton mode="modal" forceRedirectUrl="/mint">
+            <Button size="lg" variant="ghost" className="w-full text-sm text-muted-foreground">
+              Already have an account — sign in
+            </Button>
+          </SignInButton>
+        </div>
+      )}
+
+      {/* Wallet setup */}
+      {isLoaded && !isLoadingWallet && isSignedIn && !hasWallet && !walletJustCreated && (
+        <WalletSetup email={user?.primaryEmailAddress?.emailAddress} onDone={handleWalletCreated} />
+      )}
+
+      {/* Mint states */}
+      {isLoaded && !isLoadingWallet && isSignedIn && hasWallet && !walletJustCreated && (
+        <div className="space-y-3">
+
+          {mintStep === "ready" && (
+            <>
+              <div className="flex items-center gap-2 text-sm">
+                <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                <span className="text-emerald-600 dark:text-emerald-400 font-medium">Account active — ready to claim</span>
+              </div>
+              <Button
+                size="lg"
+                className="w-full h-12 font-bold gap-2 disabled:opacity-50"
+                onClick={() => setMintStep("enter-pin")}
+                disabled={!MINT_CONTRACT}
+              >
+                <Sparkles className="h-4 w-4" />
+                {MINT_CONTRACT ? "Claim my spot" : "Airdrop not started yet"}
+              </Button>
+            </>
+          )}
+
+          {mintStep === "enter-pin" && (
+            <div className="space-y-4">
+              <div>
+                <p className="font-semibold text-sm">Confirm with your PIN</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Enter the PIN you created when signing up.</p>
+              </div>
+              <PinInput
+                value={mintPin}
+                onChange={(v) => { setMintPin(v); setMintPinError(null); }}
+                onKeyDown={(e) => { if (e.key === "Enter" && mintPin.length >= 6) handleClaim(); }}
+                placeholder="Your security PIN"
+                error={mintPinError}
+                autoFocus
+              />
+              <div className="flex gap-2">
+                <Button size="lg" className="flex-1 h-11 font-bold" onClick={handleClaim} disabled={mintPin.length < 6}>
+                  Confirm
+                </Button>
+                <Button size="lg" variant="outline" className="h-11" onClick={() => { setMintPin(""); setMintPinError(null); setMintStep("ready"); }}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {mintStep === "minting" && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <Loader2 className="h-6 w-6 animate-spin text-primary shrink-0" />
+                <div>
+                  <p className="font-semibold text-sm">Registering your participation…</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{mintStatusMsg || "Please wait…"}</p>
+                </div>
+              </div>
+              <div className="space-y-1.5 pl-9">
+                {[
+                  { label: "Preparing your record",   done: status !== "idle" },
+                  { label: "Submitting",              done: status === "confirming" || status === "confirmed" },
+                  { label: "Confirmed",               done: status === "confirmed" },
+                ].map(({ label, done }) => (
+                  <div key={label} className="flex items-center gap-2 text-xs text-muted-foreground">
+                    {done ? <CheckCircle2 className="h-3 w-3 text-emerald-500" /> : <div className="h-3 w-3 rounded-full border border-muted-foreground/30" />}
+                    <span className={done ? "text-foreground" : ""}>{label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {mintStep === "success" && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                </div>
+                <div>
+                  <p className="font-bold text-emerald-600 dark:text-emerald-300">You&apos;re in!</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Your participation is confirmed.</p>
+                </div>
+              </div>
+              {completedTxHash && (
+                <a
+                  href={`${EXPLORER_URL}/tx/${completedTxHash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <span className="font-mono">{completedTxHash.slice(0, 12)}…{completedTxHash.slice(-8)}</span>
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              )}
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button size="sm" asChild className="flex-1">
+                  <Link href="/create/asset">Publish content</Link>
+                </Button>
+                <Button size="sm" variant="outline" asChild className="flex-1">
+                  <Link href="/marketplace">Explore the app</Link>
+                </Button>
+              </div>
+              <button className="text-xs text-muted-foreground underline underline-offset-2 w-full text-center" onClick={handleResetMintGate}>
+                Didn&apos;t receive your record? Try again
+              </button>
+            </div>
+          )}
+
+          {mintStep === "error" && (
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <XCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-sm">Could not complete</p>
+                  {(mintError || txError) && <p className="text-xs text-muted-foreground mt-0.5">{mintError || txError}</p>}
+                </div>
+              </div>
+              <Button size="sm" variant="outline" className="gap-2" onClick={handleRetry}>
+                <RefreshCw className="h-3.5 w-3.5" /> Try again
+              </Button>
+            </div>
+          )}
+
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
+
+export function MintContent() {
+  const { isSignedIn, isLoaded } = useUser();
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background">
 
       {/* Header */}
-      <header className="px-6 py-4 flex items-center justify-between border-b border-border/30">
+      <header className="px-5 py-4 flex items-center justify-between border-b border-border/30 sticky top-0 bg-background/90 backdrop-blur-sm z-10">
         <MedialaneLogo />
         {isLoaded && !isSignedIn && (
           <SignInButton mode="modal" forceRedirectUrl="/mint">
-            <Button variant="ghost" size="sm" className="text-sm text-muted-foreground hover:text-foreground">
-              Sign in
-            </Button>
+            <Button variant="ghost" size="sm" className="text-sm text-muted-foreground">Sign in</Button>
           </SignInButton>
         )}
       </header>
 
-      {/* Hero */}
-      <div className="flex-1">
-        <div className="container mx-auto px-5 max-w-5xl">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center py-12 lg:py-20">
+      <div className="flex-1 max-w-lg mx-auto w-full px-5">
 
-            {/* Action panel */}
-            <div className="space-y-6 order-1 lg:order-2">
-
-              {/* Loading */}
-              {(!isLoaded || (isLoaded && isSignedIn && isLoadingWallet) || walletJustCreated) && (
-                <div className="space-y-4">
-                  <div className="h-10 w-48 rounded-lg bg-muted/40 animate-pulse" />
-                  <div className="h-24 rounded-xl bg-muted/30 animate-pulse" />
-                  <div className="h-12 rounded-xl bg-muted/20 animate-pulse" />
-                </div>
-              )}
-
-              {/* Not signed in */}
-              {isLoaded && !isSignedIn && !walletJustCreated && (
-                <div className="space-y-6">
-                  <div className="space-y-3">
-                    <p className="text-xs font-semibold uppercase tracking-widest text-primary/60">Medialane Launch</p>
-                    <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-[1.05]">
-                      Creator&apos;s{" "}
-                      <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-                        Airdrop
-                      </span>
-                    </h1>
-                    <p className="text-[15px] text-muted-foreground leading-relaxed">
-                      Join the Medialane launch. Claim your participation record and become eligible for{" "}
-                      <strong className="text-foreground font-semibold">every distribution</strong>{" "}
-                      from the community fund — completely free.
-                    </p>
-                  </div>
-
-                  <div className="space-y-3">
-                    <SignUpButton mode="modal" forceRedirectUrl="/mint">
-                      <Button
-                        size="lg"
-                        className="w-full rounded-2xl py-7 text-base font-bold gap-2.5 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 shadow-lg shadow-primary/25"
-                      >
-                        <Sparkles className="h-5 w-5" />
-                        Join with Google — it&apos;s free
-                      </Button>
-                    </SignUpButton>
-                    <SignInButton mode="modal" forceRedirectUrl="/mint">
-                      <Button size="lg" variant="ghost" className="w-full rounded-xl text-sm text-muted-foreground hover:text-foreground">
-                        Already have an account — sign in
-                      </Button>
-                    </SignInButton>
-                  </div>
-
-                  <div className="flex items-center gap-3 pt-1">
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground/70">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500/60" />
-                      <span>Free</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground/70">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500/60" />
-                      <span>No approval required</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground/70">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500/60" />
-                      <span>Instant access</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Signed in, no wallet */}
-              {isLoaded && !isLoadingWallet && isSignedIn && !hasWallet && !walletJustCreated && (
-                <WalletSetup
-                  email={user?.primaryEmailAddress?.emailAddress}
-                  onDone={handleWalletCreated}
-                />
-              )}
-
-              {/* Has wallet: claim flow */}
-              {isLoaded && !isLoadingWallet && isSignedIn && hasWallet && !walletJustCreated && (
-                <div className="space-y-5">
-
-                  {mintStep === "ready" && (
-                    <>
-                      <div>
-                        <div className="flex items-center gap-2 text-sm mb-3">
-                          <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
-                          <span className="text-emerald-600 dark:text-emerald-400 font-medium">Account active</span>
-                        </div>
-                        <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-[1.05]">
-                          Creator&apos;s{" "}
-                          <span className="bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
-                            Airdrop
-                          </span>
-                        </h1>
-                        <p className="text-sm text-muted-foreground leading-relaxed mt-2">
-                          Claim your participation record to lock in your place in the community fund.
-                        </p>
-                      </div>
-                      <div className="space-y-2">
-                        {[
-                          { icon: FileCheck, label: "Permanent participation record" },
-                          { icon: Coins,     label: "Eligible for all fund distributions" },
-                          { icon: Camera,    label: "Full platform access — publish your work" },
-                        ].map(({ icon: Icon, label }) => (
-                          <div key={label} className="flex items-center gap-3 text-sm">
-                            <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                              <Icon className="h-3.5 w-3.5 text-primary" />
-                            </div>
-                            <span>{label}</span>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="space-y-2 pt-1">
-                        <Button
-                          size="lg"
-                          className="w-full rounded-xl h-12 text-base font-bold gap-2 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 shadow-lg shadow-primary/25 disabled:opacity-50"
-                          onClick={() => setMintStep("enter-pin")}
-                          disabled={!MINT_CONTRACT}
-                        >
-                          <Sparkles className="h-4 w-4" />
-                          {MINT_CONTRACT ? "Claim my participation record" : "Airdrop not started yet"}
-                          {MINT_CONTRACT && <ArrowRight className="h-4 w-4 ml-auto" />}
-                        </Button>
-                        <p className="text-xs text-center text-muted-foreground">
-                          Your permanent record of participation in Medialane.
-                        </p>
-                      </div>
-                    </>
-                  )}
-
-                  {mintStep === "enter-pin" && (
-                    <div className="rounded-2xl border border-border/60 bg-card/50 p-5 space-y-4">
-                      <div>
-                        <p className="font-bold">Confirm with your security code</p>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Enter the 6-digit PIN you created when activating your account.
-                        </p>
-                      </div>
-                      <div className="rounded-xl bg-muted/30 px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-                        <span className="text-muted-foreground">Record</span>
-                        <span className="font-medium">Unique · permanent</span>
-                        <span className="text-muted-foreground">Cost</span>
-                        <span className="font-medium text-emerald-600 dark:text-emerald-400">Free</span>
-                        <span className="text-muted-foreground">Fees</span>
-                        <span className="font-medium text-emerald-600 dark:text-emerald-400">None</span>
-                      </div>
-                      <PinInput
-                        value={mintPin}
-                        onChange={(v) => { setMintPin(v); setMintPinError(null); }}
-                        placeholder="Your security PIN"
-                        error={mintPinError}
-                        autoFocus
-                      />
-                      <div className="flex gap-2">
-                        <Button
-                          size="lg"
-                          className="flex-1 rounded-xl h-11 font-bold bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90"
-                          onClick={handleClaim}
-                          disabled={mintPin.length < 6}
-                        >
-                          Confirm
-                        </Button>
-                        <Button
-                          size="lg"
-                          variant="outline"
-                          className="rounded-xl h-11"
-                          onClick={() => { setMintPin(""); setMintPinError(null); setMintStep("ready"); }}
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-
-                  {mintStep === "minting" && (
-                    <div className="rounded-2xl border border-border/60 bg-card/50 p-6">
-                      <div className="flex items-center gap-4">
-                        <Loader2 className="h-10 w-10 animate-spin text-primary shrink-0" />
-                        <div>
-                          <p className="font-bold">Registering your participation…</p>
-                          <p className="text-sm text-muted-foreground mt-0.5">{mintStatusMsg || "Please wait…"}</p>
-                        </div>
-                      </div>
-                      <div className="mt-4 space-y-1.5">
-                        {[
-                          { label: "Preparing your record",       done: status !== "idle" },
-                          { label: "Submitting to the network",   done: status === "confirming" || status === "confirmed" },
-                          { label: "Confirmed!",                  done: status === "confirmed" },
-                        ].map(({ label, done }) => (
-                          <div key={label} className="flex items-center gap-2 text-xs text-muted-foreground">
-                            {done
-                              ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-                              : <div className="h-3.5 w-3.5 rounded-full border border-muted-foreground/30" />}
-                            <span className={done ? "text-foreground" : ""}>{label}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {mintStep === "success" && (
-                    <div className="space-y-5">
-                      <div>
-                        <h1 className="text-5xl font-black tracking-tight leading-[1.05]">
-                          You&apos;re{" "}
-                          <span className="bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">in!</span>
-                        </h1>
-                        <p className="text-sm text-muted-foreground mt-2">Your place in the Creator&apos;s Airdrop is confirmed.</p>
-                      </div>
-                      <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-5 space-y-3">
-                        <div className="flex items-center gap-3">
-                          <div className="h-11 w-11 rounded-full bg-emerald-500/15 flex items-center justify-center shrink-0">
-                            <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-                          </div>
-                          <div>
-                            <p className="font-bold text-emerald-600 dark:text-emerald-300">Participation confirmed!</p>
-                            <p className="text-xs text-muted-foreground mt-0.5">Welcome to Medialane.</p>
-                          </div>
-                        </div>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex items-center gap-2 rounded-xl bg-emerald-500/5 border border-emerald-500/20 px-3 py-2.5">
-                            <Trophy className="h-3.5 w-3.5 text-yellow-500 shrink-0" />
-                            <span>Eligible for the community creator fund</span>
-                          </div>
-                          <div className="flex items-center gap-2 rounded-xl bg-emerald-500/5 border border-emerald-500/20 px-3 py-2.5">
-                            <Camera className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                            <span>Publish and share your creative work</span>
-                          </div>
-                        </div>
-                        {completedTxHash && (
-                          <a
-                            href={`${EXPLORER_URL}/tx/${completedTxHash}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                          >
-                            <span className="font-mono">{completedTxHash.slice(0, 12)}…{completedTxHash.slice(-8)}</span>
-                            <ExternalLink className="h-3 w-3" />
-                          </a>
-                        )}
-                      </div>
-                      <div className="flex flex-col sm:flex-row gap-2.5">
-                        <Button size="lg" className="flex-1 p-4" asChild>
-                          <Link href="/create/asset">Publish content</Link>
-                        </Button>
-                        <Button size="lg" variant="outline" className="flex-1 p-4" asChild>
-                          <Link href="/marketplace">Explore the app</Link>
-                        </Button>
-                      </div>
-                      <button
-                        className="text-xs text-muted-foreground underline underline-offset-2"
-                        onClick={handleResetMintGate}
-                      >
-                        Didn&apos;t receive your token? Try again
-                      </button>
-                    </div>
-                  )}
-
-                  {mintStep === "error" && (
-                    <div className="space-y-4">
-                      <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-5 space-y-3">
-                        <div className="flex items-start gap-3">
-                          <XCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
-                          <div>
-                            <p className="font-bold text-sm">Could not complete</p>
-                            {(mintError || txError) && (
-                              <p className="text-xs text-muted-foreground mt-1">{mintError || txError}</p>
-                            )}
-                          </div>
-                        </div>
-                        <Button size="sm" variant="outline" className="gap-2" onClick={handleRetry}>
-                          <RefreshCw className="h-3.5 w-3.5" />
-                          Try again
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-
-                </div>
-              )}
-            </div>
-
-            {/* Image */}
-            <div className="flex justify-center order-2 lg:order-1">
-              <div className="w-full max-w-sm">
-                <EventCard />
-              </div>
-            </div>
-
+        {/* ── Hero ── */}
+        <section className="pt-10 pb-8 space-y-3">
+          <div className="inline-flex items-center gap-2 rounded-full border border-yellow-500/30 bg-yellow-500/5 px-3 py-1">
+            <Sparkles className="h-3.5 w-3.5 text-yellow-500" />
+            <span className="text-xs font-semibold text-yellow-600 dark:text-yellow-400">Creator&apos;s Airdrop — Launch Campaign</span>
           </div>
+          <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-[1.05]">
+            Join the{" "}
+            <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
+              Creator&apos;s Airdrop
+            </span>
+          </h1>
+          <p className="text-base text-muted-foreground leading-relaxed">
+            Medialane is a platform for creators — publish your work, build an audience, and earn. Everyone who joins during the launch campaign gets a stake in the creator fund.
+          </p>
+        </section>
 
-          {/* Below-fold content: only for non-signed-in visitors */}
-          {showingSections && (
-            <>
-              <WhatYouGet />
-              <HowItWorks />
-              <PrizePool />
-              <div className="py-10">
-                <SignUpButton mode="modal" forceRedirectUrl="/mint">
-                  <Button
-                    size="lg"
-                    className="w-full rounded-2xl py-7 text-base font-bold gap-2.5 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 shadow-lg shadow-primary/25"
-                  >
-                    <Sparkles className="h-5 w-5" />
-                    Join with Google — it&apos;s free
-                  </Button>
-                </SignUpButton>
+        {/* ── Claim component ── */}
+        <section className="pb-8">
+          <GenesisMint />
+        </section>
+
+        {/* ── What is Medialane ── */}
+        <section className="py-8 border-t border-border/30 space-y-5">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Platform</p>
+            <h2 className="text-2xl font-black">What is Medialane</h2>
+            <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
+              Medialane is a creator platform where you publish, share, and monetize your work. Unlike traditional platforms, there are no middlemen taking a cut — the platform revenue goes back to the community.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { icon: Camera,  label: "Photos & videos" },
+              { icon: Music,   label: "Music" },
+              { icon: Palette, label: "Digital art" },
+              { icon: Globe,   label: "Documents & posts" },
+            ].map(({ icon: Icon, label }) => (
+              <div key={label} className="flex items-center gap-3 rounded-xl border border-border/40 bg-card/30 px-4 py-3">
+                <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
+                <span className="text-sm font-medium">{label}</span>
               </div>
-            </>
-          )}
-        </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ── What you get ── */}
+        <section className="py-8 border-t border-border/30 space-y-5">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Benefits</p>
+            <h2 className="text-2xl font-black">What you receive</h2>
+          </div>
+          <div className="space-y-3">
+            {[
+              {
+                icon: FileCheck,
+                color: "text-blue-400",
+                bg: "bg-blue-500/10",
+                title: "A permanent participation record",
+                desc: "When you claim, a record of your participation is issued. It stays with your account permanently and cannot be taken away.",
+              },
+              {
+                icon: Coins,
+                color: "text-yellow-500",
+                bg: "bg-yellow-500/10",
+                title: "Eligibility for creator fund payouts",
+                desc: "Participants are eligible for distributions from the creator fund when milestones are reached. The more you create and engage, the larger your share.",
+              },
+              {
+                icon: Users,
+                color: "text-purple-400",
+                bg: "bg-purple-500/10",
+                title: "Full platform access",
+                desc: "Publish content, build a profile, connect with other creators, and access the full Medialane marketplace from day one.",
+              },
+            ].map(({ icon: Icon, color, bg, title, desc }) => (
+              <div key={title} className="flex gap-4 p-4 rounded-2xl border border-border/40 bg-card/30">
+                <div className={`h-10 w-10 rounded-xl ${bg} flex items-center justify-center shrink-0 mt-0.5`}>
+                  <Icon className={`h-5 w-5 ${color}`} />
+                </div>
+                <div>
+                  <p className="font-bold text-sm">{title}</p>
+                  <p className="text-sm text-muted-foreground mt-0.5 leading-relaxed">{desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ── How participation works ── */}
+        <section className="py-8 border-t border-border/30 space-y-5">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Rules</p>
+            <h2 className="text-2xl font-black">How participation works</h2>
+            <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
+              Participation is free and open to everyone. Signing up and claiming your record is the minimum to be eligible. Creators who publish original content and engage with the community receive a higher contribution score, which determines their proportional share of each distribution.
+            </p>
+          </div>
+          <div className="space-y-3">
+            {[
+              { step: "1", title: "Create your account", desc: "Sign up with Google. No approval, no ID, no credit card required." },
+              { step: "2", title: "Protect it", desc: "Set a 6-digit PIN or use Face ID / fingerprint. This secures your account and confirms every action." },
+              { step: "3", title: "Claim your spot", desc: "Tap the claim button. Your participation record is issued and your eligibility is locked in." },
+              { step: "4", title: "Create and engage", desc: "Publish content, interact with other creators, and collect — the more you contribute, the larger your share." },
+            ].map(({ step, title, desc }) => (
+              <div key={step} className="flex gap-4 items-start">
+                <div className="h-9 w-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 mt-0.5">
+                  <span className="text-xs font-black text-primary">{step}</span>
+                </div>
+                <div>
+                  <p className="font-bold text-sm">{title}</p>
+                  <p className="text-sm text-muted-foreground mt-0.5 leading-relaxed">{desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ── Distribution phases ── */}
+        <section className="py-8 border-t border-border/30 space-y-5">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Distribution</p>
+            <h2 className="text-2xl font-black">Creator fund phases</h2>
+            <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
+              The creator fund distributes platform revenue to participants. Distributions are milestone-based — they happen when the community grows to the thresholds below. All distributions are subject to a community governance vote before they happen.
+            </p>
+          </div>
+          <div className="space-y-3">
+            <div className="rounded-2xl border border-blue-500/30 bg-blue-500/5 p-5 space-y-2">
+              <div className="flex items-center justify-between gap-3">
+                <p className="font-bold">Phase 1</p>
+                <span className="text-xs font-semibold bg-blue-500/10 text-blue-400 px-2.5 py-1 rounded-full">5,000 members</span>
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                First distribution from the creator fund. All eligible participants receive a proportional share based on their contribution score.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-purple-500/30 bg-purple-500/5 p-5 space-y-2">
+              <div className="flex items-center justify-between gap-3">
+                <p className="font-bold">Phase 2</p>
+                <span className="text-xs font-semibold bg-purple-500/10 text-purple-400 px-2.5 py-1 rounded-full">10,000 members</span>
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Second distribution, including all revenue accumulated since Phase 1. Contribution scores are recalculated from all activity since launch.
+              </p>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-border/40 bg-muted/10 p-4 flex items-start gap-3">
+            <Info className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Phases 1 and 2 are the distributions for the first year of the platform. These milestones are targets, not guarantees — timing depends on platform growth and community vote.
+            </p>
+          </div>
+        </section>
+
+        {/* ── Eligibility ── */}
+        <section className="py-8 border-t border-border/30 space-y-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Eligibility</p>
+            <h2 className="text-2xl font-black">Who qualifies</h2>
+          </div>
+          <div className="space-y-2 text-sm">
+            {[
+              { ok: true,  text: "Anyone who creates a free account and claims their record." },
+              { ok: true,  text: "Accounts that publish original content receive a higher share." },
+              { ok: true,  text: "Active participants who trade or collaborate receive the highest share." },
+              { ok: false, text: "Accounts using automated tools or duplicate registrations are disqualified." },
+              { ok: false, text: "Accounts found to be artificially inflating scores are disqualified." },
+            ].map(({ ok, text }) => (
+              <div key={text} className="flex items-start gap-3">
+                <div className={`h-5 w-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${ok ? "bg-emerald-500/10" : "bg-destructive/10"}`}>
+                  {ok
+                    ? <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                    : <XCircle className="h-3 w-3 text-destructive" />}
+                </div>
+                <span className="text-muted-foreground leading-relaxed">{text}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ── Disclaimer ── */}
+        <section className="py-8 border-t border-border/30 space-y-4">
+          <div className="flex items-center gap-2">
+            <Shield className="h-4 w-4 text-muted-foreground" />
+            <h2 className="text-base font-bold">Disclaimer</h2>
+          </div>
+          <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
+            <p>
+              Medialane is a content publishing and creator rewards platform. This campaign is not a financial product, investment scheme, lottery, or gambling service.
+            </p>
+            <p>
+              Participation does not guarantee any financial return. Fund distributions, if any occur, are made at the sole discretion of Medialane community governance and may take the form of platform credits, digital assets, or other community resources as determined by vote.
+            </p>
+            <p>
+              The participation record issued upon claiming is a digital record of membership in the Medialane community. It has no inherent monetary value and is not a financial instrument.
+            </p>
+            <p>
+              By participating you confirm that you have read and agree to the{" "}
+              <Link href="/campaign-terms" className="underline underline-offset-2 hover:text-foreground transition-colors">
+                Campaign Terms
+              </Link>
+              {" "}and{" "}
+              <Link href="/terms" className="underline underline-offset-2 hover:text-foreground transition-colors">
+                Terms of Service
+              </Link>.
+            </p>
+          </div>
+        </section>
+
+        {/* ── Bottom repeat claim ── */}
+        {isLoaded && !isSignedIn && (
+          <section className="py-8 border-t border-border/30">
+            <GenesisMint />
+          </section>
+        )}
+
+        <div className="pb-10" />
       </div>
 
       {/* Footer */}
       <footer className="border-t border-border/40">
-        <p className="text-[11px] text-center text-muted-foreground/50 px-6 pt-4">
-          Free participation · No purchase required · Fund distribution governed by Medialane DAO ·{" "}
+        <p className="text-[11px] text-center text-muted-foreground/50 px-5 pt-4">
+          Free to join · No purchase required ·{" "}
           <Link href="/campaign-terms" className="underline underline-offset-2 hover:text-muted-foreground/80 transition-colors">
             Campaign terms
           </Link>
         </p>
-        <div className="px-6 py-4 flex items-center justify-center gap-5 text-xs text-muted-foreground">
+        <div className="px-5 py-4 flex items-center justify-center gap-5 text-xs text-muted-foreground flex-wrap">
           <Link href="/terms" className="hover:text-foreground transition-colors">Terms</Link>
           <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
           <Link href="/campaign-terms" className="hover:text-foreground transition-colors">Campaign</Link>
