@@ -6,6 +6,7 @@ import { useAuth, useUser, SignInButton, SignUpButton } from "@clerk/nextjs";
 import { useClerk } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useChipiWallet, isWebAuthnSupported, createWalletPasskey } from "@chipi-stack/nextjs";
+import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
 import { serializeByteArray } from "@/lib/cairo-calldata";
 import {
   Sparkles,
@@ -230,6 +231,9 @@ function GenesisMint() {
   const { walletAddress, hasWallet, isLoadingWallet } = useSessionKey();
   const { executeTransaction, status, error: txError, reset } = useChipiTransaction();
 
+  const [passkeySupported] = useState(() => typeof window !== "undefined" && isWebAuthnSupported());
+  const { authenticate, encryptKey } = usePasskeyAuth();
+
   const [mintStep, setMintStep] = useState<MintStep>("ready");
   const [mintPin, setMintPin] = useState("");
   const [mintPinError, setMintPinError] = useState<string | null>(null);
@@ -247,10 +251,7 @@ function GenesisMint() {
     if (stored) { setCompletedTxHash(stored); setMintStep("success"); }
   }, [storageKey]);
 
-  const handleClaim = useCallback(async () => {
-    const err = validatePin(mintPin);
-    if (err) { setMintPinError(err); return; }
-    setMintPinError(null);
+  const executeMint = useCallback(async (key: string) => {
     setMintError(null);
     setMintStep("minting");
     setMintStatusMsg("Preparando seu registro…");
@@ -280,7 +281,7 @@ function GenesisMint() {
       const calldata = [walletAddress, ...serializeByteArray(tokenUri)];
 
       const result = await executeTransaction({
-        pin: mintPin,
+        pin: key,
         contractAddress: BR_MINT_CONTRACT,
         calls: [{ contractAddress: BR_MINT_CONTRACT, entrypoint: "mint_item", calldata }],
       });
@@ -296,7 +297,26 @@ function GenesisMint() {
       setMintStep("error");
       setMintError(err instanceof Error ? err.message : "Algo deu errado. Tente novamente.");
     }
-  }, [mintPin, walletAddress, storageKey, executeTransaction]);
+  }, [walletAddress, storageKey, executeTransaction]);
+
+  const handleClaim = useCallback(async () => {
+    const err = validatePin(mintPin);
+    if (err) { setMintPinError(err); return; }
+    setMintPinError(null);
+    await executeMint(mintPin);
+  }, [mintPin, executeMint]);
+
+  const handleClaimWithPasskey = useCallback(async () => {
+    setMintError(null);
+    try {
+      const key = encryptKey ?? await authenticate();
+      if (!key) throw new Error("Autenticação falhou. Tente novamente.");
+      await executeMint(key);
+    } catch (err: unknown) {
+      setMintStep("error");
+      setMintError(err instanceof Error ? err.message : "Algo deu errado. Tente novamente.");
+    }
+  }, [encryptKey, authenticate, executeMint]);
 
   const handleRetry = () => {
     reset();
@@ -378,20 +398,33 @@ function GenesisMint() {
           {mintStep === "enter-pin" && (
             <div className="space-y-4">
               <div>
-                <p className="font-semibold text-sm">Confirme com seu PIN</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Digite o PIN criado no cadastro.</p>
+                <p className="font-semibold text-sm">Confirme sua participação</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Use biometria ou seu PIN de segurança.</p>
               </div>
+              {passkeySupported && (
+                <Button size="lg" className="w-full h-11 font-bold gap-2" onClick={handleClaimWithPasskey}>
+                  <ShieldCheck className="h-4 w-4" />
+                  Confirmar com Face ID / digital
+                </Button>
+              )}
+              {passkeySupported && (
+                <div className="relative flex items-center gap-2">
+                  <div className="flex-1 h-px bg-border/40" />
+                  <span className="text-xs text-muted-foreground">ou use seu PIN</span>
+                  <div className="flex-1 h-px bg-border/40" />
+                </div>
+              )}
               <PinInput
                 value={mintPin}
                 onChange={(v) => { setMintPin(v); setMintPinError(null); }}
                 onKeyDown={(e) => { if (e.key === "Enter" && mintPin.length >= 6) handleClaim(); }}
                 placeholder="Seu código de segurança"
                 error={mintPinError}
-                autoFocus
+                autoFocus={!passkeySupported}
               />
               <div className="flex gap-2">
                 <Button size="lg" className="flex-1 h-11 font-bold" onClick={handleClaim} disabled={mintPin.length < 6}>
-                  Confirmar
+                  Confirmar com PIN
                 </Button>
                 <Button size="lg" variant="outline" className="h-11" onClick={() => { setMintPin(""); setMintPinError(null); setMintStep("ready"); }}>
                   Cancelar

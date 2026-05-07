@@ -89,7 +89,7 @@ export function MintContent() {
                 </h1>
                 <GenesisMint />
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Medialane is a platform for creators — publish your work, build an audience, and earn. Everyone who joins during the launch campaign gets a stake in the creator fund.
+                  Medialane is an app for creators to publish, share, and monetize content. Free to join.
                 </p>
                 <div className="flex items-center gap-4">
                   {["Free to join", "No card needed", "Instant"].map((t) => (
@@ -109,35 +109,16 @@ export function MintContent() {
             </div>
           </section>
 
-          {/* ── What you get ── */}
+          {/* ── Creator Fund ── */}
           <section className="py-10 border-t border-border/30 space-y-6">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Benefits</p>
-              <h2 className="text-2xl sm:text-3xl font-black">What you get</h2>
+              <h2 className="text-2xl sm:text-3xl font-black">Creator Fund</h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[
-                {
-                  icon: FileCheck,
-                  color: "text-blue-400",
-                  bg: "bg-blue-500/10",
-                  title: "Permanent participation record",
-                  desc: "A record tied to your account forever. Can't be taken away.",
-                },
-                {
-                  icon: Coins,
-                  color: "text-yellow-500",
-                  bg: "bg-yellow-500/10",
-                  title: "Share of the creator fund",
-                  desc: "When milestones are hit, revenue gets distributed back to participants.",
-                },
-                {
-                  icon: Users,
-                  color: "text-purple-400",
-                  bg: "bg-purple-500/10",
-                  title: "Full platform access",
-                  desc: "Publish, sell, collect, and collaborate with creators on day one.",
-                },
+                { icon: FileCheck, color: "text-blue-400",   bg: "bg-blue-500/10",   title: "Join for free",      desc: "Sign up with your Google account — no card, no approval needed." },
+                { icon: Coins,     color: "text-yellow-500", bg: "bg-yellow-500/10", title: "Creator fund",       desc: "Fund distributions for all participants." },
+                { icon: Users,     color: "text-purple-400", bg: "bg-purple-500/10", title: "Boost your chances", desc: "Create, share, and collect!" },
               ].map(({ icon: Icon, color, bg, title, desc }) => (
                 <div key={title} className="flex flex-col gap-4 p-5 rounded-2xl border border-border/40 bg-card/30 hover:bg-card/50 transition-colors">
                   <div className={`h-11 w-11 rounded-xl ${bg} flex items-center justify-center shrink-0`}>
@@ -156,9 +137,9 @@ export function MintContent() {
           <section className="py-10 border-t border-border/30 space-y-6">
             <div className="max-w-2xl">
               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">How it works</p>
-              <h2 className="text-2xl sm:text-3xl font-black">Sign up. That&apos;s it.</h2>
+              <h2 className="text-2xl sm:text-3xl font-black">Join in seconds.</h2>
               <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-                Creating an account is all you need to be eligible. Do more — earn more.
+                Your Google account is all you need to get started.
               </p>
             </div>
 
@@ -170,11 +151,11 @@ export function MintContent() {
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-black text-lg">Register</p>
+                    <p className="font-black text-lg">Sign in with Google</p>
                     <span className="text-xs font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 px-2.5 py-0.5 rounded-full">Minimum — you&apos;re in</span>
                   </div>
                   <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-                    Sign up and claim your record. That&apos;s the only requirement to participate in the airdrop.
+                    Sign in with your Google account and set a PIN or passkey to protect your account.
                   </p>
                 </div>
               </div>

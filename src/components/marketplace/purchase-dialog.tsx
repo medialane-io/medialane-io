@@ -2,24 +2,22 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@clerk/nextjs";
-import { toast } from "sonner";
 import {
   AlertCircle, ExternalLink, Loader2,
-  ShoppingCart, RefreshCw, Sparkles, Zap, Minus, Plus,
-  CheckCircle2, Package, ShieldCheck,
+  ShoppingCart, RefreshCw, Zap, Minus, Plus,
+  CheckCircle2, ShieldCheck,
 } from "lucide-react";
 import { fireConfetti } from "@/lib/confetti";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { PinInput } from "@/components/ui/pin-input";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { useMarketplaceActionFlow } from "@/hooks/use-marketplace-action-flow";
 import {
   MarketplacePinStep,
-  MarketplaceProcessingState,
   MarketplaceTxLink,
 } from "@/components/marketplace/marketplace-dialog-primitives";
 import { EXPLORER_URL } from "@/lib/constants";
@@ -105,95 +103,80 @@ function SuccessScreen({
   onViewPortfolio: () => void;
 }) {
   const image = order.token?.image ? ipfsToHttp(order.token.image) : null;
-  const name = order.token?.name || `Token #${order.nftTokenId}`;
+  const name = order.token?.name ?? null;
   const is1155 = order.offer?.itemType === "ERC1155";
+  const assetHref = `/asset/${order.nftContract}/${order.nftTokenId}`;
 
   const unitPrice = order.price?.formatted ? parseFloat(order.price.formatted) : null;
   const totalPrice = unitPrice !== null ? unitPrice * quantity : null;
 
+  const headline = is1155 && quantity > 1 ? `You own ${quantity} editions!` : "You own it!";
+
   return (
-    <div className="flex flex-col items-center gap-5 p-6 py-8">
-      {/* Token image + badge */}
-      <div className="relative">
+    <div className="flex flex-col">
+      {/* Full-width hero image with success overlay */}
+      <div className="relative h-56 w-full bg-muted overflow-hidden shrink-0">
         {image ? (
-          <div className="h-32 w-32 rounded-2xl overflow-hidden border border-border shadow-lg">
-            <img src={image} alt={name} className="h-full w-full object-cover" />
-          </div>
+          <img src={image} alt={name ?? ""} className="h-full w-full object-cover" />
         ) : (
-          <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-            <CheckCircle2 className="h-9 w-9 text-primary" />
+          <div className="h-full w-full bg-gradient-to-br from-primary/20 via-purple-500/10 to-emerald-500/10 flex items-center justify-center">
+            <CheckCircle2 className="h-16 w-16 text-emerald-500/40" />
           </div>
         )}
-        <div className="absolute -bottom-2 -right-2 h-9 w-9 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg border-2 border-background">
-          <CheckCircle2 className="h-5 w-5 text-white" />
-        </div>
-        <Sparkles className="absolute -top-2 -right-2 h-5 w-5 text-yellow-400" />
-      </div>
-
-      {/* Headline */}
-      <div className="text-center space-y-1">
-        <p className="font-bold text-xl">
-          {is1155 && quantity > 1 ? `You own ${quantity}×` : "You own it!"}
-        </p>
-        <p className="text-sm text-muted-foreground">
-          <span className="font-medium text-foreground">{name}</span>{" "}
-          {is1155 && quantity > 1
-            ? "editions are now in your portfolio."
-            : "is now in your portfolio."}
-        </p>
-      </div>
-
-      {/* Summary rows */}
-      <div className="w-full rounded-xl border border-border divide-y divide-border text-sm">
-        {order.price && (
-          <div className="flex items-center justify-between px-4 py-2.5">
-            <span className="text-muted-foreground">Price paid</span>
-            <span className="font-semibold flex items-center gap-1.5">
-              <CurrencyIcon symbol={order.price.currency} size={13} />
-              {totalPrice !== null && quantity > 1
-                ? `${formatDisplayPrice(totalPrice.toFixed(order.price.decimals <= 6 ? 2 : 4))} ${order.price.currency}`
-                : `${formatDisplayPrice(order.price.formatted)} ${order.price.currency}`}
-            </span>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+        <div className="absolute bottom-4 left-4 right-4 flex items-end gap-3">
+          <div className="h-9 w-9 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg border-2 border-white/20 shrink-0">
+            <CheckCircle2 className="h-5 w-5 text-white" />
           </div>
-        )}
-        <div className="flex items-center justify-between px-4 py-2.5">
-          <span className="text-muted-foreground">Network</span>
-          <span className="font-medium flex items-center gap-1.5">
-            <Zap className="h-3.5 w-3.5 text-primary" />
-            Starknet · Gasless
-          </span>
-        </div>
-        <div className="flex items-center justify-between px-4 py-2.5">
-          <span className="text-muted-foreground">Ownership</span>
-          <span className="font-medium flex items-center gap-1.5">
-            <Package className="h-3.5 w-3.5" />
-            Immutable on-chain
-          </span>
-        </div>
-        {txHash && (
-          <div className="flex items-center justify-between px-4 py-2.5">
-            <span className="text-muted-foreground">Transaction</span>
-            <a
-              href={`${EXPLORER_URL}/tx/${txHash}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 font-mono text-xs text-primary hover:underline transition-colors"
-            >
-              {txHash.slice(0, 8)}…{txHash.slice(-6)}
-              <ExternalLink className="h-3 w-3" />
-            </a>
+          <div className="min-w-0">
+            <p className="text-white font-black text-xl leading-tight">{headline}</p>
+            {name && (
+              <p className="text-white/75 text-sm font-medium truncate mt-0.5">{name}</p>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
-      {/* CTAs */}
-      <div className="flex flex-col sm:flex-row gap-2 w-full pt-1">
-        <Button variant="outline" className="flex-1" onClick={onClose}>
-          Close
-        </Button>
-        <Button className="flex-1" onClick={onViewPortfolio}>
-          View portfolio
-        </Button>
+      {/* Body */}
+      <div className="px-5 py-5 space-y-4">
+        {/* Summary — only what matters after purchase */}
+        <div className="rounded-xl border border-border divide-y divide-border text-sm">
+          {order.price && (
+            <div className="flex items-center justify-between px-4 py-2.5">
+              <span className="text-muted-foreground">Price paid</span>
+              <span className="font-semibold flex items-center gap-1.5">
+                <CurrencyIcon symbol={order.price.currency} size={13} />
+                {totalPrice !== null && quantity > 1
+                  ? `${formatDisplayPrice(totalPrice.toFixed(order.price.decimals <= 6 ? 2 : 4))} ${order.price.currency}`
+                  : `${formatDisplayPrice(order.price.formatted)} ${order.price.currency}`}
+              </span>
+            </div>
+          )}
+          {txHash && (
+            <div className="flex items-center justify-between px-4 py-2.5">
+              <span className="text-muted-foreground">Transaction</span>
+              <a
+                href={`${EXPLORER_URL}/tx/${txHash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 font-mono text-xs text-primary hover:underline"
+              >
+                {txHash.slice(0, 8)}…{txHash.slice(-6)}
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+          )}
+        </div>
+
+        {/* CTAs */}
+        <div className="flex flex-col sm:flex-row gap-2 w-full">
+          <Button variant="outline" className="flex-1" asChild>
+            <Link href={assetHref} onClick={onClose}>View asset</Link>
+          </Button>
+          <Button className="flex-1" onClick={onViewPortfolio}>
+            View portfolio
+          </Button>
+        </div>
       </div>
     </div>
   );

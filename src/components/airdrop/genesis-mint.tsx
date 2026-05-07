@@ -6,6 +6,7 @@ import { useAuth, useUser, SignInButton, SignUpButton } from "@clerk/nextjs";
 import { useClerk } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useChipiWallet, isWebAuthnSupported, createWalletPasskey } from "@chipi-stack/nextjs";
+import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
 import { serializeByteArray } from "@/lib/cairo-calldata";
 import {
   Sparkles,
@@ -156,9 +157,9 @@ function WalletSetup({ email, onDone }: { email?: string | null; onDone: () => v
         </div>
       )}
       <div>
-        <p className="font-bold">One last step — secure your account</p>
+        <p className="font-bold">Secure your account</p>
         <p className="text-sm text-muted-foreground mt-0.5">
-          {step === "pin" ? "Create a 6-digit PIN to confirm actions." : "Add Face ID, fingerprint, or a PIN."}
+          {step === "pin" ? "Create a 6-digit PIN to confirm your participation." : "Add Face ID, fingerprint, or a PIN."}
         </p>
       </div>
       {error && (
@@ -175,7 +176,7 @@ function WalletSetup({ email, onDone }: { email?: string | null; onDone: () => v
           </Button>
           <Button size="lg" variant="outline" className="w-full h-12 gap-2" onClick={() => setStep("pin")} disabled={isSubmitting}>
             <KeyRound className="h-4 w-4" />
-            Create a PIN instead
+            Create a PIN
           </Button>
         </div>
       )}
@@ -200,7 +201,7 @@ function WalletSetup({ email, onDone }: { email?: string | null; onDone: () => v
           </div>
         </div>
       )}
-      <p className="text-xs text-muted-foreground text-center">Your PIN is never shared or stored by us.</p>
+      <p className="text-xs text-muted-foreground text-center">Your PIN or passkey is never shared or stored.</p>
     </div>
   );
 }
@@ -213,6 +214,9 @@ export function GenesisMint() {
   const { isSignedIn, isLoaded, user } = useUser();
   const { walletAddress, hasWallet, isLoadingWallet } = useSessionKey();
   const { executeTransaction, status, error: txError, reset } = useChipiTransaction();
+
+  const [passkeySupported] = useState(() => typeof window !== "undefined" && isWebAuthnSupported());
+  const { authenticate, encryptKey } = usePasskeyAuth();
 
   const [mintStep, setMintStep] = useState<MintStep>("ready");
   const [mintPin, setMintPin] = useState("");
@@ -231,10 +235,7 @@ export function GenesisMint() {
     if (stored) { setCompletedTxHash(stored); setMintStep("success"); }
   }, [storageKey]);
 
-  const handleClaim = useCallback(async () => {
-    const err = validatePin(mintPin);
-    if (err) { setMintPinError(err); return; }
-    setMintPinError(null);
+  const executeMint = useCallback(async (key: string) => {
     setMintError(null);
     setMintStep("minting");
     setMintStatusMsg("Preparing your record…");
@@ -264,7 +265,7 @@ export function GenesisMint() {
       const calldata = [walletAddress, ...serializeByteArray(tokenUri)];
 
       const result = await executeTransaction({
-        pin: mintPin,
+        pin: key,
         contractAddress: MINT_CONTRACT,
         calls: [{ contractAddress: MINT_CONTRACT, entrypoint: "mint_item", calldata }],
       });
@@ -280,7 +281,26 @@ export function GenesisMint() {
       setMintStep("error");
       setMintError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     }
-  }, [mintPin, walletAddress, storageKey, executeTransaction]);
+  }, [walletAddress, storageKey, executeTransaction]);
+
+  const handleClaim = useCallback(async () => {
+    const err = validatePin(mintPin);
+    if (err) { setMintPinError(err); return; }
+    setMintPinError(null);
+    await executeMint(mintPin);
+  }, [mintPin, executeMint]);
+
+  const handleClaimWithPasskey = useCallback(async () => {
+    setMintError(null);
+    try {
+      const key = encryptKey ?? await authenticate();
+      if (!key) throw new Error("Passkey authentication failed. Please try again.");
+      await executeMint(key);
+    } catch (err: unknown) {
+      setMintStep("error");
+      setMintError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    }
+  }, [encryptKey, authenticate, executeMint]);
 
   const handleRetry = () => {
     reset();
@@ -319,11 +339,11 @@ export function GenesisMint() {
       {/* Not signed in */}
       {isLoaded && !isSignedIn && !walletJustCreated && (
         <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">Sign up free — no card, no approval needed.</p>
+          <p className="text-sm text-muted-foreground">Sign in with your Google account.</p>
           <SignUpButton mode="modal" forceRedirectUrl="/mint">
             <Button size="lg" className="w-full h-12 font-bold gap-2 rounded-xl">
               <Sparkles className="h-4 w-4" />
-              Join free — claim my spot
+              Join free — no sign-up required
             </Button>
           </SignUpButton>
           <SignInButton mode="modal" forceRedirectUrl="/mint">
@@ -346,11 +366,11 @@ export function GenesisMint() {
             <>
               <div className="flex items-center gap-2 text-sm">
                 <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
-                <span className="text-emerald-600 dark:text-emerald-400 font-medium">Account active — ready to claim</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-medium">Account active — mint your passport</span>
               </div>
               <Button
                 size="lg"
-                className="w-full h-12 font-bold gap-2"
+                className="w-full h-12 font-bold gap-2 disabled:opacity-50"
                 onClick={() => setMintStep("enter-pin")}
                 disabled={!MINT_CONTRACT}
               >
@@ -363,20 +383,33 @@ export function GenesisMint() {
           {mintStep === "enter-pin" && (
             <div className="space-y-4">
               <div>
-                <p className="font-semibold text-sm">Confirm with your PIN</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Enter the PIN you created when signing up.</p>
+                <p className="font-semibold text-sm">Confirm your participation</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Use Face ID / fingerprint or your PIN.</p>
               </div>
+              {passkeySupported && (
+                <Button size="lg" className="w-full h-11 font-bold gap-2" onClick={handleClaimWithPasskey}>
+                  <ShieldCheck className="h-4 w-4" />
+                  Confirm with Face ID / fingerprint
+                </Button>
+              )}
+              {passkeySupported && (
+                <div className="relative flex items-center gap-2">
+                  <div className="flex-1 h-px bg-border/40" />
+                  <span className="text-xs text-muted-foreground">or use your PIN</span>
+                  <div className="flex-1 h-px bg-border/40" />
+                </div>
+              )}
               <PinInput
                 value={mintPin}
                 onChange={(v) => { setMintPin(v); setMintPinError(null); }}
                 onKeyDown={(e) => { if (e.key === "Enter" && mintPin.length >= 6) handleClaim(); }}
                 placeholder="Your security PIN"
                 error={mintPinError}
-                autoFocus
+                autoFocus={!passkeySupported}
               />
               <div className="flex gap-2">
                 <Button size="lg" className="flex-1 h-11 font-bold" onClick={handleClaim} disabled={mintPin.length < 6}>
-                  Confirm
+                  Confirm with PIN
                 </Button>
                 <Button size="lg" variant="outline" className="h-11" onClick={() => { setMintPin(""); setMintPinError(null); setMintStep("ready"); }}>
                   Cancel
@@ -440,7 +473,7 @@ export function GenesisMint() {
                 </Button>
               </div>
               <button className="text-xs text-muted-foreground underline underline-offset-2 w-full text-center" onClick={handleResetMintGate}>
-                Didn&apos;t receive your record? Try again
+                Didn&apos;t mint your passport? Try again
               </button>
             </div>
           )}
