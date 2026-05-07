@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MotionCard } from "@/components/ui/motion-primitives";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ShoppingCart, Check, MoreHorizontal, Layers, ArrowRightLeft, Flag, GitBranch, HandCoins, ArrowUpRight, Zap, UserCircle2, XCircle, Loader2 } from "lucide-react";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
@@ -17,7 +17,7 @@ import { cn, ipfsToHttp, formatDisplayPrice, timeAgo } from "@/lib/utils";
 import { validatePin } from "@/components/ui/pin-input";
 import { useCart } from "@/hooks/use-cart";
 import { useMarketplace } from "@/hooks/use-marketplace";
-import { MarketplacePinStep } from "@/components/marketplace/marketplace-dialog-primitives";
+import { MarketplacePinStep, MarketplaceDialogHero } from "@/components/marketplace/marketplace-dialog-primitives";
 import { CancelListingDialog } from "@/app/asset/[contract]/[tokenId]/cancel-listing-dialog";
 import { ReportDialog } from "@/components/report-dialog";
 import { isWebAuthnSupported } from "@chipi-stack/nextjs";
@@ -417,10 +417,25 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
       {/* PIN dialog — only shown for PIN users */}
       {!isPasskeyUser && (
         <Dialog open={cancelPinOpen} onOpenChange={(v) => { if (!v) { setCancelPinOpen(false); setCancelPin(""); setCancelPinError(null); } }}>
-          <DialogContent className="max-w-[calc(100%-12px)] sm:max-w-sm rounded-2xl p-0 overflow-hidden">
-            <DialogHeader className="px-6 pt-6 pb-0">
-              <DialogTitle>Cancel listing</DialogTitle>
-            </DialogHeader>
+          <DialogContent className="max-w-[calc(100%-12px)] sm:max-w-sm rounded-2xl p-0 overflow-hidden gap-0">
+            <DialogTitle className="sr-only">Cancel listing — {name}</DialogTitle>
+            <MarketplaceDialogHero
+              tokenImage={image}
+              tokenName={name}
+              tokenId={order.nftTokenId ?? ""}
+              fallbackIcon={<XCircle className="h-12 w-12 text-brand-orange/30" />}
+            />
+            <div className="flex items-end justify-between px-6 pt-3 pb-1">
+              <div className="min-w-0">
+                <p className="font-bold text-lg leading-tight truncate">{name}</p>
+                {order.price && (
+                  <p className="text-sm text-muted-foreground mt-0.5 flex items-center gap-1">
+                    <CurrencyIcon symbol={order.price.currency} size={12} />
+                    {formatDisplayPrice(order.price.formatted)} {order.price.currency}
+                  </p>
+                )}
+              </div>
+            </div>
             <MarketplacePinStep
               description="Enter your PIN to cancel this listing."
               pin={cancelPin}
