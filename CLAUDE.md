@@ -174,7 +174,7 @@ All write ops follow: create intent → sign typed data → submit signature →
 
 ---
 
-## Known Bugs (as of 2026-04-30)
+## Known Bugs (as of 2026-05-06)
 
 All previously noted bugs were fixed. No outstanding known bugs.
 
@@ -293,6 +293,28 @@ All previously noted bugs were fixed. No outstanding known bugs.
 - [x] `src/components/asset/remix-offer-dialog.tsx` deleted — orphaned, never imported ✓ 2026-04-30
 - [x] `src/components/asset/self-remix-dialog.tsx` deleted — superseded by full `/create/remix` page flow ✓ 2026-04-30
 - [x] `MarketplaceDebugPanel` removed from `listing-dialog.tsx` (3 instances) and `create/asset/page.tsx` ✓ 2026-04-30
+
+### 2026-05-06 session — ownership UX, dialog polish, creator images
+
+**Ownership-aware listing surfaces:**
+- [x] `listing-card.tsx`: `isOwner` prop — owners see orange "Cancel" button (triggers inline cancel flow) instead of Buy/Cart. Passkey users get immediate cancel on click; PIN users get the PIN dialog. ✓ 2026-05-06
+- [x] `listings-grid.tsx`: detects ownership via `walletAddress` vs `order.offerer`, passes `isOwner` to `ListingCard` ✓ 2026-05-06
+- [x] `collection-page-client.tsx`: same `isOwner` detection for listings and bids tabs ✓ 2026-05-06
+- [x] `new-on-marketplace.tsx` (homepage "New listings"): same `isOwner` detection — owners see Cancel, not Buy ✓ 2026-05-06
+
+**PIN/passkey gating fix:**
+- [x] All five marketplace dialogs (`listing`, `offer`, `purchase`, `cancel-order`, `transfer`): `passkeySupported` now gated as `isWebAuthnSupported() && !!encryptKey` — only shows passkey option if the user actually enrolled a passkey at onboarding ✓ 2026-05-06
+
+**Launchpad error/success screens:**
+- [x] `LaunchpadErrorState` component added to `launchpad-success-state.tsx` — full-page error screen matching `LaunchpadSuccessState` layout ✓ 2026-05-06
+- [x] `launchpad/drop/create` and `launchpad/pop/create`: tx errors now render `LaunchpadErrorState` (full page) instead of silent toast ✓ 2026-05-06
+- [x] `launchpad/drop/[contract]/manage` and `launchpad/pop/[contract]/manage`: results shown in a Dialog with success/error states instead of fleeting toasts ✓ 2026-05-06
+
+**Cancel listing dialog:**
+- [x] `listing-card.tsx` PIN dialog: added `MarketplaceDialogHero` (asset image) + asset name + price above the PIN input — matches visual style of all other marketplace dialogs ✓ 2026-05-06
+
+**Discover creator images:**
+- [x] `creators-strip.tsx`: maps `collectionImage` as fallback for `bannerImage`/`avatarImage` before passing to `DiscoverCreatorsStrip` — fixes blank creator cards for creators who haven't set a profile image ✓ 2026-05-06
 
 ---
 
