@@ -265,7 +265,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
   };
 
   const handleClose = (v: boolean) => {
-    if (step === "processing") return; // block close during tx
+    if (step === "processing" || step === "success") return; // block close during tx and on success screen
     onOpenChange(v);
   };
 

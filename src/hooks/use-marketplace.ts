@@ -313,7 +313,7 @@ export function useMarketplace() {
     async (
       pin: string,
       intentFn: () => Promise<{ data: { id: string; typedData: unknown; calls: unknown } }>,
-      successMsg: string,
+      successMsg: string | null | undefined,
       marketplaceContract?: string,
       debugContext?: MarketplaceDebugContext
     ): Promise<string | undefined> => {
@@ -379,7 +379,7 @@ export function useMarketplace() {
         );
       }
 
-      toast.success(successMsg);
+      if (successMsg) toast.success(successMsg);
       invalidate();
       // Re-invalidate after indexer processes the block (~10s) to reflect chain state
       setTimeout(() => invalidate(), INDEXER_REVALIDATION_DELAY_MS);
@@ -450,7 +450,7 @@ export function useMarketplace() {
             tokenStandard: toApiStandard(input.tokenStandard),
             quantity: input.quantity,
           }),
-          "Purchase complete!",
+          null, // success feedback is handled by the purchase dialog's success screen
           marketplaceContract,
           {
             operation: "fulfill_order",
