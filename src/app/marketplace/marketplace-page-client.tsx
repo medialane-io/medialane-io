@@ -18,6 +18,7 @@ import { usePathname } from "next/navigation";
 import { usePlatformStats } from "@/hooks/use-stats";
 import { IP_TYPES } from "@/types/ip";
 import { HelpIcon } from "@/components/ui/help-icon";
+import { PageContainer } from "@medialane/ui";
 
 const SORT_OPTIONS = [
   { label: "Recent", value: "recent" },
@@ -245,7 +246,7 @@ export default function MarketplacePageClient() {
   };
 
   return (
-    <div className="container mx-auto px-4 pt-14 pb-8 space-y-8">
+    <PageContainer className="pt-14 pb-8 space-y-8">
       {/* Header */}
       <div className="space-y-2">
         <div className="flex items-center gap-2 text-primary">
@@ -455,6 +456,6 @@ export default function MarketplacePageClient() {
         minPrice={minPrice}
         maxPrice={maxPrice}
       />
-    </div>
+    </PageContainer>
   );
 }

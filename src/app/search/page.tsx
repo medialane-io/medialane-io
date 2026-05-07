@@ -12,6 +12,7 @@ import { MotionCard } from "@/components/ui/motion-primitives";
 import { ipfsToHttp } from "@/lib/utils";
 import { Search, Layers, ImageIcon, Users, AtSign, X, ArrowUpRight } from "lucide-react";
 import type { ApiSearchResult, ApiSearchCreatorResult } from "@medialane/sdk";
+import { PageContainer } from "@medialane/ui";
 
 function TokenCard({ token }: { token: NonNullable<ApiSearchResult["tokens"]>[number] }) {
   const [imgError, setImgError] = useState(false);
@@ -185,7 +186,7 @@ function SearchResults() {
   const totalResults = tokens.length + collections.length + creators.length;
 
   return (
-    <div className="container mx-auto px-4 pt-14 pb-8 space-y-8">
+    <PageContainer className="pt-14 pb-8 space-y-8">
       {/* Header */}
       <div className="space-y-4">
         <div className="flex items-center gap-2 text-primary">
@@ -320,17 +321,17 @@ function SearchResults() {
           )}
         </>
       )}
-    </div>
+    </PageContainer>
   );
 }
 
 export default function SearchPage() {
   return (
     <Suspense fallback={
-      <div className="container mx-auto px-4 pt-14 pb-8 space-y-4">
+      <PageContainer className="pt-14 pb-8 space-y-4">
         <Skeleton className="h-8 w-32" />
         <Skeleton className="h-11 w-full max-w-xl" />
-      </div>
+      </PageContainer>
     }>
       <SearchResults />
     </Suspense>

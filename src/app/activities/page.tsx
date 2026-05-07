@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ActivitiesFeed } from "./activities-feed";
 import { Activity } from "lucide-react";
+import { PageContainer } from "@medialane/ui";
 
 export const metadata: Metadata = {
   title: "Activities",
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function ActivitiesPage() {
   return (
-    <div className="container mx-auto px-4 pt-14 pb-8 space-y-8">
+    <PageContainer className="pt-14 pb-8 space-y-8">
       <div className="space-y-2">
         <div className="flex items-center gap-2 text-primary">
           <Activity className="h-5 w-5" />
@@ -19,6 +20,6 @@ export default function ActivitiesPage() {
         <p className="text-muted-foreground">Mint, Markets, events, and more.</p>
       </div>
       <ActivitiesFeed />
-    </div>
+    </PageContainer>
   );
 }

@@ -10,6 +10,7 @@ import { Layers, Loader2, BadgeCheck, Eye, SlidersHorizontal, Award, Sparkles } 
 import { HelpIcon } from "@/components/ui/help-icon";
 import { cn } from "@/lib/utils";
 import type { ApiCollection, CollectionSource } from "@medialane/sdk";
+import { PageContainer } from "@medialane/ui";
 
 const PAGE_SIZE = 18;
 
@@ -88,7 +89,7 @@ export default function CollectionsPageClient() {
   };
 
   return (
-    <div className="container mx-auto px-4 pt-14 pb-8 space-y-8">
+    <PageContainer className="pt-14 pb-8 space-y-8">
 
       {/* Header */}
       <div className="space-y-2">
@@ -348,6 +349,6 @@ export default function CollectionsPageClient() {
           )}
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }
