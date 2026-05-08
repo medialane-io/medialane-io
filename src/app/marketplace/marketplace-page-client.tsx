@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Search, X, Store, SlidersHorizontal } from "lucide-react";
 import { ActivityTicker } from "@/components/shared/activity-ticker";
+import { CurrencyIcon } from "@/components/shared/currency-icon";
 import type { ApiSearchResult } from "@medialane/sdk";
 import { getTokenBySymbol, parseAmount, SUPPORTED_TOKENS } from "@medialane/sdk";
 import { ipfsToHttp, cn } from "@/lib/utils";
@@ -302,6 +303,7 @@ export default function MarketplacePageClient() {
             )}
             {currency && (
               <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border border-primary/40 bg-primary/10 text-primary">
+                <CurrencyIcon symbol={currency} size={12} />
                 {currency}
                 <button onClick={() => handleCurrencyChange(currency)} className="ml-0.5 hover:text-primary/60">×</button>
               </span>
@@ -386,13 +388,14 @@ export default function MarketplacePageClient() {
                     key={c}
                     onClick={() => handleCurrencyChange(c)}
                     className={cn(
-                      "text-xs px-3 py-1.5 rounded-full border transition-colors whitespace-nowrap",
+                      "inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-colors whitespace-nowrap",
                       currency === c
                         ? "border-primary bg-primary/10 text-primary font-medium"
                         : "border-border text-muted-foreground hover:border-primary/50"
                     )}
                   >
-                    {c}
+                    <CurrencyIcon symbol={c} size={13} />
+                    <span>{c}</span>
                   </button>
                 ))}
               </div>
