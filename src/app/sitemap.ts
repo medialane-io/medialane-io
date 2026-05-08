@@ -1,7 +1,8 @@
 import type { MetadataRoute } from "next";
 import { IP_TYPE_DATA } from "@medialane/ui";
+import { APP_URL } from "@/lib/seo";
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://medialane.io";
+const BASE_URL = APP_URL;
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL ||
   "https://medialane-backend-production.up.railway.app";
@@ -28,10 +29,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/collections`, changeFrequency: "hourly", priority: 0.9 },
     { url: `${BASE_URL}/creators`, changeFrequency: "daily", priority: 0.8 },
     { url: `${BASE_URL}/launchpad`, changeFrequency: "daily", priority: 0.8 },
+    { url: `${BASE_URL}/launchpad/drop`, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${BASE_URL}/launchpad/pop`, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${BASE_URL}/launchpad/nfteditions`, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${BASE_URL}/mint`, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${BASE_URL}/br/mint`, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${BASE_URL}/airdrop`, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${BASE_URL}/claim`, changeFrequency: "weekly", priority: 0.5 },
     { url: `${BASE_URL}/activities`, changeFrequency: "hourly", priority: 0.6 },
-    { url: `${BASE_URL}/about`, changeFrequency: "monthly", priority: 0.5 },
-    { url: `${BASE_URL}/learn`, changeFrequency: "monthly", priority: 0.5 },
-    { url: `${BASE_URL}/docs`, changeFrequency: "monthly", priority: 0.5 },
   ];
 
   // IP type browse pages

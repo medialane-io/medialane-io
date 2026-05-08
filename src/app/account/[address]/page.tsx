@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { canonical } from "@/lib/seo";
 import CreatorPageClient from "./creator-page-client";
 
 export const revalidate = 60;
@@ -16,9 +17,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
+    alternates: canonical(`/account/${address}`),
     openGraph: {
       title: `${title} | Medialane`,
       description,
+      url: `/account/${address}`,
       images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: title }],
     },
     twitter: {

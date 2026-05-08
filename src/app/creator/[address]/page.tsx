@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { fetchCreatorProfile } from "@/lib/api-server";
+import { JsonLd } from "@/components/seo/json-ld";
+import { fetchCreatorProfile, ipfsToHttpServer } from "@/lib/api-server";
+import { absoluteUrl, canonical, truncateDescription } from "@/lib/seo";
 import CreatorUsernamePageClient from "./creator-username-client";
 
 export const revalidate = 60;
@@ -20,19 +22,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const profile = await fetchCreatorProfile(address);
   const name = profile?.displayName ?? profile?.username ?? `@${address}`;
   const bio = profile?.bio ?? `Creator profile for ${name} on Medialane.`;
+  const description = truncateDescription(bio);
+  const path = `/creator/${address}`;
 
   return {
     title: name,
-    description: bio.length > 160 ? `${bio.slice(0, 157)}…` : bio,
+    description,
+    alternates: canonical(path),
     openGraph: {
       title: `${name} | Medialane`,
-      description: bio.length > 160 ? `${bio.slice(0, 157)}…` : bio,
+      description,
+      url: path,
       type: "profile",
     },
     twitter: {
       card: "summary_large_image",
       title: `${name} | Medialane`,
-      description: bio.length > 160 ? `${bio.slice(0, 157)}…` : bio,
+      description,
     },
   };
 }
@@ -46,6 +52,33 @@ export default async function CreatorPage({ params }: Props) {
     redirect(`/account/${address}`);
   }
 
+  const profile = await fetchCreatorProfile(address);
+  const name = profile?.displayName ?? profile?.username ?? `@${address}`;
+  const bio = profile?.bio ?? `Creator profile for ${name} on Medialane.`;
+  const path = `/creator/${address}`;
+  const image = ipfsToHttpServer(profile?.avatarImage || profile?.bannerImage || "");
+  const sameAs = [profile?.websiteUrl, profile?.twitterUrl].filter(Boolean);
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ProfilePage",
+    name: `${name} | Medialane`,
+    url: absoluteUrl(path),
+    mainEntity: {
+      "@type": "Person",
+      name,
+      description: bio,
+      url: absoluteUrl(path),
+      ...(image && { image }),
+      ...(sameAs.length > 0 && { sameAs }),
+    },
+  };
+
   // Otherwise treat as a username slug
-  return <CreatorUsernamePageClient username={address} />;
+  return (
+    <>
+      <JsonLd data={jsonLd} />
+      <CreatorUsernamePageClient username={address} />
+    </>
+  );
 }

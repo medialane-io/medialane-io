@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { DropContent } from "./drop-content";
+import { canonical } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Collection Drop | Medialane",
   description: "Mint limited edition drops. Set your supply cap, open a mint window, and let your community collect.",
+  alternates: canonical("/launchpad/drop"),
 };
 
 export default function DropPage() {

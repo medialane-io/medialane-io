@@ -47,5 +47,9 @@ export async function fetchCreatorProfile(username: string) {
     bio?: string;
     avatarImage?: string;
     bannerImage?: string;
+    websiteUrl?: string | null;
+    twitterUrl?: string | null;
+    discordUrl?: string | null;
+    telegramUrl?: string | null;
   }>(`/v1/creators/by-username/${encodeURIComponent(username.toLowerCase())}`);
 }

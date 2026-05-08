@@ -4,18 +4,16 @@ import { useEffect } from "react";
 import { ThemeProvider } from "next-themes";
 import { Toaster, toast } from "sonner";
 import Link from "next/link";
-import { Zap } from "lucide-react";
-import { SignedIn } from "@clerk/nextjs";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { CartDrawer } from "@/components/layout/cart-drawer";
-import { SessionPreferencesSwitch } from "@/components/chipi/session-preferences-switch";
-import { Aurora } from "@/components/ui/aurora";
 import { SidebarInset, SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { MedialaneLogo } from "@/components/brand/medialane-logo";
 import { SWRConfig } from "swr";
 import { ChipiSessionUnlockProvider } from "@/contexts/chipi-session-unlock-context";
 import { usePathname } from "next/navigation";
-import { GoogleAnalytics } from '@next/third-parties/google'
+import { GoogleAnalytics } from "@next/third-parties/google";
+
+const GA_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID;
 
 function MobileIconTrigger() {
   const { toggleSidebar } = useSidebar();
@@ -101,8 +99,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           },
         }}
       >
-        {/* <Aurora /> */}
-        <GoogleAnalytics gaId="AW-18112836088" />
+        {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
         <Shell>{children}</Shell>
         <CartDrawer />
         <Toaster

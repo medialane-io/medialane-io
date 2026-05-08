@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import CreatorsPageClient from "./creators-client";
+import { canonical } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Creators",
   description: "Meet the creators building on Medialane — discover artists, musicians, photographers, and developers minting IP on Starknet.",
+  alternates: canonical("/creators"),
   openGraph: {
     title: "Creators | Medialane",
     description: "Meet the creators building on Medialane — discover artists, musicians, photographers, and developers minting IP on Starknet.",
+    url: "/creators",
     images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Medialane Creators" }],
   },
   twitter: {

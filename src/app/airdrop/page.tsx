@@ -18,10 +18,18 @@ import {
 } from "lucide-react";
 import { MedialaneLogo } from "@/components/brand/medialane-logo";
 import { GenesisMint, AirdropEventCard } from "@/components/airdrop/genesis-mint";
+import { canonical } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Creator's Airdrop — Medialane",
   description: "Everything you need to know about the Medialane Creator's Airdrop — how participation works, what you earn, and how to join.",
+  alternates: canonical("/airdrop"),
+  openGraph: {
+    title: "Creator's Airdrop — Medialane",
+    description: "Everything you need to know about the Medialane Creator's Airdrop — how participation works, what you earn, and how to join.",
+    url: "/airdrop",
+    type: "website",
+  },
 };
 
 const PHASES = [
