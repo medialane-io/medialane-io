@@ -246,7 +246,7 @@ export default function MarketplacePageClient() {
   };
 
   return (
-    <PageContainer className="pt-14 pb-8 space-y-8">
+    <PageContainer className="box-border max-w-full pt-14 pb-8 space-y-8">
       {/* Header */}
       <div className="space-y-2">
         <div className="flex items-center gap-2 text-primary">

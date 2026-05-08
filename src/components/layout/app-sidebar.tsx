@@ -6,7 +6,7 @@ import { useUser, useClerk, SignInButton, SignUpButton, UserButton } from "@cler
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import {
-  Telescope, Compass, Briefcase, Plus, Activity,
+  Telescope, Compass, Store, Briefcase, Plus, Activity,
   LayoutGrid, Users, BookOpen,
   Sun, Moon, ShoppingBag, LogIn, PlusCircle, Search,
   ChevronRight, Music, Palette, Film, Camera, Gem, LogOut,
@@ -213,7 +213,7 @@ export function AppSidebar() {
             {/* Marketplace */}
             <SidebarMenuItem>
               <SidebarMenuButton asChild isActive={pathname === "/marketplace"} tooltip="Marketplace" onClick={closeSidebar}>
-                <Link href="/marketplace"><Compass /><span>Marketplace</span></Link>
+                <Link href="/marketplace"><Store /><span>Marketplace</span></Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
 
