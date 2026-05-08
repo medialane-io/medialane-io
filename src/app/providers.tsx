@@ -53,7 +53,7 @@ function MainShell({ children }: { children: React.ReactNode }) {
           <MobileIconTrigger />
         </div>
         {/* SessionPreferencesSwitch hidden — surfaced inside account/wallet settings instead */}
-        <main className="flex-1 bg-background overflow-x-hidden">{children}</main>
+        <main className="min-w-0 flex-1 bg-background overflow-x-hidden">{children}</main>
         <footer className="px-6 py-8 mt-auto">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
             <p className="text-xs">© {new Date().getFullYear()} Medialane DAO</p>
