@@ -362,11 +362,6 @@ function GenesisMint() {
               Participe grátis - Sem cadastro
             </Button>
           </SignUpButton>
-          <SignInButton mode="modal" forceRedirectUrl="/br/mint">
-            <Button size="lg" variant="ghost" className="w-full text-sm text-muted-foreground">
-              Já tenho conta — entrar
-            </Button>
-          </SignInButton>
         </div>
       )}
 
@@ -525,11 +520,6 @@ export function BrMintContent() {
       {/* Cabeçalho */}
       <header className="px-5 py-4 flex items-center justify-between border-b border-border/30 sticky top-0 bg-background/90 backdrop-blur-sm z-10">
         <MedialaneLogo />
-        {isLoaded && !isSignedIn && (
-          <SignInButton mode="modal" forceRedirectUrl="/br/mint">
-            <Button variant="ghost" size="sm" className="text-sm text-muted-foreground">Entrar</Button>
-          </SignInButton>
-        )}
       </header>
 
       <div className="flex-1 w-full">
