@@ -359,7 +359,7 @@ function GenesisMint() {
           <SignUpButton mode="modal" forceRedirectUrl="/br/mint">
             <Button size="lg" className="w-full h-12 font-bold gap-2 rounded-xl">
               <Sparkles className="h-4 w-4" />
-              Participe grátis - Sem cadastro
+              Participe grátis em poucos segundos
             </Button>
           </SignUpButton>
         </div>
@@ -570,7 +570,7 @@ export function BrMintContent() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[
-                { icon: FileCheck, color: "text-blue-400",   bg: "bg-blue-500/10",   title: "Participe sem cadastro", desc: "Acesse grátis com sua conta Google" },
+                { icon: FileCheck, color: "text-blue-400",   bg: "bg-blue-500/10",   title: "Participação grátis", desc: "Faça login com sua conta Google" },
                 { icon: Coins,     color: "text-yellow-500", bg: "bg-yellow-500/10", title: "Fundo de criadores", desc: "Distribuição de fundos para todos os participantes." },
                 { icon: Users,     color: "text-purple-400", bg: "bg-purple-500/10", title: "Aumente suas chances", desc: "Crie, compartilhe e colecione!." },
               ].map(({ icon: Icon, color, bg, title, desc }) => (
