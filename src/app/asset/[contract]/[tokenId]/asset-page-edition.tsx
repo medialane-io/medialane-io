@@ -70,10 +70,10 @@ export function AssetPageEdition() {
   const {
     isProcessing,
     orderToCancel, cancelPinOpen, cancelStep, cancelError,
-    orderToAccept, acceptPinOpen,
+    orderToAccept, acceptPinOpen, acceptStep, acceptError, acceptTxHash,
     handleCancelClick, handleCancelPin,
     handleAcceptClick, handleAcceptPin,
-    dismissCancelPin, dismissAcceptPin, resetCancelStep,
+    dismissCancelPin, dismissAcceptPin, resetCancelStep, resetAcceptStep,
   } = useOrderActions({ mutateListings, tokenStandard: "ERC1155" });
   const { addItem, items: cartItems, setIsOpen: setCartOpen } = useCart();
   const shouldReduce = useReducedMotion();
@@ -361,6 +361,10 @@ export function AssetPageEdition() {
         cancelStep={cancelStep}
         cancelError={cancelError}
         resetCancelStep={resetCancelStep}
+        acceptStep={acceptStep}
+        acceptError={acceptError}
+        acceptTxHash={acceptTxHash}
+        resetAcceptStep={resetAcceptStep}
       />
     </div>
   );

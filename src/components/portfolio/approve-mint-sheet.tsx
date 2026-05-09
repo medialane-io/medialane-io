@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PinDialog } from "@/components/chipi/pin-dialog";
-import { toast } from "sonner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
@@ -17,7 +17,7 @@ import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { confirmRemixOffer } from "@/hooks/use-remix-offers";
 import { serializeByteArray, encodeU256 } from "@/lib/cairo-calldata";
 import { formatDisplayPrice } from "@/lib/utils";
-import { Check, GitBranch, Loader2 } from "lucide-react";
+import { AlertCircle, Check, GitBranch, Loader2 } from "lucide-react";
 import type { RemixOffer } from "@/types/remix-offers";
 import type { ChipiCall } from "@/hooks/use-chipi-transaction";
 import { INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
@@ -55,6 +55,8 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [newAssetLink, setNewAssetLink] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [approveError, setApproveError] = useState<string | null>(null);
 
   const effectiveCollectionKey = selectedCollectionKey ?? defaultCollectionKey;
   const selectedCollection = eligibleCollections.find((c) => collectionKey(c) === effectiveCollectionKey);
@@ -71,6 +73,8 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
       setRemixName("");
       setDone(false);
       setNewAssetLink(null);
+      setFormError(null);
+      setApproveError(null);
     }
     onOpenChange(v);
   };
@@ -78,12 +82,13 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
   const effectiveName = remixName.trim() || `Remix of Token #${offer?.originalTokenId}`;
 
   const handleApprove = () => {
+    setFormError(null);
     if (!effectiveCollectionKey || !selectedCollection) {
-      toast.error("No eligible collection");
+      setFormError("Select a collection to mint into.");
       return;
     }
     if (selectedCollection.standard !== "ERC1155" && !effectiveCollectionId) {
-      toast.error("Collection not enrolled in registry");
+      setFormError("This collection is not enrolled in the registry.");
       return;
     }
     setPinOpen(true);
@@ -224,10 +229,9 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
 
       setNewAssetLink(`/asset/${selectedCollection.contractAddress}/${remixTokenId}`);
       setDone(true);
-      toast.success("Remix minted!", { description: "Buyer has been notified." });
       setTimeout(() => onSuccess?.(), INDEXER_REVALIDATION_DELAY_MS);
     } catch (err: unknown) {
-      toast.error("Approval failed", { description: err instanceof Error ? err.message : "Unknown error" });
+      setApproveError(err instanceof Error ? err.message : "Approval failed");
     } finally {
       setLoading(false);
     }
@@ -258,9 +262,24 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
                     <a href={newAssetLink}>View new asset</a>
                   </Button>
                 )}
+                <Button className="w-full" onClick={() => onOpenChange(false)}>
+                  Done
+                </Button>
               </div>
             ) : (
               <div className="space-y-5">
+                {formError && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{formError}</AlertDescription>
+                  </Alert>
+                )}
+                {approveError && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{approveError}</AlertDescription>
+                  </Alert>
+                )}
                 {offer && (
                   <div className="rounded-xl border border-border bg-muted/30 p-3 text-sm space-y-1">
                     <p><span className="text-muted-foreground">Token</span> #{offer.originalTokenId}</p>

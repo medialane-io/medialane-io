@@ -18,7 +18,6 @@ import {
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useUser } from "@clerk/nextjs";
-import { toast } from "sonner";
 import { FadeIn } from "@/components/ui/motion-primitives";
 import { normalizeAddress } from "@medialane/sdk";
 import { Contract } from "starknet";
@@ -51,10 +50,13 @@ export default function MintIP1155Page() {
   const [mintStep, setMintStep] = useState<MintStep>("idle");
   const [mintError, setMintError] = useState<string | null>(null);
   const [ownerCheck, setOwnerCheck] = useState<"loading" | "ok" | "denied">("loading");
+  const [formError, setFormError] = useState<string | null>(null);
   const {
     imagePreview,
     imageUri,
     imageUploading,
+    uploadError,
+    uploadSuccess,
     fileInputRef,
     handleImageSelect,
     clearImage,
@@ -99,7 +101,11 @@ export default function MintIP1155Page() {
   }, [walletAddress, collectionAddress]);
 
   const onSubmit = (values: NftEditionsMintFormValues) => {
-    if (!imageUri) { toast.error("Upload an image first"); return; }
+    if (!imageUri) {
+      setFormError("Upload an image before minting.");
+      return;
+    }
+    setFormError(null);
     setPendingValues(values);
     if (!hasWallet) { setWalletSetupOpen(true); return; }
     setPinOpen(true);
@@ -224,6 +230,15 @@ export default function MintIP1155Page() {
               onImageSelect={handleImageSelect}
               onClearImage={clearImage}
             />
+            {uploadError && (
+              <p className="text-xs text-destructive mt-1">{uploadError}</p>
+            )}
+            {uploadSuccess && (
+              <p className="text-xs text-emerald-500 mt-1">✓ {uploadSuccess}</p>
+            )}
+            {formError && (
+              <p className="text-xs text-destructive mt-1">{formError}</p>
+            )}
           </form>
         </Form>
       </div>

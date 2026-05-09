@@ -35,8 +35,9 @@ import { INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import {
   GitBranch, ChevronDown, ChevronLeft, ImagePlus, Upload,
-  Shield, DollarSign, Percent, Boxes, Plus, Info, Loader2,
+  Shield, DollarSign, Percent, Boxes, Plus, Info, Loader2, HandCoins, AlertCircle,
 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import type { ChipiCall } from "@/hooks/use-chipi-transaction";
 
@@ -134,6 +135,8 @@ export default function CreateRemixPage() {
 
   // Offer submit (non-owner)
   const [offerLoading, setOfferLoading] = useState(false);
+  const [offerStep, setOfferStep] = useState<"idle" | "success" | "error">("idle");
+  const [offerError, setOfferError] = useState<string | null>(null);
 
   // Owner mint flow
   const [pinOpen, setPinOpen] = useState(false);
@@ -392,11 +395,18 @@ export default function CreateRemixPage() {
 
   const handleOfferSubmit = async () => {
     const err = validate();
-    if (err) { toast.error(err); return; }
+    if (err) {
+      setOfferError(err);
+      return;
+    }
     const clerkToken = await getToken();
-    if (!clerkToken) { toast.error("Sign in required"); return; }
+    if (!clerkToken) {
+      setOfferError("Sign in required");
+      return;
+    }
 
     setOfferLoading(true);
+    setOfferError(null);
     try {
       const tokenInfo = getTokenBySymbol(currency as any);
       const decimals = tokenInfo?.decimals ?? 18;
@@ -416,14 +426,10 @@ export default function CreateRemixPage() {
         },
         clerkToken
       );
-      toast.success("Remix offer sent!", {
-        description: "The creator will be notified and can approve your request.",
-      });
-      router.push(`/asset/${contract}/${tokenId}`);
+      setOfferStep("success");
     } catch (err: unknown) {
-      toast.error("Failed to submit offer", {
-        description: err instanceof Error ? err.message : "Unknown error",
-      });
+      setOfferStep("error");
+      setOfferError(err instanceof Error ? err.message : "Failed to submit offer");
     } finally {
       setOfferLoading(false);
     }
@@ -742,22 +748,58 @@ export default function CreateRemixPage() {
               )}
             </Section>
 
-            {/* Submit */}
-            <div className="btn-border-animated p-[1px] rounded-xl">
-              <button
-                type="button"
-                disabled={isOwner ? false : offerLoading}
-                onClick={isOwner ? handleOwnerSubmit : handleOfferSubmit}
-                className="w-full h-12 rounded-[11px] flex items-center justify-center gap-2 text-base font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-rose disabled:opacity-50"
-              >
-                {offerLoading ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                ) : (
-                  <GitBranch className="h-5 w-5" />
+            {/* Non-owner: success state */}
+            {!isOwner && offerStep === "success" ? (
+              <div className="flex flex-col items-center gap-4 py-10 text-center">
+                <div className="h-16 w-16 rounded-full bg-brand-orange/10 flex items-center justify-center">
+                  <HandCoins className="h-8 w-8 text-brand-orange" />
+                </div>
+                <div className="space-y-2">
+                  <p className="text-xl font-bold">Offer sent!</p>
+                  <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+                    The creator will be notified. If accepted, your remix will be minted and sent to your wallet.
+                  </p>
+                </div>
+                <Button variant="outline" asChild>
+                  <Link href="/portfolio">View portfolio</Link>
+                </Button>
+              </div>
+            ) : !isOwner && offerStep === "error" ? (
+              <div className="space-y-3">
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{offerError ?? "Failed to submit offer"}</AlertDescription>
+                </Alert>
+                <Button variant="outline" className="w-full" onClick={() => { setOfferStep("idle"); setOfferError(null); }}>
+                  Try again
+                </Button>
+              </div>
+            ) : (
+              <>
+                {/* Submit */}
+                {!isOwner && offerError && offerStep === "idle" && (
+                  <Alert variant="destructive" className="mb-2">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{offerError}</AlertDescription>
+                  </Alert>
                 )}
-                {isOwner ? "Mint Remix" : "Send Remix Offer"}
-              </button>
-            </div>
+                <div className="btn-border-animated p-[1px] rounded-xl">
+                  <button
+                    type="button"
+                    disabled={isOwner ? false : offerLoading}
+                    onClick={isOwner ? handleOwnerSubmit : handleOfferSubmit}
+                    className="w-full h-12 rounded-[11px] flex items-center justify-center gap-2 text-base font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-rose disabled:opacity-50"
+                  >
+                    {offerLoading ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <GitBranch className="h-5 w-5" />
+                    )}
+                    {isOwner ? "Mint Remix" : "Send Remix Offer"}
+                  </button>
+                </div>
+              </>
+            )}
 
             {isOwner && (
               <p className="text-xs text-center text-muted-foreground">

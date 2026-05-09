@@ -8,7 +8,6 @@ import { useMyUsernameClaim, submitUsernameClaim, checkUsernameAvailability } fr
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
 import { AtSign, CheckCircle, Clock, XCircle, ArrowRight } from "lucide-react";
 
 type CheckState = "idle" | "checking" | "available" | "taken";
@@ -70,6 +69,8 @@ export function UsernameClaimPanel() {
   const [claiming, setClaiming] = useState(false);
   const [checkState, setCheckState] = useState<CheckState>("idle");
   const [checkReason, setCheckReason] = useState<string | undefined>();
+  const [claimStatus, setClaimStatus] = useState<"idle" | "success" | "error">("idle");
+  const [claimError, setClaimError] = useState<string | null>(null);
 
   async function handleCheck() {
     if (!claimInput.trim()) return;
@@ -81,29 +82,33 @@ export function UsernameClaimPanel() {
       if (!result.available) setCheckReason(result.reason);
     } catch {
       setCheckState("idle");
-      toast.error("Could not check username availability");
+      setClaimError("Could not check username availability");
     }
   }
 
   async function handleClaim() {
     if (!claimInput.trim()) return;
     setClaiming(true);
+    setClaimStatus("idle");
+    setClaimError(null);
     try {
       const token = await getToken();
       if (!token) throw new Error("Not authenticated");
       const notifyEmail = user?.primaryEmailAddress?.emailAddress;
       const result = await submitUsernameClaim(claimInput.trim().toLowerCase(), token, notifyEmail);
       if (result.error) {
-        toast.error(result.error);
+        setClaimStatus("error");
+        setClaimError(result.error);
       } else {
-        toast.success("Username claim submitted — the Medialane DAO team will review it shortly.");
+        setClaimStatus("success");
         setClaimInput("");
         setCheckState("idle");
         setCheckReason(undefined);
         await mutateClaim();
       }
     } catch {
-      toast.error("Failed to submit claim");
+      setClaimStatus("error");
+      setClaimError("Failed to submit claim");
     } finally {
       setClaiming(false);
     }
@@ -183,7 +188,7 @@ export function UsernameClaimPanel() {
 
       <UsernameInput
         value={claimInput}
-        onChange={(v) => { setClaimInput(v); setCheckState("idle"); setCheckReason(undefined); }}
+        onChange={(v) => { setClaimInput(v); setCheckState("idle"); setCheckReason(undefined); setClaimStatus("idle"); setClaimError(null); }}
         onCheck={handleCheck}
         onSubmit={handleClaim}
         checkState={checkState}
@@ -191,6 +196,12 @@ export function UsernameClaimPanel() {
         loading={claiming}
         disabled={!walletAddress}
       />
+      {claimStatus === "success" && (
+        <p className="text-sm text-emerald-500">✓ Claim submitted — the Medialane DAO team will review it shortly.</p>
+      )}
+      {claimStatus === "error" && claimError && (
+        <p className="text-sm text-destructive">{claimError}</p>
+      )}
     </div>
   );
 }

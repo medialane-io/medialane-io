@@ -8,7 +8,6 @@ import * as z from "zod";
 import { AlertCircle, Tag, Layers, Zap, ShieldCheck, Loader2 } from "lucide-react";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { fireConfetti } from "@/lib/confetti";
-import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
@@ -167,7 +166,6 @@ export function ListingDialog({
     if (isSuccess && !confettiFired.current) {
       confettiFired.current = true;
       fireConfetti();
-      toast.success("Listing live!", { description: "Your asset is now listed on the marketplace." });
       mutate((key) => typeof key === "string" && key.includes("/v1/orders"), undefined, { revalidate: true });
       mutate((key) => typeof key === "string" && key.includes("/v1/tokens/"), undefined, { revalidate: true });
     }

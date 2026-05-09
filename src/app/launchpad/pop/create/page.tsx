@@ -46,6 +46,8 @@ export default function CreatePOPPage() {
     imagePreview,
     imageUri,
     imageUploading,
+    uploadError,
+    uploadSuccess,
     fileInputRef,
     handleImageSelect,
     clearImage,
@@ -229,6 +231,12 @@ export default function CreatePOPPage() {
               onImageSelect={handleImageSelect}
               onClearImage={clearImage}
             />
+            {uploadError && (
+              <p className="text-xs text-destructive mt-1">{uploadError}</p>
+            )}
+            {uploadSuccess && (
+              <p className="text-xs text-emerald-500 mt-1">✓ {uploadSuccess}</p>
+            )}
           </form>
         </Form>
       </div>

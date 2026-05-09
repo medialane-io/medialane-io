@@ -9,6 +9,7 @@ import { TransferDialog } from "@/components/marketplace/transfer-dialog";
 import { formatDisplayPrice } from "@/lib/utils";
 import type { ApiOrder } from "@medialane/sdk";
 import { CancelListingDialog } from "./cancel-listing-dialog";
+import { AcceptOfferResultDialog } from "./accept-offer-result-dialog";
 
 type TokenStandard = "ERC721" | "ERC1155" | "UNKNOWN";
 type CancelStep = "idle" | "processing" | "success" | "error";
@@ -57,6 +58,10 @@ interface AssetMarketplaceDialogsProps {
   cancelStep: CancelStep;
   cancelError: string | null;
   resetCancelStep: () => void;
+  acceptStep: "idle" | "processing" | "success" | "error";
+  acceptError: string | null;
+  acceptTxHash: string | null;
+  resetAcceptStep: () => void;
 }
 
 export function AssetMarketplaceDialogs({
@@ -85,6 +90,10 @@ export function AssetMarketplaceDialogs({
   cancelStep,
   cancelError,
   resetCancelStep,
+  acceptStep,
+  acceptError,
+  acceptTxHash,
+  resetAcceptStep,
 }: AssetMarketplaceDialogsProps) {
   return (
     <>
@@ -142,6 +151,17 @@ export function AssetMarketplaceDialogs({
         cancelStep={cancelStep}
         cancelError={cancelError}
         onReset={resetCancelStep}
+      />
+
+      <AcceptOfferResultDialog
+        acceptStep={acceptStep}
+        acceptError={acceptError}
+        acceptTxHash={acceptTxHash}
+        orderToAccept={orderToAccept}
+        tokenName={tokenName}
+        tokenImage={tokenImage}
+        onDone={resetAcceptStep}
+        onRetry={resetAcceptStep}
       />
 
       <TransferDialog

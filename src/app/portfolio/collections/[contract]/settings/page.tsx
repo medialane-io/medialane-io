@@ -18,7 +18,6 @@ import {
   Lock, Unlock, Sparkles, ShieldCheck, CheckCircle2, ExternalLink,
   Video, Music, Radio, FileText, Link2, Info, Gem,
 } from "lucide-react";
-import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
@@ -271,6 +270,8 @@ export default function CollectionSettingsPage({ params }: Props) {
   const { collection, isLoading: collectionLoading } = useCollection(contract);
   const { profile, isLoading: profileLoading, mutate } = useCollectionProfile(contract);
   const [saving, setSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saved" | "error">("idle");
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     displayName: "",
@@ -334,6 +335,7 @@ export default function CollectionSettingsPage({ params }: Props) {
 
   async function handleSave() {
     setSaving(true);
+    setSaveError(null);
     try {
       const token = await getToken();
       if (!token) throw new Error("Not authenticated");
@@ -352,9 +354,11 @@ export default function CollectionSettingsPage({ params }: Props) {
       };
       await getMedialaneClient().api.updateCollectionProfile(contract, payload, token);
       await mutate();
-      toast.success("Collection profile updated");
-    } catch {
-      toast.error("Failed to save changes");
+      setSaveStatus("saved");
+      setTimeout(() => setSaveStatus("idle"), 3000);
+    } catch (e) {
+      setSaveStatus("error");
+      setSaveError(e instanceof Error ? e.message : "Failed to save changes");
     } finally {
       setSaving(false);
     }
@@ -646,6 +650,14 @@ export default function CollectionSettingsPage({ params }: Props) {
         >
           {saving ? "Saving…" : "Save changes"}
         </Button>
+        {saveStatus === "saved" && (
+          <span className="flex items-center gap-1.5 text-sm text-emerald-500">
+            <CheckCircle2 className="h-4 w-4" /> Saved
+          </span>
+        )}
+        {saveStatus === "error" && (
+          <span className="text-sm text-destructive">{saveError}</span>
+        )}
         {descLen > DESC_MAX && (
           <p className="text-xs text-destructive">Description is too long.</p>
         )}

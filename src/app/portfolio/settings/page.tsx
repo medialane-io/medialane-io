@@ -12,7 +12,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "sonner";
 import { AtSign, CheckCircle2, Clock, XCircle, Loader2, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -85,8 +84,12 @@ export default function ProfileSettingsPage() {
   const { profile, isLoading: profileLoading, mutate } = useCreatorProfile(walletAddress ?? undefined);
   const { username: approvedUsername, claim, mutate: mutateClaim } = useMyUsernameClaim();
   const [saving, setSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saved" | "error">("idle");
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [claimInput, setClaimInput] = useState("");
   const [claiming, setClaiming] = useState(false);
+  const [claimStatus, setClaimStatus] = useState<"idle" | "success" | "error">("idle");
+  const [claimError, setClaimError] = useState<string | null>(null);
   const [checkState, setCheckState] = useState<CheckState>("idle");
   const [checkReason, setCheckReason] = useState<string | undefined>();
   const [form, setForm] = useState({
@@ -117,7 +120,7 @@ export default function ProfileSettingsPage() {
       if (!result.available) setCheckReason(result.reason);
     } catch {
       setCheckState("idle");
-      toast.error("Could not check username availability");
+      setClaimError("Could not check username availability");
     }
   }
 
@@ -130,16 +133,18 @@ export default function ProfileSettingsPage() {
       const notifyEmail = user?.primaryEmailAddress?.emailAddress;
       const result = await submitUsernameClaim(claimInput.trim().toLowerCase(), token, notifyEmail);
       if (result.error) {
-        toast.error(result.error);
+        setClaimStatus("error");
+        setClaimError(result.error);
       } else {
-        toast.success("Username claim submitted — the Medialane DAO team will review it shortly.");
+        setClaimStatus("success");
         setClaimInput("");
         setCheckState("idle");
         setCheckReason(undefined);
         await mutateClaim();
       }
     } catch {
-      toast.error("Failed to submit claim");
+      setClaimStatus("error");
+      setClaimError("Failed to submit claim");
     } finally {
       setClaiming(false);
     }
@@ -150,10 +155,12 @@ export default function ProfileSettingsPage() {
     const urlFields = ["websiteUrl", "twitterUrl", "discordUrl", "telegramUrl"] as const;
     const hasInvalidUrl = urlFields.some((k) => !isValidUrl(form[k]));
     if (hasInvalidUrl) {
-      toast.error("All URL fields must start with http://, https://, or ipfs://");
+      setSaveStatus("error");
+      setSaveError("All URL fields must start with http://, https://, or ipfs://");
       return;
     }
     setSaving(true);
+    setSaveError(null);
     try {
       const token = await getToken();
       if (!token) throw new Error("Not authenticated");
@@ -173,9 +180,11 @@ export default function ProfileSettingsPage() {
         throw new Error(result?.error ?? "Save failed — please try again");
       }
       await mutate(undefined, { revalidate: true });
-      toast.success("Profile updated");
+      setSaveStatus("saved");
+      setTimeout(() => setSaveStatus("idle"), 3000);
     } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : "Failed to save changes");
+      setSaveStatus("error");
+      setSaveError(e instanceof Error ? e.message : "Failed to save changes");
     } finally {
       setSaving(false);
     }
@@ -302,7 +311,7 @@ export default function ProfileSettingsPage() {
               </div>
               <UsernameClaimInput
                 value={claimInput}
-                onChange={(v) => { setClaimInput(v); setCheckState("idle"); setCheckReason(undefined); }}
+                onChange={(v) => { setClaimInput(v); setCheckState("idle"); setCheckReason(undefined); setClaimStatus("idle"); setClaimError(null); }}
                 onCheck={handleCheckUsername}
                 onSubmit={handleClaimUsername}
                 checkState={checkState}
@@ -310,6 +319,12 @@ export default function ProfileSettingsPage() {
                 loading={claiming}
                 disabled={!walletAddress}
               />
+              {claimStatus === "success" && (
+                <p className="text-sm text-emerald-500 mt-2">✓ Claim submitted — the Medialane DAO team will review it shortly.</p>
+              )}
+              {claimStatus === "error" && claimError && (
+                <p className="text-sm text-destructive mt-2">{claimError}</p>
+              )}
             </div>
           )}
 
@@ -323,7 +338,7 @@ export default function ProfileSettingsPage() {
               </p>
               <UsernameClaimInput
                 value={claimInput}
-                onChange={(v) => { setClaimInput(v); setCheckState("idle"); setCheckReason(undefined); }}
+                onChange={(v) => { setClaimInput(v); setCheckState("idle"); setCheckReason(undefined); setClaimStatus("idle"); setClaimError(null); }}
                 onCheck={handleCheckUsername}
                 onSubmit={handleClaimUsername}
                 checkState={checkState}
@@ -331,6 +346,12 @@ export default function ProfileSettingsPage() {
                 loading={claiming}
                 disabled={!walletAddress}
               />
+              {claimStatus === "success" && (
+                <p className="text-sm text-emerald-500 mt-2">✓ Claim submitted — the Medialane DAO team will review it shortly.</p>
+              )}
+              {claimStatus === "error" && claimError && (
+                <p className="text-sm text-destructive mt-2">{claimError}</p>
+              )}
             </div>
           )}
         </div>
@@ -383,9 +404,19 @@ export default function ProfileSettingsPage() {
         </div>
       </div>
 
-      <Button onClick={handleSave} disabled={saving || !walletAddress || profileLoading}>
-        {saving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving…</> : "Save Changes"}
-      </Button>
+      <div className="flex items-center gap-3">
+        <Button onClick={handleSave} disabled={saving || !walletAddress || profileLoading}>
+          {saving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving…</> : "Save Changes"}
+        </Button>
+        {saveStatus === "saved" && (
+          <span className="flex items-center gap-1.5 text-sm text-emerald-500">
+            <CheckCircle2 className="h-4 w-4" /> Saved
+          </span>
+        )}
+        {saveStatus === "error" && (
+          <span className="text-sm text-destructive">{saveError}</span>
+        )}
+      </div>
 
       {/* Sign out */}
       <div className="space-y-4 pt-4">

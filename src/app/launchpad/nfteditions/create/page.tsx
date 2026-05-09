@@ -17,7 +17,6 @@ import {
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useUser } from "@clerk/nextjs";
-import { toast } from "sonner";
 import { normalizeAddress } from "@medialane/sdk";
 import { hash } from "starknet";
 import { starknetProvider } from "@/lib/starknet";
@@ -55,6 +54,8 @@ export default function CreateIP1155CollectionPage() {
     imagePreview,
     imageUri,
     imageUploading,
+    uploadError,
+    uploadSuccess,
     fileInputRef,
     handleImageSelect,
     clearImage,
@@ -101,7 +102,6 @@ export default function CreateIP1155CollectionPage() {
 
   const onSubmit = (values: NftEditionsCreateFormValues) => {
     if (imageFile && !imageUri && !imageUploading) {
-      toast.error("Image upload failed", { description: "Please re-upload your collection image." });
       return;
     }
     setPendingValues(values);
@@ -252,6 +252,12 @@ export default function CreateIP1155CollectionPage() {
               onImageSelect={handleImageSelect}
               onClearImage={clearImage}
             />
+            {uploadError && (
+              <p className="text-xs text-destructive mt-1">{uploadError}</p>
+            )}
+            {uploadSuccess && (
+              <p className="text-xs text-emerald-500 mt-1">✓ {uploadSuccess}</p>
+            )}
           </form>
         </Form>
       </div>

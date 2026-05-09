@@ -27,7 +27,6 @@ import { useSessionKey } from "@/hooks/use-session-key";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
 import { Layers, Loader2, ImagePlus, X } from "lucide-react";
-import { toast } from "sonner";
 import type { ChipiCall } from "@/hooks/use-chipi-transaction";
 
 const schema = z.object({
@@ -94,6 +93,8 @@ export default function CreateCollectionPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
+  const [imageUploadError, setImageUploadError] = useState<string | null>(null);
+  const [imageUploadSuccess, setImageUploadSuccess] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const previewUrlRef = useRef<string | null>(null);
 
@@ -121,14 +122,14 @@ export default function CreateCollectionPage() {
 
   const handleImageSelect = async (file: File) => {
     const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
+    setImageUploadError(null);
+    setImageUploadSuccess(null);
     if (!ALLOWED_TYPES.includes(file.type)) {
-      toast.error("Unsupported format", { description: "Please upload a JPG, PNG, GIF, SVG, or WebP image." });
+      setImageUploadError("Unsupported format — please upload a JPG, PNG, GIF, SVG, or WebP image.");
       return;
     }
     if (file.size > MAX_BYTES) {
-      toast.error("Image too large", {
-        description: `Max size is 10 MB. Your file is ${(file.size / 1024 / 1024).toFixed(1)} MB. Please compress or resize it first.`,
-      });
+      setImageUploadError(`Image too large — max 10 MB. Your file is ${(file.size / 1024 / 1024).toFixed(1)} MB.`);
       return;
     }
     setImageFile(file);
@@ -153,10 +154,10 @@ export default function CreateCollectionPage() {
       const cid = uploadJson.data?.cid;
       if (!cid) throw new Error("Image upload returned no CID");
       setImageUri(`ipfs://${cid}`);
-      toast.success("Image uploaded to IPFS");
+      setImageUploadSuccess("Image uploaded to IPFS");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Upload failed";
-      toast.error("Image upload failed", { description: msg });
+      setImageUploadError(`Image upload failed: ${msg}`);
       setImageUri(null);
     } finally {
       setImageUploading(false);
@@ -173,7 +174,7 @@ export default function CreateCollectionPage() {
   const onSubmit = (values: FormValues) => {
     // If the user selected an image but the upload failed, block submission
     if (imageFile && !imageUri && !imageUploading) {
-      toast.error("Image upload failed", { description: "Please re-upload your collection image before continuing." });
+      setImageUploadError("Please re-upload your collection image before continuing.");
       return;
     }
     setPendingValues(values);
@@ -349,10 +350,13 @@ export default function CreateCollectionPage() {
                   )}
                   <p className="text-xs text-muted-foreground">
                     JPG, PNG, GIF, SVG or WebP · max 10 MB
-                    {imageUri && (
-                      <span className="ml-2 text-emerald-500 font-medium">✓ Uploaded to IPFS</span>
-                    )}
                   </p>
+                  {imageUploadError && (
+                    <p className="text-xs text-destructive mt-1">{imageUploadError}</p>
+                  )}
+                  {imageUploadSuccess && (
+                    <p className="text-xs text-emerald-500 mt-1">✓ {imageUploadSuccess}</p>
+                  )}
                 </div>
               </div>
             </div>

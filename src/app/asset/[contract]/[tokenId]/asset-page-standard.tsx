@@ -61,10 +61,10 @@ export function AssetPageStandard() {
   const {
     isProcessing,
     orderToCancel, cancelPinOpen, cancelStep, cancelError,
-    orderToAccept, acceptPinOpen,
+    orderToAccept, acceptPinOpen, acceptStep, acceptError, acceptTxHash,
     handleCancelClick, handleCancelPin,
     handleAcceptClick, handleAcceptPin,
-    dismissCancelPin, dismissAcceptPin, resetCancelStep,
+    dismissCancelPin, dismissAcceptPin, resetCancelStep, resetAcceptStep,
   } = useOrderActions({ mutateListings });
 
   const { addItem, items: cartItems, setIsOpen: setCartOpen } = useCart();
@@ -417,6 +417,10 @@ export function AssetPageStandard() {
         cancelStep={cancelStep}
         cancelError={cancelError}
         resetCancelStep={resetCancelStep}
+        acceptStep={acceptStep}
+        acceptError={acceptError}
+        acceptTxHash={acceptTxHash}
+        resetAcceptStep={resetAcceptStep}
       />
     </div>
   );

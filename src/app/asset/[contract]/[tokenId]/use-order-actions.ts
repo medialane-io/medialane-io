@@ -19,6 +19,9 @@ export function useOrderActions({ mutateListings, tokenStandard }: UseOrderActio
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [orderToAccept, setOrderToAccept] = useState<ApiOrder | null>(null);
   const [acceptPinOpen, setAcceptPinOpen] = useState(false);
+  const [acceptStep, setAcceptStep] = useState<"idle" | "processing" | "success" | "error">("idle");
+  const [acceptError, setAcceptError] = useState<string | null>(null);
+  const [acceptTxHash, setAcceptTxHash] = useState<string | null>(null);
 
   const handleCancelClick = (order: ApiOrder) => {
     setOrderToCancel(order);
@@ -56,17 +59,25 @@ export function useOrderActions({ mutateListings, tokenStandard }: UseOrderActio
   const handleAcceptPin = async (pin: string) => {
     setAcceptPinOpen(false);
     if (!orderToAccept) return;
-    // For bid orders, offer.itemType is "ERC20" and the NFT standard is in consideration.itemType
-    const orderNftStandard = orderToAccept.offer.itemType === "ERC20"
-      ? orderToAccept.consideration.itemType
-      : orderToAccept.offer.itemType;
-    await fulfillOrder({
-      orderHash: orderToAccept.orderHash,
-      pin,
-      tokenStandard: tokenStandard ?? orderNftStandard,
-    });
-    setOrderToAccept(null);
-    mutateListings();
+    setAcceptStep("processing");
+    setAcceptError(null);
+    try {
+      const orderNftStandard = orderToAccept.offer.itemType === "ERC20"
+        ? orderToAccept.consideration.itemType
+        : orderToAccept.offer.itemType;
+      const txHash = await fulfillOrder({
+        orderHash: orderToAccept.orderHash,
+        pin,
+        tokenStandard: tokenStandard ?? orderNftStandard,
+      });
+      if (!txHash) throw new Error("Purchase failed — check your portfolio");
+      setAcceptTxHash(txHash);
+      setAcceptStep("success");
+      mutateListings();
+    } catch (err) {
+      setAcceptStep("error");
+      setAcceptError(err instanceof Error ? err.message : "Acceptance failed");
+    }
   };
 
   return {
@@ -77,6 +88,9 @@ export function useOrderActions({ mutateListings, tokenStandard }: UseOrderActio
     cancelError,
     orderToAccept,
     acceptPinOpen,
+    acceptStep,
+    acceptError,
+    acceptTxHash,
     handleCancelClick,
     handleCancelPin,
     handleAcceptClick,
@@ -84,5 +98,6 @@ export function useOrderActions({ mutateListings, tokenStandard }: UseOrderActio
     dismissCancelPin: () => { setCancelPinOpen(false); setOrderToCancel(null); },
     dismissAcceptPin: () => { setAcceptPinOpen(false); setOrderToAccept(null); },
     resetCancelStep: () => { setCancelStep("idle"); setCancelError(null); },
+    resetAcceptStep: () => { setAcceptStep("idle"); setAcceptError(null); setAcceptTxHash(null); setOrderToAccept(null); },
   };
 }

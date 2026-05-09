@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
 
 interface UseLaunchpadImageUploadOptions {
   allowedTypes?: string[];
@@ -24,6 +23,8 @@ export function useLaunchpadImageUpload({
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const previewUrlRef = useRef<string | null>(null);
 
@@ -37,19 +38,26 @@ export function useLaunchpadImageUpload({
     setImageFile(null);
     setImagePreview(null);
     setImageUri(null);
+    setUploadError(null);
+    setUploadSuccess(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleImageSelect = async (file: File) => {
+    setUploadError(null);
+    setUploadSuccess(null);
+
     if (allowedTypes && !allowedTypes.includes(file.type)) {
-      toast.error(invalidTypeTitle, { description: invalidTypeDescription });
+      setUploadError(
+        invalidTypeDescription
+          ? `${invalidTypeTitle}: ${invalidTypeDescription}`
+          : invalidTypeTitle
+      );
       return;
     }
 
     if (file.size > maxSizeMb * 1024 * 1024) {
-      toast.error("Image too large", {
-        description: `Max ${maxSizeMb} MB. Your file is ${(file.size / 1024 / 1024).toFixed(1)} MB.`,
-      });
+      setUploadError(`Image too large — max ${maxSizeMb} MB. Your file is ${(file.size / 1024 / 1024).toFixed(1)} MB.`);
       return;
     }
 
@@ -78,12 +86,11 @@ export function useLaunchpadImageUpload({
       if (!uploadRes.ok || !uploadData?.data?.cid) throw new Error("Upload failed");
 
       setImageUri(`ipfs://${uploadData.data.cid}`);
-      toast.success(successMessage);
+      setUploadSuccess(successMessage);
     } catch (error) {
       setImageUri(null);
-      toast.error(failureMessage, {
-        description: error instanceof Error ? error.message : undefined,
-      });
+      const msg = error instanceof Error ? error.message : undefined;
+      setUploadError(msg ? `${failureMessage}: ${msg}` : failureMessage);
     } finally {
       setImageUploading(false);
     }
@@ -94,6 +101,8 @@ export function useLaunchpadImageUpload({
     imagePreview,
     imageUri,
     imageUploading,
+    uploadError,
+    uploadSuccess,
     fileInputRef,
     setImagePreview,
     setImageUri,
