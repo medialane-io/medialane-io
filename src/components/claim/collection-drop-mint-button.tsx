@@ -4,10 +4,13 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Loader2, CheckCircle2, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
+import { MarketplaceErrorState, MarketplaceSuccessState } from "@/components/marketplace/marketplace-dialog-primitives";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
+import { EXPLORER_URL } from "@/lib/constants";
 import { useUser } from "@clerk/nextjs";
 import { useDropMintStatus, type DropConditions } from "@/hooks/use-drops";
 import { getListableTokens } from "@medialane/sdk";
@@ -54,6 +57,11 @@ export function CollectionDropMintButton({
   const { executeTransaction, isSubmitting } = useChipiTransaction();
   const [pinOpen, setPinOpen] = useState(false);
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
+  const [txResult, setTxResult] = useState<{
+    type: "success" | "error";
+    txHash?: string | null;
+    message?: string;
+  } | null>(null);
 
   const price = getPriceBigInt(conditions);
   const isPaid = price > 0n;
@@ -91,7 +99,7 @@ export function CollectionDropMintButton({
           (t) => t.address.toLowerCase() === conditions.paymentToken.toLowerCase()
         );
         if (!knownToken) {
-          toast.error("Unknown payment token — cannot proceed");
+          setTxResult({ type: "error", message: "Unknown payment token — cannot proceed" });
           return;
         }
         // ERC-20 approve(collectionAddress, price as u256)
@@ -117,13 +125,13 @@ export function CollectionDropMintButton({
       });
 
       if (result.status === "confirmed") {
-        toast.success("Minted! Your drop token is on-chain.");
+        setTxResult({ type: "success", txHash: result.txHash });
         mutate();
       } else {
-        toast.error(result.revertReason ?? "Transaction reverted");
+        setTxResult({ type: "error", txHash: result.txHash, message: result.revertReason ?? "Transaction reverted" });
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Mint failed");
+      setTxResult({ type: "error", message: err instanceof Error ? err.message : "Mint failed" });
     }
   };
 
@@ -182,6 +190,37 @@ export function CollectionDropMintButton({
         open={walletSetupOpen}
         onOpenChange={setWalletSetupOpen}
       />
+
+      <Dialog open={!!txResult} onOpenChange={(open) => { if (!open) setTxResult(null); }}>
+        <DialogContent className="max-w-[calc(100%-6px)] sm:max-w-md p-0 overflow-hidden gap-0 rounded-2xl">
+          <DialogTitle className="sr-only">
+            {txResult?.type === "success" ? "Drop mint complete" : "Drop mint failed"}
+          </DialogTitle>
+          <DialogDescription className="sr-only">
+            Review the result of your drop mint transaction.
+          </DialogDescription>
+          {txResult?.type === "success" ? (
+            <MarketplaceSuccessState
+              name="Drop token"
+              title="Mint complete!"
+              description="Your drop token is now on-chain."
+              txHash={txResult.txHash}
+              explorerUrl={EXPLORER_URL}
+              onDone={() => setTxResult(null)}
+            />
+          ) : txResult ? (
+            <MarketplaceErrorState
+              name="Drop token"
+              title="Mint failed"
+              description="The drop mint could not be completed."
+              error={txResult.message}
+              txHash={txResult.txHash}
+              explorerUrl={EXPLORER_URL}
+              onDone={() => setTxResult(null)}
+            />
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

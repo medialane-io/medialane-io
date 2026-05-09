@@ -17,6 +17,7 @@ import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { useMarketplaceActionFlow } from "@/hooks/use-marketplace-action-flow";
 import {
+  MarketplaceErrorState,
   MarketplacePinStep,
   MarketplaceTxLink,
 } from "@/components/marketplace/marketplace-dialog-primitives";
@@ -281,6 +282,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
     isProcessing
       ? "Verifying marketplace order…"
       : "Confirming on Starknet…";
+  const isTerminalError = !isProcessing && !!error && !!txHash;
 
   return (
     <>
@@ -298,6 +300,19 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
               txHash={successTxHash ?? txHash}
               onClose={() => { onOpenChange(false); onSuccess?.(); }}
               onViewPortfolio={() => { onOpenChange(false); router.push("/portfolio/assets"); }}
+            />
+
+          ) : isTerminalError ? (
+            <MarketplaceErrorState
+              tokenImage={order.token?.image ? ipfsToHttp(order.token.image) : null}
+              name={order.token?.name || `Token #${order.nftTokenId}`}
+              title="Purchase failed"
+              description="The transaction was submitted, but the purchase could not be completed."
+              error={error}
+              txHash={txHash}
+              explorerUrl={EXPLORER_URL}
+              onRetry={() => { resetState(); resetActionFlow(); setStep("details"); }}
+              onDone={() => onOpenChange(false)}
             />
 
           ) : step === "processing" || isActivatingSession ? (

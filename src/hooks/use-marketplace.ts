@@ -15,7 +15,6 @@
 
 import { useState, useCallback, useRef } from "react";
 import { useSWRConfig } from "swr";
-import { toast } from "sonner";
 import { useChipiTransaction } from "./use-chipi-transaction";
 import { useSessionKey } from "./use-session-key";
 import { useMedialaneClient } from "./use-medialane-client";
@@ -313,7 +312,6 @@ export function useMarketplace() {
     async (
       pin: string,
       intentFn: () => Promise<{ data: { id: string; typedData: unknown; calls: unknown } }>,
-      successMsg: string | null | undefined,
       marketplaceContract?: string,
       debugContext?: MarketplaceDebugContext
     ): Promise<string | undefined> => {
@@ -379,7 +377,6 @@ export function useMarketplace() {
         );
       }
 
-      if (successMsg) toast.success(successMsg);
       invalidate();
       // Re-invalidate after indexer processes the block (~10s) to reflect chain state
       setTimeout(() => invalidate(), INDEXER_REVALIDATION_DELAY_MS);
@@ -409,7 +406,6 @@ export function useMarketplace() {
             endTime,
             ...(is1155 ? { amount: input.amount || "1" } : {}),
           }),
-          null, // success shown in listing-dialog's MarketplaceSuccessState
           marketplaceContract,
           {
             operation: "create_listing",
@@ -450,7 +446,6 @@ export function useMarketplace() {
             tokenStandard: toApiStandard(input.tokenStandard),
             quantity: input.quantity,
           }),
-          null, // success feedback is handled by the purchase dialog's success screen
           marketplaceContract,
           {
             operation: "fulfill_order",
@@ -493,7 +488,6 @@ export function useMarketplace() {
             tokenStandard: toApiStandard(input.tokenStandard),
             quantity: isErc1155Standard(input.tokenStandard) ? (input.quantity || "1") : undefined,
           }),
-          null, // success shown in offer-dialog's MarketplaceSuccessState
           marketplaceContract,
           {
             operation: "make_offer",
@@ -533,7 +527,6 @@ export function useMarketplace() {
             priceRaw: input.counterPriceRaw,
             message: input.message,
           }),
-          `Counter-offer sent${input.tokenName ? ` for ${input.tokenName}` : ""}!`,
           undefined,
           {
             operation: "counter_offer",
@@ -568,7 +561,6 @@ export function useMarketplace() {
             orderHash: input.orderHash,
             tokenStandard: toApiStandard(input.tokenStandard),
           }),
-          null, // success shown in CancelListingDialog's success state
           marketplaceContract,
           {
             operation: "cancel_order",

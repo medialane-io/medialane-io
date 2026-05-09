@@ -2,7 +2,6 @@
 
 import { useState, useCallback } from "react";
 import { useSWRConfig } from "swr";
-import { toast } from "sonner";
 import { useChipiTransaction } from "./use-chipi-transaction";
 import { useSessionKey } from "./use-session-key";
 import { INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
@@ -109,13 +108,9 @@ export function useTransfer() {
         if (result.status === "reverted") {
           const msg = result.revertReason || "Transfer reverted onchain";
           setError(msg);
-          toast.error("Transfer failed", { description: msg });
           return undefined;
         }
 
-        toast.success("Transfer complete!", {
-          description: `Token #${input.tokenId} sent successfully.`,
-        });
         invalidate();
         // Re-invalidate after indexer processes the block
         setTimeout(() => invalidate(), INDEXER_REVALIDATION_DELAY_MS);
@@ -123,7 +118,6 @@ export function useTransfer() {
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Transfer failed";
         setError(msg);
-        toast.error("Transfer failed", { description: msg });
       } finally {
         setIsProcessing(false);
       }

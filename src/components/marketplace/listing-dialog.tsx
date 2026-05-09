@@ -25,6 +25,7 @@ import {
   MarketplaceActivatingSession,
   MarketplaceSignInGate,
   MarketplaceSuccessState,
+  MarketplaceErrorState,
   MarketplaceDialogHero,
   CurrencyPicker,
   DurationPicker,
@@ -152,6 +153,7 @@ export function ListingDialog({
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const isSuccess = !isProcessing && txStatus === "confirmed" && !error;
+  const isTerminalError = !isProcessing && !!error && !!txHash;
   const confettiFired = useRef(false);
   useEffect(() => {
     if (isSuccess && !confettiFired.current) { confettiFired.current = true; fireConfetti(); }
@@ -196,6 +198,19 @@ export function ListingDialog({
               txHash={txHash}
               explorerUrl={EXPLORER_URL}
               onDone={() => { onOpenChange(false); onSuccess?.(); }}
+            />
+
+          ) : isTerminalError ? (
+            <MarketplaceErrorState
+              tokenImage={tokenImage}
+              name={name}
+              title="Listing failed"
+              description="The transaction was submitted, but the listing could not be completed."
+              error={error}
+              txHash={txHash}
+              explorerUrl={EXPLORER_URL}
+              onRetry={() => { resetState(); setStep("form"); }}
+              onDone={() => onOpenChange(false)}
             />
 
           ) : isActivatingSession ? (

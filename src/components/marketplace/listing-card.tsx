@@ -60,11 +60,13 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
 
   const executeCancel = async (pinOrKey: string) => {
     setCancelStep("processing");
+    setCancelError(null);
     try {
       const nftStandard = order.offer.itemType === "ERC20"
         ? order.consideration.itemType
         : order.offer.itemType;
-      await cancelOrder({ orderHash: order.orderHash, pin: pinOrKey, tokenStandard: nftStandard });
+      const hash = await cancelOrder({ orderHash: order.orderHash, pin: pinOrKey, tokenStandard: nftStandard });
+      if (!hash) throw new Error("Cancellation failed");
       setCancelStep("success");
       invalidateOrders();
     } catch (err) {

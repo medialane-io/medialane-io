@@ -24,6 +24,7 @@ import {
   MarketplaceActivatingSession,
   MarketplaceSignInGate,
   MarketplaceSuccessState,
+  MarketplaceErrorState,
   MarketplaceDialogHero,
   CurrencyPicker,
   DurationPicker,
@@ -141,6 +142,7 @@ export function OfferDialog({
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const isSuccess = !isProcessing && txStatus === "confirmed" && !error;
+  const isTerminalError = !isProcessing && !!error && !!txHash;
   const confettiFired = useRef(false);
   useEffect(() => {
     if (isSuccess && !confettiFired.current) { confettiFired.current = true; fireConfetti(); }
@@ -182,6 +184,19 @@ export function OfferDialog({
               }
               txHash={txHash}
               explorerUrl={EXPLORER_URL}
+              onDone={() => onOpenChange(false)}
+            />
+
+          ) : isTerminalError ? (
+            <MarketplaceErrorState
+              tokenImage={tokenImage}
+              name={name}
+              title="Offer failed"
+              description="The transaction was submitted, but the offer could not be completed."
+              error={error}
+              txHash={txHash}
+              explorerUrl={EXPLORER_URL}
+              onRetry={() => { resetState(); setStep("form"); }}
               onDone={() => onOpenChange(false)}
             />
 

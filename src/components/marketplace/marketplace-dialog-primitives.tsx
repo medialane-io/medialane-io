@@ -178,6 +178,74 @@ export function MarketplaceSuccessState({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// MarketplaceErrorState
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface MarketplaceErrorStateProps {
+  tokenImage?: string | null;
+  name: string;
+  title: string;
+  description: ReactNode;
+  error?: string | null;
+  txHash?: string | null;
+  explorerUrl: string;
+  onRetry?: () => void;
+  onDone: () => void;
+  doneLabel?: string;
+}
+
+export function MarketplaceErrorState({
+  tokenImage,
+  name,
+  title,
+  description,
+  error,
+  txHash,
+  explorerUrl,
+  onRetry,
+  onDone,
+  doneLabel = "Done",
+}: MarketplaceErrorStateProps) {
+  return (
+    <div className="flex flex-col items-center gap-5 p-6 py-8">
+      {tokenImage ? (
+        <div className="relative">
+          <div className="h-32 w-32 rounded-2xl overflow-hidden border border-border shadow-lg">
+            <img src={tokenImage} alt={name} className="h-full w-full object-cover" />
+          </div>
+          <div className="absolute -bottom-2 -right-2 h-9 w-9 rounded-full bg-destructive flex items-center justify-center shadow-lg border-2 border-background">
+            <AlertCircle className="h-5 w-5 text-white" />
+          </div>
+        </div>
+      ) : (
+        <div className="h-16 w-16 rounded-full bg-destructive/15 flex items-center justify-center">
+          <AlertCircle className="h-9 w-9 text-destructive" />
+        </div>
+      )}
+      <div className="text-center space-y-1">
+        <p className="font-bold text-xl">{title}</p>
+        <p className="text-sm text-muted-foreground">{description}</p>
+      </div>
+      {error ? (
+        <Alert variant="destructive" className="text-left">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      ) : null}
+      {txHash && <MarketplaceTxLink txHash={txHash} explorerUrl={explorerUrl} />}
+      <div className="flex w-full gap-2">
+        {onRetry ? (
+          <Button variant="outline" className="flex-1 h-11" onClick={onRetry}>
+            Try again
+          </Button>
+        ) : null}
+        <Button className="flex-1 h-11" onClick={onDone}>{doneLabel}</Button>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // MarketplaceDialogHero
 // ─────────────────────────────────────────────────────────────────────────────
 

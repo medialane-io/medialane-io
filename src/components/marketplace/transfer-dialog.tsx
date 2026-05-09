@@ -37,6 +37,7 @@ import {
   MarketplacePinStep,
   MarketplaceDialogHero,
   MarketplaceActivatingSession,
+  MarketplaceErrorState,
 } from "@/components/marketplace/marketplace-dialog-primitives";
 import { EXPLORER_URL } from "@/lib/constants";
 import { isWebAuthnSupported } from "@chipi-stack/nextjs";
@@ -185,6 +186,7 @@ export function TransferDialog({
   const recipientShort = pendingAddress
     ? `${pendingAddress.slice(0, 8)}…${pendingAddress.slice(-6)}`
     : "";
+  const isTerminalError = !isProcessing && !!error && !!txHash;
 
   const shieldFooter = (
     <div className="flex items-start justify-center gap-1.5">
@@ -249,6 +251,19 @@ export function TransferDialog({
                 Done
               </Button>
             </div>
+
+          ) : isTerminalError ? (
+            <MarketplaceErrorState
+              tokenImage={tokenImage}
+              name={displayName}
+              title="Transfer failed"
+              description="The transaction was submitted, but the transfer could not be completed."
+              error={error}
+              txHash={txHash}
+              explorerUrl={EXPLORER_URL}
+              onRetry={() => { resetState(); setStep("form"); }}
+              onDone={() => handleClose(false)}
+            />
 
           ) : isProcessing ? (
             /* ── Processing ─────────────────────────────────────────── */

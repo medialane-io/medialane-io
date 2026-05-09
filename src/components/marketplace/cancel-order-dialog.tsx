@@ -10,7 +10,8 @@ import { useAuth } from "@clerk/nextjs";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { useMarketplaceActionFlow } from "@/hooks/use-marketplace-action-flow";
-import { MarketplacePinStep } from "@/components/marketplace/marketplace-dialog-primitives";
+import { MarketplaceErrorState, MarketplacePinStep } from "@/components/marketplace/marketplace-dialog-primitives";
+import { EXPLORER_URL } from "@/lib/constants";
 import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import { useState } from "react";
 import { isWebAuthnSupported } from "@chipi-stack/nextjs";
@@ -135,6 +136,7 @@ export function CancelOrderDialog({
   };
 
   const isSuccess = !isProcessing && txStatus === "confirmed" && !error;
+  const isTerminalError = !isProcessing && !!error && !!txHash;
 
   const resolvedName = order?.token?.name || `Token #${order?.nftTokenId}`;
 
@@ -178,6 +180,19 @@ export function CancelOrderDialog({
               Done
             </Button>
           </div>
+
+        ) : isTerminalError ? (
+          <MarketplaceErrorState
+            tokenImage={order?.token?.image ? ipfsToHttp(order.token.image) : null}
+            name={resolvedName}
+            title={`${resolvedVariant === "listing" ? "Listing" : "Offer"} cancellation failed`}
+            description={`The transaction was submitted, but this ${resolvedVariant} could not be cancelled.`}
+            error={error}
+            txHash={txHash}
+            explorerUrl={EXPLORER_URL}
+            onRetry={() => resetState()}
+            onDone={() => onOpenChange(false)}
+          />
 
         ) : (isProcessing || txStatus === "confirming") ? (
           /* ── Processing ── */

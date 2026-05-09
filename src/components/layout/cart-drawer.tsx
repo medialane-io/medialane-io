@@ -216,7 +216,8 @@ export function CartDrawer() {
       const item = validItems[i];
       setBatchProgress((p) => p ? { ...p, current: i + 1 } : p);
       try {
-        await fulfillOrder({ orderHash: item.orderHash, pin, tokenStandard: item.itemType, quantity: item.quantity });
+        const hash = await fulfillOrder({ orderHash: item.orderHash, pin, tokenStandard: item.itemType, quantity: item.quantity });
+        if (!hash) throw new Error("Purchase failed");
         removeItem(item.orderHash);
         setBatchProgress((p) => p ? { ...p, done: p.done + 1 } : p);
       } catch {
