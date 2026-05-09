@@ -32,6 +32,9 @@ interface MintProgressDialogProps {
   txHash: string | null;
   error: string | null;
   onMintAnother: () => void;
+  mintedTokenId?: string | null;
+  assetHref?: string | null;
+  explorerAssetHref?: string | null;
   listingStep?: ListingStep;
   listingError?: string | null;
 }
@@ -64,6 +67,9 @@ export function MintProgressDialog({
   txHash,
   error,
   onMintAnother,
+  mintedTokenId,
+  assetHref,
+  explorerAssetHref,
   listingStep = "idle",
   listingError,
 }: MintProgressDialogProps) {
@@ -228,9 +234,35 @@ export function MintProgressDialog({
                 <span className="font-medium text-foreground">{assetName || "Your asset"}</span> is now live on the marketplace.
               </p>
               <p className="text-xs text-muted-foreground/70 pt-1">
-                It may take 1–2 minutes for your asset to appear on the platform while it&apos;s being indexed onchain.
+                Metadata, traits, and licensing may take 1-2 minutes to appear while the platform indexes the onchain mint.
               </p>
             </div>
+            {(mintedTokenId || assetHref || explorerAssetHref) && (
+              <div className="w-full rounded-xl border border-border/60 bg-muted/30 p-3 text-left space-y-3">
+                {mintedTokenId && (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground">Token ID</p>
+                    <p className="font-mono text-xs break-all text-foreground mt-1">{mintedTokenId}</p>
+                  </div>
+                )}
+                {(assetHref || explorerAssetHref) && (
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    {assetHref && (
+                      <Button size="sm" variant="outline" className="flex-1" onClick={() => router.push(assetHref)}>
+                        View asset
+                      </Button>
+                    )}
+                    {explorerAssetHref && (
+                      <Button asChild size="sm" variant="outline" className="flex-1">
+                        <a href={explorerAssetHref} target="_blank" rel="noopener noreferrer">
+                          View on Voyager <ExternalLink className="ml-1.5 h-3 w-3" />
+                        </a>
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
             {txHash && (
               <a
                 href={`${EXPLORER_URL}/tx/${txHash}`}
@@ -280,9 +312,35 @@ export function MintProgressDialog({
                 <span className="font-medium text-foreground">{assetName || "Your asset"}</span> is now live on Starknet.
               </p>
               <p className="text-xs text-muted-foreground/70 pt-1">
-                It may take 1–2 minutes for your asset to appear on the platform while it&apos;s being indexed onchain.
+                Metadata, traits, and licensing may take 1-2 minutes to appear while the platform indexes the onchain mint.
               </p>
             </div>
+            {(mintedTokenId || assetHref || explorerAssetHref) && (
+              <div className="w-full rounded-xl border border-border/60 bg-muted/30 p-3 text-left space-y-3">
+                {mintedTokenId && (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground">Token ID</p>
+                    <p className="font-mono text-xs break-all text-foreground mt-1">{mintedTokenId}</p>
+                  </div>
+                )}
+                {(assetHref || explorerAssetHref) && (
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    {assetHref && (
+                      <Button size="sm" variant="outline" className="flex-1" onClick={() => router.push(assetHref)}>
+                        View asset
+                      </Button>
+                    )}
+                    {explorerAssetHref && (
+                      <Button asChild size="sm" variant="outline" className="flex-1">
+                        <a href={explorerAssetHref} target="_blank" rel="noopener noreferrer">
+                          View on Voyager <ExternalLink className="ml-1.5 h-3 w-3" />
+                        </a>
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
             {txHash && (
               <a
                 href={`${EXPLORER_URL}/tx/${txHash}`}

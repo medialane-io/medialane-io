@@ -26,6 +26,7 @@ import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { LaunchpadPageIntro } from "@/components/launchpad/launchpad-page-intro";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
+import { EXPLORER_URL } from "@/lib/constants";
 import { serializeByteArray, encodeU256 } from "@/lib/cairo-calldata";
 import type { MetadataField } from "@/components/create/ip-type-fields";
 import { NftEditionsMintConfirmDialog } from "../../nfteditions-mint-confirm-dialog";
@@ -342,6 +343,9 @@ export default function MintIP1155Page() {
         txHash={txHash}
         error={mintError}
         onMintAnother={handleMintAnother}
+        mintedTokenId={generatedTokenId}
+        assetHref={`/asset/${collectionAddress}/${generatedTokenId}`}
+        explorerAssetHref={`${EXPLORER_URL}/nft/${collectionAddress}/${generatedTokenId}`}
       />
     </>
   );

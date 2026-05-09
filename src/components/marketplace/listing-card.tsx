@@ -201,11 +201,10 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
             )}
           </div>
 
-          <p className="text-lg font-bold price-value leading-none">
-            {formatDisplayPrice(order.price.formatted)}{" "}
-            <span className="text-muted-foreground font-normal text-sm">
-              {order.price.currency}
-            </span>
+          <p className="text-lg font-bold price-value leading-none inline-flex items-center gap-1.5">
+            <CurrencyIcon symbol={order.price.currency} size={18} />
+            {formatDisplayPrice(order.price.formatted)}
+            <span className="sr-only">{order.price.currency}</span>
           </p>
 
           {isListing && (
