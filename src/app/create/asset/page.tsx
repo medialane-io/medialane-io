@@ -48,7 +48,7 @@ import {
   DERIVATIVES_OPTIONS,
   type IPType,
 } from "@/types/ip";
-import { IPTypeFields } from "@/components/create/ip-type-fields";
+import { IPTypeFields, type MetadataField } from "@/components/create/ip-type-fields";
 import {
   Upload,
   ChevronDown,
@@ -322,7 +322,8 @@ export default function CreateAssetPage() {
   const [mintError, setMintError] = useState<string | null>(null);
   const [mintDebug, setMintDebug] = useState<MintDebugSnapshot | null>(null);
   const mintDebugRef = useRef<MintDebugSnapshot | null>(null);
-  const [templateFields, setTemplateFields] = useState<Record<string, string>>({});
+  const [metadataFields, setMetadataFields] = useState<MetadataField[]>([]);
+  const [metadataResetKey, setMetadataResetKey] = useState(0);
   const pinRef = useRef<string | null>(null);
   const previewUrlRef = useRef<string | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
@@ -449,9 +450,9 @@ export default function CreateAssetPage() {
         formData.set("imageUri", `ipfs://${cid}`);
       }
 
-      // Forward template-specific fields — keyed as "tmpl_{trait_type}"
-      Object.entries(templateFields).forEach(([key, value]) => {
-        if (value?.trim()) formData.set(`tmpl_${key}`, value.trim());
+      // Forward template and custom metadata fields as standard NFT attributes.
+      metadataFields.forEach(({ traitType, value }) => {
+        if (traitType && value) formData.append(`tmpl_${traitType}`, value);
       });
 
       const uploadRes = await fetch("/api/pinata", { method: "POST", body: formData });
@@ -548,7 +549,8 @@ export default function CreateAssetPage() {
     resetListing();
     pinRef.current = null;
     form.reset();
-    setTemplateFields({});
+    setMetadataFields([]);
+    setMetadataResetKey((key) => key + 1);
     setImageFile(null);
     setImagePreview(null);
     if (imageInputRef.current) imageInputRef.current.value = "";
@@ -958,7 +960,7 @@ export default function CreateAssetPage() {
                 <CollapsibleContent>
                   <div className="px-5 pb-5 space-y-4 border-t border-border/60 pt-4">
                     <p className="text-xs text-muted-foreground">
-                      Choose a content type to unlock optional metadata fields tailored to your work — artist credits, embed links, technical specs, and more.
+                      Choose a content type, fill suggested metadata, or add your own trait pairs.
                     </p>
                     <FormField
                       control={form.control}
@@ -982,8 +984,9 @@ export default function CreateAssetPage() {
                       )}
                     />
                     <IPTypeFields
+                      key={metadataResetKey}
                       ipType={form.watch("ipType") as IPType}
-                      onChange={setTemplateFields}
+                      onChange={setMetadataFields}
                     />
                   </div>
                 </CollapsibleContent>

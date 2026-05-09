@@ -19,7 +19,8 @@
  *   aiPolicy        string?  — "Allowed" | "Not Allowed" | "Training Only"
  *   royalty         string?  — "0%"–"50%" or bare number
  *   edition         string?  — e.g. "Genesis" (legacy genesis-mint field)
- *   tmpl_{key}      string?  — template field for selected IP type (e.g. "tmpl_Artist")
+ *   tmpl_{key}      string?  — suggested template field or custom trait
+ *                              (e.g. "tmpl_Artist", "tmpl_Background").
  *                              Max 20 fields. Reserved trait names are silently ignored.
  *
  * Note: "creator" is NOT accepted from the client — it is derived server-side from
@@ -52,6 +53,9 @@ const RESERVED_TRAITS = new Set([
   "Attribution", "Territory", "AI Policy", "Royalty", "Edition",
   "Standard", "Registration",
 ]);
+const RESERVED_TRAITS_NORMALIZED = new Set(
+  [...RESERVED_TRAITS].map((trait) => trait.toLowerCase())
+);
 
 export async function POST(req: NextRequest) {
   // ── Auth ─────────────────────────────────────────────────────────────────────
@@ -154,7 +158,7 @@ export async function POST(req: NextRequest) {
     // Edition (legacy genesis-mint field)
     if (edition) attributes.push({ trait_type: "Edition", value: edition });
 
-    // Template-specific fields — stored as standard NFT attributes.
+    // Suggested template fields and creator-defined traits — stored as standard NFT attributes.
     // Max 20 fields; reserved trait names are silently skipped to prevent spoofing.
     const tmplEntries = [...formData.entries()].filter(
       ([k]) => typeof k === "string" && k.startsWith("tmpl_")
@@ -164,9 +168,10 @@ export async function POST(req: NextRequest) {
     }
     for (const [key, value] of tmplEntries) {
       const traitType = (key as string).slice(5).trim();
-      if (!traitType || RESERVED_TRAITS.has(traitType)) continue;
-      if (traitType.length > 64 || String(value).length > 512) continue;
-      attributes.push({ trait_type: traitType, value: String(value) });
+      const traitValue = String(value).trim();
+      if (!traitType || !traitValue || RESERVED_TRAITS_NORMALIZED.has(traitType.toLowerCase())) continue;
+      if (traitType.length > 64 || traitValue.length > 512) continue;
+      attributes.push({ trait_type: traitType, value: traitValue });
     }
 
     // Berne Convention marker — only when licensing data is provided
