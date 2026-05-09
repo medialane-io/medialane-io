@@ -25,26 +25,29 @@ interface CancelOrderDialogProps {
   onSuccess?: () => void;
   /** Controls the label shown — auto-detected from order type if omitted. */
   variant?: "listing" | "offer";
+  /** Fallback token name when order.token is not enriched. */
+  tokenName?: string | null;
+  /** Fallback token image when order.token is not enriched. */
+  tokenImage?: string | null;
 }
 
-function TokenHero({ order, variant }: { order: ApiOrder; variant: "listing" | "offer" }) {
-  const image = order.token?.image ? ipfsToHttp(order.token.image) : null;
-  const name = order.token?.name || `Token #${order.nftTokenId}`;
+function TokenHero({ order, variant, tokenName, tokenImage }: { order: ApiOrder; variant: "listing" | "offer"; tokenName?: string | null; tokenImage?: string | null }) {
+  const rawImage = order.token?.image ?? tokenImage ?? null;
+  const image = rawImage ? ipfsToHttp(rawImage) : null;
+  const name = order.token?.name ?? tokenName ?? null;
 
   return (
     <div>
       <div className="relative h-32 w-full bg-muted overflow-hidden">
         {image ? (
-          <img src={image} alt={name} className="h-full w-full object-cover" />
+          <img src={image} alt={name ?? "Asset"} className="h-full w-full object-cover" />
         ) : (
-          <div className="h-full w-full bg-gradient-to-br from-destructive/20 via-rose-500/10 to-transparent flex items-center justify-center text-4xl font-bold text-muted-foreground/30">
-            #{order.nftTokenId}
-          </div>
+          <div className="h-full w-full bg-gradient-to-br from-destructive/20 via-rose-500/10 to-transparent" />
         )}
       </div>
       <div className="flex items-end justify-between px-6 pt-3 pb-1">
         <div className="min-w-0">
-          <p className="font-bold text-lg leading-tight truncate">{name}</p>
+          <p className="font-bold text-lg leading-tight truncate">{name ?? "Asset"}</p>
           <p className="text-xs text-muted-foreground mt-0.5 capitalize">
             Cancel {variant}
           </p>
@@ -69,6 +72,8 @@ export function CancelOrderDialog({
   onOpenChange,
   onSuccess,
   variant,
+  tokenName,
+  tokenImage,
 }: CancelOrderDialogProps) {
   const { isSignedIn } = useAuth();
   const {
@@ -138,7 +143,7 @@ export function CancelOrderDialog({
   const isSuccess = !isProcessing && txStatus === "confirmed" && !error;
   const isTerminalError = !isProcessing && !!error && !!txHash;
 
-  const resolvedName = order?.token?.name || `Token #${order?.nftTokenId}`;
+  const resolvedName = order?.token?.name ?? tokenName ?? "Asset";
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -154,11 +159,11 @@ export function CancelOrderDialog({
             <div className="h-16 w-16 rounded-full bg-emerald-500/15 flex items-center justify-center">
               <CheckCircle2 className="h-9 w-9 text-emerald-500" />
             </div>
-            {order?.token?.image && (
+            {(order?.token?.image ?? tokenImage) && (
               <div className="h-24 w-24 rounded-2xl overflow-hidden border border-border shadow-md">
                 <img
-                  src={ipfsToHttp(order.token.image)}
-                  alt={order.token?.name || `Token #${order?.nftTokenId}`}
+                  src={ipfsToHttp(order?.token?.image ?? tokenImage!)}
+                  alt={resolvedName}
                   className="h-full w-full object-cover"
                 />
               </div>
@@ -167,9 +172,7 @@ export function CancelOrderDialog({
               <p className="font-bold text-xl capitalize">{resolvedVariant} cancelled</p>
               <p className="text-sm text-muted-foreground">
                 Your {resolvedVariant} for{" "}
-                <span className="font-medium text-foreground">
-                  {order?.token?.name || `Token #${order?.nftTokenId}`}
-                </span>{" "}
+                <span className="font-medium text-foreground">{resolvedName}</span>{" "}
                 has been removed.
               </p>
             </div>
@@ -183,7 +186,7 @@ export function CancelOrderDialog({
 
         ) : isTerminalError ? (
           <MarketplaceErrorState
-            tokenImage={order?.token?.image ? ipfsToHttp(order.token.image) : null}
+            tokenImage={order?.token?.image ? ipfsToHttp(order.token.image) : tokenImage ?? null}
             name={resolvedName}
             title={`${resolvedVariant === "listing" ? "Listing" : "Offer"} cancellation failed`}
             description={`The transaction was submitted, but this ${resolvedVariant} could not be cancelled.`}
@@ -213,7 +216,7 @@ export function CancelOrderDialog({
           /* ── PIN entry ── */
           order && (
             <div className="space-y-0">
-              <TokenHero order={order} variant={resolvedVariant} />
+              <TokenHero order={order} variant={resolvedVariant} tokenName={tokenName} tokenImage={tokenImage} />
               <MarketplacePinStep
                 description={`Enter your PIN to cancel this ${resolvedVariant}. This action cannot be undone.`}
                 pin={pin}

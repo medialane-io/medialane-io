@@ -236,6 +236,8 @@ function CollectionItems({ contract, activeListings }: { contract: string; activ
         onOpenChange={(v) => { setCancelOpen(v); if (!v) setCancelToken(null); }}
         onSuccess={() => { setPage(1); setAllTokens([]); mutate(); }}
         variant="listing"
+        tokenName={cancelToken?.metadata?.name}
+        tokenImage={cancelToken?.metadata?.image}
       />
     </>
   );

@@ -140,6 +140,8 @@ export function AssetsGrid({ address }: AssetsGridProps) {
         onOpenChange={(v) => { setCancelOpen(v); if (!v) setCancelToken(null); }}
         onSuccess={handleSuccess}
         variant="listing"
+        tokenName={cancelToken?.metadata?.name}
+        tokenImage={cancelToken?.metadata?.image}
       />
 
       {transferToken && (
