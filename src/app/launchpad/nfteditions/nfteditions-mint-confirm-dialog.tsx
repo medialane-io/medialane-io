@@ -10,7 +10,6 @@ interface NftEditionsMintConfirmDialogProps {
   open: boolean;
   imagePreview: string | null;
   assetName: string;
-  tokenId: string;
   quantity: string;
   onSubmit: (pin: string) => void;
   onCancel: () => void;
@@ -20,7 +19,6 @@ export function NftEditionsMintConfirmDialog({
   open,
   imagePreview,
   assetName,
-  tokenId,
   quantity,
   onSubmit,
   onCancel,
@@ -72,7 +70,6 @@ export function NftEditionsMintConfirmDialog({
             </div>
           </div>
           <div className="shrink-0 text-right ml-4 space-y-0.5">
-            <p className="text-xs text-muted-foreground">Token ID <span className="text-foreground font-semibold">#{tokenId || "—"}</span></p>
             <p className="text-xs text-muted-foreground">Qty <span className="text-foreground font-semibold">×{quantity || "1"}</span></p>
           </div>
         </div>

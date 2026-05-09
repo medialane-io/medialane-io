@@ -4,10 +4,6 @@ import * as z from "zod";
 import { AI_POLICIES, DERIVATIVES_OPTIONS, IP_TYPES } from "@/types/ip";
 
 export const nftEditionsMintSchema = z.object({
-  tokenId: z
-    .string()
-    .min(1, "Token ID required")
-    .regex(/^\d+$/, "Must be a positive integer"),
   value: z
     .string()
     .min(1, "Quantity required")

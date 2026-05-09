@@ -35,6 +35,16 @@ import {
   type NftEditionsMintFormValues,
 } from "../../nfteditions-mint-schema";
 
+function generateErc1155TokenId(): string {
+  const randomValues = new Uint32Array(1);
+  if (typeof crypto !== "undefined" && crypto.getRandomValues) {
+    crypto.getRandomValues(randomValues);
+  } else {
+    randomValues[0] = Math.floor(Math.random() * 1_000_000);
+  }
+
+  return (BigInt(Date.now()) * 1_000_000n + BigInt(randomValues[0] % 1_000_000)).toString();
+}
 
 export default function MintIP1155Page() {
   const { contract: rawContract } = useParams<{ contract: string }>();
@@ -54,6 +64,7 @@ export default function MintIP1155Page() {
   const [metadataFields, setMetadataFields] = useState<MetadataField[]>([]);
   const [metadataResetKey, setMetadataResetKey] = useState(0);
   const [autoExternalUrl, setAutoExternalUrl] = useState("");
+  const [generatedTokenId, setGeneratedTokenId] = useState(() => generateErc1155TokenId());
   const {
     imagePreview,
     imageUri,
@@ -71,7 +82,6 @@ export default function MintIP1155Page() {
   const form = useForm<NftEditionsMintFormValues>({
     resolver: zodResolver(nftEditionsMintSchema),
     defaultValues: {
-      tokenId: "",
       value: "1",
       recipient: "",
       name: "",
@@ -87,7 +97,6 @@ export default function MintIP1155Page() {
       royalty: 0,
     },
   });
-  const tokenIdValue = form.watch("tokenId");
 
   // Pre-fill recipient with connected wallet
   useEffect(() => {
@@ -99,15 +108,13 @@ export default function MintIP1155Page() {
   // Pre-fill external URL with the canonical asset URL once a token ID is entered.
   useEffect(() => {
     if (!collectionAddress) return;
-    const suggested = tokenIdValue
-      ? `https://medialane.io/asset/${collectionAddress}/${tokenIdValue}`
-      : `https://medialane.io/collections/${collectionAddress}`;
+    const suggested = `https://medialane.io/asset/${collectionAddress}/${generatedTokenId}`;
     const current = form.getValues("external_url");
     if (!current || current === autoExternalUrl) {
       form.setValue("external_url", suggested, { shouldDirty: false });
       setAutoExternalUrl(suggested);
     }
-  }, [autoExternalUrl, collectionAddress, form, tokenIdValue]);
+  }, [autoExternalUrl, collectionAddress, form, generatedTokenId]);
 
   // Verify the connected wallet is the collection owner before showing the form
   useEffect(() => {
@@ -183,7 +190,7 @@ export default function MintIP1155Page() {
 
       setMintStep("processing");
 
-      const [tokenIdLow, tokenIdHigh] = encodeU256(BigInt(pendingValues.tokenId));
+      const [tokenIdLow, tokenIdHigh] = encodeU256(BigInt(generatedTokenId));
       const [valueLow, valueHigh]     = encodeU256(BigInt(pendingValues.value));
 
       const result = await executeTransaction({
@@ -221,9 +228,9 @@ export default function MintIP1155Page() {
     setMetadataFields([]);
     setMetadataResetKey((key) => key + 1);
     setAutoExternalUrl("");
+    setGeneratedTokenId(generateErc1155TokenId());
     clearImage();
     form.reset({
-      tokenId: "",
       value: "1",
       recipient: walletAddress ?? "",
       name: "",
@@ -317,7 +324,6 @@ export default function MintIP1155Page() {
         open={pinOpen}
         imagePreview={imagePreview}
         assetName={form.getValues("name")}
-        tokenId={form.getValues("tokenId")}
         quantity={form.getValues("value")}
         onSubmit={handlePin}
         onCancel={() => setPinOpen(false)}

@@ -222,21 +222,6 @@ export function NftEditionsMintForm({
       </FadeIn>
 
       <FadeIn delay={0.14}>
-        <FormField control={form.control} name="tokenId" render={({ field }) => (
-          <FormItem>
-            <FormLabel>Token ID *</FormLabel>
-            <FormControl>
-              <Input type="number" min={0} placeholder="1" className="max-w-[180px]" {...field} />
-            </FormControl>
-            <FormDescription>
-              Unique identifier for this token type within the collection. Choose carefully because it becomes permanent after mint.
-            </FormDescription>
-            <FormMessage />
-          </FormItem>
-        )} />
-      </FadeIn>
-
-      <FadeIn delay={0.16}>
         <FormField control={form.control} name="value" render={({ field }) => (
           <FormItem>
             <FormLabel>Quantity *</FormLabel>
@@ -249,7 +234,7 @@ export function NftEditionsMintForm({
         )} />
       </FadeIn>
 
-      <FadeIn delay={0.18}>
+      <FadeIn delay={0.16}>
         <FormField control={form.control} name="recipient" render={({ field }) => (
           <FormItem>
             <FormLabel>Recipient *</FormLabel>
@@ -262,7 +247,7 @@ export function NftEditionsMintForm({
         )} />
       </FadeIn>
 
-      <FadeIn delay={0.2}>
+      <FadeIn delay={0.18}>
         <Collapsible open={licensingOpen} onOpenChange={setLicensingOpen}>
           <div className="rounded-xl border border-border overflow-hidden">
             <CollapsibleTrigger asChild>
@@ -385,7 +370,7 @@ export function NftEditionsMintForm({
         </Collapsible>
       </FadeIn>
 
-      <FadeIn delay={0.22}>
+      <FadeIn delay={0.2}>
         <Collapsible open={ipTypeOpen} onOpenChange={setIpTypeOpen}>
           <div className="rounded-xl border border-border overflow-hidden">
             <CollapsibleTrigger asChild>
@@ -434,7 +419,7 @@ export function NftEditionsMintForm({
         </Collapsible>
       </FadeIn>
 
-      <FadeIn delay={0.24}>
+      <FadeIn delay={0.22}>
         <div className="btn-border-animated p-[1px] rounded-xl mt-2">
           <Button
             type="submit"
