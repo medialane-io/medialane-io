@@ -110,7 +110,7 @@ export function TransferDialog({
   });
 
   const handleClose = (v: boolean) => {
-    if (!isProcessing) {
+    if (!isProcessing && step !== "success") {
       resetState();
       form.reset();
       setPendingAddress(null);

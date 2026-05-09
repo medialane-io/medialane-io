@@ -7,6 +7,7 @@ import * as z from "zod";
 import { AlertCircle, Tag, Layers, Zap, ShieldCheck, Loader2 } from "lucide-react";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { fireConfetti } from "@/lib/confetti";
+import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
@@ -146,17 +147,26 @@ export function ListingDialog({
     await beginAction(values, parseFormPriceUsdc(values.price));
   };
 
-  const handleClose = (v: boolean) => { if (!isProcessing) onOpenChange(v); };
+  const isSuccess = !isProcessing && txStatus === "confirmed" && !error;
+  const isTerminalError = !isProcessing && !!error && !!txHash;
+
+  // Prevent accidental backdrop/Escape dismiss when success or error details are visible —
+  // user must click "Done" explicitly so they don't miss the confirmation.
+  const handleClose = (v: boolean) => {
+    if (!isProcessing && !isSuccess && !isTerminalError) onOpenChange(v);
+  };
 
   useEffect(() => {
     if (open) { resetState(); form.reset(); resetActionFlow(); }
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const isSuccess = !isProcessing && txStatus === "confirmed" && !error;
-  const isTerminalError = !isProcessing && !!error && !!txHash;
   const confettiFired = useRef(false);
   useEffect(() => {
-    if (isSuccess && !confettiFired.current) { confettiFired.current = true; fireConfetti(); }
+    if (isSuccess && !confettiFired.current) {
+      confettiFired.current = true;
+      fireConfetti();
+      toast.success("Listing live!", { description: "Your asset is now listed on the marketplace." });
+    }
     if (!isSuccess) confettiFired.current = false;
   }, [isSuccess]);
 

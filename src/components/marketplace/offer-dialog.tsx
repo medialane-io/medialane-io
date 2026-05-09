@@ -7,6 +7,7 @@ import * as z from "zod";
 import { AlertCircle, HandCoins, Layers, ShieldCheck, Zap } from "lucide-react";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { fireConfetti } from "@/lib/confetti";
+import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
@@ -135,17 +136,24 @@ export function OfferDialog({
     await beginAction(values, parseFormPriceUsdc(values.price));
   };
 
-  const handleClose = (v: boolean) => { if (!isProcessing) onOpenChange(v); };
+  const isSuccess = !isProcessing && txStatus === "confirmed" && !error;
+  const isTerminalError = !isProcessing && !!error && !!txHash;
+
+  const handleClose = (v: boolean) => {
+    if (!isProcessing && !isSuccess && !isTerminalError) onOpenChange(v);
+  };
 
   useEffect(() => {
     if (open) { resetState(); form.reset(); resetActionFlow(); }
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const isSuccess = !isProcessing && txStatus === "confirmed" && !error;
-  const isTerminalError = !isProcessing && !!error && !!txHash;
   const confettiFired = useRef(false);
   useEffect(() => {
-    if (isSuccess && !confettiFired.current) { confettiFired.current = true; fireConfetti(); }
+    if (isSuccess && !confettiFired.current) {
+      confettiFired.current = true;
+      fireConfetti();
+      toast.success("Offer submitted!", { description: "Your offer has been placed onchain." });
+    }
     if (!isSuccess) confettiFired.current = false;
   }, [isSuccess]);
 
