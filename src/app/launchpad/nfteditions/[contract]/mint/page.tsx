@@ -23,11 +23,11 @@ import { normalizeAddress } from "@medialane/sdk";
 import { Contract } from "starknet";
 import { starknetProvider } from "@/lib/starknet";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
-import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { LaunchpadPageIntro } from "@/components/launchpad/launchpad-page-intro";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 import { serializeByteArray, encodeU256 } from "@/lib/cairo-calldata";
+import type { MetadataField } from "@/components/create/ip-type-fields";
 import { NftEditionsMintConfirmDialog } from "../../nfteditions-mint-confirm-dialog";
 import { NftEditionsMintForm } from "../../nfteditions-mint-form";
 import {
@@ -51,6 +51,9 @@ export default function MintIP1155Page() {
   const [mintError, setMintError] = useState<string | null>(null);
   const [ownerCheck, setOwnerCheck] = useState<"loading" | "ok" | "denied">("loading");
   const [formError, setFormError] = useState<string | null>(null);
+  const [metadataFields, setMetadataFields] = useState<MetadataField[]>([]);
+  const [metadataResetKey, setMetadataResetKey] = useState(0);
+  const [autoExternalUrl, setAutoExternalUrl] = useState("");
   const {
     imagePreview,
     imageUri,
@@ -73,8 +76,18 @@ export default function MintIP1155Page() {
       recipient: "",
       name: "",
       description: "",
+      external_url: "",
+      ipType: "NFT",
+      licenseType: "CC BY-SA",
+      commercialUse: "Yes",
+      derivatives: "Share-Alike",
+      attribution: "Required",
+      geographicScope: "Worldwide",
+      aiPolicy: "Not Allowed",
+      royalty: 0,
     },
   });
+  const tokenIdValue = form.watch("tokenId");
 
   // Pre-fill recipient with connected wallet
   useEffect(() => {
@@ -82,6 +95,19 @@ export default function MintIP1155Page() {
       form.setValue("recipient", walletAddress);
     }
   }, [walletAddress, form]);
+
+  // Pre-fill external URL with the canonical asset URL once a token ID is entered.
+  useEffect(() => {
+    if (!collectionAddress) return;
+    const suggested = tokenIdValue
+      ? `https://medialane.io/asset/${collectionAddress}/${tokenIdValue}`
+      : `https://medialane.io/collections/${collectionAddress}`;
+    const current = form.getValues("external_url");
+    if (!current || current === autoExternalUrl) {
+      form.setValue("external_url", suggested, { shouldDirty: false });
+      setAutoExternalUrl(suggested);
+    }
+  }, [autoExternalUrl, collectionAddress, form, tokenIdValue]);
 
   // Verify the connected wallet is the collection owner before showing the form
   useEffect(() => {
@@ -118,21 +144,45 @@ export default function MintIP1155Page() {
     setMintStep("uploading");
     setMintError(null);
 
-    // Build and pin metadata JSON
-    let tokenUri = imageUri;
     try {
-      const metadata: Record<string, unknown> = {
-        name: pendingValues.name,
-        image: imageUri,
+      const metadataForm = new FormData();
+      metadataForm.set("name", pendingValues.name);
+      metadataForm.set("description", pendingValues.description ?? "");
+      metadataForm.set("imageUri", imageUri);
+      if (pendingValues.external_url) metadataForm.set("external_url", pendingValues.external_url);
+      metadataForm.set("ipType", pendingValues.ipType);
+      metadataForm.set("licenseType", pendingValues.licenseType);
+      metadataForm.set("commercialUse", pendingValues.commercialUse);
+      metadataForm.set("derivatives", pendingValues.derivatives);
+      metadataForm.set("attribution", pendingValues.attribution);
+      metadataForm.set("geographicScope", pendingValues.geographicScope);
+      metadataForm.set("aiPolicy", pendingValues.aiPolicy);
+      metadataForm.set("royalty", String(pendingValues.royalty));
+
+      const seenTraits = new Set<string>();
+      const appendTrait = (traitType: string, value: string) => {
+        const cleanTrait = traitType.trim();
+        const cleanValue = value.trim();
+        const key = cleanTrait.toLowerCase();
+        if (!cleanTrait || !cleanValue || seenTraits.has(key)) return;
+        seenTraits.add(key);
+        metadataForm.append(`tmpl_${cleanTrait}`, cleanValue);
       };
-      if (pendingValues.description) metadata.description = pendingValues.description;
-      const uri = await pinLaunchpadMetadata(metadata);
-      if (uri) tokenUri = uri;
-    } catch { /* fall back to raw image URI */ }
 
-    setMintStep("processing");
+      metadataFields.forEach(({ traitType, value }) => appendTrait(traitType, value));
+      appendTrait("Token Standard", "ERC-1155");
+      appendTrait("Editions", pendingValues.value);
+      appendTrait("Collection Contract", collectionAddress);
 
-    try {
+      const uploadRes = await fetch("/api/pinata", { method: "POST", body: metadataForm });
+      const uploadData = await uploadRes.json();
+      if (!uploadRes.ok || uploadData.error || !uploadData.uri) {
+        throw new Error(uploadData.error ?? "Metadata upload failed");
+      }
+      const tokenUri: string = uploadData.uri;
+
+      setMintStep("processing");
+
       const [tokenIdLow, tokenIdHigh] = encodeU256(BigInt(pendingValues.tokenId));
       const [valueLow, valueHigh]     = encodeU256(BigInt(pendingValues.value));
 
@@ -168,8 +218,26 @@ export default function MintIP1155Page() {
     setMintStep("idle");
     setMintError(null);
     setPendingValues(null);
+    setMetadataFields([]);
+    setMetadataResetKey((key) => key + 1);
+    setAutoExternalUrl("");
     clearImage();
-    form.reset({ tokenId: "", value: "1", recipient: walletAddress ?? "", name: "", description: "" });
+    form.reset({
+      tokenId: "",
+      value: "1",
+      recipient: walletAddress ?? "",
+      name: "",
+      description: "",
+      external_url: "",
+      ipType: "NFT",
+      licenseType: "CC BY-SA",
+      commercialUse: "Yes",
+      derivatives: "Share-Alike",
+      attribution: "Required",
+      geographicScope: "Worldwide",
+      aiPolicy: "Not Allowed",
+      royalty: 0,
+    });
   };
 
   // ── Not signed in ─────────────────────────────────────────────────────────
@@ -229,6 +297,8 @@ export default function MintIP1155Page() {
               fileInputRef={fileInputRef}
               onImageSelect={handleImageSelect}
               onClearImage={clearImage}
+              metadataResetKey={metadataResetKey}
+              onMetadataFieldsChange={setMetadataFields}
             />
             {uploadError && (
               <p className="text-xs text-destructive mt-1">{uploadError}</p>

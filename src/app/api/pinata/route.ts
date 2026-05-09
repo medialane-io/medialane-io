@@ -21,7 +21,7 @@
  *   edition         string?  — e.g. "Genesis" (legacy genesis-mint field)
  *   tmpl_{key}      string?  — suggested template field or custom trait
  *                              (e.g. "tmpl_Artist", "tmpl_Background").
- *                              Max 20 fields. Reserved trait names are silently ignored.
+ *                              Max 30 fields. Reserved trait names are silently ignored.
  *
  * Note: "creator" is NOT accepted from the client — it is derived server-side from
  * the authenticated Clerk session to prevent impersonation.
@@ -46,6 +46,7 @@ const ALLOWED_IMAGE_TYPES = new Set([
   "image/webp",
 ]);
 const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10 MB (server-side fallback guard)
+const MAX_TEMPLATE_FIELDS = 30;
 
 // Trait names that are set by this route and must not be overridden by tmpl_* fields.
 const RESERVED_TRAITS = new Set([
@@ -159,12 +160,12 @@ export async function POST(req: NextRequest) {
     if (edition) attributes.push({ trait_type: "Edition", value: edition });
 
     // Suggested template fields and creator-defined traits — stored as standard NFT attributes.
-    // Max 20 fields; reserved trait names are silently skipped to prevent spoofing.
+    // Max 30 fields; reserved trait names are silently skipped to prevent spoofing.
     const tmplEntries = [...formData.entries()].filter(
       ([k]) => typeof k === "string" && k.startsWith("tmpl_")
     );
-    if (tmplEntries.length > 20) {
-      return NextResponse.json({ error: "Too many template fields (max 20)" }, { status: 400 });
+    if (tmplEntries.length > MAX_TEMPLATE_FIELDS) {
+      return NextResponse.json({ error: `Too many template fields (max ${MAX_TEMPLATE_FIELDS})` }, { status: 400 });
     }
     for (const [key, value] of tmplEntries) {
       const traitType = (key as string).slice(5).trim();
