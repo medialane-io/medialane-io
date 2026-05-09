@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useSWRConfig } from "swr";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -70,6 +71,7 @@ export function OfferDialog({
   const { tokenStandard: resolvedStandard } = useResolvedTokenStandard(assetContract, tokenStandard);
   const is1155 = resolvedStandard === "ERC1155";
   const { isSignedIn } = useAuth();
+  const { mutate } = useSWRConfig();
   const {
     makeOffer,
     hasWallet,
@@ -153,9 +155,10 @@ export function OfferDialog({
       confettiFired.current = true;
       fireConfetti();
       toast.success("Offer submitted!", { description: "Your offer has been placed onchain." });
+      mutate((key) => typeof key === "string" && key.includes("/v1/orders"), undefined, { revalidate: true });
     }
     if (!isSuccess) confettiFired.current = false;
-  }, [isSuccess]);
+  }, [isSuccess, mutate]);
 
   const name = tokenName || `Token #${tokenId}`;
   const shieldFooter = (

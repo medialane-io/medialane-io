@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useSWRConfig } from "swr";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -73,6 +74,7 @@ export function ListingDialog({
   const { tokenStandard: resolvedStandard, isResolving } = useResolvedTokenStandard(assetContract, tokenStandard);
   const is1155 = resolvedStandard === "ERC1155";
   const { isSignedIn } = useAuth();
+  const { mutate } = useSWRConfig();
   const {
     createListing,
     hasWallet,
@@ -166,9 +168,11 @@ export function ListingDialog({
       confettiFired.current = true;
       fireConfetti();
       toast.success("Listing live!", { description: "Your asset is now listed on the marketplace." });
+      mutate((key) => typeof key === "string" && key.includes("/v1/orders"), undefined, { revalidate: true });
+      mutate((key) => typeof key === "string" && key.includes("/v1/tokens/"), undefined, { revalidate: true });
     }
     if (!isSuccess) confettiFired.current = false;
-  }, [isSuccess]);
+  }, [isSuccess, mutate]);
 
   const name = tokenName || `Token #${tokenId}`;
   const shieldFooter = (
