@@ -172,11 +172,11 @@ function WalletSetup({ email, onDone }: { email?: string | null; onDone: () => v
         <div className="space-y-2">
           <Button size="lg" className="w-full h-12 font-bold gap-2" onClick={handlePasskey} disabled={isSubmitting}>
             <ShieldCheck className="h-4 w-4" />
-            Use Face ID / fingerprint
+            Passkey
           </Button>
           <Button size="lg" variant="outline" className="w-full h-12 gap-2" onClick={() => setStep("pin")} disabled={isSubmitting}>
             <KeyRound className="h-4 w-4" />
-            Create a PIN
+            PIN Password
           </Button>
         </div>
       )}
@@ -191,7 +191,7 @@ function WalletSetup({ email, onDone }: { email?: string | null; onDone: () => v
           />
           <div className="flex gap-2">
             <Button size="lg" className="flex-1 h-12 font-bold" onClick={handlePin} disabled={pin.length < 6 || isSubmitting}>
-              Activate my account
+              Continue
             </Button>
             {passkeySupported && (
               <Button size="lg" variant="outline" className="h-12" onClick={() => { setStep("choose"); setPin(""); setPinError(null); setError(null); }}>
@@ -323,11 +323,7 @@ export function GenesisMint() {
 
   return (
     <div className="rounded-2xl border border-border/50 bg-card/60 backdrop-blur-sm p-5 space-y-4 shadow-lg shadow-black/5">
-      <div className="flex items-center gap-2 pb-2 border-b border-border/30">
-        <Sparkles className="h-4 w-4 text-yellow-500" />
-        <p className="font-bold text-sm">Claim your participation record</p>
-      </div>
-
+      
       {/* Loading */}
       {(!isLoaded || (isLoaded && isSignedIn && isLoadingWallet) || walletJustCreated) && (
         <div className="flex items-center gap-3 py-2">
@@ -343,14 +339,9 @@ export function GenesisMint() {
           <SignUpButton mode="modal" forceRedirectUrl="/mint">
             <Button size="lg" className="w-full h-12 font-bold gap-2 rounded-xl">
               <Sparkles className="h-4 w-4" />
-              Join free — no sign-up required
+              Join free within seconds
             </Button>
           </SignUpButton>
-          <SignInButton mode="modal" forceRedirectUrl="/mint">
-            <Button size="lg" variant="ghost" className="w-full text-sm text-muted-foreground">
-              Already have an account — sign in
-            </Button>
-          </SignInButton>
         </div>
       )}
 
@@ -383,13 +374,13 @@ export function GenesisMint() {
           {mintStep === "enter-pin" && (
             <div className="space-y-4">
               <div>
-                <p className="font-semibold text-sm">Confirm your participation</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Use Face ID / fingerprint or your PIN.</p>
+                <p className="font-semibold text-sm">Mint your genesis NFT</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Use Passkey or PIN.</p>
               </div>
               {passkeySupported && (
                 <Button size="lg" className="w-full h-11 font-bold gap-2" onClick={handleClaimWithPasskey}>
                   <ShieldCheck className="h-4 w-4" />
-                  Confirm with Face ID / fingerprint
+                  Confirm with Passkey
                 </Button>
               )}
               {passkeySupported && (
@@ -466,10 +457,10 @@ export function GenesisMint() {
               )}
               <div className="flex flex-col sm:flex-row gap-2">
                 <Button size="sm" asChild className="flex-1">
-                  <Link href="/create/asset">Publish content</Link>
+                  <Link href="/create/asset">Create</Link>
                 </Button>
                 <Button size="sm" variant="outline" asChild className="flex-1">
-                  <Link href="/marketplace">Explore the app</Link>
+                  <Link href="/marketplace">Explore</Link>
                 </Button>
               </div>
               <button className="text-xs text-muted-foreground underline underline-offset-2 w-full text-center" onClick={handleResetMintGate}>

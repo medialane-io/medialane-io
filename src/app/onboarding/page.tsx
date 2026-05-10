@@ -163,8 +163,8 @@ function OnboardingContent() {
           <CardTitle>Secure your account</CardTitle>
           <CardDescription>
             {usePasskeyUI
-              ? "Use Face ID, Touch ID, or your device unlock to protect your account. Fast and effortless."
-              : "Create a 6-digit security PIN. You'll use it to authorize transactions — we never store it."}
+              ? "Passkey, Face ID, Touch ID."
+              : "Create a 6-digit security PIN."}
           </CardDescription>
         </CardHeader>
 
@@ -180,14 +180,14 @@ function OnboardingContent() {
             <div className="w-full space-y-3">
               <Button className="w-full gap-2" size="lg" onClick={handlePasskeySetup}>
                 <KeyRound className="h-4 w-4" />
-                Secure with passkey
+                Passkey
               </Button>
               <Button
                 variant="ghost"
                 className="w-full text-muted-foreground text-sm"
                 onClick={() => { setShowPinFallback(true); setError(null); }}
               >
-                Use a security PIN instead
+                PIN Password
               </Button>
             </div>
           ) : (
@@ -204,7 +204,7 @@ function OnboardingContent() {
                   disabled={pin.length < 6}
                   onClick={handlePinCreate}
                 >
-                  Secure my account
+                  Continue
                 </Button>
               </div>
               {passkeySupported && (
@@ -213,7 +213,7 @@ function OnboardingContent() {
                   className="w-full text-muted-foreground text-sm"
                   onClick={() => { setShowPinFallback(false); setError(null); setPin(""); setStep("pin"); }}
                 >
-                  Use passkey instead
+                  Use passkey
                 </Button>
               )}
             </>

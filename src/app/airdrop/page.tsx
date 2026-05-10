@@ -69,35 +69,24 @@ export default function AirdropPage() {
               <div className="space-y-5">
                 <div className="inline-flex items-center gap-2 rounded-full border border-yellow-500/30 bg-yellow-500/5 px-3 py-1">
                   <Sparkles className="h-3.5 w-3.5 text-yellow-500" />
-                  <span className="text-xs font-semibold text-yellow-600 dark:text-yellow-400">Creator&apos;s Airdrop — Launch Campaign</span>
+                  <span className="text-xs font-semibold text-yellow-600 dark:text-yellow-400">Airdrop Campaign</span>
                 </div>
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.05]">
                   Creator&apos;s{" "}
                   <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-                    Airdrop
+                    Fund
                   </span>
                 </h1>
                 <p className="text-base lg:text-lg text-muted-foreground leading-relaxed">
-                  Medialane distributes platform revenue back to the people who build and use it — creators, collectors, and active participants. What the platform earns goes to the community.
+                  Join the Creator&apos;s Airdrop to earn rewards. Sign up, create, trade, and grow with us from day one.
                 </p>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {[
-                    { icon: Camera,  label: "Photos & videos" },
-                    { icon: Music,   label: "Music" },
-                    { icon: Palette, label: "Digital art" },
-                    { icon: Globe,   label: "Documents & posts" },
-                  ].map(({ icon: Icon, label }) => (
-                    <div key={label} className="flex items-center gap-2.5 rounded-xl border border-border/40 bg-card/30 px-3 py-2.5">
-                      <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                      <span className="text-xs font-medium">{label}</span>
-                    </div>
-                  ))}
-                </div>
+
+                 <GenesisMint />
+
               </div>
 
-              {/* Right: claim + image (sticky on desktop) */}
-              <div className="lg:sticky lg:top-24 space-y-4">
-                <GenesisMint />
+              
+              <div className="lg:top-24 space-y-4"> 
                 <AirdropEventCard />
               </div>
 
@@ -107,10 +96,10 @@ export default function AirdropPage() {
           {/* ── Airdrop rewards ── */}
           <section className="py-10 border-t border-border/30 space-y-6">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Airdrop rewards</p>
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Rewards</p>
               <h2 className="text-2xl sm:text-3xl font-black">What early participants earn</h2>
               <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-                These rewards are exclusive to participants who join during the launch campaign.
+                Exclusive to participants who join during the launch campaign.
               </p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -119,14 +108,14 @@ export default function AirdropPage() {
                   icon: FileCheck,
                   color: "text-blue-400",
                   bg: "bg-blue-500/10",
-                  title: "Participation record",
-                  desc: "A permanent on-chain record of your early participation. Issued when you claim — tied to your account forever.",
+                  title: "Airdrop participation",
+                  desc: "Medialane will run airdrop campaigns to reward early supporters. By joining now, you secure your spot in the first distribution and future rewards.",
                 },
                 {
                   icon: Coins,
                   color: "text-yellow-500",
                   bg: "bg-yellow-500/10",
-                  title: "Share of creator fund distributions",
+                  title: "Creator fund distributions",
                   desc: "When milestones are reached, platform revenue is distributed to participants. The more you contribute, the larger your share.",
                 },
                 {
@@ -134,7 +123,7 @@ export default function AirdropPage() {
                   color: "text-orange-400",
                   bg: "bg-orange-500/10",
                   title: "Founding member status",
-                  desc: "Early participants are permanently recognized as founding members of the Medialane community.",
+                  desc: "Early participants are permanently recognized as founding members of the community.",
                 },
               ].map(({ icon: Icon, color, bg, title, desc }) => (
                 <div key={title} className="flex flex-col gap-4 p-5 rounded-2xl border border-border/40 bg-card/30 hover:bg-card/50 transition-colors">

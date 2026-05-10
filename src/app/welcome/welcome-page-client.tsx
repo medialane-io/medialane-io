@@ -191,13 +191,12 @@ export function WelcomePageClient() {
               <>Hey, {firstName}.<br />
               <span className="gradient-text">What are you creating today?</span></>
             ) : (
-              <>Your IP,{" "}
+              <>Your creativity,{" "}
               <span className="gradient-text">on-chain.</span></>
             )}
           </h1>
           <p className="mt-3 text-base text-muted-foreground max-w-xl">
-            Medialane is the home for programmable intellectual property on Starknet.
-            Mint, license, trade, and collect creative assets — with gas fees on us.
+            Mint, monetize, trade, and collect creative assets, rwa and nfts.
           </p>
         </div>
       </FadeIn>
@@ -208,7 +207,7 @@ export function WelcomePageClient() {
           <div className="mt-10">
             <div className="max-w-5xl mx-auto px-4 mb-4">
               <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                Your welcome gift
+                Mint your genesis NFT
               </p>
             </div>
             <LaunchMint />
