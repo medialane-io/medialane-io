@@ -99,7 +99,7 @@ export function AssetPreviewStandard({
           onClick={handleList}
         >
           <Tag className="h-4 w-4" />
-          List for sale
+          List
         </button>
       );
     }
@@ -133,7 +133,7 @@ export function AssetPreviewStandard({
   if (!isOwner) {
     secondaryActions.push({
       icon: <HandCoins className="h-4 w-4" />,
-      label: "Make an offer",
+      label: "Make offer",
       onClick: () => setOfferOpen(true),
       className: "text-brand-orange",
     });
@@ -141,12 +141,12 @@ export function AssetPreviewStandard({
 
   secondaryActions.push(
     { icon: <ArrowUpRight className="h-4 w-4" />, label: "View details", href: assetHref, onClick: onClose },
-    { icon: <GitBranch className="h-4 w-4" />, label: "Create a remix", href: remixHref, onClick: onClose, className: "text-brand-purple" },
+    { icon: <GitBranch className="h-4 w-4" />, label: "Remix", href: remixHref, onClick: onClose, className: "text-brand-purple" },
     { icon: <Layers className="h-4 w-4" />, label: "View collection", href: collectionHref, onClick: onClose },
   );
 
   if (isOwner && onTransfer) {
-    secondaryActions.push({ icon: <ArrowRightLeft className="h-4 w-4" />, label: "Transfer asset", onClick: handleTransfer });
+    secondaryActions.push({ icon: <ArrowRightLeft className="h-4 w-4" />, label: "Transfer", onClick: handleTransfer });
   }
 
   secondaryActions.push({

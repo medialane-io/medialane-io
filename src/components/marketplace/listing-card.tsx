@@ -255,7 +255,7 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
                       onClick={(e) => { e.preventDefault(); router.push(`/create/remix/${order.nftContract}/${order.nftTokenId}`); }}
                     >
                       <GitBranch className="h-3.5 w-3.5" />
-                      Create a remix
+                      Remix
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
@@ -267,7 +267,7 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
                     <DropdownMenuItem asChild>
                       <Link href={`/asset/${order.nftContract}/${order.nftTokenId}`} className="flex items-center gap-2">
                         <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground" />
-                        Transfer asset
+                        Transfer
                       </Link>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -356,14 +356,14 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
                       onClick={(e) => { e.preventDefault(); router.push(`/asset/${order.nftContract}/${order.nftTokenId}`); }}
                     >
                       <HandCoins className="h-3.5 w-3.5" />
-                      Make an offer
+                      Make offer
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       className="flex items-center gap-2 text-brand-purple focus:text-brand-purple"
                       onClick={(e) => { e.preventDefault(); router.push(`/create/remix/${order.nftContract}/${order.nftTokenId}`); }}
                     >
                       <GitBranch className="h-3.5 w-3.5" />
-                      Create a remix
+                      Remix
                     </DropdownMenuItem>
 
                     <DropdownMenuSeparator />
@@ -385,7 +385,7 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
                     <DropdownMenuItem asChild>
                       <Link href={`/asset/${order.nftContract}/${order.nftTokenId}`} className="flex items-center gap-2">
                         <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground" />
-                        Transfer asset
+                        Transfer
                       </Link>
                     </DropdownMenuItem>
 

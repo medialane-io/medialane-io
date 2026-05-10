@@ -281,7 +281,7 @@ export function ListingDialog({
                 error={error}
                 secondaryLabel="Back"
                 onSecondary={() => { setStep("form"); setPin(""); setPinError(null); }}
-                primaryLabel="List for sale"
+                primaryLabel="List"
                 onPrimary={handlePin}
                 primaryDisabled={pin.length < 6}
                 primaryIcon={<Tag className="h-4 w-4" />}
@@ -424,7 +424,7 @@ export function ListingDialog({
                           {isResolving ? (
                             <><Loader2 className="h-4 w-4 animate-spin" /> Resolving asset…</>
                           ) : (
-                            <><Tag className="h-4 w-4" /> {hasWallet ? "List for sale" : "Secure account & list"}</>
+                            <><Tag className="h-4 w-4" /> {hasWallet ? "List" : "Secure account & list"}</>
                           )}
                         </button>
                       </div>

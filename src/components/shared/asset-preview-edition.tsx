@@ -71,7 +71,7 @@ export function AssetPreviewEdition({ token, isOwner, onClose }: AssetPreviewCon
   if (!isOwner) {
     secondaryActions.push({
       icon: <HandCoins className="h-4 w-4" />,
-      label: "Make an offer",
+      label: "Make offer",
       onClick: () => setOfferOpen(true),
       className: "text-brand-orange",
     });

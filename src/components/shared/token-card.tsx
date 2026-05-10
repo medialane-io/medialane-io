@@ -204,7 +204,7 @@ export function TokenCard({
             </Link>
           </Button>
 
-          {/* Owner: List Asset / Cancel Listing — Buyer: Buy / Make Offer */}
+          {/* Owner: List / Cancel — Buyer: Buy / Make offer */}
           {isOwner ? (
             listingOrder ? (
               <Button
@@ -214,7 +214,7 @@ export function TokenCard({
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); onCancel?.(token); }}
               >
                 <X className="h-3.5 w-3.5 mr-1.5" />
-                Cancel Listing
+                Cancel
               </Button>
             ) : (
               <Button
@@ -224,7 +224,7 @@ export function TokenCard({
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); onList?.(token); }}
               >
                 <Tag className="h-3.5 w-3.5 mr-1.5" />
-                List Asset
+                List
               </Button>
             )
           ) : listingOrder ? (
@@ -280,7 +280,7 @@ export function TokenCard({
                       onClick={() => onList(token)}
                     >
                       <Tag className="h-3.5 w-3.5" />
-                      List for sale
+                      List
                     </DropdownMenuItem>
                   )}
                   {listingOrder && onCancel && (
@@ -298,7 +298,7 @@ export function TokenCard({
                       onClick={() => onTransfer(token)}
                     >
                       <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground" />
-                      Transfer asset
+                      Transfer
                     </DropdownMenuItem>
                   )}
                 </>
@@ -334,7 +334,7 @@ export function TokenCard({
                     onClick={handleOffer}
                   >
                     <HandCoins className="h-3.5 w-3.5" />
-                    Make an offer
+                    Make offer
                   </DropdownMenuItem>
                 </>
               )}
@@ -344,7 +344,7 @@ export function TokenCard({
                 onClick={() => router.push(`/create/remix/${token.contractAddress}/${token.tokenId}`)}
               >
                 <GitBranch className="h-3.5 w-3.5" />
-                Create a remix
+                Remix
               </DropdownMenuItem>
 
               <DropdownMenuSeparator />

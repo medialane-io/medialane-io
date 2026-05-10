@@ -24,23 +24,31 @@ interface ActionButtonProps {
   label: string;
   icon: ReactNode;
   onClick: () => void;
-  className: string;
+  tone: "blue" | "orange" | "purple" | "destructive" | "transparent";
   disabled?: boolean;
   helpContent?: string;
 }
+
+const actionToneClass: Record<ActionButtonProps["tone"], string> = {
+  blue: "bg-brand-blue",
+  orange: "bg-brand-orange",
+  purple: "bg-brand-purple",
+  destructive: "bg-destructive",
+  transparent: "bg-transparent",
+};
 
 function ActionButton({
   label,
   icon,
   onClick,
-  className,
+  tone,
   disabled = false,
   helpContent,
 }: ActionButtonProps) {
   return (
     <div className={`btn-border-animated p-[1px] rounded-2xl ${disabled ? "opacity-40 pointer-events-none" : ""}`}>
       <button
-        className={className}
+        className={`w-full h-10 rounded-[15px] flex items-center justify-center gap-2 px-3 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50 ${actionToneClass[tone]}`}
         disabled={disabled}
         onClick={onClick}
       >
@@ -122,97 +130,97 @@ export function AssetMarketplacePanel({
 
           {isOwner ? (
             <div className="space-y-2">
-              {myListing ? (
+              <div className="grid grid-cols-2 gap-2">
+                {myListing ? (
+                  <ActionButton
+                    label="Cancel"
+                    icon={isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
+                    onClick={() => onCancelClick(myListing)}
+                    disabled={isProcessing}
+                    tone="destructive"
+                  />
+                ) : null}
+
                 <ActionButton
-                  label="Cancel listing"
-                  icon={isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
-                  onClick={() => onCancelClick(myListing)}
-                  disabled={isProcessing}
-                  className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-destructive disabled:opacity-50"
+                  label="List"
+                  icon={<Tag className="h-4 w-4" />}
+                  onClick={onOpenListing}
+                  tone="blue"
                 />
-              ) : null}
 
-              <ActionButton
-                label={isERC1155 ? "List edition for sale" : "Create new listing"}
-                icon={<Tag className="h-4 w-4" />}
-                onClick={onOpenListing}
-                className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-blue"
-              />
-
-              <ActionButton
-                label={isERC1155 ? "Transfer edition" : "Transfer"}
-                icon={<ArrowRightLeft className="h-4 w-4" />}
-                onClick={onOpenTransfer}
-                className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-orange"
-              />
-
-              {remixEnabled && onOpenRemix ? (
                 <ActionButton
-                  label="Create a Remix"
-                  icon={<GitBranch className="h-4 w-4" />}
-                  onClick={onOpenRemix}
-                  helpContent="Build a licensed derivative of this IP asset — your remix is minted as a new onchain NFT linked to the original"
-                  className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-purple"
+                  label="Transfer"
+                  icon={<ArrowRightLeft className="h-4 w-4" />}
+                  onClick={onOpenTransfer}
+                  tone="orange"
                 />
-              ) : null}
+
+                {remixEnabled && onOpenRemix ? (
+                  <ActionButton
+                    label="Remix"
+                    icon={<GitBranch className="h-4 w-4" />}
+                    onClick={onOpenRemix}
+                    helpContent="Build a licensed derivative of this IP asset — your remix is minted as a new onchain NFT linked to the original"
+                    tone="purple"
+                  />
+                ) : null}
+              </div>
 
               {/* ERC-1155: owner can still buy more editions from a different seller */}
               {canBuyMore && (
                 <>
                   <div className="border-t border-border/40 pt-2 mt-1" />
-                  <ActionButton
-                    label="Buy another edition"
-                    icon={<ShoppingCart className="h-5 w-5" />}
-                    onClick={() => onOpenPurchase(cheapest!)}
-                    className="w-full h-12 text-base font-semibold text-white rounded-[15px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] bg-transparent"
-                  />
                   <div className="grid grid-cols-2 gap-2">
+                    <ActionButton
+                      label="Buy"
+                      icon={<ShoppingCart className="h-4 w-4" />}
+                      onClick={() => onOpenPurchase(cheapest!)}
+                      tone="transparent"
+                    />
                     <ActionButton
                       label={inCart ? "In cart" : "Add to cart"}
                       icon={<ShoppingCart className="h-4 w-4" />}
                       onClick={onAddToCart}
                       disabled={inCart}
-                      className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-blue"
+                      tone="blue"
                     />
                     <ActionButton
                       label="Make offer"
                       icon={<HandCoins className="h-4 w-4" />}
                       onClick={onOpenOffer}
-                      className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-orange"
+                      tone="orange"
                     />
                   </div>
                 </>
               )}
             </div>
           ) : isSignedIn ? (
-            <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-2">
               <ActionButton
-                label={isERC1155 ? "Buy Edition" : "Buy Asset"}
-                icon={<ShoppingCart className="h-5 w-5" />}
+                label="Buy"
+                icon={<ShoppingCart className="h-4 w-4" />}
                 onClick={() => onOpenPurchase(cheapest)}
-                className="w-full h-12 text-base font-semibold text-white rounded-[15px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] bg-transparent"
+                tone="transparent"
               />
-              <div className="grid grid-cols-2 gap-2">
-                <ActionButton
-                  label={inCart ? "In cart" : "Add to cart"}
-                  icon={<ShoppingCart className="h-4 w-4" />}
-                  onClick={onAddToCart}
-                  disabled={inCart}
-                  className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-blue"
-                />
-                <ActionButton
-                  label="Make offer"
-                  icon={<HandCoins className="h-4 w-4" />}
-                  onClick={onOpenOffer}
-                  className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-orange"
-                />
-              </div>
+              <ActionButton
+                label={inCart ? "In cart" : "Add to cart"}
+                icon={<ShoppingCart className="h-4 w-4" />}
+                onClick={onAddToCart}
+                disabled={inCart}
+                tone="blue"
+              />
+              <ActionButton
+                label="Make offer"
+                icon={<HandCoins className="h-4 w-4" />}
+                onClick={onOpenOffer}
+                tone="orange"
+              />
               {remixEnabled && onOpenRemix ? (
                 <ActionButton
-                  label="Create a Remix"
+                  label="Remix"
                   icon={<GitBranch className="h-4 w-4" />}
                   onClick={onOpenRemix}
-                  className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-purple"
+                  tone="purple"
                 />
               ) : null}
             </div>
@@ -230,44 +238,44 @@ export function AssetMarketplacePanel({
       ) : (
         <div className="rounded-xl border border-border p-5 space-y-3">
           {isOwner ? (
-            <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-2">
               <ActionButton
-                label={isERC1155 ? "List edition for sale" : "List for sale"}
+                label="List"
                 icon={<Tag className="h-4 w-4" />}
                 onClick={onOpenListing}
-                className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-transparent"
+                tone="transparent"
               />
               <ActionButton
-                label={isERC1155 ? "Transfer edition" : "Transfer"}
+                label="Transfer"
                 icon={<ArrowRightLeft className="h-4 w-4" />}
                 onClick={onOpenTransfer}
-                className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-orange"
+                tone="orange"
               />
               {remixEnabled && onOpenRemix ? (
                 <ActionButton
-                  label="Create a Remix"
+                  label="Remix"
                   icon={<GitBranch className="h-4 w-4" />}
                   onClick={onOpenRemix}
                   helpContent="Build a licensed derivative of this IP asset — your remix is minted as a new onchain NFT linked to the original"
-                  className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-purple"
+                  tone="purple"
                 />
               ) : null}
             </div>
           ) : isSignedIn ? (
-            <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-2">
               <ActionButton
                 label="Make offer"
                 icon={<HandCoins className="h-4 w-4" />}
                 onClick={onOpenOffer}
-                className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-orange"
+                tone="orange"
               />
               {remixEnabled && onOpenRemix ? (
                 <ActionButton
-                  label="Create a Remix"
+                  label="Remix"
                   icon={<GitBranch className="h-4 w-4" />}
                   onClick={onOpenRemix}
                   helpContent="Build a licensed derivative of this IP asset — your remix is minted as a new onchain NFT linked to the original"
-                  className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-purple"
+                  tone="purple"
                 />
               ) : null}
             </div>
