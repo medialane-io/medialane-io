@@ -163,10 +163,7 @@ export function IpTypePageClient({ slug }: IpTypePageClientProps) {
         {/* Filters bar */}
         <div className="space-y-2">
           <div className="flex items-center gap-3 flex-wrap">
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <SlidersHorizontal className="h-3.5 w-3.5" />
-              <span>Filters:</span>
-            </div>
+            
             {/* Listed only toggle */}
             <button
               onClick={() => setListedOnly((v) => !v)}
@@ -177,7 +174,7 @@ export function IpTypePageClient({ slug }: IpTypePageClientProps) {
                   : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
               )}
             >
-              Listed only{listedCount > 0 && !isInitialLoading ? ` (${listedCount})` : ""}
+              Listed {listedCount > 0 && !isInitialLoading ? ` (${listedCount})` : ""}
             </button>
             {/* Filters toggle */}
             <button

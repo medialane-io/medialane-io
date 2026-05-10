@@ -25,8 +25,8 @@ function CreatorCard({ creator }: { creator: ApiCreatorProfile }) {
       {bannerUrl && (
         <img src={bannerUrl} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover" />
       )}
-      <div className="absolute bottom-0 inset-x-0 px-3 py-3">
-        <p className="font-bold text-xl text-white truncate">{displayName}</p>
+      <div className="absolute bottom-0 inset-x-0 px-4 py-4">
+        <p className="font-bold text-2xl text-white truncate">{displayName}</p>
       </div>
     </Link>
   );
@@ -55,16 +55,10 @@ export default function CreatorsPageClient() {
   const { creators, total, isLoading } = useCreators(debouncedSearch || undefined);
 
   return (
-    <div className="pb-16">
+    <div className="pb-8">
       {/* Hero */}
-      <section className="relative border-b border-border/50 overflow-hidden">
+      <section className="relative overflow-hidden">
         <div className="px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
-          <FadeIn>
-            <span className="pill-badge mb-5 inline-flex">
-              <Users className="h-3 w-3" />
-              Media
-            </span>
-          </FadeIn>
           <FadeIn delay={0.08}>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight mb-3">
               Meet the{" "}

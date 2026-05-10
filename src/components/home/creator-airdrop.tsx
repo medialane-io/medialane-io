@@ -4,9 +4,9 @@ import Link from "next/link";
 import { Gift, ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
 
 const HIGHLIGHTS = [
-  "Free — no approval or fees",
+  "Free and frictioness participation",
   "Eligible for every prize distribution",
-  "Publish photos, videos, music and more",
+  "Create, trade and earn more rewards",
 ];
 
 export function CreatorAirdropBanner() {
@@ -25,11 +25,11 @@ export function CreatorAirdropBanner() {
             {/* Left: icon + text */}
             <div className="flex-1 space-y-4 min-w-0">
               <div className="flex items-center gap-2.5">
-                <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/30 shrink-0">
-                  <Gift className="h-4.5 w-4.5 text-white" />
+                <div className="h-5 w-5 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/30 shrink-0">
+                  <Gift className="h-2 w-2 text-white" />
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold uppercase tracking-widest text-orange-400/80">Community Program</span>
+                  <span className="text-xs font-bold uppercase tracking-widest text-orange-400/80">Launch Campaign</span>
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-500/15 text-orange-400 border border-orange-500/25">
                     <span className="h-1.5 w-1.5 rounded-full bg-orange-400 animate-pulse" />
                     Live
@@ -45,7 +45,7 @@ export function CreatorAirdropBanner() {
                   </span>
                 </h2>
                 <p className="text-sm text-muted-foreground leading-relaxed mt-1.5 max-w-md">
-                  Claim your participation record and join the Medialane community fund. Platform revenue goes back to creators — no investors, no middlemen.
+                  Claim your participation and join the creator's fund distribution.
                 </p>
               </div>
 
@@ -66,7 +66,7 @@ export function CreatorAirdropBanner() {
                 className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-bold text-white bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 shadow-lg shadow-orange-500/25 transition-all hover:-translate-y-0.5"
               >
                 <Sparkles className="h-4 w-4" />
-                Join the Airdrop
+                Read More
                 <ArrowRight className="h-4 w-4" />
               </Link>
               

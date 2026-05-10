@@ -159,14 +159,14 @@ export function AirdropSection() {
     <section className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-md shadow-primary/20">
+          <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center shadow-md shadow-primary/20">
             <Rocket className="h-3.5 w-3.5 text-white" />
           </div>
-          <h2 className="text-lg sm:text-xl font-semibold">Creator Launchpad</h2>
+          <h2 className="text-lg sm:text-xl font-semibold">Launchpad</h2>
         </div>
         <Button variant="ghost" size="sm" asChild>
           <Link href="/launchpad" className="flex items-center gap-1 text-muted-foreground hover:text-foreground">
-            All services <ArrowRight className="h-3.5 w-3.5" />
+            Explore <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </Button>
       </div>
