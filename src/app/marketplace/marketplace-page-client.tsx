@@ -252,7 +252,7 @@ export default function MarketplacePageClient() {
       <div className="space-y-2">
         <div className="flex items-center gap-2 text-primary">
           <Store className="h-5 w-5" />
-          <span className="text-sm font-semibold uppercase tracking-wider">NFT Marketplace</span>
+          <span className="text-sm font-semibold uppercase tracking-wider">Onchain Markets</span>
         </div>
         <h1 className="text-3xl font-bold">Discover and trade</h1>
         <PlatformStatsBar />
@@ -262,7 +262,7 @@ export default function MarketplacePageClient() {
       <ActivityTicker limit={12} />
 
       {/* Filter toolbar */}
-      <div className="space-y-2 pb-3 border-b border-border/60">
+      <div className="space-y-2">
         <div className="flex items-center gap-2 flex-wrap">
           <div className="flex-1 min-w-0">
             <SearchBar />

@@ -14,11 +14,11 @@ const inter = Inter({ subsets: ["latin"], display: "swap" });
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
   title: {
-    default: "Medialane — Creator Launchpad & IP Marketplace",
+    default: "Medialane — Creator Launchpad & NFT Marketplace",
     template: "%s | Medialane",
   },
   description:
-    "Launch, collect, and monetize NFT digital assets. No seed phrases, no gas fees.",
+    "Launch, collect, and monetize your creative works. No seed phrases, no gas fees.",
   keywords: ["NFT", "IP", "Launchpad", "Starknet", "Creator", "Marketplace"],
   authors: [{ name: "Medialane" }],
   icons: {
