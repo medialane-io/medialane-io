@@ -221,7 +221,7 @@ export function AssetPageStandard() {
             src={imageUrl}
             alt=""
             aria-hidden
-            className="absolute inset-0 w-full h-full object-cover opacity-20 scale-110"
+            className="absolute inset-0 w-full h-full object-cover opacity-30 scale-110"
             style={{ filter: "blur(60px) saturate(1.5)" }}
           />
         )}
