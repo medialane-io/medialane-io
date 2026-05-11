@@ -302,7 +302,7 @@ src/
 |---|---|
 | [medialane-backend](https://github.com/medialane-io/medialane-backend) | Starknet indexer + marketplace API (Bun + Hono + Prisma + PostgreSQL) |
 | [@medialane/sdk](https://github.com/medialane-io/sdk) | TypeScript SDK — `npm install @medialane/sdk` |
-| [medialane-xyz](https://github.com/medialane-io/medialane-xyz) | Developer portal (API keys, webhooks, usage) |
+| [medialane-portal](https://github.com/medialane-io/medialane-portal) | Developer portal (API keys, webhooks, usage) |
 
 ---
 
