@@ -134,7 +134,7 @@ export function IpTypePageClient({ slug }: IpTypePageClientProps) {
                 {meta?.total != null ? (
                   <>{meta.total.toLocaleString()} indexed · {listedCount} listed</>
                 ) : (
-                  "Browsing indexed IP assets on Medialane"
+                  "Browsing indexed digital assets on Medialane"
                 )}
               </p>
             </div>

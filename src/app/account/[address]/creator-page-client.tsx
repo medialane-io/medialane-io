@@ -414,7 +414,7 @@ export default function CreatorPageClient() {
               <EmptyState
                 icon={ImageIcon}
                 heading="No assets yet"
-                body="This creator hasn't minted any IP assets on Medialane yet."
+                body="This creator hasn't minted any digital assets on Medialane yet."
               />
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -445,7 +445,7 @@ export default function CreatorPageClient() {
               <EmptyState
                 icon={ShoppingBag}
                 heading="No active listings"
-                body="This creator has no IP assets listed for sale right now."
+                body="This creator has no digital assets listed for sale right now."
               />
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">

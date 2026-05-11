@@ -541,9 +541,9 @@ export default function CreateAssetPage() {
             <ImagePlus className="h-5 w-5" />
             <span className="text-sm font-semibold uppercase tracking-wider">Create</span>
           </div>
-          <h1 className="text-3xl font-bold">Create IP Asset</h1>
+          <h1 className="text-3xl font-bold">Create digital asset</h1>
           <p className="text-muted-foreground">
-            Mint your creative work as a programmable NFT on Starknet with immutable licensing embedded in IPFS metadata.
+            Mint your creative work as a programmable NFT onchain with immutable licensing embedded in IPFS metadata.
           </p>
         </div>
 
@@ -911,7 +911,7 @@ export default function CreateAssetPage() {
         onSubmit={handlePin}
         onCancel={() => setPinOpen(false)}
         title="Confirm mint"
-        description="Enter your PIN to mint this asset on Starknet."
+        description="Enter your PIN to mint this asset onchain."
       />
 
       <WalletSetupDialog

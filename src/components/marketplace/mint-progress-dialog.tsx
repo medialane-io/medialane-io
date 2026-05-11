@@ -52,7 +52,7 @@ const MINT_STEPS = [
       txStatus === "confirming" || txStatus === "confirmed",
   },
   {
-    label: "Confirm on Starknet",
+    label: "Confirm onchain",
     done: (_: MintStep, txStatus: ChipiTransactionStatus) =>
       txStatus === "confirmed",
   },
@@ -128,7 +128,7 @@ export function MintProgressDialog({
 
             <div className="text-center space-y-1">
               <p className="font-semibold text-lg">
-                {mintStep === "uploading" ? "Uploading to IPFS…" : "Minting on Starknet…"}
+                {mintStep === "uploading" ? "Uploading to IPFS…" : "Minting onchain…"}
               </p>
               <p className="text-sm text-muted-foreground">
                 {mintStep === "uploading"
@@ -145,7 +145,7 @@ export function MintProgressDialog({
                 const isActive =
                   (label === "Upload to IPFS" && mintStep === "uploading") ||
                   (label === "Submit transaction" && mintStep === "processing" && txStatus === "submitting") ||
-                  (label === "Confirm on Starknet" && txStatus === "confirming");
+                  (label === "Confirm onchain" && txStatus === "confirming");
                 return (
                   <div key={label} className="flex items-center gap-3">
                     {isDone ? (
@@ -188,7 +188,7 @@ export function MintProgressDialog({
             <div className="w-full space-y-2 rounded-xl border border-border/60 bg-muted/30 p-4">
               <div className="flex items-center gap-3">
                 <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
-                <span className="text-sm text-foreground">Minted on Starknet</span>
+                <span className="text-sm text-foreground">Minted onchain</span>
               </div>
               <div className="flex items-center gap-3">
                 {listingStep === "listing" ? (
@@ -309,7 +309,7 @@ export function MintProgressDialog({
             <div className="text-center space-y-1">
               <p className="font-bold text-xl">Minted!</p>
               <p className="text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">{assetName || "Your asset"}</span> is now live on Starknet.
+                <span className="font-medium text-foreground">{assetName || "Your asset"}</span> is now live onchain.
               </p>
               <p className="text-xs text-muted-foreground/70 pt-1">
                 Metadata, traits, and licensing may take 1-2 minutes to appear while the platform indexes the onchain mint.

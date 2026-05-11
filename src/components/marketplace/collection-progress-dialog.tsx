@@ -172,7 +172,7 @@ export function CollectionProgressDialog({
               <p className="font-bold text-xl">Collection deployed!</p>
               <p className="text-sm text-muted-foreground">
                 <span className="font-medium text-foreground">{collectionName || "Your collection"}</span> is
-                live on Starknet. Start minting assets into it.
+                live onchain. Start minting assets into it.
               </p>
             </div>
 

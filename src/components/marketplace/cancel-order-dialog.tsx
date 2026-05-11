@@ -207,7 +207,7 @@ export function CancelOrderDialog({
               statusMessage={
                 txStatus === "submitting"
                   ? `Submitting cancellation…`
-                  : "Confirming on Starknet…"
+                  : "Confirming onchain…"
               }
             />
           </div>

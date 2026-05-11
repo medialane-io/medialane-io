@@ -28,7 +28,7 @@ const FEATURES: Feature[] = [
   {
     icon: Paintbrush,
     label: "Mint NFT",
-    subtitle: "Publish your creative work on Starknet",
+    subtitle: "Publish your creative work onchain",
     description: "Upload any photo, video, audio, or document and mint it as an IP NFT — with licensing, provenance, and ownership all locked on-chain.",
     example: "e.g. A song, a photo, an ebook, a short film",
     chips: ["Gasless via ChipiPay", "IPFS metadata", "Programmable licensing"],
@@ -98,7 +98,7 @@ const FEATURES: Feature[] = [
   {
     icon: ShoppingBag,
     label: "Marketplace",
-    subtitle: "Browse, buy, and trade IP assets",
+    subtitle: "Browse, buy, and trade digital assets",
     description: "Discover and trade IP NFTs from creators on Starknet. Buy with USDC, ETH, STRK, or WBTC — gasless and instantly settled.",
     example: "e.g. Buy an art print, make an offer on a music track",
     chips: ["Gasless trading", "USDC · ETH · STRK · WBTC", "Instant settlement"],

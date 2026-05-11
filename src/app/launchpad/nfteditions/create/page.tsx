@@ -208,7 +208,7 @@ export default function CreateIP1155CollectionPage() {
         icon={Layers}
         iconClassName="text-violet-500"
         title="Sign in to create a collection"
-        description="Deploy a multi-edition ERC-1155 IP collection on Starknet."
+        description="Deploy a multi-edition ERC-1155 IP collection onchain."
       />
     );
   }
@@ -235,7 +235,7 @@ export default function CreateIP1155CollectionPage() {
           icon={Layers}
           badge="IP Collection · ERC-1155"
           title="Create IP Collection"
-          description="Deploy a multi-edition ERC-1155 collection on Starknet. Gas is free."
+          description="Deploy a multi-edition ERC-1155 collection onchain. Gas is free."
         />
 
         <Form {...form}>
@@ -267,7 +267,7 @@ export default function CreateIP1155CollectionPage() {
         onSubmit={handlePin}
         onCancel={() => setPinOpen(false)}
         title="Deploy ERC-1155 collection"
-        description="Enter your PIN to deploy your IP collection on Starknet."
+        description="Enter your PIN to deploy your IP collection onchain."
       />
       <WalletSetupDialog
         open={walletSetupOpen}

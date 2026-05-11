@@ -19,7 +19,7 @@ const JOURNEYS = [
   {
     icon: ShoppingBag,
     label: "Explore the marketplace",
-    description: "Buy, sell and collect programmable IP assets from creators worldwide.",
+    description: "Buy, sell and collect programmable digital assets from creators worldwide.",
     href: "/marketplace",
     accent: "from-brand-blue/20 to-brand-blue/5 border-brand-blue/20",
     iconColor: "text-brand-blue",
@@ -27,7 +27,7 @@ const JOURNEYS = [
   },
   {
     icon: Pencil,
-    label: "Create an IP asset",
+    label: "Create a digital asset",
     description: "Mint your music, art, or content on-chain with programmable licensing.",
     href: "/create/asset",
     accent: "from-brand-purple/20 to-brand-purple/5 border-brand-purple/20",

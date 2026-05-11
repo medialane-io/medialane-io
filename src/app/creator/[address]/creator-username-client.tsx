@@ -254,7 +254,7 @@ export default function CreatorUsernamePageClient({ username }: Props) {
               {Array.from({ length: 8 }).map((_, i) => <TokenCardSkeleton key={i} />)}
             </div>
           ) : tokens.length === 0 ? (
-            <EmptyState icon={ImageIcon} heading="No assets yet" body="This creator hasn't minted any IP assets on Medialane yet." />
+            <EmptyState icon={ImageIcon} heading="No assets yet" body="This creator hasn't minted any digital assets on Medialane yet." />
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {tokens.map((t) => (
@@ -288,7 +288,7 @@ export default function CreatorUsernamePageClient({ username }: Props) {
               {Array.from({ length: 4 }).map((_, i) => <ListingCardSkeleton key={i} />)}
             </div>
           ) : activeListings.length === 0 ? (
-            <EmptyState icon={ShoppingBag} heading="No active listings" body="This creator has no IP assets listed for sale right now." />
+            <EmptyState icon={ShoppingBag} heading="No active listings" body="This creator has no digital assets listed for sale right now." />
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {activeListings.map((o) => <ListingCard key={o.orderHash} order={o} />)}

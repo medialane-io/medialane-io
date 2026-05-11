@@ -1,7 +1,7 @@
 /**
  * POST /api/pinata
  *
- * Server-side IP asset upload endpoint.
+ * Server-side digital asset upload endpoint.
  * Requires an active Clerk session — prevents unauthorized Pinata quota usage.
  *
  * Accepts multipart/form-data:

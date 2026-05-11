@@ -480,7 +480,7 @@ export default function CreateRemixPage() {
         onSubmit={handlePin}
         onCancel={() => setPinOpen(false)}
         title="Confirm remix mint"
-        description="Enter your PIN to mint this remix on Starknet."
+        description="Enter your PIN to mint this remix onchain."
       />
 
       <div className="container max-w-5xl mx-auto px-4 pt-14 pb-12 space-y-6">

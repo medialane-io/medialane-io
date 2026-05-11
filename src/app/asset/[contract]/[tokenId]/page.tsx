@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const token = await fetchTokenMeta(contract, tokenId);
 
   const name        = token?.metadata?.name ?? token?.name ?? `Token #${tokenId}`;
-  const description = truncateDescription(token?.metadata?.description ?? token?.description ?? "View this IP asset on Medialane.");
+  const description = truncateDescription(token?.metadata?.description ?? token?.description ?? "View this digital asset on Medialane.");
   const rawImage    = token?.metadata?.image ?? token?.image;
   const imageUrl    = rawImage ? ipfsToHttpServer(rawImage) : undefined;
   const path        = `/asset/${contract}/${tokenId}`;
@@ -45,7 +45,7 @@ export default async function AssetPage({ params }: Props) {
   const { contract, tokenId } = await params;
   const token = await fetchTokenMeta(contract, tokenId);
   const name = token?.metadata?.name ?? token?.name ?? `Token #${tokenId}`;
-  const description = token?.metadata?.description ?? token?.description ?? "View this IP asset on Medialane.";
+  const description = token?.metadata?.description ?? token?.description ?? "View this digital asset on Medialane.";
   const imageUrl = ipfsToHttpServer(token?.metadata?.image ?? token?.image ?? "");
   const path = `/asset/${contract}/${tokenId}`;
 

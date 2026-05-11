@@ -69,7 +69,7 @@ interface ServiceContent {
 const SERVICE_CONTENT: Record<string, ServiceContent> = {
   "mint-ip-asset": {
     title: "Mint NFT",
-    subtitle: "Publish your creative work on Starknet",
+    subtitle: "Publish your creative work onchain",
     description: "Upload any photo, video, audio, or document and mint it as an IP NFT — with licensing, provenance, and ownership all locked on-chain.",
     features: ["Gasless via ChipiPay", "IPFS metadata", "Programmable licensing"],
     example: "e.g. A song, a photo, an ebook, a short film",
@@ -98,7 +98,7 @@ const SERVICE_CONTENT: Record<string, ServiceContent> = {
   "remix-asset": {
     title: "Remix Asset",
     subtitle: "Derivative works with on-chain attribution",
-    description: "Create a licensed derivative of any IP asset with full provenance and attribution flowing back to the original creator on-chain.",
+    description: "Create a licensed derivative of any digital asset with full provenance and attribution flowing back to the original creator on-chain.",
     features: ["On-chain attribution", "License-enforced at mint", "Royalties to original creator"],
     example: "e.g. A remix of a song, a derivative artwork inspired by an original",
   },

@@ -93,7 +93,7 @@ export function ListingsGrid({ sort = "recent", currency, orderType = "", minPri
     const emptyBody =
       orderType === "offers"
         ? "No active bids on any assets right now."
-        : "Be the first to list your IP asset on Medialane.";
+        : "Be the first to list your digital asset on Medialane.";
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
         <p className="text-2xl font-bold">{emptyHeading}</p>

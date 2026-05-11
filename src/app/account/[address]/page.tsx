@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { address } = await params;
   const short = `${address.slice(0, 8)}…${address.slice(-6)}`;
   const title = `${short} | Profile`;
-  const description = `View IP assets, listings, and onchain activity for ${short} on Medialane.`;
+  const description = `View digital assets, listings, and onchain activity for ${short} on Medialane.`;
 
   return {
     title,

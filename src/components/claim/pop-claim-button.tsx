@@ -112,7 +112,7 @@ export function PopClaimButton({ collectionAddress }: PopClaimButtonProps) {
         onSubmit={handlePinSubmit}
         onCancel={() => setPinOpen(false)}
         title="Claim your credential"
-        description="Enter your PIN to mint your proof of participation on Starknet."
+        description="Enter your PIN to mint your proof of participation onchain."
       />
 
       <WalletSetupDialog

@@ -202,7 +202,7 @@ export function NftEditionsMintForm({
           <FormItem>
             <FormLabel>Description <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
             <FormControl>
-              <Textarea placeholder="Describe this IP asset…" rows={3} {...field} />
+              <Textarea placeholder="Describe this digital asset…" rows={3} {...field} />
             </FormControl>
             <FormDescription>Add context, utility, or creative notes for this token edition.</FormDescription>
             <FormMessage />

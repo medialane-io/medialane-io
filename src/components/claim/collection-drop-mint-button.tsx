@@ -182,7 +182,7 @@ export function CollectionDropMintButton({
         description={
           isPaid
             ? "This will approve the payment and mint your token. Enter your PIN to confirm."
-            : "Enter your PIN to mint from this drop on Starknet."
+            : "Enter your PIN to mint from this drop onchain."
         }
       />
 

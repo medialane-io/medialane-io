@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 import { fetchTokenMeta, ipfsToHttpServer } from "@/lib/api-server";
 
 export const runtime = "edge";
-export const alt = "Medialane IP Asset";
+export const alt = "Medialane digital asset";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -55,7 +55,7 @@ export default async function Image({
           >
             <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#9b72ff" }} />
             <span style={{ color: "#c4a6ff", fontSize: 14, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase" }}>
-              IP Asset · Medialane
+              digital asset · Medialane
             </span>
           </div>
 

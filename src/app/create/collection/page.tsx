@@ -283,7 +283,7 @@ export default function CreateCollectionPage() {
           </div>
           <h1 className="text-3xl font-bold">Create Collection</h1>
           <p className="text-muted-foreground">
-            Deploy a new NFT collection on Starknet. Gas is free.
+            Deploy a new NFT collection onchain. Gas is free.
           </p>
         </div>
 
@@ -454,7 +454,7 @@ export default function CreateCollectionPage() {
         onSubmit={handlePin}
         onCancel={() => setPinOpen(false)}
         title="Confirm collection creation"
-        description="Enter your PIN to deploy your collection on Starknet."
+        description="Enter your PIN to deploy your collection onchain."
       />
 
       <WalletSetupDialog

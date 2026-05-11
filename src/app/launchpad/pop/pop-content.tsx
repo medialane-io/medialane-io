@@ -89,7 +89,7 @@ const POP_FEATURES = [
   {
     icon: Award,
     title: "Soulbound Credential",
-    desc: "Non-transferable — permanently tied to your wallet address on Starknet.",
+    desc: "Non-transferable — permanently tied to your wallet address onchain.",
   },
   {
     icon: Users,
@@ -104,7 +104,7 @@ const POP_FEATURES = [
   {
     icon: ShieldCheck,
     title: "Verifiable On-Chain",
-    desc: "Credentials are permanently readable and provable on Starknet.",
+    desc: "Credentials are permanently readable and provable onchain.",
   },
 ];
 
@@ -139,7 +139,7 @@ export function PopContent() {
           <FadeIn delay={0.16}>
             <p className="text-muted-foreground text-base max-w-xl leading-relaxed">
               Soulbound NFTs issued by event organizers — permanently proving your participation
-              in bootcamps, workshops, hackathons, and conferences on Starknet.
+              in bootcamps, workshops, hackathons, and conferences onchain.
             </p>
           </FadeIn>
           <FadeIn delay={0.24}>

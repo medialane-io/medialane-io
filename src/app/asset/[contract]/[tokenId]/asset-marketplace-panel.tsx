@@ -160,7 +160,7 @@ export function AssetMarketplacePanel({
                     label="Remix"
                     icon={<GitBranch className="h-4 w-4" />}
                     onClick={onOpenRemix}
-                    helpContent="Build a licensed derivative of this IP asset — your remix is minted as a new onchain NFT linked to the original"
+                    helpContent="Build a licensed derivative of this digital asset — your remix is minted as a new onchain NFT linked to the original"
                     tone="purple"
                   />
                 ) : null}
@@ -256,7 +256,7 @@ export function AssetMarketplacePanel({
                   label="Remix"
                   icon={<GitBranch className="h-4 w-4" />}
                   onClick={onOpenRemix}
-                  helpContent="Build a licensed derivative of this IP asset — your remix is minted as a new onchain NFT linked to the original"
+                  helpContent="Build a licensed derivative of this digital asset — your remix is minted as a new onchain NFT linked to the original"
                   tone="purple"
                 />
               ) : null}
@@ -274,7 +274,7 @@ export function AssetMarketplacePanel({
                   label="Remix"
                   icon={<GitBranch className="h-4 w-4" />}
                   onClick={onOpenRemix}
-                  helpContent="Build a licensed derivative of this IP asset — your remix is minted as a new onchain NFT linked to the original"
+                  helpContent="Build a licensed derivative of this digital asset — your remix is minted as a new onchain NFT linked to the original"
                   tone="purple"
                 />
               ) : null}

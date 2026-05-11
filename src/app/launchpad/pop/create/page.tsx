@@ -180,7 +180,7 @@ export default function CreatePOPPage() {
         iconClassName="text-green-500"
         actionClassName="bg-green-600 hover:bg-green-700 text-white"
         title="Event created"
-        description="Your POP credential collection is live on Starknet. It will appear in the launchpad within a minute once indexed."
+        description="Your POP credential collection is live onchain. It will appear in the launchpad within a minute once indexed."
         backHref="/launchpad/pop"
         backLabel="Back to POP launchpad"
         actionLabel="Create another"
@@ -196,7 +196,7 @@ export default function CreatePOPPage() {
         icon={Award}
         iconClassName="text-green-500"
         title="Sign in to create a POP event"
-        description="Sign in to deploy a credential collection on Starknet."
+        description="Sign in to deploy a credential collection onchain."
       />
     );
   }
@@ -243,7 +243,7 @@ export default function CreatePOPPage() {
 
       <PinDialog open={pinOpen} onSubmit={handlePin} onCancel={() => setPinOpen(false)}
         title="Deploy POP collection"
-        description="Enter your PIN to deploy your event credential collection on Starknet." />
+        description="Enter your PIN to deploy your event credential collection onchain." />
       <WalletSetupDialog open={walletSetupOpen} onOpenChange={setWalletSetupOpen}
         onSuccess={() => { setWalletSetupOpen(false); setPinOpen(true); }} />
     </>

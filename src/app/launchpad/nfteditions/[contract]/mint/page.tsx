@@ -284,7 +284,7 @@ export default function MintIP1155Page() {
           <LaunchpadPageIntro
             icon={Sparkles}
             badge="ERC-1155 · Mint"
-            title="Mint IP Asset"
+            title="Mint digital asset"
             description="Mint a new token type into your ERC-1155 collection. The URI and authorship are recorded permanently on-chain at first mint."
           >
             <p className="text-xs text-muted-foreground font-mono break-all">

@@ -230,7 +230,7 @@ export function ListingDialog({
 
           ) : isProcessing ? (
             <MarketplaceProcessingState
-              title={txStatus === "submitting" ? "Submitting listing…" : "Confirming on Starknet…"}
+              title={txStatus === "submitting" ? "Submitting listing…" : "Confirming onchain…"}
               imageUrl={tokenImage}
               imageAlt={name}
             />

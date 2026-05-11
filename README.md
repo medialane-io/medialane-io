@@ -15,7 +15,7 @@ Live at [medialane.io](https://medialane.io)
 Medialane is a platform for the **creative economy on Starknet**. It bridges Web2 simplicity with Web3 ownership:
 
 - **Creators** mint their work (art, music, video, documents, code, patents) as IP NFTs with programmable licensing terms embedded immutably in IPFS metadata
-- **Collectors** browse, buy, and make offers on IP assets in a full-featured NFT marketplace
+- **Collectors** browse, buy, and make offers on digital assets in a full-featured NFT marketplace
 - **Licensing** is Berne Convention-compliant — commercial use, derivative rights, attribution, territory, AI policy, and royalty are all encoded as OpenSea-compatible ERC-721 attributes
 - **No wallet needed** — accounts are email/social (Clerk) and wallets are created invisibly on first use via ChipiPay (SNIP-9 session keys for gasless transactions)
 
@@ -29,7 +29,7 @@ Medialane is a platform for the **creative economy on Starknet**. It bridges Web
 - Recent listings + onchain activity feed side by side
 
 ### Creator Launchpad
-- Mint IP assets across 12 canonical IP types: Audio, Art, Video, Photography, NFT, Patents, Posts, Publications, Documents, RWA, Software, Custom
+- Mint digital assets across 12 canonical IP types: Audio, Art, Video, Photography, NFT, Patents, Posts, Publications, Documents, RWA, Software, Custom
 - Dynamic template fields per IP type — collapsed optional panel, smart defaults per category
 - Full programmable licensing form — CC variants, commercial use, derivatives, attribution, territory, AI policy, royalty %
 - Licensing metadata embedded in IPFS as ERC-721 attributes (OpenSea-compatible + Berne Convention compliant)
@@ -41,7 +41,7 @@ Medialane is a platform for the **creative economy on Starknet**. It bridges Web
 - **NFT Editions** (`/launchpad/nfteditions`) — mint multi-edition ERC-1155 tokens into your IP Collection 1155 contracts; each edition has its own artwork, supply, and on-chain provenance
 
 ### NFT Marketplace
-- Browse, search, and filter all Medialane IP assets
+- Browse, search, and filter all Medialane digital assets
 - Buy NFTs directly or make offers with USDC, USDT, ETH, STRK, or WBTC
 - **Cart dialog** — centered modal with blurred atmospheric backdrop, item thumbnails, individual Buy buttons, and "Buy all N items" batch checkout with a single PIN
 - Accept, cancel, and manage listings and offers from the portfolio
@@ -84,7 +84,7 @@ Medialane is a platform for the **creative economy on Starknet**. It bridges Web
 ### Remix Licensing
 - Request remix licenses from asset creators with fully configurable terms (license type, commercial use, derivatives, royalty %, proposed fee)
 - Full remix creation page at `/create/remix/[contract]/[tokenId]` — detects owner vs non-owner and adapts the flow:
-  - **Owner (self-remix)**: upload custom artwork, set name/description/IP type/license, mint as a new IP asset, recorded on-chain with parent attribution
+  - **Owner (self-remix)**: upload custom artwork, set name/description/IP type/license, mint as a new digital asset, recorded on-chain with parent attribution
   - **Non-owner**: propose license terms + payment amount, creator receives notification and can approve/reject
 - Open-license assets (CC0, CC BY, CC BY-SA, CC BY-NC) auto-approve without creator action
 - Parent attribution embedded in remix metadata as `Parent Contract` + `Parent Token ID` attributes — displayed as a banner on remix asset pages
@@ -138,7 +138,7 @@ User (email/passkey)
                       └─ Starknet Mainnet (onchain)
 ```
 
-Asset uploads go **directly to Pinata** from the Next.js server — the backend is never involved in the upload path. This keeps IP assets fully decentralized.
+Asset uploads go **directly to Pinata** from the Next.js server — the backend is never involved in the upload path. This keeps digital assets fully decentralized.
 
 ---
 
@@ -268,7 +268,7 @@ bun lint         # ESLint
 ```
 src/
   app/
-    api/pinata/       # Universal IP asset upload (Clerk-gated, direct Pinata)
+    api/pinata/       # Universal digital asset upload (Clerk-gated, direct Pinata)
     asset/            # /asset/[contract]/[tokenId] — dispatcher routes to POP/Drop/Edition/Standard page
     create/           # /create/asset + /create/collection + /create/remix/[contract]/[tokenId]
     marketplace/      # /marketplace — browse + filter + search

@@ -397,7 +397,7 @@ export function LaunchMint() {
                       {[
                         { label: "Upload metadata", done: status !== "idle" },
                         { label: "Submit transaction", done: status === "confirming" || status === "confirmed" },
-                        { label: "Confirm on Starknet", done: status === "confirmed" },
+                        { label: "Confirm onchain", done: status === "confirmed" },
                       ].map(({ label, done }) => (
                         <div key={label} className="flex items-center gap-2 text-xs text-muted-foreground">
                           {done ? (

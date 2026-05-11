@@ -94,7 +94,7 @@ export default function MyEventsPage() {
               POP Protocol
             </span>
             <h1 className="text-2xl font-bold mt-1">My Events</h1>
-            <p className="text-sm text-muted-foreground">Events you've deployed on Starknet</p>
+            <p className="text-sm text-muted-foreground">Events you've deployed onchain</p>
           </div>
           <Button asChild size="sm" className="bg-green-600 hover:bg-green-700 text-white gap-1.5">
             <Link href="/launchpad/pop/create">

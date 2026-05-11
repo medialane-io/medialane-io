@@ -296,7 +296,7 @@ export default function CreateDropPage() {
         iconClassName="text-orange-500"
         actionClassName="bg-orange-600 hover:bg-orange-700 text-white"
         title="Drop launched"
-        description="Your Collection Drop is live on Starknet. It will appear in the launchpad within a minute once indexed."
+        description="Your Collection Drop is live onchain. It will appear in the launchpad within a minute once indexed."
         backHref="/launchpad/drop"
         backLabel="Back to Drops"
         actionLabel="Launch another"
@@ -312,7 +312,7 @@ export default function CreateDropPage() {
         icon={Package}
         iconClassName="text-orange-500"
         title="Sign in to launch a drop"
-        description="Sign in to deploy a limited-edition collection on Starknet."
+        description="Sign in to deploy a limited-edition collection onchain."
       />
     );
   }
@@ -378,7 +378,7 @@ export default function CreateDropPage() {
         onSubmit={handlePin}
         onCancel={() => setPinOpen(false)}
         title="Deploy drop collection"
-        description="Enter your PIN to deploy your limited-edition collection on Starknet."
+        description="Enter your PIN to deploy your limited-edition collection onchain."
       />
       <WalletSetupDialog
         open={walletSetupOpen}
