@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import {
   Telescope, Compass, Store, Briefcase, Plus, Activity,
-  LayoutGrid, Users, BookOpen,
+  LayoutGrid, Users, BookOpen, Trophy,
   Sun, Moon, ShoppingBag, LogIn, PlusCircle, Search,
   ChevronRight, Music, Palette, Film, Camera, Gem, LogOut,
   Gift,
@@ -262,6 +262,13 @@ export function AppSidebar() {
             <SidebarMenuItem>
               <SidebarMenuButton asChild isActive={pathname === "/activities"} tooltip="Activity" onClick={closeSidebar}>
                 <Link href="/activities"><Activity /><span>Activity</span></Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            {/* Rewards */}
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={!!pathname?.startsWith("/rewards")} tooltip="Rewards" onClick={closeSidebar}>
+                <Link href="/rewards"><Trophy /><span>Rewards</span></Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
 
