@@ -5,11 +5,14 @@ import { starknetProvider } from "@/lib/starknet";
 import { getListableTokens, parseAmount } from "@medialane/sdk";
 
 async function fetchErc20Balance(tokenAddress: string, holderAddress: string): Promise<bigint> {
-  const result = await starknetProvider.callContract({
-    contractAddress: tokenAddress,
-    entrypoint: "balanceOf",
-    calldata: [holderAddress],
-  });
+  const result = await starknetProvider.callContract(
+    {
+      contractAddress: tokenAddress,
+      entrypoint: "balanceOf",
+      calldata: [holderAddress],
+    },
+    "latest"
+  );
   // ERC-20 balanceOf returns a u256: [low, high]
   const low = BigInt(result[0]);
   const high = BigInt(result[1]);
