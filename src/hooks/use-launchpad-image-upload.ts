@@ -71,21 +71,14 @@ export function useLaunchpadImageUpload({
     setImageUploading(true);
 
     try {
-      const signedRes = await fetch("/api/pinata/signed-url", { method: "POST" });
-      const signedData = await signedRes.json();
-      const uploadUrl = signedData?.url;
-      if (!signedRes.ok || !uploadUrl) throw new Error("Failed to get upload URL");
-
       const formData = new FormData();
       formData.append("file", file, file.name);
-      formData.append("network", "public");
-      formData.append("name", file.name);
 
-      const uploadRes = await fetch(uploadUrl, { method: "POST", body: formData });
+      const uploadRes = await fetch("/api/pinata/image", { method: "POST", body: formData });
       const uploadData = await uploadRes.json();
-      if (!uploadRes.ok || !uploadData?.data?.cid) throw new Error("Upload failed");
+      if (!uploadRes.ok || !uploadData?.imageUri) throw new Error(uploadData?.error || "Upload failed");
 
-      setImageUri(`ipfs://${uploadData.data.cid}`);
+      setImageUri(uploadData.imageUri);
       setUploadSuccess(successMessage);
     } catch (error) {
       setImageUri(null);

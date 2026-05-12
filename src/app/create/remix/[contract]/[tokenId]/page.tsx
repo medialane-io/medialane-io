@@ -245,19 +245,12 @@ export default function CreateRemixPage() {
       let tokenUri: string;
 
       if (imageFile) {
-        // Upload image via signed URL (bypasses Next.js 4 MB body limit) then full metadata via /api/pinata
-        const signedRes = await fetch("/api/pinata/signed-url", { method: "POST" });
-        const signedData = await signedRes.json();
-        if (!signedRes.ok || !signedData.url) throw new Error("Failed to get upload URL");
         const imgFormData = new FormData();
         imgFormData.append("file", imageFile, imageFile.name);
-        imgFormData.append("network", "public");
-        imgFormData.append("name", imageFile.name);
-        const imgRes = await fetch(signedData.url, { method: "POST", body: imgFormData });
-        if (!imgRes.ok) throw new Error("Image upload to IPFS failed");
+        const imgRes = await fetch("/api/pinata/image", { method: "POST", body: imgFormData });
         const imgJson = await imgRes.json();
-        const imgCid = imgJson.data?.cid;
-        if (!imgCid) throw new Error("Image upload returned no CID");
+        if (!imgRes.ok || !imgJson.imageUri) throw new Error(imgJson.error || "Image upload to IPFS failed");
+        const imgCid = imgJson.imageUri.replace("ipfs://", "");
         const formData = new FormData();
         formData.set("imageUri", `ipfs://${imgCid}`);
         formData.set("name", metadata.name);

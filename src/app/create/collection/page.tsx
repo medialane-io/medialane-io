@@ -140,20 +140,12 @@ export default function CreateCollectionPage() {
     setImageUri(null);
     setImageUploading(true);
     try {
-      // Upload directly to Pinata via signed URL (bypasses Next.js 4 MB body limit)
-      const signedRes = await fetch("/api/pinata/signed-url", { method: "POST" });
-      const signedData = await signedRes.json();
-      if (!signedRes.ok || !signedData.url) throw new Error("Failed to get upload URL");
       const imgFormData = new FormData();
       imgFormData.append("file", file, file.name);
-      imgFormData.append("network", "public");
-      imgFormData.append("name", file.name);
-      const uploadRes = await fetch(signedData.url, { method: "POST", body: imgFormData });
-      if (!uploadRes.ok) throw new Error("Image upload to IPFS failed");
+      const uploadRes = await fetch("/api/pinata/image", { method: "POST", body: imgFormData });
       const uploadJson = await uploadRes.json();
-      const cid = uploadJson.data?.cid;
-      if (!cid) throw new Error("Image upload returned no CID");
-      setImageUri(`ipfs://${cid}`);
+      if (!uploadRes.ok || !uploadJson.imageUri) throw new Error(uploadJson.error || "Image upload to IPFS failed");
+      setImageUri(uploadJson.imageUri);
       setImageUploadSuccess("Image uploaded to IPFS");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Upload failed";

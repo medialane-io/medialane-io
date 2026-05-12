@@ -421,20 +421,12 @@ export default function CreateAssetPage() {
       formData.set("aiPolicy", pendingValues.aiPolicy);
       formData.set("royalty", String(pendingValues.royalty));
       if (imageFile) {
-        // Upload image directly to Pinata via signed URL (bypasses Next.js 4 MB body limit)
-        const signedRes = await fetch("/api/pinata/signed-url", { method: "POST" });
-        const signedData = await signedRes.json();
-        if (!signedRes.ok || !signedData.url) throw new Error("Failed to get upload URL");
         const imgFormData = new FormData();
         imgFormData.append("file", imageFile, imageFile.name);
-        imgFormData.append("network", "public");
-        imgFormData.append("name", imageFile.name);
-        const uploadRes2 = await fetch(signedData.url, { method: "POST", body: imgFormData });
-        if (!uploadRes2.ok) throw new Error("Image upload to IPFS failed");
+        const uploadRes2 = await fetch("/api/pinata/image", { method: "POST", body: imgFormData });
         const uploadJson = await uploadRes2.json();
-        const cid = uploadJson.data?.cid;
-        if (!cid) throw new Error("Image upload returned no CID");
-        formData.set("imageUri", `ipfs://${cid}`);
+        if (!uploadRes2.ok || !uploadJson.imageUri) throw new Error(uploadJson.error || "Image upload to IPFS failed");
+        formData.set("imageUri", uploadJson.imageUri);
       }
 
       // Forward template and custom metadata fields as standard NFT attributes.
