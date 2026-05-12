@@ -56,7 +56,7 @@ export function useCollectionsByOwner(owner: string | null) {
   const { data, error, isLoading, mutate } = useSWR(
     owner ? queryKeys.collectionsOwner(owner) : null,
     () => client.api.getCollectionsByOwner(owner!),
-    { revalidateOnFocus: false, refreshInterval: 12000 }
+    { revalidateOnFocus: false, refreshInterval: 60_000 }
   );
 
   return { collections: data?.data ?? [], isLoading, error, mutate };

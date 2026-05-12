@@ -25,9 +25,9 @@ export function useComments(
     () =>
       getMedialaneClient().api.getTokenComments(contract, tokenId, { page, limit }),
     {
-      refreshInterval: 15000,
+      refreshInterval: 60_000,
       revalidateOnFocus: false,
-      dedupingInterval: 5000,
+      dedupingInterval: 10_000,
     }
   );
 

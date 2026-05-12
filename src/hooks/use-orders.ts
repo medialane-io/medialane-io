@@ -43,7 +43,7 @@ export function useTokenListings(contract: string | null, tokenId: string | null
   const { data, error, isLoading, mutate } = useSWR(
     contract && tokenId ? queryKeys.listings(contract, tokenId) : null,
     () => client.api.getActiveOrdersForToken(contract!, tokenId!),
-    { revalidateOnFocus: false, refreshInterval: 20000, dedupingInterval: 5000 }
+    { revalidateOnFocus: false, refreshInterval: 60_000, dedupingInterval: 10_000 }
   );
 
   return { listings: data?.data ?? [], isLoading, error, mutate };
@@ -56,7 +56,7 @@ export function useUserOrders(address: string | null) {
   const { data, error, isLoading, mutate } = useSWR(
     normalized ? queryKeys.userOrders(normalized) : null,
     () => client.api.getOrdersByUser(normalized!),
-    { revalidateOnFocus: false, refreshInterval: 20000, dedupingInterval: 5000 }
+    { revalidateOnFocus: false, refreshInterval: 60_000, dedupingInterval: 10_000 }
   );
 
   return { orders: data?.data ?? [], isLoading, error, mutate };
@@ -85,7 +85,7 @@ export function useCounterOffers({
       ...(originalOrderHash ? { originalOrderHash } : {}),
       ...(normalized ? { sellerAddress: normalized } : {}),
     }),
-    { revalidateOnFocus: false, refreshInterval: 20000, dedupingInterval: 5000 }
+    { revalidateOnFocus: false, refreshInterval: 60_000, dedupingInterval: 10_000 }
   );
 
   return {
@@ -110,7 +110,7 @@ export function useCollectionFloorListings(contract: string | null, limit = 20) 
         sort: "price_asc",
         limit,
       }),
-    { refreshInterval: 30000 }
+    { revalidateOnFocus: false, refreshInterval: 60_000 }
   );
 
   return {

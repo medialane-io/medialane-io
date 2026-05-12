@@ -26,7 +26,7 @@ export function useTokensByOwner(address: string | null, page = 1, limit = 20) {
   const { data, error, isLoading, mutate } = useSWR(
     address ? queryKeys.tokensOwned(address, page, limit) : null,
     () => client.api.getTokensByOwner(address!, page, limit),
-    { revalidateOnFocus: false, refreshInterval: 12000, revalidateOnMount: true }
+    { revalidateOnFocus: false, refreshInterval: 60_000, revalidateOnMount: true }
   );
 
   return {
