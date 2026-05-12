@@ -159,7 +159,7 @@ All write ops follow: create intent → sign typed data → submit signature →
 - `fulfillOrder(input)` → Buy listing — simplest: `createFulfillIntent` returns pre-signed calls
 - `cancelOrder(input)` → Cancel SNIP-12
 
-**Stale order sync**: after every write op, `setTimeout(() => invalidate(), 10000)` fires a delayed revalidation to ensure UI reflects on-chain state after the indexer processes the block (~6s poll cycle). SWR hooks also have `refreshInterval: 30000` / `20000`.
+**Stale order sync**: after every write op, `setTimeout(() => invalidate(), 10000)` fires a delayed revalidation to ensure UI reflects on-chain state after the indexer processes the block (~6s poll cycle). SWR hooks poll at `refreshInterval: 60_000` (reduced from 20–30s in 2026-05-12). `mutate()` covers the writing user's own actions; polling covers cross-user updates and indexer lag.
 
 ### Wallet & session (`use-session-key.ts`)
 - `walletAddress` — user's Starknet address (from ChipiPay)
@@ -174,9 +174,14 @@ All write ops follow: create intent → sign typed data → submit signature →
 
 ---
 
-## Known Bugs (as of 2026-05-06)
+## Known Bugs (as of 2026-05-12)
 
 All previously noted bugs were fixed. No outstanding known bugs.
+
+**Fixed in 2026-05-12 session:**
+- ERC-20 `balanceOf` RPC error (`-32602: Invalid block id`) on asset pages. Root cause: `starknetProvider.callContract` was called without a `block_id`, defaulting to `"pending"` which some RPC providers reject. Fixed: pass `"latest"` as second arg.
+- Per-row `useTokenBalance` in `ReceivedOfferRow` fired on page load for every offer row. Fixed: balance check deferred inside `useAcceptOffer` — fires only after user clicks Accept.
+- Custom traits with the same `traitType` name were silently dropped on mint. Root cause: `ip-type-fields.tsx` ran all traits through a `seen` Set meant for template field deduplication. Fixed: custom traits bypass the `seen` check.
 
 **Fixed in 2026-04-30 session:**
 - Cancel/accept bid order sent `tokenStandard: "ERC20"` to the backend. Root cause: `use-order-actions.ts` used `order.offer.itemType` as fallback — for bid orders `offer.itemType` is `"ERC20"` (currency). Fixed by deriving the NFT standard correctly: `consideration.itemType` for bids, `offer.itemType` for listings. This fix covers both cancel and accept paths.
@@ -315,6 +320,28 @@ All previously noted bugs were fixed. No outstanding known bugs.
 - [x] All four direct `byteArray.byteArrayFromString` calls in mint flows migrated to `serializeByteArray`: `genesis-mint.tsx`, `br-mint-content.tsx`, `launch-mint.tsx` ✓ 2026-05-07
 - [x] Fixes ERC-1155 collection creation failure for names with non-ASCII characters (e.g. "Nó Samsara") ✓ 2026-05-07
 - [x] Symbol field `^[A-Z0-9]+$` intentionally kept ASCII — on-chain ticker symbols are ASCII by convention ✓ 2026-05-07
+
+### 2026-05-12 session — accept-offer refactor, RPC fix, UX feedback batch
+
+**Unified accept-offer flow:**
+- [x] `src/hooks/use-accept-offer.ts` created — wraps `useMarketplaceActionFlow<ApiOrder>`, calls `useTokenBalance` only after order selected (deferred, not on page load). Exports `AcceptOfferHook = ReturnType<typeof useAcceptOffer>` ✓ 2026-05-12
+- [x] `src/components/marketplace/accept-offer-dialog.tsx` created — PIN/passkey/session/processing/success/error states using primitives; amber balance warning when buyer has insufficient funds ✓ 2026-05-12
+- [x] `accept-offer-result-dialog.tsx` deleted — replaced by `AcceptOfferDialog` ✓ 2026-05-12
+- [x] All three asset page variants (`asset-page-standard`, `asset-page-edition`, `asset-page-drop`) + `portfolio/received-offers-table` migrated to `useAcceptOffer` + `AcceptOfferDialog` ✓ 2026-05-12
+- [x] Per-row `useTokenBalance` calls removed from `ReceivedOfferRow` — balance check now fires only when user clicks Accept ✓ 2026-05-12
+
+**ERC-20 `balanceOf` RPC fix:**
+- [x] `use-erc20-balance.ts`: pass `"latest"` as second arg to `starknetProvider.callContract` — fixes `Invalid block id` error that fired on every asset page load ✓ 2026-05-12
+
+**SWR polling optimization:**
+- [x] `use-comments.ts`: `refreshInterval: 15000 → 60_000`; `use-tokens.ts`: `useTokensByOwner` `refreshInterval: 12000 → 60_000`; `use-collections.ts`: `useCollectionsByOwner` `refreshInterval: 12000 → 60_000`; `use-orders.ts`: all hooks `refreshInterval: 20000 → 60_000`, `dedupingInterval: 5000 → 10_000` ✓ 2026-05-12
+
+**User feedback batch (5 items):**
+- [x] Launchpad: "Mint NFT" → "Mint singular NFT" (title + button); "Limited Editions" → "Limited Editions Collections" in `launchpad-content.tsx` ✓ 2026-05-12
+- [x] Custom trait dedup bug fixed: `ip-type-fields.tsx` — custom traits with the same name no longer silently drop; only template fields deduplicate via `seen` Set ✓ 2026-05-12
+- [x] Cancel button removed from `TokenCard` (confusing users) — owners see "Listed" label instead; cancel remains on the asset page. Dead cancel state removed from `creator-page-client.tsx` and `collection-page-client.tsx` ✓ 2026-05-12
+- [x] `CancelListingDialog` upgraded to use `MarketplaceProcessingState`/`SuccessState`/`ErrorState` primitives with `tokenName`/`tokenImage`; all callers updated (`asset-marketplace-dialogs`, `asset-page-drop`, `listing-card`) ✓ 2026-05-12
+- [x] ERC-1155 listing dialog: "You own N" hint next to Qty label — `quantityOwned` prop added to `ListingDialog`; `asset-page-edition` computes it from `token.balances` and threads it through `AssetMarketplaceDialogs` ✓ 2026-05-12
 
 ### 2026-05-06 session — ownership UX, dialog polish, creator images
 
