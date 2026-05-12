@@ -4,8 +4,8 @@ import { useState } from "react";
 import { useUserOrders } from "@/hooks/use-orders";
 import { Button } from "@/components/ui/button";
 import { EmptyOrError } from "@/components/ui/empty-or-error";
-import { PinDialog } from "@/components/chipi/pin-dialog";
-import { useMarketplace } from "@/hooks/use-marketplace";
+import { useAcceptOffer } from "@/hooks/use-accept-offer";
+import { AcceptOfferDialog } from "@/components/marketplace/accept-offer-dialog";
 import { ipfsToHttp, formatDisplayPrice, formatExpiry, cn } from "@/lib/utils";
 import { ExternalLink, Inbox, AlertTriangle } from "lucide-react";
 import { useTokenBalance, hasSufficientBalance } from "@/hooks/use-erc20-balance";
@@ -16,6 +16,7 @@ import { CounterOfferDialog } from "@/components/marketplace/counter-offer-dialo
 import Image from "next/image";
 import Link from "next/link";
 import type { ApiOrder } from "@medialane/sdk";
+import type { AcceptOfferHook } from "@/hooks/use-accept-offer";
 
 interface ReceivedOffersTableProps {
   address: string;
@@ -24,14 +25,12 @@ interface ReceivedOffersTableProps {
 
 function ReceivedOfferRow({
   order,
-  isProcessing,
-  onAccept,
+  acceptHook,
   onCounter,
   isNew,
 }: {
   order: ApiOrder;
-  isProcessing: boolean;
-  onAccept: (order: ApiOrder) => void;
+  acceptHook: AcceptOfferHook;
   onCounter: (order: ApiOrder) => void;
   isNew: boolean;
 }) {
@@ -39,9 +38,10 @@ function ReceivedOfferRow({
   const image = order.token?.image ? ipfsToHttp(order.token.image) : null;
   const expiry = formatExpiry(order.endTime);
 
-  // Check buyer's balance in real-time to warn seller before accepting
+  // Check buyer's balance for the currently-selected order (real-time via hook)
   const { rawBalance, decimals } = useTokenBalance(order.price.currency, order.offerer);
   const buyerHasFunds = hasSufficientBalance(rawBalance, order.price.formatted, decimals);
+  const isProcessing = acceptHook.resultStep === "processing" && acceptHook.selectedOrder?.orderHash === order.orderHash;
 
   return (
     <div className={cn(
@@ -116,7 +116,7 @@ function ReceivedOfferRow({
               variant="default"
               className="h-8 text-xs relative"
               disabled={isProcessing}
-              onClick={() => onAccept(order)}
+              onClick={() => acceptHook.handleAcceptClick(order)}
             >
               {buyerHasFunds === false && (
                 <AlertTriangle className="h-3 w-3 text-amber-300 mr-1" />
@@ -137,9 +137,7 @@ function ReceivedOfferRow({
 
 export function ReceivedOffersTable({ address }: ReceivedOffersTableProps) {
   const { orders, isLoading, error, mutate } = useUserOrders(address);
-  const { fulfillOrder, isProcessing } = useMarketplace();
-  const [pinOpen, setPinOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<ApiOrder | null>(null);
+  const acceptOffer = useAcceptOffer({ mutateListings: mutate });
   const [counterOrder, setCounterOrder] = useState<ApiOrder | null>(null);
 
   const seenHashes = getSeenOffers();
@@ -151,20 +149,8 @@ export function ReceivedOffersTable({ address }: ReceivedOffersTableProps) {
       o.offerer.toLowerCase() !== address.toLowerCase()
   );
 
-  const handleAccept = (order: ApiOrder) => {
-    setSelectedOrder(order);
-    setPinOpen(true);
-  };
-
   const handleCounter = (order: ApiOrder) => {
     setCounterOrder(order);
-  };
-
-  const handlePin = async (pin: string) => {
-    setPinOpen(false);
-    if (!selectedOrder) return;
-    await fulfillOrder({ orderHash: selectedOrder.orderHash, pin, tokenStandard: selectedOrder.consideration.itemType });
-    mutate();
   };
 
   return (
@@ -193,8 +179,7 @@ export function ReceivedOffersTable({ address }: ReceivedOffersTableProps) {
             <ReceivedOfferRow
               key={order.orderHash}
               order={order}
-              isProcessing={isProcessing}
-              onAccept={handleAccept}
+              acceptHook={acceptOffer}
               onCounter={handleCounter}
               isNew={!seenHashes.has(order.orderHash)}
             />
@@ -202,15 +187,7 @@ export function ReceivedOffersTable({ address }: ReceivedOffersTableProps) {
         </div>
       </EmptyOrError>
 
-      <PinDialog
-        open={pinOpen}
-        onSubmit={handlePin}
-        onCancel={() => { setPinOpen(false); setSelectedOrder(null); }}
-        title="Accept offer"
-        description={selectedOrder
-          ? `Accept ${formatDisplayPrice(selectedOrder.price.formatted)} ${selectedOrder.price.currency} for token #${selectedOrder.nftTokenId}?`
-          : "Enter your PIN to accept this offer."}
-      />
+      <AcceptOfferDialog hook={acceptOffer} />
 
       {counterOrder && (() => {
         const token = SUPPORTED_TOKENS.find((t) => t.symbol === counterOrder.price.currency);

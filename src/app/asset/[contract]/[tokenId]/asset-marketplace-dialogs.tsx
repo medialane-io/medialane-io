@@ -1,15 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { PinDialog } from "@/components/chipi/pin-dialog";
 import { ListingDialog } from "@/components/marketplace/listing-dialog";
 import { OfferDialog } from "@/components/marketplace/offer-dialog";
 import { PurchaseDialog } from "@/components/marketplace/purchase-dialog";
 import { TransferDialog } from "@/components/marketplace/transfer-dialog";
-import { formatDisplayPrice } from "@/lib/utils";
+import { PinDialog } from "@/components/chipi/pin-dialog";
+import { AcceptOfferDialog } from "@/components/marketplace/accept-offer-dialog";
 import type { ApiOrder } from "@medialane/sdk";
+import type { AcceptOfferHook } from "@/hooks/use-accept-offer";
 import { CancelListingDialog } from "./cancel-listing-dialog";
-import { AcceptOfferResultDialog } from "./accept-offer-result-dialog";
 
 type TokenStandard = "ERC721" | "ERC1155" | "UNKNOWN";
 type CancelStep = "idle" | "processing" | "success" | "error";
@@ -51,17 +51,10 @@ interface AssetMarketplaceDialogsProps {
   cancelPinOpen: boolean;
   handleCancelPin: (pin: string) => Promise<void>;
   dismissCancelPin: () => void;
-  acceptPinOpen: boolean;
-  handleAcceptPin: (pin: string) => Promise<void>;
-  dismissAcceptPin: () => void;
-  orderToAccept: ApiOrder | null;
   cancelStep: CancelStep;
   cancelError: string | null;
   resetCancelStep: () => void;
-  acceptStep: "idle" | "processing" | "success" | "error";
-  acceptError: string | null;
-  acceptTxHash: string | null;
-  resetAcceptStep: () => void;
+  acceptOfferHook: AcceptOfferHook;
 }
 
 export function AssetMarketplaceDialogs({
@@ -83,17 +76,10 @@ export function AssetMarketplaceDialogs({
   cancelPinOpen,
   handleCancelPin,
   dismissCancelPin,
-  acceptPinOpen,
-  handleAcceptPin,
-  dismissAcceptPin,
-  orderToAccept,
   cancelStep,
   cancelError,
   resetCancelStep,
-  acceptStep,
-  acceptError,
-  acceptTxHash,
-  resetAcceptStep,
+  acceptOfferHook,
 }: AssetMarketplaceDialogsProps) {
   return (
     <>
@@ -137,31 +123,16 @@ export function AssetMarketplaceDialogs({
         description={`Enter your PIN to cancel the listing for ${tokenName}.`}
       />
 
-      <PinDialog
-        open={acceptPinOpen}
-        onSubmit={handleAcceptPin}
-        onCancel={dismissAcceptPin}
-        title="Accept offer"
-        description={orderToAccept
-          ? `Accept ${formatDisplayPrice(orderToAccept.price.formatted)} ${orderToAccept.price.currency} for ${tokenName}?`
-          : "Enter your PIN to accept this offer."}
-      />
-
       <CancelListingDialog
         cancelStep={cancelStep}
         cancelError={cancelError}
         onReset={resetCancelStep}
       />
 
-      <AcceptOfferResultDialog
-        acceptStep={acceptStep}
-        acceptError={acceptError}
-        acceptTxHash={acceptTxHash}
-        orderToAccept={orderToAccept}
+      <AcceptOfferDialog
+        hook={acceptOfferHook}
         tokenName={tokenName}
         tokenImage={tokenImage}
-        onDone={resetAcceptStep}
-        onRetry={resetAcceptStep}
       />
 
       <TransferDialog

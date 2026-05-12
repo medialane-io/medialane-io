@@ -47,6 +47,7 @@ import {
 import { AssetOverviewContent } from "./asset-overview-content";
 import { AssetHeaderBlock, AssetMediaColumn } from "./asset-top-sections";
 import { useOrderActions } from "./use-order-actions";
+import { useAcceptOffer } from "@/hooks/use-accept-offer";
 
 export function AssetPageStandard() {
   const { contract, tokenId } = useParams<{ contract: string; tokenId: string }>();
@@ -61,11 +62,10 @@ export function AssetPageStandard() {
   const {
     isProcessing,
     orderToCancel, cancelPinOpen, cancelStep, cancelError,
-    orderToAccept, acceptPinOpen, acceptStep, acceptError, acceptTxHash,
     handleCancelClick, handleCancelPin,
-    handleAcceptClick, handleAcceptPin,
-    dismissCancelPin, dismissAcceptPin, resetCancelStep, resetAcceptStep,
+    dismissCancelPin, resetCancelStep,
   } = useOrderActions({ mutateListings });
+  const acceptOffer = useAcceptOffer({ mutateListings });
 
   const { addItem, items: cartItems, setIsOpen: setCartOpen } = useCart();
   const shouldReduce = useReducedMotion();
@@ -292,7 +292,7 @@ export function AssetPageStandard() {
               inCart={inCart}
               remixEnabled
               onCancelClick={handleCancelClick}
-              onAcceptBid={handleAcceptClick}
+              onAcceptBid={acceptOffer.handleAcceptClick}
               onOpenListing={() => setListOpen(true)}
               onOpenTransfer={() => setTransferOpen(true)}
               onOpenPurchase={setPurchaseOrder}
@@ -357,7 +357,7 @@ export function AssetPageStandard() {
               isProcessing={isProcessing}
               onBuyClick={setPurchaseOrder}
               onCancelClick={handleCancelClick}
-              onAcceptClick={handleAcceptClick}
+              onAcceptClick={acceptOffer.handleAcceptClick}
             />
           </TabsContent>
 
@@ -410,17 +410,10 @@ export function AssetPageStandard() {
         cancelPinOpen={cancelPinOpen}
         handleCancelPin={handleCancelPin}
         dismissCancelPin={dismissCancelPin}
-        acceptPinOpen={acceptPinOpen}
-        handleAcceptPin={handleAcceptPin}
-        dismissAcceptPin={dismissAcceptPin}
-        orderToAccept={orderToAccept}
         cancelStep={cancelStep}
         cancelError={cancelError}
         resetCancelStep={resetCancelStep}
-        acceptStep={acceptStep}
-        acceptError={acceptError}
-        acceptTxHash={acceptTxHash}
-        resetAcceptStep={resetAcceptStep}
+        acceptOfferHook={acceptOffer}
       />
     </div>
   );

@@ -17,6 +17,8 @@ import { useTokenListings } from "@/hooks/use-orders";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useOrderActions } from "./use-order-actions";
 import { CancelListingDialog } from "./cancel-listing-dialog";
+import { useAcceptOffer } from "@/hooks/use-accept-offer";
+import { AcceptOfferDialog } from "@/components/marketplace/accept-offer-dialog";
 import { useCart } from "@/hooks/use-cart";
 import { useAuth, SignInButton } from "@clerk/nextjs";
 import { useComments } from "@/hooks/use-comments";
@@ -139,11 +141,10 @@ export function AssetPageDrop() {
   const {
     isProcessing,
     orderToCancel, cancelPinOpen, cancelStep, cancelError,
-    orderToAccept, acceptPinOpen,
     handleCancelClick, handleCancelPin,
-    handleAcceptClick, handleAcceptPin,
-    dismissCancelPin, dismissAcceptPin, resetCancelStep,
+    dismissCancelPin, resetCancelStep,
   } = useOrderActions({ mutateListings });
+  const acceptOffer = useAcceptOffer({ mutateListings });
   const { addItem, items: cartItems, setIsOpen: setCartOpen } = useCart();
   const { total: commentTotal } = useComments(contract, tokenId);
   const { total: remixCount } = useTokenRemixes(contract, tokenId);
@@ -401,7 +402,7 @@ export function AssetPageDrop() {
                           <div className="flex items-center gap-1 text-xs text-muted-foreground"><Clock className="h-3 w-3" />{timeUntil(bid.endTime)}</div>
                         </div>
                       </div>
-                      <Button size="sm" disabled={isProcessing} onClick={() => handleAcceptClick(bid)}><CheckCircle className="h-3.5 w-3.5 mr-1.5" />Accept</Button>
+                      <Button size="sm" disabled={isProcessing} onClick={() => acceptOffer.handleAcceptClick(bid)}><CheckCircle className="h-3.5 w-3.5 mr-1.5" />Accept</Button>
                     </div>
                   ))}
                 </div>
@@ -436,7 +437,7 @@ export function AssetPageDrop() {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="markets">
-            <AssetMarketsTab activeListings={activeListings} activeBids={activeBids} walletAddress={walletAddress ?? undefined} isOwner={isOwner} isProcessing={isProcessing} onBuyClick={setPurchaseOrder} onCancelClick={handleCancelClick} onAcceptClick={handleAcceptClick} />
+            <AssetMarketsTab activeListings={activeListings} activeBids={activeBids} walletAddress={walletAddress ?? undefined} isOwner={isOwner} isProcessing={isProcessing} onBuyClick={setPurchaseOrder} onCancelClick={handleCancelClick} onAcceptClick={acceptOffer.handleAcceptClick} />
           </TabsContent>
           <TabsContent value="provenance">
             <AssetProvenanceTab history={history as ApiActivity[]} contract={contract} tokenId={tokenId} remixCount={remixCount} />
@@ -467,7 +468,7 @@ export function AssetPageDrop() {
       <ListingDialog open={listOpen} onOpenChange={setListOpen} assetContract={contract} tokenId={tokenId} tokenName={name} tokenStandard="ERC721" tokenImage={imageUrl} onSuccess={mutateListings} />
       <OfferDialog open={offerOpen} onOpenChange={setOfferOpen} assetContract={contract} tokenId={tokenId} tokenName={name} tokenImage={imageUrl ?? undefined} tokenStandard="ERC721" />
       <PinDialog open={cancelPinOpen} onSubmit={handleCancelPin} onCancel={dismissCancelPin} title="Cancel listing" description={`Enter your PIN to cancel the listing for ${name}.`} />
-      <PinDialog open={acceptPinOpen} onSubmit={handleAcceptPin} onCancel={dismissAcceptPin} title="Accept offer" description={orderToAccept ? `Accept ${formatDisplayPrice(orderToAccept.price.formatted)} ${orderToAccept.price.currency} for ${name}?` : "Enter your PIN to accept this offer."} />
+      <AcceptOfferDialog hook={acceptOffer} tokenName={name} tokenImage={imageUrl} />
       <CancelListingDialog cancelStep={cancelStep} cancelError={cancelError} onReset={resetCancelStep} />
 
       <TransferDialog open={transferOpen} onOpenChange={setTransferOpen} contractAddress={contract} tokenId={tokenId} tokenName={name} hasActiveListing={activeListings.length > 0} tokenStandard="ERC721" onSuccess={mutateListings} />
