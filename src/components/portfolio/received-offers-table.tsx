@@ -7,7 +7,9 @@ import { EmptyOrError } from "@/components/ui/empty-or-error";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { ipfsToHttp, formatDisplayPrice, formatExpiry, cn } from "@/lib/utils";
-import { ExternalLink, Inbox } from "lucide-react";
+import { ExternalLink, Inbox, AlertTriangle } from "lucide-react";
+import { useTokenBalance, hasSufficientBalance } from "@/hooks/use-erc20-balance";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { EXPLORER_URL, SUPPORTED_TOKENS } from "@/lib/constants";
 import { getSeenOffers } from "@/hooks/use-unread-offers";
 import { CounterOfferDialog } from "@/components/marketplace/counter-offer-dialog";
@@ -36,6 +38,10 @@ function ReceivedOfferRow({
   const name = order.token?.name || `#${order.nftTokenId}`;
   const image = order.token?.image ? ipfsToHttp(order.token.image) : null;
   const expiry = formatExpiry(order.endTime);
+
+  // Check buyer's balance in real-time to warn seller before accepting
+  const { rawBalance, decimals } = useTokenBalance(order.price.currency, order.offerer);
+  const buyerHasFunds = hasSufficientBalance(rawBalance, order.price.formatted, decimals);
 
   return (
     <div className={cn(
@@ -103,15 +109,27 @@ function ReceivedOfferRow({
         >
           Counter
         </Button>
-        <Button
-          size="sm"
-          variant="default"
-          className="h-8 text-xs"
-          disabled={isProcessing}
-          onClick={() => onAccept(order)}
-        >
-          Accept
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="sm"
+              variant="default"
+              className="h-8 text-xs relative"
+              disabled={isProcessing}
+              onClick={() => onAccept(order)}
+            >
+              {buyerHasFunds === false && (
+                <AlertTriangle className="h-3 w-3 text-amber-300 mr-1" />
+              )}
+              Accept
+            </Button>
+          </TooltipTrigger>
+          {buyerHasFunds === false && (
+            <TooltipContent side="top" className="max-w-[200px] text-center text-xs">
+              Buyer may have insufficient {order.price.currency}. Offer stays active if payment fails.
+            </TooltipContent>
+          )}
+        </Tooltip>
       </div>
     </div>
   );

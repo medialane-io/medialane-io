@@ -5,7 +5,7 @@ import { useSWRConfig } from "swr";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { AlertCircle, HandCoins, Layers, ShieldCheck, Zap } from "lucide-react";
+import { AlertCircle, AlertTriangle, HandCoins, Layers, ShieldCheck, Zap } from "lucide-react";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { fireConfetti } from "@/lib/confetti";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -33,6 +33,8 @@ import {
 import { EXPLORER_URL, DURATION_OPTIONS } from "@/lib/constants";
 import { parseFormPriceUsdc } from "@/lib/chipi/session-preferences";
 import { getListableTokens } from "@medialane/sdk";
+import { useWallet } from "@/hooks/use-wallet";
+import { useTokenBalance, hasSufficientBalance } from "@/hooks/use-erc20-balance";
 import { marketplacePriceField, marketplaceCurrencyField, marketplaceDurationField } from "@/lib/marketplace-schemas";
 import { isWebAuthnSupported } from "@chipi-stack/nextjs";
 import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
@@ -132,6 +134,19 @@ export function OfferDialog({
     resolver: zodResolver(schema),
     defaultValues: { price: "", currency: "USDC", durationSeconds: 2592000, quantity: "1" },
   });
+
+  const { address: walletAddress } = useWallet();
+  const watchedCurrency = form.watch("currency");
+  const watchedPrice = form.watch("price");
+  const watchedQty = form.watch("quantity");
+  const { rawBalance, decimals } = useTokenBalance(watchedCurrency, walletAddress);
+  const totalRequired = (() => {
+    const qty = parseFloat(watchedQty || "1");
+    const price = parseFloat(watchedPrice || "0");
+    if (isNaN(qty) || isNaN(price) || price <= 0) return "";
+    return (qty * price).toFixed(decimals <= 6 ? 6 : 18);
+  })();
+  const balanceSufficient = hasSufficientBalance(rawBalance, totalRequired, decimals);
 
   const onSubmit = async (values: FormValues) => {
     await beginAction(values, parseFormPriceUsdc(values.price));
@@ -390,6 +405,15 @@ export function OfferDialog({
                         </FormItem>
                       )}
                     />
+
+                    {balanceSufficient === false && (
+                      <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/8 px-3 py-2.5">
+                        <AlertTriangle className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-0.5" />
+                        <p className="text-xs text-amber-600 dark:text-amber-400 leading-snug">
+                          Your {watchedCurrency} balance may be insufficient for this offer. You can still submit — the payment is only charged when the offer is accepted.
+                        </p>
+                      </div>
+                    )}
 
                     {error && (
                       <Alert variant="destructive">

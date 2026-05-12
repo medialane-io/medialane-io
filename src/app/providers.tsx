@@ -10,6 +10,7 @@ import { SidebarInset, SidebarProvider, SidebarTrigger, useSidebar } from "@/com
 import { MedialaneLogo } from "@/components/brand/medialane-logo";
 import { SWRConfig } from "swr";
 import { ChipiSessionUnlockProvider } from "@/contexts/chipi-session-unlock-context";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { usePathname } from "next/navigation";
 import { GoogleAnalytics } from "@next/third-parties/google";
 
@@ -91,6 +92,7 @@ function Shell({ children }: { children: React.ReactNode }) {
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+      <TooltipProvider delayDuration={300}>
       <SWRConfig
         value={{
           onError: (err: unknown) => {
@@ -118,6 +120,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           }}
         />
       </SWRConfig>
+      </TooltipProvider>
     </ThemeProvider>
   );
 }
