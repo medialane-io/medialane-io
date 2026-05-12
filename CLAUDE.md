@@ -42,7 +42,7 @@ NEXT_PUBLIC_MEDIALANE_BACKEND_URL=http://localhost:3001
 
 1. User authenticates via Clerk → ChipiPay derives a Starknet wallet from the session
 2. Session keys (SNIP-9) are stored in Clerk user metadata, managed via `use-session-key.ts`
-3. **Wallet address**: always read from `useSessionKey().walletAddress` — never from `user.publicMetadata.publicKey` (Clerk server-only, returns `undefined` on the client)
+3. **Wallet address**: always read from `useSessionKey().walletAddress` — never from `user.publicMetadata.publicKey` (Clerk server-only, returns `undefined` on the client). For components that only need identity, use `useWallet()` which wraps `useSessionKey()` with a normalized `{ address, isConnected }` interface.
 4. **Asset uploads**: `POST /api/pinata` → image to Pinata → metadata JSON to Pinata → `ipfs://` URI → mint tx. Never goes through the backend. `PINATA_JWT` is consumed server-side in the Next.js route.
 5. Marketplace orders use SNIP-12 typed data signing (see `use-marketplace.ts`)
 6. Cart state is persisted to localStorage via Zustand (`use-cart.ts`)
@@ -407,7 +407,12 @@ layout.tsx (server)
 | `src/app/asset/[contract]/[tokenId]/asset-page-standard.tsx` | Standard ERC-721 view — IP + license + remix + marketplace tabs |
 | `src/app/asset/[contract]/[tokenId]/use-order-actions.ts` | Shared cancel/accept order state machine. Derives NFT standard correctly: `consideration.itemType` for bid orders, `offer.itemType` for listings. Optional `tokenStandard` prop overrides both (used by ERC-1155 edition page). |
 | `src/app/asset/[contract]/[tokenId]/cancel-listing-dialog.tsx` | Shared cancel status dialog (processing/success/error) |
-| `src/hooks/use-session-key.ts` | Wallet derivation + SNIP-9 session key |
+| `src/hooks/use-session-key.ts` | Wallet derivation + SNIP-9 session key. Returns `walletAddress` via 3-tier fallback: ChipiPay API → Clerk JWT claim → backend DB. |
+| `src/hooks/use-wallet.ts` | **Normalized identity hook** — wraps `useSessionKey()`, returns `{ address, isConnected }`. Use in any component that only needs to know who the user is. Same interface as `useWallet()` in medialane-dapp. |
+| `src/hooks/use-rewards.ts` | `useRewards(address)` + `useLeaderboard(page, limit)` — SWR hooks for XP scores and leaderboard from `GET /v1/rewards/*` |
+| `src/components/rewards/level-badge.tsx` | Color-coded level chip: `Lv.N Name`. Size: sm/md/lg. |
+| `src/components/rewards/badge-shelf.tsx` | Row of earned badge chips with lazy Lucide icons and tooltips. |
+| `src/app/rewards/rewards-dashboard.tsx` | My Rank tab + Leaderboard tab. Uses `useWallet()` — identical to medialane-dapp version. |
 | `src/hooks/use-marketplace.ts` | All marketplace write operations |
 | `src/hooks/use-chipi-transaction.ts` | ChipiPay tx execution + status |
 | `src/hooks/use-cart.ts` | Zustand cart store |
