@@ -469,7 +469,7 @@ export function AssetPageDrop() {
       <OfferDialog open={offerOpen} onOpenChange={setOfferOpen} assetContract={contract} tokenId={tokenId} tokenName={name} tokenImage={imageUrl ?? undefined} tokenStandard="ERC721" />
       <PinDialog open={cancelPinOpen} onSubmit={handleCancelPin} onCancel={dismissCancelPin} title="Cancel listing" description={`Enter your PIN to cancel the listing for ${name}.`} />
       <AcceptOfferDialog hook={acceptOffer} tokenName={name} tokenImage={imageUrl} />
-      <CancelListingDialog cancelStep={cancelStep} cancelError={cancelError} onReset={resetCancelStep} />
+      <CancelListingDialog cancelStep={cancelStep} cancelError={cancelError} tokenName={name} tokenImage={imageUrl} onReset={resetCancelStep} />
 
       <TransferDialog open={transferOpen} onOpenChange={setTransferOpen} contractAddress={contract} tokenId={tokenId} tokenName={name} hasActiveListing={activeListings.length > 0} tokenStandard="ERC721" onSuccess={mutateListings} />
     </div>

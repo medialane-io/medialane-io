@@ -110,6 +110,9 @@ export function AssetPageEdition() {
   )[0];
 
   const isOwner = checkIsOwner(token, walletAddress);
+  const quantityOwned = walletAddress
+    ? holders.find((h) => h.owner.toLowerCase() === walletAddress.toLowerCase())?.amount
+    : undefined;
 
   const myListing = isOwner
     ? activeListings.find((l) => l.offerer.toLowerCase() === walletAddress!.toLowerCase())
@@ -341,6 +344,7 @@ export function AssetPageEdition() {
         tokenName={name}
         tokenImage={imageUrl}
         tokenStandard="ERC1155"
+        quantityOwned={quantityOwned != null ? Number(quantityOwned) : undefined}
         hasActiveListing={activeListings.length > 0}
         mutateListings={mutateListings}
         purchaseOrder={purchaseOrder}

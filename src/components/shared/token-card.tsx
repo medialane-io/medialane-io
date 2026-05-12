@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   Loader2, ArrowUpRight, MoreHorizontal, Zap, HandCoins, Tag,
-  ShoppingCart, Check, Layers, GitBranch, Flag, UserCircle2, ArrowRightLeft, X,
+  ShoppingCart, Check, Layers, GitBranch, Flag, UserCircle2, ArrowRightLeft,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -37,7 +37,6 @@ interface TokenCardProps {
   isOwner?: boolean;
   rarityTier?: RarityTier;
   onList?: (token: ApiToken) => void;
-  onCancel?: (token: ApiToken) => void;
   onTransfer?: (token: ApiToken) => void;
   onBuy?: (token: ApiToken) => void;
   onOffer?: (token: ApiToken) => void;
@@ -48,7 +47,6 @@ export function TokenCard({
   isOwner = false,
   rarityTier,
   onList,
-  onCancel,
   onTransfer,
   onBuy,
   onOffer,
@@ -204,18 +202,12 @@ export function TokenCard({
             </Link>
           </Button>
 
-          {/* Owner: List / Cancel — Buyer: Buy / Make offer */}
+          {/* Owner: List (or Listed label) — Buyer: Buy / Make offer */}
           {isOwner ? (
             listingOrder ? (
-              <Button
-                size="sm"
-                variant="outline"
-                className="flex-1 h-8 rounded-[9px] text-xs font-semibold text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onCancel?.(token); }}
-              >
-                <X className="h-3.5 w-3.5 mr-1.5" />
-                Cancel
-              </Button>
+              <div className="flex-1 h-8 flex items-center justify-center rounded-[9px] border border-border/50 bg-muted/40">
+                <span className="text-xs font-medium text-muted-foreground">Listed</span>
+              </div>
             ) : (
               <Button
                 size="sm"
@@ -281,15 +273,6 @@ export function TokenCard({
                     >
                       <Tag className="h-3.5 w-3.5" />
                       List
-                    </DropdownMenuItem>
-                  )}
-                  {listingOrder && onCancel && (
-                    <DropdownMenuItem
-                      className="flex items-center gap-2 text-destructive focus:text-destructive"
-                      onClick={() => onCancel(token)}
-                    >
-                      <X className="h-3.5 w-3.5" />
-                      Cancel listing
                     </DropdownMenuItem>
                   )}
                   {onTransfer && (

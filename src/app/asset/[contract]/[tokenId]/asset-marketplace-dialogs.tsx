@@ -38,6 +38,7 @@ interface AssetMarketplaceDialogsProps {
   tokenName: string;
   tokenImage?: string | null;
   tokenStandard: TokenStandard;
+  quantityOwned?: number;
   hasActiveListing: boolean;
   mutateListings: () => void;
   purchaseOrder: ApiOrder | null;
@@ -63,6 +64,7 @@ export function AssetMarketplaceDialogs({
   tokenName,
   tokenImage,
   tokenStandard,
+  quantityOwned,
   hasActiveListing,
   mutateListings,
   purchaseOrder,
@@ -102,6 +104,7 @@ export function AssetMarketplaceDialogs({
         tokenName={tokenName}
         tokenStandard={tokenStandard}
         tokenImage={tokenImage}
+        quantityOwned={quantityOwned}
         onSuccess={mutateListings}
       />
 
@@ -126,6 +129,8 @@ export function AssetMarketplaceDialogs({
       <CancelListingDialog
         cancelStep={cancelStep}
         cancelError={cancelError}
+        tokenName={tokenName}
+        tokenImage={tokenImage}
         onReset={resetCancelStep}
       />
 

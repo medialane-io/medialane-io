@@ -1,57 +1,62 @@
 "use client";
 
-import { Loader2, CheckCircle, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import {
+  MarketplaceProcessingState,
+  MarketplaceSuccessState,
+  MarketplaceErrorState,
+} from "@/components/marketplace/marketplace-dialog-primitives";
+import { EXPLORER_URL } from "@/lib/constants";
 
 interface CancelListingDialogProps {
   cancelStep: "idle" | "processing" | "success" | "error";
   cancelError: string | null;
+  tokenName?: string;
+  tokenImage?: string | null;
   onReset: () => void;
 }
 
-export function CancelListingDialog({ cancelStep, cancelError, onReset }: CancelListingDialogProps) {
+export function CancelListingDialog({
+  cancelStep,
+  cancelError,
+  tokenName = "this listing",
+  tokenImage,
+  onReset,
+}: CancelListingDialogProps) {
   return (
     <Dialog
       open={cancelStep !== "idle"}
       onOpenChange={(v) => { if (!v) onReset(); }}
     >
-      <DialogContent className="max-w-[calc(100%-6px)] sm:max-w-sm rounded-2xl">
-        <DialogHeader>
-          <DialogTitle>
-            {cancelStep === "processing" && "Cancelling listing…"}
-            {cancelStep === "success" && "Listing cancelled"}
-            {cancelStep === "error" && "Cancellation failed"}
-          </DialogTitle>
-          {cancelStep === "processing" && (
-            <DialogDescription>
-              Submitting your cancellation to the network. Please wait.
-            </DialogDescription>
-          )}
-        </DialogHeader>
-        <div className="flex flex-col items-center gap-4 py-4">
-          {cancelStep === "processing" && (
-            <Loader2 className="h-10 w-10 animate-spin text-primary" />
-          )}
-          {cancelStep === "success" && (
-            <>
-              <CheckCircle className="h-10 w-10 text-green-500" />
-              <p className="text-sm text-center text-muted-foreground">
-                Your listing has been cancelled successfully.
-              </p>
-              <Button className="w-full" onClick={onReset}>Done</Button>
-            </>
-          )}
-          {cancelStep === "error" && (
-            <>
-              <X className="h-10 w-10 text-destructive" />
-              <p className="text-sm text-center text-muted-foreground">
-                {cancelError ?? "Something went wrong. Please try again."}
-              </p>
-              <Button variant="outline" className="w-full" onClick={onReset}>Dismiss</Button>
-            </>
-          )}
-        </div>
+      <DialogContent className="max-w-[calc(100%-6px)] sm:max-w-sm rounded-2xl p-0 overflow-hidden">
+        {cancelStep === "processing" && (
+          <MarketplaceProcessingState
+            title="Cancelling listing…"
+            imageUrl={tokenImage}
+            imageAlt={tokenName}
+          />
+        )}
+        {cancelStep === "success" && (
+          <MarketplaceSuccessState
+            tokenImage={tokenImage}
+            name={tokenName}
+            title="Listing cancelled"
+            description="Your listing has been removed from the marketplace."
+            explorerUrl={EXPLORER_URL}
+            onDone={onReset}
+          />
+        )}
+        {cancelStep === "error" && (
+          <MarketplaceErrorState
+            tokenImage={tokenImage}
+            name={tokenName}
+            title="Cancellation failed"
+            description="Something went wrong while cancelling your listing."
+            error={cancelError}
+            explorerUrl={EXPLORER_URL}
+            onDone={onReset}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );

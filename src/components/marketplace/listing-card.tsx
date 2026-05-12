@@ -457,6 +457,8 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
       <CancelListingDialog
         cancelStep={cancelStep}
         cancelError={cancelError}
+        tokenName={name}
+        tokenImage={image}
         onReset={() => { setCancelStep("idle"); setCancelError(null); }}
       />
     </MotionCard>

@@ -55,7 +55,11 @@ export function IPTypeFields({ ipType, onChange }: IPTypeFieldsProps) {
     Object.entries(templateValues).forEach(([traitType, value]) => {
       if (suggestedKeys.has(traitType)) addField(traitType, value);
     });
-    customTraits.forEach((trait) => addField(trait.traitType, trait.value));
+    customTraits.forEach((trait) => {
+      const cleanTraitType = trait.traitType.trim();
+      const cleanValue = trait.value.trim();
+      if (cleanTraitType && cleanValue) fields.push({ traitType: cleanTraitType, value: cleanValue });
+    });
 
     return fields;
   }, [template?.fields, templateValues, customTraits]);

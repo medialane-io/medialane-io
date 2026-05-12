@@ -57,6 +57,7 @@ interface ListingDialogProps {
   tokenName?: string;
   tokenStandard?: "ERC721" | "ERC1155" | "UNKNOWN";
   tokenImage?: string | null;
+  quantityOwned?: number;
   onSuccess?: () => void;
 }
 
@@ -68,6 +69,7 @@ export function ListingDialog({
   tokenName,
   tokenStandard,
   tokenImage,
+  quantityOwned,
   onSuccess,
 }: ListingDialogProps) {
   const { tokenStandard: resolvedStandard, isResolving } = useResolvedTokenStandard(assetContract, tokenStandard);
@@ -321,7 +323,12 @@ export function ListingDialog({
                           name="amount"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Qty</FormLabel>
+                              <div className="flex items-center justify-between">
+                                <FormLabel>Qty</FormLabel>
+                                {quantityOwned != null && (
+                                  <span className="text-xs text-muted-foreground">You own {quantityOwned}</span>
+                                )}
+                              </div>
                               <FormControl>
                                 <Input type="number" min="1" step="1" placeholder="1" disabled={isProcessing} {...field} />
                               </FormControl>

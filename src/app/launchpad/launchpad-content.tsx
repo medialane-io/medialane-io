@@ -68,7 +68,7 @@ interface ServiceContent {
 }
 const SERVICE_CONTENT: Record<string, ServiceContent> = {
   "mint-ip-asset": {
-    title: "Mint NFT",
+    title: "Mint singular NFT",
     subtitle: "Publish your creative work onchain",
     description: "Upload any photo, video, audio, or document and mint it as an IP NFT — with licensing, provenance, and ownership all locked on-chain.",
     features: ["Gasless via ChipiPay", "IPFS metadata", "Programmable licensing"],
@@ -82,7 +82,7 @@ const SERVICE_CONTENT: Record<string, ServiceContent> = {
     example: "e.g. A photography portfolio, a music catalog, a comic series",
   },
   "ip-collection-1155": {
-    title: "Limited Editions",
+    title: "Limited Editions Collections",
     subtitle: "Deploy a contract for multi-copy NFT releases",
     description: "Create a collection built for editions — release music tracks, art prints, or any IP in numbered multiples. Each edition token is tradeable on Medialane.",
     features: ["Multi-edition ERC-1155", "Numbered tokens", "Tradeable on Medialane"],
@@ -120,7 +120,7 @@ const SERVICE_CONTENT: Record<string, ServiceContent> = {
 
 // ── App-specific hrefs per service key ──────────────────────────────────────
 const IO_HREFS: Record<string, { href?: string; buttonLabel?: string; browseHref?: string }> = {
-  "mint-ip-asset":      { href: "/create/asset",            buttonLabel: "Mint NFT"               },
+  "mint-ip-asset":      { href: "/create/asset",            buttonLabel: "Mint singular NFT"      },
   "create-collection":  { href: "/create/collection",       buttonLabel: "Create NFT Collection"   },
   "remix-asset":        { href: "/marketplace",             buttonLabel: "Browse to remix"         },
   "pop-protocol":       { href: "/launchpad/pop/create",    buttonLabel: "Create event",     browseHref: "/launchpad/pop"  },

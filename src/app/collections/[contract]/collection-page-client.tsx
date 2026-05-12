@@ -29,7 +29,6 @@ import { useGatedContent, type GatedContentState } from "@/hooks/use-gated-conte
 import { CollectionServiceAction } from "@/components/services/collection-service-action";
 import { ListingDialog } from "@/components/marketplace/listing-dialog";
 import { TransferDialog } from "@/components/marketplace/transfer-dialog";
-import { CancelOrderDialog } from "@/components/marketplace/cancel-order-dialog";
 import { useSessionKey } from "@/hooks/use-session-key";
 import type { ApiToken, ApiOrder } from "@medialane/sdk";
 
@@ -94,12 +93,8 @@ function CollectionItems({ contract, activeListings }: { contract: string; activ
   const [listOpen, setListOpen] = useState(false);
   const [transferToken, setTransferToken] = useState<ApiToken | null>(null);
   const [transferOpen, setTransferOpen] = useState(false);
-  const [cancelToken, setCancelToken] = useState<ApiToken | null>(null);
-  const [cancelOpen, setCancelOpen] = useState(false);
-
   const handleList = (token: ApiToken) => { setSelectedToken(token); setListOpen(true); };
   const handleTransfer = (token: ApiToken) => { setTransferToken(token); setTransferOpen(true); };
-  const handleCancelRequest = (token: ApiToken) => { setCancelToken(token); setCancelOpen(true); };
 
   useEffect(() => {
     if (tokens.length > 0) {
@@ -186,7 +181,6 @@ function CollectionItems({ contract, activeListings }: { contract: string; activ
                   isOwner={isOwner}
                   onList={isOwner ? handleList : undefined}
                   onTransfer={isOwner ? handleTransfer : undefined}
-                  onCancel={isOwner ? handleCancelRequest : undefined}
                 />
               );
             })}
@@ -230,15 +224,6 @@ function CollectionItems({ contract, activeListings }: { contract: string; activ
           onSuccess={() => { setTransferOpen(false); setTransferToken(null); setPage(1); setAllTokens([]); mutate(); }}
         />
       )}
-      <CancelOrderDialog
-        order={cancelToken?.activeOrders?.[0] ?? null}
-        open={cancelOpen}
-        onOpenChange={(v) => { setCancelOpen(v); if (!v) setCancelToken(null); }}
-        onSuccess={() => { setPage(1); setAllTokens([]); mutate(); }}
-        variant="listing"
-        tokenName={cancelToken?.metadata?.name}
-        tokenImage={cancelToken?.metadata?.image}
-      />
     </>
   );
 }

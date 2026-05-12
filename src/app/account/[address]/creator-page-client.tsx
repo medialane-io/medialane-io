@@ -11,9 +11,7 @@ import { useUserOrders } from "@/hooks/use-orders";
 import { useActivitiesByAddress } from "@/hooks/use-activities";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { useSessionKey } from "@/hooks/use-session-key";
-import { useMarketplace } from "@/hooks/use-marketplace";
 import { ListingDialog } from "@/components/marketplace/listing-dialog";
-import { PinDialog } from "@/components/chipi/pin-dialog";
 import type { ApiToken } from "@medialane/sdk";
 import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
 import { AddressDisplay } from "@/components/shared/address-display";
@@ -227,9 +225,7 @@ export default function CreatorPageClient() {
   const { address } = useParams<{ address: string }>();
   const [activeTab, setActiveTab] = useState<TabId>("assets");
   const [reportOpen,    setReportOpen]    = useState(false);
-  const [listTarget,    setListTarget]    = useState<{ contract: string; tokenId: string; name?: string } | null>(null);
-  const [cancelToken,   setCancelToken]   = useState<ApiToken | null>(null);
-  const [cancelPinOpen, setCancelPinOpen] = useState(false);
+  const [listTarget, setListTarget] = useState<{ contract: string; tokenId: string; name?: string } | null>(null);
 
   const addr = address ?? null;
 
@@ -237,9 +233,6 @@ export default function CreatorPageClient() {
   const { walletAddress } = useSessionKey();
   const isOwner = !!walletAddress &&
     walletAddress.toLowerCase() === (address ?? "").toLowerCase();
-
-  // Cancel listing
-  const { cancelOrder } = useMarketplace();
 
   // Fetch one token for the atmospheric background
   const { tokens: bgTokens } = useTokensByOwner(addr, 1, 1);
@@ -264,14 +257,6 @@ export default function CreatorPageClient() {
   );
 
   const { h1, h2, h3 } = addressPalette(addr ?? "0x0");
-
-  const handleCancelPin = async (pin: string) => {
-    setCancelPinOpen(false);
-    const activeOrder = cancelToken?.activeOrders?.[0];
-    if (!activeOrder?.orderHash) return;
-    await cancelOrder({ orderHash: activeOrder.orderHash, pin, tokenStandard: activeOrder.offer.itemType });
-    setCancelToken(null);
-  };
 
   // Tab count badges — only shown once that tab has been visited and loaded
   const tabBadge: Partial<Record<TabId, number>> = {
@@ -428,7 +413,6 @@ export default function CreatorPageClient() {
                       tokenId: t.tokenId,
                       name: t.metadata?.name ?? undefined,
                     }) : undefined}
-                    onCancel={isOwner ? (t: ApiToken) => { setCancelToken(t); setCancelPinOpen(true); } : undefined}
                   />
                 ))}
               </div>
@@ -529,13 +513,6 @@ export default function CreatorPageClient() {
           tokenName={listTarget.name}
         />
       )}
-      <PinDialog
-        open={cancelPinOpen}
-        onSubmit={handleCancelPin}
-        onCancel={() => { setCancelPinOpen(false); setCancelToken(null); }}
-        title="Cancel listing"
-        description={`Enter PIN to cancel the listing for ${cancelToken?.metadata?.name || `Token #${cancelToken?.tokenId}`}.`}
-      />
     </div>
   );
 }
