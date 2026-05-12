@@ -5,8 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { LevelBadge } from "@/components/rewards/level-badge";
 import { BadgeShelf } from "@/components/rewards/badge-shelf";
 import { AddressDisplay } from "@/components/shared/address-display";
-import { useMyWallet } from "@/hooks/use-my-wallet";
-import { useUser } from "@clerk/nextjs";
+import { useWallet } from "@/hooks/use-wallet";
 import { useRewards, useLeaderboard } from "@/hooks/use-rewards";
 import { Wallet, Trophy, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -131,7 +130,7 @@ function MyRankPanel({ address }: { address: string }) {
 
 // ── Leaderboard panel ─────────────────────────────────────────────────────────
 
-function LeaderboardPanel({ myAddress }: { myAddress: string | null | undefined }) {
+function LeaderboardPanel({ myAddress }: { myAddress: string | null }) {
   const { data, isLoading } = useLeaderboard(1, 50);
 
   if (isLoading) {
@@ -205,10 +204,9 @@ function LeaderboardPanel({ myAddress }: { myAddress: string | null | undefined 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
 
 export function RewardsDashboard() {
-  const { isSignedIn } = useUser();
-  const { backendWalletAddress } = useMyWallet();
+  const { address, isConnected } = useWallet();
 
-  if (!isSignedIn) {
+  if (!isConnected) {
     return (
       <div className="py-24 text-center space-y-6">
         <Wallet className="h-12 w-12 mx-auto text-muted-foreground" />
@@ -236,8 +234,8 @@ export function RewardsDashboard() {
       </TabsList>
 
       <TabsContent value="rank">
-        {backendWalletAddress ? (
-          <MyRankPanel address={backendWalletAddress} />
+        {address ? (
+          <MyRankPanel address={address} />
         ) : (
           <div className="py-10 text-center text-sm text-muted-foreground">
             Loading wallet…
@@ -246,7 +244,7 @@ export function RewardsDashboard() {
       </TabsContent>
 
       <TabsContent value="leaderboard">
-        <LeaderboardPanel myAddress={backendWalletAddress} />
+        <LeaderboardPanel myAddress={address} />
       </TabsContent>
     </Tabs>
   );
