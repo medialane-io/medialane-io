@@ -3,14 +3,10 @@
 import * as React from "react";
 import Link from "next/link";
 import { useClerk, useUser } from "@clerk/nextjs";
-import { useNavCommandMenu } from "@medialane/ui";
+import { shortenAddress, useNavCommandMenu } from "@medialane/ui";
 import { Briefcase, LogOut, Settings, User, Wallet } from "lucide-react";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { useSessionKey } from "@/hooks/use-session-key";
-
-function shortenAddress(address: string) {
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
-}
 
 function AccountLink({
   href,
