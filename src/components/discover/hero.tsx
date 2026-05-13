@@ -9,11 +9,11 @@ export function Hero() {
   const { stats } = usePlatformStats();
 
   return (
-    <div className="space-y-6 pt-2 pb-6 border-b border-border/50">
+    <div className="space-y-6 pt-14 pb-6 border-b border-border/50">
 
       {/* Headline */}
       <motion.div
-        className="text-3xl sm:text-4xl lg:text-5xl font-black leading-[1.1]"
+        className="text-3xl font-black leading-[1.1]"
         style={{ perspective: "800px" }}
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
