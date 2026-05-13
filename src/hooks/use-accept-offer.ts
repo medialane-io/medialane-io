@@ -34,7 +34,7 @@ export function useAcceptOffer({ mutateListings, tokenStandard }: UseAcceptOffer
     selectedOrder?.offerer ?? null
   );
   const buyerHasFunds = selectedOrder
-    ? hasSufficientBalance(rawBalance, selectedOrder.price.formatted, decimals)
+    ? hasSufficientBalance(rawBalance, selectedOrder.price.formatted ?? "", decimals)
     : null;
 
   const actionFlow = useMarketplaceActionFlow<ApiOrder>({
@@ -73,7 +73,7 @@ export function useAcceptOffer({ mutateListings, tokenStandard }: UseAcceptOffer
     setResultStep("idle");
     setTxHash(null);
     setError(null);
-    await actionFlow.beginAction(order, parseFloat(order.price.formatted) || 0);
+    await actionFlow.beginAction(order, parseFloat(order.price.formatted ?? "0") || 0);
   };
 
   const dismiss = () => {

@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   Loader2, ArrowUpRight, MoreHorizontal, Zap, HandCoins, Tag,
-  ShoppingCart, Check, Layers, GitBranch, Flag, UserCircle2, ArrowRightLeft,
+  ShoppingCart, Check, Layers, GitBranch, Flag, UserCircle2, ArrowRightLeft, XCircle,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,7 @@ interface TokenCardProps {
   rarityTier?: RarityTier;
   onList?: (token: ApiToken) => void;
   onTransfer?: (token: ApiToken) => void;
+  onCancel?: (token: ApiToken) => void;
   onBuy?: (token: ApiToken) => void;
   onOffer?: (token: ApiToken) => void;
 }
@@ -48,6 +49,7 @@ export function TokenCard({
   rarityTier,
   onList,
   onTransfer,
+  onCancel,
   onBuy,
   onOffer,
 }: TokenCardProps) {
@@ -205,9 +207,21 @@ export function TokenCard({
           {/* Owner: List (or Listed label) — Buyer: Buy / Make offer */}
           {isOwner ? (
             listingOrder ? (
-              <div className="flex-1 h-8 flex items-center justify-center rounded-[9px] border border-border/50 bg-muted/40">
-                <span className="text-xs font-medium text-muted-foreground">Listed</span>
-              </div>
+              onCancel ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex-1 h-8 rounded-[9px] text-xs font-semibold text-brand-orange border-brand-orange/30 hover:bg-brand-orange/10 hover:text-brand-orange"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onCancel(token); }}
+                >
+                  <XCircle className="h-3.5 w-3.5 mr-1.5" />
+                  Cancel
+                </Button>
+              ) : (
+                <div className="flex-1 h-8 flex items-center justify-center rounded-[9px] border border-border/50 bg-muted/40">
+                  <span className="text-xs font-medium text-muted-foreground">Listed</span>
+                </div>
+              )
             ) : (
               <Button
                 size="sm"
@@ -282,6 +296,15 @@ export function TokenCard({
                     >
                       <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground" />
                       Transfer
+                    </DropdownMenuItem>
+                  )}
+                  {listingOrder && onCancel && (
+                    <DropdownMenuItem
+                      className="flex items-center gap-2 text-brand-orange focus:text-brand-orange"
+                      onClick={() => onCancel(token)}
+                    >
+                      <XCircle className="h-3.5 w-3.5" />
+                      Cancel listing
                     </DropdownMenuItem>
                   )}
                 </>

@@ -110,6 +110,7 @@ export function AssetPageEdition() {
   )[0];
 
   const isOwner = checkIsOwner(token, walletAddress);
+  const holders = token?.balances ?? [];
   const quantityOwned = walletAddress
     ? holders.find((h) => h.owner.toLowerCase() === walletAddress.toLowerCase())?.amount
     : undefined;
@@ -154,7 +155,6 @@ export function AssetPageEdition() {
     : [];
 
   const totalEditions = collection?.totalSupply ?? 0;
-  const holders = token.balances ?? [];
   const uniqueOwners = holders.length;
 
   const activeTemplate = IP_TEMPLATES[
