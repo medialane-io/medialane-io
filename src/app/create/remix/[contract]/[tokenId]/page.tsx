@@ -476,7 +476,7 @@ export default function CreateRemixPage() {
         description="Enter your PIN to mint this remix onchain."
       />
 
-      <div className="container max-w-5xl mx-auto px-4 pb-12 space-y-6">
+      <div className="container max-w-5xl mx-auto px-4 pt-14 pb-12 space-y-6">
         {/* Header */}
         <div className="space-y-3">
           <Link
