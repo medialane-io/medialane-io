@@ -74,7 +74,9 @@ export function AssetPageEdition() {
     handleCancelClick, handleCancelPin,
     dismissCancelPin, resetCancelStep,
   } = useOrderActions({ mutateListings, tokenStandard: "ERC1155" });
-  const acceptOffer = useAcceptOffer({ mutateListings, tokenStandard: "ERC1155" });
+  const acceptOffer = useAcceptOffer({ mutateListings, tokenStandard: "ERC1155", activeListings: listings.filter(
+    (l) => l.status === "ACTIVE" && (l.offer.itemType === "ERC721" || l.offer.itemType === "ERC1155")
+  ) });
   const { addItem, items: cartItems, setIsOpen: setCartOpen } = useCart();
   const shouldReduce = useReducedMotion();
 
@@ -362,6 +364,7 @@ export function AssetPageEdition() {
         cancelError={cancelError}
         resetCancelStep={resetCancelStep}
         acceptOfferHook={acceptOffer}
+        onCancelListing={handleCancelClick}
       />
     </div>
   );

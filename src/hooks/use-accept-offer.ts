@@ -13,9 +13,11 @@ interface UseAcceptOfferOptions {
   mutateListings: () => void;
   /** Force a specific NFT token standard (e.g. "ERC1155"). Falls back to the order's item types. */
   tokenStandard?: string;
+  /** Active sell listings for the same token. When non-empty, a warning step is shown before PIN. */
+  activeListings?: ApiOrder[];
 }
 
-export function useAcceptOffer({ mutateListings, tokenStandard }: UseAcceptOfferOptions) {
+export function useAcceptOffer({ mutateListings, tokenStandard, activeListings = [] }: UseAcceptOfferOptions) {
   const { isSignedIn } = useAuth();
   const { fulfillOrder, hasWallet, hasActiveSession, setupSession, maybeClearSessionForAmountCap } =
     useMarketplace();
@@ -28,6 +30,8 @@ export function useAcceptOffer({ mutateListings, tokenStandard }: UseAcceptOffer
   const [resultStep, setResultStep] = useState<"idle" | "processing" | "success" | "error">("idle");
   const [txHash, setTxHash] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [warningOpen, setWarningOpen] = useState(false);
+  const [pendingOrder, setPendingOrder] = useState<ApiOrder | null>(null);
 
   const { rawBalance, decimals } = useTokenBalance(
     selectedOrder?.price.currency ?? null,
@@ -73,7 +77,24 @@ export function useAcceptOffer({ mutateListings, tokenStandard }: UseAcceptOffer
     setResultStep("idle");
     setTxHash(null);
     setError(null);
+    if (activeListings.length > 0) {
+      setPendingOrder(order);
+      setWarningOpen(true);
+      return;
+    }
     await actionFlow.beginAction(order, parseFloat(order.price.formatted ?? "0") || 0);
+  };
+
+  const proceedFromWarning = async () => {
+    setWarningOpen(false);
+    if (!pendingOrder) return;
+    await actionFlow.beginAction(pendingOrder, parseFloat(pendingOrder.price.formatted ?? "0") || 0);
+  };
+
+  const dismissWarning = () => {
+    setWarningOpen(false);
+    setPendingOrder(null);
+    setSelectedOrder(null);
   };
 
   const dismiss = () => {
@@ -83,10 +104,12 @@ export function useAcceptOffer({ mutateListings, tokenStandard }: UseAcceptOffer
     setResultStep("idle");
     setTxHash(null);
     setError(null);
+    setWarningOpen(false);
+    setPendingOrder(null);
   };
 
   return {
-    isOpen: actionFlow.step === "pin" || resultStep !== "idle",
+    isOpen: warningOpen || actionFlow.step === "pin" || resultStep !== "idle",
     selectedOrder,
     buyerHasFunds,
     resultStep,
@@ -104,8 +127,12 @@ export function useAcceptOffer({ mutateListings, tokenStandard }: UseAcceptOffer
     handlePin: actionFlow.handlePin,
     handleUsePasskey: actionFlow.handleUsePasskey,
     dismiss,
-    // Expose setStep so dialog can transition back to pin on retry
     setStep: actionFlow.setStep,
+    // Listing warning
+    warningOpen,
+    activeListings,
+    proceedFromWarning,
+    dismissWarning,
   };
 }
 

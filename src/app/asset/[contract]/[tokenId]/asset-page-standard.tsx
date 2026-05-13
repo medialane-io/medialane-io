@@ -65,7 +65,9 @@ export function AssetPageStandard() {
     handleCancelClick, handleCancelPin,
     dismissCancelPin, resetCancelStep,
   } = useOrderActions({ mutateListings });
-  const acceptOffer = useAcceptOffer({ mutateListings });
+  const acceptOffer = useAcceptOffer({ mutateListings, activeListings: listings.filter(
+    (l) => l.status === "ACTIVE" && (l.offer.itemType === "ERC721" || l.offer.itemType === "ERC1155")
+  ) });
 
   const { addItem, items: cartItems, setIsOpen: setCartOpen } = useCart();
   const shouldReduce = useReducedMotion();
@@ -414,6 +416,7 @@ export function AssetPageStandard() {
         cancelError={cancelError}
         resetCancelStep={resetCancelStep}
         acceptOfferHook={acceptOffer}
+        onCancelListing={handleCancelClick}
       />
     </div>
   );

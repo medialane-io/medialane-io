@@ -56,6 +56,7 @@ interface AssetMarketplaceDialogsProps {
   cancelError: string | null;
   resetCancelStep: () => void;
   acceptOfferHook: AcceptOfferHook;
+  onCancelListing?: (order: ApiOrder) => void;
 }
 
 export function AssetMarketplaceDialogs({
@@ -82,6 +83,7 @@ export function AssetMarketplaceDialogs({
   cancelError,
   resetCancelStep,
   acceptOfferHook,
+  onCancelListing,
 }: AssetMarketplaceDialogsProps) {
   return (
     <>
@@ -138,6 +140,7 @@ export function AssetMarketplaceDialogs({
         hook={acceptOfferHook}
         tokenName={tokenName}
         tokenImage={tokenImage}
+        onCancelListing={onCancelListing}
       />
 
       <TransferDialog

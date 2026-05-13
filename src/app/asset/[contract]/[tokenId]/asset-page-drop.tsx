@@ -144,7 +144,9 @@ export function AssetPageDrop() {
     handleCancelClick, handleCancelPin,
     dismissCancelPin, resetCancelStep,
   } = useOrderActions({ mutateListings });
-  const acceptOffer = useAcceptOffer({ mutateListings });
+  const acceptOffer = useAcceptOffer({ mutateListings, activeListings: listings.filter(
+    (l) => l.status === "ACTIVE" && (l.offer.itemType === "ERC721" || l.offer.itemType === "ERC1155")
+  ) });
   const { addItem, items: cartItems, setIsOpen: setCartOpen } = useCart();
   const { total: commentTotal } = useComments(contract, tokenId);
   const { total: remixCount } = useTokenRemixes(contract, tokenId);
@@ -468,7 +470,7 @@ export function AssetPageDrop() {
       <ListingDialog open={listOpen} onOpenChange={setListOpen} assetContract={contract} tokenId={tokenId} tokenName={name} tokenStandard="ERC721" tokenImage={imageUrl} onSuccess={mutateListings} />
       <OfferDialog open={offerOpen} onOpenChange={setOfferOpen} assetContract={contract} tokenId={tokenId} tokenName={name} tokenImage={imageUrl ?? undefined} tokenStandard="ERC721" />
       <PinDialog open={cancelPinOpen} onSubmit={handleCancelPin} onCancel={dismissCancelPin} title="Cancel listing" description={`Enter your PIN to cancel the listing for ${name}.`} />
-      <AcceptOfferDialog hook={acceptOffer} tokenName={name} tokenImage={imageUrl} />
+      <AcceptOfferDialog hook={acceptOffer} tokenName={name} tokenImage={imageUrl} onCancelListing={handleCancelClick} />
       <CancelListingDialog cancelStep={cancelStep} cancelError={cancelError} tokenName={name} tokenImage={imageUrl} onReset={resetCancelStep} />
 
       <TransferDialog open={transferOpen} onOpenChange={setTransferOpen} contractAddress={contract} tokenId={tokenId} tokenName={name} hasActiveListing={activeListings.length > 0} tokenStandard="ERC721" onSuccess={mutateListings} />
