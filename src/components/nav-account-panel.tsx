@@ -32,7 +32,6 @@ export function NavAccountPanel() {
           </div>
           <div className="min-w-0">
             <p className="text-sm font-medium text-foreground">Connect account</p>
-            <p className="text-xs text-muted-foreground">Clerk + ChipiPay wallet</p>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-2">
@@ -74,9 +73,6 @@ export function NavAccountPanel() {
           </div>
         )}
         <span className="truncate text-sm font-medium text-foreground">{displayName}</span>
-        <span className="rounded-full border border-emerald-500/20 bg-emerald-500/5 px-2 py-0.5 text-[10px] font-medium text-emerald-400 shrink-0">
-          Clerk
-        </span>
         {!(hasWallet || walletAddress) && (
           <button
             onClick={() => setWalletSetupOpen(true)}
