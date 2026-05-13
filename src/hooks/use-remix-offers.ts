@@ -1,8 +1,12 @@
 import useSWR from "swr";
 import { useAuth } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
-import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
 import type { RemixOffer, RemixOfferListResponse, PublicRemix } from "@/types/remix-offers";
+
+// Read directly from env to avoid importing @/lib/constants → @medialane/sdk
+// on the client bundle (prevents TDZ errors in the asset-page chunk).
+const MEDIALANE_BACKEND_URL = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL ?? "http://localhost:3001";
+const MEDIALANE_API_KEY = process.env.NEXT_PUBLIC_MEDIALANE_API_KEY ?? "";
 
 // ─── Fetcher helpers ──────────────────────────────────────────────────────────
 
