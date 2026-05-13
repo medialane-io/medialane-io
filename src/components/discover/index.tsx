@@ -9,7 +9,7 @@ import { FeedSection } from "./feed-section";
 
 export function DiscoverPage() {
   return (
-    <PageContainer className="box-border max-w-full space-y-10">
+    <PageContainer className="box-border max-w-full space-y-20">
       <Hero />
       <CollectionsStrip />
       <FeedSection />
