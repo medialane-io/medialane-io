@@ -207,21 +207,17 @@ export function TokenCard({
           {/* Owner: List (or Listed label) — Buyer: Buy / Make offer */}
           {isOwner ? (
             listingOrder ? (
-              onCancel ? (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="flex-1 h-8 rounded-[9px] text-xs font-semibold text-brand-orange border-brand-orange/30 hover:bg-brand-orange/10 hover:text-brand-orange"
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onCancel(token); }}
-                >
-                  <XCircle className="h-3.5 w-3.5 mr-1.5" />
-                  Cancel
-                </Button>
-              ) : (
-                <div className="flex-1 h-8 flex items-center justify-center rounded-[9px] border border-border/50 bg-muted/40">
-                  <span className="text-xs font-medium text-muted-foreground">Listed</span>
-                </div>
-              )
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-1 h-8 rounded-[9px] text-xs font-semibold"
+                asChild
+              >
+                <Link href={assetHref}>
+                  <ArrowUpRight className="h-3.5 w-3.5 mr-1.5" />
+                  View
+                </Link>
+              </Button>
             ) : (
               <Button
                 size="sm"
