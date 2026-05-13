@@ -5,9 +5,7 @@ import { ThemeProvider } from "next-themes";
 import { Toaster, toast } from "sonner";
 import Link from "next/link";
 import { Menu } from "lucide-react";
-import { AppSidebar } from "@/components/layout/app-sidebar";
 import { CartDrawer } from "@/components/layout/cart-drawer";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { MedialaneLogo } from "@/components/brand/medialane-logo";
 import { SWRConfig } from "swr";
 import { ChipiSessionUnlockProvider } from "@/contexts/chipi-session-unlock-context";
@@ -53,16 +51,13 @@ function MainShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <SidebarProvider defaultOpen={false}>
-      <ChipiSessionUnlockProvider>
+    <ChipiSessionUnlockProvider>
       <NavCommandMenu commands={NAV_COMMANDS} />
-      <AppSidebar />
-      <SidebarInset>
+      <div className="relative min-h-screen flex flex-col bg-background">
         <div className="absolute top-3 left-3 z-50 flex items-center gap-1.5">
           <NavTrigger />
         </div>
-        {/* SessionPreferencesSwitch hidden — surfaced inside account/wallet settings instead */}
-        <main className="min-w-0 flex-1 bg-background overflow-x-hidden">{children}</main>
+        <main className="min-w-0 flex-1 overflow-x-hidden">{children}</main>
         <footer className="px-6 py-8 mt-auto">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
             <p className="text-xs">© {new Date().getFullYear()} Medialane DAO</p>
@@ -79,9 +74,8 @@ function MainShell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
         </footer>
-      </SidebarInset>
-      </ChipiSessionUnlockProvider>
-    </SidebarProvider>
+      </div>
+    </ChipiSessionUnlockProvider>
   );
 }
 
