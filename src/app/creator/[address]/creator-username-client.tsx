@@ -181,7 +181,7 @@ export default function CreatorUsernamePageClient({ username }: Props) {
   }
 
   return (
-    <div className="pb-20 min-h-screen overflow-x-hidden">
+    <div className="pt-14 pb-20 min-h-screen overflow-x-hidden">
 
       {/* ── Hero banner ─────────────────────────────────────────────────── */}
       {heroImage && (
