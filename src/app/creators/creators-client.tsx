@@ -65,11 +65,6 @@ export default function CreatorsPageClient() {
               <span className="gradient-text">Creators</span>
             </h1>
           </FadeIn>
-          <FadeIn delay={0.16}>
-            <p className="text-muted-foreground text-base max-w-lg leading-relaxed mb-6">
-              Discover the artists, writers, and creators bulding onchain.
-            </p>
-          </FadeIn>
 
           {/* Stats + search row */}
           <FadeIn delay={0.22}>

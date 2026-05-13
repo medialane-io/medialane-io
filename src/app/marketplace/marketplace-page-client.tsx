@@ -249,12 +249,8 @@ export default function MarketplacePageClient() {
   return (
     <PageContainer className="box-border max-w-full pt-14 pb-8 space-y-8">
       {/* Header */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 text-primary">
-          <Store className="h-5 w-5" />
-          <span className="text-sm font-semibold uppercase tracking-wider">Onchain Markets</span>
-        </div>
-        <h1 className="text-3xl font-bold">Discover and trade</h1>
+      <div className="space-y-2 pt-8">
+        <h1 className="text-3xl font-bold">Onchain markets</h1>
         <PlatformStatsBar />
       </div>
 

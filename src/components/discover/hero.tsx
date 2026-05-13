@@ -10,14 +10,6 @@ export function Hero() {
 
   return (
     <div className="space-y-6 pt-2 pb-6 border-b border-border/50">
-      {/* Badge */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: EASE_OUT }}
-      >
-        <span className="pill-badge">Creative Works</span>
-      </motion.div>
 
       {/* Headline */}
       <motion.div
@@ -28,7 +20,7 @@ export function Hero() {
         transition={{ duration: 0.5, delay: 0.1, ease: EASE_OUT }}
       >
         <span className="gradient-text">
-          <KineticWords text="Create, share & explore" />
+          <KineticWords text="Explore, share & trade" />
         </span>
       </motion.div>
 

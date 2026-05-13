@@ -92,11 +92,8 @@ export default function CollectionsPageClient() {
     <PageContainer className="box-border max-w-full pt-14 pb-8 space-y-8">
 
       {/* Header */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 text-primary">
-          <Layers className="h-5 w-5" />
-          <span className="text-sm font-semibold uppercase tracking-wider">NFT | RWA | IP</span>
-        </div>
+      <div className="space-y-2 pt-8">
+        
         <h1 className="text-3xl font-bold">Onchain Collections</h1>
         <div className="flex flex-wrap items-center gap-2 mt-1">
           {meta?.total != null && (

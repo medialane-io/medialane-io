@@ -13,13 +13,8 @@ export const metadata: Metadata = {
 export default function ActivitiesPage() {
   return (
     <PageContainer className="box-border max-w-full pt-14 pb-8 space-y-8">
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 text-primary">
-          <Activity className="h-5 w-5" />
-          <span className="text-sm font-semibold uppercase tracking-wider">Medialane</span>
-        </div>
-        <h1 className="text-3xl font-bold">Onchain Activity</h1>
-        <p className="text-muted-foreground">Mint, Markets, events, and more.</p>
+      <div className="space-y-2 pt-8">
+        <h1 className="text-3xl font-bold">Onchain Activity</h1>        
       </div>
       <ActivitiesFeed />
     </PageContainer>
