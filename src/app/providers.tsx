@@ -4,24 +4,32 @@ import { useEffect } from "react";
 import { ThemeProvider } from "next-themes";
 import { Toaster, toast } from "sonner";
 import Link from "next/link";
+import { Menu } from "lucide-react";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { CartDrawer } from "@/components/layout/cart-drawer";
-import { SidebarInset, SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { MedialaneLogo } from "@/components/brand/medialane-logo";
 import { SWRConfig } from "swr";
 import { ChipiSessionUnlockProvider } from "@/contexts/chipi-session-unlock-context";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { usePathname } from "next/navigation";
 import { GoogleAnalytics } from "@next/third-parties/google";
+import { NavCommandMenu, useNavCommandMenu } from "@medialane/ui";
+import { NAV_COMMANDS } from "@/lib/nav-commands";
 
 const GA_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID;
 
-function MobileIconTrigger() {
-  const { toggleSidebar } = useSidebar();
+function NavTrigger() {
+  const { open } = useNavCommandMenu();
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <button onClick={toggleSidebar} className="md:hidden flex items-center focus-visible:outline-none">
-      <img src="/icon.png" alt="Medialane" className="h-5 w-5 opacity-90" />
+    <button
+      onClick={open}
+      className="flex items-center gap-1.5 focus-visible:outline-none group"
+      aria-label="Open navigation"
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/icon.png" alt="Medialane" className="h-8 w-8 opacity-90 group-hover:opacity-100 transition-opacity" />
+      <Menu className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
     </button>
   );
 }
@@ -47,11 +55,11 @@ function MainShell({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider defaultOpen={false}>
       <ChipiSessionUnlockProvider>
+      <NavCommandMenu commands={NAV_COMMANDS} />
       <AppSidebar />
       <SidebarInset>
         <div className="absolute top-3 left-3 z-50 flex items-center gap-1.5">
-          <SidebarTrigger />
-          <MobileIconTrigger />
+          <NavTrigger />
         </div>
         {/* SessionPreferencesSwitch hidden — surfaced inside account/wallet settings instead */}
         <main className="min-w-0 flex-1 bg-background overflow-x-hidden">{children}</main>
