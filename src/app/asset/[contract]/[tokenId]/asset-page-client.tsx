@@ -26,7 +26,7 @@ export default function AssetPageClient() {
 
   if (tokenLoading || collectionLoading) {
     return (
-      <div className="container mx-auto px-4 pt-14 pb-8">
+      <div className="container mx-auto px-4 pb-8">
         <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] lg:gap-10 gap-8">
           <Skeleton className="aspect-[4/3] w-full rounded-2xl" />
           <div className="space-y-4">

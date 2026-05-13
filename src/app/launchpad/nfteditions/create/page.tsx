@@ -230,7 +230,7 @@ export default function CreateIP1155CollectionPage() {
         deployedAddress={deployedAddress}
       />
 
-      <div className="container max-w-2xl mx-auto px-4 pt-14 pb-8 space-y-8">
+      <div className="container max-w-2xl mx-auto px-4 pb-8 space-y-8">
         <LaunchpadPageIntro
           icon={Layers}
           badge="IP Collection · ERC-1155"

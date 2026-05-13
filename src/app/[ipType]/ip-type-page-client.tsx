@@ -118,7 +118,7 @@ export function IpTypePageClient({ slug }: IpTypePageClientProps) {
   const listedCount = allTokens.filter((t) => (t.activeOrders?.length ?? 0) > 0).length;
 
   return (
-    <div className="container mx-auto px-5 sm:px-8 lg:px-12 pt-12 pb-16 space-y-8">
+    <div className="container mx-auto px-5 sm:px-8 lg:px-12 pb-16 space-y-8">
       {/* Header */}
       <div className="space-y-4">
         <div className="flex items-start justify-between gap-4 flex-wrap">
