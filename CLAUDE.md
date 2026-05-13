@@ -5,11 +5,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-# Always use the full bun path — bun is not in PATH by default on this machine
-~/.bun/bin/bun dev          # Start dev server (Next.js 15, port 3000)
-~/.bun/bin/bun run build    # Production build (must pass clean before deploy)
-~/.bun/bin/bun start        # Start production server
-~/.bun/bin/bun lint         # Run ESLint
+# bun is not in PATH by default — use the full path
+/Users/kalamaha/.nvm/versions/node/v24.15.0/bin/bun dev          # Start dev server (Next.js 15, port 3000)
+/Users/kalamaha/.nvm/versions/node/v24.15.0/bin/bun run build    # Production build (must pass clean before deploy)
+/Users/kalamaha/.nvm/versions/node/v24.15.0/bin/bun start        # Start production server
+/Users/kalamaha/.nvm/versions/node/v24.15.0/bin/bun lint         # Run ESLint
 
 # No test runner is configured. Verify with the browser after changes.
 ```
@@ -117,7 +117,8 @@ When `MINT_CONTRACT` or `MINT_NFT_URI` are empty the CTA button is disabled.
 - Contract addresses & RPC URL: `src/lib/constants.ts`
 - Shared TypeScript types: `src/types/index.ts` + `@medialane/sdk`
 - Global CSS variables (HSL theme tokens): `src/app/globals.css`
-- App shell (sidebar, top bar, theme, toast): `src/app/providers.tsx`
+- App shell (nav canvas, theme, toast): `src/app/providers.tsx`
+- Navigation command definitions: `src/lib/nav-commands.ts`
 
 ## UI Conventions
 
@@ -185,29 +186,32 @@ No outstanding known bugs as of 2026-05-12.
 
 ## App Shell Architecture
 
-The app uses a **shadcn `sidebar-07` layout** as the global shell — no top `Header` component exists.
+The app uses a **full-width canvas layout** — no sidebar. Navigation is handled by `NavCommandMenu` from `@medialane/ui`.
 
 ```
 layout.tsx (server)
   └─ ClerkProvider > ChipiProvider
        └─ Providers (client) — src/app/providers.tsx
-            └─ ThemeProvider > SWRConfig (global onError → sonner toast) > SidebarProvider
-                 ├─ AppSidebar — src/components/layout/app-sidebar.tsx
-                 │    Brand logo + Platform nav (Marketplace/Collections/Portfolio/Launchpad/Activity) — /create removed from nav (redirects to /launchpad)
-                 │    + Clerk user (UserButton + name/email) in SidebarFooter
-                 │    collapsible="icon" — collapses to icons on desktop, Sheet on mobile
-                 └─ SidebarInset
-                      ├─ sticky h-12 top bar: SidebarTrigger + search + theme + cart + auth
-                      ├─ SessionExpiryBanner (fixed bottom-4 right-4, dismissible toast)
-                      └─ <main> — page content
-            (outside SidebarInset) CartDrawer + Toaster
+            └─ ThemeProvider > TooltipProvider > SWRConfig (global onError → sonner toast)
+                 └─ Shell (route-aware: MainShell | StandaloneShell)
+                      MainShell:
+                        ├─ ChipiSessionUnlockProvider
+                        ├─ NavCommandMenu (aurora canvas + cmdk palette, z-99–101)
+                        ├─ NavTrigger (absolute top-3 left-4 sm:left-6 lg:left-8)
+                        │    Medialane icon (h-8) + Menu icon → opens NavCommandMenu
+                        ├─ <main> — full-width page content
+                        └─ <footer> — links + logo
+                      StandaloneShell: plain flex-col (used for /br/*, /mint, /airdrop)
+            CartDrawer + Toaster (outside Shell)
 ```
 
 **Key rules:**
-- Never nest `SidebarProvider` inside a page — it's global in `providers.tsx`
-- `UserButton` from Clerk must NOT be wrapped in `SidebarMenuButton` (button-in-button → React error #130)
-- `SessionExpiryBanner` is a fixed bottom-4 right-4 dismissible toast. Dismissed state stored in sessionStorage key "session-banner-dismissed".
-- Marketplace filters are an inline horizontal toolbar (no sidebar) — Sort/Type/Currency chips
+- There is **no sidebar** — do not add `SidebarProvider` or `AppSidebar`.
+- All navigation is via `NavCommandMenu`. Add new routes to `src/lib/nav-commands.ts`.
+- `NavCommandMenu` is mounted once in `MainShell`. Any button anywhere can call `useNavCommandMenu().open()` to open it. `⌘K` also works.
+- Nav canvas uses aurora blob CSS classes from `@medialane/ui/styles` (`nav-canvas-aurora`, `nav-canvas-overlay`, `aurora-purple/blue/rose/orange`).
+- `NavTrigger` left offset uses `left-4 sm:left-6 lg:left-8` to align with page content padding (`px-4 sm:px-6 lg:px-8`).
+- Marketplace filters are an inline horizontal toolbar — Sort/Type/Currency chips.
 
 ---
 
@@ -229,8 +233,8 @@ layout.tsx (server)
 | `src/hooks/use-collections.ts` | `useCollections`, `useCollection`, `useCollectionTokens`, `useCollectionsByOwner` |
 | `src/hooks/use-user-collections.ts` | `useUserCollections(address)` — on-chain direct via starknet.js; returns `{ onChainId, contractAddress, name, symbol }[]`. Used by portfolio/collections and create/asset collection selector |
 | `src/app/globals.css` | HSL theme tokens, `.glass`, `.gradient-text` |
-| `src/app/providers.tsx` | Global shell: SidebarProvider + AppSidebar + SidebarInset + top bar |
-| `src/components/layout/app-sidebar.tsx` | Shadcn sidebar: brand, nav, Clerk user footer |
+| `src/app/providers.tsx` | Global shell: NavCommandMenu + NavTrigger + ChipiSessionUnlockProvider + footer |
+| `src/lib/nav-commands.ts` | `NAV_COMMANDS: NavCommandGroup[]` — all 39 nav canvas entries across 5 groups (Navigate, Create & Mint, Portfolio, Explore by type, Documentation) |
 | `src/components/layout/cart-drawer.tsx` | Cart as centered Dialog (not Sheet) — blurred backdrop, item thumbnails, batch checkout |
 | `src/components/shared/token-card.tsx` | **Unified modular asset card** — used on all pages; brand buttons; ownership-aware |
 | `src/components/creator/collection-carousel-row.tsx` | Horizontal drag carousel for creator profile — w-64 cards, CollectionCard cover |
