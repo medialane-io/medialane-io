@@ -55,7 +55,7 @@ function MainShell({ children }: { children: React.ReactNode }) {
     <ChipiSessionUnlockProvider>
       <NavCommandMenu commands={NAV_COMMANDS} accountSlot={<NavAccountPanel />} />
       <div className="relative min-h-screen flex flex-col bg-background">
-        <div className="absolute top-4 left-4 sm:left-6 lg:left-8 z-50 flex items-center gap-1.5">
+        <div className="fixed top-4 left-4 sm:left-6 lg:left-8 z-50 flex items-center gap-1.5">
           <NavTrigger />
         </div>
         <main className="min-w-0 flex-1 overflow-x-hidden">{children}</main>
