@@ -35,6 +35,10 @@ import { HelpIcon } from "@/components/ui/help-icon";
 import { AssetMarketsTab } from "./asset-markets-tab";
 import { AssetProvenanceTab } from "./asset-provenance-tab";
 import { AssetMarketplacePanel } from "./asset-marketplace-panel";
+import { useFullTokenData } from "@/hooks/use-full-token-data";
+import { useIsTransferable } from "@/hooks/use-is-transferable";
+import { ArchiveTokenDialog } from "@/components/asset/archive-token-dialog";
+import { Archive } from "lucide-react";
 import {
   AssetMarketplaceDialogs,
   useAssetMarketplaceDialogState,
@@ -88,9 +92,22 @@ export function AssetPageStandard() {
   } = useAssetMarketplaceDialogState();
   const [reportOpen, setReportOpen] = useState(false);
   const [commentOpen, setCommentOpen] = useState(false);
+  const [archiveOpen, setArchiveOpen] = useState(false);
 
   const { comments, total: commentTotal } = useComments(contract, tokenId);
   const { total: remixCount } = useTokenRemixes(contract, tokenId);
+
+  // Audited IPNft creation record — null for legacy / external contracts.
+  const { data: fullTokenData } = useFullTokenData({
+    ipNftAddress: contract,
+    tokenId: tokenId ? (() => { try { return BigInt(tokenId); } catch { return undefined; } })() : undefined,
+  });
+  // Transferability gate — only blocks when explicitly false (archived).
+  const { isTransferable } = useIsTransferable({
+    collectionId: collection?.collectionId ?? undefined,
+    tokenId,
+  });
+  const isArchived = isTransferable === false;
 
   // Listings = NFT in offer (ERC721 or ERC1155 — someone selling the token)
   const activeListings = listings.filter(
@@ -293,6 +310,7 @@ export function AssetPageStandard() {
               walletAddress={walletAddress}
               inCart={inCart}
               remixEnabled
+              isArchived={isArchived}
               onCancelClick={handleCancelClick}
               onAcceptBid={acceptOffer.handleAcceptClick}
               onOpenListing={() => setListOpen(true)}
@@ -302,6 +320,20 @@ export function AssetPageStandard() {
               onOpenOffer={() => setOfferOpen(true)}
               onOpenRemix={handleAutoRemix}
             />
+
+            {isOwner && collection?.collectionId && fullTokenData && !isArchived && (
+              <div className="flex justify-end">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs text-muted-foreground hover:text-foreground"
+                  onClick={() => setArchiveOpen(true)}
+                >
+                  <Archive className="h-3.5 w-3.5 mr-1.5" />
+                  Archive token
+                </Button>
+              </div>
+            )}
 
             {/* ERC-1155 ownership — shown after marketplace buttons */}
             {isERC1155 && token.balances && token.balances.length > 0 ? (
@@ -370,6 +402,8 @@ export function AssetPageStandard() {
               contract={contract}
               tokenId={tokenId}
               remixCount={remixCount}
+              originalCreator={fullTokenData?.originalCreator}
+              registeredAt={fullTokenData?.registeredAt}
             />
           </TabsContent>
 
@@ -418,6 +452,16 @@ export function AssetPageStandard() {
         acceptOfferHook={acceptOffer}
         onCancelListing={handleCancelClick}
       />
+
+      {collection?.collectionId && (
+        <ArchiveTokenDialog
+          collectionId={collection.collectionId}
+          tokenId={tokenId}
+          tokenName={name}
+          open={archiveOpen}
+          onOpenChange={setArchiveOpen}
+        />
+      )}
     </div>
   );
 }

@@ -12,7 +12,7 @@ import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddressDisplay } from "@/components/shared/address-display";
-import { ArrowLeft, Loader2, Flag, Inbox, Lock, Unlock, Play, FileText, Link2, Sparkles, Settings, ShoppingBag, Music, Radio } from "lucide-react";
+import { ArrowLeft, Loader2, Flag, Inbox, Lock, Unlock, Play, FileText, Link2, Sparkles, Settings, ShoppingBag, Music, Radio, UserRoundCog } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ReportDialog } from "@/components/report-dialog";
 import { ShareButton } from "@/components/shared/share-button";
@@ -20,6 +20,7 @@ import { TraitFilter } from "@/components/collection/trait-filter";
 import { SweepBar } from "@/components/collection/sweep-bar";
 import { GatedContentHero } from "@/components/collection/gated-content-hero";
 import { OwnerSetupPanel } from "@/components/collection/owner-setup-panel";
+import { TransferCollectionOwnershipDialog } from "@/components/collection/transfer-ownership-dialog";
 import { HiddenContentBanner } from "@/components/hidden-content-banner";
 import Image from "next/image";
 import { ipfsToHttp, formatDisplayPrice, cn, checkIsOwner } from "@/lib/utils";
@@ -231,6 +232,7 @@ function CollectionItems({ contract, activeListings }: { contract: string; activ
 export default function CollectionPageClient() {
   const { contract } = useParams<{ contract: string }>();
   const [reportOpen, setReportOpen] = useState(false);
+  const [ownershipTransferOpen, setOwnershipTransferOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("items");
   const [descExpanded, setDescExpanded] = useState(false);
   const [descClamped, setDescClamped] = useState(false);
@@ -500,10 +502,36 @@ export default function CollectionPageClient() {
       {/* ── Owner setup panel — visible only to collection owner ── */}
       {!colLoading && collection && walletAddress &&
         collection.owner?.toLowerCase() === walletAddress.toLowerCase() && (
-        <OwnerSetupPanel
-          contract={contract}
-          profile={profile ?? null}
-        />
+        <>
+          <OwnerSetupPanel
+            contract={contract}
+            profile={profile ?? null}
+          />
+          {/* Per-collection ownership handoff — audited MIP registry only.
+              Cutover gate avoids surfacing on legacy v2 collections. */}
+          {collection.collectionId &&
+            collection.standard === "ERC721" &&
+            collection.createdAt >= "2026-05-14" && (
+            <div className="px-4 sm:px-6 -mt-2 mb-4 flex justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setOwnershipTransferOpen(true)}
+                className="gap-2"
+              >
+                <UserRoundCog className="h-4 w-4" />
+                Transfer ownership
+              </Button>
+              <TransferCollectionOwnershipDialog
+                collectionId={collection.collectionId}
+                currentOwner={collection.owner!}
+                collectionName={collection.name}
+                open={ownershipTransferOpen}
+                onOpenChange={setOwnershipTransferOpen}
+              />
+            </div>
+          )}
+        </>
       )}
 
       {/* ── Tabs ── */}

@@ -3,6 +3,7 @@
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { PriceHistoryChart } from "@/components/asset/price-history-chart";
 import { RemixesTab } from "@/components/asset/remixes-tab";
+import { CreationRecord } from "@/components/asset/creation-record";
 import { formatDisplayPrice, timeAgo } from "@/lib/utils";
 import { EXPLORER_URL } from "@/lib/constants";
 import {
@@ -25,9 +26,18 @@ interface AssetProvenanceTabProps {
   contract: string;
   tokenId: string;
   remixCount: number;
+  originalCreator?: string;
+  registeredAt?: number;
 }
 
-export function AssetProvenanceTab({ history, contract, tokenId, remixCount }: AssetProvenanceTabProps) {
+export function AssetProvenanceTab({
+  history,
+  contract,
+  tokenId,
+  remixCount,
+  originalCreator,
+  registeredAt,
+}: AssetProvenanceTabProps) {
   const sales = history.filter((e) => e.type === "sale");
 
   const totalVolumeParts = sales.reduce<Record<string, { amount: number; currency: string }>>((acc, e) => {
@@ -65,6 +75,10 @@ export function AssetProvenanceTab({ history, contract, tokenId, remixCount }: A
           Contract <ExternalLink className="h-3 w-3" />
         </a>
       </div>
+
+      {originalCreator && registeredAt ? (
+        <CreationRecord originalCreator={originalCreator} registeredAt={registeredAt} />
+      ) : null}
 
       {/* Stats grid */}
       {history.length > 0 && (
