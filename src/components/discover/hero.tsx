@@ -19,9 +19,9 @@ export function Hero() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1, ease: EASE_OUT }}
       >
-        <span className="gradient-text">
+        <h1 className="text-3xl font-bold">
           <KineticWords text="Explore, share & trade" />
-        </span>
+        </h1>
       </motion.div>
 
       {/* Stats chips */}
