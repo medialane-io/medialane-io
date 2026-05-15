@@ -71,8 +71,6 @@ interface AssetMarketplacePanelProps {
   walletAddress?: string | null;
   inCart: boolean;
   remixEnabled?: boolean;
-  /** When true, list/offer/transfer CTAs are disabled with an archived tooltip. */
-  isArchived?: boolean;
   onCancelClick: (order: ApiOrder) => void;
   onAcceptBid: (order: ApiOrder) => void;
   onOpenListing: () => void;
@@ -94,7 +92,6 @@ export function AssetMarketplacePanel({
   walletAddress,
   inCart,
   remixEnabled = false,
-  isArchived = false,
   onCancelClick,
   onAcceptBid,
   onOpenListing,
@@ -148,7 +145,6 @@ export function AssetMarketplacePanel({
                   label="List"
                   icon={<Tag className="h-4 w-4" />}
                   onClick={onOpenListing}
-                  disabled={isArchived}
                   tone="blue"
                 />
 
@@ -156,7 +152,6 @@ export function AssetMarketplacePanel({
                   label="Transfer"
                   icon={<ArrowRightLeft className="h-4 w-4" />}
                   onClick={onOpenTransfer}
-                  disabled={isArchived}
                   tone="orange"
                 />
 
@@ -193,7 +188,6 @@ export function AssetMarketplacePanel({
                       label="Make offer"
                       icon={<HandCoins className="h-4 w-4" />}
                       onClick={onOpenOffer}
-                      disabled={isArchived}
                       tone="orange"
                     />
                   </div>
@@ -219,7 +213,6 @@ export function AssetMarketplacePanel({
                 label="Make offer"
                 icon={<HandCoins className="h-4 w-4" />}
                 onClick={onOpenOffer}
-                disabled={isArchived}
                 tone="orange"
               />
               {remixEnabled && onOpenRemix ? (
@@ -250,7 +243,6 @@ export function AssetMarketplacePanel({
                 label="List"
                 icon={<Tag className="h-4 w-4" />}
                 onClick={onOpenListing}
-                disabled={isArchived}
                 tone="transparent"
               />
               <ActionButton
@@ -275,7 +267,6 @@ export function AssetMarketplacePanel({
                 label="Make offer"
                 icon={<HandCoins className="h-4 w-4" />}
                 onClick={onOpenOffer}
-                disabled={isArchived}
                 tone="orange"
               />
               {remixEnabled && onOpenRemix ? (

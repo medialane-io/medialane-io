@@ -145,10 +145,7 @@ export function useSessionKey() {
               // Minting
               hash.getSelectorFromName("mint_item"),
               hash.getSelectorFromName("claim"),
-              // MIP-Collections v3 (audited): archive replaces burn,
-              // per-collection ownership handoff replaces global Ownable.
-              hash.getSelectorFromName("archive"),
-              hash.getSelectorFromName("batch_archive"),
+              // Per-collection ownership handoff on the MIP registry.
               hash.getSelectorFromName("transfer_collection_ownership"),
               // Launchpad
               hash.getSelectorFromName("create_drop"),
