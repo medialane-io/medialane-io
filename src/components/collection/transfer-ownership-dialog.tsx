@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { UserRoundCog, CheckCircle2 } from "lucide-react";
+import { UserRoundCog } from "lucide-react";
 import { Contract, cairo } from "starknet";
 import {
   Dialog,
@@ -12,7 +12,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { TxStatus } from "@/components/chipi/tx-status";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { useAuth } from "@clerk/nextjs";
 import { isWebAuthnSupported } from "@chipi-stack/nextjs";
@@ -21,11 +20,9 @@ import { IPCollectionABI } from "@medialane/sdk";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useMarketplaceActionFlow } from "@/hooks/use-marketplace-action-flow";
-import {
-  MarketplaceErrorState,
-  MarketplacePinStep,
-} from "@/components/marketplace/marketplace-dialog-primitives";
-import { EXPLORER_URL, COLLECTION_721_CONTRACT } from "@/lib/constants";
+import { MarketplacePinStep } from "@/components/marketplace/marketplace-dialog-primitives";
+import { TransactionDialogStates } from "@/components/marketplace/transaction-dialog-states";
+import { COLLECTION_721_CONTRACT } from "@/lib/constants";
 import { starknetProvider } from "@/lib/starknet";
 import { normalizeAddress } from "@/lib/utils";
 
@@ -129,9 +126,6 @@ export function TransferCollectionOwnershipDialog({
     if (!isSubmitting) onOpenChange(next);
   };
 
-  const isSuccess = status === "confirmed" && !error;
-  const isTerminalError = !isSubmitting && !!error && !!txHash;
-
   const submitForm = () => {
     if (!isValid || wouldNoop) return;
     setPendingValues({ newOwner: trimmed });
@@ -148,50 +142,29 @@ export function TransferCollectionOwnershipDialog({
           Transfer the on-chain owner of this collection. Existing tokens are unaffected.
         </DialogDescription>
 
-        {isSuccess ? (
-          <div className="flex flex-col items-center gap-5 p-6 py-8">
-            <div className="h-16 w-16 rounded-full bg-emerald-500/15 flex items-center justify-center">
-              <CheckCircle2 className="h-9 w-9 text-emerald-500" />
-            </div>
-            <div className="text-center space-y-1">
-              <p className="font-bold text-xl">Ownership transferred</p>
-              <p className="text-sm text-muted-foreground font-mono">
-                New owner: {trimmed.slice(0, 6)}…{trimmed.slice(-4)}
-              </p>
-            </div>
-            <Button
-              className="w-full"
-              onClick={() => {
-                onOpenChange(false);
-                onTransferred?.();
-              }}
-            >
-              Done
-            </Button>
-          </div>
-        ) : isTerminalError ? (
-          <MarketplaceErrorState
-            tokenImage={null}
-            name={collectionName ?? "Collection"}
-            title="Transfer failed"
-            description="The transaction was submitted, but ownership could not be transferred."
-            error={error}
-            txHash={txHash}
-            explorerUrl={EXPLORER_URL}
-            onRetry={() => reset()}
-            onDone={() => onOpenChange(false)}
-          />
-        ) : isSubmitting ? (
-          <div className="p-6">
-            <TxStatus
-              status={status}
-              txHash={txHash}
-              error={error}
-              statusMessage={statusMessage}
-            />
-          </div>
-        ) : step === "form" ? (
-          <div className="p-6 space-y-4">
+        <TransactionDialogStates
+          status={status}
+          statusMessage={statusMessage}
+          txHash={txHash}
+          error={error}
+          isSubmitting={isSubmitting}
+          successTitle="Ownership transferred"
+          successBody={
+            <span className="font-mono">
+              New owner: {trimmed.slice(0, 6)}…{trimmed.slice(-4)}
+            </span>
+          }
+          errorTitle="Transfer failed"
+          errorDescription="The transaction was submitted, but ownership could not be transferred."
+          errorAssetName={collectionName ?? "Collection"}
+          onRetry={() => reset()}
+          onDone={() => {
+            onOpenChange(false);
+            onTransferred?.();
+          }}
+        >
+          {step === "form" ? (
+            <div className="p-6 space-y-4">
             <div className="flex items-center gap-2">
               <UserRoundCog className="h-5 w-5" />
               <p className="font-bold text-lg">Transfer collection ownership</p>
@@ -258,7 +231,8 @@ export function TransferCollectionOwnershipDialog({
             isAuthenticatingPasskey={isAuthenticatingPasskey}
             onUsePasskey={handleUsePasskey}
           />
-        )}
+          )}
+        </TransactionDialogStates>
       </DialogContent>
       <WalletSetupDialog
         open={walletSetupOpen}

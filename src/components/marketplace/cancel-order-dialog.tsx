@@ -1,17 +1,15 @@
 "use client";
 
 import { useEffect } from "react";
-import { CheckCircle2, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { TxStatus } from "@/components/chipi/tx-status";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { useAuth } from "@clerk/nextjs";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { useMarketplaceActionFlow } from "@/hooks/use-marketplace-action-flow";
-import { MarketplaceErrorState, MarketplacePinStep } from "@/components/marketplace/marketplace-dialog-primitives";
-import { EXPLORER_URL } from "@/lib/constants";
+import { MarketplacePinStep } from "@/components/marketplace/marketplace-dialog-primitives";
+import { TransactionDialogStates } from "@/components/marketplace/transaction-dialog-states";
 import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import { useState } from "react";
 import { isWebAuthnSupported } from "@chipi-stack/nextjs";
@@ -140,9 +138,6 @@ export function CancelOrderDialog({
     if (!isProcessing) onOpenChange(v);
   };
 
-  const isSuccess = !isProcessing && txStatus === "confirmed" && !error;
-  const isTerminalError = !isProcessing && !!error && !!txHash;
-
   const resolvedName = order?.token?.name ?? tokenName ?? "Asset";
 
   return (
@@ -153,68 +148,32 @@ export function CancelOrderDialog({
           Enter your PIN to cancel this {resolvedVariant}. This action cannot be undone.
         </DialogDescription>
 
-        {/* ── Success ── */}
-        {isSuccess ? (
-          <div className="flex flex-col items-center gap-5 p-6 py-8">
-            <div className="h-16 w-16 rounded-full bg-emerald-500/15 flex items-center justify-center">
-              <CheckCircle2 className="h-9 w-9 text-emerald-500" />
-            </div>
-            {(order?.token?.image ?? tokenImage) && (
-              <div className="h-24 w-24 rounded-2xl overflow-hidden border border-border shadow-md">
-                <img
-                  src={ipfsToHttp(order?.token?.image ?? tokenImage!)}
-                  alt={resolvedName}
-                  className="h-full w-full object-cover"
-                />
-              </div>
-            )}
-            <div className="text-center space-y-1">
-              <p className="font-bold text-xl capitalize">{resolvedVariant} cancelled</p>
-              <p className="text-sm text-muted-foreground">
-                Your {resolvedVariant} for{" "}
-                <span className="font-medium text-foreground">{resolvedName}</span>{" "}
-                has been removed.
-              </p>
-            </div>
-            <Button
-              className="w-full"
-              onClick={() => { onOpenChange(false); onSuccess?.(); }}
-            >
-              Done
-            </Button>
-          </div>
-
-        ) : isTerminalError ? (
-          <MarketplaceErrorState
-            tokenImage={order?.token?.image ? ipfsToHttp(order.token.image) : tokenImage ?? null}
-            name={resolvedName}
-            title={`${resolvedVariant === "listing" ? "Listing" : "Offer"} cancellation failed`}
-            description={`The transaction was submitted, but this ${resolvedVariant} could not be cancelled.`}
-            error={error}
-            txHash={txHash}
-            explorerUrl={EXPLORER_URL}
-            onRetry={() => resetState()}
-            onDone={() => onOpenChange(false)}
-          />
-
-        ) : (isProcessing || txStatus === "confirming") ? (
-          /* ── Processing ── */
-          <div className="p-6">
-            <TxStatus
-              status={txStatus}
-              txHash={txHash}
-              error={error}
-              statusMessage={
-                txStatus === "submitting"
-                  ? `Submitting cancellation…`
-                  : "Confirming onchain…"
-              }
-            />
-          </div>
-
-        ) : (
-          /* ── PIN entry ── */
-          order && (
+        <TransactionDialogStates
+          status={txStatus}
+          statusMessage={
+            txStatus === "submitting" ? "Submitting cancellation…" : "Confirming onchain…"
+          }
+          txHash={txHash}
+          error={error}
+          isSubmitting={isProcessing || txStatus === "confirming"}
+          successTitle={`${resolvedVariant.charAt(0).toUpperCase()}${resolvedVariant.slice(1)} cancelled`}
+          successBody={
+            <>
+              Your {resolvedVariant} for{" "}
+              <span className="font-medium text-foreground">{resolvedName}</span>{" "}
+              has been removed.
+            </>
+          }
+          successImage={order?.token?.image ?? tokenImage ?? null}
+          successImageAlt={resolvedName}
+          errorTitle={`${resolvedVariant === "listing" ? "Listing" : "Offer"} cancellation failed`}
+          errorDescription={`The transaction was submitted, but this ${resolvedVariant} could not be cancelled.`}
+          errorAssetName={resolvedName}
+          errorAssetImage={order?.token?.image ? ipfsToHttp(order.token.image) : tokenImage ?? null}
+          onRetry={() => resetState()}
+          onDone={() => { onOpenChange(false); onSuccess?.(); }}
+        >
+          {order && (
             <div className="space-y-0">
               <TokenHero order={order} variant={resolvedVariant} tokenName={tokenName} tokenImage={tokenImage} />
               <MarketplacePinStep
@@ -242,8 +201,8 @@ export function CancelOrderDialog({
                 )}
               />
             </div>
-          )
-        )}
+          )}
+        </TransactionDialogStates>
 
       </DialogContent>
       <WalletSetupDialog
