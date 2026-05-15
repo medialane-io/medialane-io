@@ -2,7 +2,12 @@ import { Award, Package } from "lucide-react";
 import { BRAND } from "@/lib/brand";
 
 export type CollectionSource =
+  | "MEDIALANE_ERC721"
+  | "MEDIALANE_ERC1155"
+  | "EXTERNAL_ERC721"
+  | "EXTERNAL_ERC1155"
   | "MEDIALANE_REGISTRY"
+  | "ERC1155_FACTORY"
   | "EXTERNAL"
   | "PARTNERSHIP"
   | "IP_TICKET"

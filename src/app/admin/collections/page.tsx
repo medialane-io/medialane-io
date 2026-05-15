@@ -23,6 +23,10 @@ import type { AdminCollectionRecord } from "@/types/admin";
 const PAGE_SIZE = 20;
 
 const SOURCE_STYLE: Record<string, string> = {
+  MEDIALANE_ERC721:   "bg-blue-500/20 text-blue-400 border-blue-500/30",
+  MEDIALANE_ERC1155:  "bg-teal-500/20 text-teal-400 border-teal-500/30",
+  EXTERNAL_ERC721:    "bg-gray-500/20 text-gray-400 border-gray-500/30",
+  EXTERNAL_ERC1155:   "bg-slate-500/20 text-slate-400 border-slate-500/30",
   MEDIALANE_REGISTRY: "bg-blue-500/20 text-blue-400 border-blue-500/30",
   EXTERNAL:           "bg-gray-500/20 text-gray-400 border-gray-500/30",
   PARTNERSHIP:        "bg-purple-500/20 text-purple-400 border-purple-500/30",
@@ -44,6 +48,8 @@ const STANDARD_STYLE: Record<string, string> = {
   UNKNOWN: "bg-muted/50 text-muted-foreground",
 };
 const SOURCES = [
+  "MEDIALANE_ERC721", "MEDIALANE_ERC1155",
+  "EXTERNAL_ERC721", "EXTERNAL_ERC1155",
   "EXTERNAL", "PARTNERSHIP", "GAME",
   "IP_TICKET", "IP_CLUB", "MEDIALANE_REGISTRY",
   "POP_PROTOCOL", "COLLECTION_DROP",

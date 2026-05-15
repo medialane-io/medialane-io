@@ -413,7 +413,8 @@ export default function CollectionPageClient() {
             {/* Owner actions */}
             {walletAddress && collection.owner?.toLowerCase() === walletAddress.toLowerCase() && (
               <div className="flex items-center gap-2">
-                {collection.standard === "ERC1155" && (
+                {((collection.source as string) === "MEDIALANE_ERC1155" || (collection.source as string) === "ERC1155_FACTORY") &&
+                  collection.standard === "ERC1155" && (
                   <Link
                     href={`/launchpad/nfteditions/${contract}/mint`}
                     className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold text-white bg-fuchsia-600 hover:bg-fuchsia-700 transition-colors"

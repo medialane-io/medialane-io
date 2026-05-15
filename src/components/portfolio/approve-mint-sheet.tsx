@@ -37,9 +37,11 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
   const client = useMedialaneClient();
 
   const { collections } = useCollectionsByOwner(walletAddress ?? null);
-  // ERC-721 collections need collectionId (registry-enrolled); ERC-1155 only need contractAddress
+  // Only current Medialane mint protocols are eligible here.
   const eligibleCollections = collections.filter(
-    (c) => c.standard === "ERC1155" || c.collectionId != null
+    (c) =>
+      ((c.source as string) === "MEDIALANE_ERC1155" && c.standard === "ERC1155") ||
+      ((c.source as string) === "MEDIALANE_ERC721" && c.standard === "ERC721" && c.collectionId != null)
   );
 
   // "collection key" is collectionId for ERC-721, contractAddress for ERC-1155
