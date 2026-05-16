@@ -8,15 +8,18 @@ import { AssetPageStandard } from "./asset-page-standard";
 import { AssetPagePop } from "./asset-page-pop";
 import { AssetPageDrop } from "./asset-page-drop";
 import { AssetPageEdition } from "./asset-page-edition";
+import { getService } from "@medialane/sdk";
 
+// Registry-driven (05-service-model). External/unknown collections
+// (service null → getService undefined) fall back to standard.
 function detectAssetType(
-  source: string | undefined,
+  service: string | null | undefined,
   standard: string | undefined
-): "pop" | "drop" | "edition" | "standard" {
-  if (source === "POP_PROTOCOL") return "pop";
-  if (source === "COLLECTION_DROP") return "drop";
-  if (standard === "ERC1155") return "edition";
-  return "standard";
+): string {
+  return (
+    getService(service)?.uiVariant ??
+    (standard === "ERC1155" ? "edition" : "standard")
+  );
 }
 
 export default function AssetPageClient() {
@@ -40,7 +43,7 @@ export default function AssetPageClient() {
     );
   }
 
-  const assetType = detectAssetType(collection?.source, collection?.standard ?? token?.standard);
+  const assetType = detectAssetType(collection?.service, collection?.standard ?? token?.standard);
 
   if (assetType === "pop") return <AssetPagePop />;
   if (assetType === "drop") return <AssetPageDrop />;

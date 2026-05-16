@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { getService } from "@medialane/sdk";
 import { useAuth } from "@clerk/nextjs";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -40,8 +41,8 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
   // Only current Medialane mint protocols are eligible here.
   const eligibleCollections = collections.filter(
     (c) =>
-      ((c.source as string) === "MEDIALANE_ERC1155" && c.standard === "ERC1155") ||
-      ((c.source as string) === "MEDIALANE_ERC721" && c.standard === "ERC721" && c.collectionId != null)
+      getService(c.service)?.id === "mip-erc1155" ||
+      (getService(c.service)?.id === "mip-erc721" && c.collectionId != null)
   );
 
   // "collection key" is collectionId for ERC-721, contractAddress for ERC-1155

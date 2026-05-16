@@ -4,7 +4,7 @@ import { ShieldCheck, Tag, UserCircle2 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { IpTypeBadge } from "@/components/shared/ip-type-badge";
 import type { ApiToken } from "@medialane/sdk";
-import type { CollectionSource } from "@medialane/sdk";
+import { getService } from "@medialane/sdk";
 import { AssetPreviewStandard } from "./asset-preview-standard";
 import { AssetPreviewEdition } from "./asset-preview-edition";
 import { AssetPreviewPop } from "./asset-preview-pop";
@@ -143,17 +143,17 @@ export function PreviewActionList({ actions }: { actions: PreviewAction[] }) {
 }
 
 // ── Dispatch logic ────────────────────────────────────────────────────────────
-function pickVariant(serviceSource?: CollectionSource | string, standard?: string): "pop" | "drop" | "edition" | "standard" {
-  if (serviceSource === "POP_PROTOCOL") return "pop";
-  if (serviceSource === "COLLECTION_DROP") return "drop";
-  if (standard === "ERC1155") return "edition";
-  return "standard";
+function pickVariant(service?: string | null, standard?: string): string {
+  return (
+    getService(service)?.uiVariant ??
+    (standard === "ERC1155" ? "edition" : "standard")
+  );
 }
 
 // ── Dispatcher ────────────────────────────────────────────────────────────────
 interface AssetPreviewDialogProps {
   token: ApiToken;
-  serviceSource?: CollectionSource | string;
+  service?: string | null;
   isOwner?: boolean;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -164,7 +164,7 @@ interface AssetPreviewDialogProps {
 
 export function AssetPreviewDialog({
   token,
-  serviceSource,
+  service,
   isOwner = false,
   open,
   onOpenChange,
@@ -172,7 +172,7 @@ export function AssetPreviewDialog({
   onCancel,
   onTransfer,
 }: AssetPreviewDialogProps) {
-  const variant = pickVariant(serviceSource, token.standard);
+  const variant = pickVariant(service, token.standard);
 
   const sharedProps: AssetPreviewContentProps = {
     token,
