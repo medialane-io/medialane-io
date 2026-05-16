@@ -17,7 +17,8 @@ export type CollectionSource =
   | "COLLECTION_DROP";
 
 export interface ServiceConfig {
-  source: CollectionSource;
+  /** Canonical service id (01-core-model §III), e.g. "pop-protocol". */
+  serviceId: string;
   name: string;
   description: string;
   icon: React.ComponentType<{ className?: string }>;
@@ -35,9 +36,12 @@ export interface ServiceConfig {
   hasDetailAction: boolean;
 }
 
-export const SERVICE_REGISTRY: Partial<Record<CollectionSource, ServiceConfig>> = {
-  POP_PROTOCOL: {
-    source: "POP_PROTOCOL",
+// UI-presentation config keyed by canonical service id (complements the
+// SDK behavioral registry getService()). Re-keyed from the legacy source
+// enum during the service-model refactor (Phase 2C).
+export const SERVICE_REGISTRY: Record<string, ServiceConfig> = {
+  "pop-protocol": {
+    serviceId: "pop-protocol",
     name: "POP Protocol",
     description: "Soulbound proof-of-participation credential",
     icon: Award,
@@ -51,8 +55,8 @@ export const SERVICE_REGISTRY: Partial<Record<CollectionSource, ServiceConfig>> 
     launchpadHref: "/launchpad/pop",
     hasDetailAction: true,
   },
-  COLLECTION_DROP: {
-    source: "COLLECTION_DROP",
+  "drop-collection": {
+    serviceId: "drop-collection",
     name: "Collection Drop",
     description: "Limited edition timed release",
     icon: Package,
@@ -68,7 +72,8 @@ export const SERVICE_REGISTRY: Partial<Record<CollectionSource, ServiceConfig>> 
   },
 };
 
-export function getServiceConfig(source: string | null | undefined): ServiceConfig | null {
-  if (!source) return null;
-  return SERVICE_REGISTRY[source as CollectionSource] ?? null;
+/** Look up UI config by canonical service id (collection.service). */
+export function getServiceConfig(serviceId: string | null | undefined): ServiceConfig | null {
+  if (!serviceId) return null;
+  return SERVICE_REGISTRY[serviceId] ?? null;
 }

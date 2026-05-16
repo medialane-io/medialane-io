@@ -22,6 +22,14 @@ const SORT_OPTIONS: { label: string; value: CollectionSort }[] = [
   { label: "A → Z",      value: "name"    },
 ];
 
+// NOTE (service-model refactor 2C): this faceted filter intentionally stays
+// on the legacy `source` enum. Unlike client-side variant logic (cut over to
+// getService(collection.service)), this is a BACKEND query param
+// (/v1/collections?source=) and the backend has no `?service=` filter yet
+// (only `?source=`, CollectionSource-validated). Correct + safe during the
+// dual-write window. Migrates with the Phase 2D backend route work. Same
+// documented exception as use-collections/use-claims/use-drops/use-pop and
+// the launchpad source-query pages. Do NOT blind-swap to service.
 const SOURCE_TABS = [
   { label: "All",        value: undefined      },
   { label: "POP Events", value: "POP_PROTOCOL" },

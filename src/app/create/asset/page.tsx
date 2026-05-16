@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { getService } from "@medialane/sdk";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -298,7 +299,7 @@ export default function CreateAssetPage() {
   // Fetch user's current Medialane ERC-721 collections from the API.
   const { collections: allCollections, isLoading: collectionsLoading } = useCollectionsByOwner(walletAddress ?? null);
   const collections = allCollections.filter(
-    (c) => (c.source as string) === "MEDIALANE_ERC721" && c.standard === "ERC721" && c.collectionId != null
+    (c) => getService(c.service)?.id === "mip-erc721" && c.collectionId != null
   );
 
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);

@@ -21,7 +21,7 @@ import { OfferDialog } from "@/components/marketplace/offer-dialog";
 import { useCart } from "@/hooks/use-cart";
 import { cn, ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import type { RarityTier } from "@/lib/rarity";
-import type { ApiToken, CollectionSource } from "@medialane/sdk";
+import type { ApiToken } from "@medialane/sdk";
 
 const RARITY_STYLE: Record<RarityTier, { label: string; className: string } | null> = {
   legendary: { label: "Legendary", className: "bg-yellow-400/90 text-yellow-900" },
@@ -33,7 +33,6 @@ const RARITY_STYLE: Record<RarityTier, { label: string; className: string } | nu
 
 interface TokenCardProps {
   token: ApiToken;
-  serviceSource?: CollectionSource | string;
   isOwner?: boolean;
   rarityTier?: RarityTier;
   onList?: (token: ApiToken) => void;

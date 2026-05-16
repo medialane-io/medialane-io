@@ -28,7 +28,7 @@ import {
 import { submitRemixOffer, confirmSelfRemix } from "@/hooks/use-remix-offers";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { serializeByteArray, encodeU256 } from "@/lib/cairo-calldata";
-import { getListableTokens, getTokenBySymbol } from "@medialane/sdk";
+import { getListableTokens, getTokenBySymbol, getService } from "@medialane/sdk";
 import { IP_TYPES, LICENSE_TYPES, type IPType } from "@/types/ip";
 import { ipfsToHttp, formatDisplayPrice, checkIsOwner } from "@/lib/utils";
 import { INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
@@ -104,8 +104,8 @@ export default function CreateRemixPage() {
   // Only current Medialane mint protocols are eligible here.
   const eligibleCollections = allCollections.filter(
     (c) =>
-      ((c.source as string) === "MEDIALANE_ERC1155" && c.standard === "ERC1155") ||
-      ((c.source as string) === "MEDIALANE_ERC721" && c.standard === "ERC721" && c.collectionId != null)
+      getService(c.service)?.id === "mip-erc1155" ||
+      (getService(c.service)?.id === "mip-erc721" && c.collectionId != null)
   );
 
   const isOwner = checkIsOwner(token, walletAddress);
