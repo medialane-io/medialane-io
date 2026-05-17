@@ -14,7 +14,7 @@ export function usePopCollections() {
   const { data, error, isLoading, mutate } = useSWR<{ data: ApiCollection[]; meta: any }>(
     "pop-collections",
     async () => {
-      const params = new URLSearchParams({ source: "POP_PROTOCOL", hideEmpty: "false", limit: "50" });
+      const params = new URLSearchParams({ service: "pop-protocol", hideEmpty: "false", limit: "50" });
       const url = `${MEDIALANE_BACKEND_URL.replace(/\/$/, "")}/v1/collections?${params}`;
       const headers: Record<string, string> = { "Content-Type": "application/json" };
       if (MEDIALANE_API_KEY) headers["x-api-key"] = MEDIALANE_API_KEY;

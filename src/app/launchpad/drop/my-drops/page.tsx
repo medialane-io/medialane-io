@@ -18,7 +18,7 @@ function useMyDrops(ownerAddress: string | null) {
     ownerAddress ? `my-drops-${ownerAddress}` : null,
     async () => {
       const params = new URLSearchParams({
-        source: "COLLECTION_DROP",
+        service: "drop-collection",
         owner: ownerAddress!,
         limit: "50",
       });

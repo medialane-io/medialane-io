@@ -45,7 +45,7 @@ export function useDropCollections() {
   const { data, error, isLoading, mutate } = useSWR<{ data: ApiCollection[]; meta: any }>(
     "drop-collections",
     async () => {
-      const params = new URLSearchParams({ source: "COLLECTION_DROP", hideEmpty: "false", limit: "50" });
+      const params = new URLSearchParams({ service: "drop-collection", hideEmpty: "false", limit: "50" });
       const url = `${MEDIALANE_BACKEND_URL.replace(/\/$/, "")}/v1/collections?${params}`;
       const headers: Record<string, string> = { "Content-Type": "application/json" };
       if (MEDIALANE_API_KEY) headers["x-api-key"] = MEDIALANE_API_KEY;
