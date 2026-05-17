@@ -18,7 +18,7 @@ function useMyEvents(ownerAddress: string | null) {
     ownerAddress ? `my-events-${ownerAddress}` : null,
     async () => {
       const params = new URLSearchParams({
-        source: "POP_PROTOCOL",
+        service: "pop-protocol",
         owner: ownerAddress!,
         limit: "50",
       });

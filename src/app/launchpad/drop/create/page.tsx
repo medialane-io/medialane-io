@@ -167,7 +167,7 @@ export default function CreateDropPage() {
       await new Promise((r) => setTimeout(r, 3000));
       try {
         const res = await fetch(
-          `${base}/v1/collections?source=COLLECTION_DROP&owner=${ownerAddress}&sort=recent&limit=1`,
+          `${base}/v1/collections?service=drop-collection&owner=${ownerAddress}&sort=recent&limit=1`,
           { headers }
         );
         const json = await res.json();

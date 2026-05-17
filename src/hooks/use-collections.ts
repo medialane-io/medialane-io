@@ -2,7 +2,7 @@
 
 import useSWR from "swr";
 import { useMedialaneClient } from "./use-medialane-client";
-import type { ApiCollection, ApiResponse, CollectionSource } from "@medialane/sdk";
+import type { ApiCollection, ApiResponse } from "@medialane/sdk";
 import { queryKeys } from "@/lib/query-keys";
 
 export type CollectionSort = "recent" | "supply" | "floor" | "volume" | "name";
@@ -13,15 +13,15 @@ export function useCollections(
   isFeatured?: boolean,
   sort: CollectionSort = "recent",
   hideEmpty = true,
-  source?: CollectionSource
+  service?: string
 ) {
   const client = useMedialaneClient();
-  const key = queryKeys.collections(page, limit, isFeatured, sort, hideEmpty, source);
+  const key = queryKeys.collections(page, limit, isFeatured, sort, hideEmpty, service);
 
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<ApiCollection[]>>(
     key,
     async () => {
-      const res = await client.api.getCollections(page, limit, isFeatured, sort, source);
+      const res = await client.api.getCollections(page, limit, isFeatured, sort, undefined, service);
       return hideEmpty
         ? { ...res, data: res.data.filter((collection) => (collection.totalSupply ?? 0) > 0) }
         : res;

@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Layers, Loader2, BadgeCheck, Eye, SlidersHorizontal, Award, Sparkles } from "lucide-react";
 import { HelpIcon } from "@/components/ui/help-icon";
 import { cn } from "@/lib/utils";
-import type { ApiCollection, CollectionSource } from "@medialane/sdk";
+import type { ApiCollection } from "@medialane/sdk";
 import { PageContainer } from "@medialane/ui";
 
 const PAGE_SIZE = 18;
@@ -22,17 +22,10 @@ const SORT_OPTIONS: { label: string; value: CollectionSort }[] = [
   { label: "A → Z",      value: "name"    },
 ];
 
-// NOTE (service-model refactor 2C): this faceted filter intentionally stays
-// on the legacy `source` enum. Unlike client-side variant logic (cut over to
-// getService(collection.service)), this is a BACKEND query param
-// (/v1/collections?source=) and the backend has no `?service=` filter yet
-// (only `?source=`, CollectionSource-validated). Correct + safe during the
-// dual-write window. Migrates with the Phase 2D backend route work. Same
-// documented exception as use-collections/use-claims/use-drops/use-pop and
-// the launchpad source-query pages. Do NOT blind-swap to service.
-const SOURCE_TABS = [
-  { label: "All",        value: undefined      },
-  { label: "POP Events", value: "POP_PROTOCOL" },
+// Faceted service filter — backend /v1/collections?service= (Phase 2D).
+const SERVICE_TABS = [
+  { label: "All",        value: undefined    },
+  { label: "POP Events", value: "pop-protocol" },
 ] as const;
 
 export default function CollectionsPageClient() {
@@ -41,7 +34,7 @@ export default function CollectionsPageClient() {
   const [featured, setFeatured]   = useState(false);
   const [hideEmpty, setHideEmpty] = useState(true);
   const [exclusive, setExclusive] = useState(false);
-  const [source, setSource]       = useState<CollectionSource | undefined>(undefined);
+  const [service, setService]     = useState<string | undefined>(undefined);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [page, setPage]           = useState(1);
   const [allCollections, setAllCollections] = useState<ApiCollection[]>([]);
@@ -51,20 +44,20 @@ export default function CollectionsPageClient() {
     PAGE_SIZE,
     featured ? true : undefined,
     sort,
-    source === "POP_PROTOCOL" ? false : hideEmpty,
-    source
+    service === "pop-protocol" ? false : hideEmpty,
+    service
   );
 
   // Reset accumulated list whenever filters change
-  const prevFilters = useRef({ sort, featured, hideEmpty, source });
+  const prevFilters = useRef({ sort, featured, hideEmpty, service });
   useEffect(() => {
     const f = prevFilters.current;
-    if (f.sort !== sort || f.featured !== featured || f.hideEmpty !== hideEmpty || f.source !== source) {
-      prevFilters.current = { sort, featured, hideEmpty, source };
+    if (f.sort !== sort || f.featured !== featured || f.hideEmpty !== hideEmpty || f.service !== service) {
+      prevFilters.current = { sort, featured, hideEmpty, service };
       setPage(1);
       setAllCollections([]);
     }
-  }, [sort, featured, hideEmpty, source]);
+  }, [sort, featured, hideEmpty, service]);
 
   // Append new page to accumulated list
   useEffect(() => {
@@ -92,8 +85,8 @@ export default function CollectionsPageClient() {
     setExclusive(false);
   };
 
-  const handleSourceChange = (val: CollectionSource | undefined) => {
-    setSource(val);
+  const handleServiceChange = (val: string | undefined) => {
+    setService(val);
   };
 
   return (
@@ -131,26 +124,26 @@ export default function CollectionsPageClient() {
           onClick={() => setFiltersOpen(true)}
           className={cn(
             "relative flex items-center gap-1.5 h-9 px-3 rounded-lg border text-xs font-medium transition-colors",
-            activeFilters > 0 || source !== undefined
+            activeFilters > 0 || service !== undefined
               ? "border-primary bg-primary/10 text-primary"
               : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
           )}
         >
           <SlidersHorizontal className="h-3.5 w-3.5" />
           Filters
-          {(activeFilters > 0 || source !== undefined) && (
+          {(activeFilters > 0 || service !== undefined) && (
             <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
-              {activeFilters + (source !== undefined ? 1 : 0)}
+              {activeFilters + (service !== undefined ? 1 : 0)}
             </span>
           )}
         </button>
 
         {/* Active filter pills — quick-clear */}
-        {source !== undefined && (
+        {service !== undefined && (
           <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border border-primary/40 bg-primary/10 text-primary">
             <Award className="h-3 w-3" />
             POP Events
-            <button onClick={() => setSource(undefined)} className="ml-0.5 hover:text-primary/60">×</button>
+            <button onClick={() => setService(undefined)} className="ml-0.5 hover:text-primary/60">×</button>
           </span>
         )}
         {sort !== "recent" && (
@@ -190,8 +183,8 @@ export default function CollectionsPageClient() {
               <SlidersHorizontal className="h-4 w-4 text-primary" />
               Filters
             </DialogTitle>
-            {(activeFilters > 0 || source !== undefined) && (
-              <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground" onClick={() => { resetAll(); setSource(undefined); }}>
+            {(activeFilters > 0 || service !== undefined) && (
+              <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground" onClick={() => { resetAll(); setService(undefined); }}>
                 Clear all
               </Button>
             )}
@@ -204,18 +197,18 @@ export default function CollectionsPageClient() {
             <div className="space-y-2">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Source</p>
               <div className="flex flex-wrap gap-1.5">
-                {SOURCE_TABS.map(({ label, value }) => (
+                {SERVICE_TABS.map(({ label, value }) => (
                   <button
                     key={label}
-                    onClick={() => handleSourceChange(value)}
+                    onClick={() => handleServiceChange(value)}
                     className={cn(
                       "flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-colors whitespace-nowrap",
-                      source === value
+                      service === value
                         ? "border-primary bg-primary/10 text-primary font-medium"
                         : "border-border text-muted-foreground hover:border-primary/50"
                     )}
                   >
-                    {value === "POP_PROTOCOL" && <Award className="h-3 w-3" />}
+                    {value === "pop-protocol" && <Award className="h-3 w-3" />}
                     {label}
                   </button>
                 ))}
