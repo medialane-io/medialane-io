@@ -22,20 +22,15 @@ import type { AdminCollectionRecord } from "@/types/admin";
 
 const PAGE_SIZE = 20;
 
-const SOURCE_STYLE: Record<string, string> = {
-  MEDIALANE_ERC721:   "bg-blue-500/20 text-blue-400 border-blue-500/30",
-  MEDIALANE_ERC1155:  "bg-teal-500/20 text-teal-400 border-teal-500/30",
-  EXTERNAL_ERC721:    "bg-gray-500/20 text-gray-400 border-gray-500/30",
-  EXTERNAL_ERC1155:   "bg-slate-500/20 text-slate-400 border-slate-500/30",
-  MEDIALANE_REGISTRY: "bg-blue-500/20 text-blue-400 border-blue-500/30",
-  EXTERNAL:           "bg-gray-500/20 text-gray-400 border-gray-500/30",
-  PARTNERSHIP:        "bg-purple-500/20 text-purple-400 border-purple-500/30",
-  GAME:               "bg-green-500/20 text-green-400 border-green-500/30",
-  IP_TICKET:          "bg-orange-500/20 text-orange-400 border-orange-500/30",
-  IP_CLUB:            "bg-pink-500/20 text-pink-400 border-pink-500/30",
-  POP_PROTOCOL:       "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
-  COLLECTION_DROP:    "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+const SERVICE_STYLE: Record<string, string> = {
+  "mip-erc721":      "bg-blue-500/20 text-blue-400 border-blue-500/30",
+  "mip-erc1155":     "bg-teal-500/20 text-teal-400 border-teal-500/30",
+  "pop-protocol":    "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
+  "drop-collection": "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
 };
+const SERVICE_FALLBACK = "bg-gray-500/20 text-gray-400 border-gray-500/30";
+const serviceStyle = (s?: string | null) => SERVICE_STYLE[s ?? ""] ?? SERVICE_FALLBACK;
+const serviceLabel = (s?: string | null) => s ?? "external";
 const STATUS_STYLE: Record<string, string> = {
   FETCHED:  "bg-green-500/20 text-green-400 border-green-500/30",
   PENDING:  "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
@@ -47,13 +42,7 @@ const STANDARD_STYLE: Record<string, string> = {
   ERC1155: "bg-teal-500/20 text-teal-400 border-teal-500/30",
   UNKNOWN: "bg-muted/50 text-muted-foreground",
 };
-const SOURCES = [
-  "MEDIALANE_ERC721", "MEDIALANE_ERC1155",
-  "EXTERNAL_ERC721", "EXTERNAL_ERC1155",
-  "EXTERNAL", "PARTNERSHIP", "GAME",
-  "IP_TICKET", "IP_CLUB", "MEDIALANE_REGISTRY",
-  "POP_PROTOCOL", "COLLECTION_DROP",
-];
+const SERVICES = ["mip-erc721", "mip-erc1155", "pop-protocol", "drop-collection"];
 
 // ── Admin proxy helper ───────────────────────────────────────────────────────
 async function adminFetch(path: string, opts: RequestInit = {}) {
@@ -67,14 +56,14 @@ async function adminFetch(path: string, opts: RequestInit = {}) {
 // ── Collection thumbnail ─────────────────────────────────────────────────────
 function CollectionThumb({ col }: { col: AdminCollectionRecord }) {
   const src = col.image ? ipfsToHttp(col.image) : null;
-  const srcStyle = SOURCE_STYLE[col.source] ?? SOURCE_STYLE.EXTERNAL;
+  const srcStyle = serviceStyle(col.service);
   return (
     <div className="relative h-12 w-12 rounded-lg overflow-hidden shrink-0 border border-border bg-muted">
       {src ? (
         <img src={src} alt={col.name ?? ""} className="h-full w-full object-cover" />
       ) : (
         <div className={`h-full w-full flex items-center justify-center text-[10px] font-bold uppercase ${srcStyle}`}>
-          {(col.name ?? col.source).slice(0, 2)}
+          {(col.name ?? serviceLabel(col.service)).slice(0, 2)}
         </div>
       )}
     </div>
@@ -103,7 +92,7 @@ export default function AdminCollectionsPage() {
   // Filters
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [sourceFilter, setSourceFilter] = useState("");
+  const [serviceFilter, setServiceFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [featuredOnly, setFeaturedOnly] = useState(false);
   const [showHidden, setShowHidden] = useState(false);
@@ -113,7 +102,7 @@ export default function AdminCollectionsPage() {
 
   const { collections, total, isLoading, mutate } = useAdminCollections({
     search: debouncedSearch,
-    source: sourceFilter || undefined,
+    service: serviceFilter || undefined,
     metadataStatus: statusFilter || undefined,
     isFeatured: featuredOnly ? true : undefined,
     isHidden: showHidden ? true : undefined,
@@ -135,7 +124,7 @@ export default function AdminCollectionsPage() {
   function resetFilters() {
     setSearch("");
     setDebouncedSearch("");
-    setSourceFilter("");
+    setServiceFilter("");
     setStatusFilter("");
     setFeaturedOnly(false);
     setShowHidden(false);
@@ -145,7 +134,6 @@ export default function AdminCollectionsPage() {
   // ── Register dialog ───────────────────────────────────────────────────────
   const [registerOpen, setRegisterOpen] = useState(false);
   const [registerContract, setRegisterContract] = useState("");
-  const [registerSource, setRegisterSource] = useState("EXTERNAL");
   const [registerStartBlock, setRegisterStartBlock] = useState("");
   const [registering, setRegistering] = useState(false);
 
@@ -153,7 +141,7 @@ export default function AdminCollectionsPage() {
     if (!registerContract.trim()) return;
     setRegistering(true);
     try {
-      const body: Record<string, unknown> = { contractAddress: registerContract.trim(), source: registerSource };
+      const body: Record<string, unknown> = { contractAddress: registerContract.trim() };
       if (registerStartBlock.trim()) body.startBlock = parseInt(registerStartBlock.trim(), 10);
       const res = await adminFetch("/admin/collections", { method: "POST", body: JSON.stringify(body) });
       if (!res.ok) throw new Error();
@@ -161,7 +149,6 @@ export default function AdminCollectionsPage() {
       setRegisterOpen(false);
       setRegisterContract("");
       setRegisterStartBlock("");
-      setRegisterSource("EXTERNAL");
       await mutate();
     } catch { toast.error("Registration failed"); }
     finally { setRegistering(false); }
@@ -197,15 +184,15 @@ export default function AdminCollectionsPage() {
     } finally { setBackfilling(false); }
   }
 
-  // ── Edit source dialog ────────────────────────────────────────────────────
+  // ── Edit service dialog ────────────────────────────────────────────────────
   const [editOpen, setEditOpen] = useState(false);
   const [editCol, setEditCol] = useState<AdminCollectionRecord | null>(null);
-  const [editSource, setEditSource] = useState("");
+  const [editService, setEditService] = useState("");
   const [saving, setSaving] = useState(false);
 
   function openEdit(col: AdminCollectionRecord) {
     setEditCol(col);
-    setEditSource(col.source);
+    setEditService(col.service ?? "");
     setEditOpen(true);
   }
 
@@ -215,7 +202,7 @@ export default function AdminCollectionsPage() {
     try {
       const res = await adminFetch(`/admin/collections/${editCol.contractAddress}`, {
         method: "PATCH",
-        body: JSON.stringify({ source: editSource }),
+        body: JSON.stringify({ service: editService }),
       });
       if (!res.ok) throw new Error();
       toast.success("Collection updated");
@@ -283,7 +270,7 @@ export default function AdminCollectionsPage() {
     } catch { toast.error("Failed to update"); }
   }
 
-  const hasFilters = !!(debouncedSearch || sourceFilter || statusFilter || featuredOnly || showHidden);
+  const hasFilters = !!(debouncedSearch || serviceFilter || statusFilter || featuredOnly || showHidden);
 
   return (
     <div className="space-y-4">
@@ -313,13 +300,13 @@ export default function AdminCollectionsPage() {
           />
         </div>
 
-        <Select value={sourceFilter} onValueChange={(v) => { setSourceFilter(v === "ALL" ? "" : v); setPage(1); }}>
+        <Select value={serviceFilter} onValueChange={(v) => { setServiceFilter(v === "ALL" ? "" : v); setPage(1); }}>
           <SelectTrigger className="w-44">
-            <SelectValue placeholder="All sources" />
+            <SelectValue placeholder="All services" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="ALL">All sources</SelectItem>
-            {SOURCES.map(s => <SelectItem key={s} value={s}>{s.replace(/_/g, " ")}</SelectItem>)}
+            <SelectItem value="ALL">All services</SelectItem>
+            {SERVICES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
           </SelectContent>
         </Select>
 
@@ -435,15 +422,6 @@ export default function AdminCollectionsPage() {
               <Input placeholder="0x…" value={registerContract} onChange={(e) => setRegisterContract(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Source</Label>
-              <Select value={registerSource} onValueChange={setRegisterSource}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {SOURCES.map(s => <SelectItem key={s} value={s}>{s.replace(/_/g, " ")}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
               <Label>Start Block <span className="text-muted-foreground font-normal">(optional)</span></Label>
               <Input
                 type="number"
@@ -498,7 +476,7 @@ export default function AdminCollectionsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* ── Edit source dialog ────────────────────────────────────────────── */}
+      {/* ── Edit service dialog ────────────────────────────────────────────── */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
@@ -507,11 +485,11 @@ export default function AdminCollectionsPage() {
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label>Source</Label>
-              <Select value={editSource} onValueChange={setEditSource}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Label>Service</Label>
+              <Select value={editService} onValueChange={setEditService}>
+                <SelectTrigger><SelectValue placeholder="(external / none)" /></SelectTrigger>
                 <SelectContent>
-                  {SOURCES.map(s => <SelectItem key={s} value={s}>{s.replace(/_/g, " ")}</SelectItem>)}
+                  {SERVICES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -594,8 +572,8 @@ function CollectionRow({
         <p className="text-xs text-muted-foreground font-mono truncate">{col.contractAddress}</p>
 
         <div className="flex items-center gap-1.5 flex-wrap">
-          <Badge variant="outline" className={`text-[10px] px-1.5 py-0 h-4 ${SOURCE_STYLE[col.source] ?? SOURCE_STYLE.EXTERNAL}`}>
-            {col.source.replace(/_/g, " ")}
+          <Badge variant="outline" className={`text-[10px] px-1.5 py-0 h-4 ${serviceStyle(col.service)}`}>
+            {serviceLabel(col.service)}
           </Badge>
           <Badge variant="outline" className={`text-[10px] px-1.5 py-0 h-4 ${STATUS_STYLE[col.metadataStatus]}`}>
             {col.metadataStatus}

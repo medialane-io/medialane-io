@@ -25,7 +25,7 @@ const METHOD_STYLE: Record<string, string> = {
   SIGNATURE: "bg-purple-500/20 text-purple-400 border-purple-500/30",
   MANUAL:    "bg-orange-500/20 text-orange-400 border-orange-500/30",
 };
-const SOURCES = ["EXTERNAL", "PARTNERSHIP", "GAME", "IP_TICKET", "IP_CLUB", "MEDIALANE_REGISTRY"];
+const SERVICES = ["mip-erc721", "mip-erc1155", "pop-protocol", "drop-collection"];
 const FILTERS = ["", "PENDING", "APPROVED", "REJECTED"];
 
 // ─── Collection Claims ────────────────────────────────────────────────────────
@@ -35,7 +35,7 @@ function CollectionClaimsTab() {
   const { claims, total, isLoading, mutate } = useAdminClaims(statusFilter || undefined);
   const [selected, setSelected] = useState<AdminCollectionClaimRecord | null>(null);
   const [adminNotes, setAdminNotes] = useState("");
-  const [source, setSource] = useState("EXTERNAL");
+  const [service, setService] = useState("");
   const [processing, setProcessing] = useState(false);
 
   async function handleAction(status: "APPROVED" | "REJECTED") {
@@ -45,7 +45,7 @@ function CollectionClaimsTab() {
       const res = await fetch(`/api/admin/claims/${selected.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status, adminNotes, ...(status === "APPROVED" ? { source } : {}) }),
+        body: JSON.stringify({ status, adminNotes, ...(status === "APPROVED" && service ? { service } : {}) }),
       });
       if (!res.ok) throw new Error();
       toast.success(status === "APPROVED" ? "Claim approved" : "Claim rejected");
@@ -84,7 +84,7 @@ function CollectionClaimsTab() {
                 <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(claim.createdAt), { addSuffix: true })}</p>
               </div>
               {claim.status === "PENDING" && (
-                <Button size="sm" variant="outline" onClick={() => { setSelected(claim); setAdminNotes(""); setSource("EXTERNAL"); }}>Review</Button>
+                <Button size="sm" variant="outline" onClick={() => { setSelected(claim); setAdminNotes(""); setService(""); }}>Review</Button>
               )}
             </div>
           ))}
@@ -100,10 +100,10 @@ function CollectionClaimsTab() {
             {selected?.claimantEmail && <p className="text-muted-foreground">{selected.claimantEmail}</p>}
             {selected?.notes && <p className="italic text-foreground/70">&ldquo;{selected.notes}&rdquo;</p>}
             <div className="space-y-1">
-              <p className="font-medium text-xs uppercase text-muted-foreground">Source (on approve)</p>
-              <Select value={source} onValueChange={setSource}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{SOURCES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+              <p className="font-medium text-xs uppercase text-muted-foreground">Service (on approve)</p>
+              <Select value={service} onValueChange={setService}>
+                <SelectTrigger><SelectValue placeholder="(external / none)" /></SelectTrigger>
+                <SelectContent>{SERVICES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <Textarea placeholder="Admin notes (optional)…" value={adminNotes} onChange={(e) => setAdminNotes(e.target.value)} rows={2} />
