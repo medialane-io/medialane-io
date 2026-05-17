@@ -21,6 +21,17 @@ function adminPost(path: string, body?: unknown) {
   });
 }
 
+function adminGet(path: string) {
+  return fetch(path.replace(/^\/admin\//, "/api/admin/"), { cache: "no-store" });
+}
+
+interface ServiceCoverage {
+  missingService: number;
+  safeToDropSourceColumn: boolean;
+  byService: { service: string | null; count: number }[];
+  sampleMissing: { contractAddress: string; source: string | null }[];
+}
+
 export default function AdminMaintenancePage() {
   const [health, setHealth]                   = useState<any>(null);
   const [healthLoading, setHealthLoading]     = useState(true);
@@ -32,6 +43,8 @@ export default function AdminMaintenancePage() {
   const [transferFromBlock, setTransferFromBlock] = useState("");
   const [transferRunning, setTransferRunning] = useState(false);
   const [transferResult, setTransferResult]   = useState<{ inserted: number; skipped: number; metadataJobsEnqueued: number } | null>(null);
+  const [coverage, setCoverage]               = useState<ServiceCoverage | null>(null);
+  const [coverageLoading, setCoverageLoading] = useState(false);
 
   const fetchHealth = useCallback(async () => {
     try {
@@ -97,6 +110,19 @@ export default function AdminMaintenancePage() {
     finally { setTransferRunning(false); }
   }
 
+  async function checkCoverage() {
+    setCoverageLoading(true);
+    try {
+      const res = await adminGet("/admin/collections/service-coverage");
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setCoverage(data.data as ServiceCoverage);
+      if (data.data.safeToDropSourceColumn) toast.success("Safe to drop source column — missingService = 0");
+      else toast.error(`${data.data.missingService} collection(s) still missing a service`);
+    } catch { toast.error("Coverage check failed"); }
+    finally { setCoverageLoading(false); }
+  }
+
   const lagBlocks = health?.indexer?.lagBlocks ?? null;
   const lagColor = lagBlocks === null ? "text-muted-foreground"
     : lagBlocks > 100 ? "text-destructive"
@@ -151,6 +177,38 @@ export default function AdminMaintenancePage() {
       {/* Operations */}
       <div className="space-y-3">
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Operations</h2>
+
+        {/* Service Coverage — 2D.4 migration gate */}
+        <div className="glass rounded-xl p-5 flex items-start justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <GitMerge className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+            <div>
+              <p className="font-semibold text-sm">Service Coverage</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Migration readiness for dropping the legacy <code>source</code> column.
+                <code>missingService</code> must be <strong>0</strong> before the irreversible drop.
+              </p>
+              {coverage && (
+                <div className="text-xs mt-1 space-y-0.5">
+                  <p className={coverage.safeToDropSourceColumn ? "text-green-500 font-medium" : "text-destructive font-medium"}>
+                    {coverage.safeToDropSourceColumn ? "✓ Safe to drop" : "✗ Not safe"} — missingService = {coverage.missingService}
+                  </p>
+                  <p className="text-muted-foreground">
+                    {coverage.byService.map(b => `${b.service ?? "∅"}: ${b.count}`).join("  ·  ")}
+                  </p>
+                  {coverage.sampleMissing.length > 0 && (
+                    <p className="text-destructive/80 font-mono break-all">
+                      {coverage.sampleMissing.map(s => `${s.contractAddress.slice(0, 10)}…(${s.source ?? "null"})`).join(", ")}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+          <Button size="sm" variant="outline" onClick={checkCoverage} disabled={coverageLoading} className="shrink-0">
+            {coverageLoading ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : "Check"}
+          </Button>
+        </div>
 
         {/* Backfill Registry */}
         <div className="glass rounded-xl p-5 flex items-start justify-between gap-4">
