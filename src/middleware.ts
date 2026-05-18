@@ -4,8 +4,6 @@ import { NextResponse } from "next/server";
 const isProtectedRoute = createRouteMatcher([
   "/portfolio(.*)",
   "/create(.*)",
-  "/admin(.*)",
-  "/api/admin(.*)", // defence-in-depth: per-route requireAdmin() remains the primary guard
 ]);
 
 /**
@@ -18,11 +16,6 @@ function hasWalletClaim(sessionClaims: Record<string, unknown> | null): boolean 
   return metadata?.walletCreated === true;
 }
 
-function hasAdminClaim(sessionClaims: Record<string, unknown> | null): boolean {
-  const metadata = sessionClaims?.metadata as Record<string, unknown> | undefined;
-  return metadata?.role === "admin";
-}
-
 export default clerkMiddleware(async (auth, req) => {
   const { userId, sessionClaims, redirectToSignIn } = await auth();
 
@@ -32,20 +25,14 @@ export default clerkMiddleware(async (auth, req) => {
   }
 
   if (userId) {
-    const isAdminRoute =
-      req.nextUrl.pathname.startsWith("/admin") ||
-      req.nextUrl.pathname.startsWith("/api/admin");
     let hasWallet = hasWalletClaim(sessionClaims as Record<string, unknown> | null);
-    let isAdmin = hasAdminClaim(sessionClaims as Record<string, unknown> | null);
 
     // Fallback: JWT may be stale or template not configured — check Clerk API once.
-    // Only runs on protected routes to avoid unnecessary API calls.
-    if ((!hasWallet || (isAdminRoute && !isAdmin)) && isProtectedRoute(req)) {
+    if (!hasWallet && isProtectedRoute(req)) {
       try {
         const client = await clerkClient();
         const clerkUser = await client.users.getUser(userId);
         hasWallet = clerkUser.publicMetadata?.walletCreated === true;
-        isAdmin = clerkUser.publicMetadata?.role === "admin";
       } catch {
         // If API check fails, keep JWT-derived values
       }
@@ -54,11 +41,6 @@ export default clerkMiddleware(async (auth, req) => {
     // Already has wallet and hits /onboarding → redirect to welcome
     if (hasWallet && req.nextUrl.pathname === "/onboarding") {
       return NextResponse.redirect(new URL("/welcome", req.url));
-    }
-
-    // Admin route — require role: "admin"
-    if (isAdminRoute && !isAdmin) {
-      return NextResponse.redirect(new URL("/portfolio", req.url));
     }
 
     // Signed in, no wallet, hitting a protected route → onboarding

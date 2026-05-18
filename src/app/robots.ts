@@ -9,7 +9,6 @@ export default function robots(): MetadataRoute.Robots {
       disallow: [
         "/api/",
         "/onboarding",
-        "/admin/",
         "/portfolio/",
         "/create/",
         "/notifications",
