@@ -38,13 +38,13 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MedialaneLogo } from "@/components/brand/medialane-logo";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
-import { EXPLORER_URL, BR_MINT_CONTRACT, BR_NFT_URI, BR_NFT_IMAGE_URL } from "@/lib/constants";
+import { EXPLORER_URL, BR_MINT_CONTRACT, BR_NFT_URI } from "@/lib/constants";
 
 // ─── Imagem do NFT ────────────────────────────────────────────────────────────
 
 function EventCard() {
   const [errored, setErrored] = useState(false);
-  const src = BR_NFT_IMAGE_URL || "/genesis.jpg";
+  const src = "/br_launch.jpg";
   return (
     <div className="relative rounded-2xl overflow-hidden border border-border/40 shadow-xl shadow-black/10 aspect-square w-full">
       {errored ? (
