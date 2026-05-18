@@ -21,7 +21,7 @@ export function useCollections(
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<ApiCollection[]>>(
     key,
     async () => {
-      const res = await client.api.getCollections(page, limit, isFeatured, sort, undefined, service);
+      const res = await client.api.getCollections(page, limit, isFeatured, sort, service);
       return hideEmpty
         ? { ...res, data: res.data.filter((collection) => (collection.totalSupply ?? 0) > 0) }
         : res;
