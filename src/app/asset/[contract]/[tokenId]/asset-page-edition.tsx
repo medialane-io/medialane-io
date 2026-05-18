@@ -9,6 +9,7 @@ import { useTokenListings } from "@/hooks/use-orders";
 import { useCollection } from "@/hooks/use-collections";
 import { Button } from "@/components/ui/button";
 import { IpTypeBadge } from "@/components/shared/ip-type-badge";
+import { PageContainer } from "@medialane/ui";
 import { ipfsToHttp, timeUntil, formatDisplayPrice, checkIsOwner } from "@/lib/utils";
 import {
   DollarSign,
@@ -204,7 +205,7 @@ export function AssetPageEdition() {
         )}
       </div>
 
-      <div className="container mx-auto px-4 pt-14 space-y-8 pb-8">
+      <PageContainer className="pt-14 space-y-8 pb-8">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-sm text-muted-foreground min-w-0">
           <Link
@@ -321,7 +322,7 @@ export function AssetPageEdition() {
             />
           </TabsContent>
         </Tabs>
-      </div>
+      </PageContainer>
 
       <FloatingCommentsButton onClick={() => setCommentOpen(true)} commentTotal={commentTotal} />
 

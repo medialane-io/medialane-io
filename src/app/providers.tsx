@@ -59,7 +59,7 @@ function MainShell({ children }: { children: React.ReactNode }) {
           <NavTrigger />
         </div>
         <main className="min-w-0 flex-1 overflow-x-hidden">{children}</main>
-        <footer className="px-6 py-8 mt-auto">
+        <footer className="px-4 sm:px-6 lg:px-8 py-8 mt-auto">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
             <p className="text-xs">© {new Date().getFullYear()} Medialane DAO</p>
             <nav className="flex items-center gap-4 flex-wrap justify-center">
