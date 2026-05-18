@@ -15,6 +15,7 @@ import { GoogleAnalytics } from "@next/third-parties/google";
 import { NavCommandMenu, useNavCommandMenu } from "@medialane/ui";
 import { NAV_COMMANDS } from "@/lib/nav-commands";
 import { NavAccountPanel } from "@/components/nav-account-panel";
+import { NavThemeToggle } from "@/components/nav-theme-toggle";
 
 const GA_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID;
 
@@ -53,7 +54,7 @@ function MainShell({ children }: { children: React.ReactNode }) {
 
   return (
     <ChipiSessionUnlockProvider>
-      <NavCommandMenu commands={NAV_COMMANDS} accountSlot={<NavAccountPanel />} />
+      <NavCommandMenu commands={NAV_COMMANDS} accountSlot={<NavAccountPanel />} footerSlot={<NavThemeToggle />} />
       <div className="relative min-h-screen flex flex-col bg-background">
         <div className="fixed top-4 left-4 sm:left-6 lg:left-8 z-50 flex items-center gap-1.5">
           <NavTrigger />
