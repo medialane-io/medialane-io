@@ -54,7 +54,7 @@ export interface AdminCollectionRecord {
   name?: string;
   symbol?: string | null;
   contractAddress: string;
-  /** @deprecated legacy CollectionSource — removed once backend drops the column (2D.4) */
+  /** @deprecated backend no longer returns this — CollectionSource dropped in Phase 2D.4 */
   source?: string;
   service?: string | null;
   metadataStatus: "FETCHED" | "PENDING" | "FETCHING" | "FAILED";
