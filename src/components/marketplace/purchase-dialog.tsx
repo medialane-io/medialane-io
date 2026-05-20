@@ -16,6 +16,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { useMarketplaceActionFlow } from "@/hooks/use-marketplace-action-flow";
+import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
+import { chargePlatformFee } from "@/lib/charge-fee";
 import {
   MarketplaceErrorState,
   MarketplacePinStep,
@@ -198,6 +200,10 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
     resetState,
   } = useMarketplace();
 
+  // Dedicated tx instance for the post-confirmation fee — separate from the
+  // buy's, so its status state never collides with the purchase flow.
+  const { executeTransaction: executeFeeTransaction } = useChipiTransaction();
+
   const [step, setStep] = useState<Step>("details");
   const [quantity, setQuantity] = useState(1);
   const [successTxHash, setSuccessTxHash] = useState<string | null>(null);
@@ -251,6 +257,18 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
 
       if (hash) {
         handlePurchaseSuccess(hash);
+        // Fee — fired un-awaited (fire-and-forget). The success UI is already
+        // shown; the user never waits on this. Only runs because the buy
+        // confirmed (fulfillOrder returns a hash only on CONFIRMED; it throws
+        // on FAILED). order.consideration is the ERC-20 payment side.
+        const feeQuantity = is1155 ? BigInt(values.quantity || 1) : 1n;
+        void chargePlatformFee({
+          surface: "marketplace",
+          token: order.consideration.token ?? "",
+          grossAmount: BigInt(order.consideration.startAmount ?? "0") * feeQuantity,
+          pin: pinOrDerivedKey,
+          executeTransaction: executeFeeTransaction,
+        });
       } else {
         setStep("details");
       }
