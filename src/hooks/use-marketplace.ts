@@ -211,6 +211,12 @@ export function useMarketplace() {
 
   /** Invalidate all order + token caches after a write operation. */
   const invalidate = useCallback(() => {
+    // Revalidate matching keys WITHOUT clearing cached data. Passing `undefined`
+    // as mutate's data arg wiped the token cache to undefined mid-purchase,
+    // which unmounted the asset page's variant component (it gates rendering on
+    // token data being present) and destroyed the open success dialog.
+    // mutate(filter) alone = stale-while-revalidate: data stays until the
+    // refetch resolves, so the page never unmounts.
     mutate((key) => {
       if (typeof key !== "string") return false;
       return (
@@ -222,7 +228,7 @@ export function useMarketplace() {
         key.startsWith(`${QUERY_PREFIX.tokensOwned}-`) ||
         key.startsWith(`${QUERY_PREFIX.counterOffers}-`)
       );
-    }, undefined, { revalidate: true });
+    });
   }, [mutate]);
 
   const [isProcessing, setIsProcessing] = useState(false);
