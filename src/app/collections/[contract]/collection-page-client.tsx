@@ -166,13 +166,10 @@ function CollectionItems({ contract, activeListings }: { contract: string; activ
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
             {filteredTokens.map((t) => {
-              // ERC-1155 collection list responses don't include per-holder balances,
-              // so we can't determine ownership here. Non-owners must not see owner
-              // actions (List / Transfer). Holders can manage tokens from Portfolio
-              // where per-token balance data is available.
-              const isOwner = collection?.standard === "ERC1155"
-                ? false
-                : checkIsOwner(t, walletAddress);
+              // Ownership from per-token balances — the collection-tokens list
+              // response now includes balances for both ERC-721 and ERC-1155,
+              // so owners see "View" instead of Buy/Offer on their own cards.
+              const isOwner = checkIsOwner(t, walletAddress);
               return (
                 <TokenCard
                   key={`${t.contractAddress}-${t.tokenId}`}
