@@ -172,6 +172,33 @@ All write ops follow: create intent → sign typed data → submit signature →
 - `useCart()` — `{ items, isOpen, addItem, removeItem, clearCart, toggleCart }`
 - Cart items persist across page reloads via `persist` middleware (key: `medialane-io-cart`)
 
+### Transaction execution — ATOMIC (changed 2026-05-20)
+
+`useChipiTransaction.executeTransaction` (`src/hooks/use-chipi-transaction.ts`)
+is the **single chokepoint** for every io write (fulfill, listing, offer,
+cancel, mint, drop claim). It executes via ChipiPay's `TxBuilder.sendSponsored()`
+(`@chipi-stack/core` + `ChipiPaymasterAdapter` from `useChipiContext().chipiSDK`)
+— **atomic and gasless**: one call reverting reverts the whole transaction.
+
+**Do not go back to `callAnyContract`.** ChipiPay's hosted `callAnyContract`
+relayer executes batches **non-atomically** — a reverted call is swallowed and
+sibling calls are not rolled back. That caused the creators-fund fee to be
+charged on failed buys (tx `0x61c84020…`). Spec:
+`medialane-core/docs/specs/2026-05-20-io-atomic-execution-design.md`.
+
+- The key is decrypted client-side via `decryptPrivateKey` (`@chipi-stack/backend`)
+  → `new Account(provider, address, key, "1")`. **Pass `cairoVersion "1"` explicitly** —
+  it skips starknet.js's `getClassHashAt` detection RPC.
+- `starknetProvider` (`src/lib/starknet.ts`) is configured `blockIdentifier: "latest"` —
+  the RPC rejects the default `"pending"` block tag (`-32602: Invalid block id`).
+
+### Marketplace cache invalidation (fixed 2026-05-20)
+
+`useMarketplace`'s `invalidate()` uses `mutate(filter)` — revalidate **without**
+clearing cached data. Do **not** pass `undefined` as mutate's data arg: it wipes
+the token cache, which unmounts the asset page's variant component mid-purchase
+and destroys the open success dialog.
+
 ---
 
 ## Known Bugs
