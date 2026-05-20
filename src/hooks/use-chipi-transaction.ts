@@ -2,7 +2,10 @@
 
 import { useState, useCallback, useRef } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { useChipiWallet, useCallAnyContract } from "@chipi-stack/nextjs";
+import { useChipiWallet, useChipiContext } from "@chipi-stack/nextjs";
+import { TxBuilder } from "@chipi-stack/core";
+import { decryptPrivateKey } from "@chipi-stack/backend";
+import { Account } from "starknet";
 import { starknetProvider } from "@/lib/starknet";
 import type { WalletCredentials } from "@/types";
 
@@ -16,6 +19,7 @@ export type ChipiCall = {
 
 export type ChipiTransactionParams = {
   pin: string;
+  /** @deprecated Unused since the atomic-execution swap — each call carries its own contractAddress. Kept for consumer compatibility. */
   contractAddress: string;
   calls: ChipiCall[];
   wallet?: WalletCredentials;
@@ -39,7 +43,7 @@ export type ChipiTransactionStatus =
 
 export function useChipiTransaction() {
   const { userId, getToken } = useAuth();
-  const { callAnyContractAsync } = useCallAnyContract();
+  const { chipiSDK } = useChipiContext();
 
   const getBearerToken = useCallback(
     () =>
@@ -90,18 +94,24 @@ export function useChipiTransaction() {
 
         const wallet = getWallet(params.wallet);
 
-        const result = await callAnyContractAsync({
-          params: {
-            encryptKey: params.pin,
-            wallet: {
-              publicKey: wallet.publicKey,
-              encryptedPrivateKey: wallet.encryptedPrivateKey,
-            },
-            contractAddress: params.contractAddress,
-            calls: params.calls,
-          },
-          bearerToken: token,
-        });
+        // Decrypt the wallet key client-side via ChipiPay's own util.
+        const privateKey = decryptPrivateKey(wallet.encryptedPrivateKey, params.pin);
+        if (!privateKey) {
+          throw new Error("Could not unlock wallet — wrong PIN.");
+        }
+
+        // Build a starknet.js Account; ChipiPay's wallet.publicKey is the account address.
+        const account = new Account(starknetProvider, wallet.publicKey, privateKey);
+
+        // Atomic gasless execution: TxBuilder batches every call into ONE
+        // transaction; sendSponsored() runs it via the ChipiPay paymaster.
+        // One call reverting reverts the whole transaction — unlike the
+        // hosted callAnyContract relayer, which swallowed per-call reverts.
+        const paymaster = chipiSDK.createPaymasterAdapter(token);
+
+        const result = await new TxBuilder(account, { paymaster })
+          .add(params.calls)
+          .sendSponsored();
 
         if (!result || typeof result !== "string" || !result.startsWith("0x") || result.length < 10) {
           throw new Error(`Invalid transaction response: ${JSON.stringify(result)}`);
@@ -143,7 +153,7 @@ export function useChipiTransaction() {
         isSubmittingRef.current = false;
       }
     },
-    [getBearerToken, getWallet, callAnyContractAsync]
+    [getBearerToken, getWallet, chipiSDK]
   );
 
   const reset = useCallback(() => {
