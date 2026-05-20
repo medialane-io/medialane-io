@@ -12,8 +12,8 @@
         "@clerk/localizations": "4.6.2",
         "@clerk/nextjs": "6.39.3",
         "@hookform/resolvers": "^3.10.0",
-        "@medialane/sdk": "0.13.0",
-        "@medialane/ui": "0.5.2",
+        "@medialane/sdk": "0.14.0",
+        "@medialane/ui": "0.5.4",
         "@next/third-parties": "^16.2.6",
         "@radix-ui/react-avatar": "^1.1.11",
         "@radix-ui/react-checkbox": "latest",
@@ -171,9 +171,9 @@
 
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.31", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw=="],
 
-    "@medialane/sdk": ["@medialane/sdk@0.13.0", "", { "dependencies": { "zod": "^3.23.8" }, "peerDependencies": { "starknet": ">=6.0.0" } }, "sha512-R82ORFF198JChVZieu1uVqKTorMuPfUb3F9QaCC+EfmgmN57NH+r4XbTn87/fJcOqofn3KE8gjX0Fz9xmsTlUA=="],
+    "@medialane/sdk": ["@medialane/sdk@0.14.0", "", { "dependencies": { "zod": "^3.23.8" }, "peerDependencies": { "starknet": ">=6.0.0" } }, "sha512-4na2nqcCIGna3Yiy9afFG6l5OdHf2BS7E0SjwmycJJJlPipuOXAQEM+FTGsT0L1YWboXMV2kyk6+UDO0NQH0pg=="],
 
-    "@medialane/ui": ["@medialane/ui@0.5.2", "", { "peerDependencies": { "@medialane/sdk": ">=0.6.0", "clsx": ">=2.0.0", "cmdk": ">=1.0.0", "framer-motion": ">=10.0.0", "lucide-react": ">=0.400.0", "next": ">=14.0.0", "next-themes": ">=0.3.0", "react": ">=18.0.0", "react-dom": ">=18.0.0", "sonner": ">=1.0.0", "tailwind-merge": ">=2.0.0" } }, "sha512-L4EVmfXxMui/MDI+riDrUIHb1HegxgsuWpkY9tGotxbhztZQ7SdIgEyIhLX+wUMUEtFBTMxXIkgwCx0VhHSMPA=="],
+    "@medialane/ui": ["@medialane/ui@0.5.4", "", { "peerDependencies": { "@medialane/sdk": ">=0.6.0", "clsx": ">=2.0.0", "cmdk": ">=1.0.0", "framer-motion": ">=10.0.0", "lucide-react": ">=0.400.0", "next": ">=14.0.0", "next-themes": ">=0.3.0", "react": ">=18.0.0", "react-dom": ">=18.0.0", "sonner": ">=1.0.0", "tailwind-merge": ">=2.0.0" } }, "sha512-KRbaCitC8bpT93B4GW3zHATOvafP4g/Wnfj/W4LdUQrdNaMwR5ghsWek1WUO1o/+4qRtsZoQbq5Wq1mU0ISzDA=="],
 
     "@next/env": ["@next/env@15.5.18", "", {}, "sha512-hAV85Ckd9QR6RvH04MEKwsfLTksvFpO47j9xwtoIuvuPnlwecpSi+uZTtm8HirVbtlI2Fnz//xpcSTjFdyJk+g=="],
 

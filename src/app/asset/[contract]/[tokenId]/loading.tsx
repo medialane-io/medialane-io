@@ -1,8 +1,9 @@
+import { PageContainer } from "@medialane/ui";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AssetLoading() {
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6 max-w-5xl">
+    <PageContainer className="py-8 space-y-6">
       {/* Breadcrumb */}
       <Skeleton className="h-4 w-48" />
 
@@ -25,6 +26,6 @@ export default function AssetLoading() {
           <Skeleton className="h-10 w-full rounded-lg" />
         </div>
       </div>
-    </div>
+    </PageContainer>
   );
 }

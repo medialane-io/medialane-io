@@ -85,9 +85,6 @@ export const BR_MINT_CONTRACT =
 export const BR_NFT_URI =
   readStringEnv(process.env.NEXT_PUBLIC_BR_NFT_URI);
 
-export const BR_NFT_IMAGE_URL =
-  readStringEnv(process.env.NEXT_PUBLIC_BR_NFT_IMAGE_URL);
-
 // Global airdrop campaign (/mint)
 export const MINT_NFT_URI =
   readStringEnv(process.env.NEXT_PUBLIC_MINT_NFT_URI);

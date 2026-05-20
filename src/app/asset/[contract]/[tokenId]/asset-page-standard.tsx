@@ -12,6 +12,7 @@ import { IpTypeBadge } from "@/components/shared/ip-type-badge";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AddressDisplay } from "@/components/shared/address-display";
+import { PageContainer } from "@medialane/ui";
 import { ipfsToHttp, timeUntil, formatDisplayPrice, checkIsOwner } from "@/lib/utils";
 import { DollarSign, UserCheck, Globe, Bot, Percent, Shield, Calendar, ChevronRight, Layers, GitBranch } from "lucide-react";
 import { FloatingCommentsButton } from "@/components/asset/floating-comments-button";
@@ -150,7 +151,7 @@ export function AssetPageStandard() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 pt-14 pb-8">
+      <PageContainer className="pt-14 pb-8">
         <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] lg:gap-10 gap-8">
           <Skeleton className="aspect-[4/3] w-full rounded-2xl" />
           <div className="space-y-4">
@@ -160,16 +161,16 @@ export function AssetPageStandard() {
             <Skeleton className="h-12 w-full" />
           </div>
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
   if (!token) {
     return (
-      <div className="container mx-auto px-4 py-24 text-center">
+      <PageContainer className="py-24 text-center">
         <p className="text-2xl font-bold">Asset not found</p>
         <p className="text-muted-foreground mt-2">This token hasn&apos;t been indexed yet.</p>
-      </div>
+      </PageContainer>
     );
   }
 
@@ -243,7 +244,7 @@ export function AssetPageStandard() {
         />
       </div>
 
-      <div className={`container mx-auto px-4 pt-14 space-y-8 pb-8`}>
+      <PageContainer className="pt-14 space-y-8 pb-8">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-sm text-muted-foreground min-w-0">
           <Link
@@ -382,7 +383,7 @@ export function AssetPageStandard() {
           </TabsContent>
 
         </Tabs>
-      </div>
+      </PageContainer>
 
 
       <FloatingCommentsButton onClick={() => setCommentOpen(true)} commentTotal={commentTotal} />

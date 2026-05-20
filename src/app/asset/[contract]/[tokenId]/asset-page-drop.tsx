@@ -23,6 +23,7 @@ import { useCart } from "@/hooks/use-cart";
 import { useAuth, SignInButton } from "@clerk/nextjs";
 import { useComments } from "@/hooks/use-comments";
 import { useTokenRemixes } from "@/hooks/use-remix-offers";
+import { PageContainer } from "@medialane/ui";
 import { ipfsToHttp, formatDisplayPrice, timeUntil, checkIsOwner } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
@@ -214,7 +215,7 @@ export function AssetPageDrop() {
         )}
       </div>
 
-      <div className="container mx-auto px-4 pt-14 space-y-8 pb-8">
+      <PageContainer className="pt-14 space-y-8 pb-8">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-sm text-muted-foreground min-w-0">
           <Link href={`/collections/${contract}`} className="hover:text-foreground transition-colors truncate max-w-[140px] shrink-0">
@@ -445,7 +446,7 @@ export function AssetPageDrop() {
             <AssetProvenanceTab history={history as ApiActivity[]} contract={contract} tokenId={tokenId} remixCount={remixCount} />
           </TabsContent>
         </Tabs>
-      </div>
+      </PageContainer>
 
       <FloatingCommentsButton onClick={() => setCommentOpen(true)} commentTotal={commentTotal} />
 

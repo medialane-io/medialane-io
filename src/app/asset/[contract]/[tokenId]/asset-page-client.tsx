@@ -9,6 +9,7 @@ import { AssetPagePop } from "./asset-page-pop";
 import { AssetPageDrop } from "./asset-page-drop";
 import { AssetPageEdition } from "./asset-page-edition";
 import { getService } from "@medialane/sdk";
+import { PageContainer } from "@medialane/ui";
 
 // Registry-driven (05-service-model). External/unknown collections
 // (service null → getService undefined) fall back to standard.
@@ -29,7 +30,7 @@ export default function AssetPageClient() {
 
   if (tokenLoading || collectionLoading) {
     return (
-      <div className="container mx-auto px-4 pt-14 pb-8">
+      <PageContainer className="pt-14 pb-8">
         <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] lg:gap-10 gap-8">
           <Skeleton className="aspect-[4/3] w-full rounded-2xl" />
           <div className="space-y-4">
@@ -39,7 +40,7 @@ export default function AssetPageClient() {
             <Skeleton className="h-12 w-full" />
           </div>
         </div>
-      </div>
+      </PageContainer>
     );
   }
 

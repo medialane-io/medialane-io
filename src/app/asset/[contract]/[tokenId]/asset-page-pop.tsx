@@ -10,6 +10,7 @@ import { useToken } from "@/hooks/use-tokens";
 import { useCollection } from "@/hooks/use-collections";
 import { usePopClaimStatus } from "@/hooks/use-pop";
 import { useSessionKey } from "@/hooks/use-session-key";
+import { PageContainer } from "@medialane/ui";
 import { ipfsToHttp } from "@/lib/utils";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { PopClaimButton } from "@/components/claim/pop-claim-button";
@@ -64,7 +65,7 @@ export function AssetPagePop() {
         )}
       </div>
 
-      <div className="container mx-auto px-4 pt-14 space-y-8 pb-8">
+      <PageContainer className="pt-14 space-y-8 pb-8">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-sm text-muted-foreground min-w-0">
           <Link href="/launchpad/pop" className="hover:text-foreground transition-colors shrink-0">
@@ -218,7 +219,7 @@ export function AssetPagePop() {
             />
           </motion.div>
         </div>
-      </div>
+      </PageContainer>
     </div>
   );
 }

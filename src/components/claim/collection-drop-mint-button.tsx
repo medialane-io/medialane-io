@@ -14,6 +14,7 @@ import { EXPLORER_URL } from "@/lib/constants";
 import { useUser } from "@clerk/nextjs";
 import { useDropMintStatus, type DropConditions } from "@/hooks/use-drops";
 import { getListableTokens } from "@medialane/sdk";
+import { ioFeeConfig, buildFeeCall } from "@/lib/fee";
 
 interface CollectionDropMintButtonProps {
   collectionAddress: string;
@@ -117,6 +118,21 @@ export function CollectionDropMintButton({
         entrypoint: "claim",
         calldata: ["1", "0"],
       });
+
+      // Platform fee (creators fund) — paid mints only; quantity fixed at 1.
+      if (isPaid && conditions && conditions.paymentToken !== "0x0") {
+        const feeCall = buildFeeCall(
+          { surface: "launchpad", token: conditions.paymentToken, grossAmount: price },
+          ioFeeConfig
+        );
+        if (feeCall) {
+          calls.push({
+            contractAddress: feeCall.contractAddress,
+            entrypoint: feeCall.entrypoint,
+            calldata: feeCall.calldata as string[],
+          });
+        }
+      }
 
       const result = await executeTransaction({
         pin,
