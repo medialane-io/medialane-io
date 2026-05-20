@@ -15,6 +15,7 @@ import { GoogleAnalytics } from "@next/third-parties/google";
 import { NavCommandMenu, useNavCommandMenu } from "@medialane/ui";
 import { NAV_COMMANDS } from "@/lib/nav-commands";
 import { NavAccountPanel } from "@/components/nav-account-panel";
+import { AccountSyncOnLogin } from "@/components/shared/account-sync-on-login";
 
 const GA_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID;
 
@@ -105,6 +106,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         }}
       >
         {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
+        <AccountSyncOnLogin />
         <Shell>{children}</Shell>
         <CartDrawer />
         <Toaster
