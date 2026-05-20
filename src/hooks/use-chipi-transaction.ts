@@ -101,7 +101,9 @@ export function useChipiTransaction() {
         }
 
         // Build a starknet.js Account; ChipiPay's wallet.publicKey is the account address.
-        const account = new Account(starknetProvider, wallet.publicKey, privateKey);
+        // cairoVersion "1" is passed explicitly — ChipiPay accounts are Cairo 1 — so
+        // starknet.js skips on-chain cairo-version detection (a getClassHashAt RPC call).
+        const account = new Account(starknetProvider, wallet.publicKey, privateKey, "1");
 
         // Atomic gasless execution: TxBuilder batches every call into ONE
         // transaction; sendSponsored() runs it via the ChipiPay paymaster.
