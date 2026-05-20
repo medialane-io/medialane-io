@@ -21,7 +21,12 @@ export async function completeOnboarding(walletData: WalletData) {
       },
     });
 
-    // Register wallet in Medialane user registry. Fire-and-forget.
+    // Register wallet in Medialane user registry — deliberately redundant
+    // with <AccountSyncOnLogin /> in providers.tsx. The client component
+    // covers returning sessions; this server-side write covers the case
+    // where the user closes the tab between this action returning and the
+    // client component effect running. Both are idempotent on the backend
+    // (ensureAccountForWallet upserts on the existing wallet row).
     try {
       const token = await getToken({
         template: process.env.NEXT_PUBLIC_CLERK_TEMPLATE_NAME || "chipipay",
