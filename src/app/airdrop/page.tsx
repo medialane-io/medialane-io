@@ -34,16 +34,16 @@ export const metadata: Metadata = {
 
 const PHASES = [
   {
-    label: "Phase 1",
-    milestone: "5,000 members",
-    desc: "First distribution from the creator fund. All eligible participants receive a proportional share based on their activity.",
+    label: "Distribution rounds",
+    milestone: "Every $1,000",
+    desc: "Each time the Creator's Fund reaches $1,000, that amount is airdropped to all participants. Every dollar of revenue is returned — $5,000 means 5 rounds, $10,000 means 10.",
     color: "border-blue-500/30 bg-blue-500/5",
     badge: "bg-blue-500/10 text-blue-400",
   },
   {
-    label: "Phase 2",
-    milestone: "10,000 members",
-    desc: "Second distribution, including all revenue since Phase 1. Activity scores are recalculated from all activity since launch.",
+    label: "Your share",
+    milestone: "Score Board points",
+    desc: "Each round is split by Score Board points. You earn points by creating, trading, and engaging on Medialane — your points are your share of every distribution.",
     color: "border-purple-500/30 bg-purple-500/5",
     badge: "bg-purple-500/10 text-purple-400",
   },
@@ -116,7 +116,7 @@ export default function AirdropPage() {
                   color: "text-yellow-500",
                   bg: "bg-yellow-500/10",
                   title: "Creator fund distributions",
-                  desc: "When milestones are reached, platform revenue is distributed to participants. The more you contribute, the larger your share.",
+                  desc: "Each time the Creator's Fund reaches $1,000, it is distributed to participants by Score Board points. The more you contribute, the larger your share.",
                 },
                 {
                   icon: Star,
@@ -204,9 +204,9 @@ export default function AirdropPage() {
           <section className="py-10 border-t border-border/30 space-y-6">
             <div className="max-w-2xl">
               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Distribution</p>
-              <h2 className="text-2xl sm:text-3xl font-black">Creator fund phases</h2>
+              <h2 className="text-2xl sm:text-3xl font-black">How distribution works</h2>
               <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-                When the community hits a milestone, platform revenue gets distributed to all participants.
+                Every $1,000 the Creator&apos;s Fund collects is airdropped to participants — weighted by Score Board points.
               </p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -223,7 +223,7 @@ export default function AirdropPage() {
             <div className="rounded-2xl border border-border/40 bg-muted/10 p-4 flex items-start gap-3">
               <Info className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Both phases are planned for the first year of the platform. Milestones are targets, not guarantees — timing depends on growth.
+                The Creator&apos;s Airdrop campaign runs until July 1, 2027. All platform revenue collected during that window is returned to participants.
               </p>
             </div>
           </section>
