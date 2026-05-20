@@ -14,7 +14,7 @@ import { EXPLORER_URL } from "@/lib/constants";
 import { useUser } from "@clerk/nextjs";
 import { useDropMintStatus, type DropConditions } from "@/hooks/use-drops";
 import { getListableTokens } from "@medialane/sdk";
-import { ioFeeConfig, buildFeeCall } from "@/lib/fee";
+import { chargePlatformFee } from "@/lib/charge-fee";
 
 interface CollectionDropMintButtonProps {
   collectionAddress: string;
@@ -56,6 +56,9 @@ export function CollectionDropMintButton({
     walletAddress ?? null
   );
   const { executeTransaction, isSubmitting } = useChipiTransaction();
+  // Dedicated tx instance for the post-confirmation fee — separate from the
+  // mint's, so its status state never collides with the claim flow.
+  const { executeTransaction: executeFeeTransaction } = useChipiTransaction();
   const [pinOpen, setPinOpen] = useState(false);
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
   const [txResult, setTxResult] = useState<{
@@ -119,21 +122,6 @@ export function CollectionDropMintButton({
         calldata: ["1", "0"],
       });
 
-      // Platform fee (creators fund) — paid mints only; quantity fixed at 1.
-      if (isPaid && conditions && conditions.paymentToken !== "0x0") {
-        const feeCall = buildFeeCall(
-          { surface: "launchpad", token: conditions.paymentToken, grossAmount: price },
-          ioFeeConfig
-        );
-        if (feeCall) {
-          calls.push({
-            contractAddress: feeCall.contractAddress,
-            entrypoint: feeCall.entrypoint,
-            calldata: feeCall.calldata as string[],
-          });
-        }
-      }
-
       const result = await executeTransaction({
         pin,
         contractAddress: collectionAddress,
@@ -143,6 +131,18 @@ export function CollectionDropMintButton({
       if (result.status === "confirmed") {
         setTxResult({ type: "success", txHash: result.txHash });
         mutate();
+        // Fee — un-awaited fire-and-forget; paid mints only. Only runs because
+        // the claim confirmed. Drop claim quantity is fixed at 1, so
+        // grossAmount = price.
+        if (isPaid && conditions && conditions.paymentToken !== "0x0") {
+          void chargePlatformFee({
+            surface: "launchpad",
+            token: conditions.paymentToken,
+            grossAmount: price,
+            pin,
+            executeTransaction: executeFeeTransaction,
+          });
+        }
       } else {
         setTxResult({ type: "error", txHash: result.txHash, message: result.revertReason ?? "Transaction reverted" });
       }
