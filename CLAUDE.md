@@ -45,8 +45,7 @@ NEXT_PUBLIC_MEDIALANE_BACKEND_URL=http://localhost:3001
 3. **Wallet address**: always read from `useSessionKey().walletAddress` — never from `user.publicMetadata.publicKey` (Clerk server-only, returns `undefined` on the client). For components that only need identity, use `useWallet()` which wraps `useSessionKey()` with a normalized `{ address, isConnected }` interface.
 4. **Asset uploads**: `POST /api/pinata` → image to Pinata → metadata JSON to Pinata → `ipfs://` URI → mint tx. Never goes through the backend. `PINATA_JWT` is consumed server-side in the Next.js route.
 5. Marketplace orders use SNIP-12 typed data signing (see `use-marketplace.ts`)
-6. Cart state is persisted to localStorage via Zustand (`use-cart.ts`)
-7. Server state (tokens, collections, orders) fetched via SWR hooks in `src/hooks/` — **all** data comes from the backend API, no direct RPC calls except `useUserCollections` (needed for on-chain collection ID used in minting)
+6. Server state (tokens, collections, orders) fetched via SWR hooks in `src/hooks/` — **all** data comes from the backend API, no direct RPC calls except `useUserCollections` (needed for on-chain collection ID used in minting)
 
 ### Route Protection
 
@@ -168,10 +167,6 @@ All write ops follow: create intent → sign typed data → submit signature →
 - `setupSession(pin)` — creates SNIP-9 session key on-chain (6-hour validity)
 - `signTypedData(typedData, pin)` — signs with session key or owner key
 
-### Cart (Zustand, localStorage)
-- `useCart()` — `{ items, isOpen, addItem, removeItem, clearCart, toggleCart }`
-- Cart items persist across page reloads via `persist` middleware (key: `medialane-io-cart`)
-
 ### Transaction execution — ATOMIC (changed 2026-05-20)
 
 `useChipiTransaction.executeTransaction` (`src/hooks/use-chipi-transaction.ts`)
@@ -229,7 +224,7 @@ layout.tsx (server)
                         ├─ <main> — full-width page content
                         └─ <footer> — links + logo
                       StandaloneShell: plain flex-col (used for /br/*, /mint, /airdrop)
-            CartDrawer + Toaster (outside Shell)
+            Toaster (outside Shell)
 ```
 
 **Key rules:**
@@ -251,7 +246,7 @@ layout.tsx (server)
 | `src/lib/cairo-calldata.ts` | Cairo calldata helpers: `serializeByteArray(str)` → `string[]` for Cairo ByteArray (UTF-8 safe, supports any Unicode); `encodeU256(n: bigint)` → `[low, high]`. Use these instead of manual felt encoding anywhere mint/transfer calldata is built. Never use starknet.js `byteArrayFromString` directly — it is ASCII-only. |
 | `src/components/airdrop/genesis-mint.tsx` | Shared airdrop components: `GenesisMint` (full claim flow — sign-in gate, wallet setup, PIN, mint, success/error), `AirdropEventCard` (genesis NFT image with fallback). Used by `/mint` and `/airdrop`. |
 | `src/lib/utils.ts` | `ipfsToHttp`, `timeUntil`, `formatPrice`, `cn` |
-| `src/types/index.ts` | Local TypeScript types (CartItem, etc.) |
+| `src/types/index.ts` | Local TypeScript types |
 | `src/types/ip.ts` | IP/licensing constants: `LICENSE_TYPES`, `IP_TYPES`, `GEOGRAPHIC_SCOPES`, `AI_POLICIES`, `DERIVATIVES_OPTIONS`, `LICENSE_TRAIT_TYPES` |
 | `src/app/api/pinata/route.ts` | Universal digital asset upload (Clerk-gated, direct Pinata) — accepts image + full licensing schema + `creator` wallet + `external_url`, returns `{ uri, imageUri, cid }`. Embeds creator as attribute. |
 | `src/app/api/pinata/image/route.ts` | Image-only upload (Clerk-gated, direct Pinata) — returns `{ imageUri: "ipfs://...", cid }`. Used by create collection flow |
@@ -262,7 +257,6 @@ layout.tsx (server)
 | `src/app/globals.css` | HSL theme tokens, `.glass`, `.gradient-text` |
 | `src/app/providers.tsx` | Global shell: NavCommandMenu + NavTrigger + ChipiSessionUnlockProvider + footer |
 | `src/lib/nav-commands.ts` | `NAV_COMMANDS: NavCommandGroup[]` — all 39 nav canvas entries across 5 groups (Navigate, Create & Mint, Portfolio, Explore by type, Documentation) |
-| `src/components/layout/cart-drawer.tsx` | Cart as centered Dialog (not Sheet) — blurred backdrop, item thumbnails, batch checkout |
 | `src/components/shared/token-card.tsx` | **Unified modular asset card** — used on all pages; brand buttons; ownership-aware |
 | `src/components/creator/collection-carousel-row.tsx` | Horizontal drag carousel for creator profile — w-64 cards, CollectionCard cover |
 | `src/middleware.ts` | Clerk route protection (/portfolio, /create/*) |
@@ -289,7 +283,6 @@ layout.tsx (server)
 | `src/app/rewards/rewards-dashboard.tsx` | My Rank tab + Leaderboard tab. Uses `useWallet()` — identical to medialane-dapp version. |
 | `src/hooks/use-marketplace.ts` | All marketplace write operations |
 | `src/hooks/use-chipi-transaction.ts` | ChipiPay tx execution + status |
-| `src/hooks/use-cart.ts` | Zustand cart store |
 | `src/components/marketplace/marketplace-dialog-primitives.tsx` | Shared marketplace dialog building blocks: `MarketplaceSuccessState`, `MarketplaceActivatingSession`, `MarketplaceSignInGate`, `MarketplaceDialogHero`, `MarketplacePinStep`, `MarketplaceTxLink`, `MarketplaceProcessingState`, `CurrencyPicker`, `DurationPicker` |
 | `src/components/marketplace/purchase-dialog.tsx` | Buy/fulfill flow |
 | `src/components/marketplace/listing-dialog.tsx` | Create listing flow — uses `marketplace-dialog-primitives`. No `MarketplaceDebugPanel` in production. |
