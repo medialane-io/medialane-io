@@ -21,7 +21,7 @@
     "@clerk/localizations": "4.6.2",
     "@clerk/nextjs": "6.39.3",
     "@hookform/resolvers": "^3.10.0",
-    "@medialane/sdk": "0.16.0",
+    "@medialane/sdk": "0.17.0",
     "@medialane/ui": "0.5.4",
     "@next/third-parties": "^16.2.6",
     "@radix-ui/react-avatar": "^1.1.11",
