@@ -20,7 +20,7 @@ import { useSessionKey } from "@/hooks/use-session-key";
 import { useUser } from "@clerk/nextjs";
 import { FadeIn } from "@/components/ui/motion-primitives";
 import { normalizeAddress } from "@medialane/sdk";
-import { Contract } from "starknet";
+import { Contract, num } from "starknet";
 import { starknetProvider } from "@/lib/starknet";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { LaunchpadPageIntro } from "@/components/launchpad/launchpad-page-intro";
@@ -128,7 +128,9 @@ export default function MintIP1155Page() {
     const contract = new Contract(OWNER_ABI as any, collectionAddress, starknetProvider);
     (contract as any).owner()
       .then((raw: unknown) => {
-        const onChainOwner = normalizeAddress(String(raw));
+        // starknet.js decodes a ContractAddress as a bigint; String(bigint) is
+        // decimal, which normalizeAddress would mis-parse as hex. Convert first.
+        const onChainOwner = normalizeAddress("0x" + num.toBigInt(String(raw)).toString(16));
         setOwnerCheck(onChainOwner === normalizeAddress(walletAddress) ? "ok" : "denied");
       })
       .catch(() => setOwnerCheck("ok"));
