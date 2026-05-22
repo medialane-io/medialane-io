@@ -18,7 +18,6 @@ import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { IpTypeBadge } from "@/components/shared/ip-type-badge";
 import { ReportDialog } from "@/components/report-dialog";
 import { OfferDialog } from "@/components/marketplace/offer-dialog";
-import { useCart } from "@/hooks/use-cart";
 import { cn, ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import type { RarityTier } from "@/lib/rarity";
 import type { ApiToken } from "@medialane/sdk";
@@ -53,7 +52,6 @@ export function TokenCard({
   onOffer,
 }: TokenCardProps) {
   const router = useRouter();
-  const { addItem, items } = useCart();
   const [imgError, setImgError] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [offerOpen, setOfferOpen] = useState(false);
@@ -74,29 +72,6 @@ export function TokenCard({
   const assetHref = `/asset/${token.contractAddress}/${token.tokenId}`;
   const collectionHref = `/collections/${token.contractAddress}`;
 
-  const inCart = listingOrder
-    ? items.some((i) => i.orderHash === listingOrder.orderHash)
-    : false;
-
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!listingOrder || inCart) return;
-    addItem({
-      orderHash: listingOrder.orderHash,
-      nftContract: listingOrder.nftContract ?? "",
-      nftTokenId: listingOrder.nftTokenId ?? "",
-      itemType: listingOrder.offer.itemType === "ERC1155" ? "ERC1155" : "ERC721",
-      name,
-      image: token.metadata?.image ?? "",
-      price: formatDisplayPrice(listingOrder.price.formatted),
-      currency: listingOrder.price.currency ?? "",
-      currencyDecimals: listingOrder.price.decimals,
-      offerer: listingOrder.offerer ?? "",
-      considerationToken: listingOrder.consideration.token ?? "",
-      considerationAmount: listingOrder.consideration.startAmount ?? "",
-    });
-  };
 
   const handleBuy = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -316,18 +291,6 @@ export function TokenCard({
                         <CurrencyIcon symbol={listingOrder.price.currency} size={12} />
                         {formatDisplayPrice(listingOrder.price.formatted)}
                       </span>
-                    </DropdownMenuItem>
-                  )}
-                  {listingOrder && (
-                    <DropdownMenuItem
-                      className="flex items-center gap-2"
-                      onClick={handleAddToCart}
-                      disabled={inCart}
-                    >
-                      {inCart
-                        ? <Check className="h-3.5 w-3.5 text-muted-foreground" />
-                        : <ShoppingCart className="h-3.5 w-3.5 text-muted-foreground" />}
-                      {inCart ? "In cart" : "Add to cart"}
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuItem

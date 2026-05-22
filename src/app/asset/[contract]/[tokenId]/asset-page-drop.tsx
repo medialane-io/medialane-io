@@ -19,7 +19,6 @@ import { useOrderActions } from "./use-order-actions";
 import { CancelListingDialog } from "./cancel-listing-dialog";
 import { useAcceptOffer } from "@/hooks/use-accept-offer";
 import { AcceptOfferDialog } from "@/components/marketplace/accept-offer-dialog";
-import { useCart } from "@/hooks/use-cart";
 import { useAuth, SignInButton } from "@clerk/nextjs";
 import { useComments } from "@/hooks/use-comments";
 import { useTokenRemixes } from "@/hooks/use-remix-offers";
@@ -148,7 +147,6 @@ export function AssetPageDrop() {
   const acceptOffer = useAcceptOffer({ mutateListings, activeListings: listings.filter(
     (l) => l.status === "ACTIVE" && (l.offer.itemType === "ERC721" || l.offer.itemType === "ERC1155")
   ) });
-  const { addItem, items: cartItems, setIsOpen: setCartOpen } = useCart();
   const { total: commentTotal } = useComments(contract, tokenId);
   const { total: remixCount } = useTokenRemixes(contract, tokenId);
   const shouldReduce = useReducedMotion();
@@ -175,31 +173,7 @@ export function AssetPageDrop() {
   const myListing = isOwner
     ? activeListings.find((l) => l.offerer.toLowerCase() === walletAddress!.toLowerCase())
     : null;
-  const inCart = cheapest ? cartItems.some((i) => i.orderHash === cheapest.orderHash) : false;
-
   const name = token?.metadata?.name ?? `Token #${tokenId}`;
-
-  const handleAddToCart = () => {
-    if (!cheapest || inCart) return;
-    addItem(
-      {
-        orderHash: cheapest.orderHash,
-        nftContract: contract,
-        nftTokenId: tokenId,
-        itemType: "ERC721",
-        name,
-        image: token?.metadata?.image ?? "",
-        price: formatDisplayPrice(cheapest.price.formatted),
-        currency: cheapest.price.currency ?? "",
-        currencyDecimals: cheapest.price.decimals,
-        offerer: cheapest.offerer,
-        considerationToken: cheapest.consideration.token,
-        considerationAmount: cheapest.consideration.startAmount,
-      },
-      walletAddress ?? undefined
-    );
-    toast.success("Added to cart", { action: { label: "View cart", onClick: () => setCartOpen(true) } });
-  };
 
   return (
     <div
@@ -314,11 +288,6 @@ export function AssetPageDrop() {
                     <div className="btn-border-animated p-[1px] rounded-2xl">
                       <button className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 px-3 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-transparent" onClick={() => setPurchaseOrder(cheapest)}>
                         <ShoppingCart className="h-4 w-4" />Buy
-                      </button>
-                    </div>
-                    <div className={`btn-border-animated p-[1px] rounded-2xl ${inCart ? "opacity-40 pointer-events-none" : ""}`}>
-                      <button className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 px-3 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-blue" disabled={inCart} onClick={handleAddToCart}>
-                        <ShoppingCart className="h-4 w-4" />{inCart ? "In cart" : "Add to cart"}
                       </button>
                     </div>
                     <div className="btn-border-animated p-[1px] rounded-2xl">

@@ -10,7 +10,6 @@ import { PurchaseDialog } from "@/components/marketplace/purchase-dialog";
 import { OfferDialog } from "@/components/marketplace/offer-dialog";
 import { ReportDialog } from "@/components/report-dialog";
 import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
-import { useCart } from "@/hooks/use-cart";
 import { toast } from "sonner";
 import {
   PreviewHero, PreviewFooter, PreviewActionList, PreviewMeta, PreviewOwnerRow,
@@ -18,7 +17,6 @@ import {
 } from "./asset-preview-dialog";
 
 export function AssetPreviewEdition({ token, isOwner, onClose }: AssetPreviewContentProps) {
-  const { addItem, items } = useCart();
   const [imgError, setImgError] = useState(false);
   const [qty, setQty] = useState(1);
   const [buyOpen, setBuyOpen] = useState(false);
@@ -28,7 +26,6 @@ export function AssetPreviewEdition({ token, isOwner, onClose }: AssetPreviewCon
   const name = token.metadata?.name || `Token #${token.tokenId}`;
   const image = imgError ? null : (ipfsToHttp(token.metadata?.image) ?? null);
   const activeOrder = token.activeOrders?.[0] ?? null;
-  const inCart = activeOrder ? items.some((i) => i.orderHash === activeOrder.orderHash) : false;
 
   const assetHref = `/asset/${token.contractAddress}/${token.tokenId}`;
   const collectionHref = `/collections/${token.contractAddress}`;
@@ -38,35 +35,7 @@ export function AssetPreviewEdition({ token, isOwner, onClose }: AssetPreviewCon
   // suppress unused warning — imgError is set via onError on the img tag inside PreviewHero
   void imgError;
 
-  const handleAddToCart = () => {
-    if (!activeOrder || inCart) return;
-    addItem({
-      orderHash: activeOrder.orderHash,
-      nftContract: token.contractAddress,
-      nftTokenId: token.tokenId,
-      itemType: "ERC1155",
-      name,
-      image: token.metadata?.image ?? "",
-      price: formatDisplayPrice(activeOrder.price.formatted),
-      currency: activeOrder.price.currency ?? "",
-      currencyDecimals: activeOrder.price.decimals,
-      offerer: activeOrder.offerer ?? "",
-      considerationToken: activeOrder.consideration.token ?? "",
-      considerationAmount: activeOrder.consideration.startAmount ?? "",
-    });
-    toast.success("Added to cart", { description: name });
-  };
-
   const secondaryActions: PreviewAction[] = [];
-
-  if (!isOwner && activeOrder) {
-    secondaryActions.push({
-      icon: inCart ? <Check className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />,
-      label: inCart ? "In cart" : "Add to cart",
-      onClick: handleAddToCart,
-      disabled: inCart,
-    });
-  }
 
   if (!isOwner) {
     secondaryActions.push({

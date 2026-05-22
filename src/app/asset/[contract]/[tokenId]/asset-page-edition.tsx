@@ -37,7 +37,6 @@ import { useAuth } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useOrderActions } from "./use-order-actions";
 import { useAcceptOffer } from "@/hooks/use-accept-offer";
-import { useCart } from "@/hooks/use-cart";
 import { toast } from "sonner";
 import { useDominantColor } from "@/hooks/use-dominant-color";
 import { useTokenRemixes } from "@/hooks/use-remix-offers";
@@ -78,7 +77,6 @@ export function AssetPageEdition() {
   const acceptOffer = useAcceptOffer({ mutateListings, tokenStandard: "ERC1155", activeListings: listings.filter(
     (l) => l.status === "ACTIVE" && (l.offer.itemType === "ERC721" || l.offer.itemType === "ERC1155")
   ) });
-  const { addItem, items: cartItems, setIsOpen: setCartOpen } = useCart();
   const shouldReduce = useReducedMotion();
 
   const imageUrl = token?.metadata?.image ? ipfsToHttp(token.metadata.image) : null;
@@ -122,31 +120,6 @@ export function AssetPageEdition() {
     ? activeListings.find((l) => l.offerer.toLowerCase() === walletAddress!.toLowerCase())
     : null;
 
-  const inCart = cheapest ? cartItems.some((i) => i.orderHash === cheapest.orderHash) : false;
-
-  const handleAddToCart = () => {
-    if (!cheapest || inCart) return;
-    addItem(
-      {
-        orderHash: cheapest.orderHash,
-        nftContract: contract,
-        nftTokenId: tokenId,
-        itemType: "ERC1155",
-        name,
-        image: token?.metadata?.image ?? "",
-        price: formatDisplayPrice(cheapest.price.formatted),
-        currency: cheapest.price.currency ?? "",
-        currencyDecimals: cheapest.price.decimals,
-        offerer: cheapest.offerer,
-        considerationToken: cheapest.consideration.token,
-        considerationAmount: cheapest.consideration.startAmount,
-      },
-      walletAddress ?? undefined
-    );
-    toast.success("Added to cart", {
-      action: { label: "View cart", onClick: () => setCartOpen(true) },
-    });
-  };
 
   if (!token) return null;
 
@@ -256,13 +229,11 @@ export function AssetPageEdition() {
               myListing={myListing ?? null}
               activeBids={activeBids}
               walletAddress={walletAddress}
-              inCart={inCart}
               onCancelClick={handleCancelClick}
               onAcceptBid={acceptOffer.handleAcceptClick}
               onOpenListing={() => setListOpen(true)}
               onOpenTransfer={() => setTransferOpen(true)}
               onOpenPurchase={setPurchaseOrder}
-              onAddToCart={handleAddToCart}
               onOpenOffer={() => setOfferOpen(true)}
             />
 

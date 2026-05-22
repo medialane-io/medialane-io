@@ -15,7 +15,6 @@ import { ShoppingCart, Check, MoreHorizontal, Layers, ArrowRightLeft, Flag, GitB
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { cn, ipfsToHttp, formatDisplayPrice, timeAgo } from "@/lib/utils";
 import { validatePin } from "@/components/ui/pin-input";
-import { useCart } from "@/hooks/use-cart";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { MarketplacePinStep, MarketplaceDialogHero } from "@/components/marketplace/marketplace-dialog-primitives";
 import { CancelListingDialog } from "@/app/asset/[contract]/[tokenId]/cancel-listing-dialog";
@@ -36,14 +35,12 @@ interface ListingCardProps {
 export function ListingCard({ order, onBuy, compact = false, isOwner = false }: ListingCardProps) {
   const router = useRouter();
   const { mutate } = useSWRConfig();
-  const { addItem, items } = useCart();
   const { cancelOrder } = useMarketplace();
   const { authenticate, encryptKey } = usePasskeyAuth();
   const [passkeySupported] = useState(() => typeof window !== "undefined" && isWebAuthnSupported());
   // User has passkey if WebAuthn is available AND they set up a passkey-derived encrypt key
   const isPasskeyUser = passkeySupported && !!encryptKey;
 
-  const inCart = items.some((i) => i.orderHash === order.orderHash);
   const [imgError, setImgError] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
 
@@ -145,24 +142,6 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
 
   // ─── Full variant ─────────────────────────────────────────────────────────────
 
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (inCart) return;
-    addItem({
-      orderHash: order.orderHash,
-      nftContract: order.nftContract ?? "",
-      nftTokenId: order.nftTokenId ?? "",
-      itemType: (order.offer.itemType === "ERC1155" ? "ERC1155" : "ERC721"),
-      name,
-      image: order.token?.image ?? "",
-      price: formatDisplayPrice(order.price.formatted),
-      currency: order.price.currency ?? "",
-      currencyDecimals: order.price.decimals,
-      offerer: order.offerer ?? "",
-      considerationToken: order.consideration.token ?? "",
-      considerationAmount: order.consideration.startAmount ?? "",
-    });
-  };
 
   return (
     <MotionCard className="card-base">
@@ -289,20 +268,6 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
                   </div>
                 )}
 
-                {/* Cart */}
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className={cn(
-                    "h-9 w-9 p-0 shrink-0 rounded-[9px] transition-colors",
-                    inCart && "border-brand-orange/50 bg-brand-orange/10 text-brand-orange"
-                  )}
-                  onClick={handleAddToCart}
-                  disabled={inCart}
-                  aria-label={inCart ? "Added to cart" : "Add to cart"}
-                >
-                  {inCart ? <Check className="h-3.5 w-3.5" /> : <ShoppingCart className="h-3.5 w-3.5" />}
-                </Button>
 
                 {/* ⋯ More — complete menu */}
                 <DropdownMenu>
@@ -341,16 +306,6 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
                         </span>
                       </DropdownMenuItem>
                     )}
-                    <DropdownMenuItem
-                      className="flex items-center gap-2"
-                      onClick={handleAddToCart}
-                      disabled={inCart}
-                    >
-                      {inCart
-                        ? <Check className="h-3.5 w-3.5 text-muted-foreground" />
-                        : <ShoppingCart className="h-3.5 w-3.5 text-muted-foreground" />}
-                      {inCart ? "In cart" : "Add to cart"}
-                    </DropdownMenuItem>
                     <DropdownMenuItem
                       className="flex items-center gap-2 text-brand-orange focus:text-brand-orange"
                       onClick={(e) => { e.preventDefault(); router.push(`/asset/${order.nftContract}/${order.nftTokenId}`); }}

@@ -5,7 +5,6 @@ import { ThemeProvider } from "next-themes";
 import { Toaster, toast } from "sonner";
 import Link from "next/link";
 import { Menu } from "lucide-react";
-import { CartDrawer } from "@/components/layout/cart-drawer";
 import { MedialaneLogo } from "@/components/brand/medialane-logo";
 import { SWRConfig } from "swr";
 import { ChipiSessionUnlockProvider } from "@/contexts/chipi-session-unlock-context";
@@ -109,7 +108,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
         {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
         <AccountSyncOnLogin />
         <Shell>{children}</Shell>
-        <CartDrawer />
         <Toaster
           richColors
           position="bottom-center"

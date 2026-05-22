@@ -69,14 +69,12 @@ interface AssetMarketplacePanelProps {
   myListing: ApiOrder | null;
   activeBids: ApiOrder[];
   walletAddress?: string | null;
-  inCart: boolean;
   remixEnabled?: boolean;
   onCancelClick: (order: ApiOrder) => void;
   onAcceptBid: (order: ApiOrder) => void;
   onOpenListing: () => void;
   onOpenTransfer: () => void;
   onOpenPurchase: (order: ApiOrder) => void;
-  onAddToCart: () => void;
   onOpenOffer: () => void;
   onOpenRemix?: () => void;
 }
@@ -90,14 +88,12 @@ export function AssetMarketplacePanel({
   myListing,
   activeBids,
   walletAddress,
-  inCart,
   remixEnabled = false,
   onCancelClick,
   onAcceptBid,
   onOpenListing,
   onOpenTransfer,
   onOpenPurchase,
-  onAddToCart,
   onOpenOffer,
   onOpenRemix,
 }: AssetMarketplacePanelProps) {
@@ -178,13 +174,6 @@ export function AssetMarketplacePanel({
                       tone="transparent"
                     />
                     <ActionButton
-                      label={inCart ? "In cart" : "Add to cart"}
-                      icon={<ShoppingCart className="h-4 w-4" />}
-                      onClick={onAddToCart}
-                      disabled={inCart}
-                      tone="blue"
-                    />
-                    <ActionButton
                       label="Make offer"
                       icon={<HandCoins className="h-4 w-4" />}
                       onClick={onOpenOffer}
@@ -201,13 +190,6 @@ export function AssetMarketplacePanel({
                 icon={<ShoppingCart className="h-4 w-4" />}
                 onClick={() => onOpenPurchase(cheapest)}
                 tone="transparent"
-              />
-              <ActionButton
-                label={inCart ? "In cart" : "Add to cart"}
-                icon={<ShoppingCart className="h-4 w-4" />}
-                onClick={onAddToCart}
-                disabled={inCart}
-                tone="blue"
               />
               <ActionButton
                 label="Make offer"

@@ -17,7 +17,6 @@ import { Button } from "@/components/ui/button";
 import { ReportDialog } from "@/components/report-dialog";
 import { ShareButton } from "@/components/shared/share-button";
 import { TraitFilter } from "@/components/collection/trait-filter";
-import { SweepBar } from "@/components/collection/sweep-bar";
 import { GatedContentHero } from "@/components/collection/gated-content-hero";
 import { OwnerSetupPanel } from "@/components/collection/owner-setup-panel";
 import { TransferCollectionOwnershipDialog } from "@/components/collection/transfer-ownership-dialog";
@@ -558,7 +557,6 @@ export default function CollectionPageClient() {
           </TabsContent>
 
           <TabsContent value="listings" className="mt-4">
-            <SweepBar contract={contract} />
             {ordersLoading ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                 {Array.from({ length: 8 }).map((_, i) => <ListingCardSkeleton key={i} />)}
