@@ -314,6 +314,20 @@ layout.tsx (server)
 
 **Finding 14 (MEDIUM):** `approve` and `set_approval_for_all` were removed from the session key whitelist (2026-05-06). If marketplace listings break in production, these must be re-added and ChipiPay must be asked to enforce per-contract restrictions (not just per-selector). See `use-session-key.ts` comment for details.
 
-### NEXT_PUBLIC_MEDIALANE_API_KEY (accepted risk — read-only)
+### Medialane API key — server-only via BFF proxy (2026-05-24)
 
-`NEXT_PUBLIC_MEDIALANE_API_KEY` is intentionally public — it authorizes **read-only** operations on the Medialane backend API and is baked into the client bundle so SWR hooks in browser context can fetch marketplace/portfolio data directly. The backend must enforce that this key cannot create, update, or delete any data. If read endpoints ever expose sensitive PII, or if the key is granted write access, all client-side SDK calls must be proxied through server-side Next.js API routes using the server-only `MEDIALANE_API_KEY` variable (no `NEXT_PUBLIC_` prefix) — following the existing pattern in `api-server.ts`.
+`NEXT_PUBLIC_MEDIALANE_API_KEY` is **gone**. The backend has no read-only key scope, so the previous "accepted risk" framing was aspirational — the key shipped in the browser bundle was a fully-privileged tenant key.
+
+Current architecture:
+
+- **Vercel env var:** only `MEDIALANE_API_KEY` (no `NEXT_PUBLIC_` prefix) — server-side scope.
+- **BFF proxy:** `src/app/api/proxy/v1/[...path]/route.ts` injects the key into outbound requests. The browser never sees it.
+- **`constants.ts`:** both `MEDIALANE_BACKEND_URL` and `MEDIALANE_API_KEY` exports are **environment-aware**:
+  - server-side: real backend URL + real key
+  - browser: `/api/proxy` + empty string
+- **SDK client (`medialane-client.ts`):** picks the right backendUrl per environment automatically.
+- **Direct client fetches** (`use-remix-offers.ts`, launchpad pages, etc.) that already call `${MEDIALANE_BACKEND_URL}/v1/...` work unchanged — they route through `/api/proxy` in the browser.
+
+**Pattern for new client code:** just use `MEDIALANE_BACKEND_URL` from `@/lib/constants` and don't worry about the key. If you need the user's Clerk JWT for identity routes, pass it through `Authorization: Bearer <token>` — the proxy forwards it unchanged.
+
+**Pattern for new server code (RSC, BFF route, sitemap, etc.):** read `process.env.MEDIALANE_API_KEY` directly. `api-server.ts` is the canonical example.

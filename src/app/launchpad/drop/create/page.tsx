@@ -21,7 +21,8 @@ import { toast } from "sonner";
 import { FadeIn } from "@/components/ui/motion-primitives";
 import { getListableTokens } from "@medialane/sdk";
 import { DropFactoryABI, DROP_FACTORY_CONTRACT } from "@/lib/launchpad-contracts";
-import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
+// API_BASE = same-origin BFF proxy that injects the server-only API key.
+const API_BASE = "/api/proxy";
 import { DropCreateForm, type PaymentTokenOption } from "../drop-create-form";
 import { dropCreateSchema, type DropCreateFormValues } from "../drop-create-schema";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
@@ -158,8 +159,7 @@ export default function CreateDropPage() {
     }
   ) => {
     const headers: Record<string, string> = { "Content-Type": "application/json" };
-    if (MEDIALANE_API_KEY) headers["x-api-key"] = MEDIALANE_API_KEY;
-    const base = MEDIALANE_BACKEND_URL.replace(/\/$/, "");
+    const base = API_BASE;
 
     // Poll up to 30s for the newly indexed collection (indexer ~6s cycle)
     let collectionAddress: string | null = null;

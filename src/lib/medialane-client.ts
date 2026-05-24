@@ -9,6 +9,14 @@ import {
   COLLECTION_1155_CONTRACT,
 } from "./constants";
 
+/**
+ * SDK client. The constants are already environment-aware:
+ * - Server-side: real backend URL + real API key.
+ * - Browser: `/api/proxy` (same-origin BFF) + empty key (the proxy adds it).
+ *
+ * Replaces the legacy `NEXT_PUBLIC_MEDIALANE_API_KEY` pattern that
+ * shipped the key in the JS bundle.
+ */
 let _client: MedialaneClient | null = null;
 
 export function getMedialaneClient(): MedialaneClient {

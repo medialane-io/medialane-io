@@ -9,9 +9,12 @@ import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion-primitives"
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useUser } from "@clerk/nextjs";
 import { ipfsToHttp } from "@/lib/utils";
-import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
 import useSWR from "swr";
 import type { ApiCollection } from "@medialane/sdk";
+
+// Same-origin BFF proxy — injects MEDIALANE_API_KEY server-side. The key
+// is never present in the browser bundle.
+const API_BASE = "/api/proxy";
 
 function useMyEvents(ownerAddress: string | null) {
   return useSWR<ApiCollection[]>(
@@ -22,10 +25,7 @@ function useMyEvents(ownerAddress: string | null) {
         owner: ownerAddress!,
         limit: "50",
       });
-      const url = `${MEDIALANE_BACKEND_URL.replace(/\/$/, "")}/v1/collections?${params}`;
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
-      if (MEDIALANE_API_KEY) headers["x-api-key"] = MEDIALANE_API_KEY;
-      const res = await fetch(url, { headers });
+      const res = await fetch(`${API_BASE}/v1/collections?${params}`);
       if (!res.ok) throw new Error(`My events fetch failed: ${res.status}`);
       const json = await res.json();
       return json.data ?? [];

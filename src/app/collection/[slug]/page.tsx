@@ -7,8 +7,9 @@ interface Props {
 export default async function CollectionSlugPage({ params }: Props) {
   const { slug } = await params;
 
+  // RSC — runs server-side; use the server-only API key (no NEXT_PUBLIC_).
   const backendUrl = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL ?? "http://localhost:3001";
-  const apiKey = process.env.NEXT_PUBLIC_MEDIALANE_API_KEY ?? "";
+  const apiKey = process.env.MEDIALANE_API_KEY ?? "";
 
   let res: Response;
   try {
