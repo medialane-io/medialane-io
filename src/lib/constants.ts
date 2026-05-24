@@ -61,9 +61,14 @@ export const STARKNET_RPC_URL =
  */
 const isServer = typeof window === "undefined";
 
+// On the client, target the same-origin BFF proxy. We use an absolute URL
+// (origin + path) rather than a bare path because `MedialaneClient`'s Zod
+// schema validates `backendUrl` with `z.string().url()` — `/api/proxy`
+// alone is rejected as not a URL. fetch() against the absolute same-origin
+// URL works identically to a relative one in the browser.
 export const MEDIALANE_BACKEND_URL = isServer
   ? readStringEnv(process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL, "http://localhost:3001")
-  : "/api/proxy";
+  : `${window.location.origin}/api/proxy`;
 
 export const MEDIALANE_API_KEY = isServer
   ? readStringEnv(process.env.MEDIALANE_API_KEY)
