@@ -1,11 +1,12 @@
 /**
  * Server-side fetch helpers for generateMetadata.
- * Uses NEXT_PUBLIC_ env vars — safe to reference in server components.
- * Returns null on any error so metadata falls back gracefully.
+ * Server-only — uses `MEDIALANE_API_KEY` (no NEXT_PUBLIC_ prefix) so the
+ * key never ends up in the browser bundle. Returns null on any error so
+ * metadata falls back gracefully.
  */
 
 const BASE = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL ?? "";
-const KEY  = process.env.NEXT_PUBLIC_MEDIALANE_API_KEY ?? "";
+const KEY  = process.env.MEDIALANE_API_KEY ?? "";
 
 async function apiFetch<T>(path: string): Promise<T | null> {
   try {

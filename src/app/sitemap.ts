@@ -6,7 +6,8 @@ const BASE_URL = APP_URL;
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL ||
   "https://medialane-backend-production.up.railway.app";
-const API_KEY = process.env.NEXT_PUBLIC_MEDIALANE_API_KEY || "";
+// Server-only key — sitemap.ts is generated at build time on the server.
+const API_KEY = process.env.MEDIALANE_API_KEY || "";
 
 async function fetchJson<T>(path: string): Promise<T | null> {
   try {

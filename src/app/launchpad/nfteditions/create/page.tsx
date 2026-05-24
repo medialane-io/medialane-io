@@ -30,7 +30,10 @@ import {
   nftEditionsCreateSchema,
   type NftEditionsCreateFormValues,
 } from "../nfteditions-create-schema";
-import { COLLECTION_1155_CONTRACT, MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
+import { COLLECTION_1155_CONTRACT } from "@/lib/constants";
+
+// Same-origin BFF proxy — injects MEDIALANE_API_KEY server-side.
+const API_BASE = "/api/proxy";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 import { serializeByteArray } from "@/lib/cairo-calldata";
 
@@ -177,11 +180,9 @@ export default function CreateIP1155CollectionPage() {
       // next block poll — no action needed and we still show success.
       if (addr) {
         try {
-          const headers: Record<string, string> = { "Content-Type": "application/json" };
-          if (MEDIALANE_API_KEY) headers["x-api-key"] = MEDIALANE_API_KEY;
-          await fetch(`${MEDIALANE_BACKEND_URL.replace(/\/$/, "")}/v1/collections/register`, {
+          await fetch(`${API_BASE}/v1/collections/register`, {
             method: "POST",
-            headers,
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               contractAddress: addr,
               startBlock: 0,

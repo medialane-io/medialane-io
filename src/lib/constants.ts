@@ -41,12 +41,33 @@ export const COLLECTION_1155_CONTRACT =
 export const STARKNET_RPC_URL =
   readStringEnv(process.env.NEXT_PUBLIC_STARKNET_RPC_URL);
 
-export const MEDIALANE_BACKEND_URL =
-  readStringEnv(process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL, "http://localhost:3001");
+/**
+ * `MEDIALANE_BACKEND_URL` is **environment-aware**:
+ *
+ * - **Server-side** (RSC, BFF routes, sitemap): the real backend URL.
+ *   Paired with `MEDIALANE_API_KEY` below (which holds the real server-only
+ *   key on this side), so existing `${MEDIALANE_BACKEND_URL}/v1/...` + the
+ *   `x-api-key: MEDIALANE_API_KEY` header pattern works unchanged.
+ *
+ * - **Browser**: `/api/proxy` — same-origin BFF that injects the real API
+ *   key server-side (see `src/app/api/proxy/v1/[...path]/route.ts`).
+ *   `MEDIALANE_API_KEY` is the empty string here, so any
+ *   `x-api-key: MEDIALANE_API_KEY` header the client sends is harmless;
+ *   the proxy strips and replaces it.
+ *
+ * The result: the legacy `NEXT_PUBLIC_MEDIALANE_API_KEY` pattern (which
+ * shipped the key in the JS bundle) is gone, but existing call sites that
+ * import these constants need no code changes.
+ */
+const isServer = typeof window === "undefined";
 
-// read-only public key — authorizes read operations only. Do NOT use for admin ops.
-export const MEDIALANE_API_KEY =
-  readStringEnv(process.env.NEXT_PUBLIC_MEDIALANE_API_KEY);
+export const MEDIALANE_BACKEND_URL = isServer
+  ? readStringEnv(process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL, "http://localhost:3001")
+  : "/api/proxy";
+
+export const MEDIALANE_API_KEY = isServer
+  ? readStringEnv(process.env.MEDIALANE_API_KEY)
+  : "";
 
 export const PINATA_GATEWAY =
   readStringEnv(process.env.NEXT_PUBLIC_PINATA_GATEWAY, "https://gateway.pinata.cloud");

@@ -3,17 +3,16 @@ import { useAuth } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
 import type { RemixOffer, RemixOfferListResponse, PublicRemix } from "@/types/remix-offers";
 
-// Read directly from env to avoid importing @/lib/constants → @medialane/sdk
-// on the client bundle (prevents TDZ errors in the asset-page chunk).
-const MEDIALANE_BACKEND_URL = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL ?? "http://localhost:3001";
-const MEDIALANE_API_KEY = process.env.NEXT_PUBLIC_MEDIALANE_API_KEY ?? "";
+// Client-side hook. All requests go through the same-origin BFF proxy at
+// `/api/proxy/v1/...`, which injects the server-only API key. The key is
+// never present in the browser bundle.
+const API_BASE = "/api/proxy";
 
 // ─── Fetcher helpers ──────────────────────────────────────────────────────────
 
-async function apiFetch(url: string, apiKey: string, clerkToken?: string | null, options?: RequestInit) {
+async function apiFetch(url: string, clerkToken?: string | null, options?: RequestInit) {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    "x-api-key": apiKey,
     ...(clerkToken ? { Authorization: `Bearer ${clerkToken}` } : {}),
   };
   const res = await fetch(url, { ...options, headers: { ...headers, ...(options?.headers as Record<string, string> ?? {}) } });
@@ -38,7 +37,7 @@ export function useRemixOffers(role: "creator" | "requester", status?: string) {
     async () => {
       const token = await getToken();
       const params = new URLSearchParams({ role, ...(status ? { status } : {}) });
-      return apiFetch(`${MEDIALANE_BACKEND_URL}/v1/remix-offers?${params}`, MEDIALANE_API_KEY, token);
+      return apiFetch(`${API_BASE}/v1/remix-offers?${params}`, token);
     },
     { refreshInterval: 30000, revalidateOnFocus: false }
   );
@@ -51,9 +50,7 @@ export function useTokenRemixes(contract: string | null, tokenId: string | null)
   const { data, error, isLoading, mutate } = useSWR<{ data: PublicRemix[]; meta: { total: number } }>(
     contract && tokenId ? `token-remixes-${contract}-${tokenId}` : null,
     () =>
-      fetch(`${MEDIALANE_BACKEND_URL}/v1/tokens/${contract}/${tokenId}/remixes`, {
-        headers: { "x-api-key": MEDIALANE_API_KEY },
-      }).then((r) => r.json()),
+      fetch(`${API_BASE}/v1/tokens/${contract}/${tokenId}/remixes`).then((r) => r.json()),
     { refreshInterval: 60000, revalidateOnFocus: false }
   );
 
@@ -78,7 +75,7 @@ export async function submitRemixOffer(
   },
   clerkToken: string
 ): Promise<RemixOffer> {
-  const res = await apiFetch(`${MEDIALANE_BACKEND_URL}/v1/remix-offers`, MEDIALANE_API_KEY, clerkToken, {
+  const res = await apiFetch(`${API_BASE}/v1/remix-offers`, clerkToken, {
     method: "POST",
     body: JSON.stringify(body),
   });
@@ -90,7 +87,7 @@ export async function submitAutoRemixOffer(
   body: { originalContract: string; originalTokenId: string },
   clerkToken: string
 ): Promise<RemixOffer> {
-  const res = await apiFetch(`${MEDIALANE_BACKEND_URL}/v1/remix-offers/auto`, MEDIALANE_API_KEY, clerkToken, {
+  const res = await apiFetch(`${API_BASE}/v1/remix-offers/auto`, clerkToken, {
     method: "POST",
     body: JSON.stringify(body),
   });
@@ -112,7 +109,7 @@ export async function confirmSelfRemix(
   },
   clerkToken: string
 ): Promise<RemixOffer> {
-  const res = await apiFetch(`${MEDIALANE_BACKEND_URL}/v1/remix-offers/self/confirm`, MEDIALANE_API_KEY, clerkToken, {
+  const res = await apiFetch(`${API_BASE}/v1/remix-offers/self/confirm`, clerkToken, {
     method: "POST",
     body: JSON.stringify(body),
   });
@@ -125,7 +122,7 @@ export async function confirmRemixOffer(
   body: { remixContract: string; remixTokenId: string; approvedCollection: string; orderHash: string },
   clerkToken: string
 ): Promise<RemixOffer> {
-  const res = await apiFetch(`${MEDIALANE_BACKEND_URL}/v1/remix-offers/${id}/confirm`, MEDIALANE_API_KEY, clerkToken, {
+  const res = await apiFetch(`${API_BASE}/v1/remix-offers/${id}/confirm`, clerkToken, {
     method: "POST",
     body: JSON.stringify(body),
   });
@@ -134,7 +131,7 @@ export async function confirmRemixOffer(
 
 /** Reject an offer. */
 export async function rejectRemixOffer(id: string, clerkToken: string): Promise<RemixOffer> {
-  const res = await apiFetch(`${MEDIALANE_BACKEND_URL}/v1/remix-offers/${id}/reject`, MEDIALANE_API_KEY, clerkToken, {
+  const res = await apiFetch(`${API_BASE}/v1/remix-offers/${id}/reject`, clerkToken, {
     method: "POST",
     body: JSON.stringify({}),
   });
@@ -143,7 +140,7 @@ export async function rejectRemixOffer(id: string, clerkToken: string): Promise<
 
 /** Extend the expiry of a pending offer by 1–30 days. */
 export async function extendRemixOffer(id: string, days: number, clerkToken: string): Promise<RemixOffer> {
-  const res = await apiFetch(`${MEDIALANE_BACKEND_URL}/v1/remix-offers/${id}/extend`, MEDIALANE_API_KEY, clerkToken, {
+  const res = await apiFetch(`${API_BASE}/v1/remix-offers/${id}/extend`, clerkToken, {
     method: "POST",
     body: JSON.stringify({ days }),
   });
