@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { EmptyOrError } from "@/components/ui/empty-or-error";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { useMarketplace } from "@/hooks/use-marketplace";
+import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
+import { chargePlatformFee } from "@/lib/charge-fee";
 import { ipfsToHttp, formatDisplayPrice, formatExpiry, cn } from "@/lib/utils";
 import { ArrowLeftRight, ExternalLink, Inbox } from "lucide-react";
 import { EXPLORER_URL } from "@/lib/constants";
@@ -109,6 +111,9 @@ function CounterOfferFetcher({
 export function CounterOffersTable({ address }: { address: string }) {
   const { orders, isLoading, error, mutate } = useUserOrders(address);
   const { fulfillOrder, isProcessing } = useMarketplace();
+  // Dedicated ChipiTransaction instance for the platform fee tx — must not
+  // share state with the fulfill tx (mirrors purchase-dialog pattern).
+  const { executeTransaction: executeFeeTransaction } = useChipiTransaction();
   const [pinOpen, setPinOpen] = useState(false);
   const [selectedCounter, setSelectedCounter] = useState<ApiOrder | null>(null);
   const [originalForSelected, setOriginalForSelected] = useState<ApiOrder | null>(null);
@@ -136,7 +141,31 @@ export function CounterOffersTable({ address }: { address: string }) {
   const handlePin = async (pin: string) => {
     setPinOpen(false);
     if (!selectedCounter) return;
-    await fulfillOrder({ orderHash: selectedCounter.orderHash, pin, tokenStandard: selectedCounter.consideration.itemType });
+    const hash = await fulfillOrder({
+      orderHash: selectedCounter.orderHash,
+      pin,
+      tokenStandard: selectedCounter.consideration.itemType,
+    });
+    if (hash) {
+      // Fee — fire-and-forget post-confirm. Buyer (this user) is paying the
+      // counter-listing's ERC-20 amount, so they bear the platform fee, same
+      // as a listing purchase. Counter-offers are ERC-721-only in current io
+      // (no quantity field on the table), so grossAmount = startAmount × 1.
+      const feeGrossAmount = BigInt(selectedCounter.consideration.startAmount ?? "0");
+      console.info("[medialane] platform fee queued", {
+        surface: "marketplace",
+        orderHash: selectedCounter.orderHash,
+        token: selectedCounter.consideration.token,
+        grossAmount: feeGrossAmount.toString(),
+      });
+      void chargePlatformFee({
+        surface: "marketplace",
+        token: selectedCounter.consideration.token ?? "",
+        grossAmount: feeGrossAmount,
+        pin,
+        executeTransaction: executeFeeTransaction,
+      });
+    }
     mutate();
   };
 
