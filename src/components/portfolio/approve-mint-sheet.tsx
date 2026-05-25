@@ -160,7 +160,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
           recipient: walletAddress,
           tokenUri: pinData.uri,
         });
-        const mintCalls = (intentRes.data as any)?.calls as ChipiCall[];
+        const mintCalls = intentRes.data?.calls as ChipiCall[];
         if (!mintCalls?.length) throw new Error("No mint calls returned");
 
         const mintResult = await executeTransaction({

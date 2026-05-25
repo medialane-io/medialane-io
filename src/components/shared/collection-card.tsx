@@ -38,7 +38,7 @@ export function CollectionCard({ collection, settingsHref }: CollectionCardProps
   const showImage = imageUrl && !imgError;
   const initial = (collection.name ?? collection.contractAddress).charAt(0).toUpperCase();
   const floor = parseFloorPrice(collection.floorPrice);
-  const hasExclusiveContent = !!(collection as any).profile?.hasGatedContent;
+  const hasExclusiveContent = !!collection.profile?.hasGatedContent;
 
   return (
     <div className={cn(hasExclusiveContent && "card-exclusive-wrapper btn-border-animated")}>

@@ -52,7 +52,7 @@ export function AssetProvenanceTab({
   const volumeSummary = Object.values(totalVolumeParts);
 
   const allActors = new Set(
-    history.flatMap((e) => [e.offerer, e.fulfiller, (e as any).from].filter(Boolean))
+    history.flatMap((e) => [e.offerer, e.fulfiller, e.from].filter(Boolean))
   );
   const firstEvent = history[history.length - 1];
 
@@ -155,14 +155,14 @@ export function AssetProvenanceTab({
                   icon: <Activity className="h-3.5 w-3.5" />,
                   badgeCls: "bg-muted/60 text-muted-foreground border-border",
                 };
-                const actor = event.offerer ?? (event as any).from ?? "";
-                const toAddr = (event as any).to as string | undefined;
+                const actor = event.offerer ?? event.from ?? "";
+                const toAddr = event.to;
                 const counterpart = event.fulfiller && event.fulfiller !== actor
                   ? event.fulfiller
                   : event.type === "transfer" && toAddr
                   ? toAddr
                   : null;
-                const amount = (event as any).amount as string | undefined;
+                const amount = event.amount;
                 const txLink = event.txHash ? `${EXPLORER_URL}/tx/${event.txHash}` : null;
                 const voyagerActor = actor ? `${EXPLORER_URL}/contract/${actor}` : null;
 

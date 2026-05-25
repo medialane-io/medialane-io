@@ -75,7 +75,7 @@ export default function CollectionsPageClient() {
   const activeFilters = [sort !== "recent", featured, !hideEmpty, exclusive].filter(Boolean).length;
 
   const displayCollections = exclusive
-    ? allCollections.filter((c) => !!(c as any).profile?.hasGatedContent)
+    ? allCollections.filter((c) => !!c.profile?.hasGatedContent)
     : allCollections;
 
   const resetAll = () => {
