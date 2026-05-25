@@ -13,6 +13,11 @@ const ALLOWED_CONTENT_TYPES = new Set([
 ]);
 
 const MAX_REDIRECTS = 5;
+// Cap image proxy responses at 15 MB. The endpoint is public (no Clerk
+// gate), so an unbounded `arrayBuffer()` lets any caller pin server memory
+// by pointing us at a large file. NFT thumbnails are typically <2 MB;
+// 15 MB covers high-res hero images with headroom.
+const MAX_BYTES = 15 * 1024 * 1024;
 
 /**
  * GET /api/img?url=<encoded-https-url>
@@ -170,7 +175,50 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Not an image" }, { status: 400 });
   }
 
-  const body = await upstream.arrayBuffer();
+  // Reject early if the upstream declares an oversized body. Content-Length
+  // is advisory (some origins lie or omit it), so it's a fast-path check —
+  // the streaming guard below catches everything else.
+  const declaredLength = upstream.headers.get("content-length");
+  if (declaredLength) {
+    const n = Number.parseInt(declaredLength, 10);
+    if (Number.isFinite(n) && n > MAX_BYTES) {
+      return NextResponse.json(
+        { error: `Image too large (${n} bytes; cap ${MAX_BYTES})` },
+        { status: 413 }
+      );
+    }
+  }
+
+  if (!upstream.body) {
+    return NextResponse.json({ error: "Upstream returned no body" }, { status: 502 });
+  }
+
+  // Stream the body and abort if it crosses MAX_BYTES. The chunks are
+  // accumulated so we preserve the buffered Cache-Control behaviour the
+  // CDN expects; switching to a streaming response would change caching.
+  const reader = upstream.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > MAX_BYTES) {
+      await reader.cancel();
+      return NextResponse.json(
+        { error: `Image exceeds size cap (${MAX_BYTES} bytes)` },
+        { status: 413 }
+      );
+    }
+    chunks.push(value);
+  }
+
+  const body = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    body.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
 
   return new NextResponse(body, {
     status: 200,
