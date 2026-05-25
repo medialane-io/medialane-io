@@ -25,7 +25,7 @@ import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { getDefaultClaimWindow, suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
 import { PopCreateForm } from "../pop-create-form";
 import { popCreateSchema, type PopCreateFormValues } from "../pop-create-schema";
-import { LaunchpadSuccessState, LaunchpadErrorState } from "@/components/launchpad/launchpad-success-state";
+import { LaunchpadSuccessState, LaunchpadErrorState, LaunchpadProcessingState } from "@/components/launchpad/launchpad-success-state";
 import { LaunchpadPageIntro } from "@/components/launchpad/launchpad-page-intro";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 
@@ -168,6 +168,14 @@ export default function CreatePOPPage() {
         onRetry={() => setTxError(null)}
       />
     );
+  }
+
+  // ── Processing ─────────────────────────────────────────────────────────────
+  // Full-page feedback while the on-chain tx is pending. Without this, the
+  // user sees the form with a disabled button and may think nothing is
+  // happening — they could navigate away mid-tx.
+  if (isSubmitting && !done && !txError) {
+    return <LaunchpadProcessingState title="Creating your POP event…" />;
   }
 
   // ── Success ────────────────────────────────────────────────────────────────
