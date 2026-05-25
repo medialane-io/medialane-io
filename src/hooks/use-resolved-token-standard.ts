@@ -11,7 +11,10 @@ export function useResolvedTokenStandard(
   collectionStandard: string | null | undefined;
   isResolving: boolean;
 } {
-  const needsFetch = tokenStandard == null || tokenStandard === "UNKNOWN";
+  // Backend Prisma TokenStandard enum is { ERC721, ERC1155 } only — UNKNOWN
+  // was dropped from storage (audit 2026-05-24), so the prop is null only
+  // when callers haven't supplied it yet (e.g. loading state).
+  const needsFetch = tokenStandard == null;
   const { collection, isLoading } = useCollection(needsFetch ? contractAddress : null);
   return {
     tokenStandard: resolveTokenStandard(tokenStandard, collection?.standard),

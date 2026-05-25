@@ -602,7 +602,7 @@ export default function CreateRemixPage() {
                         <SelectItem key={getCollectionKey(c)} value={getCollectionKey(c)}>
                           <span className="flex items-center gap-2">
                             {c.name ?? c.contractAddress.slice(0, 14) + "…"}
-                            {c.standard && c.standard !== "UNKNOWN" && (
+                            {c.standard && (
                               <span className="text-[10px] font-mono text-muted-foreground">{c.standard}</span>
                             )}
                           </span>
