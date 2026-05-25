@@ -209,7 +209,7 @@ export function AssetPageDrop() {
           >
             <div className="rounded-2xl overflow-hidden border border-border bg-muted">
               {imageUrl && !imgError ? (
-                <Image src={imageUrl} alt={name} width={0} height={0} sizes="(max-width: 1024px) 100vw, 66vw" className="w-full h-auto" onError={() => setImgError(true)} priority />
+                <Image src={imageUrl} alt={name} width={0} height={0} sizes="(max-width: 1024px) 100vw, 66vw" className="w-full h-auto" onError={() => setImgError(true)} crossOrigin="anonymous" priority />
               ) : (
                 <div className="aspect-square flex items-center justify-center bg-gradient-to-br from-orange-500/10 to-amber-600/10">
                   <Package className="h-20 w-20 text-orange-500/30" />

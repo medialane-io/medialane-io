@@ -49,6 +49,7 @@ export function AssetMediaColumn({
             sizes="(max-width: 1024px) 100vw, 66vw"
             className="w-full h-auto"
             onError={onImageError}
+            crossOrigin="anonymous"
             priority
           />
         ) : (

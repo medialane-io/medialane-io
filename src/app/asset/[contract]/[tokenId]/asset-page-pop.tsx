@@ -93,6 +93,7 @@ export function AssetPagePop() {
                   sizes="(max-width: 1024px) 100vw, 66vw"
                   className="w-full h-auto"
                   onError={() => setImgError(true)}
+                  crossOrigin="anonymous"
                   priority
                 />
               ) : (
