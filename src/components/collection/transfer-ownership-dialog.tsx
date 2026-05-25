@@ -102,7 +102,6 @@ export function TransferCollectionOwnershipDialog({
         : [];
       await executeTransaction({
         pin: pinOrDerivedKey,
-        contractAddress: COLLECTION_721_CONTRACT,
         calls: [
           {
             contractAddress: COLLECTION_721_CONTRACT,

@@ -223,7 +223,6 @@ export default function CreateCollectionPage() {
       // 2. Execute the pre-signed calls via ChipiPay (gasless)
       const result = await executeTransaction({
         pin,
-        contractAddress: calls[0].contractAddress,
         calls,
       });
 

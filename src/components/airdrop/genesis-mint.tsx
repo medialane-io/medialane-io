@@ -266,7 +266,6 @@ export function GenesisMint() {
 
       const result = await executeTransaction({
         pin: key,
-        contractAddress: MINT_CONTRACT,
         calls: [{ contractAddress: MINT_CONTRACT, entrypoint: "mint_item", calldata }],
       });
 

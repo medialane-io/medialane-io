@@ -155,7 +155,6 @@ export function LaunchMint() {
 
       const result = await executeTransaction({
         pin: mintPin,
-        contractAddress: LAUNCH_MINT_CONTRACT,
         calls: [{ contractAddress: LAUNCH_MINT_CONTRACT, entrypoint: "mint_item", calldata }],
       });
 

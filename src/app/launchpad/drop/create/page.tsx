@@ -253,7 +253,6 @@ export default function CreateDropPage() {
 
       const result = await executeTransaction({
         pin,
-        contractAddress: DROP_FACTORY_CONTRACT,
         calls: [{
           contractAddress: DROP_FACTORY_CONTRACT,
           entrypoint: "create_drop",

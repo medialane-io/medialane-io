@@ -472,7 +472,6 @@ export default function CreateAssetPage() {
       // 3. Execute via ChipiPay
       const result = await executeTransaction({
         pin,
-        contractAddress: intentData.calls[0].contractAddress,
         calls: intentData.calls as ChipiCall[],
       });
 

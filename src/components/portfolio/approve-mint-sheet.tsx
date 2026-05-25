@@ -140,7 +140,6 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
         const [valueLow, valueHigh] = encodeU256(BigInt(1));
         const result = await executeTransaction({
           pin,
-          contractAddress: selectedCollection.contractAddress,
           calls: [{
             contractAddress: selectedCollection.contractAddress,
             entrypoint: "mint_item",
@@ -166,7 +165,6 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
 
         const mintResult = await executeTransaction({
           pin,
-          contractAddress: mintCalls[0].contractAddress,
           calls: mintCalls,
         });
         if (mintResult.status === "reverted") throw new Error(mintResult.revertReason ?? "Mint reverted");
