@@ -10,7 +10,7 @@ import {
   CheckCircle2, ShieldCheck,
 } from "lucide-react";
 import { fireConfetti } from "@/lib/confetti";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
@@ -309,6 +309,9 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
           <DialogTitle className="sr-only">
             {step === "success" ? "Purchase complete" : step === "processing" ? "Processing purchase" : "Buy now"}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Confirm and complete this marketplace purchase with your Medialane wallet.
+          </DialogDescription>
 
           {/* ── Success ──────────────────────────────────────────────────── */}
           {step === "success" ? (

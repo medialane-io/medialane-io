@@ -1,17 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 
-// Public Starknet RPC fallback. Used only when no private endpoint is
-// configured. Same endpoint the @medialane/sdk defaults to — rate-limited
-// but better than 500.
-const PUBLIC_FALLBACK = "https://rpc.starknet.lava.build/";
+// Public Starknet RPC fallbacks. Used only after configured private endpoints
+// are missing or transiently rate limited. Public providers are still
+// rate-limited, so rotate through a short list on 429/non-JSON responses.
+const PUBLIC_FALLBACKS = [
+  "https://rpc.starknet.lava.build/",
+  "https://starknet-mainnet.public.blastapi.io/rpc/v0_7",
+  "https://free-rpc.nethermind.io/mainnet-juno/v0_7",
+];
 
-const RPC_URL =
-  process.env.ALCHEMY_RPC_URL ||
-  process.env.ALCHEMY_URL ||
-  process.env.STARKNET_RPC_URL_SERVER ||
-  process.env.STARKNET_RPC_FALLBACK_URL ||
-  PUBLIC_FALLBACK;
+const RPC_URLS = Array.from(new Set([
+  process.env.ALCHEMY_RPC_URL,
+  process.env.ALCHEMY_URL,
+  process.env.STARKNET_RPC_URL_SERVER,
+  process.env.STARKNET_RPC_FALLBACK_URL,
+  ...PUBLIC_FALLBACKS,
+].filter((url): url is string => Boolean(url))));
 
 /**
  * Server-side Starknet RPC proxy.
@@ -113,49 +118,52 @@ export async function POST(req: NextRequest) {
     return rpcError(-32601, `Method not allowed: ${method}`);
   }
 
-  try {
-    const response = await fetch(RPC_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
+  let lastError = "No RPC upstream configured";
 
-    // Read as text first so a non-JSON upstream (Alchemy rate limit HTML,
-    // Cloudflare error page, empty body) doesn't crash `.json()`.
-    const text = await response.text();
-    if (!text) {
-      console.error("[/api/rpc] upstream returned empty body", {
-        status: response.status,
-        upstream: RPC_URL.split("/")[2],
-      });
-      return rpcError(-32603, `Upstream RPC returned empty body (HTTP ${response.status})`);
-    }
-
+  for (const rpcUrl of RPC_URLS) {
     try {
-      const data = JSON.parse(text);
-      // Pass the JSON-RPC envelope through verbatim — the client's RPC layer
-      // knows how to handle JSON-RPC `error` objects. Always use HTTP 200 so
-      // it actually gets to read the body.
-      return NextResponse.json(data, { status: 200 });
-    } catch {
-      console.error("[/api/rpc] upstream returned non-JSON", {
-        status: response.status,
-        upstream: RPC_URL.split("/")[2],
-        bodyPreview: text.slice(0, 200),
+      const response = await fetch(rpcUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
       });
-      return rpcError(
-        -32603,
-        `Upstream RPC returned non-JSON (HTTP ${response.status})`,
-      );
+
+      // Read as text first so a non-JSON upstream (Alchemy rate limit HTML,
+      // Cloudflare error page, empty body) doesn't crash `.json()`.
+      const text = await response.text();
+      const upstream = rpcUrl.split("/")[2];
+      if (!text) {
+        lastError = `Upstream RPC returned empty body (HTTP ${response.status})`;
+        console.warn("[/api/rpc] upstream returned empty body", {
+          status: response.status,
+          upstream,
+        });
+        continue;
+      }
+
+      try {
+        const data = JSON.parse(text);
+        // Pass the JSON-RPC envelope through verbatim — the client's RPC layer
+        // knows how to handle JSON-RPC `error` objects. Always use HTTP 200 so
+        // it actually gets to read the body.
+        return NextResponse.json(data, { status: 200 });
+      } catch {
+        lastError = `Upstream RPC returned non-JSON (HTTP ${response.status})`;
+        console.warn("[/api/rpc] upstream returned non-JSON", {
+          status: response.status,
+          upstream,
+          bodyPreview: text.slice(0, 200),
+        });
+        continue;
+      }
+    } catch (err) {
+      lastError = `Upstream RPC unreachable: ${err instanceof Error ? err.message : "unknown error"}`;
+      console.warn("[/api/rpc] upstream fetch failed", {
+        upstream: rpcUrl.split("/")[2],
+        err: err instanceof Error ? err.message : String(err),
+      });
     }
-  } catch (err) {
-    console.error("[/api/rpc] upstream fetch failed", {
-      upstream: RPC_URL.split("/")[2],
-      err: err instanceof Error ? err.message : String(err),
-    });
-    return rpcError(
-      -32603,
-      `Upstream RPC unreachable: ${err instanceof Error ? err.message : "unknown error"}`,
-    );
   }
+
+  return rpcError(-32603, lastError);
 }

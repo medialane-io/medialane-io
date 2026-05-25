@@ -33,6 +33,7 @@ export interface CounterOfferOrder {
 export interface WalletCredentials {
   publicKey: string;
   encryptedPrivateKey: string;
+  walletType?: "CHIPI" | "READY" | (string & {});
 }
 
 export interface AssetCardProps {

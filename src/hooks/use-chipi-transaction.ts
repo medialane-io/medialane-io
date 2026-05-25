@@ -11,6 +11,9 @@ import type { WalletCredentials } from "@/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────
 
+const CHIPI_WALLET_CLASS_HASH = "0x053f4f8791ed5bed0fddaa553d180c664e32cfaf8316bb232ae77bb08f459f2a";
+const READY_WALLET_CLASS_HASH = "0x036078334509b514626504edc9fb252328d1a240e4e948bef8d0c08dff45927f";
+
 export type ChipiCall = {
   contractAddress: string;
   entrypoint: string;
@@ -72,7 +75,7 @@ export function useChipiTransaction() {
       if (!publicKey || !encryptedPrivateKey) {
         throw new Error("Wallet not set up. Please create your wallet first.");
       }
-      return { publicKey, encryptedPrivateKey };
+      return { publicKey, encryptedPrivateKey, walletType: wallet.walletType };
     },
     [wallet]
   );
@@ -104,6 +107,15 @@ export function useChipiTransaction() {
         // cairoVersion "1" is passed explicitly — ChipiPay accounts are Cairo 1 — so
         // starknet.js skips on-chain cairo-version detection (a getClassHashAt RPC call).
         const account = new Account(starknetProvider, wallet.publicKey, privateKey, "1");
+
+        const originalGetClassHashAt = account.getClassHashAt.bind(account);
+        account.getClassHashAt = async (contractAddress: string) => {
+          if (contractAddress.toLowerCase() === account.address.toLowerCase()) {
+            if (wallet.walletType === "READY") return READY_WALLET_CLASS_HASH;
+            if (!wallet.walletType || wallet.walletType === "CHIPI") return CHIPI_WALLET_CLASS_HASH;
+          }
+          return originalGetClassHashAt(contractAddress);
+        };
 
         // Atomic gasless execution: TxBuilder batches every call into ONE
         // transaction; sendSponsored() runs it via the ChipiPay paymaster.

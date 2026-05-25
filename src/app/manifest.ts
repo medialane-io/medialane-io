@@ -1,6 +1,4 @@
 import type { MetadataRoute } from "next";
-import { APP_URL } from "@/lib/seo";
-
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Medialane",
@@ -29,6 +27,6 @@ export default function manifest(): MetadataRoute.Manifest {
         purpose: "maskable",
       },
     ],
-    id: APP_URL,
+    id: "/",
   };
 }
