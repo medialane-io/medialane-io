@@ -142,6 +142,12 @@ export function useSessionKey() {
               // ERC-721 / ERC-1155 transfers
               hash.getSelectorFromName("transfer"),
               hash.getSelectorFromName("transfer_from"),
+              // ERC-1155 transfers use `safe_transfer_from`
+              // (signature: from, to, id, value, data). Same security tier
+              // as `transfer_from` — user-owned token movement, not approval
+              // delegation. Without this, ERC-1155 transfers fail at the
+              // ChipiPay paymaster with 400 / TRANSACTION_EXECUTION_ERROR.
+              hash.getSelectorFromName("safe_transfer_from"),
               // Minting
               hash.getSelectorFromName("mint_item"),
               hash.getSelectorFromName("claim"),
