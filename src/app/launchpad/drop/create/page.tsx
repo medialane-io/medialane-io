@@ -28,7 +28,7 @@ import { dropCreateSchema, type DropCreateFormValues } from "../drop-create-sche
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { getDefaultDropSchedule, suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
-import { LaunchpadSuccessState, LaunchpadErrorState } from "@/components/launchpad/launchpad-success-state";
+import { LaunchpadSuccessState, LaunchpadErrorState, LaunchpadProcessingState } from "@/components/launchpad/launchpad-success-state";
 import { LaunchpadPageIntro } from "@/components/launchpad/launchpad-page-intro";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 
@@ -284,6 +284,13 @@ export default function CreateDropPage() {
         onRetry={() => setTxError(null)}
       />
     );
+  }
+
+  // ── Processing ───────────────────────────────────────────────────────────────
+  // Full-page feedback during the on-chain tx so the user has unambiguous
+  // confirmation that the drop is being created.
+  if (isSubmitting && !done && !txError) {
+    return <LaunchpadProcessingState title="Creating your drop…" />;
   }
 
   // ── Success ──────────────────────────────────────────────────────────────────

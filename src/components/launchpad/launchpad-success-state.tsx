@@ -2,7 +2,7 @@
 
 import type { ElementType, ReactNode } from "react";
 import Link from "next/link";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface LaunchpadSuccessStateProps {
@@ -51,6 +51,37 @@ export function LaunchpadSuccessState({
         <Button onClick={onAction} className={actionClassName}>
           {actionLabel}
         </Button>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface LaunchpadProcessingStateProps {
+  title?: string;
+  description?: string;
+}
+
+/**
+ * Full-page processing screen for launchpad flows. Replaces the form while
+ * the on-chain tx is pending so the user has unambiguous feedback that
+ * something is happening, instead of staring at a disabled button.
+ */
+export function LaunchpadProcessingState({
+  title = "Confirming on Starknet…",
+  description = "Please wait, do not close this window. This usually takes 10–20 seconds.",
+}: LaunchpadProcessingStateProps) {
+  return (
+    <div className="container max-w-lg mx-auto px-4 pt-24 pb-8 text-center space-y-6">
+      <div className="flex justify-center">
+        <div className="h-20 w-20 rounded-full flex items-center justify-center bg-primary/10">
+          <Loader2 className="h-10 w-10 text-primary animate-spin" />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <h1 className="text-2xl font-bold">{title}</h1>
+        <p className="text-muted-foreground text-sm">{description}</p>
       </div>
     </div>
   );
