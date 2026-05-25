@@ -99,7 +99,6 @@ export function useTransfer() {
 
         const result = await executeTransaction({
           pin: input.pin,
-          contractAddress: input.contractAddress,
           calls: [call],
         });
 

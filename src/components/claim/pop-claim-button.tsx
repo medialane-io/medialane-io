@@ -51,7 +51,6 @@ export function PopClaimButton({ collectionAddress }: PopClaimButtonProps) {
     try {
       const result = await executeTransaction({
         pin,
-        contractAddress: collectionAddress,
         calls: [{ contractAddress: collectionAddress, entrypoint: "claim", calldata: [] }],
       });
       if (result.status === "confirmed") {

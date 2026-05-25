@@ -296,7 +296,6 @@ export default function CreateRemixPage() {
         const [valueLow, valueHigh] = encodeU256(BigInt(1));
         const result = await executeTransaction({
           pin,
-          contractAddress: selectedCollection.contractAddress,
           calls: [{
             contractAddress: selectedCollection.contractAddress,
             entrypoint: "mint_item",
@@ -321,7 +320,7 @@ export default function CreateRemixPage() {
         const calls = (intentRes.data as any)?.calls as ChipiCall[];
         if (!calls?.length) throw new Error("No calls returned from mint intent");
 
-        const result = await executeTransaction({ pin, contractAddress: calls[0].contractAddress, calls });
+        const result = await executeTransaction({ pin, calls });
         if (result.status === "reverted") throw new Error(result.revertReason ?? "Mint reverted");
         txHash = result.txHash ?? "";
 

@@ -138,7 +138,6 @@ export default function CreateIP1155CollectionPage() {
       // v2 factory signature: deploy_collection(name, symbol, base_uri)
       const result = await executeTransaction({
         pin,
-        contractAddress: COLLECTION_1155_CONTRACT,
         calls: [{
           contractAddress: COLLECTION_1155_CONTRACT,
           entrypoint: "deploy_collection",

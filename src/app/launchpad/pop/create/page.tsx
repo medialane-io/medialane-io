@@ -141,7 +141,6 @@ export default function CreatePOPPage() {
 
       const result = await executeTransaction({
         pin,
-        contractAddress: POP_FACTORY_CONTRACT,
         calls: [{
           contractAddress: POP_FACTORY_CONTRACT,
           entrypoint: "create_collection",

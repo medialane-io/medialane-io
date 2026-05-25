@@ -268,15 +268,11 @@ export function useMarketplace() {
     reset();
   }, [reset]);
 
-  /** Execute pre-built calls via ChipiPay (gasless).
-   *  @param marketplaceContract — the marketplace contract address used for session key lookup.
-   *  Defaults to the ERC-721 marketplace. Pass `MARKETPLACE_1155_CONTRACT` for ERC-1155 ops.
-   */
+  /** Execute pre-built calls via ChipiPay (gasless). */
   const execWithPin = useCallback(
-    async (pin: string, calls: ChipiCall[], marketplaceContract: string = MARKETPLACE_721_CONTRACT) => {
+    async (pin: string, calls: ChipiCall[]) => {
       const result = await executeTransaction({
         pin,
-        contractAddress: marketplaceContract,
         calls,
       });
       setHash(result.txHash);
@@ -351,7 +347,7 @@ export function useMarketplace() {
       if (!calls?.length) throw new Error("No calls returned from intent");
       updateDebug({ step: "signature_submitted", calls: summarizeCalls(calls) });
 
-      const result = await execWithPin(pin, calls, marketplaceContract);
+      const result = await execWithPin(pin, calls);
       updateDebug({ step: "tx_executed", txHash: result.txHash, txStatus: result.status });
 
       if (result.status === "reverted") {

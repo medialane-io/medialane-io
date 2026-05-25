@@ -22,8 +22,6 @@ export type ChipiCall = {
 
 export type ChipiTransactionParams = {
   pin: string;
-  /** @deprecated Unused since the atomic-execution swap — each call carries its own contractAddress. Kept for consumer compatibility. */
-  contractAddress: string;
   calls: ChipiCall[];
   wallet?: WalletCredentials;
 };

@@ -115,7 +115,6 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
 
       const result = await executeTransaction({
         pin,
-        contractAddress: COMMENTS_CONTRACT,
         calls: [{ contractAddress: COMMENTS_CONTRACT, entrypoint: "add_comment", calldata }],
       });
 

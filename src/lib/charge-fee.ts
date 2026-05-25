@@ -50,7 +50,6 @@ export async function chargePlatformFee({
 
     const result = await executeTransaction({
       pin,
-      contractAddress: feeCall.contractAddress,
       calls: [
         {
           contractAddress: feeCall.contractAddress,

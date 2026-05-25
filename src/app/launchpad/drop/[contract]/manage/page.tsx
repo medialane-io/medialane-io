@@ -248,7 +248,6 @@ export default function DropManagePage({
     try {
       const result = await executeTransaction({
         pin,
-        contractAddress: contract,
         calls,
       });
       if (result.status === "confirmed") {

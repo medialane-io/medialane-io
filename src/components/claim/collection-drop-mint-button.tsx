@@ -124,7 +124,6 @@ export function CollectionDropMintButton({
 
       const result = await executeTransaction({
         pin,
-        contractAddress: collectionAddress,
         calls,
       });
 

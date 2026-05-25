@@ -198,7 +198,6 @@ export default function MintIP1155Page() {
 
       const result = await executeTransaction({
         pin,
-        contractAddress: collectionAddress,
         calls: [{
           contractAddress: collectionAddress,
           entrypoint: "mint_item",
