@@ -13,7 +13,7 @@
  * and approve-call prepending. The frontend only signs and executes.
  */
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 import { useSWRConfig } from "swr";
 import { useChipiTransaction } from "./use-chipi-transaction";
 import { useSessionKey } from "./use-session-key";
@@ -23,12 +23,6 @@ import { getMarketplaceContractForStandard } from "@/lib/protocol/contracts";
 import { isErc1155Standard } from "@/lib/protocol/token-standard";
 import { QUERY_PREFIX, queryKeys } from "@/lib/query-keys";
 import type { ChipiCall } from "./use-chipi-transaction";
-
-declare global {
-  interface Window {
-    __MEDIALANE_MARKETPLACE_DEBUG__?: MarketplaceDebugSnapshot;
-  }
-}
 
 /** Resolve a currency symbol (e.g. "USDC") to its on-chain contract address.
  *  Returns the input unchanged if it already looks like an address. */
@@ -137,55 +131,6 @@ export interface MakeCounterOfferInput {
   tokenName?: string;
 }
 
-export type MarketplaceDebugStep =
-  | "idle"
-  | "intent_created"
-  | "typed_data_signed"
-  | "signature_submitted"
-  | "tx_executed"
-  | "tx_confirm_sent"
-  | "intent_confirmed"
-  | "intent_failed"
-  | "error";
-
-export interface MarketplaceDebugSnapshot {
-  operation: string;
-  step: MarketplaceDebugStep;
-  tokenStandard?: string;
-  marketplaceContract?: string;
-  assetContract?: string;
-  tokenId?: string;
-  orderHash?: string;
-  amount?: string;
-  quantity?: string;
-  currency?: string;
-  price?: string;
-  intentId?: string;
-  intentStatus?: string;
-  txHash?: string;
-  txStatus?: string;
-  error?: string;
-  calls?: Array<{ contractAddress?: string; entrypoint?: string; calldataLength?: number }>;
-  terminalIntent?: {
-    id?: string;
-    type?: string;
-    status?: string;
-    txHash?: string | null;
-    orderHash?: string | null;
-    updatedAt?: string;
-  };
-  typedDataSummary?: {
-    domain?: unknown;
-    primaryType?: unknown;
-    messageKeys?: string[];
-    offerItemType?: unknown;
-    considerationItemType?: unknown;
-  };
-  updatedAt: string;
-}
-
-type MarketplaceDebugContext = Omit<MarketplaceDebugSnapshot, "step" | "updatedAt">;
-type MarketplaceDebugPatch = Partial<MarketplaceDebugContext> & { step: MarketplaceDebugStep };
 type TerminalIntentResult = {
   status: "CONFIRMED" | "FAILED";
   intent: Record<string, unknown>;
@@ -234,37 +179,11 @@ export function useMarketplace() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hash, setHash] = useState<string | null>(null);
-  const [debugSnapshot, setDebugSnapshot] = useState<MarketplaceDebugSnapshot | null>(null);
-  const debugSnapshotRef = useRef<MarketplaceDebugSnapshot | null>(null);
-
-  const updateDebug = useCallback((patch: MarketplaceDebugPatch) => {
-    const next = {
-      ...(debugSnapshotRef.current ?? {}),
-      ...patch,
-      updatedAt: new Date().toISOString(),
-    } as MarketplaceDebugSnapshot;
-
-    debugSnapshotRef.current = next;
-    setDebugSnapshot(next);
-
-    if (typeof window !== "undefined") {
-      const log = patch.step === "error" || patch.step === "intent_failed"
-        ? console.error
-        : console.info;
-      const json = JSON.stringify(next, null, 2);
-
-      window.__MEDIALANE_MARKETPLACE_DEBUG__ = next;
-      log("[Medialane marketplace debug]", next);
-      log(`[Medialane marketplace debug JSON]\n${json}`);
-    }
-  }, []);
 
   const resetState = useCallback(() => {
     setIsProcessing(false);
     setError(null);
     setHash(null);
-    setDebugSnapshot(null);
-    debugSnapshotRef.current = null;
     reset();
   }, [reset]);
 
@@ -314,41 +233,25 @@ export function useMarketplace() {
     async (
       pin: string,
       intentFn: () => Promise<{ data: { id: string; typedData: unknown; calls: unknown } }>,
-      marketplaceContract?: string,
-      debugContext?: MarketplaceDebugContext
+      marketplaceContract?: string
     ): Promise<string | undefined> => {
       if (!walletAddress) throw new Error("Wallet not ready. Please wait a moment.");
 
-      updateDebug({
-        ...(debugContext ?? { operation: "marketplace" }),
-        step: "idle",
-        marketplaceContract,
-      });
       const intentRes = await intentFn();
       const { id, typedData } = intentRes.data ?? {};
       if (!id || !typedData) throw new Error("Intent creation failed: no data returned");
-      updateDebug({
-        ...(debugContext ?? { operation: "marketplace" }),
-        step: "intent_created",
-        intentId: id,
-        marketplaceContract,
-        typedDataSummary: summarizeTypedData(typedData),
-      });
 
       // Sanitize typed data: replace any bare currency symbols (e.g. "USDC")
       // with their contract addresses so starknet.js can convert them to BigInt.
       const sanitized = sanitizeTypedData(typedData);
 
       const sig = await signTypedData(sanitized, pin);
-      updateDebug({ step: "typed_data_signed", typedDataSummary: summarizeTypedData(sanitized) });
 
       const signedRes = await client.api.submitIntentSignature(id, sig);
       const calls = signedRes.data.calls as ChipiCall[];
       if (!calls?.length) throw new Error("No calls returned from intent");
-      updateDebug({ step: "signature_submitted", calls: summarizeCalls(calls) });
 
       const result = await execWithPin(pin, calls);
-      updateDebug({ step: "tx_executed", txHash: result.txHash, txStatus: result.status });
 
       if (result.status === "reverted") {
         throw new Error(result.revertReason || "Transaction reverted on chain");
@@ -359,18 +262,9 @@ export function useMarketplace() {
 
       // Submit tx hash to backend — verifies receipt + marketplace events server-side
       await client.api.confirmIntent(id, normalizedHash);
-      updateDebug({ step: "tx_confirm_sent", txHash: normalizedHash });
 
       // Poll until backend reports terminal status (CONFIRMED or FAILED)
       const terminal = await pollIntentUntilTerminal(id);
-      const terminalIntent = summarizeTerminalIntent(terminal.intent);
-      updateDebug({
-        step: terminal.status === "CONFIRMED" ? "intent_confirmed" : "intent_failed",
-        intentStatus: terminal.status,
-        txHash: terminalIntent.txHash ?? normalizedHash,
-        orderHash: terminalIntent.orderHash ?? undefined,
-        terminalIntent,
-      });
 
       if (terminal.status === "FAILED") {
         throw new Error(
@@ -384,7 +278,7 @@ export function useMarketplace() {
       setTimeout(() => invalidate(), INDEXER_REVALIDATION_DELAY_MS);
       return result.txHash;
     },
-    [walletAddress, signTypedData, client, execWithPin, invalidate, pollIntentUntilTerminal, updateDebug]
+    [walletAddress, signTypedData, client, execWithPin, invalidate, pollIntentUntilTerminal]
   );
 
   // ── createListing ──────────────────────────────────────────────────────
@@ -409,21 +303,10 @@ export function useMarketplace() {
             ...(is1155 ? { amount: input.amount || "1" } : {}),
           }),
           marketplaceContract,
-          {
-            operation: "create_listing",
-            tokenStandard: toApiStandard(input.tokenStandard),
-            marketplaceContract,
-            assetContract: input.assetContract,
-            tokenId: input.tokenId,
-            amount: input.amount,
-            currency: input.currencySymbol,
-            price: input.price,
-          }
         );
       } catch (err: unknown) {
         const msg = toFriendlyError(err, "Failed to create listing");
         setError(msg);
-        updateDebug({ step: "error", error: msg });
         // error is shown inline in listing-dialog's Alert — no toast needed
       } finally {
         setIsProcessing(false);
@@ -449,18 +332,10 @@ export function useMarketplace() {
             quantity: input.quantity,
           }),
           marketplaceContract,
-          {
-            operation: "fulfill_order",
-            tokenStandard: input.tokenStandard,
-            marketplaceContract,
-            orderHash: input.orderHash,
-            quantity: input.quantity,
-          }
         );
       } catch (err: unknown) {
         const msg = toFriendlyError(err, "Purchase failed");
         setError(msg);
-        updateDebug({ step: "error", error: msg });
         // error is shown inline in purchase-dialog's Alert — no toast needed
       } finally {
         setIsProcessing(false);
@@ -491,20 +366,10 @@ export function useMarketplace() {
             quantity: isErc1155Standard(input.tokenStandard) ? (input.quantity || "1") : undefined,
           }),
           marketplaceContract,
-          {
-            operation: "make_offer",
-            tokenStandard: input.tokenStandard,
-            marketplaceContract,
-            assetContract: input.assetContract,
-            tokenId: input.tokenId,
-            currency: input.currencySymbol,
-            price: input.price,
-          }
         );
       } catch (err: unknown) {
         const msg = toFriendlyError(err, "Failed to submit offer");
         setError(msg);
-        updateDebug({ step: "error", error: msg });
         // error is shown inline in offer-dialog's Alert — no toast needed
       } finally {
         setIsProcessing(false);
@@ -529,17 +394,10 @@ export function useMarketplace() {
             priceRaw: input.counterPriceRaw,
             message: input.message,
           }),
-          undefined,
-          {
-            operation: "counter_offer",
-            orderHash: input.originalOrderHash,
-            price: input.counterPriceRaw,
-          }
         );
       } catch (err: unknown) {
         const msg = toFriendlyError(err, "Counter-offer failed");
         setError(msg);
-        updateDebug({ step: "error", error: msg });
         // error is surfaced via setError — dialogs read the error state directly
       } finally {
         setIsProcessing(false);
@@ -564,17 +422,10 @@ export function useMarketplace() {
             tokenStandard: toApiStandard(input.tokenStandard),
           }),
           marketplaceContract,
-          {
-            operation: "cancel_order",
-            tokenStandard: input.tokenStandard,
-            marketplaceContract,
-            orderHash: input.orderHash,
-          }
         );
       } catch (err: unknown) {
         const msg = toFriendlyError(err, "Cancellation failed");
         setError(msg);
-        updateDebug({ step: "error", error: msg });
         // error is shown in CancelListingDialog's error state — no toast needed
         // Invalidate after failure: the backend may have synced the order to CANCELLED
         // (e.g. the order was already cancelled on-chain but DB was stale). This ensures
@@ -604,42 +455,7 @@ export function useMarketplace() {
     txStatus: status,
     txHash: hash ?? txHash,
     error: error ?? txError,
-    debugSnapshot,
     resetState,
     maybeClearSessionForAmountCap,
-  };
-}
-
-function summarizeTypedData(typedData: unknown): MarketplaceDebugSnapshot["typedDataSummary"] {
-  if (!typedData || typeof typedData !== "object") return undefined;
-  const data = typedData as Record<string, any>;
-  const message = data.message && typeof data.message === "object"
-    ? data.message as Record<string, any>
-    : undefined;
-  return {
-    domain: data.domain,
-    primaryType: data.primaryType,
-    messageKeys: message ? Object.keys(message) : undefined,
-    offerItemType: message?.offer?.item_type,
-    considerationItemType: message?.consideration?.item_type,
-  };
-}
-
-function summarizeCalls(calls: ChipiCall[]): MarketplaceDebugSnapshot["calls"] {
-  return calls.map((call) => ({
-    contractAddress: call.contractAddress,
-    entrypoint: call.entrypoint,
-    calldataLength: Array.isArray(call.calldata) ? call.calldata.length : undefined,
-  }));
-}
-
-function summarizeTerminalIntent(intent: Record<string, unknown>): NonNullable<MarketplaceDebugSnapshot["terminalIntent"]> {
-  return {
-    id: typeof intent.id === "string" ? intent.id : undefined,
-    type: typeof intent.type === "string" ? intent.type : undefined,
-    status: typeof intent.status === "string" ? intent.status : undefined,
-    txHash: typeof intent.txHash === "string" || intent.txHash === null ? intent.txHash : undefined,
-    orderHash: typeof intent.orderHash === "string" || intent.orderHash === null ? intent.orderHash : undefined,
-    updatedAt: typeof intent.updatedAt === "string" ? intent.updatedAt : undefined,
   };
 }
