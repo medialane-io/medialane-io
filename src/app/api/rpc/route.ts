@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 
-// Public Starknet RPC fallback. Used only when no private endpoint
-// (ALCHEMY_URL or STARKNET_RPC_URL_SERVER) is configured. Same endpoint
-// the @medialane/sdk defaults to — rate-limited but better than 500.
+// Public Starknet RPC fallback. Used only when no private endpoint is
+// configured. Same endpoint the @medialane/sdk defaults to — rate-limited
+// but better than 500.
 const PUBLIC_FALLBACK = "https://rpc.starknet.lava.build/";
 
 const RPC_URL =
+  process.env.ALCHEMY_RPC_URL ||
   process.env.ALCHEMY_URL ||
   process.env.STARKNET_RPC_URL_SERVER ||
+  process.env.STARKNET_RPC_FALLBACK_URL ||
   PUBLIC_FALLBACK;
 
 /**
@@ -18,7 +20,7 @@ const RPC_URL =
  * without exposing the API key to the browser. Eliminates the CORS block and
  * Alchemy 429 → no-CORS-header failure that caused waitForTransaction to hang.
  *
- * Client usage: set NEXT_PUBLIC_STARKNET_RPC_URL=/api/rpc
+ * Client usage: set NEXT_PUBLIC_STARKNET_PROVIDER_URL=/api/rpc
  *
  * Security:
  *  - Requires an active Clerk session (prevents unauthenticated quota exhaustion).

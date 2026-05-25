@@ -21,19 +21,26 @@ async function fetchErc20Balance(tokenAddress: string, holderAddress: string): P
 
 /** Raw bigint balance for any ERC-20 token by contract address. Refreshes every 30s. */
 export function useErc20Balance(tokenAddress: string | null, holderAddress: string | null) {
-  const { data, isLoading } = useSWR(
+  const { data, error, isLoading } = useSWR(
     tokenAddress && holderAddress ? ["erc20-balance", tokenAddress, holderAddress] : null,
     ([, addr, holder]) => fetchErc20Balance(addr, holder),
-    { refreshInterval: 30_000, revalidateOnFocus: false, shouldRetryOnError: false }
+    {
+      refreshInterval: 30_000,
+      revalidateOnFocus: false,
+      shouldRetryOnError: false,
+      onError: () => {
+        // Balance reads are advisory UI data; action flows still validate on submit.
+      },
+    }
   );
-  return { rawBalance: data ?? null, isLoading };
+  return { rawBalance: data ?? null, isLoading, error };
 }
 
 /** Balance for a token identified by symbol (e.g. "USDC"). Includes decimals for formatting. */
 export function useTokenBalance(symbol: string | null, holderAddress: string | null) {
   const token = symbol ? getListableTokens().find((t) => t.symbol === symbol) ?? null : null;
-  const { rawBalance, isLoading } = useErc20Balance(token?.address ?? null, holderAddress);
-  return { rawBalance, isLoading, decimals: token?.decimals ?? 18 };
+  const { rawBalance, isLoading, error } = useErc20Balance(token?.address ?? null, holderAddress);
+  return { rawBalance, isLoading, error, decimals: token?.decimals ?? 18 };
 }
 
 /**

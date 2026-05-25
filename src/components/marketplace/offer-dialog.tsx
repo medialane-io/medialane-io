@@ -139,7 +139,10 @@ export function OfferDialog({
   const watchedCurrency = form.watch("currency");
   const watchedPrice = form.watch("price");
   const watchedQty = form.watch("quantity");
-  const { rawBalance, decimals } = useTokenBalance(watchedCurrency, walletAddress);
+  const { rawBalance, decimals } = useTokenBalance(
+    open ? watchedCurrency : null,
+    open ? walletAddress : null
+  );
   const totalRequired = (() => {
     const qty = parseFloat(watchedQty || "1");
     const price = parseFloat(watchedPrice || "0");
