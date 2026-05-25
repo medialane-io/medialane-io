@@ -69,12 +69,14 @@ export default function PortfolioLayout({ children }: { children: React.ReactNod
     (o) => o.status === "PENDING" || o.status === "AUTO_PENDING"
   ).length;
 
-  // Bids the user made that a seller has countered — buyer needs to respond
+  // Bids the user made that a seller has countered — buyer needs to respond.
+  // Backend-derived flag (SDK 0.22.0+); was `status === "COUNTER_OFFERED"`
+  // until the audit P0-1 migration. Parent bid keeps `status: ACTIVE`.
   const pendingCounterCount = orders.filter(
     (o) =>
       o.offer.itemType === "ERC20" &&
       o.offerer.toLowerCase() === (address ?? "").toLowerCase() &&
-      o.status === "COUNTER_OFFERED"
+      o.hasActiveCounterOffer === true
   ).length;
 
   const totalAssetsCount = tokenMeta?.total ?? null;
