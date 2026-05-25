@@ -402,16 +402,38 @@ export default function DropManagePage({
       )}
 
 
-      <Dialog open={!!txResult} onOpenChange={(v) => { if (!v) setTxResult(null); }}>
+      {/* Tx feedback dialog — opens while the on-chain operation is pending
+          (processing) and stays open through the success/error outcome.
+          Previously the dialog only opened AFTER the tx settled, so the user
+          saw nothing but a spinning button during the 10–20s wait. */}
+      <Dialog
+        open={isSubmitting || !!txResult}
+        onOpenChange={(v) => {
+          if (!v && !isSubmitting) setTxResult(null);
+        }}
+      >
         <DialogContent className="max-w-[calc(100%-12px)] sm:max-w-sm rounded-2xl">
           <DialogHeader>
-            <DialogTitle>{txResult?.type === "success" ? "Done" : "Transaction failed"}</DialogTitle>
-            {txResult?.type === "error" && (
+            <DialogTitle>
+              {isSubmitting
+                ? "Confirming on Starknet…"
+                : txResult?.type === "success"
+                ? "Done"
+                : "Transaction failed"}
+            </DialogTitle>
+            {!isSubmitting && txResult?.type === "error" && (
               <DialogDescription>Review the error below and try again.</DialogDescription>
             )}
           </DialogHeader>
           <div className="flex flex-col items-center gap-4 py-4">
-            {txResult?.type === "success" ? (
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-10 w-10 text-primary animate-spin" />
+                <p className="text-sm text-center text-muted-foreground">
+                  Please wait, do not close this window. This usually takes 10–20 seconds.
+                </p>
+              </>
+            ) : txResult?.type === "success" ? (
               <>
                 <CheckCircle2 className="h-10 w-10 text-emerald-500" />
                 <p className="text-sm text-center text-muted-foreground">{txResult.message}</p>
