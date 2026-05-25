@@ -54,7 +54,12 @@ const schema = z.object({
 });
 
 type FormValues = z.infer<typeof schema>;
-type Step = "form" | "pin" | "success";
+// Explicit step machine — do NOT rely on the `isProcessing` flag from the
+// hook to render the processing UI. There's a one-frame gap between the
+// await resolving and `setStep("success")` firing during which isProcessing
+// is false AND step is still "pin" — which would flash the PIN dialog back.
+// Driving the dialog purely by `step` keeps every transition stable.
+type Step = "form" | "pin" | "processing" | "success";
 
 interface TransferDialogProps {
   open: boolean;
@@ -110,7 +115,9 @@ export function TransferDialog({
   });
 
   const handleClose = (v: boolean) => {
-    if (!isProcessing && step !== "success") {
+    // Block close while in-flight or showing the final success screen
+    // (user dismisses success via Done). Error screen uses its own onDone.
+    if (step !== "processing" && step !== "success") {
       resetState();
       form.reset();
       setPendingAddress(null);
@@ -151,22 +158,37 @@ export function TransferDialog({
     setStep("pin");
   };
 
-  const executeTransfer = async (pinOrKey: string) => {
-    if (!pendingAddress) return;
-    const hash = await transferToken({
+  const executeTransfer = async (pinOrKey: string): Promise<string | undefined> => {
+    if (!pendingAddress) return undefined;
+    // setStep("processing") BEFORE awaiting transferToken — guarantees the
+    // processing UI is the only thing the user sees from PIN-submit until
+    // either a tx hash arrives (success) or the call rejects (error). The
+    // hook's `isProcessing` flag may flip false mid-transition; this state
+    // machine doesn't depend on it.
+    setStep("processing");
+    return await transferToken({
       contractAddress,
       tokenId,
       toAddress: pendingAddress,
       pin: pinOrKey,
       tokenStandard: resolvedStandard,
     });
-    if (hash) setStep("success");
   };
 
   const handlePin = async () => {
     setPinError(null);
-    await executeTransfer(pin);
-    if (error) setPinError(error);
+    const hash = await executeTransfer(pin);
+    if (hash) {
+      setStep("success");
+    } else {
+      // The transfer never reached the chain (paymaster reject, validation,
+      // RPC failure). Surface the inline error in the PIN step so the user
+      // can retry without losing their input.
+      setStep("pin");
+      // `error` is from a prior closure snapshot — use the latest by reading
+      // from the hook on next render via a microtask hop.
+      queueMicrotask(() => { if (error) setPinError(error); });
+    }
   };
 
   const handleUsePasskey = async () => {
@@ -174,8 +196,15 @@ export function TransferDialog({
     try {
       const derivedKey = encryptKey ?? (await authenticate());
       if (!derivedKey) throw new Error("Passkey authentication failed");
-      await executeTransfer(derivedKey);
+      const hash = await executeTransfer(derivedKey);
+      if (hash) {
+        setStep("success");
+      } else {
+        setStep("pin");
+        queueMicrotask(() => { if (error) setPinError(error); });
+      }
     } catch {
+      setStep("pin");
       setPinError("Passkey authentication failed. Try your PIN instead.");
     } finally {
       setIsAuthenticatingPasskey(false);
@@ -186,7 +215,11 @@ export function TransferDialog({
   const recipientShort = pendingAddress
     ? `${pendingAddress.slice(0, 8)}…${pendingAddress.slice(-6)}`
     : "";
-  const isTerminalError = !isProcessing && !!error && !!txHash;
+  // Terminal on-chain revert: tx made it to the chain (have hash) but reverted
+  // (have error). Driven off the hook flags rather than `step` because the
+  // step machine routes back to "pin" on no-hash errors; revert-with-hash
+  // needs its own dedicated screen so the user can see the explorer link.
+  const isTerminalError = step !== "processing" && step !== "success" && !!error && !!txHash;
 
   const shieldFooter = (
     <div className="flex items-start justify-center gap-1.5">
@@ -265,7 +298,7 @@ export function TransferDialog({
               onDone={() => handleClose(false)}
             />
 
-          ) : isProcessing ? (
+          ) : step === "processing" ? (
             /* ── Processing ─────────────────────────────────────────── */
             <div className="flex flex-col items-center gap-5 p-6 py-8">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
