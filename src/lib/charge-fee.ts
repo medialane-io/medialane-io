@@ -38,8 +38,17 @@ export async function chargePlatformFee({
 }: ChargePlatformFeeParams): Promise<void> {
   try {
     const feeCall = buildFeeCall({ surface, token, grossAmount }, ioFeeConfig);
-    if (!feeCall) return; // fee disabled / no fund address / floors to 0
-    await executeTransaction({
+    if (!feeCall) {
+      console.info("[medialane] platform fee skipped", {
+        surface,
+        enabled: ioFeeConfig.enabled,
+        hasFundAddress: Boolean(ioFeeConfig.fundAddress),
+        grossAmount: grossAmount.toString(),
+      });
+      return;
+    }
+
+    const result = await executeTransaction({
       pin,
       contractAddress: feeCall.contractAddress,
       calls: [
@@ -49,6 +58,19 @@ export async function chargePlatformFee({
           calldata: feeCall.calldata as string[],
         },
       ],
+    });
+
+    if (result.status === "reverted") {
+      console.warn("[medialane] platform fee charge reverted (non-blocking):", {
+        txHash: result.txHash,
+        revertReason: result.revertReason,
+      });
+      return;
+    }
+
+    console.info("[medialane] platform fee charged", {
+      surface,
+      txHash: result.txHash,
     });
   } catch (err) {
     console.warn("[medialane] platform fee charge failed (non-blocking):", err);

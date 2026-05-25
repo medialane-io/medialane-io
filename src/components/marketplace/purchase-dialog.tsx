@@ -262,10 +262,17 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
         // confirmed (fulfillOrder returns a hash only on CONFIRMED; it throws
         // on FAILED). order.consideration is the ERC-20 payment side.
         const feeQuantity = is1155 ? BigInt(values.quantity || 1) : 1n;
+        const feeGrossAmount = BigInt(order.consideration.startAmount ?? "0") * feeQuantity;
+        console.info("[medialane] platform fee queued", {
+          surface: "marketplace",
+          orderHash: order.orderHash,
+          token: order.consideration.token,
+          grossAmount: feeGrossAmount.toString(),
+        });
         void chargePlatformFee({
           surface: "marketplace",
           token: order.consideration.token ?? "",
-          grossAmount: BigInt(order.consideration.startAmount ?? "0") * feeQuantity,
+          grossAmount: feeGrossAmount,
           pin: pinOrDerivedKey,
           executeTransaction: executeFeeTransaction,
         });
