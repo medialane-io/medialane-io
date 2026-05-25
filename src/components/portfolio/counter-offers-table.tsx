@@ -113,12 +113,18 @@ export function CounterOffersTable({ address }: { address: string }) {
   const [selectedCounter, setSelectedCounter] = useState<ApiOrder | null>(null);
   const [originalForSelected, setOriginalForSelected] = useState<ApiOrder | null>(null);
 
-  // My bids that the seller has countered
+  // My bids that the seller has countered.
+  // Predicate: ERC-20 offer (bid) I made + the backend-derived flag
+  // `hasActiveCounterOffer` is true. The flag was added in SDK 0.22.0
+  // alongside backend support; it replaces the legacy
+  // `status === "COUNTER_OFFERED"` check (audit P0-1, 01-core-model §V —
+  // counter-offers are linked orders, not a third lifecycle state).
+  // The parent bid keeps `status: ACTIVE`.
   const counterOfferedBids = orders.filter(
     (o) =>
       o.offer.itemType === "ERC20" &&
       o.offerer.toLowerCase() === address.toLowerCase() &&
-      o.status === "COUNTER_OFFERED"
+      o.hasActiveCounterOffer === true
   );
 
   const handleAccept = (counter: ApiOrder, original: ApiOrder) => {
