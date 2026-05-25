@@ -97,6 +97,47 @@ function rpcError(code: number, message: string, id: number | null = null) {
   );
 }
 
+/**
+ * Heuristic: does this JSON-RPC error envelope look like a transient
+ * upstream failure (rate limit, service unavailable, backend timeout)
+ * that's worth retrying against the next fallback?
+ *
+ * We MUST NOT retry deterministic Starknet contract errors (revert,
+ * invalid params, missing block) — those should propagate verbatim so
+ * the client sees the real failure.
+ *
+ * Two-signal check:
+ *  1. JSON-RPC error code in a transient range:
+ *     - 429: HTTP-style rate limit some providers embed in the envelope.
+ *     - -32603 (Internal error): generic provider failure; Starknet
+ *       contract reverts use code 41 (CONTRACT_ERROR), not -32603.
+ *     - -32099 to -32000: server-defined error range per JSON-RPC spec;
+ *       providers like Alchemy / BlastAPI use these for capacity issues.
+ *  2. Message text contains a rate-limit / unavailability hint.
+ *
+ * Either signal triggers a retry. Starknet contract codes (21, 24, 28,
+ * 33, 41) are small positive integers and cannot match.
+ */
+function isTransientRpcError(body: unknown): boolean {
+  if (Array.isArray(body)) {
+    return body.some(isTransientRpcError);
+  }
+  if (!body || typeof body !== "object") return false;
+  const err = (body as Record<string, unknown>).error;
+  if (!err || typeof err !== "object") return false;
+
+  const code = (err as Record<string, unknown>).code;
+  if (typeof code === "number") {
+    if (code === 429) return true;
+    if (code === -32603) return true;
+    if (code >= -32099 && code <= -32000) return true;
+  }
+
+  const message = String((err as Record<string, unknown>).message ?? "").toLowerCase();
+  if (!message) return false;
+  return /rate.?limit|too many|throttl|exceed.*quota|temporarily unavailable|overload|service unavailable|backend.*error|gateway.*time|upstream.*time/.test(message);
+}
+
 export async function POST(req: NextRequest) {
   // Require an active Clerk session — all on-chain interactions in this app require login.
   const { userId } = await auth();
@@ -143,6 +184,23 @@ export async function POST(req: NextRequest) {
 
       try {
         const data = JSON.parse(text);
+
+        // Some providers wrap rate limits / capacity failures in a valid
+        // JSON-RPC envelope (HTTP 200, body = { jsonrpc, error: {...} }).
+        // Rotating onto the next fallback recovers from those without the
+        // client ever seeing the transient failure. Deterministic contract
+        // errors (revert, invalid params, missing block) propagate verbatim.
+        if (isTransientRpcError(data)) {
+          const errObj = (data as { error?: { code?: unknown; message?: unknown } }).error;
+          lastError = `Upstream RPC returned transient JSON-RPC error: ${String(errObj?.message ?? "(no message)")}`;
+          console.warn("[/api/rpc] upstream returned transient JSON-RPC error", {
+            upstream,
+            code: errObj?.code,
+            message: errObj?.message,
+          });
+          continue;
+        }
+
         // Pass the JSON-RPC envelope through verbatim — the client's RPC layer
         // knows how to handle JSON-RPC `error` objects. Always use HTTP 200 so
         // it actually gets to read the body.
