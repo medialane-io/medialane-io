@@ -6,15 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyOrError } from "@/components/ui/empty-or-error";
 import { PinDialog } from "@/components/chipi/pin-dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { chargePlatformFee } from "@/lib/charge-fee";
 import { ipfsToHttp, formatDisplayPrice, formatExpiry, cn } from "@/lib/utils";
-import { ArrowLeftRight, ExternalLink, Inbox } from "lucide-react";
+import { AlertCircle, ArrowLeftRight, CheckCircle2, ExternalLink, Inbox, Loader2, Sparkles } from "lucide-react";
 import { EXPLORER_URL } from "@/lib/constants";
 import Image from "next/image";
 import Link from "next/link";
 import type { ApiOrder } from "@medialane/sdk";
+
+type ResultStep = "idle" | "processing" | "success" | "error";
 
 
 /**
@@ -117,6 +120,13 @@ export function CounterOffersTable({ address }: { address: string }) {
   const [pinOpen, setPinOpen] = useState(false);
   const [selectedCounter, setSelectedCounter] = useState<ApiOrder | null>(null);
   const [originalForSelected, setOriginalForSelected] = useState<ApiOrder | null>(null);
+  // Explicit feedback state machine — every on-chain accept now shows
+  // processing → success/error so the user never has to check the explorer
+  // to know what happened. PinDialog hands off to this dialog as soon as
+  // the PIN is submitted.
+  const [resultStep, setResultStep] = useState<ResultStep>("idle");
+  const [resultTxHash, setResultTxHash] = useState<string | null>(null);
+  const [resultError, setResultError] = useState<string | null>(null);
 
   // My bids that the seller has countered.
   // Predicate: ERC-20 offer (bid) I made + the backend-derived flag
@@ -141,33 +151,67 @@ export function CounterOffersTable({ address }: { address: string }) {
   const handlePin = async (pin: string) => {
     setPinOpen(false);
     if (!selectedCounter) return;
-    const hash = await fulfillOrder({
-      orderHash: selectedCounter.orderHash,
-      pin,
-      tokenStandard: selectedCounter.consideration.itemType,
-    });
-    if (hash) {
-      // Fee — fire-and-forget post-confirm. Buyer (this user) is paying the
-      // counter-listing's ERC-20 amount, so they bear the platform fee, same
-      // as a listing purchase. Counter-offers are ERC-721-only in current io
-      // (no quantity field on the table), so grossAmount = startAmount × 1.
-      const feeGrossAmount = BigInt(selectedCounter.consideration.startAmount ?? "0");
-      console.info("[medialane] platform fee queued", {
-        surface: "marketplace",
+    setResultStep("processing");
+    setResultError(null);
+    setResultTxHash(null);
+    try {
+      const hash = await fulfillOrder({
         orderHash: selectedCounter.orderHash,
-        token: selectedCounter.consideration.token,
-        grossAmount: feeGrossAmount.toString(),
-      });
-      void chargePlatformFee({
-        surface: "marketplace",
-        token: selectedCounter.consideration.token ?? "",
-        grossAmount: feeGrossAmount,
         pin,
-        executeTransaction: executeFeeTransaction,
+        tokenStandard: selectedCounter.consideration.itemType,
       });
+      if (hash) {
+        setResultTxHash(hash);
+        setResultStep("success");
+        // Fee — fire-and-forget post-confirm. Buyer (this user) is paying the
+        // counter-listing's ERC-20 amount, so they bear the platform fee, same
+        // as a listing purchase. Counter-offers are ERC-721-only in current io
+        // (no quantity field on the table), so grossAmount = startAmount × 1.
+        const feeGrossAmount = BigInt(selectedCounter.consideration.startAmount ?? "0");
+        console.info("[medialane] platform fee queued", {
+          surface: "marketplace",
+          orderHash: selectedCounter.orderHash,
+          token: selectedCounter.consideration.token,
+          grossAmount: feeGrossAmount.toString(),
+        });
+        void chargePlatformFee({
+          surface: "marketplace",
+          token: selectedCounter.consideration.token ?? "",
+          grossAmount: feeGrossAmount,
+          pin,
+          executeTransaction: executeFeeTransaction,
+        });
+      } else {
+        // fulfillOrder swallowed an error internally and returned undefined.
+        // We don't have direct access to the message here without a stale-
+        // closure dance — surface a generic prompt and tell the user to retry.
+        setResultStep("error");
+        setResultError(
+          "We couldn't complete the counter-offer accept. The transaction may have been rejected or the order may have expired. Please refresh and try again."
+        );
+      }
+    } catch (err) {
+      setResultStep("error");
+      setResultError(err instanceof Error ? err.message : "Counter-offer accept failed.");
     }
     mutate();
   };
+
+  const dismissResult = () => {
+    // Block dismissal while the tx is in flight — same UX as purchase / listing.
+    if (resultStep === "processing") return;
+    setResultStep("idle");
+    setResultTxHash(null);
+    setResultError(null);
+    setSelectedCounter(null);
+    setOriginalForSelected(null);
+  };
+
+  const counterDisplayName =
+    selectedCounter?.token?.name || `#${selectedCounter?.nftTokenId ?? ""}`;
+  const counterImage = selectedCounter?.token?.image
+    ? ipfsToHttp(selectedCounter.token.image)
+    : null;
 
   return (
     <>
@@ -211,6 +255,99 @@ export function CounterOffersTable({ address }: { address: string }) {
             : "Enter your PIN to accept the counter-offer."
         }
       />
+
+      {/* Processing / success / error feedback dialog. Opens automatically
+          after PinDialog submit; user can only dismiss success/error. */}
+      <Dialog
+        open={resultStep !== "idle"}
+        onOpenChange={(v) => { if (!v) dismissResult(); }}
+      >
+        <DialogContent className="max-w-[calc(100%-6px)] sm:max-w-md p-0 overflow-hidden gap-0 rounded-2xl">
+          <DialogTitle className="sr-only">Counter-offer accept</DialogTitle>
+          <DialogDescription className="sr-only">
+            On-chain status for the counter-offer you accepted.
+          </DialogDescription>
+
+          {/* Token hero (image + name) — shared across all result states */}
+          <div className="flex flex-col items-center gap-3 pt-6 px-6">
+            <div className="relative h-24 w-24 rounded-xl overflow-hidden border border-border bg-gradient-to-br from-muted to-muted-foreground/20">
+              {counterImage && (
+                <Image
+                  src={counterImage}
+                  alt={counterDisplayName}
+                  fill
+                  unoptimized
+                  sizes="96px"
+                  className="object-cover"
+                />
+              )}
+              {resultStep === "success" && (
+                <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-background flex items-center justify-center">
+                  <CheckCircle2 className="h-6 w-6 text-emerald-500" />
+                </div>
+              )}
+            </div>
+            <p className="font-semibold text-base text-center truncate w-full">
+              {counterDisplayName}
+            </p>
+          </div>
+
+          {resultStep === "processing" && (
+            <div className="flex flex-col items-center gap-4 p-6 pt-3">
+              <Loader2 className="h-7 w-7 animate-spin text-primary" />
+              <div className="text-center space-y-1">
+                <p className="font-semibold">Confirming on Starknet…</p>
+                <p className="text-xs text-muted-foreground">
+                  Please wait, do not close this window.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {resultStep === "success" && (
+            <div className="flex flex-col items-center gap-4 p-6 pt-3">
+              <div className="text-center space-y-1">
+                <p className="font-bold text-lg flex items-center justify-center gap-1.5">
+                  Counter-offer accepted
+                  <Sparkles className="h-4 w-4 text-yellow-400" />
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  The token is now yours.
+                </p>
+              </div>
+              {resultTxHash && (
+                <a
+                  href={`${EXPLORER_URL}/tx/${resultTxHash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors font-mono"
+                >
+                  {resultTxHash.slice(0, 10)}…{resultTxHash.slice(-8)}
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              )}
+              <Button className="w-full h-11" onClick={dismissResult}>
+                Done
+              </Button>
+            </div>
+          )}
+
+          {resultStep === "error" && (
+            <div className="flex flex-col items-center gap-4 p-6 pt-3">
+              <div className="h-12 w-12 rounded-full bg-destructive/15 flex items-center justify-center">
+                <AlertCircle className="h-6 w-6 text-destructive" />
+              </div>
+              <div className="text-center space-y-1">
+                <p className="font-bold text-base">Accept failed</p>
+                <p className="text-sm text-muted-foreground">{resultError}</p>
+              </div>
+              <Button variant="outline" className="w-full h-11" onClick={dismissResult}>
+                Close
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
