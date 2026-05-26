@@ -31,7 +31,7 @@ NEXT_PUBLIC_MEDIALANE_BACKEND_URL=http://localhost:3001
 - **Clerk** — Email/social authentication. Session JWTs are templated as `chipipay` for wallet derivation.
 - **ChipiPay** (`@chipi-stack/nextjs`) — Manages Starknet wallets derived from Clerk sessions. Enables gasless transactions. Wraps the app via `ChipiProvider` in `src/app/providers.tsx`.
 - **Starknet.js** — Direct contract calls. RPC singleton in `src/lib/starknet.ts`.
-- **@medialane/sdk** — Published npm package (`@medialane/sdk@0.20.0`, org: `@medialane`). Provides API types (`ApiOrder`, `ApiToken`, `ApiCollection`, `ApiOrderTokenMeta`, `ApiComment`, `OrderStatus`, `IpAttribute`, `IpNftMetadata`, `SupportedTokenSymbol`), contract ABIs (`IPMarketplaceABI`, `IPNftABI`, etc. — split per-ABI under `abis/` since v0.19.0), service registry (`getService`, `listServices`, `ServiceId` literal union since v0.20.0), token catalogue (`SUPPORTED_TOKENS`, `getTokenByAddress`, `getListableTokens`), SNIP-12 signing helpers (`buildOrderTypedData`, `build1155OrderTypedData`, etc. — unified into one module since v0.18.0), and the `Medialane1155Module` for ERC-1155 marketplace ops. Address normalization happens inside `ApiClient`. `ApiCollection.standard: "ERC721" | "ERC1155"` (UNKNOWN removed in v0.20.0 alongside the backend constraint). `ApiCollection.service: string` (non-nullable, registered via the SDK service registry).
+- **@medialane/sdk** — Published npm package (`@medialane/sdk@0.23.0`, org: `@medialane`; 0.24.0 with `ApiCollection.isHidden`/`isFeatured` + `ApiCreatorProfile.collectionImage` is merged on the SDK repo but pending `npm publish`). Provides API types (`ApiOrder`, `ApiToken`, `ApiCollection`, `ApiOrderTokenMeta`, `ApiComment`, `OrderStatus`, `IpAttribute`, `IpNftMetadata`, `SupportedTokenSymbol`), contract ABIs (`IPMarketplaceABI`, `IPNftABI`, etc. — split per-ABI under `abis/` since v0.19.0), service registry (`getService`, `listServices`, `ServiceId` literal union since v0.20.0), token catalogue (`SUPPORTED_TOKENS`, `getTokenByAddress`, `getListableTokens`), SNIP-12 signing helpers (`buildOrderTypedData`, `build1155OrderTypedData`, etc. — unified into one module since v0.18.0), and the `Medialane1155Module` for ERC-1155 marketplace ops. Address normalization happens inside `ApiClient`. `OrderStatus` dropped `"COUNTER_OFFERED"` in 0.23.0 — use `ApiOrder.hasActiveCounterOffer` instead. `ApiCollection.standard: "ERC721" | "ERC1155" | "UNKNOWN"` — runtime value is never "UNKNOWN" after the 2026-05-22 backend migration; the SDK type union will narrow in a future release. `ApiCollection.service: string` (non-nullable, registered via the SDK service registry).
 - **Pinata** — IPFS uploads via Next.js routes (all Clerk-gated, direct to Pinata):
   - `src/app/api/pinata/route.ts` — Universal digital asset upload. Accepts `file`, `name`, `description`, `external_url`, `creator` (wallet address), and full licensing schema (`ipType`, `licenseType`, `commercialUse`, `derivatives`, `attribution`, `geographicScope`, `aiPolicy`, `royalty`, `edition`). Uploads image then metadata JSON. Returns `{ uri, imageUri, cid }`. Metadata follows OpenSea ERC-721 standard with `attributes` array. Creator wallet embedded as `{ trait_type: "Creator", value: walletAddress }`.
   - `src/app/api/pinata/image/route.ts` — Image-only upload. Returns `{ imageUri: "ipfs://...", cid }`. Used by the create collection flow for the preview image.
@@ -283,7 +283,7 @@ layout.tsx (server)
 | `src/hooks/use-chipi-transaction.ts` | ChipiPay tx execution + status |
 | `src/components/marketplace/marketplace-dialog-primitives.tsx` | Shared marketplace dialog building blocks: `MarketplaceSuccessState`, `MarketplaceActivatingSession`, `MarketplaceSignInGate`, `MarketplaceDialogHero`, `MarketplacePinStep`, `MarketplaceTxLink`, `MarketplaceProcessingState`, `CurrencyPicker`, `DurationPicker` |
 | `src/components/marketplace/purchase-dialog.tsx` | Buy/fulfill flow |
-| `src/components/marketplace/listing-dialog.tsx` | Create listing flow — uses `marketplace-dialog-primitives`. No `MarketplaceDebugPanel` in production. |
+| `src/components/marketplace/listing-dialog.tsx` | Create listing flow — uses `marketplace-dialog-primitives`. (`MarketplaceDebugPanel` + snapshot machinery was removed entirely in PR #39, 2026-05-25.) |
 | `src/components/marketplace/offer-dialog.tsx` | Make offer flow — includes quantity field for ERC-1155 |
 | `src/hooks/use-marketplace-action-flow.ts` | Shared PIN/passkey/session activation state machine for marketplace dialogs. Handles wallet-setup gate, session refresh (with amount-cap clear), PIN entry, passkey auth, and action execution. Used by listing-dialog and offer-dialog. |
 | `src/hooks/use-remix-offers.ts` | SWR hooks + mutation helpers for remix offer lifecycle: `useRemixOffers`, `useTokenRemixes`, `submitRemixOffer`, `submitAutoRemixOffer`, `confirmSelfRemix`, `confirmRemixOffer`, `rejectRemixOffer`, `extendRemixOffer` |
@@ -311,6 +311,29 @@ layout.tsx (server)
 - **Full fix requires:** Moving session storage to `privateMetadata` (server-only). Requires ChipiPay SDK changes. Escalated.
 
 **Finding 14 (MEDIUM):** `approve` and `set_approval_for_all` were removed from the session key whitelist (2026-05-06). If marketplace listings break in production, these must be re-added and ChipiPay must be asked to enforce per-contract restrictions (not just per-selector). See `use-session-key.ts` comment for details.
+
+### Session-key whitelist is a contract surface (2026-05-26 lesson)
+
+The `allowedEntrypoints` list in `src/hooks/use-session-key.ts` must include every Cairo selector the io app ever invokes via the session-key-signed pipeline (`useChipiTransaction.executeTransaction`). Missing a selector → ChipiPay paymaster simulation reverts with `TRANSACTION_EXECUTION_ERROR` → user sees a paymaster error with no actionable detail.
+
+Two long-standing silent failures were caught + fixed this way:
+
+- **`safe_transfer_from`** (PR #45) — ERC-1155 transfers were broken for every user since the whitelist was first defined.
+- **`deploy_collection`** (PR #53) — `/launchpad/nfteditions/create` was broken since ERC-1155 collection deploys shipped.
+
+**Audit methodology:**
+
+```bash
+# 1. Every entrypoint actually called in this app
+grep -rEo 'entrypoint:\s*"[a-zA-Z_]+"' src/ --include='*.ts' --include='*.tsx' | awk -F'"' '{print $2}' | sort -u
+
+# 2. Diff against the whitelist in use-session-key.ts; any selector
+#    called but not whitelisted is a silent-failure bug.
+```
+
+Run this any time a new contract integration ships, before merging.
+
+**Existing-session caveat:** when the whitelist is expanded, users with sessions created BEFORE the deploy still have the old selector set registered on-chain. They must reset via Settings → Wallet (toggle "Remember session" off then back on) to pick up the new set. The friendly error from PR #50 in `use-chipi-transaction.ts` surfaces this clearly.
 
 ### Medialane API key — server-only via BFF proxy (2026-05-24)
 
