@@ -45,8 +45,12 @@ const HOP_BY_HOP_HEADERS = new Set([
 // reach through the io BFF.
 //
 // Scope rationale (audit `medialane-core/docs/audits/2026-05-25-medialane-io-bff-proxy-auth-audit.md`):
-//   - GET surfaces are deliberately broad — anything under /v1/<resource>
-//     a read endpoint backend exposes is fair game. Reads are public-equivalent.
+//   - GET requests on /v1/* are ALL allowed — reads are public-equivalent
+//     and the audit confirmed there is no admin GET surface on /v1/.
+//     The previous per-resource GET enumeration caused a P0 incident
+//     (PR #44 → discover-page 403s for /v1/creators) when a new SDK
+//     method appeared without a matching pattern. Allowing all GETs
+//     prevents that entire class of incident. Postmortem #3 in the plan.
 //   - POST/PATCH/DELETE writes are an EXPLICIT enumeration. Any new
 //     mutating route requires a corresponding allowlist entry and an io PR.
 //
@@ -54,26 +58,10 @@ const HOP_BY_HOP_HEADERS = new Set([
 // pair below. Match against the path AFTER the `/v1/` prefix.
 
 const ALLOWED_ROUTES: Record<string, RegExp[]> = {
-  // ── Reads (broad) ──────────────────────────────────────────────────────
-  GET: [
-    /^activities(\/.*)?$/,                                 // /v1/activities[/:address]
-    /^collections(\/.*)?$/,                                // /v1/collections, /:contract, /by-slug/:slug, /:contract/{tokens,profile,gated-content}
-    /^collection-slug-claims\/(check\/.+|me)$/,            // /v1/collection-slug-claims/check/:slug, /me
-    /^creators(\/.*)?$/,                                   // /v1/creators, /by-username/:u, /:wallet/profile
-    /^drop\/[^/]+\/info$/,                                 // /v1/drop/:contract/info
-    /^drop\/mint-status\/[^/]+\/[^/]+$/,                   // /v1/drop/mint-status/:contract/:wallet
-    /^intents\/[^/]+$/,                                    // /v1/intents/:id
-    /^metadata\/(resolve|signed-url)$/,                    // /v1/metadata/{resolve,signed-url}
-    /^orders(\/.*)?$/,                                     // /v1/orders, /:hash, /token/.., /user/..
-    /^pop\/eligibility\/.+$/,                              // /v1/pop/eligibility/:collection[/:wallet]
-    /^remix-offers(\?.*)?$/,                               // /v1/remix-offers[?...]
-    /^rewards(\/.*)?$/,                                    // /v1/rewards, /:address[, /:address/events]
-    /^search$/,                                            // /v1/search
-    /^stats$/,                                             // /v1/stats
-    /^tokens(\/.*)?$/,                                     // /v1/tokens?…, /:contract/:tokenId[/...], /owned/:address
-    /^users\/(me|count)$/,                                 // /v1/users/{me,count}
-    /^username-claims\/(me|check\/.+)$/,                   // /v1/username-claims/me, /v1/username-claims/check/:username
-  ],
+  // ── Reads (all GET /v1/* allowed) ──────────────────────────────────────
+  // Backend has no admin GET routes under /v1 — admin lives at /admin/* on
+  // a separate API_SECRET_KEY gate. So a wildcard here is safe.
+  GET: [/.+/],
   // ── Mutations (explicit) ───────────────────────────────────────────────
   POST: [
     /^collections\/(register|sync-tx|claim)$/,             // launchpad create + create/collection + on-chain claim
