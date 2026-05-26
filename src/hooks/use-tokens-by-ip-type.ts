@@ -1,7 +1,7 @@
 "use client";
 
 import useSWR from "swr";
-import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
+import { apiFetch } from "@/lib/api-fetch";
 import type { ApiToken, ApiResponse } from "@medialane/sdk";
 
 // Direct fetch — bypasses SDK since getTokens() isn't in the current SDK version
@@ -21,13 +21,7 @@ export function useTokensByIpType(
 
   const { data, error, isLoading, mutate } = useSWR<ApiResponse<ApiToken[]>>(
     key,
-    async () => {
-      const res = await fetch(`${MEDIALANE_BACKEND_URL}/v1/tokens?${params}`, {
-        headers: { "x-api-key": MEDIALANE_API_KEY },
-      });
-      if (!res.ok) throw new Error("Failed to fetch tokens");
-      return res.json();
-    },
+    () => apiFetch<ApiResponse<ApiToken[]>>(`/v1/tokens?${params}`),
     { revalidateOnFocus: false, refreshInterval: 30000 }
   );
 

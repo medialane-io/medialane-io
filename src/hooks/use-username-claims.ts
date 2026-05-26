@@ -4,7 +4,7 @@ import useSWR from "swr";
 import { useAuth } from "@clerk/nextjs";
 import { type ApiCreatorProfile } from "@medialane/sdk";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
+import { apiFetch, ApiError } from "@/lib/api-fetch";
 
 export interface UsernameClaim {
   id: string;
@@ -26,14 +26,10 @@ export function useMyUsernameClaim() {
     isSignedIn ? "username-claim-me" : null,
     async () => {
       const token = await getToken();
-      const res = await fetch(`${MEDIALANE_BACKEND_URL}/v1/username-claims/me`, {
-        headers: {
-          "x-api-key": MEDIALANE_API_KEY,
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      });
-      if (!res.ok) throw new Error("Failed to fetch username claim");
-      return res.json() as Promise<{ username: string | null; claim: UsernameClaim | null }>;
+      return apiFetch<{ username: string | null; claim: UsernameClaim | null }>(
+        "/v1/username-claims/me",
+        { bearer: token }
+      );
     },
     { revalidateOnFocus: false, shouldRetryOnError: false }
   );
@@ -45,10 +41,9 @@ export function useMyUsernameClaim() {
 export async function checkUsernameAvailability(
   username: string
 ): Promise<{ available: boolean; reason?: string }> {
-  const res = await fetch(`${MEDIALANE_BACKEND_URL}/v1/username-claims/check/${encodeURIComponent(username)}`, {
-    headers: { "x-api-key": MEDIALANE_API_KEY },
-  });
-  return res.json();
+  return apiFetch<{ available: boolean; reason?: string }>(
+    `/v1/username-claims/check/${encodeURIComponent(username)}`
+  );
 }
 
 /** Submit a username claim. */
@@ -57,18 +52,16 @@ export async function submitUsernameClaim(
   token: string,
   notifyEmail?: string
 ): Promise<{ claim?: UsernameClaim; error?: string }> {
-  const res = await fetch(`${MEDIALANE_BACKEND_URL}/v1/username-claims`, {
-    method: "POST",
-    headers: {
-      "x-api-key": MEDIALANE_API_KEY,
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ username, ...(notifyEmail ? { notifyEmail } : {}) }),
-  });
-  const json = await res.json();
-  if (!res.ok) return { error: json.error ?? "Failed to submit claim" };
-  return { claim: json.claim };
+  try {
+    const json = await apiFetch<{ claim: UsernameClaim }>("/v1/username-claims", {
+      method: "POST",
+      bearer: token,
+      body: { username, ...(notifyEmail ? { notifyEmail } : {}) },
+    });
+    return { claim: json.claim };
+  } catch (err) {
+    return { error: err instanceof ApiError ? err.message : "Failed to submit claim" };
+  }
 }
 
 /** Resolve a username slug to a creator profile (public, no auth). */

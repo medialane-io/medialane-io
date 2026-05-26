@@ -1,8 +1,8 @@
 "use client";
 
 import useSWR from "swr";
-import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
-import type { ApiCollection } from "@medialane/sdk";
+import { apiFetch } from "@/lib/api-fetch";
+import type { ApiCollection, ApiMeta } from "@medialane/sdk";
 
 export interface PopClaimStatus {
   isEligible: boolean;
@@ -11,17 +11,12 @@ export interface PopClaimStatus {
 }
 
 export function usePopCollections() {
-  const { data, error, isLoading, mutate } = useSWR<{ data: ApiCollection[]; meta: any }>(
+  const { data, error, isLoading, mutate } = useSWR<{ data: ApiCollection[]; meta: ApiMeta }>(
     "pop-collections",
-    async () => {
-      const params = new URLSearchParams({ service: "pop-protocol", hideEmpty: "false", limit: "50" });
-      const url = `${MEDIALANE_BACKEND_URL.replace(/\/$/, "")}/v1/collections?${params}`;
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
-      if (MEDIALANE_API_KEY) headers["x-api-key"] = MEDIALANE_API_KEY;
-      const res = await fetch(url, { headers });
-      if (!res.ok) throw new Error(`POP collections fetch failed: ${res.status}`);
-      return res.json();
-    },
+    () =>
+      apiFetch<{ data: ApiCollection[]; meta: ApiMeta }>(
+        `/v1/collections?${new URLSearchParams({ service: "pop-protocol", hideEmpty: "false", limit: "50" })}`
+      ),
     { revalidateOnFocus: false }
   );
 
@@ -40,12 +35,7 @@ export function usePopClaimStatus(collection: string | null, wallet: string | nu
   const { data, error, isLoading, mutate } = useSWR<PopClaimStatus>(
     key,
     async () => {
-      const url = `${MEDIALANE_BACKEND_URL.replace(/\/$/, "")}/v1/pop/eligibility/${collection}/${wallet}`;
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
-      if (MEDIALANE_API_KEY) headers["x-api-key"] = MEDIALANE_API_KEY;
-      const res = await fetch(url, { headers });
-      if (!res.ok) throw new Error(`POP eligibility fetch failed: ${res.status}`);
-      const json = await res.json();
+      const json = await apiFetch<{ data: PopClaimStatus }>(`/v1/pop/eligibility/${collection}/${wallet}`);
       return json.data;
     },
     { revalidateOnFocus: false, shouldRetryOnError: false }
