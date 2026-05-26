@@ -317,7 +317,7 @@ export default function CreateRemixPage() {
           recipient: walletAddress,
           tokenUri,
         });
-        const calls = (intentRes.data as any)?.calls as ChipiCall[];
+        const calls = intentRes.data?.calls as ChipiCall[];
         if (!calls?.length) throw new Error("No calls returned from mint intent");
 
         const result = await executeTransaction({ pin, calls });
