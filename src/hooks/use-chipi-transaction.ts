@@ -40,6 +40,41 @@ export type ChipiTransactionStatus =
   | "reverted"
   | "error";
 
+// ─── Error mapping ────────────────────────────────────────────────────────
+
+/**
+ * ChipiPay's paymaster simulates every sponsored tx against the session
+ * key's `allowedEntrypoints` whitelist before submission. When the whitelist
+ * doesn't cover the entrypoint we're calling (e.g. an entry was added in a
+ * newer release but the user's existing session was created against the old
+ * set — see PR #45's safe_transfer_from incident), the simulation reverts
+ * and the SDK surfaces:
+ *
+ *   "Failed to prepare typed data: Paymaster error: An error occurred
+ *    (TRANSACTION_EXECUTION_ERROR)"
+ *
+ * Replace with an actionable message pointing the user at the session
+ * refresh UI in /portfolio/wallet.
+ */
+function toFriendlyExecutionError(err: unknown): {
+  message: string;
+  isSessionMismatch: boolean;
+} {
+  const raw = err instanceof Error ? err.message : "Transaction failed";
+  if (
+    /prepare.{0,3}typed.{0,3}data/i.test(raw) &&
+    /TRANSACTION_EXECUTION_ERROR|Paymaster\s+error/i.test(raw)
+  ) {
+    return {
+      message:
+        "Your wallet session is out of date and couldn't authorise this action. " +
+        "Open Portfolio → Wallet, toggle \"Remember session\" off and back on to refresh it, then retry.",
+      isSessionMismatch: true,
+    };
+  }
+  return { message: raw, isSessionMismatch: false };
+}
+
 // ─── Hook ─────────────────────────────────────────────────────────────────
 
 export function useChipiTransaction() {
@@ -158,8 +193,13 @@ export function useChipiTransaction() {
         }
       } catch (err: unknown) {
         setStatus("error");
-        const msg = err instanceof Error ? err.message : "Transaction failed";
-        setError(msg);
+        const friendly = toFriendlyExecutionError(err);
+        setError(friendly.message);
+        // Re-throw with the user-facing message when we recognised the
+        // error pattern — downstream consumers (transfer-dialog, counter-
+        // offers-table, launchpad pages, claim buttons) all surface the
+        // throwable's `.message` directly in their error UI.
+        if (friendly.isSessionMismatch) throw new Error(friendly.message);
         throw err;
       } finally {
         isSubmittingRef.current = false;
