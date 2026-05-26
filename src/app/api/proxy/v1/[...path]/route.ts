@@ -57,8 +57,9 @@ const ALLOWED_ROUTES: Record<string, RegExp[]> = {
   // ── Reads (broad) ──────────────────────────────────────────────────────
   GET: [
     /^activities(\/.*)?$/,                                 // /v1/activities[/:address]
-    /^collections(\/.*)?$/,                                // /v1/collections, /v1/collections/:contract, /v1/collections/by-slug/:slug, /v1/collections/:contract/{tokens,profile,gated-content}
-    /^collection-slug-claims\/(check\/.+|me)$/,            // /v1/collection-slug-claims/check/:slug, /v1/collection-slug-claims/me
+    /^collections(\/.*)?$/,                                // /v1/collections, /:contract, /by-slug/:slug, /:contract/{tokens,profile,gated-content}
+    /^collection-slug-claims\/(check\/.+|me)$/,            // /v1/collection-slug-claims/check/:slug, /me
+    /^creators(\/.*)?$/,                                   // /v1/creators, /by-username/:u, /:wallet/profile
     /^drop\/[^/]+\/info$/,                                 // /v1/drop/:contract/info
     /^drop\/mint-status\/[^/]+\/[^/]+$/,                   // /v1/drop/mint-status/:contract/:wallet
     /^intents\/[^/]+$/,                                    // /v1/intents/:id
@@ -75,7 +76,8 @@ const ALLOWED_ROUTES: Record<string, RegExp[]> = {
   ],
   // ── Mutations (explicit) ───────────────────────────────────────────────
   POST: [
-    /^collections\/(register|sync-tx)$/,                   // launchpad nfteditions/create, create/collection
+    /^collections\/(register|sync-tx|claim)$/,             // launchpad create + create/collection + on-chain claim
+    /^collections\/claim\/request$/,                       // manual-review claim request
     /^collection-slug-claims$/,                            // collection settings slug claim
     /^drop\/conditions$/,                                  // launchpad drop/create (Clerk-gated on backend)
     /^intents\/(listing|offer|counter-offer|fulfill|cancel|mint|create-collection|checkout)$/,  // marketplace + mint flows (signatures gate real auth)
@@ -83,10 +85,12 @@ const ALLOWED_ROUTES: Record<string, RegExp[]> = {
     /^metadata\/(upload|upload-file)$/,                    // /v1/metadata/{upload,upload-file}
     /^remix-offers(\/(auto|self\/confirm|[^/]+\/(confirm|reject|extend)))?$/,  // remix offer lifecycle
     /^reports$/,                                           // /v1/reports (Clerk-gated on backend)
-    /^users\/(me|register)$/,                              // /v1/users/{me,register}
+    /^users\/(me|register)$/,                              // /v1/users/{me,register} — me also covers upsertMyWallet
     /^username-claims$/,                                   // /v1/username-claims
   ],
   PATCH: [
+    /^collections\/[^/]+\/profile$/,                       // updateCollectionProfile (Clerk-gated on backend)
+    /^creators\/[^/]+\/profile$/,                          // updateCreatorProfile (Clerk-gated on backend)
     /^intents\/[^/]+\/(confirm|signature)$/,               // /v1/intents/:id/{confirm,signature}
   ],
   // DELETE intentionally empty — no io flow deletes through the proxy.
