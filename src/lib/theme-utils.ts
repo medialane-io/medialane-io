@@ -97,7 +97,7 @@ export function buildDynamicTheme(
     if (h < 0) h += 360;
   }
 
-  let finalH = h;
+  const finalH = h;
   let finalS = Math.round(s * 100);
   let finalL = Math.round(l * 100);
 

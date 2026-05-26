@@ -175,9 +175,13 @@ export default function ProfileSettingsPage() {
         discordUrl: form.discordUrl || null,
         telegramUrl: form.telegramUrl || null,
       };
-      const result = await getMedialaneClient().api.updateCreatorProfile(walletAddress, payload, token) as any;
-      if (!result?.walletAddress) {
-        throw new Error(result?.error ?? "Save failed — please try again");
+      // The SDK return type is the success shape; the backend can still send
+      // an error object on validation failure, hence the inline union.
+      const result = await getMedialaneClient().api.updateCreatorProfile(walletAddress, payload, token) as
+        | { walletAddress: string }
+        | { error?: string };
+      if (!("walletAddress" in result) || !result.walletAddress) {
+        throw new Error(("error" in result && result.error) ? result.error : "Save failed — please try again");
       }
       await mutate(undefined, { revalidate: true });
       setSaveStatus("saved");

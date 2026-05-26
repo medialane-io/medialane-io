@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { useOrders } from "@/hooks/use-orders";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { ListingCard, ListingCardSkeleton } from "./listing-card";
@@ -100,7 +101,7 @@ export function ListingsGrid({ sort = "recent", currency, orderType = "", minPri
         <p className="text-muted-foreground max-w-sm">{emptyBody}</p>
         {orderType !== "offers" && (
           <Button variant="outline" asChild>
-            <a href="/create">Create & List</a>
+            <Link href="/create">Create & List</Link>
           </Button>
         )}
       </div>

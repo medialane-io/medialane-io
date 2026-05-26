@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { UserRoundCog } from "lucide-react";
-import { Contract, cairo } from "starknet";
+import { Contract, cairo, type Abi } from "starknet";
 import {
   Dialog,
   DialogContent,
@@ -89,7 +89,7 @@ export function TransferCollectionOwnershipDialog({
     encryptKey,
     executeAction: async (values, pinOrDerivedKey) => {
       const contract = new Contract(
-        IPCollectionABI as any,
+        IPCollectionABI as unknown as Abi,
         COLLECTION_721_CONTRACT,
         starknetProvider
       );

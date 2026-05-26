@@ -2,7 +2,7 @@
 
 import useSWR from "swr";
 import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
-import type { ApiCollection } from "@medialane/sdk";
+import type { ApiCollection, ApiMeta } from "@medialane/sdk";
 
 export interface PopClaimStatus {
   isEligible: boolean;
@@ -11,7 +11,7 @@ export interface PopClaimStatus {
 }
 
 export function usePopCollections() {
-  const { data, error, isLoading, mutate } = useSWR<{ data: ApiCollection[]; meta: any }>(
+  const { data, error, isLoading, mutate } = useSWR<{ data: ApiCollection[]; meta: ApiMeta }>(
     "pop-collections",
     async () => {
       const params = new URLSearchParams({ service: "pop-protocol", hideEmpty: "false", limit: "50" });

@@ -15,8 +15,9 @@ import {
   Layers, Sparkles, Plus, ArrowRight, Package,
   ExternalLink, Inbox,
 } from "lucide-react";
+import type { ApiCollection } from "@medialane/sdk";
 
-function CollectionRow({ col }: { col: any }) {
+function CollectionRow({ col }: { col: ApiCollection }) {
   const [imgError, setImgError] = useState(false);
   const imageUrl = col.image ? ipfsToHttp(col.image) : null;
   const showImage = imageUrl && !imgError;

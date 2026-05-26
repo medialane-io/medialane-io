@@ -20,7 +20,7 @@ import { useSessionKey } from "@/hooks/use-session-key";
 import { useUser } from "@clerk/nextjs";
 import { FadeIn } from "@/components/ui/motion-primitives";
 import { normalizeAddress } from "@medialane/sdk";
-import { Contract, num } from "starknet";
+import { Contract, num, type Abi } from "starknet";
 import { starknetProvider } from "@/lib/starknet";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { LaunchpadPageIntro } from "@/components/launchpad/launchpad-page-intro";
@@ -125,8 +125,8 @@ export default function MintIP1155Page() {
       inputs: [], outputs: [{ type: "core::starknet::contract_address::ContractAddress" }],
       state_mutability: "view",
     }];
-    const contract = new Contract(OWNER_ABI as any, collectionAddress, starknetProvider);
-    (contract as any).owner()
+    const contract = new Contract(OWNER_ABI as unknown as Abi, collectionAddress, starknetProvider);
+    (contract as unknown as { owner: () => Promise<unknown> }).owner()
       .then((raw: unknown) => {
         // starknet.js decodes a ContractAddress as a bigint; String(bigint) is
         // decimal, which normalizeAddress would mis-parse as hex. Convert first.

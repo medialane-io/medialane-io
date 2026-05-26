@@ -11,8 +11,15 @@ import { PopClaimButton } from "@/components/claim/pop-claim-button";
 import { usePopCollections } from "@/hooks/use-pop";
 import { ipfsToHttp } from "@/lib/utils";
 import { BRAND } from "@/lib/brand";
+import type { ApiCollection } from "@medialane/sdk";
 
-function PopCollectionCard({ collection }: { collection: any }) {
+// See drop-content.tsx for the same shape. Will move to SDK once 0.24+ exposes
+// collection-level attributes.
+type CollectionWithAttributes = ApiCollection & {
+  attributes?: { trait_type?: string; value?: string }[];
+};
+
+function PopCollectionCard({ collection }: { collection: ApiCollection }) {
   const [imgError, setImgError] = useState(false);
   const imageUrl = collection.image ? ipfsToHttp(collection.image) : null;
   const showImage = imageUrl && !imgError;
@@ -115,7 +122,7 @@ export function PopContent() {
   // Inert until backend indexes collection attributes — safe for legacy collections.
   const publicCollections = collections.filter(
     (c) =>
-      (c as any).attributes?.find((a: any) => a.trait_type === "Visibility")?.value !== "Private"
+      (c as CollectionWithAttributes).attributes?.find((a) => a.trait_type === "Visibility")?.value !== "Private"
   );
 
   return (

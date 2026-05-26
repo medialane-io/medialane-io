@@ -313,7 +313,7 @@ function SearchResults() {
           {totalResults === 0 && q && (
             <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
               <Search className="h-12 w-12 text-muted-foreground/30" />
-              <p className="font-semibold">No results for "{q}"</p>
+              <p className="font-semibold">No results for &quot;{q}&quot;</p>
               <p className="text-sm text-muted-foreground">
                 Try a different name, token ID, or contract address.
               </p>

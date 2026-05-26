@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Tag } from "lucide-react";
 import { useOrders } from "@/hooks/use-orders";
 import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listing-card";
@@ -35,9 +36,9 @@ export function NewOnMarketplace() {
           ? (
               <p className="text-sm text-muted-foreground py-4">
                 No listings yet.{" "}
-                <a href="/create/asset" className="text-primary hover:underline">
+                <Link href="/create/asset" className="text-primary hover:underline">
                   Be the first to list an asset.
-                </a>
+                </Link>
               </p>
             )
           : listings.map((order) => {

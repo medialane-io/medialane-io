@@ -18,11 +18,11 @@ const nextConfig: NextConfig = {
   // Pre-existing TS error in launchpad/drop/create (DropFactoryABI missing from SDK).
   // Remove once the SDK export is added.
   typescript: { ignoreBuildErrors: true },
-  // ESLint runs separately via `bun lint` — gating the production build on it
-  // would block deploys until every legacy `any` / unused var is cleaned up
-  // (~71 errors as of 2026-05-25; tracked in plan Batch D.2). The flat config
-  // added in PR #40 exists to make `bun lint` actionable, not to gate builds.
-  eslint: { ignoreDuringBuilds: true },
+  // ESLint build gate restored 2026-05-26 — all 52 errors fixed (any casts
+  // narrowed to real types, unescaped entities, <a>→<Link>, empty interface,
+  // require→import). 149 warnings (mostly no-unused-vars) remain; warnings
+  // don't block builds in Next 15. Fix new errors at PR time; don't reintroduce
+  // the bypass.
   async redirects() {
     return [
       { source: "/terms",          destination: "https://docs.medialane.io/guidelines/terms",          permanent: true },
