@@ -100,6 +100,20 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <SWRConfig
         value={{
           onError: (err: unknown) => {
+            // 401/403 are auth state, not a runtime error worth screaming at the
+            // user. A Clerk JWT can expire silently between page loads, and
+            // every identity-aware hook (useMyWallet, gated content, etc.) will
+            // 401 until the user re-signs-in. Surfacing the raw backend error
+            // ("Invalid or expired session token") as a red toast made the
+            // platform feel broken when it was just an expired session.
+            // Each hook that cares about auth state already handles 401
+            // locally (graceful empty/null fallback).
+            const status =
+              err && typeof err === "object" && "status" in err && typeof (err as { status: unknown }).status === "number"
+                ? (err as { status: number }).status
+                : null;
+            if (status === 401 || status === 403) return;
+
             const msg = err instanceof Error ? err.message : "Something went wrong";
             toast.error(msg);
           },

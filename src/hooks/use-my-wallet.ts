@@ -24,8 +24,16 @@ export function useMyWallet() {
       });
       if (!token) return null;
 
-      const existing = await getMedialaneClient().api.getMyWallet(token);
-      if (existing) return existing;
+      // Silent-fallback hook: never throw to SWR. A 401 here (expired Clerk
+      // session, identityAuth rejecting the JWT, etc.) is an expected state —
+      // the user just isn't authenticated to the backend yet. We return null
+      // and let the caller fall back to ChipiPay / Clerk publicMetadata.
+      try {
+        const existing = await getMedialaneClient().api.getMyWallet(token);
+        if (existing) return existing;
+      } catch {
+        return null;
+      }
 
       // Not yet stored — upsert now. Backend reads wallet from Clerk publicMetadata.
       // This transparently backfills all existing users on their next page load.
