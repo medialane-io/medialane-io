@@ -156,6 +156,13 @@ export function useSessionKey() {
               // Launchpad
               hash.getSelectorFromName("create_drop"),
               hash.getSelectorFromName("create_collection"),
+              // ERC-1155 collection factory deploys go through
+              // `deploy_collection(name, symbol, base_uri)` on the
+              // IP-Programmable-ERC1155-Collections factory contract.
+              // Without this selector the nfteditions/create flow fails
+              // at the ChipiPay paymaster with TRANSACTION_EXECUTION_ERROR.
+              // Same shape as the safe_transfer_from whitelist miss (PR #45).
+              hash.getSelectorFromName("deploy_collection"),
               hash.getSelectorFromName("set_allowlist_enabled"),
               hash.getSelectorFromName("batch_add_to_allowlist"),
               hash.getSelectorFromName("remove_from_allowlist"),
