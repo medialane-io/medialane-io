@@ -15,9 +15,11 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  // Pre-existing TS error in launchpad/drop/create (DropFactoryABI missing from SDK).
-  // Remove once the SDK export is added.
-  typescript: { ignoreBuildErrors: true },
+  // `typescript: { ignoreBuildErrors: true }` was removed 2026-05-26 —
+  // the original blocker (DropFactoryABI export) shipped in SDK 0.20+ and
+  // `tsc --noEmit` is now clean. Re-adding the bypass would hide real
+  // regressions; if a transient type issue lands, fix it instead of toggling.
+  //
   // ESLint runs separately via `bun lint` — gating the production build on it
   // would block deploys until every legacy `any` / unused var is cleaned up
   // (~71 errors as of 2026-05-25; tracked in plan Batch D.2). The flat config
