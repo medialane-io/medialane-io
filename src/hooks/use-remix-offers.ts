@@ -17,8 +17,12 @@ async function apiFetch(url: string, clerkToken?: string | null, options?: Reque
   };
   const res = await fetch(url, { ...options, headers: { ...headers, ...(options?.headers as Record<string, string> ?? {}) } });
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error((err as any).error ?? `Request failed: ${res.status}`);
+    const err: unknown = await res.json().catch(() => ({}));
+    const errorMsg =
+      err && typeof err === "object" && "error" in err && typeof err.error === "string"
+        ? err.error
+        : `Request failed: ${res.status}`;
+    throw new Error(errorMsg);
   }
   return res.json();
 }

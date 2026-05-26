@@ -16,7 +16,6 @@ import { PageContainer } from "@medialane/ui";
 import { ipfsToHttp, timeUntil, formatDisplayPrice, checkIsOwner } from "@/lib/utils";
 import { DollarSign, UserCheck, Globe, Bot, Percent, Shield, Calendar, ChevronRight, Layers, GitBranch } from "lucide-react";
 import { FloatingCommentsButton } from "@/components/asset/floating-comments-button";
-import { HiddenContentBanner } from "@/components/hidden-content-banner";
 import { LICENSE_TRAIT_TYPES } from "@/types/ip";
 import type { IPType } from "@/types/ip";
 import { IP_TEMPLATES } from "@/lib/ip-templates";
@@ -183,7 +182,20 @@ export function AssetPageStandard() {
       style={dynamicTheme ? (dynamicTheme as React.CSSProperties) : {}}
       className="relative z-0 min-h-screen"
     >
-      {(token as any).isHidden && <HiddenContentBanner />}
+      {/*
+       * `Token.isHidden` exists on the backend Prisma schema as a filter
+       * column — hidden tokens are excluded from every list AND single-
+       * token endpoint (see medialane-backend tokens.ts:39,157,201,218).
+       * The field is never serialised on the response, so this banner
+       * can never render: a hidden token would 404 before reaching this
+       * component. Removing the cast + dead branch.
+       *
+       * If we ever want to display hidden tokens with a moderation
+       * banner instead of 404'ing them, the change is in backend: drop
+       * `isHidden: false` from the WHERE clause + include the field in
+       * serialize(), then add to ApiToken in @medialane/sdk, then
+       * restore this check.
+       */}
       {/* Hidden extraction image for dominant color — must be in component tree */}
       {imageUrl && (
         <img

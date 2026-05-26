@@ -7,6 +7,7 @@ import { TxStatus } from "@/components/chipi/tx-status";
 import { MarketplaceErrorState } from "@/components/marketplace/marketplace-dialog-primitives";
 import { EXPLORER_URL } from "@/lib/constants";
 import { ipfsToHttp } from "@/lib/utils";
+import type { ChipiTransactionStatus } from "@/hooks/use-chipi-transaction";
 
 /**
  * Shared transaction dialog state machine. Renders the success / error /
@@ -19,7 +20,7 @@ import { ipfsToHttp } from "@/lib/utils";
  * unified.
  */
 interface TransactionDialogStatesProps {
-  status: string | undefined;
+  status: ChipiTransactionStatus | undefined;
   statusMessage?: string;
   txHash: string | null;
   error: string | null;
@@ -110,7 +111,7 @@ export function TransactionDialogStates({
     return (
       <div className="p-6">
         <TxStatus
-          status={status as any}
+          status={status ?? "idle"}
           txHash={txHash}
           error={error}
           statusMessage={statusMessage}

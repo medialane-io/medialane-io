@@ -343,7 +343,7 @@ export default function CreateRemixPage() {
       // 3. Optional listing (if price was set)
       const parsedPrice = parseFloat(price);
       if (price && !isNaN(parsedPrice) && parsedPrice > 0) {
-        const tokenInfo = getTokenBySymbol(currency as any);
+        const tokenInfo = getTokenBySymbol(currency);
         const decimals = tokenInfo?.decimals ?? 18;
         const rawPrice = BigInt(Math.round(parsedPrice * 10 ** decimals)).toString();
         await createListing({
@@ -402,7 +402,7 @@ export default function CreateRemixPage() {
     setOfferLoading(true);
     setOfferError(null);
     try {
-      const tokenInfo = getTokenBySymbol(currency as any);
+      const tokenInfo = getTokenBySymbol(currency);
       const decimals = tokenInfo?.decimals ?? 18;
       const rawPrice = BigInt(Math.round(parseFloat(price) * 10 ** decimals)).toString();
 
