@@ -1,51 +1,70 @@
-// NOT PRODUCTION READY — stub only. Replace console.log with Resend / Mailchimp / DB write before launch.
-import { NextRequest, NextResponse } from "next/server";
+/**
+ * /api/airdrop/register — thin forwarder to medialane-backend.
+ *
+ * Replaces the previous in-process console.log stub that was losing every
+ * signup. Validation, persistence, and IP-based rate limiting now all live
+ * server-side at POST /v1/airdrop/register (backed by the AirdropSignup
+ * Prisma model). This route only:
+ *
+ *   1. Echoes the JSON body to the backend.
+ *   2. Forwards the caller's IP via `x-real-ip` so the backend's
+ *      rate-limit key + audit row reflect the real client, not the
+ *      Vercel edge.
+ *   3. Injects the server-only `MEDIALANE_API_KEY` (the backend route
+ *      sits under /v1/*, so it requires a tenant API key).
+ *
+ * The form (src/app/airdrop/...) is unchanged.
+ */
+import { type NextRequest, NextResponse } from "next/server";
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const VALID_ROLES = new Set(["creator", "collector", "developer", "other"]);
-
-// Simple in-memory rate limiter (per IP, 5 req/min)
-const ipCounts = new Map<string, { count: number; resetAt: number }>();
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const entry = ipCounts.get(ip);
-  if (!entry || now >= entry.resetAt) {
-    ipCounts.set(ip, { count: 1, resetAt: now + 60_000 });
-    return true;
-  }
-  if (entry.count >= 5) return false;
-  entry.count++;
-  return true;
-}
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL ?? "http://localhost:3001";
 
 export async function POST(req: NextRequest) {
+  const apiKey = process.env.MEDIALANE_API_KEY;
+  if (!apiKey) {
+    return NextResponse.json(
+      { error: "Airdrop signup is not configured on this deployment" },
+      { status: 503 }
+    );
+  }
+
+  // Read the raw body once — we forward bytes unchanged so backend zod
+  // validation sees the exact shape the user submitted.
+  const body = await req.text();
+
+  // Real client IP. In production this comes from Vercel's
+  // `x-forwarded-for`; the leftmost value is the user. The backend
+  // looks for `x-real-ip` (Railway's edge convention), so we
+  // normalise here.
+  const ip =
+    req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+    req.headers.get("x-real-ip") ||
+    "";
+
+  const userAgent = req.headers.get("user-agent") ?? "";
+
   try {
-    const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
-    if (!checkRateLimit(ip)) {
-      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
-    }
+    const res = await fetch(`${BACKEND_URL.replace(/\/$/, "")}/v1/airdrop/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        ...(ip ? { "x-real-ip": ip } : {}),
+        ...(userAgent ? { "user-agent": userAgent } : {}),
+      },
+      body,
+      cache: "no-store",
+    });
 
-    const body = (await req.json()) as Record<string, unknown>;
-
-    const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
-    const name = typeof body.name === "string" ? body.name.trim() : "";
-    const role = typeof body.role === "string" ? body.role : "other";
-
-    if (!EMAIL_REGEX.test(email) || email.length > 254) {
-      return NextResponse.json({ error: "Valid email required" }, { status: 400 });
-    }
-    if (name.length < 2 || name.length > 100) {
-      return NextResponse.json({ error: "Name must be 2–100 characters" }, { status: 400 });
-    }
-    if (!VALID_ROLES.has(role)) {
-      return NextResponse.json({ error: "Invalid role" }, { status: 400 });
-    }
-
-    // TODO: replace with Resend / Mailchimp / DB call when ready
-    console.log("[airdrop/register]", { name, email, role, ts: new Date().toISOString() });
-
-    return NextResponse.json({ ok: true });
+    // Pass through status + body. Don't transform — backend already returns
+    // `{ data: ... }` on success and `{ error: ... }` on failure.
+    const text = await res.text();
+    return new NextResponse(text || null, {
+      status: res.status,
+      headers: { "content-type": res.headers.get("content-type") ?? "application/json" },
+    });
   } catch {
-    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+    return NextResponse.json({ error: "Could not reach signup service" }, { status: 502 });
   }
 }
