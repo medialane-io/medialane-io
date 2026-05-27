@@ -337,8 +337,10 @@ export default function CreateAssetPage() {
     setMintDebug(next);
     if (typeof window !== "undefined") {
       (window as unknown as { __MEDIALANE_MINT_DEBUG__?: MintDebugSnapshot }).__MEDIALANE_MINT_DEBUG__ = next;
-      console.warn("[Medialane mint debug]", next);
-      console.warn(`[Medialane mint debug JSON]\n${JSON.stringify(next, null, 2)}`);
+      if (process.env.NODE_ENV !== "production") {
+        console.warn("[Medialane mint debug]", next);
+        console.warn(`[Medialane mint debug JSON]\n${JSON.stringify(next, null, 2)}`);
+      }
     }
     return next;
   };
