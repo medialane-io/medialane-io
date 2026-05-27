@@ -2,7 +2,7 @@
 
 import useSWR from "swr";
 import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
-import type { ApiCollection } from "@medialane/sdk";
+import type { ApiCollection, ApiMeta } from "@medialane/sdk";
 
 export interface DropMintStatus {
   mintedByWallet: number;
@@ -42,7 +42,7 @@ export function getDropStatus(conditions: DropConditions | null, totalMinted: nu
 }
 
 export function useDropCollections() {
-  const { data, error, isLoading, mutate } = useSWR<{ data: ApiCollection[]; meta: any }>(
+  const { data, error, isLoading, mutate } = useSWR<{ data: ApiCollection[]; meta: ApiMeta }>(
     "drop-collections",
     async () => {
       const params = new URLSearchParams({ service: "drop-collection", hideEmpty: "false", limit: "50" });

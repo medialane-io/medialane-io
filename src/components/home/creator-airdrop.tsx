@@ -45,7 +45,7 @@ export function CreatorAirdropBanner() {
                   </span>
                 </h2>
                 <p className="text-sm text-muted-foreground leading-relaxed mt-1.5 max-w-md">
-                  Claim your participation and join the creator's fund distribution.
+                  Claim your participation and join the creator&apos;s fund distribution.
                 </p>
               </div>
 

@@ -90,7 +90,7 @@ export default function MyDropsPage() {
               Collection Drop
             </span>
             <h1 className="text-2xl font-bold mt-1">My Drops</h1>
-            <p className="text-sm text-muted-foreground">Drops you've deployed on Starknet</p>
+            <p className="text-sm text-muted-foreground">Drops you&apos;ve deployed on Starknet</p>
           </div>
           <Button asChild size="sm" className="bg-orange-600 hover:bg-orange-700 text-white gap-1.5">
             <Link href="/launchpad/drop/create">
@@ -111,7 +111,7 @@ export default function MyDropsPage() {
         <FadeIn>
           <div className="bento-cell border-dashed p-16 text-center space-y-3">
             <Package className="h-10 w-10 text-muted-foreground/20 mx-auto" />
-            <p className="text-sm text-muted-foreground">You haven't launched any drops yet.</p>
+            <p className="text-sm text-muted-foreground">You haven&apos;t launched any drops yet.</p>
             <Button asChild size="sm" className="bg-orange-600 hover:bg-orange-700 text-white gap-1.5">
               <Link href="/launchpad/drop/create">
                 <Plus className="h-3.5 w-3.5" />

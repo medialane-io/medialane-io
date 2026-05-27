@@ -52,7 +52,7 @@ export default function PortfolioRemixOffersPage() {
           </div>
         ) : incoming.length === 0 ? (
           <div className="rounded-xl border border-border p-8 text-center text-sm text-muted-foreground">
-            No remix requests yet. When someone requests to remix your assets, they'll appear here.
+            No remix requests yet. When someone requests to remix your assets, they&apos;ll appear here.
           </div>
         ) : (
           <div className="rounded-xl border border-border divide-y divide-border">
@@ -79,7 +79,7 @@ export default function PortfolioRemixOffersPage() {
                     <span>{timeAgo(offer.createdAt)}</span>
                   </div>
                   {offer.message && (
-                    <p className="text-xs text-muted-foreground italic truncate max-w-xs">"{offer.message}"</p>
+                    <p className="text-xs text-muted-foreground italic truncate max-w-xs">&quot;{offer.message}&quot;</p>
                   )}
                 </div>
                 {(offer.status === "PENDING" || offer.status === "AUTO_PENDING") && (

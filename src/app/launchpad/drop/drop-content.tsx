@@ -11,6 +11,13 @@ import { useDropCollections, getDropStatus } from "@/hooks/use-drops";
 import { ipfsToHttp } from "@/lib/utils";
 import { BRAND } from "@/lib/brand";
 import { cn } from "@/lib/utils";
+import type { ApiCollection } from "@medialane/sdk";
+
+// Inline metadata-attribute shape — kept local because ApiCollection in SDK 0.23
+// does not yet expose token metadata attributes on collection objects (planned for 0.24+).
+type CollectionWithAttributes = ApiCollection & {
+  attributes?: { trait_type?: string; value?: string }[];
+};
 
 function DropStatusBadge({ status }: { status: ReturnType<typeof getDropStatus> }) {
   if (status === "live") {
@@ -42,7 +49,7 @@ function DropStatusBadge({ status }: { status: ReturnType<typeof getDropStatus> 
   );
 }
 
-function DropCollectionCard({ collection }: { collection: any }) {
+function DropCollectionCard({ collection }: { collection: ApiCollection }) {
   const [imgError, setImgError] = useState(false);
   const imageUrl = collection.image ? ipfsToHttp(collection.image) : null;
   const showImage = imageUrl && !imgError;
@@ -148,7 +155,7 @@ export function DropContent() {
   // Inert until backend indexes collection attributes — safe for legacy collections.
   const publicCollections = collections.filter(
     (c) =>
-      (c as any).attributes?.find((a: any) => a.trait_type === "Visibility")?.value !== "Private"
+      (c as CollectionWithAttributes).attributes?.find((a) => a.trait_type === "Visibility")?.value !== "Private"
   );
 
   return (

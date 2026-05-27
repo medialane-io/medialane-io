@@ -294,7 +294,7 @@ export default function CollectionPageClient() {
         />
       </div>
 
-      {(collection as any)?.isHidden && <HiddenContentBanner />}
+      {(collection as { isHidden?: boolean } | null | undefined)?.isHidden && <HiddenContentBanner />}
 
       {/* Hidden extraction img for dominant color */}
       {bannerUrl && (
@@ -666,7 +666,7 @@ function GatedContentPanel({ state, contract }: { state: GatedContentState; cont
           </p>
         </div>
         <p className="text-xs text-muted-foreground/60">
-          Already a holder? Sign in and we'll verify automatically.
+          Already a holder? Sign in and we&apos;ll verify automatically.
         </p>
       </div>
     );
@@ -716,7 +716,7 @@ function GatedContentPanel({ state, contract }: { state: GatedContentState; cont
         <div className="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center">
           <Lock className="h-8 w-8 text-muted-foreground/50" />
         </div>
-        <p className="text-sm font-medium">Couldn't verify your holdings</p>
+        <p className="text-sm font-medium">Couldn&apos;t verify your holdings</p>
         <p className="text-xs text-muted-foreground">
           Something went wrong while checking your wallet. Try refreshing the page.
         </p>

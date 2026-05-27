@@ -13,7 +13,9 @@ import { Search, Users, Palette, X } from "lucide-react";
 import type { ApiCreatorProfile } from "@medialane/sdk";
 
 function CreatorCard({ creator }: { creator: ApiCreatorProfile }) {
-  const rawSrc = creator.bannerImage || (creator as any).collectionImage || null;
+  // `collectionImage` shipped in SDK 0.24 (not yet on npm). Inline-extend the
+  // type until the bump lands; remove the intersection once the SDK publishes.
+  const rawSrc = creator.bannerImage || (creator as ApiCreatorProfile & { collectionImage?: string | null }).collectionImage || null;
   const bannerUrl = rawSrc ? ipfsToHttp(rawSrc) : null;
   const displayName = creator.displayName || creator.username || "";
 

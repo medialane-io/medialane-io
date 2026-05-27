@@ -48,9 +48,15 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
   // "collection key" is collectionId for ERC-721, contractAddress for ERC-1155
   const collectionKey = (c: (typeof eligibleCollections)[0]) => c.collectionId ?? c.contractAddress;
 
+  // When eligibleCollections is empty (`?? {}` fallback), collectionKey reads
+  // .collectionId / .contractAddress off the empty object → both undefined →
+  // the outer `?? null` returns null. The empty-object cast is a structural
+  // placeholder, never actually used as a real collection.
+  type CollectionKeyable = Partial<{ collectionId: string; contractAddress: string }>;
   const defaultCollectionKey =
-    collectionKey(eligibleCollections.find((c) => c.contractAddress === offer?.originalContract) ?? eligibleCollections[0] ?? {} as any) ??
-    null;
+    collectionKey(
+      (eligibleCollections.find((c) => c.contractAddress === offer?.originalContract) ?? eligibleCollections[0] ?? ({} as CollectionKeyable)) as (typeof eligibleCollections)[0]
+    ) ?? null;
 
   const [selectedCollectionKey, setSelectedCollectionKey] = useState<string | null>(null);
   const [remixName, setRemixName] = useState("");
@@ -257,7 +263,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
                   <Check className="h-8 w-8 text-primary" />
                 </div>
                 <p className="text-lg font-semibold">Remix minted!</p>
-                <p className="text-sm text-muted-foreground">The buyer will see "Complete Purchase" in their portfolio.</p>
+                <p className="text-sm text-muted-foreground">The buyer will see &quot;Complete Purchase&quot; in their portfolio.</p>
                 {newAssetLink && (
                   <Button variant="outline" size="sm" asChild>
                     <a href={newAssetLink}>View new asset</a>
@@ -286,7 +292,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
                     <p><span className="text-muted-foreground">Token</span> #{offer.originalTokenId}</p>
                     <p><span className="text-muted-foreground">License</span> {offer.licenseType}</p>
                     <p><span className="text-muted-foreground">Price</span> {priceDisplay}</p>
-                    {offer.message && <p className="text-muted-foreground italic">"{offer.message}"</p>}
+                    {offer.message && <p className="text-muted-foreground italic">&quot;{offer.message}&quot;</p>}
                   </div>
                 )}
 

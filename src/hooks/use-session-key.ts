@@ -19,7 +19,7 @@ import {
   useCreateSessionKey,
   useAddSessionKeyToContract,
 } from "@chipi-stack/nextjs";
-import { Account, stark, hash } from "starknet";
+import { Account, stark, hash, type TypedData } from "starknet";
 // crypto-es: must match ChipiPay's AES encryption scheme — do not swap to Web Crypto without coordinating with ChipiPay
 import CryptoES from "crypto-es";
 import { starknetProvider } from "@/lib/starknet";
@@ -235,7 +235,7 @@ export function useSessionKey() {
 
       // Create a starknet.js Account using the decrypted key; sign typed data
       const signingAccount = new Account(starknetProvider, walletAddress, privateKey);
-      const sig = await signingAccount.signMessage(typedData as any);
+      const sig = await signingAccount.signMessage(typedData as TypedData);
 
       // Normalize Signature (string[] | { r, s }) → string[]
       return stark.formatSignature(sig);
