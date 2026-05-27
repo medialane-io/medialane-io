@@ -32,7 +32,7 @@ export async function completeOnboarding(walletData: WalletData) {
         template: process.env.NEXT_PUBLIC_CLERK_TEMPLATE_NAME || "chipipay",
       });
       if (token) {
-        await fetch(`${BACKEND_URL}/v1/users/me`, {
+        const res = await fetch(`${BACKEND_URL}/v1/users/me`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -43,9 +43,25 @@ export async function completeOnboarding(walletData: WalletData) {
             appSource: "MEDIALANE_IO",
           }),
         });
+        if (!res.ok) {
+          console.error("[ml-register] failed", {
+            appSource: "MEDIALANE_IO",
+            walletType: "CHIPIPAY",
+            source: "onboarding-action",
+            status: res.status,
+          });
+        }
       }
-    } catch {
-      // non-fatal: wallet address is still in Clerk publicMetadata
+    } catch (error) {
+      // non-fatal: wallet address is still in Clerk publicMetadata, and
+      // AccountSyncOnLogin will retry on the next session. Log so the
+      // failure is visible in server logs instead of vanishing.
+      console.error("[ml-register] failed", {
+        appSource: "MEDIALANE_IO",
+        walletType: "CHIPIPAY",
+        source: "onboarding-action",
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
 
     return { success: true };
