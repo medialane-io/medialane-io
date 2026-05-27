@@ -1,7 +1,7 @@
 "use client";
 
 import useSWR from "swr";
-import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
+import { apiFetch } from "@/lib/api-fetch";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -42,23 +42,15 @@ export interface LeaderboardEntry {
   badgeColor: string;
 }
 
-// ── Fetcher ───────────────────────────────────────────────────────────────────
-
-async function backendFetch<T>(path: string): Promise<T> {
-  const res = await fetch(`${MEDIALANE_BACKEND_URL}${path}`, {
-    headers: { "x-api-key": MEDIALANE_API_KEY },
-  });
-  if (!res.ok) throw new Error(`Rewards API error: ${res.status}`);
-  const json = await res.json();
-  return json.data as T;
-}
-
 // ── Hooks ─────────────────────────────────────────────────────────────────────
 
 export function useRewards(address: string | null | undefined) {
   return useSWR<UserRewards>(
     address ? `/v1/rewards/${address}` : null,
-    (key: string) => backendFetch<UserRewards>(key),
+    async (key: string) => {
+      const json = await apiFetch<{ data: UserRewards }>(key);
+      return json.data;
+    },
     { revalidateOnFocus: false, dedupingInterval: 60_000 }
   );
 }
@@ -66,13 +58,8 @@ export function useRewards(address: string | null | undefined) {
 export function useLeaderboard(page = 1, limit = 50) {
   return useSWR<{ data: LeaderboardEntry[]; meta: { page: number; limit: number; total: number } }>(
     `/v1/rewards?page=${page}&limit=${limit}`,
-    async (key: string) => {
-      const res = await fetch(`${MEDIALANE_BACKEND_URL}${key}`, {
-        headers: { "x-api-key": MEDIALANE_API_KEY },
-      });
-      if (!res.ok) throw new Error(`Leaderboard API error: ${res.status}`);
-      return res.json();
-    },
+    (key: string) =>
+      apiFetch<{ data: LeaderboardEntry[]; meta: { page: number; limit: number; total: number } }>(key),
     { revalidateOnFocus: false, dedupingInterval: 120_000 }
   );
 }

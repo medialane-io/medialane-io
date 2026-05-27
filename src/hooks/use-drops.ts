@@ -1,7 +1,7 @@
 "use client";
 
 import useSWR from "swr";
-import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
+import { apiFetch } from "@/lib/api-fetch";
 import type { ApiCollection, ApiMeta } from "@medialane/sdk";
 
 export interface DropMintStatus {
@@ -44,15 +44,10 @@ export function getDropStatus(conditions: DropConditions | null, totalMinted: nu
 export function useDropCollections() {
   const { data, error, isLoading, mutate } = useSWR<{ data: ApiCollection[]; meta: ApiMeta }>(
     "drop-collections",
-    async () => {
-      const params = new URLSearchParams({ service: "drop-collection", hideEmpty: "false", limit: "50" });
-      const url = `${MEDIALANE_BACKEND_URL.replace(/\/$/, "")}/v1/collections?${params}`;
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
-      if (MEDIALANE_API_KEY) headers["x-api-key"] = MEDIALANE_API_KEY;
-      const res = await fetch(url, { headers });
-      if (!res.ok) throw new Error(`Drop collections fetch failed: ${res.status}`);
-      return res.json();
-    },
+    () =>
+      apiFetch<{ data: ApiCollection[]; meta: ApiMeta }>(
+        `/v1/collections?${new URLSearchParams({ service: "drop-collection", hideEmpty: "false", limit: "50" })}`
+      ),
     { revalidateOnFocus: false }
   );
 
@@ -71,12 +66,7 @@ export function useDropMintStatus(collection: string | null, wallet: string | nu
   const { data, error, isLoading, mutate } = useSWR<DropMintStatus>(
     key,
     async () => {
-      const url = `${MEDIALANE_BACKEND_URL.replace(/\/$/, "")}/v1/drop/mint-status/${collection}/${wallet}`;
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
-      if (MEDIALANE_API_KEY) headers["x-api-key"] = MEDIALANE_API_KEY;
-      const res = await fetch(url, { headers });
-      if (!res.ok) throw new Error(`Drop mint status fetch failed: ${res.status}`);
-      const json = await res.json();
+      const json = await apiFetch<{ data: DropMintStatus }>(`/v1/drop/mint-status/${collection}/${wallet}`);
       return json.data;
     },
     { revalidateOnFocus: false, shouldRetryOnError: false }
@@ -91,12 +81,7 @@ export function useDropInfo(contractAddress: string | null) {
   const { data, error, isLoading } = useSWR<ApiDropInfo>(
     key,
     async () => {
-      const url = `${MEDIALANE_BACKEND_URL.replace(/\/$/, "")}/v1/drop/${contractAddress}/info`;
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
-      if (MEDIALANE_API_KEY) headers["x-api-key"] = MEDIALANE_API_KEY;
-      const res = await fetch(url, { headers });
-      if (!res.ok) throw new Error(`Drop info fetch failed: ${res.status}`);
-      const json = await res.json();
+      const json = await apiFetch<{ data: ApiDropInfo }>(`/v1/drop/${contractAddress}/info`);
       return json.data;
     },
     { revalidateOnFocus: false, shouldRetryOnError: false }

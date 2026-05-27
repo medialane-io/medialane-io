@@ -2,7 +2,7 @@
 
 import useSWR from "swr";
 import { useAuth } from "@clerk/nextjs";
-import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
+import { apiFetch, ApiError } from "@/lib/api-fetch";
 
 export interface GatedContent {
   title: string | null;
@@ -24,18 +24,17 @@ export function useGatedContent(contract: string | undefined): GatedContentState
     contract && isSignedIn ? ["gated-content", contract] : null,
     async () => {
       const token = await getToken();
-      const res = await fetch(
-        `${MEDIALANE_BACKEND_URL}/v1/collections/${contract}/gated-content`,
-        {
-          headers: {
-            "x-api-key": MEDIALANE_API_KEY,
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-        }
-      );
-      if (res.status === 403) return "not_holder";
-      if (!res.ok) throw new Error(`${res.status}`);
-      return res.json();
+      try {
+        return await apiFetch<GatedContent>(
+          `/v1/collections/${contract}/gated-content`,
+          { bearer: token }
+        );
+      } catch (err) {
+        // 403 is a meaningful state — caller is signed in but doesn't hold a
+        // token from this collection. Map to a sentinel instead of an error.
+        if (err instanceof ApiError && err.status === 403) return "not_holder";
+        throw err;
+      }
     },
     { shouldRetryOnError: false, revalidateOnFocus: false }
   );

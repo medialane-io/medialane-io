@@ -1,5 +1,5 @@
 import useSWR from "swr";
-import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
+import { apiFetch } from "@/lib/api-fetch";
 
 interface PlatformStats {
   collections: number;
@@ -7,19 +7,13 @@ interface PlatformStats {
   sales: number;
 }
 
-async function fetchStats(): Promise<PlatformStats> {
-  const res = await fetch(`${MEDIALANE_BACKEND_URL}/v1/stats`, {
-    headers: { "x-api-key": MEDIALANE_API_KEY },
-  });
-  if (!res.ok) throw new Error("Failed to fetch stats");
-  const json = await res.json();
-  return json.data as PlatformStats;
-}
-
 export function usePlatformStats() {
   const { data, isLoading } = useSWR<PlatformStats>(
     "platform-stats",
-    fetchStats,
+    async () => {
+      const json = await apiFetch<{ data: PlatformStats }>("/v1/stats");
+      return json.data;
+    },
     { revalidateOnFocus: false, dedupingInterval: 60_000 }
   );
 
