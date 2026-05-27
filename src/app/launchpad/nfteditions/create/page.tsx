@@ -160,15 +160,20 @@ export default function CreateIP1155CollectionPage() {
       try {
         // waitForTransaction already confirmed the tx; getTransactionReceipt may
         // fail due to RPC rate-limits or proxy issues, so we retry once.
-        let receipt: any = null;
+        // Receipt shape is a starknet.js union; we only touch `.events`, so a
+        // narrow local type is enough.
+        type ReceiptEvent = { keys?: string[]; data?: string[] };
+        type ReceiptShape = { events?: ReceiptEvent[] };
+        let receipt: ReceiptShape | null = null;
         for (let attempt = 0; attempt < 2 && !receipt; attempt++) {
           try {
             if (attempt > 0) await new Promise((r) => setTimeout(r, 2000));
-            receipt = await starknetProvider.getTransactionReceipt(result.txHash);
+            const raw: unknown = await starknetProvider.getTransactionReceipt(result.txHash);
+            receipt = raw as ReceiptShape;
           } catch { /* retry */ }
         }
-        const events = receipt?.events ?? [];
-        const deployEvent = events.find((e: any) =>
+        const events: ReceiptEvent[] = receipt?.events ?? [];
+        const deployEvent = events.find((e) =>
           e.keys?.[0] && BigInt(e.keys[0]) === BigInt(COLLECTION_DEPLOYED_SELECTOR)
         );
         if (deployEvent?.keys?.[1]) addr = normalizeAddress(deployEvent.keys[1]);

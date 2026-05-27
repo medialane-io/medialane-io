@@ -74,6 +74,19 @@ export const MEDIALANE_API_KEY = isServer
   ? readStringEnv(process.env.MEDIALANE_API_KEY)
   : "";
 
+// Regression guard: if a future refactor accidentally renames the env var to
+// `NEXT_PUBLIC_MEDIALANE_API_KEY` (the exact bug the BFF proxy replaced), or
+// otherwise causes a non-empty key to materialize in the browser bundle, fail
+// loudly at module init rather than silently leaking. The check runs only in
+// the browser — server-side the key is supposed to be set.
+if (!isServer && MEDIALANE_API_KEY) {
+  throw new Error(
+    "MEDIALANE_API_KEY is non-empty in the browser bundle — the server-only " +
+    "secret may be leaking. Check that no env var with a NEXT_PUBLIC_ prefix " +
+    "carries the tenant API key, and that the isServer branch above is intact."
+  );
+}
+
 export const PINATA_GATEWAY =
   readStringEnv(process.env.NEXT_PUBLIC_PINATA_GATEWAY, "https://gateway.pinata.cloud");
 

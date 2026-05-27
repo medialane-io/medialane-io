@@ -700,7 +700,7 @@ export default function CreateRemixPage() {
             >
               {!isOwner && (
                 <p className="text-xs text-muted-foreground -mt-1">
-                  The amount you're offering to pay the creator for this remix license.
+                  The amount you&apos;re offering to pay the creator for this remix license.
                 </p>
               )}
               <div className="flex gap-2">
@@ -873,8 +873,8 @@ export default function CreateRemixPage() {
               ) : (
                 <ol className="space-y-2 text-muted-foreground text-xs list-decimal list-inside">
                   <li>Your offer is sent to the creator</li>
-                  <li>If approved, they'll mint the remix and list it for you</li>
-                  <li>You'll see "Complete Purchase" in your portfolio</li>
+                  <li>If approved, they&apos;ll mint the remix and list it for you</li>
+                  <li>You&apos;ll see &quot;Complete Purchase&quot; in your portfolio</li>
                   <li>After purchase, the remix is yours permanently</li>
                 </ol>
               )}

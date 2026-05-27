@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { Contract } from "starknet";
+import { Contract, type Abi } from "starknet";
 import { starknetProvider } from "@/lib/starknet";
 import {
   Award,
@@ -130,7 +130,7 @@ export default function CreatePOPPage() {
     );
 
     try {
-      const factory = new Contract(POPFactoryABI as any, POP_FACTORY_CONTRACT, starknetProvider);
+      const factory = new Contract(POPFactoryABI as unknown as Abi, POP_FACTORY_CONTRACT, starknetProvider);
       const call = factory.populate("create_collection", [
         pendingValues.name,
         pendingValues.symbol,

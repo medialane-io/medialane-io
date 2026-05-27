@@ -94,7 +94,7 @@ export default function MyEventsPage() {
               POP Protocol
             </span>
             <h1 className="text-2xl font-bold mt-1">My Events</h1>
-            <p className="text-sm text-muted-foreground">Events you've deployed onchain</p>
+            <p className="text-sm text-muted-foreground">Events you&apos;ve deployed onchain</p>
           </div>
           <Button asChild size="sm" className="bg-green-600 hover:bg-green-700 text-white gap-1.5">
             <Link href="/launchpad/pop/create">
@@ -115,7 +115,7 @@ export default function MyEventsPage() {
         <FadeIn>
           <div className="bento-cell border-dashed p-16 text-center space-y-3">
             <Award className="h-10 w-10 text-muted-foreground/20 mx-auto" />
-            <p className="text-sm text-muted-foreground">You haven't created any events yet.</p>
+            <p className="text-sm text-muted-foreground">You haven&apos;t created any events yet.</p>
             <Button asChild size="sm" className="bg-green-600 hover:bg-green-700 text-white gap-1.5">
               <Link href="/launchpad/pop/create">
                 <Plus className="h-3.5 w-3.5" />

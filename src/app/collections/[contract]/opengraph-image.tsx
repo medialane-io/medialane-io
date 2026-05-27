@@ -114,7 +114,7 @@ export default async function Image({
               flexShrink: 0,
             }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
+            { }
             <img
               src={imageUrl}
               alt={name}

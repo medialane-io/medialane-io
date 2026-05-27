@@ -1,7 +1,7 @@
 "use client";
 
 import useSWR from "swr";
-import { Contract, cairo, num } from "starknet";
+import { Contract, cairo, num, type Abi } from "starknet";
 import { IPNftABI } from "@medialane/sdk";
 import { starknetProvider } from "@/lib/starknet";
 
@@ -29,7 +29,7 @@ export function useFullTokenData({ ipNftAddress, tokenId }: UseFullTokenDataArgs
   const { data, error, isLoading } = useSWR<FullTokenData | null>(
     enabled ? ["full-token-data", ipNftAddress, tokenId!.toString()] : null,
     async () => {
-      const contract = new Contract(IPNftABI as any, ipNftAddress!, starknetProvider);
+      const contract = new Contract(IPNftABI as unknown as Abi, ipNftAddress!, starknetProvider);
       try {
         const raw = await contract.call("get_full_token_data", [cairo.uint256(tokenId!)], {
           blockIdentifier: "latest",

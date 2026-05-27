@@ -87,7 +87,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
     if (isNearBottom()) {
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [comments.length]);
 
   const handleTextInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {

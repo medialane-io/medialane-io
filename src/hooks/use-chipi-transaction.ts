@@ -168,16 +168,25 @@ export function useChipiTransaction() {
         setStatus("confirming");
 
         try {
-          const receipt = await starknetProvider.waitForTransaction(result, { retryInterval: 3000 });
-          const executionStatus = (receipt as any)?.execution_status || (receipt as any)?.status;
+          // starknet.js v6 receipt is a discriminated union; the fields we
+          // read here (execution_status / status / revert_reason) appear on
+          // different variants. Narrow with a structural type that covers
+          // all the shapes we care about without committing to one variant.
+          type ReceiptShape = {
+            execution_status?: string;
+            status?: string;
+            revert_reason?: string;
+          };
+          const receipt = (await starknetProvider.waitForTransaction(result, { retryInterval: 3000 })) as ReceiptShape;
+          const executionStatus = receipt?.execution_status || receipt?.status;
           const isReverted =
             executionStatus === "REVERTED" ||
             executionStatus === "REJECTED" ||
-            (receipt as any)?.revert_reason;
+            !!receipt?.revert_reason;
 
           if (isReverted) {
             const revertReason =
-              (receipt as any)?.revert_reason || `Transaction reverted (${executionStatus})`;
+              receipt?.revert_reason || `Transaction reverted (${executionStatus})`;
             setStatus("reverted");
             setError(revertReason);
             return { txHash: result, status: "reverted", revertReason };
