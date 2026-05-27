@@ -32,6 +32,7 @@ export function AccountSyncOnLogin() {
         await getMedialaneClient().api.upsertMyWallet(token, {
           walletType,
           appSource,
+          chain: "STARKNET",
         });
         if (!cancelled) sessionStorage.setItem(key, "1");
       } catch (error) {

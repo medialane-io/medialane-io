@@ -41,6 +41,7 @@ export async function completeOnboarding(walletData: WalletData) {
           body: JSON.stringify({
             walletType: "CHIPIPAY",
             appSource: "MEDIALANE_IO",
+            chain: "STARKNET",
           }),
         });
         if (!res.ok) {
