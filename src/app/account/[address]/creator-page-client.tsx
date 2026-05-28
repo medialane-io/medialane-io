@@ -202,7 +202,7 @@ export default function CreatorPageClient() {
       {hiddenStatus?.isHidden === true && <HiddenContentBanner />}
 
       {/* ── Header ───────────────────────────────────────────────────────── */}
-      <div className="px-6 pt-20 pb-2 pl-24 sm:pl-28 flex items-start justify-between gap-3">
+      <div className="px-6 pt-20 pb-2 flex items-start justify-between gap-3">
         <div className="space-y-1.5 min-w-0">
           <AddressDisplay
             address={address ?? ""}

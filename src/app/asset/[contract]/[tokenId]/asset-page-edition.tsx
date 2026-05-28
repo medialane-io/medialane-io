@@ -178,7 +178,7 @@ export function AssetPageEdition() {
         )}
       </div>
 
-      <PageContainer className="pt-14 space-y-8 pb-8">
+      <PageContainer className="pt-20 space-y-8 pb-8">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-sm text-muted-foreground min-w-0">
           <Link

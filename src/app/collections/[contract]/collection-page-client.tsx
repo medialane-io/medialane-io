@@ -12,7 +12,7 @@ import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddressDisplay } from "@/components/shared/address-display";
-import { ArrowLeft, Loader2, Flag, Inbox, Lock, Unlock, Play, FileText, Link2, Sparkles, Settings, ShoppingBag, Music, Radio, UserRoundCog } from "lucide-react";
+import { Loader2, Flag, Inbox, Lock, Unlock, Play, FileText, Link2, Sparkles, Settings, ShoppingBag, Music, Radio, UserRoundCog } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ReportDialog } from "@/components/report-dialog";
 import { ShareButton } from "@/components/shared/share-button";
@@ -315,15 +315,6 @@ export default function CollectionPageClient() {
         <div className="relative w-full overflow-hidden h-[80svh] sm:h-auto sm:aspect-video">
           {/* Parallax / gradient fill */}
           <ParallaxBanner imageUrl={bannerUrl} contract={contract} />
-
-          {/* Back link — top-right */}
-          <Link
-            href="/collections"
-            className="absolute top-12 sm:top-14 right-4 flex items-center gap-1.5 text-xs font-medium text-white/80 hover:text-white bg-black/20 hover:bg-black/35 dark:bg-black/30 dark:hover:bg-black/50 backdrop-blur-sm px-3 py-1.5 rounded-full transition-all z-10"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            Collections
-          </Link>
 
           {/* Bottom overlay: title + badges + stat chips, all glass, no scrim */}
           <div className="absolute bottom-0 left-0 right-0 px-4 sm:px-6 pb-4 sm:pb-6 space-y-2.5 z-10">

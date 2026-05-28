@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AssetLoading() {
   return (
-    <PageContainer className="py-8 space-y-6">
+    <PageContainer className="pt-20 pb-8 space-y-6">
       {/* Breadcrumb */}
       <Skeleton className="h-4 w-48" />
 

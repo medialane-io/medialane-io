@@ -65,7 +65,7 @@ export function AssetPagePop() {
         )}
       </div>
 
-      <PageContainer className="pt-14 space-y-8 pb-8">
+      <PageContainer className="pt-20 space-y-8 pb-8">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-sm text-muted-foreground min-w-0">
           <Link href="/launchpad/pop" className="hover:text-foreground transition-colors shrink-0">

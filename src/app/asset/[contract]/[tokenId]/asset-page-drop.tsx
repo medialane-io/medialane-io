@@ -189,7 +189,7 @@ export function AssetPageDrop() {
         )}
       </div>
 
-      <PageContainer className="pt-14 space-y-8 pb-8">
+      <PageContainer className="pt-20 space-y-8 pb-8">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-sm text-muted-foreground min-w-0">
           <Link href={`/collections/${contract}`} className="hover:text-foreground transition-colors truncate max-w-[140px] shrink-0">

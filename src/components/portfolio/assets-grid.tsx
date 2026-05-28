@@ -61,14 +61,17 @@ export function AssetsGrid({ address }: AssetsGridProps) {
     mutate();
   };
 
-  const hasMore = meta ? (meta.total ?? 0) > allTokens.length : false;
+  // Use live SWR tokens on page 1 to avoid the empty-state flash while
+  // the useEffect that populates `allTokens` hasn't run yet.
+  const displayTokens = page === 1 ? tokens : allTokens;
+  const hasMore = meta ? (meta.total ?? 0) > displayTokens.length : false;
 
   return (
     <>
       <EmptyOrError
         isLoading={isLoading && page === 1}
         error={error}
-        isEmpty={allTokens.length === 0 && !isLoading}
+        isEmpty={displayTokens.length === 0 && !isLoading}
         onRetry={mutate}
         emptyTitle="No assets yet"
         emptyDescription="Mint your first asset to get started."
@@ -89,7 +92,7 @@ export function AssetsGrid({ address }: AssetsGridProps) {
         }
       >
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {allTokens.map((token) => (
+          {displayTokens.map((token) => (
             <TokenCard
               key={`${token.contractAddress}-${token.tokenId}`}
               token={token}
