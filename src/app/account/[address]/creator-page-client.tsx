@@ -3,9 +3,7 @@
 import { useState } from "react";
 import useSWR from "swr";
 import { useParams } from "next/navigation";
-import { useDominantColor } from "@/hooks/use-dominant-color";
 import Link from "next/link";
-import NextImage from "next/image";
 import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useUserOrders } from "@/hooks/use-orders";
 import { useActivitiesByAddress } from "@/hooks/use-activities";
@@ -19,7 +17,7 @@ import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listi
 import { CollectionCard, CollectionCardSkeleton } from "@/components/shared/collection-card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { timeAgo, formatDisplayPrice, ipfsToHttp } from "@/lib/utils";
+import { timeAgo, formatDisplayPrice } from "@/lib/utils";
 import {
   Tag,
   Handshake,
@@ -38,64 +36,6 @@ import { ShareButton } from "@/components/shared/share-button";
 import { HiddenContentBanner } from "@/components/hidden-content-banner";
 import type { ApiActivity } from "@medialane/sdk";
 import { cn } from "@/lib/utils";
-
-// ─── Address color identity ──────────────────────────────────────────────────
-
-function addressPalette(address: string) {
-  const seed = parseInt(address.slice(2, 10) || "a1b2c3d4", 16);
-  const h1 = seed % 360;
-  const h2 = (h1 + 137) % 360;
-  const h3 = (h1 + 73) % 360;
-  return { h1, h2, h3 };
-}
-
-function AddressAvatar({
-  address,
-  image,
-  size = 88,
-  borderColor,
-}: {
-  address: string;
-  image?: string | null;
-  size?: number;
-  borderColor?: string;
-}) {
-  const [imgError, setImgError] = useState(false);
-  const { h1, h2 } = addressPalette(address);
-  const initials = address.slice(2, 4).toUpperCase();
-  const showImage = image && image !== "/placeholder.svg" && !imgError;
-
-  return (
-    <div
-      className="rounded-full shrink-0 ring-[3px] ring-background overflow-hidden flex items-center justify-center text-white font-bold"
-      style={{
-        width: size,
-        height: size,
-        background: showImage
-          ? "transparent"
-          : `linear-gradient(145deg, hsl(${h1}, 72%, 60%), hsl(${h2}, 72%, 50%))`,
-        fontSize: size * 0.33,
-        boxShadow: borderColor
-          ? `0 0 0 3px ${borderColor}, 0 8px 32px rgba(0,0,0,0.3)`
-          : `0 0 0 2px hsl(${h1}, 72%, 60% / 0.4), 0 8px 24px rgba(0,0,0,0.25)`,
-      }}
-    >
-      {showImage ? (
-        <NextImage
-          src={image!}
-          alt="Creator"
-          width={size}
-          height={size}
-          className="w-full h-full object-cover"
-          unoptimized
-          onError={() => setImgError(true)}
-        />
-      ) : (
-        initials
-      )}
-    </div>
-  );
-}
 
 // ─── Activity feed ───────────────────────────────────────────────────────────
 
@@ -234,13 +174,6 @@ export default function CreatorPageClient() {
   const isOwner = !!walletAddress &&
     walletAddress.toLowerCase() === (address ?? "").toLowerCase();
 
-  // Fetch one token for the atmospheric background
-  const { tokens: bgTokens } = useTokensByOwner(addr, 1, 1);
-  const bgRawImg = bgTokens[0]?.metadata?.image;
-  const bgImage = bgRawImg ? ipfsToHttp(bgRawImg) : null;
-
-  const { imgRef, dynamicTheme } = useDominantColor(bgImage);
-
   const { data: hiddenStatus } = useSWR<{ isHidden: boolean }>(
     address ? `/api/creators/${address}/hidden` : null,
     (url: string) => fetch(url).then(r => r.json())
@@ -256,8 +189,6 @@ export default function CreatorPageClient() {
     (o) => o.status === "ACTIVE" && o.offer.itemType === "ERC721"
   );
 
-  const { h1, h2, h3 } = addressPalette(addr ?? "0x0");
-
   // Tab count badges — only shown once that tab has been visited and loaded
   const tabBadge: Partial<Record<TabId, number>> = {
     ...(activeTab === "assets"      && !tokensLoading      && { assets:      tokens.length }),
@@ -267,45 +198,11 @@ export default function CreatorPageClient() {
   };
 
   return (
-    <div
-      className="min-h-screen pb-20"
-      style={dynamicTheme ? (dynamicTheme as React.CSSProperties) : {}}
-    >
-      {/* Hidden extraction image for dominant color */}
-      {bgImage && (
-        <img
-          ref={imgRef}
-          src={bgImage}
-          crossOrigin="anonymous"
-          aria-hidden
-          alt=""
-          style={{ display: "none" }}
-        />
-      )}
-
-      {/* Fixed atmospheric background */}
-      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        {bgImage && (
-          <img
-            src={bgImage}
-            alt=""
-            aria-hidden
-            className="absolute inset-0 w-full h-full object-cover opacity-[0.15] scale-110"
-            style={{ filter: "blur(60px) saturate(1.5)" }}
-          />
-        )}
-        <div
-          className="absolute inset-0"
-          style={{
-            background: dynamicTheme ? `hsl(var(--dynamic-primary) / 0.06)` : "transparent",
-          }}
-        />
-      </div>
-
+    <div className="min-h-screen pb-20">
       {hiddenStatus?.isHidden === true && <HiddenContentBanner />}
 
       {/* ── Header ───────────────────────────────────────────────────────── */}
-      <div className="px-6 pt-8 pb-2 flex items-start justify-between gap-3">
+      <div className="px-6 pt-20 pb-2 pl-24 sm:pl-28 flex items-start justify-between gap-3">
         <div className="space-y-1.5 min-w-0">
           <AddressDisplay
             address={address ?? ""}
@@ -373,12 +270,7 @@ export default function CreatorPageClient() {
                     </span>
                   )}
                   {isActive && (
-                    <span
-                      className="absolute bottom-0 inset-x-0 h-0.5 rounded-full"
-                      style={{
-                        background: `linear-gradient(90deg, hsl(${h1}, 68%, 62%), hsl(${h2}, 68%, 58%))`,
-                      }}
-                    />
+                    <span className="absolute bottom-0 inset-x-0 h-0.5 rounded-full bg-primary" />
                   )}
                 </button>
               );
