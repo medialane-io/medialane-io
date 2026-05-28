@@ -3,6 +3,8 @@
 import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { useUser, SignUp } from "@clerk/nextjs";
+import { dark } from "@clerk/themes";
+import { useTheme } from "next-themes";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { usePasskeyAuth, usePasskeyStatus } from "@chipi-stack/chipi-passkey/hooks";
 import { serializeByteArray } from "@/lib/cairo-calldata";
@@ -28,6 +30,7 @@ export function GenesisMint() {
   const { isSignedIn, isLoaded, user } = useUser();
   const { walletAddress, hasWallet, isLoadingWallet } = useSessionKey();
   const { executeTransaction, status, error: txError, reset } = useChipiTransaction();
+  const { resolvedTheme } = useTheme();
 
   const { status: { hasPasskey, isSupported: passkeySupported } } = usePasskeyStatus();
   const { authenticate, encryptKey } = usePasskeyAuth();
@@ -185,6 +188,7 @@ export function GenesisMint() {
           signInUrl="/br/mint"
           forceRedirectUrl="/br/mint"
           appearance={{
+            baseTheme: resolvedTheme === "dark" ? dark : undefined,
             elements: {
               rootBox: "w-full max-w-md",
               card: "shadow-none border border-border/40 bg-card/30 rounded-2xl",

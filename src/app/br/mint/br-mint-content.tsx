@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import {
-  Sparkles,
   CheckCircle2,
   XCircle,
   ImageIcon,
@@ -60,14 +59,10 @@ export function BrMintContent() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
 
               <div className="space-y-5">
-                <div className="inline-flex items-center gap-2 rounded-full border border-yellow-500/30 bg-yellow-500/5 px-3 py-1">
-                  <Sparkles className="h-3.5 w-3.5 text-yellow-500" />
-                  <span className="text-xs font-semibold text-yellow-600 dark:text-yellow-400">Medialane Brasil</span>
-                </div>
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.05]">
                   Participe do{" "}
                   <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-                    Airdrop Medialane
+                    Airdrop
                   </span>
                 </h1>
 
