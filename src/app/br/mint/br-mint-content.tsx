@@ -85,7 +85,7 @@ export function BrMintContent() {
                   Medialane é um app para criadores publicar, compartilhar e monetizar conteúdo. Participação grátis.
                 </p>
                 <div className="flex items-center gap-4">
-                  {["Grátis", "Sem cartão", "Imediato"].map((t) => (
+                  {["Grátis", "Sem cartão", "Sem CPF"].map((t) => (
                     <div key={t} className="flex items-center gap-1.5 text-xs text-muted-foreground/70">
                       <CheckCircle2 className="h-3 w-3 text-emerald-500/60" />
                       {t}

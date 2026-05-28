@@ -4,6 +4,7 @@ import { auth, clerkClient } from "@clerk/nextjs/server";
 
 interface WalletData {
   publicKey: string;
+  walletAuthMethod?: "pin" | "passkey";
 }
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL || "http://localhost:3001";
@@ -14,10 +15,16 @@ export async function completeOnboarding(walletData: WalletData) {
     if (!userId) return { error: "Not authenticated" };
 
     const client = await clerkClient();
+    // Preserve a previously-recorded auth method if the caller doesn't pass one.
+    const existing = await client.users.getUser(userId);
+    const existingAuthMethod =
+      (existing.publicMetadata as { walletAuthMethod?: "pin" | "passkey" })?.walletAuthMethod;
+
     await client.users.updateUser(userId, {
       publicMetadata: {
         walletCreated: true,
         publicKey: walletData.publicKey,
+        walletAuthMethod: walletData.walletAuthMethod ?? existingAuthMethod,
       },
     });
 

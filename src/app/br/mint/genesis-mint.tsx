@@ -154,12 +154,16 @@ export function GenesisMint() {
 
       {isLoaded && !isSignedIn && !walletJustCreated && (
         <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">Acesse com sua conta Google.</p>
           <SignUpButton mode="modal" forceRedirectUrl="/br/mint">
-            <Button size="lg" className="w-full h-12 font-bold gap-2 rounded-xl">
-              <Sparkles className="h-4 w-4" />
-              Participe grátis em poucos segundos
-            </Button>
+            <div className="btn-border-animated p-[1px] rounded-2xl cursor-pointer">
+              <Button
+                size="lg"
+                className="w-full h-12 font-bold gap-2 bg-transparent text-white rounded-[15px] hover:bg-transparent hover:brightness-110 active:scale-[0.98] transition-all"
+              >
+                <Sparkles className="h-4 w-4" />
+                Participar com conta Google ou email
+              </Button>
+            </div>
           </SignUpButton>
         </div>
       )}
@@ -177,15 +181,17 @@ export function GenesisMint() {
                 <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
                 <span className="text-emerald-600 dark:text-emerald-400 font-medium">Conta ativa, minte seu passaporte</span>
               </div>
-              <Button
-                size="lg"
-                className="w-full h-12 font-bold gap-2 disabled:opacity-50"
-                onClick={() => setMintStep("enter-pin")}
-                disabled={!BR_MINT_CONTRACT}
-              >
-                <Sparkles className="h-4 w-4" />
-                {BR_MINT_CONTRACT ? "Garantir meu lugar" : "Distribuição não iniciada"}
-              </Button>
+              <div className="btn-border-animated p-[1px] rounded-2xl">
+                <Button
+                  size="lg"
+                  className="w-full h-12 font-bold gap-2 bg-transparent text-white rounded-[15px] hover:bg-transparent hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
+                  onClick={() => setMintStep("enter-pin")}
+                  disabled={!BR_MINT_CONTRACT}
+                >
+                  <Sparkles className="h-4 w-4" />
+                  {BR_MINT_CONTRACT ? "Garantir meu lugar" : "Distribuição não iniciada"}
+                </Button>
+              </div>
             </>
           )}
 

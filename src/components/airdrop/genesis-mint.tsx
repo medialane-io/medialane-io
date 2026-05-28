@@ -81,11 +81,14 @@ function WalletSetup({ email, onDone }: { email?: string | null; onDone: () => v
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const createWalletWithKey = async (encryptKey: string) => {
+  const createWalletWithKey = async (
+    encryptKey: string,
+    walletAuthMethod: "pin" | "passkey",
+  ) => {
     const wallet = await createWallet({ encryptKey });
     const walletKey = wallet.normalizedPublicKey ?? wallet.publicKey;
     if (!walletKey) throw new Error("Failed to activate account. Please try again.");
-    const result = await completeOnboarding({ publicKey: walletKey });
+    const result = await completeOnboarding({ publicKey: walletKey, walletAuthMethod });
     if (result.error) throw new Error(result.error);
     await user?.reload();
     await session?.touch();
@@ -101,7 +104,7 @@ function WalletSetup({ email, onDone }: { email?: string | null; onDone: () => v
       const userName = user?.primaryEmailAddress?.emailAddress ?? user?.username ?? "user";
       const { encryptKey } = await createWalletPasskey(user?.id ?? "", userName);
       setStep("creating");
-      await createWalletWithKey(encryptKey);
+      await createWalletWithKey(encryptKey, "passkey");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Setup failed. Try a PIN instead.");
       setStep("pin");
@@ -118,7 +121,7 @@ function WalletSetup({ email, onDone }: { email?: string | null; onDone: () => v
     setError(null);
     setStep("creating");
     try {
-      await createWalletWithKey(pin);
+      await createWalletWithKey(pin, "pin");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Activation failed. Please try again.");
       setStep("pin");
@@ -217,6 +220,14 @@ export function GenesisMint() {
 
   const [passkeySupported] = useState(() => typeof window !== "undefined" && isWebAuthnSupported());
   const { authenticate, encryptKey } = usePasskeyAuth();
+
+  // The user picked one auth method at wallet setup time — only show that
+  // option here. Fall back to "both" for legacy accounts created before the
+  // method was persisted to Clerk metadata.
+  const walletAuthMethod = (user?.publicMetadata as { walletAuthMethod?: "pin" | "passkey" })
+    ?.walletAuthMethod;
+  const showPasskeyOption = passkeySupported && walletAuthMethod !== "pin";
+  const showPinOption = walletAuthMethod !== "passkey";
 
   const [mintStep, setMintStep] = useState<MintStep>("ready");
   const [mintPin, setMintPin] = useState("");
@@ -381,37 +392,52 @@ export function GenesisMint() {
             <div className="space-y-4">
               <div>
                 <p className="font-semibold text-sm">Mint your genesis NFT</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Use Passkey or PIN.</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {showPasskeyOption && showPinOption
+                    ? "Use Passkey or PIN."
+                    : showPasskeyOption
+                      ? "Confirm with your passkey."
+                      : "Enter your security PIN."}
+                </p>
               </div>
-              {passkeySupported && (
+              {showPasskeyOption && (
                 <Button size="lg" className="w-full h-11 font-bold gap-2" onClick={handleClaimWithPasskey}>
                   <ShieldCheck className="h-4 w-4" />
                   Confirm with Passkey
                 </Button>
               )}
-              {passkeySupported && (
+              {showPasskeyOption && showPinOption && (
                 <div className="relative flex items-center gap-2">
                   <div className="flex-1 h-px bg-border/40" />
                   <span className="text-xs text-muted-foreground">or use your PIN</span>
                   <div className="flex-1 h-px bg-border/40" />
                 </div>
               )}
-              <PinInput
-                value={mintPin}
-                onChange={(v) => { setMintPin(v); setMintPinError(null); }}
-                onKeyDown={(e) => { if (e.key === "Enter" && mintPin.length >= 6) handleClaim(); }}
-                placeholder="Your security PIN"
-                error={mintPinError}
-                autoFocus={!passkeySupported}
-              />
-              <div className="flex gap-2">
-                <Button size="lg" className="flex-1 h-11 font-bold" onClick={handleClaim} disabled={mintPin.length < 6}>
-                  Confirm with PIN
-                </Button>
-                <Button size="lg" variant="outline" className="h-11" onClick={() => { setMintPin(""); setMintPinError(null); setMintStep("ready"); }}>
+              {showPinOption && (
+                <>
+                  <PinInput
+                    value={mintPin}
+                    onChange={(v) => { setMintPin(v); setMintPinError(null); }}
+                    onKeyDown={(e) => { if (e.key === "Enter" && mintPin.length >= 6) handleClaim(); }}
+                    placeholder="Your security PIN"
+                    error={mintPinError}
+                    autoFocus={!showPasskeyOption}
+                  />
+                  <div className="flex gap-2">
+                    <Button size="lg" className="flex-1 h-11 font-bold" onClick={handleClaim} disabled={mintPin.length < 6}>
+                      Confirm with PIN
+                    </Button>
+                    <Button size="lg" variant="outline" className="h-11" onClick={() => { setMintPin(""); setMintPinError(null); setMintStep("ready"); }}>
+                      Cancel
+                    </Button>
+                  </div>
+                </>
+              )}
+              {!showPinOption && (
+                <Button size="lg" variant="outline" className="w-full h-11" onClick={() => { setMintPin(""); setMintPinError(null); setMintStep("ready"); }}>
                   Cancel
                 </Button>
-              </div>
+              )}
             </div>
           )}
 

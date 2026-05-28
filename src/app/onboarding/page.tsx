@@ -51,14 +51,17 @@ function OnboardingContent() {
 
   // ── Wallet creation ───────────────────────────────────────────────────────
 
-  const createWalletWithKey = async (encryptKey: string) => {
+  const createWalletWithKey = async (
+    encryptKey: string,
+    walletAuthMethod: "pin" | "passkey",
+  ) => {
     const wallet = await createWallet({ encryptKey });
     const walletKey = wallet.normalizedPublicKey ?? wallet.publicKey;
     if (!walletKey) {
       throw new Error("Wallet creation returned invalid data");
     }
 
-    const result = await completeOnboarding({ publicKey: walletKey });
+    const result = await completeOnboarding({ publicKey: walletKey, walletAuthMethod });
     if (result.error) throw new Error(result.error);
 
     await user?.reload();
@@ -78,7 +81,7 @@ function OnboardingContent() {
       const userName =
         user?.primaryEmailAddress?.emailAddress ?? user?.username ?? "user";
       const { encryptKey } = await createWalletPasskey(user?.id ?? "", userName);
-      await createWalletWithKey(encryptKey);
+      await createWalletWithKey(encryptKey, "passkey");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Passkey setup failed";
       setError(msg);
@@ -97,7 +100,7 @@ function OnboardingContent() {
     setIsSubmitting(true);
     setError(null);
     try {
-      await createWalletWithKey(pin);
+      await createWalletWithKey(pin, "pin");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to secure your account. Please try again.");
       setStep("pin");
