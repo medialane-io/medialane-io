@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { Inter } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
+import { ptBR } from "@clerk/localizations";
 import { ChipiProvider } from "@chipi-stack/nextjs";
 import { Providers } from "./providers";
 import { JsonLd } from "@/components/seo/json-ld";
@@ -75,15 +77,20 @@ export const viewport = {
   maximumScale: 5,
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const headersList = await headers();
+  const pathname = headersList.get("x-pathname") ?? "";
+  const isBrLocale = pathname.startsWith("/br");
+
   return (
     <ClerkProvider
       publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!}
       afterSignOutUrl="/"
       signUpForceRedirectUrl="/onboarding"
+      localization={isBrLocale ? ptBR : undefined}
     >
       <ChipiProvider>
-        <html lang="en" suppressHydrationWarning>
+        <html lang={isBrLocale ? "pt-BR" : "en"} suppressHydrationWarning>
           <body className={inter.className}>
             <JsonLd data={siteJsonLd} />
             <Providers>{children}</Providers>

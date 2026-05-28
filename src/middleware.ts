@@ -17,6 +17,9 @@ function hasWalletClaim(sessionClaims: Record<string, unknown> | null): boolean 
 }
 
 export default clerkMiddleware(async (auth, req) => {
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set("x-pathname", req.nextUrl.pathname);
+
   const { userId, sessionClaims, redirectToSignIn } = await auth();
 
   // Unauthenticated user hitting a protected route → sign-in
@@ -50,6 +53,8 @@ export default clerkMiddleware(async (auth, req) => {
       return NextResponse.redirect(onboardingUrl);
     }
   }
+
+  return NextResponse.next({ request: { headers: requestHeaders } });
 });
 
 export const config = {
