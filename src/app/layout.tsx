@@ -81,12 +81,20 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const headersList = await headers();
   const pathname = headersList.get("x-pathname") ?? "";
   const isBrLocale = pathname.startsWith("/br");
+  // Mint/airdrop landings embed <SignUp /> inline with their own
+  // forceRedirectUrl; don't apply the global "always go to /onboarding"
+  // override or those embedded forms get bounced off the campaign page
+  // after sign-up.
+  const isStandaloneLanding =
+    pathname.startsWith("/br") ||
+    pathname === "/mint" ||
+    pathname === "/airdrop";
 
   return (
     <ClerkProvider
       publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!}
       afterSignOutUrl="/"
-      signUpForceRedirectUrl="/onboarding"
+      signUpFallbackRedirectUrl={isStandaloneLanding ? undefined : "/onboarding"}
       localization={isBrLocale ? ptBR : undefined}
     >
       <ChipiProvider>
