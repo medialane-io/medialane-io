@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Trophy } from "lucide-react";
+import { Trophy, Info } from "lucide-react";
 import { PageContainer } from "@medialane/ui";
 import { RewardsDashboard } from "./rewards-dashboard";
 import { canonical } from "@/lib/seo";
@@ -26,6 +26,19 @@ export default function RewardsPage() {
       </header>
 
       <RewardsDashboard />
+
+      <footer className="rounded-2xl border border-border/40 bg-muted/20 px-5 py-4 flex items-start gap-3">
+        <Info className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          <span className="font-semibold text-foreground">
+            Subject to DAO recalibration.
+          </span>{" "}
+          XP values, Score Board weights, and badge criteria may be adjusted by
+          Medialane DAO governance to keep Creator&apos;s Fund airdrop
+          distributions fair and sustainable. Final share at each round is
+          determined when the round is executed on-chain.
+        </p>
+      </footer>
     </PageContainer>
   );
 }
