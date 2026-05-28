@@ -91,8 +91,10 @@ When `LAUNCH_MINT_CONTRACT` or `GENESIS_NFT_URI` are empty the button renders as
 
 ## Airdrop Campaigns
 
+The mint landing pages are the platform's paid-traffic acquisition surface. They follow a **conversion-focused trim** (shipped 2026-05-28): hero only above the fold (badge-free, short headline, trust strip, embedded sign-up, sticky image), four detail sections collapsed behind a single `<details>` "Saiba mais" / "Learn more" disclosure, no duplicate bottom CTA. Both pages share the same shape — diverge only on copy and contract addresses.
+
 ### Brazil Campaign (`/br/mint`)
-Portuguese language. Files: `src/app/br/mint/br-mint-content.tsx` + `src/app/br/mint/page.tsx`.
+Portuguese language. Files: `src/app/br/mint/br-mint-content.tsx` + `src/app/br/mint/page.tsx` + `src/app/br/mint/genesis-mint.tsx`.
 Storage key: `ml_br_mint_${userId}`. Contract: `BR_MINT_CONTRACT`.
 ```
 NEXT_PUBLIC_BR_MINT_CONTRACT=0x...
@@ -101,15 +103,26 @@ NEXT_PUBLIC_BR_NFT_IMAGE_URL=     # optional direct image URL
 ```
 
 ### Global English Campaign (`/mint`)
-English language, worldwide. Files: `src/app/mint/mint-content.tsx` + `src/app/mint/page.tsx`.
+English language, worldwide. Files: `src/app/mint/mint-content.tsx` + `src/app/mint/page.tsx` + the shared `src/components/airdrop/genesis-mint.tsx`.
 Storage key: `ml_mint_${userId}`. Contract: `MINT_CONTRACT`.
 ```
 NEXT_PUBLIC_MINT_CONTRACT=0x...
 NEXT_PUBLIC_MINT_NFT_URI=ipfs://...
 NEXT_PUBLIC_MINT_NFT_IMAGE_URL=   # optional direct image URL
 ```
-Mint flow: Sign in (Clerk) → create wallet if needed (inline WalletSetup) → PIN dialog → `executeTransaction` with `mint_item(recipient, ByteArray(tokenURI))` → success state.
-When `MINT_CONTRACT` or `MINT_NFT_URI` are empty the CTA button is disabled.
+
+### Mint flow (both campaigns, shipped 2026-05-28)
+
+1. **Unauthenticated:** the page embeds Clerk's `<SignUp routing="hash" forceRedirectUrl="…" />` inline in the hero — no modal interrupt. Sign-up form theming follows the resolved app theme via `@clerk/themes` `dark` preset + `useTheme().resolvedTheme` (`src/app/br/mint/genesis-mint.tsx`, `src/components/airdrop/genesis-mint.tsx`).
+2. **Signed in, no wallet:** single CTA ("Garantir meu lugar" / "Claim my spot") opens `WalletSetupChoiceDialog` (`src/components/chipi/wallet-setup-choice-dialog.tsx`, takes `locale: "en" | "pt"`). Passkey-first if `usePasskeyStatus().status.isSupported`, with a small "Criar PIN" / "Create PIN" fallback link.
+3. **Wallet created:** dialog auto-advances to the inline `mintStep === "enter-pin"` step. Auth method defaults to `pin`, switches to `passkey` if `usePasskeyStatus().status.hasPasskey` (local credential exists). Decryption failures detected via `looksLikeEncryptionFailure(msg)` surface a "looks like your account uses [other method]" recovery hint with a one-click switch.
+4. **Confirm:** `executeTransaction` calls `mint_item(recipient, ByteArray(tokenURI))` → success / error.
+
+When `MINT_CONTRACT` / `BR_MINT_CONTRACT` or the corresponding URI is empty, the CTA renders disabled ("Distribuição não iniciada" / "Airdrop not started yet").
+
+### Clerk localization (`/br/*` routes only)
+
+The root `<ClerkProvider>` in `src/app/layout.tsx` reads an `x-pathname` request header set by `src/middleware.ts` (via `NextResponse.next({ request: { headers } })`), and conditionally passes `localization={ptBR}` from `@clerk/localizations` when the path starts with `/br`. `<html lang>` is set accordingly. Nesting a second `<ClerkProvider>` in a child layout does **not** work — Clerk only respects the outermost provider. The previous nested provider at `src/app/br/layout.tsx` was deleted 2026-05-28 because it was dead code.
 
 ## Key File Locations
 
@@ -291,7 +304,9 @@ layout.tsx (server)
 | `src/app/create/remix/[contract]/[tokenId]/page.tsx` | Full remix creation page. Owner path: IPFS upload → branch on `collection.standard` (ERC-1155 uses `mint_item` direct call; ERC-721 uses `createMintIntent`) → optional listing → `confirmSelfRemix`. Non-owner path: `submitRemixOffer`. Collection key = `collectionId ?? contractAddress`. |
 | `src/components/portfolio/approve-mint-sheet.tsx` | Creator approval flow for incoming remix offers. Mints remix into selected collection (ERC-1155 or ERC-721), creates listing for buyer, polls for orderHash, calls `confirmRemixOffer`. |
 | `src/components/asset/remixes-tab.tsx` | Read-only: displays public remixes of a token + parent attribution banner |
-| `src/components/chipi/wallet-setup-dialog.tsx` | First-time wallet PIN creation |
+| `src/components/chipi/wallet-setup-dialog.tsx` | First-time wallet PIN creation (legacy, PIN-only — used by launchpad flows) |
+| `src/components/chipi/wallet-setup-choice-dialog.tsx` | First-time wallet setup with passkey-first + PIN fallback, `locale: "en" \| "pt"` (used by `/br/mint`, `/mint`, `/airdrop`) |
+| `src/lib/chipi/looks-like-encryption-failure.ts` | Heuristic for "wrong PIN/passkey" decryption errors — used to surface "switch to other method" hints when a mint or transfer fails on the chosen auth |
 | `src/components/chipi/session-setup-dialog.tsx` | SNIP-9 session key registration |
 | `src/components/chipi/pin-dialog.tsx` | Generic PIN entry dialog |
 | `src/components/chipi/tx-status.tsx` | Transaction status display |
