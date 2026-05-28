@@ -1,13 +1,29 @@
 "use client";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LevelBadge } from "@/components/rewards/level-badge";
 import { BadgeShelf } from "@/components/rewards/badge-shelf";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { useWallet } from "@/hooks/use-wallet";
 import { useRewards, useLeaderboard } from "@/hooks/use-rewards";
-import { Wallet, Trophy, Star } from "lucide-react";
+import {
+  Wallet,
+  Trophy,
+  Gift,
+  Sparkles,
+  ArrowRight,
+  ArrowUpRight,
+  Palette,
+  Layers,
+  Tag,
+  Handshake,
+  ShoppingBag,
+  Rocket,
+  GitBranch,
+  UserRoundCheck,
+  ExternalLink,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const ACTION_LABELS: Record<string, string> = {
@@ -28,7 +44,209 @@ const ACTION_LABELS: Record<string, string> = {
   refer_user: "Referrals",
 };
 
-// ── My Rank panel ─────────────────────────────────────────────────────────────
+// ── Ways to earn ──────────────────────────────────────────────────────────────
+
+const EARN_ACTIONS: {
+  label: string;
+  description: string;
+  href: string;
+  Icon: React.ElementType;
+}[] = [
+  {
+    label: "Create a collection",
+    description: "Deploy a new ERC-721 or ERC-1155 collection",
+    href: "/create/collection",
+    Icon: Layers,
+  },
+  {
+    label: "Mint an asset",
+    description: "Mint into one of your collections",
+    href: "/create/asset",
+    Icon: Palette,
+  },
+  {
+    label: "Launch a drop or POP",
+    description: "Run a public launch on the Launchpad",
+    href: "/launchpad",
+    Icon: Rocket,
+  },
+  {
+    label: "List an asset for sale",
+    description: "Open your portfolio to list at a fixed price",
+    href: "/portfolio/assets",
+    Icon: Tag,
+  },
+  {
+    label: "Make an offer",
+    description: "Bid on assets across the marketplace",
+    href: "/marketplace",
+    Icon: Handshake,
+  },
+  {
+    label: "Collect an asset",
+    description: "Buy a listing — earn XP as a collector",
+    href: "/marketplace",
+    Icon: ShoppingBag,
+  },
+  {
+    label: "Remix existing work",
+    description: "Build on top of another creator's IP",
+    href: "/marketplace",
+    Icon: GitBranch,
+  },
+  {
+    label: "Complete your profile",
+    description: "Set a display name, avatar, and socials",
+    href: "/portfolio/settings",
+    Icon: UserRoundCheck,
+  },
+];
+
+function EarnMorePanel() {
+  return (
+    <section className="rounded-2xl border border-border/60 bg-card/50 p-5 space-y-4">
+      <div className="flex items-center gap-2">
+        <Sparkles className="h-4 w-4 text-primary" />
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          Ways to earn XP
+        </h3>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {EARN_ACTIONS.map(({ label, description, href, Icon }) => (
+          <Link
+            key={href + label}
+            href={href}
+            className="group flex items-start gap-3 rounded-xl border border-border/40 bg-background/60 px-3.5 py-3 hover:border-primary/40 hover:bg-primary/[0.04] transition-colors"
+          >
+            <div className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <Icon className="h-4 w-4" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium leading-tight">{label}</p>
+              <p className="text-xs text-muted-foreground leading-snug mt-0.5">
+                {description}
+              </p>
+            </div>
+            <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground/40 group-hover:text-primary transition-colors mt-0.5 shrink-0" />
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ── Creator's Fund + Airdrop ──────────────────────────────────────────────────
+
+function CreatorsFundCard() {
+  return (
+    <section className="relative overflow-hidden rounded-2xl border border-orange-500/25 bg-gradient-to-br from-orange-500/[0.06] via-card/50 to-card/50 p-5 space-y-4">
+      <div className="pointer-events-none absolute -top-16 -right-16 h-40 w-40 rounded-full bg-orange-500/10 blur-3xl" />
+
+      <div className="relative flex items-start justify-between gap-3">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Gift className="h-4 w-4 text-orange-400" />
+            <h3 className="text-xs font-bold uppercase tracking-widest text-orange-400/90">
+              Creator&apos;s Fund
+            </h3>
+            <span className="inline-flex items-center gap-1 rounded-full bg-orange-500/15 border border-orange-500/30 px-1.5 py-0.5 text-[10px] font-bold text-orange-400">
+              <span className="h-1 w-1 rounded-full bg-orange-400 animate-pulse" />
+              Live
+            </span>
+          </div>
+          <p className="text-base font-semibold leading-snug">
+            Every $1,000 collected is airdropped back to participants.
+          </p>
+        </div>
+      </div>
+
+      <p className="relative text-sm text-muted-foreground leading-relaxed">
+        The fund is a public on-chain wallet. Distributions are weighted by your
+        Score Board points — your XP and rank decide your share.
+      </p>
+
+      <div className="relative flex flex-wrap items-center gap-2">
+        <Link
+          href="/airdrop"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-orange-500 hover:bg-orange-400 text-white text-sm font-semibold px-4 py-2 transition-colors"
+        >
+          About the airdrop
+          <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
+        <a
+          href="https://medialane.org/airdrop/fund"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 rounded-xl border border-border/60 hover:border-foreground/30 text-sm font-medium px-3.5 py-2 transition-colors text-muted-foreground hover:text-foreground"
+        >
+          Track the fund
+          <ExternalLink className="h-3.5 w-3.5" />
+        </a>
+      </div>
+    </section>
+  );
+}
+
+function AirdropStatusCard({
+  address,
+  totalXp,
+  rank,
+}: {
+  address: string;
+  totalXp: number;
+  rank: number | null;
+}) {
+  return (
+    <section className="rounded-2xl border border-border/60 bg-card/50 p-5 space-y-4">
+      <div className="flex items-center gap-2">
+        <Trophy className="h-4 w-4 text-primary" />
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          Your airdrop status
+        </h3>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div className="rounded-xl border border-border/40 bg-background/60 px-3.5 py-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Score
+          </p>
+          <p className="text-xl font-black tracking-tight mt-1 tabular-nums">
+            {totalXp.toLocaleString()}{" "}
+            <span className="text-xs font-medium text-muted-foreground">XP</span>
+          </p>
+        </div>
+        <div className="rounded-xl border border-border/40 bg-background/60 px-3.5 py-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Global rank
+          </p>
+          <p className="text-xl font-black tracking-tight mt-1 tabular-nums">
+            {rank !== null ? `#${rank}` : "—"}
+          </p>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] px-3.5 py-2.5">
+        <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 shrink-0" />
+        <p className="text-xs text-emerald-300/90">
+          Registered — wallet{" "}
+          <AddressDisplay
+            address={address}
+            chars={4}
+            className="font-mono text-emerald-300/90"
+          />{" "}
+          is eligible for every distribution.
+        </p>
+      </div>
+
+      <p className="text-xs text-muted-foreground leading-relaxed">
+        Your payout at each $1,000 round is proportional to your score relative
+        to all participants. Keep earning XP to grow your share.
+      </p>
+    </section>
+  );
+}
+
+// ── My Rank panel (left column) ───────────────────────────────────────────────
 
 function MyRankPanel({ address }: { address: string }) {
   const { data: rewards, isLoading } = useRewards(address);
@@ -36,9 +254,9 @@ function MyRankPanel({ address }: { address: string }) {
   if (isLoading) {
     return (
       <div className="space-y-5">
-        <Skeleton className="h-28 w-full rounded-2xl" />
+        <Skeleton className="h-40 w-full rounded-2xl" />
         <Skeleton className="h-10 w-full rounded-xl" />
-        <Skeleton className="h-40 w-full rounded-xl" />
+        <Skeleton className="h-48 w-full rounded-xl" />
       </div>
     );
   }
@@ -50,7 +268,10 @@ function MyRankPanel({ address }: { address: string }) {
       {/* Level card */}
       <div
         className="relative rounded-2xl border p-5 space-y-4 overflow-hidden"
-        style={{ borderColor: `${rewards.badgeColor}40`, backgroundColor: `${rewards.badgeColor}08` }}
+        style={{
+          borderColor: `${rewards.badgeColor}40`,
+          backgroundColor: `${rewards.badgeColor}08`,
+        }}
       >
         <div
           className="absolute -top-10 -right-10 h-32 w-32 rounded-full blur-3xl opacity-20"
@@ -65,13 +286,16 @@ function MyRankPanel({ address }: { address: string }) {
               badgeColor={rewards.badgeColor}
               size="lg"
             />
-            <p className="text-3xl font-black tracking-tight">
+            <p className="text-4xl font-black tracking-tight">
               {rewards.totalXp.toLocaleString()} XP
             </p>
           </div>
           <div
             className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-xl font-black"
-            style={{ backgroundColor: `${rewards.badgeColor}20`, color: rewards.badgeColor }}
+            style={{
+              backgroundColor: `${rewards.badgeColor}20`,
+              color: rewards.badgeColor,
+            }}
           >
             {rewards.currentLevel}
           </div>
@@ -80,13 +304,18 @@ function MyRankPanel({ address }: { address: string }) {
         {rewards.nextLevel ? (
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>Progress to Lv.{rewards.nextLevel.level} · {rewards.nextLevel.name}</span>
+              <span>
+                Progress to Lv.{rewards.nextLevel.level} · {rewards.nextLevel.name}
+              </span>
               <span>{rewards.progressPct}%</span>
             </div>
             <div className="h-1.5 w-full rounded-full overflow-hidden bg-muted">
               <div
                 className="h-full rounded-full transition-all duration-700"
-                style={{ width: `${rewards.progressPct}%`, backgroundColor: rewards.badgeColor }}
+                style={{
+                  width: `${rewards.progressPct}%`,
+                  backgroundColor: rewards.badgeColor,
+                }}
               />
             </div>
             <p className="text-xs text-muted-foreground">
@@ -94,7 +323,10 @@ function MyRankPanel({ address }: { address: string }) {
             </p>
           </div>
         ) : (
-          <p className="text-xs font-semibold" style={{ color: rewards.badgeColor }}>
+          <p
+            className="text-xs font-semibold"
+            style={{ color: rewards.badgeColor }}
+          >
             Maximum level reached — Genesis.
           </p>
         )}
@@ -102,23 +334,32 @@ function MyRankPanel({ address }: { address: string }) {
 
       {rewards.badges.length > 0 && (
         <div className="space-y-2.5">
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Badges</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Badges
+          </p>
           <BadgeShelf badges={rewards.badges} />
         </div>
       )}
 
       {Object.keys(rewards.breakdown).length > 0 && (
         <div className="space-y-2.5">
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">XP breakdown</p>
-          <div className="rounded-xl border border-border/40 divide-y divide-border/40 overflow-hidden">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            XP breakdown
+          </p>
+          <div className="rounded-xl border border-border/40 divide-y divide-border/40 overflow-hidden bg-card/30">
             {Object.entries(rewards.breakdown)
               .sort(([, a], [, b]) => b - a)
               .map(([action, xp]) => (
-                <div key={action} className="flex items-center justify-between px-4 py-2.5">
+                <div
+                  key={action}
+                  className="flex items-center justify-between px-4 py-2.5"
+                >
                   <span className="text-sm text-muted-foreground">
                     {ACTION_LABELS[action] ?? action}
                   </span>
-                  <span className="text-sm font-semibold">{xp.toLocaleString()} XP</span>
+                  <span className="text-sm font-semibold tabular-nums">
+                    {xp.toLocaleString()} XP
+                  </span>
                 </div>
               ))}
           </div>
@@ -128,76 +369,94 @@ function MyRankPanel({ address }: { address: string }) {
   );
 }
 
-// ── Leaderboard panel ─────────────────────────────────────────────────────────
+// ── Leaderboard panel (right column) ──────────────────────────────────────────
 
 function LeaderboardPanel({ myAddress }: { myAddress: string | null }) {
-  const { data, isLoading } = useLeaderboard(1, 50);
-
-  if (isLoading) {
-    return (
-      <div className="space-y-2">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <Skeleton key={i} className="h-14 w-full rounded-xl" />
-        ))}
-      </div>
-    );
-  }
-
-  const entries = data?.data ?? [];
-
-  if (entries.length === 0) {
-    return (
-      <div className="py-16 text-center text-muted-foreground space-y-2">
-        <Trophy className="h-10 w-10 mx-auto opacity-20" />
-        <p className="text-sm">No scores computed yet.</p>
-      </div>
-    );
-  }
+  const { data, isLoading } = useLeaderboard(1, 25);
 
   return (
-    <div className="rounded-xl border border-border/40 divide-y divide-border/40 overflow-hidden">
-      {entries.map((entry) => {
-        const isMe = myAddress && entry.address.toLowerCase() === myAddress.toLowerCase();
-        return (
-          <div
-            key={entry.address}
-            className={cn(
-              "flex items-center gap-3 px-4 py-3 transition-colors",
-              isMe && "bg-primary/5"
-            )}
-          >
-            <span
-              className={cn(
-                "w-7 text-center text-sm font-bold shrink-0",
-                entry.rank <= 3 ? "text-amber-500" : "text-muted-foreground"
-              )}
-            >
-              {entry.rank <= 3 ? ["🥇", "🥈", "🥉"][entry.rank - 1] : entry.rank}
-            </span>
+    <section className="rounded-2xl border border-border/60 bg-card/50 p-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Trophy className="h-4 w-4 text-amber-400" />
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            Leaderboard
+          </h3>
+        </div>
+        {data?.meta?.total ? (
+          <span className="text-xs text-muted-foreground tabular-nums">
+            {data.meta.total.toLocaleString()} creators
+          </span>
+        ) : null}
+      </div>
 
-            <div className="flex-1 min-w-0 space-y-0.5">
-              <div className="flex items-center gap-2">
-                <AddressDisplay address={entry.address} chars={5} className="text-sm font-mono" />
-                {isMe && (
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-primary">you</span>
+      {isLoading ? (
+        <div className="space-y-2">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-12 w-full rounded-xl" />
+          ))}
+        </div>
+      ) : (data?.data ?? []).length === 0 ? (
+        <div className="py-10 text-center text-muted-foreground space-y-2">
+          <Trophy className="h-8 w-8 mx-auto opacity-20" />
+          <p className="text-sm">No scores computed yet.</p>
+        </div>
+      ) : (
+        <div className="rounded-xl border border-border/40 divide-y divide-border/40 overflow-hidden bg-background/40">
+          {(data?.data ?? []).map((entry) => {
+            const isMe =
+              myAddress &&
+              entry.address.toLowerCase() === myAddress.toLowerCase();
+            return (
+              <div
+                key={entry.address}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-2.5 transition-colors",
+                  isMe && "bg-primary/[0.06]"
                 )}
-              </div>
-              <LevelBadge
-                level={entry.currentLevel}
-                name={entry.currentLevelName}
-                badgeColor={entry.badgeColor}
-                size="sm"
-              />
-            </div>
+              >
+                <span
+                  className={cn(
+                    "w-6 text-center text-sm font-bold shrink-0 tabular-nums",
+                    entry.rank <= 3
+                      ? "text-amber-400"
+                      : "text-muted-foreground"
+                  )}
+                >
+                  {entry.rank}
+                </span>
 
-            <span className="text-sm font-semibold tabular-nums shrink-0">
-              {entry.totalXp.toLocaleString()}
-              <span className="ml-1 text-xs text-muted-foreground font-normal">XP</span>
-            </span>
-          </div>
-        );
-      })}
-    </div>
+                <div className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
+                  <AddressDisplay
+                    address={entry.address}
+                    chars={5}
+                    className="text-sm font-mono"
+                  />
+                  <LevelBadge
+                    level={entry.currentLevel}
+                    name={entry.currentLevelName}
+                    badgeColor={entry.badgeColor}
+                    size="sm"
+                  />
+                  {isMe && (
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-primary">
+                      you
+                    </span>
+                  )}
+                </div>
+
+                <span className="text-sm font-semibold tabular-nums shrink-0">
+                  {entry.totalXp.toLocaleString()}
+                  <span className="ml-1 text-xs text-muted-foreground font-normal">
+                    XP
+                  </span>
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -205,35 +464,25 @@ function LeaderboardPanel({ myAddress }: { myAddress: string | null }) {
 
 export function RewardsDashboard() {
   const { address, isConnected } = useWallet();
+  const { data: rewards } = useRewards(address);
+  const { data: leaderboard } = useLeaderboard(1, 100);
 
   if (!isConnected) {
-    return (
-      <div className="py-24 text-center space-y-6">
-        <Wallet className="h-12 w-12 mx-auto text-muted-foreground" />
-        <div className="space-y-2">
-          <h2 className="text-xl font-bold">Sign in to see your rank</h2>
-          <p className="text-muted-foreground text-sm">
-            Connect your wallet to see your XP, level, and badges.
-          </p>
-        </div>
-      </div>
-    );
+    return <SignedOutView />;
   }
 
-  return (
-    <Tabs defaultValue="rank">
-      <TabsList className="w-full mb-6">
-        <TabsTrigger value="rank" className="flex-1 gap-1.5">
-          <Star className="h-3.5 w-3.5" />
-          My Rank
-        </TabsTrigger>
-        <TabsTrigger value="leaderboard" className="flex-1 gap-1.5">
-          <Trophy className="h-3.5 w-3.5" />
-          Leaderboard
-        </TabsTrigger>
-      </TabsList>
+  // Find current user's rank from the cached leaderboard (best effort)
+  const myRank =
+    address && leaderboard?.data
+      ? leaderboard.data.find(
+          (e) => e.address.toLowerCase() === address.toLowerCase()
+        )?.rank ?? null
+      : null;
 
-      <TabsContent value="rank">
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      {/* Left column — your rank */}
+      <div className="lg:col-span-7 space-y-6">
         {address ? (
           <MyRankPanel address={address} />
         ) : (
@@ -241,11 +490,41 @@ export function RewardsDashboard() {
             Loading wallet…
           </div>
         )}
-      </TabsContent>
+        <EarnMorePanel />
+      </div>
 
-      <TabsContent value="leaderboard">
+      {/* Right column — fund, airdrop, leaderboard */}
+      <div className="lg:col-span-5 space-y-6">
+        <CreatorsFundCard />
+        {address && (
+          <AirdropStatusCard
+            address={address}
+            totalXp={rewards?.totalXp ?? 0}
+            rank={myRank}
+          />
+        )}
         <LeaderboardPanel myAddress={address} />
-      </TabsContent>
-    </Tabs>
+      </div>
+    </div>
+  );
+}
+
+function SignedOutView() {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="lg:col-span-7 rounded-2xl border border-border/60 bg-card/50 p-10 text-center space-y-4">
+        <Wallet className="h-12 w-12 mx-auto text-muted-foreground" />
+        <div className="space-y-2">
+          <h2 className="text-xl font-bold">Sign in to see your rank</h2>
+          <p className="text-muted-foreground text-sm max-w-sm mx-auto">
+            Connect your wallet to track your XP, badges, and airdrop share.
+          </p>
+        </div>
+      </div>
+      <div className="lg:col-span-5 space-y-6">
+        <CreatorsFundCard />
+        <LeaderboardPanel myAddress={null} />
+      </div>
+    </div>
   );
 }
