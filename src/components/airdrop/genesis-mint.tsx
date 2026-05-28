@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
-import { useAuth, useUser, SignInButton, SignUpButton } from "@clerk/nextjs";
+import { useAuth, useUser, SignUpButton } from "@clerk/nextjs";
 import { useClerk } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useChipiWallet, isWebAuthnSupported, createWalletPasskey } from "@chipi-stack/nextjs";
@@ -334,12 +334,17 @@ export function GenesisMint() {
       {/* Not signed in */}
       {isLoaded && !isSignedIn && !walletJustCreated && (
         <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">Sign in with your Google account.</p>
+          <p className="text-sm text-muted-foreground">Sign in with Google or email — no card required.</p>
           <SignUpButton mode="modal" forceRedirectUrl="/mint">
-            <Button size="lg" className="w-full h-12 font-bold gap-2 rounded-xl">
-              <Sparkles className="h-4 w-4" />
-              Join free within seconds
-            </Button>
+            <div className="btn-border-animated p-[1px] rounded-2xl cursor-pointer">
+              <Button
+                size="lg"
+                className="w-full h-12 font-bold gap-2 bg-transparent text-white rounded-[15px] hover:bg-transparent hover:brightness-110 active:scale-[0.98] transition-all"
+              >
+                <Sparkles className="h-4 w-4" />
+                Join free within seconds
+              </Button>
+            </div>
           </SignUpButton>
         </div>
       )}
@@ -358,15 +363,17 @@ export function GenesisMint() {
                 <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
                 <span className="text-emerald-600 dark:text-emerald-400 font-medium">Account active — mint your passport</span>
               </div>
-              <Button
-                size="lg"
-                className="w-full h-12 font-bold gap-2 disabled:opacity-50"
-                onClick={() => setMintStep("enter-pin")}
-                disabled={!MINT_CONTRACT}
-              >
-                <Sparkles className="h-4 w-4" />
-                {MINT_CONTRACT ? "Claim my spot" : "Airdrop not started yet"}
-              </Button>
+              <div className="btn-border-animated p-[1px] rounded-2xl">
+                <Button
+                  size="lg"
+                  className="w-full h-12 font-bold gap-2 bg-transparent text-white rounded-[15px] hover:bg-transparent hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
+                  onClick={() => setMintStep("enter-pin")}
+                  disabled={!MINT_CONTRACT}
+                >
+                  <Sparkles className="h-4 w-4" />
+                  {MINT_CONTRACT ? "Claim my spot" : "Airdrop not started yet"}
+                </Button>
+              </div>
             </>
           )}
 

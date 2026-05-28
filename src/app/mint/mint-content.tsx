@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { useUser, SignInButton, SignUpButton } from "@clerk/nextjs";
 import {
   Sparkles,
   CheckCircle2,
@@ -15,10 +13,8 @@ import {
   PenLine,
   ShoppingCart,
   UserCheck,
-  ArrowRight,
   XCircle,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { MedialaneLogo } from "@/components/brand/medialane-logo";
 import { MINT_NFT_IMAGE_URL } from "@/lib/constants";
 import { GenesisMint } from "@/components/airdrop/genesis-mint";
@@ -53,19 +49,12 @@ function EventCard() {
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export function MintContent() {
-  const { isSignedIn, isLoaded } = useUser();
-
   return (
     <div className="min-h-screen flex flex-col bg-background">
 
-      {/* Header */}
-      <header className="px-6 py-4 flex items-center justify-between border-b border-border/30 sticky top-0 bg-background/90 backdrop-blur-sm z-10">
+      {/* Header — logo only, no distractions */}
+      <header className="px-6 py-4 flex items-center">
         <MedialaneLogo />
-        {isLoaded && !isSignedIn && (
-          <SignInButton mode="modal" forceRedirectUrl="/mint">
-            <Button variant="ghost" size="sm" className="text-sm text-muted-foreground">Sign in</Button>
-          </SignInButton>
-        )}
       </header>
 
       <div className="flex-1 w-full">
@@ -79,7 +68,7 @@ export function MintContent() {
               <div className="space-y-6">
                 <div className="inline-flex items-center gap-2 rounded-full border border-yellow-500/30 bg-yellow-500/5 px-3 py-1">
                   <Sparkles className="h-3.5 w-3.5 text-yellow-500" />
-                  <span className="text-xs font-semibold text-yellow-600 dark:text-yellow-400">Creator&apos;s Airdrop — Launch Campaign</span>
+                  <span className="text-xs font-semibold text-yellow-600 dark:text-yellow-400">Creators Fund Campaign</span>
                 </div>
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.05]">
                   Join the{" "}
@@ -116,7 +105,7 @@ export function MintContent() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[
-                { icon: FileCheck, color: "text-blue-400",   bg: "bg-blue-500/10",   title: "Join for free",      desc: "Sign up with your Google account — no card, no approval needed." },
+                { icon: FileCheck, color: "text-blue-400",   bg: "bg-blue-500/10",   title: "Join for free",      desc: "Sign up in seconds — no card, no approval needed." },
                 { icon: Coins,     color: "text-yellow-500", bg: "bg-yellow-500/10", title: "Creator fund",       desc: "Fund distributions for all participants." },
                 { icon: Users,     color: "text-purple-400", bg: "bg-purple-500/10", title: "Boost your chances", desc: "Create, share, and collect!" },
               ].map(({ icon: Icon, color, bg, title, desc }) => (
@@ -139,7 +128,7 @@ export function MintContent() {
               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">How it works</p>
               <h2 className="text-2xl sm:text-3xl font-black">Join in seconds.</h2>
               <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-                Your Google account is all you need to get started.
+                Sign up and you&apos;re in.
               </p>
             </div>
 
@@ -151,11 +140,11 @@ export function MintContent() {
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-black text-lg">Sign in with Google</p>
+                    <p className="font-black text-lg">Create your account</p>
                     <span className="text-xs font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 px-2.5 py-0.5 rounded-full">Minimum — you&apos;re in</span>
                   </div>
                   <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-                    Sign in with your Google account and set a PIN or passkey to protect your account.
+                    Sign in with Google or email, then set a PIN or passkey to protect your account.
                   </p>
                 </div>
               </div>
@@ -277,25 +266,6 @@ export function MintContent() {
               </div>
             </div>
           </section>
-
-          {/* ── Bottom CTA (logged-out only) ── */}
-          {isLoaded && !isSignedIn && (
-            <section className="py-10 border-t border-border/30">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                  <h2 className="text-xl font-black">Ready to join?</h2>
-                  <p className="text-sm text-muted-foreground mt-0.5">Free, instant, no card required.</p>
-                </div>
-                <SignUpButton mode="modal" forceRedirectUrl="/mint">
-                  <Button size="lg" className="gap-2 shrink-0 font-bold">
-                    <Sparkles className="h-4 w-4" />
-                    Claim my spot
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </SignUpButton>
-              </div>
-            </section>
-          )}
 
           <div className="pb-12" />
         </div>

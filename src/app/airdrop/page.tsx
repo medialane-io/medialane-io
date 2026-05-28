@@ -54,7 +54,7 @@ export default function AirdropPage() {
     <div className="min-h-screen flex flex-col bg-background">
 
       {/* Header — logo only, no distractions */}
-      <header className="px-6 py-4 flex items-center border-b border-border/30 sticky top-0 bg-background/90 backdrop-blur-sm z-10">
+      <header className="px-6 py-4 flex items-center">
         <MedialaneLogo />
       </header>
 
@@ -69,7 +69,7 @@ export default function AirdropPage() {
               <div className="space-y-5">
                 <div className="inline-flex items-center gap-2 rounded-full border border-yellow-500/30 bg-yellow-500/5 px-3 py-1">
                   <Sparkles className="h-3.5 w-3.5 text-yellow-500" />
-                  <span className="text-xs font-semibold text-yellow-600 dark:text-yellow-400">Airdrop Campaign</span>
+                  <span className="text-xs font-semibold text-yellow-600 dark:text-yellow-400">Creators Fund Campaign</span>
                 </div>
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.05]">
                   Creator&apos;s{" "}
