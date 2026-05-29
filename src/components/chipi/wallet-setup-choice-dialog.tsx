@@ -71,14 +71,7 @@ const COPY: Record<Locale, {
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /**
-   * Fires after the wallet is fully created. Receives the encryption key
-   * (PIN string or PRF-derived passkey key) **and** the freshly-created
-   * wallet address — pass the address through to any follow-up operation
-   * (e.g. mint) instead of reading it from `useSessionKey()`, which lags
-   * one render behind the Clerk metadata update.
-   */
-  onSuccess?: (encryptKey: string, walletAddress: string) => void;
+  onSuccess?: () => void;
   locale?: Locale;
 }
 
@@ -122,17 +115,8 @@ export function WalletSetupChoiceDialog({ open, onOpenChange, onSuccess, locale 
     if (result.error) throw new Error(result.error);
     await user?.reload();
     await session?.touch();
-    // If a caller is wired to chain the next operation (e.g. mint), hand
-    // the encryption key + the wallet address we just got back from the
-    // SDK over and let it transition — the brief "done" success view
-    // would otherwise flash before the parent closes us, and the parent's
-    // useSessionKey() hook is one render behind so reading walletAddress
-    // from it would race with the Clerk metadata refresh.
-    if (onSuccess) {
-      onSuccess(encryptKey, walletKey);
-    } else {
-      setView("done");
-    }
+    setView("done");
+    onSuccess?.();
   };
 
   const handlePasskey = async () => {
