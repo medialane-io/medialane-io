@@ -122,12 +122,12 @@ export function WalletSetup({ email, onDone }: { email?: string | null; onDone: 
         </div>
       )}
       <div>
-        <p className="font-bold">Proteja sua conta</p>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          {step === "pin"
-            ? "Crie um PIN de 6 dígitos para confirmar sua participação."
-            : "Adicione Face ID, digital ou um PIN."}
-        </p>
+        <p className="font-bold">Finalize seu acesso</p>
+        {step === "pin" && (
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Crie um PIN de 6 dígitos para confirmar sua participação.
+          </p>
+        )}
       </div>
       {error && (
         <Alert variant="destructive">
@@ -139,7 +139,7 @@ export function WalletSetup({ email, onDone }: { email?: string | null; onDone: 
         <div className="space-y-2">
           <Button size="lg" className="w-full h-12 font-bold gap-2" onClick={handlePasskey} disabled={isSubmitting}>
             <ShieldCheck className="h-4 w-4" />
-            Usar Face ID / digital
+            Face ID / Chave de acesso
           </Button>
           <Button size="lg" variant="outline" className="w-full h-12 gap-2" onClick={() => setStep("pin")} disabled={isSubmitting}>
             <KeyRound className="h-4 w-4" />
