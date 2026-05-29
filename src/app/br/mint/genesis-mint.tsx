@@ -2,9 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
-import { useUser, SignUp } from "@clerk/nextjs";
-import { dark } from "@clerk/themes";
-import { useTheme } from "next-themes";
+import { useUser, SignUpButton } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { usePasskeyAuth, usePasskeyStatus } from "@chipi-stack/chipi-passkey/hooks";
 import { serializeByteArray } from "@/lib/cairo-calldata";
@@ -21,7 +19,7 @@ import { PinInput, validatePin } from "@/components/ui/pin-input";
 import { Button } from "@/components/ui/button";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { looksLikeEncryptionFailure } from "@/lib/chipi/looks-like-encryption-failure";
-import { WalletSetupChoiceDialog } from "@/components/chipi/wallet-setup-choice-dialog";
+import { WalletSetup } from "./wallet-setup";
 import { EXPLORER_URL, BR_MINT_CONTRACT, BR_NFT_URI } from "@/lib/constants";
 
 type MintStep = "ready" | "enter-pin" | "minting" | "success" | "error";
@@ -30,7 +28,6 @@ export function GenesisMint() {
   const { isSignedIn, isLoaded, user } = useUser();
   const { walletAddress, hasWallet, isLoadingWallet } = useSessionKey();
   const { executeTransaction, status, error: txError, reset } = useChipiTransaction();
-  const { resolvedTheme } = useTheme();
 
   const { status: { hasPasskey, isSupported: passkeySupported } } = usePasskeyStatus();
   const { authenticate, encryptKey } = usePasskeyAuth();
@@ -43,7 +40,6 @@ export function GenesisMint() {
   const [completedTxHash, setCompletedTxHash] = useState<string | null>(null);
   const [authMethod, setAuthMethod] = useState<"pin" | "passkey">("pin");
   const [encryptionMismatch, setEncryptionMismatch] = useState<"pin" | "passkey" | null>(null);
-  const [setupOpen, setSetupOpen] = useState(false);
 
   useEffect(() => {
     if (passkeySupported && hasPasskey) setAuthMethod("passkey");
@@ -156,18 +152,10 @@ export function GenesisMint() {
     setMintStep("ready");
   }, [storageKey]);
 
-  const handleMintCta = () => {
-    if (!hasWallet) {
-      setSetupOpen(true);
-      return;
-    }
-    setMintStep("enter-pin");
-  };
-
-  const handleSetupDone = () => {
-    setSetupOpen(false);
-    setMintStep("enter-pin");
-  };
+  const handleWalletCreated = useCallback(() => {
+    // wallet just created → useSessionKey will refresh on next render and
+    // surface the mint CTA. Nothing else to do here.
+  }, []);
 
   // ── Render ───────────────────────────────────────────────────────────────────
 
@@ -182,19 +170,26 @@ export function GenesisMint() {
 
   if (!isSignedIn) {
     return (
-      <div className="flex justify-center sm:justify-start">
-        <SignUp
-          routing="hash"
-          signInUrl="/br/mint"
-          forceRedirectUrl="/br/mint"
-          appearance={{
-            baseTheme: resolvedTheme === "dark" ? dark : undefined,
-            elements: {
-              rootBox: "w-full max-w-md",
-              card: "shadow-none border border-border/40 bg-card/30 rounded-2xl",
-            },
-          }}
-        />
+      <div className="space-y-3">
+        <SignUpButton mode="modal" forceRedirectUrl="/br/mint">
+          <div className="btn-border-animated p-[1px] rounded-2xl cursor-pointer">
+            <Button
+              size="lg"
+              className="w-full h-12 font-bold gap-2 bg-transparent text-white rounded-[15px] hover:bg-transparent hover:brightness-110 active:scale-[0.98] transition-all"
+            >
+              <Sparkles className="h-4 w-4" />
+              Participar com Google ou email
+            </Button>
+          </div>
+        </SignUpButton>
+      </div>
+    );
+  }
+
+  if (!hasWallet) {
+    return (
+      <div className="rounded-2xl border border-border/50 bg-card/50 p-5">
+        <WalletSetup email={user?.primaryEmailAddress?.emailAddress} onDone={handleWalletCreated} />
       </div>
     );
   }
@@ -213,7 +208,7 @@ export function GenesisMint() {
             <Button
               size="lg"
               className="w-full h-12 font-bold gap-2 bg-transparent text-white rounded-[15px] hover:bg-transparent hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
-              onClick={handleMintCta}
+              onClick={() => setMintStep("enter-pin")}
               disabled={!BR_MINT_CONTRACT}
             >
               <Sparkles className="h-4 w-4" />
@@ -352,13 +347,6 @@ export function GenesisMint() {
           </Button>
         </div>
       )}
-
-      <WalletSetupChoiceDialog
-        open={setupOpen}
-        onOpenChange={setSetupOpen}
-        onSuccess={handleSetupDone}
-        locale="pt"
-      />
     </div>
   );
 }
