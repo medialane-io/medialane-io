@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, ShieldCheck, CheckCircle2, AlertCircle } from "lucide-react";
+import { Loader2, ShieldCheck, CheckCircle2, AlertCircle, KeyRound } from "lucide-react";
 import { PinInput, validatePin } from "@/components/ui/pin-input";
 import { Button } from "@/components/ui/button";
 import { completeOnboarding } from "@/app/onboarding/_actions";
@@ -73,10 +73,12 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   /**
    * Fires after the wallet is fully created. Receives the encryption key
-   * (PIN string or PRF-derived passkey key) so the caller can chain the
-   * next operation — e.g. minting immediately without prompting again.
+   * (PIN string or PRF-derived passkey key) **and** the freshly-created
+   * wallet address — pass the address through to any follow-up operation
+   * (e.g. mint) instead of reading it from `useSessionKey()`, which lags
+   * one render behind the Clerk metadata update.
    */
-  onSuccess?: (encryptKey: string) => void;
+  onSuccess?: (encryptKey: string, walletAddress: string) => void;
   locale?: Locale;
 }
 
@@ -121,10 +123,13 @@ export function WalletSetupChoiceDialog({ open, onOpenChange, onSuccess, locale 
     await user?.reload();
     await session?.touch();
     // If a caller is wired to chain the next operation (e.g. mint), hand
-    // the encryption key over and let it transition — the brief "done"
-    // success view would otherwise flash before the parent closes us.
+    // the encryption key + the wallet address we just got back from the
+    // SDK over and let it transition — the brief "done" success view
+    // would otherwise flash before the parent closes us, and the parent's
+    // useSessionKey() hook is one render behind so reading walletAddress
+    // from it would race with the Clerk metadata refresh.
     if (onSuccess) {
-      onSuccess(encryptKey);
+      onSuccess(encryptKey, walletKey);
     } else {
       setView("done");
     }
@@ -207,13 +212,15 @@ export function WalletSetupChoiceDialog({ open, onOpenChange, onSuccess, locale 
               <ShieldCheck className="h-4 w-4" />
               {t.passkeyCta}
             </Button>
-            <button
-              type="button"
+            <Button
+              size="lg"
+              variant="outline"
+              className="w-full gap-2"
               onClick={() => { setView("pin"); setError(null); }}
-              className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
             >
+              <KeyRound className="h-4 w-4" />
               {t.pinSwitch}
-            </button>
+            </Button>
             <p className="text-xs text-muted-foreground text-center pt-2">{t.footer}</p>
           </div>
         )}
@@ -238,13 +245,15 @@ export function WalletSetupChoiceDialog({ open, onOpenChange, onSuccess, locale 
               {t.pinCta}
             </Button>
             {passkeySupported && (
-              <button
-                type="button"
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full gap-2"
                 onClick={() => { setView("choose"); setPin(""); setPinError(null); setError(null); }}
-                className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
               >
+                <ShieldCheck className="h-4 w-4" />
                 {t.passkeySwitch}
-              </button>
+              </Button>
             )}
             <p className="text-xs text-muted-foreground text-center pt-2">{t.footer}</p>
           </div>

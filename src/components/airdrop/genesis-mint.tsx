@@ -90,13 +90,18 @@ export function GenesisMint() {
     if (stored) { setCompletedTxHash(stored); setMintStep("success"); }
   }, [storageKey]);
 
-  const executeMint = useCallback(async (key: string) => {
+  // `addressOverride` is supplied by the setup-dialog auto-progress path —
+  // useSessionKey() lags one render behind the wallet creation, so reading
+  // walletAddress from closure would race and we'd throw "Account not
+  // found" right after a successful wallet setup.
+  const executeMint = useCallback(async (key: string, addressOverride?: string) => {
     setMintError(null);
     setMintStep("minting");
     setMintStatusMsg("Preparing your record…");
 
     try {
-      if (!walletAddress) throw new Error("Account not found. Please try again.");
+      const address = addressOverride ?? walletAddress;
+      if (!address) throw new Error("Account not found. Please try again.");
       if (!MINT_CONTRACT) throw new Error("Airdrop has not started yet.");
 
       let tokenUri = MINT_NFT_URI
@@ -117,7 +122,7 @@ export function GenesisMint() {
       }
 
       setMintStatusMsg("Confirming participation…");
-      const calldata = [walletAddress, ...serializeByteArray(tokenUri)];
+      const calldata = [address, ...serializeByteArray(tokenUri)];
 
       const result = await executeTransaction({
         pin: key,
@@ -222,11 +227,13 @@ export function GenesisMint() {
     setMintStep("enter-pin");
   };
 
-  // The setup dialog hands back the encryption key it just created the
-  // wallet with — reuse it to fire the mint immediately, no second prompt.
-  const handleSetupDone = (encryptKey: string) => {
+  // The setup dialog hands back the encryption key + the new wallet
+  // address — reuse both to fire the mint immediately. We pass the
+  // address explicitly because useSessionKey() is one render behind
+  // the wallet creation that just happened inside the dialog.
+  const handleSetupDone = (encryptKey: string, newWalletAddress: string) => {
     setSetupOpen(false);
-    executeMint(encryptKey);
+    executeMint(encryptKey, newWalletAddress);
   };
 
   // ── Render ───────────────────────────────────────────────────────────────────
