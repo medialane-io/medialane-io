@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useUser, SignUp } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
@@ -44,6 +44,7 @@ export function GenesisMint() {
   const [authMethod, setAuthMethod] = useState<"pin" | "passkey">("pin");
   const [encryptionMismatch, setEncryptionMismatch] = useState<"pin" | "passkey" | null>(null);
   const [setupOpen, setSetupOpen] = useState(false);
+  const autoOpenedSetupRef = useRef(false);
 
   useEffect(() => {
     if (passkeySupported && hasPasskey) setAuthMethod("passkey");
@@ -156,17 +157,45 @@ export function GenesisMint() {
     setMintStep("ready");
   }, [storageKey]);
 
+  // Auto-open the wallet setup dialog as soon as a freshly-signed-up user
+  // lands with no wallet — saves an extra "Garantir meu lugar" click on
+  // the onboarding path. autoOpenedSetupRef makes this fire once: if the
+  // user dismisses the dialog, they get the CTA back instead of being
+  // looped back into it.
+  useEffect(() => {
+    if (
+      isLoaded &&
+      isSignedIn &&
+      !isLoadingWallet &&
+      !hasWallet &&
+      !setupOpen &&
+      !autoOpenedSetupRef.current &&
+      mintStep === "ready"
+    ) {
+      autoOpenedSetupRef.current = true;
+      setSetupOpen(true);
+    }
+  }, [isLoaded, isSignedIn, isLoadingWallet, hasWallet, setupOpen, mintStep]);
+
   const handleMintCta = () => {
     if (!hasWallet) {
       setSetupOpen(true);
       return;
     }
+    // Returning passkey users: tap CTA → Face ID immediately. PIN users
+    // still need to type, so we drop into the enter-pin UI.
+    if (authMethod === "passkey" && passkeySupported) {
+      handleClaimWithPasskey();
+      return;
+    }
     setMintStep("enter-pin");
   };
 
-  const handleSetupDone = () => {
+  // The setup dialog hands back the encryption key it just created the
+  // wallet with — reuse it to fire the mint immediately, no second prompt.
+  const handleSetupDone = (encryptKey: string) => {
     setSetupOpen(false);
-    setMintStep("enter-pin");
+    executeMint(encryptKey);
   };
 
   // ── Render ───────────────────────────────────────────────────────────────────

@@ -71,7 +71,12 @@ const COPY: Record<Locale, {
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess?: () => void;
+  /**
+   * Fires after the wallet is fully created. Receives the encryption key
+   * (PIN string or PRF-derived passkey key) so the caller can chain the
+   * next operation — e.g. minting immediately without prompting again.
+   */
+  onSuccess?: (encryptKey: string) => void;
   locale?: Locale;
 }
 
@@ -115,8 +120,14 @@ export function WalletSetupChoiceDialog({ open, onOpenChange, onSuccess, locale 
     if (result.error) throw new Error(result.error);
     await user?.reload();
     await session?.touch();
-    setView("done");
-    onSuccess?.();
+    // If a caller is wired to chain the next operation (e.g. mint), hand
+    // the encryption key over and let it transition — the brief "done"
+    // success view would otherwise flash before the parent closes us.
+    if (onSuccess) {
+      onSuccess(encryptKey);
+    } else {
+      setView("done");
+    }
   };
 
   const handlePasskey = async () => {
