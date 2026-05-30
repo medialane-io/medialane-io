@@ -35,9 +35,14 @@ function parseSpotifyEmbed(url: string): string | null {
   try {
     const u = new URL(url);
     if (!u.hostname.includes("spotify.com")) return null;
-    // /track/id → /embed/track/id
-    const path = u.pathname.replace(/^\//, "embed/");
-    return `https://open.spotify.com/${path}`;
+    // Spotify's embed endpoint only accepts /embed/{type}/{id}. Isolate the
+    // resource type + id so locale prefixes (e.g. /intl-pt) and trailing query
+    // params don't leak through — `/embed/intl-pt/album/…` 404s on Spotify.
+    const match = u.pathname.match(
+      /(track|album|playlist|episode|show|artist)\/([A-Za-z0-9]+)/
+    );
+    if (!match) return null;
+    return `https://open.spotify.com/embed/${match[1]}/${match[2]}`;
   } catch {
     return null;
   }
