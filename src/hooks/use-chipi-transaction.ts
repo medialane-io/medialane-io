@@ -61,6 +61,16 @@ function toFriendlyExecutionError(err: unknown): {
   isSessionMismatch: boolean;
 } {
   const raw = err instanceof Error ? err.message : "Transaction failed";
+  // Chipi's decryptPrivateKey throws this exact string when the PIN doesn't
+  // match the encrypted key. It surfaces before our own `if (!privateKey)`
+  // guard runs, so we humanise it here for every flow that uses
+  // executeTransaction (collection create, listing, offer, mint, drop claim).
+  if (/Decryption resulted in empty string/i.test(raw)) {
+    return {
+      message: "Wrong PIN — that's not the code you set when you created your wallet. Try again.",
+      isSessionMismatch: false,
+    };
+  }
   if (
     /prepare.{0,3}typed.{0,3}data/i.test(raw) &&
     /TRANSACTION_EXECUTION_ERROR|Paymaster\s+error/i.test(raw)
