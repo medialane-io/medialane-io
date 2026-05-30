@@ -27,7 +27,7 @@ import {
 import { FloatingCommentsButton } from "@/components/asset/floating-comments-button";
 import { LICENSE_TRAIT_TYPES } from "@/types/ip";
 import type { IPType } from "@/types/ip";
-import { IP_TEMPLATES } from "@/lib/ip-templates";
+import { IP_TEMPLATES, EMBED_PLATFORM_META, SOCIAL_PLATFORM_META } from "@/lib/ip-templates";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import type { ApiActivity, ApiOrder } from "@medialane/sdk";
@@ -136,16 +136,16 @@ export function AssetPageEdition() {
   const activeTemplate = IP_TEMPLATES[
     (attributes.find((a) => a.trait_type?.toLowerCase() === "ip type")?.value ?? "") as IPType
   ];
-  const activeTemplateKeys = new Set<string>([
-    "IP Type",
-    ...(activeTemplate?.fields.map((f) => f.key) ?? []),
-  ]);
-  const hasTemplateData =
-    !!activeTemplate &&
-    activeTemplate.fields.length > 0 &&
-    activeTemplate.fields.some((f) =>
-      attributes.some((a) => a.trait_type === f.key && a.value)
-    );
+  const activeTemplateEmbedSocialKeys = activeTemplate
+    ? [
+        ...(activeTemplate.embeds ?? []).map((p) => EMBED_PLATFORM_META[p].traitKey),
+        ...(activeTemplate.socials ?? []).map((p) => SOCIAL_PLATFORM_META[p].traitKey),
+      ]
+    : [];
+  const activeTemplateKeys = new Set<string>(["IP Type", ...activeTemplateEmbedSocialKeys]);
+  const hasTemplateData = activeTemplateEmbedSocialKeys.some((k) =>
+    attributes.some((a) => a.trait_type === k && a.value)
+  );
 
   const isDisplayAttr = (a: { trait_type?: string }): boolean =>
     !LICENSE_TRAIT_TYPES.has(a.trait_type ?? "") && !activeTemplateKeys.has(a.trait_type ?? "");
