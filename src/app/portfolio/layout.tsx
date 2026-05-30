@@ -62,12 +62,14 @@ export default function PortfolioLayout({ children }: { children: React.ReactNod
   ).length;
 
   const activeListingsCount = orders.filter(
-    (o) => o.offer.itemType === "ERC721" && o.status === "ACTIVE"
+    (o) =>
+      (o.offer.itemType === "ERC721" || o.offer.itemType === "ERC1155") &&
+      o.status === "ACTIVE"
   ).length;
 
-  const pendingRemixCount = remixOffers.filter(
-    (o) => o.status === "PENDING" || o.status === "AUTO_PENDING"
-  ).length;
+  const pendingRemixCount = Array.isArray(remixOffers)
+    ? remixOffers.filter((o) => o.status === "PENDING" || o.status === "AUTO_PENDING").length
+    : 0;
 
   // Bids the user made that a seller has countered — buyer needs to respond.
   // Backend-derived flag (SDK 0.22.0+); was `status === "COUNTER_OFFERED"`
