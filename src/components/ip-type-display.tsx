@@ -1,7 +1,12 @@
 "use client";
 
 import type { IPType } from "@/types/ip";
-import { IP_TEMPLATES, type EmbedType } from "@/lib/ip-templates";
+import {
+  IP_TEMPLATES,
+  EMBED_PLATFORM_META,
+  SOCIAL_PLATFORM_META,
+  type EmbedPlatform,
+} from "@/lib/ip-templates";
 import { ExternalLink } from "lucide-react";
 
 interface Attr {
@@ -71,63 +76,85 @@ function parseTikTokEmbed(url: string): string | null {
   }
 }
 
-function getEmbedSrc(embedType: EmbedType, value: string): string | null {
-  switch (embedType) {
+function parseVimeoEmbed(url: string): string | null {
+  try {
+    const u = new URL(url);
+    if (!u.hostname.includes("vimeo.com")) return null;
+    const match = u.pathname.match(/(\d+)/);
+    if (!match) return null;
+    return `https://player.vimeo.com/video/${match[1]}`;
+  } catch {
+    return null;
+  }
+}
+
+function getEmbedSrc(platform: EmbedPlatform, value: string): string | null {
+  switch (platform) {
     case "youtube":    return parseYouTubeEmbed(value);
     case "spotify":    return parseSpotifyEmbed(value);
     case "soundcloud": return parseSoundCloudEmbed(value);
     case "tiktok":     return parseTikTokEmbed(value);
+    case "vimeo":      return parseVimeoEmbed(value);
   }
 }
+
+// Compact iframe (fixed height) vs 16:9 video frame.
+const COMPACT: Record<EmbedPlatform, boolean> = {
+  spotify: true,
+  soundcloud: true,
+  youtube: false,
+  tiktok: false,
+  vimeo: false,
+};
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function IPTypeDisplay({ attributes }: IPTypeDisplayProps) {
   const attrs = attributes ?? [];
 
-  // Find ipType from attributes
   const ipType = attrs.find(
     (a) => a.trait_type?.toLowerCase() === "ip type"
   )?.value as IPType | undefined;
-
   if (!ipType) return null;
 
   const template = IP_TEMPLATES[ipType];
-  if (!template || template.fields.length === 0) return null;
+  if (!template) return null;
 
-  // Map template fields to attribute values
-  const fieldValues = template.fields.map((field) => {
-    const attr = attrs.find((a) => a.trait_type === field.key);
-    return { field, value: attr?.value ?? null };
-  }).filter(({ value }) => value !== null && value !== "");
+  const getAttr = (key: string) =>
+    attrs.find((a) => a.trait_type === key)?.value ?? null;
 
-  if (fieldValues.length === 0) return null;
+  const embeds = (template.embeds ?? []).flatMap((platform) => {
+    const meta = EMBED_PLATFORM_META[platform];
+    const value = getAttr(meta.traitKey);
+    return value ? [{ platform, meta, value }] : [];
+  });
 
-  // Separate embed fields from plain metadata fields
-  const embedFields = fieldValues.filter(({ field }) => field.embed);
-  const metaFields  = fieldValues.filter(({ field }) => !field.embed);
+  const socials = (template.socials ?? []).flatMap((platform) => {
+    const meta = SOCIAL_PLATFORM_META[platform];
+    const value = getAttr(meta.traitKey);
+    return value ? [{ platform, meta, value }] : [];
+  });
+
+  if (embeds.length === 0 && socials.length === 0) return null;
 
   return (
     <div className="space-y-5">
-      {/* Embed block — rendered first if any embed URL exists */}
-      {embedFields.map(({ field, value }) => {
-        if (!field.embed || !value) return null;
-        const src = getEmbedSrc(field.embed, value);
+      {embeds.map(({ platform, meta, value }) => {
+        const src = getEmbedSrc(platform, value);
         if (src) {
-          const isCompact = field.embed === "soundcloud" || field.embed === "spotify";
           return (
-            <div key={field.key} className="space-y-1.5">
+            <div key={platform} className="space-y-1.5">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                {field.label}
+                {meta.label}
               </p>
-              {isCompact ? (
+              {COMPACT[platform] ? (
                 <iframe
                   src={src}
                   className="w-full rounded-xl border-0"
                   height={166}
                   allow="autoplay"
                   loading="lazy"
-                  title={field.label}
+                  title={meta.label}
                 />
               ) : (
                 <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-muted/20">
@@ -137,7 +164,7 @@ export function IPTypeDisplay({ attributes }: IPTypeDisplayProps) {
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                     loading="lazy"
-                    title={field.label}
+                    title={meta.label}
                   />
                 </div>
               )}
@@ -146,9 +173,9 @@ export function IPTypeDisplay({ attributes }: IPTypeDisplayProps) {
         }
         // Fallback: plain external link if URL parsing failed
         return (
-          <div key={field.key}>
+          <div key={platform}>
             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-              {field.label}
+              {meta.label}
             </p>
             <a
               href={value}
@@ -163,26 +190,27 @@ export function IPTypeDisplay({ attributes }: IPTypeDisplayProps) {
         );
       })}
 
-      {/* Metadata rows */}
-      {metaFields.length > 0 && (
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-            {template.label} Metadata
+      {socials.length > 0 && (
+        <div className="space-y-1.5">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Links
           </p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {metaFields.map(({ field, value }) => (
-              <div
-                key={field.key}
-                className="rounded-lg border border-border bg-muted/20 p-3 text-center overflow-hidden"
-              >
-                <p className="text-[10px] uppercase tracking-wider text-muted-foreground truncate">
-                  {field.label}
-                </p>
-                <p className="text-sm font-semibold mt-0.5 truncate" title={value ?? ""}>
-                  {value}
-                </p>
-              </div>
-            ))}
+          <div className="flex flex-wrap gap-2">
+            {socials.map(({ platform, meta, value }) => {
+              const SIcon = meta.icon;
+              return (
+                <a
+                  key={platform}
+                  href={value}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/30 px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+                >
+                  <SIcon className="h-3.5 w-3.5" />
+                  {meta.label}
+                </a>
+              );
+            })}
           </div>
         </div>
       )}
