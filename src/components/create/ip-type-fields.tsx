@@ -102,11 +102,10 @@ export function IPTypeFields({ ipType, onChange }: IPTypeFieldsProps) {
   const Icon = template.icon;
 
   return (
-    <div className="space-y-5 rounded-xl border border-border p-4 sm:p-5">
+    <div className="space-y-5">
       <div className="flex items-center gap-2">
         <Icon className={`h-4 w-4 ${template.color.text}`} />
         <p className="text-sm font-semibold">{template.label} Details</p>
-        <span className="ml-auto text-xs text-muted-foreground">Optional · Embedded in metadata</span>
       </div>
 
       {/* ── Embeds (inline players) ─────────────────────────────── */}
@@ -176,12 +175,7 @@ export function IPTypeFields({ ipType, onChange }: IPTypeFieldsProps) {
 
       {/* ── Traits ───────────────────────────────────────────────── */}
       <section className="space-y-3 border-t border-border/60 pt-4">
-        <div>
-          <p className="text-sm font-semibold">Traits</p>
-          <p className="text-xs text-muted-foreground">
-            Add descriptive trait pairs — used across your profile and for discovery filters.
-          </p>
-        </div>
+        <p className="text-sm font-semibold">Traits</p>
 
         {/* Suggestion chips */}
         {template.traitSuggestions && template.traitSuggestions.length > 0 && (
@@ -208,40 +202,38 @@ export function IPTypeFields({ ipType, onChange }: IPTypeFieldsProps) {
             {traits.map((row) => (
               <div
                 key={row.id}
-                className="flex items-start gap-2 rounded-lg border border-border/60 p-2.5"
+                className="grid grid-cols-[1fr_1fr_auto] items-center gap-2"
               >
-                <div className="flex-1 space-y-2">
+                <Input
+                  value={row.key}
+                  onChange={(e) => updateTrait(row.id, { key: e.target.value })}
+                  placeholder="Trait name"
+                  className="h-9 text-sm"
+                  maxLength={64}
+                />
+                {row.options ? (
+                  <Select
+                    value={row.value}
+                    onValueChange={(v) => updateTrait(row.id, { value: v })}
+                  >
+                    <SelectTrigger className="h-9 text-sm">
+                      <SelectValue placeholder="Value" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {row.options.map((opt) => (
+                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
                   <Input
-                    value={row.key}
-                    onChange={(e) => updateTrait(row.id, { key: e.target.value })}
-                    placeholder="Trait name"
+                    value={row.value}
+                    onChange={(e) => updateTrait(row.id, { value: e.target.value })}
+                    placeholder="Value"
                     className="h-9 text-sm"
-                    maxLength={64}
+                    maxLength={512}
                   />
-                  {row.options ? (
-                    <Select
-                      value={row.value}
-                      onValueChange={(v) => updateTrait(row.id, { value: v })}
-                    >
-                      <SelectTrigger className="h-9 text-sm">
-                        <SelectValue placeholder="Select value" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {row.options.map((opt) => (
-                          <SelectItem key={opt} value={opt}>{opt}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <Input
-                      value={row.value}
-                      onChange={(e) => updateTrait(row.id, { value: e.target.value })}
-                      placeholder="Value"
-                      className="h-9 text-sm"
-                      maxLength={512}
-                    />
-                  )}
-                </div>
+                )}
                 <Button
                   type="button"
                   variant="ghost"
