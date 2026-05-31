@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useAuth, useUser, useClerk, SignUpButton } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useChipiWallet, isWebAuthnSupported, createWalletPasskey } from "@chipi-stack/nextjs";
@@ -214,6 +215,9 @@ type MintStep = "ready" | "enter-pin" | "minting" | "success" | "error";
 
 export function GenesisMint() {
   const { isSignedIn, isLoaded, user } = useUser();
+  // Shared by /mint and /airdrop — redirect sign-ups back to the route the
+  // user actually started on (was hardcoded to /mint, bouncing /airdrop users).
+  const pathname = usePathname();
   const { walletAddress, hasWallet, isLoadingWallet } = useSessionKey();
   const { executeTransaction, status, error: txError, reset } = useChipiTransaction();
 
@@ -360,7 +364,7 @@ export function GenesisMint() {
   if (!isSignedIn) {
     return (
       <div className="space-y-3">
-        <SignUpButton mode="modal" forceRedirectUrl="/mint">
+        <SignUpButton mode="modal" forceRedirectUrl={pathname ?? "/mint"}>
           <div className="btn-border-animated p-[1px] rounded-2xl cursor-pointer">
             <Button
               size="lg"
