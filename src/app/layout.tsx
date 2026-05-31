@@ -86,7 +86,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <ClerkProvider
       publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!}
       afterSignOutUrl="/"
-      signUpForceRedirectUrl="/onboarding"
+      // FALLBACK (not FORCE): only applies when a sign-up has no explicit
+      // redirect. Campaign buttons (/br/mint, /mint, /airdrop) set their own
+      // component-level forceRedirectUrl and MUST win — a global *force* here
+      // overrides them and bounces ad sign-ups off the campaign route (the
+      // af3bba6 regression). Do not change back to signUpForceRedirectUrl.
+      signUpFallbackRedirectUrl="/onboarding"
       localization={isBrLocale ? ptBR : undefined}
     >
       <ChipiProvider>
