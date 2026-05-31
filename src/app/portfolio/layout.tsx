@@ -15,9 +15,13 @@ import { useSessionKey } from "@/hooks/use-session-key";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { HelpIcon } from "@/components/ui/help-icon";
-import { cn } from "@/lib/utils";
+import {
+  PortfolioSubnav,
+  derivePortfolioCounts,
+  type PortfolioNavGroup,
+} from "@medialane/ui";
 
-const NAV_GROUPS = [
+const NAV_GROUPS: PortfolioNavGroup[] = [
   {
     label: "My Items",
     items: [
@@ -29,10 +33,10 @@ const NAV_GROUPS = [
     label: "Trading",
     items: [
       { label: "Listings",          href: "/portfolio/listings" },
-      { label: "Offers received",   href: "/portfolio/received", badge: "offers" as const },
+      { label: "Offers received",   href: "/portfolio/received", badge: { key: "offers", variant: "destructive" } },
       { label: "Offers sent",       href: "/portfolio/offers" },
-      { label: "Counter-offers",    href: "/portfolio/counter-offers", badge: "counters" as const },
-      { label: "Remixes",           href: "/portfolio/remix-offers", badge: "remixes" as const },
+      { label: "Counter-offers",    href: "/portfolio/counter-offers", badge: { key: "counters", variant: "warning" } },
+      { label: "Remixes",           href: "/portfolio/remix-offers", badge: { key: "remixes", variant: "primary" } },
     ],
   },
   {
@@ -54,30 +58,7 @@ export default function PortfolioLayout({ children }: { children: React.ReactNod
   const { meta: tokenMeta } = useTokensByOwner(address ?? null, 1);
   const { offers: remixOffers } = useRemixOffers("creator");
 
-  const receivedCount = orders.filter(
-    (o) =>
-      o.status === "ACTIVE" &&
-      o.offer.itemType === "ERC20" &&
-      o.offerer.toLowerCase() !== (address ?? "").toLowerCase()
-  ).length;
-
-  const activeListingsCount = orders.filter(
-    (o) => o.offer.itemType === "ERC721" && o.status === "ACTIVE"
-  ).length;
-
-  const pendingRemixCount = remixOffers.filter(
-    (o) => o.status === "PENDING" || o.status === "AUTO_PENDING"
-  ).length;
-
-  // Bids the user made that a seller has countered — buyer needs to respond.
-  // Backend-derived flag (SDK 0.22.0+); was `status === "COUNTER_OFFERED"`
-  // until the audit P0-1 migration. Parent bid keeps `status: ACTIVE`.
-  const pendingCounterCount = orders.filter(
-    (o) =>
-      o.offer.itemType === "ERC20" &&
-      o.offerer.toLowerCase() === (address ?? "").toLowerCase() &&
-      o.hasActiveCounterOffer === true
-  ).length;
+  const counts = derivePortfolioCounts(orders, remixOffers, address);
 
   const totalAssetsCount = tokenMeta?.total ?? null;
 
@@ -172,12 +153,12 @@ export default function PortfolioLayout({ children }: { children: React.ReactNod
             <span className="bg-muted rounded-full px-3 py-1 w-20 h-6 animate-pulse inline-block" />
           )}
           <span className="flex items-center gap-1 bg-muted rounded-full px-3 py-1 text-sm font-medium text-muted-foreground">
-            {activeListingsCount} Listings
+            {counts.listings} Listings
             <HelpIcon content="Your active marketplace listings — assets currently for sale" side="bottom" />
           </span>
-          {receivedCount > 0 && (
+          {counts.received > 0 && (
             <span className="flex items-center gap-1 bg-primary/10 text-primary rounded-full px-3 py-1 text-sm font-medium">
-              {receivedCount} Offers received
+              {counts.received} Offers received
               <HelpIcon content="Buyers have made offers on your assets — go to Offers received to accept, counter, or decline" side="bottom" />
             </span>
           )}
@@ -185,49 +166,15 @@ export default function PortfolioLayout({ children }: { children: React.ReactNod
       </div>
 
       {/* Subnav */}
-      <nav className="overflow-x-auto scrollbar-hide -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 border-b border-border/60">
-        <div className="flex items-center min-w-max gap-0">
-          {NAV_GROUPS.map((group, groupIndex) => (
-            <div key={group.label} className="flex items-center">
-              {group.items.map((item) => {
-                const active = pathname === item.href || pathname.startsWith(item.href + "/");
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      "relative flex items-center gap-1.5 px-3 py-2.5 text-sm whitespace-nowrap transition-colors shrink-0 border-b-2 min-h-10",
-                      active
-                        ? "border-primary text-foreground font-medium"
-                        : "border-transparent text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    {item.label}
-                    {item.badge === "offers" && receivedCount > 0 && (
-                      <span className="h-4 min-w-4 rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground flex items-center justify-center px-1">
-                        {receivedCount}
-                      </span>
-                    )}
-                    {item.badge === "remixes" && pendingRemixCount > 0 && (
-                      <span className="h-4 min-w-4 rounded-full bg-primary text-[10px] font-bold text-primary-foreground flex items-center justify-center px-1">
-                        {pendingRemixCount}
-                      </span>
-                    )}
-                    {item.badge === "counters" && pendingCounterCount > 0 && (
-                      <span className="h-4 min-w-4 rounded-full bg-amber-500 text-[10px] font-bold text-white flex items-center justify-center px-1">
-                        {pendingCounterCount}
-                      </span>
-                    )}
-                  </Link>
-                );
-              })}
-              {groupIndex < NAV_GROUPS.length - 1 && (
-                <span className="w-px h-4 bg-border/40 mx-1 self-center shrink-0" />
-              )}
-            </div>
-          ))}
-        </div>
-      </nav>
+      <PortfolioSubnav
+        groups={NAV_GROUPS}
+        pathname={pathname}
+        badgeCounts={{
+          offers: counts.received,
+          remixes: counts.remix,
+          counters: counts.counter,
+        }}
+      />
 
       {/* Page content */}
       {children}
