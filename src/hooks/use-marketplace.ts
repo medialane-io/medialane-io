@@ -23,6 +23,7 @@ import { getMarketplaceContractForStandard } from "@/lib/protocol/contracts";
 import { isErc1155Standard } from "@/lib/protocol/token-standard";
 import { QUERY_PREFIX, queryKeys } from "@/lib/query-keys";
 import type { ChipiCall } from "./use-chipi-transaction";
+import type { ApiIntentCreated } from "@medialane/sdk";
 
 /** Resolve a currency symbol (e.g. "USDC") to its on-chain contract address.
  *  Returns the input unchanged if it already looks like an address. */
@@ -232,39 +233,35 @@ export function useMarketplace() {
   const runIntent = useCallback(
     async (
       pin: string,
-      intentFn: () => Promise<{ data: { id: string; typedData: unknown; calls: unknown } }>,
+      intentFn: () => Promise<{ data: ApiIntentCreated }>,
       marketplaceContract?: string
     ): Promise<string | undefined> => {
       if (!walletAddress) throw new Error("Wallet not ready. Please wait a moment.");
 
-      const intentRes = await intentFn();
-      const { id, typedData, calls: prebuiltCalls } = intentRes.data ?? {};
-      if (!id) throw new Error("Intent creation failed: no data returned");
+      const intent = (await intentFn()).data;
+      if (!intent?.id) throw new Error("Intent creation failed: no data returned");
 
-      // Two intent shapes since the 0.26.0 cutover:
-      //  • Signed (listing / offer / cancel): backend returns `typedData` to sign;
-      //    the populated calls come back from submitIntentSignature.
-      //  • Unsigned (fulfil): the caller IS the fulfiller, so there is no SNIP-12
-      //    signature — the backend returns fully-populated `calls` up front and no
-      //    typedData. Execute them directly (still PIN-gated via execWithPin).
-      const isSigned =
-        typedData != null && Object.keys(typedData as Record<string, unknown>).length > 0;
-
+      // Resolve the executable calls — the only part that differs by intent kind.
+      // The SDK's discriminated union enforces the right field per branch:
+      //  • requiresSignature → sign the SNIP-12 typedData, then the backend injects
+      //    the signature and returns the executable calls (listing/offer/cancel/counter).
+      //  • else → calls are prebuilt server-side (fulfil/mint/create-collection);
+      //    the caller IS the fulfiller, so there is no signature step.
       let calls: ChipiCall[];
-      if (isSigned) {
+      if (intent.requiresSignature) {
         // Sanitize typed data: replace any bare currency symbols (e.g. "USDC")
         // with their contract addresses so starknet.js can convert them to BigInt.
-        const sanitized = sanitizeTypedData(typedData);
+        const sanitized = sanitizeTypedData(intent.typedData);
         const sig = await signTypedData(sanitized, pin);
-        const signedRes = await client.api.submitIntentSignature(id, sig);
+        const signedRes = await client.api.submitIntentSignature(intent.id, sig);
         calls = signedRes.data.calls as ChipiCall[];
       } else {
-        calls = prebuiltCalls as ChipiCall[];
+        calls = intent.calls as unknown as ChipiCall[];
       }
       if (!calls?.length) throw new Error("No calls returned from intent");
 
+      // Execute + confirm — identical tail for every intent kind.
       const result = await execWithPin(pin, calls);
-
       if (result.status === "reverted") {
         throw new Error(result.revertReason || "Transaction reverted on chain");
       }
@@ -273,10 +270,10 @@ export function useMarketplace() {
       const normalizedHash = "0x" + result.txHash.replace(/^0x/, "").padStart(64, "0");
 
       // Submit tx hash to backend — verifies receipt + marketplace events server-side
-      await client.api.confirmIntent(id, normalizedHash);
+      await client.api.confirmIntent(intent.id, normalizedHash);
 
       // Poll until backend reports terminal status (CONFIRMED or FAILED)
-      const terminal = await pollIntentUntilTerminal(id);
+      const terminal = await pollIntentUntilTerminal(intent.id);
 
       if (terminal.status === "FAILED") {
         throw new Error(
