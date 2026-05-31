@@ -217,7 +217,10 @@ export default function CreateCollectionPage() {
         baseUri,
       });
 
-      const calls = intentRes.data.calls as ChipiCall[];
+      const intent = intentRes.data;
+      // create-collection is always an unsigned (prebuilt-calls) intent.
+      if (intent.requiresSignature) throw new Error("Unexpected signed intent for create-collection");
+      const calls = intent.calls as unknown as ChipiCall[];
       if (!calls || calls.length === 0) throw new Error("No calls returned from intent");
 
       // 2. Execute the pre-signed calls via ChipiPay (gasless)

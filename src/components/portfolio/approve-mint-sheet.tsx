@@ -166,7 +166,10 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
           recipient: walletAddress,
           tokenUri: pinData.uri,
         });
-        const mintCalls = intentRes.data?.calls as ChipiCall[];
+        const mintIntent = intentRes.data;
+        // mint is always an unsigned (prebuilt-calls) intent.
+        if (mintIntent.requiresSignature) throw new Error("Unexpected signed mint intent");
+        const mintCalls = mintIntent.calls as unknown as ChipiCall[];
         if (!mintCalls?.length) throw new Error("No mint calls returned");
 
         const mintResult = await executeTransaction({

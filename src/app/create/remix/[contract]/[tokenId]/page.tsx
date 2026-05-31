@@ -317,7 +317,10 @@ export default function CreateRemixPage() {
           recipient: walletAddress,
           tokenUri,
         });
-        const calls = intentRes.data?.calls as ChipiCall[];
+        const mintIntent = intentRes.data;
+        // mint is always an unsigned (prebuilt-calls) intent.
+        if (mintIntent.requiresSignature) throw new Error("Unexpected signed mint intent");
+        const calls = mintIntent.calls as unknown as ChipiCall[];
         if (!calls?.length) throw new Error("No calls returned from mint intent");
 
         const result = await executeTransaction({ pin, calls });
