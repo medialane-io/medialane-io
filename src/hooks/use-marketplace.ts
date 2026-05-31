@@ -238,17 +238,29 @@ export function useMarketplace() {
       if (!walletAddress) throw new Error("Wallet not ready. Please wait a moment.");
 
       const intentRes = await intentFn();
-      const { id, typedData } = intentRes.data ?? {};
-      if (!id || !typedData) throw new Error("Intent creation failed: no data returned");
+      const { id, typedData, calls: prebuiltCalls } = intentRes.data ?? {};
+      if (!id) throw new Error("Intent creation failed: no data returned");
 
-      // Sanitize typed data: replace any bare currency symbols (e.g. "USDC")
-      // with their contract addresses so starknet.js can convert them to BigInt.
-      const sanitized = sanitizeTypedData(typedData);
+      // Two intent shapes since the 0.26.0 cutover:
+      //  • Signed (listing / offer / cancel): backend returns `typedData` to sign;
+      //    the populated calls come back from submitIntentSignature.
+      //  • Unsigned (fulfil): the caller IS the fulfiller, so there is no SNIP-12
+      //    signature — the backend returns fully-populated `calls` up front and no
+      //    typedData. Execute them directly (still PIN-gated via execWithPin).
+      const isSigned =
+        typedData != null && Object.keys(typedData as Record<string, unknown>).length > 0;
 
-      const sig = await signTypedData(sanitized, pin);
-
-      const signedRes = await client.api.submitIntentSignature(id, sig);
-      const calls = signedRes.data.calls as ChipiCall[];
+      let calls: ChipiCall[];
+      if (isSigned) {
+        // Sanitize typed data: replace any bare currency symbols (e.g. "USDC")
+        // with their contract addresses so starknet.js can convert them to BigInt.
+        const sanitized = sanitizeTypedData(typedData);
+        const sig = await signTypedData(sanitized, pin);
+        const signedRes = await client.api.submitIntentSignature(id, sig);
+        calls = signedRes.data.calls as ChipiCall[];
+      } else {
+        calls = prebuiltCalls as ChipiCall[];
+      }
       if (!calls?.length) throw new Error("No calls returned from intent");
 
       const result = await execWithPin(pin, calls);
