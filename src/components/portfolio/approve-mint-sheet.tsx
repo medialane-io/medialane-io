@@ -255,7 +255,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
           {/* Header */}
           <div className="flex items-center gap-2 pr-10 pl-5 py-4 border-b border-border/60">
             <GitBranch className="h-4 w-4 text-primary shrink-0" />
-            <DialogTitle className="text-base font-bold">Approve Remix</DialogTitle>
+            <DialogTitle className="text-base font-bold">Grant license &amp; mint</DialogTitle>
           </div>
 
           {/* Body */}
@@ -265,7 +265,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
                 <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
                   <Check className="h-8 w-8 text-primary" />
                 </div>
-                <p className="text-lg font-semibold">Remix minted!</p>
+                <p className="text-lg font-semibold">License granted — derivative minted</p>
                 <p className="text-sm text-muted-foreground">The buyer will see &quot;Complete Purchase&quot; in their portfolio.</p>
                 {newAssetLink && (
                   <Button variant="outline" size="sm" asChild>
@@ -348,7 +348,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
                 disabled={loading || eligibleCollections.length === 0}
               >
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <GitBranch className="h-4 w-4" />}
-                Mint & List for Buyer
+                Grant license & mint
               </button>
               <p className="text-[10px] text-center text-muted-foreground">Two ChipiPay operations (mint + listing). Gas is free.</p>
             </div>
@@ -361,7 +361,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
         open={pinOpen}
         onSubmit={handlePin}
         onCancel={() => setPinOpen(false)}
-        title="Confirm remix mint"
+        title="Confirm licensed mint"
         description="Enter your PIN to mint the remix and create the listing."
       />
     </>
