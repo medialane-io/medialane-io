@@ -128,7 +128,7 @@ export function AssetPageStandard() {
   });
 
   const goToRemix = () => router.push(`/create/remix/${contract}/${tokenId}`);
-  const goToDeal = () => router.push(`/create/remix/${contract}/${tokenId}?mode=deal`);
+  const goToDeal = () => router.push(`/create/licensing/${contract}/${tokenId}`);
 
   if (isLoading) {
     return (
