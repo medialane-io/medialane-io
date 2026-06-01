@@ -532,16 +532,16 @@ export default function CreateRemixPage() {
           <div className="flex items-center gap-2 text-primary">
             <GitBranch className="h-5 w-5" />
             <span className="text-sm font-semibold uppercase tracking-wider">
-              {isCreate ? "Create Remix" : "Propose Remix"}
+              {isCreate ? "Create Remix" : "Request a license"}
             </span>
           </div>
           <h1 className="text-3xl font-bold">
-            {isCreate ? "Mint a Remix" : "Send a Remix Offer"}
+            {isCreate ? "Mint a Remix" : "Request a license"}
           </h1>
           <p className="text-muted-foreground max-w-xl">
             {isCreate
               ? "Mint a derivative work based on your original asset. The parent attribution will be embedded in the IPFS metadata."
-              : "Propose remix terms and a license fee to the creator. If accepted, they'll mint and list it for you to purchase."
+              : "Propose license terms and a fee to the creator. If they accept, the licensed derivative is minted and listed for you."
             }
           </p>
         </div>
@@ -737,7 +737,7 @@ export default function CreateRemixPage() {
 
             {/* Price */}
             <Section
-              title={isCreate ? "List for Sale (optional)" : "License Fee Offer"}
+              title={isCreate ? "List for Sale (optional)" : "License fee"}
               icon={<DollarSign className="h-4 w-4" />}
             >
               {!isCreate && (
@@ -831,7 +831,7 @@ export default function CreateRemixPage() {
                     ) : (
                       <GitBranch className="h-5 w-5" />
                     )}
-                    {isCreate ? "Mint Remix" : "Send Remix Offer"}
+                    {isCreate ? "Mint Remix" : "Send license request"}
                   </button>
                 </div>
               </>
