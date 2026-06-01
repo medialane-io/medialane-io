@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@clerk/nextjs";
@@ -25,25 +25,21 @@ import {
 import {
   Collapsible, CollapsibleContent, CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { submitRemixOffer, registerRemix } from "@/hooks/use-remix-offers";
-import { useMarketplace } from "@/hooks/use-marketplace";
+import { registerRemix } from "@/hooks/use-remix-offers";
 import { serializeByteArray, encodeU256 } from "@/lib/cairo-calldata";
-import { getListableTokens, getTokenBySymbol, getService } from "@medialane/sdk";
+import { getService } from "@medialane/sdk";
 import { IP_TYPES, LICENSE_TYPES, type IPType } from "@/types/ip";
-import { ipfsToHttp, formatDisplayPrice, checkIsOwner } from "@/lib/utils";
+import { ipfsToHttp, checkIsOwner } from "@/lib/utils";
 import { resolveRemixPolicy, getDerivativesTerm } from "@/lib/remix-policy";
 import { ToggleGroup, Section } from "@/components/create/create-form-primitives";
 import { INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import {
   GitBranch, ChevronDown, ChevronLeft, ImagePlus, Upload,
-  Shield, DollarSign, Percent, Boxes, Plus, Info, Loader2, HandCoins, AlertCircle,
+  Shield, Percent, Boxes, Plus, Info,
 } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import type { ChipiCall } from "@/hooks/use-chipi-transaction";
-
-const TOKENS = getListableTokens();
 
 // ── Main Page ────────────────────────────────────────────────────────────────
 
@@ -53,7 +49,6 @@ export default function CreateRemixPage() {
   const { getToken } = useAuth();
   const { walletAddress } = useSessionKey();
   const { executeTransaction, status: txStatus } = useChipiTransaction();
-  const { createListing } = useMarketplace();
   const client = useMedialaneClient();
   const { token, isLoading: tokenLoading } = useToken(contract, tokenId);
   const { collection: parentCollection } = useCollection(contract);
@@ -83,19 +78,6 @@ export default function CreateRemixPage() {
     viewerIsParentOwner: viewerIsOwner,
     dealAvailable: !!getService(parentCollection?.service),
   });
-  const requestedMode = useSearchParams().get("mode");
-  // "create" = permissionless self-mint; "deal" = optional licensing offer;
-  // "blocked" = no-derivatives asset with no reachable owner to ask.
-  const mode: "create" | "deal" | "blocked" =
-    requestedMode === "deal" && remixPolicy.showDealOption
-      ? "deal"
-      : remixPolicy.canRemixDirect
-        ? "create"
-        : remixPolicy.showDealOption
-          ? "deal"
-          : "blocked";
-  const isCreate = mode === "create";
-
   // ── Form state ─────────────────────────────────────────────────────────────
 
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -109,15 +91,7 @@ export default function CreateRemixPage() {
   const [commercial, setCommercial] = useState(false);
   const [derivatives, setDerivatives] = useState(true);
   const [royalty, setRoyalty] = useState("");
-  const [price, setPrice] = useState("");
-  const [currency, setCurrency] = useState<string>(TOKENS[0]?.symbol ?? "STRK");
-  const [message, setMessage] = useState("");
   const [advancedOpen, setAdvancedOpen] = useState(false);
-
-  // Offer submit (non-owner)
-  const [offerLoading, setOfferLoading] = useState(false);
-  const [offerStep, setOfferStep] = useState<"idle" | "success" | "error">("idle");
-  const [offerError, setOfferError] = useState<string | null>(null);
 
   // Owner mint flow
   const [pinOpen, setPinOpen] = useState(false);
@@ -180,9 +154,7 @@ export default function CreateRemixPage() {
 
   const validate = (): string | null => {
     if (!name.trim()) return "Remix name is required";
-    if (isCreate && !collectionKey) return "Select a collection";
-    if (!isCreate && (!price || isNaN(parseFloat(price)) || parseFloat(price) <= 0))
-      return "Enter a valid price offer";
+    if (!collectionKey) return "Select a collection";
     return null;
   };
 
@@ -322,25 +294,7 @@ export default function CreateRemixPage() {
         remixTokenId = polledTokenId;
       }
 
-      // 3. Optional listing (if price was set)
-      const parsedPrice = parseFloat(price);
-      if (price && !isNaN(parsedPrice) && parsedPrice > 0) {
-        const tokenInfo = getTokenBySymbol(currency);
-        const decimals = tokenInfo?.decimals ?? 18;
-        const rawPrice = BigInt(Math.round(parsedPrice * 10 ** decimals)).toString();
-        await createListing({
-          assetContract: selectedCollection.contractAddress,
-          tokenId: remixTokenId,
-          price: rawPrice,
-          currencySymbol: currency,
-          durationSeconds: 30 * 24 * 60 * 60,
-          tokenStandard: standard === "ERC1155" ? "ERC1155" : undefined,
-          amount: standard === "ERC1155" ? "1" : undefined,
-          pin,
-        });
-      }
-
-      // 4. Confirm self-remix in backend
+      // 3. Record the remix (parent → child attribution link)
       const clerkToken = await getToken();
       if (!clerkToken) throw new Error("Not authenticated");
       await registerRemix(
@@ -364,50 +318,6 @@ export default function CreateRemixPage() {
     } catch (err: unknown) {
       setMintError(err instanceof Error ? err.message : "Something went wrong");
       setMintStep("error");
-    }
-  };
-
-  // ── Non-owner: offer submit ────────────────────────────────────────────────
-
-  const handleDealSubmit = async () => {
-    const err = validate();
-    if (err) {
-      setOfferError(err);
-      return;
-    }
-    const clerkToken = await getToken();
-    if (!clerkToken) {
-      setOfferError("Sign in required");
-      return;
-    }
-
-    setOfferLoading(true);
-    setOfferError(null);
-    try {
-      const tokenInfo = getTokenBySymbol(currency);
-      const decimals = tokenInfo?.decimals ?? 18;
-      const rawPrice = BigInt(Math.round(parseFloat(price) * 10 ** decimals)).toString();
-
-      await submitRemixOffer(
-        {
-          originalContract: contract,
-          originalTokenId: tokenId,
-          proposedPrice: rawPrice,
-          proposedCurrency: tokenInfo?.address ?? "",
-          licenseType,
-          commercial,
-          derivatives,
-          royaltyPct: royalty ? parseInt(royalty) : undefined,
-          message: message.trim() || undefined,
-        },
-        clerkToken
-      );
-      setOfferStep("success");
-    } catch (err: unknown) {
-      setOfferStep("error");
-      setOfferError(err instanceof Error ? err.message : "Failed to submit offer");
-    } finally {
-      setOfferLoading(false);
     }
   };
 
@@ -436,20 +346,12 @@ export default function CreateRemixPage() {
     );
   }
 
-  // No-derivatives asset with no reachable owner to ask: respect the creator's
-  // declaration at the app layer. Honest, never claims the protocol forbids it.
-  if (mode === "blocked") {
-    return (
-      <div className="container max-w-5xl mx-auto px-4 py-24 text-center space-y-4">
-        <p className="text-2xl font-bold">No-derivatives asset</p>
-        <p className="text-muted-foreground max-w-md mx-auto">
-          The creator marked this asset as no-derivatives.
-        </p>
-        <Button asChild variant="outline">
-          <Link href={`/asset/${contract}/${tokenId}`}>Back to asset</Link>
-        </Button>
-      </div>
-    );
+  // Remix is the permissionless self-mint only. A non-owner can't directly remix
+  // a `Derivatives: Not Allowed` asset — that path is licensing (/create/licensing),
+  // reached from the asset page. Guard direct navigation here.
+  if (!remixPolicy.canRemixDirect) {
+    router.replace(`/asset/${contract}/${tokenId}`);
+    return null;
   }
 
   return (
@@ -488,17 +390,12 @@ export default function CreateRemixPage() {
           <div className="flex items-center gap-2 text-primary">
             <GitBranch className="h-5 w-5" />
             <span className="text-sm font-semibold uppercase tracking-wider">
-              {isCreate ? "Create Remix" : "Request a license"}
+              Create Remix
             </span>
           </div>
-          <h1 className="text-3xl font-bold">
-            {isCreate ? "Mint a Remix" : "Request a license"}
-          </h1>
+          <h1 className="text-3xl font-bold">Mint a Remix</h1>
           <p className="text-muted-foreground max-w-xl">
-            {isCreate
-              ? "Mint a derivative work based on your original asset. The parent attribution will be embedded in the IPFS metadata."
-              : "Propose license terms and a fee to the creator. If they accept, the licensed derivative is minted and listed for you."
-            }
+            Mint a derivative work based on this asset. The parent attribution is embedded in the IPFS metadata.
           </p>
         </div>
 
@@ -574,9 +471,8 @@ export default function CreateRemixPage() {
               </div>
             </Section>
 
-            {/* Collection (owner only) */}
-            {isCreate && (
-              <Section title="Collection" icon={<Boxes className="h-4 w-4" />}>
+            {/* Collection */}
+            <Section title="Collection" icon={<Boxes className="h-4 w-4" />}>
                 {collectionsLoading ? (
                   <Skeleton className="h-10 w-full rounded-md" />
                 ) : eligibleCollections.length === 0 ? (
@@ -608,8 +504,7 @@ export default function CreateRemixPage() {
                     </SelectContent>
                   </Select>
                 )}
-              </Section>
-            )}
+            </Section>
 
             {/* IP Type */}
             <Section title="IP Type" icon={<Info className="h-4 w-4" />}>
@@ -691,113 +586,21 @@ export default function CreateRemixPage() {
               </Collapsible>
             </Section>
 
-            {/* Price */}
-            <Section
-              title={isCreate ? "List for Sale (optional)" : "License fee"}
-              icon={<DollarSign className="h-4 w-4" />}
-            >
-              {!isCreate && (
-                <p className="text-xs text-muted-foreground -mt-1">
-                  The amount you&apos;re offering to pay the creator for this remix license.
-                </p>
-              )}
-              <div className="flex gap-2">
-                <Input
-                  type="number"
-                  min="0"
-                  step="any"
-                  placeholder={isCreate ? "Leave blank to skip listing" : "0.00"}
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                  className="flex-1"
-                />
-                <Select value={currency} onValueChange={setCurrency}>
-                  <SelectTrigger className="w-28">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TOKENS.map((t) => (
-                      <SelectItem key={t.symbol} value={t.symbol}>{t.symbol}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            {/* Submit */}
+            <div className="btn-border-animated p-[1px] rounded-xl">
+              <button
+                type="button"
+                onClick={handleCreateSubmit}
+                className="w-full h-12 rounded-[11px] flex items-center justify-center gap-2 text-base font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-rose disabled:opacity-50"
+              >
+                <GitBranch className="h-5 w-5" />
+                Mint Remix
+              </button>
+            </div>
 
-              {/* Message (non-owner only) */}
-              {!isCreate && (
-                <div className="space-y-1.5">
-                  <Label>Message to creator <span className="text-muted-foreground font-normal">(optional)</span></Label>
-                  <Textarea
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Tell the creator what you want to make, your vision, or why you'd like to remix this work…"
-                    rows={3}
-                    maxLength={500}
-                    className="resize-none"
-                  />
-                  <p className="text-xs text-muted-foreground text-right">{message.length}/500</p>
-                </div>
-              )}
-            </Section>
-
-            {/* Non-owner: success state */}
-            {!isCreate && offerStep === "success" ? (
-              <div className="flex flex-col items-center gap-4 py-10 text-center">
-                <div className="h-16 w-16 rounded-full bg-brand-orange/10 flex items-center justify-center">
-                  <HandCoins className="h-8 w-8 text-brand-orange" />
-                </div>
-                <div className="space-y-2">
-                  <p className="text-xl font-bold">Offer sent!</p>
-                  <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-                    The creator will be notified. If accepted, your remix will be minted and sent to your wallet.
-                  </p>
-                </div>
-                <Button variant="outline" asChild>
-                  <Link href="/portfolio">View portfolio</Link>
-                </Button>
-              </div>
-            ) : !isCreate && offerStep === "error" ? (
-              <div className="space-y-3">
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{offerError ?? "Failed to submit offer"}</AlertDescription>
-                </Alert>
-                <Button variant="outline" className="w-full" onClick={() => { setOfferStep("idle"); setOfferError(null); }}>
-                  Try again
-                </Button>
-              </div>
-            ) : (
-              <>
-                {/* Submit */}
-                {!isCreate && offerError && offerStep === "idle" && (
-                  <Alert variant="destructive" className="mb-2">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{offerError}</AlertDescription>
-                  </Alert>
-                )}
-                <div className="btn-border-animated p-[1px] rounded-xl">
-                  <button
-                    type="button"
-                    disabled={isCreate ? false : offerLoading}
-                    onClick={isCreate ? handleCreateSubmit : handleDealSubmit}
-                    className="w-full h-12 rounded-[11px] flex items-center justify-center gap-2 text-base font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-rose disabled:opacity-50"
-                  >
-                    {offerLoading ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                    ) : (
-                      <GitBranch className="h-5 w-5" />
-                    )}
-                    {isCreate ? "Mint Remix" : "Send license request"}
-                  </button>
-                </div>
-              </>
-            )}
-
-            {isCreate && (
-              <p className="text-xs text-center text-muted-foreground">
-                Two operations: IPFS metadata upload + on-chain mint. Gas is free.
-              </p>
-            )}
+            <p className="text-xs text-center text-muted-foreground">
+              Two operations: IPFS metadata upload + on-chain mint. Gas is free.
+            </p>
           </div>
 
           {/* ── Right: original asset card ──────────────────────────────── */}
@@ -861,21 +664,11 @@ export default function CreateRemixPage() {
                 <Info className="h-4 w-4 text-primary" />
                 What happens next
               </p>
-              {isCreate ? (
-                <ol className="space-y-2 text-muted-foreground text-xs list-decimal list-inside">
-                  <li>Your artwork and metadata are uploaded to IPFS</li>
-                  <li>A new NFT is minted in the selected collection</li>
-                  <li>Parent attribution is embedded on-chain permanently</li>
-                  {price && <li>The remix is listed for sale at your chosen price</li>}
-                </ol>
-              ) : (
-                <ol className="space-y-2 text-muted-foreground text-xs list-decimal list-inside">
-                  <li>Your offer is sent to the creator</li>
-                  <li>If approved, they&apos;ll mint the remix and list it for you</li>
-                  <li>You&apos;ll see &quot;Complete Purchase&quot; in your portfolio</li>
-                  <li>After purchase, the remix is yours permanently</li>
-                </ol>
-              )}
+              <ol className="space-y-2 text-muted-foreground text-xs list-decimal list-inside">
+                <li>Your artwork and metadata are uploaded to IPFS</li>
+                <li>A new NFT is minted in the selected collection</li>
+                <li>Parent attribution is embedded on-chain permanently</li>
+              </ol>
             </div>
 
           </div>
