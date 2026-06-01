@@ -94,7 +94,7 @@ When `LAUNCH_MINT_CONTRACT` or `GENESIS_NFT_URI` are empty the button renders as
 The mint landing pages are the platform's paid-traffic acquisition surface. They follow a **conversion-focused trim** (shipped 2026-05-28): hero only above the fold (badge-free, short headline, trust strip, sign-up CTA, sticky image), four detail sections collapsed behind a single `<details>` "Saiba mais" / "Learn more" disclosure, no duplicate bottom CTA. Both pages share the same shape — diverge only on copy and contract addresses.
 
 ### Brazil Campaign (`/br/mint`)
-Portuguese language. Files: `src/app/br/mint/br-mint-content.tsx` + `src/app/br/mint/page.tsx` + `src/app/br/mint/genesis-mint.tsx` + `src/app/br/mint/wallet-setup.tsx` (Portuguese inline `WalletSetup`).
+Portuguese language. Files: `src/app/br/mint/br-mint-content.tsx` + `src/app/br/mint/page.tsx` + `src/app/br/mint/genesis-mint.tsx`. (Wallet setup is no longer inline — it runs on the shared `/onboarding` page, reached via middleware; the old `wallet-setup.tsx` was removed 2026-06-01.)
 Storage key: `ml_br_mint_${userId}`. Contract: `BR_MINT_CONTRACT`.
 ```
 NEXT_PUBLIC_BR_MINT_CONTRACT=0x...
@@ -103,7 +103,7 @@ NEXT_PUBLIC_BR_NFT_IMAGE_URL=     # optional direct image URL
 ```
 
 ### Global English Campaign (`/mint`)
-English language, worldwide. Files: `src/app/mint/mint-content.tsx` + `src/app/mint/page.tsx` + the shared `src/components/airdrop/genesis-mint.tsx` (which contains both the inline English `WalletSetup` and the `GenesisMint` export).
+English language, worldwide. Files: `src/app/mint/mint-content.tsx` + `src/app/mint/page.tsx` + the shared `src/components/airdrop/genesis-mint.tsx` (the `GenesisMint` export — sign-up button + mint state machine; wallet setup happens on `/onboarding`, not inline).
 Storage key: `ml_mint_${userId}`. Contract: `MINT_CONTRACT`.
 ```
 NEXT_PUBLIC_MINT_CONTRACT=0x...
@@ -114,7 +114,7 @@ NEXT_PUBLIC_MINT_NFT_IMAGE_URL=   # optional direct image URL
 ### Mint flow (both campaigns, current as of 2026-05-29)
 
 1. **Unauthenticated:** the hero renders a single `<SignUpButton mode="modal" forceRedirectUrl="…">` ("Participar com Google ou email" / "Join with Google or email"). Clerk's modal owns the sign-up + email-verify steps. After completion Clerk redirects back to the campaign route — the component-level `forceRedirectUrl` wins because the provider uses `signUpFallbackRedirectUrl` (a global *force* would override it; see below).
-2. **Signed in, no wallet:** the page renders the inline `WalletSetup` component in the hero panel — "Finalize seu acesso" / "Finish your access" with a primary **Face ID / Chave de acesso** (passkey) and secondary outline **Criar PIN** (PIN). Both create a ChipiPay wallet and call `completeOnboarding` server action which writes `publicMetadata.walletCreated` + `publicKey` and POSTs to `/v1/users/me`. The PT version lives in `src/app/br/mint/wallet-setup.tsx`; the EN version is a function inside `src/components/airdrop/genesis-mint.tsx`. Keep them in sync structurally.
+2. **Signed in, no wallet:** there is NO inline wallet setup on the campaign pages anymore (removed 2026-06-01). `src/middleware.ts` gates the campaign routes (`/mint`, `/airdrop`, `/br/mint`) so a signed-in-but-no-`walletCreated` user is redirected to `/onboarding?redirect_url=<route>`. The shared `/onboarding` page creates the ChipiPay wallet (PIN/passkey) and runs `completeOnboarding` (writes `publicMetadata.walletCreated` + `publicKey`, POSTs to `/v1/users/me`), then returns to `redirect_url`. `/onboarding` localizes to PT when `redirect_url` starts with `/br`. This is Clerk's recommended middleware-gated onboarding pattern — robust even if Clerk drops the post-auth redirect (the user is funnelled the moment they hit a gated route). Do not re-introduce an inline per-page wallet form.
 3. **Wallet ready:** the page renders the inline mint state machine — "Garantir meu lugar" / "Claim my spot" CTA → `enter-pin` step (passkey button or PIN input, defaults based on `usePasskeyStatus().hasPasskey`) → `minting` (`executeTransaction` calls `mint_item(recipient, ByteArray(tokenURI))`) → `success` / `error`. Decryption failures detected via `looksLikeEncryptionFailure(msg)` surface a "looks like your account uses [other method]" recovery hint with a one-click switch.
 
 When `MINT_CONTRACT` / `BR_MINT_CONTRACT` or the corresponding URI is empty, the CTA renders disabled ("Distribuição não iniciada" / "Airdrop not started yet").
@@ -311,8 +311,8 @@ layout.tsx (server)
 | `src/components/asset/remixes-tab.tsx` | Read-only: displays public remixes of a token + parent attribution banner |
 | `src/components/chipi/wallet-setup-dialog.tsx` | First-time wallet PIN creation dialog (PIN-only — used by launchpad flows) |
 | `src/components/chipi/wallet-setup-choice-dialog.tsx` | Wallet setup dialog with passkey-first + PIN fallback, `locale: "en" \| "pt"`. **Currently unused** — was wired into the mint pages in the 2026-05-28 trim, reverted 2026-05-29. Kept on disk in case a future iteration revisits the embedded-dialog flow with the full wallet object threaded through |
-| `src/app/br/mint/wallet-setup.tsx` | Inline Portuguese wallet setup panel rendered on `/br/mint` when the user is signed in but has no wallet ("Finalize seu acesso" + Face ID / Chave de acesso / Criar PIN) |
-| `src/components/airdrop/genesis-mint.tsx` | Houses both the inline English `WalletSetup` (used on `/mint` and `/airdrop`) and the shared `GenesisMint` export. Keep the EN copy structurally aligned with the PT version in `src/app/br/mint/wallet-setup.tsx` |
+| `src/components/airdrop/genesis-mint.tsx` | `GenesisMint` export (used on `/mint` and `/airdrop`): sign-up button + mint state machine. No inline wallet setup — signed-in-no-wallet users are routed to `/onboarding` by middleware. |
+| `src/app/onboarding/page.tsx` | Shared onboarding orchestrator: creates ChipiPay wallet + registers backend account (`completeOnboarding`), then returns to `?redirect_url`. PT copy when `redirect_url` starts with `/br`. The single onboarding flow for the whole app (portfolio/create + campaign). |
 | `src/lib/chipi/looks-like-encryption-failure.ts` | Heuristic for "wrong PIN/passkey" decryption errors — used to surface "switch to other method" hints when a mint or transfer fails on the chosen auth |
 | `src/components/chipi/session-setup-dialog.tsx` | SNIP-9 session key registration |
 | `src/components/chipi/pin-dialog.tsx` | Generic PIN entry dialog |

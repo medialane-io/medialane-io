@@ -1,9 +1,21 @@
 import { clerkMiddleware, createRouteMatcher, clerkClient } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-const isProtectedRoute = createRouteMatcher([
+// Routes that require a signed-in user (redirect to sign-in if signed out).
+const requiresSignIn = createRouteMatcher([
   "/portfolio(.*)",
   "/create(.*)",
+]);
+
+// Routes that require COMPLETED onboarding once signed in. Campaign routes are
+// included so signed-in-but-no-wallet users are funnelled through /onboarding —
+// but they stay fully public for signed-out visitors (Google-Ads landings).
+const requiresOnboarding = createRouteMatcher([
+  "/portfolio(.*)",
+  "/create(.*)",
+  "/mint",
+  "/airdrop",
+  "/br/mint",
 ]);
 
 /**
@@ -16,14 +28,21 @@ function hasWalletClaim(sessionClaims: Record<string, unknown> | null): boolean 
   return metadata?.walletCreated === true;
 }
 
+/** Same-origin relative path guard — prevents open redirects via redirect_url. */
+function safeRelative(path: string | null | undefined, fallback: string): string {
+  if (!path || !path.startsWith("/") || path.startsWith("//")) return fallback;
+  return path;
+}
+
 export default clerkMiddleware(async (auth, req) => {
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-pathname", req.nextUrl.pathname);
 
   const { userId, sessionClaims, redirectToSignIn } = await auth();
 
-  // Unauthenticated user hitting a protected route → sign-in
-  if (!userId && isProtectedRoute(req)) {
+  // Unauthenticated user hitting a sign-in-required route → sign-in.
+  // (Campaign routes are NOT here — they stay public for signed-out visitors.)
+  if (!userId && requiresSignIn(req)) {
     return redirectToSignIn({ returnBackUrl: req.url });
   }
 
@@ -31,7 +50,7 @@ export default clerkMiddleware(async (auth, req) => {
     let hasWallet = hasWalletClaim(sessionClaims as Record<string, unknown> | null);
 
     // Fallback: JWT may be stale or template not configured — check Clerk API once.
-    if (!hasWallet && isProtectedRoute(req)) {
+    if (!hasWallet && requiresOnboarding(req)) {
       try {
         const client = await clerkClient();
         const clerkUser = await client.users.getUser(userId);
@@ -41,15 +60,18 @@ export default clerkMiddleware(async (auth, req) => {
       }
     }
 
-    // Already has wallet and hits /onboarding → redirect to welcome
+    // Already onboarded but sitting on /onboarding → honor redirect_url.
     if (hasWallet && req.nextUrl.pathname === "/onboarding") {
-      return NextResponse.redirect(new URL("/welcome", req.url));
+      const dest = safeRelative(req.nextUrl.searchParams.get("redirect_url"), "/welcome");
+      return NextResponse.redirect(new URL(dest, req.url));
     }
 
-    // Signed in, no wallet, hitting a protected route → onboarding
-    if (!hasWallet && isProtectedRoute(req)) {
+    // Signed in, not onboarded, on a gated route → onboarding, carrying origin.
+    // Robust by design: even if Clerk drops the post-auth redirect, the user is
+    // funnelled here the moment they reach a gated route — no dependence on Clerk.
+    if (!hasWallet && requiresOnboarding(req)) {
       const onboardingUrl = new URL("/onboarding", req.url);
-      onboardingUrl.searchParams.set("redirect_url", req.url);
+      onboardingUrl.searchParams.set("redirect_url", req.nextUrl.pathname + req.nextUrl.search);
       return NextResponse.redirect(onboardingUrl);
     }
   }

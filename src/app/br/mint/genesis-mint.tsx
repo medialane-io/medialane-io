@@ -19,7 +19,6 @@ import { PinInput, validatePin } from "@/components/ui/pin-input";
 import { Button } from "@/components/ui/button";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { looksLikeEncryptionFailure } from "@/lib/chipi/looks-like-encryption-failure";
-import { WalletSetup } from "./wallet-setup";
 import { EXPLORER_URL, BR_MINT_CONTRACT, BR_NFT_URI } from "@/lib/constants";
 
 type MintStep = "ready" | "enter-pin" | "minting" | "success" | "error";
@@ -152,11 +151,6 @@ export function GenesisMint() {
     setMintStep("ready");
   }, [storageKey]);
 
-  const handleWalletCreated = useCallback(() => {
-    // wallet just created → useSessionKey will refresh on next render and
-    // surface the mint CTA. Nothing else to do here.
-  }, []);
-
   // ── Render ───────────────────────────────────────────────────────────────────
 
   if (!isLoaded || (isLoaded && isSignedIn && isLoadingWallet)) {
@@ -187,9 +181,12 @@ export function GenesisMint() {
   }
 
   if (!hasWallet) {
+    // Signed-in-without-wallet users are funnelled to /onboarding by middleware;
+    // this only renders briefly for the redirect frame.
     return (
-      <div className="rounded-2xl border border-border/50 bg-card/50 p-5">
-        <WalletSetup email={user?.primaryEmailAddress?.emailAddress} onDone={handleWalletCreated} />
+      <div className="flex flex-col items-center gap-3 py-10 text-center">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <p className="text-sm text-muted-foreground">Protegendo sua conta…</p>
       </div>
     );
   }
