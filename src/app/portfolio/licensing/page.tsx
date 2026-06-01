@@ -12,7 +12,7 @@ import { timeAgo } from "@/lib/utils";
 import type { RemixOffer } from "@/types/remix-offers";
 import Link from "next/link";
 
-export default function PortfolioRemixOffersPage() {
+export default function PortfolioLicensingPage() {
   const { walletAddress } = useSessionKey();
   const { offers: incoming, isLoading: loadingIn, mutate: mutateIn } = useRemixOffers("creator");
   const { offers: outgoing, isLoading: loadingOut } = useRemixOffers("requester");
@@ -34,11 +34,11 @@ export default function PortfolioRemixOffersPage() {
 
   return (
     <div className="space-y-8">
-      {/* Incoming remix offers (creator view) */}
+      {/* Incoming license requests (creator view) */}
       <section className="space-y-3">
         <div className="flex items-center gap-2">
           <GitBranch className="h-4 w-4 text-primary" />
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Remix Requests</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">License requests received</h2>
           {pendingIn.length > 0 && (
             <span className="h-5 min-w-5 rounded-full bg-primary text-[10px] font-bold text-primary-foreground flex items-center justify-center px-1">
               {pendingIn.length}
@@ -52,7 +52,7 @@ export default function PortfolioRemixOffersPage() {
           </div>
         ) : incoming.length === 0 ? (
           <div className="rounded-xl border border-border p-8 text-center text-sm text-muted-foreground">
-            No remix requests yet. When someone requests to remix your assets, they&apos;ll appear here.
+            No license requests yet. When someone requests to license your assets for a remix, they&apos;ll appear here.
           </div>
         ) : (
           <div className="rounded-xl border border-border divide-y divide-border">
@@ -101,11 +101,11 @@ export default function PortfolioRemixOffersPage() {
         )}
       </section>
 
-      {/* Outgoing remix offers (requester view) */}
+      {/* Outgoing license requests (requester view) */}
       <section className="space-y-3">
         <div className="flex items-center gap-2">
           <GitBranch className="h-4 w-4 text-muted-foreground" />
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">My Remix Requests</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">License requests sent</h2>
         </div>
 
         {loadingOut ? (
@@ -114,7 +114,7 @@ export default function PortfolioRemixOffersPage() {
           </div>
         ) : outgoing.length === 0 ? (
           <div className="rounded-xl border border-border p-8 text-center text-sm text-muted-foreground">
-            You haven&apos;t submitted any remix requests yet.
+            You haven&apos;t sent any license requests yet.
           </div>
         ) : (
           <div className="rounded-xl border border-border divide-y divide-border">
@@ -163,13 +163,13 @@ export default function PortfolioRemixOffersPage() {
 
 function StatusBadge({ status }: { status: RemixOffer["status"] }) {
   const config: Record<RemixOffer["status"], { label: string; className: string }> = {
-    PENDING:      { label: "Pending",   className: "bg-yellow-500/10 text-yellow-500 border border-yellow-500/20" },
-    AUTO_PENDING: { label: "Auto",      className: "bg-blue-500/10 text-blue-500 border border-blue-500/20" },
-    APPROVED:     { label: "Approved",  className: "bg-primary/10 text-primary border border-primary/20" },
-    COMPLETED:    { label: "Completed", className: "bg-green-500/10 text-green-500 border border-green-500/20" },
-    REJECTED:     { label: "Rejected",  className: "bg-destructive/10 text-destructive border border-destructive/20" },
-    EXPIRED:      { label: "Expired",   className: "bg-muted text-muted-foreground border border-border" },
-    SELF_MINTED:  { label: "Self mint", className: "bg-primary/10 text-primary border border-primary/20" },
+    PENDING:      { label: "Awaiting creator", className: "bg-yellow-500/10 text-yellow-500 border border-yellow-500/20" },
+    AUTO_PENDING: { label: "Auto",             className: "bg-blue-500/10 text-blue-500 border border-blue-500/20" },
+    APPROVED:     { label: "License granted",  className: "bg-primary/10 text-primary border border-primary/20" },
+    COMPLETED:    { label: "Licensed",         className: "bg-green-500/10 text-green-500 border border-green-500/20" },
+    REJECTED:     { label: "Declined",         className: "bg-destructive/10 text-destructive border border-destructive/20" },
+    EXPIRED:      { label: "Expired",          className: "bg-muted text-muted-foreground border border-border" },
+    SELF_MINTED:  { label: "Self-minted",      className: "bg-primary/10 text-primary border border-primary/20" },
   };
   const c = config[status];
   return (

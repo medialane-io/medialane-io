@@ -29,6 +29,7 @@ const nextConfig: NextConfig = {
       { source: "/terms",          destination: "https://docs.medialane.io/guidelines/terms",          permanent: true },
       { source: "/privacy",        destination: "https://docs.medialane.io/guidelines/privacy",        permanent: true },
       { source: "/campaign-terms", destination: "https://docs.medialane.io/guidelines/campaign-terms", permanent: true },
+      { source: "/portfolio/remix-offers", destination: "/portfolio/licensing", permanent: true },
     ];
   },
   async headers() {

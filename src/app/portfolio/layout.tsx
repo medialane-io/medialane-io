@@ -36,7 +36,7 @@ const NAV_GROUPS: PortfolioNavGroup[] = [
       { label: "Offers received",   href: "/portfolio/received", badge: { key: "offers", variant: "destructive" } },
       { label: "Offers sent",       href: "/portfolio/offers" },
       { label: "Counter-offers",    href: "/portfolio/counter-offers", badge: { key: "counters", variant: "warning" } },
-      { label: "Remixes",           href: "/portfolio/remix-offers", badge: { key: "remixes", variant: "primary" } },
+      { label: "Licensing",         href: "/portfolio/licensing", badge: { key: "remixes", variant: "primary" } },
     ],
   },
   {

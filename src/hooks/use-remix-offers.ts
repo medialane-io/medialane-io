@@ -98,8 +98,11 @@ export async function submitAutoRemixOffer(
   return res.data;
 }
 
-/** Record completed self-remix (Path 1). */
-export async function confirmSelfRemix(
+/**
+ * Record a completed remix — the parent→child attribution link (Path 1).
+ * Used by any remixer's direct self-mint, not only the parent owner.
+ */
+export async function registerRemix(
   body: {
     originalContract: string;
     originalTokenId: string;

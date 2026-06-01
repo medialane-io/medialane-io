@@ -21,6 +21,8 @@ import type { IPType } from "@/types/ip";
 import { IP_TEMPLATES, EMBED_PLATFORM_META, SOCIAL_PLATFORM_META } from "@/lib/ip-templates";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ApiActivity, ApiOrder } from "@medialane/sdk";
+import { getService } from "@medialane/sdk";
+import { resolveRemixPolicy, getDerivativesTerm } from "@/lib/remix-policy";
 import { PriceHistoryChart } from "@/components/asset/price-history-chart";
 import { useComments } from "@/hooks/use-comments";
 import { EXPLORER_URL } from "@/lib/constants";
@@ -117,9 +119,16 @@ export function AssetPageStandard() {
     : null;
 
 
-  const handleAutoRemix = () => {
-    router.push(`/create/remix/${contract}/${tokenId}`);
-  };
+  // Remix is permissionless (self-mint), gated only by the creator's declared
+  // Derivatives term at the app layer. The deal flow is the consent override.
+  const remixPolicy = resolveRemixPolicy({
+    parentNoDerivatives: getDerivativesTerm(token?.metadata?.attributes) === "Not Allowed",
+    viewerIsParentOwner: isOwner,
+    dealAvailable: !!getService(collection?.service),
+  });
+
+  const goToRemix = () => router.push(`/create/remix/${contract}/${tokenId}`);
+  const goToDeal = () => router.push(`/create/remix/${contract}/${tokenId}?mode=deal`);
 
   if (isLoading) {
     return (
@@ -286,14 +295,16 @@ export function AssetPageStandard() {
               myListing={myListing ?? null}
               activeBids={activeBids}
               walletAddress={walletAddress}
-              remixEnabled
+              remixEnabled={remixPolicy.canRemixDirect}
+              showDealOption={remixPolicy.showDealOption}
               onCancelClick={handleCancelClick}
               onAcceptBid={acceptOffer.handleAcceptClick}
               onOpenListing={() => setListOpen(true)}
               onOpenTransfer={() => setTransferOpen(true)}
               onOpenPurchase={setPurchaseOrder}
               onOpenOffer={() => setOfferOpen(true)}
-              onOpenRemix={handleAutoRemix}
+              onOpenRemix={goToRemix}
+              onProposeDeal={goToDeal}
             />
 
             {/* ERC-1155 ownership — shown after marketplace buttons */}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@clerk/nextjs";
@@ -9,7 +9,7 @@ import { useToken } from "@/hooks/use-tokens";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
-import { useCollectionsByOwner } from "@/hooks/use-collections";
+import { useCollectionsByOwner, useCollection } from "@/hooks/use-collections";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { MintProgressDialog } from "@/components/marketplace/mint-progress-dialog";
 import type { MintStep } from "@/components/marketplace/mint-progress-dialog";
@@ -25,12 +25,13 @@ import {
 import {
   Collapsible, CollapsibleContent, CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { submitRemixOffer, confirmSelfRemix } from "@/hooks/use-remix-offers";
+import { submitRemixOffer, registerRemix } from "@/hooks/use-remix-offers";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { serializeByteArray, encodeU256 } from "@/lib/cairo-calldata";
 import { getListableTokens, getTokenBySymbol, getService } from "@medialane/sdk";
 import { IP_TYPES, LICENSE_TYPES, type IPType } from "@/types/ip";
 import { ipfsToHttp, formatDisplayPrice, checkIsOwner } from "@/lib/utils";
+import { resolveRemixPolicy, getDerivativesTerm } from "@/lib/remix-policy";
 import { INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import {
@@ -99,6 +100,7 @@ export default function CreateRemixPage() {
   const { createListing } = useMarketplace();
   const client = useMedialaneClient();
   const { token, isLoading: tokenLoading } = useToken(contract, tokenId);
+  const { collection: parentCollection } = useCollection(contract);
   const { collections: allCollections, isLoading: collectionsLoading } =
     useCollectionsByOwner(walletAddress ?? null);
   // Only current Medialane mint protocols are eligible here.
@@ -108,7 +110,7 @@ export default function CreateRemixPage() {
       (getService(c.service)?.id === "mip-erc721" && c.collectionId != null)
   );
 
-  const isOwner = checkIsOwner(token, walletAddress);
+  const viewerIsOwner = checkIsOwner(token, walletAddress);
 
   const originalName = token?.metadata?.name ?? `Token #${tokenId}`;
   const originalImage = token?.metadata?.image ? ipfsToHttp(token.metadata.image) : null;
@@ -116,6 +118,27 @@ export default function CreateRemixPage() {
     ? (token!.metadata!.attributes as { trait_type?: string; value?: string }[])
     : [];
   const attr = (t: string) => originalAttributes.find((a) => a.trait_type === t)?.value;
+
+  // Remix is permissionless (self-mint); the licensing deal is the optional
+  // consent path. App-layer only — the contract stays open. See
+  // medialane-core/docs/specs/2026-06-01-remix-licensing-separation-design.md.
+  const remixPolicy = resolveRemixPolicy({
+    parentNoDerivatives: getDerivativesTerm(originalAttributes) === "Not Allowed",
+    viewerIsParentOwner: viewerIsOwner,
+    dealAvailable: !!getService(parentCollection?.service),
+  });
+  const requestedMode = useSearchParams().get("mode");
+  // "create" = permissionless self-mint; "deal" = optional licensing offer;
+  // "blocked" = no-derivatives asset with no reachable owner to ask.
+  const mode: "create" | "deal" | "blocked" =
+    requestedMode === "deal" && remixPolicy.showDealOption
+      ? "deal"
+      : remixPolicy.canRemixDirect
+        ? "create"
+        : remixPolicy.showDealOption
+          ? "deal"
+          : "blocked";
+  const isCreate = mode === "create";
 
   // ── Form state ─────────────────────────────────────────────────────────────
 
@@ -201,15 +224,15 @@ export default function CreateRemixPage() {
 
   const validate = (): string | null => {
     if (!name.trim()) return "Remix name is required";
-    if (isOwner && !collectionKey) return "Select a collection";
-    if (!isOwner && (!price || isNaN(parseFloat(price)) || parseFloat(price) <= 0))
+    if (isCreate && !collectionKey) return "Select a collection";
+    if (!isCreate && (!price || isNaN(parseFloat(price)) || parseFloat(price) <= 0))
       return "Enter a valid price offer";
     return null;
   };
 
   // ── Owner: mint flow ───────────────────────────────────────────────────────
 
-  const handleOwnerSubmit = () => {
+  const handleCreateSubmit = () => {
     const err = validate();
     if (err) { toast.error(err); return; }
     setPinOpen(true);
@@ -364,7 +387,7 @@ export default function CreateRemixPage() {
       // 4. Confirm self-remix in backend
       const clerkToken = await getToken();
       if (!clerkToken) throw new Error("Not authenticated");
-      await confirmSelfRemix(
+      await registerRemix(
         {
           originalContract: contract,
           originalTokenId: tokenId,
@@ -390,7 +413,7 @@ export default function CreateRemixPage() {
 
   // ── Non-owner: offer submit ────────────────────────────────────────────────
 
-  const handleOfferSubmit = async () => {
+  const handleDealSubmit = async () => {
     const err = validate();
     if (err) {
       setOfferError(err);
@@ -457,6 +480,22 @@ export default function CreateRemixPage() {
     );
   }
 
+  // No-derivatives asset with no reachable owner to ask: respect the creator's
+  // declaration at the app layer. Honest, never claims the protocol forbids it.
+  if (mode === "blocked") {
+    return (
+      <div className="container max-w-5xl mx-auto px-4 py-24 text-center space-y-4">
+        <p className="text-2xl font-bold">No-derivatives asset</p>
+        <p className="text-muted-foreground max-w-md mx-auto">
+          The creator marked this asset as no-derivatives.
+        </p>
+        <Button asChild variant="outline">
+          <Link href={`/asset/${contract}/${tokenId}`}>Back to asset</Link>
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <>
       <MintProgressDialog
@@ -493,16 +532,16 @@ export default function CreateRemixPage() {
           <div className="flex items-center gap-2 text-primary">
             <GitBranch className="h-5 w-5" />
             <span className="text-sm font-semibold uppercase tracking-wider">
-              {isOwner ? "Create Remix" : "Propose Remix"}
+              {isCreate ? "Create Remix" : "Request a license"}
             </span>
           </div>
           <h1 className="text-3xl font-bold">
-            {isOwner ? "Mint a Remix" : "Send a Remix Offer"}
+            {isCreate ? "Mint a Remix" : "Request a license"}
           </h1>
           <p className="text-muted-foreground max-w-xl">
-            {isOwner
+            {isCreate
               ? "Mint a derivative work based on your original asset. The parent attribution will be embedded in the IPFS metadata."
-              : "Propose remix terms and a license fee to the creator. If accepted, they'll mint and list it for you to purchase."
+              : "Propose license terms and a fee to the creator. If they accept, the licensed derivative is minted and listed for you."
             }
           </p>
         </div>
@@ -580,7 +619,7 @@ export default function CreateRemixPage() {
             </Section>
 
             {/* Collection (owner only) */}
-            {isOwner && (
+            {isCreate && (
               <Section title="Collection" icon={<Boxes className="h-4 w-4" />}>
                 {collectionsLoading ? (
                   <Skeleton className="h-10 w-full rounded-md" />
@@ -698,10 +737,10 @@ export default function CreateRemixPage() {
 
             {/* Price */}
             <Section
-              title={isOwner ? "List for Sale (optional)" : "License Fee Offer"}
+              title={isCreate ? "List for Sale (optional)" : "License fee"}
               icon={<DollarSign className="h-4 w-4" />}
             >
-              {!isOwner && (
+              {!isCreate && (
                 <p className="text-xs text-muted-foreground -mt-1">
                   The amount you&apos;re offering to pay the creator for this remix license.
                 </p>
@@ -711,7 +750,7 @@ export default function CreateRemixPage() {
                   type="number"
                   min="0"
                   step="any"
-                  placeholder={isOwner ? "Leave blank to skip listing" : "0.00"}
+                  placeholder={isCreate ? "Leave blank to skip listing" : "0.00"}
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
                   className="flex-1"
@@ -729,7 +768,7 @@ export default function CreateRemixPage() {
               </div>
 
               {/* Message (non-owner only) */}
-              {!isOwner && (
+              {!isCreate && (
                 <div className="space-y-1.5">
                   <Label>Message to creator <span className="text-muted-foreground font-normal">(optional)</span></Label>
                   <Textarea
@@ -746,7 +785,7 @@ export default function CreateRemixPage() {
             </Section>
 
             {/* Non-owner: success state */}
-            {!isOwner && offerStep === "success" ? (
+            {!isCreate && offerStep === "success" ? (
               <div className="flex flex-col items-center gap-4 py-10 text-center">
                 <div className="h-16 w-16 rounded-full bg-brand-orange/10 flex items-center justify-center">
                   <HandCoins className="h-8 w-8 text-brand-orange" />
@@ -761,7 +800,7 @@ export default function CreateRemixPage() {
                   <Link href="/portfolio">View portfolio</Link>
                 </Button>
               </div>
-            ) : !isOwner && offerStep === "error" ? (
+            ) : !isCreate && offerStep === "error" ? (
               <div className="space-y-3">
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
@@ -774,7 +813,7 @@ export default function CreateRemixPage() {
             ) : (
               <>
                 {/* Submit */}
-                {!isOwner && offerError && offerStep === "idle" && (
+                {!isCreate && offerError && offerStep === "idle" && (
                   <Alert variant="destructive" className="mb-2">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>{offerError}</AlertDescription>
@@ -783,8 +822,8 @@ export default function CreateRemixPage() {
                 <div className="btn-border-animated p-[1px] rounded-xl">
                   <button
                     type="button"
-                    disabled={isOwner ? false : offerLoading}
-                    onClick={isOwner ? handleOwnerSubmit : handleOfferSubmit}
+                    disabled={isCreate ? false : offerLoading}
+                    onClick={isCreate ? handleCreateSubmit : handleDealSubmit}
                     className="w-full h-12 rounded-[11px] flex items-center justify-center gap-2 text-base font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-rose disabled:opacity-50"
                   >
                     {offerLoading ? (
@@ -792,13 +831,13 @@ export default function CreateRemixPage() {
                     ) : (
                       <GitBranch className="h-5 w-5" />
                     )}
-                    {isOwner ? "Mint Remix" : "Send Remix Offer"}
+                    {isCreate ? "Mint Remix" : "Send license request"}
                   </button>
                 </div>
               </>
             )}
 
-            {isOwner && (
+            {isCreate && (
               <p className="text-xs text-center text-muted-foreground">
                 Two operations: IPFS metadata upload + on-chain mint. Gas is free.
               </p>
@@ -866,7 +905,7 @@ export default function CreateRemixPage() {
                 <Info className="h-4 w-4 text-primary" />
                 What happens next
               </p>
-              {isOwner ? (
+              {isCreate ? (
                 <ol className="space-y-2 text-muted-foreground text-xs list-decimal list-inside">
                   <li>Your artwork and metadata are uploaded to IPFS</li>
                   <li>A new NFT is minted in the selected collection</li>

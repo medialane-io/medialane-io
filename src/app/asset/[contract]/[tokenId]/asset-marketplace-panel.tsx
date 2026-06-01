@@ -70,6 +70,7 @@ interface AssetMarketplacePanelProps {
   activeBids: ApiOrder[];
   walletAddress?: string | null;
   remixEnabled?: boolean;
+  showDealOption?: boolean;
   onCancelClick: (order: ApiOrder) => void;
   onAcceptBid: (order: ApiOrder) => void;
   onOpenListing: () => void;
@@ -77,6 +78,7 @@ interface AssetMarketplacePanelProps {
   onOpenPurchase: (order: ApiOrder) => void;
   onOpenOffer: () => void;
   onOpenRemix?: () => void;
+  onProposeDeal?: () => void;
 }
 
 export function AssetMarketplacePanel({
@@ -89,6 +91,7 @@ export function AssetMarketplacePanel({
   activeBids,
   walletAddress,
   remixEnabled = false,
+  showDealOption = false,
   onCancelClick,
   onAcceptBid,
   onOpenListing,
@@ -96,6 +99,7 @@ export function AssetMarketplacePanel({
   onOpenPurchase,
   onOpenOffer,
   onOpenRemix,
+  onProposeDeal,
 }: AssetMarketplacePanelProps) {
   const myBid = !isOwner && walletAddress
     ? activeBids.find((bid) => bid.offerer.toLowerCase() === walletAddress.toLowerCase()) ?? null
@@ -184,28 +188,43 @@ export function AssetMarketplacePanel({
               )}
             </div>
           ) : isSignedIn ? (
-            <div className="grid grid-cols-2 gap-2">
-              <ActionButton
-                label="Buy"
-                icon={<ShoppingCart className="h-4 w-4" />}
-                onClick={() => onOpenPurchase(cheapest)}
-                tone="transparent"
-              />
-              <ActionButton
-                label="Make offer"
-                icon={<HandCoins className="h-4 w-4" />}
-                onClick={onOpenOffer}
-                tone="orange"
-              />
-              {remixEnabled && onOpenRemix ? (
+            <>
+              <div className="grid grid-cols-2 gap-2">
                 <ActionButton
-                  label="Remix"
-                  icon={<GitBranch className="h-4 w-4" />}
-                  onClick={onOpenRemix}
-                  tone="purple"
+                  label="Buy"
+                  icon={<ShoppingCart className="h-4 w-4" />}
+                  onClick={() => onOpenPurchase(cheapest)}
+                  tone="transparent"
                 />
+                <ActionButton
+                  label="Make offer"
+                  icon={<HandCoins className="h-4 w-4" />}
+                  onClick={onOpenOffer}
+                  tone="orange"
+                />
+                {remixEnabled && onOpenRemix ? (
+                  <ActionButton
+                    label="Remix"
+                    icon={<GitBranch className="h-4 w-4" />}
+                    onClick={onOpenRemix}
+                    tone="purple"
+                  />
+                ) : showDealOption && onProposeDeal ? (
+                  <ActionButton
+                    label="Propose license deal"
+                    icon={<GitBranch className="h-4 w-4" />}
+                    onClick={onProposeDeal}
+                    helpContent="The creator marked this asset as no-derivatives. You can propose a license deal to request permission."
+                    tone="purple"
+                  />
+                ) : null}
+              </div>
+              {!remixEnabled && !showDealOption ? (
+                <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
+                  The creator marked this asset as no-derivatives.
+                </p>
               ) : null}
-            </div>
+            </>
           ) : (
             <SignInButton mode="modal">
               <div className="btn-border-animated p-[1px] rounded-2xl">
