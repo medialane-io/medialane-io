@@ -207,14 +207,16 @@ export function AssetMarketplacePanel({
                     label="Remix"
                     icon={<GitBranch className="h-4 w-4" />}
                     onClick={onOpenRemix}
+                    helpContent="Create your own attributed derivative of this work."
                     tone="purple"
                   />
-                ) : showDealOption && onProposeDeal ? (
+                ) : null}
+                {showDealOption && onProposeDeal ? (
                   <ActionButton
-                    label="Propose license deal"
-                    icon={<GitBranch className="h-4 w-4" />}
+                    label="License"
+                    icon={<HandCoins className="h-4 w-4" />}
                     onClick={onProposeDeal}
-                    helpContent="The creator marked this asset as no-derivatives. You can propose a license deal to request permission."
+                    helpContent="Propose a license deal to the creator to use this work."
                     tone="purple"
                   />
                 ) : null}
