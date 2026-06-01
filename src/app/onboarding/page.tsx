@@ -24,7 +24,12 @@ function OnboardingContent() {
   const { user } = useUser();
   const { session } = useClerk();
   const searchParams = useSearchParams();
-  const fromBr = searchParams.get("from") === "br";
+  const rawRedirect = searchParams.get("redirect_url");
+  const redirectTo =
+    rawRedirect && rawRedirect.startsWith("/") && !rawRedirect.startsWith("//")
+      ? rawRedirect
+      : "/welcome";
+  const isBr = redirectTo.startsWith("/br");
 
   const getBearerToken = useCallback(
     () => getToken({ template: process.env.NEXT_PUBLIC_CLERK_TEMPLATE_NAME || "chipipay" }),
@@ -66,7 +71,7 @@ function OnboardingContent() {
 
     sessionStorage.setItem("ml_fresh_onboarding", "1");
     setStep("done");
-    setTimeout(() => { window.location.href = fromBr ? "/br/mint" : "/welcome"; }, 1500);
+    setTimeout(() => { window.location.href = redirectTo; }, 1500);
   };
 
   // ── Passkey flow ──────────────────────────────────────────────────────────
@@ -118,8 +123,8 @@ function OnboardingContent() {
                 <CheckCircle2 className="h-6 w-6 text-emerald-500" />
               </div>
             </div>
-            <CardTitle>You&apos;re all set!</CardTitle>
-            <CardDescription>Taking you to your welcome page…</CardDescription>
+            <CardTitle>{isBr ? "Tudo pronto!" : "You're all set!"}</CardTitle>
+            <CardDescription>{isBr ? "Voltando para a sua página…" : "Taking you to your welcome page…"}</CardDescription>
           </CardHeader>
           <div className="flex justify-center pb-6">
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -139,8 +144,8 @@ function OnboardingContent() {
             <div className="flex justify-center mb-4">
               <Loader2 className="h-10 w-10 animate-spin text-primary" />
             </div>
-            <CardTitle>Securing your account…</CardTitle>
-            <CardDescription>This takes just a second.</CardDescription>
+            <CardTitle>{isBr ? "Protegendo sua conta…" : "Securing your account…"}</CardTitle>
+            <CardDescription>{isBr ? "Leva só um segundo." : "This takes just a second."}</CardDescription>
           </CardHeader>
         </Card>
       </div>
@@ -160,11 +165,11 @@ function OnboardingContent() {
               <ShieldCheck className="h-6 w-6 text-primary" />
             </div>
           </div>
-          <CardTitle>Secure your account</CardTitle>
+          <CardTitle>{isBr ? "Proteja sua conta" : "Secure your account"}</CardTitle>
           <CardDescription>
-            {usePasskeyUI
-              ? "Passkey, Face ID, Touch ID."
-              : "Create a 6-digit security PIN."}
+            {isBr
+              ? (usePasskeyUI ? "Chave de acesso, Face ID, Touch ID." : "Crie um PIN de 6 dígitos.")
+              : (usePasskeyUI ? "Passkey, Face ID, Touch ID." : "Create a 6-digit security PIN.")}
           </CardDescription>
         </CardHeader>
 
@@ -180,14 +185,14 @@ function OnboardingContent() {
             <div className="w-full space-y-3">
               <Button className="w-full gap-2" size="lg" onClick={handlePasskeySetup}>
                 <KeyRound className="h-4 w-4" />
-                Passkey
+                {isBr ? "Chave de acesso" : "Passkey"}
               </Button>
               <Button
                 variant="ghost"
                 className="w-full text-muted-foreground text-sm"
                 onClick={() => { setShowPinFallback(true); setError(null); }}
               >
-                PIN Password
+                {isBr ? "Senha PIN" : "PIN Password"}
               </Button>
             </div>
           ) : (
@@ -204,7 +209,7 @@ function OnboardingContent() {
                   disabled={pin.length < 6}
                   onClick={handlePinCreate}
                 >
-                  Continue
+                  {isBr ? "Continuar" : "Continue"}
                 </Button>
               </div>
               {passkeySupported && (
@@ -213,7 +218,7 @@ function OnboardingContent() {
                   className="w-full text-muted-foreground text-sm"
                   onClick={() => { setShowPinFallback(false); setError(null); setPin(""); setStep("pin"); }}
                 >
-                  Use passkey
+                  {isBr ? "Usar chave de acesso" : "Use passkey"}
                 </Button>
               )}
             </>
