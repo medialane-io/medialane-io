@@ -1,21 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
+import { PUBLIC_RPC_FALLBACKS, isTransientRpcError } from "@medialane/sdk";
 
-// Public Starknet RPC fallbacks. Used only after configured private endpoints
-// are missing or transiently rate limited. Public providers are still
-// rate-limited, so rotate through a short list on 429/non-JSON responses.
-const PUBLIC_FALLBACKS = [
-  "https://rpc.starknet.lava.build/",
-  "https://starknet-mainnet.public.blastapi.io/rpc/v0_7",
-  "https://free-rpc.nethermind.io/mainnet-juno/v0_7",
-];
-
+// Configured private endpoints first, then the SDK's shared public fallback
+// list (lava.build, …). Public providers are still rate-limited, so rotation
+// continues on transient JSON-RPC errors / non-JSON responses.
 const RPC_URLS = Array.from(new Set([
   process.env.ALCHEMY_RPC_URL,
   process.env.ALCHEMY_URL,
   process.env.STARKNET_RPC_URL_SERVER,
   process.env.STARKNET_RPC_FALLBACK_URL,
-  ...PUBLIC_FALLBACKS,
+  ...PUBLIC_RPC_FALLBACKS,
 ].filter((url): url is string => Boolean(url))));
 
 /**
@@ -97,46 +92,9 @@ function rpcError(code: number, message: string, id: number | null = null) {
   );
 }
 
-/**
- * Heuristic: does this JSON-RPC error envelope look like a transient
- * upstream failure (rate limit, service unavailable, backend timeout)
- * that's worth retrying against the next fallback?
- *
- * We MUST NOT retry deterministic Starknet contract errors (revert,
- * invalid params, missing block) — those should propagate verbatim so
- * the client sees the real failure.
- *
- * Two-signal check:
- *  1. JSON-RPC error code in a transient range:
- *     - 429: HTTP-style rate limit some providers embed in the envelope.
- *     - -32603 (Internal error): generic provider failure; Starknet
- *       contract reverts use code 41 (CONTRACT_ERROR), not -32603.
- *     - -32099 to -32000: server-defined error range per JSON-RPC spec;
- *       providers like Alchemy / BlastAPI use these for capacity issues.
- *  2. Message text contains a rate-limit / unavailability hint.
- *
- * Either signal triggers a retry. Starknet contract codes (21, 24, 28,
- * 33, 41) are small positive integers and cannot match.
- */
-function isTransientRpcError(body: unknown): boolean {
-  if (Array.isArray(body)) {
-    return body.some(isTransientRpcError);
-  }
-  if (!body || typeof body !== "object") return false;
-  const err = (body as Record<string, unknown>).error;
-  if (!err || typeof err !== "object") return false;
-
-  const code = (err as Record<string, unknown>).code;
-  if (typeof code === "number") {
-    if (code === 429) return true;
-    if (code === -32603) return true;
-    if (code >= -32099 && code <= -32000) return true;
-  }
-
-  const message = String((err as Record<string, unknown>).message ?? "").toLowerCase();
-  if (!message) return false;
-  return /rate.?limit|too many|throttl|exceed.*quota|temporarily unavailable|overload|service unavailable|backend.*error|gateway.*time|upstream.*time/.test(message);
-}
+// Transient-error detection (which JSON-RPC failures are worth rotating onto
+// the next upstream, vs. deterministic contract errors that must propagate)
+// lives in @medialane/sdk `isTransientRpcError` — single source of truth.
 
 export async function POST(req: NextRequest) {
   // Require an active Clerk session — all on-chain interactions in this app require login.
@@ -190,7 +148,7 @@ export async function POST(req: NextRequest) {
         // Rotating onto the next fallback recovers from those without the
         // client ever seeing the transient failure. Deterministic contract
         // errors (revert, invalid params, missing block) propagate verbatim.
-        if (isTransientRpcError(data)) {
+        if (isTransientRpcError({ status: response.status, body: data })) {
           const errObj = (data as { error?: { code?: unknown; message?: unknown } }).error;
           lastError = `Upstream RPC returned transient JSON-RPC error: ${String(errObj?.message ?? "(no message)")}`;
           console.warn("[/api/rpc] upstream returned transient JSON-RPC error", {
