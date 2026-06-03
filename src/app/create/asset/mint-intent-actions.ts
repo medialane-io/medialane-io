@@ -33,6 +33,9 @@ export type MintDebugSnapshot = {
   intentStatus?: string;
   terminalIntent?: Record<string, unknown>;
   error?: string;
+  /** Raw underlying error when `error` is a friendly remap (e.g. the ChipiPay
+   *  paymaster reason behind a session/auth message). Set from `err.cause`. */
+  rawError?: string;
 };
 
 export type UpdateDebug = (patch: Partial<MintDebugSnapshot>) => MintDebugSnapshot;

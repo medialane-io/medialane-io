@@ -326,7 +326,11 @@ export default function CreateAssetPage() {
       invalidatePortfolioCache(walletAddress);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Something went wrong";
-      updateMintDebug({ step: "error", error: message, txHash, txStatus: status });
+      // When the message is a friendly remap, the original reason is on `cause` —
+      // record it so __MEDIALANE_MINT_DEBUG__ exposes the real paymaster error.
+      const rawError =
+        err instanceof Error && err.cause instanceof Error ? err.cause.message : undefined;
+      updateMintDebug({ step: "error", error: message, rawError, txHash, txStatus: status });
       setMintError(message);
       setMintStep("error");
     }

@@ -75,10 +75,16 @@ function toFriendlyExecutionError(err: unknown): {
     /prepare.{0,3}typed.{0,3}data/i.test(raw) &&
     /TRANSACTION_EXECUTION_ERROR|Paymaster\s+error/i.test(raw)
   ) {
+    // This pattern is emitted for ANY paymaster simulation revert — a stale
+    // session-key whitelist is one cause, but so is a transient paymaster /
+    // sponsorship issue or a genuine on-chain revert. Don't assert the session
+    // is at fault as fact: suggest a retry first, then session refresh as a
+    // fallback. The raw reason is preserved by the caller (see catch block).
     return {
       message:
-        "Your wallet session is out of date and couldn't authorise this action. " +
-        "Open Portfolio → Wallet, toggle \"Remember session\" off and back on to refresh it, then retry.",
+        "We couldn't authorise this transaction with the network. Tap Try again — " +
+        "if it keeps failing, refresh your wallet session in Portfolio → Wallet " +
+        "(toggle \"Remember session\" off and back on), then retry.",
       isSessionMismatch: true,
     };
   }
@@ -214,11 +220,17 @@ export function useChipiTransaction() {
         setStatus("error");
         const friendly = toFriendlyExecutionError(err);
         setError(friendly.message);
+        // The friendly remap is a heuristic — preserve the raw error so it
+        // stays diagnosable. Log it to the console and, when we replace the
+        // message, attach the original as `cause` so consumers (e.g. the
+        // create/asset debug snapshot) can record the real reason.
+        const rawMessage = err instanceof Error ? err.message : String(err);
+        console.error("[useChipiTransaction] execution failed:", rawMessage, err);
         // Re-throw with the user-facing message when we recognised the
         // error pattern — downstream consumers (transfer-dialog, counter-
         // offers-table, launchpad pages, claim buttons) all surface the
         // throwable's `.message` directly in their error UI.
-        if (friendly.isSessionMismatch) throw new Error(friendly.message);
+        if (friendly.isSessionMismatch) throw new Error(friendly.message, { cause: err });
         throw err;
       } finally {
         isSubmittingRef.current = false;
