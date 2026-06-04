@@ -204,6 +204,24 @@ charged on failed buys (tx `0x61c84020…`). Spec:
 - `starknetProvider` (`src/lib/starknet.ts`) is configured `blockIdentifier: "latest"` —
   the RPC rejects the default `"pending"` block tag (`-32602: Invalid block id`).
 
+### RPC resilience (added 2026-06-03)
+
+Alchemy's Starknet endpoint intermittently 503s (`-32001 "Unable to complete
+request"`). RPC fails over to public endpoints (`lava.build`, …) via
+`@medialane/sdk` (≥ 0.28.0) — single source of truth, never re-copy locally:
+- `starknetProvider` (`src/lib/starknet.ts`) uses `createFailoverFetch([nodeUrl, ...PUBLIC_RPC_FALLBACKS])`.
+- The server-side `/api/rpc` proxy (`src/app/api/rpc/route.ts`) uses the SDK's
+  `isTransientRpcError` + `PUBLIC_RPC_FALLBACKS` for upstream rotation.
+- Marketplace ops build intents **server-side** (backend), so io has no
+  client-side `get_counter` read to fail on (unlike the dapp).
+
+**Friendly errors / preserve raw:** `useChipiTransaction`'s
+`toFriendlyExecutionError` is a heuristic remap — it now **logs the raw error**
+(`console.error` + re-throw with `cause`) and the create/asset flow records it
+in `__MEDIALANE_MINT_DEBUG__.rawError`. The "wallet session out of date" message
+is a *possible* cause, not asserted as fact (it was masking real paymaster/RPC
+failures). Full incident: `medialane-core/docs/specs/2026-06-03-rpc-resilience-failover.md`.
+
 ### Marketplace cache invalidation (fixed 2026-05-20)
 
 `useMarketplace`'s `invalidate()` uses `mutate(filter)` — revalidate **without**
