@@ -148,8 +148,14 @@ export function useSessionKey() {
               // delegation. Without this, ERC-1155 transfers fail at the
               // ChipiPay paymaster with 400 / TRANSACTION_EXECUTION_ERROR.
               hash.getSelectorFromName("safe_transfer_from"),
-              // Minting
+              // Minting. `mint_item` is the legacy v0.2.0 ERC-1155 entrypoint;
+              // v0.3.0 collections assign edition ids on-chain via `mint_edition`
+              // (+ `add_supply` to re-supply an existing edition). Missing either
+              // selector fails the nfteditions mint at the ChipiPay paymaster with
+              // TRANSACTION_EXECUTION_ERROR (same shape as the PR #45 / #53 misses).
               hash.getSelectorFromName("mint_item"),
+              hash.getSelectorFromName("mint_edition"),
+              hash.getSelectorFromName("add_supply"),
               hash.getSelectorFromName("claim"),
               // Per-collection ownership handoff on the MIP registry.
               hash.getSelectorFromName("transfer_collection_ownership"),
