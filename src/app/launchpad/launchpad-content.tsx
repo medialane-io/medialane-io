@@ -11,8 +11,8 @@ import { useUserOrders } from "@/hooks/use-orders";
 import { FadeIn } from "@/components/ui/motion-primitives";
 import { BRAND } from "@/lib/brand";
 import { cn } from "@/lib/utils";
-import { LAUNCHPAD_SERVICE_DEFINITIONS } from "@medialane/ui";
-import type { ServiceDefinition } from "@medialane/ui";
+import { LAUNCHPAD_SERVICE_DEFINITIONS, LAUNCHPAD_SERVICE_GROUPS } from "@medialane/ui";
+import type { ServiceDefinition, ServiceGroupDefinition, ServiceStatus } from "@medialane/ui";
 import {
   Zap, Package, Tag, ShoppingCart,
   Layers, Globe, ExternalLink, ArrowRight, Lock,
@@ -56,6 +56,9 @@ const SERVICE_COLORS: Record<string, { icon: string; button: string; chip: strin
   "subscriptions":      { icon: BRAND.blue.text,   button: "bg-brand-blue",   chip: "border-blue-500/30 text-blue-400 bg-blue-500/10",     gradient: "from-blue-500/50 via-cyan-400/20 to-blue-600/30"      },
   "ip-coins":           { icon: BRAND.orange.text, button: "bg-brand-orange", chip: "border-orange-500/30 text-orange-400 bg-orange-500/10", gradient: "from-orange-500/50 via-amber-400/20 to-orange-700/30"  },
   "creator-coins":      { icon: BRAND.rose.text,   button: "bg-brand-rose",   chip: "border-rose-500/30 text-rose-400 bg-rose-500/10",       gradient: "from-rose-500/50 via-pink-400/20 to-rose-700/30"      },
+  "claim-memecoin":     { icon: BRAND.orange.text, button: "bg-brand-orange", chip: "border-orange-500/30 text-orange-400 bg-orange-500/10", gradient: "from-orange-500/50 via-amber-400/20 to-orange-700/30" },
+  "claim-username":     { icon: BRAND.purple.text, button: "bg-brand-purple", chip: "border-purple-500/30 text-purple-400 bg-purple-500/10", gradient: "from-purple-500/50 via-violet-400/20 to-purple-700/30" },
+  "claim-collection":   { icon: BRAND.blue.text,   button: "bg-brand-blue",   chip: "border-blue-500/30 text-blue-400 bg-blue-500/10",       gradient: "from-blue-500/50 via-cyan-400/20 to-blue-600/30"      },
 };
 
 // ── Local content overrides (title, subtitle, description, features, example)
@@ -118,8 +121,11 @@ const SERVICE_CONTENT: Record<string, ServiceContent> = {
   },
 };
 
-// ── App-specific hrefs per service key ──────────────────────────────────────
-const IO_HREFS: Record<string, { href?: string; buttonLabel?: string; browseHref?: string }> = {
+// ── App-specific overrides per service key ──────────────────────────────────
+const IO_OVERRIDES: Record<
+  string,
+  { href?: string; buttonLabel?: string; browseHref?: string; status?: ServiceStatus; badge?: string }
+> = {
   "mint-ip-asset":      { href: "/create/asset",            buttonLabel: "Mint singular NFT"      },
   "create-collection":  { href: "/create/collection",       buttonLabel: "Create NFT Collection"   },
   "remix-asset":        { href: "/marketplace",             buttonLabel: "Browse to remix"         },
@@ -127,6 +133,10 @@ const IO_HREFS: Record<string, { href?: string; buttonLabel?: string; browseHref
   "collection-drop":    { href: "/launchpad/drop/create",   buttonLabel: "Launch drop",      browseHref: "/launchpad/drop" },
   "ip-collection-1155": { href: "/launchpad/nfteditions/create", buttonLabel: "Create Limited Edition contract" },
   "mint-editions":      { href: "/launchpad/nfteditions",        buttonLabel: "Mint Limited Edition"           },
+  // Coins ship dapp-first; io-native flows follow after testing (spec §3). Shared default is
+  // already "soon" — no status override needed; rows reserved here for the io-native flip.
+  "claim-username":     { href: "/claim", buttonLabel: "Claim username"   },
+  "claim-collection":   { href: "/claim", buttonLabel: "Claim collection" },
 };
 
 // ── Service card ─────────────────────────────────────────────────────────────
@@ -273,6 +283,41 @@ function ServiceCard({
   );
 }
 
+// ── Group sections ───────────────────────────────────────────────────────────
+function GroupHeader({ group }: { group: ServiceGroupDefinition }) {
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center gap-2">
+        <h2 className="text-lg font-bold tracking-tight">{group.title}</h2>
+        {group.badge ? (
+          <span className="text-[10px] font-semibold tracking-widest uppercase rounded-full px-2 py-0.5 bg-muted/40 text-muted-foreground">
+            {group.badge}
+          </span>
+        ) : null}
+      </div>
+      <p className="text-sm text-muted-foreground">{group.tagline}</p>
+    </div>
+  );
+}
+
+function ComingSoonStrip({ group, defs }: { group: ServiceGroupDefinition; defs: ServiceDefinition[] }) {
+  return (
+    <div className="rounded-2xl border border-border/25 p-5">
+      <p className="section-label">{group.title}</p>
+      <p className="text-sm text-muted-foreground mt-1">{group.tagline}</p>
+      <div className="flex flex-wrap gap-2 mt-4">
+        {defs.map(({ key, icon: Icon, title, subtitle }) => (
+          <div key={key} className="flex items-center gap-2 px-3 py-2 rounded-full bg-muted/30 border border-border/25">
+            <Icon className="h-3.5 w-3.5 text-muted-foreground/60" />
+            <span className="text-xs font-semibold text-muted-foreground">{title}</span>
+            <span className="hidden sm:inline text-xs text-muted-foreground/50">— {subtitle}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── Page ────────────────────────────────────────────────────────────────────
 export function LaunchpadContent() {
   const { isSignedIn } = useUser();
@@ -297,7 +342,8 @@ export function LaunchpadContent() {
           </FadeIn>
           <FadeIn delay={0.16}>
             <p className="text-muted-foreground text-base max-w-xl leading-relaxed">
-              Permissionless smart contracts to create and generate new monetization revenues onchain, with full sovereignty and ownership.
+              Permissionless services to publish your work, grow your community, and build new
+              monetization revenue — with full sovereignty and ownership.
             </p>
           </FadeIn>
           {isSignedIn && walletAddress && (
@@ -308,27 +354,63 @@ export function LaunchpadContent() {
         </div>
       </section>
 
-      {/* ── Services grid ─────────────────────────────────────── */}
+      {/* ── Grouped services ──────────────────────────────────── */}
+      <section className="px-4 space-y-10">
+        {LAUNCHPAD_SERVICE_GROUPS.map((group) => {
+          const defs = LAUNCHPAD_SERVICE_DEFINITIONS.filter((d) => d.group === group.key);
+          if (defs.length === 0) return null;
+          if (group.key === "coming-soon") {
+            return <ComingSoonStrip key={group.key} group={group} defs={defs} />;
+          }
+          return (
+            <motion.div
+              key={group.key}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="space-y-4"
+            >
+              <GroupHeader group={group} />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {defs.map((def) => {
+                  const o = IO_OVERRIDES[def.key] ?? {};
+                  const resolved = o.status || o.badge
+                    ? { ...def, status: o.status ?? def.status, badge: o.badge ?? def.badge }
+                    : def;
+                  return (
+                    <ServiceCard
+                      key={def.key}
+                      def={resolved}
+                      href={o.href}
+                      buttonLabel={o.buttonLabel}
+                      browseHref={o.browseHref}
+                    />
+                  );
+                })}
+              </div>
+            </motion.div>
+          );
+        })}
+      </section>
+
+      {/* ── Web3 dapp callout ─────────────────────────────────── */}
       <section className="px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
-        >
-          {LAUNCHPAD_SERVICE_DEFINITIONS.map((def) => {
-            const { href, buttonLabel, browseHref } = IO_HREFS[def.key] ?? {};
-            return (
-              <ServiceCard
-                key={def.key}
-                def={def}
-                href={href}
-                buttonLabel={buttonLabel}
-                browseHref={browseHref}
-              />
-            );
-          })}
-        </motion.div>
+        <FadeIn>
+          <div className="rounded-2xl border border-border/40 p-5 bg-gradient-to-r from-brand-blue/10 to-brand-purple/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <p className="section-label">Web3 version</p>
+              <p className="font-bold text-base mt-0.5">Prefer connecting your own wallet?</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Every launchpad service is also available on the full web3 dapp, with Ready, Braavos, and other Starknet wallets.
+              </p>
+            </div>
+            <Button variant="outline" asChild className="shrink-0">
+              <a href="https://dapp.medialane.io/launchpad" target="_blank" rel="noopener noreferrer">
+                Open the dapp <ExternalLink className="h-3.5 w-3.5 ml-1.5" />
+              </a>
+            </Button>
+          </div>
+        </FadeIn>
       </section>
 
       {/* ── Drop Pages promo ──────────────────────────────────── */}
