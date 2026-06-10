@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/collapsible";
 import { registerRemix } from "@/hooks/use-remix-offers";
 import { serializeByteArray, encodeU256 } from "@/lib/cairo-calldata";
+import { readAssignedEditionId } from "@/lib/erc1155-edition";
 import { getService } from "@medialane/sdk";
 import { IP_TYPES, LICENSE_TYPES, type IPType } from "@/types/ip";
 import { ipfsToHttp, checkIsOwner } from "@/lib/utils";
@@ -241,18 +242,16 @@ export default function CreateRemixPage() {
       let txHash: string;
 
       if (standard === "ERC1155") {
-        // ERC-1155: we choose the token ID ourselves and call mint_item directly
-        remixTokenId = Date.now().toString();
-        const [tokenIdLow, tokenIdHigh] = encodeU256(BigInt(remixTokenId));
+        // ERC-1155: the contract assigns the edition id on-chain (mint_edition);
+        // read it back from the IPMinted event.
         const [valueLow, valueHigh] = encodeU256(BigInt(1));
         const result = await executeTransaction({
           pin,
           calls: [{
             contractAddress: selectedCollection.contractAddress,
-            entrypoint: "mint_item",
+            entrypoint: "mint_edition",
             calldata: [
               walletAddress,
-              tokenIdLow, tokenIdHigh,
               valueLow, valueHigh,
               ...serializeByteArray(tokenUri),
             ],
@@ -260,6 +259,7 @@ export default function CreateRemixPage() {
         });
         if (result.status === "reverted") throw new Error(result.revertReason ?? "Mint reverted");
         txHash = result.txHash ?? "";
+        remixTokenId = await readAssignedEditionId(txHash, selectedCollection.contractAddress);
       } else {
         // ERC-721: backend-mediated via createMintIntent, poll for registry-assigned tokenId
         const intentRes = await client.api.createMintIntent({
