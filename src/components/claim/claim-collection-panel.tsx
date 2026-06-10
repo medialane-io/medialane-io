@@ -153,7 +153,8 @@ export function ClaimCollectionPanel() {
               disabled={step === "verifying"}
             />
             <p className="text-xs text-muted-foreground">
-              Paste the Starknet ERC-721 contract address you own.
+              Paste the Starknet contract address you own — an NFT collection or a coin.
+              Coins are reviewed by our team before they go live.
             </p>
           </div>
           <Button

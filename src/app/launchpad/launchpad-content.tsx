@@ -133,8 +133,9 @@ const IO_OVERRIDES: Record<
   "collection-drop":    { href: "/launchpad/drop/create",   buttonLabel: "Launch drop",      browseHref: "/launchpad/drop" },
   "ip-collection-1155": { href: "/launchpad/nfteditions/create", buttonLabel: "Create Limited Edition contract" },
   "mint-editions":      { href: "/launchpad/nfteditions",        buttonLabel: "Mint Limited Edition"           },
-  // Coins ship dapp-first; io-native flows follow after testing (spec §3). Shared default is
-  // already "soon" — no status override needed; rows reserved here for the io-native flip.
+  // Coins are live on io ahead of the shared default (per-app rollout; ui 0.7.1 flips it)
+  "creator-coins":      { href: "/launchpad/coin/create", buttonLabel: "Launch Creator Coin", status: "live", badge: "Launch" },
+  "claim-memecoin":     { href: "/launchpad/memecoin",    buttonLabel: "Claim Memecoin",      status: "live" },
   "claim-username":     { href: "/claim", buttonLabel: "Claim username"   },
   "claim-collection":   { href: "/claim", buttonLabel: "Claim collection" },
 };

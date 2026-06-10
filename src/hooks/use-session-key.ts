@@ -157,6 +157,11 @@ export function useSessionKey() {
               hash.getSelectorFromName("mint_edition"),
               hash.getSelectorFromName("add_supply"),
               hash.getSelectorFromName("claim"),
+              // Creator Coin launch (factory-only selectors; the buyback quote
+              // `transfer` is already whitelisted above). Existing sessions must
+              // re-toggle "Remember session" to pick these up.
+              hash.getSelectorFromName("create_creator_coin"),
+              hash.getSelectorFromName("launch_on_ekubo"),
               // Per-collection ownership handoff on the MIP registry.
               hash.getSelectorFromName("transfer_collection_ownership"),
               // Launchpad

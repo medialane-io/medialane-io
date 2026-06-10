@@ -67,6 +67,7 @@ const ALLOWED_ROUTES: Record<string, RegExp[]> = {
     /^collections\/(register|sync-tx|claim)$/,             // launchpad create + create/collection + on-chain claim
     /^collections\/claim\/request$/,                       // manual-review claim request
     /^collection-slug-claims$/,                            // collection settings slug claim
+    /^coins\/sync$/,                                       // creator coin launch → instant index
     /^drop\/conditions$/,                                  // launchpad drop/create (Clerk-gated on backend)
     /^intents\/(listing|offer|counter-offer|fulfill|cancel|mint|create-collection|checkout)$/,  // marketplace + mint flows (signatures gate real auth)
     /^intents\/[^/]+\/hydrate$/,                           // /v1/intents/:id/hydrate (tenant-scoped repair)
