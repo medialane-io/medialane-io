@@ -16,9 +16,7 @@ import type { ServiceDefinition, ServiceGroupDefinition, ServiceStatus } from "@
 import {
   Zap, Package, Tag, ShoppingCart,
   Layers, Globe, ExternalLink, ArrowRight, Lock,
-  ImagePlus, TrendingUp, Award, GitBranch, Sparkles,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 
 // ── Hero stats ──────────────────────────────────────────────────────────────
 function HeroStats({ address }: { address: string }) {
@@ -170,21 +168,35 @@ function ServiceCard({
   const card = (
     <div
       className={cn(
-        "rounded-[15px] bg-card flex flex-col overflow-hidden min-h-[420px]",
+        "relative rounded-[15px] bg-card flex flex-col overflow-hidden",
         "transition-all duration-200 flex-1",
         !active && "opacity-80",
       )}
     >
-      <div className="flex flex-col flex-1 p-6 gap-5">
+      {/* Atmospheric wash — per-service color, fades to nothing */}
+      <div
+        aria-hidden
+        className={cn(
+          "absolute inset-0 bg-gradient-to-br pointer-events-none",
+          colors.gradient,
+          active ? "opacity-[0.13]" : "opacity-[0.05]",
+        )}
+      />
+      <div className="relative flex flex-col flex-1 p-6 gap-4">
 
-        {/* Icon + status badge */}
+        {/* Icon (soft glow) + status badge */}
         <div className="flex items-start justify-between">
-          <Icon
-            className={cn(
-              "h-9 w-9 transition-transform duration-300",
-              active ? colors.icon : "text-muted-foreground/45",
+          <div className="relative">
+            {active && (
+              <div aria-hidden className={cn("absolute -inset-3 rounded-full blur-2xl opacity-30", colors.button)} />
             )}
-          />
+            <Icon
+              className={cn(
+                "relative h-10 w-10 transition-transform duration-300",
+                active ? colors.icon : "text-muted-foreground/45",
+              )}
+            />
+          </div>
           <span
             className={cn(
               "text-[10px] font-semibold tracking-widest uppercase rounded-full px-2.5 py-1 flex items-center gap-1.5",
@@ -202,17 +214,17 @@ function ServiceCard({
         </div>
 
         {/* Title + subtitle */}
-        <div className="space-y-1.5">
-          <p className={cn("text-xl font-bold leading-snug tracking-tight", !active && "text-foreground/60")}>
+        <div className="space-y-1">
+          <p className={cn("text-2xl font-bold leading-snug tracking-tight", !active && "text-foreground/60")}>
             {title}
           </p>
-          <p className={cn("text-xs leading-relaxed", active ? "text-muted-foreground" : "text-muted-foreground/50")}>
+          <p className={cn("text-[13px] leading-relaxed", active ? "text-muted-foreground" : "text-muted-foreground/50")}>
             {subtitle}
           </p>
         </div>
 
         {/* Description */}
-        <div className="flex-1 space-y-2">
+        <div className="space-y-2">
           <p className={cn("text-sm leading-relaxed", active ? "text-muted-foreground" : "text-muted-foreground/50")}>
             {description}
           </p>
@@ -238,9 +250,9 @@ function ServiceCard({
           ))}
         </div>
 
-        {/* CTA */}
+        {/* CTA — pinned to the card bottom */}
         {live && href ? (
-          <div className="space-y-2">
+          <div className="space-y-2 mt-auto pt-2">
             <Link
               href={href}
               className={cn(
@@ -264,7 +276,7 @@ function ServiceCard({
             )}
           </div>
         ) : (
-          <div className="flex items-center gap-2 h-10 text-sm text-muted-foreground/50 font-medium">
+          <div className="flex items-center gap-2 h-10 mt-auto pt-2 text-sm text-muted-foreground/50 font-medium">
             <Lock className="h-3.5 w-3.5" />
             {building ? "In development" : "Coming soon"}
           </div>
@@ -286,37 +298,18 @@ function ServiceCard({
 }
 
 // ── Group sections ───────────────────────────────────────────────────────────
-const GROUP_ACCENTS: Record<string, { icon: LucideIcon; tile: string; text: string }> = {
-  "single-edition": { icon: ImagePlus, tile: "bg-blue-500/15", text: "text-blue-400" },
-  "limited-editions": { icon: Layers, tile: "bg-rose-500/15", text: "text-rose-400" },
-  "creator-coins": { icon: TrendingUp, tile: "bg-pink-500/15", text: "text-pink-400" },
-  "collection-drop": { icon: Package, tile: "bg-orange-500/15", text: "text-orange-400" },
-  "pop-protocol": { icon: Award, tile: "bg-emerald-500/15", text: "text-emerald-400" },
-  "licensing-remix": { icon: GitBranch, tile: "bg-indigo-500/15", text: "text-indigo-400" },
-  "claims": { icon: Sparkles, tile: "bg-purple-500/15", text: "text-purple-400" },
-};
-
 function GroupHeader({ group }: { group: ServiceGroupDefinition }) {
-  const accent = GROUP_ACCENTS[group.key];
-  const Icon = accent?.icon;
   return (
-    <div className="flex items-start gap-3">
-      {accent && Icon ? (
-        <div className={cn("h-10 w-10 shrink-0 rounded-xl flex items-center justify-center", accent.tile)}>
-          <Icon className={cn("h-5 w-5", accent.text)} />
-        </div>
-      ) : null}
-      <div className="space-y-0.5">
-        <div className="flex items-center gap-2">
-          <h2 className="text-xl font-bold tracking-tight">{group.title}</h2>
-          {group.badge ? (
-            <span className="text-[10px] font-semibold tracking-widest uppercase rounded-full px-2 py-0.5 bg-muted/40 text-muted-foreground">
-              {group.badge}
-            </span>
-          ) : null}
-        </div>
-        <p className="text-sm text-muted-foreground">{group.tagline}</p>
+    <div className="space-y-1">
+      <div className="flex items-center gap-2">
+        <h2 className="text-xl font-bold tracking-tight">{group.title}</h2>
+        {group.badge ? (
+          <span className="text-[10px] font-semibold tracking-widest uppercase rounded-full px-2 py-0.5 bg-muted/40 text-muted-foreground">
+            {group.badge}
+          </span>
+        ) : null}
       </div>
+      <p className="text-sm text-muted-foreground">{group.tagline}</p>
     </div>
   );
 }
