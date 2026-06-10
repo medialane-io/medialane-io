@@ -16,7 +16,9 @@ import type { ServiceDefinition, ServiceGroupDefinition, ServiceStatus } from "@
 import {
   Zap, Package, Tag, ShoppingCart,
   Layers, Globe, ExternalLink, ArrowRight, Lock,
+  ImagePlus, TrendingUp, Award, GitBranch, Sparkles,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 // ── Hero stats ──────────────────────────────────────────────────────────────
 function HeroStats({ address }: { address: string }) {
@@ -170,7 +172,7 @@ function ServiceCard({
       className={cn(
         "rounded-[15px] bg-card flex flex-col overflow-hidden min-h-[420px]",
         "transition-all duration-200 flex-1",
-        !active && "opacity-60",
+        !active && "opacity-80",
       )}
     >
       <div className="flex flex-col flex-1 p-6 gap-5">
@@ -180,7 +182,7 @@ function ServiceCard({
           <Icon
             className={cn(
               "h-9 w-9 transition-transform duration-300",
-              active ? colors.icon : "text-muted-foreground/25",
+              active ? colors.icon : "text-muted-foreground/45",
             )}
           />
           <span
@@ -201,17 +203,17 @@ function ServiceCard({
 
         {/* Title + subtitle */}
         <div className="space-y-1.5">
-          <p className={cn("text-xl font-bold leading-snug tracking-tight", !active && "text-foreground/40")}>
+          <p className={cn("text-xl font-bold leading-snug tracking-tight", !active && "text-foreground/60")}>
             {title}
           </p>
-          <p className={cn("text-xs leading-relaxed", active ? "text-muted-foreground" : "text-muted-foreground/30")}>
+          <p className={cn("text-xs leading-relaxed", active ? "text-muted-foreground" : "text-muted-foreground/50")}>
             {subtitle}
           </p>
         </div>
 
         {/* Description */}
         <div className="flex-1 space-y-2">
-          <p className={cn("text-sm leading-relaxed", active ? "text-muted-foreground" : "text-muted-foreground/30")}>
+          <p className={cn("text-sm leading-relaxed", active ? "text-muted-foreground" : "text-muted-foreground/50")}>
             {description}
           </p>
           {example && active && (
@@ -228,7 +230,7 @@ function ServiceCard({
                 "text-[11px] px-2.5 py-1 rounded-full border font-medium",
                 active
                   ? colors.chip
-                  : "bg-muted/10 border-border/15 text-muted-foreground/25",
+                  : "bg-muted/10 border-border/15 text-muted-foreground/45",
               )}
             >
               {f}
@@ -262,7 +264,7 @@ function ServiceCard({
             )}
           </div>
         ) : (
-          <div className="flex items-center gap-2 h-10 text-sm text-muted-foreground/30 font-medium">
+          <div className="flex items-center gap-2 h-10 text-sm text-muted-foreground/50 font-medium">
             <Lock className="h-3.5 w-3.5" />
             {building ? "In development" : "Coming soon"}
           </div>
@@ -284,18 +286,37 @@ function ServiceCard({
 }
 
 // ── Group sections ───────────────────────────────────────────────────────────
+const GROUP_ACCENTS: Record<string, { icon: LucideIcon; tile: string; text: string }> = {
+  "single-edition": { icon: ImagePlus, tile: "bg-blue-500/15", text: "text-blue-400" },
+  "limited-editions": { icon: Layers, tile: "bg-rose-500/15", text: "text-rose-400" },
+  "creator-coins": { icon: TrendingUp, tile: "bg-pink-500/15", text: "text-pink-400" },
+  "collection-drop": { icon: Package, tile: "bg-orange-500/15", text: "text-orange-400" },
+  "pop-protocol": { icon: Award, tile: "bg-emerald-500/15", text: "text-emerald-400" },
+  "licensing-remix": { icon: GitBranch, tile: "bg-indigo-500/15", text: "text-indigo-400" },
+  "claims": { icon: Sparkles, tile: "bg-purple-500/15", text: "text-purple-400" },
+};
+
 function GroupHeader({ group }: { group: ServiceGroupDefinition }) {
+  const accent = GROUP_ACCENTS[group.key];
+  const Icon = accent?.icon;
   return (
-    <div className="space-y-1">
-      <div className="flex items-center gap-2">
-        <h2 className="text-lg font-bold tracking-tight">{group.title}</h2>
-        {group.badge ? (
-          <span className="text-[10px] font-semibold tracking-widest uppercase rounded-full px-2 py-0.5 bg-muted/40 text-muted-foreground">
-            {group.badge}
-          </span>
-        ) : null}
+    <div className="flex items-start gap-3">
+      {accent && Icon ? (
+        <div className={cn("h-10 w-10 shrink-0 rounded-xl flex items-center justify-center", accent.tile)}>
+          <Icon className={cn("h-5 w-5", accent.text)} />
+        </div>
+      ) : null}
+      <div className="space-y-0.5">
+        <div className="flex items-center gap-2">
+          <h2 className="text-xl font-bold tracking-tight">{group.title}</h2>
+          {group.badge ? (
+            <span className="text-[10px] font-semibold tracking-widest uppercase rounded-full px-2 py-0.5 bg-muted/40 text-muted-foreground">
+              {group.badge}
+            </span>
+          ) : null}
+        </div>
+        <p className="text-sm text-muted-foreground">{group.tagline}</p>
       </div>
-      <p className="text-sm text-muted-foreground">{group.tagline}</p>
     </div>
   );
 }
@@ -328,7 +349,12 @@ export function LaunchpadContent() {
 
       {/* ── Hero ─────────────────────────────────────────────── */}
       <section className="relative overflow-hidden border-b border-border/50">
-        <div className="px-4 py-14 sm:py-20">
+        <div aria-hidden className="absolute inset-0 pointer-events-none">
+          <div className="absolute -top-24 -left-20 h-72 w-72 rounded-full bg-brand-purple/15 blur-3xl" />
+          <div className="absolute -bottom-28 right-0 h-80 w-80 rounded-full bg-brand-blue/10 blur-3xl" />
+          <div className="absolute top-10 right-1/4 h-40 w-40 rounded-full bg-brand-rose/10 blur-3xl" />
+        </div>
+        <div className="relative px-4 py-14 sm:py-20">
           <FadeIn>
             <span className="pill-badge mb-5 inline-flex">
               <Zap className="h-3 w-3" />
@@ -371,7 +397,7 @@ export function LaunchpadContent() {
               className="space-y-4"
             >
               <GroupHeader group={group} />
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 {defs.map((def) => {
                   const o = IO_OVERRIDES[def.key] ?? {};
                   const resolved = o.status || o.badge
