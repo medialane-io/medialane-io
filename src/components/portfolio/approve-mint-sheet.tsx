@@ -17,6 +17,7 @@ import { useMarketplace } from "@/hooks/use-marketplace";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { confirmRemixOffer } from "@/hooks/use-remix-offers";
 import { serializeByteArray, encodeU256 } from "@/lib/cairo-calldata";
+import { readAssignedEditionId } from "@/lib/erc1155-edition";
 import { formatDisplayPrice } from "@/lib/utils";
 import { AlertCircle, Check, GitBranch, Loader2 } from "lucide-react";
 import type { RemixOffer } from "@/types/remix-offers";
@@ -140,24 +141,23 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
       let remixTokenId: string;
 
       if (standard === "ERC1155") {
-        // ERC-1155: we choose the token ID ourselves (no registry) and call mint_item directly
-        remixTokenId = Date.now().toString();
-        const [tokenIdLow, tokenIdHigh] = encodeU256(BigInt(remixTokenId));
+        // ERC-1155: the contract assigns the edition id on-chain (mint_edition);
+        // read it back from the IPMinted event.
         const [valueLow, valueHigh] = encodeU256(BigInt(1));
         const result = await executeTransaction({
           pin,
           calls: [{
             contractAddress: selectedCollection.contractAddress,
-            entrypoint: "mint_item",
+            entrypoint: "mint_edition",
             calldata: [
               walletAddress,
-              tokenIdLow, tokenIdHigh,
               valueLow, valueHigh,
               ...serializeByteArray(pinData.uri),
             ],
           }],
         });
         if (result.status === "reverted") throw new Error(result.revertReason ?? "Mint reverted");
+        remixTokenId = await readAssignedEditionId(result.txHash ?? "", selectedCollection.contractAddress);
       } else {
         // ERC-721: backend-mediated via createMintIntent, poll for assigned tokenId
         const intentRes = await client.api.createMintIntent({
