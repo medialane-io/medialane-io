@@ -1,185 +1,134 @@
 "use client";
 
 import Link from "next/link";
-import {
-  Paintbrush, ShoppingBag, Award, Package, Layers,
-  ArrowRight, Rocket, Copy,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { BRAND } from "@/lib/brand";
+import { ShoppingBag, ArrowRight, Rocket } from "lucide-react";
+import { ScrollSection } from "@/components/shared/scroll-section";
+import { LAUNCHPAD_SERVICE_DEFINITIONS, SERVICE_HUES } from "@medialane/ui";
 import { cn } from "@/lib/utils";
+import type { LucideIcon } from "lucide-react";
 
-interface Feature {
-  icon: React.ElementType;
-  label: string;
-  subtitle: string;
-  description: string;
-  example: string;
-  chips: string[];
-  color: string;
-  button: string;
-  gradient: string;
-  chip: string;
+/** Homepage launchpad strip — cards derive from the shared launchpad service
+ *  definitions (@medialane/ui): creator language, one blurb, one example, one
+ *  vivid verb pill. No tech chips, no long descriptions. */
+
+interface StripCard {
+  key: string;
   href: string;
+  icon: LucideIcon;
+  title: string;
+  blurb: string;
+  example?: string;
   cta: string;
+  hue: { text: string; solid: string; border: string; pill: string };
 }
 
-const FEATURES: Feature[] = [
+const DEF_BY_KEY = Object.fromEntries(LAUNCHPAD_SERVICE_DEFINITIONS.map((d) => [d.key, d]));
+
+// Launchpad services shown on the homepage, with io hrefs
+const STRIP_SERVICES: { key: string; href: string }[] = [
+  { key: "mint-ip-asset", href: "/create/asset" },
+  { key: "create-collection", href: "/create/collection" },
+  { key: "ip-collection-1155", href: "/launchpad/nfteditions/create" },
+  { key: "mint-editions", href: "/launchpad/nfteditions" },
+  { key: "collection-drop", href: "/launchpad/drop/create" },
+  { key: "pop-protocol", href: "/launchpad/pop/create" },
+];
+
+const MARKETPLACE_HUE = {
+  text: "text-indigo-600 dark:text-indigo-400",
+  solid: "bg-indigo-500",
+  border: "border-indigo-500/25",
+  pill: "bg-gradient-to-r from-indigo-500 to-blue-600",
+};
+
+const CARDS: StripCard[] = [
+  ...STRIP_SERVICES.flatMap(({ key, href }) => {
+    const def = DEF_BY_KEY[key];
+    if (!def) return [];
+    return [{
+      key,
+      href,
+      icon: def.icon,
+      title: def.title,
+      blurb: def.blurb,
+      example: def.example,
+      cta: def.cta,
+      hue: SERVICE_HUES[key] ?? MARKETPLACE_HUE,
+    }];
+  }),
   {
-    icon: Paintbrush,
-    label: "Mint NFT",
-    subtitle: "Publish your creative work onchain",
-    description: "Upload any photo, video, audio, or document and mint it as an IP NFT — with licensing, provenance, and ownership all locked on-chain.",
-    example: "e.g. A song, a photo, an ebook, a short film",
-    chips: ["Gasless via ChipiPay", "IPFS metadata", "Programmable licensing"],
-    color: BRAND.blue.text,
-    button: "bg-brand-blue",
-    gradient: "from-blue-500/50 via-cyan-400/20 to-blue-600/30",
-    chip: "border-blue-500/30 text-blue-400 bg-blue-500/10",
-    href: "/create/asset",
-    cta: "Mint NFT",
-  },
-  {
-    icon: Layers,
-    label: "NFT Collection",
-    subtitle: "Group your NFTs under a shared identity",
-    description: "Deploy a branded ERC-721 collection with its own page and on-chain identity. Add assets to it at any time and share it with collectors.",
-    example: "e.g. A photography portfolio, a music catalog, a comic series",
-    chips: ["Factory-deployed ERC-721", "Branded collection page", "Add assets anytime"],
-    color: BRAND.purple.text,
-    button: "bg-brand-purple",
-    gradient: "from-purple-500/50 via-violet-400/20 to-purple-700/30",
-    chip: "border-purple-500/30 text-purple-400 bg-purple-500/10",
-    href: "/create/collection",
-    cta: "Create collection",
-  },
-  {
-    icon: Copy,
-    label: "Limited Editions",
-    subtitle: "Release your IP in numbered multiples",
-    description: "Create a collection built for editions — release music tracks, art prints, or any IP in multiples. Each token is numbered and tradeable on Medialane.",
-    example: "e.g. 50 copies of a limited print, a music single in 100 editions",
-    chips: ["Multi-edition ERC-1155", "Numbered tokens", "Tradeable on Medialane"],
-    color: BRAND.rose.text,
-    button: "bg-brand-rose",
-    gradient: "from-rose-500/50 via-pink-400/20 to-rose-700/30",
-    chip: "border-rose-500/30 text-rose-400 bg-rose-500/10",
-    href: "/launchpad/nfteditions",
-    cta: "Mint editions",
-  },
-  {
-    icon: Package,
-    label: "Collection Drop",
-    subtitle: "Timed NFT releases with mint windows",
-    description: "Launch a time-gated mint campaign with a price, supply cap, and branded drop page that collectors can mint directly from.",
-    example: "e.g. A 48-hour drop of 200 NFTs at 5 USDC each",
-    chips: ["Timed mint window", "Price + supply cap", "Branded drop page"],
-    color: BRAND.orange.text,
-    button: "bg-brand-orange",
-    gradient: "from-orange-500/50 via-amber-400/20 to-orange-700/30",
-    chip: "border-orange-500/30 text-orange-400 bg-orange-500/10",
-    href: "/launchpad/drop",
-    cta: "Launch drop",
-  },
-  {
-    icon: Award,
-    label: "POP Protocol",
-    subtitle: "Proof-of-participation credentials",
-    description: "Issue soulbound badges to your community — one non-transferable credential per wallet, permanently on-chain. No faking, no transferring.",
-    example: "e.g. Hackathon badge, conference pass, community membership",
-    chips: ["Soulbound · non-transferable", "One per wallet", "Optional gating"],
-    color: BRAND.rose.text,
-    button: "bg-brand-rose",
-    gradient: "from-rose-600/50 via-red-400/20 to-rose-800/30",
-    chip: "border-rose-500/30 text-rose-400 bg-rose-500/10",
-    href: "/launchpad/pop",
-    cta: "Create event",
-  },
-  {
-    icon: ShoppingBag,
-    label: "Marketplace",
-    subtitle: "Browse, buy, and trade digital assets",
-    description: "Discover and trade IP NFTs from creators on Starknet. Buy with USDC, ETH, STRK, or WBTC — gasless and instantly settled.",
-    example: "e.g. Buy an art print, make an offer on a music track",
-    chips: ["Gasless trading", "USDC · ETH · STRK · WBTC", "Instant settlement"],
-    color: BRAND.navy.text,
-    button: "bg-brand-navy",
-    gradient: "from-blue-900/60 via-indigo-700/20 to-blue-800/30",
-    chip: "border-indigo-700/30 text-indigo-300 bg-indigo-900/20",
+    key: "marketplace",
     href: "/marketplace",
-    cta: "Browse marketplace",
+    icon: ShoppingBag,
+    title: "Marketplace",
+    blurb: "Discover and trade works from creators — gasless, instantly settled.",
+    example: "Buy an art print, make an offer on a music track",
+    cta: "Browse",
+    hue: MARKETPLACE_HUE,
   },
 ];
 
-function ServiceCard({ feature }: { feature: Feature }) {
-  const { icon: Icon, label, subtitle, description, example, chips, color, button, gradient, chip, href, cta } = feature;
+function ServiceCard({ card }: { card: StripCard }) {
+  const { icon: Icon, title, blurb, example, cta, hue, href } = card;
   return (
-    <div className={cn("p-[1px] rounded-2xl bg-gradient-to-br transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/25 flex flex-col", gradient)}>
-      <Link href={href} className="group flex flex-col flex-1 rounded-[15px] bg-card p-5 gap-4 min-h-[360px]">
-        {/* Icon */}
-        <Icon className={cn("h-8 w-8 transition-transform duration-200 group-hover:scale-110", color)} />
+    <Link
+      href={href}
+      className={cn(
+        "relative rounded-2xl border bg-card overflow-hidden flex flex-col h-full min-h-[280px]",
+        "transition-transform active:scale-[0.99]",
+        hue.border,
+      )}
+    >
+      {/* Ghosted watermark icon (launchpad card language) */}
+      <div aria-hidden className="absolute -right-7 -bottom-9 opacity-[0.04] select-none pointer-events-none">
+        <Icon className="h-36 w-36" />
+      </div>
 
-        {/* Title + subtitle */}
-        <div className="space-y-1">
-          <p className="font-bold text-base leading-tight">{label}</p>
-          <p className="text-xs text-muted-foreground leading-relaxed">{subtitle}</p>
+      <div className="relative flex flex-col flex-1 p-6 gap-3.5">
+        <div className="relative w-fit">
+          <div aria-hidden className={cn("absolute -inset-3 rounded-full blur-2xl opacity-30", hue.solid)} />
+          <Icon className={cn("relative h-8 w-8", hue.text)} />
         </div>
 
-        {/* Description + example */}
-        <div className="flex-1 space-y-1.5">
-          <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
-          <p className="text-xs text-muted-foreground/60 italic">{example}</p>
+        <div className="space-y-1.5">
+          <h3 className="text-xl font-black tracking-tight leading-snug">{title}</h3>
+          <p className="text-sm text-muted-foreground leading-relaxed">{blurb}</p>
+          {example && (
+            <p className="text-xs text-muted-foreground/70 italic leading-relaxed">e.g. {example}</p>
+          )}
         </div>
 
-        {/* Chips */}
-        <div className="flex flex-wrap gap-1.5">
-          {chips.map((c) => (
-            <span key={c} className={cn("text-[10px] font-medium px-2 py-0.5 rounded-full border", chip)}>
-              {c}
-            </span>
-          ))}
+        <div className="mt-auto pt-1 flex justify-end">
+          <span
+            className={cn(
+              "inline-flex items-center gap-2 h-9 px-4 rounded-full",
+              "text-sm font-semibold text-white shadow-lg shadow-black/25",
+              hue.pill,
+            )}
+          >
+            {cta}
+            <ArrowRight className="h-3.5 w-3.5" />
+          </span>
         </div>
-
-        {/* CTA */}
-        <div className={cn(
-          "flex items-center justify-between w-full h-9 px-3 rounded-xl text-sm font-semibold text-white",
-          "transition-all hover:brightness-110",
-          button,
-        )}>
-          {cta}
-          <ArrowRight className="h-3.5 w-3.5" />
-        </div>
-      </Link>
-    </div>
+      </div>
+    </Link>
   );
 }
 
 export function AirdropSection() {
   return (
-    <section className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center shadow-md shadow-primary/20">
-            <Rocket className="h-3.5 w-3.5 text-white" />
-          </div>
-          <h2 className="text-lg sm:text-xl font-semibold">Launchpad</h2>
+    <ScrollSection
+      icon={<Rocket className="h-3.5 w-3.5 text-white" />}
+      iconBg="bg-gradient-to-br from-primary to-blue-600 shadow-md shadow-primary/20"
+      title="Launchpad"
+      href="/launchpad"
+      linkLabel="Explore"
+    >
+      {CARDS.map((card) => (
+        <div key={card.key} className="w-64 sm:w-72 snap-start shrink-0 flex">
+          <ServiceCard card={card} />
         </div>
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/launchpad" className="flex items-center gap-1 text-muted-foreground hover:text-foreground">
-            Explore <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-        </Button>
-      </div>
-
-      <div className="w-full overflow-x-auto scrollbar-hide">
-        <div className="flex gap-3 snap-x snap-mandatory pb-2" style={{ width: "max-content" }}>
-          {FEATURES.map((f) => (
-            <div key={f.label} className="w-64 sm:w-72 snap-start shrink-0">
-              <ServiceCard feature={f} />
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
+      ))}
+    </ScrollSection>
   );
 }
