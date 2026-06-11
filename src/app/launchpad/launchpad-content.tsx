@@ -63,20 +63,22 @@ export function LaunchpadContent() {
   const { walletAddress } = useSessionKey();
 
   return (
-    <div className="pb-16 space-y-10">
+    <div className="pb-20 space-y-12 sm:space-y-20">
 
-      {/* ── Top notification — Starknet dapp ──────────────────── */}
+      {/* ── Floating Starknet dapp widget — top right, glass pill ─ */}
       <a
         href="https://dapp.medialane.io/launchpad"
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center justify-center gap-2 px-4 py-2.5 -mb-10 text-center text-xs sm:text-sm font-medium bg-gradient-to-r from-brand-blue/15 via-brand-purple/15 to-brand-blue/15 border-b border-border/40 text-foreground/90 hover:brightness-110 transition-all"
+        className="fixed top-3 right-4 sm:right-6 lg:right-8 z-40 flex items-center gap-2 h-10 pl-3.5 pr-4 rounded-full border border-border/50 bg-background/70 backdrop-blur-xl shadow-lg shadow-black/10 text-sm hover:bg-background/90 active:scale-[0.98] transition-all"
       >
-        <Zap className={`h-3.5 w-3.5 shrink-0 ${BRAND.blue.text}`} />
-        <span>
-          Prefer your own wallet? The Launchpad is also live on our <span className="font-bold">Starknet dapp</span>
+        <span className="relative flex h-2 w-2" aria-hidden>
+          <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-60 animate-ping" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
         </span>
-        <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground" />
+        <span className="hidden sm:inline text-muted-foreground">Web3 version</span>
+        <span className="font-semibold">Starknet dapp</span>
+        <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
       </a>
 
       {/* ── Hero ─────────────────────────────────────────────── */}
