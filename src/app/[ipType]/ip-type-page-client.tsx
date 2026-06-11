@@ -3,13 +3,11 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Loader2, SlidersHorizontal, Search, X as XIcon } from "lucide-react";
+import { PageContainer } from "@medialane/ui";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import { AnimatePresence, motion } from "framer-motion";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useTokensByIpType } from "@/hooks/use-tokens-by-ip-type";
 import { IP_TYPE_MAP, IP_TYPE_CONFIG } from "@medialane/ui";
 import { cn } from "@/lib/utils";
@@ -17,6 +15,23 @@ import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
 import type { ApiToken } from "@medialane/sdk";
 
 const PAGE_SIZE = 24;
+
+// ---- Filter chip (shared pill used in the filters dialog) ----
+function FilterChip({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "text-xs px-3 py-1.5 rounded-full border transition-colors whitespace-nowrap",
+        active
+          ? "border-primary bg-primary/10 text-primary font-medium"
+          : "border-border text-muted-foreground hover:border-primary/50"
+      )}
+    >
+      {label}
+    </button>
+  );
+}
 
 // ---- Main page ----
 interface IpTypePageClientProps {
@@ -74,6 +89,15 @@ export function IpTypePageClient({ slug }: IpTypePageClientProps) {
     (sortOrder !== "recent" ? 1 : 0) +
     (licenseFilter !== "all" ? 1 : 0) +
     (creatorSearch !== "" ? 1 : 0);
+  const activeChipCount = activeFilterCount + (listedOnly ? 1 : 0);
+  const hasActiveFilters = activeChipCount > 0;
+  const resetAll = () => {
+    setSortOrder("recent");
+    setLicenseFilter("all");
+    setCreatorSearch("");
+    setCreatorSearchInput("");
+    setListedOnly(false);
+  };
 
   // Apply filters + sort client-side
   let displayed = listedOnly
@@ -118,176 +142,171 @@ export function IpTypePageClient({ slug }: IpTypePageClientProps) {
   const listedCount = allTokens.filter((t) => (t.activeOrders?.length ?? 0) > 0).length;
 
   return (
-    <div className="container mx-auto px-5 sm:px-8 lg:px-12 pt-12 pb-16 space-y-8">
+    <PageContainer className="box-border max-w-full pt-14 pb-16 space-y-8">
       {/* Header */}
       <div className="space-y-4">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-4">
-            {config && Icon && (
-              <div className={cn("h-14 w-14 rounded-2xl flex items-center justify-center shadow-lg", config.bgClass)}>
-                <Icon className={cn("h-7 w-7", config.colorClass)} />
-              </div>
-            )}
-            <div>
-              <h1 className="text-3xl font-black">{config?.label ?? slug} Assets</h1>
-              <p className="text-muted-foreground mt-0.5">
-                {meta?.total != null ? (
-                  <>{meta.total.toLocaleString()} indexed · {listedCount} listed</>
-                ) : (
-                  "Browsing indexed digital assets on Medialane"
-                )}
-              </p>
+        <div className="flex items-center gap-4">
+          {config && Icon && (
+            <div className={cn("h-14 w-14 rounded-2xl flex items-center justify-center shadow-lg", config.bgClass)}>
+              <Icon className={cn("h-7 w-7", config.colorClass)} />
             </div>
-          </div>
-
-          {/* Type switcher chips */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            {IP_TYPE_CONFIG.slice(0, 6).map((t) => (
-              <Link
-                key={t.slug}
-                href={`/${t.slug}`}
-                className={cn(
-                  "flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition-all font-medium",
-                  t.slug === slug
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
-                )}
-              >
-                <t.icon className={cn("h-3 w-3", t.slug === slug ? t.colorClass : "")} />
-                {t.label}
-              </Link>
-            ))}
+          )}
+          <div>
+            <h1 className="text-3xl font-black">{config?.label ?? slug} Assets</h1>
+            <p className="text-muted-foreground mt-0.5">
+              {meta?.total != null ? (
+                <>{meta.total.toLocaleString()} indexed · {listedCount} listed</>
+              ) : (
+                "Browsing indexed digital assets on Medialane"
+              )}
+            </p>
           </div>
         </div>
 
-        {/* Filters bar */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-3 flex-wrap">
-            
-            {/* Listed only toggle */}
-            <button
-              onClick={() => setListedOnly((v) => !v)}
-              className={cn(
-                "text-xs px-3 py-1.5 rounded-full border transition-all font-medium",
-                listedOnly
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
-              )}
-            >
-              Listed {listedCount > 0 && !isInitialLoading ? ` (${listedCount})` : ""}
-            </button>
-            {/* Filters toggle */}
-            <button
-              onClick={() => setFiltersOpen((v) => !v)}
-              className={cn(
-                "flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-all font-medium",
-                filtersOpen || activeFilterCount > 0
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
-              )}
-            >
-              <SlidersHorizontal className="h-3.5 w-3.5" />
-              Filters
-              {activeFilterCount > 0 && (
-                <span className="ml-0.5 bg-primary text-primary-foreground rounded-full px-1.5 text-[10px] font-bold leading-4">
-                  {activeFilterCount}
-                </span>
-              )}
-            </button>
-            {/* Active filter chips */}
-            {sortOrder !== "recent" && (
-              <Badge
-                variant="secondary"
-                className="cursor-pointer gap-1 text-xs"
-                onClick={() => setSortOrder("recent")}
-              >
-                {sortOrder === "price_asc" ? "Price ↑" : "Price ↓"}
-                <XIcon className="h-3 w-3" />
-              </Badge>
+        {/* Filters bar — single entry point + removable active chips */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => setFiltersOpen(true)}
+            className={cn(
+              "inline-flex items-center gap-1.5 text-xs px-3.5 py-2 rounded-full border font-medium transition-colors",
+              hasActiveFilters
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-border text-muted-foreground"
             )}
-            {licenseFilter !== "all" && (
-              <Badge
-                variant="secondary"
-                className="cursor-pointer gap-1 text-xs"
-                onClick={() => setLicenseFilter("all")}
-              >
-                {licenseFilter}
-                <XIcon className="h-3 w-3" />
-              </Badge>
+          >
+            <SlidersHorizontal className="h-3.5 w-3.5" />
+            Filters
+            {activeChipCount > 0 && (
+              <span className="ml-0.5 bg-primary text-primary-foreground rounded-full px-1.5 text-[10px] font-bold leading-4">
+                {activeChipCount}
+              </span>
             )}
-            {creatorSearch && (
-              <Badge
-                variant="secondary"
-                className="cursor-pointer gap-1 text-xs"
-                onClick={() => { setCreatorSearch(""); setCreatorSearchInput(""); }}
-              >
-                {creatorSearch.length > 10 ? `${creatorSearch.slice(0, 10)}…` : creatorSearch}
-                <XIcon className="h-3 w-3" />
-              </Badge>
-            )}
-          </div>
+          </button>
 
-          {/* Collapsible filter panel */}
-          <AnimatePresence initial={false}>
-            {filtersOpen && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2, ease: "easeInOut" }}
-                style={{ overflow: "hidden" }}
-              >
-                <div className="pt-1 pb-2 flex flex-wrap gap-3 items-end">
-                  {/* Sort */}
-                  <div className="space-y-1">
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Sort</p>
-                    <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as typeof sortOrder)}>
-                      <SelectTrigger className="h-8 text-xs w-44">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="recent">Recent</SelectItem>
-                        <SelectItem value="price_asc">Price: Low → High</SelectItem>
-                        <SelectItem value="price_desc">Price: High → Low</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {/* License */}
-                  <div className="space-y-1">
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">License</p>
-                    <Select value={licenseFilter} onValueChange={setLicenseFilter}>
-                      <SelectTrigger className="h-8 text-xs w-40">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All licenses</SelectItem>
-                        <SelectItem value="CC0">CC0</SelectItem>
-                        <SelectItem value="CC BY">CC BY</SelectItem>
-                        <SelectItem value="CC BY-SA">CC BY-SA</SelectItem>
-                        <SelectItem value="CC BY-NC">CC BY-NC</SelectItem>
-                        <SelectItem value="CC BY-ND">CC BY-ND</SelectItem>
-                        <SelectItem value="Custom">Custom</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {/* Creator search */}
-                  <div className="space-y-1">
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Creator</p>
-                    <div className="relative">
-                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                      <Input
-                        className="h-8 text-xs pl-8 w-52"
-                        placeholder="Name or wallet address…"
-                        value={creatorSearchInput}
-                        onChange={(e) => setCreatorSearchInput(e.target.value)}
-                      />
-                    </div>
-                  </div>
+          {listedOnly && (
+            <Badge variant="secondary" className="cursor-pointer gap-1 text-xs" onClick={() => setListedOnly(false)}>
+              Listed only
+              <XIcon className="h-3 w-3" />
+            </Badge>
+          )}
+          {sortOrder !== "recent" && (
+            <Badge variant="secondary" className="cursor-pointer gap-1 text-xs" onClick={() => setSortOrder("recent")}>
+              {sortOrder === "price_asc" ? "Price ↑" : "Price ↓"}
+              <XIcon className="h-3 w-3" />
+            </Badge>
+          )}
+          {licenseFilter !== "all" && (
+            <Badge variant="secondary" className="cursor-pointer gap-1 text-xs" onClick={() => setLicenseFilter("all")}>
+              {licenseFilter}
+              <XIcon className="h-3 w-3" />
+            </Badge>
+          )}
+          {creatorSearch && (
+            <Badge variant="secondary" className="cursor-pointer gap-1 text-xs" onClick={() => { setCreatorSearch(""); setCreatorSearchInput(""); }}>
+              {creatorSearch.length > 10 ? `${creatorSearch.slice(0, 10)}…` : creatorSearch}
+              <XIcon className="h-3 w-3" />
+            </Badge>
+          )}
+        </div>
+
+        {/* Filters dialog — matches the marketplace panel aesthetic */}
+        <Dialog open={filtersOpen} onOpenChange={setFiltersOpen}>
+          <DialogContent className="w-full max-w-sm sm:max-w-md p-0 overflow-hidden gap-0 flex flex-col max-h-[85svh]">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border/60 pr-12">
+              <DialogTitle className="text-base font-bold flex items-center gap-2">
+                <SlidersHorizontal className="h-4 w-4 text-primary" />
+                Filters
+              </DialogTitle>
+              {hasActiveFilters && (
+                <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground" onClick={resetAll}>
+                  Clear all
+                </Button>
+              )}
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+              {/* Status */}
+              <div className="space-y-2">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Status</p>
+                <div className="flex flex-wrap gap-1.5">
+                  <FilterChip active={!listedOnly} onClick={() => setListedOnly(false)} label="All" />
+                  <FilterChip
+                    active={listedOnly}
+                    onClick={() => setListedOnly(true)}
+                    label={`Listed only${listedCount > 0 ? ` (${listedCount})` : ""}`}
+                  />
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+              </div>
+
+              {/* Sort */}
+              <div className="space-y-2">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Sort</p>
+                <div className="flex flex-wrap gap-1.5">
+                  <FilterChip active={sortOrder === "recent"} onClick={() => setSortOrder("recent")} label="Recent" />
+                  <FilterChip active={sortOrder === "price_asc"} onClick={() => setSortOrder("price_asc")} label="Price ↑" />
+                  <FilterChip active={sortOrder === "price_desc"} onClick={() => setSortOrder("price_desc")} label="Price ↓" />
+                </div>
+              </div>
+
+              {/* License */}
+              <div className="space-y-2">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">License</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {["all", "CC0", "CC BY", "CC BY-SA", "CC BY-NC", "CC BY-ND", "Custom"].map((lic) => (
+                    <FilterChip
+                      key={lic}
+                      active={licenseFilter === lic}
+                      onClick={() => setLicenseFilter(lic)}
+                      label={lic === "all" ? "All licenses" : lic}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Creator */}
+              <div className="space-y-2">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Creator</p>
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                  <Input
+                    className="h-9 text-sm pl-8"
+                    placeholder="Name or wallet address…"
+                    value={creatorSearchInput}
+                    onChange={(e) => setCreatorSearchInput(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* IP Type */}
+              <div className="space-y-2 pt-1 border-t border-border/60">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">IP Type</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {IP_TYPE_CONFIG.map((t) => (
+                    <Link
+                      key={t.slug}
+                      href={`/${t.slug}`}
+                      className={cn(
+                        "inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-colors whitespace-nowrap",
+                        t.slug === slug
+                          ? "border-primary bg-primary/10 text-primary font-medium"
+                          : "border-border text-muted-foreground hover:border-primary/50"
+                      )}
+                    >
+                      <t.icon className={cn("h-3 w-3", t.slug === slug ? t.colorClass : "")} />
+                      {t.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="px-5 py-3 border-t border-border/60">
+              <Button className="w-full" onClick={() => setFiltersOpen(false)}>
+                Apply filters
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Grid */}
@@ -351,6 +370,6 @@ export function IpTypePageClient({ slug }: IpTypePageClientProps) {
         </div>
       )}
 
-    </div>
+    </PageContainer>
   );
 }
