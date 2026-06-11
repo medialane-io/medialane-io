@@ -142,6 +142,15 @@ export function useSessionKey() {
               // ERC-721 / ERC-1155 transfers
               hash.getSelectorFromName("transfer"),
               hash.getSelectorFromName("transfer_from"),
+              // ERC-20 approve — REMOVED 2026-05-06 (audit finding 14), RE-ADDED
+              // 2026-06-10 per that finding's own contingency: paid drop mints
+              // multicall approve+claim through this pipeline and were silently
+              // reverting at the ChipiPay paymaster (same shape as PR #45/#53).
+              // Risk note: ChipiPay enforces per-selector only, so a session key
+              // can approve any token to any spender — escalation to ChipiPay
+              // for per-contract restrictions remains open (finding 14). App
+              // flows only ever approve exact amounts, never unlimited.
+              hash.getSelectorFromName("approve"),
               // ERC-1155 transfers use `safe_transfer_from`
               // (signature: from, to, id, value, data). Same security tier
               // as `transfer_from` — user-owned token movement, not approval
