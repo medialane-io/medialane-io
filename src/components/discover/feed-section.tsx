@@ -104,7 +104,7 @@ function CommunityStrip() {
     >
       {isLoading
         ? Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="w-48 sm:w-56 snap-start shrink-0">
+            <div key={i} className="w-56 sm:w-64 snap-start shrink-0">
               <ActivityCardSkeleton />
             </div>
           ))
@@ -119,7 +119,7 @@ function CommunityStrip() {
               ? `${act.txHash}-${act.type}-${act.nftTokenId ?? ""}`
               : `activity-${i}`;
             return (
-              <div key={key} className="w-48 sm:w-56 snap-start shrink-0">
+              <div key={key} className="w-56 sm:w-64 snap-start shrink-0">
                 <ActivityCard activity={act} />
               </div>
             );
@@ -130,7 +130,7 @@ function CommunityStrip() {
 
 export function FeedSection() {
   return (
-    <div className="space-y-10">
+    <div className="space-y-14 sm:space-y-20">
       <FadeIn>
         <MarketsStrip />
       </FadeIn>

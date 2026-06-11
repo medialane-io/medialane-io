@@ -14,9 +14,9 @@ export function ActivityCardSkeleton() {
   return (
     <div className="rounded-xl border border-border/50 overflow-hidden">
       <Skeleton className="aspect-square w-full rounded-none" />
-      <div className="p-3 space-y-1.5">
-        <Skeleton className="h-3.5 w-28" />
-        <Skeleton className="h-3 w-20" />
+      <div className="p-4 space-y-2">
+        <Skeleton className="h-4 w-32" />
+        <Skeleton className="h-3 w-24" />
       </div>
     </div>
   );
@@ -69,36 +69,31 @@ export function ActivityCard({ activity }: { activity: ApiActivity }) {
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-muted-foreground/10 to-muted-foreground/5" aria-hidden />
         )}
-        {/* Activity type chip */}
-        <span className="absolute top-2 left-2 inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold bg-background/75 backdrop-blur-sm border border-border/40">
+        {/* Activity type chip — vivid label on glass, brand-style accent */}
+        <span className="absolute top-2.5 left-2.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-background/75 backdrop-blur-md border border-border/40">
           <Icon className={cn("h-3 w-3", config.colorClass)} aria-hidden />
-          {config.label}
+          <span className={config.colorClass}>{config.label}</span>
         </span>
         {amount && (
-          <span className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-violet-500 text-white">
+          <span className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-violet-500 text-white">
             ×{amount}
           </span>
         )}
       </div>
-      <div className="p-3 space-y-1">
-        <p className="text-sm font-semibold truncate">{tokenName}</p>
-        <p className="text-xs text-muted-foreground truncate">{message}</p>
-        <div className="flex items-center justify-between pt-0.5 min-h-[20px]">
-          {activity.price?.formatted ? (
-            <span className="text-sm font-bold tabular-nums flex items-center gap-1">
-              <CurrencyIcon symbol={activity.price.currency} size={12} aria-hidden />
-              {formatDisplayPrice(activity.price.formatted)}
-            </span>
-          ) : (
-            <span />
-          )}
-          <span
-            className="text-[10px] text-muted-foreground tabular-nums"
-            title={new Date(activity.timestamp).toLocaleString()}
-          >
-            {timeAgo(activity.timestamp)}
-          </span>
-        </div>
+      <div className="p-4 space-y-1.5">
+        <p className="text-[15px] font-semibold truncate">{tokenName}</p>
+        <p
+          className="text-xs text-muted-foreground truncate"
+          title={new Date(activity.timestamp).toLocaleString()}
+        >
+          {message} · {timeAgo(activity.timestamp)}
+        </p>
+        {activity.price?.formatted && (
+          <p className="text-sm font-bold tabular-nums flex items-center gap-1.5 pt-0.5">
+            <CurrencyIcon symbol={activity.price.currency} size={13} aria-hidden />
+            {formatDisplayPrice(activity.price.formatted)}
+          </p>
+        )}
       </div>
     </>
   );
