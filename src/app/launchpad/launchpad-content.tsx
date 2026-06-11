@@ -67,12 +67,7 @@ export function LaunchpadContent() {
 
       {/* ── Hero ─────────────────────────────────────────────── */}
       <section className="relative overflow-hidden border-b border-border/50">
-        <div aria-hidden className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-24 -left-20 h-72 w-72 rounded-full bg-brand-purple/15 blur-3xl" />
-          <div className="absolute -bottom-28 right-0 h-80 w-80 rounded-full bg-brand-blue/10 blur-3xl" />
-          <div className="absolute top-10 right-1/4 h-40 w-40 rounded-full bg-brand-rose/10 blur-3xl" />
-        </div>
-        <div className="relative px-4 py-14 sm:py-20">
+        <div className="px-4 py-14 sm:py-20">
           <FadeIn>
             <span className="pill-badge mb-5 inline-flex">
               <Zap className="h-3 w-3" />
