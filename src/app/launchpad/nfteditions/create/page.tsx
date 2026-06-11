@@ -260,9 +260,8 @@ export default function CreateIP1155CollectionPage() {
             {uploadError && (
               <p className="text-xs text-destructive mt-1">{uploadError}</p>
             )}
-            {uploadSuccess && (
-              <p className="text-xs text-emerald-500 mt-1">✓ {uploadSuccess}</p>
-            )}
+            {/* Upload success is shown inline next to the image (create-form) —
+                no page-bottom duplicate. */}
           </form>
         </Form>
       </div>

@@ -172,6 +172,10 @@ export function NftEditionsCreateForm({
       <p className="text-xs text-center text-muted-foreground">
         Gas is free. Your PIN signs the transaction and deploys the collection contract onchain.
       </p>
+      <p className="text-xs text-center text-muted-foreground">
+        Next step: mint pieces into this collection — you set the number of copies for each
+        piece when you mint it, and can add more copies later.
+      </p>
     </div>
   );
 }
