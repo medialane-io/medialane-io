@@ -63,7 +63,7 @@ export function CreatorsStrip() {
           View all <ArrowRight className="h-4 w-4" />
         </Link>
       </div>
-      <div className="flex gap-3 overflow-x-auto scrollbar-none snap-x snap-mandatory pb-1">
+      <div className="flex gap-5 sm:gap-6 overflow-x-auto scrollbar-none snap-x snap-mandatory pb-2">
         {isLoading
           ? Array.from({ length: 6 }).map((_, i) => <CreatorChipSkeleton key={i} />)
           : creators.map((c) => (

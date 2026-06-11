@@ -12,7 +12,7 @@ import type { ApiActivity } from "@medialane/sdk";
 
 export function ActivityCardSkeleton() {
   return (
-    <div className="rounded-xl border border-border/50 overflow-hidden">
+    <div className="card-base">
       <Skeleton className="aspect-square w-full rounded-none" />
       <div className="p-4 space-y-2">
         <Skeleton className="h-4 w-32" />
@@ -98,8 +98,8 @@ export function ActivityCard({ activity }: { activity: ApiActivity }) {
     </>
   );
 
-  const className =
-    "block rounded-xl border border-border/50 bg-card dark:bg-white/[0.02] overflow-hidden hover:border-border active:scale-[0.99] transition-all";
+  // card-base matches ListingCard exactly (same bg-card, border, radius)
+  const className = "card-base block active:scale-[0.99] transition-all";
 
   return contract && tokenId ? (
     <Link href={`/asset/${contract}/${tokenId}`} className={className}>
