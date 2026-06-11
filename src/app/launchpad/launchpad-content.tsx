@@ -42,19 +42,18 @@ function HeroStats({ address }: { address: string }) {
 
 // ── io-specific service overrides (hrefs, rollout flips, gasless-rail copy) ──
 const IO_OVERRIDES: ServiceOverrides = {
-  "mint-ip-asset":      { href: "/create/asset",            buttonLabel: "Mint singular NFT",
-                          features: ["Gasless via ChipiPay", "IPFS metadata", "Programmable licensing"] },
-  "create-collection":  { href: "/create/collection",       buttonLabel: "Create NFT Collection"   },
-  "remix-asset":        { href: "/marketplace",             buttonLabel: "Browse to remix"         },
-  "pop-protocol":       { href: "/launchpad/pop/create",    buttonLabel: "Create event",     browseHref: "/launchpad/pop"  },
-  "collection-drop":    { href: "/launchpad/drop/create",   buttonLabel: "Launch drop",      browseHref: "/launchpad/drop" },
-  "ip-collection-1155": { href: "/launchpad/nfteditions/create", buttonLabel: "Create Limited Edition contract" },
-  "mint-editions":      { href: "/launchpad/nfteditions",        buttonLabel: "Mint Limited Edition"           },
+  "mint-ip-asset":      { href: "/create/asset" },
+  "create-collection":  { href: "/create/collection" },
+  "remix-asset":        { href: "/marketplace" },
+  "pop-protocol":       { href: "/launchpad/pop/create",  browseHref: "/launchpad/pop"  },
+  "collection-drop":    { href: "/launchpad/drop/create", browseHref: "/launchpad/drop" },
+  "ip-collection-1155": { href: "/launchpad/nfteditions/create" },
+  "mint-editions":      { href: "/launchpad/nfteditions" },
   // Coins are live on io ahead of the shared default (per-app rollout; ui flips it next bump)
-  "creator-coins":      { href: "/launchpad/coin/create", buttonLabel: "Launch Creator Coin", status: "live", badge: "Launch" },
-  "claim-memecoin":     { href: "/launchpad/memecoin",    buttonLabel: "Claim Memecoin",      status: "live" },
-  "claim-username":     { href: "/claim", buttonLabel: "Claim username"   },
-  "claim-collection":   { href: "/claim", buttonLabel: "Claim collection" },
+  "creator-coins":      { href: "/launchpad/coin/create", status: "live" },
+  "claim-memecoin":     { href: "/launchpad/memecoin",    status: "live" },
+  "claim-username":     { href: "/claim" },
+  "claim-collection":   { href: "/claim" },
 };
 
 // ── Page ────────────────────────────────────────────────────────────────────
@@ -81,8 +80,8 @@ export function LaunchpadContent() {
           </FadeIn>
           <FadeIn delay={0.16}>
             <p className="text-muted-foreground text-base max-w-xl leading-relaxed">
-              Permissionless services to publish your work, grow your community, and build new
-              monetization revenue — with full sovereignty and ownership.
+              Publish your work, grow your community, and earn from what you create —
+              it&apos;s always yours.
             </p>
           </FadeIn>
           {isSignedIn && walletAddress && (
