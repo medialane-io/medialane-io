@@ -4,7 +4,14 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Coins, ExternalLink, TrendingUp } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
-import { getTokenBySymbol, formatAmount } from "@medialane/sdk";
+import {
+  getTokenBySymbol, formatAmount,
+  validateCoinName as validateName,
+  validateCoinSymbol as validateSymbol,
+  validateCoinSupply as validateSupply,
+  coinToRaw as toRaw,
+  teamCoinsRaw, buybackQuoteRaw, fdvHuman,
+} from "@medialane/sdk";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,10 +27,6 @@ import {
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useTokenBalance } from "@/hooks/use-erc20-balance";
 import { useLaunchCoin, type LaunchCoinInput } from "@/hooks/use-launch-coin";
-import {
-  validateName, validateSymbol, validateSupply,
-  toRaw, teamCoinsRaw, buybackQuoteRaw, fdvHuman,
-} from "@/lib/coin-launch";
 
 const QUOTE_OPTIONS = ["STRK", "ETH"] as const;
 type Quote = (typeof QUOTE_OPTIONS)[number];
