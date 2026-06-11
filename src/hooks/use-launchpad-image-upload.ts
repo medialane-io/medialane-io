@@ -74,7 +74,16 @@ export function useLaunchpadImageUpload({
       const formData = new FormData();
       formData.append("file", file, file.name);
 
-      const uploadRes = await fetch("/api/pinata/image", { method: "POST", body: formData });
+      // IPFS pinning is an external service (Pinata) with occasional slow spells —
+      // cap the wait so the user gets a retry prompt instead of an endless spinner.
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 60_000);
+      let uploadRes: Response;
+      try {
+        uploadRes = await fetch("/api/pinata/image", { method: "POST", body: formData, signal: controller.signal });
+      } finally {
+        clearTimeout(timeout);
+      }
       const uploadData = await uploadRes.json();
       if (!uploadRes.ok || !uploadData?.imageUri) throw new Error(uploadData?.error || "Upload failed");
 
@@ -82,7 +91,10 @@ export function useLaunchpadImageUpload({
       setUploadSuccess(successMessage);
     } catch (error) {
       setImageUri(null);
-      const msg = error instanceof Error ? error.message : undefined;
+      const aborted = error instanceof DOMException && error.name === "AbortError";
+      const msg = aborted
+        ? "the image service is slow right now — please try again"
+        : error instanceof Error ? error.message : undefined;
       setUploadError(msg ? `${failureMessage}: ${msg}` : failureMessage);
     } finally {
       setImageUploading(false);

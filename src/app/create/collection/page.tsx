@@ -142,13 +142,25 @@ export default function CreateCollectionPage() {
     try {
       const imgFormData = new FormData();
       imgFormData.append("file", file, file.name);
-      const uploadRes = await fetch("/api/pinata/image", { method: "POST", body: imgFormData });
+      // Pinata has occasional slow spells — cap the wait so the user gets a
+      // retry prompt instead of an endless spinner.
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 60_000);
+      let uploadRes: Response;
+      try {
+        uploadRes = await fetch("/api/pinata/image", { method: "POST", body: imgFormData, signal: controller.signal });
+      } finally {
+        clearTimeout(timeout);
+      }
       const uploadJson = await uploadRes.json();
       if (!uploadRes.ok || !uploadJson.imageUri) throw new Error(uploadJson.error || "Image upload to IPFS failed");
       setImageUri(uploadJson.imageUri);
       setImageUploadSuccess("Image uploaded to IPFS");
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Upload failed";
+      const aborted = err instanceof DOMException && err.name === "AbortError";
+      const msg = aborted
+        ? "the image service is slow right now — please try again"
+        : err instanceof Error ? err.message : "Upload failed";
       setImageUploadError(`Image upload failed: ${msg}`);
       setImageUri(null);
     } finally {
