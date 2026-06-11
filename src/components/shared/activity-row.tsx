@@ -10,7 +10,7 @@ import { ACTIVITY_TYPE_CONFIG } from "@/lib/activity";
 import { EXPLORER_URL } from "@/lib/constants";
 import type { ApiActivity } from "@medialane/sdk";
 
-const ACTIVITY_MESSAGES: Record<string, (actor: string | null) => string> = {
+export const ACTIVITY_MESSAGES: Record<string, (actor: string | null) => string> = {
   mint:      (actor) => actor ? `Minted by ${actor}` : "Newly minted",
   listing:   (actor) => actor ? `Listed by ${actor}` : "Listed for sale",
   sale:      (actor) => actor ? `Purchased by ${actor}` : "Sold",

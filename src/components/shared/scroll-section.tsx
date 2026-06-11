@@ -10,6 +10,8 @@ interface ScrollSectionProps {
   /** Tailwind classes for the icon badge (background + shadow) */
   iconBg: string;
   title: string;
+  /** Optional small line under the title (e.g. "Updated 1m ago") */
+  subtitle?: React.ReactNode;
   /** "See all" link destination */
   href: string;
   /** Button label — defaults to "See all" */
@@ -27,6 +29,7 @@ export function ScrollSection({
   icon,
   iconBg,
   title,
+  subtitle,
   href,
   linkLabel = "See all",
   children,
@@ -38,7 +41,12 @@ export function ScrollSection({
           <div className={`h-7 w-7 rounded-lg flex items-center justify-center ${iconBg}`}>
             {icon}
           </div>
-          <h2 className="text-lg sm:text-xl font-semibold">{title}</h2>
+          <div>
+            <h2 className="text-lg sm:text-xl font-semibold leading-none">{title}</h2>
+            {subtitle && (
+              <p className="text-[10px] text-muted-foreground mt-1">{subtitle}</p>
+            )}
+          </div>
         </div>
         <Button variant="ghost" size="sm" asChild>
           <Link href={href} className="flex items-center gap-1 text-muted-foreground hover:text-foreground">

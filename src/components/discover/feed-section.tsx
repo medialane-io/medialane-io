@@ -1,69 +1,141 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowRight, Tag } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Tag, Activity, RefreshCw } from "lucide-react";
 import { FadeIn } from "@/components/ui/motion-primitives";
-import { CommunityActivity } from "@/components/home/community-activity";
-import { ListingCard } from "@/components/marketplace/listing-card";
-import { BRAND } from "@/lib/brand";
+import { ScrollSection } from "@/components/shared/scroll-section";
+import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listing-card";
+import { ActivityCard, ActivityCardSkeleton } from "@/components/shared/activity-card";
+import { PurchaseDialog } from "@/components/marketplace/purchase-dialog";
 import { useOrders } from "@/hooks/use-orders";
+import { useActivities } from "@/hooks/use-activities";
+import { useSessionKey } from "@/hooks/use-session-key";
+import { timeAgo } from "@/lib/utils";
+import type { ApiOrder } from "@medialane/sdk";
 
-function ListingCardSkeleton() {
+/** Markets activity — horizontal carousel of recent listings (frontpage New-listings style). */
+function MarketsStrip() {
+  const { orders, isLoading } = useOrders({ status: "ACTIVE", sort: "recent", limit: 10 });
+  const { walletAddress } = useSessionKey();
+  const [buyOrder, setBuyOrder] = useState<ApiOrder | null>(null);
+
+  const listings = orders.filter((o) => o.offer.itemType === "ERC721" || o.offer.itemType === "ERC1155");
+
   return (
-    <div className="rounded-xl border border-border overflow-hidden">
-      <Skeleton className="aspect-square w-full rounded-none" />
-      <div className="p-2.5 space-y-1.5">
-        <Skeleton className="h-3 w-24" />
-        <Skeleton className="h-3 w-16" />
-      </div>
-    </div>
+    <>
+      <ScrollSection
+        icon={<Tag className="h-3.5 w-3.5 text-white" />}
+        iconBg="bg-gradient-to-br from-rose-500 to-pink-600 shadow-md shadow-rose-500/20"
+        title="Activity"
+        href="/marketplace"
+        linkLabel="View all"
+      >
+        {isLoading
+          ? Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="w-72 snap-start shrink-0">
+                <ListingCardSkeleton />
+              </div>
+            ))
+          : listings.length === 0
+          ? (
+              <p className="text-sm text-muted-foreground py-4">
+                No active listings yet.{" "}
+                <Link href="/create/asset" className="text-primary hover:underline">
+                  Be the first to list an asset.
+                </Link>
+              </p>
+            )
+          : listings.map((order) => {
+              const isOwner = !!walletAddress && !!order.offerer &&
+                order.offerer.toLowerCase() === walletAddress.toLowerCase();
+              return (
+                <div key={order.orderHash} className="w-72 snap-start shrink-0">
+                  <ListingCard
+                    order={order}
+                    isOwner={isOwner}
+                    onBuy={isOwner ? undefined : () => setBuyOrder(order)}
+                  />
+                </div>
+              );
+            })}
+      </ScrollSection>
+
+      {buyOrder && (
+        <PurchaseDialog
+          open={!!buyOrder}
+          onOpenChange={(v) => { if (!v) setBuyOrder(null); }}
+          order={buyOrder}
+        />
+      )}
+    </>
+  );
+}
+
+/** Community — horizontal carousel of recent on-chain activity. */
+function CommunityStrip() {
+  const { activities, isLoading } = useActivities({ limit: 12 });
+  const [lastUpdated, setLastUpdated] = useState(() => new Date().toISOString());
+  // Tick every 15s so the "updated X ago" label refreshes visually
+  const [, setTick] = useState(0);
+
+  useEffect(() => {
+    if (!isLoading) setLastUpdated(new Date().toISOString());
+  }, [activities, isLoading]);
+
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 15_000);
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <ScrollSection
+      icon={<Activity className="h-3.5 w-3.5 text-white" />}
+      iconBg="bg-gradient-to-br from-indigo-500 to-blue-600 shadow-md shadow-indigo-500/20"
+      title="Community"
+      subtitle={
+        <span className="flex items-center gap-1">
+          <RefreshCw className="h-2.5 w-2.5" />
+          Updated {timeAgo(lastUpdated)}
+        </span>
+      }
+      href="/activities"
+      linkLabel="Activities"
+    >
+      {isLoading
+        ? Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="w-48 sm:w-56 snap-start shrink-0">
+              <ActivityCardSkeleton />
+            </div>
+          ))
+        : activities.length === 0
+        ? (
+            <p className="text-sm text-muted-foreground py-4">
+              No activity yet. Be the first to trade on Medialane!
+            </p>
+          )
+        : activities.map((act, i) => {
+            const key = act.txHash
+              ? `${act.txHash}-${act.type}-${act.nftTokenId ?? ""}`
+              : `activity-${i}`;
+            return (
+              <div key={key} className="w-48 sm:w-56 snap-start shrink-0">
+                <ActivityCard activity={act} />
+              </div>
+            );
+          })}
+    </ScrollSection>
   );
 }
 
 export function FeedSection() {
-  const { orders, isLoading } = useOrders({ status: "ACTIVE", sort: "recent", limit: 6 });
-
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      {/* New Listings */}
+    <div className="space-y-10">
       <FadeIn>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="section-label">Markets</p>
-              <div className="flex items-center gap-2 mt-0.5">
-                <Tag className={`h-4 w-4 ${BRAND.rose.text}`} />
-                <h2 className="text-lg font-bold">Activity</h2>
-              </div>
-            </div>
-            <Button variant="ghost" size="sm" asChild className="gap-1 text-muted-foreground">
-              <Link href="/marketplace">
-                View all <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-            </Button>
-          </div>
-
-          {isLoading ? (
-            <div className="grid grid-cols-3 gap-3">
-              {Array.from({ length: 6 }).map((_, i) => <ListingCardSkeleton key={i} />)}
-            </div>
-          ) : orders.length === 0 ? (
-            <div className="rounded-xl border border-border py-12 text-center text-sm text-muted-foreground">
-              No active listings yet.
-            </div>
-          ) : (
-            <div className="grid grid-cols-3 gap-3">
-              {orders.map((o) => <ListingCard key={o.orderHash} order={o} compact />)}
-            </div>
-          )}
-        </div>
+        <MarketsStrip />
       </FadeIn>
-
-      {/* Recent Activity */}
       <FadeIn delay={0.08}>
-        <CommunityActivity />
+        <CommunityStrip />
       </FadeIn>
     </div>
   );
