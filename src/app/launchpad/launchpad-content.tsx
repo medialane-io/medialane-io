@@ -52,8 +52,9 @@ const IO_OVERRIDES: ServiceOverrides = {
   // Coins are live on io ahead of the shared default (per-app rollout; ui flips it next bump)
   "creator-coins":      { href: "/launchpad/coin/create", status: "live" },
   "claim-memecoin":     { href: "/launchpad/memecoin",    status: "live" },
-  "claim-username":     { href: "/claim" },
-  "claim-collection":   { href: "/claim" },
+  "claim-username":         { href: "/claim" },
+  "claim-collection":       { href: "/claim" },
+  "claim-collection-name":  { href: "/claim" },
 };
 
 // ── Page ────────────────────────────────────────────────────────────────────
@@ -63,6 +64,20 @@ export function LaunchpadContent() {
 
   return (
     <div className="pb-16 space-y-10">
+
+      {/* ── Top notification — Starknet dapp ──────────────────── */}
+      <a
+        href="https://dapp.medialane.io/launchpad"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center justify-center gap-2 px-4 py-2.5 -mb-10 text-center text-xs sm:text-sm font-medium bg-gradient-to-r from-brand-blue/15 via-brand-purple/15 to-brand-blue/15 border-b border-border/40 text-foreground/90 hover:brightness-110 transition-all"
+      >
+        <Zap className={`h-3.5 w-3.5 shrink-0 ${BRAND.blue.text}`} />
+        <span>
+          Prefer your own wallet? The Launchpad is also live on our <span className="font-bold">Starknet dapp</span>
+        </span>
+        <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground" />
+      </a>
 
       {/* ── Hero ─────────────────────────────────────────────── */}
       <section className="relative overflow-hidden border-b border-border/50">
