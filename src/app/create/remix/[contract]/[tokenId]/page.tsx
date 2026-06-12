@@ -1,5 +1,6 @@
 "use client";
 
+import { uploadImageToIpfs } from "@/lib/upload-image";
 import { useState, useRef, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
@@ -199,14 +200,10 @@ export default function CreateRemixPage() {
       let tokenUri: string;
 
       if (imageFile) {
-        const imgFormData = new FormData();
-        imgFormData.append("file", imageFile, imageFile.name);
-        const imgRes = await fetch("/api/pinata/image", { method: "POST", body: imgFormData });
-        const imgJson = await imgRes.json();
-        if (!imgRes.ok || !imgJson.imageUri) throw new Error(imgJson.error || "Image upload to IPFS failed");
-        const imgCid = imgJson.imageUri.replace("ipfs://", "");
+        // Signed-url upload — straight to Pinata, bypasses Vercel's ~4.5 MB body cap
+        const imageUri = await uploadImageToIpfs(imageFile);
         const formData = new FormData();
-        formData.set("imageUri", `ipfs://${imgCid}`);
+        formData.set("imageUri", imageUri);
         formData.set("name", metadata.name);
         formData.set("description", metadata.description);
         formData.set("creator", walletAddress);

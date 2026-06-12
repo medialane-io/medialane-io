@@ -1,5 +1,6 @@
 "use client";
 
+import { uploadImageToIpfs } from "@/lib/upload-image";
 import { useState, useRef, useEffect } from "react";
 import { getService } from "@medialane/sdk";
 import { useForm } from "react-hook-form";
@@ -255,12 +256,8 @@ export default function CreateAssetPage() {
       formData.set("aiPolicy", pendingValues.aiPolicy);
       formData.set("royalty", String(pendingValues.royalty));
       if (imageFile) {
-        const imgFormData = new FormData();
-        imgFormData.append("file", imageFile, imageFile.name);
-        const uploadRes2 = await fetch("/api/pinata/image", { method: "POST", body: imgFormData });
-        const uploadJson = await uploadRes2.json();
-        if (!uploadRes2.ok || !uploadJson.imageUri) throw new Error(uploadJson.error || "Image upload to IPFS failed");
-        formData.set("imageUri", uploadJson.imageUri);
+        // Signed-url upload — straight to Pinata, bypasses Vercel's ~4.5 MB body cap
+        formData.set("imageUri", await uploadImageToIpfs(imageFile));
       }
 
       // Forward template and custom metadata fields as standard NFT attributes.

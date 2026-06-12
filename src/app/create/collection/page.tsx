@@ -1,5 +1,6 @@
 "use client";
 
+import { uploadImageToIpfs } from "@/lib/upload-image";
 import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -140,27 +141,19 @@ export default function CreateCollectionPage() {
     setImageUri(null);
     setImageUploading(true);
     try {
-      const imgFormData = new FormData();
-      imgFormData.append("file", file, file.name);
+      // Signed-url upload — straight to Pinata, bypasses Vercel's ~4.5 MB body cap.
       // Pinata has occasional slow spells — cap the wait so the user gets a
       // retry prompt instead of an endless spinner.
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 60_000);
-      let uploadRes: Response;
-      try {
-        uploadRes = await fetch("/api/pinata/image", { method: "POST", body: imgFormData, signal: controller.signal });
-      } finally {
-        clearTimeout(timeout);
-      }
-      const uploadJson = await uploadRes.json();
-      if (!uploadRes.ok || !uploadJson.imageUri) throw new Error(uploadJson.error || "Image upload to IPFS failed");
-      setImageUri(uploadJson.imageUri);
+      const uri = await Promise.race([
+        uploadImageToIpfs(file),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("the image service is slow right now — please try again")), 60_000),
+        ),
+      ]);
+      setImageUri(uri);
       setImageUploadSuccess("Image uploaded to IPFS");
     } catch (err: unknown) {
-      const aborted = err instanceof DOMException && err.name === "AbortError";
-      const msg = aborted
-        ? "the image service is slow right now — please try again"
-        : err instanceof Error ? err.message : "Upload failed";
+      const msg = err instanceof Error ? err.message : "Upload failed";
       setImageUploadError(`Image upload failed: ${msg}`);
       setImageUri(null);
     } finally {

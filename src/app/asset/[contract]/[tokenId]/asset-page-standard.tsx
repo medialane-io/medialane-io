@@ -174,6 +174,7 @@ export function AssetPageStandard() {
     ? [
         ...(activeTemplate.embeds ?? []).map((p) => EMBED_PLATFORM_META[p].traitKey),
         ...(activeTemplate.socials ?? []).map((p) => SOCIAL_PLATFORM_META[p].traitKey),
+          ...(activeTemplate.docUpload ? [activeTemplate.docUpload.traitType] : []),
       ]
     : [];
   const activeTemplateKeys = new Set<string>(["IP Type", ...activeTemplateEmbedSocialKeys]);

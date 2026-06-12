@@ -1,5 +1,6 @@
 "use client";
 
+import { uploadImageToIpfs } from "@/lib/upload-image";
 import { useEffect, useRef, useState } from "react";
 
 interface UseLaunchpadImageUploadOptions {
@@ -71,30 +72,21 @@ export function useLaunchpadImageUpload({
     setImageUploading(true);
 
     try {
-      const formData = new FormData();
-      formData.append("file", file, file.name);
+      // Signed-url upload — straight to Pinata, bypasses Vercel's ~4.5 MB body cap.
+      // IPFS pinning is an external service with occasional slow spells — cap the
+      // wait so the user gets a retry prompt instead of an endless spinner.
+      const uri = await Promise.race([
+        uploadImageToIpfs(file),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("the image service is slow right now — please try again")), 60_000),
+        ),
+      ]);
 
-      // IPFS pinning is an external service (Pinata) with occasional slow spells —
-      // cap the wait so the user gets a retry prompt instead of an endless spinner.
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 60_000);
-      let uploadRes: Response;
-      try {
-        uploadRes = await fetch("/api/pinata/image", { method: "POST", body: formData, signal: controller.signal });
-      } finally {
-        clearTimeout(timeout);
-      }
-      const uploadData = await uploadRes.json();
-      if (!uploadRes.ok || !uploadData?.imageUri) throw new Error(uploadData?.error || "Upload failed");
-
-      setImageUri(uploadData.imageUri);
+      setImageUri(uri);
       setUploadSuccess(successMessage);
     } catch (error) {
       setImageUri(null);
-      const aborted = error instanceof DOMException && error.name === "AbortError";
-      const msg = aborted
-        ? "the image service is slow right now — please try again"
-        : error instanceof Error ? error.message : undefined;
+      const msg = error instanceof Error ? error.message : undefined;
       setUploadError(msg ? `${failureMessage}: ${msg}` : failureMessage);
     } finally {
       setImageUploading(false);
