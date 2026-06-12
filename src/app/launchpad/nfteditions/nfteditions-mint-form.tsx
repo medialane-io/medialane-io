@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/select";
 import { FadeIn } from "@/components/ui/motion-primitives";
 import { IPTypeFields, type MetadataField } from "@/components/create/ip-type-fields";
+import { uploadDocumentToIpfs } from "@/lib/upload-document";
 import { cn } from "@/lib/utils";
 import {
   AI_POLICIES,
@@ -412,6 +413,7 @@ export function NftEditionsMintForm({
                   key={metadataResetKey}
                   ipType={form.watch("ipType") as IPType}
                   onChange={onMetadataFieldsChange}
+                  uploadDocument={uploadDocumentToIpfs}
                 />
               </div>
             </CollapsibleContent>

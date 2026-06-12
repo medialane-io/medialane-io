@@ -53,6 +53,7 @@ import {
   type IPType,
 } from "@/types/ip";
 import { IPTypeFields, type MetadataField } from "@/components/create/ip-type-fields";
+import { uploadDocumentToIpfs } from "@/lib/upload-document";
 import {
   Upload,
   ChevronDown,
@@ -712,6 +713,7 @@ export default function CreateAssetPage() {
                       key={metadataResetKey}
                       ipType={form.watch("ipType") as IPType}
                       onChange={setMetadataFields}
+                  uploadDocument={uploadDocumentToIpfs}
                     />
                   </div>
                 </CollapsibleContent>

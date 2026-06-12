@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { IPType } from "@/types/ip";
 import {
   IP_TEMPLATES,
@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Check, Plus, Trash2 } from "lucide-react";
+import { Check, FileText, FileUp, Loader2, Plus, Trash2, X } from "lucide-react";
 
 export type MetadataField = {
   traitType: string;
@@ -40,9 +40,12 @@ const looksLikeUrl = (v: string) => /^https?:\/\/\S+/i.test(v.trim());
 interface IPTypeFieldsProps {
   ipType: IPType | null;
   onChange: (fields: MetadataField[]) => void;
+  /** Uploads a document file to IPFS, resolving to its ipfs:// URI.
+   *  Enables the document upload field for types with template.docUpload. */
+  uploadDocument?: (file: File) => Promise<string>;
 }
 
-export function IPTypeFields({ ipType, onChange }: IPTypeFieldsProps) {
+export function IPTypeFields({ ipType, onChange, uploadDocument }: IPTypeFieldsProps) {
   const template = ipType ? IP_TEMPLATES[ipType] : null;
 
   // URL inputs keyed by their stored trait_type (e.g. "Spotify URL", "X").
@@ -50,13 +53,24 @@ export function IPTypeFields({ ipType, onChange }: IPTypeFieldsProps) {
   const [socialValues, setSocialValues] = useState<Record<string, string>>({});
   // One unified, ordered list of traits (suggestions pre-fill rows; custom = blank).
   const [traits, setTraits] = useState<TraitRow[]>([]);
+  // Document pinned to IPFS (Documents / Patents / Publications / Software).
+  const [docUri, setDocUri] = useState<string | null>(null);
+  const [docName, setDocName] = useState<string | null>(null);
+  const [docUploading, setDocUploading] = useState(false);
+  const [docError, setDocError] = useState<string | null>(null);
+  const docInputRef = useRef<HTMLInputElement>(null);
 
-  // Embeds & socials are type-specific — reset them when the IP type changes.
-  // Trait rows are generic key/value and persist across type switches.
+  // Embeds, socials & document are type-specific — reset them when the IP type
+  // changes. Trait rows are generic key/value and persist across type switches.
   useEffect(() => {
     setEmbedValues({});
     setSocialValues({});
+    setDocUri(null);
+    setDocName(null);
+    setDocError(null);
   }, [ipType]);
+
+  const docTraitType = template?.docUpload?.traitType ?? null;
 
   const metadataFields = useMemo(() => {
     const fields: MetadataField[] = [];
@@ -69,11 +83,12 @@ export function IPTypeFields({ ipType, onChange }: IPTypeFieldsProps) {
       seen.add(k);
       fields.push({ traitType: t, value: v });
     };
+    if (docTraitType && docUri) add(docTraitType, docUri);
     Object.entries(embedValues).forEach(([key, value]) => add(key, value));
     Object.entries(socialValues).forEach(([key, value]) => add(key, value));
     traits.forEach((row) => add(row.key, row.value));
     return fields;
-  }, [embedValues, socialValues, traits]);
+  }, [embedValues, socialValues, traits, docTraitType, docUri]);
 
   useEffect(() => {
     onChange(metadataFields);
@@ -100,6 +115,33 @@ export function IPTypeFields({ ipType, onChange }: IPTypeFieldsProps) {
   if (!template) return null;
 
   const Icon = template.icon;
+  const docUpload = template.docUpload;
+
+  const handleDocPick = async (file: File) => {
+    if (!uploadDocument || !docUpload) return;
+    if (file.size > docUpload.maxMb * 1024 * 1024) {
+      setDocError(`File must be under ${docUpload.maxMb} MB`);
+      return;
+    }
+    setDocError(null);
+    setDocUploading(true);
+    try {
+      const uri = await uploadDocument(file);
+      setDocUri(uri);
+      setDocName(file.name);
+    } catch (err) {
+      setDocError(err instanceof Error ? err.message : "Document upload failed");
+    } finally {
+      setDocUploading(false);
+      if (docInputRef.current) docInputRef.current.value = "";
+    }
+  };
+
+  const clearDoc = () => {
+    setDocUri(null);
+    setDocName(null);
+    setDocError(null);
+  };
 
   return (
     <div className="space-y-5">
@@ -107,6 +149,68 @@ export function IPTypeFields({ ipType, onChange }: IPTypeFieldsProps) {
         <Icon className={`h-4 w-4 ${template.color.text}`} />
         <p className="text-sm font-semibold">{template.label} Details</p>
       </div>
+
+      {/* ── Document file → IPFS (Documents / Patents / Publications / Software) ── */}
+      {docUpload && uploadDocument && (
+        <section className="space-y-2">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Document
+          </p>
+          {docUri ? (
+            <div className="flex items-center gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 px-4 py-3">
+              <FileText className="h-5 w-5 text-emerald-500 shrink-0" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium truncate">{docName}</p>
+                <p className="text-xs text-muted-foreground truncate">{docUri}</p>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
+                onClick={clearDoc}
+                aria-label="Remove document"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              <input
+                ref={docInputRef}
+                type="file"
+                accept={docUpload.accept}
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) void handleDocPick(f);
+                }}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={docUploading}
+                onClick={() => docInputRef.current?.click()}
+              >
+                {docUploading ? (
+                  <>
+                    <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                    Uploading…
+                  </>
+                ) : (
+                  <>
+                    <FileUp className="mr-1.5 h-3.5 w-3.5" />
+                    Upload document
+                  </>
+                )}
+              </Button>
+              {docError && <p className="text-xs text-destructive">{docError}</p>}
+              <p className="text-xs text-muted-foreground leading-relaxed">{docUpload.hint}</p>
+            </div>
+          )}
+        </section>
+      )}
 
       {/* ── Embeds (inline players) ─────────────────────────────── */}
       {template.embeds && template.embeds.length > 0 && (
