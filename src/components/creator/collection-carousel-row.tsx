@@ -5,7 +5,7 @@ import Link from "next/link";
 import { LayoutGrid, ChevronRight } from "lucide-react";
 import { MotionCard } from "@/components/ui/motion-primitives";
 import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
-import { CollectionCard, CollectionCardSkeleton } from "@/components/shared/collection-card";
+import { CollectionCard, CollectionCardSkeleton } from "@medialane/ui";
 import { useCollectionTokens } from "@/hooks/use-collections";
 import type { ApiCollection } from "@medialane/sdk";
 

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useCollections, type CollectionSort } from "@/hooks/use-collections";
 import { usePlatformStats } from "@/hooks/use-stats";
-import { CollectionCard, CollectionCardSkeleton } from "@/components/shared/collection-card";
+import { CollectionCard, CollectionCardSkeleton } from "@medialane/ui";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Layers, Loader2, BadgeCheck, Eye, SlidersHorizontal, Award, Sparkles } from "lucide-react";

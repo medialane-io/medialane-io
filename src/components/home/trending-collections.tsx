@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { TrendingUp } from "lucide-react";
 import { useCollections } from "@/hooks/use-collections";
-import { CollectionCard, CollectionCardSkeleton } from "@/components/shared/collection-card";
-import { ScrollSection } from "@/components/shared/scroll-section";
+import { CollectionCard, CollectionCardSkeleton, ScrollSection } from "@medialane/ui";
 
 export function TrendingCollections() {
   const { collections, isLoading } = useCollections(1, 10, undefined, "recent");

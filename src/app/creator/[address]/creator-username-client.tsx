@@ -9,7 +9,7 @@ import { useUserOrders } from "@/hooks/use-orders";
 import { useActivitiesByAddress } from "@/hooks/use-activities";
 import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listing-card";
 import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
-import { CollectionCard, CollectionCardSkeleton } from "@/components/shared/collection-card";
+import { CollectionCard, CollectionCardSkeleton } from "@medialane/ui";
 import { CreatorAnalytics } from "@/components/creator/creator-analytics";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
