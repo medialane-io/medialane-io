@@ -48,9 +48,8 @@ const IO_OVERRIDES: ServiceOverrides = {
   "collection-drop":    { href: "/launchpad/drop/create", browseHref: "/launchpad/drop" },
   "ip-collection-1155": { href: "/launchpad/nfteditions/create" },
   "mint-editions":      { href: "/launchpad/nfteditions" },
-  // Coins are live on io ahead of the shared default (per-app rollout; ui flips it next bump)
-  "creator-coins":      { href: "/launchpad/coin/create", status: "live" },
-  "claim-memecoin":     { href: "/launchpad/memecoin",    status: "live" },
+  "creator-coins":      { href: "/launchpad/coin/create" },
+  "claim-memecoin":     { href: "/launchpad/memecoin" },
   "claim-username":         { href: "/claim" },
   "claim-collection":       { href: "/claim" },
   "claim-collection-name":  { href: "/claim" },
