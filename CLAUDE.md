@@ -32,10 +32,11 @@ NEXT_PUBLIC_MEDIALANE_BACKEND_URL=http://localhost:3001
 - **ChipiPay** (`@chipi-stack/nextjs`) — Manages Starknet wallets derived from Clerk sessions. Enables gasless transactions. Wraps the app via `ChipiProvider` in `src/app/providers.tsx`.
 - **Starknet.js** — Direct contract calls. RPC singleton in `src/lib/starknet.ts`.
 - **@medialane/sdk** — Published npm package (`@medialane/sdk@0.24.1`, org: `@medialane`). 0.24.0 added `ApiCollection.isHidden`/`isFeatured` + `ApiCreatorProfile.collectionImage`; 0.24.1 fixed the `NFTCOMMENTS_CONTRACT_MAINNET` default (previous `0x024f97…` was undeployed and caused the 2026-05-17 comments outage). Provides API types (`ApiOrder`, `ApiToken`, `ApiCollection`, `ApiOrderTokenMeta`, `ApiComment`, `OrderStatus`, `IpAttribute`, `IpNftMetadata`, `SupportedTokenSymbol`), contract ABIs (`IPMarketplaceABI`, `IPNftABI`, etc. — split per-ABI under `abis/` since v0.19.0), service registry (`getService`, `listServices`, `ServiceId` literal union since v0.20.0), token catalogue (`SUPPORTED_TOKENS`, `getTokenByAddress`, `getListableTokens`), SNIP-12 signing helpers (`buildOrderTypedData`, `build1155OrderTypedData`, etc. — unified into one module since v0.18.0), and the `Medialane1155Module` for ERC-1155 marketplace ops. Address normalization happens inside `ApiClient`. `OrderStatus` dropped `"COUNTER_OFFERED"` in 0.23.0 — use `ApiOrder.hasActiveCounterOffer` instead. `ApiCollection.standard: "ERC721" | "ERC1155" | "UNKNOWN"` — runtime value is never "UNKNOWN" after the 2026-05-22 backend migration; the SDK type union will narrow in a future release. `ApiCollection.service: string` (non-nullable, registered via the SDK service registry).
-- **Pinata** — IPFS uploads via Next.js routes (all Clerk-gated, direct to Pinata):
-  - `src/app/api/pinata/route.ts` — Universal digital asset upload. Accepts `file`, `name`, `description`, `external_url`, `creator` (wallet address), and full licensing schema (`ipType`, `licenseType`, `commercialUse`, `derivatives`, `attribution`, `geographicScope`, `aiPolicy`, `royalty`, `edition`). Uploads image then metadata JSON. Returns `{ uri, imageUri, cid }`. Metadata follows OpenSea ERC-721 standard with `attributes` array. Creator wallet embedded as `{ trait_type: "Creator", value: walletAddress }`.
-  - `src/app/api/pinata/image/route.ts` — Image-only upload. Returns `{ imageUri: "ipfs://...", cid }`. Used by the create collection flow for the preview image.
-  - `src/app/api/pinata/json/route.ts` — Generic JSON document upload. Accepts any JSON body. Returns `{ uri: "ipfs://...", cid }`. Used by the create collection flow to upload collection metadata JSON (`{ name, description, image, external_link }`) and set the resulting URI as `baseUri` for the on-chain collection.
+- **Pinata** — IPFS uploads (all Clerk-gated). **⚠️ Vercel 413s serverless request bodies over ~4.5 MB**, so creator file uploads MUST use the signed-URL flow (browser uploads straight to Pinata, bytes never touch our server). The direct-proxy routes remain only for small/fixed payloads (campaign mint pages — do not touch):
+  - `src/app/api/pinata/signed-url/route.ts` — **the upload path for files** (2026-06-12). Issues a short-lived Pinata signed URL. JSON body `{ kind?: "image" | "document" }` (default `"image"` for back-compat): image = 10 MB image mimes; document = 20 MB doc mimes (pdf/doc/docx/txt/md/rtf/odt + octet-stream for browser mime quirks). Client helpers: `src/lib/upload-image.ts` (`uploadImageToIpfs`) and `src/lib/upload-document.ts` (`uploadDocumentToIpfs`) wrap the two-step flow. All creator flows (create asset/collection/remix, `use-launchpad-image-upload`) use these — never POST a file to a proxy route from new code.
+  - `src/app/api/pinata/route.ts` — Universal digital asset **metadata** upload. Accepts `imageUri` (pre-uploaded via signed URL — the normal path), `name`, `description`, `external_url`, full licensing schema (`ipType`, `licenseType`, `commercialUse`, `derivatives`, `attribution`, `geographicScope`, `aiPolicy`, `royalty`, `edition`), and `tmpl_*` trait fields. Still accepts a small `file` for the legacy campaign flows only. Returns `{ uri, imageUri, cid }`. OpenSea ERC-721 metadata; creator wallet derived server-side from Clerk.
+  - `src/app/api/pinata/image/route.ts` — legacy direct image proxy (≤4.5 MB effective). No creator-flow consumers since 2026-06-12.
+  - `src/app/api/pinata/json/route.ts` — Generic JSON upload (small bodies — fine as direct proxy). Used for collection metadata `baseUri`.
   - `src/app/api/pinata/genesis/route.ts` — Genesis mint specific.
 
 ### Data Flow
@@ -43,7 +44,7 @@ NEXT_PUBLIC_MEDIALANE_BACKEND_URL=http://localhost:3001
 1. User authenticates via Clerk → ChipiPay derives a Starknet wallet from the session
 2. Session keys (SNIP-9) are stored in Clerk user metadata, managed via `use-session-key.ts`
 3. **Wallet address**: always read from `useSessionKey().walletAddress` — never from `user.publicMetadata.publicKey` (Clerk server-only, returns `undefined` on the client). For components that only need identity, use `useWallet()` which wraps `useSessionKey()` with a normalized `{ address, isConnected }` interface.
-4. **Asset uploads**: `POST /api/pinata` → image to Pinata → metadata JSON to Pinata → `ipfs://` URI → mint tx. Never goes through the backend. `PINATA_JWT` is consumed server-side in the Next.js route.
+4. **Asset uploads**: image via signed-URL straight to Pinata (`uploadImageToIpfs`) → `POST /api/pinata` with `imageUri` + fields → metadata JSON to Pinata → `ipfs://` URI → mint tx. Never goes through the backend. `PINATA_JWT` is consumed server-side in the Next.js routes.
 5. Marketplace orders use SNIP-12 typed data signing (see `use-marketplace.ts`)
 6. Server state (tokens, collections, orders) fetched via SWR hooks in `src/hooks/` — **all** data comes from the backend API, no direct RPC calls in normal flows
 
@@ -136,6 +137,36 @@ The provider uses **`signUpFallbackRedirectUrl="/onboarding"`** (NOT `signUpForc
 - Global CSS variables (HSL theme tokens): `src/app/globals.css`
 - App shell (nav canvas, theme, toast): `src/app/providers.tsx`
 - Navigation command definitions: `src/lib/nav-commands.ts`
+
+## Shared UI consolidation (@medialane/ui — 2026-06-12 state)
+
+Large presentation surfaces are owned by `@medialane/ui` (exact-version pin); this repo holds
+**thin wrappers / re-export shims** that inject only io's rails (Clerk/ChipiPay hooks, dialogs, hrefs):
+
+- **Whole surfaces**: Discover feed + Collections/Creators strips (`DiscoverFeedSection` etc.),
+  homepage Launchpad strip (`LaunchpadStrip` — derives from the shared service definitions),
+  launchpad grouped sections.
+- **Asset-page modules** (re-export shims at their original paths): `AssetOverviewContent`,
+  `AssetMarketsTab`, `AssetMediaColumn`/`AssetHeaderBlock` (top-sections), `ParentAttributionBanner`,
+  `IPTypeDisplay`.
+- **Data layer**: `src/types/ip.ts` and `src/lib/ip-templates.ts` are shims of `ui/data/ip` +
+  `ui/data/ip-templates` — edit the ui package, never the shims.
+- **Leaf components**: `CollectionCard`, `ScrollSection`, `AddressDisplay`, `CurrencyIcon`,
+  `IpTypeBadge`, `ShareButton`, `ActivityCard` all come from ui.
+
+**Rule:** before changing a component that exists in both apps, check whether it's a shim — fix it
+in `medialane-ui`, publish, and bump BOTH apps. Genuinely divergent (do not lift without a design
+pass): asset variant pages, marketplace panel/dialogs, wallet/auth flows.
+
+## IP-type document upload (2026-06-12)
+
+Documents, Patents, Publications, and Software IP types let the creator attach the work itself
+(PDF/DOC/…, 20 MB) — pinned to IPFS as the immutable, timestamped copy (Berne Convention proof of
+authorship). Config is `docUpload` on the shared `IP_TEMPLATES`; the upload field lives in
+`IPTypeFields` (prop `uploadDocument` ← `uploadDocumentToIpfs`); stored as the `"Document File"`
+trait; rendered by `IPTypeDisplay` as a "View document" card. The asset pages' template-key
+derivation must include `docUpload.traitType` (it does — that's what hides the raw trait from the
+attributes grid and turns on `hasTemplateData`).
 
 ## UI Conventions
 
@@ -283,8 +314,10 @@ layout.tsx (server)
 | `src/lib/utils.ts` | `ipfsToHttp`, `timeUntil`, `formatPrice`, `cn` |
 | `src/types/index.ts` | Local TypeScript types |
 | `src/types/ip.ts` | IP/licensing constants: `LICENSE_TYPES`, `IP_TYPES`, `GEOGRAPHIC_SCOPES`, `AI_POLICIES`, `DERIVATIVES_OPTIONS`, `LICENSE_TRAIT_TYPES` |
-| `src/app/api/pinata/route.ts` | Universal digital asset upload (Clerk-gated, direct Pinata) — accepts image + full licensing schema + `creator` wallet + `external_url`, returns `{ uri, imageUri, cid }`. Embeds creator as attribute. |
-| `src/app/api/pinata/image/route.ts` | Image-only upload (Clerk-gated, direct Pinata) — returns `{ imageUri: "ipfs://...", cid }`. Used by create collection flow |
+| `src/app/api/pinata/route.ts` | Universal asset metadata upload (Clerk-gated) — normal path takes a pre-uploaded `imageUri`; see Pinata section above for the signed-URL rule |
+| `src/app/api/pinata/signed-url/route.ts` | Signed-URL issuer for direct-to-Pinata file uploads (`kind: image \| document`) — the only path that supports files over ~4.5 MB |
+| `src/lib/upload-image.ts` / `src/lib/upload-document.ts` | Client helpers for the signed-URL two-step (image → 10 MB, document → 20 MB) |
+| `src/app/api/pinata/image/route.ts` | Legacy direct image proxy — no creator-flow consumers; campaign pages only |
 | `src/app/api/pinata/json/route.ts` | Generic JSON document upload (Clerk-gated, direct Pinata) — returns `{ uri: "ipfs://...", cid }`. Used by create collection flow to anchor collection metadata on-chain as `baseUri` |
 | `src/app/portfolio/layout.tsx` | Portfolio shared layout: auth guard, wallet display, subnav with 6 links + unread badge |
 | `src/hooks/use-collections.ts` | `useCollections`, `useCollection`, `useCollectionTokens`, `useCollectionsByOwner` |
