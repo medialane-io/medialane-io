@@ -6,14 +6,17 @@ function isHexAddress(value: string): value is HexAddress {
 
 export function readAddressEnv(
   value: string | undefined,
-  fallback: HexAddress,
+  // `fallback` is `string` (not HexAddress): the SDK's address constants are
+  // typed `string` since the 0.37 chain-registry refactor. We validate whichever
+  // value wins, so the HexAddress return is still guaranteed.
+  fallback: string,
   name: string
 ): HexAddress {
-  if (!value) return fallback;
-  if (!isHexAddress(value)) {
+  const chosen = value || fallback;
+  if (!isHexAddress(chosen)) {
     throw new Error(`Invalid ${name}: expected a Starknet hex address starting with 0x`);
   }
-  return value;
+  return chosen;
 }
 
 export function readOptionalAddressEnv(value: string | undefined, name: string): HexAddress | "" {

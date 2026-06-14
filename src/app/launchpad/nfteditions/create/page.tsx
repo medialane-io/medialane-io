@@ -176,7 +176,7 @@ export default function CreateIP1155CollectionPage() {
         const deployEvent = events.find((e) =>
           e.keys?.[0] && BigInt(e.keys[0]) === BigInt(COLLECTION_DEPLOYED_SELECTOR)
         );
-        if (deployEvent?.keys?.[1]) addr = normalizeAddress(deployEvent.keys[1]);
+        if (deployEvent?.keys?.[1]) addr = normalizeAddress("STARKNET", deployEvent.keys[1]);
       } catch { /* non-fatal — tx confirmed, collection will appear in portfolio */ }
 
       // 4. Register with backend so it appears in portfolio immediately.

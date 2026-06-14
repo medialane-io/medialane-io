@@ -65,7 +65,7 @@ export function useLaunchCoin() {
       const supplyRaw = toRaw(BigInt(input.supplyHuman));
       const teamRaw = teamCoinsRaw(supplyRaw, input.teamPct);
       const buybackRaw = buybackQuoteRaw(teamRaw, quote.decimals);
-      const ownerAddr = normalizeAddress(owner);
+      const ownerAddr = normalizeAddress("STARKNET", owner);
 
       try {
         // Tx1 — deploy the coin (full supply to the Factory).

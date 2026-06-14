@@ -10,7 +10,7 @@
  */
 
 import useSWR from "swr";
-import type { ApiCollection, ApiResponse } from "@medialane/sdk";
+import type { ApiCoin, ApiResponse } from "@medialane/sdk";
 import type { CoinFilter, CoinSort, CoinCollectionLike } from "@medialane/ui";
 import { MEDIALANE_BACKEND_URL } from "@/lib/constants";
 import { useCoinPrice } from "@/hooks/use-coin-price";
@@ -25,19 +25,36 @@ export function useCoinPriceAdapter(collection: CoinCollectionLike) {
   return { price, isLoading };
 }
 
-/** io data adapter — direct fetch of ERC-20 coins with the standard filter. */
+/** io data adapter — coins live in the Coin model now (/v1/coins). */
 export function useCoinsAdapter({ filter, sort }: { filter: CoinFilter; sort: CoinSort }) {
   const service = filter === "creator" ? "creator-coin" : filter === "memecoin" ? "external-erc20" : "";
-  const params = new URLSearchParams({ standard: "ERC20", limit: "24", sort });
+  const params = new URLSearchParams({ limit: "24" });
   if (service) params.set("service", service);
-  const url = `${MEDIALANE_BACKEND_URL}/v1/collections?${params.toString()}`;
+  const url = `${MEDIALANE_BACKEND_URL}/v1/coins?${params.toString()}`;
 
-  const { data, isLoading } = useSWR<ApiResponse<ApiCollection[]>>(
+  const { data, isLoading } = useSWR<ApiResponse<ApiCoin[]>>(
     `coins-${filter}-${sort}`,
     () => fetch(url).then((r) => r.json()),
     { revalidateOnFocus: false }
   );
-  return { collections: data?.data ?? [], isLoading };
+  // ApiCoin.totalSupply is a fungible decimal string; CoinCollectionLike (+ FDV
+  // math) wants a number — coerce so coins satisfy it structurally.
+  const collections = (data?.data ?? []).map((c) => ({
+    ...c,
+    totalSupply: c.totalSupply != null ? Number(c.totalSupply) : null,
+  }));
+  return { collections, isLoading };
+}
+
+/** Single coin from /v1/coins/:contract (read-only). Pass null to skip. */
+export function useCoin(address: string | null) {
+  const url = address ? `${MEDIALANE_BACKEND_URL}/v1/coins/${address}` : null;
+  const { data, isLoading } = useSWR<{ data: ApiCoin }>(
+    url ? `coin-${address}` : null,
+    () => fetch(url!).then((r) => r.json()),
+    { revalidateOnFocus: false }
+  );
+  return { coin: data?.data ?? null, isLoading };
 }
 
 /** Discovery → io's read-only explore page. */

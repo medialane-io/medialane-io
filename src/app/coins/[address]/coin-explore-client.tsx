@@ -12,11 +12,9 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowUpRight, ExternalLink, ShieldCheck, TrendingUp, Wallet } from "lucide-react";
-import { getService } from "@medialane/sdk";
 import { coinKind, formatCoinPrice, formatFdv } from "@medialane/ui";
-import { useCollection } from "@/hooks/use-collections";
 import { useCoinPrice } from "@/hooks/use-coin-price";
-import { tradeHref } from "@/lib/coin-adapters";
+import { tradeHref, useCoin } from "@/lib/coin-adapters";
 import { ipfsToHttp, cn } from "@/lib/utils";
 import { EXPLORER_URL } from "@/lib/constants";
 
@@ -26,27 +24,27 @@ function formatCompact(n: number): string {
 
 export function CoinExploreClient({ address }: { address: string }) {
   const router = useRouter();
-  const { collection, isLoading } = useCollection(address);
+  const { coin, isLoading } = useCoin(address);
   const { price, isLoading: priceLoading } = useCoinPrice(address);
 
-  const isCoin = collection ? getService(collection.service)?.uiVariant === "coin" : true;
   const marketCap = useMemo(
-    () => (price && collection?.totalSupply && Number(collection.totalSupply) > 0 ? price.quotePerCoin * Number(collection.totalSupply) : null),
-    [price, collection?.totalSupply]
+    () => (price && coin?.totalSupply && Number(coin.totalSupply) > 0 ? price.quotePerCoin * Number(coin.totalSupply) : null),
+    [price, coin?.totalSupply]
   );
 
-  // A non-coin under /coins → send to the collection page (effect, not in render).
+  // Not a coin under /coins (e.g. an NFT collection address) → send to the
+  // collection page (effect, not in render).
   useEffect(() => {
-    if (!isLoading && collection && !isCoin) router.replace(`/collections/${address}`);
-  }, [isLoading, collection, isCoin, address, router]);
+    if (!isLoading && !coin) router.replace(`/collections/${address}`);
+  }, [isLoading, coin, address, router]);
 
-  if (!isLoading && collection && !isCoin) return null;
+  if (!isLoading && !coin) return null;
 
-  const name = collection?.name ?? "Creator Coin";
-  const symbol = collection?.symbol ?? "COIN";
-  const kind = coinKind(collection?.service);
-  const isExternal = collection?.service === "external-erc20";
-  const logoUri = collection?.profile?.image ?? collection?.image;
+  const name = coin?.name ?? "Creator Coin";
+  const symbol = coin?.symbol ?? "COIN";
+  const kind = coinKind(coin?.service);
+  const isExternal = coin?.service === "external-erc20";
+  const logoUri = coin?.image;
   const logo = logoUri ? ipfsToHttp(logoUri) : null;
   const initials = symbol.trim().slice(0, 2).toUpperCase();
 
@@ -87,17 +85,16 @@ export function CoinExploreClient({ address }: { address: string }) {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatCell label="Holders" value={collection?.holderCount || "—"} />
-        <StatCell label="Supply" value={collection?.totalSupply ? Number(collection.totalSupply).toLocaleString() : "—"} />
+      <div className="grid grid-cols-3 gap-3">
+        <StatCell label="Supply" value={coin?.totalSupply ? Number(coin.totalSupply).toLocaleString() : "—"} />
         <StatCell label="Market Cap" value={marketCap != null ? `${formatCompact(marketCap)} ${price?.quoteSymbol ?? ""}`.trim() : "—"} />
         <StatCell label="Priced in" value={price?.quoteSymbol ?? "—"} />
       </div>
 
       {/* Trade CTA → per-chain app */}
-      {collection && (
+      {coin && (
         <a
-          href={tradeHref(collection)}
+          href={tradeHref({ chain: coin.chain, contractAddress: coin.contractAddress })}
           target="_blank"
           rel="noopener noreferrer"
           className="flex w-full items-center justify-center gap-2 rounded-xl border-0 bg-gradient-to-r from-brand-blue to-brand-purple px-4 py-3 font-semibold text-white transition-opacity hover:opacity-90"
@@ -125,8 +122,8 @@ export function CoinExploreClient({ address }: { address: string }) {
       <div className="flex items-center gap-3 pt-1 text-xs text-muted-foreground/70">
         <span className="font-mono">{address.slice(0, 6)}…{address.slice(-4)}</span>
         <a href={`${EXPLORER_URL}/contract/${address}`} target="_blank" rel="noopener noreferrer" className="hover:text-foreground"><ExternalLink className="h-3.5 w-3.5" /></a>
-        {collection?.owner && (
-          <Link href={`/creator/${collection.owner}`} className="hover:text-foreground">by {collection.owner.slice(0, 6)}…{collection.owner.slice(-4)}</Link>
+        {coin?.creator && (
+          <Link href={`/creator/${coin.creator}`} className="hover:text-foreground">by {coin.creator.slice(0, 6)}…{coin.creator.slice(-4)}</Link>
         )}
       </div>
     </div>
