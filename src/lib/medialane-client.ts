@@ -29,7 +29,7 @@ export function getMedialaneClient(): MedialaneClient {
       marketplace1155Contract: MARKETPLACE_1155_CONTRACT,
       collectionContract: COLLECTION_721_CONTRACT,
       collection1155Contract: COLLECTION_1155_CONTRACT,
-      network: "mainnet",
+      chain: "STARKNET",
     });
   }
   return _client;

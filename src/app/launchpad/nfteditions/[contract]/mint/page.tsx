@@ -39,7 +39,7 @@ import {
 
 export default function MintIP1155Page() {
   const { contract: rawContract } = useParams<{ contract: string }>();
-  const collectionAddress = normalizeAddress(rawContract ?? "");
+  const collectionAddress = normalizeAddress("STARKNET", rawContract ?? "");
 
   const { isSignedIn } = useUser();
   const { walletAddress, hasWallet } = useSessionKey();
@@ -122,8 +122,8 @@ export default function MintIP1155Page() {
       .then((raw: unknown) => {
         // starknet.js decodes a ContractAddress as a bigint; String(bigint) is
         // decimal, which normalizeAddress would mis-parse as hex. Convert first.
-        const onChainOwner = normalizeAddress("0x" + num.toBigInt(String(raw)).toString(16));
-        setOwnerCheck(onChainOwner === normalizeAddress(walletAddress) ? "ok" : "denied");
+        const onChainOwner = normalizeAddress("STARKNET", "0x" + num.toBigInt(String(raw)).toString(16));
+        setOwnerCheck(onChainOwner === normalizeAddress("STARKNET", walletAddress) ? "ok" : "denied");
       })
       .catch(() => setOwnerCheck("ok"));
   }, [walletAddress, collectionAddress]);
