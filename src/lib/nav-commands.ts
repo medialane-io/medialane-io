@@ -3,7 +3,7 @@ import {
   Home, Telescope, Store, LayoutGrid, Users, Activity, Trophy, Gift,
   Briefcase, Search, Music, Palette, Film, Camera, Gem,
   Plus, Layers, Repeat2, Ticket, Zap, BookOpen, FileText,
-  ShieldCheck, Wallet, Settings, List, Tag, ScrollText,
+  ShieldCheck, Wallet, Settings, List, Tag, ScrollText, Coins,
 } from "lucide-react";
 
 export const NAV_COMMANDS: NavCommandGroup[] = [
@@ -22,6 +22,7 @@ export const NAV_COMMANDS: NavCommandGroup[] = [
     heading: "Navigate",
     items: [
       { id: "collections", label: "Collections",  icon: LayoutGrid, href: "/collections", keywords: ["nft", "drops", "browse"] },
+      { id: "coins",       label: "Coins",        icon: Coins,      href: "/coins",       keywords: ["token", "creator coin", "memecoin", "discover", "trade"] },
       { id: "creators",    label: "Creators",     icon: Users,      href: "/creators",    keywords: ["artists", "profile", "profile"] },
       { id: "activities",  label: "Activity",     icon: Activity,   href: "/activities",  keywords: ["history", "transactions", "feed", "events"] },
       { id: "rewards",     label: "Rewards",      icon: Trophy,     href: "/rewards",     keywords: ["xp", "points", "leaderboard", "badges", "rank"] },

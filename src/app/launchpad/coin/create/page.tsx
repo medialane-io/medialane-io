@@ -206,7 +206,7 @@ export default function CoinCreatePage() {
     return (
       <LaunchpadSignedOutState
         icon={TrendingUp}
-        iconClassName="text-pink-400"
+        iconClassName="text-brand-rose"
         title="Launch a Creator Coin"
         description="Sign in to design and launch your own coin with permanently-locked liquidity — gasless, in a few clicks."
       />
@@ -217,8 +217,8 @@ export default function CoinCreatePage() {
     return (
       <LaunchpadSuccessState
         icon={Coins}
-        accentClassName="bg-pink-500/10"
-        iconClassName="text-pink-400"
+        accentClassName="bg-brand-rose/10"
+        iconClassName="text-brand-rose"
         actionClassName="bg-brand-rose hover:bg-brand-rose/90"
         title={`${name} is live`}
         description="Deployed and launched with permanently-locked liquidity. Trading starts on the dapp right away."
@@ -285,7 +285,7 @@ export default function CoinCreatePage() {
         badge="Creator Coin"
         title="Design your Creator Coin"
         description="Give it a face, set the numbers, and launch — gasless, with liquidity locked forever."
-        className="text-pink-400"
+        className="text-brand-rose"
       />
 
       {/* Step indicator */}
@@ -297,7 +297,7 @@ export default function CoinCreatePage() {
             onClick={() => { if (s < step || (s === 2 && identityValid) || (s === 3 && identityValid && economicsValid)) setStep(s); }}
             className={cn(
               "h-8 px-3 rounded-full text-xs font-semibold transition-colors",
-              s === step ? "bg-pink-500/15 text-pink-400" : "bg-muted/30 text-muted-foreground",
+              s === step ? "bg-brand-rose/15 text-brand-rose" : "bg-muted/30 text-muted-foreground",
             )}
           >
             {s}. {s === 1 ? "Your coin" : s === 2 ? "Economics" : "Launch"}
@@ -401,7 +401,7 @@ export default function CoinCreatePage() {
                       onClick={() => setSupply(p.value)}
                       className={cn(
                         "rounded-full border px-3 py-1 text-xs font-medium",
-                        supply === p.value ? "border-pink-500/50 bg-pink-500/10 text-pink-400" : "border-border text-muted-foreground",
+                        supply === p.value ? "border-brand-rose/50 bg-brand-rose/10 text-brand-rose" : "border-border text-muted-foreground",
                       )}
                     >
                       {p.label}
@@ -447,7 +447,7 @@ export default function CoinCreatePage() {
                 <input
                   id="alloc" type="range" min={0} max={10} step={1}
                   value={teamPct} onChange={(e) => setTeamPct(Number(e.target.value))}
-                  className="w-full accent-pink-500"
+                  className="w-full accent-[hsl(var(--brand-rose))]"
                 />
                 <p className="text-xs text-muted-foreground">
                   Up to 10% goes straight to your wallet at launch — you fund it

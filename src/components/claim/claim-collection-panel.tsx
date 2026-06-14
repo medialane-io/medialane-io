@@ -15,6 +15,10 @@ import { cn } from "@/lib/utils";
 
 type Step = "input" | "verifying" | "success" | "manual" | "pending";
 
+/** Loose Starknet address check — catches typos without rejecting valid (often
+ *  leading-zero-trimmed) contract addresses. */
+const isValidAddress = (a: string) => /^0x[0-9a-fA-F]{40,64}$/.test(a.trim());
+
 function StepIndicator({ step }: { step: Step }) {
   const atStep2 = step === "manual" || step === "pending";
   return (
@@ -151,15 +155,22 @@ export function ClaimCollectionPanel() {
               value={contractAddress}
               onChange={(e) => setContractAddress(e.target.value)}
               disabled={step === "verifying"}
+              aria-invalid={contractAddress.trim() !== "" && !isValidAddress(contractAddress)}
             />
-            <p className="text-xs text-muted-foreground">
-              Paste the Starknet contract address you own — an NFT collection or a coin.
-              Coins are reviewed by our team before they go live.
-            </p>
+            {contractAddress.trim() !== "" && !isValidAddress(contractAddress) ? (
+              <p className="text-xs text-destructive">
+                That doesn&apos;t look like a Starknet address. It should start with “0x”.
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Paste the Starknet contract address you own — an NFT collection or a coin.
+                Coins are reviewed by our team before they go live.
+              </p>
+            )}
           </div>
           <Button
             onClick={handleAutoClaim}
-            disabled={step === "verifying" || !contractAddress.trim()}
+            disabled={step === "verifying" || !isValidAddress(contractAddress)}
             className="w-full"
           >
             {step === "verifying"
