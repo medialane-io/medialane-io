@@ -1,33 +1,23 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
 import type { UseFormReturn } from "react-hook-form";
-import Image from "next/image";
-import { ChevronDown, Coins, ImagePlus, Loader2, Package, X, Zap } from "lucide-react";
+import { ChevronDown, Layers, Loader2, Package, ShieldCheck, Upload, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+  FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { FadeIn } from "@/components/ui/motion-primitives";
 import { cn } from "@/lib/utils";
-import { IP_TYPES, LICENSE_TYPES, type IPType } from "@/types/ip";
+import {
+  IP_TYPES, LICENSE_TYPES, GEOGRAPHIC_SCOPES, AI_POLICIES, DERIVATIVES_OPTIONS, type IPType,
+} from "@/types/ip";
 import { IPTypeFields, type MetadataField } from "@/components/create/ip-type-fields";
+import { ToggleGroup, Section } from "@/components/create/create-form-primitives";
 import { uploadDocumentToIpfs } from "@/lib/upload-document";
 import { DropItemList, type DraftItem } from "./drop-item-list";
 import type { DropCreateFormValues } from "./drop-create-schema";
@@ -67,7 +57,6 @@ interface DropCreateFormProps {
 export function DropCreateForm({
   form,
   imagePreview,
-  imageUri,
   imageUploading,
   isSubmitting,
   priceFree,
@@ -79,7 +68,6 @@ export function DropCreateForm({
   items,
   ipTypeOpen,
   onImageSelect,
-  onClearImage,
   onSetPriceFree,
   onSetTokenDropdownOpen,
   onSelectToken,
@@ -93,25 +81,19 @@ export function DropCreateForm({
   const tokenDropdownRef = useRef<HTMLDivElement | null>(null);
   const collectionName = form.watch("name");
   const whitelistEnabled = form.watch("whitelistEnabled");
+  const [licensingOpen, setLicensingOpen] = useState(false);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
 
   useEffect(() => {
     if (!tokenDropdownOpen) return;
-    const handlePointerDown = (event: MouseEvent) => {
-      if (!tokenDropdownRef.current?.contains(event.target as Node)) onSetTokenDropdownOpen(false);
-    };
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onSetTokenDropdownOpen(false);
-    };
-    document.addEventListener("mousedown", handlePointerDown);
-    document.addEventListener("keydown", handleEscape);
-    return () => {
-      document.removeEventListener("mousedown", handlePointerDown);
-      document.removeEventListener("keydown", handleEscape);
-    };
+    const onPointer = (e: MouseEvent) => { if (!tokenDropdownRef.current?.contains(e.target as Node)) onSetTokenDropdownOpen(false); };
+    const onEsc = (e: KeyboardEvent) => { if (e.key === "Escape") onSetTokenDropdownOpen(false); };
+    document.addEventListener("mousedown", onPointer);
+    document.addEventListener("keydown", onEsc);
+    return () => { document.removeEventListener("mousedown", onPointer); document.removeEventListener("keydown", onEsc); };
   }, [onSetTokenDropdownOpen, tokenDropdownOpen]);
 
-  // Selecting a license preset fills the derived commercial/derivatives/attribution fields,
-  // exactly like the /create asset flow — so every drop item carries the full license.
+  // Selecting a license preset fills the derived commercial/derivatives/attribution fields.
   const handleLicenseChange = (value: string) => {
     form.setValue("licenseType", value);
     const def = LICENSE_TYPES.find((l) => l.value === value);
@@ -125,310 +107,280 @@ export function DropCreateForm({
   return (
     <div className="space-y-5">
       {/* Cover image */}
-      <FadeIn delay={0.06}>
-        <div className="space-y-2">
-          <p className="text-sm font-medium">
-            Cover image <span className="text-muted-foreground font-normal">(optional)</span>
-          </p>
-          <div className="flex items-center gap-4">
-            <div
-              role="button"
-              tabIndex={0}
-              onClick={() => !imageUploading && fileInputRef.current?.click()}
-              onKeyDown={(event) => { if (event.key === "Enter") fileInputRef.current?.click(); }}
-              className="relative h-20 w-20 rounded-2xl border-2 border-dashed border-border bg-muted flex items-center justify-center overflow-hidden shrink-0 cursor-pointer hover:border-orange-500/50 transition-colors"
-            >
-              {imagePreview ? (
-                <Image src={imagePreview} alt="Cover" fill className="object-cover" />
-              ) : (
-                <ImagePlus className="h-6 w-6 text-muted-foreground" />
-              )}
-              {imageUploading ? (
-                <div className="absolute inset-0 bg-background/70 flex items-center justify-center">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                </div>
-              ) : null}
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Cover image <span className="text-muted-foreground font-normal">(optional)</span></label>
+        <div
+          className="border-2 border-dashed border-border rounded-xl p-8 text-center cursor-pointer hover:border-primary/50 transition-colors"
+          role="button"
+          tabIndex={0}
+          aria-label="Upload cover image"
+          onClick={() => !imageUploading && fileInputRef.current?.click()}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileInputRef.current?.click(); } }}
+        >
+          {imagePreview ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={imagePreview} alt="Cover preview" className="mx-auto max-h-48 rounded-lg object-contain" />
+          ) : (
+            <div className="flex flex-col items-center gap-2 text-muted-foreground">
+              {imageUploading ? <Loader2 className="h-8 w-8 animate-spin" /> : <Upload className="h-8 w-8" />}
+              <p className="text-sm">{imageUploading ? "Uploading…" : "Click to upload (JPG, PNG, GIF, SVG, WebP · max 10 MB)"}</p>
+              <p className="text-xs">Shown on the drop card · item art is added below</p>
             </div>
-            <div className="space-y-1.5">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(event) => {
-                  const file = event.target.files?.[0];
-                  if (file) onImageSelect(file);
-                }}
-              />
-              <Button type="button" variant="outline" size="sm" disabled={imageUploading} onClick={() => fileInputRef.current?.click()}>
-                {imageUploading ? (
-                  <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />Uploading…</>
-                ) : (
-                  imagePreview ? "Change" : "Upload cover"
-                )}
-              </Button>
-              {imagePreview ? (
-                <button type="button" onClick={onClearImage} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors">
-                  <X className="h-3 w-3" /> Remove
-                </button>
-              ) : null}
+          )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => { const file = e.target.files?.[0]; if (file) onImageSelect(file); }}
+          />
+        </div>
+      </div>
+
+      {/* Name */}
+      <FormField control={form.control} name="name" render={({ field }) => (
+        <FormItem>
+          <FormLabel>Collection name *</FormLabel>
+          <FormControl><Input placeholder="Genesis Series" {...field} /></FormControl>
+          <FormDescription>Shown across the drop page, wallet, and marketplace.</FormDescription>
+          <FormMessage />
+        </FormItem>
+      )} />
+
+      {/* Symbol */}
+      <FormField control={form.control} name="symbol" render={({ field }) => (
+        <FormItem>
+          <FormLabel>Symbol *</FormLabel>
+          <FormControl>
+            <Input placeholder="GEN" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} className="max-w-[160px]" />
+          </FormControl>
+          <FormDescription>Short ticker shown in wallets and explorers.</FormDescription>
+          <FormMessage />
+        </FormItem>
+      )} />
+
+      {/* Items */}
+      <Section title="Items" icon={<Layers className="h-4 w-4" />}>
+        <p className="text-xs text-muted-foreground">
+          Each image becomes a unique, individually-licensed token. Supply equals the number of items.
+        </p>
+        <DropItemList items={items} collectionName={collectionName} onAddFiles={onAddItemFiles} onRemove={onRemoveItem} onEdit={onEditItem} />
+      </Section>
+
+      {/* Licensing Terms — collapsible panel (matches /create/asset) */}
+      <Collapsible open={licensingOpen} onOpenChange={setLicensingOpen}>
+        <div className="rounded-xl border border-border overflow-hidden">
+          <CollapsibleTrigger asChild>
+            <button type="button" className="w-full flex items-center justify-between px-5 py-4 hover:bg-muted/30 transition-colors">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-primary" />
+                <span className="text-sm font-semibold">Licensing Terms</span>
+                <span className="text-xs text-muted-foreground font-normal">Applied to every item · Berne Convention</span>
+              </div>
+              <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", licensingOpen && "rotate-180")} />
+            </button>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="px-5 pb-5 space-y-4 border-t border-border/60 pt-4">
               <p className="text-xs text-muted-foreground">
-                {imageUri ? <span className="text-orange-500">✓ Uploaded to IPFS</span> : "Shown on the drop card. Item art is added below."}
+                These license terms are embedded as immutable IPFS metadata on every token in the drop. CC BY-SA by default.
               </p>
+              <FormField control={form.control} name="licenseType" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>License</FormLabel>
+                  <Select value={field.value} onValueChange={handleLicenseChange}>
+                    <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                    <SelectContent>
+                      {LICENSE_TYPES.map((l) => <SelectItem key={l.value} value={l.value}>{l.label ?? l.value}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="commercialUse" render={({ field }) => (
+                <FormItem><FormLabel>Commercial Use</FormLabel><ToggleGroup value={field.value} options={["Yes", "No"]} onChange={field.onChange} /></FormItem>
+              )} />
+              <FormField control={form.control} name="derivatives" render={({ field }) => (
+                <FormItem><FormLabel>Derivatives</FormLabel><ToggleGroup value={field.value} options={DERIVATIVES_OPTIONS} onChange={field.onChange} /></FormItem>
+              )} />
+              <FormField control={form.control} name="attribution" render={({ field }) => (
+                <FormItem><FormLabel>Attribution</FormLabel><ToggleGroup value={field.value} options={["Required", "Not Required"]} onChange={field.onChange} /></FormItem>
+              )} />
+              <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
+                <CollapsibleTrigger asChild>
+                  <button type="button" className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                    <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", advancedOpen && "rotate-180")} />
+                    Advanced options
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-4 pt-3">
+                  <FormField control={form.control} name="geographicScope" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Territory</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                        <SelectContent>{GEOGRAPHIC_SCOPES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </FormItem>
+                  )} />
+                  <FormField control={form.control} name="aiPolicy" render={({ field }) => (
+                    <FormItem><FormLabel>AI &amp; Data Mining</FormLabel><ToggleGroup value={field.value} options={AI_POLICIES} onChange={field.onChange} /></FormItem>
+                  )} />
+                  <FormField control={form.control} name="royalty" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Royalty % (0–50)</FormLabel>
+                      <FormControl><Input type="number" min={0} max={50} step={0.5} placeholder="0" {...field} onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </CollapsibleContent>
+              </Collapsible>
             </div>
-          </div>
+          </CollapsibleContent>
         </div>
-      </FadeIn>
+      </Collapsible>
 
-      {/* Name + symbol */}
-      <FadeIn delay={0.1}>
-        <FormField control={form.control} name="name" render={({ field }) => (
-          <FormItem>
-            <FormLabel>Collection name *</FormLabel>
-            <FormControl><Input placeholder="Genesis Series" {...field} /></FormControl>
-            <FormDescription>Shown across the drop page, wallet, and marketplace.</FormDescription>
-            <FormMessage />
-          </FormItem>
-        )} />
-      </FadeIn>
-
-      <FadeIn delay={0.12}>
-        <FormField control={form.control} name="symbol" render={({ field }) => (
-          <FormItem>
-            <FormLabel>Symbol *</FormLabel>
-            <FormControl>
-              <Input placeholder="GEN" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} className="max-w-[160px]" />
-            </FormControl>
-            <FormDescription>Short ticker shown in wallets and explorers.</FormDescription>
-            <FormMessage />
-          </FormItem>
-        )} />
-      </FadeIn>
-
-      {/* Items — each becomes a unique, licensed token */}
-      <FadeIn delay={0.14}>
-        <DropItemList
-          items={items}
-          collectionName={collectionName}
-          onAddFiles={onAddItemFiles}
-          onRemove={onRemoveItem}
-          onEdit={onEditItem}
-        />
-      </FadeIn>
-
-      {/* Licensing & IP — shared defaults applied to every item */}
-      <FadeIn delay={0.16}>
-        <div className="space-y-3">
-          <p className="text-sm font-medium">Licensing &amp; IP</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <FormField control={form.control} name="ipType" render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-xs">IP type</FormLabel>
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <FormControl><SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger></FormControl>
-                  <SelectContent>
-                    {IP_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )} />
-            <FormField control={form.control} name="licenseType" render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-xs">License</FormLabel>
-                <Select value={field.value} onValueChange={handleLicenseChange}>
-                  <FormControl><SelectTrigger><SelectValue placeholder="Select license" /></SelectTrigger></FormControl>
-                  <SelectContent>
-                    {LICENSE_TYPES.map((l) => <SelectItem key={l.value} value={l.value}>{l.label ?? l.value}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )} />
-          </div>
-          <FormField control={form.control} name="royalty" render={({ field }) => (
-            <FormItem className="max-w-[160px]">
-              <FormLabel className="text-xs">Royalty %</FormLabel>
-              <FormControl><Input type="number" min={0} max={50} step="any" {...field} /></FormControl>
-              <FormDescription className="text-xs">Resale royalty, 0–50%.</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )} />
-
-          <Collapsible open={ipTypeOpen} onOpenChange={onSetIpTypeOpen}>
-            <CollapsibleTrigger asChild>
-              <button type="button" className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
-                <ChevronDown className={cn("h-4 w-4 transition-transform", ipTypeOpen && "rotate-180")} />
-                Type-specific details (optional)
-              </button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="pt-3">
-              <IPTypeFields
-                ipType={form.watch("ipType") as IPType}
-                onChange={onMetadataFieldsChange}
-                uploadDocument={uploadDocumentToIpfs}
-              />
-            </CollapsibleContent>
-          </Collapsible>
-        </div>
-      </FadeIn>
-
-      {/* Mint price */}
-      <FadeIn delay={0.18}>
-        <div className="space-y-3">
-          <p className="text-sm font-medium">Mint price</p>
-          <div className="grid grid-cols-2 gap-2">
-            <button type="button" onClick={() => onSetPriceFree(true)} className={cn("flex flex-col items-center gap-1.5 p-3 rounded-xl border text-center transition-all", priceFree ? "border-orange-500 bg-orange-500/10 text-orange-600 dark:text-orange-400" : "border-border bg-muted/30 hover:border-orange-500/40 hover:bg-orange-500/5 text-muted-foreground")}>
-              <Zap className={cn("h-5 w-5", priceFree && "text-orange-500")} />
-              <span className="text-[11px] font-semibold leading-tight">Free</span>
+      {/* IP Type & Metadata — collapsible panel (matches /create/asset) */}
+      <Collapsible open={ipTypeOpen} onOpenChange={onSetIpTypeOpen}>
+        <div className="rounded-xl border border-border overflow-hidden">
+          <CollapsibleTrigger asChild>
+            <button type="button" className="w-full flex items-center justify-between px-5 py-4 hover:bg-muted/30 transition-colors">
+              <div className="flex items-center gap-2">
+                <Layers className="h-4 w-4 text-primary" />
+                <span className="text-sm font-semibold">IP Type &amp; Metadata</span>
+                <span className="text-xs text-muted-foreground font-normal">Optional · applied to every item</span>
+              </div>
+              <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", ipTypeOpen && "rotate-180")} />
             </button>
-            <button type="button" onClick={() => onSetPriceFree(false)} className={cn("flex flex-col items-center gap-1.5 p-3 rounded-xl border text-center transition-all", !priceFree ? "border-orange-500 bg-orange-500/10 text-orange-600 dark:text-orange-400" : "border-border bg-muted/30 hover:border-orange-500/40 hover:bg-orange-500/5 text-muted-foreground")}>
-              <Coins className={cn("h-5 w-5", !priceFree && "text-orange-500")} />
-              <span className="text-[11px] font-semibold leading-tight">Paid</span>
-            </button>
-          </div>
-          <p className="text-xs text-muted-foreground">Choose a free claim or a fixed mint price for every token in this drop.</p>
-        </div>
-      </FadeIn>
-
-      {!priceFree ? (
-        <FadeIn delay={0.19}>
-          <div className="flex gap-2 items-start">
-            <FormField control={form.control} name="priceAmount" render={({ field }) => (
-              <FormItem className="flex-1">
-                <FormLabel>Price per token</FormLabel>
-                <FormControl><Input type="number" placeholder="0.01" step="any" min={0} {...field} /></FormControl>
-                <FormDescription>Amount each collector pays per token before fees.</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )} />
-            <div ref={tokenDropdownRef} className="relative mt-[22px]">
-              <button type="button" onClick={() => onSetTokenDropdownOpen(!tokenDropdownOpen)} aria-expanded={tokenDropdownOpen} aria-haspopup="listbox" className="flex items-center gap-1.5 h-10 px-3 rounded-md border border-border bg-muted/30 text-sm font-semibold hover:border-orange-500/50 transition-colors">
-                {selectedToken.symbol}
-                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-              </button>
-              {tokenDropdownOpen ? (
-                <div role="listbox" className="absolute top-11 right-0 z-50 w-28 rounded-lg border border-border bg-background shadow-lg py-1">
-                  {paymentTokens.map((token) => (
-                    <button key={token.address} type="button" role="option" aria-selected={selectedToken.address === token.address} onClick={() => onSelectToken(token)} className={cn("w-full text-left px-3 py-1.5 text-sm hover:bg-muted transition-colors", selectedToken.address === token.address && "text-orange-500 font-semibold")}>
-                      {token.symbol}
-                    </button>
-                  ))}
-                </div>
-              ) : null}
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="px-5 pb-5 space-y-4 border-t border-border/60 pt-4">
+              <FormField control={form.control} name="ipType" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>IP Type</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                    <SelectContent>{IP_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                  </Select>
+                </FormItem>
+              )} />
+              <IPTypeFields ipType={form.watch("ipType") as IPType} onChange={onMetadataFieldsChange} uploadDocument={uploadDocumentToIpfs} />
             </div>
-          </div>
-        </FadeIn>
-      ) : null}
+          </CollapsibleContent>
+        </div>
+      </Collapsible>
 
-      {/* Max per wallet */}
-      <FadeIn delay={0.2}>
+      {/* Drop settings */}
+      <Section title="Drop settings" icon={<Package className="h-4 w-4" />}>
+        {/* Price */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Mint price</label>
+          <ToggleGroup value={priceFree ? "Free" : "Paid"} options={["Free", "Paid"]} onChange={(v) => onSetPriceFree(v === "Free")} />
+          {!priceFree && (
+            <div className="flex gap-2 items-start pt-1">
+              <FormField control={form.control} name="priceAmount" render={({ field }) => (
+                <FormItem className="flex-1">
+                  <FormControl><Input type="number" placeholder="0.01" step="any" min={0} {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <div ref={tokenDropdownRef} className="relative">
+                <button type="button" onClick={() => onSetTokenDropdownOpen(!tokenDropdownOpen)} aria-haspopup="listbox" aria-expanded={tokenDropdownOpen}
+                  className="flex items-center gap-1.5 h-10 px-3 rounded-md border border-border bg-muted/30 text-sm font-semibold hover:border-primary/50 transition-colors">
+                  {selectedToken.symbol}<ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                </button>
+                {tokenDropdownOpen && (
+                  <div role="listbox" className="absolute top-11 right-0 z-50 w-28 rounded-lg border border-border bg-background shadow-lg py-1">
+                    {paymentTokens.map((t) => (
+                      <button key={t.address} type="button" role="option" aria-selected={selectedToken.address === t.address} onClick={() => onSelectToken(t)}
+                        className={cn("w-full text-left px-3 py-1.5 text-sm hover:bg-muted transition-colors", selectedToken.address === t.address && "text-primary font-semibold")}>
+                        {t.symbol}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          <p className="text-xs text-muted-foreground">A free claim, or a fixed price per token.</p>
+        </div>
+
+        {/* Max per wallet */}
         <FormField control={form.control} name="maxPerWallet" render={({ field }) => (
           <FormItem>
             <FormLabel>Max per wallet</FormLabel>
             <FormControl><Input type="number" min={1} max={10000} className="max-w-[120px]" {...field} /></FormControl>
-            <FormDescription>Maximum tokens one wallet can mint.</FormDescription>
             <FormMessage />
           </FormItem>
         )} />
-      </FadeIn>
 
-      {/* Mint window */}
-      <FadeIn delay={0.22}>
-        <div className="space-y-1.5">
-          <p className="text-sm font-medium">Mint window *</p>
+        {/* Mint window */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Mint window *</label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <p className="text-xs text-muted-foreground">Opens</p>
               <div className="flex gap-2">
-                <FormField control={form.control} name="startDate" render={({ field }) => (
-                  <FormItem className="flex-1"><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>
-                )} />
-                <FormField control={form.control} name="startTime" render={({ field }) => (
-                  <FormItem className="w-28"><FormControl><Input type="time" {...field} /></FormControl></FormItem>
-                )} />
+                <FormField control={form.control} name="startDate" render={({ field }) => (<FormItem className="flex-1"><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                <FormField control={form.control} name="startTime" render={({ field }) => (<FormItem className="w-28"><FormControl><Input type="time" {...field} /></FormControl></FormItem>)} />
               </div>
             </div>
             <div className="space-y-1.5">
               <p className="text-xs text-muted-foreground">Closes</p>
               <div className="flex gap-2">
-                <FormField control={form.control} name="endDate" render={({ field }) => (
-                  <FormItem className="flex-1"><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>
-                )} />
-                <FormField control={form.control} name="endTime" render={({ field }) => (
-                  <FormItem className="w-28"><FormControl><Input type="time" {...field} /></FormControl></FormItem>
-                )} />
+                <FormField control={form.control} name="endDate" render={({ field }) => (<FormItem className="flex-1"><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                <FormField control={form.control} name="endTime" render={({ field }) => (<FormItem className="w-28"><FormControl><Input type="time" {...field} /></FormControl></FormItem>)} />
               </div>
             </div>
           </div>
-          <p className="text-xs text-muted-foreground">Collectors can only mint during this window.</p>
         </div>
-      </FadeIn>
 
-      {/* Visibility */}
-      <FadeIn delay={0.24}>
-        <div className="flex items-center justify-between p-4 rounded-xl border border-border bg-muted/20">
-          <div className="space-y-0.5">
-            <p className="text-sm font-medium">Drop visibility</p>
-            <p className="text-xs text-muted-foreground">
-              {isPublic ? "Listed publicly on the Drop launchpad" : "Only accessible via direct link"}
-            </p>
-          </div>
-          <button type="button" role="switch" aria-checked={isPublic} onClick={() => onSetPublic(!isPublic)} className={cn("relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", isPublic ? "bg-orange-500" : "bg-muted-foreground/30")}>
-            <span className={cn("pointer-events-none block h-5 w-5 rounded-full bg-white shadow-sm transition-transform", isPublic ? "translate-x-5" : "translate-x-0")} />
-          </button>
+        {/* Visibility */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Listing visibility</label>
+          <ToggleGroup value={isPublic ? "Public" : "Hidden"} options={["Public", "Hidden"]} onChange={(v) => onSetPublic(v === "Public")} />
+          <p className="text-xs text-muted-foreground">{isPublic ? "Listed on the Drop launchpad." : "Hidden — only reachable by direct link."}</p>
         </div>
-      </FadeIn>
+      </Section>
 
-      {/* Whitelist (optional) */}
-      <FadeIn delay={0.25}>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between p-4 rounded-xl border border-border bg-muted/20">
-            <div className="space-y-0.5">
-              <p className="text-sm font-medium">Whitelist</p>
-              <p className="text-xs text-muted-foreground">
-                {whitelistEnabled ? "Only listed addresses can mint" : "Anyone can mint. Turn on to restrict to specific wallets."}
-              </p>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={whitelistEnabled}
-              onClick={() => form.setValue("whitelistEnabled", !whitelistEnabled)}
-              className={cn("relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", whitelistEnabled ? "bg-orange-500" : "bg-muted-foreground/30")}
-            >
-              <span className={cn("pointer-events-none block h-5 w-5 rounded-full bg-white shadow-sm transition-transform", whitelistEnabled ? "translate-x-5" : "translate-x-0")} />
+      {/* Whitelist — collapsible panel; opening it enables the gate */}
+      <Collapsible open={whitelistEnabled} onOpenChange={(o) => form.setValue("whitelistEnabled", o)}>
+        <div className="rounded-xl border border-border overflow-hidden">
+          <CollapsibleTrigger asChild>
+            <button type="button" className="w-full flex items-center justify-between px-5 py-4 hover:bg-muted/30 transition-colors">
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-primary" />
+                <span className="text-sm font-semibold">Whitelist</span>
+                <span className="text-xs text-muted-foreground font-normal">{whitelistEnabled ? "Only listed addresses can mint" : "Optional · restrict who can mint"}</span>
+              </div>
+              <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", whitelistEnabled && "rotate-180")} />
             </button>
-          </div>
-          {whitelistEnabled ? (
-            <FormField control={form.control} name="allowlistAddresses" render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <Textarea placeholder={"Paste Starknet addresses, one per line:\n0x04a…\n0x06b…"} rows={5} {...field} className="font-mono text-xs resize-none" />
-                </FormControl>
-                <FormDescription className="text-xs">Only these wallets can mint. You can open it to everyone later from Manage.</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )} />
-          ) : null}
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="px-5 pb-5 space-y-3 border-t border-border/60 pt-4">
+              <FormField control={form.control} name="allowlistAddresses" render={({ field }) => (
+                <FormItem>
+                  <FormControl><Textarea placeholder={"Paste Starknet addresses, one per line:\n0x04a…\n0x06b…"} rows={5} {...field} className="font-mono text-xs resize-none" /></FormControl>
+                  <FormDescription className="text-xs">Only these wallets can mint. You can open it to everyone later from Manage.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </div>
+          </CollapsibleContent>
         </div>
-      </FadeIn>
+      </Collapsible>
 
       {/* Submit */}
-      <FadeIn delay={0.26}>
-        <div className="btn-border-animated p-[1px] rounded-xl mt-2">
-          <Button type="submit" size="lg" className="w-full rounded-xl bg-background text-foreground hover:bg-muted/60" disabled={isSubmitting || imageUploading}>
-            {isSubmitting ? (
-              <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Launching…</>
-            ) : (
-              <><Package className="h-4 w-4 mr-2" />Launch Drop</>
-            )}
-          </Button>
-        </div>
-        <p className="text-xs text-center text-muted-foreground mt-2">
-          Supply equals the number of items. Gas is free — your PIN signs the launch.
-        </p>
-      </FadeIn>
+      <div className={cn("btn-border-animated p-[1px] rounded-xl", (isSubmitting || imageUploading) && "opacity-40 pointer-events-none")}>
+        <button
+          type="submit"
+          disabled={isSubmitting || imageUploading}
+          className="w-full h-12 text-base font-semibold text-white rounded-[11px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] bg-brand-blue"
+        >
+          {isSubmitting ? (<><Loader2 className="h-4 w-4 animate-spin" />Launching…</>) : (<><Package className="h-4 w-4" />Launch Drop</>)}
+        </button>
+      </div>
+      <p className="text-xs text-center text-muted-foreground">Supply equals the number of items. Gas is free — your PIN signs the launch.</p>
     </div>
   );
 }
