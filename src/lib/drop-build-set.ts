@@ -13,6 +13,8 @@ export interface SharedLicense {
   geographicScope?: string;
   aiPolicy?: string;
   royalty: number;
+  /** Shared IP-type template traits (from IPTypeFields), applied to every item. */
+  templateTraits?: { traitType: string; value: string }[];
 }
 
 export interface DropItemInput {
@@ -21,15 +23,25 @@ export interface DropItemInput {
   description?: string;
 }
 
+export interface CollectionCover {
+  name: string;
+  description?: string;
+  image?: string | null; // ipfs:// cover URI (already uploaded)
+}
+
 export interface BuiltSet {
   baseUri: string; // ipfs://<folderCID>/
   count: number;
 }
 
 // Uploads every item image to IPFS, then pins one full OpenSea+Berne metadata JSON per item
-// as an IPFS directory. tokenId N = items[N-1]. Returns the base_uri for create_drop so
-// token_uri(N) resolves to a unique, fully-licensed asset.
-export async function buildDropSet(items: DropItemInput[], license: SharedLicense): Promise<BuiltSet> {
+// (plus a collection.json card metadata file) as an IPFS directory. tokenId N = items[N-1].
+// Returns the base_uri for create_drop so token_uri(N) resolves to a unique, fully-licensed asset.
+export async function buildDropSet(
+  items: DropItemInput[],
+  license: SharedLicense,
+  collection: CollectionCover
+): Promise<BuiltSet> {
   if (items.length === 0) throw new Error("Add at least one item");
 
   // Upload each image sequentially (small curated sets; stays under Pinata rate limits).
@@ -48,13 +60,14 @@ export async function buildDropSet(items: DropItemInput[], license: SharedLicens
       geographicScope: license.geographicScope,
       aiPolicy: license.aiPolicy,
       royalty: String(license.royalty),
+      templateTraits: license.templateTraits,
     });
   }
 
   const res = await fetch("/api/pinata/directory", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ items: fields }),
+    body: JSON.stringify({ items: fields, collection }),
   });
   if (!res.ok) {
     const err = (await res.json().catch(() => null)) as { error?: string } | null;

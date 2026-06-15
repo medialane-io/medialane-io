@@ -18,10 +18,16 @@ export async function POST(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const body = (await req.json().catch(() => null)) as { items?: DropItemFields[] } | null;
+  const body = (await req.json().catch(() => null)) as {
+    items?: DropItemFields[];
+    collection?: { name?: string; description?: string; image?: string | null };
+  } | null;
   const items = body?.items;
   if (!Array.isArray(items) || items.length === 0) {
     return NextResponse.json({ error: "items[] required" }, { status: 400 });
+  }
+  if (body?.collection?.image && !body.collection.image.startsWith("ipfs://")) {
+    return NextResponse.json({ error: "collection.image must be an ipfs:// URI" }, { status: 400 });
   }
   if (items.length > 2000) {
     return NextResponse.json({ error: "Max 2000 items per drop" }, { status: 400 });
@@ -50,6 +56,17 @@ export async function POST(req: NextRequest) {
     const blob = new Blob([JSON.stringify(metadata)], { type: "application/json" });
     form.append("file", blob, String(tokenId));
   });
+
+  // Collection-level metadata (card image/name/description) lives alongside the token files
+  // as `collection.json`. The backend resolves the drop card from <baseUri>collection.json.
+  // It never collides with the integer tokenId files.
+  const collection = {
+    name: body?.collection?.name ?? "",
+    description: body?.collection?.description ?? "",
+    image: body?.collection?.image ?? null,
+  };
+  form.append("file", new Blob([JSON.stringify(collection)], { type: "application/json" }), "collection.json");
+
   form.append("pinataOptions", JSON.stringify({ wrapWithDirectory: true }));
   form.append("pinataMetadata", JSON.stringify({ name: `drop-metadata-${Date.now()}` }));
 
