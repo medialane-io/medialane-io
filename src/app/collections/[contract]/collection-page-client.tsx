@@ -28,6 +28,7 @@ import { useCollectionProfile } from "@/hooks/use-profiles";
 import { useGatedContent, type GatedContentState } from "@/hooks/use-gated-content";
 import { CollectionServiceAction } from "@/components/services/collection-service-action";
 import { ListingDialog } from "@/components/marketplace/listing-dialog";
+import { PurchaseDialog } from "@/components/marketplace/purchase-dialog";
 import { TransferDialog } from "@/components/marketplace/transfer-dialog";
 import { useSessionKey } from "@/hooks/use-session-key";
 import type { ApiToken, ApiOrder } from "@medialane/sdk";
@@ -229,6 +230,9 @@ export default function CollectionPageClient() {
   const [reportOpen, setReportOpen] = useState(false);
   const [ownershipTransferOpen, setOwnershipTransferOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("items");
+  const [buyOrder, setBuyOrder] = useState<ApiOrder | null>(null);
+  const [purchaseOpen, setPurchaseOpen] = useState(false);
+  const handleBuy = (o: ApiOrder) => { setBuyOrder(o); setPurchaseOpen(true); };
   const [descExpanded, setDescExpanded] = useState(false);
   const [descClamped, setDescClamped] = useState(false);
   const [descOverflows, setDescOverflows] = useState(false);
@@ -569,7 +573,7 @@ export default function CollectionPageClient() {
                 {activeListings.map((o) => {
                   const isOwner = !!walletAddress && !!o.offerer &&
                     o.offerer.toLowerCase() === walletAddress.toLowerCase();
-                  return <ListingCard key={o.orderHash} order={o} isOwner={isOwner} />;
+                  return <ListingCard key={o.orderHash} order={o} isOwner={isOwner} onBuy={isOwner ? undefined : handleBuy} />;
                 })}
               </div>
             )}
@@ -603,6 +607,15 @@ export default function CollectionPageClient() {
           )}
         </Tabs>
       </div>
+
+      {/* Inline buy for listed items (Listings tab) */}
+      {buyOrder && (
+        <PurchaseDialog
+          order={buyOrder}
+          open={purchaseOpen}
+          onOpenChange={(open) => { setPurchaseOpen(open); if (!open) setBuyOrder(null); }}
+        />
+      )}
     </div>
   );
 }

@@ -168,25 +168,32 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
         </div>
 
         {/* Info */}
-        <div className="p-4 space-y-3">
-          <div>
-            <p className="font-semibold text-base truncate leading-snug">{name}</p>
-            {order.token?.description ? (
-              <p className="text-[11px] text-muted-foreground line-clamp-1 leading-snug mt-0.5">
-                {order.token.description}
-              </p>
-            ) : (
-              <p className="text-[11px] text-muted-foreground">#{order.nftTokenId}</p>
-            )}
+        <div className="p-3.5 space-y-3">
+          <div className="min-w-0">
+            <p className="font-semibold text-[15px] truncate leading-snug">{name}</p>
+            <p className="text-[11px] text-muted-foreground truncate leading-snug mt-0.5">
+              {order.token?.description ? order.token.description : `#${order.nftTokenId}`}
+            </p>
           </div>
 
-          <p className="text-lg font-bold price-value leading-none inline-flex items-center gap-1.5">
-            <CurrencyIcon symbol={order.price.currency} size={18} />
-            {formatDisplayPrice(order.price.formatted)}
-            <span className="sr-only">{order.price.currency}</span>
-          </p>
+          {/* Price / Offer + age */}
+          <div className="flex items-end justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground/55 leading-none">
+                {isListing ? "Price" : "Offer"}
+              </p>
+              <p className="text-lg font-bold price-value leading-none inline-flex items-center gap-1.5 mt-1.5">
+                <CurrencyIcon symbol={order.price.currency} size={18} />
+                {formatDisplayPrice(order.price.formatted)}
+                <span className="sr-only">{order.price.currency}</span>
+              </p>
+            </div>
+            <p className="text-[10px] text-muted-foreground/60 whitespace-nowrap shrink-0">
+              {timeAgo(order.createdAt)}
+            </p>
+          </div>
 
-          {isListing && (
+          {isListing ? (
             isOwner ? (
               /* ── Owner view ── */
               <div className="flex items-center gap-1.5">
@@ -255,8 +262,8 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
             ) : (
               /* ── Buyer view ── */
               <div className="flex items-center gap-1.5">
-                {/* Buy Now — animated gradient border */}
-                {onBuy && (
+                {/* Buy Now — animated gradient border; falls back to View when no buy handler */}
+                {onBuy ? (
                   <div className="btn-border-animated p-[1.5px] rounded-[10px] flex-1 h-9">
                     <button
                       className="w-full h-full rounded-[9px] bg-background flex items-center justify-center gap-1.5 text-xs font-semibold text-foreground hover:bg-muted/60 transition-all active:scale-[0.98]"
@@ -266,6 +273,14 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
                       Buy
                     </button>
                   </div>
+                ) : (
+                  <Link
+                    href={`/asset/${order.nftContract}/${order.nftTokenId}`}
+                    className="flex-1 h-9 inline-flex items-center justify-center gap-1.5 rounded-[9px] border border-border bg-background text-xs font-semibold text-foreground hover:bg-muted/60 transition-all active:scale-[0.98]"
+                  >
+                    <ArrowUpRight className="h-3.5 w-3.5 shrink-0" />
+                    View
+                  </Link>
                 )}
 
 
@@ -358,6 +373,54 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
                 </DropdownMenu>
               </div>
             )
+          ) : (
+            /* ── Offer (ERC20 bid) — no buy/cancel; view asset + secondary menu ── */
+            <div className="flex items-center gap-1.5">
+              <Link
+                href={`/asset/${order.nftContract}/${order.nftTokenId}`}
+                className="flex-1 h-9 inline-flex items-center justify-center gap-1.5 rounded-[9px] border border-border bg-background text-xs font-semibold text-foreground hover:bg-muted/60 transition-all active:scale-[0.98]"
+              >
+                <ArrowUpRight className="h-3.5 w-3.5 shrink-0" />
+                View asset
+              </Link>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-9 w-9 p-0 shrink-0 rounded-[9px]"
+                    onClick={(e) => e.preventDefault()}
+                    aria-label="More actions"
+                  >
+                    <MoreHorizontal className="h-3.5 w-3.5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-52">
+                  <DropdownMenuItem asChild>
+                    <Link href={`/collections/${order.nftContract}`} className="flex items-center gap-2">
+                      <Layers className="h-3.5 w-3.5 text-muted-foreground" />
+                      View collection
+                    </Link>
+                  </DropdownMenuItem>
+                  {order.offerer && (
+                    <DropdownMenuItem asChild>
+                      <Link href={`/account/${order.offerer}`} className="flex items-center gap-2">
+                        <UserCircle2 className="h-3.5 w-3.5 text-muted-foreground" />
+                        View bidder
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="flex items-center gap-2 text-muted-foreground focus:text-muted-foreground"
+                    onClick={(e) => { e.preventDefault(); setReportOpen(true); }}
+                  >
+                    <Flag className="h-3.5 w-3.5" />
+                    Report
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           )}
         </div>
       </Link>
