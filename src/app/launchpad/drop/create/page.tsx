@@ -11,7 +11,7 @@ import { PinDialog } from "@/components/chipi/pin-dialog";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
-import { useUser, useAuth } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { FadeIn } from "@/components/ui/motion-primitives";
 import { getListableTokens } from "@medialane/sdk";
@@ -35,7 +35,6 @@ const PAYMENT_TOKENS = getListableTokens().map((t) => ({ symbol: t.symbol, addre
 
 export default function CreateDropPage() {
   const { isSignedIn } = useUser();
-  const { getToken } = useAuth();
   const { walletAddress, hasWallet } = useSessionKey();
   const { executeTransaction, isSubmitting } = useChipiTransaction();
 
@@ -203,27 +202,6 @@ export default function CreateDropPage() {
     } catch { /* non-fatal */ }
   };
 
-  // Persist the pending public phase so the backend scheduled worker (M4) can fire
-  // set_claim_conditions + set_allowlist_enabled at the public start time.
-  const postPhaseSchedule = async (collectionAddress: string, publicC: ContractConditions, transitionAt: number) => {
-    try {
-      const token = await getToken();
-      await fetch(`${API_BASE}/v1/drop/phase-schedule`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        body: JSON.stringify({
-          collectionAddress,
-          publicStartTime: publicC.start_time,
-          publicEndTime: publicC.end_time,
-          publicPrice: publicC.price.toString(),
-          publicPaymentToken: publicC.payment_token,
-          publicMaxPerWallet: publicC.max_quantity_per_wallet.toString(),
-          transitionAt,
-        }),
-      });
-    } catch { /* non-fatal — manual "Start public sale now" remains available */ }
-  };
-
   const onSubmit = (values: DropCreateFormValues) => {
     if (items.length === 0) { toast.error("Add at least one item"); return; }
     setPendingValues(values);
@@ -269,7 +247,7 @@ export default function CreateDropPage() {
     const maxPerWallet = BigInt(parseInt(pendingValues.maxPerWallet ?? "1", 10));
     const paymentToken = priceFree ? "0x0" : selectedToken.address;
 
-    const publicConditions = {
+    const conditions = {
       start_time: toTs(pendingValues.startDate, pendingValues.startTime),
       end_time: toTs(pendingValues.endDate, pendingValues.endTime),
       price: priceFree ? 0n : toWei(pendingValues.priceAmount ?? "0"),
@@ -277,26 +255,15 @@ export default function CreateDropPage() {
       max_quantity_per_wallet: maxPerWallet,
     };
 
-    const presale = pendingValues.presaleEnabled;
-    // Presale price falls back to the public price when left blank.
-    const presaleConditions = presale
-      ? {
-          start_time: toTs(pendingValues.presaleStartDate, pendingValues.presaleStartTime),
-          end_time: toTs(pendingValues.presaleEndDate, pendingValues.presaleEndTime),
-          price: priceFree ? 0n : (pendingValues.presalePriceAmount ? toWei(pendingValues.presalePriceAmount) : publicConditions.price),
-          payment_token: paymentToken,
-          max_quantity_per_wallet: maxPerWallet,
-        }
-      : null;
-
-    // Deploy with the presale conditions as the initial phase when a presale is set.
-    const initialConditions = presaleConditions ?? publicConditions;
-    const allowlist = presale ? parseAddresses(pendingValues.allowlistAddresses) : [];
+    // Optional whitelist set at create time (creator-signed). The contract address isn't
+    // known until create_drop executes, so the allowlist is set in a second call under the
+    // same PIN. To open the drop to everyone later, the creator toggles the allowlist off in Manage.
+    const whitelist = pendingValues.whitelistEnabled ? parseAddresses(pendingValues.allowlistAddresses) : [];
 
     try {
       const factory = new Contract(DropFactoryABI as unknown as Abi, DROP_FACTORY_CONTRACT, starknetProvider);
       const call = factory.populate("create_drop", [
-        pendingValues.name, pendingValues.symbol, baseUri, maxSupply, initialConditions,
+        pendingValues.name, pendingValues.symbol, baseUri, maxSupply, conditions,
       ]);
 
       const result = await executeTransaction({
@@ -309,23 +276,22 @@ export default function CreateDropPage() {
         return;
       }
 
-      // Drop deployed. Find its address, then (if presale) enable + populate the allowlist
-      // and schedule the public transition. All best-effort — the drop already exists onchain.
+      // Drop deployed. Find its address, then (if a whitelist was provided) enable + populate it.
+      // Best-effort — the drop already exists onchain; the creator can finish in Manage.
       const dropAddress = await pollForDropAddress(walletAddress);
       if (dropAddress) {
-        if (presale && allowlist.length > 0) {
+        if (whitelist.length > 0) {
           try {
             await executeTransaction({
               pin,
               calls: [
                 { contractAddress: dropAddress, entrypoint: "set_allowlist_enabled", calldata: ["1"] },
-                { contractAddress: dropAddress, entrypoint: "batch_add_to_allowlist", calldata: batchAllowlistCalldata(allowlist) },
+                { contractAddress: dropAddress, entrypoint: "batch_add_to_allowlist", calldata: batchAllowlistCalldata(whitelist) },
               ],
             });
-          } catch { /* owner can finish allowlist setup in Manage */ }
-          postPhaseSchedule(dropAddress, publicConditions, presaleConditions!.end_time);
+          } catch { /* owner can finish whitelist setup in Manage */ }
         }
-        persistDropConditions(dropAddress, maxSupply, initialConditions);
+        persistDropConditions(dropAddress, maxSupply, conditions);
       }
       setDone(true);
     } catch (err) {
