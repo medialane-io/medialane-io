@@ -32,6 +32,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { PinataSDK } from "pinata";
+import { buildAssetMetadata } from "@/lib/asset-metadata";
 
 const pinata = new PinataSDK({
   pinataJwt: process.env.PINATA_JWT!,
@@ -47,16 +48,6 @@ const ALLOWED_IMAGE_TYPES = new Set([
 ]);
 const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10 MB (server-side fallback guard)
 const MAX_TEMPLATE_FIELDS = 30;
-
-// Trait names that are set by this route and must not be overridden by tmpl_* fields.
-const RESERVED_TRAITS = new Set([
-  "Creator", "IP Type", "License", "Commercial Use", "Derivatives",
-  "Attribution", "Territory", "AI Policy", "Royalty", "Edition",
-  "Standard", "Registration",
-]);
-const RESERVED_TRAITS_NORMALIZED = new Set(
-  [...RESERVED_TRAITS].map((trait) => trait.toLowerCase())
-);
 
 export async function POST(req: NextRequest) {
   // ── Auth ─────────────────────────────────────────────────────────────────────
@@ -136,62 +127,36 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Build OpenSea ERC-721 + Berne Convention compatible metadata ───────────
-    type Attr = { trait_type: string; value: string };
-    const attributes: Attr[] = [];
-
-    if (creator) attributes.push({ trait_type: "Creator", value: creator });
-    if (ipType) attributes.push({ trait_type: "IP Type", value: ipType });
-    if (licenseType) attributes.push({ trait_type: "License", value: licenseType });
-    if (commercialUse) attributes.push({ trait_type: "Commercial Use", value: commercialUse });
-    if (derivatives) attributes.push({ trait_type: "Derivatives", value: derivatives });
-    if (attribution) attributes.push({ trait_type: "Attribution", value: attribution });
-    if (geographicScope) attributes.push({ trait_type: "Territory", value: geographicScope });
-    if (aiPolicy) attributes.push({ trait_type: "AI Policy", value: aiPolicy });
-
-    // Royalty — normalise to "X%" format
-    if (rawRoyalty) {
-      const num = parseFloat(rawRoyalty.replace("%", ""));
-      if (!isNaN(num) && num > 0) {
-        attributes.push({ trait_type: "Royalty", value: `${num}%` });
-      }
-    }
-
-    // Edition (legacy genesis-mint field)
-    if (edition) attributes.push({ trait_type: "Edition", value: edition });
-
-    // Suggested template fields and creator-defined traits — stored as standard NFT attributes.
-    // Max 30 fields; reserved trait names are silently skipped to prevent spoofing.
+    // Suggested template fields and creator-defined traits (tmpl_*). Max 30 fields;
+    // reserved-name + length filtering happens inside buildAssetMetadata.
     const tmplEntries = [...formData.entries()].filter(
       ([k]) => typeof k === "string" && k.startsWith("tmpl_")
     );
     if (tmplEntries.length > MAX_TEMPLATE_FIELDS) {
       return NextResponse.json({ error: `Too many template fields (max ${MAX_TEMPLATE_FIELDS})` }, { status: 400 });
     }
-    for (const [key, value] of tmplEntries) {
-      const traitType = (key as string).slice(5).trim();
-      const traitValue = String(value).trim();
-      if (!traitType || !traitValue || RESERVED_TRAITS_NORMALIZED.has(traitType.toLowerCase())) continue;
-      if (traitType.length > 64 || traitValue.length > 512) continue;
-      attributes.push({ trait_type: traitType, value: traitValue });
-    }
+    const templateTraits = tmplEntries.map(([key, value]) => ({
+      traitType: (key as string).slice(5),
+      value: String(value),
+    }));
 
-    // Berne Convention marker — only when licensing data is provided
-    if (licenseType) {
-      attributes.push({ trait_type: "Standard", value: "Berne Convention" });
-      attributes.push({
-        trait_type: "Registration",
-        value: new Date().toISOString().split("T")[0],
-      });
-    }
-
-    // ── Upload metadata JSON ───────────────────────────────────────────────────
-    const metadata = {
+    const metadata = buildAssetMetadata({
       name,
       description,
-      image: imageUri,
-      external_url: externalUrl,
-      attributes,
-    };
+      externalUrl,
+      imageUri,
+      creator,
+      ipType,
+      licenseType,
+      commercialUse,
+      derivatives,
+      attribution,
+      geographicScope,
+      aiPolicy,
+      royalty: rawRoyalty,
+      edition,
+      templateTraits,
+    });
 
     const metadataUpload = await pinata.upload.public.json(metadata);
 
