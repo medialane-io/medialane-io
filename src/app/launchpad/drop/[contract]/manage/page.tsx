@@ -5,7 +5,7 @@ import Link from "next/link";
 import useSWR from "swr";
 import {
   ArrowLeft, Users, ShieldCheck, ShieldOff, DollarSign,
-  Loader2, CheckCircle2, AlertCircle, Trash2,
+  Loader2, CheckCircle2, AlertCircle, Trash2, Rocket,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,6 +19,8 @@ import { useDropInfo } from "@/hooks/use-drops";
 import { starknetProvider } from "@/lib/starknet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { parseAddresses, batchAllowlistCalldata } from "../../drop-allowlist";
+import { MEDIALANE_BACKEND_URL } from "@/lib/constants";
 
 // ── On-chain reads ────────────────────────────────────────────────────────────
 
@@ -37,19 +39,45 @@ function useAllowlistEnabled(contract: string) {
   );
 }
 
-// ── Address parsing ───────────────────────────────────────────────────────────
-
-function parseAddresses(raw: string): string[] {
-  return raw
-    .split(/[\n,\s]+/)
-    .map((a) => a.trim())
-    .filter((a) => /^0x[0-9a-fA-F]+$/.test(a));
+// Pending public-phase schedule (written at create time when a presale is configured).
+interface PhaseSchedule {
+  publicStartTime: string;
+  publicEndTime: string;
+  publicPrice: string;
+  publicPaymentToken: string;
+  publicMaxPerWallet: string;
+  transitionAt: string;
+  status: string;
 }
 
-// ── Calldata helpers ──────────────────────────────────────────────────────────
+function usePhaseSchedule(contract: string) {
+  return useSWR<PhaseSchedule | null>(
+    `drop-phase-schedule-${contract}`,
+    async () => {
+      const res = await fetch(`${MEDIALANE_BACKEND_URL}/v1/drop/${contract}/phase-schedule`);
+      if (!res.ok) return null;
+      const json = await res.json();
+      return json?.data ?? null;
+    },
+    { revalidateOnFocus: false, shouldRetryOnError: false }
+  );
+}
 
-function batchAllowlistCalldata(addresses: string[]): string[] {
-  return [addresses.length.toString(), ...addresses];
+// Cairo u256 → [low, high] decimal strings.
+function u256Calldata(value: bigint): [string, string] {
+  return [(value & ((1n << 128n) - 1n)).toString(), (value >> 128n).toString()];
+}
+
+// set_claim_conditions(ClaimConditions) calldata: start_time, end_time, price(low,high),
+// payment_token, max_quantity_per_wallet(low,high).
+function claimConditionsCalldata(s: PhaseSchedule): string[] {
+  return [
+    s.publicStartTime,
+    s.publicEndTime,
+    ...u256Calldata(BigInt(s.publicPrice)),
+    s.publicPaymentToken === "0x0" ? "0" : s.publicPaymentToken,
+    ...u256Calldata(BigInt(s.publicMaxPerWallet)),
+  ];
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
@@ -214,6 +242,7 @@ export default function DropManagePage({
     isLoading: allowlistLoading,
     mutate: mutateAllowlist,
   } = useAllowlistEnabled(contract);
+  const { data: phaseSchedule, mutate: mutatePhase } = usePhaseSchedule(contract);
   const { executeTransaction, isSubmitting } = useChipiTransaction();
 
   const [pinOpen, setPinOpen] = useState(false);
@@ -253,6 +282,7 @@ export default function DropManagePage({
       if (result.status === "confirmed") {
         setTxResult({ type: "success", message: successMsg });
         mutateAllowlist();
+        mutatePhase();
       } else {
         setTxResult({ type: "error", message: result.revertReason ?? "Transaction reverted" });
       }
@@ -287,6 +317,18 @@ export default function DropManagePage({
     execute(
       [{ contractAddress: contract, entrypoint: "withdraw_payments", calldata: [] }],
       "Payments withdrawn to your wallet"
+    );
+  };
+
+  // Manual override: swap presale conditions for the scheduled public phase + open the gate.
+  const handleGoPublic = () => {
+    if (!phaseSchedule) return;
+    execute(
+      [
+        { contractAddress: contract, entrypoint: "set_claim_conditions", calldata: claimConditionsCalldata(phaseSchedule) },
+        { contractAddress: contract, entrypoint: "set_allowlist_enabled", calldata: ["0"] },
+      ],
+      "Public sale started"
     );
   };
 
@@ -352,6 +394,28 @@ export default function DropManagePage({
           </p>
         </div>
       </FadeIn>
+
+      {/* Presale → Public phase */}
+      {phaseSchedule && phaseSchedule.status === "PENDING" && (
+        <FadeIn delay={0.06}>
+          <div className="bento-cell p-5 space-y-3">
+            <div className="flex items-center gap-2">
+              <Rocket className="h-4 w-4 text-orange-500" />
+              <span className="font-semibold text-sm">Presale → Public</span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              The public phase is scheduled for{" "}
+              {new Date(Number(phaseSchedule.transitionAt) * 1000).toLocaleString()} and switches
+              automatically. You can also start it now — this opens public minting and removes the
+              allowlist gate.
+            </p>
+            <Button size="sm" className="w-full bg-orange-600 hover:bg-orange-700 text-white" onClick={handleGoPublic} disabled={isSubmitting}>
+              <Rocket className="h-3.5 w-3.5 mr-1.5" />
+              Start public sale now
+            </Button>
+          </div>
+        </FadeIn>
+      )}
 
       {/* Allowlist toggle */}
       <FadeIn delay={0.08}>

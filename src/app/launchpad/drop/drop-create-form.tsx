@@ -7,6 +7,7 @@ import Image from "next/image";
 import { ChevronDown, Coins, ImagePlus, Loader2, Package, X, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   FormControl,
   FormDescription,
@@ -91,6 +92,7 @@ export function DropCreateForm({
 }: DropCreateFormProps) {
   const tokenDropdownRef = useRef<HTMLDivElement | null>(null);
   const collectionName = form.watch("name");
+  const presaleEnabled = form.watch("presaleEnabled");
 
   useEffect(() => {
     if (!tokenDropdownOpen) return;
@@ -331,10 +333,82 @@ export function DropCreateForm({
         )} />
       </FadeIn>
 
+      {/* Presale phase (optional) */}
+      <FadeIn delay={0.21}>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between p-4 rounded-xl border border-border bg-muted/20">
+            <div className="space-y-0.5">
+              <p className="text-sm font-medium">Allowlist presale</p>
+              <p className="text-xs text-muted-foreground">
+                {presaleEnabled ? "Allowlisted wallets mint first, before public" : "Optional early window for allowlisted wallets"}
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={presaleEnabled}
+              onClick={() => form.setValue("presaleEnabled", !presaleEnabled)}
+              className={cn("relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", presaleEnabled ? "bg-orange-500" : "bg-muted-foreground/30")}
+            >
+              <span className={cn("pointer-events-none block h-5 w-5 rounded-full bg-white shadow-sm transition-transform", presaleEnabled ? "translate-x-5" : "translate-x-0")} />
+            </button>
+          </div>
+
+          {presaleEnabled ? (
+            <div className="space-y-3 rounded-xl border border-orange-500/20 bg-orange-500/[0.03] p-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <p className="text-xs text-muted-foreground">Presale opens</p>
+                  <div className="flex gap-2">
+                    <FormField control={form.control} name="presaleStartDate" render={({ field }) => (
+                      <FormItem className="flex-1"><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    <FormField control={form.control} name="presaleStartTime" render={({ field }) => (
+                      <FormItem className="w-28"><FormControl><Input type="time" {...field} /></FormControl></FormItem>
+                    )} />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <p className="text-xs text-muted-foreground">Presale closes</p>
+                  <div className="flex gap-2">
+                    <FormField control={form.control} name="presaleEndDate" render={({ field }) => (
+                      <FormItem className="flex-1"><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    <FormField control={form.control} name="presaleEndTime" render={({ field }) => (
+                      <FormItem className="w-28"><FormControl><Input type="time" {...field} /></FormControl></FormItem>
+                    )} />
+                  </div>
+                </div>
+              </div>
+              {!priceFree ? (
+                <FormField control={form.control} name="presalePriceAmount" render={({ field }) => (
+                  <FormItem className="max-w-[200px]">
+                    <FormLabel className="text-xs">Presale price per token</FormLabel>
+                    <FormControl><Input type="number" placeholder="0.005" step="any" min={0} {...field} /></FormControl>
+                    <FormDescription className="text-xs">Paid in {selectedToken.symbol}. Leave blank to match the public price.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              ) : null}
+              <FormField control={form.control} name="allowlistAddresses" render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-xs">Allowlist</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder={"Paste Starknet addresses, one per line:\n0x04a…\n0x06b…"} rows={5} {...field} className="font-mono text-xs resize-none" />
+                  </FormControl>
+                  <FormDescription className="text-xs">Only these wallets can mint during the presale. Public opens at the mint window below.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </div>
+          ) : null}
+        </div>
+      </FadeIn>
+
       {/* Mint window */}
       <FadeIn delay={0.22}>
         <div className="space-y-1.5">
-          <p className="text-sm font-medium">Mint window *</p>
+          <p className="text-sm font-medium">{presaleEnabled ? "Public mint window *" : "Mint window *"}</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <p className="text-xs text-muted-foreground">Opens</p>

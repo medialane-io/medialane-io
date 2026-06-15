@@ -42,6 +42,14 @@ export const dropCreateSchema = z
       .regex(/^\d+$/, "Must be a positive integer")
       .refine((v: string) => parseInt(v, 10) >= 1, "Minimum 1")
       .default("1"),
+    // ── Optional presale phase (allowlist-gated, own window + price) ──
+    presaleEnabled: z.boolean().default(false),
+    presalePriceAmount: z.string().default(""),
+    presaleStartDate: z.string().default(""),
+    presaleStartTime: z.string().default("00:00"),
+    presaleEndDate: z.string().default(""),
+    presaleEndTime: z.string().default("23:59"),
+    allowlistAddresses: z.string().default(""),
   })
   .superRefine((values, ctx) => {
     const start = parseDateTime(values.startDate, values.startTime);
@@ -54,6 +62,28 @@ export const dropCreateSchema = z
     }
     if (start !== null && end !== null && end <= start) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["endDate"], message: "End time must be after the start time" });
+    }
+
+    if (values.presaleEnabled) {
+      const pStart = parseDateTime(values.presaleStartDate, values.presaleStartTime);
+      const pEnd = parseDateTime(values.presaleEndDate, values.presaleEndTime);
+      if (pStart === null) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["presaleStartDate"], message: "Enter a valid presale start" });
+      }
+      if (pEnd === null) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["presaleEndDate"], message: "Enter a valid presale end" });
+      }
+      if (pStart !== null && pEnd !== null && pEnd <= pStart) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["presaleEndDate"], message: "Presale end must be after its start" });
+      }
+      // Presale must end no later than the public sale opens.
+      if (pEnd !== null && start !== null && pEnd > start) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["presaleEndDate"], message: "Presale must end by the public start time" });
+      }
+      const addrs = values.allowlistAddresses.split(/[\n,\s]+/).map((a) => a.trim()).filter(Boolean);
+      if (addrs.length === 0) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["allowlistAddresses"], message: "Add at least one allowlist address" });
+      }
     }
   });
 

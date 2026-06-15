@@ -21,6 +21,7 @@ import { dropCreateSchema, type DropCreateFormValues } from "../drop-create-sche
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { getDefaultDropSchedule, suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
 import { buildDropSet } from "@/lib/drop-build-set";
+import { parseAddresses, batchAllowlistCalldata } from "../drop-allowlist";
 import type { DraftItem } from "../drop-item-list";
 import type { MetadataField } from "@/components/create/ip-type-fields";
 import { LaunchpadSuccessState, LaunchpadErrorState, LaunchpadProcessingState } from "@/components/launchpad/launchpad-success-state";
@@ -168,39 +169,56 @@ export default function CreateDropPage() {
     setAutoSymbol("");
   };
 
-  // Fire-and-forget: persist conditions once the collection is indexed (~6-30s).
-  // TODO(M4): remove once ClaimConditionsUpdated indexing + on-chain reads land (M2/M4).
-  const persistDropConditions = async (
-    ownerAddress: string,
-    maxSupply: bigint,
-    claimConditions: { start_time: number; end_time: number; price: bigint; payment_token: string; max_quantity_per_wallet: bigint }
-  ) => {
-    const headers: Record<string, string> = { "Content-Type": "application/json" };
-    let collectionAddress: string | null = null;
-    for (let attempt = 0; attempt < 10; attempt++) {
+  // Poll the indexer for the freshly-deployed drop collection address (~6-30s cycle).
+  const pollForDropAddress = async (ownerAddress: string): Promise<string | null> => {
+    const headers = { "Content-Type": "application/json" };
+    for (let attempt = 0; attempt < 12; attempt++) {
       await new Promise((r) => setTimeout(r, 3000));
       try {
         const res = await fetch(`${API_BASE}/v1/collections?service=drop-collection&owner=${ownerAddress}&sort=recent&limit=1`, { headers });
         const json = await res.json();
         const latest = json?.data?.[0];
-        if (latest?.contractAddress) { collectionAddress = latest.contractAddress; break; }
+        if (latest?.contractAddress) return latest.contractAddress as string;
       } catch { /* keep polling */ }
     }
-    if (!collectionAddress) return;
+    return null;
+  };
+
+  type ContractConditions = { start_time: number; end_time: number; price: bigint; payment_token: string; max_quantity_per_wallet: bigint };
+
+  // Fire-and-forget: persist conditions once the collection is indexed (detail-page fallback).
+  // TODO(M4): retire once ClaimConditionsUpdated indexing fully covers the detail page.
+  const persistDropConditions = async (collectionAddress: string, maxSupply: bigint, c: ContractConditions) => {
     try {
       await fetch(`${API_BASE}/v1/drop/conditions`, {
-        method: "POST", headers,
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          collectionAddress,
-          maxSupply: maxSupply.toString(),
-          price: claimConditions.price.toString(),
-          paymentToken: claimConditions.payment_token,
-          startTime: claimConditions.start_time,
-          endTime: claimConditions.end_time,
-          maxPerWallet: claimConditions.max_quantity_per_wallet.toString(),
+          collectionAddress, maxSupply: maxSupply.toString(),
+          price: c.price.toString(), paymentToken: c.payment_token,
+          startTime: c.start_time, endTime: c.end_time,
+          maxPerWallet: c.max_quantity_per_wallet.toString(),
         }),
       });
     } catch { /* non-fatal */ }
+  };
+
+  // Persist the pending public phase so the backend scheduled worker (M4) can fire
+  // set_claim_conditions + set_allowlist_enabled at the public start time.
+  const postPhaseSchedule = async (collectionAddress: string, publicC: ContractConditions, transitionAt: number) => {
+    try {
+      await fetch(`${API_BASE}/v1/drop/phase-schedule`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          collectionAddress,
+          publicStartTime: publicC.start_time,
+          publicEndTime: publicC.end_time,
+          publicPrice: publicC.price.toString(),
+          publicPaymentToken: publicC.payment_token,
+          publicMaxPerWallet: publicC.max_quantity_per_wallet.toString(),
+          transitionAt,
+        }),
+      });
+    } catch { /* non-fatal — manual "Start public sale now" remains available */ }
   };
 
   const onSubmit = (values: DropCreateFormValues) => {
@@ -243,27 +261,39 @@ export default function CreateDropPage() {
       return;
     }
 
-    const startTs = Math.floor(new Date(`${pendingValues.startDate}T${pendingValues.startTime}:00`).getTime() / 1000);
-    const endTs = Math.floor(new Date(`${pendingValues.endDate}T${pendingValues.endTime}:00`).getTime() / 1000);
-    const priceWei = priceFree ? 0n : BigInt(Math.round(parseFloat(pendingValues.priceAmount ?? "0") * 1e18));
+    const toTs = (d: string, t: string) => Math.floor(new Date(`${d}T${t}:00`).getTime() / 1000);
+    const toWei = (amount: string) => BigInt(Math.round(parseFloat(amount || "0") * 1e18));
     const maxPerWallet = BigInt(parseInt(pendingValues.maxPerWallet ?? "1", 10));
+    const paymentToken = priceFree ? "0x0" : selectedToken.address;
 
-    const claimConditions = {
-      start_time: startTs,
-      end_time: endTs,
-      price: priceWei,
-      payment_token: priceFree ? "0x0" : selectedToken.address,
+    const publicConditions = {
+      start_time: toTs(pendingValues.startDate, pendingValues.startTime),
+      end_time: toTs(pendingValues.endDate, pendingValues.endTime),
+      price: priceFree ? 0n : toWei(pendingValues.priceAmount ?? "0"),
+      payment_token: paymentToken,
       max_quantity_per_wallet: maxPerWallet,
     };
+
+    const presale = pendingValues.presaleEnabled;
+    // Presale price falls back to the public price when left blank.
+    const presaleConditions = presale
+      ? {
+          start_time: toTs(pendingValues.presaleStartDate, pendingValues.presaleStartTime),
+          end_time: toTs(pendingValues.presaleEndDate, pendingValues.presaleEndTime),
+          price: priceFree ? 0n : (pendingValues.presalePriceAmount ? toWei(pendingValues.presalePriceAmount) : publicConditions.price),
+          payment_token: paymentToken,
+          max_quantity_per_wallet: maxPerWallet,
+        }
+      : null;
+
+    // Deploy with the presale conditions as the initial phase when a presale is set.
+    const initialConditions = presaleConditions ?? publicConditions;
+    const allowlist = presale ? parseAddresses(pendingValues.allowlistAddresses) : [];
 
     try {
       const factory = new Contract(DropFactoryABI as unknown as Abi, DROP_FACTORY_CONTRACT, starknetProvider);
       const call = factory.populate("create_drop", [
-        pendingValues.name,
-        pendingValues.symbol,
-        baseUri,
-        maxSupply,
-        claimConditions,
+        pendingValues.name, pendingValues.symbol, baseUri, maxSupply, initialConditions,
       ]);
 
       const result = await executeTransaction({
@@ -271,12 +301,30 @@ export default function CreateDropPage() {
         calls: [{ contractAddress: DROP_FACTORY_CONTRACT, entrypoint: "create_drop", calldata: call.calldata as string[] }],
       });
 
-      if (result.status === "confirmed") {
-        persistDropConditions(walletAddress, maxSupply, claimConditions);
-        setDone(true);
-      } else {
+      if (result.status !== "confirmed") {
         setTxError(result.revertReason ?? "Transaction reverted");
+        return;
       }
+
+      // Drop deployed. Find its address, then (if presale) enable + populate the allowlist
+      // and schedule the public transition. All best-effort — the drop already exists onchain.
+      const dropAddress = await pollForDropAddress(walletAddress);
+      if (dropAddress) {
+        if (presale && allowlist.length > 0) {
+          try {
+            await executeTransaction({
+              pin,
+              calls: [
+                { contractAddress: dropAddress, entrypoint: "set_allowlist_enabled", calldata: ["1"] },
+                { contractAddress: dropAddress, entrypoint: "batch_add_to_allowlist", calldata: batchAllowlistCalldata(allowlist) },
+              ],
+            });
+          } catch { /* owner can finish allowlist setup in Manage */ }
+          postPhaseSchedule(dropAddress, publicConditions, presaleConditions!.end_time);
+        }
+        persistDropConditions(dropAddress, maxSupply, initialConditions);
+      }
+      setDone(true);
     } catch (err) {
       setTxError(err instanceof Error ? err.message : "Failed to create drop");
     }
