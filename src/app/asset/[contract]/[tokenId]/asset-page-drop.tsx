@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useToken, useTokenHistory } from "@/hooks/use-tokens";
 import { useCollection } from "@/hooks/use-collections";
-import { useDropInfo, getDropStatus, type DropConditions } from "@/hooks/use-drops";
+import { useOnChainDropState, getDropStatus, type DropConditions } from "@/hooks/use-drops";
 import { useTokenListings } from "@/hooks/use-orders";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useOrderActions } from "./use-order-actions";
@@ -135,7 +135,7 @@ export function AssetPageDrop() {
   const { walletAddress } = useSessionKey();
   const { token } = useToken(contract, tokenId);
   const { collection } = useCollection(contract);
-  const { dropInfo } = useDropInfo(contract);
+  const { state: dropState } = useOnChainDropState(contract);
   const { history } = useTokenHistory(contract, tokenId);
   const { listings, mutate: mutateListings } = useTokenListings(contract, tokenId);
   const {
@@ -247,7 +247,7 @@ export function AssetPageDrop() {
             </div>
 
             {/* Drop info panel */}
-            {dropInfo && <DropInfoPanel conditions={dropInfo.conditions} totalMinted={dropInfo.totalMinted} />}
+            {dropState && <DropInfoPanel conditions={dropState.conditions} totalMinted={dropState.totalMinted} />}
 
             {/* Secondary market action box */}
             {cheapest ? (

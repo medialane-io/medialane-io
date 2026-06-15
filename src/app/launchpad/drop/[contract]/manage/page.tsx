@@ -15,7 +15,7 @@ import { PinDialog } from "@/components/chipi/pin-dialog";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
-import { useDropInfo } from "@/hooks/use-drops";
+import { useDropInfo, useOnChainDropState } from "@/hooks/use-drops";
 import { starknetProvider } from "@/lib/starknet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
@@ -195,6 +195,7 @@ export default function DropManagePage({
   const { contract } = use(params);
   const { walletAddress, hasWallet } = useSessionKey();
   const { dropInfo, isLoading: dropLoading } = useDropInfo(contract);
+  const { state: dropState } = useOnChainDropState(contract);
   const {
     data: allowlistEnabled,
     isLoading: allowlistLoading,
@@ -277,9 +278,9 @@ export default function DropManagePage({
   };
 
   const isPaidDrop =
-    dropInfo?.conditions &&
-    dropInfo.conditions.price !== "0" &&
-    dropInfo.conditions.paymentToken !== "0x0";
+    !!dropState?.conditions &&
+    dropState.conditions.price !== "0" &&
+    dropState.conditions.paymentToken !== "0x0";
 
   if (isLoading) {
     return (

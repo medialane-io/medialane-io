@@ -184,24 +184,6 @@ export default function CreateDropPage() {
     return null;
   };
 
-  type ContractConditions = { start_time: number; end_time: number; price: bigint; payment_token: string; max_quantity_per_wallet: bigint };
-
-  // Fire-and-forget: persist conditions once the collection is indexed (detail-page fallback).
-  // TODO(M4): retire once ClaimConditionsUpdated indexing fully covers the detail page.
-  const persistDropConditions = async (collectionAddress: string, maxSupply: bigint, c: ContractConditions) => {
-    try {
-      await fetch(`${API_BASE}/v1/drop/conditions`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          collectionAddress, maxSupply: maxSupply.toString(),
-          price: c.price.toString(), paymentToken: c.payment_token,
-          startTime: c.start_time, endTime: c.end_time,
-          maxPerWallet: c.max_quantity_per_wallet.toString(),
-        }),
-      });
-    } catch { /* non-fatal */ }
-  };
-
   const onSubmit = (values: DropCreateFormValues) => {
     if (items.length === 0) { toast.error("Add at least one item"); return; }
     setPendingValues(values);
@@ -276,11 +258,11 @@ export default function CreateDropPage() {
         return;
       }
 
-      // Drop deployed. Find its address, then (if a whitelist was provided) enable + populate it.
+      // If a whitelist was provided, find the new drop address (indexer ~6-30s) and set it.
       // Best-effort — the drop already exists onchain; the creator can finish in Manage.
-      const dropAddress = await pollForDropAddress(walletAddress);
-      if (dropAddress) {
-        if (whitelist.length > 0) {
+      if (whitelist.length > 0) {
+        const dropAddress = await pollForDropAddress(walletAddress);
+        if (dropAddress) {
           try {
             await executeTransaction({
               pin,
@@ -291,7 +273,6 @@ export default function CreateDropPage() {
             });
           } catch { /* owner can finish whitelist setup in Manage */ }
         }
-        persistDropConditions(dropAddress, maxSupply, conditions);
       }
       setDone(true);
     } catch (err) {

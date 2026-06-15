@@ -131,7 +131,7 @@ export default function DropDetailPage({
   }
 
   // Prefer on-chain state for the live fields; fall back to the indexed record.
-  const conditions = chainState?.conditions ?? dropInfo.conditions;
+  const conditions = chainState?.conditions ?? null;
   const totalMinted = chainState?.totalMinted ?? dropInfo.totalMinted;
   const status = getDropStatus(conditions, totalMinted);
   const maxSupply = chainState?.maxSupply ?? (conditions ? parseInt(conditions.maxSupply, 10) : 0);
