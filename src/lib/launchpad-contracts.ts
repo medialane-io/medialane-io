@@ -71,3 +71,65 @@ export const POPFactoryABI = [
     state_mutability: "external",
   },
 ] as const;
+
+/**
+ * Minimal read ABI for DropCollection view calls (verified against the deployed class
+ * 0x00092e72… on 2026-06-15). Used by use-drops to read live state from chain instead of
+ * the fragile backend conditions mirror. Includes the ClaimConditions struct so starknet.js
+ * can decode get_claim_conditions().
+ */
+export const DropCollectionReadABI = [
+  {
+    type: "struct",
+    name: "launchpad::types::ClaimConditions",
+    members: [
+      { name: "start_time", type: "core::integer::u64" },
+      { name: "end_time", type: "core::integer::u64" },
+      { name: "price", type: "core::integer::u256" },
+      { name: "payment_token", type: "core::starknet::contract_address::ContractAddress" },
+      { name: "max_quantity_per_wallet", type: "core::integer::u256" },
+    ],
+  },
+  {
+    type: "function",
+    name: "get_claim_conditions",
+    inputs: [],
+    outputs: [{ type: "launchpad::types::ClaimConditions" }],
+    state_mutability: "view",
+  },
+  {
+    type: "function",
+    name: "total_minted",
+    inputs: [],
+    outputs: [{ type: "core::integer::u256" }],
+    state_mutability: "view",
+  },
+  {
+    type: "function",
+    name: "get_max_supply",
+    inputs: [],
+    outputs: [{ type: "core::integer::u256" }],
+    state_mutability: "view",
+  },
+  {
+    type: "function",
+    name: "is_allowlist_enabled",
+    inputs: [],
+    outputs: [{ type: "core::bool" }],
+    state_mutability: "view",
+  },
+  {
+    type: "function",
+    name: "is_paused",
+    inputs: [],
+    outputs: [{ type: "core::bool" }],
+    state_mutability: "view",
+  },
+  {
+    type: "function",
+    name: "minted_by_wallet",
+    inputs: [{ name: "wallet", type: "core::starknet::contract_address::ContractAddress" }],
+    outputs: [{ type: "core::integer::u256" }],
+    state_mutability: "view",
+  },
+] as const;

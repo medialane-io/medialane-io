@@ -7,7 +7,7 @@ import { Package, Users, Plus, Zap, Timer, Layers } from "lucide-react";
 import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion-primitives";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { useDropCollections, getDropStatus } from "@/hooks/use-drops";
+import { useDropCollections, useOnChainDropState, getDropStatus } from "@/hooks/use-drops";
 import { ipfsToHttp } from "@/lib/utils";
 import { BRAND } from "@/lib/brand";
 import { cn } from "@/lib/utils";
@@ -54,7 +54,10 @@ function DropCollectionCard({ collection }: { collection: ApiCollection }) {
   const imageUrl = collection.image ? ipfsToHttp(collection.image) : null;
   const showImage = imageUrl && !imgError;
   const initial = (collection.name ?? "D").charAt(0).toUpperCase();
-  const status = getDropStatus(null, collection.totalSupply ?? 0);
+  // Real status from chain (conditions + supply); falls back to indexed supply if RPC is down.
+  const { state } = useOnChainDropState(collection.contractAddress);
+  const minted = state?.totalMinted ?? collection.totalSupply ?? 0;
+  const status = getDropStatus(state?.conditions ?? null, minted);
 
   return (
     <Link href={`/launchpad/drop/${collection.contractAddress}`} className="block">
@@ -91,12 +94,10 @@ function DropCollectionCard({ collection }: { collection: ApiCollection }) {
             )}
           </div>
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            {collection.totalSupply != null && (
-              <span className="flex items-center gap-1">
-                <Users className="h-3 w-3" />
-                {collection.totalSupply.toLocaleString()} minted
-              </span>
-            )}
+            <span className="flex items-center gap-1">
+              <Users className="h-3 w-3" />
+              {minted.toLocaleString()} minted
+            </span>
             {collection.symbol && (
               <span className="flex items-center gap-1">
                 <Package className="h-3 w-3" />
