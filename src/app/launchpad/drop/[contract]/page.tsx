@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { FadeIn } from "@/components/ui/motion-primitives";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CollectionDropMintButton } from "@/components/claim/collection-drop-mint-button";
+import { DropCountdown } from "@/components/launchpad/drop-countdown";
 import { useDropInfo, useOnChainDropState, getDropStatus, type DropConditions } from "@/hooks/use-drops";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { ipfsToHttp } from "@/lib/utils";
@@ -186,6 +187,11 @@ export default function DropDetailPage({
             <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground bg-muted rounded-full px-2 py-0.5">
               DROP
             </span>
+            {chainState?.allowlistEnabled && (
+              <span className="text-[10px] font-bold uppercase tracking-widest text-orange-400 bg-orange-500/10 rounded-full px-2 py-0.5">
+                Presale
+              </span>
+            )}
           </div>
           <h1 className="text-3xl font-black">{dropInfo.name ?? "Unnamed Drop"}</h1>
           {dropInfo.description && (
@@ -267,6 +273,12 @@ export default function DropDetailPage({
       <FadeIn delay={0.18}>
         <div className="bento-cell p-5 space-y-3">
           <p className="text-sm font-semibold">Mint your token</p>
+          {status === "upcoming" && conditions && (
+            <DropCountdown targetTs={conditions.startTime} label={chainState?.allowlistEnabled ? "Presale opens in" : "Mint opens in"} />
+          )}
+          {status === "live" && conditions && conditions.endTime > 0 && (
+            <DropCountdown targetTs={conditions.endTime} label="Mint closes in" />
+          )}
           {status === "upcoming" && (
             <p className="text-xs text-muted-foreground">
               Minting opens {conditions ? formatTs(conditions.startTime) : "soon"}.

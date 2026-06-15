@@ -159,11 +159,16 @@ export function CollectionDropMintButton({
     );
   }
 
-  if (mintStatus && mintStatus.mintedByWallet > 0) {
+  // Per-wallet allowance: maxPerWallet "0" = unlimited.
+  const maxPerWallet = conditions ? parseInt(conditions.maxPerWallet, 10) : 0;
+  const mintedByWallet = mintStatus?.mintedByWallet ?? 0;
+  const remaining = maxPerWallet > 0 ? Math.max(0, maxPerWallet - mintedByWallet) : Infinity;
+
+  if (maxPerWallet > 0 && remaining <= 0) {
     return (
       <div className="flex items-center gap-1.5 text-sm text-orange-500 font-medium">
         <CheckCircle2 className="h-4 w-4 shrink-0" />
-        Minted · {mintStatus.mintedByWallet} token{mintStatus.mintedByWallet !== 1 ? "s" : ""}
+        Minted · {mintedByWallet} token{mintedByWallet !== 1 ? "s" : ""} (max reached)
       </div>
     );
   }
@@ -188,6 +193,11 @@ export function CollectionDropMintButton({
           </>
         )}
       </Button>
+      {Number.isFinite(remaining) && (
+        <p className="text-xs text-center text-muted-foreground">
+          {mintedByWallet > 0 ? `You've minted ${mintedByWallet} · ` : ""}You can mint {remaining} more
+        </p>
+      )}
 
       <PinDialog
         open={pinOpen}
