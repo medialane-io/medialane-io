@@ -11,7 +11,7 @@ import { PinDialog } from "@/components/chipi/pin-dialog";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
-import { useUser } from "@clerk/nextjs";
+import { useUser, useAuth } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { FadeIn } from "@/components/ui/motion-primitives";
 import { getListableTokens } from "@medialane/sdk";
@@ -35,6 +35,7 @@ const PAYMENT_TOKENS = getListableTokens().map((t) => ({ symbol: t.symbol, addre
 
 export default function CreateDropPage() {
   const { isSignedIn } = useUser();
+  const { getToken } = useAuth();
   const { walletAddress, hasWallet } = useSessionKey();
   const { executeTransaction, isSubmitting } = useChipiTransaction();
 
@@ -206,8 +207,10 @@ export default function CreateDropPage() {
   // set_claim_conditions + set_allowlist_enabled at the public start time.
   const postPhaseSchedule = async (collectionAddress: string, publicC: ContractConditions, transitionAt: number) => {
     try {
+      const token = await getToken();
       await fetch(`${API_BASE}/v1/drop/phase-schedule`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify({
           collectionAddress,
           publicStartTime: publicC.start_time,
