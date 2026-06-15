@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { FadeIn } from "@/components/ui/motion-primitives";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CollectionDropMintButton } from "@/components/claim/collection-drop-mint-button";
-import { useDropInfo, getDropStatus, type DropConditions } from "@/hooks/use-drops";
+import { useDropInfo, useOnChainDropState, getDropStatus, type DropConditions } from "@/hooks/use-drops";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { ipfsToHttp } from "@/lib/utils";
 import { getListableTokens } from "@medialane/sdk";
@@ -102,6 +102,8 @@ export default function DropDetailPage({
   const { contract } = use(params);
   const { walletAddress } = useSessionKey();
   const { dropInfo, isLoading } = useDropInfo(contract);
+  // Live state from chain (authority); falls back to the backend record if RPC is down.
+  const { state: chainState } = useOnChainDropState(contract);
 
   if (isLoading) {
     return (
@@ -127,9 +129,11 @@ export default function DropDetailPage({
     );
   }
 
-  const { conditions, totalMinted } = dropInfo;
+  // Prefer on-chain state for the live fields; fall back to the indexed record.
+  const conditions = chainState?.conditions ?? dropInfo.conditions;
+  const totalMinted = chainState?.totalMinted ?? dropInfo.totalMinted;
   const status = getDropStatus(conditions, totalMinted);
-  const maxSupply = conditions ? parseInt(conditions.maxSupply, 10) : 0;
+  const maxSupply = chainState?.maxSupply ?? (conditions ? parseInt(conditions.maxSupply, 10) : 0);
   const imageUrl = dropInfo.image ? ipfsToHttp(dropInfo.image) : null;
   const isOwner =
     walletAddress &&
