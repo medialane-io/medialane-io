@@ -81,8 +81,8 @@ export function TraitFilter({ tokens, selected, onChange }: TraitFilterProps) {
 
   return (
     <>
-      {/* Trigger row */}
-      <div className="flex items-center gap-2 flex-wrap">
+      {/* Trigger row — right-aligned above the grid */}
+      <div className="flex items-center justify-end gap-2 flex-wrap">
         <Button
           variant="outline"
           size="sm"

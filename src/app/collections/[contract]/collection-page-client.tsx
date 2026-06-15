@@ -44,7 +44,7 @@ const CURRENCY_ICONS: Record<string, string> = {
 
 function CurrencyIcon({ symbol, size = 16 }: { symbol: string; size?: number }) {
   const src = CURRENCY_ICONS[symbol?.toUpperCase()];
-  if (!src) return <span className="text-xs font-semibold text-white/70">{symbol}</span>;
+  if (!src) return <span className="text-xs font-semibold text-muted-foreground">{symbol}</span>;
   return <Image src={src} alt={symbol} width={size} height={size} className="inline-block shrink-0" />;
 }
 
@@ -319,33 +319,33 @@ export default function CollectionPageClient() {
           {/* Bottom overlay: title + stat chips — backdrop blur only, no borders, no scrim */}
           <div className="absolute bottom-0 left-0 right-0 px-4 sm:px-6 pb-4 sm:pb-6 space-y-3 z-10">
 
-            {/* Title — plain text with shadow, no background box */}
+            {/* Title — plain text with a subtle shadow, no background box */}
             <h1 className="text-3xl sm:text-5xl lg:text-7xl font-bold text-white leading-tight"
-              style={{ textShadow: "0 2px 20px rgba(0,0,0,0.7)" }}>
+              style={{ textShadow: "0 1px 12px rgba(0,0,0,0.4)" }}>
               {collection?.name ?? "Unnamed Collection"}
             </h1>
 
-            {/* Stat chips — blur-only (border removed); Floor/Volume show the currency
-                icon, no trailing symbol text since the icon already conveys the token */}
+            {/* Stat chips — theme-aware frosted glass so they read in both light and
+                dark (was hardcoded dark). Floor/Volume show the currency icon only. */}
             <div className="flex gap-2 flex-wrap">
               {stats.map(({ label, display, symbol }) => (
                 <div
                   key={label}
                   className={cn(
-                    "bg-black/30 backdrop-blur-md rounded-xl px-3 py-2 flex flex-col justify-center shrink-0",
+                    "bg-background/75 backdrop-blur-md rounded-xl px-3 py-2 flex flex-col justify-center shrink-0",
                     symbol ? "min-w-[80px]" : "min-w-[60px] items-center text-center"
                   )}
                 >
-                  <p className="text-[9px] text-white/55 uppercase tracking-widest mb-1">{label}</p>
+                  <p className="text-[9px] text-muted-foreground uppercase tracking-widest mb-1">{label}</p>
                   {symbol ? (
                     <div className="flex items-center gap-1.5">
                       <CurrencyIcon symbol={symbol} size={15} />
-                      <p className="text-sm sm:text-base font-bold text-white tabular-nums leading-tight truncate">
+                      <p className="text-sm sm:text-base font-bold text-foreground tabular-nums leading-tight truncate">
                         {display}
                       </p>
                     </div>
                   ) : (
-                    <p className="text-base sm:text-lg font-bold text-white tabular-nums leading-tight">
+                    <p className="text-base sm:text-lg font-bold text-foreground tabular-nums leading-tight">
                       {display}
                     </p>
                   )}
@@ -356,13 +356,13 @@ export default function CollectionPageClient() {
         </div>
       )}
 
-      {/* ── Meta section — two columns on desktop so the description no longer
-          strands the right half of the screen ── */}
+      {/* ── Meta section — flat layout (no boxed panel, no extra padding); identity
+          on the left, a lightweight right-aligned utility cluster fills the width ── */}
       {!colLoading && collection && (
         <div className="px-4 sm:px-6 pt-5 pb-2">
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-8 items-start">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between lg:gap-8">
             {/* Left — identity & description */}
-            <div className="space-y-3 min-w-0">
+            <div className="space-y-3 min-w-0 lg:max-w-2xl">
               {/* Type + symbol badges (moved down out of the hero, grouped with the meta) */}
               {(collection.symbol || collection.standard) && (
                 <div className="flex items-center gap-2 flex-wrap">
@@ -428,48 +428,42 @@ export default function CollectionPageClient() {
               />
             </div>
 
-            {/* Right — glass info panel (leans into the blurred-backdrop aesthetic) */}
-            <div className="rounded-2xl bg-background/40 backdrop-blur-xl ring-1 ring-black/[0.04] dark:ring-white/[0.06] shadow-sm p-4 space-y-3">
-              {/* Owner actions */}
+            {/* Right — flat utility cluster (no panel/chrome); owner actions,
+                contract, share & report, right-aligned on desktop */}
+            <div className="flex flex-col gap-2.5 shrink-0 lg:items-end">
               {walletAddress && collection.owner?.toLowerCase() === walletAddress.toLowerCase() && (
-                <>
-                  <div className="flex flex-col gap-2">
-                    {collection.standard === "ERC1155" && (
-                      <Link
-                        href={`/launchpad/nfteditions/${contract}/mint`}
-                        className="flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg text-xs font-semibold text-white bg-fuchsia-600 hover:bg-fuchsia-700 active:scale-[0.98] transition"
-                      >
-                        <Sparkles className="h-3.5 w-3.5" />
-                        Mint editions
-                      </Link>
-                    )}
+                <div className="flex items-center gap-2">
+                  {collection.standard === "ERC1155" && (
                     <Link
-                      href={`/portfolio/collections/${contract}/settings`}
-                      className="flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg text-xs font-semibold border border-border hover:bg-muted active:scale-[0.98] transition text-muted-foreground hover:text-foreground"
+                      href={`/launchpad/nfteditions/${contract}/mint`}
+                      className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold text-white bg-fuchsia-600 hover:bg-fuchsia-700 active:scale-[0.98] transition"
                     >
-                      <Settings className="h-3.5 w-3.5" />
-                      Settings
+                      <Sparkles className="h-3.5 w-3.5" />
+                      Mint editions
                     </Link>
-                  </div>
-                  <div className="h-px bg-border/50" />
-                </>
+                  )}
+                  <Link
+                    href={`/portfolio/collections/${contract}/settings`}
+                    className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold border border-border hover:bg-muted active:scale-[0.98] transition text-muted-foreground hover:text-foreground"
+                  >
+                    <Settings className="h-3.5 w-3.5" />
+                    Settings
+                  </Link>
+                </div>
               )}
 
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-[11px] uppercase tracking-widest text-muted-foreground/60">Contract</span>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] uppercase tracking-widest text-muted-foreground/50">Contract</span>
                 <AddressDisplay
                   address={collection.contractAddress ?? ""}
                   chars={6}
                   className="text-xs text-muted-foreground"
                 />
-              </div>
-
-              <div className="flex items-center gap-1">
                 <ShareButton title={collection.name ?? "Collection"} variant="ghost" size="icon" />
                 <button
                   onClick={() => setReportOpen(true)}
                   title="Report this collection"
-                  className="h-9 w-9 inline-flex items-center justify-center rounded-lg text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted transition"
+                  className="text-muted-foreground/40 hover:text-muted-foreground transition-colors"
                 >
                   <Flag className="w-3.5 h-3.5" />
                 </button>
