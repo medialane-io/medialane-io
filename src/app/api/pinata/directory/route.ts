@@ -48,26 +48,29 @@ export async function POST(req: NextRequest) {
   const creator = (clerkUser.publicMetadata?.publicKey as string | undefined) ?? null;
   const registrationDate = new Date().toISOString().split("T")[0]; // one stamp for the whole set
 
-  // Build one metadata JSON per item and append it at the directory root as its 1-indexed tokenId.
+  // Pinata pins a DIRECTORY only when the files share a common folder path in their names
+  // AND wrapWithDirectory is false; it then returns the CID of that folder, so children resolve
+  // at <cid>/<tokenId> and <cid>/collection.json (verified 2026-06-15). Flat names / wrap:true
+  // are rejected with "More than one file ... provided for pinning" — do not change this shape.
   const form = new FormData();
   items.forEach((fields, i) => {
     const tokenId = i + 1; // contract mints sequentially from token id 1
     const metadata = buildAssetMetadata({ ...fields, creator, registrationDate });
     const blob = new Blob([JSON.stringify(metadata)], { type: "application/json" });
-    form.append("file", blob, String(tokenId));
+    form.append("file", blob, `drop/${tokenId}`);
   });
 
   // Collection-level metadata (card image/name/description) lives alongside the token files
-  // as `collection.json`. The backend resolves the drop card from <baseUri>collection.json.
+  // as collection.json. The backend resolves the drop card from <baseUri>collection.json.
   // It never collides with the integer tokenId files.
   const collection = {
     name: body?.collection?.name ?? "",
     description: body?.collection?.description ?? "",
     image: body?.collection?.image ?? null,
   };
-  form.append("file", new Blob([JSON.stringify(collection)], { type: "application/json" }), "collection.json");
+  form.append("file", new Blob([JSON.stringify(collection)], { type: "application/json" }), "drop/collection.json");
 
-  form.append("pinataOptions", JSON.stringify({ wrapWithDirectory: true }));
+  form.append("pinataOptions", JSON.stringify({ wrapWithDirectory: false }));
   form.append("pinataMetadata", JSON.stringify({ name: `drop-metadata-${Date.now()}` }));
 
   const res = await fetch("https://api.pinata.cloud/pinning/pinFileToIPFS", {
