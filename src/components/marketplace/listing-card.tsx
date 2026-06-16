@@ -1,19 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSWRConfig } from "swr";
 import { toast } from "sonner";
+import {
+  ListingCard as PackageListingCard,
+  ListingCardSkeleton,
+} from "@medialane/ui";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { MotionCard } from "@/components/ui/motion-primitives";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ShoppingCart, Check, MoreHorizontal, Layers, ArrowRightLeft, Flag, GitBranch, HandCoins, ArrowUpRight, Zap, UserCircle2, XCircle, Loader2 } from "lucide-react";
+import { MoreHorizontal, Layers, ArrowRightLeft, Flag, GitBranch, HandCoins, ArrowUpRight, Zap, UserCircle2, XCircle, Loader2 } from "lucide-react";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
-import { cn, ipfsToHttp, formatDisplayPrice, timeAgo } from "@/lib/utils";
+import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import { validatePin } from "@/components/ui/pin-input";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { MarketplacePinStep, MarketplaceDialogHero } from "@/components/marketplace/marketplace-dialog-primitives";
@@ -22,6 +23,8 @@ import { ReportDialog } from "@/components/report-dialog";
 import { isWebAuthnSupported } from "@chipi-stack/nextjs";
 import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
 import type { ApiOrder } from "@medialane/sdk";
+
+export { ListingCardSkeleton };
 
 interface ListingCardProps {
   order: ApiOrder;
@@ -32,6 +35,12 @@ interface ListingCardProps {
   isOwner?: boolean;
 }
 
+/**
+ * io's ListingCard is a thin wrapper over `@medialane/ui`'s shared card: the
+ * package owns layout/visuals; this wrapper keeps io's ChipiPay-coupled owner
+ * cancel flow (PIN / passkey) and the action menus, injected via the card's
+ * `primaryAction` + `overflowMenu` slots.
+ */
 export function ListingCard({ order, onBuy, compact = false, isOwner = false }: ListingCardProps) {
   const router = useRouter();
   const { mutate } = useSWRConfig();
@@ -41,7 +50,6 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
   // User has passkey if WebAuthn is available AND they set up a passkey-derived encrypt key
   const isPasskeyUser = passkeySupported && !!encryptKey;
 
-  const [imgError, setImgError] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
 
   // ─── Cancel flow state ────────────────────────────────────────────────────
@@ -103,327 +111,186 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
   const name = order.token?.name ?? `Token #${order.nftTokenId}`;
   const image = order.token?.image ? ipfsToHttp(order.token.image) : null;
 
-  // ─── Compact variant ─────────────────────────────────────────────────────────
+  // Compact grids: delegate entirely (no actions).
   if (compact) {
-    return (
-      <MotionCard className="card-base">
-        <Link href={`/asset/${order.nftContract}/${order.nftTokenId}`} className="block">
-          <div className="relative aspect-square bg-muted overflow-hidden">
-            {image && !imgError ? (
-              <Image
-                src={image}
-                alt={name}
-                fill
-                unoptimized
-                sizes="(max-width: 640px) 33vw, 20vw"
-                className="object-cover group-hover:scale-105 transition-transform duration-500"
-                onError={() => setImgError(true)}
-              />
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-brand-purple/15 to-brand-blue/15">
-                <span className="text-xl font-mono text-muted-foreground">#{order.nftTokenId}</span>
-              </div>
-            )}
-          </div>
-          <div className="p-2.5 space-y-0.5">
-            <p className="text-xs font-semibold truncate">{name}</p>
-            {order.price && (
-              <p className="text-[11px] font-bold price-value flex items-center gap-1">
-                <CurrencyIcon symbol={order.price.currency} size={11} />
-                {formatDisplayPrice(order.price.formatted)}
-              </p>
-            )}
-            <p className="text-[10px] text-muted-foreground">{timeAgo(order.createdAt)}</p>
-          </div>
-        </Link>
-      </MotionCard>
-    );
+    return <PackageListingCard order={order} compact />;
   }
 
-  // ─── Full variant ─────────────────────────────────────────────────────────────
+  // ─── Owner cancel — the auth-coupled primary control stays here ─────────────
+  const cancelPrimary = (
+    <button
+      disabled={isAuthenticatingPasskey}
+      className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-[9px] border border-brand-orange/50 bg-brand-orange/10 text-brand-orange text-xs font-semibold hover:bg-brand-orange/20 transition-all active:scale-[0.98] disabled:opacity-60 disabled:pointer-events-none"
+      onClick={handleCancelClick}
+    >
+      {isAuthenticatingPasskey
+        ? <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
+        : <XCircle className="h-3.5 w-3.5 shrink-0" />}
+      Cancel
+    </button>
+  );
 
+  // ─── Overflow menus ─────────────────────────────────────────────────────────
+  const ownerMenu = (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button size="sm" variant="outline" className="h-9 w-9 p-0 shrink-0 rounded-[9px]" onClick={(e) => e.preventDefault()} aria-label="More actions">
+          <MoreHorizontal className="h-3.5 w-3.5" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-52">
+        <DropdownMenuItem asChild>
+          <Link href={`/asset/${order.nftContract}/${order.nftTokenId}`} className="flex items-center gap-2">
+            <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
+            View asset
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem className="flex items-center gap-2 text-brand-orange focus:text-brand-orange" onClick={handleCancelClick}>
+          <XCircle className="h-3.5 w-3.5" />
+          Cancel listing
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          className="flex items-center gap-2 text-brand-purple focus:text-brand-purple"
+          onClick={(e) => { e.preventDefault(); router.push(`/create/remix/${order.nftContract}/${order.nftTokenId}`); }}
+        >
+          <GitBranch className="h-3.5 w-3.5" />
+          Remix
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link href={`/collections/${order.nftContract}`} className="flex items-center gap-2">
+            <Layers className="h-3.5 w-3.5 text-muted-foreground" />
+            View collection
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href={`/asset/${order.nftContract}/${order.nftTokenId}`} className="flex items-center gap-2">
+            <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground" />
+            Transfer
+          </Link>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
+  const buyerMenu = (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button size="sm" variant="outline" className="h-9 w-9 p-0 shrink-0 rounded-[9px]" onClick={(e) => e.preventDefault()} aria-label="More actions">
+          <MoreHorizontal className="h-3.5 w-3.5" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-52">
+        <DropdownMenuItem asChild>
+          <Link href={`/asset/${order.nftContract}/${order.nftTokenId}`} className="flex items-center gap-2">
+            <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
+            View asset
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        {onBuy && (
+          <DropdownMenuItem
+            className="flex items-center gap-2 text-brand-blue focus:text-brand-blue"
+            onClick={(e) => { e.preventDefault(); onBuy(order); }}
+          >
+            <Zap className="h-3.5 w-3.5" />
+            <span className="flex items-center gap-1">
+              Buy —
+              <CurrencyIcon symbol={order.price.currency} size={12} />
+              {formatDisplayPrice(order.price.formatted)}
+            </span>
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuItem
+          className="flex items-center gap-2 text-brand-orange focus:text-brand-orange"
+          onClick={(e) => { e.preventDefault(); router.push(`/asset/${order.nftContract}/${order.nftTokenId}`); }}
+        >
+          <HandCoins className="h-3.5 w-3.5" />
+          Make offer
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          className="flex items-center gap-2 text-brand-purple focus:text-brand-purple"
+          onClick={(e) => { e.preventDefault(); router.push(`/create/remix/${order.nftContract}/${order.nftTokenId}`); }}
+        >
+          <GitBranch className="h-3.5 w-3.5" />
+          Remix
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link href={`/collections/${order.nftContract}`} className="flex items-center gap-2">
+            <Layers className="h-3.5 w-3.5 text-muted-foreground" />
+            View collection
+          </Link>
+        </DropdownMenuItem>
+        {order.offerer && (
+          <DropdownMenuItem asChild>
+            <Link href={`/account/${order.offerer}`} className="flex items-center gap-2">
+              <UserCircle2 className="h-3.5 w-3.5 text-muted-foreground" />
+              View owner
+            </Link>
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuItem asChild>
+          <Link href={`/asset/${order.nftContract}/${order.nftTokenId}`} className="flex items-center gap-2">
+            <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground" />
+            Transfer
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          className="flex items-center gap-2 text-muted-foreground focus:text-muted-foreground"
+          onClick={(e) => { e.preventDefault(); setReportOpen(true); }}
+        >
+          <Flag className="h-3.5 w-3.5" />
+          Report
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
+  const offerMenu = (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button size="sm" variant="outline" className="h-9 w-9 p-0 shrink-0 rounded-[9px]" onClick={(e) => e.preventDefault()} aria-label="More actions">
+          <MoreHorizontal className="h-3.5 w-3.5" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-52">
+        <DropdownMenuItem asChild>
+          <Link href={`/collections/${order.nftContract}`} className="flex items-center gap-2">
+            <Layers className="h-3.5 w-3.5 text-muted-foreground" />
+            View collection
+          </Link>
+        </DropdownMenuItem>
+        {order.offerer && (
+          <DropdownMenuItem asChild>
+            <Link href={`/account/${order.offerer}`} className="flex items-center gap-2">
+              <UserCircle2 className="h-3.5 w-3.5 text-muted-foreground" />
+              View bidder
+            </Link>
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          className="flex items-center gap-2 text-muted-foreground focus:text-muted-foreground"
+          onClick={(e) => { e.preventDefault(); setReportOpen(true); }}
+        >
+          <Flag className="h-3.5 w-3.5" />
+          Report
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 
   return (
-    <MotionCard className="card-base">
-      <Link href={`/asset/${order.nftContract}/${order.nftTokenId}`} className="block">
-        {/* Image */}
-        <div className="relative aspect-square bg-muted overflow-hidden">
-          {image && !imgError ? (
-            <Image
-              src={image}
-              alt={name}
-              fill
-              unoptimized
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className="object-cover group-hover:scale-105 transition-transform duration-500"
-              onError={() => setImgError(true)}
-            />
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-brand-purple/15 to-brand-blue/15">
-              <span className="text-2xl font-mono text-muted-foreground">
-                #{order.nftTokenId}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Info */}
-        <div className="p-3.5 space-y-3">
-          <div className="min-w-0">
-            <p className="font-semibold text-[15px] truncate leading-snug">{name}</p>
-            <p className="text-[11px] text-muted-foreground truncate leading-snug mt-0.5">
-              {order.token?.description ? order.token.description : `#${order.nftTokenId}`}
-            </p>
-          </div>
-
-          {/* Price / Offer + age */}
-          <div className="flex items-end justify-between gap-2">
-            <div className="min-w-0">
-              <p className="text-[10px] uppercase tracking-widest text-muted-foreground/55 leading-none">
-                {isListing ? "Price" : "Offer"}
-              </p>
-              <p className="text-lg font-bold price-value leading-none inline-flex items-center gap-1.5 mt-1.5">
-                <CurrencyIcon symbol={order.price.currency} size={18} />
-                {formatDisplayPrice(order.price.formatted)}
-                <span className="sr-only">{order.price.currency}</span>
-              </p>
-            </div>
-            <p className="text-[10px] text-muted-foreground/60 whitespace-nowrap shrink-0">
-              {timeAgo(order.createdAt)}
-            </p>
-          </div>
-
-          {isListing ? (
-            isOwner ? (
-              /* ── Owner view ── */
-              <div className="flex items-center gap-1.5">
-                <button
-                  disabled={isAuthenticatingPasskey}
-                  className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-[9px] border border-brand-orange/50 bg-brand-orange/10 text-brand-orange text-xs font-semibold hover:bg-brand-orange/20 transition-all active:scale-[0.98] disabled:opacity-60 disabled:pointer-events-none"
-                  onClick={handleCancelClick}
-                >
-                  {isAuthenticatingPasskey
-                    ? <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
-                    : <XCircle className="h-3.5 w-3.5 shrink-0" />}
-                  Cancel
-                </button>
-
-                {/* ⋯ More */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-9 w-9 p-0 shrink-0 rounded-[9px]"
-                      onClick={(e) => e.preventDefault()}
-                      aria-label="More actions"
-                    >
-                      <MoreHorizontal className="h-3.5 w-3.5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-52">
-                    <DropdownMenuItem asChild>
-                      <Link href={`/asset/${order.nftContract}/${order.nftTokenId}`} className="flex items-center gap-2">
-                        <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
-                        View asset
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      className="flex items-center gap-2 text-brand-orange focus:text-brand-orange"
-                      onClick={handleCancelClick}
-                    >
-                      <XCircle className="h-3.5 w-3.5" />
-                      Cancel listing
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="flex items-center gap-2 text-brand-purple focus:text-brand-purple"
-                      onClick={(e) => { e.preventDefault(); router.push(`/create/remix/${order.nftContract}/${order.nftTokenId}`); }}
-                    >
-                      <GitBranch className="h-3.5 w-3.5" />
-                      Remix
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link href={`/collections/${order.nftContract}`} className="flex items-center gap-2">
-                        <Layers className="h-3.5 w-3.5 text-muted-foreground" />
-                        View collection
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href={`/asset/${order.nftContract}/${order.nftTokenId}`} className="flex items-center gap-2">
-                        <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground" />
-                        Transfer
-                      </Link>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            ) : (
-              /* ── Buyer view ── */
-              <div className="flex items-center gap-1.5">
-                {/* Buy Now — animated gradient border; falls back to View when no buy handler */}
-                {onBuy ? (
-                  <div className="btn-border-animated p-[1.5px] rounded-[10px] flex-1 h-9">
-                    <button
-                      className="w-full h-full rounded-[9px] bg-background flex items-center justify-center gap-1.5 text-xs font-semibold text-foreground hover:bg-muted/60 transition-all active:scale-[0.98]"
-                      onClick={(e) => { e.preventDefault(); onBuy(order); }}
-                    >
-                      <Zap className="h-3.5 w-3.5 shrink-0" />
-                      Buy
-                    </button>
-                  </div>
-                ) : (
-                  <Link
-                    href={`/asset/${order.nftContract}/${order.nftTokenId}`}
-                    className="flex-1 h-9 inline-flex items-center justify-center gap-1.5 rounded-[9px] border border-border bg-background text-xs font-semibold text-foreground hover:bg-muted/60 transition-all active:scale-[0.98]"
-                  >
-                    <ArrowUpRight className="h-3.5 w-3.5 shrink-0" />
-                    View
-                  </Link>
-                )}
-
-
-                {/* ⋯ More — complete menu */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-9 w-9 p-0 shrink-0 rounded-[9px]"
-                      onClick={(e) => e.preventDefault()}
-                      aria-label="More actions"
-                    >
-                      <MoreHorizontal className="h-3.5 w-3.5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-52">
-
-                    <DropdownMenuItem asChild>
-                      <Link href={`/asset/${order.nftContract}/${order.nftTokenId}`} className="flex items-center gap-2">
-                        <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
-                        View asset
-                      </Link>
-                    </DropdownMenuItem>
-
-                    <DropdownMenuSeparator />
-
-                    {onBuy && (
-                      <DropdownMenuItem
-                        className="flex items-center gap-2 text-brand-blue focus:text-brand-blue"
-                        onClick={(e) => { e.preventDefault(); onBuy(order); }}
-                      >
-                        <Zap className="h-3.5 w-3.5" />
-                        <span className="flex items-center gap-1">
-                          Buy —
-                          <CurrencyIcon symbol={order.price.currency} size={12} />
-                          {formatDisplayPrice(order.price.formatted)}
-                        </span>
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem
-                      className="flex items-center gap-2 text-brand-orange focus:text-brand-orange"
-                      onClick={(e) => { e.preventDefault(); router.push(`/asset/${order.nftContract}/${order.nftTokenId}`); }}
-                    >
-                      <HandCoins className="h-3.5 w-3.5" />
-                      Make offer
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="flex items-center gap-2 text-brand-purple focus:text-brand-purple"
-                      onClick={(e) => { e.preventDefault(); router.push(`/create/remix/${order.nftContract}/${order.nftTokenId}`); }}
-                    >
-                      <GitBranch className="h-3.5 w-3.5" />
-                      Remix
-                    </DropdownMenuItem>
-
-                    <DropdownMenuSeparator />
-
-                    <DropdownMenuItem asChild>
-                      <Link href={`/collections/${order.nftContract}`} className="flex items-center gap-2">
-                        <Layers className="h-3.5 w-3.5 text-muted-foreground" />
-                        View collection
-                      </Link>
-                    </DropdownMenuItem>
-                    {order.offerer && (
-                      <DropdownMenuItem asChild>
-                        <Link href={`/account/${order.offerer}`} className="flex items-center gap-2">
-                          <UserCircle2 className="h-3.5 w-3.5 text-muted-foreground" />
-                          View owner
-                        </Link>
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem asChild>
-                      <Link href={`/asset/${order.nftContract}/${order.nftTokenId}`} className="flex items-center gap-2">
-                        <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground" />
-                        Transfer
-                      </Link>
-                    </DropdownMenuItem>
-
-                    <DropdownMenuSeparator />
-
-                    <DropdownMenuItem
-                      className="flex items-center gap-2 text-muted-foreground focus:text-muted-foreground"
-                      onClick={(e) => { e.preventDefault(); setReportOpen(true); }}
-                    >
-                      <Flag className="h-3.5 w-3.5" />
-                      Report
-                    </DropdownMenuItem>
-
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            )
-          ) : (
-            /* ── Offer (ERC20 bid) — no buy/cancel; view asset + secondary menu ── */
-            <div className="flex items-center gap-1.5">
-              <Link
-                href={`/asset/${order.nftContract}/${order.nftTokenId}`}
-                className="flex-1 h-9 inline-flex items-center justify-center gap-1.5 rounded-[9px] border border-border bg-background text-xs font-semibold text-foreground hover:bg-muted/60 transition-all active:scale-[0.98]"
-              >
-                <ArrowUpRight className="h-3.5 w-3.5 shrink-0" />
-                View asset
-              </Link>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-9 w-9 p-0 shrink-0 rounded-[9px]"
-                    onClick={(e) => e.preventDefault()}
-                    aria-label="More actions"
-                  >
-                    <MoreHorizontal className="h-3.5 w-3.5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-52">
-                  <DropdownMenuItem asChild>
-                    <Link href={`/collections/${order.nftContract}`} className="flex items-center gap-2">
-                      <Layers className="h-3.5 w-3.5 text-muted-foreground" />
-                      View collection
-                    </Link>
-                  </DropdownMenuItem>
-                  {order.offerer && (
-                    <DropdownMenuItem asChild>
-                      <Link href={`/account/${order.offerer}`} className="flex items-center gap-2">
-                        <UserCircle2 className="h-3.5 w-3.5 text-muted-foreground" />
-                        View bidder
-                      </Link>
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    className="flex items-center gap-2 text-muted-foreground focus:text-muted-foreground"
-                    onClick={(e) => { e.preventDefault(); setReportOpen(true); }}
-                  >
-                    <Flag className="h-3.5 w-3.5" />
-                    Report
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          )}
-        </div>
-      </Link>
+    <>
+      <PackageListingCard
+        order={order}
+        onBuy={isListing && !isOwner ? onBuy : undefined}
+        primaryAction={isListing && isOwner ? cancelPrimary : undefined}
+        overflowMenu={isListing ? (isOwner ? ownerMenu : buyerMenu) : offerMenu}
+      />
 
       {reportOpen && (
         <ReportDialog
@@ -479,22 +346,6 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
         tokenImage={image}
         onReset={() => { setCancelStep("idle"); setCancelError(null); }}
       />
-    </MotionCard>
-  );
-}
-
-export function ListingCardSkeleton() {
-  return (
-    <div className="card-base">
-      <Skeleton className="aspect-square w-full rounded-none" />
-      <div className="p-3 space-y-2.5">
-        <div className="space-y-1">
-          <Skeleton className="h-4 w-3/4" />
-          <Skeleton className="h-3 w-1/2" />
-        </div>
-        <Skeleton className="h-6 w-1/2" />
-        <Skeleton className="h-3 w-2/3" />
-      </div>
-    </div>
+    </>
   );
 }
