@@ -174,7 +174,7 @@ function CreatorsFundCard() {
           <ArrowRight className="h-3.5 w-3.5" />
         </Link>
         <a
-          href="https://medialane.org/airdrop/fund"
+          href="https://medialane.org/creators-fund"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 rounded-xl border border-border/60 hover:border-foreground/30 text-sm font-medium px-3.5 py-2 transition-colors text-muted-foreground hover:text-foreground"

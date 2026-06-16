@@ -227,14 +227,14 @@ export default function AirdropPage() {
               </p>
             </div>
             <a
-              href="https://medialane.org/airdrop/fund"
+              href="https://medialane.org/creators-fund"
               target="_blank"
               rel="noopener noreferrer"
               className="rounded-2xl border border-border/40 bg-muted/10 p-4 flex items-start gap-3 hover:border-border transition-colors"
             >
               <Coins className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
               <p className="text-sm text-muted-foreground leading-relaxed">
-                The Creator&apos;s Fund is a public wallet — track its live balance and every airdrop at <span className="text-foreground font-medium">medialane.org/airdrop/fund</span>.
+                The Creator&apos;s Fund is a public wallet — track its live balance and every airdrop at <span className="text-foreground font-medium">medialane.org/creators-fund</span>.
                 <span className="block font-mono text-xs mt-1 break-all">0x064c51746dbcb7498cc6e4b8abfcacd60805c0762b0411bb0515c611b5ae8223</span>
               </p>
             </a>
