@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Contract, type Abi } from "starknet";
@@ -39,7 +39,12 @@ export default function CreateDropPage() {
   const { executeTransaction, isSubmitting } = useChipiTransaction();
 
   const [items, setItems] = useState<DraftItem[]>([]);
-  const [metadataFields, setMetadataFields] = useState<MetadataField[]>([]);
+  // Read only at submit time — keep in a ref so each keystroke in IPTypeFields
+  // doesn't re-render this whole form (the cause of the visible flicker).
+  const metadataFieldsRef = useRef<MetadataField[]>([]);
+  const handleMetadataFields = useCallback((fields: MetadataField[]) => {
+    metadataFieldsRef.current = fields;
+  }, []);
   const [ipTypeOpen, setIpTypeOpen] = useState(false);
   const [priceFree, setPriceFree] = useState(true);
   const [isPublic, setIsPublic] = useState(true);
@@ -159,7 +164,7 @@ export default function CreateDropPage() {
     });
     clearImage();
     resetItems();
-    setMetadataFields([]);
+    metadataFieldsRef.current = [];
     setIpTypeOpen(false);
     setPendingValues(null);
     setPriceFree(true);
@@ -213,7 +218,7 @@ export default function CreateDropPage() {
           geographicScope: pendingValues.geographicScope,
           aiPolicy: pendingValues.aiPolicy,
           royalty: pendingValues.royalty,
-          templateTraits: metadataFields,
+          templateTraits: metadataFieldsRef.current,
         },
         { name: pendingValues.name, description: pendingValues.descriptionTemplate, image: imageUri }
       );
@@ -365,7 +370,7 @@ export default function CreateDropPage() {
               onAddItemFiles={addItemFiles}
               onRemoveItem={removeItem}
               onEditItem={editItem}
-              onMetadataFieldsChange={setMetadataFields}
+              onMetadataFieldsChange={handleMetadataFields}
               onSetIpTypeOpen={setIpTypeOpen}
             />
             {uploadError && <p className="text-xs text-destructive mt-1">{uploadError}</p>}

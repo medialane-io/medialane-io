@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -52,7 +52,12 @@ export default function MintIP1155Page() {
   const [mintError, setMintError] = useState<string | null>(null);
   const [ownerCheck, setOwnerCheck] = useState<"loading" | "ok" | "denied">("loading");
   const [formError, setFormError] = useState<string | null>(null);
-  const [metadataFields, setMetadataFields] = useState<MetadataField[]>([]);
+  // Read only at submit time — keep in a ref so each keystroke in IPTypeFields
+  // doesn't re-render this whole form (the cause of the visible flicker).
+  const metadataFieldsRef = useRef<MetadataField[]>([]);
+  const handleMetadataFields = useCallback((fields: MetadataField[]) => {
+    metadataFieldsRef.current = fields;
+  }, []);
   const [metadataResetKey, setMetadataResetKey] = useState(0);
   const [autoExternalUrl, setAutoExternalUrl] = useState("");
   // The on-chain-assigned edition id, read from the IPMinted event in the mint handler.
@@ -171,7 +176,7 @@ export default function MintIP1155Page() {
         metadataForm.append(`tmpl_${cleanTrait}`, cleanValue);
       };
 
-      metadataFields.forEach(({ traitType, value }) => appendTrait(traitType, value));
+      metadataFieldsRef.current.forEach(({ traitType, value }) => appendTrait(traitType, value));
       appendTrait("Token Standard", "ERC-1155");
       appendTrait("Editions", pendingValues.value);
       appendTrait("Collection Contract", collectionAddress);
@@ -220,7 +225,7 @@ export default function MintIP1155Page() {
     setMintStep("idle");
     setMintError(null);
     setPendingValues(null);
-    setMetadataFields([]);
+    metadataFieldsRef.current = [];
     setMetadataResetKey((key) => key + 1);
     setAutoExternalUrl("");
     setMintedTokenId(null);
@@ -300,7 +305,7 @@ export default function MintIP1155Page() {
               onImageSelect={handleImageSelect}
               onClearImage={clearImage}
               metadataResetKey={metadataResetKey}
-              onMetadataFieldsChange={setMetadataFields}
+              onMetadataFieldsChange={handleMetadataFields}
             />
             {uploadError && (
               <p className="text-xs text-destructive mt-1">{uploadError}</p>

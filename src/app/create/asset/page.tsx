@@ -1,7 +1,7 @@
 "use client";
 
 import { uploadImageToIpfs } from "@/lib/upload-image";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { getService } from "@medialane/sdk";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -145,7 +145,12 @@ export default function CreateAssetPage() {
   const [mintError, setMintError] = useState<string | null>(null);
   const [mintDebug, setMintDebug] = useState<MintDebugSnapshot | null>(null);
   const mintDebugRef = useRef<MintDebugSnapshot | null>(null);
-  const [metadataFields, setMetadataFields] = useState<MetadataField[]>([]);
+  // Read only at submit time — keep in a ref so each keystroke in IPTypeFields
+  // doesn't re-render this whole form (the cause of the visible flicker).
+  const metadataFieldsRef = useRef<MetadataField[]>([]);
+  const handleMetadataFields = useCallback((fields: MetadataField[]) => {
+    metadataFieldsRef.current = fields;
+  }, []);
   const [metadataResetKey, setMetadataResetKey] = useState(0);
   const previewUrlRef = useRef<string | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
@@ -261,7 +266,7 @@ export default function CreateAssetPage() {
       }
 
       // Forward template and custom metadata fields as standard NFT attributes.
-      metadataFields.forEach(({ traitType, value }) => {
+      metadataFieldsRef.current.forEach(({ traitType, value }) => {
         if (traitType && value) formData.append(`tmpl_${traitType}`, value);
       });
 
@@ -340,7 +345,7 @@ export default function CreateAssetPage() {
     setMintDebug(null);
     mintDebugRef.current = null;
     form.reset();
-    setMetadataFields([]);
+    metadataFieldsRef.current = [];
     setMetadataResetKey((key) => key + 1);
     setImageFile(null);
     setImagePreview(null);
@@ -709,7 +714,7 @@ export default function CreateAssetPage() {
                     <IPTypeFields
                       key={metadataResetKey}
                       ipType={form.watch("ipType") as IPType}
-                      onChange={setMetadataFields}
+                      onChange={handleMetadataFields}
                   uploadDocument={uploadDocumentToIpfs}
                     />
                   </div>
