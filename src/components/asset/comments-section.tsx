@@ -8,9 +8,8 @@ import { encodeTokenId } from "@/hooks/use-transfer";
 import { useAuth, SignInButton, useClerk } from "@clerk/nextjs";
 import { useComments } from "@/hooks/use-comments";
 import { useSessionKey } from "@/hooks/use-session-key";
-import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
+import { useWriteAction } from "@/hooks/use-write-action";
 import { PinDialog } from "@/components/chipi/pin-dialog";
-import { useWalletUnlock } from "@/hooks/use-wallet-unlock";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -45,8 +44,6 @@ function byteArrayFromUtf8(str: string): { data: string[]; pending_word: string;
   return { data, pending_word: "0x" + pendingWord.toString(16), pending_word_len: remaining.length };
 }
 
-type PostStep = "idle" | "processing" | "success" | "error";
-
 interface CommentsSectionProps {
   contract: string;
   tokenId: string;
@@ -58,13 +55,9 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
   const { openSignIn } = useClerk();
   const { hasWallet, walletAddress } = useSessionKey();
   const { comments, total, isLoading, mutate } = useComments(contract, tokenId);
-  const { executeTransaction } = useChipiTransaction();
+  const action = useWriteAction();
 
   const [text, setText] = useState("");
-  const { unlock, pinDialogProps } = useWalletUnlock();
-  const [postStep, setPostStep] = useState<PostStep>("idle");
-  const [postTxHash, setPostTxHash] = useState<string | null>(null);
-  const [postError, setPostError] = useState<string | null>(null);
   const [reportTarget, setReportTarget] = useState<ReportTarget | null>(null);
 
   const messagesRef = useRef<HTMLDivElement>(null);
@@ -73,7 +66,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
 
   const byteLen = new TextEncoder().encode(text).length;
   const canSubmit = text.trim().length > 0 && byteLen <= MAX_LEN && !!COMMENTS_CONTRACT;
-  const isProcessing = postStep === "processing";
+  const isProcessing = action.status === "processing" || action.status === "confirming";
 
   const isOwn = (author: string) =>
     !!walletAddress && author.toLowerCase() === walletAddress.toLowerCase();
@@ -100,45 +93,26 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey && canSubmit && !isProcessing) {
       e.preventDefault();
-      void unlock(handleUnlocked);
+      void action.run(handleUnlocked);
     }
   };
 
   // `secret` is the wallet-unlock material — a typed PIN or the passkey key.
   const handleUnlocked = async (secret: string) => {
-    setPostStep("processing");
-    setPostTxHash(null);
-    setPostError(null);
-    try {
-      const encoded = byteArrayFromUtf8(text.trim());
-      const [tokenIdLow, tokenIdHigh] = encodeTokenId(tokenId);
-      const calldata = CallData.compile([contract, { low: tokenIdLow, high: tokenIdHigh }, encoded]);
+    const encoded = byteArrayFromUtf8(text.trim());
+    const [tokenIdLow, tokenIdHigh] = encodeTokenId(tokenId);
+    const calldata = CallData.compile([contract, { low: tokenIdLow, high: tokenIdHigh }, encoded]);
 
-      const result = await executeTransaction({
-        pin: secret,
-        calls: [{ contractAddress: COMMENTS_CONTRACT, entrypoint: "add_comment", calldata }],
-      });
+    const result = await action.executeTransaction({
+      pin: secret,
+      calls: [{ contractAddress: COMMENTS_CONTRACT, entrypoint: "add_comment", calldata }],
+    });
+    if (result.status === "reverted") return result; // action surfaces the revert
 
-      setPostTxHash(result.txHash);
-      if (result.status === "confirmed") {
-        setPostStep("success");
-        setText("");
-        if (composeRef.current) composeRef.current.style.height = "auto";
-        setTimeout(() => mutate(), 30_000);
-      } else {
-        setPostStep("error");
-        setPostError(result.revertReason ?? "Transaction reverted");
-      }
-    } catch (err: unknown) {
-      setPostStep("error");
-      setPostError(err instanceof Error ? err.message : "Transaction failed");
-    }
-  };
-
-  const resetPost = () => {
-    setPostStep("idle");
-    setPostTxHash(null);
-    setPostError(null);
+    setText("");
+    if (composeRef.current) composeRef.current.style.height = "auto";
+    setTimeout(() => mutate(), 30_000);
+    return result;
   };
 
   const handleStartConversation = () => {
@@ -340,7 +314,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
                       <TooltipTrigger asChild>
                         <span className={!canSubmit && !isProcessing ? "cursor-not-allowed" : undefined}>
                           <button
-                            onClick={() => void unlock(handleUnlocked)}
+                            onClick={() => void action.run(handleUnlocked)}
                             disabled={!canSubmit || isProcessing}
                             className="flex items-center gap-1.5 h-7 px-3 text-xs font-semibold rounded-full text-white transition-all hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
                             style={{ background: "linear-gradient(135deg, hsl(var(--brand-blue)), hsl(var(--brand-purple)))" }}
@@ -370,7 +344,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
 
       {/* ── PIN entry ── */}
       <PinDialog
-        {...pinDialogProps}
+        {...action.pinDialogProps}
         title="Post comment onchain"
         description="Enter your PIN to publish this comment permanently to Starknet."
       />
@@ -385,33 +359,33 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
       )}
 
       {/* ── Transaction status ── */}
-      <Dialog open={postStep !== "idle"} onOpenChange={(v) => { if (!v) resetPost(); }}>
+      <Dialog open={action.status !== "idle"} onOpenChange={(v) => { if (!v) action.reset(); }}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>
-              {postStep === "processing" && "Posting comment…"}
-              {postStep === "success" && "Comment posted!"}
-              {postStep === "error" && "Failed to post"}
+              {isProcessing && "Posting comment…"}
+              {action.status === "success" && "Comment posted!"}
+              {action.status === "error" && "Failed to post"}
             </DialogTitle>
-            {postStep === "processing" && (
+            {isProcessing && (
               <DialogDescription>
                 Submitting your comment to Starknet. Please wait.
               </DialogDescription>
             )}
           </DialogHeader>
           <div className="flex flex-col items-center gap-4 py-4">
-            {postStep === "processing" && (
+            {isProcessing && (
               <Loader2 className="h-10 w-10 animate-spin text-primary" />
             )}
-            {postStep === "success" && (
+            {action.status === "success" && (
               <>
                 <CheckCircle className="h-10 w-10 text-green-500" />
                 <p className="text-sm text-center text-muted-foreground">
                   Your comment is onchain and will appear here once indexed (~30s).
                 </p>
-                {postTxHash && (
+                {action.txHash && (
                   <a
-                    href={`${EXPLORER_URL}/tx/${postTxHash}`}
+                    href={`${EXPLORER_URL}/tx/${action.txHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
@@ -419,18 +393,18 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
                     View transaction <ExternalLink className="h-3 w-3" />
                   </a>
                 )}
-                <Button className="w-full" onClick={resetPost}>Done</Button>
+                <Button className="w-full" onClick={action.reset}>Done</Button>
               </>
             )}
-            {postStep === "error" && (
+            {action.status === "error" && (
               <>
                 <X className="h-10 w-10 text-destructive" />
                 <p className="text-sm text-center text-muted-foreground">
-                  {postError ?? "Something went wrong. Please try again."}
+                  {action.error ?? "Something went wrong. Please try again."}
                 </p>
-                {postTxHash && (
+                {action.txHash && (
                   <a
-                    href={`${EXPLORER_URL}/tx/${postTxHash}`}
+                    href={`${EXPLORER_URL}/tx/${action.txHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:underline"
@@ -438,7 +412,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
                     View transaction <ExternalLink className="h-3 w-3" />
                   </a>
                 )}
-                <Button variant="outline" className="w-full" onClick={resetPost}>Dismiss</Button>
+                <Button variant="outline" className="w-full" onClick={action.reset}>Dismiss</Button>
               </>
             )}
           </div>
