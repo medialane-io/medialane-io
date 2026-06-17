@@ -28,9 +28,9 @@ import { useWalletAuthMethod } from "@/hooks/use-wallet-auth-method";
  *   <PinDialog {...pinDialogProps} title="…" description="…" />
  */
 export function useWalletUnlock() {
-  // Authoritative passkey-vs-PIN signal + passkey primitives, shared with the
-  // bespoke unlock UIs (airdrop, wallet panel).
-  const { usesPasskey, isPasskeyAuthoritative, authenticate, encryptKey } = useWalletAuthMethod();
+  // Passkey-vs-PIN HINT + passkey primitives, shared with the bespoke unlock
+  // UIs (airdrop, wallet panel).
+  const { usesPasskey, authenticate, encryptKey } = useWalletAuthMethod();
 
   const [pinOpen, setPinOpen] = useState(false);
   const runRef = useRef<((secret: string) => void | Promise<void>) | null>(null);
@@ -48,20 +48,15 @@ export function useWalletUnlock() {
           await run(key);
           return;
         }
-        // Passkey is the wallet's only method and it didn't yield a key. Falling
-        // back to a PIN dialog would just fail (the key is passkey-sealed), so
-        // surface a clear, actionable error instead of a doomed PIN prompt.
-        if (isPasskeyAuthoritative) {
-          throw new Error(
-            "This wallet unlocks with Face ID / Touch ID. Approve the prompt to continue — or open it on the device where you set up your passkey."
-          );
-        }
-        // Device-only guess (no authoritative record) — fall through to PIN.
+        // Passkey didn't yield a key. `usesPasskey` is only a HINT (a PIN wallet
+        // can carry a stray passkey credential), so NEVER hard-fail here — fall
+        // through to the PIN dialog. A real passkey user can cancel and retry
+        // the prompt; a PIN user simply enters their PIN.
       }
       runRef.current = run;
       setPinOpen(true);
     },
-    [usesPasskey, isPasskeyAuthoritative, encryptKey, authenticate],
+    [usesPasskey, encryptKey, authenticate],
   );
 
   const onSubmit = useCallback(async (pin: string) => {
