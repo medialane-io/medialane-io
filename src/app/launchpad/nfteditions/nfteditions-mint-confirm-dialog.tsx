@@ -5,7 +5,7 @@ import { ArrowLeft, Layers, ScanFace, Sparkles, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { PinInput, validatePin } from "@/components/ui/pin-input";
-import { usePasskeyAuth, usePasskeyStatus } from "@chipi-stack/chipi-passkey/hooks";
+import { useWalletAuthMethod } from "@/hooks/use-wallet-auth-method";
 
 interface NftEditionsMintConfirmDialogProps {
   open: boolean;
@@ -29,9 +29,8 @@ export function NftEditionsMintConfirmDialog({
 
   // Each wallet unlocks with EITHER a passkey or a PIN — never both. Passkey
   // users have no PIN, so show Face ID / Touch ID instead of a PIN input.
-  const { status: { hasPasskey, isSupported } } = usePasskeyStatus();
-  const { authenticate, encryptKey } = usePasskeyAuth();
-  const usesPasskey = hasPasskey && isSupported;
+  // Authoritative (cross-device) signal, not just the device-local flag.
+  const { usesPasskey, authenticate, encryptKey } = useWalletAuthMethod();
   const [passkeyBusy, setPasskeyBusy] = useState(false);
   const [passkeyError, setPasskeyError] = useState<string | null>(null);
 
