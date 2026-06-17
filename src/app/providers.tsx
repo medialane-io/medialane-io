@@ -14,6 +14,7 @@ import { NavCommandMenu, useNavCommandMenu } from "@medialane/ui";
 import { NAV_COMMANDS } from "@/lib/nav-commands";
 import { NavAccountPanel } from "@/components/nav-account-panel";
 import { AccountSyncOnLogin } from "@/components/shared/account-sync-on-login";
+import { PasskeyCredentialSync } from "@/components/shared/passkey-credential-sync";
 import { NavThemeToggle } from "@/components/nav-theme-toggle";
 
 const GA_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID;
@@ -111,6 +112,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       >
         {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
         <AccountSyncOnLogin />
+        <PasskeyCredentialSync />
         <Shell>{children}</Shell>
         <Toaster
           richColors
