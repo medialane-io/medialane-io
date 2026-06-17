@@ -11,7 +11,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "guard:pin": "node scripts/guard-pin-dialog.mjs"
   },
   "dependencies": {
     "@chipi-stack/chipi-passkey": "2.0.1",

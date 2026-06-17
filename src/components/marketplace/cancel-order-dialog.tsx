@@ -11,9 +11,7 @@ import { useMarketplaceActionFlow } from "@/hooks/use-marketplace-action-flow";
 import { MarketplacePinStep } from "@/components/marketplace/marketplace-dialog-primitives";
 import { TransactionDialogStates } from "@/components/marketplace/transaction-dialog-states";
 import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
-import { useState } from "react";
-import { isWebAuthnSupported } from "@chipi-stack/nextjs";
-import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
+import { useWalletAuthMethod } from "@/hooks/use-wallet-auth-method";
 import type { ApiOrder } from "@medialane/sdk";
 
 interface CancelOrderDialogProps {
@@ -86,10 +84,8 @@ export function CancelOrderDialog({
     resetState,
   } = useMarketplace();
 
-  const [passkeySupported] = useState(
-    () => typeof window !== "undefined" && isWebAuthnSupported()
-  );
-  const { authenticate, encryptKey } = usePasskeyAuth();
+  // Authoritative passkey-vs-PIN (cross-device), not just device-local WebAuthn support.
+  const { usesPasskey, authenticate, encryptKey } = useWalletAuthMethod();
   const {
     walletSetupOpen,
     setWalletSetupOpen,
@@ -188,7 +184,7 @@ export function CancelOrderDialog({
                 onPrimary={handlePin}
                 primaryDisabled={pin.length < 6}
                 primaryVariant="destructive"
-                passkeySupported={passkeySupported && !!encryptKey}
+                passkeySupported={usesPasskey}
                 isAuthenticatingPasskey={isAuthenticatingPasskey}
                 onUsePasskey={handleUsePasskey}
                 footer={(

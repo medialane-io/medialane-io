@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { isWebAuthnSupported } from "@chipi-stack/nextjs";
-import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
+import { useWalletAuthMethod } from "@/hooks/use-wallet-auth-method";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { useMarketplaceActionFlow } from "@/hooks/use-marketplace-action-flow";
 import { useTokenBalance, hasSufficientBalance } from "@/hooks/use-erc20-balance";
@@ -21,10 +20,8 @@ export function useAcceptOffer({ mutateListings, tokenStandard, activeListings =
   const { isSignedIn } = useAuth();
   const { fulfillOrder, hasWallet, hasActiveSession, setupSession, maybeClearSessionForAmountCap } =
     useMarketplace();
-  const [passkeyWebAuthnSupported] = useState(
-    () => typeof window !== "undefined" && isWebAuthnSupported()
-  );
-  const { authenticate, encryptKey } = usePasskeyAuth();
+  // Authoritative passkey-vs-PIN (cross-device), not just device-local WebAuthn support.
+  const { usesPasskey, authenticate, encryptKey } = useWalletAuthMethod();
 
   const [selectedOrder, setSelectedOrder] = useState<ApiOrder | null>(null);
   const [resultStep, setResultStep] = useState<"idle" | "processing" | "success" | "error">("idle");
@@ -115,7 +112,7 @@ export function useAcceptOffer({ mutateListings, tokenStandard, activeListings =
     resultStep,
     txHash,
     error,
-    passkeySupported: passkeyWebAuthnSupported && !!encryptKey,
+    passkeySupported: usesPasskey,
     walletSetupOpen: actionFlow.walletSetupOpen,
     setWalletSetupOpen: actionFlow.setWalletSetupOpen,
     pin: actionFlow.pin,
