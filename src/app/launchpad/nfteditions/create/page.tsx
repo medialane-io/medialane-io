@@ -112,7 +112,11 @@ export default function CreateIP1155CollectionPage() {
     if (!hasWallet) { setWalletSetupOpen(true); return; }
     // Pass `values` through the closure — the passkey path runs synchronously,
     // before a same-tick setState settles.
-    void unlock((secret) => handleUnlocked(values, secret));
+    // .catch handles unlock-level throws (e.g. passkey unavailable here).
+    void unlock((secret) => handleUnlocked(values, secret)).catch((err) => {
+      setCollectionError(err instanceof Error ? err.message : "Could not unlock your wallet");
+      setCollectionStep("error");
+    });
   };
 
   // `secret` is the wallet-unlock material — a typed PIN or the passkey key.
@@ -278,7 +282,7 @@ export default function CreateIP1155CollectionPage() {
       <WalletSetupDialog
         open={walletSetupOpen}
         onOpenChange={setWalletSetupOpen}
-        onSuccess={() => { setWalletSetupOpen(false); const v = pendingValues; if (v) void unlock((secret) => handleUnlocked(v, secret)); }}
+        onSuccess={() => { setWalletSetupOpen(false); const v = pendingValues; if (v) void unlock((secret) => handleUnlocked(v, secret)).catch((err) => { setCollectionError(err instanceof Error ? err.message : "Could not unlock your wallet"); setCollectionStep("error"); }); }}
       />
     </>
   );

@@ -227,7 +227,11 @@ export default function CreateAssetPage() {
     }
     // Pass `values` through the closure — NOT via pendingValues state — because
     // the passkey path runs synchronously, before a same-tick setState settles.
-    void unlock((secret) => handleUnlocked(values, secret));
+    // The .catch handles unlock-level throws (e.g. passkey unavailable here).
+    void unlock((secret) => handleUnlocked(values, secret)).catch((err) => {
+      setMintError(err instanceof Error ? err.message : "Could not unlock your wallet");
+      setMintStep("error");
+    });
   };
 
   // `secret` is the wallet-unlock material — a typed PIN or the passkey key.
@@ -757,7 +761,10 @@ export default function CreateAssetPage() {
           // A wallet from this dialog is PIN-based — unlock takes the async PIN
           // path, so pendingValues state is settled by this tick.
           const v = pendingValues;
-          if (v) void unlock((secret) => handleUnlocked(v, secret));
+          if (v) void unlock((secret) => handleUnlocked(v, secret)).catch((err) => {
+            setMintError(err instanceof Error ? err.message : "Could not unlock your wallet");
+            setMintStep("error");
+          });
         }}
       />
     </>

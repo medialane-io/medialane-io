@@ -166,7 +166,11 @@ export default function CreateRemixPage() {
   const handleCreateSubmit = () => {
     const err = validate();
     if (err) { toast.error(err); return; }
-    void unlock(handleUnlocked);
+    // .catch handles unlock-level throws (e.g. passkey unavailable here).
+    void unlock(handleUnlocked).catch((e) => {
+      setMintError(e instanceof Error ? e.message : "Could not unlock your wallet");
+      setMintStep("error");
+    });
   };
 
   // `secret` is the wallet-unlock material — a typed PIN or the passkey key.

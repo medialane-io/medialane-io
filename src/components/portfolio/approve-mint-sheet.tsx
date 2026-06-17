@@ -102,7 +102,11 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
       setFormError("This collection is not enrolled in the registry.");
       return;
     }
-    void unlock(handleUnlocked);
+    // .catch handles unlock-level throws (e.g. passkey unavailable here).
+    void unlock(handleUnlocked).catch((err) => {
+      setApproveError(err instanceof Error ? err.message : "Could not unlock your wallet");
+      setLoading(false);
+    });
   };
 
   // `secret` is the wallet-unlock material — a typed PIN or the passkey key.
