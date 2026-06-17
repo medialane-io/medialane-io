@@ -18,14 +18,11 @@ import {
   FormMessage,
   FormDescription,
 } from "@/components/ui/form";
+import Link from "next/link";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
-import { PinDialog } from "@/components/chipi/pin-dialog";
-import { useWalletUnlock } from "@/hooks/use-wallet-unlock";
-import { looksLikeEncryptionFailure } from "@/lib/chipi/looks-like-encryption-failure";
-import { CollectionProgressDialog } from "@/components/marketplace/collection-progress-dialog";
-import type { CollectionStep } from "@/components/marketplace/collection-progress-dialog";
+import { useWriteAction } from "@/hooks/use-write-action";
+import { TransactionDialog } from "@/components/transaction/transaction-dialog";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
-import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
@@ -81,17 +78,12 @@ async function syncCollectionFromTx(txHash: string) {
 }
 
 export default function CreateCollectionPage() {
-  const { executeTransaction, status, txHash } = useChipiTransaction();
   const { walletAddress } = useSessionKey();
   const client = useMedialaneClient();
-  // Unlocks with the wallet's own method — passkey (Face ID / Touch ID) or PIN.
-  const { unlock, pinDialogProps } = useWalletUnlock();
+  // One primitive owns gate → unlock (passkey/PIN) → execute → result.
+  const action = useWriteAction();
 
-  const [walletSetupOpen, setWalletSetupOpen] = useState(false);
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
-  const [collectionStep, setCollectionStep] = useState<CollectionStep>("idle");
-  const [collectionError, setCollectionError] = useState<string | null>(null);
-  const [authHint, setAuthHint] = useState(false);
 
   // Image upload state
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -179,117 +171,104 @@ export default function CreateCollectionPage() {
       return;
     }
     setPendingValues(values);
-    setAuthHint(false);
-    if (!hasWallet) {
-      setWalletSetupOpen(true);
-      return;
-    }
-    // Pass `values` through the closure — NOT via pendingValues state — because
-    // the passkey path runs synchronously, before a same-tick setState settles.
-    void unlock((secret) => runCreate(values, secret));
+    // Pass `values` through the closure (synchronous-passkey rule). action.run
+    // gates signed-in/wallet and opens wallet setup itself when needed.
+    void action.run((secret) => runCreate(values, secret));
   };
 
-  // `secret` is the wallet-unlock material: a typed PIN or the passkey-derived
-  // encrypt key. Both are passed to executeTransaction's `pin` param, which
-  // feeds decryptPrivateKey. `pendingValues` (param) shadows the display-only
-  // state so the body reads the freshly-submitted values.
-  const runCreate = async (pendingValues: FormValues, secret: string) => {
-    if (!pendingValues || !walletAddress) return;
+  // The `prepare` body: build the calls, execute, and do the post-confirm sync.
+  // `secret` is the wallet-unlock material (PIN or passkey key). `useWriteAction`
+  // owns status/error — this returns the tx result and throws on real failure.
+  const runCreate = async (values: FormValues, secret: string) => {
+    if (!walletAddress) throw new Error("Wallet not ready. Please refresh and try again.");
 
-    setCollectionError(null);
-    setAuthHint(false);
-    setCollectionStep("processing");
-
-    try {
-      // 1. Upload collection metadata JSON to IPFS so permissionless dapps can resolve
-      //    the collection image onchain (base_uri → collection metadata → image field).
-      let baseUri: string | undefined;
-      if (imageUri) {
-        try {
-          const metaRes = await fetch("/api/pinata/json", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              name: pendingValues.name,
-              description: pendingValues.description || "",
-              image: imageUri,
-              external_link: pendingValues.external_link || "https://medialane.io",
-            }),
-          });
-          const metaData = await metaRes.json().catch(() => ({}));
-          if (metaRes.ok && metaData.uri) baseUri = metaData.uri;
-        } catch {
-          // Non-fatal: collection is still created, just without onchain metadata URI
-        }
+    // 1. Upload collection metadata JSON to IPFS so permissionless dapps can resolve
+    //    the collection image onchain (base_uri → collection metadata → image field).
+    let baseUri: string | undefined;
+    if (imageUri) {
+      try {
+        const metaRes = await fetch("/api/pinata/json", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: values.name,
+            description: values.description || "",
+            image: imageUri,
+            external_link: values.external_link || "https://medialane.io",
+          }),
+        });
+        const metaData = await metaRes.json().catch(() => ({}));
+        if (metaRes.ok && metaData.uri) baseUri = metaData.uri;
+      } catch {
+        // Non-fatal: collection is still created, just without onchain metadata URI
       }
-
-      // 2. Create collection intent — pre-signed, returns calls immediately
-      const intentRes = await client.api.createCollectionIntent({
-        owner: walletAddress,
-        name: pendingValues.name,
-        symbol: pendingValues.symbol,
-        description: pendingValues.description || undefined,
-        image: imageUri || undefined,
-        baseUri,
-      });
-
-      const intent = intentRes.data;
-      // create-collection is always an unsigned (prebuilt-calls) intent.
-      if (intent.requiresSignature) throw new Error("Unexpected signed intent for create-collection");
-      const calls = intent.calls as unknown as ChipiCall[];
-      if (!calls || calls.length === 0) throw new Error("No calls returned from intent");
-
-      // 2. Execute the pre-signed calls via ChipiPay (gasless)
-      const result = await executeTransaction({
-        pin: secret,
-        calls,
-      });
-
-      if (result.status === "reverted") {
-        throw new Error(result.revertReason || "Collection transaction reverted on chain");
-      }
-
-      // Immediately register the collection from the tx so it appears in portfolio without waiting for the indexer.
-      // Do not mark success until the backend confirms the CollectionCreated event was indexed.
-      if (result.txHash) {
-        await syncCollectionFromTx(result.txHash);
-      } else {
-        throw new Error("Collection transaction completed without a transaction hash. Please refresh and check your wallet activity.");
-      }
-
-      setCollectionStep("success");
-      invalidatePortfolioCache(walletAddress);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Something went wrong";
-      setCollectionError(msg);
-      // A wrong-unlock failure means the entered PIN/passkey didn't match this
-      // wallet — surface the "check your unlock method" recovery hint.
-      setAuthHint(looksLikeEncryptionFailure(msg));
-      setCollectionStep("error");
     }
+
+    // 2. Create collection intent — pre-signed, returns calls immediately
+    const intentRes = await client.api.createCollectionIntent({
+      owner: walletAddress,
+      name: values.name,
+      symbol: values.symbol,
+      description: values.description || undefined,
+      image: imageUri || undefined,
+      baseUri,
+    });
+
+    const intent = intentRes.data;
+    // create-collection is always an unsigned (prebuilt-calls) intent.
+    if (intent.requiresSignature) throw new Error("Unexpected signed intent for create-collection");
+    const calls = intent.calls as unknown as ChipiCall[];
+    if (!calls || calls.length === 0) throw new Error("No calls returned from intent");
+
+    // 3. Execute the pre-signed calls via ChipiPay (gasless)
+    const result = await action.executeTransaction({ pin: secret, calls });
+    if (result.status === "reverted") return result; // action throws with the revert reason
+
+    // Register from the tx so it appears in portfolio without waiting for the indexer.
+    // Stay in "processing" until the backend confirms the CollectionCreated event.
+    if (!result.txHash) {
+      throw new Error("Collection transaction completed without a transaction hash. Please refresh and check your wallet activity.");
+    }
+    await syncCollectionFromTx(result.txHash);
+    invalidatePortfolioCache(walletAddress);
+    return result;
   };
 
   const handleCreateAnother = () => {
-    setCollectionStep("idle");
-    setCollectionError(null);
-    setAuthHint(false);
+    action.reset();
     form.reset();
     clearImage();
   };
 
   return (
     <>
-      <CollectionProgressDialog
-        open={collectionStep !== "idle"}
-        collectionStep={collectionStep}
-        txStatus={status}
-        collectionName={pendingValues?.name ?? ""}
-        imagePreview={imagePreview}
-        txHash={txHash}
-        error={collectionError}
-        authHint={authHint}
-        onCreateAnother={handleCreateAnother}
-      />
+      <TransactionDialog
+        action={action}
+        title="Confirm collection creation"
+        processingLabel="Deploying collection…"
+        firstStepLabel="Create collection intent"
+        successTitle="Collection deployed!"
+        pinDescription="Enter your PIN to deploy your collection onchain."
+      >
+        <p className="text-sm text-muted-foreground text-center">
+          <span className="font-medium text-foreground">{pendingValues?.name || "Your collection"}</span> is
+          live onchain. Start minting assets into it.
+        </p>
+        {imagePreview && (
+          <div className="h-24 w-24 rounded-xl overflow-hidden border border-border shadow-md">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={imagePreview} alt={pendingValues?.name ?? ""} className="h-full w-full object-cover" />
+          </div>
+        )}
+        <div className="flex flex-col sm:flex-row gap-2 w-full pt-1">
+          <Button variant="outline" className="flex-1" onClick={handleCreateAnother}>
+            Create another
+          </Button>
+          <Button asChild className="flex-1">
+            <Link href="/create/asset">Mint an asset</Link>
+          </Button>
+        </div>
+      </TransactionDialog>
 
       <div className="container max-w-2xl mx-auto px-4 pt-14 pb-8 space-y-8">
         <div className="space-y-2">
@@ -448,10 +427,10 @@ export default function CreateCollectionPage() {
               )}
             />
 
-            <div className={`btn-border-animated p-[1px] rounded-xl ${collectionStep !== "idle" || imageUploading ? "opacity-40 pointer-events-none" : ""}`}>
+            <div className={`btn-border-animated p-[1px] rounded-xl ${action.status !== "idle" || imageUploading ? "opacity-40 pointer-events-none" : ""}`}>
               <button
                 type="submit"
-                disabled={collectionStep !== "idle" || imageUploading}
+                disabled={action.status !== "idle" || imageUploading}
                 className="w-full h-12 text-base font-semibold text-white rounded-[11px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] bg-brand-blue"
               >
                 <Layers className="h-4 w-4" />
@@ -465,21 +444,15 @@ export default function CreateCollectionPage() {
         </Form>
       </div>
 
-      <PinDialog
-        {...pinDialogProps}
-        title="Confirm collection creation"
-        description="Enter your PIN to deploy your collection onchain."
-      />
-
       <WalletSetupDialog
-        open={walletSetupOpen}
-        onOpenChange={setWalletSetupOpen}
+        open={action.walletSetupOpen}
+        onOpenChange={action.setWalletSetupOpen}
         onSuccess={() => {
-          setWalletSetupOpen(false);
-          // A wallet from this dialog is PIN-based (no passkey), so unlock takes
-          // the async PIN path — pendingValues state is settled by this tick.
+          action.setWalletSetupOpen(false);
+          // A wallet from this dialog is PIN-based (no passkey), so the async PIN
+          // path runs — pendingValues state is settled by this tick.
           const v = pendingValues;
-          if (v) void unlock((secret) => runCreate(v, secret));
+          if (v) void action.run((secret) => runCreate(v, secret));
         }}
       />
     </>
