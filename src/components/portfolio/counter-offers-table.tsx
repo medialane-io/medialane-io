@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyOrError } from "@/components/ui/empty-or-error";
 import { PinDialog } from "@/components/chipi/pin-dialog";
-import { useWalletUnlock } from "@/hooks/use-wallet-unlock";
+import { useWriteAction } from "@/hooks/use-write-action";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
@@ -17,8 +17,6 @@ import { EXPLORER_URL } from "@/lib/constants";
 import Image from "next/image";
 import Link from "next/link";
 import type { ApiOrder } from "@medialane/sdk";
-
-type ResultStep = "idle" | "processing" | "success" | "error";
 
 
 /**
@@ -118,16 +116,14 @@ export function CounterOffersTable({ address }: { address: string }) {
   // Dedicated ChipiTransaction instance for the platform fee tx — must not
   // share state with the fulfill tx (mirrors purchase-dialog pattern).
   const { executeTransaction: executeFeeTransaction } = useChipiTransaction();
-  const { unlock, pinDialogProps } = useWalletUnlock();
+  const action = useWriteAction();
   const [selectedCounter, setSelectedCounter] = useState<ApiOrder | null>(null);
   const [originalForSelected, setOriginalForSelected] = useState<ApiOrder | null>(null);
-  // Explicit feedback state machine — every on-chain accept now shows
-  // processing → success/error so the user never has to check the explorer
-  // to know what happened. PinDialog hands off to this dialog as soon as
-  // the PIN is submitted.
-  const [resultStep, setResultStep] = useState<ResultStep>("idle");
-  const [resultTxHash, setResultTxHash] = useState<string | null>(null);
-  const [resultError, setResultError] = useState<string | null>(null);
+  // The existing processing → success/error result dialog is driven by the
+  // unified action state (so the user never has to check the explorer).
+  const resultStep = action.status;
+  const resultTxHash = action.txHash;
+  const resultError = action.error;
 
   // My bids that the seller has countered.
   // Predicate: ERC-20 offer (bid) I made + the backend-derived flag
@@ -148,65 +144,48 @@ export function CounterOffersTable({ address }: { address: string }) {
     setOriginalForSelected(original);
     // Pass `counter` through the closure — the passkey path runs synchronously,
     // before the setSelectedCounter above settles.
-    void unlock((secret) => handleUnlocked(counter, secret));
+    void action.run((secret) => handleUnlocked(counter, secret));
   };
 
   // `secret` is the wallet-unlock material — a typed PIN or the passkey key.
-  // `selectedCounter` (param) shadows the display-only state.
-  const handleUnlocked = async (selectedCounter: ApiOrder, secret: string) => {
-    if (!selectedCounter) return;
-    setResultStep("processing");
-    setResultError(null);
-    setResultTxHash(null);
-    try {
-      const hash = await fulfillOrder({
-        orderHash: selectedCounter.orderHash,
-        pin: secret,
-        tokenStandard: selectedCounter.consideration.itemType,
-      });
-      if (hash) {
-        setResultTxHash(hash);
-        setResultStep("success");
-        // Fee — fire-and-forget post-confirm. Buyer (this user) is paying the
-        // counter-listing's ERC-20 amount, so they bear the platform fee, same
-        // as a listing purchase. Counter-offers are ERC-721-only in current io
-        // (no quantity field on the table), so grossAmount = startAmount × 1.
-        const feeGrossAmount = BigInt(selectedCounter.consideration.startAmount ?? "0");
-        console.info("[medialane] platform fee queued", {
-          surface: "marketplace",
-          orderHash: selectedCounter.orderHash,
-          token: selectedCounter.consideration.token,
-          grossAmount: feeGrossAmount.toString(),
-        });
-        void chargePlatformFee({
-          surface: "marketplace",
-          token: selectedCounter.consideration.token ?? "",
-          grossAmount: feeGrossAmount,
-          pin: secret,
-          executeTransaction: executeFeeTransaction,
-        });
-      } else {
-        // fulfillOrder swallowed an error internally and returned undefined.
-        // We don't have direct access to the message here without a stale-
-        // closure dance — surface a generic prompt and tell the user to retry.
-        setResultStep("error");
-        setResultError(
-          "We couldn't complete the counter-offer accept. The transaction may have been rejected or the order may have expired. Please refresh and try again."
-        );
-      }
-    } catch (err) {
-      setResultStep("error");
-      setResultError(err instanceof Error ? err.message : "Counter-offer accept failed.");
+  // action owns status/error; this returns the result and throws on failure.
+  const handleUnlocked = async (counter: ApiOrder, secret: string) => {
+    const hash = await fulfillOrder({
+      orderHash: counter.orderHash,
+      pin: secret,
+      tokenStandard: counter.consideration.itemType,
+    });
+    if (!hash) {
+      mutate();
+      // fulfillOrder swallowed an error internally and returned undefined.
+      throw new Error(
+        "We couldn't complete the counter-offer accept. The transaction may have been rejected or the order may have expired. Please refresh and try again."
+      );
     }
+    // Fee — fire-and-forget post-confirm. Buyer (this user) bears the platform
+    // fee on the counter-listing's ERC-20 amount, same as a listing purchase.
+    const feeGrossAmount = BigInt(counter.consideration.startAmount ?? "0");
+    console.info("[medialane] platform fee queued", {
+      surface: "marketplace",
+      orderHash: counter.orderHash,
+      token: counter.consideration.token,
+      grossAmount: feeGrossAmount.toString(),
+    });
+    void chargePlatformFee({
+      surface: "marketplace",
+      token: counter.consideration.token ?? "",
+      grossAmount: feeGrossAmount,
+      pin: secret,
+      executeTransaction: executeFeeTransaction,
+    });
     mutate();
+    return { status: "confirmed", txHash: hash };
   };
 
   const dismissResult = () => {
     // Block dismissal while the tx is in flight — same UX as purchase / listing.
-    if (resultStep === "processing") return;
-    setResultStep("idle");
-    setResultTxHash(null);
-    setResultError(null);
+    if (action.status === "processing" || action.status === "confirming") return;
+    action.reset();
     setSelectedCounter(null);
     setOriginalForSelected(null);
   };
@@ -249,7 +228,7 @@ export function CounterOffersTable({ address }: { address: string }) {
       </EmptyOrError>
 
       <PinDialog
-        {...pinDialogProps}
+        {...action.pinDialogProps}
         title="Accept counter-offer"
         description={
           selectedCounter && originalForSelected
