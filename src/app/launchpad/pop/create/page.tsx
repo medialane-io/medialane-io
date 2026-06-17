@@ -13,9 +13,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { PinDialog } from "@/components/chipi/pin-dialog";
-import { useWalletUnlock } from "@/hooks/use-wallet-unlock";
+import { useWriteAction } from "@/hooks/use-write-action";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
-import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
@@ -32,16 +31,13 @@ import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed
 
 export default function CreatePOPPage() {
   const { isSignedIn } = useUser();
-  const { walletAddress, hasWallet } = useSessionKey();
-  const { executeTransaction, isSubmitting } = useChipiTransaction();
+  const { walletAddress } = useSessionKey();
+  const action = useWriteAction();
+  const busy = action.status === "processing" || action.status === "confirming";
 
   const [eventType, setEventType] = useState<PopEventType>("Conference");
   const [isPublic, setIsPublic] = useState(false);
-  const { unlock, pinDialogProps } = useWalletUnlock();
-  const [walletSetupOpen, setWalletSetupOpen] = useState(false);
   const [pendingValues, setPendingValues] = useState<PopCreateFormValues | null>(null);
-  const [done, setDone] = useState(false);
-  const [txError, setTxError] = useState<string | null>(null);
   const [autoSymbol, setAutoSymbol] = useState("");
   const {
     imagePreview,
@@ -84,7 +80,7 @@ export default function CreatePOPPage() {
 
   const handleCreateAnother = () => {
     const defaults = getDefaultClaimWindow();
-    setDone(false);
+    action.reset();
     form.reset({
       name: "",
       symbol: "",
@@ -104,16 +100,15 @@ export default function CreatePOPPage() {
       return;
     }
     setPendingValues(values);
-    if (!hasWallet) { setWalletSetupOpen(true); return; }
     // Pass `values` through the closure — the passkey path runs synchronously,
-    // before a same-tick setState settles.
-    void unlock((secret) => handleUnlocked(values, secret));
+    // before a same-tick setState settles. action.run gates wallet + unlock.
+    void action.run((secret) => handleUnlocked(values, secret));
   };
 
   // `secret` is the wallet-unlock material — a typed PIN or the passkey key.
   // `pendingValues` (param) shadows the display-only state.
   const handleUnlocked = async (pendingValues: PopCreateFormValues, secret: string) => {
-    if (!pendingValues || !walletAddress) return;
+    if (!walletAddress) throw new Error("Wallet not ready. Please refresh and try again.");
 
     let baseUri = "";
     try {
@@ -133,43 +128,34 @@ export default function CreatePOPPage() {
       new Date(`${pendingValues.claimEndDate}T${pendingValues.claimEndTime}:00`).getTime() / 1000
     );
 
-    try {
-      const factory = new Contract(POPFactoryABI as unknown as Abi, POP_FACTORY_CONTRACT, starknetProvider);
-      const call = factory.populate("create_collection", [
-        pendingValues.name,
-        pendingValues.symbol,
-        baseUri,
-        claimEndTimestamp,
-        { [eventType]: {} },
-      ]);
+    const factory = new Contract(POPFactoryABI as unknown as Abi, POP_FACTORY_CONTRACT, starknetProvider);
+    const call = factory.populate("create_collection", [
+      pendingValues.name,
+      pendingValues.symbol,
+      baseUri,
+      claimEndTimestamp,
+      { [eventType]: {} },
+    ]);
 
-      const result = await executeTransaction({
-        pin: secret,
-        calls: [{
-          contractAddress: POP_FACTORY_CONTRACT,
-          entrypoint: "create_collection",
-          calldata: call.calldata as string[],
-        }],
-      });
-
-      if (result.status === "confirmed") {
-        setDone(true);
-      } else {
-        setTxError(result.revertReason ?? "Transaction reverted");
-      }
-    } catch (err) {
-      setTxError(err instanceof Error ? err.message : "Failed to create event");
-    }
+    // action owns status/error — return the result, throw on real failure.
+    return action.executeTransaction({
+      pin: secret,
+      calls: [{
+        contractAddress: POP_FACTORY_CONTRACT,
+        entrypoint: "create_collection",
+        calldata: call.calldata as string[],
+      }],
+    });
   };
 
   // ── Error ──────────────────────────────────────────────────────────────────
-  if (txError) {
+  if (action.status === "error") {
     return (
       <LaunchpadErrorState
-        description={txError}
+        description={action.error ?? "Failed to create event"}
         backHref="/launchpad/pop"
         backLabel="Back to POP launchpad"
-        onRetry={() => setTxError(null)}
+        onRetry={action.reset}
       />
     );
   }
@@ -178,12 +164,12 @@ export default function CreatePOPPage() {
   // Full-page feedback while the on-chain tx is pending. Without this, the
   // user sees the form with a disabled button and may think nothing is
   // happening — they could navigate away mid-tx.
-  if (isSubmitting && !done && !txError) {
+  if (busy) {
     return <LaunchpadProcessingState title="Creating your POP event…" />;
   }
 
   // ── Success ────────────────────────────────────────────────────────────────
-  if (done) {
+  if (action.status === "success") {
     return (
       <LaunchpadSuccessState
         icon={CheckCircle2}
@@ -235,7 +221,7 @@ export default function CreatePOPPage() {
               imagePreview={imagePreview}
               imageUri={imageUri}
               imageUploading={imageUploading}
-              isSubmitting={isSubmitting}
+              isSubmitting={busy}
               fileInputRef={fileInputRef}
               onSetEventType={setEventType}
               onSetPublic={setIsPublic}
@@ -252,11 +238,11 @@ export default function CreatePOPPage() {
         </Form>
       </div>
 
-      <PinDialog {...pinDialogProps}
+      <PinDialog {...action.pinDialogProps}
         title="Deploy POP collection"
         description="Enter your PIN to deploy your event credential collection onchain." />
-      <WalletSetupDialog open={walletSetupOpen} onOpenChange={setWalletSetupOpen}
-        onSuccess={() => { setWalletSetupOpen(false); const v = pendingValues; if (v) void unlock((secret) => handleUnlocked(v, secret)); }} />
+      <WalletSetupDialog open={action.walletSetupOpen} onOpenChange={action.setWalletSetupOpen}
+        onSuccess={() => { action.setWalletSetupOpen(false); const v = pendingValues; if (v) void action.run((secret) => handleUnlocked(v, secret)); }} />
     </>
   );
 }
