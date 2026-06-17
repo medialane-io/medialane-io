@@ -221,6 +221,8 @@ export default function DropManagePage({
   ) => {
     if (!hasWallet) { setWalletSetupOpen(true); return; }
     // `secret` is the wallet-unlock material — a typed PIN or the passkey key.
+    // The trailing .catch handles unlock-level throws (e.g. passkey unavailable)
+    // that fire before the inner callback runs.
     void unlock(async (secret) => {
     try {
       const result = await executeTransaction({ pin: secret, calls });
@@ -233,6 +235,8 @@ export default function DropManagePage({
     } catch (err) {
       setTxResult({ type: "error", message: err instanceof Error ? err.message : "Transaction failed" });
     }
+    }).catch((err) => {
+      setTxResult({ type: "error", message: err instanceof Error ? err.message : "Could not unlock your wallet" });
     });
   };
 
