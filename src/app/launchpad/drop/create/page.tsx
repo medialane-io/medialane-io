@@ -8,8 +8,8 @@ import { starknetProvider } from "@/lib/starknet";
 import { Package, CheckCircle2 } from "lucide-react";
 import { Form } from "@/components/ui/form";
 import { PinDialog } from "@/components/chipi/pin-dialog";
+import { useWriteAction } from "@/hooks/use-write-action";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
-import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
@@ -35,8 +35,9 @@ const PAYMENT_TOKENS = getListableTokens().map((t) => ({ symbol: t.symbol, addre
 
 export default function CreateDropPage() {
   const { isSignedIn } = useUser();
-  const { walletAddress, hasWallet } = useSessionKey();
-  const { executeTransaction, isSubmitting } = useChipiTransaction();
+  const { walletAddress } = useSessionKey();
+  const action = useWriteAction();
+  const busy = action.status === "processing" || action.status === "confirming";
 
   const [items, setItems] = useState<DraftItem[]>([]);
   // Read only at submit time — keep in a ref so each keystroke in IPTypeFields
@@ -51,11 +52,7 @@ export default function CreateDropPage() {
   const [tokenDropdownOpen, setTokenDropdownOpen] = useState(false);
   const [selectedToken, setSelectedToken] = useState<PaymentTokenOption>(PAYMENT_TOKENS[0]);
 
-  const [pinOpen, setPinOpen] = useState(false);
-  const [walletSetupOpen, setWalletSetupOpen] = useState(false);
   const [pendingValues, setPendingValues] = useState<DropCreateFormValues | null>(null);
-  const [done, setDone] = useState(false);
-  const [txError, setTxError] = useState<string | null>(null);
   const [autoSymbol, setAutoSymbol] = useState("");
 
   const {
@@ -150,7 +147,7 @@ export default function CreateDropPage() {
 
   const handleLaunchAnother = () => {
     const defaults = getDefaultDropSchedule();
-    setDone(false);
+    action.reset();
     form.reset({
       name: "", symbol: "",
       ipType: "NFT", licenseType: "CC BY-SA",
@@ -192,13 +189,15 @@ export default function CreateDropPage() {
   const onSubmit = (values: DropCreateFormValues) => {
     if (items.length === 0) { toast.error("Add at least one item"); return; }
     setPendingValues(values);
-    if (!hasWallet) { setWalletSetupOpen(true); return; }
-    setPinOpen(true);
+    // Pass `values` through the closure — the passkey path runs synchronously,
+    // before a same-tick setState settles. action.run gates wallet + unlock.
+    void action.run((secret) => handleUnlocked(values, secret));
   };
 
-  const handlePin = async (pin: string) => {
-    setPinOpen(false);
-    if (!pendingValues || !walletAddress) return;
+  // `secret` is the wallet-unlock material — a typed PIN or the passkey key.
+  // `pendingValues` (param) shadows the display-only state.
+  const handleUnlocked = async (pendingValues: DropCreateFormValues, secret: string) => {
+    if (!walletAddress) throw new Error("Wallet not ready. Please refresh and try again.");
 
     let baseUri = "";
     let maxSupply = 0n;
@@ -225,8 +224,7 @@ export default function CreateDropPage() {
       baseUri = built.baseUri;
       maxSupply = BigInt(built.count);
     } catch (err) {
-      setTxError(err instanceof Error ? err.message : "Failed to prepare drop metadata");
-      return;
+      throw new Error(err instanceof Error ? err.message : "Failed to prepare drop metadata");
     }
 
     const toTs = (d: string, t: string) => Math.floor(new Date(`${d}T${t}:00`).getTime() / 1000);
@@ -247,58 +245,50 @@ export default function CreateDropPage() {
     // same PIN. To open the drop to everyone later, the creator toggles the allowlist off in Manage.
     const whitelist = pendingValues.whitelistEnabled ? parseAddresses(pendingValues.allowlistAddresses) : [];
 
-    try {
-      const factory = new Contract(DropFactoryABI as unknown as Abi, DROP_FACTORY_CONTRACT, starknetProvider);
-      const call = factory.populate("create_drop", [
-        pendingValues.name, pendingValues.symbol, baseUri, maxSupply, conditions,
-      ]);
+    const factory = new Contract(DropFactoryABI as unknown as Abi, DROP_FACTORY_CONTRACT, starknetProvider);
+    const call = factory.populate("create_drop", [
+      pendingValues.name, pendingValues.symbol, baseUri, maxSupply, conditions,
+    ]);
 
-      const result = await executeTransaction({
-        pin,
-        calls: [{ contractAddress: DROP_FACTORY_CONTRACT, entrypoint: "create_drop", calldata: call.calldata as string[] }],
-      });
+    const result = await action.executeTransaction({
+      pin: secret,
+      calls: [{ contractAddress: DROP_FACTORY_CONTRACT, entrypoint: "create_drop", calldata: call.calldata as string[] }],
+    });
+    if (result.status === "reverted") return result; // action surfaces the revert
 
-      if (result.status !== "confirmed") {
-        setTxError(result.revertReason ?? "Transaction reverted");
-        return;
+    // If a whitelist was provided, find the new drop address (indexer ~6-30s) and set it.
+    // Best-effort — the drop already exists onchain; the creator can finish in Manage.
+    if (whitelist.length > 0) {
+      const dropAddress = await pollForDropAddress(walletAddress);
+      if (dropAddress) {
+        try {
+          await action.executeTransaction({
+            pin: secret,
+            calls: [
+              { contractAddress: dropAddress, entrypoint: "set_allowlist_enabled", calldata: ["1"] },
+              { contractAddress: dropAddress, entrypoint: "batch_add_to_allowlist", calldata: batchAllowlistCalldata(whitelist) },
+            ],
+          });
+        } catch { /* owner can finish whitelist setup in Manage */ }
       }
-
-      // If a whitelist was provided, find the new drop address (indexer ~6-30s) and set it.
-      // Best-effort — the drop already exists onchain; the creator can finish in Manage.
-      if (whitelist.length > 0) {
-        const dropAddress = await pollForDropAddress(walletAddress);
-        if (dropAddress) {
-          try {
-            await executeTransaction({
-              pin,
-              calls: [
-                { contractAddress: dropAddress, entrypoint: "set_allowlist_enabled", calldata: ["1"] },
-                { contractAddress: dropAddress, entrypoint: "batch_add_to_allowlist", calldata: batchAllowlistCalldata(whitelist) },
-              ],
-            });
-          } catch { /* owner can finish whitelist setup in Manage */ }
-        }
-      }
-      setDone(true);
-    } catch (err) {
-      setTxError(err instanceof Error ? err.message : "Failed to create drop");
     }
+    return result;
   };
 
   // ── Error ───────────────────────────────────────────────────────────────────
-  if (txError) {
+  if (action.status === "error") {
     return (
-      <LaunchpadErrorState description={txError} backHref="/launchpad/drop" backLabel="Back to Drops" onRetry={() => setTxError(null)} />
+      <LaunchpadErrorState description={action.error ?? "Failed to create drop"} backHref="/launchpad/drop" backLabel="Back to Drops" onRetry={action.reset} />
     );
   }
 
   // ── Processing ──────────────────────────────────────────────────────────────
-  if (isSubmitting && !done && !txError) {
+  if (busy) {
     return <LaunchpadProcessingState title="Creating your drop…" />;
   }
 
   // ── Success ─────────────────────────────────────────────────────────────────
-  if (done) {
+  if (action.status === "success") {
     return (
       <LaunchpadSuccessState
         icon={CheckCircle2}
@@ -348,7 +338,7 @@ export default function CreateDropPage() {
               imagePreview={imagePreview}
               imageUri={imageUri}
               imageUploading={imageUploading}
-              isSubmitting={isSubmitting}
+              isSubmitting={busy}
               priceFree={priceFree}
               isPublic={isPublic}
               paymentTokens={PAYMENT_TOKENS}
@@ -380,16 +370,14 @@ export default function CreateDropPage() {
       </div>
 
       <PinDialog
-        open={pinOpen}
-        onSubmit={handlePin}
-        onCancel={() => setPinOpen(false)}
+        {...action.pinDialogProps}
         title="Deploy drop collection"
         description="Enter your PIN to deploy your limited-edition collection onchain."
       />
       <WalletSetupDialog
-        open={walletSetupOpen}
-        onOpenChange={setWalletSetupOpen}
-        onSuccess={() => { setWalletSetupOpen(false); setPinOpen(true); }}
+        open={action.walletSetupOpen}
+        onOpenChange={action.setWalletSetupOpen}
+        onSuccess={() => { action.setWalletSetupOpen(false); const v = pendingValues; if (v) void action.run((secret) => handleUnlocked(v, secret)); }}
       />
     </>
   );

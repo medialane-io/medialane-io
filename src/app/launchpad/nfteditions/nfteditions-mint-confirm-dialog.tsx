@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowLeft, Layers, Sparkles, Zap } from "lucide-react";
+import { ArrowLeft, Layers, ScanFace, Sparkles, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { PinInput, validatePin } from "@/components/ui/pin-input";
+import { useWalletAuthMethod } from "@/hooks/use-wallet-auth-method";
 
 interface NftEditionsMintConfirmDialogProps {
   open: boolean;
@@ -26,10 +27,19 @@ export function NftEditionsMintConfirmDialog({
   const [pin, setPin] = useState("");
   const [pinError, setPinError] = useState<string | null>(null);
 
+  // Each wallet unlocks with EITHER a passkey or a PIN — never both. Passkey
+  // users have no PIN, so show Face ID / Touch ID instead of a PIN input.
+  // Authoritative (cross-device) signal, not just the device-local flag.
+  const { usesPasskey, authenticate, encryptKey } = useWalletAuthMethod();
+  const [passkeyBusy, setPasskeyBusy] = useState(false);
+  const [passkeyError, setPasskeyError] = useState<string | null>(null);
+
   useEffect(() => {
     if (open) {
       setPin("");
       setPinError(null);
+      setPasskeyError(null);
+      setPasskeyBusy(false);
     }
   }, [open]);
 
@@ -41,6 +51,20 @@ export function NftEditionsMintConfirmDialog({
     }
 
     onSubmit(pin);
+  };
+
+  const handlePasskey = async () => {
+    setPasskeyError(null);
+    setPasskeyBusy(true);
+    try {
+      const key = encryptKey ?? (await authenticate());
+      if (!key) throw new Error("Face ID / Touch ID was cancelled.");
+      onSubmit(key);
+    } catch (err) {
+      setPasskeyError(err instanceof Error ? err.message : "Face ID / Touch ID failed. Try again.");
+    } finally {
+      setPasskeyBusy(false);
+    }
   };
 
   return (
@@ -75,26 +99,48 @@ export function NftEditionsMintConfirmDialog({
         </div>
 
         <div className="px-6 pb-6 pt-3 space-y-4">
-          <p className="text-sm text-muted-foreground">Enter your PIN to mint onto Starknet.</p>
-          <PinInput
-            value={pin}
-            onChange={(value) => { setPin(value); setPinError(null); }}
-            error={pinError}
-            autoFocus
-          />
-          <div className="flex gap-2 pt-1">
-            <Button variant="outline" className="gap-1.5" onClick={onCancel}>
-              <ArrowLeft className="h-4 w-4" /> Back
-            </Button>
-            <Button
-              className="flex-1 h-11 bg-violet-600 hover:bg-violet-500 text-white"
-              disabled={pin.length < 6}
-              onClick={handleSubmit}
-            >
-              <Sparkles className="h-4 w-4 mr-2" />
-              Mint now
-            </Button>
-          </div>
+          {usesPasskey ? (
+            <>
+              <p className="text-sm text-muted-foreground">Confirm with Face ID / Touch ID to mint onto Starknet.</p>
+              {passkeyError && <p className="text-xs text-destructive">{passkeyError}</p>}
+              <div className="flex gap-2 pt-1">
+                <Button variant="outline" className="gap-1.5" onClick={onCancel}>
+                  <ArrowLeft className="h-4 w-4" /> Back
+                </Button>
+                <Button
+                  className="flex-1 h-11 bg-violet-600 hover:bg-violet-500 text-white"
+                  disabled={passkeyBusy}
+                  onClick={handlePasskey}
+                >
+                  <ScanFace className="h-4 w-4 mr-2" />
+                  {passkeyBusy ? "Confirming…" : "Confirm with passkey"}
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground">Enter your PIN to mint onto Starknet.</p>
+              <PinInput
+                value={pin}
+                onChange={(value) => { setPin(value); setPinError(null); }}
+                error={pinError}
+                autoFocus
+              />
+              <div className="flex gap-2 pt-1">
+                <Button variant="outline" className="gap-1.5" onClick={onCancel}>
+                  <ArrowLeft className="h-4 w-4" /> Back
+                </Button>
+                <Button
+                  className="flex-1 h-11 bg-violet-600 hover:bg-violet-500 text-white"
+                  disabled={pin.length < 6}
+                  onClick={handleSubmit}
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Mint now
+                </Button>
+              </div>
+            </>
+          )}
           <p className="text-[10px] text-center text-muted-foreground">
             Transaction gas fees are sponsored by Medialane.
           </p>

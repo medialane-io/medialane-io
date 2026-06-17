@@ -7,6 +7,7 @@ import { TxBuilder } from "@chipi-stack/core";
 import { decryptPrivateKey } from "@chipi-stack/backend";
 import { Account } from "starknet";
 import { starknetProvider } from "@/lib/starknet";
+import { mapWriteError } from "@/lib/chipi/map-write-error";
 import type { WalletCredentials } from "@/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────
@@ -59,36 +60,19 @@ export type ChipiTransactionStatus =
 function toFriendlyExecutionError(err: unknown): {
   message: string;
   isSessionMismatch: boolean;
+  recognized: boolean;
 } {
   const raw = err instanceof Error ? err.message : "Transaction failed";
-  // Chipi's decryptPrivateKey throws this exact string when the PIN doesn't
-  // match the encrypted key. It surfaces before our own `if (!privateKey)`
-  // guard runs, so we humanise it here for every flow that uses
-  // executeTransaction (collection create, listing, offer, mint, drop claim).
-  if (/Decryption resulted in empty string/i.test(raw)) {
-    return {
-      message: "Wrong PIN — that's not the code you set when you created your wallet. Try again.",
-      isSessionMismatch: false,
-    };
-  }
-  if (
-    /prepare.{0,3}typed.{0,3}data/i.test(raw) &&
-    /TRANSACTION_EXECUTION_ERROR|Paymaster\s+error/i.test(raw)
-  ) {
-    // This pattern is emitted for ANY paymaster simulation revert — a stale
-    // session-key whitelist is one cause, but so is a transient paymaster /
-    // sponsorship issue or a genuine on-chain revert. Don't assert the session
-    // is at fault as fact: suggest a retry first, then session refresh as a
-    // fallback. The raw reason is preserved by the caller (see catch block).
-    return {
-      message:
-        "We couldn't authorise this transaction with the network. Tap Try again — " +
-        "if it keeps failing, refresh your wallet session in Portfolio → Wallet " +
-        "(toggle \"Remember session\" off and back on), then retry.",
-      isSessionMismatch: true,
-    };
-  }
-  return { message: raw, isSessionMismatch: false };
+  // Single source of truth for write-error mapping (decrypt/unlock failures
+  // → auth-neutral message; paymaster/session-whitelist reverts → refresh hint).
+  const mapped = mapWriteError(raw);
+  return {
+    message: mapped.message,
+    isSessionMismatch: mapped.isSessionMismatch,
+    // "recognized" = we replaced the raw message → re-throw the friendly one so
+    // every catch-the-throw consumer (collection page, dialogs, …) shows it.
+    recognized: mapped.authHint || mapped.isSessionMismatch,
+  };
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────
@@ -227,10 +211,12 @@ export function useChipiTransaction() {
         const rawMessage = err instanceof Error ? err.message : String(err);
         console.error("[useChipiTransaction] execution failed:", rawMessage, err);
         // Re-throw with the user-facing message when we recognised the
-        // error pattern — downstream consumers (transfer-dialog, counter-
-        // offers-table, launchpad pages, claim buttons) all surface the
-        // throwable's `.message` directly in their error UI.
-        if (friendly.isSessionMismatch) throw new Error(friendly.message, { cause: err });
+        // error pattern — downstream consumers (collection create, transfer-
+        // dialog, counter-offers-table, launchpad pages, claim buttons) all
+        // surface the throwable's `.message` directly in their error UI, so the
+        // remap is only effective if it's on the thrown error (not just the
+        // hook's `error` state). The raw error is preserved as `cause`.
+        if (friendly.recognized) throw new Error(friendly.message, { cause: err });
         throw err;
       } finally {
         isSubmittingRef.current = false;

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PinDialog } from "@/components/chipi/pin-dialog";
+import { useWalletUnlock } from "@/hooks/use-wallet-unlock";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { useSessionKey } from "@/hooks/use-session-key";
@@ -61,7 +62,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
 
   const [selectedCollectionKey, setSelectedCollectionKey] = useState<string | null>(null);
   const [remixName, setRemixName] = useState("");
-  const [pinOpen, setPinOpen] = useState(false);
+  const { unlock, pinDialogProps } = useWalletUnlock();
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [newAssetLink, setNewAssetLink] = useState<string | null>(null);
@@ -101,11 +102,15 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
       setFormError("This collection is not enrolled in the registry.");
       return;
     }
-    setPinOpen(true);
+    // .catch handles unlock-level throws (e.g. passkey unavailable here).
+    void unlock(handleUnlocked).catch((err) => {
+      setApproveError(err instanceof Error ? err.message : "Could not unlock your wallet");
+      setLoading(false);
+    });
   };
 
-  const handlePin = async (pin: string) => {
-    setPinOpen(false);
+  // `secret` is the wallet-unlock material — a typed PIN or the passkey key.
+  const handleUnlocked = async (secret: string) => {
     if (!offer || !walletAddress || !effectiveCollectionKey || !selectedCollection) return;
     setLoading(true);
 
@@ -145,7 +150,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
         // read it back from the IPMinted event.
         const [valueLow, valueHigh] = encodeU256(BigInt(1));
         const result = await executeTransaction({
-          pin,
+          pin: secret,
           calls: [{
             contractAddress: selectedCollection.contractAddress,
             entrypoint: "mint_edition",
@@ -173,7 +178,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
         if (!mintCalls?.length) throw new Error("No mint calls returned");
 
         const mintResult = await executeTransaction({
-          pin,
+          pin: secret,
           calls: mintCalls,
         });
         if (mintResult.status === "reverted") throw new Error(mintResult.revertReason ?? "Mint reverted");
@@ -202,7 +207,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
         durationSeconds: 30 * 24 * 60 * 60,
         tokenStandard: standard === "ERC1155" ? "ERC1155" : undefined,
         amount: standard === "ERC1155" ? "1" : undefined,
-        pin,
+        pin: secret,
       });
 
       // 4. Poll for listing to get orderHash
@@ -358,9 +363,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
       </Dialog>
 
       <PinDialog
-        open={pinOpen}
-        onSubmit={handlePin}
-        onCancel={() => setPinOpen(false)}
+        {...pinDialogProps}
         title="Confirm licensed mint"
         description="Enter your PIN to mint the remix and create the listing."
       />

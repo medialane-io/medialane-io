@@ -6,6 +6,11 @@ export function looksLikeEncryptionFailure(message: string): boolean {
     m.includes("pin") ||
     m.includes("decrypt") ||
     m.includes("encryption") ||
-    m.includes("encryptkey")
+    m.includes("encryptkey") ||
+    // CryptoES throws these when AES decryption runs with the wrong key (wrong
+    // PIN / wrong auth method) — neither contains the words above, so without
+    // these the recovery hint never fired for ~30% of wrong-PIN cases.
+    m.includes("malformed utf-8") ||
+    m.includes("resulted in empty string")
   );
 }

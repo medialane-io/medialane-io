@@ -13,7 +13,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Coins, ExternalLink, TrendingUp, ArrowRight, ArrowLeft, Lock, Sparkles, ImagePlus, X, Loader2 } from "lucide-react";
 import { useUser, useAuth } from "@clerk/nextjs";
-import { usePasskeyAuth, usePasskeyStatus } from "@chipi-stack/chipi-passkey/hooks";
+import { useWalletAuthMethod } from "@/hooks/use-wallet-auth-method";
 import {
   getTokenBySymbol, formatAmount,
   validateCoinName as validateName,
@@ -65,8 +65,8 @@ export default function CoinCreatePage() {
   const { launch, status, error } = useLaunchCoin();
   // io wallets unlock with PIN or passkey — passkey-first when registered,
   // PIN dialog otherwise (the passkey-derived key rides the same param).
-  const { status: { hasPasskey, isSupported: passkeySupported } } = usePasskeyStatus();
-  const { authenticate, encryptKey } = usePasskeyAuth();
+  // Authoritative (cross-device) signal, not just the device-local flag.
+  const { usesPasskey, authenticate, encryptKey } = useWalletAuthMethod();
   const [authBusy, setAuthBusy] = useState(false);
 
   const [step, setStep] = useState<StudioStep>(1);
@@ -181,7 +181,7 @@ export default function CoinCreatePage() {
   const handleLaunchClick = async () => {
     if (!canLaunch || authBusy) return;
     if (!hasWallet) { setWalletSetupOpen(true); return; }
-    if (hasPasskey && passkeySupported) {
+    if (usesPasskey) {
       setAuthBusy(true);
       try {
         const key = encryptKey ?? (await authenticate());

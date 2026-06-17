@@ -32,6 +32,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { PinDialog } from "@/components/chipi/pin-dialog";
+import { useWalletUnlock } from "@/hooks/use-wallet-unlock";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
@@ -134,7 +135,7 @@ export default function CreateAssetPage() {
   );
 
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
-  const [pinOpen, setPinOpen] = useState(false);
+  const { unlock, pinDialogProps } = useWalletUnlock();
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -224,11 +225,19 @@ export default function CreateAssetPage() {
       setWalletSetupOpen(true);
       return;
     }
-    setPinOpen(true);
+    // Pass `values` through the closure — NOT via pendingValues state — because
+    // the passkey path runs synchronously, before a same-tick setState settles.
+    // The .catch handles unlock-level throws (e.g. passkey unavailable here).
+    void unlock((secret) => handleUnlocked(values, secret)).catch((err) => {
+      setMintError(err instanceof Error ? err.message : "Could not unlock your wallet");
+      setMintStep("error");
+    });
   };
 
-  const handlePin = async (pin: string) => {
-    setPinOpen(false);
+  // `secret` is the wallet-unlock material — a typed PIN or the passkey key.
+  // `pendingValues` (param) shadows the display-only state so the body reads the
+  // freshly-submitted values even on the synchronous passkey path.
+  const handleUnlocked = async (pendingValues: FormValues, secret: string) => {
     if (!pendingValues || !walletAddress) return;
 
     setMintError(null);
@@ -305,7 +314,7 @@ export default function CreateAssetPage() {
 
       // 3. Execute via ChipiPay
       const result = await executeTransaction({
-        pin,
+        pin: secret,
         calls: intentData.calls as ChipiCall[],
       });
 
@@ -739,9 +748,7 @@ export default function CreateAssetPage() {
       </div>
 
       <PinDialog
-        open={pinOpen}
-        onSubmit={handlePin}
-        onCancel={() => setPinOpen(false)}
+        {...pinDialogProps}
         title="Confirm mint"
         description="Enter your PIN to mint this asset onchain."
       />
@@ -751,7 +758,13 @@ export default function CreateAssetPage() {
         onOpenChange={setWalletSetupOpen}
         onSuccess={() => {
           setWalletSetupOpen(false);
-          setPinOpen(true);
+          // A wallet from this dialog is PIN-based — unlock takes the async PIN
+          // path, so pendingValues state is settled by this tick.
+          const v = pendingValues;
+          if (v) void unlock((secret) => handleUnlocked(v, secret)).catch((err) => {
+            setMintError(err instanceof Error ? err.message : "Could not unlock your wallet");
+            setMintStep("error");
+          });
         }}
       />
     </>

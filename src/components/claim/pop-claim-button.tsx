@@ -6,9 +6,9 @@ import { Loader2, CheckCircle2, Ban, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { PinDialog } from "@/components/chipi/pin-dialog";
+import { useWriteAction } from "@/hooks/use-write-action";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { MarketplaceErrorState, MarketplaceSuccessState } from "@/components/marketplace/marketplace-dialog-primitives";
-import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useUser } from "@clerk/nextjs";
 import { usePopClaimStatus } from "@/hooks/use-pop";
@@ -20,48 +20,29 @@ interface PopClaimButtonProps {
 
 export function PopClaimButton({ collectionAddress }: PopClaimButtonProps) {
   const { isSignedIn } = useUser();
-  const { walletAddress, hasWallet } = useSessionKey();
+  const { walletAddress } = useSessionKey();
   const { claimStatus, isLoading, mutate } = usePopClaimStatus(
     collectionAddress,
     walletAddress ?? null
   );
-  const { executeTransaction, isSubmitting } = useChipiTransaction();
-  const [pinOpen, setPinOpen] = useState(false);
-  const [walletSetupOpen, setWalletSetupOpen] = useState(false);
-  const [txResult, setTxResult] = useState<{
-    type: "success" | "error";
-    txHash?: string | null;
-    message?: string;
-  } | null>(null);
+  const action = useWriteAction();
+  const busy = action.status === "processing" || action.status === "confirming";
 
   const handleClaim = () => {
     if (!isSignedIn) {
       toast.error("Sign in to claim your credential");
       return;
     }
-    if (!hasWallet) {
-      setWalletSetupOpen(true);
-      return;
-    }
-    setPinOpen(true);
-  };
-
-  const handlePinSubmit = async (pin: string) => {
-    setPinOpen(false);
-    try {
-      const result = await executeTransaction({
-        pin,
+    // action.run gates wallet (opens setup) + unlock (passkey/PIN); we just
+    // execute and refresh claim status on confirm.
+    void action.run(async (secret) => {
+      const result = await action.executeTransaction({
+        pin: secret,
         calls: [{ contractAddress: collectionAddress, entrypoint: "claim", calldata: [] }],
       });
-      if (result.status === "confirmed") {
-        setTxResult({ type: "success", txHash: result.txHash });
-        mutate();
-      } else {
-        setTxResult({ type: "error", txHash: result.txHash, message: result.revertReason ?? "Transaction reverted" });
-      }
-    } catch (err) {
-      setTxResult({ type: "error", message: err instanceof Error ? err.message : "Claim failed" });
-    }
+      if (result.status === "confirmed") mutate();
+      return result;
+    });
   };
 
   if (isLoading) {
@@ -97,9 +78,9 @@ export function PopClaimButton({ collectionAddress }: PopClaimButtonProps) {
         size="sm"
         className="w-full gap-1.5"
         onClick={handleClaim}
-        disabled={isSubmitting}
+        disabled={busy}
       >
-        {isSubmitting ? (
+        {busy ? (
           <><Loader2 className="h-3.5 w-3.5 animate-spin" />Claiming…</>
         ) : (
           <><Award className="h-3.5 w-3.5" />Claim credential</>
@@ -107,44 +88,42 @@ export function PopClaimButton({ collectionAddress }: PopClaimButtonProps) {
       </Button>
 
       <PinDialog
-        open={pinOpen}
-        onSubmit={handlePinSubmit}
-        onCancel={() => setPinOpen(false)}
+        {...action.pinDialogProps}
         title="Claim your credential"
         description="Enter your PIN to mint your proof of participation onchain."
       />
 
       <WalletSetupDialog
-        open={walletSetupOpen}
-        onOpenChange={setWalletSetupOpen}
+        open={action.walletSetupOpen}
+        onOpenChange={action.setWalletSetupOpen}
       />
 
-      <Dialog open={!!txResult} onOpenChange={(open) => { if (!open) setTxResult(null); }}>
+      <Dialog open={action.status === "success" || action.status === "error"} onOpenChange={(open) => { if (!open) action.reset(); }}>
         <DialogContent className="max-w-[calc(100%-6px)] sm:max-w-md p-0 overflow-hidden gap-0 rounded-2xl">
           <DialogTitle className="sr-only">
-            {txResult?.type === "success" ? "Credential claimed" : "Credential claim failed"}
+            {action.status === "success" ? "Credential claimed" : "Credential claim failed"}
           </DialogTitle>
           <DialogDescription className="sr-only">
             Review the result of your credential claim transaction.
           </DialogDescription>
-          {txResult?.type === "success" ? (
+          {action.status === "success" ? (
             <MarketplaceSuccessState
               name="Credential"
               title="Credential claimed!"
               description="Your proof of participation is now on-chain."
-              txHash={txResult.txHash}
+              txHash={action.txHash}
               explorerUrl={EXPLORER_URL}
-              onDone={() => setTxResult(null)}
+              onDone={action.reset}
             />
-          ) : txResult ? (
+          ) : action.status === "error" ? (
             <MarketplaceErrorState
               name="Credential"
               title="Claim failed"
               description="The credential claim could not be completed."
-              error={txResult.message}
-              txHash={txResult.txHash}
+              error={action.error ?? undefined}
+              txHash={action.txHash}
               explorerUrl={EXPLORER_URL}
-              onDone={() => setTxResult(null)}
+              onDone={action.reset}
             />
           ) : null}
         </DialogContent>

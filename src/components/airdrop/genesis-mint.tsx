@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { useAuth, useUser, useClerk, SignUpButton } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useChipiWallet, isWebAuthnSupported, createWalletPasskey } from "@chipi-stack/nextjs";
-import { usePasskeyAuth, usePasskeyStatus } from "@chipi-stack/chipi-passkey/hooks";
+import { useWalletAuthMethod } from "@/hooks/use-wallet-auth-method";
 import { serializeByteArray } from "@/lib/cairo-calldata";
 import {
   Sparkles,
@@ -69,15 +69,17 @@ export function GenesisMint() {
   const { walletAddress, hasWallet, isLoadingWallet } = useSessionKey();
   const { executeTransaction, status, error: txError, reset } = useChipiTransaction();
 
-  const { status: { hasPasskey, isSupported: passkeySupported } } = usePasskeyStatus();
-  const { authenticate, encryptKey } = usePasskeyAuth();
+  // Authoritative passkey-vs-PIN (cross-device), not just the device-local flag.
+  const { usesPasskey, authenticate, encryptKey } = useWalletAuthMethod();
+  const passkeySupported = usesPasskey;
 
   const [authMethod, setAuthMethod] = useState<"pin" | "passkey">("pin");
   const [encryptionMismatch, setEncryptionMismatch] = useState<"pin" | "passkey" | null>(null);
 
+  // Seed from the authoritative signal; the user can still switch methods below.
   useEffect(() => {
-    if (passkeySupported && hasPasskey) setAuthMethod("passkey");
-  }, [passkeySupported, hasPasskey]);
+    setAuthMethod(usesPasskey ? "passkey" : "pin");
+  }, [usesPasskey]);
 
   const [mintStep, setMintStep] = useState<MintStep>("ready");
   const [mintPin, setMintPin] = useState("");

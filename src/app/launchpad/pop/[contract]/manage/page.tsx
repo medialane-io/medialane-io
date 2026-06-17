@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { FadeIn } from "@/components/ui/motion-primitives";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PinDialog } from "@/components/chipi/pin-dialog";
+import { useWalletUnlock } from "@/hooks/use-wallet-unlock";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
@@ -141,13 +142,9 @@ export default function PopManagePage({
   const { collection, isLoading } = useCollection(contract);
   const { executeTransaction, isSubmitting } = useChipiTransaction();
 
-  const [pinOpen, setPinOpen] = useState(false);
+  const { unlock, pinDialogProps } = useWalletUnlock();
   const [txResult, setTxResult] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
-  const [pendingCall, setPendingCall] = useState<{
-    calls: Array<{ contractAddress: string; entrypoint: string; calldata: string[] }>;
-    successMsg: string;
-  } | null>(null);
 
   const isOwner =
     walletAddress &&
@@ -159,28 +156,23 @@ export default function PopManagePage({
     successMsg: string
   ) => {
     if (!hasWallet) { setWalletSetupOpen(true); return; }
-    setPendingCall({ calls, successMsg });
-    setPinOpen(true);
-  };
-
-  const handlePinSubmit = async (pin: string) => {
-    if (!pendingCall) return;
-    setPinOpen(false);
-    const { calls, successMsg } = pendingCall;
-    setPendingCall(null);
-    try {
-      const result = await executeTransaction({
-        pin,
-        calls,
-      });
-      if (result.status === "confirmed") {
-        setTxResult({ type: "success", message: successMsg });
-      } else {
-        setTxResult({ type: "error", message: result.revertReason ?? "Transaction reverted" });
+    // `secret` is the wallet-unlock material — a typed PIN or the passkey key.
+    // The trailing .catch handles unlock-level throws (e.g. passkey unavailable)
+    // that fire before the inner callback runs.
+    void unlock(async (secret) => {
+      try {
+        const result = await executeTransaction({ pin: secret, calls });
+        if (result.status === "confirmed") {
+          setTxResult({ type: "success", message: successMsg });
+        } else {
+          setTxResult({ type: "error", message: result.revertReason ?? "Transaction reverted" });
+        }
+      } catch (err) {
+        setTxResult({ type: "error", message: err instanceof Error ? err.message : "Transaction failed" });
       }
-    } catch (err) {
-      setTxResult({ type: "error", message: err instanceof Error ? err.message : "Transaction failed" });
-    }
+    }).catch((err) => {
+      setTxResult({ type: "error", message: err instanceof Error ? err.message : "Could not unlock your wallet" });
+    });
   };
 
   const handleBatchAdd = (addresses: string[]) => {
@@ -332,9 +324,7 @@ export default function PopManagePage({
       </Dialog>
 
       <PinDialog
-        open={pinOpen}
-        onSubmit={handlePinSubmit}
-        onCancel={() => { setPinOpen(false); setPendingCall(null); }}
+        {...pinDialogProps}
         title="Confirm transaction"
         description="Enter your PIN to sign this on-chain operation."
       />
