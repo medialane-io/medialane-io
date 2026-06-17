@@ -12,6 +12,7 @@ import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useCollectionsByOwner, useCollection } from "@/hooks/use-collections";
 import { PinDialog } from "@/components/chipi/pin-dialog";
+import { useWalletUnlock } from "@/hooks/use-wallet-unlock";
 import { MintProgressDialog } from "@/components/marketplace/mint-progress-dialog";
 import type { MintStep } from "@/components/marketplace/mint-progress-dialog";
 import { Button } from "@/components/ui/button";
@@ -95,8 +96,8 @@ export default function CreateRemixPage() {
   const [royalty, setRoyalty] = useState("");
   const [advancedOpen, setAdvancedOpen] = useState(false);
 
-  // Owner mint flow
-  const [pinOpen, setPinOpen] = useState(false);
+  // Owner mint flow — unlocks with the wallet's own method (passkey or PIN).
+  const { unlock, pinDialogProps } = useWalletUnlock();
   const [mintStep, setMintStep] = useState<MintStep>("idle");
   const [mintError, setMintError] = useState<string | null>(null);
   const previewUrlRef = useRef<string | null>(null);
@@ -165,11 +166,11 @@ export default function CreateRemixPage() {
   const handleCreateSubmit = () => {
     const err = validate();
     if (err) { toast.error(err); return; }
-    setPinOpen(true);
+    void unlock(handleUnlocked);
   };
 
-  const handlePin = async (pin: string) => {
-    setPinOpen(false);
+  // `secret` is the wallet-unlock material — a typed PIN or the passkey key.
+  const handleUnlocked = async (secret: string) => {
     if (!walletAddress) return;
     setMintError(null);
     setMintStep("uploading");
@@ -243,7 +244,7 @@ export default function CreateRemixPage() {
         // read it back from the IPMinted event.
         const [valueLow, valueHigh] = encodeU256(BigInt(1));
         const result = await executeTransaction({
-          pin,
+          pin: secret,
           calls: [{
             contractAddress: selectedCollection.contractAddress,
             entrypoint: "mint_edition",
@@ -271,7 +272,7 @@ export default function CreateRemixPage() {
         const calls = mintIntent.calls as unknown as ChipiCall[];
         if (!calls?.length) throw new Error("No calls returned from mint intent");
 
-        const result = await executeTransaction({ pin, calls });
+        const result = await executeTransaction({ pin: secret, calls });
         if (result.status === "reverted") throw new Error(result.revertReason ?? "Mint reverted");
         txHash = result.txHash ?? "";
 
@@ -367,9 +368,7 @@ export default function CreateRemixPage() {
       />
 
       <PinDialog
-        open={pinOpen}
-        onSubmit={handlePin}
-        onCancel={() => setPinOpen(false)}
+        {...pinDialogProps}
         title="Confirm remix mint"
         description="Enter your PIN to mint this remix onchain."
       />

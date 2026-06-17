@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/form";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { PinDialog } from "@/components/chipi/pin-dialog";
+import { useWalletUnlock } from "@/hooks/use-wallet-unlock";
+import { looksLikeEncryptionFailure } from "@/lib/chipi/looks-like-encryption-failure";
 import { CollectionProgressDialog } from "@/components/marketplace/collection-progress-dialog";
 import type { CollectionStep } from "@/components/marketplace/collection-progress-dialog";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
@@ -82,12 +84,14 @@ export default function CreateCollectionPage() {
   const { executeTransaction, status, txHash } = useChipiTransaction();
   const { walletAddress } = useSessionKey();
   const client = useMedialaneClient();
+  // Unlocks with the wallet's own method — passkey (Face ID / Touch ID) or PIN.
+  const { unlock, pinDialogProps } = useWalletUnlock();
 
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
-  const [pinOpen, setPinOpen] = useState(false);
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
   const [collectionStep, setCollectionStep] = useState<CollectionStep>("idle");
   const [collectionError, setCollectionError] = useState<string | null>(null);
+  const [authHint, setAuthHint] = useState(false);
 
   // Image upload state
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -175,18 +179,25 @@ export default function CreateCollectionPage() {
       return;
     }
     setPendingValues(values);
+    setAuthHint(false);
     if (!hasWallet) {
       setWalletSetupOpen(true);
       return;
     }
-    setPinOpen(true);
+    // Pass `values` through the closure — NOT via pendingValues state — because
+    // the passkey path runs synchronously, before a same-tick setState settles.
+    void unlock((secret) => runCreate(values, secret));
   };
 
-  const handlePin = async (pin: string) => {
-    setPinOpen(false);
+  // `secret` is the wallet-unlock material: a typed PIN or the passkey-derived
+  // encrypt key. Both are passed to executeTransaction's `pin` param, which
+  // feeds decryptPrivateKey. `pendingValues` (param) shadows the display-only
+  // state so the body reads the freshly-submitted values.
+  const runCreate = async (pendingValues: FormValues, secret: string) => {
     if (!pendingValues || !walletAddress) return;
 
     setCollectionError(null);
+    setAuthHint(false);
     setCollectionStep("processing");
 
     try {
@@ -230,7 +241,7 @@ export default function CreateCollectionPage() {
 
       // 2. Execute the pre-signed calls via ChipiPay (gasless)
       const result = await executeTransaction({
-        pin,
+        pin: secret,
         calls,
       });
 
@@ -249,7 +260,11 @@ export default function CreateCollectionPage() {
       setCollectionStep("success");
       invalidatePortfolioCache(walletAddress);
     } catch (err: unknown) {
-      setCollectionError(err instanceof Error ? err.message : "Something went wrong");
+      const msg = err instanceof Error ? err.message : "Something went wrong";
+      setCollectionError(msg);
+      // A wrong-unlock failure means the entered PIN/passkey didn't match this
+      // wallet — surface the "check your unlock method" recovery hint.
+      setAuthHint(looksLikeEncryptionFailure(msg));
       setCollectionStep("error");
     }
   };
@@ -257,6 +272,7 @@ export default function CreateCollectionPage() {
   const handleCreateAnother = () => {
     setCollectionStep("idle");
     setCollectionError(null);
+    setAuthHint(false);
     form.reset();
     clearImage();
   };
@@ -271,6 +287,7 @@ export default function CreateCollectionPage() {
         imagePreview={imagePreview}
         txHash={txHash}
         error={collectionError}
+        authHint={authHint}
         onCreateAnother={handleCreateAnother}
       />
 
@@ -449,9 +466,7 @@ export default function CreateCollectionPage() {
       </div>
 
       <PinDialog
-        open={pinOpen}
-        onSubmit={handlePin}
-        onCancel={() => setPinOpen(false)}
+        {...pinDialogProps}
         title="Confirm collection creation"
         description="Enter your PIN to deploy your collection onchain."
       />
@@ -461,7 +476,10 @@ export default function CreateCollectionPage() {
         onOpenChange={setWalletSetupOpen}
         onSuccess={() => {
           setWalletSetupOpen(false);
-          setPinOpen(true);
+          // A wallet from this dialog is PIN-based (no passkey), so unlock takes
+          // the async PIN path — pendingValues state is settled by this tick.
+          const v = pendingValues;
+          if (v) void unlock((secret) => runCreate(v, secret));
         }}
       />
     </>

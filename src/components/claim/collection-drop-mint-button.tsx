@@ -6,6 +6,7 @@ import { Loader2, CheckCircle2, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { PinDialog } from "@/components/chipi/pin-dialog";
+import { useWalletUnlock } from "@/hooks/use-wallet-unlock";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { MarketplaceErrorState, MarketplaceSuccessState } from "@/components/marketplace/marketplace-dialog-primitives";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
@@ -59,7 +60,7 @@ export function CollectionDropMintButton({
   // Dedicated tx instance for the post-confirmation fee — separate from the
   // mint's, so its status state never collides with the claim flow.
   const { executeTransaction: executeFeeTransaction } = useChipiTransaction();
-  const [pinOpen, setPinOpen] = useState(false);
+  const { unlock, pinDialogProps } = useWalletUnlock();
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
   const [txResult, setTxResult] = useState<{
     type: "success" | "error";
@@ -89,11 +90,11 @@ export function CollectionDropMintButton({
       setWalletSetupOpen(true);
       return;
     }
-    setPinOpen(true);
+    void unlock(handleUnlocked);
   };
 
-  const handlePinSubmit = async (pin: string) => {
-    setPinOpen(false);
+  // `secret` is the wallet-unlock material — a typed PIN or the passkey key.
+  const handleUnlocked = async (secret: string) => {
     try {
       const calls: Array<{ contractAddress: string; entrypoint: string; calldata: string[] }> = [];
 
@@ -123,7 +124,7 @@ export function CollectionDropMintButton({
       });
 
       const result = await executeTransaction({
-        pin,
+        pin: secret,
         calls,
       });
 
@@ -138,7 +139,7 @@ export function CollectionDropMintButton({
             surface: "launchpad",
             token: conditions.paymentToken,
             grossAmount: price,
-            pin,
+            pin: secret,
             executeTransaction: executeFeeTransaction,
           });
         }
@@ -200,9 +201,7 @@ export function CollectionDropMintButton({
       )}
 
       <PinDialog
-        open={pinOpen}
-        onSubmit={handlePinSubmit}
-        onCancel={() => setPinOpen(false)}
+        {...pinDialogProps}
         title={isPaid ? `Mint for ${priceDisplay}` : "Mint your drop token"}
         description={
           isPaid

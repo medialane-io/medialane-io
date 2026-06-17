@@ -144,7 +144,9 @@ export default function MintIP1155Page() {
     setPinOpen(true);
   };
 
-  const handlePin = async (pin: string) => {
+  // `secret` is the wallet-unlock material — a typed PIN or the passkey key
+  // (the confirm dialog runs Face ID / Touch ID for passkey users).
+  const handlePin = async (secret: string) => {
     setPinOpen(false);
     if (!pendingValues || !walletAddress || !imageUri) return;
 
@@ -194,7 +196,7 @@ export default function MintIP1155Page() {
 
       // The contract assigns the edition id on-chain (sequential from 1).
       const result = await executeTransaction({
-        pin,
+        pin: secret,
         calls: [{
           contractAddress: collectionAddress,
           entrypoint: "mint_edition",

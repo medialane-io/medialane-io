@@ -31,6 +31,8 @@ interface CollectionProgressDialogProps {
   imagePreview: string | null;
   txHash: string | null;
   error: string | null;
+  /** When true, the error is a wrong PIN/passkey unlock — show the recovery hint. */
+  authHint?: boolean;
   onCreateAnother: () => void;
   /** Label for the "create another" button. Defaults to "Create another". */
   createAnotherLabel?: string;
@@ -69,6 +71,7 @@ export function CollectionProgressDialog({
   imagePreview,
   txHash,
   error,
+  authHint = false,
   onCreateAnother,
   createAnotherLabel = "Create another",
   firstStepLabel = "Create collection intent",
@@ -251,6 +254,17 @@ export function CollectionProgressDialog({
                 <p className="text-sm text-muted-foreground max-w-xs mx-auto">{error}</p>
               )}
             </div>
+
+            {authHint && (
+              <div className="w-full rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2">
+                <p className="text-xs text-destructive/90">
+                  Use the same unlock method you chose when you created your wallet —
+                  your <span className="font-medium">PIN</span> or{" "}
+                  <span className="font-medium">Face ID / Touch ID (passkey)</span>. If
+                  you set up a passkey, you won&apos;t need a PIN — tap Try again.
+                </p>
+              </div>
+            )}
 
             <Button variant="outline" className="w-full" onClick={onCreateAnother}>
               Try again

@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { PinDialog } from "@/components/chipi/pin-dialog";
+import { useWalletUnlock } from "@/hooks/use-wallet-unlock";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
@@ -36,7 +37,7 @@ export default function CreatePOPPage() {
 
   const [eventType, setEventType] = useState<PopEventType>("Conference");
   const [isPublic, setIsPublic] = useState(false);
-  const [pinOpen, setPinOpen] = useState(false);
+  const { unlock, pinDialogProps } = useWalletUnlock();
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
   const [pendingValues, setPendingValues] = useState<PopCreateFormValues | null>(null);
   const [done, setDone] = useState(false);
@@ -104,11 +105,14 @@ export default function CreatePOPPage() {
     }
     setPendingValues(values);
     if (!hasWallet) { setWalletSetupOpen(true); return; }
-    setPinOpen(true);
+    // Pass `values` through the closure — the passkey path runs synchronously,
+    // before a same-tick setState settles.
+    void unlock((secret) => handleUnlocked(values, secret));
   };
 
-  const handlePin = async (pin: string) => {
-    setPinOpen(false);
+  // `secret` is the wallet-unlock material — a typed PIN or the passkey key.
+  // `pendingValues` (param) shadows the display-only state.
+  const handleUnlocked = async (pendingValues: PopCreateFormValues, secret: string) => {
     if (!pendingValues || !walletAddress) return;
 
     let baseUri = "";
@@ -140,7 +144,7 @@ export default function CreatePOPPage() {
       ]);
 
       const result = await executeTransaction({
-        pin,
+        pin: secret,
         calls: [{
           contractAddress: POP_FACTORY_CONTRACT,
           entrypoint: "create_collection",
@@ -248,11 +252,11 @@ export default function CreatePOPPage() {
         </Form>
       </div>
 
-      <PinDialog open={pinOpen} onSubmit={handlePin} onCancel={() => setPinOpen(false)}
+      <PinDialog {...pinDialogProps}
         title="Deploy POP collection"
         description="Enter your PIN to deploy your event credential collection onchain." />
       <WalletSetupDialog open={walletSetupOpen} onOpenChange={setWalletSetupOpen}
-        onSuccess={() => { setWalletSetupOpen(false); setPinOpen(true); }} />
+        onSuccess={() => { setWalletSetupOpen(false); const v = pendingValues; if (v) void unlock((secret) => handleUnlocked(v, secret)); }} />
     </>
   );
 }

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyOrError } from "@/components/ui/empty-or-error";
 import { PinDialog } from "@/components/chipi/pin-dialog";
+import { useWalletUnlock } from "@/hooks/use-wallet-unlock";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
@@ -117,7 +118,7 @@ export function CounterOffersTable({ address }: { address: string }) {
   // Dedicated ChipiTransaction instance for the platform fee tx — must not
   // share state with the fulfill tx (mirrors purchase-dialog pattern).
   const { executeTransaction: executeFeeTransaction } = useChipiTransaction();
-  const [pinOpen, setPinOpen] = useState(false);
+  const { unlock, pinDialogProps } = useWalletUnlock();
   const [selectedCounter, setSelectedCounter] = useState<ApiOrder | null>(null);
   const [originalForSelected, setOriginalForSelected] = useState<ApiOrder | null>(null);
   // Explicit feedback state machine — every on-chain accept now shows
@@ -145,11 +146,14 @@ export function CounterOffersTable({ address }: { address: string }) {
   const handleAccept = (counter: ApiOrder, original: ApiOrder) => {
     setSelectedCounter(counter);
     setOriginalForSelected(original);
-    setPinOpen(true);
+    // Pass `counter` through the closure — the passkey path runs synchronously,
+    // before the setSelectedCounter above settles.
+    void unlock((secret) => handleUnlocked(counter, secret));
   };
 
-  const handlePin = async (pin: string) => {
-    setPinOpen(false);
+  // `secret` is the wallet-unlock material — a typed PIN or the passkey key.
+  // `selectedCounter` (param) shadows the display-only state.
+  const handleUnlocked = async (selectedCounter: ApiOrder, secret: string) => {
     if (!selectedCounter) return;
     setResultStep("processing");
     setResultError(null);
@@ -157,7 +161,7 @@ export function CounterOffersTable({ address }: { address: string }) {
     try {
       const hash = await fulfillOrder({
         orderHash: selectedCounter.orderHash,
-        pin,
+        pin: secret,
         tokenStandard: selectedCounter.consideration.itemType,
       });
       if (hash) {
@@ -178,7 +182,7 @@ export function CounterOffersTable({ address }: { address: string }) {
           surface: "marketplace",
           token: selectedCounter.consideration.token ?? "",
           grossAmount: feeGrossAmount,
-          pin,
+          pin: secret,
           executeTransaction: executeFeeTransaction,
         });
       } else {
@@ -245,9 +249,7 @@ export function CounterOffersTable({ address }: { address: string }) {
       </EmptyOrError>
 
       <PinDialog
-        open={pinOpen}
-        onSubmit={handlePin}
-        onCancel={() => { setPinOpen(false); setSelectedCounter(null); setOriginalForSelected(null); }}
+        {...pinDialogProps}
         title="Accept counter-offer"
         description={
           selectedCounter && originalForSelected

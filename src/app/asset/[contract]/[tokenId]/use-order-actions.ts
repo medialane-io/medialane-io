@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useMarketplace } from "@/hooks/use-marketplace";
+import { useWalletUnlock } from "@/hooks/use-wallet-unlock";
 import type { ApiOrder } from "@medialane/sdk";
 
 interface UseOrderActionsOptions {
@@ -12,31 +13,26 @@ interface UseOrderActionsOptions {
 
 export function useOrderActions({ mutateListings, tokenStandard }: UseOrderActionsOptions) {
   const { cancelOrder, isProcessing } = useMarketplace();
+  // Unlocks with the wallet's own method — passkey (no dialog) or PIN.
+  const { unlock, pinDialogProps } = useWalletUnlock();
 
   const [orderToCancel, setOrderToCancel] = useState<ApiOrder | null>(null);
-  const [cancelPinOpen, setCancelPinOpen] = useState(false);
   const [cancelStep, setCancelStep] = useState<"idle" | "processing" | "success" | "error">("idle");
   const [cancelError, setCancelError] = useState<string | null>(null);
 
-  const handleCancelClick = (order: ApiOrder) => {
-    setOrderToCancel(order);
-    setCancelPinOpen(true);
-  };
-
-  const handleCancelPin = async (pin: string) => {
-    setCancelPinOpen(false);
-    if (!orderToCancel) return;
+  // `secret` is the wallet-unlock material — a typed PIN or the passkey key.
+  const runCancel = async (order: ApiOrder, secret: string) => {
     setCancelStep("processing");
     setCancelError(null);
     try {
       // For bid orders, offer.itemType is "ERC20" and the NFT standard is in consideration.itemType
       const orderNftStandard =
-        orderToCancel.offer.itemType === "ERC20"
-          ? orderToCancel.consideration.itemType
-          : orderToCancel.offer.itemType;
+        order.offer.itemType === "ERC20"
+          ? order.consideration.itemType
+          : order.offer.itemType;
       await cancelOrder({
-        orderHash: orderToCancel.orderHash,
-        pin,
+        orderHash: order.orderHash,
+        pin: secret,
         tokenStandard: tokenStandard ?? orderNftStandard,
       });
       setCancelStep("success");
@@ -47,16 +43,23 @@ export function useOrderActions({ mutateListings, tokenStandard }: UseOrderActio
     }
   };
 
+  const handleCancelClick = (order: ApiOrder) => {
+    setOrderToCancel(order);
+    void unlock((secret) => runCancel(order, secret));
+  };
+
   return {
     isProcessing,
     orderToCancel,
-    cancelPinOpen,
+    // Same public shape as before — now backed by the passkey-or-PIN unlock
+    // hook, so consumers need no changes and passkey users skip the dialog.
+    cancelPinOpen: pinDialogProps.open,
     cancelStep,
     cancelError,
     handleCancelClick,
-    handleCancelPin,
+    handleCancelPin: pinDialogProps.onSubmit,
     dismissCancelPin: () => {
-      setCancelPinOpen(false);
+      pinDialogProps.onCancel();
       setOrderToCancel(null);
     },
     resetCancelStep: () => {

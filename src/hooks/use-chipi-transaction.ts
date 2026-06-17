@@ -59,16 +59,24 @@ export type ChipiTransactionStatus =
 function toFriendlyExecutionError(err: unknown): {
   message: string;
   isSessionMismatch: boolean;
+  recognized: boolean;
 } {
   const raw = err instanceof Error ? err.message : "Transaction failed";
-  // Chipi's decryptPrivateKey throws this exact string when the PIN doesn't
-  // match the encrypted key. It surfaces before our own `if (!privateKey)`
-  // guard runs, so we humanise it here for every flow that uses
-  // executeTransaction (collection create, listing, offer, mint, drop claim).
-  if (/Decryption resulted in empty string/i.test(raw)) {
+  // Chipi's decryptPrivateKey throws when the PIN doesn't match the encrypted
+  // key. A wrong PIN yields garbage bytes, so CryptoES surfaces it as EITHER
+  // "Decryption resulted in empty string" (~70%) OR "Malformed UTF-8 data"
+  // (~30%, when the garbage isn't valid UTF-8) — both before our own
+  // `if (!privateKey)` guard runs. We humanise both here for every flow that
+  // uses executeTransaction (collection create, listing, offer, mint, drop
+  // claim). The "Malformed UTF-8 data" branch is what reached users raw (the
+  // "Creation failed" report) before this mapping existed.
+  if (/Malformed UTF-8 data|Decryption resulted in empty string|Could not unlock wallet/i.test(raw)) {
     return {
-      message: "Wrong PIN — that's not the code you set when you created your wallet. Try again.",
+      // Auth-neutral: a wallet is unlocked by EITHER a PIN or a passkey, so don't
+      // assert "wrong PIN" (passkey users hit this path too and have no PIN).
+      message: "We couldn't unlock your wallet. Make sure you're using the unlock method you chose when you created it — your PIN, or Face ID / Touch ID — then try again.",
       isSessionMismatch: false,
+      recognized: true,
     };
   }
   if (
@@ -86,9 +94,10 @@ function toFriendlyExecutionError(err: unknown): {
         "if it keeps failing, refresh your wallet session in Portfolio → Wallet " +
         "(toggle \"Remember session\" off and back on), then retry.",
       isSessionMismatch: true,
+      recognized: true,
     };
   }
-  return { message: raw, isSessionMismatch: false };
+  return { message: raw, isSessionMismatch: false, recognized: false };
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────
@@ -227,10 +236,12 @@ export function useChipiTransaction() {
         const rawMessage = err instanceof Error ? err.message : String(err);
         console.error("[useChipiTransaction] execution failed:", rawMessage, err);
         // Re-throw with the user-facing message when we recognised the
-        // error pattern — downstream consumers (transfer-dialog, counter-
-        // offers-table, launchpad pages, claim buttons) all surface the
-        // throwable's `.message` directly in their error UI.
-        if (friendly.isSessionMismatch) throw new Error(friendly.message, { cause: err });
+        // error pattern — downstream consumers (collection create, transfer-
+        // dialog, counter-offers-table, launchpad pages, claim buttons) all
+        // surface the throwable's `.message` directly in their error UI, so the
+        // remap is only effective if it's on the thrown error (not just the
+        // hook's `error` state). The raw error is preserved as `cause`.
+        if (friendly.recognized) throw new Error(friendly.message, { cause: err });
         throw err;
       } finally {
         isSubmittingRef.current = false;

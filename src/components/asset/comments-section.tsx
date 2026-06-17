@@ -10,6 +10,7 @@ import { useComments } from "@/hooks/use-comments";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { PinDialog } from "@/components/chipi/pin-dialog";
+import { useWalletUnlock } from "@/hooks/use-wallet-unlock";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -60,7 +61,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
   const { executeTransaction } = useChipiTransaction();
 
   const [text, setText] = useState("");
-  const [pinOpen, setPinOpen] = useState(false);
+  const { unlock, pinDialogProps } = useWalletUnlock();
   const [postStep, setPostStep] = useState<PostStep>("idle");
   const [postTxHash, setPostTxHash] = useState<string | null>(null);
   const [postError, setPostError] = useState<string | null>(null);
@@ -99,12 +100,12 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey && canSubmit && !isProcessing) {
       e.preventDefault();
-      setPinOpen(true);
+      void unlock(handleUnlocked);
     }
   };
 
-  const handlePin = async (pin: string) => {
-    setPinOpen(false);
+  // `secret` is the wallet-unlock material — a typed PIN or the passkey key.
+  const handleUnlocked = async (secret: string) => {
     setPostStep("processing");
     setPostTxHash(null);
     setPostError(null);
@@ -114,7 +115,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
       const calldata = CallData.compile([contract, { low: tokenIdLow, high: tokenIdHigh }, encoded]);
 
       const result = await executeTransaction({
-        pin,
+        pin: secret,
         calls: [{ contractAddress: COMMENTS_CONTRACT, entrypoint: "add_comment", calldata }],
       });
 
@@ -339,7 +340,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
                       <TooltipTrigger asChild>
                         <span className={!canSubmit && !isProcessing ? "cursor-not-allowed" : undefined}>
                           <button
-                            onClick={() => setPinOpen(true)}
+                            onClick={() => void unlock(handleUnlocked)}
                             disabled={!canSubmit || isProcessing}
                             className="flex items-center gap-1.5 h-7 px-3 text-xs font-semibold rounded-full text-white transition-all hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
                             style={{ background: "linear-gradient(135deg, hsl(var(--brand-blue)), hsl(var(--brand-purple)))" }}
@@ -369,9 +370,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
 
       {/* ── PIN entry ── */}
       <PinDialog
-        open={pinOpen}
-        onSubmit={handlePin}
-        onCancel={() => setPinOpen(false)}
+        {...pinDialogProps}
         title="Post comment onchain"
         description="Enter your PIN to publish this comment permanently to Starknet."
       />

@@ -8,6 +8,7 @@ import { starknetProvider } from "@/lib/starknet";
 import { Package, CheckCircle2 } from "lucide-react";
 import { Form } from "@/components/ui/form";
 import { PinDialog } from "@/components/chipi/pin-dialog";
+import { useWalletUnlock } from "@/hooks/use-wallet-unlock";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
@@ -51,7 +52,7 @@ export default function CreateDropPage() {
   const [tokenDropdownOpen, setTokenDropdownOpen] = useState(false);
   const [selectedToken, setSelectedToken] = useState<PaymentTokenOption>(PAYMENT_TOKENS[0]);
 
-  const [pinOpen, setPinOpen] = useState(false);
+  const { unlock, pinDialogProps } = useWalletUnlock();
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
   const [pendingValues, setPendingValues] = useState<DropCreateFormValues | null>(null);
   const [done, setDone] = useState(false);
@@ -193,11 +194,14 @@ export default function CreateDropPage() {
     if (items.length === 0) { toast.error("Add at least one item"); return; }
     setPendingValues(values);
     if (!hasWallet) { setWalletSetupOpen(true); return; }
-    setPinOpen(true);
+    // Pass `values` through the closure — the passkey path runs synchronously,
+    // before a same-tick setState settles.
+    void unlock((secret) => handleUnlocked(values, secret));
   };
 
-  const handlePin = async (pin: string) => {
-    setPinOpen(false);
+  // `secret` is the wallet-unlock material — a typed PIN or the passkey key.
+  // `pendingValues` (param) shadows the display-only state.
+  const handleUnlocked = async (pendingValues: DropCreateFormValues, secret: string) => {
     if (!pendingValues || !walletAddress) return;
 
     let baseUri = "";
@@ -254,7 +258,7 @@ export default function CreateDropPage() {
       ]);
 
       const result = await executeTransaction({
-        pin,
+        pin: secret,
         calls: [{ contractAddress: DROP_FACTORY_CONTRACT, entrypoint: "create_drop", calldata: call.calldata as string[] }],
       });
 
@@ -270,7 +274,7 @@ export default function CreateDropPage() {
         if (dropAddress) {
           try {
             await executeTransaction({
-              pin,
+              pin: secret,
               calls: [
                 { contractAddress: dropAddress, entrypoint: "set_allowlist_enabled", calldata: ["1"] },
                 { contractAddress: dropAddress, entrypoint: "batch_add_to_allowlist", calldata: batchAllowlistCalldata(whitelist) },
@@ -380,16 +384,14 @@ export default function CreateDropPage() {
       </div>
 
       <PinDialog
-        open={pinOpen}
-        onSubmit={handlePin}
-        onCancel={() => setPinOpen(false)}
+        {...pinDialogProps}
         title="Deploy drop collection"
         description="Enter your PIN to deploy your limited-edition collection onchain."
       />
       <WalletSetupDialog
         open={walletSetupOpen}
         onOpenChange={setWalletSetupOpen}
-        onSuccess={() => { setWalletSetupOpen(false); setPinOpen(true); }}
+        onSuccess={() => { setWalletSetupOpen(false); const v = pendingValues; if (v) void unlock((secret) => handleUnlocked(v, secret)); }}
       />
     </>
   );
