@@ -30,9 +30,6 @@ const ALLOWED = [
 
 const EXEMPT = [
   "src/components/chipi/pin-dialog.tsx", // the component definition itself
-  // KNOWN GAP (tracked): "remember session" (SNIP-9) setup is PIN-only — passkey
-  // session-setup isn't supported yet. Fix when passkey session registration lands.
-  "src/components/chipi/session-preferences-modal.tsx",
 ];
 
 const hits = execSync('grep -rl "<PinDialog" src --include="*.tsx" || true', { encoding: "utf8" })
