@@ -6,7 +6,7 @@ import { Loader2, CheckCircle2, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { PinDialog } from "@/components/chipi/pin-dialog";
-import { useWalletUnlock } from "@/hooks/use-wallet-unlock";
+import { useWriteAction } from "@/hooks/use-write-action";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { MarketplaceErrorState, MarketplaceSuccessState } from "@/components/marketplace/marketplace-dialog-primitives";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
@@ -56,17 +56,11 @@ export function CollectionDropMintButton({
     collectionAddress,
     walletAddress ?? null
   );
-  const { executeTransaction, isSubmitting } = useChipiTransaction();
+  const action = useWriteAction();
+  const busy = action.status === "processing" || action.status === "confirming";
   // Dedicated tx instance for the post-confirmation fee — separate from the
   // mint's, so its status state never collides with the claim flow.
   const { executeTransaction: executeFeeTransaction } = useChipiTransaction();
-  const { unlock, pinDialogProps } = useWalletUnlock();
-  const [walletSetupOpen, setWalletSetupOpen] = useState(false);
-  const [txResult, setTxResult] = useState<{
-    type: "success" | "error";
-    txHash?: string | null;
-    message?: string;
-  } | null>(null);
 
   const price = getPriceBigInt(conditions);
   const isPaid = price > 0n;
@@ -86,69 +80,52 @@ export function CollectionDropMintButton({
       toast.error("Sign in to mint");
       return;
     }
-    if (!hasWallet) {
-      setWalletSetupOpen(true);
-      return;
-    }
-    void unlock(handleUnlocked);
+    // action.run gates wallet + unlock; we just build calls and execute.
+    void action.run(handleUnlocked);
   };
 
   // `secret` is the wallet-unlock material — a typed PIN or the passkey key.
   const handleUnlocked = async (secret: string) => {
-    try {
-      const calls: Array<{ contractAddress: string; entrypoint: string; calldata: string[] }> = [];
+    const calls: Array<{ contractAddress: string; entrypoint: string; calldata: string[] }> = [];
 
-      if (isPaid && conditions && conditions.paymentToken !== "0x0") {
-        // Verify the payment token is a known listable token before approving
-        const knownToken = getListableTokens().find(
-          (t) => t.address.toLowerCase() === conditions.paymentToken.toLowerCase()
-        );
-        if (!knownToken) {
-          setTxResult({ type: "error", message: "Unknown payment token — cannot proceed" });
-          return;
-        }
-        // ERC-20 approve(collectionAddress, price as u256)
-        const [priceLow, priceHigh] = u256CallData(price);
-        calls.push({
-          contractAddress: conditions.paymentToken,
-          entrypoint: "approve",
-          calldata: [collectionAddress, priceLow, priceHigh],
-        });
-      }
-
-      // claim(quantity: u256(1))
+    if (isPaid && conditions && conditions.paymentToken !== "0x0") {
+      // Verify the payment token is a known listable token before approving
+      const knownToken = getListableTokens().find(
+        (t) => t.address.toLowerCase() === conditions.paymentToken.toLowerCase()
+      );
+      if (!knownToken) throw new Error("Unknown payment token — cannot proceed");
+      // ERC-20 approve(collectionAddress, price as u256)
+      const [priceLow, priceHigh] = u256CallData(price);
       calls.push({
-        contractAddress: collectionAddress,
-        entrypoint: "claim",
-        calldata: ["1", "0"],
+        contractAddress: conditions.paymentToken,
+        entrypoint: "approve",
+        calldata: [collectionAddress, priceLow, priceHigh],
       });
-
-      const result = await executeTransaction({
-        pin: secret,
-        calls,
-      });
-
-      if (result.status === "confirmed") {
-        setTxResult({ type: "success", txHash: result.txHash });
-        mutate();
-        // Fee — un-awaited fire-and-forget; paid mints only. Only runs because
-        // the claim confirmed. Drop claim quantity is fixed at 1, so
-        // grossAmount = price.
-        if (isPaid && conditions && conditions.paymentToken !== "0x0") {
-          void chargePlatformFee({
-            surface: "launchpad",
-            token: conditions.paymentToken,
-            grossAmount: price,
-            pin: secret,
-            executeTransaction: executeFeeTransaction,
-          });
-        }
-      } else {
-        setTxResult({ type: "error", txHash: result.txHash, message: result.revertReason ?? "Transaction reverted" });
-      }
-    } catch (err) {
-      setTxResult({ type: "error", message: err instanceof Error ? err.message : "Mint failed" });
     }
+
+    // claim(quantity: u256(1))
+    calls.push({
+      contractAddress: collectionAddress,
+      entrypoint: "claim",
+      calldata: ["1", "0"],
+    });
+
+    const result = await action.executeTransaction({ pin: secret, calls });
+    if (result.status === "reverted") return result;
+
+    mutate();
+    // Fee — un-awaited fire-and-forget; paid mints only. Drop claim quantity is
+    // fixed at 1, so grossAmount = price.
+    if (isPaid && conditions && conditions.paymentToken !== "0x0") {
+      void chargePlatformFee({
+        surface: "launchpad",
+        token: conditions.paymentToken,
+        grossAmount: price,
+        pin: secret,
+        executeTransaction: executeFeeTransaction,
+      });
+    }
+    return result;
   };
 
   if (isLoading) {
@@ -180,9 +157,9 @@ export function CollectionDropMintButton({
         size="lg"
         className="w-full gap-1.5 bg-orange-600 hover:bg-orange-700 text-white"
         onClick={handleMint}
-        disabled={isSubmitting}
+        disabled={busy}
       >
-        {isSubmitting ? (
+        {busy ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin" />
             Minting…
@@ -201,7 +178,7 @@ export function CollectionDropMintButton({
       )}
 
       <PinDialog
-        {...pinDialogProps}
+        {...action.pinDialogProps}
         title={isPaid ? `Mint for ${priceDisplay}` : "Mint your drop token"}
         description={
           isPaid
@@ -211,36 +188,36 @@ export function CollectionDropMintButton({
       />
 
       <WalletSetupDialog
-        open={walletSetupOpen}
-        onOpenChange={setWalletSetupOpen}
+        open={action.walletSetupOpen}
+        onOpenChange={action.setWalletSetupOpen}
       />
 
-      <Dialog open={!!txResult} onOpenChange={(open) => { if (!open) setTxResult(null); }}>
+      <Dialog open={action.status === "success" || action.status === "error"} onOpenChange={(open) => { if (!open) action.reset(); }}>
         <DialogContent className="max-w-[calc(100%-6px)] sm:max-w-md p-0 overflow-hidden gap-0 rounded-2xl">
           <DialogTitle className="sr-only">
-            {txResult?.type === "success" ? "Drop mint complete" : "Drop mint failed"}
+            {action.status === "success" ? "Drop mint complete" : "Drop mint failed"}
           </DialogTitle>
           <DialogDescription className="sr-only">
             Review the result of your drop mint transaction.
           </DialogDescription>
-          {txResult?.type === "success" ? (
+          {action.status === "success" ? (
             <MarketplaceSuccessState
               name="Drop token"
               title="Mint complete!"
               description="Your drop token is now on-chain."
-              txHash={txResult.txHash}
+              txHash={action.txHash}
               explorerUrl={EXPLORER_URL}
-              onDone={() => setTxResult(null)}
+              onDone={action.reset}
             />
-          ) : txResult ? (
+          ) : action.status === "error" ? (
             <MarketplaceErrorState
               name="Drop token"
               title="Mint failed"
               description="The drop mint could not be completed."
-              error={txResult.message}
-              txHash={txResult.txHash}
+              error={action.error ?? undefined}
+              txHash={action.txHash}
               explorerUrl={EXPLORER_URL}
-              onDone={() => setTxResult(null)}
+              onDone={action.reset}
             />
           ) : null}
         </DialogContent>
