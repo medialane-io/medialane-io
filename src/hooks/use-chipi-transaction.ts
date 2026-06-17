@@ -7,6 +7,7 @@ import { TxBuilder } from "@chipi-stack/core";
 import { decryptPrivateKey } from "@chipi-stack/backend";
 import { Account } from "starknet";
 import { starknetProvider } from "@/lib/starknet";
+import { mapWriteError } from "@/lib/chipi/map-write-error";
 import type { WalletCredentials } from "@/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────
@@ -62,42 +63,16 @@ function toFriendlyExecutionError(err: unknown): {
   recognized: boolean;
 } {
   const raw = err instanceof Error ? err.message : "Transaction failed";
-  // Chipi's decryptPrivateKey throws when the PIN doesn't match the encrypted
-  // key. A wrong PIN yields garbage bytes, so CryptoES surfaces it as EITHER
-  // "Decryption resulted in empty string" (~70%) OR "Malformed UTF-8 data"
-  // (~30%, when the garbage isn't valid UTF-8) — both before our own
-  // `if (!privateKey)` guard runs. We humanise both here for every flow that
-  // uses executeTransaction (collection create, listing, offer, mint, drop
-  // claim). The "Malformed UTF-8 data" branch is what reached users raw (the
-  // "Creation failed" report) before this mapping existed.
-  if (/Malformed UTF-8 data|Decryption resulted in empty string|Could not unlock wallet/i.test(raw)) {
-    return {
-      // Auth-neutral: a wallet is unlocked by EITHER a PIN or a passkey, so don't
-      // assert "wrong PIN" (passkey users hit this path too and have no PIN).
-      message: "We couldn't unlock your wallet. Make sure you're using the unlock method you chose when you created it — your PIN, or Face ID / Touch ID — then try again.",
-      isSessionMismatch: false,
-      recognized: true,
-    };
-  }
-  if (
-    /prepare.{0,3}typed.{0,3}data/i.test(raw) &&
-    /TRANSACTION_EXECUTION_ERROR|Paymaster\s+error/i.test(raw)
-  ) {
-    // This pattern is emitted for ANY paymaster simulation revert — a stale
-    // session-key whitelist is one cause, but so is a transient paymaster /
-    // sponsorship issue or a genuine on-chain revert. Don't assert the session
-    // is at fault as fact: suggest a retry first, then session refresh as a
-    // fallback. The raw reason is preserved by the caller (see catch block).
-    return {
-      message:
-        "We couldn't authorise this transaction with the network. Tap Try again — " +
-        "if it keeps failing, refresh your wallet session in Portfolio → Wallet " +
-        "(toggle \"Remember session\" off and back on), then retry.",
-      isSessionMismatch: true,
-      recognized: true,
-    };
-  }
-  return { message: raw, isSessionMismatch: false, recognized: false };
+  // Single source of truth for write-error mapping (decrypt/unlock failures
+  // → auth-neutral message; paymaster/session-whitelist reverts → refresh hint).
+  const mapped = mapWriteError(raw);
+  return {
+    message: mapped.message,
+    isSessionMismatch: mapped.isSessionMismatch,
+    // "recognized" = we replaced the raw message → re-throw the friendly one so
+    // every catch-the-throw consumer (collection page, dialogs, …) shows it.
+    recognized: mapped.authHint || mapped.isSessionMismatch,
+  };
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────
