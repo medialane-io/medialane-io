@@ -33,6 +33,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { useWalletUnlock } from "@/hooks/use-wallet-unlock";
+import { recordWalletAuthMethod } from "@/lib/actions/wallet-auth-method";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
@@ -135,7 +136,7 @@ export default function CreateAssetPage() {
   );
 
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
-  const { unlock, pinDialogProps } = useWalletUnlock();
+  const { unlock, pinDialogProps, recordedMethod } = useWalletUnlock();
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -228,7 +229,7 @@ export default function CreateAssetPage() {
     // Pass `values` through the closure — NOT via pendingValues state — because
     // the passkey path runs synchronously, before a same-tick setState settles.
     // The .catch handles unlock-level throws (e.g. passkey unavailable here).
-    void unlock((secret) => handleUnlocked(values, secret)).catch((err) => {
+    void unlock((secret, method) => handleUnlocked(values, secret, method)).catch((err) => {
       setMintError(err instanceof Error ? err.message : "Could not unlock your wallet");
       setMintStep("error");
     });
@@ -237,7 +238,7 @@ export default function CreateAssetPage() {
   // `secret` is the wallet-unlock material — a typed PIN or the passkey key.
   // `pendingValues` (param) shadows the display-only state so the body reads the
   // freshly-submitted values even on the synchronous passkey path.
-  const handleUnlocked = async (pendingValues: FormValues, secret: string) => {
+  const handleUnlocked = async (pendingValues: FormValues, secret: string, method: "pin" | "passkey") => {
     if (!pendingValues || !walletAddress) return;
 
     setMintError(null);
@@ -335,6 +336,9 @@ export default function CreateAssetPage() {
       }
 
       setMintStep("success");
+      // Self-heal the authoritative record — `secret` just decrypted the wallet,
+      // so `method` is proven (corrects a stale "passkey" record on a PIN wallet).
+      if (method !== recordedMethod) void recordWalletAuthMethod(method);
       invalidatePortfolioCache(walletAddress);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Something went wrong";
@@ -761,7 +765,7 @@ export default function CreateAssetPage() {
           // A wallet from this dialog is PIN-based — unlock takes the async PIN
           // path, so pendingValues state is settled by this tick.
           const v = pendingValues;
-          if (v) void unlock((secret) => handleUnlocked(v, secret)).catch((err) => {
+          if (v) void unlock((secret, method) => handleUnlocked(v, secret, method)).catch((err) => {
             setMintError(err instanceof Error ? err.message : "Could not unlock your wallet");
             setMintStep("error");
           });

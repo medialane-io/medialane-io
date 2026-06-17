@@ -6,6 +6,7 @@ import { useWalletUnlock } from "@/hooks/use-wallet-unlock";
 import { useChipiTransaction, type ChipiTransactionStatus } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { mapWriteError } from "@/lib/chipi/map-write-error";
+import { recordWalletAuthMethod } from "@/lib/actions/wallet-auth-method";
 
 export type WriteStatus = "idle" | "processing" | "confirming" | "success" | "error";
 
@@ -35,7 +36,7 @@ interface UseWriteActionOptions {
 export function useWriteAction(opts: UseWriteActionOptions = {}) {
   const { session = "off", sessionAmountCap } = opts;
   const { isSignedIn } = useAuth();
-  const { unlock, pinDialogProps } = useWalletUnlock();
+  const { unlock, pinDialogProps, recordedMethod } = useWalletUnlock();
   const { executeTransaction, status: txStatus, txHash } = useChipiTransaction();
   const { hasWallet, walletAddress, hasActiveSession, setupSession } = useSessionKey();
 
@@ -57,7 +58,7 @@ export function useWriteAction(opts: UseWriteActionOptions = {}) {
       // `unlock` itself can throw before `prepare` runs — e.g. a passkey-only
       // wallet whose passkey is unavailable on this device — so wrap it too.
       try {
-        await unlock(async (secret) => {
+        await unlock(async (secret, method) => {
           setError(null);
           setAuthHint(false);
           setStatus("processing");
@@ -71,6 +72,10 @@ export function useWriteAction(opts: UseWriteActionOptions = {}) {
               throw new Error(result.revertReason || "Transaction reverted on chain");
             }
             setStatus("success");
+            // Self-heal the authoritative record: `secret` just decrypted the
+            // wallet, so `method` is PROVEN. Corrects stale/wrong records (e.g.
+            // a PIN wallet mis-flagged "passkey") and reliably records passkey.
+            if (method !== recordedMethod) void recordWalletAuthMethod(method);
           } catch (err: unknown) {
             const raw = err instanceof Error ? err.message : "Something went wrong";
             const mapped = mapWriteError(raw);
@@ -88,7 +93,7 @@ export function useWriteAction(opts: UseWriteActionOptions = {}) {
         setStatus("error");
       }
     },
-    [isSignedIn, walletAddress, hasWallet, unlock, session, sessionAmountCap, hasActiveSession, setupSession],
+    [isSignedIn, walletAddress, hasWallet, unlock, recordedMethod, session, sessionAmountCap, hasActiveSession, setupSession],
   );
 
   const reset = useCallback(() => {

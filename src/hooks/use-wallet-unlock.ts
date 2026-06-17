@@ -27,16 +27,21 @@ import { useWalletAuthMethod } from "@/hooks/use-wallet-auth-method";
  *   await unlock((secret) => executeTransaction({ pin: secret, calls }));
  *   <PinDialog {...pinDialogProps} title="…" description="…" />
  */
+export type UnlockMethod = "pin" | "passkey";
+/** The unlock callback. `method` is which path produced `secret` — pass it to
+ *  recordWalletAuthMethod on a PROVEN (decryption-confirmed) success to self-heal. */
+export type UnlockRun = (secret: string, method: UnlockMethod) => void | Promise<void>;
+
 export function useWalletUnlock() {
   // Passkey-vs-PIN HINT + passkey primitives, shared with the bespoke unlock
   // UIs (airdrop, wallet panel).
-  const { usesPasskey, authenticate, encryptKey } = useWalletAuthMethod();
+  const { usesPasskey, recordedMethod, authenticate, encryptKey } = useWalletAuthMethod();
 
   const [pinOpen, setPinOpen] = useState(false);
-  const runRef = useRef<((secret: string) => void | Promise<void>) | null>(null);
+  const runRef = useRef<UnlockRun | null>(null);
 
   const unlock = useCallback(
-    async (run: (secret: string) => void | Promise<void>) => {
+    async (run: UnlockRun) => {
       if (usesPasskey) {
         let key: string | null | undefined = null;
         try {
@@ -45,7 +50,7 @@ export function useWalletUnlock() {
           key = null; // passkey auth failed/cancelled
         }
         if (key) {
-          await run(key);
+          await run(key, "passkey");
           return;
         }
         // Passkey didn't yield a key. `usesPasskey` is only a HINT (a PIN wallet
@@ -63,7 +68,7 @@ export function useWalletUnlock() {
     setPinOpen(false);
     const run = runRef.current;
     runRef.current = null;
-    if (run) await run(pin);
+    if (run) await run(pin, "pin");
   }, []);
 
   const onCancel = useCallback(() => {
@@ -76,6 +81,8 @@ export function useWalletUnlock() {
     unlock,
     /** Whether this wallet unlocks with a passkey (true) or a PIN (false). */
     usesPasskey,
+    /** The authoritative recorded method, if any — used to skip redundant self-heal writes. */
+    recordedMethod,
     /** Spread onto a <PinDialog> — supply your own title/description. */
     pinDialogProps: { open: pinOpen, onSubmit, onCancel },
   };
