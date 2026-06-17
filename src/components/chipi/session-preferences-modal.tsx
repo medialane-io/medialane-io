@@ -23,6 +23,7 @@ import {
 } from "@/lib/chipi/session-preferences";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { useChipiSessionUnlock } from "@/contexts/chipi-session-unlock-context";
+import { useWalletAuthMethod } from "@/hooks/use-wallet-auth-method";
 
 const defaultPrefs = (): ChipiSessionPreferences => ({
   enabled: true,
@@ -47,6 +48,9 @@ export function SessionPreferencesModal({
   const { setSessionUnlockKey } = useChipiSessionUnlock();
   const { updateSessionPreferences, setupSession, isSettingUpSession, hasWallet } =
     useSessionKey();
+  // Passkey users have no PIN — unlock the session registration with Face ID /
+  // Touch ID instead of a PIN dialog.
+  const { usesPasskey, authenticate, encryptKey } = useWalletAuthMethod();
   const [mode, setMode] = useState<SessionPreferenceMode>("duration");
   const [durationMinutes, setDurationMinutes] = useState(60);
   const [maxUsdcAmount, setMaxUsdcAmount] = useState("100");
@@ -119,6 +123,14 @@ export function SessionPreferencesModal({
       const prefs = savePrefs();
       await updateSessionPreferences(prefs);
       pendingRegisterParamsRef.current = resolveSessionCreationParams(prefs);
+      // Passkey users unlock with Face ID / Touch ID — no PIN dialog. On
+      // failure, fall through to the PIN dialog so no one is hard-stuck.
+      if (usesPasskey) {
+        try {
+          const key = encryptKey ?? (await authenticate());
+          if (key) { await runSessionSetup(key); return; }
+        } catch { /* fall through to PIN entry */ }
+      }
       setPinOpen(true);
     } catch (e) {
       toast.error("Could not save preferences", {
@@ -126,6 +138,26 @@ export function SessionPreferencesModal({
       });
     } finally {
       setSaving(false);
+    }
+  };
+
+  // `secret` is the wallet-unlock material — a typed PIN or the passkey key.
+  const runSessionSetup = async (secret: string) => {
+    try {
+      const override = pendingRegisterParamsRef.current ?? undefined;
+      pendingRegisterParamsRef.current = null;
+      await setupSession(secret, override);
+      setSessionUnlockKey(secret);
+      setPinOpen(false);
+      onOpenChange(false);
+      toast.success("Session registered.", {
+        description:
+          "You can complete transactions without re-registering until this session expires.",
+      });
+    } catch (e) {
+      toast.error("Session registration failed", {
+        description: e instanceof Error ? e.message : "Try again.",
+      });
     }
   };
 
@@ -243,24 +275,7 @@ export function SessionPreferencesModal({
           pendingRegisterParamsRef.current = null;
           setPinOpen(false);
         }}
-        onSubmit={async (pin) => {
-          try {
-            const override = pendingRegisterParamsRef.current ?? undefined;
-            pendingRegisterParamsRef.current = null;
-            await setupSession(pin, override);
-            setSessionUnlockKey(pin);
-            setPinOpen(false);
-            onOpenChange(false);
-            toast.success("Session registered.", {
-              description:
-                "You can complete transactions without re-registering until this session expires.",
-            });
-          } catch (e) {
-            toast.error("Session registration failed", {
-              description: e instanceof Error ? e.message : "Try again.",
-            });
-          }
-        }}
+        onSubmit={(pin) => runSessionSetup(pin)}
         title="Authorize session registration"
         description="Enter your PIN to create and register a signing session on-chain."
       />
