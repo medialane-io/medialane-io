@@ -54,28 +54,39 @@ export function useWriteAction(opts: UseWriteActionOptions = {}) {
         return;
       }
       // Passes the unlock secret through the branch (passkey: silent; PIN: dialog).
-      await unlock(async (secret) => {
-        setError(null);
-        setAuthHint(false);
-        setStatus("processing");
-        try {
-          if (session === "activate") {
-            if (sessionAmountCap && runOpts?.value != null) await sessionAmountCap(runOpts.value);
-            if (!hasActiveSession) await setupSession(secret);
+      // `unlock` itself can throw before `prepare` runs — e.g. a passkey-only
+      // wallet whose passkey is unavailable on this device — so wrap it too.
+      try {
+        await unlock(async (secret) => {
+          setError(null);
+          setAuthHint(false);
+          setStatus("processing");
+          try {
+            if (session === "activate") {
+              if (sessionAmountCap && runOpts?.value != null) await sessionAmountCap(runOpts.value);
+              if (!hasActiveSession) await setupSession(secret);
+            }
+            const result = await prepare(secret);
+            if (result.status === "reverted") {
+              throw new Error(result.revertReason || "Transaction reverted on chain");
+            }
+            setStatus("success");
+          } catch (err: unknown) {
+            const raw = err instanceof Error ? err.message : "Something went wrong";
+            const mapped = mapWriteError(raw);
+            setError(mapped.message);
+            setAuthHint(mapped.authHint);
+            setStatus("error");
           }
-          const result = await prepare(secret);
-          if (result.status === "reverted") {
-            throw new Error(result.revertReason || "Transaction reverted on chain");
-          }
-          setStatus("success");
-        } catch (err: unknown) {
-          const raw = err instanceof Error ? err.message : "Something went wrong";
-          const mapped = mapWriteError(raw);
-          setError(mapped.message);
-          setAuthHint(mapped.authHint);
-          setStatus("error");
-        }
-      });
+        });
+      } catch (unlockErr: unknown) {
+        // Unlock-level failure (e.g. passkey required but unavailable here).
+        const raw = unlockErr instanceof Error ? unlockErr.message : "Could not unlock your wallet";
+        const mapped = mapWriteError(raw);
+        setError(mapped.message);
+        setAuthHint(true);
+        setStatus("error");
+      }
     },
     [isSignedIn, walletAddress, hasWallet, unlock, session, sessionAmountCap, hasActiveSession, setupSession],
   );

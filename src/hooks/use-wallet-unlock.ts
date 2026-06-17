@@ -1,7 +1,9 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useUser } from "@clerk/nextjs";
 import { usePasskeyAuth, usePasskeyStatus } from "@chipi-stack/chipi-passkey/hooks";
+import { recordWalletAuthMethod, type WalletAuthMethod } from "@/lib/actions/wallet-auth-method";
 
 /**
  * Wallet-unlock orchestration shared by every write flow.
@@ -11,6 +13,12 @@ import { usePasskeyAuth, usePasskeyStatus } from "@chipi-stack/chipi-passkey/hoo
  * them out: `decryptPrivateKey` runs with the wrong secret and fails as
  * "Malformed UTF-8 data" / "Decryption resulted in empty string".
  *
+ * Authoritative vs device-local signal: ChipiPay's `hasWalletPasskey()` reads
+ * `localStorage` only — it's device-local, so a passkey user on a fresh
+ * browser reads `false`. We therefore prefer the cross-device record we keep
+ * in Clerk `publicMetadata.walletAuthMethod` (see `recordWalletAuthMethod`),
+ * and use the device-local flag only as a fallback / to backfill the record.
+ *
  * This hook centralises the decision so flows never hard-code a PIN prompt:
  *  - passkey users unlock silently with Face ID / Touch ID (no PIN dialog);
  *  - PIN users get the PIN dialog;
@@ -18,42 +26,65 @@ import { usePasskeyAuth, usePasskeyStatus } from "@chipi-stack/chipi-passkey/hoo
  *
  * Usage:
  *   const { unlock, pinDialogProps } = useWalletUnlock();
- *   // when the user confirms an action (after any wallet-setup gate):
  *   await unlock((secret) => executeTransaction({ pin: secret, calls }));
- *   // render once:
  *   <PinDialog {...pinDialogProps} title="…" description="…" />
- *
- * The `secret` passed to the callback is the unlock material — a typed PIN or
- * the passkey-derived encrypt key — and goes straight to executeTransaction's
- * `pin` param (which feeds decryptPrivateKey).
  */
 export function useWalletUnlock() {
+  const { user } = useUser();
   const { status: { hasPasskey, isSupported } } = usePasskeyStatus();
   const { authenticate, encryptKey } = usePasskeyAuth();
 
   const [pinOpen, setPinOpen] = useState(false);
-  // The pending action, held while the PIN dialog is open.
   const runRef = useRef<((secret: string) => void | Promise<void>) | null>(null);
 
-  const usesPasskey = hasPasskey && isSupported;
+  // Authoritative, cross-device record of the wallet's unlock method.
+  const recordedMethod = user?.publicMetadata?.walletAuthMethod as WalletAuthMethod | undefined;
+  const deviceHasPasskey = hasPasskey && isSupported;
+
+  // A wallet uses a passkey if the authoritative record says so, or — when we
+  // have no record yet — if THIS device holds a passkey credential.
+  const usesPasskey = recordedMethod === "passkey" || (recordedMethod == null && deviceHasPasskey);
+
+  // Opportunistic backfill: the first time a device reports a local passkey but
+  // the cross-device record isn't "passkey" yet, persist it. This upgrades
+  // existing passkey users (who predate this record) so other devices route
+  // them to passkey instead of a PIN that can never decrypt their key.
+  const backfilledRef = useRef(false);
+  useEffect(() => {
+    if (backfilledRef.current) return;
+    if (deviceHasPasskey && recordedMethod !== "passkey") {
+      backfilledRef.current = true;
+      void recordWalletAuthMethod("passkey").then((r) => { if (r.ok) void user?.reload(); });
+    }
+  }, [deviceHasPasskey, recordedMethod, user]);
 
   const unlock = useCallback(
     async (run: (secret: string) => void | Promise<void>) => {
       if (usesPasskey) {
+        let key: string | null | undefined = null;
         try {
-          const key = encryptKey ?? (await authenticate());
-          if (key) {
-            await run(key);
-            return;
-          }
+          key = encryptKey ?? (await authenticate());
         } catch {
-          /* passkey auth failed/cancelled — fall through to PIN entry */
+          key = null; // passkey auth failed/cancelled
         }
+        if (key) {
+          await run(key);
+          return;
+        }
+        // Passkey is the wallet's only method and it didn't yield a key. Falling
+        // back to a PIN dialog would just fail (the key is passkey-sealed), so
+        // surface a clear, actionable error instead of a doomed PIN prompt.
+        if (recordedMethod === "passkey") {
+          throw new Error(
+            "This wallet unlocks with Face ID / Touch ID. Approve the prompt to continue — or open it on the device where you set up your passkey."
+          );
+        }
+        // Device-only guess (no authoritative record) — fall through to PIN.
       }
       runRef.current = run;
       setPinOpen(true);
     },
-    [usesPasskey, encryptKey, authenticate],
+    [usesPasskey, recordedMethod, encryptKey, authenticate],
   );
 
   const onSubmit = useCallback(async (pin: string) => {
