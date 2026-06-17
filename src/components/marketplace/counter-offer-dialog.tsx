@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -34,8 +33,7 @@ import { useMarketplaceActionFlow } from "@/hooks/use-marketplace-action-flow";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { EXPLORER_URL, DURATION_OPTIONS } from "@/lib/constants";
 import { marketplacePriceField, counterOfferDurationField } from "@/lib/marketplace-schemas";
-import { isWebAuthnSupported } from "@chipi-stack/nextjs";
-import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
+import { useWalletAuthMethod } from "@/hooks/use-wallet-auth-method";
 
 /** Convert a human-readable amount string to raw wei integer string. */
 function toRawWei(humanAmount: string, decimals: number): string {
@@ -86,10 +84,8 @@ export function CounterOfferDialog({
     resetState,
   } = useMarketplace();
 
-  const [passkeySupported] = useState(
-    () => typeof window !== "undefined" && isWebAuthnSupported()
-  );
-  const { authenticate, encryptKey } = usePasskeyAuth();
+  // Authoritative passkey-vs-PIN (cross-device), not just device-local WebAuthn support.
+  const { authenticate, encryptKey } = useWalletAuthMethod();
 
   const {
     walletSetupOpen,

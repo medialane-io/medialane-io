@@ -40,8 +40,7 @@ import {
   MarketplaceErrorState,
 } from "@/components/marketplace/marketplace-dialog-primitives";
 import { EXPLORER_URL } from "@/lib/constants";
-import { isWebAuthnSupported } from "@chipi-stack/nextjs";
-import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
+import { useWalletAuthMethod } from "@/hooks/use-wallet-auth-method";
 
 const schema = z.object({
   toAddress: z
@@ -97,10 +96,8 @@ export function TransferDialog({
   } = useTransfer();
 
   const { tokenStandard: resolvedStandard } = useResolvedTokenStandard(contractAddress, tokenStandard);
-  const [passkeySupported] = useState(
-    () => typeof window !== "undefined" && isWebAuthnSupported()
-  );
-  const { authenticate, encryptKey } = usePasskeyAuth();
+  // Authoritative passkey-vs-PIN (cross-device), not just device-local WebAuthn support.
+  const { usesPasskey, authenticate, encryptKey } = useWalletAuthMethod();
 
   const [step, setStep] = useState<Step>("form");
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
@@ -336,7 +333,7 @@ export function TransferDialog({
                 onPrimary={handlePin}
                 primaryDisabled={pin.length < 6 || isProcessing}
                 primaryIcon={<ArrowRightLeft className="h-4 w-4" />}
-                passkeySupported={passkeySupported && !!encryptKey}
+                passkeySupported={usesPasskey}
                 isAuthenticatingPasskey={isAuthenticatingPasskey}
                 onUsePasskey={handleUsePasskey}
                 footer={shieldFooter}

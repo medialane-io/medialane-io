@@ -27,8 +27,7 @@ import { EXPLORER_URL } from "@/lib/constants";
 import type { ApiOrder } from "@medialane/sdk";
 import { formatDisplayPrice, ipfsToHttp } from "@/lib/utils";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
-import { isWebAuthnSupported } from "@chipi-stack/nextjs";
-import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
+import { useWalletAuthMethod } from "@/hooks/use-wallet-auth-method";
 import { orderPriceToUsdcNumber } from "@/lib/chipi/session-preferences";
 
 interface PurchaseDialogProps {
@@ -213,10 +212,8 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
     ? Math.max(1, parseInt(order.remainingAmount ?? order.offer.startAmount ?? "1", 10))
     : 1;
 
-  const [passkeySupported] = useState(
-    () => typeof window !== "undefined" && isWebAuthnSupported()
-  );
-  const { authenticate, encryptKey } = usePasskeyAuth();
+  // Authoritative passkey-vs-PIN (cross-device), not just device-local WebAuthn support.
+  const { usesPasskey, authenticate, encryptKey } = useWalletAuthMethod();
 
   const handlePurchaseSuccess = (hash: string | null) => {
     setSuccessTxHash(hash ?? null);
@@ -376,7 +373,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
                 onPrimary={handlePin}
                 primaryDisabled={pin.length < 6}
                 primaryIcon={<ShoppingCart className="h-4 w-4" />}
-                passkeySupported={passkeySupported && !!encryptKey}
+                passkeySupported={usesPasskey}
                 isAuthenticatingPasskey={isAuthenticatingPasskey}
                 onUsePasskey={handleUsePasskey}
                 footer={(

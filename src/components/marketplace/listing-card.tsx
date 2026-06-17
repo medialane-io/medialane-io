@@ -20,8 +20,7 @@ import { useMarketplace } from "@/hooks/use-marketplace";
 import { MarketplacePinStep, MarketplaceDialogHero } from "@/components/marketplace/marketplace-dialog-primitives";
 import { CancelListingDialog } from "@/app/asset/[contract]/[tokenId]/cancel-listing-dialog";
 import { ReportDialog } from "@/components/report-dialog";
-import { isWebAuthnSupported } from "@chipi-stack/nextjs";
-import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
+import { useWalletAuthMethod } from "@/hooks/use-wallet-auth-method";
 import type { ApiOrder } from "@medialane/sdk";
 
 export { ListingCardSkeleton };
@@ -45,10 +44,9 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
   const router = useRouter();
   const { mutate } = useSWRConfig();
   const { cancelOrder } = useMarketplace();
-  const { authenticate, encryptKey } = usePasskeyAuth();
-  const [passkeySupported] = useState(() => typeof window !== "undefined" && isWebAuthnSupported());
-  // User has passkey if WebAuthn is available AND they set up a passkey-derived encrypt key
-  const isPasskeyUser = passkeySupported && !!encryptKey;
+  // Authoritative passkey-vs-PIN (cross-device), not just device-local WebAuthn support.
+  const { usesPasskey, authenticate, encryptKey } = useWalletAuthMethod();
+  const isPasskeyUser = usesPasskey;
 
   const [reportOpen, setReportOpen] = useState(false);
 

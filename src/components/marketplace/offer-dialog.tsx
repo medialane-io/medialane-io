@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useSWRConfig } from "swr";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -36,8 +36,7 @@ import { getListableTokens } from "@medialane/sdk";
 import { useWallet } from "@/hooks/use-wallet";
 import { useTokenBalance, hasSufficientBalance } from "@/hooks/use-erc20-balance";
 import { marketplacePriceField, marketplaceCurrencyField, marketplaceDurationField } from "@/lib/marketplace-schemas";
-import { isWebAuthnSupported } from "@chipi-stack/nextjs";
-import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
+import { useWalletAuthMethod } from "@/hooks/use-wallet-auth-method";
 
 const CURRENCIES = getListableTokens().map((t) => t.symbol);
 
@@ -86,10 +85,8 @@ export function OfferDialog({
     resetState,
   } = useMarketplace();
 
-  const [passkeySupported] = useState(
-    () => typeof window !== "undefined" && isWebAuthnSupported()
-  );
-  const { authenticate, encryptKey } = usePasskeyAuth();
+  // Authoritative passkey-vs-PIN (cross-device), not just device-local WebAuthn support.
+  const { usesPasskey, authenticate, encryptKey } = useWalletAuthMethod();
 
   const {
     walletSetupOpen,
@@ -287,7 +284,7 @@ export function OfferDialog({
                 onPrimary={handlePin}
                 primaryDisabled={pin.length < 6}
                 primaryIcon={<HandCoins className="h-4 w-4" />}
-                passkeySupported={passkeySupported && !!encryptKey}
+                passkeySupported={usesPasskey}
                 isAuthenticatingPasskey={isAuthenticatingPasskey}
                 onUsePasskey={handleUsePasskey}
                 footer={shieldFooter}
