@@ -3,8 +3,9 @@
 import { useCallback } from "react";
 import { toast } from "sonner";
 import type { WalletData } from "@chipi-stack/types";
+import { getStoredCredential } from "@chipi-stack/chipi-passkey";
 import { migratePinWalletToPasskey } from "@/lib/chipi/wallet/migrate-pin-wallet-to-passkey";
-import { recordWalletAuthMethod } from "@/lib/actions/wallet-auth-method";
+import { recordWalletAuthMethod, recordPasskeyCredential, type PasskeyCredentialRecord } from "@/lib/actions/wallet-auth-method";
 
 type Params = {
   wallet: WalletData | null;
@@ -68,6 +69,10 @@ export function usePinMigrationHandler(params: Params) {
         // Persist the authoritative, cross-device record — the wallet is now
         // passkey-sealed, so other devices must route to passkey, not PIN.
         void recordWalletAuthMethod("passkey");
+        // Mirror the fresh passkey credential handle so other devices can target
+        // the synced passkey immediately (not just on their next app load).
+        const cred = getStoredCredential() as PasskeyCredentialRecord | null;
+        if (cred?.credentialId) void recordPasskeyCredential(cred);
         setPin("");
         setIsPinMigrationDialogOpen(false);
         toast.success("Wallet migrated to passkey.", {
