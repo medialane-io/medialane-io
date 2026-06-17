@@ -45,7 +45,16 @@ export function useOrderActions({ mutateListings, tokenStandard }: UseOrderActio
 
   const handleCancelClick = (order: ApiOrder) => {
     setOrderToCancel(order);
-    void unlock((secret) => runCancel(order, secret));
+    // `unlock` can throw before runCancel executes (e.g. a passkey-only wallet
+    // whose passkey is unavailable here) — surface it in the cancel result state.
+    void (async () => {
+      try {
+        await unlock((secret) => runCancel(order, secret));
+      } catch (err: unknown) {
+        setCancelStep("error");
+        setCancelError(err instanceof Error ? err.message : "Could not unlock your wallet");
+      }
+    })();
   };
 
   return {
