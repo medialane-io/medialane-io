@@ -235,6 +235,59 @@ charged on failed buys (tx `0x61c84020…`). Spec:
 - `starknetProvider` (`src/lib/starknet.ts`) is configured `blockIdentifier: "latest"` —
   the RPC rejects the default `"pending"` block tag (`-32602: Invalid block id`).
 
+### Write pipeline & wallet unlock (2026-06-17/18)
+
+Every wallet-signed write goes through one layered pipeline. **Do not hand-roll
+a PIN dialog or call `decryptPrivateKey` directly in a flow** — use these:
+
+```
+useWriteAction   gate (signed-in/wallet) → unlock → execute → result + self-heal
+  └─ useWalletUnlock      passkey-or-PIN branch; renders the PIN dialog
+       └─ useWalletAuthMethod   "does this wallet unlock with PIN or passkey?"
+  └─ useChipiTransaction       the atomic executor (above)
+```
+
+- **`useWriteAction`** (`src/hooks/use-write-action.ts`) — the orchestration
+  primitive. `action.run((secret) => executeTransaction({ pin: secret, calls }))`.
+  Owns status/error/`authHint`, the wallet-setup gate (re-runs after setup via
+  `rerunAfterWalletSetup`), opt-in SNIP-9 session (`{ session: "activate" }`), and
+  the **auth-method self-heal** (on a decryption-proven success it records the
+  method that actually worked). Render `<TransactionDialog action={action}>` for
+  the result UI (progress/error/recovery-hint/PIN; success is a `children` slot)
+  and `<WalletSetupGate action={action} />` for first-time wallet setup.
+- **`useWalletUnlock`** (`src/hooks/use-wallet-unlock.ts`) — passkey-or-PIN. A
+  wallet is sealed by **EITHER a PIN or a passkey, never both**. A passkey user
+  has no PIN, so a PIN-only flow locks them out (`decryptPrivateKey` →
+  "Malformed UTF-8 data"). The unlock callback is `run(secret, method)`.
+- **`useWalletAuthMethod`** (`src/hooks/use-wallet-auth-method.ts`) — the
+  authoritative signal. ChipiPay's `hasWalletPasskey()` reads **localStorage
+  only** (device-local), so the truth lives in Clerk
+  `publicMetadata.walletAuthMethod` (`recordWalletAuthMethod` server action),
+  written ONLY on proven events (migration, verified unlock). The device flag is
+  a hint only.
+- **`usePasskeyCredentialSync`** (mounted in `providers.tsx`) — mirrors the
+  PUBLIC passkey credential handle through Clerk so a synced passkey unlocks
+  cross-device (the PRF key is identical across the user's devices).
+- **`mapWriteError`** (`src/lib/chipi/map-write-error.ts`) — the single
+  write-error → user-message + `authHint` mapper. Messages are **auth-neutral**
+  (PIN *or* passkey — never assert "wrong PIN").
+- **`useFeeCharge`** (`src/hooks/use-fee-charge.ts`) — platform-fee charging on a
+  dedicated tx instance. Don't wire a second `useChipiTransaction` by hand.
+
+**Two iron rules (locked by the 2026-06-17 regression):**
+1. **Never derive the authoritative `walletAuthMethod` from a device-local
+   signal** (`hasWalletPasskey()`). A stray localStorage credential ≠ the wallet
+   is passkey-sealed; doing so mis-flagged PIN wallets and locked PIN users out.
+2. **`unlock` must NEVER hard-fail** — always fall back to the PIN dialog. A
+   passkey user can cancel and retry; a PIN user enters their PIN. Record the
+   method ONLY on a decryption-proven success.
+
+**Regression guard:** `npm run guard:pin` (`scripts/guard-pin-dialog.mjs`) fails
+if a `<PinDialog>` is rendered without a passkey-aware unlock primitive — run it
+when adding any write flow. Full history: memory
+`lesson_malformed_utf8_is_wrong_pin`; medialane-core plans
+`2026-06-17-unified-write-pipeline.md` + `2026-06-18-write-pipeline-consolidation.md`.
+
 ### RPC resilience (added 2026-06-03)
 
 Alchemy's Starknet endpoint intermittently 503s (`-32001 "Unable to complete
@@ -349,7 +402,16 @@ layout.tsx (server)
 | `src/components/rewards/badge-shelf.tsx` | Row of earned badge chips with lazy Lucide icons and tooltips. |
 | `src/app/rewards/rewards-dashboard.tsx` | My Rank tab + Leaderboard tab. Uses `useWallet()` — identical to medialane-dapp version. |
 | `src/hooks/use-marketplace.ts` | All marketplace write operations |
-| `src/hooks/use-chipi-transaction.ts` | ChipiPay tx execution + status |
+| `src/hooks/use-chipi-transaction.ts` | ChipiPay tx execution + status (the atomic executor) |
+| `src/hooks/use-write-action.ts` | **Write-orchestration primitive** (`useWriteAction`): gate → unlock → execute → result + auth-method self-heal. See "Write pipeline & wallet unlock". |
+| `src/hooks/use-wallet-unlock.ts` | Passkey-or-PIN unlock branch + PIN dialog props |
+| `src/hooks/use-wallet-auth-method.ts` | Authoritative PIN/passkey signal (Clerk `walletAuthMethod`, device hint) |
+| `src/hooks/use-fee-charge.ts` | `useFeeCharge` — platform-fee on a dedicated tx instance |
+| `src/lib/chipi/map-write-error.ts` | Single write-error → message + `authHint` mapper (auth-neutral) |
+| `src/components/transaction/transaction-dialog.tsx` | `<TransactionDialog>` — progress/error/recovery/PIN + success slot |
+| `src/components/transaction/wallet-setup-gate.tsx` | `<WalletSetupGate>` — first-wallet setup + auto re-run |
+| `src/lib/actions/wallet-auth-method.ts` | `recordWalletAuthMethod` / `recordPasskeyCredential` server actions |
+| `scripts/guard-pin-dialog.mjs` | `npm run guard:pin` — blocks PIN-only `<PinDialog>` flows |
 | `src/components/marketplace/marketplace-dialog-primitives.tsx` | Shared marketplace dialog building blocks: `MarketplaceSuccessState`, `MarketplaceActivatingSession`, `MarketplaceSignInGate`, `MarketplaceDialogHero`, `MarketplacePinStep`, `MarketplaceTxLink`, `MarketplaceProcessingState`, `CurrencyPicker`, `DurationPicker` |
 | `src/components/marketplace/purchase-dialog.tsx` | Buy/fulfill flow |
 | `src/components/marketplace/listing-dialog.tsx` | Create listing flow — uses `marketplace-dialog-primitives`. (`MarketplaceDebugPanel` + snapshot machinery was removed entirely in PR #39, 2026-05-25.) |
