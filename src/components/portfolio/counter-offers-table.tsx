@@ -9,8 +9,7 @@ import { PinDialog } from "@/components/chipi/pin-dialog";
 import { useWriteAction } from "@/hooks/use-write-action";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useMarketplace } from "@/hooks/use-marketplace";
-import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
-import { chargePlatformFee } from "@/lib/charge-fee";
+import { useFeeCharge } from "@/hooks/use-fee-charge";
 import { ipfsToHttp, formatDisplayPrice, formatExpiry, cn } from "@/lib/utils";
 import { AlertCircle, ArrowLeftRight, CheckCircle2, ExternalLink, Inbox, Loader2, Sparkles } from "lucide-react";
 import { EXPLORER_URL } from "@/lib/constants";
@@ -113,9 +112,7 @@ function CounterOfferFetcher({
 export function CounterOffersTable({ address }: { address: string }) {
   const { orders, isLoading, error, mutate } = useUserOrders(address);
   const { fulfillOrder, isProcessing } = useMarketplace();
-  // Dedicated ChipiTransaction instance for the platform fee tx — must not
-  // share state with the fulfill tx (mirrors purchase-dialog pattern).
-  const { executeTransaction: executeFeeTransaction } = useChipiTransaction();
+  const { chargeFee } = useFeeCharge();
   const action = useWriteAction();
   const [selectedCounter, setSelectedCounter] = useState<ApiOrder | null>(null);
   const [originalForSelected, setOriginalForSelected] = useState<ApiOrder | null>(null);
@@ -171,12 +168,11 @@ export function CounterOffersTable({ address }: { address: string }) {
       token: counter.consideration.token,
       grossAmount: feeGrossAmount.toString(),
     });
-    void chargePlatformFee({
+    chargeFee({
       surface: "marketplace",
       token: counter.consideration.token ?? "",
       grossAmount: feeGrossAmount,
       pin: secret,
-      executeTransaction: executeFeeTransaction,
     });
     mutate();
     return { status: "confirmed", txHash: hash };
