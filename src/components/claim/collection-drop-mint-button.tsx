@@ -9,13 +9,12 @@ import { PinDialog } from "@/components/chipi/pin-dialog";
 import { useWriteAction } from "@/hooks/use-write-action";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { MarketplaceErrorState, MarketplaceSuccessState } from "@/components/marketplace/marketplace-dialog-primitives";
-import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { EXPLORER_URL } from "@/lib/constants";
 import { useUser } from "@clerk/nextjs";
 import { useDropMintStatus, type DropConditions } from "@/hooks/use-drops";
 import { getListableTokens } from "@medialane/sdk";
-import { chargePlatformFee } from "@/lib/charge-fee";
+import { useFeeCharge } from "@/hooks/use-fee-charge";
 
 interface CollectionDropMintButtonProps {
   collectionAddress: string;
@@ -58,9 +57,7 @@ export function CollectionDropMintButton({
   );
   const action = useWriteAction();
   const busy = action.status === "processing" || action.status === "confirming";
-  // Dedicated tx instance for the post-confirmation fee — separate from the
-  // mint's, so its status state never collides with the claim flow.
-  const { executeTransaction: executeFeeTransaction } = useChipiTransaction();
+  const { chargeFee } = useFeeCharge();
 
   const price = getPriceBigInt(conditions);
   const isPaid = price > 0n;
@@ -117,12 +114,11 @@ export function CollectionDropMintButton({
     // Fee — un-awaited fire-and-forget; paid mints only. Drop claim quantity is
     // fixed at 1, so grossAmount = price.
     if (isPaid && conditions && conditions.paymentToken !== "0x0") {
-      void chargePlatformFee({
+      chargeFee({
         surface: "launchpad",
         token: conditions.paymentToken,
         grossAmount: price,
         pin: secret,
-        executeTransaction: executeFeeTransaction,
       });
     }
     return result;
