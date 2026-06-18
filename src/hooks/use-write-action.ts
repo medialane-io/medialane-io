@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useWalletUnlock } from "@/hooks/use-wallet-unlock";
 import { useChipiTransaction, type ChipiTransactionStatus } from "@/hooks/use-chipi-transaction";
@@ -45,11 +45,20 @@ export function useWriteAction(opts: UseWriteActionOptions = {}) {
   const [authHint, setAuthHint] = useState(false);
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
 
+  // Remember the last `run` so a fresh-wallet user can be re-run automatically
+  // once they finish wallet setup (the prepare closure already captured the
+  // freshly-submitted values, so no stale state).
+  const pendingRef = useRef<{
+    prepare: (secret: string) => Promise<PrepareResult>;
+    runOpts?: { value?: number };
+  } | null>(null);
+
   const run = useCallback(
     async (
       prepare: (secret: string) => Promise<PrepareResult>,
       runOpts?: { value?: number },
     ) => {
+      pendingRef.current = { prepare, runOpts };
       if (!isSignedIn || !walletAddress) {
         if (!hasWallet) setWalletSetupOpen(true);
         return;
@@ -96,6 +105,13 @@ export function useWriteAction(opts: UseWriteActionOptions = {}) {
     [isSignedIn, walletAddress, hasWallet, unlock, recordedMethod, session, sessionAmountCap, hasActiveSession, setupSession],
   );
 
+  // Re-run the last action after the user finishes wallet setup. Used by
+  // <WalletSetupGate> so flows don't hand-roll the WalletSetupDialog onSuccess.
+  const rerunAfterWalletSetup = useCallback(() => {
+    const p = pendingRef.current;
+    if (p) void run(p.prepare, p.runOpts);
+  }, [run]);
+
   const reset = useCallback(() => {
     setStatus("idle");
     setError(null);
@@ -110,6 +126,7 @@ export function useWriteAction(opts: UseWriteActionOptions = {}) {
     authHint,
     walletSetupOpen,
     setWalletSetupOpen,
+    rerunAfterWalletSetup,
     pinDialogProps,
     executeTransaction,
     run,

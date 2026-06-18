@@ -9,7 +9,7 @@ import {
   Form,
 } from "@/components/ui/form";
 import Link from "next/link";
-import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
+import { WalletSetupGate } from "@/components/transaction/wallet-setup-gate";
 import { useWriteAction } from "@/hooks/use-write-action";
 import { TransactionDialog } from "@/components/transaction/transaction-dialog";
 import { useSessionKey } from "@/hooks/use-session-key";
@@ -268,11 +268,7 @@ export default function CreateIP1155CollectionPage() {
         </Form>
       </div>
 
-      <WalletSetupDialog
-        open={action.walletSetupOpen}
-        onOpenChange={action.setWalletSetupOpen}
-        onSuccess={() => { action.setWalletSetupOpen(false); const v = pendingValues; if (v) void action.run((secret) => handleUnlocked(v, secret)); }}
-      />
+      <WalletSetupGate action={action} />
     </>
   );
 }

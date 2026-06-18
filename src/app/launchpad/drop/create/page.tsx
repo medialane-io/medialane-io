@@ -9,7 +9,7 @@ import { Package, CheckCircle2 } from "lucide-react";
 import { Form } from "@/components/ui/form";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { useWriteAction } from "@/hooks/use-write-action";
-import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
+import { WalletSetupGate } from "@/components/transaction/wallet-setup-gate";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
@@ -374,11 +374,7 @@ export default function CreateDropPage() {
         title="Deploy drop collection"
         description="Enter your PIN to deploy your limited-edition collection onchain."
       />
-      <WalletSetupDialog
-        open={action.walletSetupOpen}
-        onOpenChange={action.setWalletSetupOpen}
-        onSuccess={() => { action.setWalletSetupOpen(false); const v = pendingValues; if (v) void action.run((secret) => handleUnlocked(v, secret)); }}
-      />
+      <WalletSetupGate action={action} />
     </>
   );
 }

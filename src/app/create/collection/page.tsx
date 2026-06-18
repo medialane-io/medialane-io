@@ -19,7 +19,7 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 import Link from "next/link";
-import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
+import { WalletSetupGate } from "@/components/transaction/wallet-setup-gate";
 import { useWriteAction } from "@/hooks/use-write-action";
 import { TransactionDialog } from "@/components/transaction/transaction-dialog";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
@@ -444,17 +444,7 @@ export default function CreateCollectionPage() {
         </Form>
       </div>
 
-      <WalletSetupDialog
-        open={action.walletSetupOpen}
-        onOpenChange={action.setWalletSetupOpen}
-        onSuccess={() => {
-          action.setWalletSetupOpen(false);
-          // A wallet from this dialog is PIN-based (no passkey), so the async PIN
-          // path runs — pendingValues state is settled by this tick.
-          const v = pendingValues;
-          if (v) void action.run((secret) => runCreate(v, secret));
-        }}
-      />
+      <WalletSetupGate action={action} />
     </>
   );
 }
