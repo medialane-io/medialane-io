@@ -18,7 +18,7 @@ import {
 import { PinInput, validatePin } from "@/components/ui/pin-input";
 import { Button } from "@/components/ui/button";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
-import { looksLikeEncryptionFailure } from "@/lib/chipi/looks-like-encryption-failure";
+import { mapWriteError } from "@/lib/chipi/map-write-error";
 import { EXPLORER_URL, BR_MINT_CONTRACT, BR_NFT_URI } from "@/lib/constants";
 
 type MintStep = "ready" | "enter-pin" | "minting" | "success" | "error";
@@ -100,7 +100,7 @@ export function GenesisMint() {
       const msg = err instanceof Error ? err.message : "Algo deu errado. Tente novamente.";
       setMintStep("error");
       setMintError(msg);
-      if (looksLikeEncryptionFailure(msg)) {
+      if (mapWriteError(msg).authHint) {
         setEncryptionMismatch(authMethod === "pin" ? "passkey" : "pin");
       }
     }
@@ -125,7 +125,7 @@ export function GenesisMint() {
       const msg = err instanceof Error ? err.message : "Algo deu errado. Tente novamente.";
       setMintStep("error");
       setMintError(msg);
-      if (looksLikeEncryptionFailure(msg)) setEncryptionMismatch("pin");
+      if (mapWriteError(msg).authHint) setEncryptionMismatch("pin");
     }
   }, [encryptKey, authenticate, executeMint]);
 
