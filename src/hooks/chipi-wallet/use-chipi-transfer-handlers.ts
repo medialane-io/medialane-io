@@ -5,7 +5,7 @@ import type { FormEvent } from "react";
 import { toast } from "sonner";
 import type { WalletData } from "@chipi-stack/types";
 import type { PinDialogSubmitOptions } from "@/components/chipi/pin-dialog";
-import { looksLikeEncryptionFailure } from "@/lib/chipi/looks-like-encryption-failure";
+import { mapWriteError } from "@/lib/chipi/map-write-error";
 import { resolveEncryptKey } from "@/lib/chipi/wallet/resolve-encrypt-key";
 import {
   executeOwnerTransfer,
@@ -235,7 +235,7 @@ export function useChipiTransferHandlers(params: Params) {
           return;
         }
         setError(msg);
-        if (looksLikeEncryptionFailure(msg)) {
+        if (mapWriteError(msg).authHint) {
           setEncryptionMismatchSuggestion(authMethod === "pin" ? "passkey" : "pin");
         }
         toast.error("Transfer failed", { description: msg });
@@ -353,7 +353,7 @@ export function useChipiTransferHandlers(params: Params) {
       } catch (err) {
         const msg = err instanceof Error ? err.message : "Unexpected error";
         setError(msg);
-        if (looksLikeEncryptionFailure(msg)) {
+        if (mapWriteError(msg).authHint) {
           setEncryptionMismatchSuggestion(opts?.usedPasskey ? "pin" : "passkey");
         }
         toast.error("Transfer failed", { description: msg });

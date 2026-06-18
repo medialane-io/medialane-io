@@ -1,4 +1,18 @@
-import { looksLikeEncryptionFailure } from "./looks-like-encryption-failure";
+/** Heuristic for Chipi decrypt / wrong-unlock errors. CryptoES throws "Malformed
+ *  UTF-8 data" / "resulted in empty string" on a wrong key — neither contains the
+ *  other keywords, so they're matched explicitly. */
+function isAuthFailure(message: string): boolean {
+  const m = message.toLowerCase();
+  return (
+    m.includes("incorrect") ||
+    m.includes("pin") ||
+    m.includes("decrypt") ||
+    m.includes("encryption") ||
+    m.includes("encryptkey") ||
+    m.includes("malformed utf-8") ||
+    m.includes("resulted in empty string")
+  );
+}
 
 const AUTH_NEUTRAL_UNLOCK_MSG =
   "We couldn't unlock your wallet. Make sure you're using the unlock method you chose when you created it — your PIN, or Face ID / Touch ID — then try again.";
@@ -13,8 +27,7 @@ const SESSION_MSG =
  *
  * - `authHint` true ⇒ a wrong PIN/passkey unlock ⇒ show the passkey/PIN recovery hint.
  *   A wrong unlock secret surfaces from ChipiPay's `decryptPrivateKey` as EITHER
- *   "Decryption resulted in empty string" or "Malformed UTF-8 data" (neither contains
- *   the words `looksLikeEncryptionFailure` historically matched).
+ *   "Decryption resulted in empty string" or "Malformed UTF-8 data".
  * - `isSessionMismatch` true ⇒ paymaster/session-whitelist revert ⇒ suggest a session refresh.
  *
  * Messages are **auth-neutral**: a wallet unlocks with a PIN *or* a passkey, never both,
@@ -32,5 +45,5 @@ export function mapWriteError(raw: string): {
     return { message: SESSION_MSG, authHint: false, isSessionMismatch: true };
   }
   // Fallback: keep the raw message, but still flag auth failures so the hint can show.
-  return { message: raw, authHint: looksLikeEncryptionFailure(raw), isSessionMismatch: false };
+  return { message: raw, authHint: isAuthFailure(raw), isSessionMismatch: false };
 }
