@@ -8,14 +8,10 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
 } from "@/components/ui/form";
-import { PinDialog } from "@/components/chipi/pin-dialog";
-import { useWalletUnlock } from "@/hooks/use-wallet-unlock";
+import Link from "next/link";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
-import {
-  CollectionProgressDialog,
-  type CollectionStep,
-} from "@/components/marketplace/collection-progress-dialog";
-import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
+import { useWriteAction } from "@/hooks/use-write-action";
+import { TransactionDialog } from "@/components/transaction/transaction-dialog";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useUser } from "@clerk/nextjs";
 import { normalizeAddress } from "@medialane/sdk";
@@ -42,16 +38,12 @@ const COLLECTION_DEPLOYED_SELECTOR = hash.getSelectorFromName("CollectionDeploye
 
 export default function CreateIP1155CollectionPage() {
   const { isSignedIn } = useUser();
-  const { walletAddress, hasWallet } = useSessionKey();
-  const { executeTransaction, status: txStatus, txHash } = useChipiTransaction();
-
-  const { unlock, pinDialogProps } = useWalletUnlock();
-  const [walletSetupOpen, setWalletSetupOpen] = useState(false);
+  const { walletAddress } = useSessionKey();
+  // One primitive owns gate → unlock (passkey/PIN) → execute → result + self-heal.
+  const action = useWriteAction();
   const [pendingValues, setPendingValues] = useState<NftEditionsCreateFormValues | null>(null);
   const [autoSymbol, setAutoSymbol] = useState("");
 
-  const [collectionStep, setCollectionStep] = useState<CollectionStep>("idle");
-  const [collectionError, setCollectionError] = useState<string | null>(null);
   const [deployedAddress, setDeployedAddress] = useState<string | null>(null);
   const {
     imageFile,
@@ -95,8 +87,7 @@ export default function CreateIP1155CollectionPage() {
   }, [autoSymbol, collectionName, form]);
 
   const handleReset = () => {
-    setCollectionStep("idle");
-    setCollectionError(null);
+    action.reset();
     setDeployedAddress(null);
     setPendingValues(null);
     setAutoSymbol("");
@@ -109,42 +100,34 @@ export default function CreateIP1155CollectionPage() {
       return;
     }
     setPendingValues(values);
-    if (!hasWallet) { setWalletSetupOpen(true); return; }
-    // Pass `values` through the closure — the passkey path runs synchronously,
-    // before a same-tick setState settles.
-    // .catch handles unlock-level throws (e.g. passkey unavailable here).
-    void unlock((secret) => handleUnlocked(values, secret)).catch((err) => {
-      setCollectionError(err instanceof Error ? err.message : "Could not unlock your wallet");
-      setCollectionStep("error");
-    });
+    // Pass `values` through the closure (synchronous-passkey rule). action.run
+    // gates signed-in/wallet and opens wallet setup itself when needed.
+    void action.run((secret) => handleUnlocked(values, secret));
   };
 
-  // `secret` is the wallet-unlock material — a typed PIN or the passkey key.
-  // `pendingValues` (param) shadows the display-only state.
+  // The `prepare` body. `secret` is the wallet-unlock material (PIN or passkey
+  // key). useWriteAction owns status/error/self-heal — return the tx result.
   const handleUnlocked = async (pendingValues: NftEditionsCreateFormValues, secret: string) => {
-    if (!pendingValues || !walletAddress) return;
+    if (!walletAddress) throw new Error("Wallet not ready. Please refresh and try again.");
+    setDeployedAddress(null);
 
-    setCollectionError(null);
-    setCollectionStep("processing");
-
-    try {
-      // 1. Pin metadata JSON to IPFS
-      let collectionMetaUri: string | undefined;
-      if (imageUri) {
-        try {
-          const uri = await pinLaunchpadMetadata({
-            name: pendingValues.name,
-            description: pendingValues.description || "",
-            image: imageUri,
-            external_link: pendingValues.external_link || "",
-          });
-          if (uri) collectionMetaUri = uri;
+    // 1. Pin metadata JSON to IPFS
+    let collectionMetaUri: string | undefined;
+    if (imageUri) {
+      try {
+        const uri = await pinLaunchpadMetadata({
+          name: pendingValues.name,
+          description: pendingValues.description || "",
+          image: imageUri,
+          external_link: pendingValues.external_link || "",
+        });
+        if (uri) collectionMetaUri = uri;
         } catch { /* non-fatal */ }
       }
 
       // 2. Execute deploy_collection on the factory.
       // v2 factory signature: deploy_collection(name, symbol, base_uri)
-      const result = await executeTransaction({
+      const result = await action.executeTransaction({
         pin: secret,
         calls: [{
           contractAddress: COLLECTION_1155_CONTRACT,
@@ -205,13 +188,9 @@ export default function CreateIP1155CollectionPage() {
         } catch { /* non-fatal */ }
       }
 
-      if (walletAddress) invalidatePortfolioCache(walletAddress);
-      setDeployedAddress(addr);
-      setCollectionStep("success");
-    } catch (err) {
-      setCollectionError(err instanceof Error ? err.message : "Something went wrong");
-      setCollectionStep("error");
-    }
+    if (walletAddress) invalidatePortfolioCache(walletAddress);
+    setDeployedAddress(addr);
+    return result;
   };
 
   // ── Not signed in ─────────────────────────────────────────────────────────
@@ -228,20 +207,35 @@ export default function CreateIP1155CollectionPage() {
 
   return (
     <>
-      <CollectionProgressDialog
-        open={collectionStep !== "idle"}
-        collectionStep={collectionStep}
-        txStatus={txStatus}
-        collectionName={pendingValues?.name ?? ""}
-        imagePreview={imagePreview}
-        txHash={txHash}
-        error={collectionError}
-        onCreateAnother={handleReset}
-        createAnotherLabel="Deploy another"
+      <TransactionDialog
+        action={action}
+        title="Deploy ERC-1155 collection"
+        processingLabel="Deploying collection…"
         firstStepLabel="Prepare metadata"
-        mintHref={deployedAddress ? `/launchpad/nfteditions/${deployedAddress}/mint` : undefined}
-        deployedAddress={deployedAddress}
-      />
+        successTitle="Collection deployed!"
+        pinDescription="Enter your PIN to deploy your IP collection onchain."
+      >
+        <p className="text-sm text-muted-foreground text-center">
+          <span className="font-medium text-foreground">{pendingValues?.name || "Your collection"}</span> is
+          live onchain. Mint editions into it.
+        </p>
+        {imagePreview && (
+          <div className="h-24 w-24 rounded-xl overflow-hidden border border-border shadow-md">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={imagePreview} alt={pendingValues?.name ?? ""} className="h-full w-full object-cover" />
+          </div>
+        )}
+        <div className="flex flex-col sm:flex-row gap-2 w-full pt-1">
+          <Button variant="outline" className="flex-1" onClick={handleReset}>
+            Deploy another
+          </Button>
+          {deployedAddress && (
+            <Button asChild className="flex-1">
+              <Link href={`/launchpad/nfteditions/${deployedAddress}/mint`}>Mint tokens</Link>
+            </Button>
+          )}
+        </div>
+      </TransactionDialog>
 
       <div className="container max-w-2xl mx-auto px-4 pt-14 pb-8 space-y-8">
         <LaunchpadPageIntro
@@ -260,7 +254,7 @@ export default function CreateIP1155CollectionPage() {
               imagePreview={imagePreview}
               imageUri={imageUri}
               imageUploading={imageUploading}
-              deployDisabled={collectionStep !== "idle" || imageUploading}
+              deployDisabled={action.status !== "idle" || imageUploading}
               fileInputRef={fileInputRef}
               onImageSelect={handleImageSelect}
               onClearImage={clearImage}
@@ -274,15 +268,10 @@ export default function CreateIP1155CollectionPage() {
         </Form>
       </div>
 
-      <PinDialog
-        {...pinDialogProps}
-        title="Deploy ERC-1155 collection"
-        description="Enter your PIN to deploy your IP collection onchain."
-      />
       <WalletSetupDialog
-        open={walletSetupOpen}
-        onOpenChange={setWalletSetupOpen}
-        onSuccess={() => { setWalletSetupOpen(false); const v = pendingValues; if (v) void unlock((secret) => handleUnlocked(v, secret)).catch((err) => { setCollectionError(err instanceof Error ? err.message : "Could not unlock your wallet"); setCollectionStep("error"); }); }}
+        open={action.walletSetupOpen}
+        onOpenChange={action.setWalletSetupOpen}
+        onSuccess={() => { action.setWalletSetupOpen(false); const v = pendingValues; if (v) void action.run((secret) => handleUnlocked(v, secret)); }}
       />
     </>
   );
