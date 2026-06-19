@@ -4,10 +4,10 @@ import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { collectionHref } from "@/lib/routes";
+import { assetHref, collectionHref } from "@/lib/routes";
 import { useToken, useTokenHistory } from "@/hooks/use-tokens";
 import { useTokenListings } from "@/hooks/use-orders";
-import { useCollection } from "@/hooks/use-collections";
+import { useCollection, useCollectionTokens } from "@/hooks/use-collections";
 import { Button } from "@/components/ui/button";
 import { IpTypeBadge } from "@/components/shared/ip-type-badge";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
@@ -15,7 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { PageContainer } from "@medialane/ui";
 import { ipfsToHttp, timeUntil, formatDisplayPrice, checkIsOwner } from "@/lib/utils";
-import { DollarSign, UserCheck, Globe, Bot, Percent, Shield, Calendar, ChevronRight, Layers, GitBranch } from "lucide-react";
+import { DollarSign, UserCheck, Globe, Bot, Percent, Shield, Calendar, ChevronRight, ChevronLeft, Layers, GitBranch } from "lucide-react";
 import { FloatingCommentsButton } from "@/components/asset/floating-comments-button";
 import { LICENSE_TRAIT_TYPES } from "@/types/ip";
 import type { IPType } from "@/types/ip";
@@ -50,6 +50,7 @@ import {
 import { AssetOverviewContent } from "./asset-overview-content";
 import { AssetHeaderBlock } from "./asset-top-sections";
 import { AssetMediaColumn } from "@/components/asset/asset-media-column";
+import { AssetLightbox } from "@/components/asset/asset-lightbox";
 import { useOrderActions } from "./use-order-actions";
 import { useAcceptOffer } from "@/hooks/use-accept-offer";
 
@@ -94,6 +95,15 @@ export function AssetPageStandard() {
 
   const { comments, total: commentTotal } = useComments(contract, tokenId);
   const { total: remixCount } = useTokenRemixes(contract, tokenId);
+
+  // Lightbox + collection prev/next. Neighbours come from the (paged) collection
+  // token list; arrows are hidden when a neighbour isn't in the loaded page.
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const { tokens: collectionTokens } = useCollectionTokens(contract);
+  const tokenIndex = collectionTokens.findIndex((t) => String(t.tokenId) === String(tokenId));
+  const prevToken = tokenIndex > 0 ? collectionTokens[tokenIndex - 1] : null;
+  const nextToken =
+    tokenIndex >= 0 && tokenIndex < collectionTokens.length - 1 ? collectionTokens[tokenIndex + 1] : null;
 
   // Audited IPNft creation record — null for legacy / external contracts.
   const { data: fullTokenData } = useFullTokenData({
@@ -259,18 +269,41 @@ export function AssetPageStandard() {
 
         {/* Top: image + info — 50/50 on desktop, image-first single column on mobile */}
         <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-10 gap-6 items-start">
-          <AssetMediaColumn
-            shouldReduce={Boolean(shouldReduce)}
-            image={image}
-            imageAlt={name}
-            imgError={imgError}
-            onImageError={() => setImgError(true)}
-            fallback={(
-              <div className="aspect-square flex items-center justify-center bg-gradient-to-br from-primary/10 to-purple-500/10">
-                <span className="text-5xl font-mono text-muted-foreground">#{tokenId}</span>
+          <div className="space-y-3">
+            <AssetMediaColumn
+              shouldReduce={Boolean(shouldReduce)}
+              image={image}
+              imageAlt={name}
+              imgError={imgError}
+              onImageError={() => setImgError(true)}
+              onZoom={() => setLightboxOpen(true)}
+              fallback={(
+                <div className="aspect-square flex items-center justify-center bg-gradient-to-br from-primary/10 to-purple-500/10">
+                  <span className="text-5xl font-mono text-muted-foreground">#{tokenId}</span>
+                </div>
+              )}
+            />
+            {(prevToken || nextToken) && (
+              <div className="flex items-center justify-between">
+                <button
+                  type="button"
+                  disabled={!prevToken}
+                  onClick={() => prevToken && router.push(assetHref("STARKNET", contract, prevToken.tokenId))}
+                  className="inline-flex items-center gap-1 text-sm text-muted-foreground transition hover:text-foreground active:scale-95 disabled:opacity-30 disabled:pointer-events-none"
+                >
+                  <ChevronLeft className="h-4 w-4" /> Prev
+                </button>
+                <button
+                  type="button"
+                  disabled={!nextToken}
+                  onClick={() => nextToken && router.push(assetHref("STARKNET", contract, nextToken.tokenId))}
+                  className="inline-flex items-center gap-1 text-sm text-muted-foreground transition hover:text-foreground active:scale-95 disabled:opacity-30 disabled:pointer-events-none"
+                >
+                  Next <ChevronRight className="h-4 w-4" />
+                </button>
               </div>
             )}
-          />
+          </div>
 
           {/* Right column */}
           <motion.div
@@ -385,6 +418,8 @@ export function AssetPageStandard() {
         </Tabs>
       </PageContainer>
 
+
+      <AssetLightbox open={lightboxOpen} onOpenChange={setLightboxOpen} image={image} alt={name} />
 
       <FloatingCommentsButton onClick={() => setCommentOpen(true)} commentTotal={commentTotal} />
 
