@@ -18,7 +18,7 @@ import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import { validatePin } from "@/components/ui/pin-input";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { MarketplacePinStep, MarketplaceDialogHero } from "@/components/marketplace/marketplace-dialog-primitives";
-import { CancelListingDialog } from "@/app/asset/[contract]/[tokenId]/cancel-listing-dialog";
+import { CancelListingDialog } from "@/app/asset/[chain]/[contract]/[tokenId]/cancel-listing-dialog";
 import { ReportDialog } from "@/components/report-dialog";
 import { useWalletAuthMethod } from "@/hooks/use-wallet-auth-method";
 import type { ApiOrder } from "@medialane/sdk";
