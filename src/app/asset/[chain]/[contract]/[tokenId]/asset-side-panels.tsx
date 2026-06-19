@@ -96,40 +96,49 @@ export function AssetLinksRow({
 }: AssetLinksRowProps) {
   return (
     <>
-      <div className="flex items-center gap-3 text-sm">
-        <a
-          href={contractHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-1 text-muted-foreground hover:text-foreground"
-        >
-          Contract <ExternalLink className="h-3 w-3" />
-        </a>
+      <div className="flex items-center justify-between gap-3">
         {collection ? (
           <Link
             href={collectionHref}
-            className="flex items-center gap-2.5 rounded-lg border border-border px-3 py-1.5 hover:bg-muted/40 transition-colors group min-w-0"
+            className="flex items-center gap-3 min-w-0 group"
           >
-            <div className="relative h-7 w-7 rounded-full overflow-hidden shrink-0 bg-gradient-to-br from-primary/20 to-purple-500/20 ring-1 ring-border">
+            <div className="relative h-10 w-10 rounded-xl overflow-hidden shrink-0 bg-gradient-to-br from-primary/20 to-purple-500/20 ring-1 ring-border/60 group-hover:ring-primary/40 transition">
               {collection.image ? (
                 <Image src={ipfsToHttp(collection.image)} alt="" fill className="object-cover" unoptimized />
               ) : null}
             </div>
-            <span className="text-xs font-medium truncate group-hover:text-primary transition-colors max-w-[120px]">
-              {collection.name}
-            </span>
+            <div className="min-w-0">
+              <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Collection</p>
+              <p className="text-sm font-semibold truncate group-hover:text-primary transition-colors">
+                {collection.name}
+              </p>
+            </div>
           </Link>
-        ) : null}
-        <ShareButton title={shareTitle} variant="ghost" size="icon" />
-        <Button
-          variant="ghost"
-          size="icon"
-          className="text-muted-foreground hover:text-foreground"
-          onClick={() => onReportOpenChange(true)}
-          title="Report this asset"
-        >
-          <Flag className="w-4 h-4" />
-        </Button>
+        ) : (
+          <span />
+        )}
+
+        <div className="flex items-center gap-1 shrink-0 text-muted-foreground">
+          <a
+            href={contractHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="View contract"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg hover:bg-muted/50 hover:text-foreground transition-colors"
+          >
+            <ExternalLink className="h-4 w-4" />
+          </a>
+          <ShareButton title={shareTitle} variant="ghost" size="icon" />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-muted-foreground hover:text-foreground"
+            onClick={() => onReportOpenChange(true)}
+            title="Report this asset"
+          >
+            <Flag className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
 
       <ReportDialog

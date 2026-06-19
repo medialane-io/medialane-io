@@ -50,10 +50,11 @@ export function AssetLicenseSummary({ attributes }: { attributes: AssetAttribute
   }
 
   return (
-    <div className="space-y-3">
-      <p className="text-[15px] leading-relaxed text-foreground/90">{summary}</p>
+    <div className="space-y-2.5">
+      <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">License</p>
+      <p className="text-[15px] font-medium leading-relaxed text-foreground/90">{summary}</p>
       {pills.length > 0 ? (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 pt-0.5">
           {pills.map((pill) => (
             <span
               key={pill.label}

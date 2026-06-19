@@ -111,11 +111,6 @@ export function AssetPageStandard() {
     ipNftAddress: contract,
     tokenId: tokenId ? (() => { try { return BigInt(tokenId); } catch { return undefined; } })() : undefined,
   });
-  // Most recent sale price (quiet stat for the marketplace panel).
-  const lastSale = [...(history as ApiActivity[])]
-    .filter((h) => h.type === "sale" && h.price?.formatted)
-    .sort((a, b) => Number(b.timestamp) - Number(a.timestamp))[0]?.price ?? null;
-
   // Listings = NFT in offer (ERC721 or ERC1155 — someone selling the token)
   const activeListings = listings.filter(
     (l) => l.status === "ACTIVE" && (l.offer.itemType === "ERC721" || l.offer.itemType === "ERC1155")
@@ -336,7 +331,6 @@ export function AssetPageStandard() {
               isERC1155={isERC1155}
               myListing={myListing ?? null}
               activeBids={activeBids}
-              lastSale={lastSale}
               walletAddress={walletAddress}
               remixEnabled={remixPolicy.canRemixDirect}
               showDealOption={remixPolicy.showDealOption}
@@ -355,24 +349,28 @@ export function AssetPageStandard() {
               <AssetOwnersPanel balances={token.balances} maxVisible={5} />
             ) : null}
 
-            <AssetLinksRow
-              contractHref={`${EXPLORER_URL}/contract/${token.contractAddress}`}
-              collectionHref={collectionHref("STARKNET", token.contractAddress)}
-              collection={collection}
-              shareTitle={name ?? `Token #${token?.tokenId}`}
-              reportTarget={{
-                type: "TOKEN",
-                contract: token.contractAddress,
-                tokenId: token.tokenId,
-                name: name ?? undefined,
-              }}
-              reportOpen={reportOpen}
-              onReportOpenChange={setReportOpen}
-            />
+            {/* Details + rights — separated from the action group by a hairline
+                so the column reads as placard sections, not one flat stack. */}
+            <div className="pt-5 border-t border-border/40 space-y-5">
+              <AssetLinksRow
+                contractHref={`${EXPLORER_URL}/contract/${token.contractAddress}`}
+                collectionHref={collectionHref("STARKNET", token.contractAddress)}
+                collection={collection}
+                shareTitle={name ?? `Token #${token?.tokenId}`}
+                reportTarget={{
+                  type: "TOKEN",
+                  contract: token.contractAddress,
+                  tokenId: token.tokenId,
+                  name: name ?? undefined,
+                }}
+                reportOpen={reportOpen}
+                onReportOpenChange={setReportOpen}
+              />
 
-            {/* Human-first license: one plain line + glanceable rights pills.
-                Detailed receipts (license bento + Berne banner) live in Overview. */}
-            <AssetLicenseSummary attributes={attributes} />
+              {/* Human-first license: one plain line + glanceable rights pills.
+                  Detailed receipts (license bento + Berne banner) live in Overview. */}
+              <AssetLicenseSummary attributes={attributes} />
+            </div>
           </motion.div>
         </div>
 

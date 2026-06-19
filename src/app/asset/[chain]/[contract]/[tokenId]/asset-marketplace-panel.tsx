@@ -7,7 +7,7 @@ import { AddressDisplay } from "@/components/shared/address-display";
 import { HelpIcon } from "@/components/ui/help-icon";
 import { SignInButton } from "@clerk/nextjs";
 import { formatDisplayPrice, timeUntil } from "@/lib/utils";
-import type { ApiOrder, ApiActivityPrice } from "@medialane/sdk";
+import type { ApiOrder } from "@medialane/sdk";
 import {
   ArrowRightLeft,
   CheckCircle,
@@ -68,8 +68,6 @@ interface AssetMarketplacePanelProps {
   isERC1155: boolean;
   myListing: ApiOrder | null;
   activeBids: ApiOrder[];
-  /** Most recent sale price for this token (from history) — quiet stat. */
-  lastSale?: ApiActivityPrice | null;
   walletAddress?: string | null;
   remixEnabled?: boolean;
   showDealOption?: boolean;
@@ -91,7 +89,6 @@ export function AssetMarketplacePanel({
   isERC1155,
   myListing,
   activeBids,
-  lastSale,
   walletAddress,
   remixEnabled = false,
   showDealOption = false,
@@ -108,11 +105,6 @@ export function AssetMarketplacePanel({
     ? activeBids.find((bid) => bid.offerer.toLowerCase() === walletAddress.toLowerCase()) ?? null
     : null;
 
-  // Quiet stats: highest active bid = top offer. No "floor" — meaningless for 1/1 IP.
-  const topOffer = [...activeBids].sort(
-    (a, b) => parseFloat(b.price.formatted ?? "0") - parseFloat(a.price.formatted ?? "0"),
-  )[0] ?? null;
-
   // For ERC-1155: a listing from a different seller is still purchasable even when the user owns some editions
   const canBuyMore =
     isERC1155 &&
@@ -125,41 +117,15 @@ export function AssetMarketplacePanel({
     <>
       {cheapest ? (
         <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <CurrencyIcon symbol={cheapest.price.currency ?? ""} size={22} />
-            <span className="text-3xl font-bold">
+          <div className="flex items-baseline gap-2">
+            <CurrencyIcon symbol={cheapest.price.currency ?? ""} size={26} />
+            <span className="text-4xl font-bold tracking-tight">
               {formatDisplayPrice(cheapest.price.formatted)}
             </span>
             <HelpIcon
               content={`${isOwner && !canBuyMore ? "Your listing" : "Current price"} · Expires ${timeUntil(cheapest.endTime)}`}
               side="top"
             />
-          </div>
-
-          {/* Quiet stats — Top Offer + Last Sale only (no floor). Honest "—" when unknown. */}
-          <div className="flex items-center gap-8 text-sm">
-            <div>
-              <span className="block text-[11px] uppercase tracking-wider text-muted-foreground">Top offer</span>
-              {topOffer ? (
-                <span className="font-medium inline-flex items-center gap-1">
-                  {formatDisplayPrice(topOffer.price.formatted)}
-                  <CurrencyIcon symbol={topOffer.price.currency ?? ""} size={12} />
-                </span>
-              ) : (
-                <span className="font-medium text-muted-foreground">—</span>
-              )}
-            </div>
-            <div>
-              <span className="block text-[11px] uppercase tracking-wider text-muted-foreground">Last sale</span>
-              {lastSale?.formatted ? (
-                <span className="font-medium inline-flex items-center gap-1">
-                  {formatDisplayPrice(lastSale.formatted)}
-                  <CurrencyIcon symbol={lastSale.currency ?? ""} size={12} />
-                </span>
-              ) : (
-                <span className="font-medium text-muted-foreground">—</span>
-              )}
-            </div>
           </div>
 
           {isOwner ? (
@@ -251,7 +217,7 @@ export function AssetMarketplacePanel({
                     icon={<HandCoins className="h-4 w-4" />}
                     onClick={onProposeDeal}
                     helpContent="Propose a license deal to the creator to use this work."
-                    tone="purple"
+                    tone="blue"
                   />
                 ) : null}
               </div>
