@@ -47,7 +47,7 @@ import {
   AssetLinksRow,
   AssetOwnersPanel,
 } from "./asset-side-panels";
-import { AssetOverviewContent } from "./asset-overview-content";
+import { AssetOverviewContent } from "@/components/asset/asset-overview-content";
 import { AssetHeaderBlock } from "@/components/asset/asset-header-block";
 import { AssetMediaColumn } from "@/components/asset/asset-media-column";
 import { AssetLightbox } from "@/components/asset/asset-lightbox";
