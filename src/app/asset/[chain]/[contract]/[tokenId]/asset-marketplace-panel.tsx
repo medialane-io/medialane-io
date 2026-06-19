@@ -124,7 +124,7 @@ export function AssetMarketplacePanel({
   return (
     <>
       {cheapest ? (
-        <div className="rounded-2xl bg-card/40 backdrop-blur-sm p-5 space-y-4">
+        <div className="space-y-4">
           <div className="flex items-center gap-2">
             <CurrencyIcon symbol={cheapest.price.currency ?? ""} size={22} />
             <span className="text-3xl font-bold">
@@ -273,7 +273,7 @@ export function AssetMarketplacePanel({
           )}
         </div>
       ) : (
-        <div className="rounded-xl bg-card/40 backdrop-blur-sm p-5 space-y-3">
+        <div className="space-y-3">
           {isOwner ? (
             <div className="grid grid-cols-2 gap-2">
               <ActionButton

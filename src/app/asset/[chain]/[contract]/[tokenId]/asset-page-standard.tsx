@@ -48,6 +48,7 @@ import {
   AssetOwnersPanel,
 } from "./asset-side-panels";
 import { AssetOverviewContent } from "@/components/asset/asset-overview-content";
+import { AssetLicenseSummary } from "@/components/asset/asset-license-summary";
 import { AssetHeaderBlock } from "@/components/asset/asset-header-block";
 import { AssetMediaColumn } from "@/components/asset/asset-media-column";
 import { AssetLightbox } from "@/components/asset/asset-lightbox";
@@ -368,6 +369,10 @@ export function AssetPageStandard() {
               reportOpen={reportOpen}
               onReportOpenChange={setReportOpen}
             />
+
+            {/* Human-first license: one plain line + glanceable rights pills.
+                Detailed receipts (license bento + Berne banner) live in Overview. */}
+            <AssetLicenseSummary attributes={attributes} />
           </motion.div>
         </div>
 
