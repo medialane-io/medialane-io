@@ -4,10 +4,10 @@ import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { collectionHref } from "@/lib/routes";
+import { assetHref, collectionHref } from "@/lib/routes";
 import { useToken, useTokenHistory } from "@/hooks/use-tokens";
 import { useTokenListings } from "@/hooks/use-orders";
-import { useCollection } from "@/hooks/use-collections";
+import { useCollection, useCollectionTokens } from "@/hooks/use-collections";
 import { Button } from "@/components/ui/button";
 import { IpTypeBadge } from "@/components/shared/ip-type-badge";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
@@ -15,7 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { PageContainer } from "@medialane/ui";
 import { ipfsToHttp, timeUntil, formatDisplayPrice, checkIsOwner } from "@/lib/utils";
-import { DollarSign, UserCheck, Globe, Bot, Percent, Shield, Calendar, ChevronRight, Layers, GitBranch } from "lucide-react";
+import { DollarSign, UserCheck, Globe, Bot, Percent, Shield, Calendar, ChevronRight, ChevronLeft, Layers, GitBranch } from "lucide-react";
 import { FloatingCommentsButton } from "@/components/asset/floating-comments-button";
 import { LICENSE_TRAIT_TYPES } from "@/types/ip";
 import type { IPType } from "@/types/ip";
@@ -47,8 +47,10 @@ import {
   AssetLinksRow,
   AssetOwnersPanel,
 } from "./asset-side-panels";
-import { AssetOverviewContent } from "./asset-overview-content";
-import { AssetHeaderBlock, AssetMediaColumn } from "./asset-top-sections";
+import { AssetOverviewContent } from "@/components/asset/asset-overview-content";
+import { AssetHeaderBlock } from "@/components/asset/asset-header-block";
+import { AssetMediaColumn } from "@/components/asset/asset-media-column";
+import { AssetLightbox } from "@/components/asset/asset-lightbox";
 import { useOrderActions } from "./use-order-actions";
 import { useAcceptOffer } from "@/hooks/use-accept-offer";
 
@@ -94,11 +96,25 @@ export function AssetPageStandard() {
   const { comments, total: commentTotal } = useComments(contract, tokenId);
   const { total: remixCount } = useTokenRemixes(contract, tokenId);
 
+  // Lightbox + collection prev/next. Neighbours come from the (paged) collection
+  // token list; arrows are hidden when a neighbour isn't in the loaded page.
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const { tokens: collectionTokens } = useCollectionTokens(contract);
+  const tokenIndex = collectionTokens.findIndex((t) => String(t.tokenId) === String(tokenId));
+  const prevToken = tokenIndex > 0 ? collectionTokens[tokenIndex - 1] : null;
+  const nextToken =
+    tokenIndex >= 0 && tokenIndex < collectionTokens.length - 1 ? collectionTokens[tokenIndex + 1] : null;
+
   // Audited IPNft creation record — null for legacy / external contracts.
   const { data: fullTokenData } = useFullTokenData({
     ipNftAddress: contract,
     tokenId: tokenId ? (() => { try { return BigInt(tokenId); } catch { return undefined; } })() : undefined,
   });
+  // Most recent sale price (quiet stat for the marketplace panel).
+  const lastSale = [...(history as ApiActivity[])]
+    .filter((h) => h.type === "sale" && h.price?.formatted)
+    .sort((a, b) => Number(b.timestamp) - Number(a.timestamp))[0]?.price ?? null;
+
   // Listings = NFT in offer (ERC721 or ERC1155 — someone selling the token)
   const activeListings = listings.filter(
     (l) => l.status === "ACTIVE" && (l.offer.itemType === "ERC721" || l.offer.itemType === "ERC1155")
@@ -134,8 +150,8 @@ export function AssetPageStandard() {
   if (isLoading) {
     return (
       <PageContainer className="pt-20 pb-8">
-        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] lg:gap-10 gap-8">
-          <Skeleton className="aspect-[4/3] w-full rounded-2xl" />
+        <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-10 gap-6">
+          <Skeleton className="aspect-square w-full rounded-2xl" />
           <div className="space-y-4">
             <Skeleton className="h-8 w-3/4" />
             <Skeleton className="h-4 w-1/2" />
@@ -256,20 +272,43 @@ export function AssetPageStandard() {
           <span className="text-foreground font-medium truncate">{name}</span>
         </nav>
 
-        {/* Top: image + info */}
-        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] lg:gap-10 gap-8 items-start">
-          <AssetMediaColumn
-            shouldReduce={Boolean(shouldReduce)}
-            image={image}
-            imageAlt={name}
-            imgError={imgError}
-            onImageError={() => setImgError(true)}
-            fallback={(
-              <div className="aspect-square flex items-center justify-center bg-gradient-to-br from-primary/10 to-purple-500/10">
-                <span className="text-5xl font-mono text-muted-foreground">#{tokenId}</span>
+        {/* Top: image + info — 50/50 on desktop, image-first single column on mobile */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-10 gap-6 items-start">
+          <div className="space-y-3">
+            <AssetMediaColumn
+              shouldReduce={Boolean(shouldReduce)}
+              image={image}
+              imageAlt={name}
+              imgError={imgError}
+              onImageError={() => setImgError(true)}
+              onZoom={() => setLightboxOpen(true)}
+              fallback={(
+                <div className="aspect-square flex items-center justify-center bg-gradient-to-br from-primary/10 to-purple-500/10">
+                  <span className="text-5xl font-mono text-muted-foreground">#{tokenId}</span>
+                </div>
+              )}
+            />
+            {(prevToken || nextToken) && (
+              <div className="flex items-center justify-between">
+                <button
+                  type="button"
+                  disabled={!prevToken}
+                  onClick={() => prevToken && router.push(assetHref("STARKNET", contract, prevToken.tokenId))}
+                  className="inline-flex items-center gap-1 text-sm text-muted-foreground transition hover:text-foreground active:scale-95 disabled:opacity-30 disabled:pointer-events-none"
+                >
+                  <ChevronLeft className="h-4 w-4" /> Prev
+                </button>
+                <button
+                  type="button"
+                  disabled={!nextToken}
+                  onClick={() => nextToken && router.push(assetHref("STARKNET", contract, nextToken.tokenId))}
+                  className="inline-flex items-center gap-1 text-sm text-muted-foreground transition hover:text-foreground active:scale-95 disabled:opacity-30 disabled:pointer-events-none"
+                >
+                  Next <ChevronRight className="h-4 w-4" />
+                </button>
               </div>
             )}
-          />
+          </div>
 
           {/* Right column */}
           <motion.div
@@ -296,6 +335,7 @@ export function AssetPageStandard() {
               isERC1155={isERC1155}
               myListing={myListing ?? null}
               activeBids={activeBids}
+              lastSale={lastSale}
               walletAddress={walletAddress}
               remixEnabled={remixPolicy.canRemixDirect}
               showDealOption={remixPolicy.showDealOption}
@@ -384,6 +424,8 @@ export function AssetPageStandard() {
         </Tabs>
       </PageContainer>
 
+
+      <AssetLightbox open={lightboxOpen} onOpenChange={setLightboxOpen} image={image} alt={name} />
 
       <FloatingCommentsButton onClick={() => setCommentOpen(true)} commentTotal={commentTotal} />
 

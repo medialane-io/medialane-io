@@ -7,7 +7,7 @@ import { AddressDisplay } from "@/components/shared/address-display";
 import { HelpIcon } from "@/components/ui/help-icon";
 import { SignInButton } from "@clerk/nextjs";
 import { formatDisplayPrice, timeUntil } from "@/lib/utils";
-import type { ApiOrder } from "@medialane/sdk";
+import type { ApiOrder, ApiActivityPrice } from "@medialane/sdk";
 import {
   ArrowRightLeft,
   CheckCircle,
@@ -68,6 +68,8 @@ interface AssetMarketplacePanelProps {
   isERC1155: boolean;
   myListing: ApiOrder | null;
   activeBids: ApiOrder[];
+  /** Most recent sale price for this token (from history) — quiet stat. */
+  lastSale?: ApiActivityPrice | null;
   walletAddress?: string | null;
   remixEnabled?: boolean;
   showDealOption?: boolean;
@@ -89,6 +91,7 @@ export function AssetMarketplacePanel({
   isERC1155,
   myListing,
   activeBids,
+  lastSale,
   walletAddress,
   remixEnabled = false,
   showDealOption = false,
@@ -105,6 +108,11 @@ export function AssetMarketplacePanel({
     ? activeBids.find((bid) => bid.offerer.toLowerCase() === walletAddress.toLowerCase()) ?? null
     : null;
 
+  // Quiet stats: highest active bid = top offer. No "floor" — meaningless for 1/1 IP.
+  const topOffer = [...activeBids].sort(
+    (a, b) => parseFloat(b.price.formatted ?? "0") - parseFloat(a.price.formatted ?? "0"),
+  )[0] ?? null;
+
   // For ERC-1155: a listing from a different seller is still purchasable even when the user owns some editions
   const canBuyMore =
     isERC1155 &&
@@ -116,7 +124,7 @@ export function AssetMarketplacePanel({
   return (
     <>
       {cheapest ? (
-        <div className="rounded-2xl border border-border p-5 space-y-4">
+        <div className="rounded-2xl bg-card/40 backdrop-blur-sm p-5 space-y-4">
           <div className="flex items-center gap-2">
             <CurrencyIcon symbol={cheapest.price.currency ?? ""} size={22} />
             <span className="text-3xl font-bold">
@@ -126,6 +134,32 @@ export function AssetMarketplacePanel({
               content={`${isOwner && !canBuyMore ? "Your listing" : "Current price"} · Expires ${timeUntil(cheapest.endTime)}`}
               side="top"
             />
+          </div>
+
+          {/* Quiet stats — Top Offer + Last Sale only (no floor). Honest "—" when unknown. */}
+          <div className="flex items-center gap-8 text-sm">
+            <div>
+              <span className="block text-[11px] uppercase tracking-wider text-muted-foreground">Top offer</span>
+              {topOffer ? (
+                <span className="font-medium inline-flex items-center gap-1">
+                  {formatDisplayPrice(topOffer.price.formatted)}
+                  <CurrencyIcon symbol={topOffer.price.currency ?? ""} size={12} />
+                </span>
+              ) : (
+                <span className="font-medium text-muted-foreground">—</span>
+              )}
+            </div>
+            <div>
+              <span className="block text-[11px] uppercase tracking-wider text-muted-foreground">Last sale</span>
+              {lastSale?.formatted ? (
+                <span className="font-medium inline-flex items-center gap-1">
+                  {formatDisplayPrice(lastSale.formatted)}
+                  <CurrencyIcon symbol={lastSale.currency ?? ""} size={12} />
+                </span>
+              ) : (
+                <span className="font-medium text-muted-foreground">—</span>
+              )}
+            </div>
           </div>
 
           {isOwner ? (
@@ -239,7 +273,7 @@ export function AssetMarketplacePanel({
           )}
         </div>
       ) : (
-        <div className="rounded-xl border border-border p-5 space-y-3">
+        <div className="rounded-xl bg-card/40 backdrop-blur-sm p-5 space-y-3">
           {isOwner ? (
             <div className="grid grid-cols-2 gap-2">
               <ActionButton
