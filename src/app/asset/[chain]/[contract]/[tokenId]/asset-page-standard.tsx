@@ -48,7 +48,8 @@ import {
   AssetOwnersPanel,
 } from "./asset-side-panels";
 import { AssetOverviewContent } from "./asset-overview-content";
-import { AssetHeaderBlock, AssetMediaColumn } from "./asset-top-sections";
+import { AssetHeaderBlock } from "./asset-top-sections";
+import { AssetMediaColumn } from "@/components/asset/asset-media-column";
 import { useOrderActions } from "./use-order-actions";
 import { useAcceptOffer } from "@/hooks/use-accept-offer";
 
@@ -134,8 +135,8 @@ export function AssetPageStandard() {
   if (isLoading) {
     return (
       <PageContainer className="pt-20 pb-8">
-        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] lg:gap-10 gap-8">
-          <Skeleton className="aspect-[4/3] w-full rounded-2xl" />
+        <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-10 gap-6">
+          <Skeleton className="aspect-square w-full rounded-2xl" />
           <div className="space-y-4">
             <Skeleton className="h-8 w-3/4" />
             <Skeleton className="h-4 w-1/2" />
@@ -256,8 +257,8 @@ export function AssetPageStandard() {
           <span className="text-foreground font-medium truncate">{name}</span>
         </nav>
 
-        {/* Top: image + info */}
-        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] lg:gap-10 gap-8 items-start">
+        {/* Top: image + info — 50/50 on desktop, image-first single column on mobile */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-10 gap-6 items-start">
           <AssetMediaColumn
             shouldReduce={Boolean(shouldReduce)}
             image={image}
