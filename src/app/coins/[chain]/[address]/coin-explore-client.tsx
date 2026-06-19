@@ -15,6 +15,7 @@ import { ArrowUpRight, ExternalLink, ShieldCheck, TrendingUp, Wallet } from "luc
 import { coinKind, formatCoinPrice, formatFdv } from "@medialane/ui";
 import { useCoinPrice } from "@/hooks/use-coin-price";
 import { tradeHref, useCoin } from "@/lib/coin-adapters";
+import { collectionHref } from "@/lib/routes";
 import { ipfsToHttp, cn } from "@/lib/utils";
 import { EXPLORER_URL } from "@/lib/constants";
 
@@ -35,7 +36,7 @@ export function CoinExploreClient({ address }: { address: string }) {
   // Not a coin under /coins (e.g. an NFT collection address) → send to the
   // collection page (effect, not in render).
   useEffect(() => {
-    if (!isLoading && !coin) router.replace(`/collections/${address}`);
+    if (!isLoading && !coin) router.replace(collectionHref("STARKNET", address));
   }, [isLoading, coin, address, router]);
 
   if (!isLoading && !coin) return null;
