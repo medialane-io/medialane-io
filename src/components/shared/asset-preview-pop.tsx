@@ -8,6 +8,7 @@ import {
   PreviewHero, PreviewFooter, PreviewActionList, PreviewMeta, PreviewOwnerRow,
   type AssetPreviewContentProps, type PreviewAction,
 } from "./asset-preview-dialog";
+import { assetHref as buildAssetHref, collectionHref as buildCollectionHref } from "@/lib/routes";
 
 export function AssetPreviewPop({ token, onClose }: AssetPreviewContentProps) {
   const [reportOpen, setReportOpen] = useState(false);
@@ -15,8 +16,8 @@ export function AssetPreviewPop({ token, onClose }: AssetPreviewContentProps) {
   const name = token.metadata?.name || `Token #${token.tokenId}`;
   const image = ipfsToHttp(token.metadata?.image) ?? null;
 
-  const assetHref = `/asset/${token.contractAddress}/${token.tokenId}`;
-  const collectionHref = `/collections/${token.contractAddress}`;
+  const assetHref = buildAssetHref("STARKNET", token.contractAddress, token.tokenId);
+  const collectionHref = buildCollectionHref("STARKNET", token.contractAddress);
   const creatorOwner = token.balances?.[0]?.owner ?? token.owner ?? null;
   const creatorHref = creatorOwner ? `/account/${creatorOwner}` : null;
 

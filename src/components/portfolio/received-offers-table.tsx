@@ -5,6 +5,7 @@ import { useUserOrders } from "@/hooks/use-orders";
 import { Button } from "@/components/ui/button";
 import { EmptyOrError } from "@/components/ui/empty-or-error";
 import { useAcceptOffer } from "@/hooks/use-accept-offer";
+import { assetHref } from "@/lib/routes";
 import { AcceptOfferDialog } from "@/components/marketplace/accept-offer-dialog";
 import { ipfsToHttp, formatDisplayPrice, formatExpiry, cn } from "@/lib/utils";
 import { ExternalLink, Inbox } from "lucide-react";
@@ -50,7 +51,7 @@ function ReceivedOfferRow({
       {/* Asset */}
       <div className="flex-1 min-w-0">
         <Link
-          href={`/asset/${order.nftContract}/${order.nftTokenId}`}
+          href={assetHref("STARKNET", order.nftContract, order.nftTokenId)}
           className="font-medium text-sm hover:text-primary transition-colors truncate block"
         >
           {name}

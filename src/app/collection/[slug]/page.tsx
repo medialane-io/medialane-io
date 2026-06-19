@@ -1,4 +1,5 @@
 import { redirect, notFound } from "next/navigation";
+import { collectionHref } from "@/lib/routes";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -27,5 +28,5 @@ export default async function CollectionSlugPage({ params }: Props) {
   const contractAddress = body?.data?.contractAddress;
   if (!contractAddress) notFound();
 
-  redirect(`/collections/${contractAddress}`);
+  redirect(collectionHref("STARKNET", contractAddress));
 }

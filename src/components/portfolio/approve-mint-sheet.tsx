@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { getService } from "@medialane/sdk";
 import { useAuth } from "@clerk/nextjs";
+import { assetHref } from "@/lib/routes";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -242,7 +243,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
         clerkToken
       );
 
-      setNewAssetLink(`/asset/${selectedCollection.contractAddress}/${remixTokenId}`);
+      setNewAssetLink(assetHref("STARKNET", selectedCollection.contractAddress, remixTokenId));
       setDone(true);
       setTimeout(() => onSuccess?.(), INDEXER_REVALIDATION_DELAY_MS);
     } catch (err: unknown) {

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useUserOrders, useCounterOffers } from "@/hooks/use-orders";
+import { assetHref } from "@/lib/routes";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyOrError } from "@/components/ui/empty-or-error";
@@ -48,7 +49,7 @@ function CounterOfferFetcher({
 
       <div className="flex-1 min-w-0">
         <Link
-          href={`/asset/${counter.nftContract}/${counter.nftTokenId}`}
+          href={assetHref("STARKNET", counter.nftContract, counter.nftTokenId)}
           className="font-medium text-sm hover:text-primary transition-colors truncate block"
         >
           {name}

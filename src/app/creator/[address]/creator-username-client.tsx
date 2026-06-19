@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { assetHref } from "@/lib/routes";
 import { useCreatorByUsername } from "@/hooks/use-username-claims";
 import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
@@ -64,7 +65,7 @@ function ActivityRow({ event, isLast }: { event: ApiActivity; isLast: boolean })
             <div className="flex items-center gap-2 flex-wrap">
               <span className={cn("text-[11px] font-bold uppercase tracking-wider", meta.textColor)}>{meta.label}</span>
               {contract && tokenId ? (
-                <Link href={`/asset/${contract}/${tokenId}`} className="text-xs text-muted-foreground font-mono hover:text-foreground transition-colors">
+                <Link href={assetHref("STARKNET", contract, tokenId)} className="text-xs text-muted-foreground font-mono hover:text-foreground transition-colors">
                   Token #{tokenId}
                 </Link>
               ) : (

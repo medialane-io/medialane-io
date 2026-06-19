@@ -18,7 +18,8 @@ import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import { validatePin } from "@/components/ui/pin-input";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { MarketplacePinStep, MarketplaceDialogHero } from "@/components/marketplace/marketplace-dialog-primitives";
-import { CancelListingDialog } from "@/app/asset/[contract]/[tokenId]/cancel-listing-dialog";
+import { CancelListingDialog } from "@/app/asset/[chain]/[contract]/[tokenId]/cancel-listing-dialog";
+import { assetHref, collectionHref } from "@/lib/routes";
 import { ReportDialog } from "@/components/report-dialog";
 import { useWalletAuthMethod } from "@/hooks/use-wallet-auth-method";
 import type { ApiOrder } from "@medialane/sdk";
@@ -138,7 +139,7 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-52">
         <DropdownMenuItem asChild>
-          <Link href={`/asset/${order.nftContract}/${order.nftTokenId}`} className="flex items-center gap-2">
+          <Link href={assetHref("STARKNET", order.nftContract, order.nftTokenId)} className="flex items-center gap-2">
             <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
             View asset
           </Link>
@@ -157,13 +158,13 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href={`/collections/${order.nftContract}`} className="flex items-center gap-2">
+          <Link href={collectionHref("STARKNET", order.nftContract)} className="flex items-center gap-2">
             <Layers className="h-3.5 w-3.5 text-muted-foreground" />
             View collection
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link href={`/asset/${order.nftContract}/${order.nftTokenId}`} className="flex items-center gap-2">
+          <Link href={assetHref("STARKNET", order.nftContract, order.nftTokenId)} className="flex items-center gap-2">
             <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground" />
             Transfer
           </Link>
@@ -181,7 +182,7 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-52">
         <DropdownMenuItem asChild>
-          <Link href={`/asset/${order.nftContract}/${order.nftTokenId}`} className="flex items-center gap-2">
+          <Link href={assetHref("STARKNET", order.nftContract, order.nftTokenId)} className="flex items-center gap-2">
             <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
             View asset
           </Link>
@@ -202,7 +203,7 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
         )}
         <DropdownMenuItem
           className="flex items-center gap-2 text-brand-orange focus:text-brand-orange"
-          onClick={(e) => { e.preventDefault(); router.push(`/asset/${order.nftContract}/${order.nftTokenId}`); }}
+          onClick={(e) => { e.preventDefault(); router.push(assetHref("STARKNET", order.nftContract, order.nftTokenId)); }}
         >
           <HandCoins className="h-3.5 w-3.5" />
           Make offer
@@ -216,7 +217,7 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href={`/collections/${order.nftContract}`} className="flex items-center gap-2">
+          <Link href={collectionHref("STARKNET", order.nftContract)} className="flex items-center gap-2">
             <Layers className="h-3.5 w-3.5 text-muted-foreground" />
             View collection
           </Link>
@@ -230,7 +231,7 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
           </DropdownMenuItem>
         )}
         <DropdownMenuItem asChild>
-          <Link href={`/asset/${order.nftContract}/${order.nftTokenId}`} className="flex items-center gap-2">
+          <Link href={assetHref("STARKNET", order.nftContract, order.nftTokenId)} className="flex items-center gap-2">
             <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground" />
             Transfer
           </Link>
@@ -256,7 +257,7 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-52">
         <DropdownMenuItem asChild>
-          <Link href={`/collections/${order.nftContract}`} className="flex items-center gap-2">
+          <Link href={collectionHref("STARKNET", order.nftContract)} className="flex items-center gap-2">
             <Layers className="h-3.5 w-3.5 text-muted-foreground" />
             View collection
           </Link>

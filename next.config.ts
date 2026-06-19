@@ -30,6 +30,12 @@ const nextConfig: NextConfig = {
       { source: "/privacy",        destination: "https://docs.medialane.io/guidelines/privacy",        permanent: true },
       { source: "/campaign-terms", destination: "https://docs.medialane.io/guidelines/campaign-terms", permanent: true },
       { source: "/portfolio/remix-offers", destination: "/portfolio/licensing", permanent: true },
+      // Chain-in-URL (2026-06-19): 301 legacy asset/collection/coin paths to the
+      // chained `starknet` form. The (0x…) param regex keeps these from swallowing
+      // the new chained routes or any non-address sibling path.
+      { source: "/asset/:contract(0x[0-9a-fA-F]+)/:tokenId", destination: "/asset/starknet/:contract/:tokenId", permanent: true },
+      { source: "/collections/:contract(0x[0-9a-fA-F]+)",    destination: "/collections/starknet/:contract",    permanent: true },
+      { source: "/coins/:address(0x[0-9a-fA-F]+)",           destination: "/coins/starknet/:address",            permanent: true },
     ];
   },
   async headers() {

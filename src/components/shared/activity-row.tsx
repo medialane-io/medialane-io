@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
+import { assetHref } from "@/lib/routes";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { ipfsToHttp, timeAgo, formatDisplayPrice, cn } from "@/lib/utils";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
@@ -123,7 +124,7 @@ export function ActivityRow({
         <div className="flex items-center gap-1.5 leading-tight">
           {contract && tokenId ? (
             <Link
-              href={`/asset/${contract}/${tokenId}`}
+              href={assetHref("STARKNET", contract, tokenId)}
               className="text-sm font-semibold hover:text-primary transition-colors truncate block"
             >
               {tokenName}

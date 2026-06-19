@@ -2,75 +2,82 @@
 
 import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
+import { collectionHref } from "@/lib/routes";
 import { useToken, useTokenHistory } from "@/hooks/use-tokens";
 import { useTokenListings } from "@/hooks/use-orders";
 import { useCollection } from "@/hooks/use-collections";
 import { Button } from "@/components/ui/button";
 import { IpTypeBadge } from "@/components/shared/ip-type-badge";
-import { CurrencyIcon } from "@/components/shared/currency-icon";
-import { Skeleton } from "@/components/ui/skeleton";
-import { AddressDisplay } from "@/components/shared/address-display";
 import { PageContainer } from "@medialane/ui";
 import { ipfsToHttp, timeUntil, formatDisplayPrice, checkIsOwner } from "@/lib/utils";
-import { DollarSign, UserCheck, Globe, Bot, Percent, Shield, Calendar, ChevronRight, Layers, GitBranch } from "lucide-react";
+import {
+  DollarSign,
+  GitBranch,
+  UserCheck,
+  Globe,
+  Bot,
+  Percent,
+  Shield,
+  Calendar,
+  ChevronRight,
+  Layers,
+  Users,
+} from "lucide-react";
 import { FloatingCommentsButton } from "@/components/asset/floating-comments-button";
 import { LICENSE_TRAIT_TYPES } from "@/types/ip";
 import type { IPType } from "@/types/ip";
 import { IP_TEMPLATES, EMBED_PLATFORM_META, SOCIAL_PLATFORM_META } from "@/lib/ip-templates";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import type { ApiActivity, ApiOrder } from "@medialane/sdk";
-import { getService } from "@medialane/sdk";
-import { resolveRemixPolicy, getDerivativesTerm } from "@/lib/remix-policy";
-import { PriceHistoryChart } from "@/components/asset/price-history-chart";
 import { useComments } from "@/hooks/use-comments";
 import { EXPLORER_URL } from "@/lib/constants";
-import { useAuth, SignInButton } from "@clerk/nextjs";
+import { useAuth } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
+import { useOrderActions } from "./use-order-actions";
+import { useAcceptOffer } from "@/hooks/use-accept-offer";
 import { toast } from "sonner";
 import { useDominantColor } from "@/hooks/use-dominant-color";
-import { RemixesTab, ParentAttributionBanner } from "@/components/asset/remixes-tab";
 import { useTokenRemixes } from "@/hooks/use-remix-offers";
 import { HelpIcon } from "@/components/ui/help-icon";
 import { AssetMarketsTab } from "./asset-markets-tab";
 import { AssetProvenanceTab } from "./asset-provenance-tab";
 import { AssetMarketplacePanel } from "./asset-marketplace-panel";
-import { useFullTokenData } from "@/hooks/use-full-token-data";
-import {
-  AssetMarketplaceDialogs,
-  useAssetMarketplaceDialogState,
-} from "./asset-marketplace-dialogs";
 import {
   AssetCommentsDialog,
   AssetLinksRow,
   AssetOwnersPanel,
 } from "./asset-side-panels";
 import { AssetOverviewContent } from "./asset-overview-content";
-import { AssetHeaderBlock, AssetMediaColumn } from "./asset-top-sections";
-import { useOrderActions } from "./use-order-actions";
-import { useAcceptOffer } from "@/hooks/use-accept-offer";
+import {
+  AssetMarketplaceDialogs,
+  useAssetMarketplaceDialogState,
+} from "./asset-marketplace-dialogs";
+import {
+  AssetHeaderBlock,
+  AssetMediaColumn,
+  buildEditionStats,
+} from "./asset-top-sections";
 
-export function AssetPageStandard() {
+export function AssetPageEdition() {
   const { contract, tokenId } = useParams<{ contract: string; tokenId: string }>();
-  const router = useRouter();
   const { isSignedIn } = useAuth();
   const { walletAddress } = useSessionKey();
   const { collection } = useCollection(contract);
-  const { token, isLoading } = useToken(contract, tokenId);
+  const { token } = useToken(contract, tokenId);
   const { listings, mutate: mutateListings } = useTokenListings(contract, tokenId);
   const { history } = useTokenHistory(contract, tokenId);
-
   const {
     isProcessing,
     orderToCancel, cancelPinOpen, cancelStep, cancelError,
     handleCancelClick, handleCancelPin,
     dismissCancelPin, resetCancelStep,
-  } = useOrderActions({ mutateListings });
-  const acceptOffer = useAcceptOffer({ mutateListings, activeListings: listings.filter(
+  } = useOrderActions({ mutateListings, tokenStandard: "ERC1155" });
+  const acceptOffer = useAcceptOffer({ mutateListings, tokenStandard: "ERC1155", activeListings: listings.filter(
     (l) => l.status === "ACTIVE" && (l.offer.itemType === "ERC721" || l.offer.itemType === "ERC1155")
   ) });
-
   const shouldReduce = useReducedMotion();
 
   const imageUrl = token?.metadata?.image ? ipfsToHttp(token.metadata.image) : null;
@@ -90,19 +97,12 @@ export function AssetPageStandard() {
   const [reportOpen, setReportOpen] = useState(false);
   const [commentOpen, setCommentOpen] = useState(false);
 
-  const { comments, total: commentTotal } = useComments(contract, tokenId);
+  const { comments: _comments, total: commentTotal } = useComments(contract, tokenId);
   const { total: remixCount } = useTokenRemixes(contract, tokenId);
 
-  // Audited IPNft creation record — null for legacy / external contracts.
-  const { data: fullTokenData } = useFullTokenData({
-    ipNftAddress: contract,
-    tokenId: tokenId ? (() => { try { return BigInt(tokenId); } catch { return undefined; } })() : undefined,
-  });
-  // Listings = NFT in offer (ERC721 or ERC1155 — someone selling the token)
   const activeListings = listings.filter(
     (l) => l.status === "ACTIVE" && (l.offer.itemType === "ERC721" || l.offer.itemType === "ERC1155")
   );
-  // Bids = ERC20 in offer (someone bidding to buy the NFT)
   const activeBids = listings.filter(
     (l) => l.status === "ACTIVE" && l.offer.itemType === "ERC20"
   );
@@ -112,64 +112,31 @@ export function AssetPageStandard() {
   )[0];
 
   const isOwner = checkIsOwner(token, walletAddress);
-  const isERC1155 = (token?.standard ?? collection?.standard) === "ERC1155";
+  const holders = token?.balances ?? [];
+  const quantityOwned = walletAddress
+    ? holders.find((h) => h.owner.toLowerCase() === walletAddress.toLowerCase())?.amount
+    : undefined;
 
   const myListing = isOwner
     ? activeListings.find((l) => l.offerer.toLowerCase() === walletAddress!.toLowerCase())
     : null;
 
 
-  // Remix is permissionless (self-mint), gated only by the creator's declared
-  // Derivatives term at the app layer. The deal flow is the consent override.
-  const remixPolicy = resolveRemixPolicy({
-    parentNoDerivatives: getDerivativesTerm(token?.metadata?.attributes) === "Not Allowed",
-    viewerIsParentOwner: isOwner,
-    dealAvailable: !!getService(collection?.service),
-  });
+  if (!token) return null;
 
-  const goToRemix = () => router.push(`/create/remix/${contract}/${tokenId}`);
-  const goToDeal = () => router.push(`/create/licensing/${contract}/${tokenId}`);
-
-  if (isLoading) {
-    return (
-      <PageContainer className="pt-20 pb-8">
-        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] lg:gap-10 gap-8">
-          <Skeleton className="aspect-[4/3] w-full rounded-2xl" />
-          <div className="space-y-4">
-            <Skeleton className="h-8 w-3/4" />
-            <Skeleton className="h-4 w-1/2" />
-            <Skeleton className="h-32 w-full" />
-            <Skeleton className="h-12 w-full" />
-          </div>
-        </div>
-      </PageContainer>
-    );
-  }
-
-  if (!token) {
-    return (
-      <PageContainer className="py-24 text-center">
-        <p className="text-2xl font-bold">Asset not found</p>
-        <p className="text-muted-foreground mt-2">This token hasn&apos;t been indexed yet.</p>
-      </PageContainer>
-    );
-  }
-
-  const name = token.metadata?.name || `Token #${token.tokenId}`;
+  const name = token.metadata?.name || `Edition #${token.tokenId}`;
   const image = ipfsToHttp(token.metadata?.image);
   const description = token.metadata?.description;
   const attributes = Array.isArray(token.metadata?.attributes)
     ? (token.metadata.attributes as { trait_type?: string; value?: string }[])
     : [];
 
-  // Derive active template once — shared by Media tab visibility check and attribute grid filtering.
-  // Per-type keys avoid cross-type collisions from shared keys like "Genre", "Duration".
+  const totalEditions = collection?.totalSupply ?? 0;
+  const uniqueOwners = holders.length;
+
   const activeTemplate = IP_TEMPLATES[
     (attributes.find((a) => a.trait_type?.toLowerCase() === "ip type")?.value ?? "") as IPType
   ];
-  // Keys rendered by IPTypeDisplay (embeds + socials) — kept out of the generic
-  // attribute grid. Trait values (Artist, Genre, custom traits) intentionally
-  // fall through to the Attributes grid.
   const activeTemplateEmbedSocialKeys = activeTemplate
     ? [
         ...(activeTemplate.embeds ?? []).map((p) => EMBED_PLATFORM_META[p].traitKey),
@@ -182,34 +149,14 @@ export function AssetPageStandard() {
     attributes.some((a) => a.trait_type === k && a.value)
   );
 
-  // Predicate for filtering template + license attributes out of attribute grids.
   const isDisplayAttr = (a: { trait_type?: string }): boolean =>
     !LICENSE_TRAIT_TYPES.has(a.trait_type ?? "") && !activeTemplateKeys.has(a.trait_type ?? "");
-
-  // Remix / parent detection
-  const parentContract = attributes.find((a) => a.trait_type === "Parent Contract")?.value ?? null;
-  const parentTokenId = attributes.find((a) => a.trait_type === "Parent Token ID")?.value ?? null;
 
   return (
     <div
       style={dynamicTheme ? (dynamicTheme as React.CSSProperties) : {}}
       className="relative z-0 min-h-screen"
     >
-      {/*
-       * `Token.isHidden` exists on the backend Prisma schema as a filter
-       * column — hidden tokens are excluded from every list AND single-
-       * token endpoint (see medialane-backend tokens.ts:39,157,201,218).
-       * The field is never serialised on the response, so this banner
-       * can never render: a hidden token would 404 before reaching this
-       * component. Removing the cast + dead branch.
-       *
-       * If we ever want to display hidden tokens with a moderation
-       * banner instead of 404'ing them, the change is in backend: drop
-       * `isHidden: false` from the WHERE clause + include the field in
-       * serialize(), then add to ApiToken in @medialane/sdk, then
-       * restore this check.
-       */}
-      {/* Hidden extraction image for dominant color — must be in component tree */}
       {imageUrl && (
         <img
           ref={imgRef}
@@ -221,32 +168,23 @@ export function AssetPageStandard() {
           style={{ display: "none" }}
         />
       )}
-      {/* Full-bleed atmospheric background from asset image */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         {imageUrl && (
           <img
             src={imageUrl}
             alt=""
             aria-hidden
-            className="absolute inset-0 w-full h-full object-cover opacity-30 scale-110"
+            className="absolute inset-0 w-full h-full object-cover opacity-20 scale-110"
             style={{ filter: "blur(60px) saturate(1.5)" }}
           />
         )}
-        <div
-          className="absolute inset-0"
-          style={{
-            background: dynamicTheme
-              ? `hsl(var(--dynamic-primary) / 0.08)`
-              : "transparent"
-          }}
-        />
       </div>
 
       <PageContainer className="pt-20 space-y-8 pb-8">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-sm text-muted-foreground min-w-0">
           <Link
-            href={`/collections/${contract}`}
+            href={collectionHref("STARKNET", contract)}
             className="hover:text-foreground transition-colors truncate max-w-[140px] shrink-0"
           >
             {collection?.name ?? contract.slice(0, 8) + "…"}
@@ -255,7 +193,6 @@ export function AssetPageStandard() {
           <span className="text-foreground font-medium truncate">{name}</span>
         </nav>
 
-        {/* Top: image + info */}
         <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] lg:gap-10 gap-8 items-start">
           <AssetMediaColumn
             shouldReduce={Boolean(shouldReduce)}
@@ -264,10 +201,11 @@ export function AssetPageStandard() {
             imgError={imgError}
             onImageError={() => setImgError(true)}
             fallback={(
-              <div className="aspect-square flex items-center justify-center bg-gradient-to-br from-primary/10 to-purple-500/10">
-                <span className="text-5xl font-mono text-muted-foreground">#{tokenId}</span>
+              <div className="aspect-square flex items-center justify-center bg-gradient-to-br from-violet-500/20 to-purple-600/20">
+                <Layers className="h-24 w-24 text-violet-500/40" />
               </div>
             )}
+            stats={buildEditionStats(totalEditions, uniqueOwners)}
           />
 
           {/* Right column */}
@@ -281,10 +219,7 @@ export function AssetPageStandard() {
               name={name}
               description={description}
               ipType={token.metadata?.ipType}
-              showMultiEditionBadge={Boolean(isERC1155)}
-              parentContract={parentContract}
-              parentTokenId={parentTokenId}
-              ownerAddress={!isERC1155 ? (token.balances?.[0]?.owner ?? token.owner ?? null) : null}
+              showMultiEditionBadge={true}
             />
 
             <AssetMarketplacePanel
@@ -292,38 +227,26 @@ export function AssetPageStandard() {
               isOwner={isOwner}
               isSignedIn={!!isSignedIn}
               isProcessing={isProcessing}
-              isERC1155={isERC1155}
+              isERC1155
               myListing={myListing ?? null}
               activeBids={activeBids}
               walletAddress={walletAddress}
-              remixEnabled={remixPolicy.canRemixDirect}
-              showDealOption={remixPolicy.showDealOption}
               onCancelClick={handleCancelClick}
               onAcceptBid={acceptOffer.handleAcceptClick}
               onOpenListing={() => setListOpen(true)}
               onOpenTransfer={() => setTransferOpen(true)}
               onOpenPurchase={setPurchaseOrder}
               onOpenOffer={() => setOfferOpen(true)}
-              onOpenRemix={goToRemix}
-              onProposeDeal={goToDeal}
             />
 
-            {/* ERC-1155 ownership — shown after marketplace buttons */}
-            {isERC1155 && token.balances && token.balances.length > 0 ? (
-              <AssetOwnersPanel balances={token.balances} maxVisible={5} />
-            ) : null}
+            <AssetOwnersPanel balances={holders} maxVisible={8} />
 
             <AssetLinksRow
-              contractHref={`${EXPLORER_URL}/contract/${token.contractAddress}`}
-              collectionHref={`/collections/${token.contractAddress}`}
+              contractHref={`${EXPLORER_URL}/contract/${contract}`}
+              collectionHref={collectionHref("STARKNET", contract)}
               collection={collection}
-              shareTitle={name ?? `Token #${token?.tokenId}`}
-              reportTarget={{
-                type: "TOKEN",
-                contract: token.contractAddress,
-                tokenId: token.tokenId,
-                name: name ?? undefined,
-              }}
+              shareTitle={name}
+              reportTarget={{ type: "TOKEN", contract, tokenId, name: name ?? undefined }}
               reportOpen={reportOpen}
               onReportOpenChange={setReportOpen}
             />
@@ -334,17 +257,14 @@ export function AssetPageStandard() {
         <Tabs defaultValue="overview">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="markets" className="flex items-center gap-1">
+            <TabsTrigger value="markets">
               Markets {(activeListings.length + activeBids.length) > 0 && `(${activeListings.length + activeBids.length})`}
-              <HelpIcon content="Active listings for sale and open offers on this asset" side="bottom" />
             </TabsTrigger>
-            <TabsTrigger value="provenance" className="flex items-center gap-1">
+            <TabsTrigger value="provenance">
               Provenance {history.length > 0 && `(${history.length})`}
-              <HelpIcon content="Full transfer and sale history recorded onchain — immutable proof of ownership" side="bottom" />
             </TabsTrigger>
           </TabsList>
 
-          {/* Overview tab — media embeds + license + attributes */}
           <TabsContent value="overview">
             <AssetOverviewContent
               attributes={attributes}
@@ -353,8 +273,6 @@ export function AssetPageStandard() {
             />
           </TabsContent>
 
-
-          {/* Markets tab — listings + offers */}
           <TabsContent value="markets">
             <AssetMarketsTab
               activeListings={activeListings}
@@ -368,21 +286,16 @@ export function AssetPageStandard() {
             />
           </TabsContent>
 
-          {/* Provenance tab — history + remixes */}
           <TabsContent value="provenance">
             <AssetProvenanceTab
               history={history as ApiActivity[]}
               contract={contract}
               tokenId={tokenId}
               remixCount={remixCount}
-              originalCreator={fullTokenData?.originalCreator}
-              registeredAt={fullTokenData?.registeredAt}
             />
           </TabsContent>
-
         </Tabs>
       </PageContainer>
-
 
       <FloatingCommentsButton onClick={() => setCommentOpen(true)} commentTotal={commentTotal} />
 
@@ -394,10 +307,11 @@ export function AssetPageStandard() {
         name={name}
         imageUrl={imageUrl}
         commentTotal={commentTotal}
-        accentBorderClassName="border-brand-blue/20"
-        accentHeaderStyle="linear-gradient(135deg, hsl(var(--brand-blue) / 0.10), hsl(var(--brand-purple) / 0.08))"
-        accentAvatarStyle="linear-gradient(135deg, hsl(var(--brand-blue) / 0.3), hsl(var(--brand-purple) / 0.3))"
-        accentCountStyle={{ background: "hsl(var(--brand-blue))" }}
+        accentBorderClassName="border-violet-500/20"
+        accentHeaderStyle="linear-gradient(135deg, hsl(var(--brand-purple) / 0.10), hsl(var(--brand-blue) / 0.08))"
+        accentAvatarStyle="linear-gradient(135deg, hsl(266 80% 60% / 0.3), hsl(var(--brand-blue) / 0.3))"
+        accentLabelClassName="text-violet-400"
+        accentCountStyle={{ background: "rgb(139 92 246)" }}
       />
 
       <AssetMarketplaceDialogs
@@ -405,7 +319,8 @@ export function AssetPageStandard() {
         tokenId={tokenId}
         tokenName={name}
         tokenImage={imageUrl}
-        tokenStandard={token?.standard ?? collection?.standard ?? "UNKNOWN"}
+        tokenStandard="ERC1155"
+        quantityOwned={quantityOwned != null ? Number(quantityOwned) : undefined}
         hasActiveListing={activeListings.length > 0}
         mutateListings={mutateListings}
         purchaseOrder={purchaseOrder}
@@ -425,7 +340,6 @@ export function AssetPageStandard() {
         acceptOfferHook={acceptOffer}
         onCancelListing={handleCancelClick}
       />
-
     </div>
   );
 }

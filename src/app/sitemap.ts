@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { IP_TYPE_DATA } from "@medialane/ui";
 import { APP_URL } from "@/lib/seo";
+import { assetHref, collectionHref } from "@/lib/routes";
 
 const BASE_URL = APP_URL;
 const BACKEND_URL =
@@ -60,14 +61,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]);
 
   const collectionRoutes: MetadataRoute.Sitemap = (collectionsData?.data ?? []).map((c) => ({
-    url: `${BASE_URL}/collections/${c.contractAddress}`,
+    url: `${BASE_URL}${collectionHref("STARKNET", c.contractAddress)}`,
     changeFrequency: "daily" as const,
     priority: 0.7,
     lastModified: c.updatedAt ? new Date(c.updatedAt) : undefined,
   }));
 
   const tokenRoutes: MetadataRoute.Sitemap = (tokensData?.data ?? []).map((t) => ({
-    url: `${BASE_URL}/asset/${t.contractAddress}/${t.tokenId}`,
+    url: `${BASE_URL}${assetHref("STARKNET", t.contractAddress, t.tokenId)}`,
     changeFrequency: "weekly" as const,
     priority: 0.5,
     lastModified: t.updatedAt ? new Date(t.updatedAt) : undefined,

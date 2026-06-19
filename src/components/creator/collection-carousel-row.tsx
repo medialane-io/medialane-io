@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import Link from "next/link";
 import { LayoutGrid, ChevronRight } from "lucide-react";
+import { collectionHref } from "@/lib/routes";
 import { MotionCard } from "@/components/ui/motion-primitives";
 import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
 import { CollectionCard, CollectionCardSkeleton } from "@medialane/ui";
@@ -66,7 +67,7 @@ export function CollectionCarouselRow({
           {collection.name ?? "Unnamed Collection"}
         </h3>
         <Link
-          href={`/collections/${collection.contractAddress}`}
+          href={collectionHref("STARKNET", collection.contractAddress)}
           className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-0.5"
         >
           See all <ChevronRight className="h-3 w-3" />
@@ -102,7 +103,7 @@ export function CollectionCarouselRow({
 
         {/* View all CTA */}
         {!isLoading && (
-          <ViewAllCard href={`/collections/${collection.contractAddress}`} />
+          <ViewAllCard href={collectionHref("STARKNET", collection.contractAddress)} />
         )}
       </div>
     </div>

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { collectionHref } from "@/lib/routes";
 import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 import { useCollections } from "@/hooks/use-collections";
 import { ipfsToHttp, formatDisplayPrice, cn } from "@/lib/utils";
@@ -65,7 +66,7 @@ function HeroSlide({
           asChild
           className="self-start mt-2 bg-white text-black hover:bg-white/90 font-semibold"
         >
-          <Link href={`/collections/${collection.contractAddress}`}>
+          <Link href={collectionHref("STARKNET", collection.contractAddress)}>
             View Collection <ArrowRight className="h-4 w-4 ml-1.5" />
           </Link>
         </Button>

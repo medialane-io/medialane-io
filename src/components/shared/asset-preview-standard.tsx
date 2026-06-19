@@ -16,6 +16,7 @@ import {
   PreviewHero, PreviewFooter, PreviewActionList, PreviewMeta, PreviewOwnerRow,
   type AssetPreviewContentProps, type PreviewAction,
 } from "./asset-preview-dialog";
+import { assetHref as buildAssetHref, collectionHref as buildCollectionHref } from "@/lib/routes";
 
 export function AssetPreviewStandard({
   token, isOwner, onClose, onList, onCancel, onTransfer,
@@ -30,8 +31,8 @@ export function AssetPreviewStandard({
   const image = imgError ? null : (ipfsToHttp(token.metadata?.image) ?? null);
   const activeOrder = token.activeOrders?.[0] ?? null;
 
-  const assetHref = `/asset/${token.contractAddress}/${token.tokenId}`;
-  const collectionHref = `/collections/${token.contractAddress}`;
+  const assetHref = buildAssetHref("STARKNET", token.contractAddress, token.tokenId);
+  const collectionHref = buildCollectionHref("STARKNET", token.contractAddress);
   const remixHref = `/create/remix/${token.contractAddress}/${token.tokenId}`;
   const currentOwner = token.balances?.[0]?.owner ?? token.owner ?? null;
   const ownerHref = currentOwner ? `/account/${currentOwner}` : null;

@@ -1,24 +1,26 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { JsonLd } from "@/components/seo/json-ld";
 import { fetchTokenMeta, ipfsToHttpServer } from "@/lib/api-server";
 import { absoluteUrl, canonical, truncateDescription } from "@/lib/seo";
+import { chainFromSlug } from "@/lib/routes";
 import AssetPageClient from "./asset-page-client";
 
 export const revalidate = 60;
 
 interface Props {
-  params: Promise<{ contract: string; tokenId: string }>;
+  params: Promise<{ chain: string; contract: string; tokenId: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { contract, tokenId } = await params;
+  const { chain, contract, tokenId } = await params;
   const token = await fetchTokenMeta(contract, tokenId);
 
   const name        = token?.metadata?.name ?? token?.name ?? `Token #${tokenId}`;
   const description = truncateDescription(token?.metadata?.description ?? token?.description ?? "View this digital asset on Medialane.");
   const rawImage    = token?.metadata?.image ?? token?.image;
   const imageUrl    = rawImage ? ipfsToHttpServer(rawImage) : undefined;
-  const path        = `/asset/${contract}/${tokenId}`;
+  const path        = `/asset/${chain}/${contract}/${tokenId}`;
 
   return {
     title: name,
@@ -42,12 +44,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function AssetPage({ params }: Props) {
-  const { contract, tokenId } = await params;
+  const { chain, contract, tokenId } = await params;
+  if (!chainFromSlug(chain)) notFound();
   const token = await fetchTokenMeta(contract, tokenId);
   const name = token?.metadata?.name ?? token?.name ?? `Token #${tokenId}`;
   const description = token?.metadata?.description ?? token?.description ?? "View this digital asset on Medialane.";
   const imageUrl = ipfsToHttpServer(token?.metadata?.image ?? token?.image ?? "");
-  const path = `/asset/${contract}/${tokenId}`;
+  const path = `/asset/${chain}/${contract}/${tokenId}`;
 
   const jsonLd = {
     "@context": "https://schema.org",

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Loader2 } from "lucide-react";
+import { collectionHref } from "@/lib/routes";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDisplayPrice, ipfsToHttp } from "@/lib/utils";
 import { HelpIcon } from "@/components/ui/help-icon";
@@ -21,7 +22,7 @@ function CollectionCover({
 
   return (
     <Link
-      href={`/collections/${collection.contractAddress}`}
+      href={collectionHref("STARKNET", collection.contractAddress)}
       className="group block relative rounded-2xl overflow-hidden border border-border/60 hover:border-border transition-all hover:shadow-xl hover:shadow-black/20 hover:-translate-y-0.5 duration-300"
     >
       {/* Cover image — aspect-[3/4] portrait like collection cards */}

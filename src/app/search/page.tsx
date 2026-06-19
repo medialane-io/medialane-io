@@ -4,6 +4,7 @@ import { Suspense, useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { assetHref, collectionHref } from "@/lib/routes";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
@@ -18,7 +19,7 @@ function TokenCard({ token }: { token: NonNullable<ApiSearchResult["tokens"]>[nu
   const [imgError, setImgError] = useState(false);
   const image = token.image ? ipfsToHttp(token.image) : null;
   const name = token.name ?? `Token #${token.tokenId}`;
-  const href = `/asset/${token.contractAddress}/${token.tokenId}`;
+  const href = assetHref("STARKNET", token.contractAddress, token.tokenId);
 
   return (
     <MotionCard className="card-base group relative overflow-hidden flex flex-col">
@@ -70,7 +71,7 @@ function CollectionCard({ col }: { col: NonNullable<ApiSearchResult["collections
 
   return (
     <Link
-      href={`/collections/${col.contractAddress}`}
+      href={collectionHref("STARKNET", col.contractAddress)}
       className="card-base flex items-center gap-3 p-4 hover:border-primary/30 hover:bg-muted/30 transition-all"
     >
       <div className="relative h-10 w-10 rounded-lg bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center text-base font-bold shrink-0 overflow-hidden">
