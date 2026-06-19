@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { assetHref as buildAssetHref, collectionHref as buildCollectionHref } from "@/lib/routes";
 import {
   Loader2, ArrowUpRight, MoreHorizontal, Zap, HandCoins, Tag,
   ShoppingCart, Check, Layers, GitBranch, Flag, UserCircle2, ArrowRightLeft, XCircle,
@@ -69,8 +70,8 @@ export function TokenCard({
   const creator = typeof creatorAttr?.value === "string" ? creatorAttr.value : null;
   const owner = token.balances?.[0]?.owner ?? token.owner ?? null;
 
-  const assetHref = `/asset/${token.contractAddress}/${token.tokenId}`;
-  const collectionHref = `/collections/${token.contractAddress}`;
+  const assetHref = buildAssetHref("STARKNET", token.contractAddress, token.tokenId);
+  const collectionHref = buildCollectionHref("STARKNET", token.contractAddress);
 
 
   const handleBuy = (e: React.MouseEvent) => {

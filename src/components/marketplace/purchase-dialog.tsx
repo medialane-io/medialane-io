@@ -10,6 +10,7 @@ import {
   CheckCircle2, ShieldCheck,
 } from "lucide-react";
 import { fireConfetti } from "@/lib/confetti";
+import { assetHref as buildAssetHref } from "@/lib/routes";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -107,7 +108,7 @@ function SuccessScreen({
   const image = order.token?.image ? ipfsToHttp(order.token.image) : null;
   const name = order.token?.name ?? null;
   const is1155 = order.offer?.itemType === "ERC1155";
-  const assetHref = `/asset/${order.nftContract}/${order.nftTokenId}`;
+  const assetHref = buildAssetHref("STARKNET", order.nftContract, order.nftTokenId);
 
   const unitPrice = order.price?.formatted ? parseFloat(order.price.formatted) : null;
   const totalPrice = unitPrice !== null ? unitPrice * quantity : null;

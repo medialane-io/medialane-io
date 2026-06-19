@@ -1,5 +1,6 @@
 import type { ApiActivity, ApiOrder } from "@medialane/sdk";
 import { formatDisplayPrice, ipfsToHttp } from "./utils";
+import { assetHref } from "./routes";
 
 export interface FormattedEvent {
   title: string;
@@ -20,7 +21,7 @@ function price(p?: { formatted?: string | null; currency?: string | null } | nul
 export function formatActivity(event: ApiActivity): FormattedEvent {
   const contract = event.nftContract ?? event.contractAddress ?? "";
   const tokenId  = event.nftTokenId ?? event.tokenId ?? "";
-  const href     = contract && tokenId ? `/asset/${contract}/${tokenId}` : "/activities";
+  const href     = contract && tokenId ? assetHref("STARKNET", contract, tokenId) : "/activities";
   const raw      = event.token?.image ?? null;
   const image    = raw ? ipfsToHttp(raw) : null;
   const name     = event.token?.name ?? (tokenId ? `#${tokenId}` : "token");
@@ -84,7 +85,7 @@ export function formatOrderNotification(order: ApiOrder): FormattedEvent {
   const name   = order.token?.name ?? `#${order.consideration.identifier}`;
   const raw    = order.token?.image ?? null;
   const image  = raw ? ipfsToHttp(raw) : null;
-  const href   = `/asset/${order.consideration.token}/${order.consideration.identifier}`;
+  const href   = assetHref("STARKNET", order.consideration.token, order.consideration.identifier);
   const p      = price(order.price);
   const from   = short(order.offerer);
 

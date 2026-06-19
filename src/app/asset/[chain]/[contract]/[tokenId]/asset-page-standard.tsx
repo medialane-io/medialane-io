@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { collectionHref } from "@/lib/routes";
 import { useToken, useTokenHistory } from "@/hooks/use-tokens";
 import { useTokenListings } from "@/hooks/use-orders";
 import { useCollection } from "@/hooks/use-collections";
@@ -246,7 +247,7 @@ export function AssetPageStandard() {
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-sm text-muted-foreground min-w-0">
           <Link
-            href={`/collections/${contract}`}
+            href={collectionHref("STARKNET", contract)}
             className="hover:text-foreground transition-colors truncate max-w-[140px] shrink-0"
           >
             {collection?.name ?? contract.slice(0, 8) + "…"}
@@ -315,7 +316,7 @@ export function AssetPageStandard() {
 
             <AssetLinksRow
               contractHref={`${EXPLORER_URL}/contract/${token.contractAddress}`}
-              collectionHref={`/collections/${token.contractAddress}`}
+              collectionHref={collectionHref("STARKNET", token.contractAddress)}
               collection={collection}
               shareTitle={name ?? `Token #${token?.tokenId}`}
               reportTarget={{

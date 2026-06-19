@@ -4,6 +4,7 @@ import { useState } from "react";
 import useSWR from "swr";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { assetHref } from "@/lib/routes";
 import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useUserOrders } from "@/hooks/use-orders";
 import { useActivitiesByAddress } from "@/hooks/use-activities";
@@ -91,7 +92,7 @@ function ActivityRow({ event, isLast }: { event: ApiActivity; isLast: boolean })
               </span>
               {contract && tokenId ? (
                 <Link
-                  href={`/asset/${contract}/${tokenId}`}
+                  href={assetHref("STARKNET", contract, tokenId)}
                   className="text-xs text-muted-foreground font-mono hover:text-foreground transition-colors"
                 >
                   Token #{tokenId}

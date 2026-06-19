@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@clerk/nextjs";
+import { assetHref } from "@/lib/routes";
 import { useToken } from "@/hooks/use-tokens";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
@@ -315,7 +316,7 @@ export default function CreateRemixPage() {
 
       setMintStep("success");
       setTimeout(() => {
-        router.push(`/asset/${selectedCollection.contractAddress}/${remixTokenId}`);
+        router.push(assetHref("STARKNET", selectedCollection.contractAddress, remixTokenId));
       }, INDEXER_REVALIDATION_DELAY_MS);
     } catch (err: unknown) {
       setMintError(err instanceof Error ? err.message : "Something went wrong");
@@ -352,7 +353,7 @@ export default function CreateRemixPage() {
   // a `Derivatives: Not Allowed` asset — that path is licensing (/create/licensing),
   // reached from the asset page. Guard direct navigation here.
   if (!remixPolicy.canRemixDirect) {
-    router.replace(`/asset/${contract}/${tokenId}`);
+    router.replace(assetHref("STARKNET", contract, tokenId));
     return null;
   }
 
@@ -381,7 +382,7 @@ export default function CreateRemixPage() {
         {/* Header */}
         <div className="space-y-3">
           <Link
-            href={`/asset/${contract}/${tokenId}`}
+            href={assetHref("STARKNET", contract, tokenId)}
             className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <ChevronLeft className="h-4 w-4" />

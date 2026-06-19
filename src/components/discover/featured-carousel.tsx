@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { collectionHref } from "@/lib/routes";
 import { useCollections } from "@/hooks/use-collections";
 import { Button } from "@/components/ui/button";
 import { FadeIn, EASE_OUT } from "@/components/ui/motion-primitives";
@@ -58,7 +59,7 @@ function Slide({ collection }: { collection: ApiCollection }) {
           size="sm"
           className="gap-2 bg-white/15 hover:bg-white/25 text-white border border-white/20 backdrop-blur-sm"
         >
-          <Link href={`/collections/${collection.contractAddress}`}>
+          <Link href={collectionHref("STARKNET", collection.contractAddress)}>
             View Collection <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </Button>

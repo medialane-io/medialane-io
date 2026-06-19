@@ -5,6 +5,7 @@ import { useAuth } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useCollection } from "@/hooks/use-collections";
 import { useCollectionProfile } from "@/hooks/use-profiles";
+import { collectionHref } from "@/lib/routes";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -377,7 +378,7 @@ export default function CollectionSettingsPage({ params }: Props) {
         </p>
         {collection && (
           <Link
-            href={`/collections/${contract}`}
+            href={collectionHref("STARKNET", contract)}
             className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground mt-2 transition-colors"
           >
             <ExternalLink className="h-3 w-3" />

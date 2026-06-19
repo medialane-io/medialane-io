@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useUser } from "@clerk/nextjs";
+import { collectionHref } from "@/lib/routes";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion-primitives";
@@ -59,7 +60,7 @@ function CollectionRow({ col }: { col: ApiCollection }) {
               )}
             </div>
             <Link
-              href={`/collections/${col.contractAddress}`}
+              href={collectionHref("STARKNET", col.contractAddress)}
               className="shrink-0 text-muted-foreground/50 hover:text-muted-foreground transition-colors"
               title="View collection page"
             >
@@ -101,7 +102,7 @@ function CollectionRow({ col }: { col: ApiCollection }) {
             Mint editions
           </Link>
           <Button variant="outline" size="sm" asChild>
-            <Link href={`/collections/${col.contractAddress}`}>
+            <Link href={collectionHref("STARKNET", col.contractAddress)}>
               View collection
             </Link>
           </Button>

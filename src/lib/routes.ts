@@ -14,14 +14,21 @@ export function chainFromSlug(slug: string): Chain | null {
   return (SUPPORTED_URL_CHAINS as readonly Chain[]).includes(upper) ? upper : null;
 }
 
-export function assetHref(chain: Chain, contract: string, tokenId: string | number): string {
-  return `/asset/${chainSlug(chain)}/${contract}/${tokenId}`;
+/** Nullish contract/token/address values coerce to "" — matches the pre-helper
+ *  template-literal behavior (an absent id was never a valid link anyway) and
+ *  keeps the ~50 call-sites free of artificial null guards. ApiOrder types
+ *  nftContract/nftTokenId as `string | null`, so callers legitimately pass these. */
+type Idish = string | number | null | undefined;
+const seg = (v: Idish): string => (v == null ? "" : String(v));
+
+export function assetHref(chain: Chain, contract: Idish, tokenId: Idish): string {
+  return `/asset/${chainSlug(chain)}/${seg(contract)}/${seg(tokenId)}`;
 }
 
-export function collectionHref(chain: Chain, contract: string): string {
-  return `/collections/${chainSlug(chain)}/${contract}`;
+export function collectionHref(chain: Chain, contract: Idish): string {
+  return `/collections/${chainSlug(chain)}/${seg(contract)}`;
 }
 
-export function coinHref(chain: Chain, address: string): string {
-  return `/coins/${chainSlug(chain)}/${address}`;
+export function coinHref(chain: Chain, address: Idish): string {
+  return `/coins/${chainSlug(chain)}/${seg(address)}`;
 }

@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
+import { assetHref } from "@/lib/routes";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -345,7 +346,7 @@ export default function MintIP1155Page() {
         error={mintError}
         onMintAnother={handleMintAnother}
         mintedTokenId={mintedTokenId ?? ""}
-        assetHref={`/asset/${collectionAddress}/${mintedTokenId ?? ""}`}
+        assetHref={assetHref("STARKNET", collectionAddress, mintedTokenId ?? "")}
         explorerAssetHref={`${EXPLORER_URL}/nft/${collectionAddress}/${mintedTokenId ?? ""}`}
       />
     </>

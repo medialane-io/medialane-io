@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@clerk/nextjs";
+import { assetHref } from "@/lib/routes";
 import { useToken } from "@/hooks/use-tokens";
 import { useCollection } from "@/hooks/use-collections";
 import { useSessionKey } from "@/hooks/use-session-key";
@@ -121,14 +122,14 @@ export default function CreateLicensingPage() {
   }
   // You can't license your own work; licensing needs a reachable Medialane owner.
   if (viewerIsOwner || !policy.dealAvailable) {
-    router.replace(`/asset/${contract}/${tokenId}`);
+    router.replace(assetHref("STARKNET", contract, tokenId));
     return null;
   }
 
   return (
     <div className="container max-w-2xl mx-auto px-4 pt-14 pb-12 space-y-6">
       <div className="space-y-3">
-        <Link href={`/asset/${contract}/${tokenId}`} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+        <Link href={assetHref("STARKNET", contract, tokenId)} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ChevronLeft className="h-4 w-4" /> Back to asset
         </Link>
         <div className="flex items-center gap-2 text-primary">

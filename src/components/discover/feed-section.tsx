@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { DiscoverFeedSection } from "@medialane/ui";
+import { assetHref } from "@/lib/routes";
 import { useOrders } from "@/hooks/use-orders";
 import { useActivities } from "@/hooks/use-activities";
 import { useSessionKey } from "@/hooks/use-session-key";
@@ -28,7 +29,7 @@ export function FeedSection() {
         activities={activities}
         activitiesLoading={activitiesLoading}
         lastUpdated={lastUpdated}
-        getAssetHref={(contract, tokenId) => `/asset/${contract}/${tokenId}`}
+        getAssetHref={(contract, tokenId) => assetHref("STARKNET", contract, tokenId)}
         getActorHref={(address) => `/creator/${address}`}
         explorerUrl={EXPLORER_URL}
         marketplaceHref="/marketplace"

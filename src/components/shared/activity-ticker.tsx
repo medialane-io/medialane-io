@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { assetHref } from "@/lib/routes";
 import { useOrders } from "@/hooks/use-orders";
 import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
@@ -14,7 +15,7 @@ function ActivityPill({ listing }: { listing: ApiOrder }) {
 
   return (
     <Link
-      href={`/asset/${listing.nftContract}/${listing.nftTokenId}`}
+      href={assetHref("STARKNET", listing.nftContract, listing.nftTokenId)}
       className="flex-shrink-0 flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 hover:bg-muted/60 active:scale-[0.98] transition-all duration-150 group"
     >
       <div className="h-8 w-8 rounded-lg overflow-hidden bg-muted shrink-0">

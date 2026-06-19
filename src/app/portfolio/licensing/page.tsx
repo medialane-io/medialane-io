@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { assetHref } from "@/lib/routes";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useRemixOffers } from "@/hooks/use-remix-offers";
 import { ApproveMintSheet } from "@/components/portfolio/approve-mint-sheet";
@@ -62,7 +63,7 @@ export default function PortfolioLicensingPage() {
                   <div className="flex items-center gap-2">
                     <StatusBadge status={offer.status} />
                     <Link
-                      href={`/asset/${offer.originalContract}/${offer.originalTokenId}`}
+                      href={assetHref("STARKNET", offer.originalContract, offer.originalTokenId)}
                       className="text-sm font-medium hover:text-primary transition-colors truncate"
                     >
                       Token #{offer.originalTokenId}
@@ -92,7 +93,7 @@ export default function PortfolioLicensingPage() {
                 )}
                 {offer.status === "APPROVED" && offer.remixContract && offer.remixTokenId && (
                   <Button size="sm" variant="outline" asChild>
-                    <Link href={`/asset/${offer.remixContract}/${offer.remixTokenId}`}>View remix</Link>
+                    <Link href={assetHref("STARKNET", offer.remixContract, offer.remixTokenId)}>View remix</Link>
                   </Button>
                 )}
               </div>
@@ -124,7 +125,7 @@ export default function PortfolioLicensingPage() {
                   <div className="flex items-center gap-2">
                     <StatusBadge status={offer.status} />
                     <Link
-                      href={`/asset/${offer.originalContract}/${offer.originalTokenId}`}
+                      href={assetHref("STARKNET", offer.originalContract, offer.originalTokenId)}
                       className="text-sm font-medium hover:text-primary transition-colors truncate"
                     >
                       Token #{offer.originalTokenId}
@@ -139,7 +140,7 @@ export default function PortfolioLicensingPage() {
                 </div>
                 {offer.status === "COMPLETED" && offer.remixContract && offer.remixTokenId && (
                   <Button size="sm" variant="outline" asChild>
-                    <Link href={`/asset/${offer.remixContract}/${offer.remixTokenId}`}>
+                    <Link href={assetHref("STARKNET", offer.remixContract, offer.remixTokenId)}>
                       <GitBranch className="h-3.5 w-3.5 mr-1" />
                       Buy remix
                     </Link>

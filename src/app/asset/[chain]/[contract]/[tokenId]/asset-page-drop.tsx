@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import { collectionHref } from "@/lib/routes";
 import { motion, useReducedMotion } from "framer-motion";
 import {
   Package, ChevronRight, ExternalLink, Clock, HandCoins,
@@ -192,7 +193,7 @@ export function AssetPageDrop() {
       <PageContainer className="pt-20 space-y-8 pb-8">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-sm text-muted-foreground min-w-0">
-          <Link href={`/collections/${contract}`} className="hover:text-foreground transition-colors truncate max-w-[140px] shrink-0">
+          <Link href={collectionHref("STARKNET", contract)} className="hover:text-foreground transition-colors truncate max-w-[140px] shrink-0">
             {collection?.name ?? contract.slice(0, 8) + "…"}
           </Link>
           <ChevronRight className="h-3.5 w-3.5 shrink-0" />

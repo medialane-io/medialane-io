@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useUserOrders } from "@/hooks/use-orders";
+import { assetHref } from "@/lib/routes";
 import { Button } from "@/components/ui/button";
 import { EmptyOrError } from "@/components/ui/empty-or-error";
 import { CancelOrderDialog } from "@/components/marketplace/cancel-order-dialog";
@@ -49,7 +50,7 @@ function OfferRow({
       {/* Asset */}
       <div className="flex-1 min-w-0">
         <Link
-          href={`/asset/${order.nftContract}/${order.nftTokenId}`}
+          href={assetHref("STARKNET", order.nftContract, order.nftTokenId)}
           className="font-medium text-sm hover:text-primary transition-colors truncate block"
         >
           {name}

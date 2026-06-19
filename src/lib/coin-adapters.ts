@@ -13,6 +13,7 @@ import useSWR from "swr";
 import type { ApiCoin, ApiResponse } from "@medialane/sdk";
 import type { CoinFilter, CoinSort, CoinCollectionLike } from "@medialane/ui";
 import { MEDIALANE_BACKEND_URL } from "@/lib/constants";
+import { coinHref as buildCoinHref } from "@/lib/routes";
 import { useCoinPrice } from "@/hooks/use-coin-price";
 
 /** Trading app per chain. Extend the map when ETH/Solana apps ship. */
@@ -58,7 +59,7 @@ export function useCoin(address: string | null) {
 }
 
 /** Discovery → io's read-only explore page. */
-export const coinHref = (c: CoinCollectionLike) => `/coins/${c.contractAddress}`;
+export const coinHref = (c: CoinCollectionLike) => buildCoinHref("STARKNET", c.contractAddress);
 
 /** Trade → the coin's chain app (Starknet today). */
 export const tradeHref = (c: CoinCollectionLike) => `${tradeAppFor(c.chain)}/coins/${c.contractAddress}`;
