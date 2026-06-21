@@ -33,7 +33,6 @@ import { toast } from "sonner";
 import { useDominantColor } from "@/hooks/use-dominant-color";
 import { RemixesTab, ParentAttributionBanner } from "@/components/asset/remixes-tab";
 import { useTokenRemixes } from "@/hooks/use-remix-offers";
-import { HelpIcon } from "@/components/ui/help-icon";
 import { AssetMarketsTab } from "./asset-markets-tab";
 import { AssetProvenanceTab } from "./asset-provenance-tab";
 import { AssetMarketplacePanel } from "./asset-marketplace-panel";
@@ -48,7 +47,6 @@ import {
   AssetOwnersPanel,
 } from "./asset-side-panels";
 import { AssetOverviewContent } from "@/components/asset/asset-overview-content";
-import { AssetLicenseSummary } from "@/components/asset/asset-license-summary";
 import { AssetHeaderBlock } from "@/components/asset/asset-header-block";
 import { AssetMediaColumn } from "@/components/asset/asset-media-column";
 import { AssetLightbox } from "@/components/asset/asset-lightbox";
@@ -395,10 +393,6 @@ export function AssetPageStandard() {
                 reportOpen={reportOpen}
                 onReportOpenChange={setReportOpen}
               />
-
-              {/* Human-first license: one plain line + glanceable rights pills.
-                  Detailed receipts (license bento + Berne banner) live in Overview. */}
-              <AssetLicenseSummary attributes={attributes} />
             </div>
           </motion.div>
         </div>
@@ -407,13 +401,11 @@ export function AssetPageStandard() {
         <Tabs defaultValue="overview">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="markets" className="flex items-center gap-1">
+            <TabsTrigger value="markets">
               Markets {(activeListings.length + activeBids.length) > 0 && `(${activeListings.length + activeBids.length})`}
-              <HelpIcon content="Active listings for sale and open offers on this asset" side="bottom" />
             </TabsTrigger>
-            <TabsTrigger value="provenance" className="flex items-center gap-1">
+            <TabsTrigger value="provenance">
               Provenance {history.length > 0 && `(${history.length})`}
-              <HelpIcon content="Full transfer and sale history recorded onchain — immutable proof of ownership" side="bottom" />
             </TabsTrigger>
           </TabsList>
 

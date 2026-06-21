@@ -1,8 +1,10 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { Bot, Calendar, DollarSign, GitBranch, Globe, Percent, ShieldCheck, UserCheck } from "lucide-react";
 import { IPTypeDisplay } from "@medialane/ui";
 import { AddressDisplay } from "@/components/shared/address-display";
+import { licenseSummary } from "@/lib/license-summary";
 
 type AssetAttribute = { trait_type?: string; value?: string };
 
@@ -14,15 +16,31 @@ interface AssetOverviewContentProps {
 
 const isAddressLike = (v?: string): boolean => !!v && /^0x[0-9a-fA-F]{16,}$/.test(v.trim());
 
+/** Tidy label → value row: muted label left, bold value right, hairline divider. */
+function FactRow({ icon, label, value }: { icon?: ReactNode; label: string; value: ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-4 py-2.5 border-b border-border/40">
+      <span className="flex items-center gap-2 text-sm text-muted-foreground min-w-0">
+        {icon ? <span className="text-muted-foreground/60 shrink-0">{icon}</span> : null}
+        <span className="truncate">{label}</span>
+      </span>
+      <span className="text-sm font-semibold text-foreground text-right truncate">{value}</span>
+    </div>
+  );
+}
+
 /**
- * Overview tab (standard asset page). The human one-line summary now leads the
- * hero column (see AssetLicenseSummary); this tab holds the receipts: a
- * worldwide-protection banner, the full license bento, then a refined
- * attributes grid (copyable address-like values, uniform cards, no rarity).
- * io-local fork of the @medialane/ui component.
+ * Asset Overview tab. One calm sheet: an optional IP-type block, a single
+ * "Rights" summary (plain-language lead line + a scannable fact list + a quiet
+ * trust footnote), then a light "Details" list. No license block in the hero,
+ * no grey-box bento, no "protected worldwide" banner.
  */
-export function AssetOverviewContent({ attributes, hasTemplateData, isDisplayAttr }: AssetOverviewContentProps) {
-  const attr = (trait: string) => attributes.find((a) => a.trait_type === trait)?.value;
+export function AssetOverviewContent({
+  attributes,
+  hasTemplateData,
+  isDisplayAttr,
+}: AssetOverviewContentProps) {
+  const attr = (trait: string) => attributes.find((attribute) => attribute.trait_type === trait)?.value;
   const licenseType = attr("License");
   const commercialUse = attr("Commercial Use");
   const derivatives = attr("Derivatives");
@@ -30,85 +48,63 @@ export function AssetOverviewContent({ attributes, hasTemplateData, isDisplayAtt
   const territory = attr("Territory");
   const aiPolicy = attr("AI Policy");
   const royalty = attr("Royalty");
-  const standard = attr("Standard");
   const registration = attr("Registration");
+  const summary = licenseSummary(attributes);
+  const hasLicenseData = !!(licenseType || commercialUse || derivatives || attribution);
+  const displayAttributes = attributes.filter((attribute) => isDisplayAttr(attribute));
 
-  const hasLicenseData = Boolean(licenseType || commercialUse || derivatives || attribution);
-  const displayAttributes = attributes.filter((a) => isDisplayAttr(a));
-
-  const rows = [
-    { icon: <ShieldCheck className="h-4 w-4" />, label: "License", value: licenseType },
-    { icon: <DollarSign className="h-4 w-4" />, label: "Commercial Use", value: commercialUse },
+  const facts = [
+    { icon: <DollarSign className="h-4 w-4" />, label: "Commercial use", value: commercialUse },
     { icon: <GitBranch className="h-4 w-4" />, label: "Derivatives", value: derivatives },
     { icon: <UserCheck className="h-4 w-4" />, label: "Attribution", value: attribution },
     { icon: <Globe className="h-4 w-4" />, label: "Territory", value: territory },
-    { icon: <Bot className="h-4 w-4" />, label: "AI & Data Mining", value: aiPolicy },
+    { icon: <Bot className="h-4 w-4" />, label: "AI & data mining", value: aiPolicy },
+    { icon: <ShieldCheck className="h-4 w-4" />, label: "License", value: licenseType },
     { icon: <Percent className="h-4 w-4" />, label: "Royalty", value: royalty },
-    { icon: <Calendar className="h-4 w-4" />, label: "Registration", value: registration },
+    { icon: <Calendar className="h-4 w-4" />, label: "Registered", value: registration },
   ].filter((row) => !!row.value);
 
   return (
-    <div className="mt-4 space-y-6">
+    <div className="mt-4 space-y-7">
       {hasTemplateData ? <IPTypeDisplay attributes={attributes} /> : null}
 
       {hasLicenseData ? (
-        <div className="space-y-3">
-          {standard ? (
-            <div className="flex items-start gap-3 rounded-xl border border-primary/15 bg-primary/5 px-4 py-3.5">
-              <ShieldCheck className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-semibold">Your intellectual property is protected worldwide</p>
-                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                  Licensing terms are immutably stored on IPFS and recognized under international copyright law.
-                </p>
-              </div>
-            </div>
+        <section className="space-y-3">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Rights</h3>
+          {summary ? (
+            <p className="text-[15px] font-medium leading-relaxed text-foreground/90">{summary}</p>
           ) : null}
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-            {rows.map(({ icon, label, value }) => (
-              <div
-                key={label}
-                className="rounded-xl border border-border/50 bg-muted/15 px-3.5 py-3 overflow-hidden transition-colors hover:bg-muted/30"
-              >
-                <div className="flex items-center gap-1.5 mb-1 text-muted-foreground/70">
-                  {icon}
-                  <p className="text-[10px] font-medium uppercase tracking-wider truncate">{label}</p>
-                </div>
-                <p className="text-sm font-semibold truncate" title={value}>{value}</p>
-              </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 sm:gap-x-10">
+            {facts.map(({ icon, label, value }) => (
+              <FactRow key={label} icon={icon} label={label} value={value} />
             ))}
           </div>
-        </div>
+          <p className="flex items-center gap-1.5 pt-1 text-xs text-muted-foreground/70">
+            <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
+            Kept in permanent, tamper-proof storage · recognized under international copyright law
+          </p>
+        </section>
       ) : null}
 
-      {/* Refined attributes — uniform cards, copyable address values, no rarity. */}
       {displayAttributes.length > 0 ? (
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Attributes</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+        <section className="space-y-1">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Details</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 sm:gap-x-10">
             {displayAttributes.map((attribute, index) => (
-              <div
+              <FactRow
                 key={index}
-                className="rounded-xl border border-border/50 bg-muted/15 px-3.5 py-3 overflow-hidden transition-colors hover:bg-muted/30"
-              >
-                <p
-                  className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70 truncate"
-                  title={attribute.trait_type ?? "Trait"}
-                >
-                  {attribute.trait_type ?? "Trait"}
-                </p>
-                {isAddressLike(attribute.value) ? (
-                  <AddressDisplay address={attribute.value!} chars={4} className="text-sm font-semibold mt-1" />
-                ) : (
-                  <p className="text-sm font-semibold mt-1 truncate" title={attribute.value ?? "—"}>
-                    {attribute.value ?? "—"}
-                  </p>
-                )}
-              </div>
+                label={attribute.trait_type ?? "Trait"}
+                value={
+                  isAddressLike(attribute.value) ? (
+                    <AddressDisplay address={attribute.value!} chars={4} className="text-sm font-semibold" />
+                  ) : (
+                    attribute.value ?? "—"
+                  )
+                }
+              />
             ))}
           </div>
-        </div>
+        </section>
       ) : null}
 
       {!hasTemplateData && !hasLicenseData && displayAttributes.length === 0 ? (
