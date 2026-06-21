@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useTokensByIpType } from "@/hooks/use-tokens-by-ip-type";
 import { IP_TYPE_MAP, IP_TYPE_CONFIG } from "@medialane/ui";
 import { cn } from "@/lib/utils";
-import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
+import { BrowseTokenCard, BrowseTokenCardSkeleton } from "@/components/shared/browse-token-card";
 import type { ApiToken } from "@medialane/sdk";
 
 const PAGE_SIZE = 24;
@@ -313,7 +313,7 @@ export function IpTypePageClient({ slug }: IpTypePageClientProps) {
       {isInitialLoading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {Array.from({ length: PAGE_SIZE }).map((_, i) => (
-            <TokenCardSkeleton key={i} />
+            <BrowseTokenCardSkeleton key={i} />
           ))}
         </div>
       ) : displayed.length === 0 ? (
@@ -341,7 +341,7 @@ export function IpTypePageClient({ slug }: IpTypePageClientProps) {
         <div className="space-y-6">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {displayed.map((token) => (
-              <TokenCard
+              <BrowseTokenCard
                 key={`${token.contractAddress}:${token.tokenId}`}
                 token={token}
               />
