@@ -42,7 +42,7 @@ export type UpdateDebug = (patch: Partial<MintDebugSnapshot>) => MintDebugSnapsh
 
 /** POST /v1/intents/mint — create a mint intent. */
 export async function createMintIntentWithDebug(
-  body: { owner: string; collectionId: string; recipient: string; tokenUri: string },
+  body: { owner: string; collectionId: string; recipient: string; tokenUri: string; royaltyBps: number },
   updateDebug: UpdateDebug
 ) {
   updateDebug({

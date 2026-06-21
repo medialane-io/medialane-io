@@ -35,7 +35,6 @@ import { cn } from "@/lib/utils";
 import {
   AI_POLICIES,
   DERIVATIVES_OPTIONS,
-  GEOGRAPHIC_SCOPES,
   IP_TYPES,
   LICENSE_TYPES,
   type IPType,
@@ -326,16 +325,9 @@ export function NftEditionsMintForm({
                     <FormField control={form.control} name="geographicScope" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Territory</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger><SelectValue /></SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {GEOGRAPHIC_SCOPES.map((scope) => (
-                              <SelectItem key={scope} value={scope}>{scope}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <FormControl>
+                          <Input placeholder="Worldwide" {...field} />
+                        </FormControl>
                       </FormItem>
                     )} />
 

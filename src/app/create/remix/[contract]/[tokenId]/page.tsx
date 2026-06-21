@@ -270,6 +270,7 @@ export default function CreateRemixPage() {
           collectionId: selectedCollection.collectionId!,
           recipient: walletAddress,
           tokenUri,
+          royaltyBps: 0, // remix mint has no royalty input UI yet — default to none
         });
         const mintIntent = intentRes.data;
         // mint is always an unsigned (prebuilt-calls) intent.
