@@ -11,8 +11,9 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useTokensByIpType } from "@/hooks/use-tokens-by-ip-type";
 import { IP_TYPE_MAP, IP_TYPE_CONFIG } from "@medialane/ui";
 import { cn } from "@/lib/utils";
-import { BrowseTokenCard, BrowseTokenCardSkeleton } from "@/components/shared/browse-token-card";
-import type { ApiToken } from "@medialane/sdk";
+import { AssetCard, AssetCardSkeleton } from "@medialane/ui";
+import { assetHref } from "@/lib/routes";
+import type { ApiToken, Chain } from "@medialane/sdk";
 
 const PAGE_SIZE = 24;
 
@@ -313,7 +314,7 @@ export function IpTypePageClient({ slug }: IpTypePageClientProps) {
       {isInitialLoading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {Array.from({ length: PAGE_SIZE }).map((_, i) => (
-            <BrowseTokenCardSkeleton key={i} />
+            <AssetCardSkeleton key={i} />
           ))}
         </div>
       ) : displayed.length === 0 ? (
@@ -340,12 +341,25 @@ export function IpTypePageClient({ slug }: IpTypePageClientProps) {
       ) : (
         <div className="space-y-6">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {displayed.map((token) => (
-              <BrowseTokenCard
-                key={`${token.contractAddress}:${token.tokenId}`}
-                token={token}
-              />
-            ))}
+            {displayed.map((token) => {
+              const listing = token.activeOrders?.find(
+                (o) => o.offer.itemType === "ERC721" || o.offer.itemType === "ERC1155"
+              );
+              return (
+                <AssetCard
+                  key={`${token.contractAddress}:${token.tokenId}`}
+                  href={assetHref(token.chain as Chain, token.contractAddress, token.tokenId)}
+                  name={token.metadata?.name || `Token #${token.tokenId}`}
+                  image={token.metadata?.image}
+                  price={listing ? listing.price : null}
+                  fallbackId={token.tokenId}
+                  indexing={
+                    token.metadataStatus === "PENDING" ||
+                    token.metadataStatus === "FETCHING"
+                  }
+                />
+              );
+            })}
           </div>
 
           {(hasMore || isLoadingMore) && !listedOnly && (
