@@ -225,7 +225,7 @@ All previously noted bugs were fixed. No outstanding known bugs.
 - [x] batchTokenMeta: order endpoints return `token.{name,image,description}` — eliminates N+1 `useToken` calls ✓ 2026-03-07
 - [x] Stale order sync: refreshInterval + delayed invalidate after write ops ✓ 2026-03-07
 - [x] Collection image upload in create flow (`/api/pinata/image`) + image stored in intent typedData ✓ 2026-03-07
-- [x] Collection metadata JSON uploaded to IPFS on collection creation (`/api/pinata/json`) → `baseUri` set on-chain so `dapp.medialane.io` resolves collection images permissionlessly ✓ 2026-03-16
+- [x] Collection metadata JSON uploaded to IPFS on collection creation (`/api/pinata/json`) → `baseUri` set on-chain so `starknet.medialane.io` resolves collection images permissionlessly ✓ 2026-03-16
 - [x] External link fields: `external_link` in create collection form, `external_url` in create asset form — both optional, validated as http/https URLs ✓ 2026-03-16
 - [x] Creator wallet address embedded in asset IPFS metadata attributes (`{ trait_type: "Creator", value: walletAddress }`) — sourced from `useSessionKey().walletAddress` ✓ 2026-03-16
 - [x] Full programmable licensing metadata (Berne Convention, CC variants, AI policy, royalty) ✓ 2026-03-06
