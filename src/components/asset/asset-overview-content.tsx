@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Bot, Calendar, DollarSign, GitBranch, Globe, Percent, ShieldCheck, UserCheck } from "lucide-react";
+import { Bot, Calendar, DollarSign, GitBranch, Globe, Percent, UserCheck } from "lucide-react";
 import { IPTypeDisplay } from "@medialane/ui";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { licenseSummary } from "@/lib/license-summary";
@@ -16,24 +16,42 @@ interface AssetOverviewContentProps {
 
 const isAddressLike = (v?: string): boolean => !!v && /^0x[0-9a-fA-F]{16,}$/.test(v.trim());
 
-/** Tidy label → value row: muted label left, bold value right, hairline divider. */
-function FactRow({ icon, label, value }: { icon?: ReactNode; label: string; value: ReactNode }) {
+/** A standard bento square: a brand-tinted icon, an uppercase label, a bold value.
+ *  `wide` stretches it across two columns for an emphasized detail. */
+function Cell({
+  icon,
+  label,
+  value,
+  wide,
+}: {
+  icon?: ReactNode;
+  label: string;
+  value: ReactNode;
+  wide?: boolean;
+}) {
   return (
-    <div className="flex items-center justify-between gap-4 py-2.5 border-b border-border/40">
-      <span className="flex items-center gap-2 text-sm text-muted-foreground min-w-0">
-        {icon ? <span className="text-muted-foreground/60 shrink-0">{icon}</span> : null}
-        <span className="truncate">{label}</span>
-      </span>
-      <span className="text-sm font-semibold text-foreground text-right truncate">{value}</span>
+    <div
+      className={`flex flex-col justify-between gap-2 rounded-xl bg-muted/25 ring-1 ring-border/40 p-3.5 ${
+        wide ? "col-span-2" : ""
+      }`}
+    >
+      {icon ? <span className="text-primary/70">{icon}</span> : null}
+      <div className="space-y-0.5">
+        <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground truncate" title={label}>
+          {label}
+        </p>
+        <div className="text-sm font-bold text-foreground truncate">{value}</div>
+      </div>
     </div>
   );
 }
 
 /**
- * Asset Overview tab. One calm sheet: an optional IP-type block, a single
- * "Rights" summary (plain-language lead line + a scannable fact list + a quiet
- * trust footnote), then a light "Details" list. No license block in the hero,
- * no grey-box bento, no "protected worldwide" banner.
+ * Asset Overview tab, as a Bento 2.0 grid: an asymmetrical lattice of rounded
+ * compartments on a soft brand light-leak, uniform gaps throughout. The license
+ * summary is the emphasized cell (stretched 2×2, brand-gradient wash + license
+ * stamp); each right is a standard square; Details follow. Uses only design-system
+ * tokens (brand-* / primary / aurora).
  */
 export function AssetOverviewContent({
   attributes,
@@ -59,7 +77,6 @@ export function AssetOverviewContent({
     { icon: <UserCheck className="h-4 w-4" />, label: "Attribution", value: attribution },
     { icon: <Globe className="h-4 w-4" />, label: "Territory", value: territory },
     { icon: <Bot className="h-4 w-4" />, label: "AI & data mining", value: aiPolicy },
-    { icon: <ShieldCheck className="h-4 w-4" />, label: "License", value: licenseType },
     { icon: <Percent className="h-4 w-4" />, label: "Royalty", value: royalty },
     { icon: <Calendar className="h-4 w-4" />, label: "Registered", value: registration },
   ].filter((row) => !!row.value);
@@ -71,32 +88,47 @@ export function AssetOverviewContent({
       {hasLicenseData ? (
         <section className="space-y-3">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Rights</h3>
-          {summary ? (
-            <p className="text-[15px] font-medium leading-relaxed text-foreground/90">{summary}</p>
-          ) : null}
-          <div className="grid grid-cols-1 sm:grid-cols-2 sm:gap-x-10">
-            {facts.map(({ icon, label, value }) => (
-              <FactRow key={label} icon={icon} label={label} value={value} />
-            ))}
+          <div className="relative">
+            {/* soft brand light-leak behind the lattice */}
+            <div
+              aria-hidden
+              className="aurora-purple pointer-events-none"
+              style={{ position: "absolute", width: 260, height: 260, top: -40, left: "30%" }}
+            />
+            <div className="relative grid grid-cols-2 sm:grid-cols-4 gap-3 [grid-auto-flow:dense] auto-rows-[minmax(6rem,auto)]">
+              {/* emphasized cell — the license summary, stretched 2×2 */}
+              <div className="col-span-2 sm:row-span-2 flex flex-col justify-between gap-4 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-accent/10 ring-1 ring-primary/15 p-5">
+                {licenseType ? (
+                  <span className="pill-badge self-start text-[10px] uppercase tracking-wider">{licenseType}</span>
+                ) : null}
+                {summary ? (
+                  <p className="text-base sm:text-lg font-semibold leading-snug text-foreground">{summary}</p>
+                ) : null}
+              </div>
+
+              {facts.map(({ icon, label, value }) => (
+                <Cell key={label} icon={icon} label={label} value={value} />
+              ))}
+            </div>
           </div>
-          <p className="flex items-center gap-1.5 pt-1 text-xs text-muted-foreground/70">
-            <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
+          <p className="text-xs text-muted-foreground/70">
             Kept in permanent, tamper-proof storage · recognized under international copyright law
           </p>
         </section>
       ) : null}
 
       {displayAttributes.length > 0 ? (
-        <section className="space-y-1">
+        <section className="space-y-3">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Details</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 sm:gap-x-10">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 [grid-auto-flow:dense] auto-rows-[minmax(6rem,auto)]">
             {displayAttributes.map((attribute, index) => (
-              <FactRow
+              <Cell
                 key={index}
                 label={attribute.trait_type ?? "Trait"}
+                wide={isAddressLike(attribute.value)}
                 value={
                   isAddressLike(attribute.value) ? (
-                    <AddressDisplay address={attribute.value!} chars={4} className="text-sm font-semibold" />
+                    <AddressDisplay address={attribute.value!} chars={4} className="text-sm font-bold" />
                   ) : (
                     attribute.value ?? "—"
                   )
