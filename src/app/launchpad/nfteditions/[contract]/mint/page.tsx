@@ -91,7 +91,7 @@ export default function MintIP1155Page() {
       derivatives: "Share-Alike",
       attribution: "Required",
       geographicScope: "Worldwide",
-      aiPolicy: "Not Allowed",
+      aiPolicy: "Allowed",
       royalty: 0,
     },
   });
@@ -245,7 +245,7 @@ export default function MintIP1155Page() {
       derivatives: "Share-Alike",
       attribution: "Required",
       geographicScope: "Worldwide",
-      aiPolicy: "Not Allowed",
+      aiPolicy: "Allowed",
       royalty: 0,
     });
   };

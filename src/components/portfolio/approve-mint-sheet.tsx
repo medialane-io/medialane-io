@@ -171,6 +171,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
           collectionId: effectiveCollectionId!,
           recipient: walletAddress,
           tokenUri: pinData.uri,
+          royaltyBps: 0, // remix-approval mint has no royalty input UI yet — default to none
         });
         const mintIntent = intentRes.data;
         // mint is always an unsigned (prebuilt-calls) intent.

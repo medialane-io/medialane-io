@@ -50,7 +50,6 @@ import {
 import {
   IP_TYPES,
   LICENSE_TYPES,
-  GEOGRAPHIC_SCOPES,
   AI_POLICIES,
   DERIVATIVES_OPTIONS,
   type IPType,
@@ -196,7 +195,7 @@ export default function CreateAssetPage() {
       derivatives: "Share-Alike",
       attribution: "Required",
       geographicScope: "Worldwide",
-      aiPolicy: "Not Allowed",
+      aiPolicy: "Allowed",
       royalty: 0,
     },
   });
@@ -297,6 +296,8 @@ export default function CreateAssetPage() {
         collectionId: pendingValues.collectionId,
         recipient: walletAddress,
         tokenUri,
+        // Form royalty is a percentage (0–50); EIP-2981 is basis points. Set once, immutable.
+        royaltyBps: Math.round(pendingValues.royalty * 100),
       }, updateMintDebug);
 
       const intentData = intentRes.data as { id?: string; calls?: { contractAddress: string; [key: string]: unknown }[] } | undefined;
@@ -631,16 +632,9 @@ export default function CreateAssetPage() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Territory</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value}>
-                                <FormControl>
-                                  <SelectTrigger><SelectValue /></SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {GEOGRAPHIC_SCOPES.map((s) => (
-                                    <SelectItem key={s} value={s}>{s}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                              <FormControl>
+                                <Input placeholder="Worldwide" {...field} />
+                              </FormControl>
                             </FormItem>
                           )}
                         />

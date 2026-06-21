@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import {
-  IP_TYPES, LICENSE_TYPES, GEOGRAPHIC_SCOPES, AI_POLICIES, DERIVATIVES_OPTIONS, type IPType,
+  IP_TYPES, LICENSE_TYPES, AI_POLICIES, DERIVATIVES_OPTIONS, type IPType,
 } from "@/types/ip";
 import { IPTypeFields, type MetadataField } from "@/components/create/ip-type-fields";
 import { ToggleGroup, Section } from "@/components/create/create-form-primitives";
@@ -217,10 +217,7 @@ export function DropCreateForm({
                   <FormField control={form.control} name="geographicScope" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Territory</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                        <SelectContent>{GEOGRAPHIC_SCOPES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-                      </Select>
+                      <FormControl><Input placeholder="Worldwide" {...field} /></FormControl>
                     </FormItem>
                   )} />
                   <FormField control={form.control} name="aiPolicy" render={({ field }) => (
