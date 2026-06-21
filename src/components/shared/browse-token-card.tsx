@@ -64,19 +64,14 @@ export function BrowseTokenCard({ token }: { token: ApiToken }) {
         )}
       </div>
 
-      {/* Info — name then price */}
-      <div className="px-3 py-3 flex flex-col gap-1">
-        <p className="text-sm font-bold line-clamp-1 leading-snug">{name}</p>
-        {listingOrder ? (
-          <span className="inline-flex items-center gap-1 text-sm font-bold leading-none">
+      {/* Info — name left, price right */}
+      <div className="px-3 py-3 flex items-center justify-between gap-2">
+        <p className="min-w-0 text-sm font-bold line-clamp-1 leading-snug">{name}</p>
+        {listingOrder && (
+          <span className="inline-flex shrink-0 items-center gap-1 text-sm font-bold leading-none">
             <CurrencyIcon symbol={listingOrder.price.currency ?? ""} size={12} />
             {formatDisplayPrice(listingOrder.price.formatted)}
-            <span className="text-xs font-normal text-muted-foreground">
-              {listingOrder.price.currency}
-            </span>
           </span>
-        ) : (
-          <span className="text-xs text-muted-foreground leading-none">Not listed</span>
         )}
       </div>
     </Link>
