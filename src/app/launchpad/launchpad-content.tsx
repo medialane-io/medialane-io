@@ -65,7 +65,7 @@ export function LaunchpadContent() {
 
       {/* ── Starknet dapp widget — top right, scrolls with the page ─ */}
       <a
-        href="https://dapp.medialane.io/launchpad"
+        href="https://starknet.medialane.io/launchpad"
         target="_blank"
         rel="noopener noreferrer"
         className="absolute top-3 right-4 sm:right-6 lg:right-8 z-20 flex items-center gap-2 h-10 pl-3.5 pr-4 rounded-full border border-border/50 bg-background/70 backdrop-blur-xl shadow-lg shadow-black/10 text-sm hover:bg-background/90 active:scale-[0.98] transition-all"
@@ -124,7 +124,7 @@ export function LaunchpadContent() {
               </p>
             </div>
             <Button variant="outline" asChild className="shrink-0">
-              <a href="https://dapp.medialane.io/launchpad" target="_blank" rel="noopener noreferrer">
+              <a href="https://starknet.medialane.io/launchpad" target="_blank" rel="noopener noreferrer">
                 Open the dapp <ExternalLink className="h-3.5 w-3.5 ml-1.5" />
               </a>
             </Button>

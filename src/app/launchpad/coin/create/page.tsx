@@ -53,7 +53,7 @@ const SUPPLY_PRESETS = [
   { label: "1B", value: "1000000000" },
 ];
 
-const DAPP_COLLECTIONS_BASE = "https://dapp.medialane.io/collections";
+const DAPP_COLLECTIONS_BASE = "https://starknet.medialane.io/collections";
 
 type StudioStep = 1 | 2 | 3;
 type ProfileStatus = "idle" | "saving" | "saved" | "failed";
