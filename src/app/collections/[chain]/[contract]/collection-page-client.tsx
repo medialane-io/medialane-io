@@ -8,7 +8,8 @@ import { useCollection, useCollectionTokens } from "@/hooks/use-collections";
 import { useOrders } from "@/hooks/use-orders";
 import { useDominantColor } from "@/hooks/use-dominant-color";
 import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listing-card";
-import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
+import { AssetCard, AssetCardSkeleton } from "@medialane/ui";
+import { assetHref } from "@/lib/routes";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddressDisplay } from "@/components/shared/address-display";
@@ -22,15 +23,13 @@ import { OwnerSetupPanel } from "@/components/collection/owner-setup-panel";
 import { TransferCollectionOwnershipDialog } from "@/components/collection/transfer-ownership-dialog";
 import { HiddenContentBanner } from "@/components/hidden-content-banner";
 import Image from "next/image";
-import { ipfsToHttp, formatDisplayPrice, cn, checkIsOwner } from "@/lib/utils";
+import { ipfsToHttp, formatDisplayPrice, cn } from "@/lib/utils";
 import { useCollectionProfile } from "@/hooks/use-profiles";
 import { useGatedContent, type GatedContentState } from "@/hooks/use-gated-content";
 import { CollectionServiceAction } from "@/components/services/collection-service-action";
-import { ListingDialog } from "@/components/marketplace/listing-dialog";
 import { PurchaseDialog } from "@/components/marketplace/purchase-dialog";
-import { TransferDialog } from "@/components/marketplace/transfer-dialog";
 import { useSessionKey } from "@/hooks/use-session-key";
-import type { ApiToken, ApiOrder } from "@medialane/sdk";
+import type { ApiToken, ApiOrder, Chain } from "@medialane/sdk";
 
 const PAGE_SIZE = 24;
 
@@ -74,11 +73,9 @@ function CollectionItems({ contract, activeListings }: { contract: string; activ
   const [page, setPage] = useState(1);
   const [allTokens, setAllTokens] = useState<ApiToken[]>([]);
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string>>({});
-  const { tokens, meta, isLoading, mutate } = useCollectionTokens(contract, page, PAGE_SIZE);
-  // SWR deduplicates — the parent also calls this hook; no extra network request.
-  const { collection } = useCollection(contract);
+  const { tokens, meta, isLoading } = useCollectionTokens(contract, page, PAGE_SIZE);
 
-  // Build tokenId → listing map so Items tab can show Buy buttons for listed tokens
+  // Build tokenId → listing map so listed items can show their price
   const listingByTokenId = useMemo(() => {
     const map = new Map<string, ApiOrder>();
     for (const o of activeListings) {
@@ -86,15 +83,6 @@ function CollectionItems({ contract, activeListings }: { contract: string; activ
     }
     return map;
   }, [activeListings]);
-
-  // Ownership + dialogs — same pattern as portfolio/assets-grid
-  const { walletAddress } = useSessionKey();
-  const [selectedToken, setSelectedToken] = useState<ApiToken | null>(null);
-  const [listOpen, setListOpen] = useState(false);
-  const [transferToken, setTransferToken] = useState<ApiToken | null>(null);
-  const [transferOpen, setTransferOpen] = useState(false);
-  const handleList = (token: ApiToken) => { setSelectedToken(token); setListOpen(true); };
-  const handleTransfer = (token: ApiToken) => { setTransferToken(token); setTransferOpen(true); };
 
   useEffect(() => {
     if (tokens.length > 0) {
@@ -134,7 +122,7 @@ function CollectionItems({ contract, activeListings }: { contract: string; activ
   if (isLoading && allTokens.length === 0) {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-        {Array.from({ length: 8 }).map((_, i) => <TokenCardSkeleton key={i} />)}
+        {Array.from({ length: 8 }).map((_, i) => <AssetCardSkeleton key={i} />)}
       </div>
     );
   }
@@ -164,17 +152,21 @@ function CollectionItems({ contract, activeListings }: { contract: string; activ
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
             {filteredTokens.map((t) => {
-              // Ownership from per-token balances — the collection-tokens list
-              // response now includes balances for both ERC-721 and ERC-1155,
-              // so owners see "View" instead of Buy/Offer on their own cards.
-              const isOwner = checkIsOwner(t, walletAddress);
+              const listing = t.activeOrders?.find(
+                (o) => o.offer.itemType === "ERC721" || o.offer.itemType === "ERC1155"
+              );
               return (
-                <TokenCard
+                <AssetCard
                   key={`${t.contractAddress}-${t.tokenId}`}
-                  token={t}
-                  isOwner={isOwner}
-                  onList={isOwner ? handleList : undefined}
-                  onTransfer={isOwner ? handleTransfer : undefined}
+                  href={assetHref(t.chain as Chain, t.contractAddress, t.tokenId)}
+                  name={t.metadata?.name || `Token #${t.tokenId}`}
+                  image={t.metadata?.image}
+                  ipType={t.metadata?.ipType}
+                  price={listing ? listing.price : null}
+                  fallbackId={t.tokenId}
+                  indexing={
+                    t.metadataStatus === "PENDING" || t.metadataStatus === "FETCHING"
+                  }
                 />
               );
             })}
@@ -193,31 +185,6 @@ function CollectionItems({ contract, activeListings }: { contract: string; activ
           </div>
         )}
       </div>
-
-      {/* Owner dialogs */}
-      {selectedToken && (
-        <ListingDialog
-          open={listOpen}
-          onOpenChange={(o) => { setListOpen(o); if (!o) setSelectedToken(null); }}
-          assetContract={selectedToken.contractAddress}
-          tokenId={selectedToken.tokenId}
-          tokenName={selectedToken.metadata?.name ?? undefined}
-          tokenStandard={collection?.standard}
-          onSuccess={() => { setListOpen(false); setSelectedToken(null); setPage(1); setAllTokens([]); mutate(); }}
-        />
-      )}
-      {transferToken && (
-        <TransferDialog
-          open={transferOpen}
-          onOpenChange={(o) => { setTransferOpen(o); if (!o) setTransferToken(null); }}
-          contractAddress={transferToken.contractAddress}
-          tokenId={transferToken.tokenId}
-          tokenName={transferToken.metadata?.name ?? undefined}
-          hasActiveListing={!!transferToken.activeOrders?.[0]}
-          tokenStandard={collection?.standard}
-          onSuccess={() => { setTransferOpen(false); setTransferToken(null); setPage(1); setAllTokens([]); mutate(); }}
-        />
-      )}
     </>
   );
 }
