@@ -48,6 +48,7 @@ import {
 } from "./asset-side-panels";
 import { AssetOverviewContent } from "@/components/asset/asset-overview-content";
 import { AssetHeaderBlock } from "@/components/asset/asset-header-block";
+import { OpenInDappCallout } from "@/components/asset/open-in-dapp-callout";
 import { AssetMediaColumn } from "@/components/asset/asset-media-column";
 import { AssetLightbox } from "@/components/asset/asset-lightbox";
 import { useOrderActions } from "./use-order-actions";
@@ -370,6 +371,9 @@ export function AssetPageStandard() {
               onOpenRemix={goToRemix}
               onProposeDeal={goToDeal}
             />
+
+            {/* Bridge to the chain-native dapp for self-custody / web3 users */}
+            <OpenInDappCallout chain={token.chain} contract={contract} tokenId={tokenId} />
 
             {/* ERC-1155 ownership — shown after marketplace buttons */}
             {isERC1155 && token.balances && token.balances.length > 0 ? (
