@@ -38,14 +38,11 @@ export function OpenInDappCallout({ chain, contract, tokenId }: OpenInDappCallou
           <Wallet className="h-[18px] w-[18px]" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-bold leading-snug">Use your own wallet</p>
+          <p className="text-sm font-bold leading-snug">Trade with your {label} wallet <ArrowUpRight className="h-3.5 w-3.5 text-brand-purple transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" /></p>
           <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-            Trade this asset non-custodially on the {label} app with a wallet you control.
+            Open this asset on our {label} permissionless dapp.
           </p>
-          <span className="mt-2 inline-flex items-center gap-1 text-xs font-semibold gradient-text">
-            Open on {label}
-            <ArrowUpRight className="h-3.5 w-3.5 text-brand-purple transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-          </span>
+          
         </div>
       </div>
     </a>
