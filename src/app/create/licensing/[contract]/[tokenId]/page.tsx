@@ -116,7 +116,7 @@ export default function CreateLicensingPage() {
     return (
       <div className="container max-w-2xl mx-auto px-4 py-24 text-center space-y-4">
         <p className="text-2xl font-bold">Asset not found</p>
-        <Button asChild variant="outline"><Link href="/">Go home</Link></Button>
+        <Button asChild variant="outline"><Link href="/">Start from the frontpage</Link></Button>
       </div>
     );
   }

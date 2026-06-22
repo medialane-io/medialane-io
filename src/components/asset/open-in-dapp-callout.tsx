@@ -38,9 +38,9 @@ export function OpenInDappCallout({ chain, contract, tokenId }: OpenInDappCallou
           <Wallet className="h-[18px] w-[18px]" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-bold leading-snug">Trade with your {label} wallet <ArrowUpRight className="h-3.5 w-3.5 text-brand-purple transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" /></p>
+          <p className="text-sm font-bold leading-snug">Trade with your {label} wallet</p>
           <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-            Open this asset on our {label} permissionless dapp.
+            Interact with this asset on the {label} dapp.
           </p>
           
         </div>

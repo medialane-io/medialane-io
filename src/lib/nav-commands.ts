@@ -11,7 +11,7 @@ export const NAV_COMMANDS: NavCommandGroup[] = [
   // top-level menu. Keep this to the few most important destinations.
   {
     items: [
-      { id: "home",        label: "Home",        icon: Home,      href: "/",            keywords: ["frontpage", "start", "homepage", "main"] },
+      { id: "home",        label: "Start",        icon: Home,      href: "/",            keywords: ["frontpage", "start", "homepage", "main"] },
       { id: "discover",    label: "Discover",    icon: Telescope, href: "/discover",    keywords: ["feed", "explore", "trending"] },
       { id: "marketplace", label: "Marketplace", icon: Store,     href: "/marketplace", keywords: ["buy", "sell", "trade", "listings", "browse"] },
       { id: "launchpad",   label: "Launchpad",   icon: Zap,       href: "/launchpad",   keywords: ["start", "launch", "creator", "mint", "create"] },
@@ -47,18 +47,18 @@ export const NAV_COMMANDS: NavCommandGroup[] = [
   {
     heading: "Portfolio",
     items: [
+      { id: "portfolio-collections",label: "My Collections",   icon: LayoutGrid, href: "/portfolio/collections", keywords: ["deployed", "created", "my contracts"] },
       { id: "portfolio-assets",     label: "My Assets",        icon: Gem,       href: "/portfolio/assets",       keywords: ["owned", "nfts", "tokens", "collected"] },
       { id: "portfolio-listings",   label: "My Listings",      icon: Tag,       href: "/portfolio/listings",     keywords: ["sell", "listed", "active listings"] },
       { id: "portfolio-offers",     label: "My Offers",        icon: List,      href: "/portfolio/offers",       keywords: ["bids", "made", "sent offers"] },
       { id: "portfolio-received",   label: "Received Offers",  icon: ScrollText, href: "/portfolio/received",   keywords: ["incoming", "bids", "offers received"] },
-      { id: "portfolio-collections",label: "My Collections",   icon: LayoutGrid, href: "/portfolio/collections", keywords: ["deployed", "created", "my contracts"] },
       { id: "portfolio-activity",   label: "My Activity",      icon: Activity,  href: "/portfolio/activity",    keywords: ["history", "transactions", "events"] },
       { id: "portfolio-wallet",     label: "My Wallet",        icon: Wallet,    href: "/portfolio/wallet",       keywords: ["address", "starknet", "balance"] },
       { id: "portfolio-settings",   label: "Account Settings", icon: Settings,  href: "/portfolio/settings",    keywords: ["profile", "username", "preferences"] },
     ],
   },
   {
-    heading: "Explore by type",
+    heading: "Explore",
     items: [
       { id: "audio",       label: "Audio",       icon: Music,    href: "/audio",       keywords: ["music", "sound", "track", "podcast"] },
       { id: "art",         label: "Art",         icon: Palette,  href: "/art",         keywords: ["illustration", "drawing", "painting", "digital art"] },
