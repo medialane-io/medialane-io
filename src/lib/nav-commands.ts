@@ -4,6 +4,7 @@ import {
   Briefcase, Search, Music, Palette, Film, Camera, Gem,
   Plus, Layers, Repeat2, Ticket, Zap, BookOpen, FileText,
   ShieldCheck, Wallet, Settings, List, Tag, ScrollText, Coins,
+  FolderInput, AtSign, Link2,
 } from "lucide-react";
 
 export const NAV_COMMANDS: NavCommandGroup[] = [
@@ -42,6 +43,14 @@ export const NAV_COMMANDS: NavCommandGroup[] = [
       { id: "pop-create",           label: "Create POP Event",             icon: Ticket,   href: "/launchpad/pop/create",         keywords: ["pop", "proof of participation", "event", "community", "soulbound"] },
       { id: "pop-browse",           label: "Browse POP Events",            icon: Ticket,   href: "/launchpad/pop",                keywords: ["pop", "events", "proof of participation"] },
       { id: "remix",                label: "Remix an Asset",               icon: Repeat2,  href: "/marketplace",                  keywords: ["remix", "derivative", "attribution", "fork"] },
+    ],
+  },
+  {
+    heading: "Claim",
+    items: [
+      { id: "claim-collection",      label: "Claim a Collection",      icon: FolderInput, href: "/claim/collection",      keywords: ["claim", "import", "existing", "erc721", "collection", "external"] },
+      { id: "claim-username",        label: "Claim your Username",     icon: AtSign,      href: "/claim/username",        keywords: ["claim", "username", "creator page", "url", "reserve", "handle"] },
+      { id: "claim-collection-name", label: "Claim a Collection Name", icon: Link2,       href: "/claim/collection-name", keywords: ["claim", "collection", "slug", "url", "name", "vanity"] },
     ],
   },
   {

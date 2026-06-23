@@ -1,12 +1,8 @@
 "use client";
 
-import { Sparkles, Globe, Share2, ShieldCheck, Palette, ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { Sparkles, FolderInput, AtSign, Link2, ArrowRight, type LucideIcon } from "lucide-react";
 import { LaunchMint } from "@/components/launch-mint";
-import { ClaimGate } from "@/components/claim/claim-gate";
-import { ClaimCollectionPanel } from "@/components/claim/claim-collection-panel";
-import { UsernameClaimPanel } from "@/components/shared/username-claim-panel";
 
 function SectionDivider({ label }: { label: string }) {
   return (
@@ -19,6 +15,30 @@ function SectionDivider({ label }: { label: string }) {
     </div>
   );
 }
+
+const CLAIM_CARDS: { href: string; icon: LucideIcon; iconClass: string; title: string; blurb: string }[] = [
+  {
+    href: "/claim/collection",
+    icon: FolderInput,
+    iconClass: "text-blue-500 bg-blue-500/10",
+    title: "Claim a Collection",
+    blurb: "Already deployed an ERC-721 collection on Starknet? Import it into your Medialane profile.",
+  },
+  {
+    href: "/claim/username",
+    icon: AtSign,
+    iconClass: "text-violet-500 bg-violet-500/10",
+    title: "Claim your Username",
+    blurb: "Reserve your creator URL — medialane.io/creator/yourname — and get a shareable creator page.",
+  },
+  {
+    href: "/claim/collection-name",
+    icon: Link2,
+    iconClass: "text-pink-500 bg-pink-500/10",
+    title: "Claim a Collection Name",
+    blurb: "Give a collection a clean, memorable web address instead of a long contract address.",
+  },
+];
 
 export function ClaimPageClient() {
   return (
@@ -41,92 +61,29 @@ export function ClaimPageClient() {
         <LaunchMint />
       </section>
 
-      {/* Section 2 — Claim NFT Collection */}
+      {/* Section 2 — Claim cards */}
       <section className="space-y-8">
-        <SectionDivider label="Claim your collection" />
-        <div>
-          <h2 className="text-xl font-bold mb-1">NFT Collection</h2>
-          <p className="text-sm text-muted-foreground mb-6">
-            Import an existing Starknet ERC-721 collection into your Medialane profile.
-          </p>
-          <ClaimGate>
-            <ClaimCollectionPanel />
-          </ClaimGate>
-        </div>
-      </section>
-
-      {/* Section 3 — Claim Creator Page */}
-      <section className="space-y-8">
-        <SectionDivider label="Claim your creator page" />
-        <div>
-          <h2 className="text-xl font-bold mb-1">Creator Username</h2>
-          <p className="text-sm text-muted-foreground mb-6">
-            Reserve your creator URL at{" "}
-            <span className="font-mono text-foreground">medialane.io/creator/yourname</span>.
-          </p>
-          <ClaimGate>
-            <UsernameClaimPanel />
-          </ClaimGate>
-        </div>
-      </section>
-
-      {/* Section 4 — Branded Collection Page */}
-      <section className="space-y-8">
-        <SectionDivider label="Your collection page" />
-        <div>
-          <h2 className="text-xl font-bold mb-1">Branded Drop Page</h2>
-          <p className="text-sm text-muted-foreground mb-6">
-            Every collection you deploy on Medialane gets a fully branded, shareable page — no setup required.
-          </p>
-          <div className="rounded-2xl border border-border bg-card p-5 sm:p-8 space-y-5">
-            {/* URL bar */}
-            <div className="flex items-center gap-2 bg-muted/50 border border-border/60 rounded-lg px-3 py-2 font-mono text-sm max-w-md">
-              <Globe className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-              <span className="text-muted-foreground text-xs">medialane.io/collections/</span>
-              <span className="text-foreground text-xs font-semibold truncate">0x04f5…1a3b</span>
-            </div>
-            {/* Feature grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="flex items-start gap-3">
-                <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                  <Palette className="h-4 w-4 text-primary" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold">Fully branded</p>
-                  <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">Custom name, cover image, banner, and social links — all editable in collection settings.</p>
-                </div>
+        <SectionDivider label="Claims" />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {CLAIM_CARDS.map(({ href, icon: Icon, iconClass, title, blurb }) => (
+            <Link
+              key={href}
+              href={href}
+              className="group rounded-2xl border border-border bg-card p-5 flex flex-col gap-3 hover:border-primary/40 hover:shadow-lg transition-all"
+            >
+              <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${iconClass}`}>
+                <Icon className="h-5 w-5" />
               </div>
-              <div className="flex items-start gap-3">
-                <div className="h-9 w-9 rounded-xl bg-blue-500/10 flex items-center justify-center shrink-0 mt-0.5">
-                  <Share2 className="h-4 w-4 text-blue-500" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold">One shareable link</p>
-                  <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">Share your collection, assets, and listings in a single URL — perfect for social and email.</p>
-                </div>
+              <div className="space-y-1 flex-1">
+                <p className="font-bold">{title}</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">{blurb}</p>
               </div>
-              <div className="flex items-start gap-3">
-                <div className="h-9 w-9 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0 mt-0.5">
-                  <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold">Always accessible</p>
-                  <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">Permanently anchored on Starknet. No central authority can remove it.</p>
-                </div>
-              </div>
-            </div>
-            {/* CTA */}
-            <div className="flex flex-wrap gap-2 pt-1 border-t border-border/60">
-              <Button size="sm" asChild>
-                <Link href="/create/collection">
-                  Create a collection <ArrowRight className="h-3.5 w-3.5 ml-1" />
-                </Link>
-              </Button>
-              <Button variant="outline" size="sm" asChild>
-                <Link href="/collections">Browse collections</Link>
-              </Button>
-            </div>
-          </div>
+              <span className="inline-flex items-center gap-1 text-sm font-medium text-primary">
+                Start claim
+                <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
+              </span>
+            </Link>
+          ))}
         </div>
       </section>
     </div>

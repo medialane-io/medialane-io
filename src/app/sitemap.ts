@@ -38,6 +38,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/br/mint`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${BASE_URL}/airdrop`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${BASE_URL}/claim`, changeFrequency: "weekly", priority: 0.5 },
+    { url: `${BASE_URL}/claim/collection`, changeFrequency: "weekly", priority: 0.5 },
+    { url: `${BASE_URL}/claim/username`, changeFrequency: "weekly", priority: 0.5 },
+    { url: `${BASE_URL}/claim/collection-name`, changeFrequency: "weekly", priority: 0.5 },
     { url: `${BASE_URL}/activities`, changeFrequency: "hourly", priority: 0.6 },
   ];
 

@@ -9,9 +9,11 @@ import { Lock, Wallet } from "lucide-react";
 
 interface ClaimGateProps {
   children: React.ReactNode;
+  /** Where wallet setup returns after onboarding. Defaults to the combined /claim page. */
+  redirectUrl?: string;
 }
 
-export function ClaimGate({ children }: ClaimGateProps) {
+export function ClaimGate({ children, redirectUrl = "/claim" }: ClaimGateProps) {
   const { isSignedIn, isLoaded } = useUser();
   const { hasWallet, isLoadingWallet } = useSessionKey();
 
@@ -74,7 +76,7 @@ export function ClaimGate({ children }: ClaimGateProps) {
                 </p>
               </div>
               <Button size="sm" className="w-full" asChild>
-                <Link href="/onboarding?redirect_url=/claim">Set up wallet</Link>
+                <Link href={`/onboarding?redirect_url=${encodeURIComponent(redirectUrl)}`}>Set up wallet</Link>
               </Button>
             </>
           )}
