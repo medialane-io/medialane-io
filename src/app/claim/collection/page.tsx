@@ -37,7 +37,7 @@ export default function ClaimCollectionPage() {
       headerAccessory={urlPill}
       aside={<ClaimCollectionAside />}
     >
-      <ClaimCollectionPanel />
+      <ClaimCollectionPanel helperText="Paste the Starknet ERC-721 contract address you own — we verify ownership on-chain before it goes live." />
     </ClaimRouteShell>
   );
 }

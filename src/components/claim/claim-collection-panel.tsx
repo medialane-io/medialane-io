@@ -46,7 +46,12 @@ function StepIndicator({ step }: { step: Step }) {
   );
 }
 
-export function ClaimCollectionPanel() {
+/** Default (generic) helper — used by the memecoin claim page, which accepts
+ *  both collections and coins. The collection page overrides it. */
+const DEFAULT_HELPER_TEXT =
+  "Paste the Starknet contract address you own — an NFT collection or a coin. Coins are reviewed by our team before they go live.";
+
+export function ClaimCollectionPanel({ helperText }: { helperText?: React.ReactNode } = {}) {
   const { getToken } = useAuth();
   const { walletAddress } = useSessionKey();
   const [contractAddress, setContractAddress] = useState("");
@@ -162,10 +167,7 @@ export function ClaimCollectionPanel() {
                 That doesn&apos;t look like a Starknet address. It should start with “0x”.
               </p>
             ) : (
-              <p className="text-xs text-muted-foreground">
-                Paste the Starknet contract address you own — an NFT collection or a coin.
-                Coins are reviewed by our team before they go live.
-              </p>
+              <p className="text-xs text-muted-foreground">{helperText ?? DEFAULT_HELPER_TEXT}</p>
             )}
           </div>
           <Button
