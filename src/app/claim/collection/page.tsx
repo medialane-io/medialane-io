@@ -19,11 +19,11 @@ export const metadata: Metadata = {
   },
 };
 
-/** URL preview pill — the concrete payoff, shown in the gradient header. */
+/** URL preview pill — the concrete payoff, shown in the header. */
 const urlPill = (
-  <div className="flex items-center gap-2 rounded-lg bg-white/15 px-3 py-2 backdrop-blur-sm self-start shrink-0 max-w-full">
-    <Globe className="h-4 w-4 text-white shrink-0" />
-    <span className="font-mono text-sm text-white truncate">medialane.io/collections/your-collection</span>
+  <div className="flex items-center gap-2 rounded-lg border border-border bg-background/60 px-3 py-2 max-w-full">
+    <Globe className="h-4 w-4 text-muted-foreground shrink-0" />
+    <span className="font-mono text-sm text-foreground/90 truncate">medialane.io/collections/your-collection</span>
   </div>
 );
 

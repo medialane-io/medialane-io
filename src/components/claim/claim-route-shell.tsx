@@ -16,29 +16,35 @@ interface ClaimRouteShellProps {
   children: React.ReactNode;
 }
 
-/** Claim route layout: back button + a gradient header (animated full-spectrum
- *  border, like the asset page / Buy button). With `aside`, the header + form
- *  stack in the left column and the panels fill a top-aligned right rail. */
+/** Claim route layout. Header and form share the same dark surface; the header
+ *  carries a static brand gradient border, and the form carries the ANIMATED
+ *  full-spectrum border (reused from the asset page / Buy button) so the action
+ *  is the visual focus among the vivid side panels. */
 export function ClaimRouteShell({ icon, title, subtitle, redirectUrl, headerAccessory, aside, children }: ClaimRouteShellProps) {
   const header = (
-    <div className="btn-border-animated p-[1.5px] rounded-2xl">
-      <div className="rounded-[15px] p-6 sm:p-7 bg-gradient-to-br from-blue-600 via-violet-600 to-rose-500">
+    <div className="rounded-2xl p-[1.5px] bg-gradient-to-br from-brand-blue via-brand-purple to-brand-rose">
+      <div className="rounded-[15px] bg-card p-6 sm:p-7">
         <div className="flex items-center gap-2.5">
-          <div className="h-9 w-9 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center shrink-0">
+          <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center shrink-0">
             {icon}
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white">{title}</h1>
+          <h1 className="text-2xl sm:text-3xl font-black">{title}</h1>
         </div>
-        <p className="mt-1.5 text-sm text-white/80 max-w-xl">{subtitle}</p>
+        <p className="mt-1.5 text-sm text-muted-foreground max-w-xl">{subtitle}</p>
         {headerAccessory && <div className="mt-4">{headerAccessory}</div>}
       </div>
     </div>
   );
 
-  const form = (
-    <div className={cn(aside && "rounded-2xl border border-border bg-gradient-to-br from-brand-blue/[0.06] to-brand-purple/[0.02] p-5 sm:p-6")}>
-      <ClaimGate redirectUrl={redirectUrl}>{children}</ClaimGate>
+  // The form is the focus: animated gradient border around the dark card.
+  const form = aside ? (
+    <div className="btn-border-animated p-[1.5px] rounded-2xl">
+      <div className="rounded-[15px] bg-card p-5 sm:p-6">
+        <ClaimGate redirectUrl={redirectUrl}>{children}</ClaimGate>
+      </div>
     </div>
+  ) : (
+    <ClaimGate redirectUrl={redirectUrl}>{children}</ClaimGate>
   );
 
   return (
