@@ -21,8 +21,8 @@ const CHIP = "h-8 w-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center 
 export function ClaimCollectionAside() {
   return (
     <>
-      {/* What's included — blue → purple */}
-      <div className="rounded-2xl p-5 bg-gradient-to-br from-brand-blue to-brand-purple text-white">
+      {/* What's included — deep blue → indigo */}
+      <div className="rounded-2xl p-5 bg-gradient-to-br from-blue-600 to-indigo-700 text-white">
         <p className={LABEL}>What&apos;s included</p>
         <ul className="mt-4 space-y-4">
           {BENEFITS.map(({ icon: Icon, title, desc }) => (
@@ -39,8 +39,8 @@ export function ClaimCollectionAside() {
         </ul>
       </div>
 
-      {/* How it works — purple → rose */}
-      <div className="rounded-2xl p-5 bg-gradient-to-br from-brand-purple to-brand-rose text-white">
+      {/* How it works — deep violet → fuchsia */}
+      <div className="rounded-2xl p-5 bg-gradient-to-br from-violet-600 to-fuchsia-700 text-white">
         <p className={LABEL}>How it works</p>
         <ol className="mt-4 space-y-3">
           {STEPS.map((label, i) => (
@@ -52,8 +52,8 @@ export function ClaimCollectionAside() {
         </ol>
       </div>
 
-      {/* Non-custodial — rose → orange (trust glyph kept) */}
-      <div className="rounded-2xl p-5 bg-gradient-to-br from-brand-rose to-brand-orange text-white flex items-start gap-3">
+      {/* Non-custodial — deep rose → orange (trust glyph kept) */}
+      <div className="rounded-2xl p-5 bg-gradient-to-br from-rose-600 to-orange-600 text-white flex items-start gap-3">
         <ShieldCheck className="h-5 w-5 text-white shrink-0 mt-0.5" />
         <p className="text-sm text-white/90 leading-relaxed">
           <span className="font-semibold">Non-custodial.</span> Claiming only links your collection to your
