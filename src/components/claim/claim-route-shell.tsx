@@ -38,7 +38,7 @@ export function ClaimRouteShell({ icon, title, subtitle, redirectUrl, headerAcce
   );
 
   const form = (
-    <div className={cn(aside && "lg:col-span-8 rounded-2xl border border-border bg-gradient-to-br from-brand-blue/[0.06] to-brand-purple/[0.02] p-5 sm:p-6")}>
+    <div className={cn(aside && "lg:col-span-8 rounded-2xl border border-border bg-gradient-to-br from-brand-blue/[0.06] to-brand-purple/[0.02] p-5 sm:p-6 lg:flex lg:flex-col lg:justify-center")}>
       <ClaimGate redirectUrl={redirectUrl}>{children}</ClaimGate>
     </div>
   );
@@ -50,7 +50,7 @@ export function ClaimRouteShell({ icon, title, subtitle, redirectUrl, headerAcce
         <div className="grid gap-4 lg:grid-cols-12">
           {header}
           {form}
-          {aside}
+          <div className="lg:col-span-4 space-y-4">{aside}</div>
         </div>
       ) : (
         <div className="space-y-6">
