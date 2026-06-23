@@ -3,6 +3,7 @@ import { FolderInput } from "lucide-react";
 import { canonical } from "@/lib/seo";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { ClaimCollectionPanel } from "@/components/claim/claim-collection-panel";
+import { ClaimCollectionAside } from "@/components/claim/claim-collection-aside";
 
 export const metadata: Metadata = {
   title: "Claim a Collection — Medialane",
@@ -25,6 +26,7 @@ export default function ClaimCollectionPage() {
       title="Claim a Collection"
       subtitle="Import an existing Starknet ERC-721 collection into your Medialane profile."
       redirectUrl="/claim/collection"
+      aside={<ClaimCollectionAside />}
     >
       <ClaimCollectionPanel />
     </ClaimRouteShell>
