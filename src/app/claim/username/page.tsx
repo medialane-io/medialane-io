@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 export default function ClaimUsernamePage() {
   return (
     <ClaimRouteShell
-      icon={<AtSign className="h-4 w-4 text-white" />}
+      icon={<AtSign className="h-4 w-4 text-brand-blue" />}
       title="Claim your Username"
       subtitle="Reserve your creator URL at medialane.io/creator/yourname."
       redirectUrl="/claim/username"

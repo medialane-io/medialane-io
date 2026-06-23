@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 export default function ClaimCollectionPage() {
   return (
     <ClaimRouteShell
-      icon={<FolderInput className="h-4 w-4 text-white" />}
+      icon={<FolderInput className="h-4 w-4 text-brand-purple" />}
       title="Claim a Collection"
       subtitle="Import an existing Starknet ERC-721 collection into your Medialane profile."
       redirectUrl="/claim/collection"

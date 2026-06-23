@@ -21,7 +21,7 @@ export function ClaimRouteShell({ icon, title, subtitle, redirectUrl, aside, chi
   const header = (
     <div className="space-y-2">
       <div className="flex items-center gap-2.5">
-        <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-brand-blue to-brand-purple flex items-center justify-center shadow-lg shadow-brand-purple/25">
+        <div className="h-8 w-8 rounded-xl bg-foreground flex items-center justify-center">
           {icon}
         </div>
         <h1 className="text-2xl sm:text-3xl font-black">{title}</h1>
