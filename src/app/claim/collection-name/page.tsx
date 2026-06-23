@@ -3,6 +3,7 @@ import { Link2 } from "lucide-react";
 import { canonical } from "@/lib/seo";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { CollectionNameClaim } from "@/components/claim/collection-name-claim";
+import { ClaimCollectionNameAside } from "@/components/claim/claim-collection-name-aside";
 
 export const metadata: Metadata = {
   title: "Claim a Collection Name — Medialane",
@@ -24,6 +25,7 @@ export default function ClaimCollectionNamePage() {
       title="Claim a Collection Name"
       subtitle="Pick a collection to give it a clean, memorable URL — medialane.io/collection/your-name."
       redirectUrl="/claim/collection-name"
+      aside={<ClaimCollectionNameAside />}
     >
       <CollectionNameClaim />
     </ClaimRouteShell>
