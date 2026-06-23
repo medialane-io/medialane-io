@@ -3,7 +3,7 @@
 import useSWR from "swr";
 import { Contract, type Abi } from "starknet";
 import { apiFetch } from "@/lib/api-fetch";
-import { starknetProvider } from "@/lib/starknet";
+import { publicReadProvider } from "@/lib/starknet";
 import { DropCollectionReadABI } from "@/lib/launchpad-contracts";
 import type { ApiCollection, ApiMeta } from "@medialane/sdk";
 
@@ -108,7 +108,9 @@ export function useOnChainDropState(contract: string | null) {
   const { data, error, isLoading, mutate } = useSWR<OnChainDropState>(
     contract ? `drop-onchain-${contract}` : null,
     async () => {
-      const c = new Contract(DropCollectionReadABI as unknown as Abi, contract!, starknetProvider);
+      // Public drop pages (viewable logged-out) → keyless public RPC, not the
+      // Clerk-gated /api/rpc proxy (which 401s anonymous visitors).
+      const c = new Contract(DropCollectionReadABI as unknown as Abi, contract!, publicReadProvider);
       const [cond, minted, max, allow, paused] = await Promise.all([
         c.get_claim_conditions() as Promise<{
           start_time: bigint; end_time: bigint; price: bigint;
@@ -136,7 +138,19 @@ export function useOnChainDropState(contract: string | null) {
         paused: Boolean(typeof paused === "bigint" ? paused : paused ? 1n : 0n),
       };
     },
-    { revalidateOnFocus: false, refreshInterval: 30_000, shouldRetryOnError: false }
+    {
+      revalidateOnFocus: false,
+      refreshInterval: 30_000,
+      shouldRetryOnError: false,
+      // The drop listing renders many of these at once; a transient public-RPC
+      // hiccup must not spawn a storm of global toasts. getDropStatus falls back
+      // to "live" when state is null. Log only (local onError overrides global).
+      onError: (err) => {
+        if (process.env.NODE_ENV !== "production") {
+          console.warn(`[drop-onchain] read failed for ${contract}:`, err);
+        }
+      },
+    }
   );
 
   return { state: data ?? null, isLoading, error, mutate };

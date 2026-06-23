@@ -23,3 +23,24 @@ export const starknetProvider = new RpcProvider({
   blockIdentifier: "latest",
   baseFetch: createFailoverFetch(RPC_URLS),
 });
+
+/**
+ * Public read-only provider — for PUBLIC pages that read on-chain data without a
+ * signed-in user (e.g. /coins live Ekubo prices). It deliberately skips the
+ * /api/rpc proxy: that proxy gates `starknet_call` behind a Clerk session
+ * (returns `-32000 Unauthorized` to logged-out visitors), which is correct for
+ * write/auth flows but wrong for anonymous discovery reads.
+ *
+ * It uses ONLY the SDK's keyless public fallback list (lava.build, blastapi,
+ * nethermind) — never the Alchemy endpoint. The Alchemy URL carries our API key
+ * and must stay server-side (it lives in ALCHEMY_RPC_URL, used only inside
+ * /api/rpc); routing browser traffic through it would leak the key. We also skip
+ * NEXT_PUBLIC_STARKNET_RPC_URL here so a misconfigured keyed value in that var
+ * can never reach the browser via this provider. Reads only — never sign or send
+ * a transaction through this.
+ */
+export const publicReadProvider = new RpcProvider({
+  nodeUrl: PUBLIC_RPC_FALLBACKS[0],
+  blockIdentifier: "latest",
+  baseFetch: createFailoverFetch([...PUBLIC_RPC_FALLBACKS]),
+});

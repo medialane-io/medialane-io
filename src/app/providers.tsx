@@ -19,6 +19,26 @@ import { NavThemeToggle } from "@/components/nav-theme-toggle";
 
 const GA_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID;
 
+// Technical markers that mean an error message is a raw RPC / protocol blob
+// (e.g. "RPC: starknet_call … -32000: Unauthorized") — never show these
+// verbatim. They read as "the platform is broken" even when the real cause is
+// benign (an expired session, a coin with no Ekubo pool, a rate-limited node).
+const TECHNICAL_ERROR_RE =
+  /\bRPC:|starknet_|-3\d{4}\b|\bunauthorized\b|execution error|\bfelt\b|\bcalldata\b|entry_point|0x[0-9a-f]{6}|[{}]/i;
+
+/**
+ * Map an SWR fetch/read error to a user-facing toast message. Raw technical
+ * strings collapse to a generic friendly line; short, already-human messages
+ * (e.g. a validation error from the backend) pass through unchanged.
+ */
+function toFriendlyToastMessage(err: unknown): string {
+  const FALLBACK = "Something went wrong. Please try again in a moment.";
+  if (!(err instanceof Error) || !err.message) return FALLBACK;
+  const msg = err.message.trim();
+  if (msg.length > 140 || TECHNICAL_ERROR_RE.test(msg)) return FALLBACK;
+  return msg;
+}
+
 function NavTrigger() {
   const { open } = useNavCommandMenu();
   return (
@@ -105,8 +125,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
                 : null;
             if (status === 401 || status === 403) return;
 
-            const msg = err instanceof Error ? err.message : "Something went wrong";
-            toast.error(msg);
+            toast.error(toFriendlyToastMessage(err));
           },
         }}
       >
