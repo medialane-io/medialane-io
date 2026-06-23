@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { FolderInput } from "lucide-react";
+import { FolderInput, Globe } from "lucide-react";
 import { canonical } from "@/lib/seo";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { ClaimCollectionPanel } from "@/components/claim/claim-collection-panel";
@@ -19,13 +19,22 @@ export const metadata: Metadata = {
   },
 };
 
+/** URL preview pill — the concrete payoff, shown in the gradient header. */
+const urlPill = (
+  <div className="flex items-center gap-2 rounded-lg bg-white/15 px-3 py-2 backdrop-blur-sm self-start shrink-0 max-w-full">
+    <Globe className="h-4 w-4 text-white shrink-0" />
+    <span className="font-mono text-sm text-white truncate">medialane.io/collections/your-collection</span>
+  </div>
+);
+
 export default function ClaimCollectionPage() {
   return (
     <ClaimRouteShell
-      icon={<FolderInput className="h-4 w-4 text-brand-purple" />}
+      icon={<FolderInput className="h-4 w-4 text-white" />}
       title="Claim a Collection"
       subtitle="Import an existing Starknet ERC-721 collection into your Medialane profile."
       redirectUrl="/claim/collection"
+      headerAccessory={urlPill}
       aside={<ClaimCollectionAside />}
     >
       <ClaimCollectionPanel />

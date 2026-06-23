@@ -9,56 +9,54 @@ interface ClaimRouteShellProps {
   subtitle: string;
   /** Route to return to after wallet onboarding (passed to ClaimGate). */
   redirectUrl: string;
-  /** Optional context rail shown beside the claim panel (value, steps, trust).
-   *  Visible even when the panel is gated, so signed-out visitors see the value. */
+  /** Optional element shown on the right of the gradient header (e.g. a URL pill). */
+  headerAccessory?: React.ReactNode;
+  /** Bento side panels — each sets its own `lg:col-span-*`. Enables the grid layout. */
   aside?: React.ReactNode;
   children: React.ReactNode;
 }
 
-/** Focused single-claim page layout: back button, header, then the gated panel.
- *  With `aside`, lays out two top-aligned columns on desktop (panel + context rail). */
-export function ClaimRouteShell({ icon, title, subtitle, redirectUrl, aside, children }: ClaimRouteShellProps) {
+/** Claim route layout: back button + a gradient feature header, then either a
+ *  single-column gated form (simple routes) or an 8/4 Bento 2 grid where the
+ *  form is the dominant compartment and `aside` supplies the side panels. */
+export function ClaimRouteShell({ icon, title, subtitle, redirectUrl, headerAccessory, aside, children }: ClaimRouteShellProps) {
   const header = (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2.5">
-        <div className="h-8 w-8 rounded-xl bg-foreground flex items-center justify-center">
-          {icon}
+    <div className={cn("relative overflow-hidden rounded-2xl p-6 sm:p-7 bg-gradient-to-br from-brand-blue via-brand-purple to-brand-rose", aside && "lg:col-span-12")}>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2.5">
+            <div className="h-9 w-9 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center shrink-0">
+              {icon}
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black text-white">{title}</h1>
+          </div>
+          <p className="text-sm text-white/80 max-w-xl">{subtitle}</p>
         </div>
-        <h1 className="text-2xl sm:text-3xl font-black">{title}</h1>
+        {headerAccessory}
       </div>
-      <p className="text-muted-foreground max-w-xl">{subtitle}</p>
     </div>
   );
 
-  const panel = (
-    <div className="space-y-8">
-      {header}
+  const form = (
+    <div className={cn(aside && "lg:col-span-8 rounded-2xl border border-border bg-gradient-to-br from-brand-blue/[0.06] to-brand-purple/[0.02] p-5 sm:p-6")}>
       <ClaimGate redirectUrl={redirectUrl}>{children}</ClaimGate>
     </div>
   );
 
   return (
-    <div
-      className={cn(
-        "relative container mx-auto px-4 sm:px-6 py-12 space-y-8 pb-20",
-        aside ? "max-w-5xl" : "max-w-3xl",
-      )}
-    >
-      {/* Soft aurora glow behind the header — §III glow surfaces, CSS-only */}
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-16 -z-10 h-72 overflow-hidden">
-        <div className="absolute left-[20%] top-0 h-56 w-56 rounded-full bg-brand-purple/20 blur-3xl" />
-        <div className="absolute left-[45%] top-8 h-48 w-48 rounded-full bg-brand-blue/20 blur-3xl" />
-      </div>
-
+    <div className={cn("container mx-auto px-4 sm:px-6 py-10 space-y-6 pb-20", aside ? "max-w-5xl" : "max-w-3xl")}>
       <ClaimBackButton />
-
       {aside ? (
-        <div className="grid gap-8 lg:gap-12 lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start">
-          {panel}
-          <aside className="space-y-4">{aside}</aside>
+        <div className="grid gap-4 lg:grid-cols-12">
+          {header}
+          {form}
+          {aside}
         </div>
       ) : (
-        panel
+        <div className="space-y-6">
+          {header}
+          {form}
+        </div>
       )}
     </div>
   );
