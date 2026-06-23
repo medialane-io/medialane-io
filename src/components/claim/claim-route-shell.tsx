@@ -1,6 +1,5 @@
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { ClaimGate } from "@/components/claim/claim-gate";
+import { ClaimBackButton } from "@/components/claim/claim-back-button";
 import { cn } from "@/lib/utils";
 
 interface ClaimRouteShellProps {
@@ -16,9 +15,28 @@ interface ClaimRouteShellProps {
   children: React.ReactNode;
 }
 
-/** Focused single-claim page layout: back link, header, then the gated panel.
- *  With `aside`, lays out two columns on desktop (panel + context rail). */
+/** Focused single-claim page layout: back button, header, then the gated panel.
+ *  With `aside`, lays out two top-aligned columns on desktop (panel + context rail). */
 export function ClaimRouteShell({ icon, title, subtitle, redirectUrl, aside, children }: ClaimRouteShellProps) {
+  const header = (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2.5">
+        <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-brand-blue to-brand-purple flex items-center justify-center shadow-lg shadow-brand-purple/25">
+          {icon}
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-black">{title}</h1>
+      </div>
+      <p className="text-muted-foreground max-w-xl">{subtitle}</p>
+    </div>
+  );
+
+  const panel = (
+    <div className="space-y-8">
+      {header}
+      <ClaimGate redirectUrl={redirectUrl}>{children}</ClaimGate>
+    </div>
+  );
+
   return (
     <div
       className={cn(
@@ -32,33 +50,15 @@ export function ClaimRouteShell({ icon, title, subtitle, redirectUrl, aside, chi
         <div className="absolute left-[45%] top-8 h-48 w-48 rounded-full bg-brand-blue/20 blur-3xl" />
       </div>
 
-      <Link
-        href="/launchpad"
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-      >
-        <ArrowLeft className="h-3.5 w-3.5" />
-        Back to Launchpad
-      </Link>
-
-      <div className="space-y-2">
-        <div className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg shadow-primary/20">
-            {icon}
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-black">{title}</h1>
-        </div>
-        <p className="text-muted-foreground max-w-2xl">{subtitle}</p>
-      </div>
+      <ClaimBackButton />
 
       {aside ? (
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start">
-          <div>
-            <ClaimGate redirectUrl={redirectUrl}>{children}</ClaimGate>
-          </div>
+        <div className="grid gap-8 lg:gap-12 lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start">
+          {panel}
           <aside className="space-y-4">{aside}</aside>
         </div>
       ) : (
-        <ClaimGate redirectUrl={redirectUrl}>{children}</ClaimGate>
+        panel
       )}
     </div>
   );
