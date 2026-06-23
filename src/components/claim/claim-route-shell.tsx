@@ -8,7 +8,10 @@ interface ClaimRouteShellProps {
   title: string;
   subtitle: string;
   /** Route to return to after wallet onboarding (passed to ClaimGate). */
-  redirectUrl: string;
+  redirectUrl?: string;
+  /** Wrap the form in ClaimGate (sign-in/wallet overlay). Default true. Pages
+   *  already protected by middleware (e.g. /create/*) pass false. */
+  gated?: boolean;
   /** Optional element shown under the header subtitle (e.g. a URL pill). */
   headerAccessory?: React.ReactNode;
   /** Right-rail panels. Enables the asymmetric grid layout. */
@@ -20,7 +23,8 @@ interface ClaimRouteShellProps {
  *  carries a static brand gradient border, and the form carries the ANIMATED
  *  full-spectrum border (reused from the asset page / Buy button) so the action
  *  is the visual focus among the vivid side panels. */
-export function ClaimRouteShell({ icon, title, subtitle, redirectUrl, headerAccessory, aside, children }: ClaimRouteShellProps) {
+export function ClaimRouteShell({ icon, title, subtitle, redirectUrl, gated = true, headerAccessory, aside, children }: ClaimRouteShellProps) {
+  const gatedChildren = gated ? <ClaimGate redirectUrl={redirectUrl ?? "/claim"}>{children}</ClaimGate> : children;
   const header = (
     <div className="rounded-2xl p-[1.5px] bg-gradient-to-br from-brand-blue via-brand-purple to-brand-rose">
       <div className="rounded-[15px] bg-card p-6 sm:p-7">
@@ -39,12 +43,10 @@ export function ClaimRouteShell({ icon, title, subtitle, redirectUrl, headerAcce
   // The form is the focus: animated gradient border around the dark card.
   const form = aside ? (
     <div className="btn-border-animated p-[1.5px] rounded-2xl">
-      <div className="rounded-[15px] bg-card p-5 sm:p-6">
-        <ClaimGate redirectUrl={redirectUrl}>{children}</ClaimGate>
-      </div>
+      <div className="rounded-[15px] bg-card p-5 sm:p-6">{gatedChildren}</div>
     </div>
   ) : (
-    <ClaimGate redirectUrl={redirectUrl}>{children}</ClaimGate>
+    gatedChildren
   );
 
   return (
