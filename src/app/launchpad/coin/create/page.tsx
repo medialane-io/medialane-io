@@ -28,7 +28,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
-import { LaunchpadPageIntro } from "@/components/launchpad/launchpad-page-intro";
+import { ClaimBackButton } from "@/components/claim/claim-back-button";
+import { ServiceHeader } from "@/components/claim/service-header";
+import { CreateCoinAside } from "@/components/claim/create-coin-aside";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import {
   LaunchpadSuccessState,
@@ -279,14 +281,15 @@ export default function CoinCreatePage() {
   const stepTitle = step === 1 ? "Your coin" : step === 2 ? "Economics" : "Review & launch";
 
   return (
-    <div className="container max-w-5xl mx-auto px-4 pt-24 pb-8">
-      <LaunchpadPageIntro
-        icon={Coins}
-        badge="Creator Coin"
-        title="Design your Creator Coin"
-        description="Give it a face, set the numbers, and launch — gasless, with liquidity locked forever."
-        className="text-brand-rose"
-      />
+    <div className="container max-w-5xl mx-auto px-4 pt-10 pb-8">
+      <ClaimBackButton />
+      <div className="mt-6">
+        <ServiceHeader
+          icon={<Coins className="h-4 w-4 text-white" />}
+          title="Design your Creator Coin"
+          subtitle="Give it a face, set the numbers, and launch — gasless, with liquidity locked forever."
+        />
+      </div>
 
       {/* Step indicator */}
       <div className="flex items-center gap-2 mt-6 mb-6">
@@ -306,9 +309,10 @@ export default function CoinCreatePage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 items-start">
-        {/* Mobile: preview first */}
-        <div className="lg:hidden">
+        {/* Mobile: preview + info panels first */}
+        <div className="lg:hidden space-y-4">
           <CoinLaunchPreview data={previewData} />
+          <CreateCoinAside />
         </div>
 
         <div className="space-y-6 rounded-2xl border border-border/40 p-5 sm:p-6">
@@ -513,9 +517,10 @@ export default function CoinCreatePage() {
           )}
         </div>
 
-        {/* Desktop: sticky preview */}
-        <div className="hidden lg:block sticky top-24">
+        {/* Desktop: sticky preview + info panels */}
+        <div className="hidden lg:block sticky top-24 space-y-4">
           <CoinLaunchPreview data={previewData} />
+          <CreateCoinAside />
         </div>
       </div>
 

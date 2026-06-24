@@ -1,5 +1,6 @@
 import { ClaimGate } from "@/components/claim/claim-gate";
 import { ClaimBackButton } from "@/components/claim/claim-back-button";
+import { ServiceHeader } from "@/components/claim/service-header";
 import { cn } from "@/lib/utils";
 
 interface ClaimRouteShellProps {
@@ -25,20 +26,7 @@ interface ClaimRouteShellProps {
  *  is the visual focus among the vivid side panels. */
 export function ClaimRouteShell({ icon, title, subtitle, redirectUrl, gated = true, headerAccessory, aside, children }: ClaimRouteShellProps) {
   const gatedChildren = gated ? <ClaimGate redirectUrl={redirectUrl ?? "/claim"}>{children}</ClaimGate> : children;
-  const header = (
-    <div className="rounded-2xl p-[1.5px] bg-gradient-to-br from-brand-blue via-brand-purple to-brand-rose">
-      <div className="rounded-[15px] bg-card p-6 sm:p-7">
-        <div className="flex items-center gap-2.5">
-          <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center shrink-0">
-            {icon}
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-black">{title}</h1>
-        </div>
-        <p className="mt-1.5 text-sm text-muted-foreground max-w-xl">{subtitle}</p>
-        {headerAccessory && <div className="mt-4">{headerAccessory}</div>}
-      </div>
-    </div>
-  );
+  const header = <ServiceHeader icon={icon} title={title} subtitle={subtitle} headerAccessory={headerAccessory} />;
 
   // The form is the focus: animated gradient border around the dark card.
   const form = aside ? (

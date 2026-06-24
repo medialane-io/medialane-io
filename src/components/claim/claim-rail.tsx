@@ -1,8 +1,9 @@
 import { ShieldCheck, type LucideIcon } from "lucide-react";
 
 export interface ClaimRailProps {
-  /** "What's included" benefits. */
-  included: { icon: LucideIcon; title: string; desc: string }[];
+  /** "What's included" benefits. Omit to hide that panel (e.g. coin page,
+   *  where a live preview is the rail's first panel instead). */
+  included?: { icon: LucideIcon; title: string; desc: string }[];
   /** "How it works" ordered steps. */
   steps: string[];
   /** Trust/assurance note: bold lead + the rest of the sentence. */
@@ -22,6 +23,7 @@ export function ClaimRail({ included, steps, trustLead, trust, trustIcon: TrustI
   return (
     <>
       {/* What's included — deep blue → indigo */}
+      {included && included.length > 0 && (
       <div className="rounded-2xl p-5 bg-gradient-to-br from-blue-600 to-indigo-700 text-white">
         <p className={LABEL}>What&apos;s included</p>
         <ul className="mt-4 space-y-4">
@@ -38,6 +40,7 @@ export function ClaimRail({ included, steps, trustLead, trust, trustIcon: TrustI
           ))}
         </ul>
       </div>
+      )}
 
       {/* How it works — deep violet → fuchsia */}
       <div className="rounded-2xl p-5 bg-gradient-to-br from-violet-600 to-fuchsia-700 text-white">
