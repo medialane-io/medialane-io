@@ -1,7 +1,11 @@
 type Attr = { trait_type?: string; value?: string };
 
-const get = (a: Attr[], key: string): string | undefined =>
-  a.find((x) => x.trait_type?.toLowerCase() === key)?.value;
+const get = (a: Attr[], key: string): string | undefined => {
+  // Attribute values can be numbers at runtime (OpenSea allows numeric `value`s);
+  // coerce so the callers' `.toLowerCase()` never throws.
+  const v = a.find((x) => x.trait_type?.toLowerCase() === key)?.value;
+  return v == null ? undefined : String(v);
+};
 
 /**
  * One plain-language sentence summarizing the license, derived from the license

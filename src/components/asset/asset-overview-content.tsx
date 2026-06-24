@@ -14,7 +14,10 @@ interface AssetOverviewContentProps {
   isDisplayAttr: (attribute: AssetAttribute) => boolean;
 }
 
-const isAddressLike = (v?: string): boolean => !!v && /^0x[0-9a-fA-F]{16,}$/.test(v.trim());
+// Attribute values can be numbers (OpenSea allows numeric trait `value`s), so
+// guard against non-strings — `(123).trim()` would throw and crash the page.
+const isAddressLike = (v?: unknown): boolean =>
+  typeof v === "string" && /^0x[0-9a-fA-F]{16,}$/.test(v.trim());
 
 /** A standard bento square: a brand-tinted icon, an uppercase label, a bold value.
  *  `wide` stretches it across two columns for an emphasized detail. */
