@@ -13,7 +13,6 @@ import { WalletSetupGate } from "@/components/transaction/wallet-setup-gate";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
-import { FadeIn } from "@/components/ui/motion-primitives";
 import { getListableTokens } from "@medialane/sdk";
 import { DropFactoryABI, DROP_FACTORY_CONTRACT } from "@/lib/launchpad-contracts";
 import { DropCreateForm, type PaymentTokenOption } from "../drop-create-form";
@@ -25,7 +24,8 @@ import { parseAddresses, batchAllowlistCalldata } from "../drop-allowlist";
 import type { DraftItem } from "../drop-item-list";
 import type { MetadataField } from "@/components/create/ip-type-fields";
 import { LaunchpadSuccessState, LaunchpadErrorState, LaunchpadProcessingState } from "@/components/launchpad/launchpad-success-state";
-import { LaunchpadPageIntro } from "@/components/launchpad/launchpad-page-intro";
+import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
+import { CreateDropAside } from "@/components/claim/create-drop-aside";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 
 // API_BASE = same-origin BFF proxy that injects the server-only API key.
@@ -320,17 +320,13 @@ export default function CreateDropPage() {
   // ── Launch form ────────────────────────────────────────────────────────────
   return (
     <>
-      <div className="container max-w-xl mx-auto px-4 pt-10 pb-16 space-y-8">
-        <FadeIn>
-          <LaunchpadPageIntro
-            icon={Package}
-            badge="Collection Drop"
-            title="Launch Drop"
-            description="Deploy a limited set of unique, individually-licensed ERC-721 assets with a timed mint window."
-            className="text-orange-600 dark:text-orange-400"
-          />
-        </FadeIn>
-
+      <ClaimRouteShell
+        gated={false}
+        icon={<Package className="h-4 w-4 text-white" />}
+        title="Launch a Drop"
+        subtitle="Release a limited set of unique pieces with a timed mint window — free to launch, and it's yours."
+        aside={<CreateDropAside />}
+      >
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
             <DropCreateForm
@@ -367,7 +363,7 @@ export default function CreateDropPage() {
             {uploadSuccess && <p className="text-xs text-emerald-500 mt-1">✓ {uploadSuccess}</p>}
           </form>
         </Form>
-      </div>
+      </ClaimRouteShell>
 
       <PinDialog
         {...action.pinDialogProps}

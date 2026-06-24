@@ -183,7 +183,7 @@ export function DropCreateForm({
           <CollapsibleContent>
             <div className="px-5 pb-5 space-y-4 border-t border-border/60 pt-4">
               <p className="text-xs text-muted-foreground">
-                These license terms are embedded as immutable IPFS metadata on every token in the drop. CC BY-SA by default.
+                These license terms are saved permanently with every piece in the drop. CC BY-SA by default.
               </p>
               <FormField control={form.control} name="licenseType" render={({ field }) => (
                 <FormItem>
@@ -368,16 +368,14 @@ export function DropCreateForm({
       </Collapsible>
 
       {/* Submit */}
-      <div className={cn("btn-border-animated p-[1px] rounded-xl", (isSubmitting || imageUploading) && "opacity-40 pointer-events-none")}>
-        <button
-          type="submit"
-          disabled={isSubmitting || imageUploading}
-          className="w-full h-12 text-base font-semibold text-white rounded-[11px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] bg-brand-blue"
-        >
-          {isSubmitting ? (<><Loader2 className="h-4 w-4 animate-spin" />Launching…</>) : (<><Package className="h-4 w-4" />Launch Drop</>)}
-        </button>
-      </div>
-      <p className="text-xs text-center text-muted-foreground">Supply equals the number of items. Gas is free — your PIN signs the launch.</p>
+      <button
+        type="submit"
+        disabled={isSubmitting || imageUploading}
+        className={cn("w-full h-12 text-base font-semibold text-white rounded-xl flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] bg-brand-blue", (isSubmitting || imageUploading) && "opacity-40 pointer-events-none")}
+      >
+        {isSubmitting ? (<><Loader2 className="h-4 w-4 animate-spin" />Launching…</>) : (<><Package className="h-4 w-4" />Launch Drop</>)}
+      </button>
+      <p className="text-xs text-center text-muted-foreground">Supply equals the number of items you add. Free to launch — no gas fees.</p>
     </div>
   );
 }
