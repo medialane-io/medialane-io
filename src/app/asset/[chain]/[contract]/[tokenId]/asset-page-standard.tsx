@@ -46,7 +46,7 @@ import {
   AssetLinksRow,
   AssetOwnersPanel,
 } from "./asset-side-panels";
-import { AssetOverviewContent } from "@/components/asset/asset-overview-content";
+import { AssetOverviewContent } from "./asset-overview-content";
 import { AssetHeaderBlock } from "@/components/asset/asset-header-block";
 import { OpenInDappCallout } from "@/components/asset/open-in-dapp-callout";
 import { AssetMediaColumn } from "@/components/asset/asset-media-column";
