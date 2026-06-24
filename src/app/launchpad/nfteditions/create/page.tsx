@@ -20,7 +20,8 @@ import { starknetProvider } from "@/lib/starknet";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
-import { LaunchpadPageIntro } from "@/components/launchpad/launchpad-page-intro";
+import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
+import { CreateEditionsAside } from "@/components/claim/create-editions-aside";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { NftEditionsCreateForm } from "../nfteditions-create-form";
 import {
@@ -237,14 +238,13 @@ export default function CreateIP1155CollectionPage() {
         </div>
       </TransactionDialog>
 
-      <div className="container max-w-2xl mx-auto px-4 pt-14 pb-8 space-y-8">
-        <LaunchpadPageIntro
-          icon={Layers}
-          badge="IP Collection · ERC-1155"
-          title="Create IP Collection"
-          description="Deploy a multi-edition ERC-1155 collection onchain. Gas is free."
-        />
-
+      <ClaimRouteShell
+        gated={false}
+        icon={<Layers className="h-4 w-4 text-white" />}
+        title="Create an Edition Collection"
+        subtitle="Create a collection where each piece can have multiple editions — free to publish, and it's yours."
+        aside={<CreateEditionsAside />}
+      >
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
 
@@ -266,7 +266,7 @@ export default function CreateIP1155CollectionPage() {
                 no page-bottom duplicate. */}
           </form>
         </Form>
-      </div>
+      </ClaimRouteShell>
 
       <WalletSetupGate action={action} />
     </>

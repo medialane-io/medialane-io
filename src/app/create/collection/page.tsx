@@ -382,7 +382,7 @@ export default function CreateCollectionPage() {
                     />
                   </FormControl>
                   <FormDescription>
-                    Short ticker (2–10 uppercase letters). Shown in wallets and explorers.
+                    Short ticker (2–10 uppercase letters). Shown in wallets and marketplaces.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

@@ -108,9 +108,9 @@ export function NftEditionsCreateForm({
             ) : null}
             <p className="text-xs text-muted-foreground">
               JPG, PNG, GIF, SVG or WebP · max 10 MB
-              {imageUri ? <span className="ml-2 text-emerald-500 font-medium">✓ Uploaded to IPFS</span> : null}
+              {imageUri ? <span className="ml-2 text-emerald-500 font-medium">✓ Uploaded</span> : null}
             </p>
-            <p className="text-xs text-muted-foreground">This becomes the visual identity for the collection metadata.</p>
+            <p className="text-xs text-muted-foreground">This becomes the cover for your collection.</p>
           </div>
         </div>
       </div>
@@ -154,23 +154,21 @@ export function NftEditionsCreateForm({
         <FormItem>
           <FormLabel>External link <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
           <FormControl><Input placeholder="https://yourwebsite.com" {...field} /></FormControl>
-          <FormDescription>Your website, portfolio, or social profile. Stored in collection metadata on IPFS.</FormDescription>
+          <FormDescription>Your website, portfolio, or social profile — saved with your collection so it travels with it.</FormDescription>
           <FormMessage />
         </FormItem>
       )} />
 
-      <div className={`btn-border-animated p-[1px] rounded-xl ${deployDisabled ? "opacity-40 pointer-events-none" : ""}`}>
-        <button
-          type="submit"
-          disabled={deployDisabled}
-          className="w-full h-12 text-base font-semibold text-white rounded-[11px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] bg-violet-600"
-        >
-          <Layers className="h-4 w-4" />
-          Deploy Collection
-        </button>
-      </div>
+      <button
+        type="submit"
+        disabled={deployDisabled}
+        className={`w-full h-12 text-base font-semibold text-white rounded-xl flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] bg-violet-600 ${deployDisabled ? "opacity-40 pointer-events-none" : ""}`}
+      >
+        <Layers className="h-4 w-4" />
+        Publish Collection
+      </button>
       <p className="text-xs text-center text-muted-foreground">
-        Gas is free. Your PIN signs the transaction and deploys the collection contract onchain.
+        Free to publish — no gas fees.
       </p>
       <p className="text-xs text-center text-muted-foreground">
         Next step: mint pieces into this collection — you set the number of copies for each
