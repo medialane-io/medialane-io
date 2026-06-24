@@ -19,13 +19,13 @@ import {
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useUser } from "@clerk/nextjs";
-import { FadeIn } from "@/components/ui/motion-primitives";
 import { normalizeAddress } from "@medialane/sdk";
 import { Contract, num, type Abi } from "starknet";
 import { starknetProvider } from "@/lib/starknet";
 import { readAssignedEditionId } from "@/lib/erc1155-edition";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
-import { LaunchpadPageIntro } from "@/components/launchpad/launchpad-page-intro";
+import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
+import { MintEditionAside } from "@/components/claim/mint-edition-aside";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 import { EXPLORER_URL } from "@/lib/constants";
@@ -281,20 +281,18 @@ export default function MintIP1155Page() {
   // ── Mint form ──────────────────────────────────────────────────────────────
   return (
     <>
-      <div className="container max-w-xl mx-auto px-4 pt-10 pb-16 space-y-8">
-        <FadeIn>
-          <LaunchpadPageIntro
-            icon={Sparkles}
-            badge="ERC-1155 · Mint"
-            title="Mint digital asset"
-            description="Mint a new token type into your ERC-1155 collection. The URI and authorship are recorded permanently on-chain at first mint."
-          >
-            <p className="text-xs text-muted-foreground font-mono break-all">
-              Collection: {collectionAddress}
-            </p>
-          </LaunchpadPageIntro>
-        </FadeIn>
-
+      <ClaimRouteShell
+        gated={false}
+        icon={<Sparkles className="h-4 w-4 text-white" />}
+        title="Mint an Edition"
+        subtitle="Add a new piece to your collection — its details and authorship are saved permanently. Free to mint, and it's yours."
+        headerAccessory={
+          <div className="flex items-center gap-2 rounded-lg border border-border bg-background/60 px-3 py-2 max-w-full">
+            <span className="font-mono text-xs text-foreground/80 truncate">Collection: {collectionAddress}</span>
+          </div>
+        }
+        aside={<MintEditionAside />}
+      >
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
 
@@ -321,7 +319,7 @@ export default function MintIP1155Page() {
             )}
           </form>
         </Form>
-      </div>
+      </ClaimRouteShell>
 
       <NftEditionsMintConfirmDialog
         open={pinOpen}

@@ -175,7 +175,7 @@ export function NftEditionsMintForm({
               ) : null}
               <p className="text-xs text-muted-foreground">
                 {imageUri ? (
-                  <span className="text-violet-500">✓ Uploaded to IPFS</span>
+                  <span className="text-violet-500">✓ Uploaded</span>
                 ) : (
                   "JPG, PNG, SVG or WebP · max 10 MB"
                 )}
@@ -191,7 +191,7 @@ export function NftEditionsMintForm({
           <FormItem>
             <FormLabel>Token name *</FormLabel>
             <FormControl><Input placeholder="Genesis Track #1" {...field} /></FormControl>
-            <FormDescription>The title collectors will see for this token edition. Stored in metadata on IPFS.</FormDescription>
+            <FormDescription>The title collectors will see for this edition.</FormDescription>
             <FormMessage />
           </FormItem>
         )} />
@@ -215,7 +215,7 @@ export function NftEditionsMintForm({
           <FormItem>
             <FormLabel>External link <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
             <FormControl><Input placeholder="https://yourwebsite.com" {...field} /></FormControl>
-            <FormDescription>Canonical link for this edition. Stored in token metadata on IPFS.</FormDescription>
+            <FormDescription>Canonical link for this edition.</FormDescription>
             <FormMessage />
           </FormItem>
         )} />
@@ -266,7 +266,7 @@ export function NftEditionsMintForm({
             <CollapsibleContent>
               <div className="px-5 pb-5 space-y-4 border-t border-border/60 pt-4">
                 <p className="text-xs text-muted-foreground">
-                  Set programmable licensing terms for this ERC-1155 edition. These are embedded as immutable IPFS metadata.
+                  Set the licensing terms for this edition — saved permanently with it.
                 </p>
 
                 <FormField control={form.control} name="licenseType" render={({ field }) => (
@@ -414,19 +414,17 @@ export function NftEditionsMintForm({
       </FadeIn>
 
       <FadeIn delay={0.22}>
-        <div className="btn-border-animated p-[1px] rounded-xl mt-2">
-          <Button
-            type="submit"
-            size="lg"
-            className="w-full rounded-xl bg-background text-foreground hover:bg-muted/60"
-            disabled={mintDisabled}
-          >
-            <Sparkles className="h-4 w-4 mr-2" />
-            Mint Token
-          </Button>
-        </div>
+        <Button
+          type="submit"
+          size="lg"
+          className="w-full rounded-xl mt-2"
+          disabled={mintDisabled}
+        >
+          <Sparkles className="h-4 w-4 mr-2" />
+          Mint Edition
+        </Button>
         <p className="text-xs text-center text-muted-foreground mt-2">
-          Gas is free. Your PIN signs the transaction and mints the edition directly to the chosen wallet.
+          Free to mint — no gas fees.
         </p>
       </FadeIn>
     </div>
