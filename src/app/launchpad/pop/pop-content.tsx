@@ -3,14 +3,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { Award, Calendar, Users, Plus, LayoutList, Zap, ShieldCheck } from "lucide-react";
+import { Award, Users, Plus, LayoutList, Zap, ShieldCheck } from "lucide-react";
 import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion-primitives";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { ServiceHeader } from "@/components/claim/service-header";
+import { ClaimBackButton } from "@/components/claim/claim-back-button";
 import { PopClaimButton } from "@/components/claim/pop-claim-button";
 import { usePopCollections } from "@/hooks/use-pop";
 import { ipfsToHttp } from "@/lib/utils";
-import { BRAND } from "@/lib/brand";
 import type { ApiCollection } from "@medialane/sdk";
 
 // See drop-content.tsx for the same shape. Will move to SDK once 0.24+ exposes
@@ -128,44 +129,33 @@ export function PopContent() {
   return (
     <div className="pb-16 space-y-10">
 
-      {/* Hero */}
-      <section className="relative overflow-hidden border-b border-border/50">
-        <div className="px-4 py-14 sm:py-20">
-          <FadeIn>
-            <span className="pill-badge mb-5 inline-flex">
-              <Award className="h-3 w-3" />
-              POP Protocol
-            </span>
-          </FadeIn>
-          <FadeIn delay={0.08}>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight mb-3">
-              Claim Your On-Chain<br />
-              <span className="gradient-text">POP Credential</span>
-            </h1>
-          </FadeIn>
-          <FadeIn delay={0.16}>
-            <p className="text-muted-foreground text-base max-w-xl leading-relaxed">
-              Soulbound NFTs issued by event organizers — permanently proving your participation
-              in bootcamps, workshops, hackathons, and conferences onchain.
-            </p>
-          </FadeIn>
-          <FadeIn delay={0.24}>
-            <div className="flex flex-wrap gap-2 mt-5">
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/40 text-sm">
-                <Award className={`h-3.5 w-3.5 ${BRAND.purple.text}`} />
-                <span className="text-muted-foreground">Soulbound · Non-transferable</span>
-              </div>
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/40 text-sm">
-                <Calendar className={`h-3.5 w-3.5 ${BRAND.blue.text}`} />
-                <span className="text-muted-foreground">One credential per address</span>
-              </div>
-            </div>
-          </FadeIn>
-        </div>
+      {/* ── Header ── */}
+      <section className="px-4 pt-10 max-w-5xl mx-auto">
+        <ClaimBackButton />
+        <FadeIn>
+          <div className="mt-6">
+            <ServiceHeader
+              icon={<Award className="h-4 w-4 text-white" />}
+              title="POP Events"
+              subtitle="Collectible badges that prove people took part. Browse events to claim yours, or create one for your community."
+            />
+          </div>
+        </FadeIn>
+        <FadeIn delay={0.08}>
+          <div className="mt-6">
+            <Link
+              href="/launchpad/pop/create"
+              className="inline-flex items-center gap-2 h-10 px-5 rounded-xl text-sm font-semibold text-white bg-brand-purple hover:brightness-110 transition-colors"
+            >
+              <Plus className="h-4 w-4" />
+              New event
+            </Link>
+          </div>
+        </FadeIn>
       </section>
 
       {/* Features grid */}
-      <section className="px-4">
+      <section className="px-4 max-w-5xl mx-auto">
         <FadeIn>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {POP_FEATURES.map(({ icon: Icon, title, desc }) => (
@@ -180,7 +170,7 @@ export function PopContent() {
       </section>
 
       {/* Collections grid */}
-      <section className="px-4 space-y-4">
+      <section className="px-4 space-y-4 max-w-5xl mx-auto">
         <FadeIn>
           <div className="flex items-center justify-between">
             <div>
