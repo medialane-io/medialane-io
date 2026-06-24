@@ -173,7 +173,7 @@ export function PopCreateForm({
                 </button>
               ) : null}
               <p className="text-xs text-muted-foreground">
-                {imageUri ? <span className="text-green-500">✓ Uploaded to IPFS</span> : "JPG, PNG, SVG or WebP · max 10 MB"}
+                {imageUri ? <span className="text-green-500">✓ Uploaded</span> : "JPG, PNG, SVG or WebP · max 10 MB"}
               </p>
             </div>
           </div>
@@ -285,28 +285,26 @@ export function PopCreateForm({
       </FadeIn>
 
       <FadeIn delay={0.2}>
-        <div className="btn-border-animated p-[1px] rounded-xl mt-2">
-          <Button
-            type="submit"
-            size="lg"
-            className="w-full rounded-xl bg-background text-foreground hover:bg-muted/60"
-            disabled={isSubmitting || imageUploading}
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Creating event…
-              </>
-            ) : (
-              <>
-                <Award className="h-4 w-4 mr-2" />
-                Create Event
-              </>
-            )}
-          </Button>
-        </div>
+        <Button
+          type="submit"
+          size="lg"
+          className="w-full rounded-xl mt-2"
+          disabled={isSubmitting || imageUploading}
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Creating event…
+            </>
+          ) : (
+            <>
+              <Award className="h-4 w-4 mr-2" />
+              Create Event
+            </>
+          )}
+        </Button>
         <p className="text-xs text-center text-muted-foreground mt-2">
-          Gas is free. Your PIN signs the transaction and publishes the credential rules onchain.
+          Free to publish — no gas fees.
         </p>
       </FadeIn>
     </div>

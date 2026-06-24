@@ -18,7 +18,6 @@ import { WalletSetupGate } from "@/components/transaction/wallet-setup-gate";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
-import { FadeIn } from "@/components/ui/motion-primitives";
 import { POPFactoryABI, POP_FACTORY_CONTRACT, type PopEventType } from "@/lib/launchpad-contracts";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
@@ -26,7 +25,8 @@ import { getDefaultClaimWindow, suggestLaunchpadSymbol } from "@/lib/launchpad-d
 import { PopCreateForm } from "../pop-create-form";
 import { popCreateSchema, type PopCreateFormValues } from "../pop-create-schema";
 import { LaunchpadSuccessState, LaunchpadErrorState, LaunchpadProcessingState } from "@/components/launchpad/launchpad-success-state";
-import { LaunchpadPageIntro } from "@/components/launchpad/launchpad-page-intro";
+import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
+import { CreatePopAside } from "@/components/claim/create-pop-aside";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 
 export default function CreatePOPPage() {
@@ -201,17 +201,13 @@ export default function CreatePOPPage() {
   // ── Create form ────────────────────────────────────────────────────────────
   return (
     <>
-      <div className="container max-w-xl mx-auto px-4 pt-10 pb-16 space-y-8">
-
-        <FadeIn>
-          <LaunchpadPageIntro
-            icon={Award}
-            badge="Proof of Participation"
-            title="Create Event"
-            description="Deploy a soulbound credential collection for your event or program."
-            className="text-green-600 dark:text-green-400"
-          />
-        </FadeIn>
+      <ClaimRouteShell
+        gated={false}
+        icon={<Award className="h-4 w-4 text-white" />}
+        title="Create a POP Event"
+        subtitle="Give attendees a collectible badge that proves they were part of your event — free to publish."
+        aside={<CreatePopAside />}
+      >
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
             <PopCreateForm
@@ -236,7 +232,7 @@ export default function CreatePOPPage() {
             )}
           </form>
         </Form>
-      </div>
+      </ClaimRouteShell>
 
       <PinDialog {...action.pinDialogProps}
         title="Deploy POP collection"
