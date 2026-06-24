@@ -158,6 +158,38 @@ Large presentation surfaces are owned by `@medialane/ui` (exact-version pin); th
 in `medialane-ui`, publish, and bump BOTH apps. Genuinely divergent (do not lift without a design
 pass): asset variant pages, marketplace panel/dialogs, wallet/auth flows.
 
+## Launchpad & Claim form template (2026-06-23)
+
+Every claim/create/mint surface in the launchpad shares one template, in `src/components/claim/`:
+
+- **`ServiceHeader`** — the page header: a dark `bg-card` card on a static brand gradient border
+  (`from-brand-blue via-brand-purple to-brand-rose`), solid `primary` icon chip, title + subtitle,
+  optional `headerAccessory` (e.g. a URL pill). Used standalone (coin page, browse pages) or inside
+  `ClaimRouteShell`.
+- **`ClaimRouteShell`** — full form layout: `ClaimBackButton` + `ServiceHeader` + the form wrapped in
+  the **animated full-spectrum border** (`.btn-border-animated`, the same one as the asset page / Buy
+  button) so the action is the focus. With an `aside`, lays out an 8/4 bento (form left, rail right);
+  without, a single column. Props: `gated` (default **true**; pass `gated={false}` for pages already
+  protected by middleware/their own signed-out state — `/create/*`, the launchpad form pages),
+  `redirectUrl` (ClaimGate onboarding return), `aside`, `headerAccessory`.
+- **`ClaimRail`** — the vivid right-rail panels (What's included · How it works · trust) as a deep
+  gradient spectrum (blue→indigo / violet→fuchsia / rose→orange), white text. **`included` is
+  optional** — omit it to skip the first panel (the coin page does this; its live preview is the
+  rail's first panel). Per-surface content lives in tiny `*-aside.tsx` wrappers.
+
+**To migrate a form onto the template:** replace its old header (inline or `LaunchpadPageIntro`) with
+the shell, wrap the existing `<Form>` as `children`, add a `*-aside.tsx`, **de-animate the form's own
+submit button** (the compartment provides the border now — drop the `btn-border-animated` wrapper,
+use a solid `bg-*` button), and soften copy to plain language (no "IPFS"/"PIN"/"onchain"/"ERC-xxxx";
+footers say "Free to publish/mint — no gas fees"). Keep all transaction logic + dialogs untouched.
+
+**Applied to:** all claims (`/claim/*`, `/launchpad/memecoin`), `/create/collection`, `/create/asset`,
+`/launchpad/nfteditions/{create,[contract]/mint}`, `/launchpad/{pop,drop,coin}/create`. **Browse/list
+pages** (`/launchpad/nfteditions`, `/launchpad/pop`, `/launchpad/drop`) use `ServiceHeader` + back
+button only (no animated form/rail), constrained to `max-w-5xl`. The **coin page** keeps its stepper +
+`CoinLaunchPreview` live-preview rail and adds `ServiceHeader` + a `ClaimRail` (How it works + a
+"Locked forever" trust panel, no `included`) under the preview.
+
 ## IP-type document upload (2026-06-12)
 
 Documents, Patents, Publications, and Software IP types let the creator attach the work itself
