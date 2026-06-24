@@ -28,7 +28,7 @@ import {
   nftEditionsCreateSchema,
   type NftEditionsCreateFormValues,
 } from "../nfteditions-create-schema";
-import { COLLECTION_1155_CONTRACT } from "@/lib/constants";
+import { STARKNET_COLLECTION_1155_CONTRACT } from "@/lib/constants";
 
 // Same-origin BFF proxy — injects MEDIALANE_API_KEY server-side.
 const API_BASE = "/api/proxy";
@@ -131,7 +131,7 @@ export default function CreateIP1155CollectionPage() {
       const result = await action.executeTransaction({
         pin: secret,
         calls: [{
-          contractAddress: COLLECTION_1155_CONTRACT,
+          contractAddress: STARKNET_COLLECTION_1155_CONTRACT,
           entrypoint: "deploy_collection",
           calldata: [
             ...serializeByteArray(pendingValues.name),

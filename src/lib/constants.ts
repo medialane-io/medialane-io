@@ -1,42 +1,17 @@
-import {
-  MARKETPLACE_721_CONTRACT_MAINNET,
-  MARKETPLACE_1155_CONTRACT_MAINNET,
-  COLLECTION_721_CONTRACT_MAINNET,
-  COLLECTION_1155_CONTRACT_MAINNET,
-  NFTCOMMENTS_CONTRACT_MAINNET,
+import { readOptionalAddressEnv, readStringEnv } from "./env";
+
+// Protocol contract addresses — the SDK's chain-named constants (single source).
+// No NEXT_PUBLIC_ overrides, no *_MAINNET.
+export {
   SUPPORTED_TOKENS,
+  STARKNET_MARKETPLACE_721_CONTRACT,
+  STARKNET_MARKETPLACE_1155_CONTRACT,
+  STARKNET_COLLECTION_721_CONTRACT,
+  STARKNET_COLLECTION_1155_CONTRACT,
+  STARKNET_NFTCOMMENTS_CONTRACT,
+  STARKNET_DROP_FACTORY_CONTRACT,
+  STARKNET_POP_FACTORY_CONTRACT,
 } from "@medialane/sdk";
-import { readAddressEnv, readOptionalAddressEnv, readStringEnv } from "./env";
-
-export { SUPPORTED_TOKENS };
-
-export const MARKETPLACE_721_CONTRACT =
-  readAddressEnv(
-    process.env.NEXT_PUBLIC_MARKETPLACE_721_CONTRACT_MAINNET,
-    MARKETPLACE_721_CONTRACT_MAINNET,
-    "NEXT_PUBLIC_MARKETPLACE_721_CONTRACT_MAINNET"
-  );
-
-export const MARKETPLACE_1155_CONTRACT =
-  readAddressEnv(
-    process.env.NEXT_PUBLIC_MARKETPLACE_1155_CONTRACT_MAINNET,
-    MARKETPLACE_1155_CONTRACT_MAINNET,
-    "NEXT_PUBLIC_MARKETPLACE_1155_CONTRACT_MAINNET"
-  );
-
-export const COLLECTION_721_CONTRACT =
-  readAddressEnv(
-    process.env.NEXT_PUBLIC_COLLECTION_721_CONTRACT_MAINNET,
-    COLLECTION_721_CONTRACT_MAINNET,
-    "NEXT_PUBLIC_COLLECTION_721_CONTRACT_MAINNET"
-  );
-
-export const COLLECTION_1155_CONTRACT =
-  readAddressEnv(
-    process.env.NEXT_PUBLIC_COLLECTION_1155_CONTRACT_MAINNET,
-    COLLECTION_1155_CONTRACT_MAINNET,
-    "NEXT_PUBLIC_COLLECTION_1155_CONTRACT_MAINNET"
-  );
 
 export const STARKNET_RPC_URL =
   readStringEnv(process.env.NEXT_PUBLIC_STARKNET_RPC_URL);
@@ -96,13 +71,6 @@ export const EXPLORER_URL =
 export const MINT_CONTRACT =
   readOptionalAddressEnv(process.env.NEXT_PUBLIC_MINT_CONTRACT, "NEXT_PUBLIC_MINT_CONTRACT");
 
-export const COMMENTS_CONTRACT =
-  readAddressEnv(
-    process.env.NEXT_PUBLIC_COMMENTS_CONTRACT,
-    NFTCOMMENTS_CONTRACT_MAINNET,
-    "NEXT_PUBLIC_COMMENTS_CONTRACT"
-  );
-
 // Genesis launch mint (alias kept for env compat)
 export const LAUNCH_MINT_CONTRACT =
   readOptionalAddressEnv(
@@ -130,20 +98,6 @@ export const MINT_NFT_URI =
 
 export const MINT_NFT_IMAGE_URL =
   readStringEnv(process.env.NEXT_PUBLIC_MINT_NFT_IMAGE_URL);
-
-export const DROP_FACTORY_CONTRACT =
-  readAddressEnv(
-    process.env.NEXT_PUBLIC_DROP_FACTORY_CONTRACT,
-    "0x03587f42e29daee1b193f6cf83bf8627908ed6632d0d83fcb26225c50547d800",
-    "NEXT_PUBLIC_DROP_FACTORY_CONTRACT"
-  );
-
-export const POP_FACTORY_CONTRACT =
-  readAddressEnv(
-    process.env.NEXT_PUBLIC_POP_FACTORY_CONTRACT,
-    "0x00b32c34b427d8f346b5843ada6a37bd3368d879fc752cd52b68a87287f60111",
-    "NEXT_PUBLIC_POP_FACTORY_CONTRACT"
-  );
 
 /** Delay (ms) before re-fetching after a write op, allowing the indexer to process the block. */
 export const INDEXER_REVALIDATION_DELAY_MS = 10_000;
