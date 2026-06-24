@@ -14,7 +14,7 @@ import { useSessionKey } from "@/hooks/use-session-key";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { getListableTokens } from "@medialane/sdk";
-import { DropFactoryABI, DROP_FACTORY_CONTRACT } from "@/lib/launchpad-contracts";
+import { DropFactoryABI, STARKNET_DROP_FACTORY_CONTRACT } from "@/lib/launchpad-contracts";
 import { DropCreateForm, type PaymentTokenOption } from "../drop-create-form";
 import { dropCreateSchema, type DropCreateFormValues } from "../drop-create-schema";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
@@ -245,14 +245,14 @@ export default function CreateDropPage() {
     // same PIN. To open the drop to everyone later, the creator toggles the allowlist off in Manage.
     const whitelist = pendingValues.whitelistEnabled ? parseAddresses(pendingValues.allowlistAddresses) : [];
 
-    const factory = new Contract(DropFactoryABI as unknown as Abi, DROP_FACTORY_CONTRACT, starknetProvider);
+    const factory = new Contract(DropFactoryABI as unknown as Abi, STARKNET_DROP_FACTORY_CONTRACT, starknetProvider);
     const call = factory.populate("create_drop", [
       pendingValues.name, pendingValues.symbol, baseUri, maxSupply, conditions,
     ]);
 
     const result = await action.executeTransaction({
       pin: secret,
-      calls: [{ contractAddress: DROP_FACTORY_CONTRACT, entrypoint: "create_drop", calldata: call.calldata as string[] }],
+      calls: [{ contractAddress: STARKNET_DROP_FACTORY_CONTRACT, entrypoint: "create_drop", calldata: call.calldata as string[] }],
     });
     if (result.status === "reverted") return result; // action surfaces the revert
 

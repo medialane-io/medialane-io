@@ -3,7 +3,7 @@
  * Once @medialane/sdk exports these, import from there instead.
  */
 
-export { DROP_FACTORY_CONTRACT, POP_FACTORY_CONTRACT } from "./constants";
+export { STARKNET_DROP_FACTORY_CONTRACT, STARKNET_POP_FACTORY_CONTRACT } from "./constants";
 
 export type PopEventType =
   | "Conference"

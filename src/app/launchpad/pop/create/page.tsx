@@ -18,7 +18,7 @@ import { WalletSetupGate } from "@/components/transaction/wallet-setup-gate";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
-import { POPFactoryABI, POP_FACTORY_CONTRACT, type PopEventType } from "@/lib/launchpad-contracts";
+import { POPFactoryABI, STARKNET_POP_FACTORY_CONTRACT, type PopEventType } from "@/lib/launchpad-contracts";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { getDefaultClaimWindow, suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
@@ -95,7 +95,7 @@ export default function CreatePOPPage() {
   };
 
   const onSubmit = (values: PopCreateFormValues) => {
-    if (!POP_FACTORY_CONTRACT) {
+    if (!STARKNET_POP_FACTORY_CONTRACT) {
       toast.error("POP Factory contract not configured");
       return;
     }
@@ -128,7 +128,7 @@ export default function CreatePOPPage() {
       new Date(`${pendingValues.claimEndDate}T${pendingValues.claimEndTime}:00`).getTime() / 1000
     );
 
-    const factory = new Contract(POPFactoryABI as unknown as Abi, POP_FACTORY_CONTRACT, starknetProvider);
+    const factory = new Contract(POPFactoryABI as unknown as Abi, STARKNET_POP_FACTORY_CONTRACT, starknetProvider);
     const call = factory.populate("create_collection", [
       pendingValues.name,
       pendingValues.symbol,
@@ -141,7 +141,7 @@ export default function CreatePOPPage() {
     return action.executeTransaction({
       pin: secret,
       calls: [{
-        contractAddress: POP_FACTORY_CONTRACT,
+        contractAddress: STARKNET_POP_FACTORY_CONTRACT,
         entrypoint: "create_collection",
         calldata: call.calldata as string[],
       }],

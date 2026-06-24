@@ -22,7 +22,7 @@ import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useMarketplaceActionFlow } from "@/hooks/use-marketplace-action-flow";
 import { MarketplacePinStep } from "@/components/marketplace/marketplace-dialog-primitives";
 import { TransactionDialogStates } from "@/components/marketplace/transaction-dialog-states";
-import { COLLECTION_721_CONTRACT } from "@/lib/constants";
+import { STARKNET_COLLECTION_721_CONTRACT } from "@/lib/constants";
 import { starknetProvider } from "@/lib/starknet";
 import { normalizeAddress } from "@/lib/utils";
 
@@ -90,7 +90,7 @@ export function TransferCollectionOwnershipDialog({
     executeAction: async (values, pinOrDerivedKey) => {
       const contract = new Contract(
         IPCollectionABI as unknown as Abi,
-        COLLECTION_721_CONTRACT,
+        STARKNET_COLLECTION_721_CONTRACT,
         starknetProvider
       );
       const call = contract.populate("transfer_collection_ownership", [
@@ -104,7 +104,7 @@ export function TransferCollectionOwnershipDialog({
         pin: pinOrDerivedKey,
         calls: [
           {
-            contractAddress: COLLECTION_721_CONTRACT,
+            contractAddress: STARKNET_COLLECTION_721_CONTRACT,
             entrypoint: "transfer_collection_ownership",
             calldata,
           },

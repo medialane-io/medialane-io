@@ -18,7 +18,7 @@ import { useSWRConfig } from "swr";
 import { useChipiTransaction } from "./use-chipi-transaction";
 import { useSessionKey } from "./use-session-key";
 import { useMedialaneClient } from "./use-medialane-client";
-import { MARKETPLACE_721_CONTRACT, MARKETPLACE_1155_CONTRACT, SUPPORTED_TOKENS, INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
+import { STARKNET_MARKETPLACE_721_CONTRACT, STARKNET_MARKETPLACE_1155_CONTRACT, SUPPORTED_TOKENS, INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
 import { getMarketplaceContractForStandard } from "@/lib/protocol/contracts";
 import { isErc1155Standard } from "@/lib/protocol/token-standard";
 import { QUERY_PREFIX, queryKeys } from "@/lib/query-keys";

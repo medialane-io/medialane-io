@@ -15,7 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { AddressDisplay } from "@/components/shared/address-display";
-import { COMMENTS_CONTRACT, EXPLORER_URL } from "@/lib/constants";
+import { STARKNET_NFTCOMMENTS_CONTRACT, EXPLORER_URL } from "@/lib/constants";
 import { MessageCircle, Loader2, Send, CheckCircle, X, ExternalLink, Flag, Zap } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ReportDialog, type ReportTarget } from "@/components/report-dialog";
@@ -65,7 +65,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
   const composeRef = useRef<HTMLTextAreaElement>(null);
 
   const byteLen = new TextEncoder().encode(text).length;
-  const canSubmit = text.trim().length > 0 && byteLen <= MAX_LEN && !!COMMENTS_CONTRACT;
+  const canSubmit = text.trim().length > 0 && byteLen <= MAX_LEN && !!STARKNET_NFTCOMMENTS_CONTRACT;
   const isProcessing = action.status === "processing" || action.status === "confirming";
 
   const isOwn = (author: string) =>
@@ -105,7 +105,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
 
     const result = await action.executeTransaction({
       pin: secret,
-      calls: [{ contractAddress: COMMENTS_CONTRACT, entrypoint: "add_comment", calldata }],
+      calls: [{ contractAddress: STARKNET_NFTCOMMENTS_CONTRACT, entrypoint: "add_comment", calldata }],
     });
     if (result.status === "reverted") return result; // action surfaces the revert
 
@@ -328,7 +328,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
                           </button>
                         </span>
                       </TooltipTrigger>
-                      {!COMMENTS_CONTRACT && (
+                      {!STARKNET_NFTCOMMENTS_CONTRACT && (
                         <TooltipContent side="top" className="text-xs max-w-[200px] text-center">
                           On-chain comments are not available on this network
                         </TooltipContent>
