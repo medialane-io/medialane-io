@@ -42,6 +42,8 @@ export const NAV_COMMANDS: NavCommandGroup[] = [
       { id: "browse-drops",         label: "Browse Drops",                 icon: Store,    href: "/launchpad/drop",               keywords: ["drop", "browse", "active"] },
       { id: "pop-create",           label: "Create POP Event",             icon: Ticket,   href: "/launchpad/pop/create",         keywords: ["pop", "proof of participation", "event", "community", "soulbound"] },
       { id: "pop-browse",           label: "Browse POP Events",            icon: Ticket,   href: "/launchpad/pop",                keywords: ["pop", "events", "proof of participation"] },
+      { id: "launch-coin",          label: "Launch a Creator Coin",        icon: Coins,    href: "/launchpad/coin/create",        keywords: ["coin", "creator coin", "erc20", "token", "ekubo", "liquidity", "launch"] },
+      { id: "claim-memecoin",       label: "Claim a Memecoin",             icon: Coins,    href: "/launchpad/memecoin",           keywords: ["memecoin", "claim", "coin", "starknet", "unrug", "token"] },
       { id: "remix",                label: "Remix an Asset",               icon: Repeat2,  href: "/marketplace",                  keywords: ["remix", "derivative", "attribution", "fork"] },
     ],
   },
