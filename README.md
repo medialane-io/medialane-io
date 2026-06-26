@@ -28,6 +28,11 @@ Medialane is a platform for the **creative economy on Starknet**. It bridges Web
 - Featured collections bento grid with verified badges and floor prices
 - Recent listings + onchain activity feed side by side
 
+### Coins
+- Discover creator coins and memecoins (`/coins`) with live Ekubo prices and on-chain supply
+- Read-only coin pages — trading happens on the per-chain app (Starknet); io links out to it
+- Launch a Creator Coin or claim a memecoin from the launchpad
+
 ### Creator Launchpad
 - Mint digital assets across 12 canonical IP types: Audio, Art, Video, Photography, NFT, Patents, Posts, Publications, Documents, RWA, Software, Custom
 - Dynamic template fields per IP type — collapsed optional panel, smart defaults per category
