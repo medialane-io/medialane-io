@@ -249,11 +249,11 @@ export function NftEditionsMintForm({
 
       <FadeIn delay={0.18}>
         <Collapsible open={licensingOpen} onOpenChange={setLicensingOpen}>
-          <div className="rounded-xl border border-border overflow-hidden">
+          <div className="sm:overflow-hidden sm:rounded-xl sm:border sm:border-border">
             <CollapsibleTrigger asChild>
               <button
                 type="button"
-                className="w-full flex items-center justify-between px-5 py-4 hover:bg-muted/30 transition-colors"
+                className="w-full flex items-center justify-between px-0 py-3 sm:px-5 sm:py-4 hover:bg-muted/30 transition-colors"
               >
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="h-4 w-4 text-primary" />
@@ -264,7 +264,7 @@ export function NftEditionsMintForm({
               </button>
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <div className="px-5 pb-5 space-y-4 border-t border-border/60 pt-4">
+              <div className="px-0 pb-4 sm:px-5 sm:pb-5 space-y-4 border-t border-border/60 pt-4">
                 <p className="text-xs text-muted-foreground">
                   Set the licensing terms for this edition — saved permanently with it.
                 </p>
@@ -365,11 +365,11 @@ export function NftEditionsMintForm({
 
       <FadeIn delay={0.2}>
         <Collapsible open={ipTypeOpen} onOpenChange={setIpTypeOpen}>
-          <div className="rounded-xl border border-border overflow-hidden">
+          <div className="sm:overflow-hidden sm:rounded-xl sm:border sm:border-border">
             <CollapsibleTrigger asChild>
               <button
                 type="button"
-                className="w-full flex items-center justify-between px-5 py-4 hover:bg-muted/30 transition-colors"
+                className="w-full flex items-center justify-between px-0 py-3 sm:px-5 sm:py-4 hover:bg-muted/30 transition-colors"
               >
                 <div className="flex items-center gap-2">
                   <Layers className="h-4 w-4 text-primary" />
@@ -380,7 +380,7 @@ export function NftEditionsMintForm({
               </button>
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <div className="px-5 pb-5 space-y-4 border-t border-border/60 pt-4">
+              <div className="px-0 pb-4 sm:px-5 sm:pb-5 space-y-4 border-t border-border/60 pt-4">
                 <p className="text-xs text-muted-foreground">
                   Choose a content type, fill suggested metadata, or add your own trait pairs.
                 </p>

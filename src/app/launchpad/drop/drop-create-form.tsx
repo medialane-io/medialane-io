@@ -169,9 +169,9 @@ export function DropCreateForm({
 
       {/* Licensing Terms — collapsible panel (matches /create/asset) */}
       <Collapsible open={licensingOpen} onOpenChange={setLicensingOpen}>
-        <div className="rounded-xl border border-border overflow-hidden">
+        <div className="sm:overflow-hidden sm:rounded-xl sm:border sm:border-border">
           <CollapsibleTrigger asChild>
-            <button type="button" className="w-full flex items-center justify-between px-5 py-4 hover:bg-muted/30 transition-colors">
+            <button type="button" className="w-full flex items-center justify-between px-0 py-3 sm:px-5 sm:py-4 hover:bg-muted/30 transition-colors">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-primary" />
                 <span className="text-sm font-semibold">Licensing Terms</span>
@@ -181,7 +181,7 @@ export function DropCreateForm({
             </button>
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <div className="px-5 pb-5 space-y-4 border-t border-border/60 pt-4">
+            <div className="px-0 pb-4 sm:px-5 sm:pb-5 space-y-4 border-t border-border/60 pt-4">
               <p className="text-xs text-muted-foreground">
                 These license terms are saved permanently with every piece in the drop. CC BY-SA by default.
               </p>
@@ -239,9 +239,9 @@ export function DropCreateForm({
 
       {/* IP Type & Metadata — collapsible panel (matches /create/asset) */}
       <Collapsible open={ipTypeOpen} onOpenChange={onSetIpTypeOpen}>
-        <div className="rounded-xl border border-border overflow-hidden">
+        <div className="sm:overflow-hidden sm:rounded-xl sm:border sm:border-border">
           <CollapsibleTrigger asChild>
-            <button type="button" className="w-full flex items-center justify-between px-5 py-4 hover:bg-muted/30 transition-colors">
+            <button type="button" className="w-full flex items-center justify-between px-0 py-3 sm:px-5 sm:py-4 hover:bg-muted/30 transition-colors">
               <div className="flex items-center gap-2">
                 <Layers className="h-4 w-4 text-primary" />
                 <span className="text-sm font-semibold">IP Type &amp; Metadata</span>
@@ -251,7 +251,7 @@ export function DropCreateForm({
             </button>
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <div className="px-5 pb-5 space-y-4 border-t border-border/60 pt-4">
+            <div className="px-0 pb-4 sm:px-5 sm:pb-5 space-y-4 border-t border-border/60 pt-4">
               <FormField control={form.control} name="ipType" render={({ field }) => (
                 <FormItem>
                   <FormLabel>IP Type</FormLabel>
@@ -342,9 +342,9 @@ export function DropCreateForm({
 
       {/* Whitelist — collapsible panel; opening it enables the gate */}
       <Collapsible open={whitelistEnabled} onOpenChange={(o) => form.setValue("whitelistEnabled", o)}>
-        <div className="rounded-xl border border-border overflow-hidden">
+        <div className="sm:overflow-hidden sm:rounded-xl sm:border sm:border-border">
           <CollapsibleTrigger asChild>
-            <button type="button" className="w-full flex items-center justify-between px-5 py-4 hover:bg-muted/30 transition-colors">
+            <button type="button" className="w-full flex items-center justify-between px-0 py-3 sm:px-5 sm:py-4 hover:bg-muted/30 transition-colors">
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-primary" />
                 <span className="text-sm font-semibold">Whitelist</span>
@@ -354,7 +354,7 @@ export function DropCreateForm({
             </button>
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <div className="px-5 pb-5 space-y-3 border-t border-border/60 pt-4">
+            <div className="px-0 pb-4 sm:px-5 sm:pb-5 space-y-3 border-t border-border/60 pt-4">
               <FormField control={form.control} name="allowlistAddresses" render={({ field }) => (
                 <FormItem>
                   <FormControl><Textarea placeholder={"Paste Starknet addresses, one per line:\n0x04a…\n0x06b…"} rows={5} {...field} className="font-mono text-xs resize-none" /></FormControl>
