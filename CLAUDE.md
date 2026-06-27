@@ -190,6 +190,30 @@ button only (no animated form/rail), constrained to `max-w-5xl`. The **coin page
 `CoinLaunchPreview` live-preview rail and adds `ServiceHeader` + a `ClaimRail` (How it works + a
 "Locked forever" trust panel, no `included`) under the preview.
 
+### Standard form layout + UX conventions (2026-06-27, @medialane/ui ≥ 0.28.0)
+
+The 2-column form layout is the **standard** every launchpad create/mint surface follows.
+Keep new forms consistent with these three conventions:
+
+- **Plain header, gradient on the form only.** `ServiceHeader` gained a `plain` variant (neutral
+  border, no brand gradient); `ServiceFormShell` (which `ClaimRouteShell` wraps) renders the header
+  **`plain`** so a create/mint page shows the animated gradient border **only on the form**, never
+  stacked on the header. Standalone headers (browse pages, coin detail, `/claim` hub) pass no
+  `plain` → they keep the gradient.
+- **Multi-step forms use the shared shell, not a bespoke layout.** `ServiceFormShell` gained an
+  **`aboveForm`** slot (left column, between header and form) + a **sticky right rail** on desktop.
+  New **`StepNav`** (`@medialane/ui`, `accentText`/`accentBg` props) is the polished stepper. The
+  **coin page (`/launchpad/coin/create`) now uses `ServiceFormShell`** (plain header in the left
+  column, animated border on the form, `StepNav` via `aboveForm`, `CoinLaunchPreview` +
+  `CreateCoinAside` as `aside`) — not its old bespoke grid. Note: the live preview now stacks
+  **after** the form on mobile (it's in the standard right rail).
+- **Mobile-flush nested panels — no panels-inside-panels on phones.** Collapsible sub-panels inside
+  a form (Licensing, IP Type & Metadata, drop/edition sections) drop border/rounding/horizontal
+  padding on mobile so fields get the form card's full width. `sm:`-gated pattern: wrapper
+  `sm:overflow-hidden sm:rounded-xl sm:border sm:border-border`, trigger `px-0 py-3 sm:px-5 sm:py-4`,
+  content `px-0 pb-4 sm:px-5 sm:pb-5 …`. Applies to `/create/asset`, `/launchpad/nfteditions/create`
+  + `[contract]/mint`, `/launchpad/drop/create`, remix.
+
 ## IP-type document upload (2026-06-12)
 
 Documents, Patents, Publications, and Software IP types let the creator attach the work itself
@@ -208,6 +232,7 @@ attributes grid and turns on `hasTemplateData`).
 - Animations: Framer Motion + `tailwindcss-animate`
 - Toast notifications: `sonner`
 - Custom utility classes (`.glass`, `.gradient-text`, `.asset-card-hover`) defined in `globals.css`
+- **Token images go through `resolveTokenImage` (`src/lib/utils.ts`), not raw `ipfsToHttp`.** It returns a browser-loadable URL or `null` (so the UI shows its own fallback, never the `/placeholder.svg` sentinel) and is **idempotent**. This matters in io specifically: `ipfsToHttp` is **not** idempotent here — it maps an already-proxied `/api/*` path back to `/placeholder.svg`, so re-resolving a resolved URL breaks it; `resolveTokenImage` guards against that. The marketplace dialogs that take a `tokenImage` prop (`listing`/`transfer`/`offer`) **resolve it internally** — callers pass the **raw** `token.metadata?.image`, never `x ? ipfsToHttp(x) : null`. (`CancelOrderDialog` already resolved internally; forgetting the incantation on the others dropped the image in the portfolio/creator-page dialogs, 2026-06-27.)
 
 ---
 
