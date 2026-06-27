@@ -40,6 +40,7 @@ import {
   MarketplaceErrorState,
 } from "@/components/marketplace/marketplace-dialog-primitives";
 import { EXPLORER_URL } from "@/lib/constants";
+import { resolveTokenImage } from "@/lib/utils";
 import { useWalletAuthMethod } from "@/hooks/use-wallet-auth-method";
 
 const schema = z.object({
@@ -78,11 +79,12 @@ export function TransferDialog({
   contractAddress,
   tokenId,
   tokenName,
-  tokenImage,
+  tokenImage: tokenImageRaw,
   onSuccess,
   hasActiveListing = false,
   tokenStandard,
 }: TransferDialogProps) {
+  const tokenImage = resolveTokenImage(tokenImageRaw);
   const {
     transferToken,
     walletAddress,

@@ -31,6 +31,7 @@ import {
   DurationPicker,
 } from "@/components/marketplace/marketplace-dialog-primitives";
 import { EXPLORER_URL, DURATION_OPTIONS } from "@/lib/constants";
+import { resolveTokenImage } from "@/lib/utils";
 import { parseFormPriceUsdc } from "@/lib/chipi/session-preferences";
 import { getListableTokens } from "@medialane/sdk";
 import { useWallet } from "@/hooks/use-wallet";
@@ -65,9 +66,10 @@ export function OfferDialog({
   assetContract,
   tokenId,
   tokenName,
-  tokenImage,
+  tokenImage: tokenImageRaw,
   tokenStandard,
 }: OfferDialogProps) {
+  const tokenImage = resolveTokenImage(tokenImageRaw);
   const { tokenStandard: resolvedStandard } = useResolvedTokenStandard(assetContract, tokenStandard);
   const is1155 = resolvedStandard === "ERC1155";
   const { isSignedIn } = useAuth();

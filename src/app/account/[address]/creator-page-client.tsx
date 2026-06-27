@@ -18,7 +18,7 @@ import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listi
 import { CollectionCard, CollectionCardSkeleton } from "@medialane/ui";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { timeAgo, formatDisplayPrice, ipfsToHttp } from "@/lib/utils";
+import { timeAgo, formatDisplayPrice } from "@/lib/utils";
 import {
   Tag,
   Handshake,
@@ -405,7 +405,7 @@ export default function CreatorPageClient() {
           assetContract={listTarget.contract}
           tokenId={listTarget.tokenId}
           tokenName={listTarget.name}
-          tokenImage={listTarget.image ? ipfsToHttp(listTarget.image) : null}
+          tokenImage={listTarget.image ?? null}
         />
       )}
     </div>

@@ -89,6 +89,21 @@ export function ipfsToHttp(uri: string | null | undefined): string {
   return "/placeholder.svg";
 }
 
+/**
+ * Resolve a token/collection image value for display in marketplace dialogs and
+ * cards. Returns a browser-loadable URL, or `null` when there's no image (so the
+ * UI can show its own fallback rather than the /placeholder.svg sentinel).
+ * Idempotent: already-resolved URLs (our /api/* proxy routes, the placeholder
+ * sentinel) pass through unchanged, so callers may pass a raw `ipfs://`/`https://`
+ * value or an already-resolved one. (Plain ipfsToHttp is NOT idempotent here — it
+ * maps an already-proxied /api path back to /placeholder.svg.)
+ */
+export function resolveTokenImage(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  if (raw.startsWith("/")) return raw;
+  return ipfsToHttp(raw);
+}
+
 export function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const seconds = Math.floor(diff / 1000);
