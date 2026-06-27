@@ -18,7 +18,7 @@ import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listi
 import { CollectionCard, CollectionCardSkeleton } from "@medialane/ui";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { timeAgo, formatDisplayPrice } from "@/lib/utils";
+import { timeAgo, formatDisplayPrice, ipfsToHttp } from "@/lib/utils";
 import {
   Tag,
   Handshake,
@@ -166,7 +166,7 @@ export default function CreatorPageClient() {
   const { address } = useParams<{ address: string }>();
   const [activeTab, setActiveTab] = useState<TabId>("assets");
   const [reportOpen,    setReportOpen]    = useState(false);
-  const [listTarget, setListTarget] = useState<{ contract: string; tokenId: string; name?: string } | null>(null);
+  const [listTarget, setListTarget] = useState<{ contract: string; tokenId: string; name?: string; image?: string | null } | null>(null);
 
   const addr = address ?? null;
 
@@ -305,6 +305,7 @@ export default function CreatorPageClient() {
                       contract: t.contractAddress,
                       tokenId: t.tokenId,
                       name: t.metadata?.name ?? undefined,
+                      image: t.metadata?.image ?? null,
                     }) : undefined}
                   />
                 ))}
@@ -404,6 +405,7 @@ export default function CreatorPageClient() {
           assetContract={listTarget.contract}
           tokenId={listTarget.tokenId}
           tokenName={listTarget.name}
+          tokenImage={listTarget.image ? ipfsToHttp(listTarget.image) : null}
         />
       )}
     </div>

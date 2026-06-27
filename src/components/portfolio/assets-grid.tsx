@@ -9,6 +9,7 @@ import { CancelOrderDialog } from "@/components/marketplace/cancel-order-dialog"
 import { EmptyOrError } from "@/components/ui/empty-or-error";
 import { Button } from "@/components/ui/button";
 import { ImageIcon, Loader2 } from "lucide-react";
+import { ipfsToHttp } from "@/lib/utils";
 import type { ApiToken } from "@medialane/sdk";
 
 interface AssetsGridProps {
@@ -128,6 +129,7 @@ export function AssetsGrid({ address }: AssetsGridProps) {
           assetContract={selectedToken.contractAddress}
           tokenId={selectedToken.tokenId}
           tokenName={selectedToken.metadata?.name ?? undefined}
+          tokenImage={selectedToken.metadata?.image ? ipfsToHttp(selectedToken.metadata.image) : null}
           tokenStandard={
             selectedToken.activeOrders?.some((o) => o.offer.itemType === "ERC1155")
               ? "ERC1155"
@@ -157,6 +159,7 @@ export function AssetsGrid({ address }: AssetsGridProps) {
           contractAddress={transferToken.contractAddress}
           tokenId={transferToken.tokenId}
           tokenName={transferToken.metadata?.name ?? undefined}
+          tokenImage={transferToken.metadata?.image ? ipfsToHttp(transferToken.metadata.image) : null}
           hasActiveListing={!!transferToken.activeOrders?.[0]}
           tokenStandard={
             transferToken.activeOrders?.some((o) => o.offer.itemType === "ERC1155")
