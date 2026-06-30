@@ -100,7 +100,7 @@ export function ipfsToHttp(uri: string | null | undefined): string {
  */
 export function resolveTokenImage(raw: string | null | undefined): string | null {
   if (!raw) return null;
-  if (raw.startsWith("/")) return raw;
+  if (raw.startsWith("/") || raw.startsWith("data:")) return raw;
   return ipfsToHttp(raw);
 }
 

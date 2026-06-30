@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { CollapsibleSection } from "@/components/ui/collapsible-section";
 import { cn } from "@/lib/utils";
 import {
   IP_TYPES, LICENSE_TYPES, AI_POLICIES, DERIVATIVES_OPTIONS, type IPType,
@@ -168,20 +169,13 @@ export function DropCreateForm({
       </Section>
 
       {/* Licensing Terms — collapsible panel (matches /create/asset) */}
-      <Collapsible open={licensingOpen} onOpenChange={setLicensingOpen}>
-        <div className="sm:overflow-hidden sm:rounded-xl sm:border sm:border-border">
-          <CollapsibleTrigger asChild>
-            <button type="button" className="w-full flex items-center justify-between px-0 py-3 sm:px-5 sm:py-4 hover:bg-muted/30 transition-colors">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4 text-primary" />
-                <span className="text-sm font-semibold">Licensing Terms</span>
-                <span className="text-xs text-muted-foreground font-normal">Applied to every item · Berne Convention</span>
-              </div>
-              <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", licensingOpen && "rotate-180")} />
-            </button>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div className="px-0 pb-4 sm:px-5 sm:pb-5 space-y-4 border-t border-border/60 pt-4">
+      <CollapsibleSection
+        open={licensingOpen}
+        onOpenChange={setLicensingOpen}
+        icon={<ShieldCheck className="h-4 w-4 text-primary" />}
+        label="Licensing Terms"
+        hint="Applied to every item · Berne Convention"
+      >
               <p className="text-xs text-muted-foreground">
                 These license terms are saved permanently with every piece in the drop. CC BY-SA by default.
               </p>
@@ -232,26 +226,16 @@ export function DropCreateForm({
                   )} />
                 </CollapsibleContent>
               </Collapsible>
-            </div>
-          </CollapsibleContent>
-        </div>
-      </Collapsible>
+      </CollapsibleSection>
 
       {/* IP Type & Metadata — collapsible panel (matches /create/asset) */}
-      <Collapsible open={ipTypeOpen} onOpenChange={onSetIpTypeOpen}>
-        <div className="sm:overflow-hidden sm:rounded-xl sm:border sm:border-border">
-          <CollapsibleTrigger asChild>
-            <button type="button" className="w-full flex items-center justify-between px-0 py-3 sm:px-5 sm:py-4 hover:bg-muted/30 transition-colors">
-              <div className="flex items-center gap-2">
-                <Layers className="h-4 w-4 text-primary" />
-                <span className="text-sm font-semibold">IP Type &amp; Metadata</span>
-                <span className="text-xs text-muted-foreground font-normal">Optional · applied to every item</span>
-              </div>
-              <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", ipTypeOpen && "rotate-180")} />
-            </button>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div className="px-0 pb-4 sm:px-5 sm:pb-5 space-y-4 border-t border-border/60 pt-4">
+      <CollapsibleSection
+        open={ipTypeOpen}
+        onOpenChange={onSetIpTypeOpen}
+        icon={<Layers className="h-4 w-4 text-primary" />}
+        label="IP Type &amp; Metadata"
+        hint="Optional · applied to every item"
+      >
               <FormField control={form.control} name="ipType" render={({ field }) => (
                 <FormItem>
                   <FormLabel>IP Type</FormLabel>
@@ -262,10 +246,7 @@ export function DropCreateForm({
                 </FormItem>
               )} />
               <IPTypeFields ipType={form.watch("ipType") as IPType} onChange={onMetadataFieldsChange} uploadDocument={uploadDocumentToIpfs} />
-            </div>
-          </CollapsibleContent>
-        </div>
-      </Collapsible>
+      </CollapsibleSection>
 
       {/* Drop settings */}
       <Section title="Drop settings" icon={<Package className="h-4 w-4" />}>
@@ -341,20 +322,14 @@ export function DropCreateForm({
       </Section>
 
       {/* Whitelist — collapsible panel; opening it enables the gate */}
-      <Collapsible open={whitelistEnabled} onOpenChange={(o) => form.setValue("whitelistEnabled", o)}>
-        <div className="sm:overflow-hidden sm:rounded-xl sm:border sm:border-border">
-          <CollapsibleTrigger asChild>
-            <button type="button" className="w-full flex items-center justify-between px-0 py-3 sm:px-5 sm:py-4 hover:bg-muted/30 transition-colors">
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-primary" />
-                <span className="text-sm font-semibold">Whitelist</span>
-                <span className="text-xs text-muted-foreground font-normal">{whitelistEnabled ? "Only listed addresses can mint" : "Optional · restrict who can mint"}</span>
-              </div>
-              <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", whitelistEnabled && "rotate-180")} />
-            </button>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div className="px-0 pb-4 sm:px-5 sm:pb-5 space-y-3 border-t border-border/60 pt-4">
+      <CollapsibleSection
+        open={whitelistEnabled}
+        onOpenChange={(o) => form.setValue("whitelistEnabled", o)}
+        icon={<Users className="h-4 w-4 text-primary" />}
+        label="Whitelist"
+        hint={whitelistEnabled ? "Only listed addresses can mint" : "Optional · restrict who can mint"}
+        contentSpacing="space-y-3"
+      >
               <FormField control={form.control} name="allowlistAddresses" render={({ field }) => (
                 <FormItem>
                   <FormControl><Textarea placeholder={"Paste Starknet addresses, one per line:\n0x04a…\n0x06b…"} rows={5} {...field} className="font-mono text-xs resize-none" /></FormControl>
@@ -362,10 +337,7 @@ export function DropCreateForm({
                   <FormMessage />
                 </FormItem>
               )} />
-            </div>
-          </CollapsibleContent>
-        </div>
-      </Collapsible>
+      </CollapsibleSection>
 
       {/* Submit */}
       <button

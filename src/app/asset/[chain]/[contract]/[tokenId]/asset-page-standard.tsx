@@ -197,7 +197,7 @@ export function AssetPageStandard() {
   }
 
   const name = token.metadata?.name || `Token #${token.tokenId}`;
-  const image = ipfsToHttp(token.metadata?.image);
+  const image = token.metadata?.image ? ipfsToHttp(token.metadata.image) : null;
   const description = token.metadata?.description;
   const attributes = Array.isArray(token.metadata?.attributes)
     ? (token.metadata.attributes as { trait_type?: string; value?: string }[])

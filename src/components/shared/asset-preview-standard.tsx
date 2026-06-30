@@ -10,7 +10,7 @@ import { PurchaseDialog } from "@/components/marketplace/purchase-dialog";
 import { OfferDialog } from "@/components/marketplace/offer-dialog";
 import { ListingDialog } from "@/components/marketplace/listing-dialog";
 import { ReportDialog } from "@/components/report-dialog";
-import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
+import { resolveTokenImage, formatDisplayPrice } from "@/lib/utils";
 import { toast } from "sonner";
 import {
   PreviewHero, PreviewFooter, PreviewActionList, PreviewMeta, PreviewOwnerRow,
@@ -28,7 +28,7 @@ export function AssetPreviewStandard({
   const [reportOpen, setReportOpen] = useState(false);
 
   const name = token.metadata?.name || `Token #${token.tokenId}`;
-  const image = imgError ? null : (ipfsToHttp(token.metadata?.image) ?? null);
+  const image = imgError ? null : resolveTokenImage(token.metadata?.image);
   const activeOrder = token.activeOrders?.[0] ?? null;
 
   const assetHref = buildAssetHref("STARKNET", token.contractAddress, token.tokenId);
@@ -176,7 +176,7 @@ export function AssetPreviewStandard({
         assetContract={token.contractAddress}
         tokenId={token.tokenId}
         tokenName={name}
-        tokenImage={image ?? undefined}
+        tokenImage={token.metadata?.image ?? undefined}
         tokenStandard={token.standard}
       />
       <ListingDialog
@@ -186,7 +186,7 @@ export function AssetPreviewStandard({
         tokenId={token.tokenId}
         tokenName={name}
         tokenStandard={token.standard}
-        tokenImage={image}
+        tokenImage={token.metadata?.image ?? undefined}
         onSuccess={() => { setListOpen(false); onClose(); }}
       />
       <ReportDialog

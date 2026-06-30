@@ -58,7 +58,7 @@ export function TokenCard({
   const [offerOpen, setOfferOpen] = useState(false);
 
   const name = token.metadata?.name || `Token #${token.tokenId}`;
-  const image = ipfsToHttp(token.metadata?.image);
+  const image = token.metadata?.image ? ipfsToHttp(token.metadata.image) : null;
   const ipType = token.metadata?.ipType;
 
   // First listing-type active order (offer.itemType = ERC721 or ERC1155)
@@ -97,7 +97,7 @@ export function TokenCard({
 
           {/* Image */}
           <div className="relative aspect-square bg-muted overflow-hidden shrink-0">
-            {!imgError ? (
+            {!imgError && image ? (
               <Image
                 src={image}
                 alt={name}
@@ -352,7 +352,7 @@ export function TokenCard({
           assetContract={token.contractAddress}
           tokenId={token.tokenId}
           tokenName={token.metadata?.name ?? undefined}
-          tokenImage={image ?? undefined}
+          tokenImage={token.metadata?.image ?? undefined}
           tokenStandard={token.standard ?? undefined}
         />
       )}

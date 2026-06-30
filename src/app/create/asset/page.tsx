@@ -29,6 +29,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { CollapsibleSection } from "@/components/ui/collapsible-section";
 import { Skeleton } from "@/components/ui/skeleton";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { PinDialog } from "@/components/chipi/pin-dialog";
@@ -535,23 +536,13 @@ export default function CreateAssetPage() {
             />
 
             {/* Licensing Terms — optional, collapsed by default */}
-            <Collapsible open={licensingOpen} onOpenChange={setLicensingOpen}>
-              <div className="sm:overflow-hidden sm:rounded-xl sm:border sm:border-border">
-                <CollapsibleTrigger asChild>
-                  <button
-                    type="button"
-                    className="w-full flex items-center justify-between px-0 py-3 sm:px-5 sm:py-4 hover:bg-muted/30 transition-colors"
-                  >
-                    <div className="flex items-center gap-2">
-                      <ShieldCheck className="h-4 w-4 text-primary" />
-                      <span className="text-sm font-semibold">Licensing Terms</span>
-                      <span className="text-xs text-muted-foreground font-normal">Optional · Berne Convention</span>
-                    </div>
-                    <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", licensingOpen && "rotate-180")} />
-                  </button>
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <div className="px-0 pb-4 sm:px-5 sm:pb-5 space-y-4 border-t border-border/60 pt-4">
+            <CollapsibleSection
+              open={licensingOpen}
+              onOpenChange={setLicensingOpen}
+              icon={<ShieldCheck className="h-4 w-4 text-primary" />}
+              label="Licensing Terms"
+              hint="Optional · Berne Convention"
+            >
                     <p className="text-xs text-muted-foreground">
                       Set how others can use your work. These terms are saved permanently with it as proof of authorship.
                     </p>
@@ -667,29 +658,16 @@ export default function CreateAssetPage() {
                         />
                       </CollapsibleContent>
                     </Collapsible>
-                  </div>
-                </CollapsibleContent>
-              </div>
-            </Collapsible>
+            </CollapsibleSection>
 
             {/* IP Type & template fields — optional, collapsed by default */}
-            <Collapsible open={ipTypeOpen} onOpenChange={setIpTypeOpen}>
-              <div className="sm:overflow-hidden sm:rounded-xl sm:border sm:border-border">
-                <CollapsibleTrigger asChild>
-                  <button
-                    type="button"
-                    className="w-full flex items-center justify-between px-0 py-3 sm:px-5 sm:py-4 hover:bg-muted/30 transition-colors"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Layers className="h-4 w-4 text-primary" />
-                      <span className="text-sm font-semibold">IP Type &amp; Metadata</span>
-                      <span className="text-xs text-muted-foreground font-normal">Optional</span>
-                    </div>
-                    <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", ipTypeOpen && "rotate-180")} />
-                  </button>
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <div className="px-0 pb-4 sm:px-5 sm:pb-5 space-y-4 border-t border-border/60 pt-4">
+            <CollapsibleSection
+              open={ipTypeOpen}
+              onOpenChange={setIpTypeOpen}
+              icon={<Layers className="h-4 w-4 text-primary" />}
+              label="IP Type &amp; Metadata"
+              hint="Optional"
+            >
                     <p className="text-xs text-muted-foreground">
                       Choose a content type, fill suggested metadata, or add your own trait pairs.
                     </p>
@@ -720,10 +698,7 @@ export default function CreateAssetPage() {
                       onChange={handleMetadataFields}
                   uploadDocument={uploadDocumentToIpfs}
                     />
-                  </div>
-                </CollapsibleContent>
-              </div>
-            </Collapsible>
+            </CollapsibleSection>
 
             <button
               type="submit"

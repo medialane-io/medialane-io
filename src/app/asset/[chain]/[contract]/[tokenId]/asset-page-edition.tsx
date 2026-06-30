@@ -125,7 +125,7 @@ export function AssetPageEdition() {
   if (!token) return null;
 
   const name = token.metadata?.name || `Edition #${token.tokenId}`;
-  const image = ipfsToHttp(token.metadata?.image);
+  const image = token.metadata?.image ? ipfsToHttp(token.metadata.image) : null;
   const description = token.metadata?.description;
   const attributes = Array.isArray(token.metadata?.attributes)
     ? (token.metadata.attributes as { trait_type?: string; value?: string }[])
@@ -196,7 +196,7 @@ export function AssetPageEdition() {
         <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] lg:gap-10 gap-8 items-start">
           <AssetMediaColumn
             shouldReduce={Boolean(shouldReduce)}
-            image={image}
+            image={image ?? ""}
             imageAlt={name}
             imgError={imgError}
             onImageError={() => setImgError(true)}
