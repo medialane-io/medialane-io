@@ -284,9 +284,11 @@ export function AssetMarketplacePanel({
             </div>
           ) : (
             <SignInButton mode="modal">
-              <Button variant="outline" className="w-full">
-                Sign in to make an offer
-              </Button>
+              <div className="btn-border-animated p-[1px] rounded-2xl">
+                <Button className="w-full h-12 text-base bg-transparent text-white rounded-[15px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98]">
+                  Sign in to make an offer
+                </Button>
+              </div>
             </SignInButton>
           )}
         </div>
