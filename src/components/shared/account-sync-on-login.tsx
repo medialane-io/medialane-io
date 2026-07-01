@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { getMedialaneClient } from "@/lib/medialane-client";
+import { getStoredSiwsToken } from "@/lib/siws-client";
 
 const CLERK_TEMPLATE = process.env.NEXT_PUBLIC_CLERK_TEMPLATE_NAME || "chipipay";
 const SESSION_KEY_PREFIX = "ml_io_synced_";
@@ -27,7 +28,14 @@ export function AccountSyncOnLogin() {
     let cancelled = false;
     (async () => {
       try {
-        const token = await getToken({ template: CLERK_TEMPLATE });
+        // Prefer a cached SIWS token (minted during onboarding — see
+        // onboarding/page.tsx) over the Clerk JWT. Falls back to Clerk for
+        // accounts that onboarded before this existed; the backend accepts
+        // both (medialane-core spec 2026-06-30-remove-clerk-from-backend-
+        // design.md). No new prompt here either way — a missing SIWS token
+        // just means this sync uses Clerk, same as before.
+        const siwsToken = getStoredSiwsToken(walletAddress);
+        const token = siwsToken ?? (await getToken({ template: CLERK_TEMPLATE }));
         if (!token || cancelled) return;
         await getMedialaneClient().api.upsertMyWallet(token, {
           walletType,

@@ -3,6 +3,8 @@
 import useSWR from "swr";
 import { useAuth } from "@clerk/nextjs";
 import { apiFetch, ApiError } from "@/lib/api-fetch";
+import { useWallet } from "@/hooks/use-wallet";
+import { getStoredSiwsToken } from "@/lib/siws-client";
 
 export interface GatedContent {
   title: string | null;
@@ -19,11 +21,16 @@ export type GatedContentState =
 
 export function useGatedContent(contract: string | undefined): GatedContentState {
   const { getToken, isSignedIn } = useAuth();
+  const { address: walletAddress } = useWallet();
 
   const { data, error, isLoading } = useSWR<GatedContent | "not_holder">(
     contract && isSignedIn ? ["gated-content", contract] : null,
     async () => {
-      const token = await getToken();
+      // Prefer a cached SIWS token (minted during onboarding) over the Clerk
+      // JWT — the backend accepts both (medialane-core spec 2026-06-30-
+      // remove-clerk-from-backend-design.md). No new prompt either way: a
+      // missing SIWS token just falls back to Clerk, same as before.
+      const token = (walletAddress && getStoredSiwsToken(walletAddress)) || (await getToken());
       try {
         return await apiFetch<GatedContent>(
           `/v1/collections/${contract}/gated-content`,

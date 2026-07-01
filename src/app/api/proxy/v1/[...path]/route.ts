@@ -64,22 +64,23 @@ const ALLOWED_ROUTES: Record<string, RegExp[]> = {
   GET: [/.+/],
   // ── Mutations (explicit) ───────────────────────────────────────────────
   POST: [
+    /^auth\/siws\/(nonce|verify)$/,                         // SIWS sign-in (mirrors the dapp's proxy allowlist)
     /^collections\/(register|sync-tx|claim)$/,             // launchpad create + create/collection + on-chain claim
     /^collections\/claim\/request$/,                       // manual-review claim request
     /^collection-slug-claims$/,                            // collection settings slug claim
     /^coins\/sync$/,                                       // creator coin launch → instant index
-    /^drop\/conditions$/,                                  // launchpad drop/create (Clerk-gated on backend)
+    /^drop\/conditions$/,                                  // launchpad drop/create (identity-gated on backend — Clerk JWT or SIWS)
     /^intents\/(listing|offer|counter-offer|fulfill|cancel|mint|create-collection|checkout)$/,  // marketplace + mint flows (signatures gate real auth)
     /^intents\/[^/]+\/hydrate$/,                           // /v1/intents/:id/hydrate (tenant-scoped repair)
     /^metadata\/(upload|upload-file)$/,                    // /v1/metadata/{upload,upload-file}
     /^remix-offers(\/(auto|self\/confirm|[^/]+\/(confirm|reject|extend)))?$/,  // remix offer lifecycle
-    /^reports$/,                                           // /v1/reports (Clerk-gated on backend)
+    /^reports$/,                                           // /v1/reports (identity-gated on backend — Clerk JWT or SIWS)
     /^users\/(me|register)$/,                              // /v1/users/{me,register} — me also covers upsertMyWallet
     /^username-claims$/,                                   // /v1/username-claims
   ],
   PATCH: [
-    /^collections\/[^/]+\/profile$/,                       // updateCollectionProfile (Clerk-gated on backend)
-    /^creators\/[^/]+\/profile$/,                          // updateCreatorProfile (Clerk-gated on backend)
+    /^collections\/[^/]+\/profile$/,                       // updateCollectionProfile (identity-gated on backend — Clerk JWT or SIWS)
+    /^creators\/[^/]+\/profile$/,                          // updateCreatorProfile (identity-gated on backend — Clerk JWT or SIWS)
     /^intents\/[^/]+\/(confirm|signature)$/,               // /v1/intents/:id/{confirm,signature}
   ],
   // DELETE intentionally empty — no io flow deletes through the proxy.

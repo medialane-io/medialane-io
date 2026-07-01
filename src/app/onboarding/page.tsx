@@ -10,6 +10,8 @@ import { PinInput, validatePin } from "@/components/ui/pin-input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, ShieldCheck, CheckCircle2, AlertCircle, KeyRound } from "lucide-react";
 import { completeOnboarding } from "./_actions";
+import { signTypedDataWithWallet } from "@/lib/chipi/sign-typed-data";
+import { requestSiwsToken } from "@/lib/siws-client";
 
 export default function OnboardingPage() {
   return (
@@ -65,6 +67,26 @@ function OnboardingContent() {
 
     const result = await completeOnboarding({ publicKey: walletKey });
     if (result.error) throw new Error(result.error);
+
+    // Best-effort SIWS mint — rides on the wallet-unlock we already have in
+    // scope (encryptKey), so this is the one moment the platform can get a
+    // SIWS token without a separate, new prompt (medialane-core spec
+    // 2026-06-30-remove-clerk-from-backend-design.md §IV). Signs with the
+    // freshly-created `wallet` object directly, NOT useSessionKey()'s
+    // separately-fetched wallet — that one can lag a render behind a
+    // just-created wallet (see the "Do not attempt auto-progression" note
+    // below). Never blocks onboarding: account creation (and now SIWS
+    // minting) is a side effect of sign-in, never a gate.
+    try {
+      await requestSiwsToken({
+        walletAddress: walletKey,
+        signer: { signMessage: (typedData) => signTypedDataWithWallet(wallet, encryptKey, typedData) },
+      });
+    } catch (err) {
+      console.error("[ml-siws] mint failed during onboarding", {
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
 
     await user?.reload();
     await session?.touch();

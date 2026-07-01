@@ -18,6 +18,7 @@ import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { confirmRemixOffer } from "@/hooks/use-remix-offers";
+import { useSiwsToken } from "@/hooks/use-siws-token";
 import { serializeByteArray, encodeU256 } from "@/lib/cairo-calldata";
 import { readAssignedEditionId } from "@/lib/erc1155-edition";
 import { formatDisplayPrice } from "@/lib/utils";
@@ -36,6 +37,7 @@ interface Props {
 export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props) {
   const { getToken } = useAuth();
   const { walletAddress } = useSessionKey();
+  const { getValidToken: getValidSiwsToken, signIn: siwsSignIn } = useSiwsToken();
   const { executeTransaction } = useChipiTransaction();
   const { createListing } = useMarketplace();
   const client = useMedialaneClient();
@@ -230,9 +232,23 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
       }
       if (!orderHash) throw new Error("Could not confirm listing orderHash — check portfolio shortly");
 
-      // 5. Confirm offer in backend
-      const clerkToken = await getToken();
-      if (!clerkToken) throw new Error("Not authenticated");
+      // 5. Confirm offer in backend. Prefer SIWS (mint one now — `secret` is
+      // already in scope from the unlock above, no new prompt) over the
+      // Clerk JWT; the backend accepts both (medialane-core spec
+      // 2026-06-30-remove-clerk-from-backend-design.md). Fall back to Clerk
+      // if SIWS minting fails for any reason — never block the confirm on it.
+      let authToken = getValidSiwsToken();
+      if (!authToken) {
+        try {
+          authToken = await siwsSignIn(secret);
+        } catch (err) {
+          console.error("[ml-siws] mint failed during remix confirm", {
+            error: err instanceof Error ? err.message : String(err),
+          });
+        }
+      }
+      if (!authToken) authToken = await getToken();
+      if (!authToken) throw new Error("Not authenticated");
       await confirmRemixOffer(
         offer.id,
         {
@@ -241,7 +257,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
           approvedCollection: selectedCollection.contractAddress,
           orderHash,
         },
-        clerkToken
+        authToken
       );
 
       setNewAssetLink(assetHref("STARKNET", selectedCollection.contractAddress, remixTokenId));

@@ -19,10 +19,8 @@ import {
   useCreateSessionKey,
   useAddSessionKeyToContract,
 } from "@chipi-stack/nextjs";
-import { Account, stark, hash, type TypedData } from "starknet";
-// crypto-es: must match ChipiPay's AES encryption scheme — do not swap to Web Crypto without coordinating with ChipiPay
-import CryptoES from "crypto-es";
-import { starknetProvider } from "@/lib/starknet";
+import { hash } from "starknet";
+import { signTypedDataWithWallet } from "@/lib/chipi/sign-typed-data";
 import type { SessionKeyData } from "@chipi-stack/types";
 import {
   type ChipiSessionPreferences,
@@ -238,27 +236,11 @@ export function useSessionKey() {
       // The Cairo contract verifies order signatures against the account owner key —
       // signing with a session key produces a signature the contract cannot verify,
       // causing register_order to return without emitting OrderCreated.
-      const encryptedPk = wallet?.encryptedPrivateKey;
-
-      if (!encryptedPk) {
-        throw new Error(
-          "No signing key available. Please set up your wallet."
-        );
+      // Delegates to the pure helper — see src/lib/chipi/sign-typed-data.ts.
+      if (!wallet) {
+        throw new Error("No signing key available. Please set up your wallet.");
       }
-
-      // Decrypt private key with user's PIN (CryptoES AES — matches ChipiPay's encryption scheme)
-      const bytes = CryptoES.AES.decrypt(encryptedPk, pin);
-      const privateKey = bytes.toString(CryptoES.enc.Utf8);
-      if (!privateKey) {
-        throw new Error("Incorrect PIN. Please try again.");
-      }
-
-      // Create a starknet.js Account using the decrypted key; sign typed data
-      const signingAccount = new Account(starknetProvider, walletAddress, privateKey);
-      const sig = await signingAccount.signMessage(typedData as TypedData);
-
-      // Normalize Signature (string[] | { r, s }) → string[]
-      return stark.formatSignature(sig);
+      return signTypedDataWithWallet(wallet, pin, typedData);
     },
     [walletAddress, hasActiveSession, storedSession, wallet]
   );
