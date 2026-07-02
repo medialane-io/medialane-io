@@ -93,7 +93,7 @@ const CLUB_FEATURES = [
   { icon: IdCard, title: "Membership card", desc: "Each member holds a real NFT proving they belong." },
   { icon: KeyRound, title: "Open or close joining", desc: "Reversible — never affects existing members." },
   { icon: Users, title: "Optional entry fee", desc: "Free or paid — you decide." },
-  { icon: Layers, title: "Transferable ERC-721", desc: "Standard NFTs — trade freely in any marketplace." },
+  { icon: Layers, title: "Non-transferable card", desc: "Soulbound to your wallet — membership can't be bought or sold." },
 ];
 
 export function ClubContent() {
