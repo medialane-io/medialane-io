@@ -53,10 +53,11 @@ const IO_OVERRIDES: ServiceOverrides = {
   "claim-username":         { href: "/claim/username" },
   "claim-collection":       { href: "/claim/collection" },
   "claim-collection-name":  { href: "/claim/collection-name" },
-  // io has no IP Tickets/Club pages yet (medialane-starknet only) — pin
-  // status back to "building" here so the shared package's "live" status
-  // doesn't render a dead card with no href on this app.
+  // io has no IP Tickets/Club/Sponsorship pages yet (medialane-starknet
+  // only) — pin status back to "building" here so the shared package's
+  // "live" status doesn't render a dead card with no href on this app.
   "ip-tickets": { status: "building" },
+  "ip-sponsorship": { status: "building" },
   "ip-club":    { status: "building" },
 };
 
