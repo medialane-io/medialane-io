@@ -4,22 +4,12 @@ import type { CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { CommentsSection } from "@/components/asset/comments-section";
-import { ReportDialog } from "@/components/report-dialog";
-import { ShareButton } from "@/components/shared/share-button";
 import { AddressDisplay } from "@/components/shared/address-display";
-import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { ipfsToHttp } from "@/lib/utils";
-import { ExternalLink, Flag } from "lucide-react";
 
 interface HolderLike {
   owner: string;
   amount: string;
-}
-
-interface CollectionLike {
-  name?: string | null;
-  image?: string | null;
 }
 
 interface AssetOwnersPanelProps {
@@ -67,86 +57,6 @@ export function AssetOwnersPanel({
         ) : null}
       </div>
     </div>
-  );
-}
-
-interface AssetLinksRowProps {
-  contractHref: string;
-  collectionHref: string;
-  collection?: CollectionLike | null;
-  shareTitle: string;
-  reportTarget: {
-    type: "TOKEN";
-    contract: string;
-    tokenId: string;
-    name?: string;
-  };
-  reportOpen: boolean;
-  onReportOpenChange: (open: boolean) => void;
-}
-
-export function AssetLinksRow({
-  contractHref,
-  collectionHref,
-  collection,
-  shareTitle,
-  reportTarget,
-  reportOpen,
-  onReportOpenChange,
-}: AssetLinksRowProps) {
-  return (
-    <>
-      <div className="flex items-center justify-between gap-3">
-        {collection ? (
-          <Link
-            href={collectionHref}
-            className="flex items-center gap-3 min-w-0 group"
-          >
-            <div className="relative h-10 w-10 rounded-xl overflow-hidden shrink-0 bg-gradient-to-br from-primary/20 to-purple-500/20 ring-1 ring-border/60 group-hover:ring-primary/40 transition">
-              {collection.image ? (
-                <Image src={ipfsToHttp(collection.image)} alt="" fill className="object-cover" unoptimized />
-              ) : null}
-            </div>
-            <div className="min-w-0">
-              <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Collection</p>
-              <p className="text-sm font-semibold truncate group-hover:text-primary transition-colors">
-                {collection.name}
-              </p>
-            </div>
-          </Link>
-        ) : (
-          <span />
-        )}
-
-        <div className="flex items-center gap-1 shrink-0 text-muted-foreground">
-          <a
-            href={contractHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            title="View contract"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-lg hover:bg-muted/50 hover:text-foreground transition-colors"
-          >
-            <ExternalLink className="h-4 w-4" />
-          </a>
-          <ShareButton title={shareTitle} variant="ghost" size="icon" />
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-muted-foreground hover:text-foreground"
-            onClick={() => onReportOpenChange(true)}
-            title="Report this asset"
-          >
-            <Flag className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-
-      <ReportDialog
-        target={reportTarget}
-        open={reportOpen}
-        onOpenChange={onReportOpenChange}
-      />
-    </>
   );
 }
 

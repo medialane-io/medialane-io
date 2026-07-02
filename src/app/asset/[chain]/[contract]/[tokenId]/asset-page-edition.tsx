@@ -2,15 +2,13 @@
 
 import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { useParams } from "next/navigation";
-import Link from "next/link";
-import { collectionHref } from "@/lib/routes";
+import { useParams, useRouter } from "next/navigation";
+import { assetHref, collectionHref } from "@/lib/routes";
 import { useToken, useTokenHistory } from "@/hooks/use-tokens";
 import { useTokenListings } from "@/hooks/use-orders";
-import { useCollection } from "@/hooks/use-collections";
+import { useCollection, useCollectionTokens } from "@/hooks/use-collections";
 import { Button } from "@/components/ui/button";
-import { IpTypeBadge } from "@/components/shared/ip-type-badge";
-import { PageContainer } from "@medialane/ui";
+import { PageContainer, AssetCollectionBar, AssetMarketplacePanel, AssetHeaderBlock, AssetMediaColumn, buildEditionStats } from "@medialane/ui";
 import { ipfsToHttp, timeUntil, formatDisplayPrice, checkIsOwner } from "@/lib/utils";
 import {
   DollarSign,
@@ -21,9 +19,9 @@ import {
   Percent,
   Shield,
   Calendar,
-  ChevronRight,
   Layers,
   Users,
+  ShoppingCart,
 } from "lucide-react";
 import { FloatingCommentsButton } from "@/components/asset/floating-comments-button";
 import { LICENSE_TRAIT_TYPES } from "@/types/ip";
@@ -34,7 +32,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import type { ApiActivity, ApiOrder } from "@medialane/sdk";
 import { useComments } from "@/hooks/use-comments";
 import { EXPLORER_URL } from "@/lib/constants";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth, SignInButton } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useOrderActions } from "./use-order-actions";
 import { useAcceptOffer } from "@/hooks/use-accept-offer";
@@ -42,12 +40,11 @@ import { toast } from "sonner";
 import { useDominantColor } from "@/hooks/use-dominant-color";
 import { useTokenRemixes } from "@/hooks/use-remix-offers";
 import { HelpIcon } from "@/components/ui/help-icon";
+import { ReportDialog } from "@/components/report-dialog";
 import { AssetMarketsTab } from "./asset-markets-tab";
 import { AssetProvenanceTab } from "./asset-provenance-tab";
-import { AssetMarketplacePanel } from "./asset-marketplace-panel";
 import {
   AssetCommentsDialog,
-  AssetLinksRow,
   AssetOwnersPanel,
 } from "./asset-side-panels";
 import { AssetOverviewContent } from "./asset-overview-content";
@@ -55,20 +52,17 @@ import {
   AssetMarketplaceDialogs,
   useAssetMarketplaceDialogState,
 } from "./asset-marketplace-dialogs";
-import {
-  AssetHeaderBlock,
-  AssetMediaColumn,
-  buildEditionStats,
-} from "./asset-top-sections";
 
 export function AssetPageEdition() {
   const { contract, tokenId } = useParams<{ contract: string; tokenId: string }>();
+  const router = useRouter();
   const { isSignedIn } = useAuth();
   const { walletAddress } = useSessionKey();
   const { collection } = useCollection(contract);
   const { token } = useToken(contract, tokenId);
   const { listings, mutate: mutateListings } = useTokenListings(contract, tokenId);
   const { history } = useTokenHistory(contract, tokenId);
+  const { tokens: collectionTokens } = useCollectionTokens(contract);
   const {
     isProcessing,
     orderToCancel, cancelPinOpen, cancelStep, cancelError,
@@ -110,6 +104,13 @@ export function AssetPageEdition() {
   const cheapest = [...activeListings].sort((a, b) =>
     BigInt(a.consideration.startAmount) < BigInt(b.consideration.startAmount) ? -1 : 1
   )[0];
+
+  // Most recent "sale" activity — `history`'s sort order isn't guaranteed, so
+  // pick the max-timestamp entry explicitly rather than assuming array order.
+  const lastSale = (history as ApiActivity[])
+    .filter((h) => h.type === "sale" && h.price?.formatted)
+    .reduce<ApiActivity | null>((latest, h) => (!latest || h.timestamp > latest.timestamp ? h : latest), null);
+  const lastSaleRaw = lastSale?.price ? `${lastSale.price.formatted} ${lastSale.price.currency ?? ""}`.trim() : null;
 
   const isOwner = checkIsOwner(token, walletAddress);
   const holders = token?.balances ?? [];
@@ -181,18 +182,6 @@ export function AssetPageEdition() {
       </div>
 
       <PageContainer className="pt-20 space-y-8 pb-8">
-        {/* Breadcrumb */}
-        <nav className="flex items-center gap-1.5 text-sm text-muted-foreground min-w-0">
-          <Link
-            href={collectionHref("STARKNET", contract)}
-            className="hover:text-foreground transition-colors truncate max-w-[140px] shrink-0"
-          >
-            {collection?.name ?? contract.slice(0, 8) + "…"}
-          </Link>
-          <ChevronRight className="h-3.5 w-3.5 shrink-0" />
-          <span className="text-foreground font-medium truncate">{name}</span>
-        </nav>
-
         <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] lg:gap-10 gap-8 items-start">
           <AssetMediaColumn
             shouldReduce={Boolean(shouldReduce)}
@@ -218,7 +207,6 @@ export function AssetPageEdition() {
             <AssetHeaderBlock
               name={name}
               description={description}
-              ipType={token.metadata?.ipType}
               showMultiEditionBadge={true}
             />
 
@@ -231,6 +219,19 @@ export function AssetPageEdition() {
               myListing={myListing ?? null}
               activeBids={activeBids}
               walletAddress={walletAddress}
+              floorPriceRaw={collection?.floorPrice}
+              lastSaleRaw={lastSaleRaw}
+              renderAuthAction={(label) => (
+                <SignInButton mode="modal">
+                  <div className="btn-border-animated p-[1px] rounded-2xl">
+                    <Button className="w-full h-12 text-base bg-transparent text-white rounded-[15px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98]">
+                      <ShoppingCart className="h-5 w-5 mr-2" />
+                      {label}
+                    </Button>
+                  </div>
+                </SignInButton>
+              )}
+              renderHelp={(content) => <HelpIcon content={content} side="top" />}
               onCancelClick={handleCancelClick}
               onAcceptBid={acceptOffer.handleAcceptClick}
               onOpenListing={() => setListOpen(true)}
@@ -241,14 +242,25 @@ export function AssetPageEdition() {
 
             <AssetOwnersPanel balances={holders} maxVisible={8} />
 
-            <AssetLinksRow
-              contractHref={`${EXPLORER_URL}/contract/${contract}`}
+            <AssetCollectionBar
+              collectionName={collection?.name ?? contract.slice(0, 8) + "…"}
+              collectionImage={collection?.image}
               collectionHref={collectionHref("STARKNET", contract)}
-              collection={collection}
+              ipType={token.metadata?.ipType}
+              contractExplorerHref={`${EXPLORER_URL}/contract/${contract}`}
               shareTitle={name}
-              reportTarget={{ type: "TOKEN", contract, tokenId, name: name ?? undefined }}
-              reportOpen={reportOpen}
-              onReportOpenChange={setReportOpen}
+              onReportClick={() => setReportOpen(true)}
+              currentTokenId={tokenId}
+              siblingTokens={collectionTokens.map((t) => ({
+                tokenId: t.tokenId,
+                image: t.metadata?.image ? ipfsToHttp(t.metadata.image) : null,
+              }))}
+              onNavigate={(id) => router.push(assetHref("STARKNET", contract, id))}
+            />
+            <ReportDialog
+              target={{ type: "TOKEN", contract, tokenId, name: name ?? undefined }}
+              open={reportOpen}
+              onOpenChange={setReportOpen}
             />
           </motion.div>
         </div>
