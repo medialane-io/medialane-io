@@ -185,6 +185,27 @@ export function useSessionKey() {
               hash.getSelectorFromName("batch_add_to_allowlist"),
               hash.getSelectorFromName("remove_from_allowlist"),
               hash.getSelectorFromName("withdraw_payments"),
+              // IP Tickets (factory + per-collection, mediolano-contracts IP-Tickets)
+              hash.getSelectorFromName("deploy_ticket_collection"),
+              hash.getSelectorFromName("create_ticket_collection"),
+              hash.getSelectorFromName("set_collection_active"),
+              hash.getSelectorFromName("mint_ticket"),
+              hash.getSelectorFromName("redeem_ticket"),
+              // IP Club (registry, mediolano-contracts IP-Club)
+              hash.getSelectorFromName("create_club"),
+              hash.getSelectorFromName("set_club_open"),
+              hash.getSelectorFromName("join_club"),
+              hash.getSelectorFromName("leave_club"),
+              // IP Sponsorship (mediolano-contracts IP-Sponsorhip). The
+              // receipt-NFT mint on acceptBid reuses `mint_item` (already
+              // whitelisted above); a best-effort receipt transfer on
+              // transferLicense reuses `transfer_from` (already whitelisted).
+              hash.getSelectorFromName("create_offer"),
+              hash.getSelectorFromName("set_offer_open"),
+              hash.getSelectorFromName("place_bid"),
+              hash.getSelectorFromName("retract_bid"),
+              hash.getSelectorFromName("accept_bid"),
+              hash.getSelectorFromName("transfer_license"),
               // Comments
               hash.getSelectorFromName("add_comment"),
               // NOTE: `approve` and `set_approval_for_all` intentionally removed.
