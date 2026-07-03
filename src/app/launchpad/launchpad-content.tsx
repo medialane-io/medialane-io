@@ -98,8 +98,7 @@ export function LaunchpadContent() {
           </FadeIn>
           <FadeIn delay={0.16}>
             <p className="text-muted-foreground text-base max-w-xl leading-relaxed">
-              Publish your work, grow your community, and earn from what you create —
-              it&apos;s always yours.
+              Publish your work, grow your community, and earn from what you create.
             </p>
           </FadeIn>
           {isSignedIn && walletAddress && (
