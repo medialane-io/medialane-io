@@ -207,6 +207,7 @@ export function AssetPageEdition() {
             <AssetHeaderBlock
               name={name}
               description={description}
+              ipType={token.metadata?.ipType}
               showMultiEditionBadge={true}
             />
 
@@ -244,16 +245,15 @@ export function AssetPageEdition() {
 
             <AssetCollectionBar
               collectionName={collection?.name ?? contract.slice(0, 8) + "…"}
-              collectionImage={collection?.image}
+              collectionImage={collection?.image ? ipfsToHttp(collection.image, 96) : null}
               collectionHref={collectionHref("STARKNET", contract)}
-              ipType={token.metadata?.ipType}
               contractExplorerHref={`${EXPLORER_URL}/contract/${contract}`}
               shareTitle={name}
               onReportClick={() => setReportOpen(true)}
               currentTokenId={tokenId}
               siblingTokens={collectionTokens.map((t) => ({
                 tokenId: t.tokenId,
-                image: t.metadata?.image ? ipfsToHttp(t.metadata.image) : null,
+                image: t.metadata?.image ? ipfsToHttp(t.metadata.image, 96) : null,
               }))}
               onNavigate={(id) => router.push(assetHref("STARKNET", contract, id))}
             />

@@ -70,14 +70,19 @@ export function formatDisplayPrice(price: string | number | null | undefined): s
   return currencyPart ? `${formatted} ${currencyPart}` : formatted;
 }
 
-export function ipfsToHttp(uri: string | null | undefined): string {
+/**
+ * @param width Optional display width (px) for thumbnail/avatar slots — requests an
+ * on-the-fly resized rendition from the IPFS proxy instead of the full original file.
+ * Omit for full-size (hero images, lightbox, etc).
+ */
+export function ipfsToHttp(uri: string | null | undefined, width?: number): string {
   if (!uri) return "/placeholder.svg";
   if (uri.startsWith("ipfs://")) {
     // Route through our server-side proxy (/api/ipfs/[...cid]) to avoid:
     //  - Pinata's CORP header blocking cross-origin image loads on free plans
     //  - Client-visible 429 rate-limit errors from the public gateway
     const cid = uri.slice(7); // strips "ipfs://"
-    return `/api/ipfs/${cid}`;
+    return width ? `/api/ipfs/${cid}?w=${width}` : `/api/ipfs/${cid}`;
   }
   if (uri.startsWith("https://") || uri.startsWith("http://")) {
     // Route external images through the server-side proxy to avoid:
