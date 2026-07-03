@@ -13,7 +13,9 @@ import { ClubJoinButton } from "@/components/claim/club-join-button";
 import { useClubCollections, useClubInfo } from "@/hooks/use-club";
 import { ipfsToHttp } from "@/lib/utils";
 import { STARKNET_IP_CLUB_REGISTRY_CONTRACT } from "@/lib/constants";
-import type { ApiCollection } from "@medialane/sdk";
+import { hasCapability, type ApiCollection } from "@medialane/sdk";
+
+const CLUB_TRANSFERABLE = hasCapability("ip-club", "transfer");
 
 function ClubCard({ collection }: { collection: ApiCollection }) {
   const [imgError, setImgError] = useState(false);
@@ -93,7 +95,9 @@ const CLUB_FEATURES = [
   { icon: IdCard, title: "Membership card", desc: "Each member holds a real NFT proving they belong." },
   { icon: KeyRound, title: "Open or close joining", desc: "Reversible — never affects existing members." },
   { icon: Users, title: "Optional entry fee", desc: "Free or paid — you decide." },
-  { icon: Layers, title: "Non-transferable card", desc: "Soulbound to your wallet — membership can't be bought or sold." },
+  CLUB_TRANSFERABLE
+    ? { icon: Layers, title: "Transferable ERC-721", desc: "Standard NFTs — trade freely in any marketplace." }
+    : { icon: Layers, title: "Non-transferable card", desc: "Soulbound to your wallet — membership can't be bought or sold." },
 ];
 
 export function ClubContent() {
