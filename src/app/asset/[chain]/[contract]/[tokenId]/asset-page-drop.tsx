@@ -4,15 +4,13 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { collectionHref } from "@/lib/routes";
 import { motion, useReducedMotion } from "framer-motion";
 import {
-  Package, ChevronRight, ExternalLink, Clock, HandCoins,
+  Package, ExternalLink, Clock, HandCoins,
   Tag, ArrowRightLeft, ShoppingCart, X, CheckCircle,
   Loader2, Flag, GitBranch, DollarSign, Users, Shield, Calendar,
 } from "lucide-react";
 import { useToken, useTokenHistory } from "@/hooks/use-tokens";
-import { useCollection } from "@/hooks/use-collections";
 import { useOnChainDropState, getDropStatus, type DropConditions } from "@/hooks/use-drops";
 import { useTokenListings } from "@/hooks/use-orders";
 import { useSessionKey } from "@/hooks/use-session-key";
@@ -135,7 +133,6 @@ export function AssetPageDrop() {
   const { isSignedIn } = useAuth();
   const { walletAddress } = useSessionKey();
   const { token } = useToken(contract, tokenId);
-  const { collection } = useCollection(contract);
   const { state: dropState } = useOnChainDropState(contract);
   const { history } = useTokenHistory(contract, tokenId);
   const { listings, mutate: mutateListings } = useTokenListings(contract, tokenId);
@@ -191,15 +188,6 @@ export function AssetPageDrop() {
       </div>
 
       <PageContainer className="pt-20 space-y-8 pb-8">
-        {/* Breadcrumb */}
-        <nav className="flex items-center gap-1.5 text-sm text-muted-foreground min-w-0">
-          <Link href={collectionHref("STARKNET", contract)} className="hover:text-foreground transition-colors truncate max-w-[140px] shrink-0">
-            {collection?.name ?? contract.slice(0, 8) + "…"}
-          </Link>
-          <ChevronRight className="h-3.5 w-3.5 shrink-0" />
-          <span className="text-foreground font-medium truncate">{name}</span>
-        </nav>
-
         <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] lg:gap-10 gap-8 items-start">
           {/* Image */}
           <motion.div
