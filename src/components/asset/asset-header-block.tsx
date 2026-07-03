@@ -18,9 +18,8 @@ interface AssetHeaderBlockProps {
 
 /**
  * Story-first asset header (standard page). Title is one step smaller than the
- * shared `@medialane/ui` block, and the IP-type pill — which already links to
- * the IP-type explore page — sits directly under the title for prominence
- * (it used to read as a small chip lost above the owner row).
+ * shared `@medialane/ui` block. The IP-type pill sits above the owner row —
+ * it's the asset's category, the first thing to read before who owns it.
  */
 export function AssetHeaderBlock({
   name,
@@ -33,6 +32,18 @@ export function AssetHeaderBlock({
 }: AssetHeaderBlockProps) {
   return (
     <div>
+      {ipType || showMultiEditionBadge ? (
+        <div className="flex items-center gap-2 flex-wrap mb-2">
+          {ipType ? <IpTypeBadge ipType={ipType} size="md" /> : null}
+          {showMultiEditionBadge ? (
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-violet-500/30 bg-violet-500/10 text-violet-500">
+              <Layers className="h-3 w-3" />
+              Multi-edition
+            </span>
+          ) : null}
+        </div>
+      ) : null}
+
       {parentContract && parentTokenId ? (
         <div className="mb-3">
           <ParentAttributionBanner
@@ -56,16 +67,6 @@ export function AssetHeaderBlock({
       ) : null}
 
       <h1 className="text-2xl lg:text-4xl font-bold leading-tight">{name}</h1>
-
-      <div className="flex items-center gap-2 flex-wrap mt-2">
-        {ipType ? <IpTypeBadge ipType={ipType} size="md" /> : null}
-        {showMultiEditionBadge ? (
-          <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-violet-500/30 bg-violet-500/10 text-violet-500">
-            <Layers className="h-3 w-3" />
-            Multi-edition
-          </span>
-        ) : null}
-      </div>
 
       {description ? (
         <p className="text-sm text-muted-foreground leading-relaxed mt-3">{description}</p>

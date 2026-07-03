@@ -24,6 +24,12 @@ const MAX_WIDTH = 2000;
  * only documented on the `/files/{cid}` path — not the classic `/ipfs/{cid}`
  * one). Callers should only pass `w` for known-small display slots
  * (avatars, thumbnails) — omit it to get the original file untouched.
+ *
+ * `/files/{cid}` requires a Pinata auth token even on the "public" gateway
+ * domain (confirmed in prod: anonymous requests 401). Since anonymous
+ * requests never carry `PINATA_JWT` by design, resize is only attempted for
+ * authenticated requests on the dedicated gateway — anonymous callers always
+ * get the unresized original via `/ipfs/{cid}`, never a 401.
  */
 export async function GET(
   req: NextRequest,
@@ -53,7 +59,8 @@ export async function GET(
   }
 
   const width = Number.parseInt(req.nextUrl.searchParams.get("w") ?? "", 10);
-  const wantsResize = Number.isFinite(width) && width > 0 && width <= MAX_WIDTH;
+  const canResize = isAuthenticated && !!DEDICATED_GATEWAY && !!PINATA_JWT;
+  const wantsResize = canResize && Number.isFinite(width) && width > 0 && width <= MAX_WIDTH;
 
   // Optimization params are only documented on `/files/{cid}`; leave every
   // other (unresized) caller on the classic `/ipfs/{cid}` path unchanged.
