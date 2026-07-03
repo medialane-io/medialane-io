@@ -95,9 +95,13 @@ export async function GET(
       "Content-Type": contentType,
       // IPFS content is immutable by CID. Authenticated responses must not be
       // shared by CDN caches since they were fetched with service credentials.
+      // `s-maxage` (vs browser-only `max-age`) is what lets Vercel's edge
+      // cache the anonymous response across *all* visitors, not just the
+      // requesting browser — the same CID is served straight from the edge
+      // after the first request anywhere, no repeat Pinata round trip.
       "Cache-Control": isAuthenticated
         ? "private, max-age=31536000, immutable"
-        : "public, max-age=31536000, immutable",
+        : "public, max-age=31536000, s-maxage=31536000, immutable",
       "Access-Control-Allow-Origin": "*",
     },
   });

@@ -46,6 +46,7 @@ export function AssetMediaColumn({
       <img
         src={image}
         alt={imageAlt}
+        crossOrigin="anonymous"
         onError={onImageError}
         className="w-full h-auto max-h-[80vh] object-contain rounded-2xl
                    transition duration-300 group-hover:opacity-95 group-active:scale-[0.99]"

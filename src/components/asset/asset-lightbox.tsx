@@ -24,6 +24,7 @@ export function AssetLightbox({ open, onOpenChange, image, alt }: AssetLightboxP
         <img
           src={image}
           alt={alt}
+          crossOrigin="anonymous"
           className="max-h-[92vh] max-w-[96vw] h-auto w-auto object-contain rounded-xl"
         />
       </DialogContent>

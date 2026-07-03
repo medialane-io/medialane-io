@@ -224,7 +224,10 @@ export async function GET(req: NextRequest) {
     status: 200,
     headers: {
       "Content-Type": contentType,
-      "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
+      // `s-maxage` lets Vercel's edge cache this across all visitors, not just
+      // the requesting browser — repeat requests for the same URL are served
+      // from the edge instead of re-fetching + re-streaming the origin.
+      "Cache-Control": "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400",
       "Access-Control-Allow-Origin": "*",
     },
   });
