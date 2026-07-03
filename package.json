@@ -8,11 +8,13 @@
   },
   "scripts": {
     "dev": "next dev",
+    "prebuild": "npm run guard:pin && npm run guard:entrypoints",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "guard:pin": "node scripts/guard-pin-dialog.mjs"
+    "guard:pin": "node scripts/guard-pin-dialog.mjs",
+    "guard:entrypoints": "node scripts/guard-entrypoint-whitelist.mjs"
   },
   "dependencies": {
     "@chipi-stack/chipi-passkey": "2.0.1",
