@@ -53,6 +53,9 @@ const IO_OVERRIDES: ServiceOverrides = {
   "claim-username":         { href: "/claim/username" },
   "claim-collection":       { href: "/claim/collection" },
   "claim-collection-name":  { href: "/claim/collection-name" },
+  "ip-tickets":     { href: "/launchpad/tickets/create",     browseHref: "/launchpad/tickets" },
+  "ip-club":        { href: "/launchpad/club/create",        browseHref: "/launchpad/club" },
+  "ip-sponsorship": { href: "/launchpad/sponsorship/create", browseHref: "/launchpad/sponsorship" },
 };
 
 // ── Page ────────────────────────────────────────────────────────────────────

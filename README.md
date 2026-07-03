@@ -44,6 +44,9 @@ Medialane is a platform for the **creative economy on Starknet**. It bridges Web
 - Create and deploy ERC-721 collections on Starknet (gasless)
 - Collection metadata JSON uploaded to IPFS at creation time — `baseUri` set onchain so any dApp can resolve collection images permissionlessly
 - **NFT Editions** (`/launchpad/nfteditions`) — mint multi-edition ERC-1155 tokens into your IP Collection 1155 contracts; each edition has its own artwork, supply, and on-chain provenance
+- **IP Tickets** (`/launchpad/tickets`) — deploy a ticket collection and sell redeemable, tradeable ERC-721 tickets for events and access
+- **IP Club** (`/launchpad/club`) — run a membership club backed by a non-transferable, soulbound NFT membership card
+- **IP Sponsorship** (`/launchpad/sponsorship`) — sell a direct-settlement sponsorship license on an asset you own; sponsors bid, you accept, no escrow
 
 ### NFT Marketplace
 - Browse, search, and filter all Medialane digital assets
