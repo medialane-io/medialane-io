@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AddressDisplay } from "@/components/shared/address-display";
-import { PageContainer, AssetCollectionBar, AssetMarketplacePanel } from "@medialane/ui";
+import { PageContainer, AssetCollectionBar, AssetUtilityIcons, AssetMarketplacePanel } from "@medialane/ui";
 import { ipfsToHttp, timeUntil, formatDisplayPrice, checkIsOwner } from "@/lib/utils";
 import { DollarSign, UserCheck, Globe, Bot, Percent, Shield, Calendar, ShoppingCart, Layers, GitBranch } from "lucide-react";
 import { FloatingCommentsButton } from "@/components/asset/floating-comments-button";
@@ -310,15 +310,22 @@ export function AssetPageStandard() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="space-y-6"
           >
-            <AssetHeaderBlock
-              name={name}
-              description={description}
-              ipType={token.metadata?.ipType}
-              showMultiEditionBadge={Boolean(isERC1155)}
-              parentContract={parentContract}
-              parentTokenId={parentTokenId}
-              ownerAddress={!isERC1155 ? (token.balances?.[0]?.owner ?? token.owner ?? null) : null}
-            />
+            <div className="flex items-start justify-between gap-3">
+              <AssetHeaderBlock
+                name={name}
+                description={description}
+                ipType={token.metadata?.ipType}
+                showMultiEditionBadge={Boolean(isERC1155)}
+                parentContract={parentContract}
+                parentTokenId={parentTokenId}
+                ownerAddress={!isERC1155 ? (token.balances?.[0]?.owner ?? token.owner ?? null) : null}
+              />
+              <AssetUtilityIcons
+                contractExplorerHref={`${EXPLORER_URL}/contract/${token.contractAddress}`}
+                shareTitle={name ?? `Token #${token?.tokenId}`}
+                onReportClick={() => setReportOpen(true)}
+              />
+            </div>
 
             <AssetMarketplacePanel
               cheapest={cheapest}
@@ -369,9 +376,6 @@ export function AssetPageStandard() {
                 collectionName={collection?.name ?? contract.slice(0, 8) + "…"}
                 collectionImage={collection?.image ? ipfsToHttp(collection.image, 96) : null}
                 collectionHref={collectionHref("STARKNET", contract)}
-                contractExplorerHref={`${EXPLORER_URL}/contract/${token.contractAddress}`}
-                shareTitle={name ?? `Token #${token?.tokenId}`}
-                onReportClick={() => setReportOpen(true)}
                 currentTokenId={tokenId}
                 siblingTokens={collectionTokens.map((t) => ({
                   tokenId: t.tokenId,

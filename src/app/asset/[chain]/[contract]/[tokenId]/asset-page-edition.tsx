@@ -8,7 +8,7 @@ import { useToken, useTokenHistory } from "@/hooks/use-tokens";
 import { useTokenListings } from "@/hooks/use-orders";
 import { useCollection, useCollectionTokens } from "@/hooks/use-collections";
 import { Button } from "@/components/ui/button";
-import { PageContainer, AssetCollectionBar, AssetMarketplacePanel, AssetHeaderBlock, AssetMediaColumn, buildEditionStats } from "@medialane/ui";
+import { PageContainer, AssetCollectionBar, AssetUtilityIcons, AssetMarketplacePanel, AssetHeaderBlock, AssetMediaColumn, buildEditionStats } from "@medialane/ui";
 import { ipfsToHttp, timeUntil, formatDisplayPrice, checkIsOwner } from "@/lib/utils";
 import {
   DollarSign,
@@ -204,12 +204,19 @@ export function AssetPageEdition() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="space-y-6"
           >
-            <AssetHeaderBlock
-              name={name}
-              description={description}
-              ipType={token.metadata?.ipType}
-              showMultiEditionBadge={true}
-            />
+            <div className="flex items-start justify-between gap-3">
+              <AssetHeaderBlock
+                name={name}
+                description={description}
+                ipType={token.metadata?.ipType}
+                showMultiEditionBadge={true}
+              />
+              <AssetUtilityIcons
+                contractExplorerHref={`${EXPLORER_URL}/contract/${contract}`}
+                shareTitle={name}
+                onReportClick={() => setReportOpen(true)}
+              />
+            </div>
 
             <AssetMarketplacePanel
               cheapest={cheapest}
@@ -247,9 +254,6 @@ export function AssetPageEdition() {
               collectionName={collection?.name ?? contract.slice(0, 8) + "…"}
               collectionImage={collection?.image ? ipfsToHttp(collection.image, 96) : null}
               collectionHref={collectionHref("STARKNET", contract)}
-              contractExplorerHref={`${EXPLORER_URL}/contract/${contract}`}
-              shareTitle={name}
-              onReportClick={() => setReportOpen(true)}
               currentTokenId={tokenId}
               siblingTokens={collectionTokens.map((t) => ({
                 tokenId: t.tokenId,
