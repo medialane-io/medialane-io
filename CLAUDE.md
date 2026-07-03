@@ -190,6 +190,31 @@ button only (no animated form/rail), constrained to `max-w-5xl`. The **coin page
 `CoinLaunchPreview` live-preview rail and adds `ServiceHeader` + a `ClaimRail` (How it works + a
 "Locked forever" trust panel, no `included`) under the preview.
 
+### Launchpad grid: 5 groups + dynamic filter bar (2026-07-03, @medialane/ui ≥ 0.35.1)
+
+The `/launchpad` browse page (`LaunchpadGroupedSections` + `LaunchpadServiceCard` +
+`LaunchpadFilterBar`, all in `@medialane/ui`, shared verbatim with medialane-starknet —
+full history in that repo's `docs/superpowers/plans/2026-07-03-launchpad-grid-redesign.md`)
+was regrouped and made searchable:
+
+- **5 groups, not 10** (`LAUNCHPAD_SERVICE_GROUPS` in `@medialane/ui`'s
+  `src/data/launchpad-services.ts`):
+  Single Edition (now includes Collection Drop + Remix Asset), Limited Editions, Coins
+  (absorbs Claim Memecoin), Community (new — POP Protocol + IP Tickets + IP Club + IP
+  Sponsorship), Claims. Adding a new service: pick one of these 5 (or `coming-soon`) —
+  don't invent a new group without updating `LAUNCHPAD_SERVICE_GROUPS` first.
+- **3-per-row desktop grid** (was 2), denser cards, 2 feature chips shown (not 3), the
+  `example`/"e.g. ..." line dropped from the card.
+- **`LaunchpadFilterBar`** (new, exported from `@medialane/ui`): search + multi-select
+  group pills + live result count, state lifted into `LaunchpadGroupedSections` itself.
+  No "show coming soon" toggle (removed post-ship — no non-live services exist right
+  now). Active pill uses the brand gradient, not generic `bg-primary`.
+- io's own `launchpad-content.tsx` hero subtitle also dropped "— it's always yours"
+  (user feedback: not good messaging) — same edit as medialane-starknet's.
+- No per-app wiring changes needed beyond the existing `overrides` prop (href/
+  browseHref/status per service) — the grid, grouping, and filter bar are entirely
+  shared-package-driven.
+
 ### Standard form layout + UX conventions (2026-06-27, @medialane/ui ≥ 0.28.0)
 
 The 2-column form layout is the **standard** every launchpad create/mint surface follows.
