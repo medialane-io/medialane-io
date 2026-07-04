@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { canonical } from "@/lib/seo";
+import { canonical, buildSocialMetadata, buildBreadcrumbJsonLd } from "@/lib/seo";
+import { JsonLd } from "@/components/seo/json-ld";
 import CreatorPageClient from "./creator-page-client";
 
 export const revalidate = 60;
@@ -18,21 +19,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title,
     description,
     alternates: canonical(`/account/${address}`),
-    openGraph: {
-      title: `${title} | Medialane`,
-      description,
-      url: `/account/${address}`,
-      images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: title }],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: `${title} | Medialane`,
-      description,
-      images: ["/og-image.jpg"],
-    },
+    ...buildSocialMetadata({ title, description }),
   };
 }
 
-export default function AccountPage() {
-  return <CreatorPageClient />;
+export default async function AccountPage({ params }: Props) {
+  const { address } = await params;
+  const short = `${address.slice(0, 8)}…${address.slice(-6)}`;
+
+  const jsonLd = buildBreadcrumbJsonLd([
+    { name: "Creators", path: "/creators" },
+    { name: short, path: `/account/${address}` },
+  ]);
+
+  return (
+    <>
+      <JsonLd data={jsonLd} />
+      <CreatorPageClient />
+    </>
+  );
 }

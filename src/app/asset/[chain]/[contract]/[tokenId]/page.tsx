@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { JsonLd } from "@/components/seo/json-ld";
-import { fetchTokenMeta, ipfsToHttpServer } from "@/lib/api-server";
-import { absoluteUrl, canonical, truncateDescription } from "@/lib/seo";
+import { fetchTokenMeta, fetchCollectionMeta, ipfsToHttpServer } from "@/lib/api-server";
+import { absoluteUrl, canonical, truncateDescription, buildSocialMetadata, buildBreadcrumbJsonLd } from "@/lib/seo";
 import { chainFromSlug } from "@/lib/routes";
 import AssetPageClient from "./asset-page-client";
 
@@ -26,43 +26,42 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: name,
     description,
     alternates: canonical(path),
-    openGraph: {
-      title: `${name} | Medialane`,
-      description,
-      url: path,
-      ...(imageUrl && {
-        images: [{ url: imageUrl, width: 1200, height: 630, alt: name }],
-      }),
-    },
-    twitter: {
-      card: imageUrl ? "summary_large_image" : "summary",
-      title: `${name} | Medialane`,
-      description,
-      ...(imageUrl && { images: [imageUrl] }),
-    },
+    ...buildSocialMetadata({ title: name, description, imageUrl }),
   };
 }
 
 export default async function AssetPage({ params }: Props) {
   const { chain, contract, tokenId } = await params;
   if (!chainFromSlug(chain)) notFound();
-  const token = await fetchTokenMeta(contract, tokenId);
+  const [token, collection] = await Promise.all([
+    fetchTokenMeta(contract, tokenId),
+    fetchCollectionMeta(contract),
+  ]);
   const name = token?.metadata?.name ?? token?.name ?? `Token #${tokenId}`;
   const description = token?.metadata?.description ?? token?.description ?? "View this digital asset on Medialane.";
   const imageUrl = ipfsToHttpServer(token?.metadata?.image ?? token?.image ?? "");
   const path = `/asset/${chain}/${contract}/${tokenId}`;
+  const collectionName = collection?.name ?? "Collection";
+  const collectionPath = `/collections/${chain}/${contract}`;
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "CreativeWork",
-    name,
-    description,
-    url: absoluteUrl(path),
-    ...(imageUrl && { image: imageUrl }),
-    identifier: `${contract}/${tokenId}`,
-    isAccessibleForFree: true,
-    mainEntityOfPage: absoluteUrl(path),
-  };
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "CreativeWork",
+      name,
+      description,
+      url: absoluteUrl(path),
+      ...(imageUrl && { image: imageUrl }),
+      identifier: `${contract}/${tokenId}`,
+      isAccessibleForFree: true,
+      mainEntityOfPage: absoluteUrl(path),
+    },
+    buildBreadcrumbJsonLd([
+      { name: "Marketplace", path: "/marketplace" },
+      { name: collectionName, path: collectionPath },
+      { name, path },
+    ]),
+  ];
 
   return (
     <>

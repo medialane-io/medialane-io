@@ -1,19 +1,16 @@
 import type { Metadata } from "next";
 import { HomePage } from "@/components/home";
-import { canonical } from "@/lib/seo";
+import { canonical, buildSocialMetadata } from "@/lib/seo";
+
+const title = "Medialane — Creator Launchpad + NFT Marketplace";
+const description =
+  "Mint, license, and trade intellectual property as NFTs on Starknet. Free to mint. Gas-free trading. Programmable royalties.";
 
 export const metadata: Metadata = {
-  title: "Medialane — Creator Launchpad + NFT Marketplace",
-  description:
-    "Mint, license, and trade intellectual property as NFTs on Starknet. Free to mint. Gas-free trading. Programmable royalties.",
+  title,
+  description,
   alternates: canonical("/"),
-  openGraph: {
-    title: "Medialane — Creator Launchpad + NFT Marketplace",
-    description:
-      "Mint, license, and trade intellectual property as NFTs on Starknet. Free to mint. Gas-free trading. Programmable royalties.",
-    type: "website",
-    url: "/",
-  },
+  ...buildSocialMetadata({ title, description, imageAlt: "Medialane" }),
 };
 
 export default function Page() {

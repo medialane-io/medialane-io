@@ -40,6 +40,18 @@ export async function fetchCollectionMeta(contract: string) {
   );
 }
 
+export async function fetchDropMeta(contract: string) {
+  return apiFetch<{ name?: string | null; description?: string | null; image?: string | null }>(
+    `/v1/drop/${contract}/info`
+  );
+}
+
+export async function fetchCoinMeta(contract: string) {
+  return apiFetch<{ name?: string; description?: string; image?: string; creator?: string }>(
+    `/v1/coins/${contract}`
+  );
+}
+
 export async function fetchCreatorProfile(username: string) {
   return apiFetch<{
     walletAddress?: string;

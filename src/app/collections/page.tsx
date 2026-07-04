@@ -1,23 +1,15 @@
 import type { Metadata } from "next";
 import CollectionsPageClient from "./collections-page-client";
-import { canonical } from "@/lib/seo";
+import { canonical, buildSocialMetadata } from "@/lib/seo";
+
+const title = "Collections";
+const description = "Browse all onchain IP collections on Medialane — NFT, art, audio, video, and more on Starknet.";
 
 export const metadata: Metadata = {
-  title: "Collections",
-  description: "Browse all onchain IP collections on Medialane — NFT, art, audio, video, and more on Starknet.",
+  title,
+  description,
   alternates: canonical("/collections"),
-  openGraph: {
-    title: "Collections | Medialane",
-    description: "Browse all onchain IP collections on Medialane — NFT, art, audio, video, and more on Starknet.",
-    url: "/collections",
-    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Medialane Collections" }],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Collections | Medialane",
-    description: "Browse all onchain IP collections on Medialane.",
-    images: ["/og-image.jpg"],
-  },
+  ...buildSocialMetadata({ title, description, imageAlt: "Medialane Collections" }),
 };
 
 export default function CollectionsPage() {

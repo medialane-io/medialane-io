@@ -2,13 +2,17 @@ import type { Metadata } from "next";
 import { Trophy, Info } from "lucide-react";
 import { PageContainer } from "@medialane/ui";
 import { RewardsDashboard } from "./rewards-dashboard";
-import { canonical } from "@/lib/seo";
+import { canonical, buildSocialMetadata } from "@/lib/seo";
+
+const title = "Rewards";
+const description =
+  "Your XP, rank, badges, and Creator's Fund airdrop share. Earn more by creating, collecting, and trading.";
 
 export const metadata: Metadata = {
-  title: "Rewards — Medialane",
-  description:
-    "Your XP, rank, badges, and Creator's Fund airdrop share. Earn more by creating, collecting, and trading.",
+  title,
+  description,
   alternates: canonical("/rewards"),
+  ...buildSocialMetadata({ title, description }),
 };
 
 export default function RewardsPage() {

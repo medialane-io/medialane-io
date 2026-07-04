@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { JsonLd } from "@/components/seo/json-ld";
 import { fetchCreatorProfile, ipfsToHttpServer } from "@/lib/api-server";
-import { absoluteUrl, canonical, truncateDescription } from "@/lib/seo";
+import { absoluteUrl, canonical, truncateDescription, buildSocialMetadata, buildBreadcrumbJsonLd } from "@/lib/seo";
 import CreatorUsernamePageClient from "./creator-username-client";
 
 export const revalidate = 60;
@@ -24,22 +24,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const bio = profile?.bio ?? `Creator profile for ${name} on Medialane.`;
   const description = truncateDescription(bio);
   const path = `/creator/${address}`;
+  const rawImage = profile?.avatarImage || profile?.bannerImage;
+  const imageUrl = rawImage ? ipfsToHttpServer(rawImage) : undefined;
+  const social = buildSocialMetadata({ title: name, description, imageUrl, imageAlt: name });
 
   return {
     title: name,
     description,
     alternates: canonical(path),
-    openGraph: {
-      title: `${name} | Medialane`,
-      description,
-      url: path,
-      type: "profile",
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: `${name} | Medialane`,
-      description,
-    },
+    ...social,
+    openGraph: { ...social.openGraph, type: "profile" },
   };
 }
 
@@ -59,20 +53,26 @@ export default async function CreatorPage({ params }: Props) {
   const image = ipfsToHttpServer(profile?.avatarImage || profile?.bannerImage || "");
   const sameAs = [profile?.websiteUrl, profile?.twitterUrl].filter(Boolean);
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "ProfilePage",
-    name: `${name} | Medialane`,
-    url: absoluteUrl(path),
-    mainEntity: {
-      "@type": "Person",
-      name,
-      description: bio,
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "ProfilePage",
+      name: `${name} | Medialane`,
       url: absoluteUrl(path),
-      ...(image && { image }),
-      ...(sameAs.length > 0 && { sameAs }),
+      mainEntity: {
+        "@type": "Person",
+        name,
+        description: bio,
+        url: absoluteUrl(path),
+        ...(image && { image }),
+        ...(sameAs.length > 0 && { sameAs }),
+      },
     },
-  };
+    buildBreadcrumbJsonLd([
+      { name: "Creators", path: "/creators" },
+      { name, path },
+    ]),
+  ];
 
   // Otherwise treat as a username slug
   return (

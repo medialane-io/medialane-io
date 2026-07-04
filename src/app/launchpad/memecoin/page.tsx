@@ -3,16 +3,16 @@ import { Coins } from "lucide-react";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { ClaimCollectionPanel } from "@/components/claim/claim-collection-panel";
 import { ClaimMemecoinAside } from "@/components/claim/claim-memecoin-aside";
+import { canonical, buildSocialMetadata } from "@/lib/seo";
+
+const title = "Claim Memecoin";
+const description = "Already launched a coin on Starknet? Bring it to Medialane so people can discover and trade it.";
 
 export const metadata: Metadata = {
-  title: "Claim Memecoin",
-  description: "Already launched a coin on Starknet? Bring it to Medialane so people can discover and trade it.",
-  openGraph: {
-    title: "Claim Memecoin | Medialane",
-    description: "Already launched a coin on Starknet? Bring it to Medialane so people can discover and trade it.",
-    url: "/launchpad/memecoin",
-    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Claim a Memecoin on Medialane" }],
-  },
+  title,
+  description,
+  alternates: canonical("/launchpad/memecoin"),
+  ...buildSocialMetadata({ title, description, imageAlt: "Claim a Memecoin on Medialane" }),
 };
 
 export default function MemecoinClaimPage() {

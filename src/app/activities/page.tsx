@@ -2,12 +2,16 @@ import type { Metadata } from "next";
 import { ActivitiesFeed } from "./activities-feed";
 import { Activity } from "lucide-react";
 import { PageContainer } from "@medialane/ui";
-import { canonical } from "@/lib/seo";
+import { canonical, buildSocialMetadata } from "@/lib/seo";
+
+const title = "Activities";
+const description = "Global marketplace activity on Medialane.";
 
 export const metadata: Metadata = {
-  title: "Activities",
-  description: "Global marketplace activity on Medialane.",
+  title,
+  description,
   alternates: canonical("/activities"),
+  ...buildSocialMetadata({ title, description }),
 };
 
 export default function ActivitiesPage() {

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { JsonLd } from "@/components/seo/json-ld";
 import { fetchCollectionMeta, ipfsToHttpServer } from "@/lib/api-server";
-import { absoluteUrl, canonical, truncateDescription } from "@/lib/seo";
+import { absoluteUrl, canonical, truncateDescription, buildSocialMetadata, buildBreadcrumbJsonLd } from "@/lib/seo";
 import { chainFromSlug } from "@/lib/routes";
 import CollectionPageClient from "./collection-page-client";
 
@@ -29,20 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: name,
     description,
     alternates: canonical(path),
-    openGraph: {
-      title: `${name} | Medialane`,
-      description,
-      url: path,
-      ...(imageUrl && {
-        images: [{ url: imageUrl, width: 1200, height: 630, alt: name }],
-      }),
-    },
-    twitter: {
-      card: imageUrl ? "summary_large_image" : "summary",
-      title: `${name} | Medialane`,
-      description,
-      ...(imageUrl && { images: [imageUrl] }),
-    },
+    ...buildSocialMetadata({ title: name, description, imageUrl }),
   };
 }
 
@@ -55,21 +42,27 @@ export default async function CollectionPage({ params }: Props) {
   const imageUrl = ipfsToHttpServer(col?.image ?? "");
   const path = `/collections/${chain}/${contract}`;
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "CollectionPage",
-    name,
-    description,
-    url: absoluteUrl(path),
-    ...(imageUrl && { image: imageUrl }),
-    mainEntity: {
-      "@type": "CreativeWorkSeries",
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
       name,
       description,
+      url: absoluteUrl(path),
       ...(imageUrl && { image: imageUrl }),
-      ...(col?.totalSupply != null && { numberOfItems: col.totalSupply }),
+      mainEntity: {
+        "@type": "CreativeWorkSeries",
+        name,
+        description,
+        ...(imageUrl && { image: imageUrl }),
+        ...(col?.totalSupply != null && { numberOfItems: col.totalSupply }),
+      },
     },
-  };
+    buildBreadcrumbJsonLd([
+      { name: "Collections", path: "/collections" },
+      { name, path },
+    ]),
+  ];
 
   return (
     <>

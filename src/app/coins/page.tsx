@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
 import { CoinsMount } from "./coins-mount";
+import { canonical, buildSocialMetadata } from "@/lib/seo";
+
+const title = "Coins";
+const description = "Discover creator coins and memecoins on Medialane.";
 
 export const metadata: Metadata = {
-  title: "Coins",
-  description: "Discover creator coins and memecoins on Medialane.",
-  openGraph: {
-    title: "Coins | Medialane",
-    description: "Discover creator coins and memecoins on Medialane.",
-    url: "/coins",
-    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Medialane Coins" }],
-  },
+  title,
+  description,
+  alternates: canonical("/coins"),
+  ...buildSocialMetadata({ title, description, imageAlt: "Medialane Coins" }),
 };
 
 export default function CoinsPage() {
