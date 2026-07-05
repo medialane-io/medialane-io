@@ -8,7 +8,7 @@ import { useCollection, useCollectionTokens } from "@/hooks/use-collections";
 import { useOrders } from "@/hooks/use-orders";
 import { useDominantColor } from "@/hooks/use-dominant-color";
 import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listing-card";
-import { AssetCard, AssetCardSkeleton } from "@medialane/ui";
+import { AssetCard, AssetCardSkeleton, LoadMoreSentinel } from "@medialane/ui";
 import { assetHref } from "@/lib/routes";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -173,18 +173,11 @@ function CollectionItems({ contract, activeListings }: { contract: string; activ
             })}
           </div>
         )}
-        {hasMore && (
-          <div className="flex justify-center">
-            <Button
-              variant="outline"
-              onClick={() => setPage((p) => p + 1)}
-              disabled={isLoading}
-            >
-              {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              Load more
-            </Button>
-          </div>
-        )}
+        <LoadMoreSentinel
+          hasMore={hasMore}
+          isLoading={isLoading}
+          onLoadMore={() => setPage((p) => p + 1)}
+        />
       </div>
     </>
   );
