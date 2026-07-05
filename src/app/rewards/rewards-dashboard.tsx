@@ -70,30 +70,6 @@ const BADGE_ICONS: Record<string, LucideIcon> = {
   Handshake,
 };
 
-// Deterministic two-tone gradient avatar from an address — same idea as the
-// wallet-row avatars in the nav command menu, so every address in the list
-// reads as a distinct person rather than an anonymous data row.
-function addressHue(address: string, offset = 0): number {
-  let hash = 0;
-  for (let i = 0; i < address.length; i++) hash = (hash * 31 + address.charCodeAt(i)) >>> 0;
-  return (hash + offset) % 360;
-}
-
-function AddressAvatar({ address, size = 32 }: { address: string; size?: number }) {
-  const h1 = addressHue(address);
-  const h2 = addressHue(address, 47);
-  return (
-    <span
-      className="inline-block shrink-0 rounded-full"
-      style={{
-        width: size,
-        height: size,
-        background: `linear-gradient(135deg, hsl(${h1} 85% 60%), hsl(${h2} 85% 55%))`,
-      }}
-    />
-  );
-}
-
 // ── Hero — just the title. Everything about the fund lives in its own
 // sidebar card now; this page is about the score system as a whole. ──────────
 
@@ -111,24 +87,24 @@ function Hero() {
 
 function CreatorsFundCard() {
   return (
-    <section className="relative rounded-3xl p-[1px] bg-gradient-to-br from-yellow-500/60 via-orange-400/30 to-rose-500/40">
+    <section className="relative rounded-3xl p-[1px] bg-gradient-to-br from-brand-purple/60 via-brand-blue/30 to-brand-rose/40">
       <div className="relative rounded-[23px] overflow-hidden bg-card p-6 space-y-4">
-        <div className="pointer-events-none absolute -top-16 -right-12 h-48 w-48 rounded-full bg-yellow-500/10 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-16 -left-12 h-48 w-48 rounded-full bg-orange-500/10 blur-3xl" />
+        <div className="pointer-events-none absolute -top-16 -right-12 h-48 w-48 rounded-full bg-brand-purple/10 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-16 -left-12 h-48 w-48 rounded-full bg-brand-blue/10 blur-3xl" />
 
         <div className="relative flex items-center gap-2">
-          <div className="h-6 w-6 rounded-lg bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shrink-0">
+          <div className="h-6 w-6 rounded-lg bg-gradient-to-br from-brand-purple to-brand-blue flex items-center justify-center shrink-0">
             <Gift className="h-3 w-3 text-white" />
           </div>
-          <span className="inline-flex items-center gap-1 rounded-full bg-orange-500/15 border border-orange-500/25 px-2 py-0.5 text-[10px] font-bold text-orange-400">
-            <span className="h-1.5 w-1.5 rounded-full bg-orange-400 animate-pulse" />
+          <span className="inline-flex items-center gap-1 rounded-full bg-brand-purple/15 border border-brand-purple/25 px-2 py-0.5 text-[10px] font-bold text-brand-purple">
+            <span className="h-1.5 w-1.5 rounded-full bg-brand-purple animate-pulse" />
             Live
           </span>
         </div>
 
         <h2 className="relative text-2xl font-black tracking-tight leading-tight">
           Creator&apos;s{" "}
-          <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">Fund</span>
+          <span className="bg-gradient-to-r from-brand-purple to-brand-blue bg-clip-text text-transparent">Fund</span>
         </h2>
 
         <p className="relative text-sm text-muted-foreground leading-relaxed">
@@ -139,7 +115,7 @@ function CreatorsFundCard() {
         <div className="relative flex flex-col gap-2 pt-1">
           <Link
             href="/airdrop"
-            className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 shadow-lg shadow-orange-500/25 transition-all hover:-translate-y-0.5"
+            className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-brand-purple to-brand-blue hover:brightness-110 shadow-lg shadow-brand-purple/25 transition-all hover:-translate-y-0.5"
           >
             <Gift className="h-4 w-4" />
             How the fund works
@@ -181,7 +157,6 @@ function StatusRow({ address }: { address: string | null | undefined }) {
 
   return (
     <div className="flex flex-wrap items-center gap-4">
-      <AddressAvatar address={address} size={36} />
       <span className="inline-flex items-center gap-1.5 text-sm font-semibold" style={{ color: rewards.badgeColor }}>
         <Star className="h-4 w-4" />
         {rewards.currentLevelName}
@@ -316,7 +291,7 @@ function BadgesPanel({ address }: { address: string | null | undefined }) {
   );
 }
 
-// ── Community — people taking part, with a generated avatar per address. ──────
+// ── Community — people taking part. ────────────────────────────────────────
 
 function CommunityPanel({ myAddress }: { myAddress: string | null | undefined }) {
   const { data, isLoading } = useLeaderboard(1, 20);
@@ -341,7 +316,6 @@ function CommunityPanel({ myAddress }: { myAddress: string | null | undefined })
                 const isMe = myAddress && entry.address.toLowerCase() === myAddress.toLowerCase();
                 return (
                   <div key={entry.address} className={cn("flex items-center gap-3 py-3", isMe && "text-primary")}>
-                    <AddressAvatar address={entry.address} />
                     <span className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
                       <AddressDisplay address={entry.address} chars={5} className="text-sm font-mono" />
                       <span className="text-xs font-semibold" style={{ color: entry.badgeColor }}>{entry.currentLevelName}</span>
