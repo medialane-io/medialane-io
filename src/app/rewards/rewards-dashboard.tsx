@@ -70,18 +70,16 @@ const BADGE_ICONS: Record<string, LucideIcon> = {
   Handshake,
 };
 
-// ── Hero — aurora blobs behind bold gradient type, the same ambient
-// treatment the hero slider and nav canvas use elsewhere on the platform.
-// One primary action gets the site's real signature: the animated
-// spectrum border used on the Buy button everywhere else. ────────────────────
+// ── Hero — no card, no border, no panel background. The aurora blobs sit
+// directly on the page (same as the hero slider), title in gradient-text. ────
 
 function Hero() {
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-border/60 bg-card px-6 py-10 sm:px-10 sm:py-14">
-      <div className="absolute aurora-purple w-[420px] h-[420px] -top-32 -left-20" />
-      <div className="absolute aurora-orange w-[360px] h-[360px] -bottom-24 -right-16" />
+    <section className="relative overflow-hidden px-1 py-2">
+      <div className="absolute aurora-purple w-[380px] h-[380px] -top-20 -left-24" />
+      <div className="absolute aurora-orange w-[320px] h-[320px] top-0 right-0" />
       <div className="relative max-w-2xl space-y-4">
-        <h1 className="text-4xl sm:text-5xl font-black tracking-tight gradient-text">Rewards</h1>
+        <h1 className="text-4xl sm:text-6xl font-black tracking-tight gradient-text">Rewards</h1>
         <p className="text-lg sm:text-xl font-medium leading-snug">
           Every $1,000 the community brings to Medialane, we send back out —
           split between everyone creating, collecting, and taking part.
@@ -91,14 +89,13 @@ function Hero() {
           grows with how much you take part — no ranks to unlock, no gates to pass.
         </p>
         <div className="flex flex-wrap items-center gap-3 pt-2">
-          <div className="btn-border-animated p-[1px] rounded-xl">
-            <Link
-              href="/airdrop"
-              className="flex h-11 items-center gap-2 rounded-[11px] bg-card px-5 text-sm font-semibold hover:brightness-110 transition-all"
-            >
-              How the fund works
-            </Link>
-          </div>
+          <Link
+            href="/airdrop"
+            className="inline-flex h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-brand-purple to-brand-blue px-5 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98]"
+          >
+            <Gift className="h-4 w-4" />
+            How the fund works
+          </Link>
           <a
             href="https://medialane.org/creators-fund"
             target="_blank"
@@ -156,14 +153,16 @@ function StatusRow({ address }: { address: string | null | undefined }) {
   );
 }
 
-// ── Ways to take part ──────────────────────────────────────────────────────────
+// ── Ways to take part — sidebar card, one accent color per theme. ─────────────
 
 const EARN_GROUPS: {
   title: string;
+  color: string;
   items: { label: string; href: string; Icon: React.ElementType }[];
 }[] = [
   {
     title: "Create",
+    color: "hsl(var(--brand-purple))",
     items: [
       { label: "Create a collection", href: "/create/collection", Icon: Layers },
       { label: "Mint an asset", href: "/create/asset", Icon: Palette },
@@ -174,6 +173,7 @@ const EARN_GROUPS: {
   },
   {
     title: "Collect",
+    color: "hsl(var(--brand-blue))",
     items: [
       { label: "Collect an asset", href: "/marketplace", Icon: ShoppingBag },
       { label: "Make an offer", href: "/marketplace", Icon: Handshake },
@@ -183,6 +183,7 @@ const EARN_GROUPS: {
   },
   {
     title: "Connect",
+    color: "hsl(var(--brand-rose))",
     items: [
       { label: "Start or join a club", href: "/launchpad", Icon: UserRoundCheck },
       { label: "Open a sponsorship", href: "/launchpad", Icon: Handshake },
@@ -194,19 +195,24 @@ const EARN_GROUPS: {
 
 function EarnMorePanel() {
   return (
-    <section className="space-y-5">
+    <section className="rounded-2xl border border-border/60 bg-card p-5 space-y-5">
       <h2 className="text-lg font-bold">Ways to take part</h2>
       {EARN_GROUPS.map((group) => (
         <div key={group.title} className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{group.title}</p>
-          <div className="flex flex-wrap gap-2">
+          <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: group.color }}>{group.title}</p>
+          <div className="space-y-1.5">
             {group.items.map(({ label, href, Icon }) => (
               <Link
                 key={href + label}
                 href={href}
-                className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium transition-colors hover:border-primary/40 hover:text-primary"
+                className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors hover:bg-muted/60"
               >
-                <Icon className="h-4 w-4" />
+                <span
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg"
+                  style={{ backgroundColor: `color-mix(in srgb, ${group.color} 14%, transparent)`, color: group.color }}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                </span>
                 {label}
               </Link>
             ))}
@@ -359,19 +365,29 @@ function PersonalPanel({ address }: { address: string | null | undefined }) {
   );
 }
 
-// ── Dashboard — one continuous page, no tabs to click through. ────────────────
+// ── Dashboard — Scoreboard leads (primary column); Ways to take part sits
+// in the sidebar. Two columns on desktop, single column on mobile. ───────────
 
 export function RewardsDashboard() {
   const { address } = useWallet();
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
       <Hero />
-      <StatusRow address={address} />
-      <PersonalPanel address={address} />
-      <EarnMorePanel />
-      <BadgesPanel address={address} />
-      <CommunityPanel myAddress={address} />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="lg:col-span-7 space-y-8">
+          <div className="space-y-3">
+            <h2 className="text-xl font-black">Scoreboard</h2>
+            <StatusRow address={address} />
+          </div>
+          <PersonalPanel address={address} />
+          <BadgesPanel address={address} />
+          <CommunityPanel myAddress={address} />
+        </div>
+        <div className="lg:col-span-5">
+          <EarnMorePanel />
+        </div>
+      </div>
     </div>
   );
 }
