@@ -6,8 +6,8 @@ import Link from "next/link";
 import { useActivities } from "@/hooks/use-activities";
 import type { ApiActivitiesQuery, ApiActivity } from "@medialane/sdk";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import { Loader2, Zap, Megaphone, ArrowRight, Pin } from "lucide-react";
+import { LoadMoreSentinel } from "@medialane/ui";
+import { Zap, Megaphone, ArrowRight, Pin } from "lucide-react";
 import { ACTIVITY_TYPE_CONFIG, TYPE_FILTERS } from "@/lib/activity";
 import { ActivityRow } from "@/components/shared/activity-row";
 import { useRewardsBatch } from "@/hooks/use-rewards";
@@ -204,29 +204,11 @@ export function ActivitiesFeed() {
             })}
           </div>
 
-          {(hasMore || isLoadingMore) && (
-            <div className="flex justify-center pt-2">
-              <Button
-                variant="outline"
-                size="lg"
-                disabled={isLoadingMore}
-                onClick={() => setPage((p) => p + 1)}
-              >
-                {isLoadingMore ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Loading…
-                  </>
-                ) : (
-                  `Load more${
-                    meta?.total
-                      ? ` (${meta.total - allActivities.length} remaining)`
-                      : ""
-                  }`
-                )}
-              </Button>
-            </div>
-          )}
+          <LoadMoreSentinel
+            hasMore={hasMore}
+            isLoading={isLoadingMore}
+            onLoadMore={() => setPage((p) => p + 1)}
+          />
         </div>
       )}
     </div>
