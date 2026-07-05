@@ -70,49 +70,68 @@ const BADGE_ICONS: Record<string, LucideIcon> = {
   Handshake,
 };
 
-// ── Hero — no card, no border, no panel background. The aurora blobs sit
-// directly on the page (same as the hero slider), title in gradient-text. ────
+// Deterministic two-tone gradient avatar from an address — same idea as the
+// wallet-row avatars in the nav command menu, so every address in the list
+// reads as a distinct person rather than an anonymous data row.
+function addressHue(address: string, offset = 0): number {
+  let hash = 0;
+  for (let i = 0; i < address.length; i++) hash = (hash * 31 + address.charCodeAt(i)) >>> 0;
+  return (hash + offset) % 360;
+}
+
+function AddressAvatar({ address, size = 32 }: { address: string; size?: number }) {
+  const h1 = addressHue(address);
+  const h2 = addressHue(address, 47);
+  return (
+    <span
+      className="inline-block shrink-0 rounded-full"
+      style={{
+        width: size,
+        height: size,
+        background: `linear-gradient(135deg, hsl(${h1} 85% 60%), hsl(${h2} 85% 55%))`,
+      }}
+    />
+  );
+}
+
+// ── Hero — plain, no background treatment at all. Bold gradient-text title,
+// body copy, two buttons. Nothing behind the text. ────────────────────────────
 
 function Hero() {
   return (
-    <section className="relative overflow-hidden px-1 py-2">
-      <div className="absolute aurora-purple w-[380px] h-[380px] -top-20 -left-24" />
-      <div className="absolute aurora-orange w-[320px] h-[320px] top-0 right-0" />
-      <div className="relative max-w-2xl space-y-4">
-        <h1 className="text-4xl sm:text-6xl font-black tracking-tight gradient-text">Rewards</h1>
-        <p className="text-lg sm:text-xl font-medium leading-snug">
-          Every $1,000 the community brings to Medialane, we send back out —
-          split between everyone creating, collecting, and taking part.
-        </p>
-        <p className="text-sm text-muted-foreground leading-relaxed max-w-xl">
-          The fund is a public wallet, open for anyone to check. Your share
-          grows with how much you take part — no ranks to unlock, no gates to pass.
-        </p>
-        <div className="flex flex-wrap items-center gap-3 pt-2">
-          <Link
-            href="/airdrop"
-            className="inline-flex h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-brand-purple to-brand-blue px-5 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98]"
-          >
-            <Gift className="h-4 w-4" />
-            How the fund works
-          </Link>
-          <a
-            href="https://medialane.org/creators-fund"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex h-11 items-center gap-2 rounded-xl border border-border px-5 text-sm font-semibold transition-colors hover:border-foreground/30"
-          >
-            Watch the wallet
-            <ExternalLink className="h-4 w-4" />
-          </a>
-        </div>
+    <section className="space-y-4 max-w-2xl">
+      <h1 className="text-4xl sm:text-6xl font-black tracking-tight gradient-text">Rewards</h1>
+      <p className="text-lg sm:text-xl font-medium leading-snug">
+        Every $1,000 the community brings to Medialane, we send back out —
+        split between everyone creating, collecting, and taking part.
+      </p>
+      <p className="text-sm text-muted-foreground leading-relaxed max-w-xl">
+        The fund is a public wallet, open for anyone to check. Your share
+        grows with how much you take part — no ranks to unlock, no gates to pass.
+      </p>
+      <div className="flex flex-wrap items-center gap-3 pt-2">
+        <Link
+          href="/airdrop"
+          className="inline-flex h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-brand-purple to-brand-blue px-5 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98]"
+        >
+          <Gift className="h-4 w-4" />
+          How the fund works
+        </Link>
+        <a
+          href="https://medialane.org/creators-fund"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex h-11 items-center gap-2 rounded-xl border border-border px-5 text-sm font-semibold transition-colors hover:border-foreground/30"
+        >
+          Watch the wallet
+          <ExternalLink className="h-4 w-4" />
+        </a>
       </div>
     </section>
   );
 }
 
-// ── Status — honest inline stat chips, the same idiom asset pages use for
-// price/floor/verified: small, colored, in one row, "—" when unknown. ────────
+// ── Status — honest inline stat chips. ─────────────────────────────────────────
 
 function StatusRow({ address }: { address: string | null | undefined }) {
   const { data: rewards, isLoading } = useRewards(address);
@@ -134,6 +153,7 @@ function StatusRow({ address }: { address: string | null | undefined }) {
 
   return (
     <div className="flex flex-wrap items-center gap-4">
+      <AddressAvatar address={address} size={36} />
       <span className="inline-flex items-center gap-1.5 text-sm font-semibold" style={{ color: rewards.badgeColor }}>
         <Star className="h-4 w-4" />
         {rewards.currentLevelName}
@@ -148,12 +168,11 @@ function StatusRow({ address }: { address: string | null | undefined }) {
           <span className="font-semibold text-foreground">{rewards.nextLevel.name}</span>
         </span>
       )}
-      <AddressDisplay address={address} chars={4} className="font-mono text-xs text-muted-foreground" />
     </div>
   );
 }
 
-// ── Ways to take part — sidebar card, one accent color per theme. ─────────────
+// ── Ways to take part — colored pill clusters, one hue per theme. ─────────────
 
 const EARN_GROUPS: {
   title: string;
@@ -195,24 +214,20 @@ const EARN_GROUPS: {
 
 function EarnMorePanel() {
   return (
-    <section className="rounded-2xl border border-border/60 bg-card p-5 space-y-5">
-      <h2 className="text-lg font-bold">Ways to take part</h2>
+    <section className="space-y-4">
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Ways to take part</h2>
       {EARN_GROUPS.map((group) => (
         <div key={group.title} className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: group.color }}>{group.title}</p>
-          <div className="space-y-1.5">
+          <p className="text-xs font-bold" style={{ color: group.color }}>{group.title}</p>
+          <div className="flex flex-wrap gap-1.5">
             {group.items.map(({ label, href, Icon }) => (
               <Link
                 key={href + label}
                 href={href}
-                className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors hover:bg-muted/60"
+                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-transform active:scale-[0.97]"
+                style={{ backgroundColor: `color-mix(in srgb, ${group.color} 12%, transparent)`, color: group.color }}
               >
-                <span
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg"
-                  style={{ backgroundColor: `color-mix(in srgb, ${group.color} 14%, transparent)`, color: group.color }}
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                </span>
+                <Icon className="h-3.5 w-3.5" />
                 {label}
               </Link>
             ))}
@@ -223,9 +238,9 @@ function EarnMorePanel() {
   );
 }
 
-// ── Badges — small colored pills for what you've earned, matching the
-// same bordered-chip idiom as action buttons across the platform. What you
-// haven't earned yet is a quiet text list underneath — no locked vault. ──────
+// ── Badges — earned ones as solid colored pills; the rest as matching
+// outline-only pills (same shape, quieter color) so it reads as one
+// designed set, not a sentence of words. ──────────────────────────────────────
 
 function BadgesPanel({ address }: { address: string | null | undefined }) {
   const { data: config, isLoading } = useRewardsConfig();
@@ -233,9 +248,9 @@ function BadgesPanel({ address }: { address: string | null | undefined }) {
 
   if (isLoading) {
     return (
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-1.5">
         {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className="h-9 w-28 rounded-full" />
+          <Skeleton key={i} className="h-7 w-24 rounded-full" />
         ))}
       </div>
     );
@@ -244,62 +259,59 @@ function BadgesPanel({ address }: { address: string | null | undefined }) {
   if (!config) return null;
 
   const earnedKeys = new Set(rewards?.badges.map((b) => b.key) ?? []);
-  const earned = config.badges.filter((b) => earnedKeys.has(b.key));
-  const rest = config.badges.filter((b) => !earnedKeys.has(b.key));
 
   return (
-    <section className="space-y-4">
-      <h2 className="text-lg font-bold">Badges</h2>
-      {earned.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {earned.map((badge: ApiRewardsBadge) => {
-            const Icon = BADGE_ICONS[badge.icon] ?? Award;
-            return (
-              <span
-                key={badge.key}
-                title={badge.description}
-                className="inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm font-semibold"
-                style={{ borderColor: `${badge.color}50`, backgroundColor: `${badge.color}12`, color: badge.color }}
-              >
-                <Icon className="h-4 w-4" />
-                {badge.name}
-              </span>
-            );
-          })}
-        </div>
-      )}
-      {rest.length > 0 && (
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          Still to discover: {rest.map((b) => b.name).join(" · ")}
-        </p>
-      )}
+    <section className="space-y-3">
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Badges</h2>
+      <div className="flex flex-wrap gap-1.5">
+        {config.badges.map((badge: ApiRewardsBadge) => {
+          const isEarned = earnedKeys.has(badge.key);
+          const Icon = BADGE_ICONS[badge.icon] ?? Award;
+          return (
+            <span
+              key={badge.key}
+              title={badge.description}
+              className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold"
+              style={
+                isEarned
+                  ? { borderColor: `${badge.color}55`, backgroundColor: `${badge.color}18`, color: badge.color }
+                  : { borderColor: "hsl(var(--border))", color: "hsl(var(--muted-foreground))" }
+              }
+            >
+              <Icon className="h-3.5 w-3.5" style={isEarned ? undefined : { opacity: 0.5 }} />
+              {badge.name}
+            </span>
+          );
+        })}
+      </div>
     </section>
   );
 }
 
-// ── Community — people taking part, plain list, no ranks. ─────────────────────
+// ── Community — people taking part, with a generated avatar per address. ──────
 
 function CommunityPanel({ myAddress }: { myAddress: string | null | undefined }) {
   const { data, isLoading } = useLeaderboard(1, 20);
 
   return (
     <section className="space-y-4">
-      <h2 className="text-lg font-bold">People taking part</h2>
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">People taking part</h2>
 
       {isLoading ? (
         <div className="space-y-1">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-11 w-full rounded-lg" />
+            <Skeleton key={i} className="h-14 w-full rounded-lg" />
           ))}
         </div>
       ) : (data?.data ?? []).length === 0 ? (
         <p className="text-sm text-muted-foreground">Nobody&apos;s earned points yet — be the first.</p>
       ) : (
-        <div className="divide-y divide-border/60 rounded-xl border border-border/60 overflow-hidden">
+        <div className="divide-y divide-border/60">
           {(data?.data ?? []).map((entry) => {
             const isMe = myAddress && entry.address.toLowerCase() === myAddress.toLowerCase();
             return (
-              <div key={entry.address} className={cn("flex items-center gap-3 px-4 py-3", isMe && "bg-primary/[0.05]")}>
+              <div key={entry.address} className={cn("flex items-center gap-3 py-3", isMe && "text-primary")}>
+                <AddressAvatar address={entry.address} />
                 <span className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
                   <AddressDisplay address={entry.address} chars={5} className="text-sm font-mono" />
                   <span className="text-xs font-semibold" style={{ color: entry.badgeColor }}>{entry.currentLevelName}</span>
@@ -332,32 +344,26 @@ function PersonalPanel({ address }: { address: string | null | undefined }) {
 
   return (
     <section className="space-y-4">
-      <h2 className="text-lg font-bold">Your points</h2>
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Your points</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Where they came from</p>
-          <div className="space-y-1">
-            {Object.entries(rewards.breakdown)
-              .sort(([, a], [, b]) => b - a)
-              .map(([action, xp]) => (
-                <div key={action} className="flex items-center justify-between text-sm py-1">
-                  <span className="text-muted-foreground">{actionLabel(action)}</span>
-                  <span className="font-semibold tabular-nums">+{xp.toLocaleString()}</span>
-                </div>
-              ))}
-          </div>
+        <div className="space-y-1">
+          {Object.entries(rewards.breakdown)
+            .sort(([, a], [, b]) => b - a)
+            .map(([action, xp]) => (
+              <div key={action} className="flex items-center justify-between text-sm py-1">
+                <span className="text-muted-foreground">{actionLabel(action)}</span>
+                <span className="font-semibold tabular-nums">+{xp.toLocaleString()}</span>
+              </div>
+            ))}
         </div>
         {events && events.data.length > 0 && (
-          <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Recent</p>
-            <div className="space-y-1">
-              {events.data.map((e) => (
-                <div key={e.id} className="flex items-center justify-between text-sm py-1">
-                  <span className="text-muted-foreground">{actionLabel(e.actionType)}</span>
-                  <span className="font-semibold tabular-nums text-emerald-500">+{e.finalXp}</span>
-                </div>
-              ))}
-            </div>
+          <div className="space-y-1">
+            {events.data.map((e) => (
+              <div key={e.id} className="flex items-center justify-between text-sm py-1">
+                <span className="text-muted-foreground">{actionLabel(e.actionType)}</span>
+                <span className="font-semibold tabular-nums text-emerald-500">+{e.finalXp}</span>
+              </div>
+            ))}
           </div>
         )}
       </div>
@@ -365,8 +371,8 @@ function PersonalPanel({ address }: { address: string | null | undefined }) {
   );
 }
 
-// ── Dashboard — Scoreboard leads (primary column); Ways to take part sits
-// in the sidebar. Two columns on desktop, single column on mobile. ───────────
+// ── Dashboard — Scoreboard (status + points + community) in the primary
+// column; Badges and Ways to take part in the sidebar. ────────────────────────
 
 export function RewardsDashboard() {
   const { address } = useWallet();
@@ -374,17 +380,17 @@ export function RewardsDashboard() {
   return (
     <div className="space-y-8">
       <Hero />
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
         <div className="lg:col-span-7 space-y-8">
           <div className="space-y-3">
             <h2 className="text-xl font-black">Scoreboard</h2>
             <StatusRow address={address} />
           </div>
           <PersonalPanel address={address} />
-          <BadgesPanel address={address} />
           <CommunityPanel myAddress={address} />
         </div>
-        <div className="lg:col-span-5">
+        <div className="lg:col-span-5 space-y-8">
+          <BadgesPanel address={address} />
           <EarnMorePanel />
         </div>
       </div>
