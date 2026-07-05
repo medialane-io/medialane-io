@@ -7,8 +7,8 @@ import { ListingDialog } from "@/components/marketplace/listing-dialog";
 import { TransferDialog } from "@/components/marketplace/transfer-dialog";
 import { CancelOrderDialog } from "@/components/marketplace/cancel-order-dialog";
 import { EmptyOrError } from "@/components/ui/empty-or-error";
-import { Button } from "@/components/ui/button";
-import { ImageIcon, Loader2 } from "lucide-react";
+import { LoadMoreSentinel } from "@medialane/ui";
+import { ImageIcon } from "lucide-react";
 import type { ApiToken } from "@medialane/sdk";
 
 interface AssetsGridProps {
@@ -104,18 +104,11 @@ export function AssetsGrid({ address }: AssetsGridProps) {
           ))}
         </div>
 
-        {hasMore && (
-          <div className="flex justify-center mt-6">
-            <Button
-              variant="outline"
-              onClick={() => setPage((p) => p + 1)}
-              disabled={isLoading}
-            >
-              {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              Load more
-            </Button>
-          </div>
-        )}
+        <LoadMoreSentinel
+          hasMore={hasMore}
+          isLoading={isLoading}
+          onLoadMore={() => setPage((p) => p + 1)}
+        />
       </EmptyOrError>
 
       {selectedToken && (
