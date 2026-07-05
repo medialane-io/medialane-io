@@ -20,21 +20,11 @@ import { IpTypeBadge } from "@/components/shared/ip-type-badge";
 import { ReportDialog } from "@/components/report-dialog";
 import { OfferDialog } from "@/components/marketplace/offer-dialog";
 import { cn, ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
-import type { RarityTier } from "@/lib/rarity";
 import type { ApiToken } from "@medialane/sdk";
-
-const RARITY_STYLE: Record<RarityTier, { label: string; className: string } | null> = {
-  legendary: { label: "Legendary", className: "bg-yellow-400/90 text-yellow-900" },
-  epic:      { label: "Epic",      className: "bg-purple-500/85 text-white" },
-  rare:      { label: "Rare",      className: "bg-blue-500/85 text-white" },
-  uncommon:  { label: "Uncommon",  className: "bg-emerald-500/85 text-white" },
-  common:    null,
-};
 
 interface TokenCardProps {
   token: ApiToken;
   isOwner?: boolean;
-  rarityTier?: RarityTier;
   onList?: (token: ApiToken) => void;
   onTransfer?: (token: ApiToken) => void;
   onCancel?: (token: ApiToken) => void;
@@ -45,7 +35,6 @@ interface TokenCardProps {
 export function TokenCard({
   token,
   isOwner = false,
-  rarityTier,
   onList,
   onTransfer,
   onCancel,
@@ -110,18 +99,6 @@ export function TokenCard({
             ) : (
               <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-brand-purple/15 to-brand-blue/15">
                 <span className="text-2xl font-mono text-muted-foreground">#{token.tokenId}</span>
-              </div>
-            )}
-
-            {/* Rarity — top right */}
-            {rarityTier && RARITY_STYLE[rarityTier] && (
-              <div className="absolute top-2 right-2 z-10">
-                <span className={cn(
-                  "inline-flex items-center px-1.5 py-0.5 rounded-md backdrop-blur-sm text-[10px] font-bold leading-none",
-                  RARITY_STYLE[rarityTier]!.className
-                )}>
-                  {RARITY_STYLE[rarityTier]!.label}
-                </span>
               </div>
             )}
 
