@@ -14,6 +14,7 @@
  */
 
 import { useState, useCallback } from "react";
+import { rewardToast } from "@/lib/reward-toast";
 import type { Call } from "starknet";
 import {
   buildCreateCreatorCoinCall,
@@ -127,6 +128,7 @@ export function useLaunchCoin() {
         }).catch(() => { /* poll backstop will index it */ });
 
         setStatus("done");
+        rewardToast("launch_coin");
         return { coinAddress };
       } catch (e) {
         setStatus("error");

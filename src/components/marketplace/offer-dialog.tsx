@@ -8,6 +8,7 @@ import * as z from "zod";
 import { AlertCircle, AlertTriangle, HandCoins, Layers, ShieldCheck, Zap } from "lucide-react";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { fireConfetti } from "@/lib/confetti";
+import { rewardToast } from "@/lib/reward-toast";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
@@ -170,6 +171,7 @@ export function OfferDialog({
     if (isSuccess && !confettiFired.current) {
       confettiFired.current = true;
       fireConfetti();
+      rewardToast("make_offer");
       mutate((key) => typeof key === "string" && key.includes("/v1/orders"), undefined, { revalidate: true });
     }
     if (!isSuccess) confettiFired.current = false;

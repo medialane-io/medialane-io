@@ -16,6 +16,7 @@ import { useUser } from "@clerk/nextjs";
 import { STARKNET_IP_CLUB_REGISTRY_CONTRACT } from "@/lib/constants";
 import { IPClubABI, getTokenBySymbol } from "@medialane/sdk";
 import { LaunchpadSuccessState, LaunchpadErrorState, LaunchpadProcessingState } from "@/components/launchpad/launchpad-success-state";
+import { rewardToast } from "@/lib/reward-toast";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { CreateClubAside } from "@/components/claim/create-club-aside";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
@@ -64,10 +65,12 @@ export default function CreateClubPage() {
         feeBigInt != null ? { Some: token!.address } : { None: undefined },
       ]);
 
-      return action.executeTransaction({
+      const result = await action.executeTransaction({
         pin: secret,
         calls: [{ contractAddress: STARKNET_IP_CLUB_REGISTRY_CONTRACT, entrypoint: "create_club", calldata: call.calldata as string[] }],
       });
+      if (result.status === "confirmed") rewardToast("create_club");
+      return result;
     });
   };
 

@@ -12,6 +12,7 @@ import { MarketplaceErrorState, MarketplaceSuccessState } from "@/components/mar
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useUser } from "@clerk/nextjs";
 import { usePopClaimStatus } from "@/hooks/use-pop";
+import { rewardToast } from "@/lib/reward-toast";
 import { EXPLORER_URL } from "@/lib/constants";
 
 interface PopClaimButtonProps {
@@ -40,7 +41,10 @@ export function PopClaimButton({ collectionAddress }: PopClaimButtonProps) {
         pin: secret,
         calls: [{ contractAddress: collectionAddress, entrypoint: "claim", calldata: [] }],
       });
-      if (result.status === "confirmed") mutate();
+      if (result.status === "confirmed") {
+        mutate();
+        rewardToast("claim_pop");
+      }
       return result;
     });
   };

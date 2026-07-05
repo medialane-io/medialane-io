@@ -26,6 +26,7 @@ import { readAssignedEditionId } from "@/lib/erc1155-edition";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { MintEditionAside } from "@/components/claim/mint-edition-aside";
+import { rewardToast } from "@/lib/reward-toast";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 import { EXPLORER_URL } from "@/lib/constants";
@@ -214,6 +215,7 @@ export default function MintIP1155Page() {
         setMintedTokenId(await readAssignedEditionId(result.txHash, collectionAddress));
         if (walletAddress) invalidatePortfolioCache(walletAddress);
         setMintStep("success");
+        rewardToast("mint_asset");
       } else {
         setMintError(result.revertReason ?? "Transaction reverted");
         setMintStep("error");

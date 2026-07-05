@@ -18,6 +18,7 @@ import { STARKNET_IP_SPONSORSHIP_CONTRACT } from "@/lib/constants";
 import { IPSponsorshipABI, getTokenBySymbol } from "@medialane/sdk";
 import { LaunchpadSuccessState, LaunchpadErrorState, LaunchpadProcessingState } from "@/components/launchpad/launchpad-success-state";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
+import { rewardToast } from "@/lib/reward-toast";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { Handshake as HandshakeAsideIcon, ShieldCheck, Coins, Gift } from "lucide-react";
 import { ClaimRail } from "@/components/claim/claim-rail";
@@ -88,10 +89,12 @@ export default function CreateSponsorshipOfferPage() {
         { None: undefined },
       ]);
 
-      return action.executeTransaction({
+      const result = await action.executeTransaction({
         pin: secret,
         calls: [{ contractAddress: STARKNET_IP_SPONSORSHIP_CONTRACT, entrypoint: "create_offer", calldata: call.calldata as string[] }],
       });
+      if (result.status === "confirmed") rewardToast("create_sponsorship_offer");
+      return result;
     });
   };
 

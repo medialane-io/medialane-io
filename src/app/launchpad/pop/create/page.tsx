@@ -26,6 +26,7 @@ import { PopCreateForm } from "../pop-create-form";
 import { popCreateSchema, type PopCreateFormValues } from "../pop-create-schema";
 import { LaunchpadSuccessState, LaunchpadErrorState, LaunchpadProcessingState } from "@/components/launchpad/launchpad-success-state";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
+import { rewardToast } from "@/lib/reward-toast";
 import { CreatePopAside } from "@/components/claim/create-pop-aside";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 
@@ -138,7 +139,7 @@ export default function CreatePOPPage() {
     ]);
 
     // action owns status/error — return the result, throw on real failure.
-    return action.executeTransaction({
+    const result = await action.executeTransaction({
       pin: secret,
       calls: [{
         contractAddress: STARKNET_POP_FACTORY_CONTRACT,
@@ -146,6 +147,8 @@ export default function CreatePOPPage() {
         calldata: call.calldata as string[],
       }],
     });
+    if (result.status === "confirmed") rewardToast("launch_launchpad");
+    return result;
   };
 
   // ── Error ──────────────────────────────────────────────────────────────────

@@ -1,6 +1,7 @@
 "use client";
 
 import { uploadImageToIpfs } from "@/lib/upload-image";
+import { rewardToast } from "@/lib/reward-toast";
 import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -233,6 +234,7 @@ export default function CreateCollectionPage() {
     }
     await syncCollectionFromTx(result.txHash);
     invalidatePortfolioCache(walletAddress);
+    rewardToast("create_collection");
     return result;
   };
 

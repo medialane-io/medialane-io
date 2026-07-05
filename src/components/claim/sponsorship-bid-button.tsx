@@ -10,6 +10,7 @@ import { PinDialog } from "@/components/chipi/pin-dialog";
 import { useWriteAction } from "@/hooks/use-write-action";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { MarketplaceErrorState, MarketplaceSuccessState } from "@/components/marketplace/marketplace-dialog-primitives";
+import { rewardToast } from "@/lib/reward-toast";
 import { useUser } from "@clerk/nextjs";
 import { EXPLORER_URL } from "@/lib/constants";
 import { STARKNET_IP_SPONSORSHIP_CONTRACT } from "@/lib/constants";
@@ -57,7 +58,10 @@ export function SponsorshipBidButton({ offerId, minAmount, paymentToken, onBidPl
           { contractAddress: STARKNET_IP_SPONSORSHIP_CONTRACT, entrypoint: "place_bid", calldata: [offerId, "0", low, high] },
         ],
       });
-      if (result.status === "confirmed") onBidPlaced?.();
+      if (result.status === "confirmed") {
+        onBidPlaced?.();
+        rewardToast("place_sponsorship_bid");
+      }
       return result;
     });
   };

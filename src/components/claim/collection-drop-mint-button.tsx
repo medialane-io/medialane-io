@@ -15,6 +15,7 @@ import { useUser } from "@clerk/nextjs";
 import { useDropMintStatus, type DropConditions } from "@/hooks/use-drops";
 import { getListableTokens } from "@medialane/sdk";
 import { useFeeCharge } from "@/hooks/use-fee-charge";
+import { rewardToast } from "@/lib/reward-toast";
 
 interface CollectionDropMintButtonProps {
   collectionAddress: string;
@@ -111,6 +112,7 @@ export function CollectionDropMintButton({
     if (result.status === "reverted") return result;
 
     mutate();
+    rewardToast("claim_drop");
     // Fee — un-awaited fire-and-forget; paid mints only. Drop claim quantity is
     // fixed at 1, so grossAmount = price.
     if (isPaid && conditions && conditions.paymentToken !== "0x0") {

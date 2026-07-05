@@ -25,6 +25,7 @@ import type { DraftItem } from "../drop-item-list";
 import type { MetadataField } from "@/components/create/ip-type-fields";
 import { LaunchpadSuccessState, LaunchpadErrorState, LaunchpadProcessingState } from "@/components/launchpad/launchpad-success-state";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
+import { rewardToast } from "@/lib/reward-toast";
 import { CreateDropAside } from "@/components/claim/create-drop-aside";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 
@@ -255,6 +256,7 @@ export default function CreateDropPage() {
       calls: [{ contractAddress: STARKNET_DROP_FACTORY_CONTRACT, entrypoint: "create_drop", calldata: call.calldata as string[] }],
     });
     if (result.status === "reverted") return result; // action surfaces the revert
+    if (result.status === "confirmed") rewardToast("launch_launchpad");
 
     // If a whitelist was provided, find the new drop address (indexer ~6-30s) and set it.
     // Best-effort — the drop already exists onchain; the creator can finish in Manage.

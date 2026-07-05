@@ -15,6 +15,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { AddressDisplay } from "@/components/shared/address-display";
+import { LevelBadge } from "@medialane/ui";
+import { useRewardsBatch } from "@/hooks/use-rewards";
+import { rewardToast } from "@/lib/reward-toast";
 import { STARKNET_NFTCOMMENTS_CONTRACT, EXPLORER_URL } from "@/lib/constants";
 import { MessageCircle, Loader2, Send, CheckCircle, X, ExternalLink, Flag, Zap } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -55,6 +58,8 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
   const { openSignIn } = useClerk();
   const { hasWallet, walletAddress } = useSessionKey();
   const { comments, total, isLoading, mutate } = useComments(contract, tokenId);
+  // One batched rewards lookup for all visible authors — never per row.
+  const { data: authorLevels } = useRewardsBatch(comments.map((c) => c.author));
   const action = useWriteAction();
 
   const [text, setText] = useState("");
@@ -112,6 +117,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
     setText("");
     if (composeRef.current) composeRef.current.style.height = "auto";
     setTimeout(() => mutate(), 30_000);
+    rewardToast("comment");
     return result;
   };
 
@@ -197,6 +203,18 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
                       >
                         {own ? "You" : <AddressDisplay address={comment.author} chars={5} showCopy={false} />}
                       </Link>
+                      {!own && (() => {
+                        const level = authorLevels?.get(comment.author);
+                        if (!level || level.totalXp <= 0) return null;
+                        return (
+                          <LevelBadge
+                            level={level.currentLevel}
+                            name={level.currentLevelName}
+                            badgeColor={level.badgeColor}
+                            size="sm"
+                          />
+                        );
+                      })()}
                       <span className="text-[10px] text-muted-foreground" title={comment.postedAt}>
                         {formatDistanceToNow(new Date(comment.postedAt), { addSuffix: true })}
                       </span>

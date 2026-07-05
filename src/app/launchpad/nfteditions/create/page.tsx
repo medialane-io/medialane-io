@@ -22,6 +22,7 @@ import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { CreateEditionsAside } from "@/components/claim/create-editions-aside";
+import { rewardToast } from "@/lib/reward-toast";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { NftEditionsCreateForm } from "../nfteditions-create-form";
 import {
@@ -144,6 +145,7 @@ export default function CreateIP1155CollectionPage() {
       if (result.status !== "confirmed") {
         throw new Error(result.revertReason ?? "Transaction reverted");
       }
+      rewardToast("create_collection");
 
       // 3. Extract deployed collection address from CollectionDeployed event.
       // Best-effort: if we can't parse the event the tx still succeeded — the

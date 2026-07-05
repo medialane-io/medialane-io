@@ -10,6 +10,7 @@ import {
   CheckCircle2, ShieldCheck,
 } from "lucide-react";
 import { fireConfetti } from "@/lib/confetti";
+import { rewardToast } from "@/lib/reward-toast";
 import { assetHref as buildAssetHref } from "@/lib/routes";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -220,6 +221,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
     setSuccessTxHash(hash ?? null);
     setStep("success");
     fireConfetti();
+    rewardToast("buy_asset");
   };
 
   const {

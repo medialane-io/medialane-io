@@ -1,6 +1,7 @@
 "use client";
 
 import { uploadImageToIpfs } from "@/lib/upload-image";
+import { rewardToast } from "@/lib/reward-toast";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { getService } from "@medialane/sdk";
 import { useForm } from "react-hook-form";
@@ -340,6 +341,7 @@ export default function CreateAssetPage() {
       }
 
       setMintStep("success");
+      rewardToast("mint_asset");
       // Self-heal the authoritative record — `secret` just decrypted the wallet,
       // so `method` is proven (corrects a stale "passkey" record on a PIN wallet).
       if (method !== recordedMethod) void recordWalletAuthMethod(method);

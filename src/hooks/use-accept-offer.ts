@@ -6,6 +6,7 @@ import { useWalletAuthMethod } from "@/hooks/use-wallet-auth-method";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { useMarketplaceActionFlow } from "@/hooks/use-marketplace-action-flow";
 import { useTokenBalance, hasSufficientBalance } from "@/hooks/use-erc20-balance";
+import { rewardToast } from "@/lib/reward-toast";
 import type { ApiOrder } from "@medialane/sdk";
 
 interface UseAcceptOfferOptions {
@@ -61,6 +62,7 @@ export function useAcceptOffer({ mutateListings, tokenStandard, activeListings =
         if (!hash) throw new Error("Transaction failed — check your portfolio");
         setTxHash(hash);
         setResultStep("success");
+        rewardToast("offer_accepted_seller");
         mutateListings();
       } catch (err) {
         setError(err instanceof Error ? err.message : "Acceptance failed");

@@ -23,6 +23,7 @@ import { useMyTicketCollections } from "@/hooks/use-tickets";
 import { LaunchpadSuccessState, LaunchpadErrorState, LaunchpadProcessingState } from "@/components/launchpad/launchpad-success-state";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { CreateTicketAside } from "@/components/claim/create-ticket-aside";
+import { rewardToast } from "@/lib/reward-toast";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 
 const deploySchema = z.object({
@@ -76,6 +77,7 @@ export default function CreateTicketsPage() {
       });
       if (result.status === "confirmed") {
         setJustDeployed(true);
+        rewardToast("create_ticket_collection");
         mutate();
       }
       return result;
