@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AddressDisplay } from "@/components/shared/address-display";
 import { SignInButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { useWallet } from "@/hooks/use-wallet";
-import { useRewards, useLeaderboard, useRewardsConfig, useRewardsEvents } from "@/hooks/use-rewards";
+import { useRewards, useRewardsConfig, useRewardsEvents } from "@/hooks/use-rewards";
+import { LeaderboardPanel } from "@/components/rewards/leaderboard-panel";
 import type { ApiRewardsBadge } from "@medialane/sdk";
 import {
   Gift,
@@ -35,7 +35,6 @@ import {
   HandCoins,
   Flame,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 // Fallback labels — the live labels come from the rewards config endpoint.
 const ACTION_LABELS: Record<string, string> = {
@@ -291,51 +290,6 @@ function BadgesPanel({ address }: { address: string | null | undefined }) {
   );
 }
 
-// ── Community — people taking part. ────────────────────────────────────────
-
-function CommunityPanel({ myAddress }: { myAddress: string | null | undefined }) {
-  const { data, isLoading } = useLeaderboard(1, 20);
-
-  return (
-    <section className="space-y-4">
-      <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">People taking part</h2>
-
-      <div className="btn-border-animated rounded-2xl p-[1px]">
-        <div className="rounded-[15px] bg-background px-4 sm:px-5">
-          {isLoading ? (
-            <div className="space-y-1 py-3">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <Skeleton key={i} className="h-14 w-full rounded-lg" />
-              ))}
-            </div>
-          ) : (data?.data ?? []).length === 0 ? (
-            <p className="text-sm text-muted-foreground py-6">Nobody&apos;s earned points yet — be the first.</p>
-          ) : (
-            <div className="divide-y divide-border/60">
-              {(data?.data ?? []).map((entry) => {
-                const isMe = myAddress && entry.address.toLowerCase() === myAddress.toLowerCase();
-                return (
-                  <div key={entry.address} className={cn("flex items-center gap-3 py-3", isMe && "text-primary")}>
-                    <span className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
-                      <AddressDisplay address={entry.address} chars={5} className="text-sm font-mono" />
-                      <span className="text-xs font-semibold" style={{ color: entry.badgeColor }}>{entry.currentLevelName}</span>
-                      {isMe && <span className="text-[10px] font-bold uppercase tracking-wider text-primary">you</span>}
-                    </span>
-                    <span className="text-sm font-semibold tabular-nums shrink-0">
-                      {entry.totalXp.toLocaleString()}
-                      <span className="ml-1 text-xs text-muted-foreground font-normal">points</span>
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 // ── Recent + breakdown (only when signed in) ───────────────────────────────────
 
 function PersonalPanel({ address }: { address: string | null | undefined }) {
@@ -393,7 +347,7 @@ export function RewardsDashboard() {
             <StatusRow address={address} />
           </div>
           <PersonalPanel address={address} />
-          <CommunityPanel myAddress={address} />
+          <LeaderboardPanel myAddress={address} />
         </div>
         <div className="lg:col-span-5 space-y-8">
           <CreatorsFundCard />

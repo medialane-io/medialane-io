@@ -187,7 +187,7 @@ export function ActivityRow({
             href={txLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center h-6 w-6 rounded-md hover:bg-muted transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+            className="inline-flex items-center justify-center h-6 w-6 rounded-md hover:bg-muted transition-colors opacity-50 sm:opacity-0 sm:group-hover:opacity-100 shrink-0"
             aria-label="View transaction on Voyager"
             title="View on Voyager"
           >

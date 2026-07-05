@@ -12,7 +12,7 @@ export function TopCreators() {
   return (
     <LeaderboardWidget
       entries={data.data}
-      title="Top Creators"
+      title="Community Rewards"
       href="/rewards"
       renderAddress={(address) => (
         <Link href={`/account/${address}`} className="hover:text-primary transition-colors">
