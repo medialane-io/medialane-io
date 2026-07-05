@@ -9,7 +9,7 @@ import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useUserOrders } from "@/hooks/use-orders";
 import { FadeIn } from "@/components/ui/motion-primitives";
 import { BRAND } from "@/lib/brand";
-import { LaunchpadGroupedSections, type ServiceOverrides } from "@medialane/ui";
+import { LaunchpadGroupedSections, LaunchpadFilterBar, useLaunchpadFilter, type ServiceOverrides } from "@medialane/ui";
 import {
   Zap, Package, Tag, ShoppingCart,
   ExternalLink, ArrowRight,
@@ -62,6 +62,7 @@ const IO_OVERRIDES: ServiceOverrides = {
 export function LaunchpadContent() {
   const { isSignedIn } = useUser();
   const { walletAddress } = useSessionKey();
+  const filter = useLaunchpadFilter();
 
   return (
     <div className="relative pb-20 space-y-12 sm:space-y-20">
@@ -84,22 +85,29 @@ export function LaunchpadContent() {
 
       {/* ── Hero ─────────────────────────────────────────────── */}
       <section className="relative overflow-hidden">
-        <div className="px-4 py-14 sm:py-20">
-          <FadeIn>
-            <span className="pill-badge mb-5 inline-flex">
-              <Zap className="h-3 w-3" />
-              Creator
-            </span>
-          </FadeIn>
-          <FadeIn delay={0.08}>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight mb-3">
-              <span className="gradient-text">Launchpad</span>
-            </h1>
-          </FadeIn>
+        <div className="px-4 py-14 sm:py-20 space-y-6">
+          <div>
+            <FadeIn>
+              <span className="pill-badge mb-5 inline-flex">
+                <Zap className="h-3 w-3" />
+                Creator
+              </span>
+            </FadeIn>
+            <FadeIn delay={0.08}>
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight">
+                <span className="gradient-text">Launchpad</span>
+              </h1>
+            </FadeIn>
+          </div>
           <FadeIn delay={0.16}>
-            <p className="text-muted-foreground text-base max-w-xl leading-relaxed">
-              Publish your work, grow your community, and earn from what you create.
-            </p>
+            <LaunchpadFilterBar
+              query={filter.query}
+              onQueryChange={filter.setQuery}
+              groups={filter.filterableGroups}
+              activeGroups={filter.activeGroups}
+              onToggleGroup={filter.toggleGroup}
+              resultCount={filter.totalMatches}
+            />
           </FadeIn>
           {isSignedIn && walletAddress && (
             <FadeIn delay={0.24}>
@@ -111,7 +119,12 @@ export function LaunchpadContent() {
 
       {/* ── Grouped services (shared @medialane/ui component) ─── */}
       <section className="px-4">
-        <LaunchpadGroupedSections overrides={IO_OVERRIDES} />
+        <LaunchpadGroupedSections
+          overrides={IO_OVERRIDES}
+          query={filter.query}
+          activeGroups={filter.activeGroups}
+          onClearFilters={filter.clear}
+        />
       </section>
 
       {/* ── Web3 dapp callout ─────────────────────────────────── */}
