@@ -6,6 +6,7 @@ import Link from "next/link";
 import { CommentsSection } from "@/components/asset/comments-section";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { CreatorScoreInline } from "@/components/rewards/creator-score-inline";
 
 interface HolderLike {
   owner: string;
@@ -37,12 +38,15 @@ export function AssetOwnersPanel({
       <div className="flex flex-col gap-1.5">
         {balances.slice(0, maxVisible).map((balance) => (
           <div key={balance.owner} className="flex items-center justify-between gap-2">
-            <Link
-              href={`/creator/${balance.owner}`}
-              className="hover:text-primary transition-colors font-medium text-sm truncate"
-            >
-              <AddressDisplay address={balance.owner} chars={6} showCopy={false} />
-            </Link>
+            <div className="flex min-w-0 items-center gap-1.5">
+              <Link
+                href={`/creator/${balance.owner}`}
+                className="hover:text-primary transition-colors font-medium text-sm truncate"
+              >
+                <AddressDisplay address={balance.owner} chars={6} showCopy={false} />
+              </Link>
+              <CreatorScoreInline address={balance.owner} size="sm" />
+            </div>
             {showAmount ? (
               <span className="text-xs text-muted-foreground shrink-0 tabular-nums">
                 × {balance.amount}

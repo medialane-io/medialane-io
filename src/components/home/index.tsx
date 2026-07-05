@@ -5,6 +5,7 @@ import { AirdropSection } from "./airdrop-section";
 import { CreatorAirdropBanner } from "./creator-airdrop";
 import { TrendingCollections } from "./trending-collections";
 import { NewOnMarketplace } from "./new-on-marketplace";
+import { TopCreators } from "./top-creators";
 import { ActivityTicker } from "@/components/shared/activity-ticker";
 
 export function HomePage() {
@@ -22,6 +23,7 @@ export function HomePage() {
       <div className="container mx-auto px-4 sm:px-6 space-y-20 mt-16">
         <TrendingCollections />
         <NewOnMarketplace />
+        <TopCreators />
         <CreatorAirdropBanner />
         <AirdropSection />
       </div>

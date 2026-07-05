@@ -14,6 +14,7 @@ import { ListingDialog } from "@/components/marketplace/listing-dialog";
 import type { ApiToken } from "@medialane/sdk";
 import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
 import { AddressDisplay } from "@/components/shared/address-display";
+import { CreatorScoreInline } from "@/components/rewards/creator-score-inline";
 import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listing-card";
 import { CollectionCard, CollectionCardSkeleton } from "@medialane/ui";
 import { Button } from "@/components/ui/button";
@@ -205,11 +206,14 @@ export default function CreatorPageClient() {
       {/* ── Header ───────────────────────────────────────────────────────── */}
       <div className="px-6 pt-20 pb-2 flex items-start justify-between gap-3">
         <div className="space-y-1.5 min-w-0">
-          <AddressDisplay
-            address={address ?? ""}
-            chars={10}
-            className="text-base font-mono font-semibold"
-          />
+          <div className="flex flex-wrap items-center gap-2">
+            <AddressDisplay
+              address={address ?? ""}
+              chars={10}
+              className="text-base font-mono font-semibold"
+            />
+            <CreatorScoreInline address={address} size="sm" />
+          </div>
           {(() => {
             const parts: string[] = [];
             if (tabBadge.assets      !== undefined) parts.push(`${tabBadge.assets} ${tabBadge.assets === 1 ? "asset" : "assets"}`);

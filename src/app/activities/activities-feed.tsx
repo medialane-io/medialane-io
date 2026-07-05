@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Zap, Megaphone, ArrowRight, Pin } from "lucide-react";
 import { ACTIVITY_TYPE_CONFIG, TYPE_FILTERS } from "@/lib/activity";
 import { ActivityRow } from "@/components/shared/activity-row";
+import { useRewardsBatch } from "@/hooks/use-rewards";
 import { cn } from "@/lib/utils";
 import type { Announcement } from "@/types/notification";
 
@@ -91,6 +92,12 @@ export function ActivitiesFeed() {
       });
     }
   }, [activities, isLoading, page]);
+
+  // One batched rewards lookup per page — never per row.
+  const pageActors = allActivities
+    .map((a) => a.offerer ?? a.fulfiller ?? (a.type === "mint" ? a.to : a.from))
+    .filter((a): a is string => Boolean(a));
+  const { data: actorLevels } = useRewardsBatch(pageActors);
 
   const isInitialLoading = isLoading && allActivities.length === 0;
   const isLoadingMore = isLoading && allActivities.length > 0;
@@ -183,14 +190,18 @@ export function ActivitiesFeed() {
       ) : (
         <div className="space-y-4">
           <div className="divide-y divide-border/50 rounded-xl border border-border overflow-hidden">
-            {allActivities.map((activity, i) => (
-              <ActivityRow
-                key={`${activity.txHash}-${activity.type}-${activity.nftTokenId ?? i}`}
-                activity={activity}
-                showActor
-                showExplorer
-              />
-            ))}
+            {allActivities.map((activity, i) => {
+              const actor = activity.offerer ?? activity.fulfiller ?? (activity.type === "mint" ? activity.to : activity.from);
+              return (
+                <ActivityRow
+                  key={`${activity.txHash}-${activity.type}-${activity.nftTokenId ?? i}`}
+                  activity={activity}
+                  showActor
+                  showExplorer
+                  actorLevel={actor ? actorLevels?.get(actor) : undefined}
+                />
+              );
+            })}
           </div>
 
           {(hasMore || isLoadingMore) && (

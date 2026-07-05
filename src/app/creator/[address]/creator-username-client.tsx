@@ -8,6 +8,7 @@ import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { useUserOrders } from "@/hooks/use-orders";
 import { useActivitiesByAddress } from "@/hooks/use-activities";
+import { CreatorScoreInline } from "@/components/rewards/creator-score-inline";
 import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listing-card";
 import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
 import { CollectionCard, CollectionCardSkeleton } from "@medialane/ui";
@@ -194,7 +195,10 @@ export default function CreatorUsernamePageClient({ username }: Props) {
 
       {/* ── Identity ────────────────────────────────────────────────────── */}
       <div className="px-6 pt-5 pb-1">
-        <h1 className="text-2xl font-bold leading-tight">{displayName}</h1>
+        <div className="flex flex-wrap items-center gap-2">
+          <h1 className="text-2xl font-bold leading-tight">{displayName}</h1>
+          <CreatorScoreInline address={walletAddress} size="sm" />
+        </div>
         {showUsername && (
           <p className="text-sm text-muted-foreground mt-0.5">{creator.username}</p>
         )}

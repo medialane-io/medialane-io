@@ -5,19 +5,20 @@ import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { assetHref } from "@/lib/routes";
 import { AddressDisplay } from "@/components/shared/address-display";
+import { LevelBadge } from "@medialane/ui";
 import { ipfsToHttp, timeAgo, formatDisplayPrice, cn } from "@/lib/utils";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { ACTIVITY_TYPE_CONFIG } from "@/lib/activity";
 import { EXPLORER_URL } from "@/lib/constants";
-import type { ApiActivity } from "@medialane/sdk";
+import type { ApiActivity, ApiRewardsBatchEntry } from "@medialane/sdk";
 
-export const ACTIVITY_MESSAGES: Record<string, (actor: string | null) => string> = {
-  mint:      (actor) => actor ? `Minted by ${actor}` : "Newly minted",
-  listing:   (actor) => actor ? `Listed by ${actor}` : "Listed for sale",
-  sale:      (actor) => actor ? `Purchased by ${actor}` : "Sold",
-  offer:     (actor) => actor ? `Offer by ${actor}` : "Offer placed",
-  transfer:  (actor) => actor ? `Transferred by ${actor}` : "Transferred",
-  cancelled: (actor) => actor ? `Cancelled by ${actor}` : "Listing cancelled",
+export const ACTIVITY_MESSAGES: Record<string, string> = {
+  mint: "Newly minted",
+  listing: "Listed for sale",
+  sale: "Purchased",
+  offer: "Offer placed",
+  transfer: "Transferred",
+  cancelled: "Listing cancelled",
 };
 
 interface ActivityRowProps {
@@ -26,6 +27,9 @@ interface ActivityRowProps {
   showExplorer?: boolean;
   /** Tighter vertical padding for compact widget contexts */
   compact?: boolean;
+  /** Pre-fetched via the /v1/rewards/batch endpoint by the parent list — never
+   *  fetched per row. Renders a level chip next to the actor when present. */
+  actorLevel?: ApiRewardsBatchEntry;
 }
 
 export function ActivityRow({
@@ -33,6 +37,7 @@ export function ActivityRow({
   showActor = true,
   showExplorer = true,
   compact = false,
+  actorLevel,
 }: ActivityRowProps) {
   const config = ACTIVITY_TYPE_CONFIG[activity.type] ?? {
     label: activity.type,
@@ -61,13 +66,7 @@ export function ActivityRow({
     (activity.type === "mint" || activity.type === "transfer") && Number(activity.amount ?? "1") > 1;
   const amount = activity.amount && Number(activity.amount) > 1 ? activity.amount : null;
 
-  const messageFn = ACTIVITY_MESSAGES[activity.type];
-  const shortActor = actor
-    ? actor.length > 10
-      ? `${actor.slice(0, 6)}…${actor.slice(-4)}`
-      : actor
-    : null;
-  const message = messageFn ? messageFn(showActor ? shortActor : null) : config.label;
+  const message = ACTIVITY_MESSAGES[activity.type] ?? config.label;
 
   return (
     <div
@@ -138,15 +137,26 @@ export function ActivityRow({
             </span>
           )}
         </div>
-        <p className="text-xs text-muted-foreground leading-tight truncate mt-0.5">
-          {message}
-          {showActor && actor && !messageFn && (
-            <Link
-              href={`/creator/${actor}`}
-              className="hover:text-primary transition-colors font-mono ml-1"
-            >
-              <AddressDisplay address={actor} chars={4} showCopy={false} />
-            </Link>
+        <p className="text-xs text-muted-foreground leading-tight truncate mt-0.5 flex items-center gap-1">
+          <span className="truncate">{message}</span>
+          {showActor && actor && (
+            <>
+              <Link
+                href={`/creator/${actor}`}
+                className="hover:text-primary transition-colors font-mono shrink-0"
+              >
+                <AddressDisplay address={actor} chars={4} showCopy={false} />
+              </Link>
+              {actorLevel && actorLevel.totalXp > 0 && (
+                <LevelBadge
+                  level={actorLevel.currentLevel}
+                  name={actorLevel.currentLevelName}
+                  badgeColor={actorLevel.badgeColor}
+                  size="sm"
+                  className="shrink-0"
+                />
+              )}
+            </>
           )}
         </p>
       </div>

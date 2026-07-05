@@ -20,6 +20,7 @@ import { ShareButton } from "@/components/shared/share-button";
 import { TraitFilter } from "@/components/collection/trait-filter";
 import { GatedContentHero } from "@/components/collection/gated-content-hero";
 import { OwnerSetupPanel } from "@/components/collection/owner-setup-panel";
+import { CreatorScoreInline } from "@/components/rewards/creator-score-inline";
 import { TransferCollectionOwnershipDialog } from "@/components/collection/transfer-ownership-dialog";
 import { HiddenContentBanner } from "@/components/hidden-content-banner";
 import Image from "next/image";
@@ -364,6 +365,7 @@ export default function CollectionPageClient() {
                       className="font-medium text-foreground"
                     />
                   </Link>
+                  <CreatorScoreInline address={collection.owner} size="sm" />
                 </div>
               )}
 
