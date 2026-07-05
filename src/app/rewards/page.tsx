@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { Trophy, Info } from "lucide-react";
+import { Info } from "lucide-react";
 import { PageContainer } from "@medialane/ui";
 import { RewardsDashboard } from "./rewards-dashboard";
 import { canonical, buildSocialMetadata } from "@/lib/seo";
 
 const title = "Rewards";
 const description =
-  "Your XP, rank, badges, and Creator's Fund airdrop share. Earn more by creating, collecting, and trading.";
+  "What Medialane gives back to everyone creating, collecting, and taking part.";
 
 export const metadata: Metadata = {
   title,
@@ -18,29 +18,14 @@ export const metadata: Metadata = {
 export default function RewardsPage() {
   return (
     <PageContainer className="box-border max-w-full pt-20 pb-16 space-y-8">
-      <header className="space-y-2">
-        <div className="flex items-center gap-2.5">
-          <Trophy className="h-5 w-5 text-primary" />
-          <h1 className="text-3xl font-bold tracking-tight">Rewards</h1>
-        </div>
-        <p className="text-sm text-muted-foreground max-w-2xl">
-          Earn XP by creating, collecting, and trading. Every $1,000 the Creator&apos;s
-          Fund collects is airdropped back to participants — weighted by your score.
-        </p>
-      </header>
-
       <RewardsDashboard />
 
       <footer className="rounded-2xl border border-border/40 bg-muted/20 px-5 py-4 flex items-start gap-3">
         <Info className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
         <p className="text-xs text-muted-foreground leading-relaxed">
-          <span className="font-semibold text-foreground">
-            Subject to DAO recalibration.
-          </span>{" "}
-          XP values, Score Board weights, and badge criteria may be adjusted by
-          Medialane DAO governance to keep Creator&apos;s Fund airdrop
-          distributions fair and sustainable. Final share at each round is
-          determined when the round is executed on-chain.
+          The community can adjust point values and badge criteria over time to
+          keep the fund fair as Medialane grows. Your share for each round is
+          set when that round is paid out.
         </p>
       </footer>
     </PageContainer>
