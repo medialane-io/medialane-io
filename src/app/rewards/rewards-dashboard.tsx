@@ -94,38 +94,66 @@ function AddressAvatar({ address, size = 32 }: { address: string; size?: number 
   );
 }
 
-// ── Hero — plain, no background treatment at all. Bold gradient-text title,
-// body copy, two buttons. Nothing behind the text. ────────────────────────────
+// ── Hero — just the title. Everything about the fund lives in its own
+// sidebar card now; this page is about the score system as a whole. ──────────
 
 function Hero() {
   return (
-    <section className="space-y-4 max-w-2xl">
+    <section className="max-w-2xl">
       <h1 className="text-4xl sm:text-6xl font-black tracking-tight gradient-text">Rewards</h1>
-      <p className="text-lg sm:text-xl font-medium leading-snug">
-        Every $1,000 the community brings to Medialane, we send back out —
-        split between everyone creating, collecting, and taking part.
-      </p>
-      <p className="text-sm text-muted-foreground leading-relaxed max-w-xl">
-        The fund is a public wallet, open for anyone to check. Your share
-        grows with how much you take part — no ranks to unlock, no gates to pass.
-      </p>
-      <div className="flex flex-wrap items-center gap-3 pt-2">
-        <Link
-          href="/airdrop"
-          className="inline-flex h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-brand-purple to-brand-blue px-5 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98]"
-        >
-          <Gift className="h-4 w-4" />
-          How the fund works
-        </Link>
-        <a
-          href="https://medialane.org/creators-fund"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex h-11 items-center gap-2 rounded-xl border border-border px-5 text-sm font-semibold transition-colors hover:border-foreground/30"
-        >
-          Watch the wallet
-          <ExternalLink className="h-4 w-4" />
-        </a>
+    </section>
+  );
+}
+
+// ── Creator's Fund — sidebar card, same visual recipe as the homepage
+// banner: gradient glow border, ambient blobs, gradient-clip emphasis word,
+// gradient CTA button. This is the fund's own moment, not the header's. ──────
+
+function CreatorsFundCard() {
+  return (
+    <section className="relative rounded-3xl p-[1px] bg-gradient-to-br from-yellow-500/60 via-orange-400/30 to-rose-500/40">
+      <div className="relative rounded-[23px] overflow-hidden bg-card p-6 space-y-4">
+        <div className="pointer-events-none absolute -top-16 -right-12 h-48 w-48 rounded-full bg-yellow-500/10 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-16 -left-12 h-48 w-48 rounded-full bg-orange-500/10 blur-3xl" />
+
+        <div className="relative flex items-center gap-2">
+          <div className="h-6 w-6 rounded-lg bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shrink-0">
+            <Gift className="h-3 w-3 text-white" />
+          </div>
+          <span className="inline-flex items-center gap-1 rounded-full bg-orange-500/15 border border-orange-500/25 px-2 py-0.5 text-[10px] font-bold text-orange-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-orange-400 animate-pulse" />
+            Live
+          </span>
+        </div>
+
+        <h2 className="relative text-2xl font-black tracking-tight leading-tight">
+          Creator&apos;s{" "}
+          <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">Fund</span>
+        </h2>
+
+        <p className="relative text-sm text-muted-foreground leading-relaxed">
+          Every $1,000 the community brings to Medialane, we send back out —
+          split between everyone creating, collecting, and taking part.
+        </p>
+
+        <div className="relative flex flex-col gap-2 pt-1">
+          <Link
+            href="/airdrop"
+            className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 shadow-lg shadow-orange-500/25 transition-all hover:-translate-y-0.5"
+          >
+            <Gift className="h-4 w-4" />
+            How the fund works
+          </Link>
+          <a
+            href="https://medialane.org/creators-fund"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-border px-5 py-2.5 text-sm font-semibold transition-colors hover:border-foreground/30"
+          >
+            Watch the wallet
+            <ExternalLink className="h-4 w-4" />
+          </a>
+        </div>
       </div>
     </section>
   );
@@ -297,35 +325,39 @@ function CommunityPanel({ myAddress }: { myAddress: string | null | undefined })
     <section className="space-y-4">
       <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">People taking part</h2>
 
-      {isLoading ? (
-        <div className="space-y-1">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-14 w-full rounded-lg" />
-          ))}
+      <div className="btn-border-animated rounded-2xl p-[1px]">
+        <div className="rounded-[15px] bg-background px-4 sm:px-5">
+          {isLoading ? (
+            <div className="space-y-1 py-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Skeleton key={i} className="h-14 w-full rounded-lg" />
+              ))}
+            </div>
+          ) : (data?.data ?? []).length === 0 ? (
+            <p className="text-sm text-muted-foreground py-6">Nobody&apos;s earned points yet — be the first.</p>
+          ) : (
+            <div className="divide-y divide-border/60">
+              {(data?.data ?? []).map((entry) => {
+                const isMe = myAddress && entry.address.toLowerCase() === myAddress.toLowerCase();
+                return (
+                  <div key={entry.address} className={cn("flex items-center gap-3 py-3", isMe && "text-primary")}>
+                    <AddressAvatar address={entry.address} />
+                    <span className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
+                      <AddressDisplay address={entry.address} chars={5} className="text-sm font-mono" />
+                      <span className="text-xs font-semibold" style={{ color: entry.badgeColor }}>{entry.currentLevelName}</span>
+                      {isMe && <span className="text-[10px] font-bold uppercase tracking-wider text-primary">you</span>}
+                    </span>
+                    <span className="text-sm font-semibold tabular-nums shrink-0">
+                      {entry.totalXp.toLocaleString()}
+                      <span className="ml-1 text-xs text-muted-foreground font-normal">points</span>
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
-      ) : (data?.data ?? []).length === 0 ? (
-        <p className="text-sm text-muted-foreground">Nobody&apos;s earned points yet — be the first.</p>
-      ) : (
-        <div className="divide-y divide-border/60">
-          {(data?.data ?? []).map((entry) => {
-            const isMe = myAddress && entry.address.toLowerCase() === myAddress.toLowerCase();
-            return (
-              <div key={entry.address} className={cn("flex items-center gap-3 py-3", isMe && "text-primary")}>
-                <AddressAvatar address={entry.address} />
-                <span className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
-                  <AddressDisplay address={entry.address} chars={5} className="text-sm font-mono" />
-                  <span className="text-xs font-semibold" style={{ color: entry.badgeColor }}>{entry.currentLevelName}</span>
-                  {isMe && <span className="text-[10px] font-bold uppercase tracking-wider text-primary">you</span>}
-                </span>
-                <span className="text-sm font-semibold tabular-nums shrink-0">
-                  {entry.totalXp.toLocaleString()}
-                  <span className="ml-1 text-xs text-muted-foreground font-normal">points</span>
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      )}
+      </div>
     </section>
   );
 }
@@ -390,6 +422,7 @@ export function RewardsDashboard() {
           <CommunityPanel myAddress={address} />
         </div>
         <div className="lg:col-span-5 space-y-8">
+          <CreatorsFundCard />
           <BadgesPanel address={address} />
           <EarnMorePanel />
         </div>
