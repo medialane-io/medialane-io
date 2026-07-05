@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { Loader2, SlidersHorizontal, Search, X as XIcon } from "lucide-react";
-import { PageContainer } from "@medialane/ui";
+import { SlidersHorizontal, Search, X as XIcon } from "lucide-react";
+import { LoadMoreSentinel, PageContainer } from "@medialane/ui";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -362,24 +362,12 @@ export function IpTypePageClient({ slug }: IpTypePageClientProps) {
             })}
           </div>
 
-          {(hasMore || isLoadingMore) && !listedOnly && (
-            <div className="flex justify-center pt-2">
-              <Button
-                variant="outline"
-                size="lg"
-                disabled={isLoadingMore}
-                onClick={() => setPage((p) => p + 1)}
-              >
-                {isLoadingMore ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Loading…
-                  </>
-                ) : (
-                  `Load more${meta?.total ? ` (${meta.total - allTokens.length} remaining)` : ""}`
-                )}
-              </Button>
-            </div>
+          {!listedOnly && (
+            <LoadMoreSentinel
+              hasMore={hasMore}
+              isLoading={isLoadingMore}
+              onLoadMore={() => setPage((p) => p + 1)}
+            />
           )}
         </div>
       )}
