@@ -2,11 +2,10 @@
 
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LevelBadge } from "@/components/rewards/level-badge";
-import { BadgeShelf } from "@/components/rewards/badge-shelf";
+import { LevelBadge, BadgeShelf, LevelLadder } from "@medialane/ui";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { useWallet } from "@/hooks/use-wallet";
-import { useRewards, useLeaderboard } from "@/hooks/use-rewards";
+import { useRewards, useLeaderboard, useRewardsConfig, useRewardsEvents } from "@/hooks/use-rewards";
 import {
   Wallet,
   Trophy,
@@ -26,6 +25,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+// Fallback labels — the live labels come from the rewards config endpoint.
 const ACTION_LABELS: Record<string, string> = {
   complete_profile: "Complete profile",
   mint_asset: "Mint assets",
@@ -41,7 +41,15 @@ const ACTION_LABELS: Record<string, string> = {
   claim_pop: "POP claims",
   claim_drop: "Drop claims",
   comment: "On-chain comments",
-  refer_user: "Referrals",
+  create_ticket_collection: "Ticketed events created",
+  buy_ticket: "Event tickets",
+  create_club: "Clubs started",
+  join_club: "Clubs joined",
+  create_sponsorship_offer: "Sponsorships opened",
+  place_sponsorship_bid: "Sponsorship bids",
+  sponsorship_licensed_sponsor: "Sponsorships secured (sponsor)",
+  sponsorship_licensed_author: "Sponsorships secured (creator)",
+  launch_coin: "Creator coins launched",
 };
 
 // ── Ways to earn ──────────────────────────────────────────────────────────────
@@ -93,6 +101,30 @@ const EARN_ACTIONS: {
     description: "Build on top of another creator's IP",
     href: "/marketplace",
     Icon: GitBranch,
+  },
+  {
+    label: "Host a ticketed event",
+    description: "Sell tickets your fans can trade and redeem",
+    href: "/launchpad",
+    Icon: Sparkles,
+  },
+  {
+    label: "Start or join a club",
+    description: "Build a membership community around your work",
+    href: "/launchpad",
+    Icon: UserRoundCheck,
+  },
+  {
+    label: "Open a sponsorship",
+    description: "Let sponsors bid on your work",
+    href: "/launchpad",
+    Icon: Handshake,
+  },
+  {
+    label: "Launch a creator coin",
+    description: "Put your own coin into the world",
+    href: "/launchpad/coin/create",
+    Icon: Rocket,
   },
   {
     label: "Complete your profile",
@@ -250,6 +282,11 @@ function AirdropStatusCard({
 
 function MyRankPanel({ address }: { address: string }) {
   const { data: rewards, isLoading } = useRewards(address);
+  const { data: config } = useRewardsConfig();
+  const { data: events } = useRewardsEvents(address, 1, 8);
+
+  const actionLabel = (type: string) =>
+    config?.actions.find((a) => a.type === type)?.label ?? ACTION_LABELS[type] ?? type;
 
   if (isLoading) {
     return (
@@ -332,14 +369,25 @@ function MyRankPanel({ address }: { address: string }) {
         )}
       </div>
 
-      {rewards.badges.length > 0 && (
+      {config && config.levels.length > 0 && (
         <div className="space-y-2.5">
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Badges
+            The journey
           </p>
-          <BadgeShelf badges={rewards.badges} />
+          <LevelLadder levels={config.levels} currentLevel={rewards.currentLevel} />
         </div>
       )}
+
+      <div className="space-y-2.5">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Badges
+        </p>
+        <BadgeShelf
+          badges={config?.badges ?? rewards.badges}
+          earnedKeys={rewards.badges.map((b) => b.key)}
+          showLocked={Boolean(config)}
+        />
+      </div>
 
       {Object.keys(rewards.breakdown).length > 0 && (
         <div className="space-y-2.5">
@@ -355,13 +403,31 @@ function MyRankPanel({ address }: { address: string }) {
                   className="flex items-center justify-between px-4 py-2.5"
                 >
                   <span className="text-sm text-muted-foreground">
-                    {ACTION_LABELS[action] ?? action}
+                    {actionLabel(action)}
                   </span>
                   <span className="text-sm font-semibold tabular-nums">
                     {xp.toLocaleString()} XP
                   </span>
                 </div>
               ))}
+          </div>
+        </div>
+      )}
+
+      {events && events.data.length > 0 && (
+        <div className="space-y-2.5">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Recent activity
+          </p>
+          <div className="rounded-xl border border-border/40 divide-y divide-border/40 overflow-hidden bg-card/30">
+            {events.data.map((e) => (
+              <div key={e.id} className="flex items-center justify-between px-4 py-2.5">
+                <span className="text-sm text-muted-foreground">{actionLabel(e.actionType)}</span>
+                <span className="text-sm font-semibold tabular-nums text-emerald-400">
+                  +{e.finalXp} XP
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       )}
