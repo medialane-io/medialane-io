@@ -2,7 +2,7 @@
 
 import useSWR from "swr";
 import { useMedialaneClient } from "./use-medialane-client";
-import type { ApiCollection, ApiResponse } from "@medialane/sdk";
+import type { ApiCollection, ApiResponse, CollectionTokensSort } from "@medialane/sdk";
 import { queryKeys } from "@/lib/query-keys";
 
 export type CollectionSort = "recent" | "supply" | "floor" | "volume" | "name";
@@ -62,12 +62,17 @@ export function useCollectionsByOwner(owner: string | null) {
   return { collections: data?.data ?? [], isLoading, error, mutate };
 }
 
-export function useCollectionTokens(contract: string | null, page = 1, limit = 24) {
+export function useCollectionTokens(
+  contract: string | null,
+  page = 1,
+  limit = 24,
+  sort: CollectionTokensSort = "recent"
+) {
   const client = useMedialaneClient();
 
   const { data, error, isLoading, mutate } = useSWR(
-    contract ? queryKeys.collectionTokens(contract, page, limit) : null,
-    () => client.api.getCollectionTokens(contract!, page, limit),
+    contract ? queryKeys.collectionTokens(contract, page, limit, sort) : null,
+    () => client.api.getCollectionTokens(contract!, page, limit, sort),
     { revalidateOnFocus: false }
   );
 

@@ -54,8 +54,8 @@ export const queryKeys = {
     ].join("-"),
   collection: (contract: string) => `${QUERY_PREFIX.collection}-${contract}`,
   collectionsOwner: (owner: string) => `${QUERY_PREFIX.collectionsOwner}-${owner}`,
-  collectionTokens: (contract: string, page: number, limit: number) =>
-    `${QUERY_PREFIX.collectionTokens}-${contract}-${page}-${limit}`,
+  collectionTokens: (contract: string, page: number, limit: number, sort: string) =>
+    `${QUERY_PREFIX.collectionTokens}-${contract}-${page}-${limit}-${sort}`,
   userCollections: (address: string) => `${QUERY_PREFIX.userCollections}-${address}`,
 };
 
