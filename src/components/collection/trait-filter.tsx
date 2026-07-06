@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { SlidersHorizontal, X, ChevronDown, ChevronRight } from "lucide-react";
+import { SlidersHorizontal, X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -10,8 +10,8 @@ import type { ApiToken } from "@medialane/sdk";
 
 interface TraitFilterProps {
   tokens: ApiToken[];
-  selected: Record<string, string>;
-  onChange: (filters: Record<string, string>) => void;
+  selected: Record<string, string[]>;
+  onChange: (filters: Record<string, string[]>) => void;
 }
 
 interface TraitSection {
@@ -21,9 +21,10 @@ interface TraitSection {
 
 export function TraitFilter({ tokens, selected, onChange }: TraitFilterProps) {
   const [open, setOpen] = useState(false);
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
-  // Build trait map with value counts from loaded tokens
+  // Build trait map with value counts from loaded tokens, then drop any
+  // trait type where every token shares the same single value — a filter
+  // that can never narrow the result set is just noise.
   const traitSections: TraitSection[] = useMemo(() => {
     const map = new Map<string, Map<string, number>>();
     for (const token of tokens) {
@@ -38,45 +39,43 @@ export function TraitFilter({ tokens, selected, onChange }: TraitFilterProps) {
         counts.set(v, (counts.get(v) ?? 0) + 1);
       }
     }
-    return Array.from(map.entries()).map(([traitType, counts]) => ({
-      traitType,
-      values: Array.from(counts.entries())
-        .map(([value, count]) => ({ value, count }))
-        .sort((a, b) => b.count - a.count || a.value.localeCompare(b.value)),
-    }));
+    return Array.from(map.entries())
+      .map(([traitType, counts]) => ({
+        traitType,
+        values: Array.from(counts.entries())
+          .map(([value, count]) => ({ value, count }))
+          .sort((a, b) => b.count - a.count || a.value.localeCompare(b.value)),
+      }))
+      .filter((section) => section.values.length >= 2);
   }, [tokens]);
 
   if (traitSections.length === 0) return null;
 
-  const activeCount = Object.keys(selected).length;
-  const activeEntries = Object.entries(selected);
+  const activeEntries = Object.entries(selected).flatMap(([traitType, values]) =>
+    values.map((value) => ({ traitType, value }))
+  );
+  const activeCount = activeEntries.length;
 
-  function toggleExpanded(traitType: string) {
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      next.has(traitType) ? next.delete(traitType) : next.add(traitType);
-      return next;
-    });
-  }
-
-  function selectValue(traitType: string, value: string) {
-    if (selected[traitType] === value) {
-      const next = { ...selected };
-      delete next[traitType];
-      onChange(next);
+  function toggleValue(traitType: string, value: string) {
+    const current = selected[traitType] ?? [];
+    const next = current.includes(value)
+      ? current.filter((v) => v !== value)
+      : [...current, value];
+    const nextSelected = { ...selected };
+    if (next.length === 0) {
+      delete nextSelected[traitType];
     } else {
-      onChange({ ...selected, [traitType]: value });
+      nextSelected[traitType] = next;
     }
+    onChange(nextSelected);
   }
 
   function clearAll() {
     onChange({});
   }
 
-  function removeFilter(traitType: string) {
-    const next = { ...selected };
-    delete next[traitType];
-    onChange(next);
+  function removeFilter(traitType: string, value: string) {
+    toggleValue(traitType, value);
   }
 
   return (
@@ -98,11 +97,11 @@ export function TraitFilter({ tokens, selected, onChange }: TraitFilterProps) {
           )}
         </Button>
 
-        {/* Active filter pills */}
-        {activeEntries.map(([traitType, value]) => (
+        {/* Active filter pills — one per selected value */}
+        {activeEntries.map(({ traitType, value }) => (
           <button
-            key={traitType}
-            onClick={() => removeFilter(traitType)}
+            key={`${traitType}:${value}`}
+            onClick={() => removeFilter(traitType, value)}
             className="inline-flex items-center gap-1 h-8 px-2.5 rounded-md border border-primary/40 bg-primary/10 text-xs font-medium text-foreground hover:bg-primary/20 transition-colors"
           >
             <span className="text-muted-foreground text-[11px]">{traitType}:</span>
@@ -146,80 +145,41 @@ export function TraitFilter({ tokens, selected, onChange }: TraitFilterProps) {
             )}
           </div>
 
-          {/* Trait sections */}
-          <div className="flex-1 overflow-y-auto">
+          {/* Trait sections — always expanded (pruning already removed the noise) */}
+          <div className="flex-1 overflow-y-auto px-5 py-3 space-y-4">
             {traitSections.map((section, i) => {
-              const isExpanded = expanded.has(section.traitType);
-              const activeValue = selected[section.traitType];
+              const activeValues = selected[section.traitType] ?? [];
               return (
                 <div key={section.traitType}>
-                  {i > 0 && <Separator />}
-                  {/* Section header */}
-                  <button
-                    className="w-full flex items-center justify-between px-5 py-3 hover:bg-muted/50 transition-colors text-left"
-                    onClick={() => toggleExpanded(section.traitType)}
-                  >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-sm font-medium truncate">
-                        {section.traitType}
-                      </span>
-                      {activeValue && (
-                        <span className="text-[11px] text-muted-foreground truncate max-w-[80px]">
-                          {activeValue}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                      <span className="text-[11px] text-muted-foreground">
-                        {section.values.length}
-                      </span>
-                      {isExpanded ? (
-                        <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-                      ) : (
-                        <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
-                      )}
-                    </div>
-                  </button>
-
-                  {/* Values list */}
-                  {isExpanded && (
-                    <div className="pb-1">
-                      {section.values.map(({ value, count }) => {
-                        const isSelected = activeValue === value;
-                        return (
-                          <button
-                            key={value}
-                            onClick={() => selectValue(section.traitType, value)}
-                            className={`w-full flex items-center justify-between px-5 py-2 text-sm transition-colors text-left hover:bg-muted/50 ${
-                              isSelected
-                                ? "text-foreground"
-                                : "text-muted-foreground"
-                            }`}
-                          >
-                            <div className="flex items-center gap-2.5 min-w-0">
-                              <span
-                                className={`h-4 w-4 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors ${
-                                  isSelected
-                                    ? "border-primary bg-primary"
-                                    : "border-border bg-transparent"
-                                }`}
-                              >
-                                {isSelected && (
-                                  <span className="h-1.5 w-1.5 rounded-full bg-primary-foreground" />
-                                )}
-                              </span>
-                              <span className="truncate font-medium text-[13px]">
-                                {value}
-                              </span>
-                            </div>
-                            <span className="text-[11px] text-muted-foreground/60 shrink-0 ml-2">
-                              {count}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
+                  {i > 0 && <Separator className="mb-4" />}
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">{section.traitType}</span>
+                    <span className="text-[11px] text-muted-foreground">
+                      {section.values.length} values
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {section.values.map(({ value, count }) => {
+                      const isSelected = activeValues.includes(value);
+                      return (
+                        <button
+                          key={value}
+                          onClick={() => toggleValue(section.traitType, value)}
+                          className={`inline-flex items-center gap-1 h-7 px-2.5 rounded-full border text-[12px] font-medium transition-colors ${
+                            isSelected
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : "border-border bg-transparent text-muted-foreground hover:text-foreground hover:border-foreground/30"
+                          }`}
+                        >
+                          {isSelected && <Check className="h-3 w-3" />}
+                          <span>{value}</span>
+                          <span className={isSelected ? "opacity-80" : "opacity-60"}>
+                            {count}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               );
             })}
