@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { ReportDialog } from "@/components/report-dialog";
 import { ShareButton } from "@/components/shared/share-button";
 import { TraitFilter } from "@/components/collection/trait-filter";
+import { SortDropdown } from "@/components/collection/sort-dropdown";
 import { GatedContentHero } from "@/components/collection/gated-content-hero";
 import { OwnerSetupPanel } from "@/components/collection/owner-setup-panel";
 import { CreatorScoreInline } from "@/components/rewards/creator-score-inline";
@@ -30,7 +31,7 @@ import { useGatedContent, type GatedContentState } from "@/hooks/use-gated-conte
 import { CollectionServiceAction } from "@/components/services/collection-service-action";
 import { PurchaseDialog } from "@/components/marketplace/purchase-dialog";
 import { useSessionKey } from "@/hooks/use-session-key";
-import type { ApiToken, ApiOrder, Chain } from "@medialane/sdk";
+import type { ApiToken, ApiOrder, Chain, CollectionTokensSort } from "@medialane/sdk";
 
 const PAGE_SIZE = 24;
 
@@ -72,9 +73,16 @@ function parsePriceDisplay(raw: string | null | undefined): { numStr: string; sy
 
 function CollectionItems({ contract, activeListings }: { contract: string; activeListings: ApiOrder[] }) {
   const [page, setPage] = useState(1);
+  const [sort, setSort] = useState<CollectionTokensSort>("recent");
   const [allTokens, setAllTokens] = useState<ApiToken[]>([]);
-  const [selectedFilters, setSelectedFilters] = useState<Record<string, string>>({});
-  const { tokens, meta, isLoading } = useCollectionTokens(contract, page, PAGE_SIZE);
+  const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({});
+  const { tokens, meta, isLoading } = useCollectionTokens(contract, page, PAGE_SIZE, sort);
+
+  function handleSortChange(next: CollectionTokensSort) {
+    setSort(next);
+    setPage(1);
+    setAllTokens([]);
+  }
 
   // Build tokenId → listing map so listed items can show their price
   const listingByTokenId = useMemo(() => {
@@ -112,8 +120,9 @@ function CollectionItems({ contract, activeListings }: { contract: string; activ
       const attrs = Array.isArray(token.metadata?.attributes)
         ? (token.metadata.attributes as { trait_type?: string; value?: string }[])
         : [];
-      return filterEntries.every(([traitType, value]) =>
-        attrs.some((a) => a.trait_type === traitType && String(a.value) === value)
+      // AND across trait types, OR within a type's selected values.
+      return filterEntries.every(([traitType, values]) =>
+        attrs.some((a) => a.trait_type === traitType && values.includes(String(a.value)))
       );
     });
   }, [enrichedTokens, selectedFilters]);
@@ -140,6 +149,9 @@ function CollectionItems({ contract, activeListings }: { contract: string; activ
   return (
     <>
       <div className="space-y-4">
+        <div className="flex items-center justify-end gap-2 flex-wrap">
+          <SortDropdown value={sort} onChange={handleSortChange} />
+        </div>
         <TraitFilter
           tokens={allTokens}
           selected={selectedFilters}
