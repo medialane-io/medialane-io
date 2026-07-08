@@ -23,8 +23,8 @@ export function HomePage() {
       <div className="container mx-auto px-4 sm:px-6 space-y-20 mt-16">
         <TrendingCollections />
         <NewOnMarketplace />
-        <TopCreators />
         <CreatorAirdropBanner />
+        <TopCreators />
         <AirdropSection />
       </div>
     </div>

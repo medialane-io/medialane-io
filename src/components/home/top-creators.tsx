@@ -1,24 +1,17 @@
 "use client";
 
-import Link from "next/link";
-import { AddressDisplay } from "@/components/shared/address-display";
-import { LeaderboardWidget } from "@medialane/ui";
+import { CommunityRewardsSection } from "@medialane/ui";
 import { useLeaderboard } from "@/hooks/use-rewards";
 
 export function TopCreators() {
-  const { data, isLoading } = useLeaderboard(1, 5);
-  if (isLoading || !data || data.data.length === 0) return null;
+  const { data, isLoading } = useLeaderboard(1, 4);
 
   return (
-    <LeaderboardWidget
-      entries={data.data}
-      title="Community Rewards"
-      href="/rewards"
-      renderAddress={(address) => (
-        <Link href={`/account/${address}`} className="hover:text-primary transition-colors">
-          <AddressDisplay address={address} chars={5} showCopy={false} />
-        </Link>
-      )}
+    <CommunityRewardsSection
+      entries={data?.data ?? []}
+      isLoading={isLoading}
+      rewardsHref="/rewards"
+      creatorHref={(address) => `/account/${address}`}
     />
   );
 }
