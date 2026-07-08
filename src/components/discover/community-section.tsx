@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Activity, ArrowRight, RefreshCw, Trophy } from "lucide-react";
+import { Activity, ArrowRight, RefreshCw, Sparkles, Zap, Palette, ShoppingBag, MessageSquare } from "lucide-react";
 import { useActivities } from "@/hooks/use-activities";
 import { useRewardsBatch } from "@/hooks/use-rewards";
 import { useWallet } from "@/hooks/use-wallet";
@@ -13,10 +13,6 @@ import { timeAgo, cn } from "@/lib/utils";
 
 const FEED_LIMIT = 8;
 
-/** A small header shared by both columns — icon chip + title (+ optional
- *  caption) on the left, a link on the right. Keeps the two panels reading
- *  as a paired "what's happening right now" dashboard rather than one panel
- *  with a caption and one without. */
 function ColumnHeader({
   icon,
   iconBg,
@@ -53,11 +49,6 @@ function ColumnHeader({
   );
 }
 
-/** Discover page's Community section — replaced the old horizontal
- *  activity-card carousel with the /activities page's list language
- *  (ActivityRow) on the left and the Rewards scoreboard on the right, each
- *  with its own "Activities" / "Rewards" header, so the pairing reads as two
- *  distinct, titled panels. Ported from medialane-starknet (2026-07-05). */
 export function CommunitySection() {
   const { activities, isLoading } = useActivities({ limit: FEED_LIMIT });
   const { address } = useWallet();
@@ -78,7 +69,7 @@ export function CommunitySection() {
 
   return (
     <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
-      {/* Left — recent on-chain activity, /activities-page list language */}
+      {/* Left — recent on-chain activity */}
       <div className="lg:col-span-7 space-y-4 sm:space-y-5">
         <ColumnHeader
           icon={<Activity className="h-3.5 w-3.5 text-white" />}
@@ -135,12 +126,38 @@ export function CommunitySection() {
       {/* Right — Rewards scoreboard */}
       <div className="lg:col-span-5 space-y-4 sm:space-y-5">
         <ColumnHeader
-          icon={<Trophy className="h-3.5 w-3.5 text-white" />}
-          iconBg="bg-gradient-to-br from-amber-500 to-orange-600 shadow-amber-500/20"
+          icon={<Sparkles className="h-3.5 w-3.5 text-white" />}
+          iconBg="bg-gradient-to-br from-brand-rose to-brand-orange"
           title="Rewards"
           href="/rewards"
           linkLabel="Scoreboard"
         />
+
+        {/* Compact pitch */}
+        <div className="relative rounded-xl border border-border/40 bg-card overflow-hidden px-4 py-4 space-y-3">
+          <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-brand-rose to-brand-orange" />
+          <p className="text-sm font-semibold leading-snug">
+            Earn XP. Share the Creator&apos;s Fund.
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {([
+              [Zap, "Mint"], [Palette, "Create"],
+              [ShoppingBag, "Trade"], [MessageSquare, "Engage"],
+            ] as const).map(([Icon, label]) => (
+              <div key={label} className="flex items-center gap-1 rounded-full border border-border/50 bg-muted/40 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
+                <Icon className="h-2.5 w-2.5" />
+                {label}
+              </div>
+            ))}
+          </div>
+          <Link
+            href="/rewards"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-gradient-to-r from-brand-rose to-brand-orange rounded-lg px-3 py-1.5 hover:opacity-90 transition-opacity"
+          >
+            Start earning XP <ArrowRight className="h-3 w-3" />
+          </Link>
+        </div>
+
         <LeaderboardPanel myAddress={address} limit={8} showHeading={false} />
       </div>
     </section>

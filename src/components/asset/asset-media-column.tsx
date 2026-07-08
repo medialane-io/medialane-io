@@ -29,7 +29,7 @@ export function AssetMediaColumn({
   onZoom,
 }: AssetMediaColumnProps) {
   if (!image || imgError) {
-    return <div className="w-full overflow-hidden rounded-2xl">{fallback}</div>;
+    return <div className="w-full overflow-hidden rounded-3xl">{fallback}</div>;
   }
 
   return (
@@ -40,7 +40,7 @@ export function AssetMediaColumn({
       initial={shouldReduce ? false : { opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5 }}
-      className="group block w-full cursor-zoom-in focus:outline-none"
+      className="group block w-full overflow-hidden rounded-3xl cursor-zoom-in focus:outline-none"
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
@@ -48,7 +48,7 @@ export function AssetMediaColumn({
         alt={imageAlt}
         crossOrigin="anonymous"
         onError={onImageError}
-        className="w-full h-auto max-h-[80vh] object-contain rounded-2xl
+        className="w-full h-auto max-h-[80vh] object-contain
                    transition duration-300 group-hover:opacity-95 group-active:scale-[0.99]"
       />
     </motion.button>
