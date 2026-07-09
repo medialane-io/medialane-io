@@ -432,7 +432,7 @@ layout.tsx (server)
 - There is **no sidebar** — do not add `SidebarProvider` or `AppSidebar`.
 - All navigation is via `NavCommandMenu`. Add new routes to `src/lib/nav-commands.ts`.
 - `NavCommandMenu` is mounted once in `MainShell`. Any button anywhere can call `useNavCommandMenu().open()` to open it. `⌘K` also works.
-- Nav canvas uses aurora blob CSS classes from `@medialane/ui/styles` (`nav-canvas-aurora`, `nav-canvas-overlay`, `aurora-purple/blue/rose/orange`).
+- Nav canvas uses `nav-canvas-overlay` (backdrop blur) from `@medialane/ui/styles`.
 - `NavTrigger` left offset uses `left-4 sm:left-6 lg:left-8` to align with page content padding (`px-4 sm:px-6 lg:px-8`).
 - Marketplace filters are an inline horizontal toolbar — Sort/Type/Currency chips.
 

@@ -175,18 +175,6 @@
   color: hsl(var(--primary));
 }
 
-/* Aurora blobs */
-.aurora-purple { position: absolute; border-radius: 9999px; background: #8a5cf6; filter: blur(100px); opacity: 0.07; }
-.aurora-blue   { position: absolute; border-radius: 9999px; background: #3b7bff; filter: blur(120px); opacity: 0.06; }
-.aurora-rose   { position: absolute; border-radius: 9999px; background: #f6608f; filter: blur(100px); opacity: 0.05; }
-.aurora-orange { position: absolute; border-radius: 9999px; background: #fb8b46; filter: blur(110px); opacity: 0.04; }
-
-.dark .aurora-purple { opacity: 0.15; }
-.dark .aurora-blue   { opacity: 0.11; }
-.dark .aurora-rose   { opacity: 0.09; }
-.dark .aurora-orange { opacity: 0.07; }
-
-
 /* Card base — no hover, press handled by Framer Motion */
 .card-base {
   border-radius: calc(var(--radius) * 1.25);

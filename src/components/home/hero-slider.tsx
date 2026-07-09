@@ -73,8 +73,7 @@ function HeroSlide({
 function HeroPlaceholder() {
   return (
     <div className="absolute inset-0 bg-gradient-to-br from-brand-purple/30 via-brand-blue/20 to-brand-navy/50 flex flex-col items-center justify-center gap-4 text-center px-6 overflow-hidden">
-      <div className="absolute aurora-purple w-[600px] h-[600px] opacity-20 -top-24 -left-24" />
-      <div className="absolute aurora-blue w-[400px] h-[400px] opacity-15 -bottom-16 -right-16" />
+
       <h2 className="text-4xl sm:text-6xl font-black gradient-text relative z-10">Medialane</h2>
       <p className="text-muted-foreground text-lg relative z-10 max-w-md">
         New monetization revenues for creative works
