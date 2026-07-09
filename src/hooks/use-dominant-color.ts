@@ -39,7 +39,7 @@ export function useDominantColor(
   const { resolvedTheme } = useTheme();
   const userIsDarkMode = resolvedTheme === "dark";
 
-  const [hex, setHex] = useState("#9333ea");
+  const [hex, setHex] = useState("#8a5cf6");
   const [isDark, setIsDark] = useState(true);
   const [isReady, setIsReady] = useState(false);
   const [hasError, setHasError] = useState(false);

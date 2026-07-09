@@ -63,7 +63,7 @@ export function GatedContentHero({ profile, gatedState, onViewExclusive }: Gated
             <p
               className="text-[10px] font-bold uppercase tracking-widest leading-none mb-1"
               style={{
-                background: "linear-gradient(90deg, #2563eb, #9333ea, #f43f5e)",
+                background: "linear-gradient(90deg, #3b7bff, #8a5cf6, #f6608f)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
               }}

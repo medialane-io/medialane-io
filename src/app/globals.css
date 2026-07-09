@@ -119,19 +119,25 @@
 
 /* Typography gradients */
 .gradient-text {
-  background: linear-gradient(135deg, #a855f7 0%, #6366f1 40%, #2563eb 100%);
+  background: linear-gradient(135deg, #8a5cf6 0%, #5b4ce6 40%, #3b7bff 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 .gradient-text-warm {
-  background: linear-gradient(135deg, #f43f5e 0%, #ea580c 60%, #f59e0b 100%);
+  background: linear-gradient(135deg, #f6608f 0%, #fb8b46 60%, #f97316 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.gradient-text-full {
+  background: linear-gradient(120deg, #3b7bff, #8a5cf6 40%, #f6608f 75%, #fb8b46);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 .gradient-text-gold {
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #ea580c 100%);
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #fb8b46 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -170,10 +176,10 @@
 }
 
 /* Aurora blobs */
-.aurora-purple { position: absolute; border-radius: 9999px; background: #9333ea; filter: blur(100px); opacity: 0.07; }
-.aurora-blue   { position: absolute; border-radius: 9999px; background: #2563eb; filter: blur(120px); opacity: 0.06; }
-.aurora-rose   { position: absolute; border-radius: 9999px; background: #f43f5e; filter: blur(100px); opacity: 0.05; }
-.aurora-orange { position: absolute; border-radius: 9999px; background: #ea580c; filter: blur(110px); opacity: 0.04; }
+.aurora-purple { position: absolute; border-radius: 9999px; background: #8a5cf6; filter: blur(100px); opacity: 0.07; }
+.aurora-blue   { position: absolute; border-radius: 9999px; background: #3b7bff; filter: blur(120px); opacity: 0.06; }
+.aurora-rose   { position: absolute; border-radius: 9999px; background: #f6608f; filter: blur(100px); opacity: 0.05; }
+.aurora-orange { position: absolute; border-radius: 9999px; background: #fb8b46; filter: blur(110px); opacity: 0.04; }
 
 .dark .aurora-purple { opacity: 0.15; }
 .dark .aurora-blue   { opacity: 0.11; }
@@ -293,7 +299,7 @@ input[type="number"] {
   50%       { background-position: 100% 50%; }
 }
 .btn-border-animated {
-  background: linear-gradient(270deg, #2563eb, #9333ea, #f43f5e, #ea580c, #2563eb);
+  background: linear-gradient(270deg, #3b7bff, #8a5cf6, #f6608f, #fb8b46, #3b7bff);
   background-size: 300% 300%;
   animation: border-flow 5s ease infinite;
 }
