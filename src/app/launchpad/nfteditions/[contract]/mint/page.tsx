@@ -25,6 +25,7 @@ import { starknetProvider } from "@/lib/starknet";
 import { readAssignedEditionId } from "@/lib/erc1155-edition";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
+import { MedialaneCollectionCard } from "@medialane/ui";
 import { MintEditionAside } from "@/components/claim/mint-edition-aside";
 import { rewardToast } from "@/lib/reward-toast";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
@@ -293,7 +294,18 @@ export default function MintIP1155Page() {
             <span className="font-mono text-xs text-foreground/80 truncate">Collection: {collectionAddress}</span>
           </div>
         }
-        aside={<MintEditionAside />}
+        aside={
+          <>
+            <MedialaneCollectionCard
+              image={imagePreview}
+              name={form.watch("name")}
+              collection="Edition"
+              serial={Number(form.watch("value")) > 1 ? `× ${form.watch("value")}` : undefined}
+              creator={walletAddress ? `${walletAddress.slice(0, 6)}…${walletAddress.slice(-4)}` : undefined}
+            />
+            <MintEditionAside />
+          </>
+        }
       >
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">

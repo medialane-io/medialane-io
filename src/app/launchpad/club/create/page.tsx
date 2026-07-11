@@ -18,6 +18,7 @@ import { IPClubABI, getTokenBySymbol } from "@medialane/sdk";
 import { LaunchpadSuccessState, LaunchpadErrorState, LaunchpadProcessingState } from "@/components/launchpad/launchpad-success-state";
 import { rewardToast } from "@/lib/reward-toast";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
+import { MedialaneCollectionCard } from "@medialane/ui";
 import { CreateClubAside } from "@/components/claim/create-club-aside";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { toast } from "sonner";
@@ -114,7 +115,15 @@ export default function CreateClubPage() {
         icon={<Users className="h-4 w-4 text-white" />}
         title="Create a Club"
         subtitle="Give your closest fans a membership card that unlocks more — free to publish."
-        aside={<CreateClubAside />}
+        aside={
+          <>
+            <MedialaneCollectionCard
+              name={form.watch("name")}
+              collection={form.watch("symbol") || "Club"}
+            />
+            <CreateClubAside />
+          </>
+        }
       >
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">

@@ -21,6 +21,7 @@ import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
+import { MedialaneCollectionCard } from "@medialane/ui";
 import { CreateEditionsAside } from "@/components/claim/create-editions-aside";
 import { rewardToast } from "@/lib/reward-toast";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
@@ -245,7 +246,17 @@ export default function CreateIP1155CollectionPage() {
         icon={<Layers className="h-4 w-4 text-white" />}
         title="Create an Edition Collection"
         subtitle="Create a collection where each piece can have multiple editions — free to publish, and it's yours."
-        aside={<CreateEditionsAside />}
+        aside={
+          <>
+            <MedialaneCollectionCard
+              image={imagePreview}
+              name={form.watch("name")}
+              collection={form.watch("symbol") || "Editions"}
+              creator={walletAddress ? `${walletAddress.slice(0, 6)}…${walletAddress.slice(-4)}` : undefined}
+            />
+            <CreateEditionsAside />
+          </>
+        }
       >
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">

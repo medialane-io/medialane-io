@@ -26,6 +26,7 @@ import { PopCreateForm } from "../pop-create-form";
 import { popCreateSchema, type PopCreateFormValues } from "../pop-create-schema";
 import { LaunchpadSuccessState, LaunchpadErrorState, LaunchpadProcessingState } from "@/components/launchpad/launchpad-success-state";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
+import { MedialaneCollectionCard } from "@medialane/ui";
 import { rewardToast } from "@/lib/reward-toast";
 import { CreatePopAside } from "@/components/claim/create-pop-aside";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
@@ -209,7 +210,17 @@ export default function CreatePOPPage() {
         icon={<Award className="h-4 w-4 text-white" />}
         title="Create a POP Event"
         subtitle="Give attendees a collectible badge that proves they were part of your event — free to publish."
-        aside={<CreatePopAside />}
+        aside={
+          <>
+            <MedialaneCollectionCard
+              image={imagePreview}
+              name={form.watch("name")}
+              collection={form.watch("symbol") || "POP Event"}
+              creator={walletAddress ? `${walletAddress.slice(0, 6)}…${walletAddress.slice(-4)}` : undefined}
+            />
+            <CreatePopAside />
+          </>
+        }
       >
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">

@@ -22,6 +22,8 @@ import { IPTicketCollectionFactoryABI, IPTicketCollectionABI, getTokenBySymbol }
 import { useMyTicketCollections } from "@/hooks/use-tickets";
 import { LaunchpadSuccessState, LaunchpadErrorState, LaunchpadProcessingState } from "@/components/launchpad/launchpad-success-state";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
+import { MedialaneCollectionCard } from "@medialane/ui";
+import { resolveTokenImage } from "@/lib/utils";
 import { CreateTicketAside } from "@/components/claim/create-ticket-aside";
 import { rewardToast } from "@/lib/reward-toast";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
@@ -159,7 +161,17 @@ export default function CreateTicketsPage() {
         icon={<Ticket className="h-4 w-4 text-white" />}
         title="Sell Tickets"
         subtitle="Deploy your own ticket contract once, then create as many events as you like under it."
-        aside={<CreateTicketAside />}
+        aside={
+          <>
+            <MedialaneCollectionCard
+              image={resolveTokenImage(myCollections[0]?.image)}
+              name={myCollections[0]?.name || deployForm.watch("name")}
+              collection={deployForm.watch("symbol") || "Tickets"}
+              creator={walletAddress ? `${walletAddress.slice(0, 6)}…${walletAddress.slice(-4)}` : undefined}
+            />
+            <CreateTicketAside />
+          </>
+        }
       >
         {!existingCollection ? (
           <Form {...deployForm}>

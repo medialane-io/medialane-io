@@ -25,6 +25,7 @@ import type { DraftItem } from "../drop-item-list";
 import type { MetadataField } from "@/components/create/ip-type-fields";
 import { LaunchpadSuccessState, LaunchpadErrorState, LaunchpadProcessingState } from "@/components/launchpad/launchpad-success-state";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
+import { MedialaneCollectionCard } from "@medialane/ui";
 import { rewardToast } from "@/lib/reward-toast";
 import { CreateDropAside } from "@/components/claim/create-drop-aside";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
@@ -327,7 +328,17 @@ export default function CreateDropPage() {
         icon={<Package className="h-4 w-4 text-white" />}
         title="Launch a Drop"
         subtitle="Release a limited set of unique pieces with a timed mint window — free to launch, and it's yours."
-        aside={<CreateDropAside />}
+        aside={
+          <>
+            <MedialaneCollectionCard
+              image={imagePreview}
+              name={form.watch("name")}
+              collection={form.watch("symbol") || "Drop"}
+              creator={walletAddress ? `${walletAddress.slice(0, 6)}…${walletAddress.slice(-4)}` : undefined}
+            />
+            <CreateDropAside />
+          </>
+        }
       >
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
