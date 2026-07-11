@@ -24,7 +24,7 @@ import { WalletSetupGate } from "@/components/transaction/wallet-setup-gate";
 import { useWriteAction } from "@/hooks/use-write-action";
 import { TransactionDialog } from "@/components/transaction/transaction-dialog";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
-import { ActionButton } from "@medialane/ui";
+import { ActionButton, MedialaneCollectionCard } from "@medialane/ui";
 import { CreateCollectionAside } from "@/components/claim/create-collection-aside";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 import { useSessionKey } from "@/hooks/use-session-key";
@@ -280,7 +280,18 @@ export default function CreateCollectionPage() {
         icon={<Layers className="h-4 w-4 text-white" />}
         title="Create a Collection"
         subtitle="Set up a collection to mint your work into — free to publish, and it's yours."
-        aside={<CreateCollectionAside />}
+        aside={
+          <>
+            {/* Live collectors-card preview of the collection being created */}
+            <MedialaneCollectionCard
+              image={imagePreview}
+              name={form.watch("name") || "My Creative Works"}
+              collection={form.watch("symbol") || "Collection"}
+              creator={walletAddress ? `${walletAddress.slice(0, 6)}…${walletAddress.slice(-4)}` : undefined}
+            />
+            <CreateCollectionAside />
+          </>
+        }
       >
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
