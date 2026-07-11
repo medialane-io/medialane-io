@@ -29,7 +29,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { ClaimBackButton } from "@/components/claim/claim-back-button";
-import { ServiceFormShell, StepNav } from "@medialane/ui";
+import { ServiceFormShell, StepNav, ActionButton } from "@medialane/ui";
 import { CreateCoinAside } from "@/components/claim/create-coin-aside";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import {
@@ -376,7 +376,7 @@ export default function CoinCreatePage() {
                 <p className="text-xs text-muted-foreground">Shown on your coin&apos;s page. You can edit it anytime.</p>
               </div>
 
-              <Button onClick={() => setStep(2)} disabled={!identityValid || imageUploading} className="w-full">
+              <Button onClick={() => setStep(2)} disabled={!identityValid || imageUploading} className="w-full bg-brand-rose hover:bg-brand-rose/90 text-white">
                 Next: Economics <ArrowRight className="h-4 w-4 ml-1.5" />
               </Button>
             </>
@@ -458,7 +458,7 @@ export default function CoinCreatePage() {
                 <Button variant="outline" onClick={() => setStep(1)}>
                   <ArrowLeft className="h-4 w-4 mr-1.5" /> Back
                 </Button>
-                <Button onClick={() => setStep(3)} disabled={!economicsValid || insufficient} className="flex-1">
+                <Button onClick={() => setStep(3)} disabled={!economicsValid || insufficient} className="flex-1 bg-brand-rose hover:bg-brand-rose/90 text-white">
                   Next: Review <ArrowRight className="h-4 w-4 ml-1.5" />
                 </Button>
               </div>
@@ -493,9 +493,14 @@ export default function CoinCreatePage() {
                 <Button variant="outline" onClick={() => setStep(2)}>
                   <ArrowLeft className="h-4 w-4 mr-1.5" /> Back
                 </Button>
-                <Button onClick={handleLaunchClick} disabled={!canLaunch || authBusy} className="flex-1 bg-brand-rose hover:bg-brand-rose/90">
-                  {authBusy ? <><Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> Confirm with your passkey…</> : <>Launch <ArrowRight className="h-4 w-4 ml-1.5" /></>}
-                </Button>
+                <ActionButton
+                  tone="rose"
+                  onClick={handleLaunchClick}
+                  disabled={!canLaunch || authBusy}
+                  className={`flex-1 ${!canLaunch || authBusy ? "opacity-40 pointer-events-none" : ""}`}
+                >
+                  {authBusy ? <><Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> Confirm with your passkey…</> : <>Launch your coin <ArrowRight className="h-4 w-4 ml-1.5" /></>}
+                </ActionButton>
               </div>
               <p className="text-xs text-muted-foreground text-center">
                 <Link href="/launchpad/memecoin" className="underline active:text-foreground">
