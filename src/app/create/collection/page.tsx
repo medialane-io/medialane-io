@@ -24,6 +24,7 @@ import { WalletSetupGate } from "@/components/transaction/wallet-setup-gate";
 import { useWriteAction } from "@/hooks/use-write-action";
 import { TransactionDialog } from "@/components/transaction/transaction-dialog";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
+import { ActionButton } from "@medialane/ui";
 import { CreateCollectionAside } from "@/components/claim/create-collection-aside";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 import { useSessionKey } from "@/hooks/use-session-key";
@@ -426,14 +427,16 @@ export default function CreateCollectionPage() {
               )}
             />
 
-            <button
+            <ActionButton
               type="submit"
+              tone="blue"
+              big
+              icon={<Layers className="h-4 w-4" />}
               disabled={action.status !== "idle" || imageUploading}
-              className={`w-full h-12 text-base font-semibold text-white rounded-xl flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] bg-brand-blue ${action.status !== "idle" || imageUploading ? "opacity-40 pointer-events-none" : ""}`}
+              className={`w-full ${action.status !== "idle" || imageUploading ? "opacity-40 pointer-events-none" : ""}`}
             >
-              <Layers className="h-4 w-4" />
               Create collection
-            </button>
+            </ActionButton>
             <p className="text-xs text-center text-muted-foreground">
               Free to publish — no gas fees.
             </p>
