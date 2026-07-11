@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
-import { Inter } from "next/font/google";
+import { Inter, Urbanist } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ptBR } from "@clerk/localizations";
 import { ChipiProvider } from "@chipi-stack/nextjs";
@@ -12,6 +12,8 @@ import "@medialane/ui/styles";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
+// Brand display face — headings pick it up via --font-display (@medialane/ui styles).
+const urbanist = Urbanist({ subsets: ["latin"], display: "swap", variable: "--font-display" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
@@ -96,7 +98,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     >
       <ChipiProvider>
         <html lang={isBrLocale ? "pt-BR" : "en"} suppressHydrationWarning>
-          <body className={inter.className}>
+          <body className={`${inter.className} ${urbanist.variable}`}>
             <JsonLd data={siteJsonLd} />
             <Providers>{children}</Providers>
           </body>
