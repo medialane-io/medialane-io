@@ -6,6 +6,7 @@ import { useUserOrders } from "@/hooks/use-orders";
 import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useRemixOffers } from "@/hooks/use-remix-offers";
 import { useActivitiesByAddress } from "@/hooks/use-activities";
+import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { useRewards } from "@/hooks/use-rewards";
 import { PortfolioOverview, derivePortfolioCounts } from "@medialane/ui";
 import { AssetsGrid } from "@/components/portfolio/assets-grid";
@@ -21,6 +22,7 @@ export default function PortfolioOverviewPage() {
   const { meta, isLoading: loadingTokens } = useTokensByOwner(address, 1, 4);
   const { offers: remixOffers } = useRemixOffers("creator");
   const { activities, isLoading: loadingActivity } = useActivitiesByAddress(address);
+  const { collections } = useCollectionsByOwner(address);
   const { data: rewards } = useRewards(address ?? undefined);
 
   const counts = derivePortfolioCounts(orders, remixOffers, address);
@@ -60,15 +62,32 @@ export default function PortfolioOverviewPage() {
         },
       ]}
       stats={[
-        { label: "Assets", value: totalAssets, href: "/portfolio/assets" },
-        { label: "Listings", value: counts.listings, href: "/portfolio/listings" },
-        { label: "Offers received", value: counts.received, href: "/portfolio/received" },
         {
-          label: "Level",
-          value: rewards ? rewards.currentLevel : null,
-          sub: rewards ? `${rewards.totalXp.toLocaleString()} XP · ${rewards.currentLevelName}` : undefined,
+          label: "Assets",
+          value: totalAssets,
+          sub: collections.length > 0
+            ? `${collections.length} collection${collections.length === 1 ? "" : "s"}`
+            : undefined,
+          href: "/portfolio/assets",
+        },
+        { label: "Listings", value: counts.listings, href: "/portfolio/listings" },
+        {
+          label: "Offers received",
+          value: counts.received,
+          sub: counts.received > 0 ? "Respond in Trading" : undefined,
+          href: "/portfolio/received",
+        },
+        {
+          label: "Rewards",
+          value: rewards ? rewards.currentLevelName : null,
+          sub: rewards ? `${rewards.totalXp.toLocaleString()} XP` : undefined,
           href: "/rewards",
         },
+      ]}
+      quickActions={[
+        { label: "Create asset", href: "/create/asset" },
+        { label: "Launch collection", href: "/create/collection" },
+        { label: "Browse marketplace", href: "/marketplace" },
       ]}
       assetsHref="/portfolio/assets"
       assetsSlot={

@@ -7,7 +7,6 @@ import { SignInButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Briefcase, Wallet } from "lucide-react";
 import { useUserOrders } from "@/hooks/use-orders";
-import { useTokensByOwner } from "@/hooks/use-tokens";
 import { markOffersAsSeen } from "@/hooks/use-unread-offers";
 import { useRemixOffers } from "@/hooks/use-remix-offers";
 import { useSessionKey } from "@/hooks/use-session-key";
@@ -59,13 +58,10 @@ export default function PortfolioLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const address = walletAddress;
   const { orders } = useUserOrders(address ?? null);
-  const { meta: tokenMeta } = useTokensByOwner(address ?? null, 1);
   const { offers: remixOffers } = useRemixOffers("creator");
   const { data: rewards } = useRewards(address);
 
   const counts = derivePortfolioCounts(orders, remixOffers, address);
-
-  const totalAssetsCount = tokenMeta?.total ?? null;
 
   useEffect(() => {
     const receivedOffers = orders.filter(
@@ -143,19 +139,10 @@ export default function PortfolioLayout({ children }: { children: React.ReactNod
     <div className="px-4 sm:px-6 lg:px-8 pt-20 pb-8 space-y-6">
       <PortfolioHeader
         address={address}
-        stats={[
-          { label: "Assets", value: totalAssetsCount, href: "/portfolio/assets" },
-          { label: "Listings", value: counts.listings, href: "/portfolio/listings" },
-          ...(counts.received > 0
-            ? [{ label: "Offers received", value: counts.received, href: "/portfolio/received", highlight: true }]
-            : []),
-        ]}
         score={
           rewards
             ? {
-                level: rewards.currentLevel,
                 levelName: rewards.currentLevelName,
-                badgeColor: rewards.badgeColor,
                 totalXp: rewards.totalXp,
                 href: "/rewards",
               }

@@ -108,7 +108,7 @@ export function ActivityRow({
             unoptimized
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-muted-foreground/10 to-muted-foreground/5" aria-hidden />
+          <div className="w-full h-full bg-gradient-to-br from-brand-purple/15 to-brand-blue/15" aria-hidden />
         )}
         {/* ERC-1155 badge */}
         {is1155 && (
