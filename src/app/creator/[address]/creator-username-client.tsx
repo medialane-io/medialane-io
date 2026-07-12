@@ -15,7 +15,8 @@ import { CollectionCard, CollectionCardSkeleton } from "@medialane/ui";
 import { CreatorAnalytics } from "@/components/creator/creator-analytics";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ipfsToHttp, normalizeAddress, timeAgo, formatDisplayPrice } from "@/lib/utils";
+import { ipfsToHttp, timeAgo, formatDisplayPrice } from "@/lib/utils";
+import { normalizeAddress } from "@medialane/sdk";
 import {
   Globe, Twitter, MessageCircle, Send,
   ShoppingBag, BarChart2, Activity, ArrowRightLeft, Tag, Handshake,
@@ -119,7 +120,7 @@ export default function CreatorUsernamePageClient({ username }: Props) {
   const [activeTab, setActiveTab] = useState<TabId>("assets");
 
   const { creator, isLoading, error } = useCreatorByUsername(username);
-  const walletAddress = creator?.walletAddress ? normalizeAddress(creator.walletAddress) : null;
+  const walletAddress = creator?.walletAddress ? normalizeAddress("STARKNET", creator.walletAddress) : null;
 
   const { tokens: bannerTokens } = useTokensByOwner(walletAddress, 1, 1);
   const { tokens, isLoading: tokensLoading } = useTokensByOwner(activeTab === "assets" ? walletAddress : null);

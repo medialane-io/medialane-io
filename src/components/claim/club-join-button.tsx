@@ -15,9 +15,7 @@ import { EXPLORER_URL } from "@/lib/constants";
 import { getListableTokens } from "@medialane/sdk";
 
 interface ClubJoinButtonProps {
-  registryAddress: string;
-  clubId: string;
-  clubNftAddress: string;
+  clubAddress: string;
   entryFee: string;
   paymentToken: string | null;
   open: boolean;
@@ -29,10 +27,10 @@ function u256CallData(value: bigint): [string, string] {
   return [low, high];
 }
 
-export function ClubJoinButton({ registryAddress, clubId, clubNftAddress, entryFee, paymentToken, open }: ClubJoinButtonProps) {
+export function ClubJoinButton({ clubAddress, entryFee, paymentToken, open }: ClubJoinButtonProps) {
   const { isSignedIn } = useUser();
   const { walletAddress } = useSessionKey();
-  const { isMember, isLoading, mutate } = useClubMembership(clubNftAddress, clubId, walletAddress ?? null);
+  const { isMember, isLoading, mutate } = useClubMembership(clubAddress, walletAddress ?? null);
   const action = useWriteAction();
   const busy = action.status === "processing" || action.status === "confirming";
 
@@ -51,13 +49,16 @@ export function ClubJoinButton({ registryAddress, clubId, clubNftAddress, entryF
       return;
     }
     void action.run(async (secret) => {
+      if (!walletAddress) throw new Error("Wallet not ready. Please refresh and try again.");
+      // Join = mint a membership card on the club collection. A paid club pulls
+      // the entry fee during mint, so approve the collection as spender first.
       const calls: Array<{ contractAddress: string; entrypoint: string; calldata: string[] }> = [];
       if (isPaid) {
         if (!knownToken) throw new Error("Unknown payment token — cannot proceed");
         const [low, high] = u256CallData(feeBigInt);
-        calls.push({ contractAddress: paymentToken!, entrypoint: "approve", calldata: [registryAddress, low, high] });
+        calls.push({ contractAddress: paymentToken!, entrypoint: "approve", calldata: [clubAddress, low, high] });
       }
-      calls.push({ contractAddress: registryAddress, entrypoint: "join_club", calldata: [clubId, "0"] });
+      calls.push({ contractAddress: clubAddress, entrypoint: "mint", calldata: [walletAddress] });
 
       const result = await action.executeTransaction({ pin: secret, calls });
       if (result.status === "confirmed") mutate();

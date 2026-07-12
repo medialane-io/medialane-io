@@ -188,24 +188,25 @@ export default function CreateCollectionPage() {
 
     // 1. Upload collection metadata JSON to IPFS so permissionless dapps can resolve
     //    the collection image onchain (base_uri → collection metadata → image field).
+    //    base_uri is embedded in the immutable deploy tx, so this MUST succeed —
+    //    a silent fallback ships an empty base_uri that can never be fixed.
     let baseUri: string | undefined;
     if (imageUri) {
-      try {
-        const metaRes = await fetch("/api/pinata/json", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: values.name,
-            description: values.description || "",
-            image: imageUri,
-            external_link: values.external_link || "https://medialane.io",
-          }),
-        });
-        const metaData = await metaRes.json().catch(() => ({}));
-        if (metaRes.ok && metaData.uri) baseUri = metaData.uri;
-      } catch {
-        // Non-fatal: collection is still created, just without onchain metadata URI
+      const metaRes = await fetch("/api/pinata/json", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: values.name,
+          description: values.description || "",
+          image: imageUri,
+          external_link: values.external_link || "https://medialane.io",
+        }),
+      });
+      const metaData = await metaRes.json().catch(() => ({}));
+      if (!metaRes.ok || !metaData.uri) {
+        throw new Error("Couldn't save your collection details. Please try again.");
       }
+      baseUri = metaData.uri;
     }
 
     // 2. Create collection intent — pre-signed, returns calls immediately

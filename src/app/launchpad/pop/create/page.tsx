@@ -112,19 +112,17 @@ export default function CreatePOPPage() {
   const handleUnlocked = async (pendingValues: PopCreateFormValues, secret: string) => {
     if (!walletAddress) throw new Error("Wallet not ready. Please refresh and try again.");
 
-    let baseUri = "";
-    try {
-      const metadata: Record<string, unknown> = {
-        name: pendingValues.name,
-        attributes: [
-          { trait_type: "Visibility", value: isPublic ? "Public" : "Private" },
-          { trait_type: "Event Type", value: eventType },
-        ],
-      };
-      if (imageUri) metadata.image = imageUri;
-      const uri = await pinLaunchpadMetadata(metadata);
-      if (uri) baseUri = uri;
-    } catch { /* non-fatal */ }
+    // base_uri is embedded in the immutable POP deploy tx, so pinning must
+    // succeed — a silent fallback ships an empty base_uri that can't be fixed.
+    const metadata: Record<string, unknown> = {
+      name: pendingValues.name,
+      attributes: [
+        { trait_type: "Visibility", value: isPublic ? "Public" : "Private" },
+        { trait_type: "Event Type", value: eventType },
+      ],
+    };
+    if (imageUri) metadata.image = imageUri;
+    const baseUri = await pinLaunchpadMetadata(metadata);
 
     const claimEndTimestamp = Math.floor(
       new Date(`${pendingValues.claimEndDate}T${pendingValues.claimEndTime}:00`).getTime() / 1000

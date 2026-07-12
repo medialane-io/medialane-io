@@ -4,7 +4,7 @@ import useSWR from "swr";
 import { useMedialaneClient } from "./use-medialane-client";
 import type { ApiOrdersQuery, ApiOrder, ApiResponse } from "@medialane/sdk";
 import { queryKeys } from "@/lib/query-keys";
-import { normalizeAddress } from "@/lib/utils";
+import { normalizeAddress } from "@medialane/sdk";
 
 export function useOrders(query: ApiOrdersQuery = {}) {
   const client = useMedialaneClient();
@@ -51,7 +51,7 @@ export function useTokenListings(contract: string | null, tokenId: string | null
 
 export function useUserOrders(address: string | null) {
   const client = useMedialaneClient();
-  const normalized = address ? normalizeAddress(address) : null;
+  const normalized = address ? normalizeAddress("STARKNET", address) : null;
 
   const { data, error, isLoading, mutate } = useSWR(
     normalized ? queryKeys.userOrders(normalized) : null,
@@ -71,7 +71,7 @@ export function useCounterOffers({
   sellerAddress?: string | null;
 }) {
   const client = useMedialaneClient();
-  const normalized = sellerAddress ? normalizeAddress(sellerAddress) : null;
+  const normalized = sellerAddress ? normalizeAddress("STARKNET", sellerAddress) : null;
   const key =
     originalOrderHash
       ? queryKeys.counterOffersByOrder(originalOrderHash)

@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useAuth, useClerk } from "@clerk/nextjs";
+import { normalizeAddress } from "@medialane/sdk";
 
 export type ReportTarget =
   | { type: "TOKEN"; contract: string; tokenId: string; name?: string }
@@ -38,7 +39,7 @@ interface ReportDialogProps {
 }
 
 export function ReportDialog({ target, open, onOpenChange }: ReportDialogProps) {
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, getToken } = useAuth();
   const { openSignIn } = useClerk();
   const [categories, setCategories] = useState<string[]>([]);
   const [description, setDescription] = useState("");
@@ -71,27 +72,46 @@ export function ReportDialog({ target, open, onOpenChange }: ReportDialogProps) 
     setSubmitStep("submitting");
     setSubmitError(null);
 
+    // Normalize addresses + build the backend targetKey here; the backend
+    // re-validates the key against these fields, and it derives the reporter
+    // identity from the forwarded Clerk JWT (never from the body).
+    const normalizedContract =
+      target.type === "TOKEN" || target.type === "COLLECTION"
+        ? normalizeAddress("STARKNET", target.contract)
+        : undefined;
+    const normalizedAddress =
+      target.type === "CREATOR" ? normalizeAddress("STARKNET", target.address) : undefined;
+
+    let targetKey: string;
+    if (target.type === "TOKEN") targetKey = `TOKEN:${normalizedContract}:${target.tokenId}`;
+    else if (target.type === "COLLECTION") targetKey = `COLLECTION:${normalizedContract}`;
+    else if (target.type === "CREATOR") targetKey = `CREATOR:${normalizedAddress}`;
+    else targetKey = `COMMENT::${target.commentId}`;
+
     const payload: Record<string, unknown> = {
       targetType: target.type,
+      targetKey,
+      targetContract: normalizedContract,
+      targetTokenId: target.type === "TOKEN" ? target.tokenId : undefined,
+      targetAddress: normalizedAddress,
+      targetId: target.type === "COMMENT" ? target.commentId : undefined,
       categories,
       description: description.trim() || undefined,
     };
 
-    if (target.type === "TOKEN") {
-      payload.targetContract = target.contract;
-      payload.targetTokenId = target.tokenId;
-    } else if (target.type === "COLLECTION") {
-      payload.targetContract = target.contract;
-    } else if (target.type === "CREATOR") {
-      payload.targetAddress = target.address;
-    } else if (target.type === "COMMENT") {
-      payload.targetId = target.commentId;
-    }
-
     try {
-      const res = await fetch("/api/reports", {
+      const token = await getToken();
+      if (!token) {
+        setSubmitStep("error");
+        setSubmitError("Please sign in to submit a report.");
+        return;
+      }
+      const res = await fetch("/api/proxy/v1/reports", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(payload),
       });
 
