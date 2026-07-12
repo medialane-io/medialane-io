@@ -3,22 +3,13 @@
 import { ThemeProvider } from "next-themes";
 import { Toaster, toast } from "sonner";
 import Link from "next/link";
-import { Wallet } from "lucide-react";
-import { useUser } from "@clerk/nextjs";
 import { MedialaneLogo } from "@/components/brand/medialane-logo";
 import { SWRConfig } from "swr";
 import { ChipiSessionUnlockProvider } from "@/contexts/chipi-session-unlock-context";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { usePathname } from "next/navigation";
 import { GoogleAnalytics } from "@next/third-parties/google";
-import {
-  NavCommandMenu,
-  useNavCommandMenu,
-  NavBrandButton,
-  NavIconButton,
-  NavAccountSheet,
-  useNavAccountSheet,
-} from "@medialane/ui";
+import { NavCommandMenu, useNavCommandMenu, NavBrandButton } from "@medialane/ui";
 import { NAV_COMMANDS } from "@/lib/nav-commands";
 import { NavAccountPanel } from "@/components/nav-account-panel";
 import { AccountSyncOnLogin } from "@/components/shared/account-sync-on-login";
@@ -52,16 +43,6 @@ function NavTrigger() {
   return <NavBrandButton onClick={open} />;
 }
 
-function NavWalletTrigger() {
-  const { open } = useNavAccountSheet();
-  const { isSignedIn } = useUser();
-  return (
-    <NavIconButton onClick={open} aria-label="Account & wallet" indicator={isSignedIn}>
-      <Wallet className="h-[18px] w-[18px]" />
-    </NavIconButton>
-  );
-}
-
 function StandaloneShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -74,15 +55,9 @@ function MainShell({ children }: { children: React.ReactNode }) {
   return (
     <ChipiSessionUnlockProvider>
       <NavCommandMenu commands={NAV_COMMANDS} accountSlot={<NavAccountPanel />} footerSlot={<NavThemeToggle />} />
-      <NavAccountSheet>
-        <NavAccountPanel />
-      </NavAccountSheet>
       <div className="relative min-h-screen flex flex-col bg-background">
         <div className="fixed top-4 left-4 sm:left-6 lg:left-8 z-50">
           <NavTrigger />
-        </div>
-        <div className="fixed top-4 right-4 sm:right-6 lg:right-8 z-50">
-          <NavWalletTrigger />
         </div>
         <main className="min-w-0 flex-1 overflow-x-hidden">{children}</main>
         <footer className="px-4 sm:px-6 lg:px-8 py-8 mt-auto">

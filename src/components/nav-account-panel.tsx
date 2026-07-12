@@ -25,22 +25,16 @@ export function NavAccountPanel() {
 
   if (!isSignedIn) {
     return (
-      <div className="rounded-xl border border-border/40 bg-muted/20 p-3">
-        <div className="mb-3 flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-background/70 text-muted-foreground">
-            <User className="h-4 w-4" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm font-medium text-foreground">Connect account</p>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
+      <div className="rounded-xl bg-muted/20 p-4 text-center">
+        <p className="text-sm font-semibold text-foreground">Your Medialane account</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">Collect, create and trade — one account.</p>
+        <div className="mt-3 grid grid-cols-2 gap-2">
           <button
             onClick={() => {
               close();
               openSignIn();
             }}
-            className="h-9 rounded-lg border border-border/50 px-3 text-xs font-medium transition-colors hover:bg-muted/50"
+            className="h-10 rounded-full border border-border/50 px-3 text-[13px] font-medium text-foreground transition-colors hover:bg-muted/50 active:scale-[0.98]"
           >
             Sign in
           </button>
@@ -49,7 +43,7 @@ export function NavAccountPanel() {
               close();
               openSignUp();
             }}
-            className="h-9 rounded-lg bg-primary px-3 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="h-10 rounded-full bg-gradient-to-r from-brand-blue via-brand-purple to-brand-rose px-3 text-[13px] font-semibold text-white transition-opacity hover:opacity-90 active:scale-[0.98]"
           >
             Create account
           </button>
