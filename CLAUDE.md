@@ -454,7 +454,7 @@ layout.tsx (server)
 | `src/lib/upload-image.ts` / `src/lib/upload-document.ts` | Client helpers for the signed-URL two-step (image → 10 MB, document → 20 MB) |
 | `src/app/api/pinata/image/route.ts` | Legacy direct image proxy — no creator-flow consumers; campaign pages only |
 | `src/app/api/pinata/json/route.ts` | Generic JSON document upload (Clerk-gated, direct Pinata) — returns `{ uri: "ipfs://...", cid }`. Used by create collection flow to anchor collection metadata on-chain as `baseUri` |
-| `src/app/portfolio/layout.tsx` | Portfolio shared layout: auth guard, wallet display, subnav with 6 links + unread badge |
+| `src/app/portfolio/layout.tsx` | Portfolio shared layout: auth guard + `PortfolioHeader`/`PortfolioNav` (@medialane/ui ≥0.59.0 two-level nav: Overview/Items/Trading/Activity/Settings) with badge counts; `/portfolio` itself is the Overview page (`page.tsx`), not a redirect |
 | `src/hooks/use-collections.ts` | `useCollections`, `useCollection`, `useCollectionTokens`, `useCollectionsByOwner` |
 | `src/app/globals.css` | HSL theme tokens, `.glass`, `.gradient-text` |
 | `src/app/providers.tsx` | Global shell: NavCommandMenu + NavTrigger + ChipiSessionUnlockProvider + footer |
