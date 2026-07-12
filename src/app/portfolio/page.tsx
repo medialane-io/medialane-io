@@ -7,7 +7,6 @@ import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useRemixOffers } from "@/hooks/use-remix-offers";
 import { useActivitiesByAddress } from "@/hooks/use-activities";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
-import { useRewards } from "@/hooks/use-rewards";
 import { PortfolioOverview, derivePortfolioCounts } from "@medialane/ui";
 import { AssetsGrid } from "@/components/portfolio/assets-grid";
 import { ActivityRow } from "@/components/shared/activity-row";
@@ -23,7 +22,6 @@ export default function PortfolioOverviewPage() {
   const { offers: remixOffers } = useRemixOffers("creator");
   const { activities, isLoading: loadingActivity } = useActivitiesByAddress(address);
   const { collections } = useCollectionsByOwner(address);
-  const { data: rewards } = useRewards(address ?? undefined);
 
   const counts = derivePortfolioCounts(orders, remixOffers, address);
   const totalAssets = meta?.total ?? null;
@@ -77,16 +75,9 @@ export default function PortfolioOverviewPage() {
           sub: counts.received > 0 ? "Respond in Trading" : undefined,
           href: "/portfolio/received",
         },
-        {
-          label: "Rewards",
-          value: rewards ? rewards.currentLevelName : null,
-          sub: rewards ? `${rewards.totalXp.toLocaleString()} XP` : undefined,
-          href: "/rewards",
-        },
       ]}
       quickActions={[
-        { label: "Create asset", href: "/create/asset" },
-        { label: "Launch collection", href: "/create/collection" },
+        { label: "Creator launchpad", href: "/launchpad" },
         { label: "Browse marketplace", href: "/marketplace" },
       ]}
       assetsHref="/portfolio/assets"
