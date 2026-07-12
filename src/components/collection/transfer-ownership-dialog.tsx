@@ -24,7 +24,7 @@ import { MarketplacePinStep } from "@/components/marketplace/marketplace-dialog-
 import { TransactionDialogStates } from "@/components/marketplace/transaction-dialog-states";
 import { STARKNET_COLLECTION_721_CONTRACT } from "@/lib/constants";
 import { starknetProvider } from "@/lib/starknet";
-import { normalizeAddress } from "@/lib/utils";
+import { normalizeAddress } from "@medialane/sdk";
 
 interface TransferOwnershipDialogProps {
   /** On-chain numeric collection ID (decimal string). */
@@ -63,7 +63,7 @@ export function TransferCollectionOwnershipDialog({
   const trimmed = newOwner.trim();
   const isValid = /^0x[0-9a-fA-F]{1,64}$/.test(trimmed);
   const wouldNoop =
-    isValid && normalizeAddress(trimmed) === normalizeAddress(currentOwner);
+    isValid && normalizeAddress("STARKNET", trimmed) === normalizeAddress("STARKNET", currentOwner);
 
   const {
     walletSetupOpen,

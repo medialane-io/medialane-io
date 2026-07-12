@@ -12,7 +12,7 @@
 
 import { useCallback, useMemo } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
-import { normalizeAddress } from "@/lib/utils";
+import { normalizeAddress } from "@medialane/sdk";
 import { useMyWallet } from "@/hooks/use-my-wallet";
 import {
   useChipiWallet,
@@ -79,7 +79,7 @@ export function useSessionKey() {
   // Layer 1 fallback: Clerk JWT session claims (publicMetadata.publicKey is embedded
   // in the JWT via the session token template). Works client-side without any API call.
   const claimKey = (sessionClaims?.metadata as Record<string, unknown> | undefined)?.publicKey as string | undefined;
-  const claimAddress = claimKey ? normalizeAddress(claimKey) : null;
+  const claimAddress = claimKey ? normalizeAddress("STARKNET", claimKey) : null;
 
   /** Starknet contract address for this user's ChipiPay account.
    * Resolution order:
@@ -191,11 +191,11 @@ export function useSessionKey() {
               hash.getSelectorFromName("set_collection_active"),
               hash.getSelectorFromName("mint_ticket"),
               hash.getSelectorFromName("redeem_ticket"),
-              // IP Club (registry, mediolano-contracts IP-Club)
-              hash.getSelectorFromName("create_club"),
-              hash.getSelectorFromName("set_club_open"),
-              hash.getSelectorFromName("join_club"),
-              hash.getSelectorFromName("leave_club"),
+              // IP Club (factory + per-club IPClubCollection, mediolano-contracts IP-Club).
+              // deploy_club (create), mint (join — the membership card), set_open (owner).
+              hash.getSelectorFromName("deploy_club"),
+              hash.getSelectorFromName("mint"),
+              hash.getSelectorFromName("set_open"),
               // IP Sponsorship (mediolano-contracts IP-Sponsorhip). The
               // receipt-NFT mint on acceptBid reuses `mint_item` (already
               // whitelisted above); a best-effort receipt transfer on

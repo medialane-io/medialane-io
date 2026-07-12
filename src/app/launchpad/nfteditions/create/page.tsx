@@ -114,19 +114,17 @@ export default function CreateIP1155CollectionPage() {
     if (!walletAddress) throw new Error("Wallet not ready. Please refresh and try again.");
     setDeployedAddress(null);
 
-    // 1. Pin metadata JSON to IPFS
+    // 1. Pin metadata JSON to IPFS — base_uri goes on-chain into an immutable
+    //    deploy, so this MUST succeed; pinLaunchpadMetadata throws on failure.
     let collectionMetaUri: string | undefined;
     if (imageUri) {
-      try {
-        const uri = await pinLaunchpadMetadata({
-          name: pendingValues.name,
-          description: pendingValues.description || "",
-          image: imageUri,
-          external_link: pendingValues.external_link || "",
-        });
-        if (uri) collectionMetaUri = uri;
-        } catch { /* non-fatal */ }
-      }
+      collectionMetaUri = await pinLaunchpadMetadata({
+        name: pendingValues.name,
+        description: pendingValues.description || "",
+        image: imageUri,
+        external_link: pendingValues.external_link || "",
+      });
+    }
 
       // 2. Execute deploy_collection on the factory.
       // v2 factory signature: deploy_collection(name, symbol, base_uri)

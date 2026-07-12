@@ -12,7 +12,6 @@ import { ClaimBackButton } from "@/components/claim/claim-back-button";
 import { ClubJoinButton } from "@/components/claim/club-join-button";
 import { useClubCollections, useClubInfo } from "@/hooks/use-club";
 import { ipfsToHttp } from "@/lib/utils";
-import { STARKNET_IP_CLUB_REGISTRY_CONTRACT } from "@/lib/constants";
 import { hasCapability, type ApiCollection } from "@medialane/sdk";
 
 const CLUB_TRANSFERABLE = hasCapability("ip-club", "transfer");
@@ -22,8 +21,8 @@ function ClubCard({ collection }: { collection: ApiCollection }) {
   const imageUrl = collection.image ? ipfsToHttp(collection.image) : null;
   const showImage = imageUrl && !imgError;
   const initial = (collection.name ?? "C").charAt(0).toUpperCase();
-  const clubId = collection.collectionId ?? null;
-  const { info, isLoading: infoLoading } = useClubInfo(clubId);
+  const clubAddress = collection.contractAddress;
+  const { info, isLoading: infoLoading } = useClubInfo(clubAddress);
 
   return (
     <div className="bento-cell overflow-hidden flex flex-col">
@@ -61,11 +60,9 @@ function ClubCard({ collection }: { collection: ApiCollection }) {
             {info.numMembers}{info.maxMembers != null ? ` / ${info.maxMembers}` : ""} members
           </span>
         )}
-        {clubId && info && !infoLoading ? (
+        {info && !infoLoading ? (
           <ClubJoinButton
-            registryAddress={STARKNET_IP_CLUB_REGISTRY_CONTRACT}
-            clubId={clubId}
-            clubNftAddress={info.clubNftAddress}
+            clubAddress={clubAddress}
             entryFee={info.entryFee ?? "0"}
             paymentToken={info.paymentToken}
             open={info.open}

@@ -177,8 +177,8 @@ export default function CreatorPageClient() {
     walletAddress.toLowerCase() === (address ?? "").toLowerCase();
 
   const { data: hiddenStatus } = useSWR<{ isHidden: boolean }>(
-    address ? `/api/creators/${address}/hidden` : null,
-    (url: string) => fetch(url).then(r => r.json())
+    address ? `/api/proxy/v1/creators/${address}/hidden` : null,
+    (url: string) => fetch(url).then(r => (r.ok ? r.json() : { isHidden: false }))
   );
 
   // Lazy data fetching — only load when tab is active

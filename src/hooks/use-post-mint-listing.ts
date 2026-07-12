@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { normalizeAddress } from "@/lib/utils";
+import { normalizeAddress } from "@medialane/sdk";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import type { ListingStep } from "@/components/marketplace/mint-progress-dialog";
@@ -40,14 +40,14 @@ export function usePostMintListing() {
   }: RunParams) {
     setListingStep("polling");
     try {
-      const normContract = normalizeAddress(collectionContract);
+      const normContract = normalizeAddress("STARKNET", collectionContract);
 
       // Snapshot existing token IDs before polling so we can detect the new one
       const snapshot = new Set<string>();
       try {
         const existing = await client.api.getTokensByOwner(walletAddress, 1, 100);
         (existing.data as ApiToken[] ?? []).forEach((t) => {
-          if (normalizeAddress(t.contractAddress) === normContract) snapshot.add(t.tokenId);
+          if (normalizeAddress("STARKNET", t.contractAddress) === normContract) snapshot.add(t.tokenId);
         });
       } catch { /* snapshot errors are non-fatal */ }
 
@@ -59,7 +59,7 @@ export function usePostMintListing() {
         try {
           const res = await client.api.getTokensByOwner(walletAddress, 1, 100);
           const found = (res.data as ApiToken[] ?? []).find(
-            (t) => normalizeAddress(t.contractAddress) === normContract && !snapshot.has(t.tokenId)
+            (t) => normalizeAddress("STARKNET", t.contractAddress) === normContract && !snapshot.has(t.tokenId)
           );
           if (found) {
             newToken = { contractAddress: found.contractAddress, tokenId: found.tokenId };
