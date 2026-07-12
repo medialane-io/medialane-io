@@ -13,13 +13,17 @@ import type { ApiToken } from "@medialane/sdk";
 
 interface AssetsGridProps {
   address: string | null;
+  /** Compact mode (Overview): fetch only `limit` tokens, no pagination. */
+  limit?: number;
+  /** Override the grid columns (used by the narrower Overview column). */
+  gridClassName?: string;
 }
 
-export function AssetsGrid({ address }: AssetsGridProps) {
+export function AssetsGrid({ address, limit, gridClassName }: AssetsGridProps) {
   const [page, setPage] = useState(1);
   const [allTokens, setAllTokens] = useState<ApiToken[]>([]);
 
-  const { tokens, meta, isLoading, error, mutate } = useTokensByOwner(address, page);
+  const { tokens, meta, isLoading, error, mutate } = useTokensByOwner(address, page, limit ?? 20);
 
   // Accumulate pages
   useEffect(() => {
@@ -64,7 +68,9 @@ export function AssetsGrid({ address }: AssetsGridProps) {
   // Use live SWR tokens on page 1 to avoid the empty-state flash while
   // the useEffect that populates `allTokens` hasn't run yet.
   const displayTokens = page === 1 ? tokens : allTokens;
-  const hasMore = meta ? (meta.total ?? 0) > displayTokens.length : false;
+  const hasMore = limit ? false : meta ? (meta.total ?? 0) > displayTokens.length : false;
+  const gridCols =
+    gridClassName ?? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4";
 
   return (
     <>
@@ -78,8 +84,8 @@ export function AssetsGrid({ address }: AssetsGridProps) {
         emptyCta={{ label: "Create your first asset", href: "/create/asset" }}
         emptyIcon={<ImageIcon className="h-7 w-7 text-muted-foreground" />}
         skeletonNode={
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {Array.from({ length: 10 }).map((_, i) => (
+          <div className={gridCols}>
+            {Array.from({ length: limit ?? 10 }).map((_, i) => (
               <div key={i} className="rounded-xl overflow-hidden bg-muted animate-pulse">
                 <div className="aspect-square w-full bg-muted-foreground/10" />
                 <div className="p-3 space-y-2">
@@ -91,7 +97,7 @@ export function AssetsGrid({ address }: AssetsGridProps) {
           </div>
         }
       >
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div className={gridCols}>
           {displayTokens.map((token) => (
             <TokenCard
               key={`${token.contractAddress}-${token.tokenId}`}

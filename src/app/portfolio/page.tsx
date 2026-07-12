@@ -8,7 +8,7 @@ import { useRemixOffers } from "@/hooks/use-remix-offers";
 import { useActivitiesByAddress } from "@/hooks/use-activities";
 import { useRewards } from "@/hooks/use-rewards";
 import { PortfolioOverview, derivePortfolioCounts } from "@medialane/ui";
-import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
+import { AssetsGrid } from "@/components/portfolio/assets-grid";
 import { ActivityRow } from "@/components/shared/activity-row";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
@@ -18,7 +18,7 @@ export default function PortfolioOverviewPage() {
   const address = walletAddress ?? null;
 
   const { orders } = useUserOrders(address);
-  const { tokens, meta, isLoading: loadingTokens } = useTokensByOwner(address, 1, 4);
+  const { meta, isLoading: loadingTokens } = useTokensByOwner(address, 1, 4);
   const { offers: remixOffers } = useRemixOffers("creator");
   const { activities, isLoading: loadingActivity } = useActivitiesByAddress(address);
   const { data: rewards } = useRewards(address ?? undefined);
@@ -72,26 +72,11 @@ export default function PortfolioOverviewPage() {
       ]}
       assetsHref="/portfolio/assets"
       assetsSlot={
-        loadingTokens ? (
-          <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <TokenCardSkeleton key={i} />
-            ))}
-          </div>
-        ) : tokens.length > 0 ? (
-          <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-            {tokens.map((token) => (
-              <TokenCard key={`${token.contractAddress}-${token.tokenId}`} token={token} />
-            ))}
-          </div>
-        ) : (
-          <div className="rounded-xl border border-border p-6 text-center text-sm text-muted-foreground">
-            No assets yet.{" "}
-            <Link href="/create/asset" className="text-primary font-medium">
-              Create your first asset
-            </Link>
-          </div>
-        )
+        <AssetsGrid
+          address={address}
+          limit={4}
+          gridClassName="grid grid-cols-2 xl:grid-cols-4 gap-4"
+        />
       }
       activityHref="/portfolio/activity"
       activitySlot={
