@@ -9,7 +9,7 @@ import { ChipiSessionUnlockProvider } from "@/contexts/chipi-session-unlock-cont
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { usePathname } from "next/navigation";
 import { GoogleAnalytics } from "@next/third-parties/google";
-import { NavCommandMenu, useNavCommandMenu, NavBrandButton } from "@medialane/ui";
+import { NavCommandMenu, NavBrandButton } from "@medialane/ui";
 import { NAV_COMMANDS } from "@/lib/nav-commands";
 import { NavAccountPanel } from "@/components/nav-account-panel";
 import { AccountSyncOnLogin } from "@/components/shared/account-sync-on-login";
@@ -38,11 +38,6 @@ function toFriendlyToastMessage(err: unknown): string {
   return msg;
 }
 
-function NavTrigger() {
-  const { open } = useNavCommandMenu();
-  return <NavBrandButton onClick={open} />;
-}
-
 function StandaloneShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -57,7 +52,7 @@ function MainShell({ children }: { children: React.ReactNode }) {
       <NavCommandMenu commands={NAV_COMMANDS} accountSlot={<NavAccountPanel />} footerSlot={<NavThemeToggle />} />
       <div className="relative min-h-screen flex flex-col bg-background">
         <div className="fixed top-4 left-4 sm:left-6 lg:left-8 z-50">
-          <NavTrigger />
+          <NavBrandButton />
         </div>
         <main className="min-w-0 flex-1 overflow-x-hidden">{children}</main>
         <footer className="px-4 sm:px-6 lg:px-8 py-8 mt-auto">
