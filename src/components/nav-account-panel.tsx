@@ -25,10 +25,8 @@ export function NavAccountPanel() {
 
   if (!isSignedIn) {
     return (
-      <div className="rounded-xl bg-muted/20 p-4 text-center">
-        <p className="text-sm font-semibold text-foreground">Your Medialane account</p>
-        <p className="mt-0.5 text-xs text-muted-foreground">Collect, create and trade — one account.</p>
-        <div className="mt-3 grid grid-cols-2 gap-2">
+      <div className="rounded-xl bg-muted/20 p-2">
+        <div className="grid grid-cols-2 gap-2">
           <button
             onClick={() => {
               close();
