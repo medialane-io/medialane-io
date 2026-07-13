@@ -285,7 +285,6 @@ export default function MintIP1155Page() {
   return (
     <>
       <ClaimRouteShell
-        gated={false}
         icon={<Sparkles className="h-4 w-4 text-white" />}
         title="Mint an Edition"
         subtitle="Add a new piece to your collection — its details and authorship are saved permanently. Free to mint, and it's yours."

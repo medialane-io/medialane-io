@@ -240,7 +240,6 @@ export default function CreateIP1155CollectionPage() {
       </TransactionDialog>
 
       <ClaimRouteShell
-        gated={false}
         icon={<Layers className="h-4 w-4 text-white" />}
         title="Create an Edition Collection"
         subtitle="Create a collection where each piece can have multiple editions — free to publish, and it's yours."

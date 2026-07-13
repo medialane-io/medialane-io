@@ -24,7 +24,6 @@ export default function ClaimCollectionNamePage() {
       icon={<Link2 className="h-4 w-4 text-white" />}
       title="Claim a Collection Name"
       subtitle="Pick a collection to give it a clean, memorable URL — medialane.io/collection/your-name."
-      redirectUrl="/claim/collection-name"
       aside={<ClaimCollectionNameAside />}
     >
       <CollectionNameClaim />

@@ -277,7 +277,6 @@ export default function CreateCollectionPage() {
       </TransactionDialog>
 
       <ClaimRouteShell
-        gated={false}
         icon={<Layers className="h-4 w-4 text-white" />}
         title="Create a Collection"
         subtitle="Set up a collection to mint your work into — free to publish, and it's yours."

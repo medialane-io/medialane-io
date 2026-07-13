@@ -24,7 +24,6 @@ export default function ClaimUsernamePage() {
       icon={<AtSign className="h-4 w-4 text-white" />}
       title="Claim your Username"
       subtitle="Reserve your creator URL at medialane.io/creator/yourname."
-      redirectUrl="/claim/username"
       aside={<ClaimUsernameAside />}
     >
       <UsernameClaimPanel />

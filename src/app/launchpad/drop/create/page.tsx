@@ -324,7 +324,6 @@ export default function CreateDropPage() {
   return (
     <>
       <ClaimRouteShell
-        gated={false}
         icon={<Package className="h-4 w-4 text-white" />}
         title="Launch a Drop"
         subtitle="Release a limited set of unique pieces with a timed mint window — free to launch, and it's yours."

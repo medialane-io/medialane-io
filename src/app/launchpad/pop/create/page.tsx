@@ -204,7 +204,6 @@ export default function CreatePOPPage() {
   return (
     <>
       <ClaimRouteShell
-        gated={false}
         icon={<Award className="h-4 w-4 text-white" />}
         title="Create a POP Event"
         subtitle="Give attendees a collectible badge that proves they were part of your event — free to publish."

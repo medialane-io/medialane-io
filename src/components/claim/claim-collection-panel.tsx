@@ -145,7 +145,7 @@ export function ClaimCollectionPanel({ helperText }: { helperText?: React.ReactN
         <div className="rounded-xl border border-border bg-muted/30 p-5 space-y-2">
           <p className="font-semibold text-foreground">Claim under review</p>
           <p className="text-sm text-muted-foreground">
-            Our team will verify ownership within 24–48 hours. You&apos;ll be notified at {email} once processed.
+            Our team will verify ownership. You&apos;ll be notified at {email} once processed.
           </p>
         </div>
       )}

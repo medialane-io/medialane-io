@@ -33,7 +33,6 @@ export default function ClaimCollectionPage() {
       icon={<FolderInput className="h-4 w-4 text-white" />}
       title="Claim a Collection"
       subtitle="Import an existing Starknet ERC-721 collection into your Medialane profile."
-      redirectUrl="/claim/collection"
       headerAccessory={urlPill}
       aside={<ClaimCollectionAside />}
     >

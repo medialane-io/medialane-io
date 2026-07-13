@@ -155,7 +155,6 @@ export default function CreateClubPage() {
   return (
     <>
       <ClaimRouteShell
-        gated={false}
         icon={<Users className="h-4 w-4 text-white" />}
         title="Create a Club"
         subtitle="Give your closest fans a membership card that unlocks more — free to publish."

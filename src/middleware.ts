@@ -11,6 +11,8 @@ const requiresSignIn = createRouteMatcher([
   "/launchpad/(.*)/mint",
   "/launchpad/pop/my-events",
   "/launchpad/drop/my-drops",
+  "/launchpad/memecoin",
+  "/claim/(.*)",
 ]);
 
 // Routes that require COMPLETED onboarding once signed in. Campaign routes are
@@ -23,6 +25,8 @@ const requiresOnboarding = createRouteMatcher([
   "/launchpad/(.*)/mint",
   "/launchpad/pop/my-events",
   "/launchpad/drop/my-drops",
+  "/launchpad/memecoin",
+  "/claim/(.*)",
   "/mint",
   "/airdrop",
   "/br/mint",

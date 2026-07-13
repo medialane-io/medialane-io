@@ -386,7 +386,6 @@ export default function CreateAssetPage() {
       />
 
       <ClaimRouteShell
-        gated={false}
         icon={<ImagePlus className="h-4 w-4 text-white" />}
         title="Create a Digital Asset"
         subtitle="Publish your creative work and set how others can use it — free to mint, and it's yours."

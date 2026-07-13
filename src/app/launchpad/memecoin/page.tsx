@@ -21,7 +21,6 @@ export default function MemecoinClaimPage() {
       icon={<Coins className="h-4 w-4 text-white" />}
       title="Claim a Memecoin"
       subtitle="Already launched a coin on Starknet? Add it so people can discover and trade it."
-      redirectUrl="/launchpad/memecoin"
       aside={<ClaimMemecoinAside />}
     >
       <ClaimCollectionPanel helperText="Paste your coin's Starknet contract address — our team gives it a quick review before it goes live." />

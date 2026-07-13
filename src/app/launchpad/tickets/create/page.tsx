@@ -157,7 +157,6 @@ export default function CreateTicketsPage() {
   return (
     <>
       <ClaimRouteShell
-        gated={false}
         icon={<Ticket className="h-4 w-4 text-white" />}
         title="Sell Tickets"
         subtitle="Deploy your own ticket contract once, then create as many events as you like under it."

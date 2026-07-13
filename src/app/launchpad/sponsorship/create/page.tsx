@@ -134,7 +134,6 @@ export default function CreateSponsorshipOfferPage() {
   return (
     <>
       <ClaimRouteShell
-        gated={false}
         icon={<Handshake className="h-4 w-4 text-white" />}
         title="Sponsor Your Work"
         subtitle="Create a sponsorship offer on an asset you own — sponsors bid, you accept, they receive a license."
