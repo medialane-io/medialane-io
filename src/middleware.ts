@@ -2,9 +2,15 @@ import { clerkMiddleware, createRouteMatcher, clerkClient } from "@clerk/nextjs/
 import { NextResponse } from "next/server";
 
 // Routes that require a signed-in user (redirect to sign-in if signed out).
+// Launchpad deploy/mint/owner surfaces sign-gate the same way /create does —
+// browse pages (/launchpad, /launchpad/<service>) stay public.
 const requiresSignIn = createRouteMatcher([
   "/portfolio(.*)",
   "/create(.*)",
+  "/launchpad/(.*)/create",
+  "/launchpad/(.*)/mint",
+  "/launchpad/pop/my-events",
+  "/launchpad/drop/my-drops",
 ]);
 
 // Routes that require COMPLETED onboarding once signed in. Campaign routes are
@@ -13,6 +19,10 @@ const requiresSignIn = createRouteMatcher([
 const requiresOnboarding = createRouteMatcher([
   "/portfolio(.*)",
   "/create(.*)",
+  "/launchpad/(.*)/create",
+  "/launchpad/(.*)/mint",
+  "/launchpad/pop/my-events",
+  "/launchpad/drop/my-drops",
   "/mint",
   "/airdrop",
   "/br/mint",
