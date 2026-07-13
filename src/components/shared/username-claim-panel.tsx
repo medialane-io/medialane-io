@@ -59,8 +59,11 @@ function UsernameInput({ value, onChange, onCheck, onSubmit, checkState, checkRe
  * Self-contained username claim panel. Shows the current claim state and
  * allows the user to check availability and submit a new claim.
  * Safe to render on any page where a signed-in user might not have a username yet.
+ * `bare` drops the card chrome + headings — for pages whose header already
+ * introduces the claim (e.g. /claim/username).
  */
-export function UsernameClaimPanel() {
+export function UsernameClaimPanel({ bare = false }: { bare?: boolean } = {}) {
+  const shell = bare ? "space-y-3 max-w-lg" : "bento-cell p-5 space-y-3";
   const { getToken } = useAuth();
   const { user } = useUser();
   const { walletAddress } = useSessionKey();
@@ -117,11 +120,13 @@ export function UsernameClaimPanel() {
   // Already has an approved username — show it
   if (approvedUsername) {
     return (
-      <div className="bento-cell p-5 space-y-3">
-        <div className="flex items-center gap-2">
-          <AtSign className="h-4 w-4 text-primary" />
-          <p className="font-semibold">Creator Username</p>
-        </div>
+      <div className={shell}>
+        {!bare && (
+          <div className="flex items-center gap-2">
+            <AtSign className="h-4 w-4 text-primary" />
+            <p className="font-semibold">Creator Username</p>
+          </div>
+        )}
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2 text-sm">
             <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
@@ -143,11 +148,13 @@ export function UsernameClaimPanel() {
   // Pending claim
   if (claim?.status === "PENDING") {
     return (
-      <div className="bento-cell p-5 space-y-3">
-        <div className="flex items-center gap-2">
-          <AtSign className="h-4 w-4 text-primary" />
-          <p className="font-semibold">Creator Username</p>
-        </div>
+      <div className={shell}>
+        {!bare && (
+          <div className="flex items-center gap-2">
+            <AtSign className="h-4 w-4 text-primary" />
+            <p className="font-semibold">Creator Username</p>
+          </div>
+        )}
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Clock className="h-4 w-4 text-yellow-500 shrink-0" />
           <span>
@@ -164,11 +171,13 @@ export function UsernameClaimPanel() {
 
   // Rejected claim or no claim — show claim form
   return (
-    <div className="bento-cell p-5 space-y-3">
-      <div className="flex items-center gap-2">
-        <AtSign className="h-4 w-4 text-primary" />
-        <p className="font-semibold">Claim Your Creator Username</p>
-      </div>
+    <div className={shell}>
+      {!bare && (
+        <div className="flex items-center gap-2">
+          <AtSign className="h-4 w-4 text-primary" />
+          <p className="font-semibold">Claim Your Creator Username</p>
+        </div>
+      )}
 
       {claim?.status === "REJECTED" && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -180,11 +189,13 @@ export function UsernameClaimPanel() {
         </div>
       )}
 
-      <p className="text-sm text-muted-foreground">
-        Get a shareable profile URL like{" "}
-        <span className="tabular-nums text-foreground">medialane.io/creator/yourname</span>.
-        Claims are reviewed by the Medialane DAO to prevent impersonation.
-      </p>
+      {!bare && (
+        <p className="text-sm text-muted-foreground">
+          Get a shareable profile URL like{" "}
+          <span className="tabular-nums text-foreground">medialane.io/creator/yourname</span>.
+          Claims are reviewed by the Medialane DAO to prevent impersonation.
+        </p>
+      )}
 
       <UsernameInput
         value={claimInput}

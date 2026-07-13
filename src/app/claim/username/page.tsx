@@ -26,7 +26,7 @@ export default function ClaimUsernamePage() {
       subtitle="Reserve your creator URL at medialane.io/creator/yourname."
       aside={<ClaimUsernameAside />}
     >
-      <UsernameClaimPanel />
+      <UsernameClaimPanel bare />
     </ClaimRouteShell>
   );
 }
