@@ -192,7 +192,7 @@ export function LaunchMint() {
   return (
     <div className="relative flex items-center">
       
-      <div className="container mx-auto px-4 py-8 relative max-w-5xl">
+      <div className="mx-auto px-4 py-8 relative max-w-5xl">
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           {/* Left: NFT card */}
@@ -455,7 +455,7 @@ export function LaunchMint() {
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors group"
                         >
-                          <span className="font-mono">
+                          <span className="tabular-nums">
                             {completedTxHash.slice(0, 12)}…{completedTxHash.slice(-8)}
                           </span>
                           <ExternalLink className="h-3 w-3 group-hover:text-primary transition-colors" />

@@ -86,7 +86,7 @@ export function ClubJoinButton({ clubAddress, entryFee, paymentToken, open }: Cl
 
   if (isMember) {
     return (
-      <div className="flex items-center gap-1.5 text-sm text-indigo-500 font-medium">
+      <div className="flex items-center gap-1.5 text-sm text-brand-indigo font-medium">
         <CheckCircle2 className="h-4 w-4 shrink-0" />
         You&apos;re a member
       </div>
@@ -95,7 +95,7 @@ export function ClubJoinButton({ clubAddress, entryFee, paymentToken, open }: Cl
 
   return (
     <>
-      <Button size="sm" className="w-full gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white" onClick={handleJoin} disabled={busy}>
+      <Button size="sm" className="w-full gap-1.5 bg-brand-indigo hover:brightness-110 text-white" onClick={handleJoin} disabled={busy}>
         {busy ? (
           <><Loader2 className="h-3.5 w-3.5 animate-spin" />Joining…</>
         ) : (

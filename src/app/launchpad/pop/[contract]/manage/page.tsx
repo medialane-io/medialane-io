@@ -59,7 +59,7 @@ function BatchAddSection({
         rows={8}
         value={raw}
         onChange={(e) => setRaw(e.target.value)}
-        className="font-mono text-xs resize-none"
+        className="tabular-nums text-xs resize-none"
       />
       <Button
         size="sm"
@@ -107,7 +107,7 @@ function RemoveSection({
         placeholder="0x..."
         value={addr}
         onChange={(e) => setAddr(e.target.value)}
-        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-mono placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm tabular-nums placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
       />
       <Button
         variant="outline"
@@ -195,7 +195,7 @@ export default function PopManagePage({
 
   if (isLoading) {
     return (
-      <div className="container max-w-xl mx-auto px-4 pt-10 pb-16 space-y-4">
+      <div className="max-w-xl mx-auto px-4 pt-10 pb-16 space-y-4">
         <Skeleton className="h-6 w-24" />
         <Skeleton className="h-32 w-full rounded-2xl" />
         <Skeleton className="h-64 w-full rounded-2xl" />
@@ -205,7 +205,7 @@ export default function PopManagePage({
 
   if (!collection) {
     return (
-      <div className="container max-w-xl mx-auto px-4 pt-24 pb-8 text-center space-y-4">
+      <div className="max-w-xl mx-auto px-4 pt-24 pb-8 text-center space-y-4">
         <AlertCircle className="h-10 w-10 text-muted-foreground/20 mx-auto" />
         <p className="text-muted-foreground">Collection not found.</p>
         <Button asChild variant="outline" size="sm">
@@ -217,7 +217,7 @@ export default function PopManagePage({
 
   if (!isOwner) {
     return (
-      <div className="container max-w-xl mx-auto px-4 pt-24 pb-8 text-center space-y-4">
+      <div className="max-w-xl mx-auto px-4 pt-24 pb-8 text-center space-y-4">
         <Award className="h-10 w-10 text-muted-foreground/20 mx-auto" />
         <p className="text-muted-foreground">You are not the organizer of this event.</p>
         <Button asChild variant="outline" size="sm">
@@ -228,7 +228,7 @@ export default function PopManagePage({
   }
 
   return (
-    <div className="container max-w-xl mx-auto px-4 pt-10 pb-16 space-y-6">
+    <div className="max-w-xl mx-auto px-4 pt-10 pb-16 space-y-6">
       <FadeIn>
         <Button asChild variant="ghost" size="sm" className="-ml-2">
           <Link href="/launchpad/pop">

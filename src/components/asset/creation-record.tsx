@@ -37,7 +37,7 @@ export function CreationRecord({ originalCreator, registeredAt }: CreationRecord
       <dl className="space-y-2 text-sm">
         <div className="flex items-center justify-between">
           <dt className="text-muted-foreground">Original creator</dt>
-          <dd className="font-mono">
+          <dd className="tabular-nums">
             <Link href={`/creator/${creator}`} className="hover:underline">
               {creator.slice(0, 6)}…{creator.slice(-4)}
             </Link>

@@ -31,14 +31,14 @@ function DropStatusBadge({ status }: { status: ReturnType<typeof getDropStatus> 
   }
   if (status === "upcoming") {
     return (
-      <span className={cn("inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-blue-400 bg-blue-500/10 rounded-full px-2 py-0.5")}>
+      <span className={cn("inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-brand-blue bg-brand-blue/10 rounded-full px-2 py-0.5")}>
         Upcoming
       </span>
     );
   }
   if (status === "sold_out") {
     return (
-      <span className={cn("inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-orange-400 bg-orange-500/10 rounded-full px-2 py-0.5")}>
+      <span className={cn("inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-brand-orange bg-brand-orange/10 rounded-full px-2 py-0.5")}>
         Sold out
       </span>
     );
@@ -62,7 +62,7 @@ function DropCollectionCard({ collection }: { collection: ApiCollection }) {
 
   return (
     <Link href={`/launchpad/drop/${collection.contractAddress}`} className="block">
-      <div className="bento-cell overflow-hidden flex flex-col hover:border-orange-500/40 transition-colors">
+      <div className="bento-cell overflow-hidden flex flex-col hover:border-brand-orange/40 transition-colors">
         <div className="relative aspect-video w-full overflow-hidden bg-muted shrink-0">
           {showImage ? (
             <Image
@@ -74,7 +74,7 @@ function DropCollectionCard({ collection }: { collection: ApiCollection }) {
               unoptimized
             />
           ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-orange-500/40 via-amber-500/30 to-orange-900/50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-orange/40 via-amber-500/30 to-brand-price/50 flex items-center justify-center">
               <span className="text-7xl font-black text-white/10 select-none">{initial}</span>
             </div>
           )}
@@ -106,7 +106,7 @@ function DropCollectionCard({ collection }: { collection: ApiCollection }) {
               </span>
             )}
           </div>
-          <div className="text-xs text-orange-500 font-medium">View drop →</div>
+          <div className="text-xs text-brand-orange font-medium">View drop →</div>
         </div>
       </div>
     </Link>
@@ -194,7 +194,7 @@ export function DropContent() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {DROP_FEATURES.map(({ icon: Icon, title, desc }) => (
               <div key={title} className="bento-cell p-4 space-y-2">
-                <Icon className="h-5 w-5 text-orange-500" />
+                <Icon className="h-5 w-5 text-brand-orange" />
                 <p className="text-sm font-semibold leading-tight">{title}</p>
                 <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
               </div>
@@ -215,7 +215,7 @@ export function DropContent() {
               <Button asChild size="sm" variant="outline">
                 <Link href="/launchpad/drop/my-drops">My Drops</Link>
               </Button>
-              <Button asChild size="sm" className="bg-orange-600 hover:bg-orange-700 text-white gap-1.5">
+              <Button asChild size="sm" className="bg-brand-orange hover:brightness-110 text-white gap-1.5">
                 <Link href="/launchpad/drop/create">
                   <Plus className="h-3.5 w-3.5" />
                   Create Drop

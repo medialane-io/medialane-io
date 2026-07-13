@@ -128,9 +128,9 @@ export default function CreateClubPage() {
     return (
       <LaunchpadSuccessState
         icon={CheckCircle2}
-        accentClassName="bg-indigo-500/10"
-        iconClassName="text-indigo-500"
-        actionClassName="bg-indigo-600 hover:bg-indigo-700 text-white"
+        accentClassName="bg-brand-indigo/10"
+        iconClassName="text-brand-indigo"
+        actionClassName="bg-brand-indigo hover:brightness-110 text-white"
         title="Club created"
         description="Your club and its membership card are live onchain. It will appear in the launchpad within a minute once indexed."
         backHref="/launchpad/club"
@@ -145,7 +145,7 @@ export default function CreateClubPage() {
     return (
       <LaunchpadSignedOutState
         icon={Users}
-        iconClassName="text-indigo-500"
+        iconClassName="text-brand-indigo"
         title="Sign in to create a club"
         description="Sign in to deploy your club onchain."
       />
@@ -218,7 +218,7 @@ export default function CreateClubPage() {
                 </FormItem>
               )} />
             </div>
-            <Button type="submit" size="lg" className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white" disabled={busy}>
+            <Button type="submit" size="lg" className="w-full rounded-xl bg-brand-indigo hover:brightness-110 text-white" disabled={busy}>
               {busy ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Creating…</> : <><Users className="h-4 w-4 mr-2" />Create Club</>}
             </Button>
           </form>

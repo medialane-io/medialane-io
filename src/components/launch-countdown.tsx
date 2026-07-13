@@ -27,7 +27,7 @@ function DigitBlock({ value, label }: { value: string; label: string }) {
         <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
         <span
           key={value}
-          className="relative font-mono text-2xl sm:text-3xl font-bold tabular-nums block animate-fade-up"
+          className="relative text-2xl sm:text-3xl font-bold tabular-nums block animate-fade-up"
         >
           {value}
         </span>
@@ -62,7 +62,7 @@ export function LaunchCountdown() {
               </span>
             </div>
             {i < 3 && (
-              <span className="font-mono text-xl sm:text-2xl font-bold text-muted-foreground/50 pb-5 select-none">
+              <span className="tabular-nums text-xl sm:text-2xl font-bold text-muted-foreground/50 pb-5 select-none">
                 :
               </span>
             )}
@@ -96,7 +96,7 @@ export function LaunchCountdown() {
         <div key={label} className="flex items-end gap-2 sm:gap-3">
           <DigitBlock value={value} label={label} />
           {i < 3 && (
-            <span className="font-mono text-xl sm:text-2xl font-bold text-muted-foreground/50 pb-5 select-none">
+            <span className="tabular-nums text-xl sm:text-2xl font-bold text-muted-foreground/50 pb-5 select-none">
               :
             </span>
           )}

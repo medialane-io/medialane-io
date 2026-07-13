@@ -165,7 +165,7 @@ export default function PortfolioLicensingPage() {
 function StatusBadge({ status }: { status: RemixOffer["status"] }) {
   const config: Record<RemixOffer["status"], { label: string; className: string }> = {
     PENDING:      { label: "Awaiting creator", className: "bg-yellow-500/10 text-yellow-500 border border-yellow-500/20" },
-    AUTO_PENDING: { label: "Auto",             className: "bg-blue-500/10 text-blue-500 border border-blue-500/20" },
+    AUTO_PENDING: { label: "Auto",             className: "bg-brand-blue/10 text-brand-blue border border-brand-blue/20" },
     APPROVED:     { label: "License granted",  className: "bg-primary/10 text-primary border border-primary/20" },
     COMPLETED:    { label: "Licensed",         className: "bg-green-500/10 text-green-500 border border-green-500/20" },
     REJECTED:     { label: "Declined",         className: "bg-destructive/10 text-destructive border border-destructive/20" },

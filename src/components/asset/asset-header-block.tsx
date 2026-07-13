@@ -36,7 +36,7 @@ export function AssetHeaderBlock({
         <div className="flex items-center gap-2 flex-wrap mb-2">
           {ipType ? <IpTypeBadge ipType={ipType} size="md" /> : null}
           {showMultiEditionBadge ? (
-            <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-violet-500/30 bg-violet-500/10 text-violet-500">
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-brand-purple/30 bg-brand-purple/10 text-brand-purple">
               <Layers className="h-3 w-3" />
               Multi-edition
             </span>

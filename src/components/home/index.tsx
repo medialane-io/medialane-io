@@ -15,12 +15,12 @@ export function HomePage() {
       <HeroSlider />
 
       {/* Live market ticker */}
-      <div className="container mx-auto px-4 sm:px-6 pt-6">
+      <div className="w-full max-w-screen-2xl mx-auto px-4 sm:px-6 pt-6">
         <ActivityTicker limit={14} />
       </div>
 
       {/* Padded content sections */}
-      <div className="container mx-auto px-4 sm:px-6 space-y-20 mt-16">
+      <div className="w-full max-w-screen-2xl mx-auto px-4 sm:px-6 space-y-20 mt-16">
         <TrendingCollections />
         <NewOnMarketplace />
         <CreatorAirdropBanner />

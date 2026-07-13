@@ -200,7 +200,7 @@ export default function CreateIP1155CollectionPage() {
     return (
       <LaunchpadSignedOutState
         icon={Layers}
-        iconClassName="text-violet-500"
+        iconClassName="text-brand-purple"
         title="Sign in to create a collection"
         description="Deploy a multi-edition ERC-1155 IP collection onchain."
       />

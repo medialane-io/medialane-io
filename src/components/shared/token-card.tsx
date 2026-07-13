@@ -93,12 +93,12 @@ export function TokenCard({
                 fill
                 unoptimized
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 22vw"
-                className="object-cover hover:scale-105 transition-transform duration-500"
+                className="object-cover"
                 onError={() => setImgError(true)}
               />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-brand-purple/15 to-brand-blue/15">
-                <span className="text-2xl font-mono text-muted-foreground">#{token.tokenId}</span>
+                <span className="text-2xl tabular-nums text-muted-foreground">#{token.tokenId}</span>
               </div>
             )}
 
@@ -128,7 +128,7 @@ export function TokenCard({
             <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
               {ipType && <IpTypeBadge ipType={ipType} size="sm" />}
               {creator ? (
-                <p className="text-[10px] font-mono text-muted-foreground/60 truncate">
+                <p className="text-[10px] tabular-nums text-muted-foreground/60 truncate">
                   {creator.slice(0, 8)}…{creator.slice(-6)}
                 </p>
               ) : token.metadata?.description ? (

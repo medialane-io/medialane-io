@@ -218,14 +218,14 @@ export function MintProgressDialog({
                 <div className="absolute -bottom-2 -right-2 h-9 w-9 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg border-2 border-background">
                   <CheckCircle2 className="h-5 w-5 text-white" />
                 </div>
-                <Sparkles className="absolute -top-2 -right-2 h-5 w-5 text-yellow-400" />
+                <Sparkles className="absolute -top-2 -right-2 h-5 w-5 text-brand-orange" />
               </div>
             ) : (
               <div className="relative">
                 <div className="h-16 w-16 rounded-full bg-emerald-500/15 flex items-center justify-center">
                   <CheckCircle2 className="h-9 w-9 text-emerald-500" />
                 </div>
-                <Sparkles className="absolute -top-1 -right-1 h-5 w-5 text-yellow-400" />
+                <Sparkles className="absolute -top-1 -right-1 h-5 w-5 text-brand-orange" />
               </div>
             )}
             <div className="text-center space-y-1">
@@ -242,7 +242,7 @@ export function MintProgressDialog({
                 {mintedTokenId && (
                   <div>
                     <p className="text-xs font-medium text-muted-foreground">Token ID</p>
-                    <p className="font-mono text-xs break-all text-foreground mt-1">{mintedTokenId}</p>
+                    <p className="tabular-nums text-xs break-all text-foreground mt-1">{mintedTokenId}</p>
                   </div>
                 )}
                 {(assetHref || explorerAssetHref) && (
@@ -270,7 +270,7 @@ export function MintProgressDialog({
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
-                <span className="font-mono">{txHash.slice(0, 10)}…{txHash.slice(-8)}</span>
+                <span className="tabular-nums">{txHash.slice(0, 10)}…{txHash.slice(-8)}</span>
                 <ExternalLink className="h-3 w-3" />
               </a>
             )}
@@ -296,14 +296,14 @@ export function MintProgressDialog({
                 <div className="absolute -bottom-2 -right-2 h-9 w-9 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg border-2 border-background">
                   <CheckCircle2 className="h-5 w-5 text-white" />
                 </div>
-                <Sparkles className="absolute -top-2 -right-2 h-5 w-5 text-yellow-400" />
+                <Sparkles className="absolute -top-2 -right-2 h-5 w-5 text-brand-orange" />
               </div>
             ) : (
               <div className="relative">
                 <div className="h-16 w-16 rounded-full bg-emerald-500/15 flex items-center justify-center">
                   <CheckCircle2 className="h-9 w-9 text-emerald-500" />
                 </div>
-                <Sparkles className="absolute -top-1 -right-1 h-5 w-5 text-yellow-400" />
+                <Sparkles className="absolute -top-1 -right-1 h-5 w-5 text-brand-orange" />
               </div>
             )}
             <div className="text-center space-y-1">
@@ -320,7 +320,7 @@ export function MintProgressDialog({
                 {mintedTokenId && (
                   <div>
                     <p className="text-xs font-medium text-muted-foreground">Token ID</p>
-                    <p className="font-mono text-xs break-all text-foreground mt-1">{mintedTokenId}</p>
+                    <p className="tabular-nums text-xs break-all text-foreground mt-1">{mintedTokenId}</p>
                   </div>
                 )}
                 {(assetHref || explorerAssetHref) && (
@@ -348,7 +348,7 @@ export function MintProgressDialog({
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
-                <span className="font-mono">{txHash.slice(0, 10)}…{txHash.slice(-8)}</span>
+                <span className="tabular-nums">{txHash.slice(0, 10)}…{txHash.slice(-8)}</span>
                 <ExternalLink className="h-3 w-3" />
               </a>
             )}

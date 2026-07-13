@@ -149,7 +149,7 @@ export function TransferCollectionOwnershipDialog({
           isSubmitting={isSubmitting}
           successTitle="Ownership transferred"
           successBody={
-            <span className="font-mono">
+            <span className="tabular-nums">
               New owner: {trimmed.slice(0, 6)}…{trimmed.slice(-4)}
             </span>
           }
@@ -180,7 +180,7 @@ export function TransferCollectionOwnershipDialog({
                 placeholder="0x…"
                 value={newOwner}
                 onChange={(e) => setNewOwner(e.target.value)}
-                className="font-mono text-sm"
+                className="tabular-nums text-sm"
                 spellCheck={false}
                 autoComplete="off"
               />

@@ -34,7 +34,7 @@ export function MarketplaceTxLink({
         className
       )}
     >
-      <span className="font-mono">{txHash.slice(0, 10)}…{txHash.slice(-8)}</span>
+      <span className="tabular-nums">{txHash.slice(0, 10)}…{txHash.slice(-8)}</span>
       <ExternalLink className="h-3 w-3" />
     </a>
   );
@@ -156,14 +156,14 @@ export function MarketplaceSuccessState({
           <div className="absolute -bottom-2 -right-2 h-9 w-9 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg border-2 border-background">
             <CheckCircle2 className="h-5 w-5 text-white" />
           </div>
-          <Sparkles className="absolute -top-2 -right-2 h-5 w-5 text-yellow-400" />
+          <Sparkles className="absolute -top-2 -right-2 h-5 w-5 text-brand-orange" />
         </div>
       ) : (
         <div className="relative">
           <div className="h-16 w-16 rounded-full bg-emerald-500/15 flex items-center justify-center">
             <CheckCircle2 className="h-9 w-9 text-emerald-500" />
           </div>
-          <Sparkles className="absolute -top-1 -right-1 h-5 w-5 text-yellow-400" />
+          <Sparkles className="absolute -top-1 -right-1 h-5 w-5 text-brand-orange" />
         </div>
       )}
       <div className="text-center space-y-1">

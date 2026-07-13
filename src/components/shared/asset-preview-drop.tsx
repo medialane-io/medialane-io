@@ -38,7 +38,7 @@ export function AssetPreviewDrop({ token, onClose }: AssetPreviewContentProps) {
         name={name}
         ipType={token.metadata?.ipType}
         accentOverlay={
-          <span className="absolute top-3 right-3 inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full border border-brand-orange/40 bg-brand-orange/20 text-orange-300 backdrop-blur-sm">
+          <span className="absolute top-3 right-3 inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full border border-brand-orange/40 bg-brand-orange/20 text-brand-orange backdrop-blur-sm">
             <Sparkles className="h-3 w-3" />
             Drop
           </span>

@@ -107,9 +107,9 @@ export default function CreateSponsorshipOfferPage() {
     return (
       <LaunchpadSuccessState
         icon={CheckCircle2}
-        accentClassName="bg-rose-500/10"
-        iconClassName="text-rose-500"
-        actionClassName="bg-rose-600 hover:bg-rose-700 text-white"
+        accentClassName="bg-brand-rose/10"
+        iconClassName="text-brand-rose"
+        actionClassName="bg-brand-rose hover:brightness-110 text-white"
         title="Offer created"
         description="Your sponsorship offer is live onchain. It will appear in the launchpad within a minute once indexed."
         backHref="/launchpad/sponsorship"
@@ -124,7 +124,7 @@ export default function CreateSponsorshipOfferPage() {
     return (
       <LaunchpadSignedOutState
         icon={Handshake}
-        iconClassName="text-rose-500"
+        iconClassName="text-brand-rose"
         title="Sign in to create a sponsorship offer"
         description="Sign in to publish your offer onchain."
       />
@@ -196,7 +196,7 @@ export default function CreateSponsorshipOfferPage() {
                 <FormLabel className="font-normal">Sponsor can transfer this license to someone else</FormLabel>
               </FormItem>
             )} />
-            <Button type="submit" size="lg" className="w-full rounded-xl bg-rose-600 hover:bg-rose-700 text-white" disabled={busy}>
+            <Button type="submit" size="lg" className="w-full rounded-xl bg-brand-rose hover:brightness-110 text-white" disabled={busy}>
               {busy ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Creating…</> : <><Handshake className="h-4 w-4 mr-2" />Create Offer</>}
             </Button>
           </form>

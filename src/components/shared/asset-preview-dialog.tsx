@@ -57,10 +57,10 @@ export function PreviewMeta({ token }: { token: ApiToken }) {
   const shortContract = `${token.contractAddress.slice(0, 8)}…${token.contractAddress.slice(-6)}`;
   return (
     <div className="flex flex-wrap items-center gap-1.5 px-5 pt-1 pb-2 shrink-0">
-      <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-muted/60 text-[10px] font-mono text-muted-foreground">
+      <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-muted/60 text-[10px] tabular-nums text-muted-foreground">
         #{token.tokenId}
       </span>
-      <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-muted/60 text-[10px] font-mono text-muted-foreground">
+      <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-muted/60 text-[10px] tabular-nums text-muted-foreground">
         {shortContract}
       </span>
       {licenseAttr?.value && (
@@ -81,7 +81,7 @@ export function PreviewOwnerRow({ owner, label = "Owned by" }: { owner: string; 
     >
       <UserCircle2 className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" />
       <span className="text-[11px] text-muted-foreground">{label}</span>
-      <span className="text-[11px] font-mono text-foreground/60 ml-auto group-hover:text-foreground/90 transition-colors">
+      <span className="text-[11px] tabular-nums text-foreground/60 ml-auto group-hover:text-foreground/90 transition-colors">
         {short}
       </span>
     </a>

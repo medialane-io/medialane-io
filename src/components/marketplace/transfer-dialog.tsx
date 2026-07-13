@@ -252,14 +252,14 @@ export function TransferDialog({
                 <div className="h-16 w-16 rounded-full bg-emerald-500/15 flex items-center justify-center">
                   <CheckCircle2 className="h-9 w-9 text-emerald-500" />
                 </div>
-                <Sparkles className="absolute -top-1 -right-1 h-5 w-5 text-yellow-400" />
+                <Sparkles className="absolute -top-1 -right-1 h-5 w-5 text-brand-orange" />
               </div>
               <div className="text-center space-y-1">
                 <p className="font-bold text-xl">Transfer complete!</p>
                 <p className="text-sm text-muted-foreground">
                   <span className="font-medium text-foreground">{displayName}</span>{" "}
                   has been sent to{" "}
-                  <span className="font-mono text-foreground">{recipientShort}</span>.
+                  <span className="tabular-nums text-foreground">{recipientShort}</span>.
                 </p>
               </div>
               {txHash && (
@@ -269,7 +269,7 @@ export function TransferDialog({
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  <span className="font-mono">{txHash.slice(0, 10)}…{txHash.slice(-8)}</span>
+                  <span className="tabular-nums">{txHash.slice(0, 10)}…{txHash.slice(-8)}</span>
                   <ExternalLink className="h-3 w-3" />
                 </a>
               )}
@@ -318,7 +318,7 @@ export function TransferDialog({
               <div className="flex items-end justify-between px-6 pt-3 pb-1">
                 <div className="min-w-0">
                   <p className="font-bold text-lg leading-tight truncate">{displayName}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5 font-mono truncate">
+                  <p className="text-xs text-muted-foreground mt-0.5 tabular-nums truncate">
                     → {recipientShort}
                   </p>
                 </div>

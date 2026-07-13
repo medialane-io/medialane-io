@@ -77,7 +77,7 @@ export default function MyEventsPage() {
 
   if (!isSignedIn) {
     return (
-      <div className="container max-w-lg mx-auto px-4 pt-24 pb-8 text-center space-y-4">
+      <div className="max-w-lg mx-auto px-4 pt-24 pb-8 text-center space-y-4">
         <Award className="h-10 w-10 text-muted-foreground/20 mx-auto" />
         <h1 className="text-xl font-bold">Sign in to view your events</h1>
       </div>
@@ -85,7 +85,7 @@ export default function MyEventsPage() {
   }
 
   return (
-    <div className="container max-w-2xl mx-auto px-4 pt-10 pb-16 space-y-8">
+    <div className="max-w-2xl mx-auto px-4 pt-10 pb-16 space-y-8">
       <FadeIn>
         <div className="flex items-center justify-between">
           <div>

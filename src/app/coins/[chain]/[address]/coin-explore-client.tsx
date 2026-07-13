@@ -74,7 +74,7 @@ export function CoinExploreClient({ address }: { address: string }) {
         )}
       </div>
 
-      <div className="container mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 pt-20 pb-12 space-y-6">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 pt-20 pb-12 space-y-6">
         {/* Identity */}
         <div className="flex items-center gap-4">
           {logo ? (

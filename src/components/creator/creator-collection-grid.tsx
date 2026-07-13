@@ -23,7 +23,7 @@ function CollectionCover({
   return (
     <Link
       href={collectionHref("STARKNET", collection.contractAddress)}
-      className="group block relative rounded-2xl overflow-hidden border border-border/60 hover:border-border transition-all hover:shadow-xl hover:shadow-black/20 hover:-translate-y-0.5 duration-300"
+      className="group block relative rounded-2xl overflow-hidden border border-border/60 hover:border-border transition-colors active:scale-[0.99] duration-300"
     >
       {/* Cover image — aspect-[3/4] portrait like collection cards */}
       <div className="relative aspect-[3/4] w-full bg-muted overflow-hidden">
@@ -32,7 +32,7 @@ function CollectionCover({
             src={imageUrl}
             alt={collection.name ?? "Collection"}
             fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            className="object-cover"
             onError={() => setImgError(true)}
             unoptimized
           />

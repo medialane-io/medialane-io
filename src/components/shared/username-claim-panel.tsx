@@ -27,7 +27,7 @@ function UsernameInput({ value, onChange, onCheck, onSubmit, checkState, checkRe
         <div className="relative flex-1">
           <AtSign className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
           <Input
-            className="pl-7 font-mono"
+            className="pl-7 tabular-nums"
             placeholder="yourname"
             value={value}
             onChange={(e) => onChange(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))}
@@ -126,7 +126,7 @@ export function UsernameClaimPanel() {
           <div className="flex items-center gap-2 text-sm">
             <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
             <span className="text-muted-foreground">Your username:</span>
-            <a href={`/creator/${approvedUsername}`} className="font-mono font-medium text-primary hover:underline">
+            <a href={`/creator/${approvedUsername}`} className="tabular-nums font-medium text-primary hover:underline">
               @{approvedUsername}
             </a>
           </div>
@@ -152,7 +152,7 @@ export function UsernameClaimPanel() {
           <Clock className="h-4 w-4 text-yellow-500 shrink-0" />
           <span>
             Your claim for{" "}
-            <span className="font-mono font-medium text-foreground">@{claim.username}</span> is pending DAO review.
+            <span className="tabular-nums font-medium text-foreground">@{claim.username}</span> is pending DAO review.
           </span>
           <Badge variant="outline" className="border-yellow-500/30 text-yellow-400 bg-yellow-500/10 ml-1">
             Pending
@@ -174,7 +174,7 @@ export function UsernameClaimPanel() {
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <XCircle className="h-4 w-4 text-red-500 shrink-0" />
           <span>
-            Your claim for <span className="font-mono">@{claim.username}</span> was rejected.
+            Your claim for <span className="tabular-nums">@{claim.username}</span> was rejected.
             {claim.adminNotes && <span className="ml-1 italic">&ldquo;{claim.adminNotes}&rdquo;</span>}
           </span>
         </div>
@@ -182,7 +182,7 @@ export function UsernameClaimPanel() {
 
       <p className="text-sm text-muted-foreground">
         Get a shareable profile URL like{" "}
-        <span className="font-mono text-foreground">medialane.io/creator/yourname</span>.
+        <span className="tabular-nums text-foreground">medialane.io/creator/yourname</span>.
         Claims are reviewed by the Medialane DAO to prevent impersonation.
       </p>
 

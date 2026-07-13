@@ -190,8 +190,8 @@ export function AssetPageEdition() {
             imgError={imgError}
             onImageError={() => setImgError(true)}
             fallback={(
-              <div className="aspect-square flex items-center justify-center bg-gradient-to-br from-violet-500/20 to-purple-600/20">
-                <Layers className="h-24 w-24 text-violet-500/40" />
+              <div className="aspect-square flex items-center justify-center bg-gradient-to-br from-brand-purple/20 to-brand-purple/20">
+                <Layers className="h-24 w-24 text-brand-purple/40" />
               </div>
             )}
             stats={buildEditionStats(totalEditions, uniqueOwners)}
@@ -323,10 +323,10 @@ export function AssetPageEdition() {
         name={name}
         imageUrl={imageUrl}
         commentTotal={commentTotal}
-        accentBorderClassName="border-violet-500/20"
+        accentBorderClassName="border-brand-purple/20"
         accentHeaderStyle="linear-gradient(135deg, hsl(var(--brand-purple) / 0.10), hsl(var(--brand-blue) / 0.08))"
         accentAvatarStyle="linear-gradient(135deg, hsl(266 80% 60% / 0.3), hsl(var(--brand-blue) / 0.3))"
-        accentLabelClassName="text-violet-400"
+        accentLabelClassName="text-brand-purple"
         accentCountStyle={{ background: "rgb(139 92 246)" }}
       />
 

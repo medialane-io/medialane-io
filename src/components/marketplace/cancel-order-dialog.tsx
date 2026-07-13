@@ -38,7 +38,7 @@ function TokenHero({ order, variant, tokenName, tokenImage }: { order: ApiOrder;
         {image ? (
           <img src={image} alt={name ?? "Asset"} className="h-full w-full object-cover" />
         ) : (
-          <div className="h-full w-full bg-gradient-to-br from-destructive/20 via-rose-500/10 to-transparent" />
+          <div className="h-full w-full bg-gradient-to-br from-destructive/20 via-brand-rose/10 to-transparent" />
         )}
       </div>
       <div className="flex items-end justify-between px-6 pt-3 pb-1">

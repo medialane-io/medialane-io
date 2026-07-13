@@ -112,7 +112,7 @@ export function ActivityRow({
         )}
         {/* ERC-1155 badge */}
         {is1155 && (
-          <span className="absolute -bottom-1 -right-1 text-[8px] font-bold bg-violet-500 text-white rounded px-0.5 leading-tight">
+          <span className="absolute -bottom-1 -right-1 text-[8px] font-bold bg-brand-purple text-white rounded px-0.5 leading-tight">
             1155
           </span>
         )}
@@ -132,7 +132,7 @@ export function ActivityRow({
             <span className="text-sm font-semibold text-muted-foreground">—</span>
           )}
           {amount && (
-            <span className="text-[10px] font-medium text-violet-400 shrink-0">
+            <span className="text-[10px] font-medium text-brand-purple shrink-0">
               ×{amount}
             </span>
           )}
@@ -143,7 +143,7 @@ export function ActivityRow({
             <>
               <Link
                 href={`/creator/${actor}`}
-                className="hover:text-primary transition-colors font-mono shrink-0"
+                className="hover:text-primary transition-colors tabular-nums shrink-0"
               >
                 <AddressDisplay address={actor} chars={4} showCopy={false} />
               </Link>

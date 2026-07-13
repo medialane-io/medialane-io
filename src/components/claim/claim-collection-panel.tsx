@@ -121,7 +121,7 @@ export function ClaimCollectionPanel({ helperText }: { helperText?: React.ReactN
           {claimedCollection && (
             <div className="rounded-lg bg-muted/50 px-3 py-2">
               <p className="text-sm font-medium">{claimedCollection.name ?? "Collection"}</p>
-              <p className="text-xs text-muted-foreground font-mono mt-0.5 truncate">
+              <p className="text-xs text-muted-foreground tabular-nums mt-0.5 truncate">
                 {claimedCollection.contractAddress}
               </p>
             </div>

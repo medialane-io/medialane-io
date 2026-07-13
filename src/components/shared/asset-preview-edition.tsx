@@ -67,7 +67,7 @@ export function AssetPreviewEdition({ token, isOwner, onClose }: AssetPreviewCon
         name={name}
         ipType={token.metadata?.ipType}
         accentOverlay={
-          <span className="absolute top-3 right-3 inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full border border-violet-500/40 bg-violet-500/20 text-violet-300 backdrop-blur-sm">
+          <span className="absolute top-3 right-3 inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full border border-brand-purple/40 bg-brand-purple/20 text-brand-purple backdrop-blur-sm">
             <Layers className="h-3 w-3" />
             Multi-edition
           </span>

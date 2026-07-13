@@ -349,7 +349,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
                             <span className="flex items-center gap-2">
                               {c.name ?? c.contractAddress.slice(0, 14) + "…"}
                               {c.standard && (
-                                <span className="text-[10px] font-mono text-muted-foreground">{c.standard}</span>
+                                <span className="text-[10px] tabular-nums text-muted-foreground">{c.standard}</span>
                               )}
                             </span>
                           </SelectItem>

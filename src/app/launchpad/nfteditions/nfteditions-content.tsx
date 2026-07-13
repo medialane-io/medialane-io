@@ -34,7 +34,7 @@ function CollectionRow({ col }: { col: ApiCollection }) {
             src={imageUrl}
             alt={col.name ?? ""}
             fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            className="object-cover"
             onError={() => setImgError(true)}
             unoptimized
           />
@@ -58,7 +58,7 @@ function CollectionRow({ col }: { col: ApiCollection }) {
                 {col.name ?? "Unnamed Collection"}
               </p>
               {col.symbol && (
-                <p className="text-xs font-mono text-muted-foreground mt-0.5">{col.symbol}</p>
+                <p className="text-xs tabular-nums text-muted-foreground mt-0.5">{col.symbol}</p>
               )}
             </div>
             <Link

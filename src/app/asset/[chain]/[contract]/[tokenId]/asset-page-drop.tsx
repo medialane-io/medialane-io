@@ -54,9 +54,9 @@ function getTokenByAddress(address: string) {
 function DropStatusBadge({ status }: { status: ReturnType<typeof getDropStatus> }) {
   const map = {
     live:     { label: "Live",     cls: "text-green-400 bg-green-500/10 border-green-500/20", dot: true  },
-    upcoming: { label: "Upcoming", cls: "text-blue-400 bg-blue-500/10 border-blue-500/20",   dot: false },
+    upcoming: { label: "Upcoming", cls: "text-brand-blue bg-brand-blue/10 border-brand-blue/20",   dot: false },
     ended:    { label: "Ended",    cls: "text-muted-foreground bg-muted border-border",       dot: false },
-    sold_out: { label: "Sold out", cls: "text-orange-400 bg-orange-500/10 border-orange-500/20", dot: false },
+    sold_out: { label: "Sold out", cls: "text-brand-orange bg-brand-orange/10 border-brand-orange/20", dot: false },
   } as const;
   const { label, cls, dot } = map[status];
   return (
@@ -76,7 +76,7 @@ function SupplyProgress({ minted, max }: { minted: number; max: number }) {
         <span>of {max.toLocaleString()}</span>
       </div>
       <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-        <div className="h-full rounded-full bg-orange-500 transition-all duration-500" style={{ width: `${pct}%` }} />
+        <div className="h-full rounded-full bg-brand-orange transition-all duration-500" style={{ width: `${pct}%` }} />
       </div>
       <p className="text-xs text-muted-foreground">{pct.toFixed(1)}% minted</p>
     </div>
@@ -100,7 +100,7 @@ function DropInfoPanel({ conditions, totalMinted }: { conditions: DropConditions
   return (
     <div className="rounded-xl border border-border p-4 space-y-4">
       <div className="flex items-center gap-2">
-        <Package className="h-4 w-4 text-orange-500" />
+        <Package className="h-4 w-4 text-brand-orange" />
         <p className="text-sm font-semibold">Drop</p>
         <DropStatusBadge status={status} />
       </div>
@@ -200,8 +200,8 @@ export function AssetPageDrop() {
               {imageUrl && !imgError ? (
                 <Image src={imageUrl} alt={name} width={0} height={0} sizes="(max-width: 1024px) 100vw, 66vw" className="w-full h-auto" onError={() => setImgError(true)} crossOrigin="anonymous" priority />
               ) : (
-                <div className="aspect-square flex items-center justify-center bg-gradient-to-br from-orange-500/10 to-amber-600/10">
-                  <Package className="h-20 w-20 text-orange-500/30" />
+                <div className="aspect-square flex items-center justify-center bg-gradient-to-br from-brand-orange/10 to-amber-600/10">
+                  <Package className="h-20 w-20 text-brand-orange/30" />
                 </div>
               )}
             </div>
@@ -216,7 +216,7 @@ export function AssetPageDrop() {
           >
             <div>
               <div className="flex items-center gap-2 flex-wrap mb-2">
-                <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-orange-500/30 bg-orange-500/10 text-orange-500">
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-brand-orange/30 bg-brand-orange/10 text-brand-orange">
                   <Package className="h-3 w-3" />
                   Drop
                 </span>
@@ -376,7 +376,7 @@ export function AssetPageDrop() {
                 Contract <ExternalLink className="h-3 w-3" />
               </a>
               <Link href={`/launchpad/drop/${contract}`} className="flex items-center gap-2.5 rounded-lg border border-border px-3 py-1.5 hover:bg-muted/40 transition-colors group min-w-0">
-                <Package className="h-4 w-4 text-orange-500 shrink-0" />
+                <Package className="h-4 w-4 text-brand-orange shrink-0" />
                 <span className="text-xs font-medium truncate group-hover:text-primary transition-colors">Drop page</span>
               </Link>
               <ShareButton title={name} variant="ghost" size="icon" />
@@ -410,12 +410,12 @@ export function AssetPageDrop() {
 
       <Dialog open={commentOpen} onOpenChange={setCommentOpen}>
         <DialogContent className="w-full max-w-md p-0 overflow-hidden gap-0 flex flex-col max-h-[85svh]">
-          <div className="flex items-center gap-3 pr-10 pl-4 pt-4 pb-3 shrink-0 border-b border-orange-500/20" style={{ background: "linear-gradient(135deg, hsl(var(--brand-orange) / 0.10), hsl(var(--brand-purple) / 0.08))" }}>
-            <div className="relative h-9 w-9 rounded-full overflow-hidden shrink-0 ring-2 ring-white/20 bg-orange-500/20">
+          <div className="flex items-center gap-3 pr-10 pl-4 pt-4 pb-3 shrink-0 border-b border-brand-orange/20" style={{ background: "linear-gradient(135deg, hsl(var(--brand-orange) / 0.10), hsl(var(--brand-purple) / 0.08))" }}>
+            <div className="relative h-9 w-9 rounded-full overflow-hidden shrink-0 ring-2 ring-white/20 bg-brand-orange/20">
               {imageUrl && <Image src={imageUrl} alt={name} fill className="object-cover" unoptimized />}
             </div>
             <div className="min-w-0 flex-1">
-              <DialogTitle asChild><p className="text-[10px] font-medium uppercase tracking-wider text-orange-400">Comments</p></DialogTitle>
+              <DialogTitle asChild><p className="text-[10px] font-medium uppercase tracking-wider text-brand-orange">Comments</p></DialogTitle>
               <p className="text-sm font-semibold truncate text-foreground">{name}</p>
             </div>
           </div>

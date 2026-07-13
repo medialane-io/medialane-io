@@ -31,7 +31,7 @@ export function DropCountdown({ targetTs, label }: { targetTs: number; label: st
 
   return (
     <div className="space-y-2">
-      <p className="text-xs font-semibold uppercase tracking-widest text-orange-500">{label}</p>
+      <p className="text-xs font-semibold uppercase tracking-widest text-brand-orange">{label}</p>
       <div className="flex items-center gap-3">
         {d > 0 && (<>{cell(d, "days")}<span className="text-xl text-muted-foreground/40">:</span></>)}
         {cell(h, "hrs")}

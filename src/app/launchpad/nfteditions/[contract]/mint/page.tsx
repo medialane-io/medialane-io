@@ -258,7 +258,7 @@ export default function MintIP1155Page() {
     return (
       <LaunchpadSignedOutState
         icon={Sparkles}
-        iconClassName="text-violet-500"
+        iconClassName="text-brand-purple"
         title="Sign in to create"
         description="Sign in to mint tokens into multi-editions collection."
       />
@@ -268,7 +268,7 @@ export default function MintIP1155Page() {
   // ── Ownership check ───────────────────────────────────────────────────────
   if (ownerCheck === "denied") {
     return (
-      <div className="container max-w-lg mx-auto px-4 pt-24 pb-8 text-center space-y-4">
+      <div className="max-w-lg mx-auto px-4 pt-24 pb-8 text-center space-y-4">
         <Sparkles className="h-10 w-10 text-muted-foreground mx-auto" />
         <h1 className="text-2xl font-bold">Not the owner</h1>
         <p className="text-muted-foreground">
@@ -291,7 +291,7 @@ export default function MintIP1155Page() {
         subtitle="Add a new piece to your collection — its details and authorship are saved permanently. Free to mint, and it's yours."
         headerAccessory={
           <div className="flex items-center gap-2 rounded-lg border border-border bg-background/60 px-3 py-2 max-w-full">
-            <span className="font-mono text-xs text-foreground/80 truncate">Collection: {collectionAddress}</span>
+            <span className="tabular-nums text-xs text-foreground/80 truncate">Collection: {collectionAddress}</span>
           </div>
         }
         aside={

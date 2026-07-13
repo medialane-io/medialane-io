@@ -205,7 +205,7 @@ export function CounterOfferDialog({
               <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
                 <div className="flex items-center gap-1.5">
                   <CurrencyIcon symbol={currencySymbol} size={14} />
-                  <span className="font-mono font-semibold">{pendingValues?.price} {currencySymbol}</span>
+                  <span className="tabular-nums font-semibold">{pendingValues?.price} {currencySymbol}</span>
                 </div>
                 <span className="text-muted-foreground text-xs truncate">
                   · {tokenName ?? "token"}

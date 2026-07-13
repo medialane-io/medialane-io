@@ -16,7 +16,7 @@ export function LaunchpadSignedOutState({
   description,
 }: LaunchpadSignedOutStateProps) {
   return (
-    <div className="container max-w-lg mx-auto px-4 pt-24 pb-8 text-center space-y-4">
+    <div className="max-w-lg mx-auto px-4 pt-24 pb-8 text-center space-y-4">
       <Icon className={`h-10 w-10 mx-auto ${iconClassName}`} />
       <h1 className="text-2xl font-bold">{title}</h1>
       <p className="text-muted-foreground">{description}</p>

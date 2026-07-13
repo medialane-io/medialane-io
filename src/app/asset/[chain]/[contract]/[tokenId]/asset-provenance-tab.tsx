@@ -15,9 +15,9 @@ import type { ApiActivity } from "@medialane/sdk";
 const EVENT_STYLE: Record<string, { label: string; icon: React.ReactNode; badgeCls: string }> = {
   sale:      { label: "Sale",      icon: <ShoppingCart className="h-3.5 w-3.5" />,   badgeCls: "bg-emerald-500/15 text-emerald-500 border-emerald-500/20" },
   mint:      { label: "Minted",    icon: <CheckCircle className="h-3.5 w-3.5" />,    badgeCls: "bg-teal-500/15 text-teal-500 border-teal-500/20"          },
-  listing:   { label: "Listed",    icon: <Tag className="h-3.5 w-3.5" />,            badgeCls: "bg-blue-500/15 text-blue-500 border-blue-500/20"          },
+  listing:   { label: "Listed",    icon: <Tag className="h-3.5 w-3.5" />,            badgeCls: "bg-brand-blue/15 text-brand-blue border-brand-blue/20"          },
   offer:     { label: "Offer",     icon: <HandCoins className="h-3.5 w-3.5" />,      badgeCls: "bg-amber-500/15 text-amber-500 border-amber-500/20"       },
-  transfer:  { label: "Transfer",  icon: <ArrowRightLeft className="h-3.5 w-3.5" />, badgeCls: "bg-purple-500/15 text-purple-500 border-purple-500/20"    },
+  transfer:  { label: "Transfer",  icon: <ArrowRightLeft className="h-3.5 w-3.5" />, badgeCls: "bg-brand-purple/15 text-brand-purple border-brand-purple/20"    },
   cancelled: { label: "Cancelled", icon: <X className="h-3.5 w-3.5" />,              badgeCls: "bg-red-500/15 text-red-400 border-red-500/20"             },
 };
 
@@ -193,12 +193,12 @@ export function AssetProvenanceTab({
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     onClick={(e) => e.stopPropagation()}
-                                    className="hover:text-foreground transition-colors font-mono"
+                                    className="hover:text-foreground transition-colors tabular-nums"
                                   >
                                     {actor.slice(0, 6)}…{actor.slice(-4)}
                                   </a>
                                 ) : (
-                                  <span className="font-mono">{actor.slice(0, 6)}…{actor.slice(-4)}</span>
+                                  <span className="tabular-nums">{actor.slice(0, 6)}…{actor.slice(-4)}</span>
                                 )}
                               </span>
                             )}
@@ -210,7 +210,7 @@ export function AssetProvenanceTab({
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   onClick={(e) => e.stopPropagation()}
-                                  className="text-xs text-muted-foreground hover:text-foreground transition-colors font-mono"
+                                  className="text-xs text-muted-foreground hover:text-foreground transition-colors tabular-nums"
                                 >
                                   {counterpart.slice(0, 6)}…{counterpart.slice(-4)}
                                 </a>
@@ -222,7 +222,7 @@ export function AssetProvenanceTab({
                         {/* Price + amount + time + tx link */}
                         <div className="flex items-center gap-2 shrink-0">
                           {amount && BigInt(amount) > 1n && (
-                            <span className="text-[11px] text-muted-foreground font-mono bg-muted/60 px-1.5 py-0.5 rounded">
+                            <span className="text-[11px] text-muted-foreground tabular-nums bg-muted/60 px-1.5 py-0.5 rounded">
                               ×{amount}
                             </span>
                           )}

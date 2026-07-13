@@ -75,11 +75,11 @@ export function NftEditionsMintConfirmDialog({
             <img src={imagePreview} alt={assetName} className="h-full w-full object-cover" />
           ) : (
             <div className="h-full w-full bg-gradient-to-br from-brand-blue/20 via-brand-purple/10 to-transparent flex items-center justify-center">
-              <Layers className="h-14 w-14 text-violet-400/40" />
+              <Layers className="h-14 w-14 text-brand-purple/40" />
             </div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent" />
-          <span className="absolute top-3 left-3 inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-violet-500/40 bg-violet-500/20 text-violet-300 backdrop-blur-sm">
+          <span className="absolute top-3 left-3 inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-brand-purple/40 bg-brand-purple/20 text-brand-purple backdrop-blur-sm">
             <Layers className="h-3 w-3" />
             Multi-edition
           </span>
@@ -108,7 +108,7 @@ export function NftEditionsMintConfirmDialog({
                   <ArrowLeft className="h-4 w-4" /> Back
                 </Button>
                 <Button
-                  className="flex-1 h-11 bg-violet-600 hover:bg-violet-500 text-white"
+                  className="flex-1 h-11 bg-brand-purple hover:brightness-110 text-white"
                   disabled={passkeyBusy}
                   onClick={handlePasskey}
                 >
@@ -131,7 +131,7 @@ export function NftEditionsMintConfirmDialog({
                   <ArrowLeft className="h-4 w-4" /> Back
                 </Button>
                 <Button
-                  className="flex-1 h-11 bg-violet-600 hover:bg-violet-500 text-white"
+                  className="flex-1 h-11 bg-brand-purple hover:brightness-110 text-white"
                   disabled={pin.length < 6}
                   onClick={handleSubmit}
                 >

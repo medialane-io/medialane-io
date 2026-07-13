@@ -42,7 +42,7 @@ function SupplyProgress({ minted, max }: { minted: number; max: number }) {
       </div>
       <div className="h-2 rounded-full bg-muted overflow-hidden">
         <div
-          className="h-full rounded-full bg-orange-500 transition-all duration-500"
+          className="h-full rounded-full bg-brand-orange transition-all duration-500"
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -54,9 +54,9 @@ function SupplyProgress({ minted, max }: { minted: number; max: number }) {
 function StatusBadge({ status }: { status: ReturnType<typeof getDropStatus> }) {
   const map = {
     live:     { label: "Live",     cls: "text-green-400 bg-green-500/10"     },
-    upcoming: { label: "Upcoming", cls: "text-blue-400 bg-blue-500/10"       },
+    upcoming: { label: "Upcoming", cls: "text-brand-blue bg-brand-blue/10"       },
     ended:    { label: "Ended",    cls: "text-muted-foreground bg-muted"     },
-    sold_out: { label: "Sold out", cls: "text-orange-400 bg-orange-500/10"   },
+    sold_out: { label: "Sold out", cls: "text-brand-orange bg-brand-orange/10"   },
   } as const;
   const { label, cls } = map[status];
   return (
@@ -88,7 +88,7 @@ function PriceDisplay({ conditions }: { conditions: DropConditions }) {
   const priceNum = Number(BigInt(conditions.price) * 10000n / BigInt(10 ** decimals)) / 10000;
   return (
     <div className="flex items-center gap-1.5 text-sm font-semibold">
-      <DollarSign className="h-4 w-4 text-orange-500" />
+      <DollarSign className="h-4 w-4 text-brand-orange" />
       {priceNum} {token?.symbol ?? "tokens"} per token
     </div>
   );
@@ -102,7 +102,7 @@ export default function DropDetailPage({ contract }: { contract: string }) {
 
   if (isLoading) {
     return (
-      <div className="container max-w-2xl mx-auto px-4 pt-10 pb-16 space-y-6">
+      <div className="max-w-2xl mx-auto px-4 pt-10 pb-16 space-y-6">
         <Skeleton className="h-6 w-24" />
         <Skeleton className="aspect-video w-full rounded-2xl" />
         <Skeleton className="h-8 w-1/2" />
@@ -114,7 +114,7 @@ export default function DropDetailPage({ contract }: { contract: string }) {
 
   if (!dropInfo) {
     return (
-      <div className="container max-w-2xl mx-auto px-4 pt-24 pb-8 text-center space-y-4">
+      <div className="max-w-2xl mx-auto px-4 pt-24 pb-8 text-center space-y-4">
         <Package className="h-10 w-10 text-muted-foreground/20 mx-auto" />
         <p className="text-muted-foreground">Drop not found or not yet indexed.</p>
         <Button asChild variant="outline" size="sm">
@@ -136,7 +136,7 @@ export default function DropDetailPage({ contract }: { contract: string }) {
     walletAddress.toLowerCase() === dropInfo.owner.toLowerCase();
 
   return (
-    <div className="container max-w-2xl mx-auto px-4 pt-10 pb-16 space-y-8">
+    <div className="max-w-2xl mx-auto px-4 pt-10 pb-16 space-y-8">
 
       {/* Back + manage */}
       <FadeIn>
@@ -182,7 +182,7 @@ export default function DropDetailPage({ contract }: { contract: string }) {
               DROP
             </span>
             {chainState?.allowlistEnabled && (
-              <span className="text-[10px] font-bold uppercase tracking-widest text-orange-400 bg-orange-500/10 rounded-full px-2 py-0.5">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-brand-orange bg-brand-orange/10 rounded-full px-2 py-0.5">
                 Presale
               </span>
             )}
@@ -203,7 +203,7 @@ export default function DropDetailPage({ contract }: { contract: string }) {
           {/* Supply */}
           <div className="bento-cell p-4 col-span-2 space-y-3">
             <div className="flex items-center gap-2 text-sm font-semibold">
-              <ShieldCheck className="h-4 w-4 text-orange-500" />
+              <ShieldCheck className="h-4 w-4 text-brand-orange" />
               Supply
             </div>
             {maxSupply > 0 ? (
@@ -219,7 +219,7 @@ export default function DropDetailPage({ contract }: { contract: string }) {
           {conditions && (
             <div className="bento-cell p-4 space-y-1">
               <div className="flex items-center gap-2 text-sm font-semibold mb-2">
-                <DollarSign className="h-4 w-4 text-orange-500" />
+                <DollarSign className="h-4 w-4 text-brand-orange" />
                 Price
               </div>
               <PriceDisplay conditions={conditions} />
@@ -235,7 +235,7 @@ export default function DropDetailPage({ contract }: { contract: string }) {
           {conditions && (
             <div className="bento-cell p-4 space-y-1">
               <div className="flex items-center gap-2 text-sm font-semibold mb-2">
-                <Clock className="h-4 w-4 text-orange-500" />
+                <Clock className="h-4 w-4 text-brand-orange" />
                 Mint window
               </div>
               <div className="space-y-1 text-xs text-muted-foreground">
@@ -254,7 +254,7 @@ export default function DropDetailPage({ contract }: { contract: string }) {
           {/* Holders */}
           <div className="bento-cell p-4 space-y-1">
             <div className="flex items-center gap-2 text-sm font-semibold">
-              <Users className="h-4 w-4 text-orange-500" />
+              <Users className="h-4 w-4 text-brand-orange" />
               Collectors
             </div>
             <p className="text-2xl font-black">{totalMinted.toLocaleString()}</p>

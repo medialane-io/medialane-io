@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function CoinsPage() {
   return (
-    <div className="container mx-auto max-w-full px-4 sm:px-6 lg:px-8 pt-20 pb-8">
+    <div className="mx-auto max-w-full px-4 sm:px-6 lg:px-8 pt-20 pb-8">
       <CoinsMount />
     </div>
   );

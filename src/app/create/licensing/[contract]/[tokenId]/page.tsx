@@ -106,7 +106,7 @@ export default function CreateLicensingPage() {
 
   if (tokenLoading) {
     return (
-      <div className="container max-w-2xl mx-auto px-4 pt-14 pb-8 space-y-4">
+      <div className="max-w-2xl mx-auto px-4 pt-14 pb-8 space-y-4">
         <Skeleton className="h-8 w-48" />
         {[1, 2, 3].map((i) => <Skeleton key={i} className="h-32 w-full rounded-xl" />)}
       </div>
@@ -114,7 +114,7 @@ export default function CreateLicensingPage() {
   }
   if (!token) {
     return (
-      <div className="container max-w-2xl mx-auto px-4 py-24 text-center space-y-4">
+      <div className="max-w-2xl mx-auto px-4 py-24 text-center space-y-4">
         <p className="text-2xl font-bold">Asset not found</p>
         <Button asChild variant="outline"><Link href="/">Start from the frontpage</Link></Button>
       </div>
@@ -127,7 +127,7 @@ export default function CreateLicensingPage() {
   }
 
   return (
-    <div className="container max-w-2xl mx-auto px-4 pt-14 pb-12 space-y-6">
+    <div className="max-w-2xl mx-auto px-4 pt-14 pb-12 space-y-6">
       <div className="space-y-3">
         <Link href={assetHref("STARKNET", contract, tokenId)} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ChevronLeft className="h-4 w-4" /> Back to asset

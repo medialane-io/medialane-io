@@ -339,7 +339,7 @@ export default function CollectionPageClient() {
               {(collection.symbol || collection.standard) && (
                 <div className="flex items-center gap-2 flex-wrap">
                   {collection.standard === "ERC1155" ? (
-                    <span className="text-[11px] font-semibold bg-violet-500/15 text-violet-600 dark:text-violet-300 rounded-full px-2.5 py-0.5">
+                    <span className="text-[11px] font-semibold bg-brand-purple/15 text-brand-purple dark:text-brand-purple rounded-full px-2.5 py-0.5">
                       Multi-edition NFT
                     </span>
                   ) : collection.standard === "ERC721" ? (
@@ -348,7 +348,7 @@ export default function CollectionPageClient() {
                     </span>
                   ) : null}
                   {collection.symbol && (
-                    <span className="font-mono text-[11px] bg-muted text-muted-foreground rounded-full px-2.5 py-0.5">
+                    <span className="tabular-nums text-[11px] bg-muted text-muted-foreground rounded-full px-2.5 py-0.5">
                       {collection.symbol}
                     </span>
                   )}
@@ -409,7 +409,7 @@ export default function CollectionPageClient() {
                   {collection.standard === "ERC1155" && (
                     <Link
                       href={`/launchpad/nfteditions/${contract}/mint`}
-                      className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold text-white bg-fuchsia-600 hover:bg-fuchsia-700 active:scale-[0.98] transition"
+                      className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold text-white bg-brand-purple hover:brightness-110 active:scale-[0.98] transition"
                     >
                       <Sparkles className="h-3.5 w-3.5" />
                       Mint editions

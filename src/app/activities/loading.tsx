@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ActivitiesLoading() {
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
+    <div className="mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       <div className="space-y-1">
         <Skeleton className="h-4 w-24" />
         <Skeleton className="h-9 w-40" />

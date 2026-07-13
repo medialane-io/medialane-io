@@ -36,7 +36,7 @@ export default function TicketsDetailPage({ contract }: { contract: string }) {
 
   if (isLoading) {
     return (
-      <div className="container max-w-2xl mx-auto px-4 pt-10 pb-16 space-y-6">
+      <div className="max-w-2xl mx-auto px-4 pt-10 pb-16 space-y-6">
         <Skeleton className="h-6 w-24" />
         <Skeleton className="aspect-video w-full rounded-2xl" />
         <Skeleton className="h-8 w-1/2" />
@@ -47,7 +47,7 @@ export default function TicketsDetailPage({ contract }: { contract: string }) {
 
   if (!collection) {
     return (
-      <div className="container max-w-2xl mx-auto px-4 pt-24 pb-8 text-center space-y-4">
+      <div className="max-w-2xl mx-auto px-4 pt-24 pb-8 text-center space-y-4">
         <Ticket className="h-10 w-10 text-muted-foreground/20 mx-auto" />
         <p className="text-muted-foreground">Ticket collection not found or not yet indexed.</p>
         <Button asChild variant="outline" size="sm">
@@ -58,7 +58,7 @@ export default function TicketsDetailPage({ contract }: { contract: string }) {
   }
 
   return (
-    <div className="container max-w-2xl mx-auto px-4 pt-10 pb-16 space-y-8">
+    <div className="max-w-2xl mx-auto px-4 pt-10 pb-16 space-y-8">
       <FadeIn>
         <Button asChild variant="ghost" size="sm" className="-ml-2">
           <Link href="/launchpad/tickets">

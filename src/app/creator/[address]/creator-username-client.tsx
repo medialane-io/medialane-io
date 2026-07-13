@@ -56,7 +56,7 @@ function ActivityRow({ event, isLast }: { event: ApiActivity; isLast: boolean })
   return (
     <div className="flex gap-4 group">
       <div className="flex flex-col items-center shrink-0 w-9">
-        <div className={cn("h-9 w-9 rounded-xl border flex items-center justify-center shrink-0 transition-transform group-hover:scale-105", meta.bg)}>
+        <div className={cn("h-9 w-9 rounded-xl border flex items-center justify-center shrink-0", meta.bg)}>
           <Icon className={cn("h-3.5 w-3.5", meta.textColor)} />
         </div>
         {!isLast && <div className="flex-1 w-px bg-border/50 mt-1.5 min-h-4" />}
@@ -67,15 +67,15 @@ function ActivityRow({ event, isLast }: { event: ApiActivity; isLast: boolean })
             <div className="flex items-center gap-2 flex-wrap">
               <span className={cn("text-[11px] font-bold uppercase tracking-wider", meta.textColor)}>{meta.label}</span>
               {contract && tokenId ? (
-                <Link href={assetHref("STARKNET", contract, tokenId)} className="text-xs text-muted-foreground font-mono hover:text-foreground transition-colors">
+                <Link href={assetHref("STARKNET", contract, tokenId)} className="text-xs text-muted-foreground tabular-nums hover:text-foreground transition-colors">
                   Token #{tokenId}
                 </Link>
               ) : (
-                <span className="text-xs text-muted-foreground font-mono">Token #{tokenId ?? "—"}</span>
+                <span className="text-xs text-muted-foreground tabular-nums">Token #{tokenId ?? "—"}</span>
               )}
             </div>
             {contract && (
-              <p className="text-[11px] text-muted-foreground/60 font-mono mt-0.5 truncate">
+              <p className="text-[11px] text-muted-foreground/60 tabular-nums mt-0.5 truncate">
                 {contract.slice(0, 10)}…{contract.slice(-6)}
               </p>
             )}
@@ -170,11 +170,11 @@ export default function CreatorUsernamePageClient({ username }: Props) {
 
   if (error || !creator) {
     return (
-      <div className="container mx-auto px-4 py-24 max-w-lg text-center space-y-4">
+      <div className="mx-auto px-4 py-24 max-w-lg text-center space-y-4">
         <p className="text-5xl">🔍</p>
         <h1 className="text-2xl font-bold">Creator not found</h1>
         <p className="text-muted-foreground">
-          <span className="font-mono">@{username}</span> hasn&apos;t been claimed yet or doesn&apos;t exist.
+          <span className="tabular-nums">@{username}</span> hasn&apos;t been claimed yet or doesn&apos;t exist.
         </p>
         <Button variant="outline" asChild>
           <Link href="/marketplace">Browse Marketplace</Link>

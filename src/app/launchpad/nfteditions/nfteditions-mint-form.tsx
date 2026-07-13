@@ -125,7 +125,7 @@ export function NftEditionsMintForm({
               tabIndex={0}
               onClick={() => !imageUploading && fileInputRef.current?.click()}
               onKeyDown={(event) => { if (event.key === "Enter") fileInputRef.current?.click(); }}
-              className="relative h-20 w-20 rounded-2xl border-2 border-dashed border-border bg-muted flex items-center justify-center overflow-hidden shrink-0 cursor-pointer hover:border-violet-500/50 transition-colors"
+              className="relative h-20 w-20 rounded-2xl border-2 border-dashed border-border bg-muted flex items-center justify-center overflow-hidden shrink-0 cursor-pointer hover:border-brand-purple/50 transition-colors"
             >
               {imagePreview ? (
                 <Image src={imagePreview} alt="Token" fill className="object-cover" />
@@ -176,7 +176,7 @@ export function NftEditionsMintForm({
               ) : null}
               <p className="text-xs text-muted-foreground">
                 {imageUri ? (
-                  <span className="text-violet-500">✓ Uploaded</span>
+                  <span className="text-brand-purple">✓ Uploaded</span>
                 ) : (
                   "JPG, PNG, SVG or WebP · max 10 MB"
                 )}

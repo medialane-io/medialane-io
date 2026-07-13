@@ -37,7 +37,7 @@ function ClubCard({ collection }: { collection: ApiCollection }) {
             unoptimized
           />
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/40 via-violet-500/30 to-indigo-900/50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-gradient-to-br from-brand-indigo/40 via-brand-purple/30 to-brand-indigo/50 flex items-center justify-center">
             <span className="text-7xl font-black text-white/10 select-none">{initial}</span>
           </div>
         )}
@@ -120,7 +120,7 @@ export function ClubContent() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {CLUB_FEATURES.map(({ icon: Icon, title, desc }) => (
               <div key={title} className="bento-cell p-4 space-y-2">
-                <Icon className="h-5 w-5 text-indigo-500" />
+                <Icon className="h-5 w-5 text-brand-indigo" />
                 <p className="text-sm font-semibold leading-tight">{title}</p>
                 <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
               </div>
@@ -136,7 +136,7 @@ export function ClubContent() {
               <p className="section-label">Live</p>
               <h2 className="text-xl font-bold mt-0.5">Clubs</h2>
             </div>
-            <Button asChild size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white gap-1.5">
+            <Button asChild size="sm" className="bg-brand-indigo hover:brightness-110 text-white gap-1.5">
               <Link href="/launchpad/club/create">
                 <Plus className="h-3.5 w-3.5" />
                 Create Club

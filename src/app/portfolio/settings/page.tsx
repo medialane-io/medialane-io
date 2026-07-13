@@ -38,7 +38,7 @@ function UsernameClaimInput({
         <div className="relative flex-1">
           <AtSign className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
           <Input
-            className="pl-7 font-mono"
+            className="pl-7 tabular-nums"
             placeholder="yourname"
             value={value}
             onChange={(e) => onChange(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))}
@@ -272,7 +272,7 @@ export default function ProfileSettingsPage() {
                   Your profile is live at{" "}
                   <a
                     href={`/creator/${approvedUsername}`}
-                    className="font-mono font-medium text-primary hover:underline"
+                    className="tabular-nums font-medium text-primary hover:underline"
                   >
                     medialane.io/creator/{approvedUsername}
                   </a>
@@ -293,7 +293,7 @@ export default function ProfileSettingsPage() {
                   </Badge>
                 </div>
                 <p className="text-sm text-muted-foreground mt-0.5">
-                  <span className="font-mono font-medium text-foreground">@{claim.username}</span> is awaiting DAO review. You&apos;ll be notified by email once processed.
+                  <span className="tabular-nums font-medium text-foreground">@{claim.username}</span> is awaiting DAO review. You&apos;ll be notified by email once processed.
                 </p>
               </div>
             </div>
@@ -307,7 +307,7 @@ export default function ProfileSettingsPage() {
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-foreground">Claim rejected</p>
                   <p className="text-sm text-muted-foreground mt-0.5">
-                    <span className="font-mono text-foreground">@{claim.username}</span> was not approved.
+                    <span className="tabular-nums text-foreground">@{claim.username}</span> was not approved.
                     {claim.adminNotes && <span className="ml-1 italic">&ldquo;{claim.adminNotes}&rdquo;</span>}
                   </p>
                   <p className="text-sm text-muted-foreground mt-1">You can submit a new claim below.</p>
@@ -337,7 +337,7 @@ export default function ProfileSettingsPage() {
             <div className="space-y-3">
               <p className="text-sm text-muted-foreground">
                 Get a shareable URL like{" "}
-                <span className="font-mono text-foreground">medialane.io/creator/yourname</span>.
+                <span className="tabular-nums text-foreground">medialane.io/creator/yourname</span>.
                 Claims are reviewed by the Medialane DAO team to prevent impersonation.
               </p>
               <UsernameClaimInput

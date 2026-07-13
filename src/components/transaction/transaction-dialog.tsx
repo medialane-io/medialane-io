@@ -138,7 +138,7 @@ export function TransactionDialog({
                 <div className="h-16 w-16 rounded-full bg-emerald-500/15 flex items-center justify-center">
                   <CheckCircle2 className="h-9 w-9 text-emerald-500" />
                 </div>
-                <Sparkles className="absolute -top-1 -right-1 h-5 w-5 text-yellow-400" />
+                <Sparkles className="absolute -top-1 -right-1 h-5 w-5 text-brand-orange" />
               </div>
               <p className="font-bold text-xl">{successTitle}</p>
               {txHash && (

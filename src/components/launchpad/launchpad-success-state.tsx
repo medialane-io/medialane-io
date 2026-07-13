@@ -33,7 +33,7 @@ export function LaunchpadSuccessState({
   children,
 }: LaunchpadSuccessStateProps) {
   return (
-    <div className="container max-w-lg mx-auto px-4 pt-24 pb-8 text-center space-y-6">
+    <div className="max-w-lg mx-auto px-4 pt-24 pb-8 text-center space-y-6">
       <div className="flex justify-center">
         <div className={`h-20 w-20 rounded-full flex items-center justify-center ${accentClassName}`}>
           <Icon className={`h-10 w-10 ${iconClassName}`} />
@@ -73,7 +73,7 @@ export function LaunchpadProcessingState({
   description = "Please wait, do not close this window. This usually takes 10–20 seconds.",
 }: LaunchpadProcessingStateProps) {
   return (
-    <div className="container max-w-lg mx-auto px-4 pt-24 pb-8 text-center space-y-6">
+    <div className="max-w-lg mx-auto px-4 pt-24 pb-8 text-center space-y-6">
       <div className="flex justify-center">
         <div className="h-20 w-20 rounded-full flex items-center justify-center bg-primary/10">
           <Loader2 className="h-10 w-10 text-primary animate-spin" />
@@ -105,7 +105,7 @@ export function LaunchpadErrorState({
   onRetry,
 }: LaunchpadErrorStateProps) {
   return (
-    <div className="container max-w-lg mx-auto px-4 pt-24 pb-8 text-center space-y-6">
+    <div className="max-w-lg mx-auto px-4 pt-24 pb-8 text-center space-y-6">
       <div className="flex justify-center">
         <div className="h-20 w-20 rounded-full flex items-center justify-center bg-destructive/10">
           <AlertCircle className="h-10 w-10 text-destructive" />

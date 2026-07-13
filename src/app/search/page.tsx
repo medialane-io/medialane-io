@@ -32,12 +32,12 @@ function TokenCard({ token }: { token: NonNullable<ApiSearchResult["tokens"]>[nu
               fill
               unoptimized
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 22vw"
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              className="object-cover"
               onError={() => setImgError(true)}
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-brand-purple/15 to-brand-blue/15">
-              <span className="text-2xl font-mono text-muted-foreground">#{token.tokenId}</span>
+              <span className="text-2xl tabular-nums text-muted-foreground">#{token.tokenId}</span>
             </div>
           )}
         </div>
@@ -45,7 +45,7 @@ function TokenCard({ token }: { token: NonNullable<ApiSearchResult["tokens"]>[nu
       <div className="px-3 pt-2.5 pb-1 flex-1">
         <Link href={href} className="block space-y-0.5 mb-2">
           <p className="text-xl font-bold line-clamp-2 leading-tight">{name}</p>
-          <p className="text-[10px] text-muted-foreground font-mono truncate">
+          <p className="text-[10px] text-muted-foreground tabular-nums truncate">
             {token.contractAddress.slice(0, 14)}…
           </p>
         </Link>
@@ -74,7 +74,7 @@ function CollectionCard({ col }: { col: NonNullable<ApiSearchResult["collections
       href={collectionHref("STARKNET", col.contractAddress)}
       className="card-base flex items-center gap-3 p-4 hover:border-primary/30 hover:bg-muted/30 transition-all"
     >
-      <div className="relative h-10 w-10 rounded-lg bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center text-base font-bold shrink-0 overflow-hidden">
+      <div className="relative h-10 w-10 rounded-lg bg-gradient-to-br from-primary/20 to-brand-purple/20 flex items-center justify-center text-base font-bold shrink-0 overflow-hidden">
         {showImage ? (
           <Image
             src={imageUrl}
@@ -90,7 +90,7 @@ function CollectionCard({ col }: { col: NonNullable<ApiSearchResult["collections
       </div>
       <div className="min-w-0">
         <p className="font-semibold text-sm truncate">{col.name ?? "Unnamed"}</p>
-        <p className="text-xs text-muted-foreground font-mono truncate">
+        <p className="text-xs text-muted-foreground tabular-nums truncate">
           {col.contractAddress.slice(0, 20)}…
         </p>
       </div>

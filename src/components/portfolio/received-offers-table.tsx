@@ -63,7 +63,7 @@ function ReceivedOfferRow({
       <div className="shrink-0 hidden sm:block">
         <Link
           href={`/creators/${order.offerer}`}
-          className="text-xs text-muted-foreground font-mono hover:text-foreground transition-colors"
+          className="text-xs text-muted-foreground tabular-nums hover:text-foreground transition-colors"
         >
           {order.offerer.slice(0, 6)}…{order.offerer.slice(-4)}
         </Link>

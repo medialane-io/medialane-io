@@ -20,21 +20,21 @@ const CLAIM_CARDS: { href: string; icon: LucideIcon; iconClass: string; title: s
   {
     href: "/claim/collection",
     icon: FolderInput,
-    iconClass: "text-blue-500 bg-blue-500/10",
+    iconClass: "text-brand-blue bg-brand-blue/10",
     title: "Claim a Collection",
     blurb: "Already deployed an ERC-721 collection on Starknet? Import it into your Medialane profile.",
   },
   {
     href: "/claim/username",
     icon: AtSign,
-    iconClass: "text-violet-500 bg-violet-500/10",
+    iconClass: "text-brand-purple bg-brand-purple/10",
     title: "Claim your Username",
     blurb: "Reserve your creator URL — medialane.io/creator/yourname — and get a shareable creator page.",
   },
   {
     href: "/claim/collection-name",
     icon: Link2,
-    iconClass: "text-pink-500 bg-pink-500/10",
+    iconClass: "text-brand-rose bg-brand-rose/10",
     title: "Claim a Collection Name",
     blurb: "Give a collection a clean, memorable web address instead of a long contract address.",
   },
@@ -42,11 +42,11 @@ const CLAIM_CARDS: { href: string; icon: LucideIcon; iconClass: string; title: s
 
 export function ClaimPageClient() {
   return (
-    <div className="container mx-auto px-4 sm:px-6 py-12 max-w-5xl space-y-16 pb-20">
+    <div className="mx-auto px-4 sm:px-6 py-12 max-w-5xl space-y-16 pb-20">
       {/* Page header */}
       <div className="space-y-2">
         <div className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg shadow-primary/20">
+          <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary to-brand-purple flex items-center justify-center shadow-lg shadow-primary/20">
             <Sparkles className="h-4 w-4 text-white" />
           </div>
           <h1 className="text-3xl font-black">Claims & Drops</h1>

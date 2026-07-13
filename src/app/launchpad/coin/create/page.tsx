@@ -241,7 +241,7 @@ export default function CoinCreatePage() {
               Couldn&apos;t save the image &amp; description right now — add them anytime from your collection settings.
             </p>
           )}
-          <p className="font-mono text-xs text-muted-foreground break-all text-center">{coinAddress}</p>
+          <p className="tabular-nums text-xs text-muted-foreground break-all text-center">{coinAddress}</p>
           <Button asChild className="w-full bg-brand-rose hover:bg-brand-rose/90">
             <a href={`${DAPP_COLLECTIONS_BASE}/${coinAddress}`} target="_blank" rel="noopener noreferrer">
               View &amp; trade your coin <ExternalLink className="h-3.5 w-3.5 ml-1.5" />

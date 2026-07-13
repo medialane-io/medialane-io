@@ -54,7 +54,7 @@ function AllowlistToggle({
     <div className="bento-cell p-5 space-y-4">
       <div className="flex items-center gap-2">
         {enabled ? (
-          <ShieldCheck className="h-4 w-4 text-orange-500" />
+          <ShieldCheck className="h-4 w-4 text-brand-orange" />
         ) : (
           <ShieldOff className="h-4 w-4 text-muted-foreground" />
         )}
@@ -63,7 +63,7 @@ function AllowlistToggle({
           className={cn(
             "ml-auto text-xs font-bold uppercase tracking-widest rounded-full px-2.5 py-0.5",
             enabled
-              ? "text-orange-400 bg-orange-500/10"
+              ? "text-brand-orange bg-brand-orange/10"
               : "text-green-400 bg-green-500/10"
           )}
         >
@@ -101,7 +101,7 @@ function BatchAddSection({
   return (
     <div className="bento-cell p-5 space-y-3">
       <div className="flex items-center gap-2">
-        <Users className="h-4 w-4 text-orange-500" />
+        <Users className="h-4 w-4 text-brand-orange" />
         <span className="font-semibold text-sm">Add to allowlist</span>
         {parsed.length > 0 && (
           <span className="ml-auto text-xs text-muted-foreground">
@@ -115,11 +115,11 @@ function BatchAddSection({
         rows={6}
         value={raw}
         onChange={(e) => setRaw(e.target.value)}
-        className="font-mono text-xs resize-none"
+        className="tabular-nums text-xs resize-none"
       />
       <Button
         size="sm"
-        className="w-full bg-orange-600 hover:bg-orange-700 text-white"
+        className="w-full bg-brand-orange hover:brightness-110 text-white"
         disabled={parsed.length === 0 || overLimit || isSubmitting}
         onClick={() => {
           onAdd(parsed);
@@ -163,7 +163,7 @@ function RemoveSection({
         placeholder="0x..."
         value={addr}
         onChange={(e) => setAddr(e.target.value)}
-        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-mono placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm tabular-nums placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
       />
       <Button
         variant="outline"
@@ -276,7 +276,7 @@ export default function DropManagePage({
 
   if (isLoading) {
     return (
-      <div className="container max-w-xl mx-auto px-4 pt-10 pb-16 space-y-4">
+      <div className="max-w-xl mx-auto px-4 pt-10 pb-16 space-y-4">
         <Skeleton className="h-6 w-24" />
         <Skeleton className="h-32 w-full rounded-2xl" />
         <Skeleton className="h-48 w-full rounded-2xl" />
@@ -286,7 +286,7 @@ export default function DropManagePage({
 
   if (!dropInfo) {
     return (
-      <div className="container max-w-xl mx-auto px-4 pt-24 pb-8 text-center space-y-4">
+      <div className="max-w-xl mx-auto px-4 pt-24 pb-8 text-center space-y-4">
         <AlertCircle className="h-10 w-10 text-muted-foreground/20 mx-auto" />
         <p className="text-muted-foreground">Drop not found.</p>
         <Button asChild variant="outline" size="sm">
@@ -298,7 +298,7 @@ export default function DropManagePage({
 
   if (!isOwner) {
     return (
-      <div className="container max-w-xl mx-auto px-4 pt-24 pb-8 text-center space-y-4">
+      <div className="max-w-xl mx-auto px-4 pt-24 pb-8 text-center space-y-4">
         <ShieldCheck className="h-10 w-10 text-muted-foreground/20 mx-auto" />
         <p className="text-muted-foreground">You are not the organizer of this drop.</p>
         <Button asChild variant="outline" size="sm">
@@ -309,7 +309,7 @@ export default function DropManagePage({
   }
 
   return (
-    <div className="container max-w-xl mx-auto px-4 pt-10 pb-16 space-y-6">
+    <div className="max-w-xl mx-auto px-4 pt-10 pb-16 space-y-6">
       <FadeIn>
         <Button asChild variant="ghost" size="sm" className="-ml-2">
           <Link href={`/launchpad/drop/${contract}`}>
@@ -356,7 +356,7 @@ export default function DropManagePage({
         <FadeIn delay={0.2}>
           <div className="bento-cell p-5 space-y-3">
             <div className="flex items-center gap-2">
-              <DollarSign className="h-4 w-4 text-orange-500" />
+              <DollarSign className="h-4 w-4 text-brand-orange" />
               <span className="font-semibold text-sm">Withdraw payments</span>
             </div>
             <p className="text-xs text-muted-foreground">

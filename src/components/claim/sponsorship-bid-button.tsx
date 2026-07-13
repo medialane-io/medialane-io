@@ -70,7 +70,7 @@ export function SponsorshipBidButton({ offerId, minAmount, paymentToken, onBidPl
     <>
       <div className="flex gap-2">
         <Input type="number" min={0} step="0.01" placeholder={`Min ${minAmountDisplay}`} value={amount} onChange={(e) => setAmount(e.target.value)} />
-        <Button size="sm" className="bg-rose-600 hover:bg-rose-700 text-white gap-1.5" onClick={handleBid} disabled={busy}>
+        <Button size="sm" className="bg-brand-rose hover:brightness-110 text-white gap-1.5" onClick={handleBid} disabled={busy}>
           {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Handshake className="h-3.5 w-3.5" />}
           Bid
         </Button>

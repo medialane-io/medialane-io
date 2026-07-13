@@ -44,7 +44,7 @@ export function ChipiWalletSummary({
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <span className="font-medium text-muted-foreground">Balance</span>
-        <span className="font-mono text-sm">{balance ?? "0.0000"}</span>
+        <span className="tabular-nums text-sm">{balance ?? "0.0000"}</span>
       </div>
     </div>
   );

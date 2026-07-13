@@ -287,7 +287,7 @@ export function CounterOffersTable({ address }: { address: string }) {
               <div className="text-center space-y-1">
                 <p className="font-bold text-lg flex items-center justify-center gap-1.5">
                   Counter-offer accepted
-                  <Sparkles className="h-4 w-4 text-yellow-400" />
+                  <Sparkles className="h-4 w-4 text-brand-orange" />
                 </p>
                 <p className="text-sm text-muted-foreground">
                   The token is now yours.
@@ -298,7 +298,7 @@ export function CounterOffersTable({ address }: { address: string }) {
                   href={`${EXPLORER_URL}/tx/${resultTxHash}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors font-mono"
+                  className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors tabular-nums"
                 >
                   {resultTxHash.slice(0, 10)}…{resultTxHash.slice(-8)}
                   <ExternalLink className="h-3 w-3" />

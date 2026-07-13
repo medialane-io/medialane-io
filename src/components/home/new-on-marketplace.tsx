@@ -17,7 +17,7 @@ export function NewOnMarketplace() {
   return (
     <ScrollSection
       icon={<Tag className="h-3.5 w-3.5 text-white" />}
-      iconBg="bg-gradient-to-br from-rose-500 to-pink-600 shadow-md shadow-rose-500/20"
+      iconBg="bg-gradient-to-br from-brand-rose to-brand-rose shadow-md shadow-brand-rose/20"
       title="New listings"
       href="/marketplace"
       linkLabel="Marketplace"

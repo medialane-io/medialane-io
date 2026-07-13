@@ -295,9 +295,9 @@ export default function CreateDropPage() {
     return (
       <LaunchpadSuccessState
         icon={CheckCircle2}
-        accentClassName="bg-orange-500/10"
-        iconClassName="text-orange-500"
-        actionClassName="bg-orange-600 hover:bg-orange-700 text-white"
+        accentClassName="bg-brand-orange/10"
+        iconClassName="text-brand-orange"
+        actionClassName="bg-brand-orange hover:brightness-110 text-white"
         title="Drop launched"
         description="Your Collection Drop is live onchain. It will appear in the launchpad within a minute once indexed."
         backHref="/launchpad/drop"
@@ -313,7 +313,7 @@ export default function CreateDropPage() {
     return (
       <LaunchpadSignedOutState
         icon={Package}
-        iconClassName="text-orange-500"
+        iconClassName="text-brand-orange"
         title="Sign in to launch a drop"
         description="Sign in to deploy a limited-edition collection onchain."
       />

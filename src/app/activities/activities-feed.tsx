@@ -29,15 +29,15 @@ function AnnouncementsBanner({ announcements }: { announcements: Announcement[] 
         <Link
           key={ann.id}
           href={ann.href}
-          className="flex items-start gap-3 rounded-xl border border-purple-500/20 bg-purple-500/5 px-4 py-3 hover:bg-purple-500/10 transition-colors group"
+          className="flex items-start gap-3 rounded-xl border border-brand-purple/20 bg-brand-purple/5 px-4 py-3 hover:bg-brand-purple/10 transition-colors group"
         >
-          <div className="h-8 w-8 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0 mt-0.5">
-            <Megaphone className="h-3.5 w-3.5 text-purple-400" />
+          <div className="h-8 w-8 rounded-lg bg-brand-purple/10 flex items-center justify-center shrink-0 mt-0.5">
+            <Megaphone className="h-3.5 w-3.5 text-brand-purple" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 mb-0.5">
-              <Pin className="h-2.5 w-2.5 text-purple-400/60" />
-              <span className="text-[10px] font-bold uppercase tracking-widest text-purple-400/60">Announcement</span>
+              <Pin className="h-2.5 w-2.5 text-brand-purple/60" />
+              <span className="text-[10px] font-bold uppercase tracking-widest text-brand-purple/60">Announcement</span>
             </div>
             <p className="text-sm font-semibold leading-snug">{ann.title}</p>
             <p className="text-xs text-muted-foreground mt-0.5 truncate">{ann.body}</p>

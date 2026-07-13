@@ -56,7 +56,7 @@ function TokenHero({ order, quantity }: { order: ApiOrder; quantity: number }) {
         {image ? (
           <img src={image} alt={name} className="h-full w-full object-cover" />
         ) : (
-          <div className="h-full w-full bg-gradient-to-br from-primary/20 via-purple-500/10 to-transparent flex items-center justify-center text-4xl font-bold text-muted-foreground/30">
+          <div className="h-full w-full bg-gradient-to-br from-primary/20 via-brand-purple/10 to-transparent flex items-center justify-center text-4xl font-bold text-muted-foreground/30">
             #{order.nftTokenId}
           </div>
         )}
@@ -123,7 +123,7 @@ function SuccessScreen({
         {image ? (
           <img src={image} alt={name ?? ""} className="h-full w-full object-cover" />
         ) : (
-          <div className="h-full w-full bg-gradient-to-br from-primary/20 via-purple-500/10 to-emerald-500/10 flex items-center justify-center">
+          <div className="h-full w-full bg-gradient-to-br from-primary/20 via-brand-purple/10 to-emerald-500/10 flex items-center justify-center">
             <CheckCircle2 className="h-16 w-16 text-emerald-500/40" />
           </div>
         )}
@@ -163,7 +163,7 @@ function SuccessScreen({
                 href={`${EXPLORER_URL}/tx/${txHash}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 font-mono text-xs text-primary hover:underline"
+                className="inline-flex items-center gap-1.5 tabular-nums text-xs text-primary hover:underline"
               >
                 {txHash.slice(0, 8)}…{txHash.slice(-6)}
                 <ExternalLink className="h-3 w-3" />

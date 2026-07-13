@@ -26,7 +26,7 @@ export default function PortfolioError({
           Something went wrong while loading your portfolio. Please try again.
         </p>
         {error.digest && (
-          <p className="text-[11px] text-muted-foreground/60 font-mono">
+          <p className="text-[11px] text-muted-foreground/60 tabular-nums">
             Error ID: {error.digest}
           </p>
         )}

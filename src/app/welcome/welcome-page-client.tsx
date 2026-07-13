@@ -39,9 +39,9 @@ const JOURNEYS = [
     label: "Launch a drop",
     description: "Deploy a limited-edition NFT collection with custom mint conditions.",
     href: "/launchpad/drop/create",
-    accent: "from-orange-500/20 to-orange-500/5 border-orange-500/20",
-    iconColor: "text-orange-400",
-    iconBg: "bg-orange-500/10",
+    accent: "from-brand-orange/20 to-brand-orange/5 border-brand-orange/20",
+    iconColor: "text-brand-orange",
+    iconBg: "bg-brand-orange/10",
   },
   {
     icon: Award,
@@ -129,7 +129,7 @@ function OnboardingBanner({
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors group mt-0.5"
                     >
-                      <span className="font-mono">{step.txHash.slice(0, 10)}…</span>
+                      <span className="tabular-nums">{step.txHash.slice(0, 10)}…</span>
                       <ExternalLink className="h-2.5 w-2.5 shrink-0" />
                     </a>
                   ) : step.sub ? (
@@ -228,7 +228,7 @@ export function WelcomePageClient() {
                   href={j.href}
                   className={cn(
                     "group flex flex-col gap-3 p-5 rounded-2xl border bg-gradient-to-br transition-all duration-200",
-                    "hover:shadow-lg hover:-translate-y-0.5",
+                    "active:scale-[0.98]",
                     j.accent
                   )}
                 >
@@ -286,7 +286,7 @@ export function WelcomePageClient() {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors group mt-0.5"
                 >
-                  <span className="font-mono">{mintTxHash.slice(0, 16)}…{mintTxHash.slice(-8)}</span>
+                  <span className="tabular-nums">{mintTxHash.slice(0, 16)}…{mintTxHash.slice(-8)}</span>
                   <ExternalLink className="h-3 w-3 group-hover:text-primary shrink-0" />
                 </a>
               </div>

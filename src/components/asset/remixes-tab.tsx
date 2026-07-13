@@ -54,11 +54,11 @@ export function RemixesTab({ contractAddress, tokenId }: RemixesTabProps) {
                   <GitBranch className="h-3 w-3 text-primary" />
                   <span className="text-primary font-medium">Remix</span>
                 </div>
-                <p className="text-xs font-mono truncate">#{remix.remixTokenId}</p>
+                <p className="text-xs tabular-nums truncate">#{remix.remixTokenId}</p>
                 <p className="text-[10px] text-muted-foreground">{remix.licenseType}</p>
                 <div className="flex gap-1 flex-wrap">
                   {remix.commercial && (
-                    <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-500 border border-blue-500/20">Commercial</span>
+                    <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-brand-blue/10 text-brand-blue border border-brand-blue/20">Commercial</span>
                   )}
                   {remix.derivatives && (
                     <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">Derivatives</span>

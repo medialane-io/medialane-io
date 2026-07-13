@@ -45,8 +45,8 @@ function OfferCard({ offer }: { offer: SponsorshipOffer }) {
   return (
     <div className="bento-cell p-4 space-y-3">
       <div className="flex items-center gap-2">
-        <Handshake className="h-4 w-4 text-rose-500" />
-        <span className="text-[10px] font-bold uppercase tracking-widest text-rose-500">Sponsorship</span>
+        <Handshake className="h-4 w-4 text-brand-rose" />
+        <span className="text-[10px] font-bold uppercase tracking-widest text-brand-rose">Sponsorship</span>
       </div>
       <p className="text-sm font-semibold">Token #{offer.tokenId}</p>
       <p className="text-xs text-muted-foreground truncate">{offer.nftContract}</p>
@@ -104,7 +104,7 @@ export function SponsorshipContent() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {SPONSORSHIP_FEATURES.map(({ icon: Icon, title, desc }) => (
               <div key={title} className="bento-cell p-4 space-y-2">
-                <Icon className="h-5 w-5 text-rose-500" />
+                <Icon className="h-5 w-5 text-brand-rose" />
                 <p className="text-sm font-semibold leading-tight">{title}</p>
                 <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
               </div>
@@ -120,7 +120,7 @@ export function SponsorshipContent() {
               <p className="section-label">Open</p>
               <h2 className="text-xl font-bold mt-0.5">Sponsorship offers</h2>
             </div>
-            <Button asChild size="sm" className="bg-rose-600 hover:bg-rose-700 text-white gap-1.5">
+            <Button asChild size="sm" className="bg-brand-rose hover:brightness-110 text-white gap-1.5">
               <Link href="/launchpad/sponsorship/create">
                 <Plus className="h-3.5 w-3.5" />
                 Create Offer

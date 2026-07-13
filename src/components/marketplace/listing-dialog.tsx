@@ -252,7 +252,7 @@ export function ListingDialog({
                 tokenId={tokenId}
                 fallbackIcon={<Tag className="h-12 w-12 text-brand-blue/30" />}
                 badge={is1155 ? (
-                  <span className="absolute top-3 left-3 inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-violet-500/40 bg-violet-500/20 text-violet-300 backdrop-blur-sm">
+                  <span className="absolute top-3 left-3 inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-brand-purple/40 bg-brand-purple/20 text-brand-purple backdrop-blur-sm">
                     <Layers className="h-3 w-3" />
                     Multi-edition
                   </span>
@@ -303,7 +303,7 @@ export function ListingDialog({
                 tokenId={tokenId}
                 fallbackIcon={<Tag className="h-12 w-12 text-brand-blue/30" />}
                 badge={is1155 ? (
-                  <span className="absolute top-3 left-3 inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-violet-500/40 bg-violet-500/20 text-violet-300 backdrop-blur-sm">
+                  <span className="absolute top-3 left-3 inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-brand-purple/40 bg-brand-purple/20 text-brand-purple backdrop-blur-sm">
                     <Layers className="h-3 w-3" />
                     Multi-edition
                   </span>

@@ -142,7 +142,7 @@ export function CollectionDropMintButton({
 
   if (maxPerWallet > 0 && remaining <= 0) {
     return (
-      <div className="flex items-center gap-1.5 text-sm text-orange-500 font-medium">
+      <div className="flex items-center gap-1.5 text-sm text-brand-orange font-medium">
         <CheckCircle2 className="h-4 w-4 shrink-0" />
         Minted · {mintedByWallet} token{mintedByWallet !== 1 ? "s" : ""} (max reached)
       </div>
@@ -153,7 +153,7 @@ export function CollectionDropMintButton({
     <>
       <Button
         size="lg"
-        className="w-full gap-1.5 bg-orange-600 hover:bg-orange-700 text-white"
+        className="w-full gap-1.5 bg-brand-orange hover:brightness-110 text-white"
         onClick={handleMint}
         disabled={busy}
       >

@@ -11,7 +11,7 @@ export function TrendingCollections() {
   return (
     <ScrollSection
       icon={<TrendingUp className="h-3.5 w-3.5 text-white" />}
-      iconBg="bg-gradient-to-br from-violet-500 to-indigo-600 shadow-md shadow-violet-500/20"
+      iconBg="bg-gradient-to-br from-brand-purple to-brand-indigo shadow-md shadow-brand-purple/20"
       title="Collections"
       href="/collections"
       linkLabel="View more"
