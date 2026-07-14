@@ -28,6 +28,7 @@ import { ipfsToHttp, formatDisplayPrice, cn } from "@/lib/utils";
 import { useCollectionProfile } from "@/hooks/use-profiles";
 import { useGatedContent, type GatedContentState } from "@/hooks/use-gated-content";
 import { CollectionServiceAction } from "@/components/services/collection-service-action";
+import { TicketOwnerActions } from "@/components/tickets/ticket-owner-actions";
 import { PurchaseDialog } from "@/components/marketplace/purchase-dialog";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { getService } from "@medialane/sdk";
@@ -395,11 +396,10 @@ export default function CollectionPageClient() {
                 </>
               )}
 
-              {/* Service action slot (POP claim, Drop mint, ticket create/mint, etc.) */}
+              {/* Service action slot (POP claim, Drop mint, etc.) */}
               <CollectionServiceAction
                 service={collection.service}
                 contractAddress={collection.contractAddress}
-                owner={collection.owner}
               />
             </div>
 
@@ -408,6 +408,12 @@ export default function CollectionPageClient() {
             <div className="flex flex-col gap-2.5 shrink-0 lg:items-end">
               {walletAddress && collection.owner?.toLowerCase() === walletAddress.toLowerCase() && (
                 <div className="flex items-center gap-2">
+                  {getService(collection.service)?.id === "ip-tickets" && (
+                    <TicketOwnerActions
+                      contractAddress={collection.contractAddress}
+                      owner={collection.owner}
+                    />
+                  )}
                   {collection.standard === "ERC1155" && getService(collection.service)?.id === "mip-erc1155" && (
                     <Link
                       href={`/launchpad/nfteditions/${contract}/mint`}
@@ -467,40 +473,6 @@ export default function CollectionPageClient() {
         />
       )}
 
-      {/* ── Owner setup panel — visible only to collection owner ── */}
-      {!colLoading && collection && walletAddress &&
-        collection.owner?.toLowerCase() === walletAddress.toLowerCase() && (
-        <>
-          <OwnerSetupPanel
-            contract={contract}
-            profile={profile ?? null}
-          />
-          {/* Per-collection ownership handoff — audited MIP registry only.
-              Cutover gate avoids surfacing on legacy v2 collections. */}
-          {collection.collectionId &&
-            collection.standard === "ERC721" &&
-            collection.createdAt >= "2026-05-14" && (
-            <div className="px-4 sm:px-6 -mt-2 mb-4 flex justify-end">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setOwnershipTransferOpen(true)}
-                className="gap-2"
-              >
-                <UserRoundCog className="h-4 w-4" />
-                Transfer ownership
-              </Button>
-              <TransferCollectionOwnershipDialog
-                collectionId={collection.collectionId}
-                currentOwner={collection.owner!}
-                collectionName={collection.name}
-                open={ownershipTransferOpen}
-                onOpenChange={setOwnershipTransferOpen}
-              />
-            </div>
-          )}
-        </>
-      )}
 
       {/* ── Tabs ── */}
       <div className="px-4 sm:px-6 pb-12">
@@ -578,6 +550,41 @@ export default function CollectionPageClient() {
           )}
         </Tabs>
       </div>
+
+      {/* ── Owner setup panel — after the items, before the footer ── */}
+      {!colLoading && collection && walletAddress &&
+        collection.owner?.toLowerCase() === walletAddress.toLowerCase() && (
+        <>
+          <OwnerSetupPanel
+            contract={contract}
+            profile={profile ?? null}
+          />
+          {/* Per-collection ownership handoff — audited MIP registry only.
+              Cutover gate avoids surfacing on legacy v2 collections. */}
+          {collection.collectionId &&
+            collection.standard === "ERC721" &&
+            collection.createdAt >= "2026-05-14" && (
+            <div className="px-4 sm:px-6 -mt-2 mb-4 flex justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setOwnershipTransferOpen(true)}
+                className="gap-2"
+              >
+                <UserRoundCog className="h-4 w-4" />
+                Transfer ownership
+              </Button>
+              <TransferCollectionOwnershipDialog
+                collectionId={collection.collectionId}
+                currentOwner={collection.owner!}
+                collectionName={collection.name}
+                open={ownershipTransferOpen}
+                onOpenChange={setOwnershipTransferOpen}
+              />
+            </div>
+          )}
+        </>
+      )}
 
       {/* Inline buy for listed items (Listings tab) */}
       {buyOrder && (
