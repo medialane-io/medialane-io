@@ -3,20 +3,18 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useUser } from "@clerk/nextjs";
+import { useUser, SignInButton } from "@clerk/nextjs";
 import { collectionHref } from "@/lib/routes";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion-primitives";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { ServiceHeader } from "@/components/claim/service-header";
 import { ClaimBackButton } from "@/components/claim/claim-back-button";
-import { SignInButton } from "@clerk/nextjs";
 import { ipfsToHttp } from "@/lib/utils";
 import { getService, type ApiCollection } from "@medialane/sdk";
 import {
-  ImagePlus, Sparkles, Plus, Package, ExternalLink, Inbox,
+  ImagePlus, Sparkles, Plus, Package, ExternalLink, Layers, ScrollText,
 } from "lucide-react";
 
 function CollectionRow({ col }: { col: ApiCollection }) {
@@ -77,8 +75,8 @@ function CollectionRow({ col }: { col: ApiCollection }) {
               <Package className="h-3 w-3" />
               <span>
                 {col.totalSupply != null
-                  ? `${col.totalSupply.toLocaleString()} asset${col.totalSupply !== 1 ? "s" : ""}`
-                  : "No assets yet"}
+                  ? `${col.totalSupply.toLocaleString()} work${col.totalSupply !== 1 ? "s" : ""}`
+                  : "Nothing minted yet"}
               </span>
             </div>
             {col.holderCount != null && col.holderCount > 0 && (
@@ -89,15 +87,14 @@ function CollectionRow({ col }: { col: ApiCollection }) {
           </div>
         </div>
 
-        {/* CTA */}
+        {/* Actions */}
         <div className="flex items-center gap-2">
-          <Link
-            href="/create/asset"
-            className="flex items-center gap-2 h-9 px-4 rounded-xl text-sm font-semibold text-white bg-brand-blue hover:brightness-110 transition-all"
-          >
-            <Sparkles className="h-3.5 w-3.5" />
-            Mint asset
-          </Link>
+          <Button size="sm" asChild>
+            <Link href="/create/asset">
+              <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+              Mint a work
+            </Link>
+          </Button>
           <Button variant="outline" size="sm" asChild>
             <Link href={collectionHref("STARKNET", col.contractAddress)}>
               View collection
@@ -126,7 +123,28 @@ function CollectionRowSkeleton() {
   );
 }
 
-export function NFTsContent() {
+/** The service, stated as facts a newcomer can act on. Shown while the
+ *  creator has no collections; the actions live in the header row above. */
+function HowItWorks() {
+  const steps = [
+    { icon: Layers, title: "Create a collection", body: "It gets its own name and page." },
+    { icon: Sparkles, title: "Mint works into it", body: "Each work is minted once, with the license terms you set." },
+    { icon: ScrollText, title: "Sell or license them", body: "Every work can be listed on the marketplace." },
+  ];
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {steps.map(({ icon: Icon, title, body }) => (
+        <div key={title} className="bento-cell p-5 space-y-2">
+          <Icon className="h-5 w-5 text-brand-blue" />
+          <p className="font-semibold text-sm">{title}</p>
+          <p className="text-xs text-muted-foreground leading-relaxed">{body}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function SingleEditionsContent() {
   const { isSignedIn } = useUser();
   const { walletAddress } = useSessionKey();
   const { collections, isLoading } = useCollectionsByOwner(walletAddress ?? null);
@@ -140,51 +158,40 @@ export function NFTsContent() {
     <div className="pb-16">
 
       {/* ── Header ── */}
-      <section className="px-4 pt-10 max-w-5xl mx-auto">
+      <section className="px-4 pt-10 max-w-5xl mx-auto space-y-5">
         <ClaimBackButton />
         <FadeIn>
-          <div className="mt-6">
-            <ServiceHeader
-              icon={<ImagePlus className="h-4 w-4 text-white" />}
-              title="NFTs"
-              subtitle="Mint one-of-a-kind works into a collection you own."
-            />
+          <div>
+            <h1 className="text-3xl sm:text-4xl font-black leading-tight">Single Editions</h1>
+            <p className="text-muted-foreground mt-1.5">Publish each work as a single copy in a collection you own.</p>
           </div>
         </FadeIn>
         <FadeIn delay={0.08}>
-          <div className="mt-6 flex items-center gap-3">
-            <Link
-              href="/create/asset"
-              className="flex items-center gap-2 h-10 px-5 rounded-xl text-sm font-semibold text-white bg-brand-blue hover:brightness-110 transition-colors"
-            >
-              <Sparkles className="h-4 w-4" />
-              Mint an asset
-            </Link>
-            <Link
-              href="/create/collection"
-              className="flex items-center gap-2 h-10 px-5 rounded-xl text-sm font-semibold border border-border bg-card hover:bg-muted/40 transition-colors"
-            >
-              <Plus className="h-4 w-4" />
-              New collection
-            </Link>
+          <div className="flex items-center gap-2">
+            <Button asChild>
+              <Link href="/create/asset">
+                <Sparkles className="h-4 w-4 mr-1.5" />
+                Mint a work
+              </Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href="/create/collection">
+                <Plus className="h-4 w-4 mr-1.5" />
+                New collection
+              </Link>
+            </Button>
           </div>
         </FadeIn>
       </section>
 
-      {/* ── Collections list ── */}
+      {/* ── Collections ── */}
       <section className="px-4 pt-8 space-y-5 max-w-5xl mx-auto">
         {!isSignedIn ? (
           <FadeIn>
-            <div className="bento-cell p-10 flex flex-col items-center gap-4 text-center">
-              <ImagePlus className="h-10 w-10 text-muted-foreground/30" />
-              <div>
-                <p className="font-semibold">Sign in to see your collections</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Your collections will appear here.
-                </p>
-              </div>
+            <HowItWorks />
+            <div className="mt-4 flex justify-center">
               <SignInButton mode="modal">
-                <Button>Sign in</Button>
+                <Button variant="outline">Sign in to see your collections</Button>
               </SignInButton>
             </div>
           </FadeIn>
@@ -196,22 +203,7 @@ export function NFTsContent() {
           </div>
         ) : nftCollections.length === 0 ? (
           <FadeIn>
-            <div className="bento-cell p-10 flex flex-col items-center gap-4 text-center">
-              <Inbox className="h-10 w-10 text-muted-foreground/30" />
-              <div>
-                <p className="font-semibold">No collections yet</p>
-                <p className="text-sm text-muted-foreground mt-1 max-w-xs">
-                  Create your first collection to start minting your work.
-                </p>
-              </div>
-              <Link
-                href="/create/collection"
-                className="flex items-center gap-2 h-9 px-4 rounded-xl text-sm font-semibold text-white bg-brand-blue hover:brightness-110 transition-colors"
-              >
-                <Plus className="h-4 w-4" />
-                Create your first collection
-              </Link>
-            </div>
+            <HowItWorks />
           </FadeIn>
         ) : (
           <>

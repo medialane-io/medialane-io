@@ -6,7 +6,7 @@ export function AirdropSection() {
   return (
     <LaunchpadStrip
       hrefs={{
-        "nfts": "/launchpad/nfts",
+        "nfts": "/launchpad/single-editions",
         "limited-editions": "/launchpad/nfteditions",
         "collection-drop": "/launchpad/drop",
         "pop-protocol": "/launchpad/pop",
