@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
@@ -7,11 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useUserOrders } from "@/hooks/use-orders";
+import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { FadeIn } from "@/components/ui/motion-primitives";
 import { BRAND } from "@/lib/brand";
+import { getService } from "@medialane/sdk";
 import { LaunchpadGroupedSections, LaunchpadFilterBar, useLaunchpadFilter, type ServiceOverrides } from "@medialane/ui";
 import {
-  Zap, Package, Tag, ShoppingCart,
+  Package, Tag, ShoppingCart,
   ExternalLink, ArrowRight,
 } from "lucide-react";
 
@@ -61,9 +64,19 @@ export function LaunchpadContent() {
   const { isSignedIn } = useUser();
   const { walletAddress } = useSessionKey();
   const filter = useLaunchpadFilter();
+  const { collections } = useCollectionsByOwner(walletAddress ?? null);
+
+  // Live per-user facts on the cards — real counts, shown only when nonzero.
+  const overrides = useMemo<ServiceOverrides>(() => {
+    const nftCount = collections.filter((c) => getService(c.service)?.id === "mip-erc721").length;
+    const editionsCount = collections.filter((c) => c.standard === "ERC1155").length;
+    const withMeta = (key: string, count: number): ServiceOverrides =>
+      count > 0 ? { [key]: { ...IO_OVERRIDES[key], meta: `${count} collection${count === 1 ? "" : "s"}` } } : {};
+    return { ...IO_OVERRIDES, ...withMeta("nfts", nftCount), ...withMeta("limited-editions", editionsCount) };
+  }, [collections]);
 
   return (
-    <div className="relative pb-20 space-y-12 sm:space-y-20">
+    <div className="relative pb-20 space-y-8 sm:space-y-10">
 
       {/* ── Starknet dapp widget — top right, scrolls with the page ─ */}
       <a
@@ -81,44 +94,35 @@ export function LaunchpadContent() {
         <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
       </a>
 
-      {/* ── Hero ─────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden">
-        <div className="px-4 py-14 sm:py-20 space-y-6">
+      {/* ── Header ───────────────────────────────────────────── */}
+      <section className="px-4 pt-16 sm:pt-20 space-y-5">
+        <FadeIn>
           <div>
-            <FadeIn>
-              <span className="pill-badge mb-5 inline-flex">
-                <Zap className="h-3 w-3" />
-                Creator
-              </span>
-            </FadeIn>
-            <FadeIn delay={0.08}>
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight">
-                <span className="gradient-text">Launchpad</span>
-              </h1>
-            </FadeIn>
+            <h1 className="text-3xl sm:text-4xl font-black leading-tight">Launchpad</h1>
+            <p className="text-muted-foreground mt-1.5">Create, mint, and launch your work.</p>
           </div>
+        </FadeIn>
+        <FadeIn delay={0.08}>
+          <LaunchpadFilterBar
+            query={filter.query}
+            onQueryChange={filter.setQuery}
+            groups={filter.filterableGroups}
+            activeGroups={filter.activeGroups}
+            onToggleGroup={filter.toggleGroup}
+            resultCount={filter.totalMatches}
+          />
+        </FadeIn>
+        {isSignedIn && walletAddress && (
           <FadeIn delay={0.16}>
-            <LaunchpadFilterBar
-              query={filter.query}
-              onQueryChange={filter.setQuery}
-              groups={filter.filterableGroups}
-              activeGroups={filter.activeGroups}
-              onToggleGroup={filter.toggleGroup}
-              resultCount={filter.totalMatches}
-            />
+            <HeroStats address={walletAddress} />
           </FadeIn>
-          {isSignedIn && walletAddress && (
-            <FadeIn delay={0.24}>
-              <HeroStats address={walletAddress} />
-            </FadeIn>
-          )}
-        </div>
+        )}
       </section>
 
       {/* ── Grouped services (shared @medialane/ui component) ─── */}
       <section className="px-4">
         <LaunchpadGroupedSections
-          overrides={IO_OVERRIDES}
+          overrides={overrides}
           query={filter.query}
           activeGroups={filter.activeGroups}
           onClearFilters={filter.clear}
