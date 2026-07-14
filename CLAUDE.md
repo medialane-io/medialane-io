@@ -223,8 +223,8 @@ Keep new forms consistent with these three conventions:
 - **Plain header, gradient on the form only.** `ServiceHeader` gained a `plain` variant (neutral
   border, no brand gradient); `ServiceFormShell` (which `ClaimRouteShell` wraps) renders the header
   **`plain`** so a create/mint page shows the animated gradient border **only on the form**, never
-  stacked on the header. Standalone headers (browse pages, coin detail, `/claim` hub) pass no
-  `plain` → they keep the gradient.
+  stacked on the header. **Standalone headers pass `plain` too** (all launchpad browse pages since
+  2026-07-14 — a page with no form has nothing for the gradient to frame; matches medialane-starknet).
 - **Multi-step forms use the shared shell, not a bespoke layout.** `ServiceFormShell` gained an
   **`aboveForm`** slot (left column, between header and form) + a **sticky right rail** on desktop.
   New **`StepNav`** (`@medialane/ui`, `accentText`/`accentBg` props) is the polished stepper. The
