@@ -8,6 +8,7 @@ import { AssetPageStandard } from "./asset-page-standard";
 import { AssetPagePop } from "./asset-page-pop";
 import { AssetPageDrop } from "./asset-page-drop";
 import { AssetPageEdition } from "./asset-page-edition";
+import { AssetPageTicket } from "./asset-page-ticket";
 import { getService } from "@medialane/sdk";
 import { PageContainer } from "@medialane/ui";
 
@@ -48,6 +49,7 @@ export default function AssetPageClient() {
 
   if (assetType === "pop") return <AssetPagePop />;
   if (assetType === "drop") return <AssetPageDrop />;
+  if (assetType === "ticket") return <AssetPageTicket />;
   if (assetType === "edition") return <AssetPageEdition />;
   return <AssetPageStandard />;
 }

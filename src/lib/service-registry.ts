@@ -1,4 +1,4 @@
-import { Award, Package } from "lucide-react";
+import { Award, Package, Ticket } from "lucide-react";
 import { BRAND } from "@/lib/brand";
 
 export interface ServiceConfig {
@@ -53,6 +53,21 @@ export const SERVICE_REGISTRY: Record<string, ServiceConfig> = {
       to: "to-amber-500/10",
     },
     launchpadHref: "/launchpad/drop",
+    hasDetailAction: true,
+  },
+  "ip-tickets": {
+    serviceId: "ip-tickets",
+    name: "IP Tickets",
+    description: "Verifiable on-chain tickets",
+    icon: Ticket,
+    badge: "TICKETS",
+    color: {
+      text: "text-teal-500",
+      bgSolid: "bg-teal-600",
+      from: "from-teal-500/10",
+      to: "to-cyan-500/10",
+    },
+    launchpadHref: "/launchpad/tickets",
     hasDetailAction: true,
   },
 };

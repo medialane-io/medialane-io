@@ -30,6 +30,7 @@ import { useGatedContent, type GatedContentState } from "@/hooks/use-gated-conte
 import { CollectionServiceAction } from "@/components/services/collection-service-action";
 import { PurchaseDialog } from "@/components/marketplace/purchase-dialog";
 import { useSessionKey } from "@/hooks/use-session-key";
+import { getService } from "@medialane/sdk";
 import type { ApiToken, ApiOrder, Chain, CollectionTokensSort } from "@medialane/sdk";
 
 const PAGE_SIZE = 24;
@@ -394,10 +395,11 @@ export default function CollectionPageClient() {
                 </>
               )}
 
-              {/* Service action slot (POP claim, Drop mint, etc.) */}
+              {/* Service action slot (POP claim, Drop mint, ticket create/mint, etc.) */}
               <CollectionServiceAction
                 service={collection.service}
                 contractAddress={collection.contractAddress}
+                owner={collection.owner}
               />
             </div>
 
@@ -406,7 +408,7 @@ export default function CollectionPageClient() {
             <div className="flex flex-col gap-2.5 shrink-0 lg:items-end">
               {walletAddress && collection.owner?.toLowerCase() === walletAddress.toLowerCase() && (
                 <div className="flex items-center gap-2">
-                  {collection.standard === "ERC1155" && (
+                  {collection.standard === "ERC1155" && getService(collection.service)?.id === "mip-erc1155" && (
                     <Link
                       href={`/launchpad/nfteditions/${contract}/mint`}
                       className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold text-white bg-brand-purple hover:brightness-110 active:scale-[0.98] transition"

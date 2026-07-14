@@ -10,6 +10,7 @@ export function AirdropSection() {
         "limited-editions": "/launchpad/nfteditions",
         "collection-drop": "/launchpad/drop",
         "pop-protocol": "/launchpad/pop",
+        "ip-tickets": "/launchpad/tickets",
         "creator-coins": "/launchpad/coin/create",
       }}
       marketplaceHref="/marketplace"
