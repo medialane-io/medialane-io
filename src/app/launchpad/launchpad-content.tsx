@@ -54,7 +54,10 @@ const IO_OVERRIDES: ServiceOverrides = {
   "claim-username":        { href: "/claim/username" },
   "claim-collection":      { href: "/claim/collection" },
   "claim-collection-name": { href: "/claim/collection-name" },
-  "ip-tickets":     { href: "/launchpad/tickets" },
+  // IP Tickets is live on the Starknet app; the io flow targeted a contract
+  // generation that no longer exists on-chain and was removed — the card stays
+  // not-live here until the io lens gets its own tickets pass.
+  "ip-tickets":     { status: "building" },
   "ip-club":        { href: "/launchpad/club" },
   "ip-sponsorship": { href: "/launchpad/sponsorship" },
 };
