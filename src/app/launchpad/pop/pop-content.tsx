@@ -135,6 +135,7 @@ export function PopContent() {
         <FadeIn>
           <div className="mt-6">
             <ServiceHeader
+              plain
               icon={<Award className="h-4 w-4 text-white" />}
               title="POP Events"
               subtitle="Collectible badges that prove people took part. Browse events to claim yours, or create one for your community."

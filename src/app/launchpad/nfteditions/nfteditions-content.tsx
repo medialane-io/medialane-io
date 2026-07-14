@@ -146,6 +146,7 @@ export function IP1155Content() {
         <FadeIn>
           <div className="mt-6">
             <ServiceHeader
+              plain
               icon={<Layers className="h-4 w-4 text-white" />}
               title="Limited Editions"
               subtitle="Pick one of your editions collections and mint new pieces into it."

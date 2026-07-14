@@ -105,6 +105,7 @@ export function RemixContent() {
         <FadeIn>
           <div className="mt-6">
             <ServiceHeader
+              plain
               icon={<GitBranch className="h-4 w-4 text-white" />}
               title="Remix"
               subtitle="Pick a work that is open to remixing. Attribution and royalties flow back to the original creator."

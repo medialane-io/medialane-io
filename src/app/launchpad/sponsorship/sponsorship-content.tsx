@@ -91,6 +91,7 @@ export function SponsorshipContent() {
         <FadeIn>
           <div className="mt-6">
             <ServiceHeader
+              plain
               icon={<Handshake className="h-4 w-4 text-white" />}
               title="IP Sponsorship"
               subtitle="Sponsorship offers and licenses anchored to Medialane assets — sponsor a creator's IP, get a license."

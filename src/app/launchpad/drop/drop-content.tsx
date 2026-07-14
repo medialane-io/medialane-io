@@ -169,6 +169,7 @@ export function DropContent() {
         <FadeIn>
           <div className="mt-6">
             <ServiceHeader
+              plain
               icon={<Package className="h-4 w-4 text-white" />}
               title="Drops"
               subtitle="Timed releases with a fixed supply. Browse live drops to collect, or launch your own."
