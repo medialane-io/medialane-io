@@ -46,7 +46,7 @@ function HeroStats({ address }: { address: string }) {
 const IO_OVERRIDES: ServiceOverrides = {
   "nfts":             { href: "/launchpad/nfts" },
   "limited-editions": { href: "/launchpad/nfteditions" },
-  "remix-asset":      { href: "/marketplace" },
+  "remix-asset":      { href: "/launchpad/remix" },
   "pop-protocol":     { href: "/launchpad/pop" },
   "collection-drop":  { href: "/launchpad/drop" },
   "creator-coins":    { href: "/launchpad/coin/create" },
