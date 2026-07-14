@@ -41,21 +41,19 @@ function HeroStats({ address }: { address: string }) {
 
 // ── io-specific service overrides (hrefs, rollout flips, gasless-rail copy) ──
 const IO_OVERRIDES: ServiceOverrides = {
-  "mint-ip-asset":      { href: "/create/asset" },
-  "create-collection":  { href: "/create/collection" },
-  "remix-asset":        { href: "/marketplace" },
-  "pop-protocol":       { href: "/launchpad/pop/create",  browseHref: "/launchpad/pop"  },
-  "collection-drop":    { href: "/launchpad/drop/create", browseHref: "/launchpad/drop" },
-  "ip-collection-1155": { href: "/launchpad/nfteditions/create" },
-  "mint-editions":      { href: "/launchpad/nfteditions" },
-  "creator-coins":      { href: "/launchpad/coin/create" },
-  "claim-memecoin":     { href: "/launchpad/memecoin" },
-  "claim-username":         { href: "/claim/username" },
-  "claim-collection":       { href: "/claim/collection" },
-  "claim-collection-name":  { href: "/claim/collection-name" },
-  "ip-tickets":     { href: "/launchpad/tickets/create",     browseHref: "/launchpad/tickets" },
-  "ip-club":        { href: "/launchpad/club/create",        browseHref: "/launchpad/club" },
-  "ip-sponsorship": { href: "/launchpad/sponsorship/create", browseHref: "/launchpad/sponsorship" },
+  "nfts":             { href: "/launchpad/nfts" },
+  "limited-editions": { href: "/launchpad/nfteditions" },
+  "remix-asset":      { href: "/marketplace" },
+  "pop-protocol":     { href: "/launchpad/pop" },
+  "collection-drop":  { href: "/launchpad/drop" },
+  "creator-coins":    { href: "/launchpad/coin/create" },
+  "claim-memecoin":   { href: "/launchpad/memecoin" },
+  "claim-username":        { href: "/claim/username" },
+  "claim-collection":      { href: "/claim/collection" },
+  "claim-collection-name": { href: "/claim/collection-name" },
+  "ip-tickets":     { href: "/launchpad/tickets" },
+  "ip-club":        { href: "/launchpad/club" },
+  "ip-sponsorship": { href: "/launchpad/sponsorship" },
 };
 
 // ── Page ────────────────────────────────────────────────────────────────────

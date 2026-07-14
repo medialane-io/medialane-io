@@ -14,11 +14,10 @@ import { ServiceHeader } from "@/components/claim/service-header";
 import { ClaimBackButton } from "@/components/claim/claim-back-button";
 import { SignInButton } from "@clerk/nextjs";
 import { ipfsToHttp } from "@/lib/utils";
+import { getService, type ApiCollection } from "@medialane/sdk";
 import {
-  Layers, Sparkles, Plus, ArrowRight, Package,
-  ExternalLink, Inbox,
+  ImagePlus, Sparkles, Plus, Package, ExternalLink, Inbox,
 } from "lucide-react";
-import type { ApiCollection } from "@medialane/sdk";
 
 function CollectionRow({ col }: { col: ApiCollection }) {
   const [imgError, setImgError] = useState(false);
@@ -40,7 +39,7 @@ function CollectionRow({ col }: { col: ApiCollection }) {
           />
         ) : (
           <div className="absolute inset-0 bg-muted flex items-center justify-center">
-            <Layers className="h-8 w-8 text-muted-foreground/30" />
+            <ImagePlus className="h-8 w-8 text-muted-foreground/30" />
           </div>
         )}
       </div>
@@ -78,8 +77,8 @@ function CollectionRow({ col }: { col: ApiCollection }) {
               <Package className="h-3 w-3" />
               <span>
                 {col.totalSupply != null
-                  ? `${col.totalSupply.toLocaleString()} token${col.totalSupply !== 1 ? "s" : ""}`
-                  : "No tokens yet"}
+                  ? `${col.totalSupply.toLocaleString()} asset${col.totalSupply !== 1 ? "s" : ""}`
+                  : "No assets yet"}
               </span>
             </div>
             {col.holderCount != null && col.holderCount > 0 && (
@@ -93,11 +92,11 @@ function CollectionRow({ col }: { col: ApiCollection }) {
         {/* CTA */}
         <div className="flex items-center gap-2">
           <Link
-            href={`/launchpad/nfteditions/${col.contractAddress}/mint`}
-            className="flex items-center gap-2 h-9 px-4 rounded-xl text-sm font-semibold text-white bg-brand-purple hover:brightness-110 transition-colors"
+            href="/create/asset"
+            className="flex items-center gap-2 h-9 px-4 rounded-xl text-sm font-semibold text-white bg-brand-blue hover:brightness-110 transition-all"
           >
             <Sparkles className="h-3.5 w-3.5" />
-            Mint editions
+            Mint asset
           </Link>
           <Button variant="outline" size="sm" asChild>
             <Link href={collectionHref("STARKNET", col.contractAddress)}>
@@ -127,13 +126,13 @@ function CollectionRowSkeleton() {
   );
 }
 
-export function IP1155Content() {
+export function NFTsContent() {
   const { isSignedIn } = useUser();
   const { walletAddress } = useSessionKey();
   const { collections, isLoading } = useCollectionsByOwner(walletAddress ?? null);
 
-  const erc1155 = useMemo(
-    () => collections.filter((c) => c.standard === "ERC1155"),
+  const nftCollections = useMemo(
+    () => collections.filter((c) => getService(c.service)?.id === "mip-erc721"),
     [collections]
   );
 
@@ -146,26 +145,28 @@ export function IP1155Content() {
         <FadeIn>
           <div className="mt-6">
             <ServiceHeader
-              icon={<Layers className="h-4 w-4 text-white" />}
-              title="Limited Editions"
-              subtitle="Pick one of your editions collections and mint new pieces into it."
+              icon={<ImagePlus className="h-4 w-4 text-white" />}
+              title="NFTs"
+              subtitle="Mint one-of-a-kind works into a collection you own."
             />
           </div>
         </FadeIn>
         <FadeIn delay={0.08}>
           <div className="mt-6 flex items-center gap-3">
             <Link
-              href="/launchpad/nfteditions/create"
-              className="flex items-center gap-2 h-10 px-5 rounded-xl text-sm font-semibold text-white bg-brand-purple hover:brightness-110 transition-colors"
+              href="/create/asset"
+              className="flex items-center gap-2 h-10 px-5 rounded-xl text-sm font-semibold text-white bg-brand-blue hover:brightness-110 transition-colors"
+            >
+              <Sparkles className="h-4 w-4" />
+              Mint an asset
+            </Link>
+            <Link
+              href="/create/collection"
+              className="flex items-center gap-2 h-10 px-5 rounded-xl text-sm font-semibold border border-border bg-card hover:bg-muted/40 transition-colors"
             >
               <Plus className="h-4 w-4" />
               New collection
             </Link>
-            <Button variant="outline" size="sm" asChild>
-              <a href="https://docs.medialane.io/learn/ip-collection-1155" target="_blank" rel="noopener noreferrer">
-                Learn more <ArrowRight className="h-3.5 w-3.5 ml-1" />
-              </a>
-            </Button>
           </div>
         </FadeIn>
       </section>
@@ -175,11 +176,11 @@ export function IP1155Content() {
         {!isSignedIn ? (
           <FadeIn>
             <div className="bento-cell p-10 flex flex-col items-center gap-4 text-center">
-              <Layers className="h-10 w-10 text-muted-foreground/30" />
+              <ImagePlus className="h-10 w-10 text-muted-foreground/30" />
               <div>
                 <p className="font-semibold">Sign in to see your collections</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Your editions collections will appear here.
+                  Your collections will appear here.
                 </p>
               </div>
               <SignInButton mode="modal">
@@ -193,19 +194,19 @@ export function IP1155Content() {
               <CollectionRowSkeleton key={i} />
             ))}
           </div>
-        ) : erc1155.length === 0 ? (
+        ) : nftCollections.length === 0 ? (
           <FadeIn>
             <div className="bento-cell p-10 flex flex-col items-center gap-4 text-center">
               <Inbox className="h-10 w-10 text-muted-foreground/30" />
               <div>
-                <p className="font-semibold">No editions collections yet</p>
+                <p className="font-semibold">No collections yet</p>
                 <p className="text-sm text-muted-foreground mt-1 max-w-xs">
-                  Create your first editions collection to start minting.
+                  Create your first collection to start minting your work.
                 </p>
               </div>
               <Link
-                href="/launchpad/nfteditions/create"
-                className="flex items-center gap-2 h-9 px-4 rounded-xl text-sm font-semibold text-white bg-brand-purple hover:brightness-110 transition-colors"
+                href="/create/collection"
+                className="flex items-center gap-2 h-9 px-4 rounded-xl text-sm font-semibold text-white bg-brand-blue hover:brightness-110 transition-colors"
               >
                 <Plus className="h-4 w-4" />
                 Create your first collection
@@ -216,11 +217,11 @@ export function IP1155Content() {
           <>
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-muted-foreground">
-                {erc1155.length} collection{erc1155.length !== 1 ? "s" : ""}
+                {nftCollections.length} collection{nftCollections.length !== 1 ? "s" : ""}
               </p>
             </div>
             <Stagger className="space-y-3">
-              {erc1155.map((col) => (
+              {nftCollections.map((col) => (
                 <StaggerItem key={col.contractAddress}>
                   <CollectionRow col={col} />
                 </StaggerItem>

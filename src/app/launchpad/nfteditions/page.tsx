@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { IP1155Content } from "./nfteditions-content";
 import { canonical, buildSocialMetadata } from "@/lib/seo";
 
-const title = "NFT Editions | Launchpad";
-const description = "Manage your multi-edition NFT collections — mint new token editions or deploy a new collection.";
+const title = "Limited Editions | Launchpad";
+const description = "Mint numbered copies of your work into an editions collection you own, or create a new collection.";
 
 export const metadata: Metadata = {
   title,
