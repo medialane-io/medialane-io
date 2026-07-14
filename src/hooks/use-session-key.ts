@@ -186,11 +186,9 @@ export function useSessionKey() {
               hash.getSelectorFromName("remove_from_allowlist"),
               hash.getSelectorFromName("withdraw_payments"),
               // IP Tickets (factory + per-collection, mediolano-contracts IP-Tickets)
-              hash.getSelectorFromName("deploy_ticket_collection"),
-              hash.getSelectorFromName("create_ticket_collection"),
-              hash.getSelectorFromName("set_collection_active"),
-              hash.getSelectorFromName("mint_ticket"),
-              hash.getSelectorFromName("redeem_ticket"),
+              // deploy_collection is already whitelisted above; create_ticket +
+              // mint are the per-collection owner actions.
+              hash.getSelectorFromName("create_ticket"),
               // IP Club (factory + per-club IPClubCollection, mediolano-contracts IP-Club).
               // deploy_club (create), mint (join — the membership card), set_open (owner).
               hash.getSelectorFromName("deploy_club"),
