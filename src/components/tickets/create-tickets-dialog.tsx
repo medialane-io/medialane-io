@@ -102,10 +102,13 @@ export function CreateTicketsDialog({
   contractAddress,
   open,
   onOpenChange,
+  onCreated,
 }: {
   contractAddress: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Called from the success state — the mint flow reopens with the fresh list. */
+  onCreated?: () => void;
 }) {
   const contract = normalizeAddress("STARKNET", contractAddress);
   const action = useWriteAction();
@@ -147,7 +150,11 @@ export function CreateTicketsDialog({
 
   const handleDone = () => {
     action.reset();
-    onOpenChange(false);
+    if (onCreated) {
+      onCreated();
+    } else {
+      onOpenChange(false);
+    }
   };
 
   const handleLicenseChange = (value: string) => {
@@ -264,7 +271,7 @@ export function CreateTicketsDialog({
             Create more tickets
           </Button>
           <Button className="flex-1 bg-teal-600 hover:bg-teal-700 text-white" onClick={handleDone}>
-            Done
+            {onCreated ? "Mint these tickets" : "Done"}
           </Button>
         </div>
       </TransactionDialog>

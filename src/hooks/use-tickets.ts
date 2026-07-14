@@ -56,6 +56,41 @@ async function readTicket(contract: string, tokenId: string): Promise<TicketOnch
   };
 }
 
+// ── useTicketList ─────────────────────────────────────────────────────────────
+// All tickets in a collection, straight from the chain. Ticket ids are
+// sequential from 1 and there is no count getter, so we probe get_ticket until
+// the first miss (capped). This includes tickets that have never been minted —
+// which the indexer can't know about yet.
+
+export interface TicketListItem extends TicketOnchain {
+  id: string;
+}
+
+const TICKET_PROBE_CAP = 64;
+
+async function readTicketList(contract: string): Promise<TicketListItem[]> {
+  const tickets: TicketListItem[] = [];
+  for (let id = 1; id <= TICKET_PROBE_CAP; id++) {
+    try {
+      const t = await readTicket(contract, String(id));
+      tickets.push({ id: String(id), ...t });
+    } catch {
+      break; // sequential ids — first miss is the end
+    }
+  }
+  return tickets;
+}
+
+export function useTicketList(contract: string | null) {
+  const { data, error, isLoading, mutate } = useSWR<TicketListItem[]>(
+    contract ? `ticket-list-${contract}` : null,
+    () => readTicketList(contract!),
+    { revalidateOnFocus: false, dedupingInterval: 15_000 }
+  );
+
+  return { tickets: data ?? [], isLoading, error, mutate };
+}
+
 export function useTicketOnchain(contract: string | null, tokenId: string | null) {
   const { data, error, isLoading } = useSWR<TicketOnchain>(
     contract && tokenId ? `ticket-onchain-${contract}-${tokenId}` : null,
