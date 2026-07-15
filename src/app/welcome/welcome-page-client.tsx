@@ -186,7 +186,7 @@ export function WelcomePageClient() {
             <Sparkles className="h-3 w-3" />
             Welcome
           </span>
-          <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-tight">
+          <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight leading-tight">
             {firstName ? (
               <>Hey, {firstName}.<br />
               <span className="gradient-text">What are you creating today?</span></>

@@ -153,7 +153,7 @@ export function IpTypePageClient({ slug }: IpTypePageClientProps) {
             </div>
           )}
           <div>
-            <h1 className="text-3xl font-black">{config?.label ?? slug} Assets</h1>
+            <h1 className="text-3xl font-semibold">{config?.label ?? slug} Assets</h1>
             <p className="text-muted-foreground mt-0.5">
               {meta?.total != null ? (
                 <>{meta.total.toLocaleString()} indexed · {listedCount} listed</>

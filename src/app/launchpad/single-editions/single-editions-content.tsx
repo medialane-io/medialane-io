@@ -162,7 +162,7 @@ export function SingleEditionsContent() {
         <ClaimBackButton />
         <FadeIn>
           <div>
-            <h1 className="text-3xl sm:text-4xl font-black leading-tight">Single Editions</h1>
+            <h1 className="text-3xl sm:text-4xl font-semibold leading-tight">Single Editions</h1>
             <p className="text-muted-foreground mt-1.5">Publish each work as a single copy in a collection you own.</p>
           </div>
         </FadeIn>

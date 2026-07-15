@@ -65,7 +65,7 @@ export function MintContent() {
                   <Sparkles className="h-3.5 w-3.5 text-yellow-500" />
                   <span className="text-xs font-semibold text-yellow-600 dark:text-yellow-400">Creator&apos;s Fund Campaign</span>
                 </div>
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.05]">
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-[1.05]">
                   Join the{" "}
                   <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
                     Creator&apos;s Airdrop

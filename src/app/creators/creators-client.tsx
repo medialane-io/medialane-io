@@ -62,7 +62,7 @@ export default function CreatorsPageClient() {
       <section className="relative overflow-hidden">
         <div className="px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
           <FadeIn delay={0.08}>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight mb-3">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold leading-tight mb-3">
               Meet the{" "}
               <span className="gradient-text">Creators</span>
             </h1>

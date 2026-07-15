@@ -187,7 +187,7 @@ export default function DropDetailPage({ contract }: { contract: string }) {
               </span>
             )}
           </div>
-          <h1 className="text-3xl font-black">{dropInfo.name ?? "Unnamed Drop"}</h1>
+          <h1 className="text-3xl font-semibold">{dropInfo.name ?? "Unnamed Drop"}</h1>
           {dropInfo.description && (
             <p className="text-muted-foreground text-sm leading-relaxed">
               {dropInfo.description}

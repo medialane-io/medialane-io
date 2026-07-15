@@ -49,7 +49,7 @@ export function ClaimPageClient() {
           <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary to-brand-purple flex items-center justify-center shadow-lg shadow-primary/20">
             <Sparkles className="h-4 w-4 text-white" />
           </div>
-          <h1 className="text-3xl font-black">Claims & Drops</h1>
+          <h1 className="text-3xl font-semibold">Claims & Drops</h1>
         </div>
         <p className="text-muted-foreground">
           Exclusive drops, collections and creator pages available on Medialane.

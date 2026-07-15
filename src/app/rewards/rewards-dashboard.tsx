@@ -79,7 +79,7 @@ function Hero() {
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand-rose to-brand-orange text-white shrink-0">
           <Sparkles className="h-5 w-5" />
         </div>
-        <h1 className="text-4xl sm:text-5xl font-black tracking-tight">Community Rewards</h1>
+        <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight">Community Rewards</h1>
       </div>
       <p className="text-base text-muted-foreground max-w-xl leading-relaxed">
         Every action earns XP. Active members receive allocations from the
