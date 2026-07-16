@@ -6,7 +6,6 @@
 // on-chain is_valid check.
 
 import { useState } from "react";
-import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";
 import { assetHref, collectionHref } from "@/lib/routes";
@@ -14,7 +13,7 @@ import { useToken, useTokenHistory } from "@/hooks/use-tokens";
 import { useTokenListings } from "@/hooks/use-orders";
 import { useCollection, useCollectionTokens } from "@/hooks/use-collections";
 import { Button } from "@/components/ui/button";
-import { PageContainer, AssetCollectionBar, AssetUtilityIcons, AssetMarketplacePanel, AssetHeaderBlock } from "@medialane/ui";
+import { PageContainer, AssetCollectionBar, AssetUtilityIcons, AssetMarketplacePanel, AssetHeaderBlock, AssetMediaColumn } from "@medialane/ui";
 import { ipfsToHttp, resolveTokenImage, checkIsOwner, cn } from "@/lib/utils";
 import { Ticket, ShoppingCart, CheckCircle2, Clock, CalendarX2 } from "lucide-react";
 import { FloatingCommentsButton } from "@/components/asset/floating-comments-button";
@@ -84,8 +83,30 @@ function TicketStatusChip({ status }: { status: TicketStatus }) {
   );
 }
 
-function TicketInfoPanel({ ticket }: { ticket: TicketOnchain }) {
+// ── Ticket panel — one card: identity, supply, royalty, and (if the
+// connected wallet holds this ticket) its validity — no separate "Your
+// ticket" card duplicating the same status.
+
+function TicketPanel({
+  contract,
+  tokenId,
+  quantity,
+  ticket,
+}: {
+  contract: string;
+  tokenId: string;
+  quantity: number;
+  ticket: TicketOnchain;
+}) {
+  const { walletAddress } = useSessionKey();
+  const { valid, isLoading } = useTicketValidity(contract, tokenId, walletAddress && quantity > 0 ? walletAddress : null);
   const status = ticketStatus(ticket);
+  const showHolderStatus = !!walletAddress && quantity > 0;
+  const invalidReason =
+    status === "upcoming" ? "Not valid yet — the validity window hasn't opened." :
+    status === "ended" ? "The validity window has ended." :
+    "No valid ticket for this wallet.";
+
   return (
     <div className="rounded-2xl border border-border bg-card/60 p-4 space-y-3">
       <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -108,121 +129,23 @@ function TicketInfoPanel({ ticket }: { ticket: TicketOnchain }) {
           <p className="text-sm font-semibold tabular-nums">{(ticket.royaltyBps / 100).toFixed(1)}%</p>
         </div>
       </div>
-    </div>
-  );
-}
 
-function YourTicketPanel({
-  contract,
-  tokenId,
-  quantity,
-  ticket,
-}: {
-  contract: string;
-  tokenId: string;
-  quantity: number;
-  ticket: TicketOnchain | null;
-}) {
-  const { walletAddress } = useSessionKey();
-  const { valid, isLoading } = useTicketValidity(contract, tokenId, walletAddress ?? null);
-  if (!walletAddress || quantity <= 0) return null;
-
-  const status = ticket ? ticketStatus(ticket) : null;
-  const invalidReason =
-    status === "upcoming" ? "Not valid yet — the validity window hasn't opened." :
-    status === "ended" ? "The validity window has ended." :
-    "No valid ticket for this wallet.";
-
-  return (
-    <div
-      className={cn(
-        "rounded-2xl border p-4 space-y-2",
-        valid ? "border-teal-500/40 bg-teal-500/5" : "border-border bg-card/60"
-      )}
-    >
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-sm font-semibold">Your ticket</p>
-        <span className="text-xs text-muted-foreground tabular-nums">×{quantity}</span>
-      </div>
-      {isLoading ? (
-        <p className="text-sm text-muted-foreground">Checking on-chain…</p>
-      ) : valid ? (
-        <div className="flex items-center gap-2 text-teal-600 dark:text-teal-400">
-          <CheckCircle2 className="h-5 w-5 shrink-0" />
-          <p className="text-sm font-medium">Valid ticket — ready to present</p>
-        </div>
-      ) : (
-        <p className="text-sm text-muted-foreground">{invalidReason}</p>
-      )}
-    </div>
-  );
-}
-
-// ── Ticket media — a stub-shaped card, not a full-bleed artwork square ───────
-// Tickets aren't collectible art, so they don't get the generic
-// AssetMediaColumn (unbounded-aspect image + edition-count tiles). A fixed
-// aspect ratio keeps the image from ballooning to its native size, and the
-// perforated divider + "Admit One" footer reads as a ticket at a glance.
-
-function TicketMediaCard({
-  shouldReduce,
-  image,
-  imageAlt,
-  imgError,
-  onImageError,
-  totalMinted,
-  maxSupply,
-}: {
-  shouldReduce: boolean;
-  image: string | null;
-  imageAlt: string;
-  imgError: boolean;
-  onImageError: () => void;
-  totalMinted: number;
-  maxSupply: number | null;
-}) {
-  return (
-    <motion.div
-      initial={shouldReduce ? false : { scale: 1.0, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
-      className="lg:sticky lg:top-16"
-    >
-      <div className="rounded-3xl overflow-hidden border border-border bg-card shadow-sm">
-        <div className="relative aspect-[16/10] w-full bg-gradient-to-br from-teal-500/15 to-teal-500/5">
-          {image && !imgError ? (
-            <Image
-              src={image}
-              alt={imageAlt}
-              fill
-              sizes="(max-width: 1024px) 100vw, 66vw"
-              className="object-cover"
-              onError={onImageError}
-              priority
-            />
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Ticket className="h-16 w-16 text-teal-500/40" />
+      {showHolderStatus && (
+        <div className="pt-3 border-t border-border/60 flex items-center justify-between gap-3">
+          <span className="text-xs text-muted-foreground tabular-nums">You hold ×{quantity}</span>
+          {isLoading ? (
+            <p className="text-xs text-muted-foreground">Checking on-chain…</p>
+          ) : valid ? (
+            <div className="flex items-center gap-1.5 text-teal-600 dark:text-teal-400">
+              <CheckCircle2 className="h-4 w-4 shrink-0" />
+              <p className="text-xs font-medium">Valid — ready to present</p>
             </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">{invalidReason}</p>
           )}
         </div>
-
-        <div className="relative h-6">
-          <div className="absolute inset-y-0 left-0 w-6 -translate-x-1/2 rounded-full bg-background" />
-          <div className="absolute inset-y-0 right-0 w-6 translate-x-1/2 rounded-full bg-background" />
-          <div className="absolute inset-x-9 top-1/2 -translate-y-1/2 border-t-2 border-dashed border-border" />
-        </div>
-
-        <div className="flex items-center justify-between px-5 py-3.5">
-          <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-            Admit One
-          </span>
-          <span className="text-xs text-muted-foreground tabular-nums">
-            {totalMinted.toLocaleString()}{maxSupply != null ? ` of ${maxSupply.toLocaleString()}` : ""} minted
-          </span>
-        </div>
-      </div>
-    </motion.div>
+      )}
+    </div>
   );
 }
 
@@ -302,8 +225,6 @@ export function AssetPageTicket() {
     ? (token.metadata.attributes as { trait_type?: string; value?: string }[])
     : [];
 
-  const totalMinted = ticket ? Number(ticket.minted) : holders.reduce((sum, b) => sum + Number(b.amount), 0);
-
   const activeTemplate = IP_TEMPLATES[
     (attributes.find((a) => a.trait_type?.toLowerCase() === "ip type")?.value ?? "") as IPType
   ];
@@ -352,14 +273,17 @@ export function AssetPageTicket() {
 
       <PageContainer className="pt-20 space-y-8 pb-8">
         <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] lg:gap-10 gap-8 items-start">
-          <TicketMediaCard
+          <AssetMediaColumn
             shouldReduce={Boolean(shouldReduce)}
-            image={image}
+            image={image ?? ""}
             imageAlt={name}
             imgError={imgError}
             onImageError={() => setImgError(true)}
-            totalMinted={totalMinted}
-            maxSupply={ticket ? Number(ticket.maxSupply) : null}
+            fallback={(
+              <div className="aspect-square flex items-center justify-center bg-muted">
+                <Ticket className="h-24 w-24 text-teal-500/40" />
+              </div>
+            )}
           />
 
           <motion.div
@@ -381,14 +305,14 @@ export function AssetPageTicket() {
               />
             </div>
 
-            {ticket && <TicketInfoPanel ticket={ticket} />}
-
-            <YourTicketPanel
-              contract={contract}
-              tokenId={tokenId}
-              quantity={myQuantity}
-              ticket={ticket}
-            />
+            {ticket && (
+              <TicketPanel
+                contract={contract}
+                tokenId={tokenId}
+                quantity={myQuantity}
+                ticket={ticket}
+              />
+            )}
 
             <AssetMarketplacePanel
               cheapest={cheapest}
