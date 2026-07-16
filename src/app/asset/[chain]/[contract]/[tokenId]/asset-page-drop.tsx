@@ -188,7 +188,7 @@ export function AssetPageDrop() {
       </div>
 
       <PageContainer className="pt-20 space-y-8 pb-8">
-        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] lg:gap-10 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-10 gap-8 items-start">
           {/* Image */}
           <motion.div
             initial={shouldReduce ? false : { scale: 1.0, opacity: 0 }}

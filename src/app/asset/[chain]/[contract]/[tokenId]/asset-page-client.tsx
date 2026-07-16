@@ -32,7 +32,7 @@ export default function AssetPageClient() {
   if (tokenLoading || collectionLoading) {
     return (
       <PageContainer className="pt-20 pb-8">
-        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] lg:gap-10 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-10 gap-8">
           <Skeleton className="aspect-[4/3] w-full rounded-2xl" />
           <div className="space-y-4">
             <Skeleton className="h-8 w-3/4" />
