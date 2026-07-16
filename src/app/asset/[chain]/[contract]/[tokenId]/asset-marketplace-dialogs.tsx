@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { ListingDialog } from "@/components/marketplace/listing-dialog";
 import { OfferDialog } from "@/components/marketplace/offer-dialog";
 import { PurchaseDialog } from "@/components/marketplace/purchase-dialog";
@@ -85,6 +85,18 @@ export function AssetMarketplaceDialogs({
   acceptOfferHook,
   onCancelListing,
 }: AssetMarketplaceDialogsProps) {
+  // A dialog's on-chain tx confirming doesn't mean the backend has indexed
+  // the resulting event yet (~6s poll cycle) — an immediate mutate() can
+  // still return the pre-write list, leaving stale UI (e.g. "List on
+  // Marketplace" after a listing actually went through) until the next
+  // scheduled poll. One extra revalidation a few seconds later closes that
+  // gap without waiting for the full poll interval. Same pattern as
+  // useMarketplace()'s own "stale order sync".
+  const handleSuccess = useCallback(() => {
+    mutateListings();
+    setTimeout(mutateListings, 8000);
+  }, [mutateListings]);
+
   return (
     <>
       {purchaseOrder ? (
@@ -94,7 +106,7 @@ export function AssetMarketplaceDialogs({
           onOpenChange={(open) => {
             if (!open) setPurchaseOrder(null);
           }}
-          onSuccess={mutateListings}
+          onSuccess={handleSuccess}
         />
       ) : null}
 
@@ -107,7 +119,7 @@ export function AssetMarketplaceDialogs({
         tokenStandard={tokenStandard}
         tokenImage={tokenImage}
         quantityOwned={quantityOwned}
-        onSuccess={mutateListings}
+        onSuccess={handleSuccess}
       />
 
       <OfferDialog
@@ -152,7 +164,7 @@ export function AssetMarketplaceDialogs({
         tokenImage={tokenImage}
         hasActiveListing={hasActiveListing}
         tokenStandard={tokenStandard}
-        onSuccess={mutateListings}
+        onSuccess={handleSuccess}
       />
     </>
   );
