@@ -1,13 +1,13 @@
 "use client";
 
-// Owner-only ticket management — a real page, not a popup. Create tickets and
-// mint them to attendees are both first-class page content, matching the
-// pop/drop/[contract]/manage pattern. The two dialogs this replaced
-// (create-tickets-dialog.tsx, mint-tickets-dialog.tsx) worked but stacked a
-// long scrollable form inside a fixed-height popup panel — poor on mobile.
-// Only transaction status stays a dialog (TransactionDialog) — that's a
-// transient overlay, not the primary form surface, same split every other
-// launchpad create page already uses.
+// Owner-only ticket management — a real page, not a popup, built on the same
+// launchpad create-page standard every other service uses (ClaimRouteShell:
+// branded header, live MedialaneCollectionCard preview + rail). A first pass
+// moved the form off the popup but reused the bare-bones pop/drop manage
+// shape (plain utility page, no header/preview/rail) instead of the create-page
+// standard — this is the corrected version, mirroring tickets/create/page.tsx.
+// Only transaction status stays a dialog (TransactionDialog) — a transient
+// overlay, not the primary form surface.
 
 import { use, useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -16,8 +16,8 @@ import * as z from "zod";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  ArrowLeft, Ticket, Loader2, ImagePlus, X, ShieldCheck, ChevronDown,
-  Plus, AlertCircle,
+  Ticket, Loader2, ImagePlus, X, ShieldCheck, ChevronDown,
+  Plus, AlertCircle, Gift,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Contract, cairo, type Abi } from "starknet";
@@ -45,7 +45,23 @@ import { starknetProvider } from "@/lib/starknet";
 import { cn } from "@/lib/utils";
 import { useUser } from "@clerk/nextjs";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
+import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
+import { MedialaneCollectionCard } from "@medialane/ui";
+import { CreateTicketAside } from "@/components/claim/create-ticket-aside";
 import { LICENSE_TYPES, GEOGRAPHIC_SCOPES, AI_POLICIES, DERIVATIVES_OPTIONS } from "@/types/ip";
+
+// ── Aside ────────────────────────────────────────────────────────────────
+
+function ManageTicketsAside({ imagePreview, name, collectionSymbol, creator }: {
+  imagePreview: string | null; name: string; collectionSymbol: string; creator?: string;
+}) {
+  return (
+    <>
+      <MedialaneCollectionCard image={imagePreview} name={name || "Your ticket"} collection={collectionSymbol} creator={creator} />
+      <CreateTicketAside />
+    </>
+  );
+}
 
 // ── Mint section ──────────────────────────────────────────────────────────
 
@@ -139,12 +155,12 @@ function MintSection({ contract, onOpenCreate }: { contract: string; onOpenCreat
       </TransactionDialog>
       <WalletSetupGate action={action} />
 
-      <div className="bento-cell p-5 space-y-4">
+      <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Ticket className="h-4 w-4 text-teal-500" />
           <span className="font-semibold text-sm">Mint tickets</span>
         </div>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-xs text-muted-foreground -mt-2">
           Send tickets directly to a wallet. Recipients hold their tickets — you cannot revoke them.
         </p>
 
@@ -258,49 +274,21 @@ function ToggleGroup({ value, options, onChange }: { value: string; options: rea
   );
 }
 
-function CreateSection({ contract, forwardRef }: { contract: string; forwardRef: React.RefObject<HTMLDivElement | null> }) {
-  const action = useWriteAction();
+interface CreateSectionProps {
+  contract: string;
+  forwardRef: React.RefObject<HTMLDivElement | null>;
+  form: ReturnType<typeof useForm<CreateFormValues>>;
+  imagePreview: string | null;
+  imageUri: string | null;
+  imageUploading: boolean;
+  onImageSelect: (file: File) => void;
+  onImageClear: () => void;
+}
 
+function CreateSection({ contract, forwardRef, form, imagePreview, imageUri, imageUploading, onImageSelect, onImageClear }: CreateSectionProps) {
+  const action = useWriteAction();
   const [licensingOpen, setLicensingOpen] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
-
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [imageUri, setImageUri] = useState<string | null>(null);
-  const [imageUploading, setImageUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const previewRef = useRef<string | null>(null);
-
-  useEffect(() => () => { if (previewRef.current) URL.revokeObjectURL(previewRef.current); }, []);
-
-  const form = useForm<CreateFormValues>({
-    resolver: zodResolver(createSchema),
-    defaultValues: {
-      name: "", description: "", external_url: "",
-      maxSupply: "100", royalty: 2.5, licenseType: "CC BY-SA", commercialUse: "Yes",
-      derivatives: "Share-Alike", attribution: "Required", geographicScope: "Worldwide", aiPolicy: "Not Allowed",
-    },
-  });
-
-  const handleImageSelect = async (file: File) => {
-    if (file.size > 10 * 1024 * 1024) { toast.error("Max 10 MB"); return; }
-    if (previewRef.current) URL.revokeObjectURL(previewRef.current);
-    const url = URL.createObjectURL(file);
-    previewRef.current = url;
-    setImagePreview(url);
-    setImageUri(null);
-    setImageUploading(true);
-    try {
-      const uri = await uploadImageToIpfs(file);
-      setImageUri(uri);
-      toast.success("Image uploaded");
-    } catch (err) {
-      if (previewRef.current) { URL.revokeObjectURL(previewRef.current); previewRef.current = null; }
-      setImagePreview(null);
-      toast.error("Image upload failed", { description: err instanceof Error ? err.message : undefined });
-    } finally {
-      setImageUploading(false);
-    }
-  };
 
   const onSubmit = (values: CreateFormValues) => {
     if (!imageUri) { toast.error("Upload a ticket image first"); return; }
@@ -354,7 +342,7 @@ function CreateSection({ contract, forwardRef }: { contract: string; forwardRef:
   };
 
   return (
-    <div ref={forwardRef} className="bento-cell p-5 space-y-5">
+    <div ref={forwardRef} className="space-y-5 pt-2 border-t border-border/30">
       <TransactionDialog
         action={action}
         title="Create tickets"
@@ -374,10 +362,10 @@ function CreateSection({ contract, forwardRef }: { contract: string; forwardRef:
           </div>
         )}
         <div className="flex flex-col sm:flex-row gap-2 w-full pt-1">
-          <Button variant="outline" className="flex-1" onClick={() => { action.reset(); form.reset({ ...form.getValues(), name: "", description: "", maxSupply: "100" }); setImagePreview(null); setImageUri(null); }}>
+          <Button variant="outline" className="flex-1" onClick={() => { action.reset(); form.reset({ ...form.getValues(), name: "", description: "", maxSupply: "100" }); onImageClear(); }}>
             Create more tickets
           </Button>
-          <Button className="flex-1 bg-teal-600 hover:bg-teal-700 text-white" onClick={() => { action.reset(); form.reset(); setImagePreview(null); setImageUri(null); }}>
+          <Button className="flex-1 bg-teal-600 hover:bg-teal-700 text-white" onClick={() => { action.reset(); form.reset(); onImageClear(); }}>
             Done
           </Button>
         </div>
@@ -397,20 +385,20 @@ function CreateSection({ contract, forwardRef }: { contract: string; forwardRef:
             <div className="flex items-center gap-4">
               <div
                 role="button" tabIndex={0}
-                onClick={() => !imageUploading && fileInputRef.current?.click()}
-                onKeyDown={(e) => { if (e.key === "Enter") fileInputRef.current?.click(); }}
+                onClick={() => !imageUploading && document.getElementById("manage-ticket-file-input")?.click()}
+                onKeyDown={(e) => { if (e.key === "Enter") document.getElementById("manage-ticket-file-input")?.click(); }}
                 className="relative h-20 w-20 rounded-2xl border-2 border-dashed border-border bg-muted flex items-center justify-center overflow-hidden shrink-0 cursor-pointer hover:border-teal-500/50 transition-colors"
               >
                 {imagePreview ? <Image src={imagePreview} alt="Ticket" fill className="object-cover" /> : <ImagePlus className="h-6 w-6 text-muted-foreground" />}
                 {imageUploading && <div className="absolute inset-0 bg-background/70 flex items-center justify-center"><Loader2 className="h-4 w-4 animate-spin" /></div>}
               </div>
               <div className="space-y-1.5">
-                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageSelect(f); }} />
-                <Button type="button" variant="outline" size="sm" disabled={imageUploading} onClick={() => fileInputRef.current?.click()}>
+                <input id="manage-ticket-file-input" type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) onImageSelect(f); }} />
+                <Button type="button" variant="outline" size="sm" disabled={imageUploading} onClick={() => document.getElementById("manage-ticket-file-input")?.click()}>
                   {imageUploading ? <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />Uploading…</> : imagePreview ? "Change" : "Upload image"}
                 </Button>
                 {imagePreview && (
-                  <button type="button" onClick={() => { setImagePreview(null); setImageUri(null); }} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors">
+                  <button type="button" onClick={onImageClear} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors">
                     <X className="h-3 w-3" /> Remove
                   </button>
                 )}
@@ -565,6 +553,44 @@ export default function TicketsManagePage({ params }: { params: Promise<{ contra
   const { collection, isLoading } = useCollection(contract);
   const createSectionRef = useRef<HTMLDivElement>(null);
 
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [imageUploading, setImageUploading] = useState(false);
+  const previewRef = useRef<string | null>(null);
+  useEffect(() => () => { if (previewRef.current) URL.revokeObjectURL(previewRef.current); }, []);
+
+  const form = useForm<CreateFormValues>({
+    resolver: zodResolver(createSchema),
+    defaultValues: {
+      name: "", description: "", external_url: "",
+      maxSupply: "100", royalty: 2.5, licenseType: "CC BY-SA", commercialUse: "Yes",
+      derivatives: "Share-Alike", attribution: "Required", geographicScope: "Worldwide", aiPolicy: "Not Allowed",
+    },
+  });
+
+  const handleImageSelect = async (file: File) => {
+    if (file.size > 10 * 1024 * 1024) { toast.error("Max 10 MB"); return; }
+    if (previewRef.current) URL.revokeObjectURL(previewRef.current);
+    const url = URL.createObjectURL(file);
+    previewRef.current = url;
+    setImagePreview(url);
+    setImageUri(null);
+    setImageUploading(true);
+    try {
+      const uri = await uploadImageToIpfs(file);
+      setImageUri(uri);
+      toast.success("Image uploaded");
+    } catch (err) {
+      if (previewRef.current) { URL.revokeObjectURL(previewRef.current); previewRef.current = null; }
+      setImagePreview(null);
+      toast.error("Image upload failed", { description: err instanceof Error ? err.message : undefined });
+    } finally {
+      setImageUploading(false);
+    }
+  };
+
+  const handleImageClear = () => { setImagePreview(null); setImageUri(null); };
+
   const isOwner = !!address && !!collection?.owner && address.toLowerCase() === collection.owner.toLowerCase();
 
   if (!isSignedIn) {
@@ -580,7 +606,7 @@ export default function TicketsManagePage({ params }: { params: Promise<{ contra
 
   if (isLoading) {
     return (
-      <div className="max-w-xl mx-auto px-4 pt-10 pb-16 space-y-4">
+      <div className="max-w-5xl mx-auto px-4 pt-10 pb-16 space-y-4">
         <Skeleton className="h-6 w-24" />
         <Skeleton className="h-32 w-full rounded-2xl" />
         <Skeleton className="h-64 w-full rounded-2xl" />
@@ -609,34 +635,34 @@ export default function TicketsManagePage({ params }: { params: Promise<{ contra
   }
 
   return (
-    <div className="max-w-xl mx-auto px-4 pt-10 pb-16 space-y-6">
+    <ClaimRouteShell
+      icon={<Ticket className="h-4 w-4 text-white" />}
+      title="Manage Tickets"
+      subtitle={`Create and mint tickets for ${collection.name ?? "your collection"} — all in one place.`}
+      aside={
+        <ManageTicketsAside
+          imagePreview={imagePreview}
+          name={form.watch("name")}
+          collectionSymbol={collection.symbol || "Tickets"}
+          creator={address ? `${address.slice(0, 6)}…${address.slice(-4)}` : undefined}
+        />
+      }
+    >
       <FadeIn>
-        <Button asChild variant="ghost" size="sm" className="-ml-2">
-          <Link href={`/collections/${contract}`}>
-            <ArrowLeft className="h-3.5 w-3.5 mr-1.5" />
-            Back to collection
-          </Link>
-        </Button>
-      </FadeIn>
-
-      <FadeIn delay={0.04}>
-        <div>
-          <span className="pill-badge inline-flex gap-1.5 mb-2">
-            <Ticket className="h-3 w-3" />
-            Owner
-          </span>
-          <h1 className="text-2xl font-bold mt-1">Manage Tickets</h1>
-          <p className="text-sm text-muted-foreground">{collection.name ?? contract}</p>
+        <div className="space-y-6">
+          <MintSection contract={contract} onOpenCreate={() => createSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })} />
+          <CreateSection
+            contract={contract}
+            forwardRef={createSectionRef}
+            form={form}
+            imagePreview={imagePreview}
+            imageUri={imageUri}
+            imageUploading={imageUploading}
+            onImageSelect={handleImageSelect}
+            onImageClear={handleImageClear}
+          />
         </div>
       </FadeIn>
-
-      <FadeIn delay={0.08}>
-        <MintSection contract={contract} onOpenCreate={() => createSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })} />
-      </FadeIn>
-
-      <FadeIn delay={0.12}>
-        <CreateSection contract={contract} forwardRef={createSectionRef} />
-      </FadeIn>
-    </div>
+    </ClaimRouteShell>
   );
 }
