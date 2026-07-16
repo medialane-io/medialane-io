@@ -1,23 +1,23 @@
-import { Users, IdCard, LayoutGrid, Gift } from "lucide-react";
-import { ClaimRail } from "@/components/claim/claim-rail";
+import { Users, ChevronRight } from "lucide-react";
+import { ClaimRail } from "@medialane/ui";
 
 /** Right-rail content for /launchpad/club/create. */
+
 export function CreateClubAside() {
   return (
     <ClaimRail
       included={[
-        { icon: IdCard, title: "An on-chain membership card", desc: "Each member holds a real NFT that proves they belong." },
-        { icon: Users, title: "You control who joins", desc: "Open or close joining anytime — an optional entry fee and member cap." },
-        { icon: LayoutGrid, title: "A branded club page", desc: "Your club, with a shareable join link." },
+        { icon: Users, title: "One club, many tiers", desc: "Create as many membership tiers as you need without publishing again." },
+        { icon: ChevronRight, title: "You keep full control", desc: "Only you can create tiers and mint membership cards." },
       ]}
       steps={[
-        "Name your club and set the rules",
-        "Publish it — one transaction",
-        "Share the join link with your fans",
+        "Create your club — set name, symbol, and cover image",
+        "Create membership tiers — each gets its own supply and optional validity window",
+        "Mint membership cards and sell them on the marketplace like any asset",
       ]}
-      trustIcon={Gift}
-      trustLead="You keep the proceeds."
-      trust="Entry fees flow directly to your wallet — Medialane never takes custody."
+      trustIcon={Users}
+      trustLead="Your club, your rules."
+      trust="Only you can create tiers and mint cards. Members keep their cards and trade them freely."
     />
   );
 }

@@ -190,10 +190,10 @@ export function useSessionKey() {
               // mint are the per-collection owner actions.
               hash.getSelectorFromName("create_ticket"),
               // IP Club (factory + per-club IPClubCollection, mediolano-contracts IP-Club).
-              // deploy_club (create), mint (join — the membership card), set_open (owner).
-              hash.getSelectorFromName("deploy_club"),
+              // deploy_collection is already whitelisted above; create_membership +
+              // mint are the per-club owner actions.
+              hash.getSelectorFromName("create_membership"),
               hash.getSelectorFromName("mint"),
-              hash.getSelectorFromName("set_open"),
               // IP Sponsorship v3 (mediolano-contracts IP-Sponsorhip). One
               // contract is both the registry and the license collection —
               // accept_bid/accept_proposal mint the license internally, no

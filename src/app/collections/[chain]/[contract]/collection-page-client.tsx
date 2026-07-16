@@ -29,6 +29,7 @@ import { useCollectionProfile } from "@/hooks/use-profiles";
 import { useGatedContent, type GatedContentState } from "@/hooks/use-gated-content";
 import { CollectionServiceAction } from "@/components/services/collection-service-action";
 import { TicketOwnerActions } from "@/components/tickets/ticket-owner-actions";
+import { ClubOwnerActions } from "@/components/club/club-owner-actions";
 import { PurchaseDialog } from "@/components/marketplace/purchase-dialog";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { getService } from "@medialane/sdk";
@@ -410,6 +411,12 @@ export default function CollectionPageClient() {
                 <div className="flex items-center gap-2">
                   {getService(collection.service)?.id === "ip-tickets" && (
                     <TicketOwnerActions
+                      contractAddress={collection.contractAddress}
+                      owner={collection.owner}
+                    />
+                  )}
+                  {getService(collection.service)?.id === "ip-club" && (
+                    <ClubOwnerActions
                       contractAddress={collection.contractAddress}
                       owner={collection.owner}
                     />

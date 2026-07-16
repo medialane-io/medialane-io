@@ -1,51 +1,57 @@
 "use client";
 
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import Link from "next/link";
 import Image from "next/image";
-import { hash } from "starknet";
-import { starknetProvider } from "@/lib/starknet";
-import { Users, CheckCircle2, Loader2, ImagePlus, X } from "lucide-react";
+import { Users, ImagePlus, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PinDialog } from "@/components/chipi/pin-dialog";
-import { useWriteAction } from "@/hooks/use-write-action";
+import {
+  Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage,
+} from "@/components/ui/form";
 import { WalletSetupGate } from "@/components/transaction/wallet-setup-gate";
+import { useWriteAction } from "@/hooks/use-write-action";
+import { TransactionDialog } from "@/components/transaction/transaction-dialog";
+import { useSessionKey } from "@/hooks/use-session-key";
 import { useUser } from "@clerk/nextjs";
-import { STARKNET_IP_CLUB_FACTORY_CONTRACT, MEDIALANE_BACKEND_URL } from "@/lib/constants";
-import { getTokenBySymbol, normalizeAddress, SUPPORTED_TOKENS } from "@medialane/sdk";
-import { serializeByteArray, encodeU256 } from "@/lib/cairo-calldata";
-import { LaunchpadSuccessState, LaunchpadErrorState, LaunchpadProcessingState } from "@/components/launchpad/launchpad-success-state";
-import { rewardToast } from "@/lib/reward-toast";
+import { normalizeAddress } from "@medialane/sdk";
+import { hash } from "starknet";
+import { starknetProvider } from "@/lib/starknet";
+import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
+import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
+import { collectionHref } from "@/lib/routes";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { MedialaneCollectionCard } from "@medialane/ui";
 import { CreateClubAside } from "@/components/claim/create-club-aside";
+import { rewardToast } from "@/lib/reward-toast";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
-import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
-import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
-import { toast } from "sonner";
+import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
+import { serializeByteArray } from "@/lib/cairo-calldata";
+import { STARKNET_IP_CLUB_FACTORY_CONTRACT } from "@/lib/constants";
 
-const LISTABLE_TOKENS = SUPPORTED_TOKENS.filter((t) => t.listable);
+const CLUB_DEPLOYED_SELECTOR = hash.getSelectorFromName("ClubDeployed");
 
 const schema = z.object({
   name: z.string().min(1, "Name required").max(100),
-  symbol: z.string().min(1, "Symbol required").max(10).regex(/^[A-Z0-9]+$/, "Uppercase letters and numbers only"),
+  symbol: z
+    .string()
+    .min(1, "Symbol required")
+    .max(10, "Max 10 characters")
+    .regex(/^[A-Z0-9]+$/, "Uppercase letters and numbers only"),
   description: z.string().max(500).optional(),
-  maxMembers: z.string().default("").refine((v) => v === "" || /^\d+$/.test(v), "Must be a positive integer"),
-  entryFeeAmount: z.string().default("").refine((v) => v === "" || !Number.isNaN(Number(v)), "Enter a valid amount"),
-  paymentToken: z.string().default("USDC"),
-  royaltyBps: z.coerce.number().min(0).max(50).default(0),
 });
 type FormValues = z.infer<typeof schema>;
 
 export default function CreateClubPage() {
   const { isSignedIn } = useUser();
+  const { walletAddress } = useSessionKey();
   const action = useWriteAction();
-  const busy = action.status === "processing" || action.status === "confirming";
+  const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
+  const [deployedAddress, setDeployedAddress] = useState<string | null>(null);
 
   const {
     imageFile, imagePreview, imageUri, imageUploading,
@@ -54,144 +60,135 @@ export default function CreateClubPage() {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { name: "", symbol: "", description: "", maxMembers: "", entryFeeAmount: "", paymentToken: "USDC", royaltyBps: 0 },
+    defaultValues: { name: "", symbol: "", description: "" },
   });
 
-  const onSubmit = (values: FormValues) => {
-    if (!STARKNET_IP_CLUB_FACTORY_CONTRACT) {
-      toast.error("IP Club factory not configured");
-      return;
-    }
-    if (imageFile && !imageUri && !imageUploading) {
-      toast.error("Image upload failed", { description: "Please re-upload the club image." });
-      return;
-    }
-    void action.run(async (secret) => {
-      const fee = values.entryFeeAmount ? Number(values.entryFeeAmount) : 0;
-      const token = fee > 0 ? getTokenBySymbol(values.paymentToken) : null;
-      if (fee > 0 && !token) throw new Error("Unsupported payment token");
-
-      // Pin the club metadata first — base_uri goes on-chain in the immutable
-      // deploy, so a failed pin is fatal (pinLaunchpadMetadata throws).
-      let baseUri = "";
-      if (imageUri) {
-        baseUri = await pinLaunchpadMetadata({
-          name: values.name,
-          description: values.description || "",
-          image: imageUri,
-        });
-      }
-
-      // Factory deploys a standalone IPClubCollection ERC-721 (the club IS a
-      // collection). deploy_club(name, symbol, base_uri, max_supply:u256,
-      // entry_fee:u256, payment_token:Option<addr>, royalty_bps:u256)
-      const maxSupply = values.maxMembers ? BigInt(values.maxMembers) : 0xffffffffffffffffn; // unlimited
-      const entryFee = fee > 0 && token ? BigInt(Math.round(fee * 10 ** token.decimals)) : 0n;
-      const paymentTokenOpt = entryFee > 0n && token ? ["0", token.address] : ["1"];
-      const royaltyBps = BigInt(Math.round(values.royaltyBps * 100));
-
-      const result = await action.executeTransaction({
-        pin: secret,
-        calls: [{
-          contractAddress: STARKNET_IP_CLUB_FACTORY_CONTRACT,
-          entrypoint: "deploy_club",
-          calldata: [
-            ...serializeByteArray(values.name),
-            ...serializeByteArray(values.symbol),
-            ...serializeByteArray(baseUri),
-            ...encodeU256(maxSupply),
-            ...encodeU256(entryFee),
-            ...paymentTokenOpt,
-            ...encodeU256(royaltyBps),
-          ],
-        }],
-      });
-      if (result.status !== "confirmed") {
-        throw new Error(result.revertReason ?? "Transaction reverted");
-      }
-      rewardToast("create_club");
-
-      // Parse ClubDeployed (keys = [selector, collection_address, owner]) and
-      // fast-path register so the new club appears in browse before the indexer
-      // catches up. Best-effort — the tx already confirmed.
-      try {
-        type ReceiptEvent = { keys?: string[] };
-        type ReceiptShape = { events?: ReceiptEvent[] };
-        let receipt: ReceiptShape | null = null;
-        for (let attempt = 0; attempt < 2 && !receipt; attempt++) {
-          try {
-            if (attempt > 0) await new Promise((r) => setTimeout(r, 2000));
-            receipt = (await starknetProvider.getTransactionReceipt(result.txHash)) as ReceiptShape;
-          } catch { /* retry */ }
-        }
-        const selector = hash.getSelectorFromName("ClubDeployed");
-        const deployEvent = (receipt?.events ?? []).find(
-          (e) => e.keys?.[0] && BigInt(e.keys[0]) === BigInt(selector)
-        );
-        const addr = deployEvent?.keys?.[1] ? normalizeAddress("STARKNET", deployEvent.keys[1]) : null;
-        if (addr) {
-          await fetch(`${MEDIALANE_BACKEND_URL}/v1/collections/register`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contractAddress: addr,
-              startBlock: 0,
-              standard: "ERC721",
-              source: "MEDIALANE_IP_CLUB",
-            }),
-          });
-        }
-      } catch { /* non-fatal — indexer will pick the club up on its next poll */ }
-
-      return result;
-    });
+  const handleReset = () => {
+    action.reset();
+    setPendingValues(null);
+    setDeployedAddress(null);
+    form.reset();
+    clearImage();
   };
 
-  if (action.status === "error") {
-    return <LaunchpadErrorState description={action.error ?? "Failed to create club"} backHref="/launchpad/club" backLabel="Back to Club launchpad" onRetry={action.reset} />;
-  }
-  if (busy) return <LaunchpadProcessingState title="Creating your club…" />;
+  const onSubmit = (values: FormValues) => {
+    if (imageFile && !imageUri && !imageUploading) return;
+    setPendingValues(values);
+    // Pass `values` through the closure (synchronous-passkey rule).
+    void action.run((secret) => handleUnlocked(values, secret));
+  };
 
-  if (action.status === "success") {
-    return (
-      <LaunchpadSuccessState
-        icon={CheckCircle2}
-        accentClassName="bg-brand-indigo/10"
-        iconClassName="text-brand-indigo"
-        actionClassName="bg-brand-indigo hover:brightness-110 text-white"
-        title="Club created"
-        description="Your club and its membership card are live onchain. It will appear in the launchpad within a minute once indexed."
-        backHref="/launchpad/club"
-        backLabel="Back to Club launchpad"
-        actionLabel="Create another"
-        onAction={() => { action.reset(); form.reset(); clearImage(); }}
-      />
-    );
-  }
+  const handleUnlocked = async (values: FormValues, secret: string) => {
+    if (!walletAddress) throw new Error("Wallet not ready. Please refresh and try again.");
+    setDeployedAddress(null);
+
+    // Pin collection metadata first — base_uri goes on-chain in the immutable
+    // deploy, so a failed pin is fatal (pinLaunchpadMetadata throws).
+    let baseUri = "";
+    if (imageUri) {
+      baseUri = await pinLaunchpadMetadata({
+        name: values.name,
+        description: values.description || "",
+        image: imageUri,
+      });
+    }
+
+    const result = await action.executeTransaction({
+      pin: secret,
+      calls: [{
+        contractAddress: STARKNET_IP_CLUB_FACTORY_CONTRACT,
+        entrypoint: "deploy_collection",
+        calldata: [
+          ...serializeByteArray(values.name),
+          ...serializeByteArray(values.symbol),
+          ...serializeByteArray(baseUri),
+        ],
+      }],
+    });
+
+    if (result.status !== "confirmed") {
+      throw new Error(result.revertReason ?? "Transaction reverted");
+    }
+    rewardToast("create_club");
+
+    // Best-effort: read the deployed address from the ClubDeployed event.
+    let addr: string | null = null;
+    try {
+      type ReceiptEvent = { keys?: string[] };
+      type ReceiptShape = { events?: ReceiptEvent[] };
+      let receipt: ReceiptShape | null = null;
+      for (let attempt = 0; attempt < 2 && !receipt; attempt++) {
+        try {
+          if (attempt > 0) await new Promise((r) => setTimeout(r, 2000));
+          const raw: unknown = await starknetProvider.getTransactionReceipt(result.txHash);
+          receipt = raw as ReceiptShape;
+        } catch { /* retry */ }
+      }
+      const deployEvent = (receipt?.events ?? []).find((e) =>
+        e.keys?.[0] && BigInt(e.keys[0]) === BigInt(CLUB_DEPLOYED_SELECTOR)
+      );
+      if (deployEvent?.keys?.[1]) addr = normalizeAddress("STARKNET", deployEvent.keys[1]);
+    } catch { /* non-fatal — tx confirmed, the indexer picks it up on the next poll */ }
+
+    if (walletAddress) invalidatePortfolioCache(walletAddress);
+    setDeployedAddress(addr);
+    return result;
+  };
 
   if (!isSignedIn) {
     return (
       <LaunchpadSignedOutState
         icon={Users}
-        iconClassName="text-brand-indigo"
+        iconClassName="text-brand-purple"
         title="Sign in to create a club"
-        description="Give your closest fans a membership card that unlocks more."
+        description="Create a club, then mint membership cards for your community."
       />
     );
   }
 
   return (
     <>
+      <TransactionDialog
+        action={action}
+        title="Create club"
+        processingLabel="Creating your club…"
+        firstStepLabel="Prepare metadata"
+        successTitle="Club created!"
+        pinDescription="Enter your PIN to create your club."
+      >
+        <p className="text-sm text-muted-foreground text-center">
+          <span className="font-medium text-foreground">{pendingValues?.name || "Your club"}</span> is
+          live — create membership tiers from its collection page.
+        </p>
+        {imagePreview && (
+          <div className="h-24 w-24 rounded-xl overflow-hidden border border-border shadow-md">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={imagePreview} alt={pendingValues?.name ?? ""} className="h-full w-full object-cover" />
+          </div>
+        )}
+        <div className="flex flex-col sm:flex-row gap-2 w-full pt-1">
+          <Button variant="outline" className="flex-1" onClick={handleReset}>
+            Create another
+          </Button>
+          {deployedAddress && (
+            <Button asChild className="flex-1 bg-brand-purple hover:brightness-110 text-white">
+              <Link href={collectionHref("STARKNET", deployedAddress)}>Create memberships</Link>
+            </Button>
+          )}
+        </div>
+      </TransactionDialog>
+
       <ClaimRouteShell
         icon={<Users className="h-4 w-4 text-white" />}
-        title="Create a Club"
-        subtitle="Give your closest fans a membership card — free to publish, no platform fee."
+        title="Create Club"
+        subtitle="One club — create membership tiers and mint cards to your community."
         aside={
           <>
             <MedialaneCollectionCard
               image={imagePreview}
               name={form.watch("name")}
               collection={form.watch("symbol") || "Club"}
+              creator={walletAddress ? `${walletAddress.slice(0, 6)}…${walletAddress.slice(-4)}` : undefined}
             />
             <CreateClubAside />
           </>
@@ -199,7 +196,6 @@ export default function CreateClubPage() {
       >
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-
             {/* Club image */}
             <div className="space-y-2">
               <p className="text-sm font-medium">Club image</p>
@@ -235,32 +231,24 @@ export default function CreateClubPage() {
                     accept="image/jpeg,image/png,image/gif,image/svg+xml,image/webp"
                     className="hidden"
                     onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) void handleImageSelect(file);
+                      const f = e.target.files?.[0];
+                      if (f) void handleImageSelect(f);
                     }}
                   />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled={imageUploading}
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    {imageUploading ? (
-                      <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />Uploading…</>
-                    ) : imageFile ? "Change image" : "Upload image"}
+                  <Button type="button" variant="outline" size="sm" disabled={imageUploading}
+                    onClick={() => fileInputRef.current?.click()}>
+                    {imageUploading
+                      ? <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />Uploading…</>
+                      : imageFile ? "Change image" : "Upload image"}
                   </Button>
                   {imageFile && (
-                    <button
-                      type="button"
-                      onClick={clearImage}
-                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                    >
+                    <button type="button" onClick={clearImage}
+                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors">
                       <X className="h-3 w-3" /> Remove
                     </button>
                   )}
                   <p className="text-xs text-muted-foreground">
-                    JPG, PNG, GIF, SVG, WebP · max 10 MB
+                    JPG, PNG, GIF, SVG or WebP · max 10 MB
                     {imageUri && <span className="ml-2 text-emerald-500 font-medium">✓ Uploaded</span>}
                   </p>
                 </div>
@@ -270,8 +258,8 @@ export default function CreateClubPage() {
             <FormField control={form.control} name="name" render={({ field }) => (
               <FormItem>
                 <FormLabel>Club name *</FormLabel>
-                <FormControl><Input placeholder="Inner Circle" {...field} /></FormControl>
-                <FormDescription>Your club&apos;s public name — shown on membership cards.</FormDescription>
+                <FormControl><Input placeholder="My Club" {...field} /></FormControl>
+                <FormDescription>Shown in wallets, explorers, and on every membership card.</FormDescription>
                 <FormMessage />
               </FormItem>
             )} />
@@ -280,9 +268,14 @@ export default function CreateClubPage() {
               <FormItem>
                 <FormLabel>Symbol *</FormLabel>
                 <FormControl>
-                  <Input placeholder="CIRCLE" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} className="max-w-[160px]" />
+                  <Input
+                    placeholder="CLUB"
+                    maxLength={10}
+                    {...field}
+                    onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                  />
                 </FormControl>
-                <FormDescription>Short ticker shown in wallets — 2 to 10 uppercase letters.</FormDescription>
+                <FormDescription>Short ticker — 2 to 10 uppercase letters.</FormDescription>
                 <FormMessage />
               </FormItem>
             )} />
@@ -290,74 +283,21 @@ export default function CreateClubPage() {
             <FormField control={form.control} name="description" render={({ field }) => (
               <FormItem>
                 <FormLabel>Description <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
-                <FormControl><Textarea placeholder="What is this club about?" rows={3} {...field} /></FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
-
-            <FormField control={form.control} name="maxMembers" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Member cap <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
-                <FormControl><Input type="number" min={1} placeholder="Unlimited" {...field} /></FormControl>
-                <FormDescription>Leave blank for no limit.</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )} />
-
-            <div className="flex gap-3">
-              <FormField control={form.control} name="entryFeeAmount" render={({ field }) => (
-                <FormItem className="flex-1">
-                  <FormLabel>Entry fee <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
-                  <FormControl><Input type="number" min={0} step="0.01" placeholder="Free" {...field} /></FormControl>
-                  <FormDescription>Members pay this to join. Proceeds go to your wallet.</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )} />
-              <FormField control={form.control} name="paymentToken" render={({ field }) => (
-                <FormItem className="w-28">
-                  <FormLabel>Currency</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {LISTABLE_TOKENS.map((t) => (
-                        <SelectItem key={t.symbol} value={t.symbol}>{t.symbol}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )} />
-            </div>
-
-            <FormField control={form.control} name="royaltyBps" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Royalty <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
                 <FormControl>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="number"
-                      min={0}
-                      max={50}
-                      step={0.5}
-                      placeholder="0"
-                      className="max-w-[120px]"
-                      {...field}
-                    />
-                    <span className="text-sm text-muted-foreground">%</span>
-                  </div>
+                  <Textarea placeholder="Describe your club — what does membership unlock?" rows={3} {...field} />
                 </FormControl>
-                <FormDescription>Royalty on secondary sales (0–50%). Paid to your wallet.</FormDescription>
                 <FormMessage />
               </FormItem>
             )} />
 
-            <Button type="submit" size="lg" className="w-full rounded-xl bg-brand-indigo hover:brightness-110 text-white" disabled={busy || imageUploading}>
-              {busy ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Creating…</> : <><Users className="h-4 w-4 mr-2" />Create Club</>}
-            </Button>
+            <button
+              type="submit"
+              disabled={action.status !== "idle" || imageUploading}
+              className={`w-full h-12 text-base font-semibold text-white rounded-xl flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] bg-brand-purple ${action.status !== "idle" || imageUploading ? "opacity-40 pointer-events-none" : ""}`}
+            >
+              <Users className="h-4 w-4" />
+              Create Club
+            </button>
             <p className="text-xs text-center text-muted-foreground">
               Free to publish — no gas fees.
             </p>
@@ -365,7 +305,6 @@ export default function CreateClubPage() {
         </Form>
       </ClaimRouteShell>
 
-      <PinDialog {...action.pinDialogProps} title="Create club" description="Enter your PIN to create this club onchain." />
       <WalletSetupGate action={action} />
     </>
   );
