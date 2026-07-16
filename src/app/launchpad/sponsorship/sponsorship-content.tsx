@@ -13,23 +13,21 @@ import { useSponsorshipOffers, useSponsorshipBids } from "@/hooks/use-sponsorshi
 import type { SponsorshipOffer } from "@/hooks/use-sponsorship";
 import { useSessionKey } from "@/hooks/use-session-key";
 
-function OfferBids({ offerId, licenseTermsUri }: { offerId: string; licenseTermsUri: string }) {
+function OfferBids({ offerId }: { offerId: string }) {
   const { bids, isLoading, mutate } = useSponsorshipBids(offerId);
-  const activeBids = bids.filter((b) => b.status === "ACTIVE");
 
   if (isLoading) return <Skeleton className="h-8 w-full" />;
-  if (activeBids.length === 0) return <p className="text-xs text-muted-foreground">No bids yet.</p>;
+  if (bids.length === 0) return <p className="text-xs text-muted-foreground">No bids yet.</p>;
 
   return (
     <div className="space-y-2">
       <p className="text-xs font-semibold text-muted-foreground">Bids</p>
-      {activeBids.map((bid) => (
+      {bids.map((bid) => (
         <div key={bid.id} className="flex items-center justify-between gap-2 text-xs">
           <span className="truncate text-muted-foreground">{bid.sponsor}</span>
           <SponsorshipAcceptButton
             offerId={offerId}
             sponsor={bid.sponsor}
-            licenseTermsUri={licenseTermsUri}
             onAccepted={() => mutate()}
           />
         </div>
@@ -56,7 +54,7 @@ function OfferCard({ offer }: { offer: SponsorshipOffer }) {
       </p>
 
       {isAuthor ? (
-        <OfferBids offerId={offer.offerId} licenseTermsUri={offer.licenseTermsUri} />
+        <OfferBids offerId={offer.offerId} />
       ) : (
         <SponsorshipBidButton offerId={offer.offerId} minAmount={offer.minAmount} paymentToken={offer.paymentToken} />
       )}

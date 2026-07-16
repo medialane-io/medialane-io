@@ -194,16 +194,22 @@ export function useSessionKey() {
               hash.getSelectorFromName("deploy_club"),
               hash.getSelectorFromName("mint"),
               hash.getSelectorFromName("set_open"),
-              // IP Sponsorship (mediolano-contracts IP-Sponsorhip). The
-              // receipt-NFT mint on acceptBid reuses `mint_item` (already
-              // whitelisted above); a best-effort receipt transfer on
-              // transferLicense reuses `transfer_from` (already whitelisted).
+              // IP Sponsorship v3 (mediolano-contracts IP-Sponsorhip). One
+              // contract is both the registry and the license collection —
+              // accept_bid/accept_proposal mint the license internally, no
+              // separate receipt-mint call anymore. The license is a
+              // standard ERC-721 on this same contract, so a transfer reuses
+              // `transfer_from` (already whitelisted above) — there is no
+              // bespoke transfer_license entrypoint in v3.
               hash.getSelectorFromName("create_offer"),
               hash.getSelectorFromName("set_offer_open"),
               hash.getSelectorFromName("place_bid"),
               hash.getSelectorFromName("retract_bid"),
               hash.getSelectorFromName("accept_bid"),
-              hash.getSelectorFromName("transfer_license"),
+              hash.getSelectorFromName("propose_sponsorship"),
+              hash.getSelectorFromName("withdraw_proposal"),
+              hash.getSelectorFromName("accept_proposal"),
+              hash.getSelectorFromName("reject_proposal"),
               // Comments
               hash.getSelectorFromName("add_comment"),
               // NOTE: `approve` and `set_approval_for_all` intentionally removed.

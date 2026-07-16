@@ -10,26 +10,21 @@ import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { MarketplaceErrorState, MarketplaceSuccessState } from "@/components/marketplace/marketplace-dialog-primitives";
 import { useUser } from "@clerk/nextjs";
 import { EXPLORER_URL } from "@/lib/constants";
-import { STARKNET_IP_SPONSORSHIP_CONTRACT, STARKNET_IP_SPONSORSHIP_LICENSE_CONTRACT } from "@/lib/constants";
-import { Contract, type Abi } from "starknet";
-import { starknetProvider } from "@/lib/starknet";
-import { IPGenesisABI } from "@medialane/sdk";
+import { STARKNET_IP_SPONSORSHIP_CONTRACT } from "@/lib/constants";
 
 interface SponsorshipAcceptButtonProps {
   offerId: string;
   sponsor: string;
-  licenseTermsUri: string;
   onAccepted?: () => void;
 }
 
 /**
- * Author-only. Settles the sponsor's payment (allowance pull inside
- * accept_bid, no escrow) and mints a non-authoritative receipt NFT to the
- * sponsor via the dedicated sponsorship-license IPGenesis instance — never
- * the genesis-mint instance. is_license_valid() on IPSponsorship stays the
- * sole authority for gating; the receipt is a wallet-visible courtesy only.
+ * Author-only. `accept_bid` settles the sponsor's payment (allowance pull,
+ * no escrow) and mints the license — a real, standard ERC-721 on this same
+ * contract — to the sponsor, atomically in one call. v3: there is no second
+ * receipt-mint call anymore (IPSponsorship embeds ERC721Component directly).
  */
-export function SponsorshipAcceptButton({ offerId, sponsor, licenseTermsUri, onAccepted }: SponsorshipAcceptButtonProps) {
+export function SponsorshipAcceptButton({ offerId, sponsor, onAccepted }: SponsorshipAcceptButtonProps) {
   const { isSignedIn } = useUser();
   const action = useWriteAction();
   const busy = action.status === "processing" || action.status === "confirming";
@@ -39,19 +34,11 @@ export function SponsorshipAcceptButton({ offerId, sponsor, licenseTermsUri, onA
       toast.error("Sign in to accept this bid");
       return;
     }
-    if (!STARKNET_IP_SPONSORSHIP_LICENSE_CONTRACT) {
-      toast.error("Sponsorship license contract not configured");
-      return;
-    }
     void action.run(async (secret) => {
-      const receipt = new Contract(IPGenesisABI as unknown as Abi, STARKNET_IP_SPONSORSHIP_LICENSE_CONTRACT, starknetProvider);
-      const mintCall = receipt.populate("mint_item", [sponsor, licenseTermsUri]);
-
       const result = await action.executeTransaction({
         pin: secret,
         calls: [
           { contractAddress: STARKNET_IP_SPONSORSHIP_CONTRACT, entrypoint: "accept_bid", calldata: [offerId, "0", sponsor] },
-          { contractAddress: STARKNET_IP_SPONSORSHIP_LICENSE_CONTRACT, entrypoint: "mint_item", calldata: mintCall.calldata as string[] },
         ],
       });
       if (result.status === "confirmed") onAccepted?.();
