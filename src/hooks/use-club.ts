@@ -90,6 +90,11 @@ async function readMembershipList(contract: string): Promise<MembershipListItem[
 
 export async function predictNextMembershipId(contract: string): Promise<number> {
   const memberships = await readMembershipList(contract);
+  if (memberships.length >= MEMBERSHIP_PROBE_CAP) {
+    // The probe capped out, so the next id can't be known reliably — minting
+    // against a guessed id could land supply in an existing tier.
+    throw new Error("This club has reached the maximum number of membership tiers supported by the app.");
+  }
   return memberships.length + 1;
 }
 

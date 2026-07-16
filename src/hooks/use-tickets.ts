@@ -90,6 +90,11 @@ async function readTicketList(contract: string): Promise<TicketListItem[]> {
 
 export async function predictNextTicketId(contract: string): Promise<number> {
   const tickets = await readTicketList(contract);
+  if (tickets.length >= TICKET_PROBE_CAP) {
+    // The probe capped out, so the next id can't be known reliably — minting
+    // against a guessed id could land supply in an existing ticket.
+    throw new Error("This collection has reached the maximum number of ticket types supported by the app.");
+  }
   return tickets.length + 1;
 }
 
