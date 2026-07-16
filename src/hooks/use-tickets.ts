@@ -56,26 +56,24 @@ async function readTicket(contract: string, tokenId: string): Promise<TicketOnch
 }
 
 // ── useTicketList ─────────────────────────────────────────────────────────────
-// All tickets in a collection, straight from the chain. Ticket ids are
-// sequential from 1 and there is no count getter, so we probe get_ticket until
-// the first miss (capped). This includes tickets that have never been minted —
+// All tickets in a collection, straight from the chain: one ticket_count()
+// read, then get_ticket per id. Includes tickets that have never been minted —
 // which the indexer can't know about yet.
 
 export interface TicketListItem extends TicketOnchain {
   id: string;
 }
 
-const TICKET_PROBE_CAP = 64;
+async function readTicketCount(contract: string): Promise<number> {
+  const col = new Contract(IPTicketCollectionABI as unknown as Abi, contract, starknetProvider);
+  return Number(await col.call("ticket_count", []));
+}
 
 async function readTicketList(contract: string): Promise<TicketListItem[]> {
+  const count = await readTicketCount(contract);
   const tickets: TicketListItem[] = [];
-  for (let id = 1; id <= TICKET_PROBE_CAP; id++) {
-    try {
-      const t = await readTicket(contract, String(id));
-      tickets.push({ id: String(id), ...t });
-    } catch {
-      break; // sequential ids — first miss is the end
-    }
+  for (let id = 1; id <= count; id++) {
+    tickets.push({ id: String(id), ...(await readTicket(contract, String(id))) });
   }
   return tickets;
 }
@@ -89,13 +87,7 @@ async function readTicketList(contract: string): Promise<TicketListItem[]> {
 // "mint a ticket" action.
 
 export async function predictNextTicketId(contract: string): Promise<number> {
-  const tickets = await readTicketList(contract);
-  if (tickets.length >= TICKET_PROBE_CAP) {
-    // The probe capped out, so the next id can't be known reliably — minting
-    // against a guessed id could land supply in an existing ticket.
-    throw new Error("This collection has reached the maximum number of ticket types supported by the app.");
-  }
-  return tickets.length + 1;
+  return (await readTicketCount(contract)) + 1;
 }
 
 export function useTicketList(contract: string | null) {
