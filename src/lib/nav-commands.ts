@@ -12,7 +12,7 @@ export const NAV_COMMANDS: NavCommandGroup[] = [
   // top-level menu. Keep this to the few most important destinations.
   {
     items: [
-      { id: "home",        label: "Start",        icon: Home,      href: "/",            keywords: ["frontpage", "start", "homepage", "main"], description: "Home" },
+      { id: "home",        label: "Medialane",    icon: Home,      href: "/",            keywords: ["home", "frontpage", "start", "homepage", "main"], description: "Start here" },
       { id: "discover",    label: "Discover",    icon: Telescope, href: "/discover",    keywords: ["feed", "explore", "trending"], description: "Feeds, collections & creators" },
       { id: "marketplace", label: "Marketplace", icon: Store,     href: "/marketplace", keywords: ["buy", "sell", "trade", "listings", "browse"], description: "Buy, sell & make offers" },
       { id: "launchpad",   label: "Launchpad",   icon: Zap,       href: "/launchpad",   keywords: ["start", "launch", "creator", "mint", "create"], description: "Create, mint & launch" },
