@@ -81,6 +81,19 @@ async function readTicketList(contract: string): Promise<TicketListItem[]> {
   return tickets;
 }
 
+// ── predictNextTicketId ───────────────────────────────────────────────────────
+// Ids are assigned sequentially on-chain starting at 1, and only the collection
+// owner can ever call create_ticket. That means the caller minting a new ticket
+// can safely predict its id ahead of time (current count + 1) and bundle
+// create_ticket + mint into ONE multicall — one PIN unlock instead of two
+// separate transactions for what is, from the creator's point of view, a single
+// "mint a ticket" action.
+
+export async function predictNextTicketId(contract: string): Promise<number> {
+  const tickets = await readTicketList(contract);
+  return tickets.length + 1;
+}
+
 export function useTicketList(contract: string | null) {
   const { data, error, isLoading, mutate } = useSWR<TicketListItem[]>(
     contract ? `ticket-list-${contract}` : null,

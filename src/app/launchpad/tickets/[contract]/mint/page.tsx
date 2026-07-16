@@ -17,7 +17,7 @@ import {
   Ticket, Loader2, ImagePlus, X, ShieldCheck, ChevronDown, AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
-import { Contract, cairo, type Abi, hash } from "starknet";
+import { Contract, cairo, type Abi } from "starknet";
 import { normalizeAddress, IPTicketCollectionABI } from "@medialane/sdk";
 
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,7 @@ import { TransactionDialog } from "@/components/transaction/transaction-dialog";
 import { WalletSetupGate } from "@/components/transaction/wallet-setup-gate";
 import { useWallet } from "@/hooks/use-wallet";
 import { useCollection } from "@/hooks/use-collections";
+import { predictNextTicketId } from "@/hooks/use-tickets";
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { rewardToast } from "@/lib/reward-toast";
 import { starknetProvider } from "@/lib/starknet";
@@ -46,30 +47,11 @@ import { CreateTicketAside } from "@/components/claim/create-ticket-aside";
 import { collectionHref } from "@/lib/routes";
 import { LICENSE_TYPES, GEOGRAPHIC_SCOPES, AI_POLICIES, DERIVATIVES_OPTIONS } from "@/types/ip";
 
-const TICKET_CREATED_SELECTOR = hash.getSelectorFromName("TicketCreated");
-
 function dateToUnixTimestamp(dateStr: string | undefined): number | undefined {
   if (!dateStr) return undefined;
   const d = new Date(dateStr);
   if (isNaN(d.getTime())) return undefined;
   return Math.floor(d.getTime() / 1000);
-}
-
-async function readCreatedTicketId(txHash: string): Promise<string | null> {
-  try {
-    const receipt = await starknetProvider.getTransactionReceipt(txHash);
-    type ReceiptEvent = { keys?: string[] };
-    type ReceiptShape = { events?: ReceiptEvent[] };
-    const events = (receipt as unknown as ReceiptShape).events ?? [];
-    for (const ev of events) {
-      if (ev.keys?.[0] === TICKET_CREATED_SELECTOR && ev.keys?.[1] != null) {
-        const low = BigInt(ev.keys[1]);
-        const high = BigInt(ev.keys[2] ?? "0x0");
-        return (low + (high << 128n)).toString();
-      }
-    }
-  } catch {}
-  return null;
 }
 
 function ToggleGroup({ value, options, onChange }: { value: string; options: readonly string[]; onChange: (v: string) => void }) {
@@ -209,6 +191,12 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
 
     const col = new Contract(IPTicketCollectionABI as unknown as Abi, contract, starknetProvider);
 
+    // Ids are sequential and only the owner can ever call create_ticket, so
+    // the id can be predicted ahead of the tx and both calls bundled into
+    // one multicall — one PIN unlock for what is one "mint" action.
+    const ticketId = await predictNextTicketId(contract);
+    setMintedTicketId(String(ticketId));
+
     const createCall = col.populate("create_ticket", [
       cairo.uint256(values.maxSupply),
       startTime != null ? { Some: startTime } : { None: undefined },
@@ -216,21 +204,16 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
       royaltyBps,
       metadataUri,
     ]);
-    const createResult = await action.executeTransaction({
-      pin: secret,
-      calls: [{ contractAddress: contract, entrypoint: "create_ticket", calldata: createCall.calldata as string[] }],
-    });
-    if (createResult.status !== "confirmed") throw new Error(createResult.revertReason ?? "Failed to create ticket");
-    const ticketId = await readCreatedTicketId(createResult.txHash!);
-    if (!ticketId) throw new Error("Ticket created, but could not read its id — check the collection page");
-    setMintedTicketId(ticketId);
-
     const mintCall = col.populate("mint", [address, cairo.uint256(ticketId), cairo.uint256(values.maxSupply)]);
+
     const mintResult = await action.executeTransaction({
       pin: secret,
-      calls: [{ contractAddress: contract, entrypoint: "mint", calldata: mintCall.calldata as string[] }],
+      calls: [
+        { contractAddress: contract, entrypoint: "create_ticket", calldata: createCall.calldata as string[] },
+        { contractAddress: contract, entrypoint: "mint", calldata: mintCall.calldata as string[] },
+      ],
     });
-    if (mintResult.status !== "confirmed") throw new Error("Ticket created, but minting to your wallet failed — mint it from the collection page");
+    if (mintResult.status !== "confirmed") throw new Error(mintResult.revertReason ?? "Failed to mint tickets");
 
     rewardToast("launch_launchpad");
     return mintResult;
