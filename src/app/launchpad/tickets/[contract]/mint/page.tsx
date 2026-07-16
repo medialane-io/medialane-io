@@ -451,6 +451,7 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
                 <FormItem>
                   <FormLabel>Valid from <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
                   <FormControl><Input type="datetime-local" {...field} /></FormControl>
+                  <FormDescription>You can mint and sell before it opens.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )} />
@@ -458,6 +459,7 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
                 <FormItem>
                   <FormLabel>Valid until <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
                   <FormControl><Input type="datetime-local" {...field} /></FormControl>
+                  <FormDescription>Blank = always valid.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )} />
