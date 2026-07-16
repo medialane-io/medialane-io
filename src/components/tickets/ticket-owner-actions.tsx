@@ -3,7 +3,8 @@
 // The ip-tickets service action on the collection page — one featured button,
 // visible only to the collection owner, in the right owner cluster (the same
 // slot erc1155 collections use for "Mint editions"). Links to the dedicated
-// manage page (create + mint, both full page content — no popup panels).
+// mint page (create a ticket type + mint its supply, same shape as the
+// ERC-1155 edition mint page).
 
 import Link from "next/link";
 import { Ticket } from "lucide-react";
@@ -25,7 +26,7 @@ export function TicketOwnerActions({
   return (
     <div className="btn-border-animated p-[1px] rounded-xl">
       <Link
-        href={`/launchpad/tickets/${contractAddress}/manage`}
+        href={`/launchpad/tickets/${contractAddress}/mint`}
         className="flex items-center gap-2 h-10 px-5 rounded-[11px] text-sm font-semibold text-white bg-transparent hover:brightness-110 active:scale-[0.98] transition"
       >
         <Ticket className="h-4 w-4" />
