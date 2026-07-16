@@ -297,8 +297,8 @@ const EARN_GROUPS: {
     colorClass: "text-brand-purple",
     bgClass: "bg-brand-purple/10 hover:bg-brand-purple/15 text-brand-purple",
     items: [
-      { label: "Create a collection", href: "/create/collection", Icon: Layers },
-      { label: "Mint an asset", href: "/create/asset", Icon: Palette },
+      { label: "Create a collection", href: "/launchpad/single-editions/collection", Icon: Layers },
+      { label: "Mint an asset", href: "/launchpad/single-editions", Icon: Palette },
       { label: "Launch a drop or POP", href: "/launchpad", Icon: Rocket },
       { label: "Launch a creator coin", href: "/launchpad/coin/create", Icon: Coins },
       { label: "Remix existing work", href: "/marketplace", Icon: GitBranch },

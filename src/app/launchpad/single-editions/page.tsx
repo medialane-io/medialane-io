@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { SingleEditionsContent } from "./single-editions-content";
 import { canonical, buildSocialMetadata } from "@/lib/seo";
 
-const title = "Single Editions | Launchpad";
-const description = "Publish each work as a single copy in a collection you own, or create a new collection.";
+const title = "Mint NFT | Launchpad";
+const description = "Publish your creative work as a single-copy NFT in a collection you own.";
 
 export const metadata: Metadata = {
   title,

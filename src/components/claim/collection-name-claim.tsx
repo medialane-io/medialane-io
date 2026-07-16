@@ -25,7 +25,7 @@ export function CollectionNameClaim() {
         onRetry={mutate}
         emptyTitle="No collections to name yet"
         emptyDescription="Create a collection first — then give it a clean, memorable URL."
-        emptyCta={{ label: "Create a collection", href: "/create/collection" }}
+        emptyCta={{ label: "Create a collection", href: "/launchpad/single-editions/collection" }}
       />
 
       {collections.map((c) => {
@@ -69,7 +69,7 @@ export function CollectionNameClaim() {
 
       {collections.length > 0 && (
         <Button variant="ghost" size="sm" asChild className="text-muted-foreground">
-          <Link href="/create/collection">
+          <Link href="/launchpad/single-editions/collection">
             <Plus className="h-3.5 w-3.5 mr-1.5" />
             Create another collection
           </Link>

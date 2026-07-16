@@ -29,7 +29,7 @@ const JOURNEYS = [
     icon: Pencil,
     label: "Create a digital asset",
     description: "Mint your music, art, or content on-chain with programmable licensing.",
-    href: "/create/asset",
+    href: "/launchpad/single-editions",
     accent: "from-brand-purple/20 to-brand-purple/5 border-brand-purple/20",
     iconColor: "text-brand-purple",
     iconBg: "bg-brand-purple/10",

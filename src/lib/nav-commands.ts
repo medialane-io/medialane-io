@@ -34,8 +34,8 @@ export const NAV_COMMANDS: NavCommandGroup[] = [
   {
     heading: "Create & Mint",
     items: [
-      { id: "mint-ip-asset",        label: "Mint Unique NFT",              icon: Plus,     href: "/create/asset",                 keywords: ["mint", "upload", "publish", "token", "erc721", "singular", "unique", "original"] },
-      { id: "create-collection",    label: "Create NFT Collection",        icon: LayoutGrid, href: "/create/collection",          keywords: ["deploy", "series", "erc721", "collection", "branded"] },
+      { id: "mint-ip-asset",        label: "Mint Unique NFT",              icon: Plus,     href: "/launchpad/single-editions",                 keywords: ["mint", "upload", "publish", "token", "erc721", "singular", "unique", "original"] },
+      { id: "create-collection",    label: "Create NFT Collection",        icon: LayoutGrid, href: "/launchpad/single-editions/collection",          keywords: ["deploy", "series", "erc721", "collection", "branded"] },
       { id: "mint-editions",        label: "Mint Limited Edition",         icon: Layers,   href: "/launchpad/nfteditions",        keywords: ["mint", "edition", "erc1155", "multi", "copies", "limited"] },
       { id: "create-1155",          label: "Create Limited Edition Contract", icon: Layers, href: "/launchpad/nfteditions/create", keywords: ["deploy", "erc1155", "edition", "contract", "limited", "multi-edition"] },
       { id: "collection-drop",      label: "Launch Collection Drop",       icon: Gift,     href: "/launchpad/drop/create",        keywords: ["drop", "timed", "fixed supply", "release", "erc721"] },

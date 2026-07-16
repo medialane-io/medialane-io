@@ -31,7 +31,7 @@ export function NewOnMarketplace() {
       ) : listings.length === 0 ? (
         <p className="text-sm text-muted-foreground py-4">
           No listings yet.{" "}
-          <Link href="/create/asset" className="text-primary hover:underline">
+          <Link href="/launchpad/single-editions" className="text-primary hover:underline">
             Be the first to list an asset.
           </Link>
         </p>

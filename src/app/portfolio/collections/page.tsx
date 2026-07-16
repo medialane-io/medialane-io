@@ -23,7 +23,7 @@ export default function PortfolioCollectionsPage() {
           )}
         </div>
         <Button size="sm" asChild>
-          <Link href="/create/collection">
+          <Link href="/launchpad/single-editions/collection">
             <Plus className="h-3.5 w-3.5 mr-1.5" />
             New collection
           </Link>
@@ -37,7 +37,7 @@ export default function PortfolioCollectionsPage() {
         onRetry={mutate}
         emptyTitle="No collections yet"
         emptyDescription="If you just created a collection, it may take a few seconds to appear."
-        emptyCta={{ label: "Create a collection", href: "/create/collection" }}
+        emptyCta={{ label: "Create a collection", href: "/launchpad/single-editions/collection" }}
         emptyIcon={<Layers className="h-7 w-7 text-muted-foreground" />}
       >
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">

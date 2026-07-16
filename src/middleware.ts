@@ -3,10 +3,13 @@ import { NextResponse } from "next/server";
 
 // Routes that require a signed-in user (redirect to sign-in if signed out).
 // Launchpad deploy/mint/owner surfaces sign-gate the same way /create does —
-// browse pages (/launchpad, /launchpad/<service>) stay public.
+// browse pages (/launchpad, /launchpad/<service>) stay public. single-editions
+// is the exception: it IS the mint/create surface (folded in from /create/*,
+// 2026-07-16), not a browse page, so it sign-gates like the others.
 const requiresSignIn = createRouteMatcher([
   "/portfolio(.*)",
   "/create(.*)",
+  "/launchpad/single-editions(.*)",
   "/launchpad/(.*)/create",
   "/launchpad/(.*)/mint",
   "/launchpad/pop/my-events",
@@ -21,6 +24,7 @@ const requiresSignIn = createRouteMatcher([
 const requiresOnboarding = createRouteMatcher([
   "/portfolio(.*)",
   "/create(.*)",
+  "/launchpad/single-editions(.*)",
   "/launchpad/(.*)/create",
   "/launchpad/(.*)/mint",
   "/launchpad/pop/my-events",

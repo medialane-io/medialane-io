@@ -481,7 +481,7 @@ export default function CreateRemixPage() {
                   <div className="rounded-lg border border-dashed border-border p-4 text-center space-y-2">
                     <p className="text-sm text-muted-foreground">No eligible collections. Create one first.</p>
                     <Button size="sm" variant="outline" asChild>
-                      <Link href="/create/collection">
+                      <Link href="/launchpad/single-editions/collection">
                         <Plus className="h-3.5 w-3.5 mr-1.5" />
                         Create collection
                       </Link>

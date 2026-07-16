@@ -1,9 +1,9 @@
 /**
- * Server interactions for the create-asset mint flow.
+ * Server interactions for the single-editions mint flow.
  *
- * Extracted from page.tsx — these are pure async helpers with no React state
- * or hooks. Each takes an `updateDebug` callback that the page's
- * `__MEDIALANE_MINT_DEBUG__` snapshot uses for in-window debugging.
+ * Extracted from single-editions-content.tsx — these are pure async helpers
+ * with no React state or hooks. Each takes an `updateDebug` callback that the
+ * page's `__MEDIALANE_MINT_DEBUG__` snapshot uses for in-window debugging.
  *
  * Kept on raw fetch (not the shared `lib/api-fetch` helper) because the
  * sequencing here — request → log → response-text → log → JSON-parse →

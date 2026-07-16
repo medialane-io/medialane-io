@@ -87,7 +87,7 @@ function HeroPlaceholder() {
           variant="outline"
           className="bg-background/20 backdrop-blur-sm border-white/20 text-white hover:bg-white/10"
         >
-          <Link href="/create/asset">Create</Link>
+          <Link href="/launchpad/single-editions">Create</Link>
         </Button>
       </div>
     </div>

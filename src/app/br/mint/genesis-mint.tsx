@@ -306,7 +306,7 @@ export function GenesisMint() {
           )}
           <div className="flex flex-col sm:flex-row gap-2">
             <Button size="sm" asChild className="flex-1">
-              <Link href="/create/asset">Publicar conteúdo</Link>
+              <Link href="/launchpad/single-editions">Publicar conteúdo</Link>
             </Button>
             <Button size="sm" variant="outline" asChild className="flex-1">
               <Link href="/marketplace">Explorar o app</Link>

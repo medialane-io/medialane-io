@@ -81,7 +81,7 @@ async function syncCollectionFromTx(txHash: string) {
   );
 }
 
-export default function CreateCollectionPage() {
+export default function LaunchpadCreateCollectionPage() {
   const { walletAddress } = useSessionKey();
   const client = useMedialaneClient();
   // One primitive owns gate → unlock (passkey/PIN) → execute → result.
@@ -271,7 +271,7 @@ export default function CreateCollectionPage() {
             Create another
           </Button>
           <Button asChild className="flex-1">
-            <Link href="/create/asset">Mint an asset</Link>
+            <Link href="/launchpad/single-editions">Mint an asset</Link>
           </Button>
         </div>
       </TransactionDialog>

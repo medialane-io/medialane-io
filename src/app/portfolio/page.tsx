@@ -124,7 +124,7 @@ export default function PortfolioOverviewPage() {
           </div>
           <div className="flex items-center justify-center gap-3">
             <Button asChild>
-              <Link href="/create/asset">Create an asset</Link>
+              <Link href="/launchpad/single-editions">Create an asset</Link>
             </Button>
             <Button asChild variant="outline">
               <Link href="/marketplace">Browse marketplace</Link>

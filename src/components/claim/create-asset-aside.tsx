@@ -1,7 +1,7 @@
 import { Gem, Scale, LayoutGrid, Gift } from "lucide-react";
 import { ClaimRail } from "@/components/claim/claim-rail";
 
-/** Right-rail content for /create/asset. */
+/** Right-rail content for /launchpad/single-editions. */
 export function CreateAssetAside() {
   return (
     <ClaimRail

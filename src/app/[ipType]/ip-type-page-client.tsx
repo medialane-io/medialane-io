@@ -335,7 +335,7 @@ export function IpTypePageClient({ slug }: IpTypePageClientProps) {
             </p>
           </div>
           <Button asChild variant="outline">
-            <Link href="/create/asset">Create Asset</Link>
+            <Link href="/launchpad/single-editions">Create Asset</Link>
           </Button>
         </div>
       ) : (

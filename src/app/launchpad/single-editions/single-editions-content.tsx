@@ -1,228 +1,846 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { useUser, SignInButton } from "@clerk/nextjs";
-import { collectionHref } from "@/lib/routes";
+import { uploadImageToIpfs } from "@/lib/upload-image";
+import { rewardToast } from "@/lib/reward-toast";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { getService } from "@medialane/sdk";
+import type { ApiCollection } from "@medialane/sdk";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { CollapsibleSection } from "@/components/ui/collapsible-section";
+import { Skeleton } from "@/components/ui/skeleton";
+import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
+import { PinDialog } from "@/components/chipi/pin-dialog";
+import { useWalletUnlock } from "@/hooks/use-wallet-unlock";
+import { recordWalletAuthMethod } from "@/lib/actions/wallet-auth-method";
+import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
-import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion-primitives";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import { ClaimBackButton } from "@/components/claim/claim-back-button";
-import { ipfsToHttp } from "@/lib/utils";
-import { getService, type ApiCollection } from "@medialane/sdk";
+import { MintProgressDialog } from "@/components/marketplace/mint-progress-dialog";
+import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
+import { MedialaneCollectionCard } from "@medialane/ui";
+import { CreateAssetAside } from "@/components/claim/create-asset-aside";
+import type { MintStep } from "@/components/marketplace/mint-progress-dialog";
+import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
+import { cn, ipfsToHttp } from "@/lib/utils";
 import {
-  ImagePlus, Sparkles, Plus, Package, ExternalLink, Layers, ScrollText,
+  createMintIntentWithDebug,
+  confirmMintIntentWithDebug,
+  pollMintIntentUntilTerminal,
+  type MintDebugSnapshot,
+} from "./mint-intent-actions";
+import {
+  IP_TYPES,
+  LICENSE_TYPES,
+  AI_POLICIES,
+  DERIVATIVES_OPTIONS,
+  type IPType,
+} from "@/types/ip";
+import { IPTypeFields, type MetadataField } from "@/components/create/ip-type-fields";
+import { uploadDocumentToIpfs } from "@/lib/upload-document";
+import {
+  Upload,
+  ChevronDown,
+  ShieldCheck,
+  Boxes,
+  Plus,
+  ImagePlus,
+  Layers,
+  Check,
 } from "lucide-react";
+import { toast } from "sonner";
+import Link from "next/link";
+import type { ChipiCall } from "@/hooks/use-chipi-transaction";
 
-function CollectionRow({ col }: { col: ApiCollection }) {
-  const [imgError, setImgError] = useState(false);
-  const imageUrl = col.image ? ipfsToHttp(col.image) : null;
-  const showImage = imageUrl && !imgError;
+const schema = z.object({
+  collectionId: z.string().min(1, "Select a collection"),
+  name: z.string().min(1, "Name required").max(100),
+  description: z.string().max(1000).optional(),
+  external_url: z
+    .string()
+    .max(500)
+    .refine((v) => !v || v.startsWith("http://") || v.startsWith("https://"), {
+      message: "Must start with http:// or https://",
+    })
+    .optional(),
+  ipType: z.enum(IP_TYPES),
+  licenseType: z.string().min(1, "License required"),
+  commercialUse: z.enum(["Yes", "No"]),
+  derivatives: z.enum(["Allowed", "Not Allowed", "Share-Alike"]),
+  attribution: z.enum(["Required", "Not Required"]),
+  geographicScope: z.string(),
+  aiPolicy: z.enum(["Allowed", "Not Allowed", "Training Only"]),
+  royalty: z.coerce.number().min(0).max(50),
+  image: z.instanceof(File).optional(),
+});
 
+type FormValues = z.infer<typeof schema>;
+
+function ToggleGroup({
+  value,
+  options,
+  onChange,
+}: {
+  value: string;
+  options: readonly string[];
+  onChange: (v: string) => void;
+}) {
   return (
-    <div className="group bento-cell overflow-hidden flex flex-col sm:flex-row items-stretch">
-      {/* Thumbnail */}
-      <div className="relative w-full sm:w-32 aspect-square sm:aspect-auto shrink-0 overflow-hidden bg-muted">
-        {showImage ? (
-          <Image
-            src={imageUrl}
-            alt={col.name ?? ""}
-            fill
-            className="object-cover"
-            onError={() => setImgError(true)}
-            unoptimized
-          />
-        ) : (
-          <div className="absolute inset-0 bg-muted flex items-center justify-center">
-            <ImagePlus className="h-8 w-8 text-muted-foreground/30" />
-          </div>
-        )}
-      </div>
-
-      {/* Body */}
-      <div className="flex flex-col justify-between gap-4 p-5 flex-1 min-w-0">
-        <div className="space-y-1">
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <p className="font-bold text-base leading-tight truncate">
-                {col.name ?? "Unnamed Collection"}
-              </p>
-              {col.symbol && (
-                <p className="text-xs tabular-nums text-muted-foreground mt-0.5">{col.symbol}</p>
-              )}
-            </div>
-            <Link
-              href={collectionHref("STARKNET", col.contractAddress)}
-              className="shrink-0 text-muted-foreground/50 hover:text-muted-foreground transition-colors"
-              title="View collection page"
-            >
-              <ExternalLink className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-
-          {col.description && (
-            <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
-              {col.description}
-            </p>
+    <div className="flex rounded-lg border border-border overflow-hidden w-full">
+      {options.map((opt, i) => (
+        <button
+          key={opt}
+          type="button"
+          onClick={() => onChange(opt)}
+          className={cn(
+            "flex-1 px-3 py-2 text-sm transition-colors",
+            i > 0 && "border-l border-border",
+            value === opt
+              ? "bg-primary text-primary-foreground font-medium"
+              : "bg-background hover:bg-muted text-muted-foreground"
           )}
-
-          {/* Stats */}
-          <div className="flex items-center gap-3 pt-1">
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Package className="h-3 w-3" />
-              <span>
-                {col.totalSupply != null
-                  ? `${col.totalSupply.toLocaleString()} work${col.totalSupply !== 1 ? "s" : ""}`
-                  : "Nothing minted yet"}
-              </span>
-            </div>
-            {col.holderCount != null && col.holderCount > 0 && (
-              <div className="text-xs text-muted-foreground">
-                {col.holderCount.toLocaleString()} holder{col.holderCount !== 1 ? "s" : ""}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="flex items-center gap-2">
-          <Button size="sm" asChild>
-            <Link href="/create/asset">
-              <Sparkles className="h-3.5 w-3.5 mr-1.5" />
-              Mint a work
-            </Link>
-          </Button>
-          <Button variant="outline" size="sm" asChild>
-            <Link href={collectionHref("STARKNET", col.contractAddress)}>
-              View collection
-            </Link>
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function CollectionRowSkeleton() {
-  return (
-    <div className="bento-cell overflow-hidden flex flex-col sm:flex-row">
-      <Skeleton className="w-full sm:w-32 aspect-square sm:aspect-auto rounded-none" />
-      <div className="flex flex-col gap-3 p-5 flex-1">
-        <Skeleton className="h-5 w-48" />
-        <Skeleton className="h-3 w-24" />
-        <Skeleton className="h-3 w-64" />
-        <div className="flex gap-2 mt-auto">
-          <Skeleton className="h-9 w-32 rounded-xl" />
-          <Skeleton className="h-9 w-28 rounded-xl" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/** The service, stated as facts a newcomer can act on. Shown while the
- *  creator has no collections; the actions live in the header row above. */
-function HowItWorks() {
-  const steps = [
-    { icon: Layers, title: "Create a collection", body: "It gets its own name and page." },
-    { icon: Sparkles, title: "Mint works into it", body: "Each work is minted once, with the license terms you set." },
-    { icon: ScrollText, title: "Sell or license them", body: "Every work can be listed on the marketplace." },
-  ];
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      {steps.map(({ icon: Icon, title, body }) => (
-        <div key={title} className="bento-cell p-5 space-y-2">
-          <Icon className="h-5 w-5 text-brand-blue" />
-          <p className="font-semibold text-sm">{title}</p>
-          <p className="text-xs text-muted-foreground leading-relaxed">{body}</p>
-        </div>
+        >
+          {opt}
+        </button>
       ))}
     </div>
   );
 }
 
-export function SingleEditionsContent() {
-  const { isSignedIn } = useUser();
-  const { walletAddress } = useSessionKey();
-  const { collections, isLoading } = useCollectionsByOwner(walletAddress ?? null);
+/** Collection field, as a picker instead of a bare dropdown — the collection
+ *  is selectable at a glance (thumbnail + name + work count), and creating a
+ *  new one is a card in the same grid rather than a link out of the form. */
+function CollectionPicker({
+  collections,
+  loading,
+  value,
+  onChange,
+}: {
+  collections: ApiCollection[];
+  loading: boolean;
+  value: string;
+  onChange: (id: string) => void;
+}) {
+  if (loading) {
+    return (
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Skeleton key={i} className="h-24 rounded-xl" />
+        ))}
+      </div>
+    );
+  }
 
-  const nftCollections = useMemo(
-    () => collections.filter((c) => getService(c.service)?.id === "mip-erc721"),
-    [collections]
-  );
+  if (collections.length === 0) {
+    return (
+      <div className="rounded-xl border border-dashed border-border p-5 text-center space-y-3">
+        <p className="text-sm text-muted-foreground">
+          You don&apos;t have a collection yet — every work needs one to live in.
+        </p>
+        <Link
+          href="/launchpad/single-editions/collection"
+          className="inline-flex items-center gap-1.5 h-9 px-4 rounded-xl text-sm font-semibold text-white bg-brand-blue hover:brightness-110 transition-all"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          Create your first collection
+        </Link>
+      </div>
+    );
+  }
 
   return (
-    <div className="pb-16">
-
-      {/* ── Header ── */}
-      <section className="px-4 pt-10 max-w-5xl mx-auto space-y-5">
-        <ClaimBackButton />
-        <FadeIn>
-          <div>
-            <h1 className="text-3xl sm:text-4xl font-semibold leading-tight">Single Editions</h1>
-            <p className="text-muted-foreground mt-1.5">Publish each work as a single copy in a collection you own.</p>
-          </div>
-        </FadeIn>
-        <FadeIn delay={0.08}>
-          <div className="flex items-center gap-2">
-            <Button asChild>
-              <Link href="/create/asset">
-                <Sparkles className="h-4 w-4 mr-1.5" />
-                Mint a work
-              </Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link href="/create/collection">
-                <Plus className="h-4 w-4 mr-1.5" />
-                New collection
-              </Link>
-            </Button>
-          </div>
-        </FadeIn>
-      </section>
-
-      {/* ── Collections ── */}
-      <section className="px-4 pt-8 space-y-5 max-w-5xl mx-auto">
-        {!isSignedIn ? (
-          <FadeIn>
-            <HowItWorks />
-            <div className="mt-4 flex justify-center">
-              <SignInButton mode="modal">
-                <Button variant="outline">Sign in to see your collections</Button>
-              </SignInButton>
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+      {collections.map((col) => {
+        const imageUrl = col.image ? ipfsToHttp(col.image) : null;
+        const selected = value === col.collectionId;
+        return (
+          <button
+            key={col.collectionId!}
+            type="button"
+            onClick={() => onChange(col.collectionId!)}
+            className={cn(
+              "relative flex flex-col items-start gap-2 rounded-xl border p-3 text-left transition-colors",
+              selected
+                ? "border-brand-blue bg-brand-blue/5 ring-1 ring-brand-blue"
+                : "border-border hover:border-border/80 hover:bg-muted/40"
+            )}
+          >
+            {selected && (
+              <div className="absolute top-2 right-2 h-4 w-4 rounded-full bg-brand-blue flex items-center justify-center">
+                <Check className="h-2.5 w-2.5 text-white" />
+              </div>
+            )}
+            <div className="relative h-10 w-10 rounded-lg overflow-hidden bg-muted shrink-0">
+              {imageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Boxes className="h-4 w-4 text-muted-foreground/40" />
+                </div>
+              )}
             </div>
-          </FadeIn>
-        ) : isLoading ? (
-          <div className="space-y-3">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <CollectionRowSkeleton key={i} />
-            ))}
-          </div>
-        ) : nftCollections.length === 0 ? (
-          <FadeIn>
-            <HowItWorks />
-          </FadeIn>
-        ) : (
-          <>
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-muted-foreground">
-                {nftCollections.length} collection{nftCollections.length !== 1 ? "s" : ""}
+            <div className="min-w-0 w-full">
+              <p className="text-sm font-semibold truncate pr-4">
+                {col.name || col.symbol || `Collection #${col.collectionId}`}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {col.totalSupply != null
+                  ? `${col.totalSupply.toLocaleString()} work${col.totalSupply !== 1 ? "s" : ""}`
+                  : "Empty"}
               </p>
             </div>
-            <Stagger className="space-y-3">
-              {nftCollections.map((col) => (
-                <StaggerItem key={col.contractAddress}>
-                  <CollectionRow col={col} />
-                </StaggerItem>
-              ))}
-            </Stagger>
-          </>
-        )}
-      </section>
-
+          </button>
+        );
+      })}
+      <Link
+        href="/launchpad/single-editions/collection"
+        className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-border p-3 text-center text-muted-foreground hover:border-primary/50 hover:text-foreground transition-colors"
+      >
+        <Plus className="h-4 w-4" />
+        <span className="text-xs font-medium">New collection</span>
+      </Link>
     </div>
+  );
+}
+
+export function SingleEditionsContent() {
+  const { executeTransaction, status, txHash } = useChipiTransaction();
+  const { walletAddress } = useSessionKey();
+
+  // Fetch user's current Medialane ERC-721 collections from the API.
+  const { collections: allCollections, isLoading: collectionsLoading } = useCollectionsByOwner(walletAddress ?? null);
+  const collections = allCollections.filter(
+    (c) => getService(c.service)?.id === "mip-erc721" && c.collectionId != null
+  );
+
+  const [walletSetupOpen, setWalletSetupOpen] = useState(false);
+  const { unlock, pinDialogProps, recordedMethod } = useWalletUnlock();
+  const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [licensingOpen, setLicensingOpen] = useState(false);
+  const [ipTypeOpen, setIpTypeOpen] = useState(false);
+  const [mintStep, setMintStep] = useState<MintStep>("idle");
+  const [mintError, setMintError] = useState<string | null>(null);
+  const [mintDebug, setMintDebug] = useState<MintDebugSnapshot | null>(null);
+  const mintDebugRef = useRef<MintDebugSnapshot | null>(null);
+  // Read only at submit time — keep in a ref so each keystroke in IPTypeFields
+  // doesn't re-render this whole form (the cause of the visible flicker).
+  const metadataFieldsRef = useRef<MetadataField[]>([]);
+  const handleMetadataFields = useCallback((fields: MetadataField[]) => {
+    metadataFieldsRef.current = fields;
+  }, []);
+  const [metadataResetKey, setMetadataResetKey] = useState(0);
+  const previewUrlRef = useRef<string | null>(null);
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+    };
+  }, []);
+
+  const hasWallet = !!walletAddress;
+
+  const updateMintDebug = (patch: Partial<MintDebugSnapshot>) => {
+    const next: MintDebugSnapshot = {
+      ...(mintDebugRef.current ?? { operation: "mint_erc721" as const, step: "idle", updatedAt: new Date().toISOString() }),
+      ...patch,
+      updatedAt: new Date().toISOString(),
+    };
+    mintDebugRef.current = next;
+    setMintDebug(next);
+    if (typeof window !== "undefined") {
+      (window as unknown as { __MEDIALANE_MINT_DEBUG__?: MintDebugSnapshot }).__MEDIALANE_MINT_DEBUG__ = next;
+      if (process.env.NODE_ENV !== "production") {
+        console.warn("[Medialane mint debug]", next);
+        console.warn(`[Medialane mint debug JSON]\n${JSON.stringify(next, null, 2)}`);
+      }
+    }
+    return next;
+  };
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      collectionId: "",
+      name: "",
+      description: "",
+      external_url: "",
+      ipType: "NFT",
+      licenseType: "CC BY-SA",
+      commercialUse: "Yes",
+      derivatives: "Share-Alike",
+      attribution: "Required",
+      geographicScope: "Worldwide",
+      aiPolicy: "Allowed",
+      royalty: 0,
+    },
+  });
+
+  // Default to the creator's only collection, or their most recently created one.
+  useEffect(() => {
+    if (collections.length > 0 && !form.getValues("collectionId")) {
+      form.setValue("collectionId", collections[0].collectionId!);
+    }
+  }, [collections, form]);
+
+  // When a collection is selected, pre-fill external_url with the collection page URL
+  const selectedCollectionId = form.watch("collectionId");
+  useEffect(() => {
+    const col = collections.find((c) => c.collectionId === selectedCollectionId);
+    if (col?.contractAddress && !form.getValues("external_url")) {
+      form.setValue("external_url", `https://medialane.io/collections/${col.contractAddress}`);
+    }
+  }, [selectedCollectionId, collections, form]);
+
+  const handleLicenseChange = (value: string) => {
+    form.setValue("licenseType", value);
+    const def = LICENSE_TYPES.find((l) => l.value === value);
+    if (def) {
+      form.setValue("commercialUse", def.commercialUse);
+      form.setValue("derivatives", def.derivatives);
+      form.setValue("attribution", def.attribution);
+    }
+  };
+
+  const onSubmit = (values: FormValues) => {
+    setPendingValues(values);
+    if (!hasWallet) {
+      setWalletSetupOpen(true);
+      return;
+    }
+    // Pass `values` through the closure — NOT via pendingValues state — because
+    // the passkey path runs synchronously, before a same-tick setState settles.
+    // The .catch handles unlock-level throws (e.g. passkey unavailable here).
+    void unlock((secret, method) => handleUnlocked(values, secret, method)).catch((err) => {
+      setMintError(err instanceof Error ? err.message : "Could not unlock your wallet");
+      setMintStep("error");
+    });
+  };
+
+  // `secret` is the wallet-unlock material — a typed PIN or the passkey key.
+  // `pendingValues` (param) shadows the display-only state so the body reads the
+  // freshly-submitted values even on the synchronous passkey path.
+  const handleUnlocked = async (pendingValues: FormValues, secret: string, method: "pin" | "passkey") => {
+    if (!pendingValues || !walletAddress) return;
+
+    setMintError(null);
+    setMintDebug(null);
+    mintDebugRef.current = null;
+    setMintStep("uploading");
+
+    try {
+      const selectedCollection = collections.find((c) => c.collectionId === pendingValues.collectionId);
+      updateMintDebug({
+        step: "uploading",
+        walletAddress,
+        collectionId: pendingValues.collectionId,
+        collectionContract: selectedCollection?.contractAddress ?? null,
+        collectionName: selectedCollection?.name ?? selectedCollection?.symbol ?? null,
+      });
+
+      // 1. Upload image + metadata to IPFS via /api/pinata
+      const formData = new FormData();
+      formData.set("name", pendingValues.name);
+      formData.set("description", pendingValues.description ?? "");
+      if (pendingValues.external_url) formData.set("external_url", pendingValues.external_url);
+      formData.set("creator", walletAddress);
+      formData.set("ipType", pendingValues.ipType);
+      formData.set("licenseType", pendingValues.licenseType);
+      formData.set("commercialUse", pendingValues.commercialUse);
+      formData.set("derivatives", pendingValues.derivatives);
+      formData.set("attribution", pendingValues.attribution);
+      formData.set("geographicScope", pendingValues.geographicScope);
+      formData.set("aiPolicy", pendingValues.aiPolicy);
+      formData.set("royalty", String(pendingValues.royalty));
+      if (imageFile) {
+        // Signed-url upload — straight to Pinata, bypasses Vercel's ~4.5 MB body cap
+        formData.set("imageUri", await uploadImageToIpfs(imageFile));
+      }
+
+      // Forward template and custom metadata fields as standard NFT attributes.
+      metadataFieldsRef.current.forEach(({ traitType, value }) => {
+        if (traitType && value) formData.append(`tmpl_${traitType}`, value);
+      });
+
+      const uploadRes = await fetch("/api/pinata", { method: "POST", body: formData });
+      const uploadData = await uploadRes.json();
+      if (!uploadRes.ok || uploadData.error) {
+        throw new Error(uploadData.error ?? "Image upload failed");
+      }
+      const tokenUri: string = uploadData.uri;
+      if (!tokenUri) throw new Error("Image upload failed — please try again");
+      updateMintDebug({ step: "metadata_uploaded", tokenUri });
+
+      setMintStep("processing");
+
+      // 2. Create mint intent — backend validates ownership onchain + encodes Cairo calldata
+      const intentRes = await createMintIntentWithDebug({
+        owner: walletAddress,
+        collectionId: pendingValues.collectionId,
+        recipient: walletAddress,
+        tokenUri,
+        // Form royalty is a percentage (0–50); EIP-2981 is basis points. Set once, immutable.
+        royaltyBps: Math.round(pendingValues.royalty * 100),
+      }, updateMintDebug);
+
+      const intentData = intentRes.data as { id?: string; calls?: { contractAddress: string; [key: string]: unknown }[] } | undefined;
+      if (!intentData?.calls?.length) {
+        throw new Error("Mint intent returned no calls");
+      }
+      updateMintDebug({
+        step: "intent_created",
+        intentId: typeof intentData.id === "string" ? intentData.id : undefined,
+        calls: intentData.calls.map((call) => ({
+          contractAddress: typeof call.contractAddress === "string" ? call.contractAddress : undefined,
+          entrypoint: typeof call.entrypoint === "string" ? call.entrypoint : undefined,
+          calldataLength: Array.isArray(call.calldata) ? call.calldata.length : undefined,
+        })),
+      });
+
+      // 3. Execute via ChipiPay
+      const result = await executeTransaction({
+        pin: secret,
+        calls: intentData.calls as ChipiCall[],
+      });
+
+      if (result.status === "reverted") {
+        throw new Error(result.revertReason || "Mint transaction reverted on chain");
+      }
+      updateMintDebug({ step: "tx_executed", txHash: result.txHash, txStatus: result.status });
+
+      const intentId = intentData.id;
+      if (!intentId) {
+        throw new Error("Mint intent returned no id");
+      }
+
+      await confirmMintIntentWithDebug(intentId, result.txHash, updateMintDebug);
+      const terminal = await pollMintIntentUntilTerminal(intentId, updateMintDebug);
+      if (terminal.status === "FAILED") {
+        throw new Error("Mint transaction confirmed, but backend receipt hydration failed.");
+      }
+
+      setMintStep("success");
+      rewardToast("mint_asset");
+      // Self-heal the authoritative record — `secret` just decrypted the wallet,
+      // so `method` is proven (corrects a stale "passkey" record on a PIN wallet).
+      if (method !== recordedMethod) void recordWalletAuthMethod(method);
+      invalidatePortfolioCache(walletAddress);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Something went wrong";
+      // When the message is a friendly remap, the original reason is on `cause` —
+      // record it so __MEDIALANE_MINT_DEBUG__ exposes the real paymaster error.
+      const rawError =
+        err instanceof Error && err.cause instanceof Error ? err.cause.message : undefined;
+      updateMintDebug({ step: "error", error: message, rawError, txHash, txStatus: status });
+      setMintError(message);
+      setMintStep("error");
+    }
+  };
+
+  const handleMintAnother = () => {
+    setMintStep("idle");
+    setMintError(null);
+    setMintDebug(null);
+    mintDebugRef.current = null;
+    form.reset({
+      collectionId: collections[0]?.collectionId ?? "",
+      name: "",
+      description: "",
+      external_url: "",
+      ipType: "NFT",
+      licenseType: "CC BY-SA",
+      commercialUse: "Yes",
+      derivatives: "Share-Alike",
+      attribution: "Required",
+      geographicScope: "Worldwide",
+      aiPolicy: "Allowed",
+      royalty: 0,
+    });
+    metadataFieldsRef.current = [];
+    setMetadataResetKey((key) => key + 1);
+    setImageFile(null);
+    setImagePreview(null);
+    if (imageInputRef.current) imageInputRef.current.value = "";
+  };
+
+  return (
+    <>
+      <MintProgressDialog
+        open={mintStep !== "idle"}
+        mintStep={mintStep}
+        txStatus={status}
+        assetName={pendingValues?.name ?? ""}
+        imagePreview={imagePreview}
+        txHash={txHash}
+        error={mintError}
+        onMintAnother={handleMintAnother}
+      />
+
+      <ClaimRouteShell
+        icon={<ImagePlus className="h-4 w-4 text-white" />}
+        title="Mint NFT"
+        subtitle="Publish your creative work as a single-copy NFT in a collection you own — free to mint, and it's yours."
+        aside={
+          <>
+            <MedialaneCollectionCard
+              image={imagePreview}
+              name={form.watch("name")}
+              collection={collections.find((c) => c.collectionId === form.watch("collectionId"))?.name || "IP Asset"}
+              creator={walletAddress ? `${walletAddress.slice(0, 6)}…${walletAddress.slice(-4)}` : undefined}
+            />
+            <CreateAssetAside />
+          </>
+        }
+      >
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+
+            {/* Collection picker */}
+            <FormField
+              control={form.control}
+              name="collectionId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-1.5">
+                    <Boxes className="h-4 w-4" />
+                    Collection *
+                  </FormLabel>
+                  <CollectionPicker
+                    collections={collections}
+                    loading={collectionsLoading}
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Cover image */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Cover image</label>
+              <div
+                className="border-2 border-dashed border-border rounded-xl p-8 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                role="button"
+                tabIndex={0}
+                aria-label="Upload image"
+                onClick={() => imageInputRef.current?.click()}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); imageInputRef.current?.click(); } }}
+              >
+                {imagePreview ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={imagePreview} alt="Preview" className="mx-auto max-h-48 rounded-lg object-contain" />
+                ) : (
+                  <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                    <Upload className="h-8 w-8" />
+                    <p className="text-sm">Click to upload (JPG, PNG, GIF, SVG, WebP · max 10 MB)</p>
+                  </div>
+                )}
+                <input
+                  ref={imageInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const ALLOWED = ["image/jpeg", "image/png", "image/gif", "image/svg+xml", "image/webp"];
+                    if (file.size > 10 * 1024 * 1024) {
+                      toast.error("File too large", { description: "Maximum file size is 10 MB." });
+                      e.target.value = "";
+                      return;
+                    }
+                    if (!ALLOWED.includes(file.type)) {
+                      toast.error("Unsupported format", { description: "Please upload a JPG, PNG, GIF, SVG, or WebP image." });
+                      e.target.value = "";
+                      return;
+                    }
+                    setImageFile(file);
+                    form.setValue("image", file);
+                    if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+                    const objectUrl = URL.createObjectURL(file);
+                    previewUrlRef.current = objectUrl;
+                    setImagePreview(objectUrl);
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Name */}
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name *</FormLabel>
+                  <FormControl>
+                    <Input placeholder="My Creative Work" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Description */}
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Describe your work, its story, and any context for buyers…"
+                      rows={4}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* External URL */}
+            <FormField
+              control={form.control}
+              name="external_url"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>External link <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
+                  <FormControl>
+                    <Input placeholder="https://yourwebsite.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Licensing Terms — optional, collapsed by default */}
+            <CollapsibleSection
+              open={licensingOpen}
+              onOpenChange={setLicensingOpen}
+              icon={<ShieldCheck className="h-4 w-4 text-primary" />}
+              label="Licensing Terms"
+              hint="Optional · Berne Convention"
+            >
+                    <p className="text-xs text-muted-foreground">
+                      Set how others can use your work. These terms are saved permanently with it as proof of authorship.
+                    </p>
+                    <FormField
+                      control={form.control}
+                      name="licenseType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>License</FormLabel>
+                          <Select value={field.value} onValueChange={handleLicenseChange}>
+                            <FormControl>
+                              <SelectTrigger><SelectValue /></SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {LICENSE_TYPES.map((l) => (
+                                <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {(() => {
+                            const def = LICENSE_TYPES.find((l) => l.value === field.value);
+                            return def ? (
+                              <p className="text-xs text-muted-foreground mt-1">{def.description}</p>
+                            ) : null;
+                          })()}
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="commercialUse"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Commercial Use</FormLabel>
+                          <ToggleGroup value={field.value} options={["Yes", "No"]} onChange={field.onChange} />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="derivatives"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Derivatives</FormLabel>
+                          <ToggleGroup value={field.value} options={DERIVATIVES_OPTIONS} onChange={field.onChange} />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="attribution"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Attribution</FormLabel>
+                          <ToggleGroup value={field.value} options={["Required", "Not Required"]} onChange={field.onChange} />
+                        </FormItem>
+                      )}
+                    />
+                    <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
+                      <CollapsibleTrigger asChild>
+                        <button
+                          type="button"
+                          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", advancedOpen && "rotate-180")} />
+                          Advanced options
+                        </button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="space-y-4 pt-3">
+                        <FormField
+                          control={form.control}
+                          name="geographicScope"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Territory</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Worldwide" {...field} />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="aiPolicy"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>AI &amp; Data Mining</FormLabel>
+                              <ToggleGroup value={field.value} options={AI_POLICIES} onChange={field.onChange} />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="royalty"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Royalty % (0–50)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  min={0}
+                                  max={50}
+                                  step={0.5}
+                                  placeholder="0"
+                                  {...field}
+                                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </CollapsibleContent>
+                    </Collapsible>
+            </CollapsibleSection>
+
+            {/* IP Type & template fields — optional, collapsed by default */}
+            <CollapsibleSection
+              open={ipTypeOpen}
+              onOpenChange={setIpTypeOpen}
+              icon={<Layers className="h-4 w-4 text-primary" />}
+              label="IP Type &amp; Metadata"
+              hint="Optional"
+            >
+                    <p className="text-xs text-muted-foreground">
+                      Choose a content type, fill suggested metadata, or add your own trait pairs.
+                    </p>
+                    <FormField
+                      control={form.control}
+                      name="ipType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>IP Type</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {IP_TYPES.map((t) => (
+                                <SelectItem key={t} value={t}>{t}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormItem>
+                      )}
+                    />
+                    <IPTypeFields
+                      key={metadataResetKey}
+                      ipType={form.watch("ipType") as IPType}
+                      onChange={handleMetadataFields}
+                  uploadDocument={uploadDocumentToIpfs}
+                    />
+            </CollapsibleSection>
+
+            <button
+              type="submit"
+              disabled={mintStep !== "idle" || collectionsLoading || collections.length === 0}
+              className={`w-full h-12 text-base font-semibold text-white rounded-xl flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] bg-brand-blue ${mintStep !== "idle" || collectionsLoading || collections.length === 0 ? "opacity-40 pointer-events-none" : ""}`}
+            >
+              Mint NFT
+            </button>
+            <p className="text-xs text-center text-muted-foreground">
+              Free to mint — no gas fees.
+            </p>
+          </form>
+        </Form>
+      </ClaimRouteShell>
+
+      <PinDialog
+        {...pinDialogProps}
+        title="Confirm mint"
+        description="Enter your PIN to mint this asset onchain."
+      />
+
+      <WalletSetupDialog
+        open={walletSetupOpen}
+        onOpenChange={setWalletSetupOpen}
+        onSuccess={() => {
+          setWalletSetupOpen(false);
+          // A wallet from this dialog is PIN-based — unlock takes the async PIN
+          // path, so pendingValues state is settled by this tick.
+          const v = pendingValues;
+          if (v) void unlock((secret, method) => handleUnlocked(v, secret, method)).catch((err) => {
+            setMintError(err instanceof Error ? err.message : "Could not unlock your wallet");
+            setMintStep("error");
+          });
+        }}
+      />
+    </>
   );
 }
