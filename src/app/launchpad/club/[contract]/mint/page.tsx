@@ -17,7 +17,7 @@ import {
   Users, Loader2, ImagePlus, X, ShieldCheck, ChevronDown, AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
-import { Contract, cairo, type Abi } from "starknet";
+import { Contract, cairo, CairoOption, CairoOptionVariant, type Abi } from "starknet";
 import { normalizeAddress, IPClubCollectionABI } from "@medialane/sdk";
 
 import { Button } from "@/components/ui/button";
@@ -199,8 +199,8 @@ export default function CreateMembershipPage({ params }: { params: Promise<{ con
 
     const createCall = col.populate("create_membership", [
       cairo.uint256(values.maxSupply),
-      startTime != null ? { Some: startTime } : { None: undefined },
-      endTime != null ? { Some: endTime } : { None: undefined },
+      startTime != null ? new CairoOption(CairoOptionVariant.Some, startTime) : new CairoOption(CairoOptionVariant.None),
+      endTime != null ? new CairoOption(CairoOptionVariant.Some, endTime) : new CairoOption(CairoOptionVariant.None),
       royaltyBps,
       metadataUri,
     ]);

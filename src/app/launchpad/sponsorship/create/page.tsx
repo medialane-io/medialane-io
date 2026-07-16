@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Contract, type Abi } from "starknet";
+import { Contract, CairoOption, CairoOptionVariant, type Abi } from "starknet";
 import { starknetProvider } from "@/lib/starknet";
 import { Handshake, CheckCircle2, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -150,7 +150,7 @@ export default function CreateSponsorshipOfferPage() {
       const call = mode === "offer"
         ? contract.populate("create_offer", [
             nftContract, BigInt(tokenId), amount, duration, token.address,
-            licenseTermsUri, terms.transferable, royaltyBps, { None: undefined },
+            licenseTermsUri, terms.transferable, royaltyBps, new CairoOption(CairoOptionVariant.None),
           ])
         : contract.populate("propose_sponsorship", [
             nftContract, BigInt(tokenId), amount, duration, 0, token.address,
