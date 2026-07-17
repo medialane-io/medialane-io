@@ -34,6 +34,7 @@ import { TransactionDialog } from "@/components/transaction/transaction-dialog";
 import { WalletSetupGate } from "@/components/transaction/wallet-setup-gate";
 import { useWallet } from "@/hooks/use-wallet";
 import { useCollection } from "@/hooks/use-collections";
+import { useCollectionProfile } from "@/hooks/use-profiles";
 import { predictNextTicketId } from "@/hooks/use-tickets";
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { rewardToast } from "@/lib/reward-toast";
@@ -101,6 +102,7 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
   const { isSignedIn } = useUser();
   const { address } = useWallet();
   const { collection, isLoading } = useCollection(contract);
+  const { profile, isLoading: profileLoading } = useCollectionProfile(contract);
   const action = useWriteAction();
 
   const [licensingOpen, setLicensingOpen] = useState(false);
@@ -121,6 +123,18 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
       derivatives: "Share-Alike", attribution: "Required", geographicScope: "Worldwide", aiPolicy: "Not Allowed",
     },
   });
+
+  useEffect(() => {
+    // Wait for the profile fetch to settle before defaulting — otherwise this
+    // fires once with no slug (setting the plain contract URL), and the
+    // "field already has a value" guard blocks the nicer slug URL from ever
+    // landing once the profile actually loads.
+    if (!contract || profileLoading) return;
+    const suggested = profile?.slug
+      ? `https://medialane.io/collection/${profile.slug}`
+      : `https://medialane.io${collectionHref("STARKNET", contract)}`;
+    if (!form.getValues("external_url")) form.setValue("external_url", suggested);
+  }, [contract, profileLoading, profile?.slug, form]);
 
   const isOwner = !!address && !!collection?.owner && address.toLowerCase() === collection.owner.toLowerCase();
 
