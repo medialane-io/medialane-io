@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { assetHref, collectionHref } from "@/lib/routes";
 import { useToken, useTokenHistory } from "@/hooks/use-tokens";
 import { useTokenListings } from "@/hooks/use-orders";
-import { useCollection, useCollectionTokens } from "@/hooks/use-collections";
+import { useCollection, useNearbyCollectionTokens } from "@/hooks/use-collections";
 import { Button } from "@/components/ui/button";
 import { PageContainer, AssetCollectionBar, AssetUtilityIcons, AssetMarketplacePanel, AssetHeaderBlock, AssetMediaColumn, buildEditionStats } from "@medialane/ui";
 import { ipfsToHttp, timeUntil, formatDisplayPrice, checkIsOwner } from "@/lib/utils";
@@ -62,7 +62,7 @@ export function AssetPageEdition() {
   const { token } = useToken(contract, tokenId);
   const { listings, mutate: mutateListings } = useTokenListings(contract, tokenId);
   const { history } = useTokenHistory(contract, tokenId);
-  const { tokens: collectionTokens } = useCollectionTokens(contract);
+  const { tokens: collectionTokens } = useNearbyCollectionTokens(contract, tokenId);
   const {
     isProcessing,
     orderToCancel, cancelPinOpen, cancelStep, cancelError,

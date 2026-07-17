@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { assetHref, collectionHref } from "@/lib/routes";
 import { useToken, useTokenHistory } from "@/hooks/use-tokens";
 import { useTokenListings } from "@/hooks/use-orders";
-import { useCollection, useCollectionTokens } from "@/hooks/use-collections";
+import { useCollection, useNearbyCollectionTokens } from "@/hooks/use-collections";
 import { Button } from "@/components/ui/button";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -97,7 +97,7 @@ export function AssetPageStandard() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   // Collection siblings for the filmstrip nav — from the (paged) collection
   // token list; the filmstrip hides itself when the collection has ≤1 item.
-  const { tokens: collectionTokens } = useCollectionTokens(contract);
+  const { tokens: collectionTokens } = useNearbyCollectionTokens(contract, tokenId);
 
   // Audited IPNft creation record — null for legacy / external contracts.
   const { data: fullTokenData } = useFullTokenData({

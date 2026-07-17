@@ -78,3 +78,43 @@ export function useCollectionTokens(
 
   return { tokens: data?.data ?? [], meta: data?.meta, isLoading, error, mutate };
 }
+
+/** From a token list ordered by tokenId (ascending), picks up to `count`
+ *  tokens surrounding `currentTokenId` — the ones after it first, then the
+ *  ones before, backfilling from whichever side has room near a collection
+ *  edge. Returned in ascending tokenId order for a natural "keep browsing"
+ *  feel. Falls back to the first `count` tokens when the current one isn't
+ *  in the fetched page (e.g. a collection larger than the pool). */
+function pickNearbyTokens<T extends { tokenId: string }>(
+  tokens: T[],
+  currentTokenId: string | null,
+  count: number
+): T[] {
+  if (!currentTokenId) return tokens.slice(0, count);
+  const idx = tokens.findIndex((t) => String(t.tokenId) === String(currentTokenId));
+  if (idx === -1) return tokens.slice(0, count);
+
+  const picked: T[] = [];
+  let after = idx + 1;
+  let before = idx - 1;
+  while (picked.length < count && (after < tokens.length || before >= 0)) {
+    if (after < tokens.length) picked.push(tokens[after++]);
+    if (picked.length < count && before >= 0) picked.push(tokens[before--]);
+  }
+  return picked.sort((a, b) => Number(a.tokenId) - Number(b.tokenId));
+}
+
+/** Asset-page "more from this collection" strip — tokens near `currentTokenId`
+ *  by id, not just whatever minted most recently (which can be anywhere in a
+ *  large collection and feel unrelated to the piece being viewed). Pulls a
+ *  bounded pool sorted `oldest` (ascending mint order, i.e. tokenId order for
+ *  every Medialane-issued collection) and windows around the current token. */
+export function useNearbyCollectionTokens(
+  contract: string | null,
+  currentTokenId: string | null,
+  count = 4,
+  poolSize = 60
+) {
+  const { tokens, isLoading, error } = useCollectionTokens(contract, 1, poolSize, "oldest");
+  return { tokens: pickNearbyTokens(tokens, currentTokenId, count), isLoading, error };
+}
