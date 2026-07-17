@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/collapsible";
 import { CollapsibleSection } from "@/components/ui/collapsible-section";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { useWalletUnlock } from "@/hooks/use-wallet-unlock";
@@ -130,9 +131,40 @@ function ToggleGroup({
   );
 }
 
-/** Collection field, as a picker instead of a bare dropdown — the collection
- *  is selectable at a glance (thumbnail + name + work count), and creating a
- *  new one is a card in the same grid rather than a link out of the form. */
+function collectionLabel(col: ApiCollection) {
+  return col.name || col.symbol || `Collection #${col.collectionId}`;
+}
+
+function collectionWorks(col: ApiCollection) {
+  return col.totalSupply != null
+    ? `${col.totalSupply.toLocaleString()} work${col.totalSupply !== 1 ? "s" : ""}`
+    : "Empty";
+}
+
+function CollectionThumb({ image, size }: { image: string | null | undefined; size: "sm" | "md" }) {
+  const imageUrl = image ? ipfsToHttp(image) : null;
+  return (
+    <div
+      className={cn(
+        "relative rounded-lg overflow-hidden bg-muted shrink-0",
+        size === "md" ? "h-10 w-10" : "h-8 w-8"
+      )}
+    >
+      {imageUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <Boxes className="h-4 w-4 text-muted-foreground/40" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Collection field — a compact trigger showing the selected collection
+ *  (thumbnail + name + work count) that opens a searchable list, so the form
+ *  stays the same height whether the creator has one collection or fifty. */
 function CollectionPicker({
   collections,
   loading,
@@ -144,14 +176,11 @@ function CollectionPicker({
   value: string;
   onChange: (id: string) => void;
 }) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+
   if (loading) {
-    return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <Skeleton key={i} className="h-24 rounded-xl" />
-        ))}
-      </div>
-    );
+    return <Skeleton className="h-[4.25rem] rounded-xl" />;
   }
 
   if (collections.length === 0) {
@@ -171,59 +200,93 @@ function CollectionPicker({
     );
   }
 
+  const selected = collections.find((c) => c.collectionId === value) ?? null;
+  const filtered = query.trim()
+    ? collections.filter((c) =>
+        collectionLabel(c).toLowerCase().includes(query.trim().toLowerCase())
+      )
+    : collections;
+
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-      {collections.map((col) => {
-        const imageUrl = col.image ? ipfsToHttp(col.image) : null;
-        const selected = value === col.collectionId;
-        return (
-          <button
-            key={col.collectionId!}
-            type="button"
-            onClick={() => onChange(col.collectionId!)}
-            className={cn(
-              "relative flex flex-col items-start gap-2 rounded-xl border p-3 text-left transition-colors",
-              selected
-                ? "border-brand-blue bg-brand-blue/5 ring-1 ring-brand-blue"
-                : "border-border hover:border-border/80 hover:bg-muted/40"
-            )}
+    <Popover
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (!next) setQuery("");
+      }}
+    >
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          aria-expanded={open}
+          className="flex w-full items-center gap-3 rounded-xl border border-border p-3 text-left transition-colors hover:bg-muted/40"
+        >
+          <CollectionThumb image={selected?.image} size="md" />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold truncate">
+              {selected ? collectionLabel(selected) : "Choose a collection"}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {selected ? collectionWorks(selected) : "Where this work will live"}
+            </p>
+          </div>
+          <span className="flex items-center gap-1 text-xs font-medium text-muted-foreground shrink-0">
+            Change
+            <ChevronDown className="h-3.5 w-3.5" />
+          </span>
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+        {collections.length > 5 && (
+          <div className="border-b border-border p-2">
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search collections…"
+              className="h-8"
+            />
+          </div>
+        )}
+        <div className="max-h-64 overflow-y-auto p-1">
+          {filtered.length === 0 ? (
+            <p className="px-3 py-4 text-center text-sm text-muted-foreground">
+              No collection found.
+            </p>
+          ) : (
+            filtered.map((col) => {
+              const isSelected = value === col.collectionId;
+              return (
+                <button
+                  key={col.collectionId!}
+                  type="button"
+                  onClick={() => {
+                    onChange(col.collectionId!);
+                    setOpen(false);
+                  }}
+                  className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left transition-colors hover:bg-muted/60"
+                >
+                  <CollectionThumb image={col.image} size="sm" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium truncate">{collectionLabel(col)}</p>
+                    <p className="text-xs text-muted-foreground">{collectionWorks(col)}</p>
+                  </div>
+                  {isSelected && <Check className="h-4 w-4 text-brand-blue shrink-0" />}
+                </button>
+              );
+            })
+          )}
+        </div>
+        <div className="border-t border-border p-1">
+          <Link
+            href="/launchpad/single-editions/collection"
+            className="flex items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-colors"
           >
-            {selected && (
-              <div className="absolute top-2 right-2 h-4 w-4 rounded-full bg-brand-blue flex items-center justify-center">
-                <Check className="h-2.5 w-2.5 text-white" />
-              </div>
-            )}
-            <div className="relative h-10 w-10 rounded-lg overflow-hidden bg-muted shrink-0">
-              {imageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Boxes className="h-4 w-4 text-muted-foreground/40" />
-                </div>
-              )}
-            </div>
-            <div className="min-w-0 w-full">
-              <p className="text-sm font-semibold truncate pr-4">
-                {col.name || col.symbol || `Collection #${col.collectionId}`}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {col.totalSupply != null
-                  ? `${col.totalSupply.toLocaleString()} work${col.totalSupply !== 1 ? "s" : ""}`
-                  : "Empty"}
-              </p>
-            </div>
-          </button>
-        );
-      })}
-      <Link
-        href="/launchpad/single-editions/collection"
-        className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-border p-3 text-center text-muted-foreground hover:border-primary/50 hover:text-foreground transition-colors"
-      >
-        <Plus className="h-4 w-4" />
-        <span className="text-xs font-medium">New collection</span>
-      </Link>
-    </div>
+            <Plus className="h-4 w-4" />
+            New collection
+          </Link>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 
