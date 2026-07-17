@@ -170,7 +170,7 @@ Every claim/create/mint surface in the launchpad shares one template, in `src/co
   the **animated full-spectrum border** (`.btn-border-animated`, the same one as the asset page / Buy
   button) so the action is the focus. With an `aside`, lays out an 8/4 bento (form left, rail right);
   without, a single column. Props: `gated` (default **true**; pass `gated={false}` for pages already
-  protected by middleware/their own signed-out state — `/create/*`, the launchpad form pages),
+  protected by middleware/their own signed-out state — the launchpad form pages),
   `redirectUrl` (ClaimGate onboarding return), `aside`, `headerAccessory`.
 - **`ClaimRail`** — the vivid right-rail panels (What's included · How it works · trust) as a deep
   gradient spectrum (blue→indigo / violet→fuchsia / rose→orange), white text. **`included` is
@@ -183,7 +183,7 @@ submit button** (the compartment provides the border now — drop the `btn-borde
 use a solid `bg-*` button), and soften copy to plain language (no "IPFS"/"PIN"/"onchain"/"ERC-xxxx";
 footers say "Free to publish/mint — no gas fees"). Keep all transaction logic + dialogs untouched.
 
-**Applied to:** all claims (`/claim/*`, `/launchpad/memecoin`), `/create/collection`, `/create/asset`,
+**Applied to:** all claims (`/claim/*`, `/launchpad/memecoin`), `/launchpad/single-editions{,/collection}`,
 `/launchpad/nfteditions/{create,[contract]/mint}`, `/launchpad/{pop,drop,coin}/create`. **Browse/list
 pages** (`/launchpad/nfteditions`, `/launchpad/pop`, `/launchpad/drop`) use `ServiceHeader` + back
 button only (no animated form/rail), constrained to `max-w-5xl`. The **coin page** keeps its stepper +
@@ -236,8 +236,22 @@ Keep new forms consistent with these three conventions:
   a form (Licensing, IP Type & Metadata, drop/edition sections) drop border/rounding/horizontal
   padding on mobile so fields get the form card's full width. `sm:`-gated pattern: wrapper
   `sm:overflow-hidden sm:rounded-xl sm:border sm:border-border`, trigger `px-0 py-3 sm:px-5 sm:py-4`,
-  content `px-0 pb-4 sm:px-5 sm:pb-5 …`. Applies to `/create/asset`, `/launchpad/nfteditions/create`
-  + `[contract]/mint`, `/launchpad/drop/create`, remix.
+  content `px-0 pb-4 sm:px-5 sm:pb-5 …`. Applies to `/launchpad/single-editions`,
+  `/launchpad/nfteditions/create` + `[contract]/mint`, `/launchpad/drop/create`, remix.
+
+### Single-editions folded into the launchpad — `/create/asset` and `/create/collection` are gone (2026-07-17)
+
+`/launchpad/single-editions` **is** the mint form now (was a browse/list page that
+dead-ended into `/create/asset` with an empty collection picker). The Collection field
+is a visual picker (thumbnail/name/work-count cards) instead of a bare `<Select>`, and
+"New collection" links to the new `/launchpad/single-editions/collection` route (moved
+from `/create/collection`) — consistent with every other launchpad service's
+`/launchpad/*`-namespaced create routes. **`/create/asset` and `/create/collection` no
+longer exist.** `middleware.ts`'s `requiresSignIn`/`requiresOnboarding` matchers gained
+`/launchpad/single-editions(.*)` — it's the actual mint/create surface now, not a public
+browse page, so it sign-gates the same way `/create/*` used to. `/create/licensing`,
+`/create/remix`, and the `/create` hub redirect (`redirect("/launchpad")`) are untouched.
+Mirrored from `medialane-starknet` the same session.
 
 ## IP-type document upload (2026-06-12)
 
@@ -258,6 +272,7 @@ attributes grid and turns on `hasTemplateData`).
 - Toast notifications: `sonner`
 - Custom utility classes (`.glass`, `.gradient-text`, `.asset-card-hover`) defined in `globals.css`
 - **Token images go through `resolveTokenImage` (`src/lib/utils.ts`), not raw `ipfsToHttp`.** It returns a browser-loadable URL or `null` (so the UI shows its own fallback, never the `/placeholder.svg` sentinel) and is **idempotent**. This matters in io specifically: `ipfsToHttp` is **not** idempotent here — it maps an already-proxied `/api/*` path back to `/placeholder.svg`, so re-resolving a resolved URL breaks it; `resolveTokenImage` guards against that. The marketplace dialogs that take a `tokenImage` prop (`listing`/`transfer`/`offer`) **resolve it internally** — callers pass the **raw** `token.metadata?.image`, never `x ? ipfsToHttp(x) : null`. (`CancelOrderDialog` already resolved internally; forgetting the incantation on the others dropped the image in the portfolio/creator-page dialogs, 2026-06-27.)
+- **The full-bleed blurred artwork backdrop (asset/collection pages) never carries a color wash/tint on top — this is a standing user directive (2026-07-17), not a one-off tune.** It's a plain CSS `filter: blur(60px) saturate(1.5)` on a low-opacity copy of the artwork, nothing more. `useDominantColor` + `fast-average-color` (a hidden `crossOrigin` `<img>` + canvas pixel sampling to compute a tint, then layered as an 8%-opacity wash / border accent / gradient underline) were removed entirely — don't reintroduce dominant-color extraction anywhere near this backdrop, even at low opacity.
 
 ---
 
@@ -276,7 +291,8 @@ attributes grid and turns on `hasTemplateData`).
 | `useCollections(page, limit, isKnown?, sort?)` | All collections with sort/filter | `GET /v1/collections` (direct fetch, bypasses SDK — supports `sort` param without requiring SDK publish) |
 | `useCollection(contract)` | Single collection | `GET /v1/collections/:contract` |
 | `useCollectionTokens(contract)` | Tokens in collection | `GET /v1/collections/:contract/tokens` |
-| `useCollectionsByOwner(address)` | Collections owned by address (API-based, returns `collectionId`) | `GET /v1/collections?owner=address` via SDK client. Used in portfolio/collections and create/asset collection selector |
+| `useNearbyCollectionTokens(contract, tokenId)` | Asset page's "more from this collection" strip — tokens *near* `tokenId` by id, not just whatever minted most recently. Wraps `useCollectionTokens` with `sort: "oldest"` + windows ±N around the current token's position (2026-07-17 fix — the old default (`sort: "recent"`) showed unrelated tokens for any collection bigger than a handful) | Same endpoint as `useCollectionTokens`, client-side windowed |
+| `useCollectionsByOwner(address)` | Collections owned by address (API-based, returns `collectionId`) | `GET /v1/collections?owner=address` via SDK client. Used in portfolio/collections and the `/launchpad/single-editions` collection picker |
 | `useActivities(query)` | Global activity feed | `GET /v1/activities` |
 | `useActivitiesByAddress(address)` | User activity | `GET /v1/activities/:address` |
 | `useComments(contract, tokenId)` | On-chain comments for a token | `GET /v1/tokens/:contract/:tokenId/comments` via SDK |
@@ -316,6 +332,22 @@ charged on failed buys (tx `0x61c84020…`). Spec:
   it skips starknet.js's `getClassHashAt` detection RPC.
 - `starknetProvider` (`src/lib/starknet.ts`) is configured `blockIdentifier: "latest"` —
   the RPC rejects the default `"pending"` block tag (`-32602: Invalid block id`).
+
+### Cairo `Option<T>` calldata — use the real `CairoOption` class, never a plain object (fixed 2026-07-17)
+
+Any manual `contract.populate(entrypoint, [...])` call against an ABI param typed
+`core::option::Option::<T>` (tickets/club window gates, sponsorship's
+`specific_sponsor`, …) **must** pass `new CairoOption(CairoOptionVariant.Some, value)`
+/ `new CairoOption(CairoOptionVariant.None)` from `"starknet"`. `starknet.js`'s ABI
+encoder calls `.isSome()` on that argument while building calldata — a plain
+`{ Some: value }` / `{ None: undefined }` object has no such method and throws
+`"e.isSome is not a function"` on submit, with **no useful stack trace to the actual
+cause** (surfaces as a generic RPC-shaped error, collapsed to "Something went wrong"
+by the SWR `onError` fallback). Bit `launchpad/tickets/[contract]/mint`,
+`launchpad/club/[contract]/mint`, and `launchpad/sponsorship/create` simultaneously —
+`medialane-starknet`'s equivalent tickets page already used the correct pattern from
+an earlier same-day fix; io's three pages never got it. Grep for `{ Some:` / `{ None:`
+when adding any new manual `.populate()` call against an Option-typed param.
 
 ### Write pipeline & wallet unlock (2026-06-17/18)
 
