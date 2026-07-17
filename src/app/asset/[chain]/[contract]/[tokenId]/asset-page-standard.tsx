@@ -28,7 +28,6 @@ import { EXPLORER_URL } from "@/lib/constants";
 import { useAuth, SignInButton } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { toast } from "sonner";
-import { useDominantColor } from "@/hooks/use-dominant-color";
 import { RemixesTab, ParentAttributionBanner } from "@/components/asset/remixes-tab";
 import { useTokenRemixes } from "@/hooks/use-remix-offers";
 import { AssetMarketsTab } from "./asset-markets-tab";
@@ -75,7 +74,6 @@ export function AssetPageStandard() {
   const shouldReduce = useReducedMotion();
 
   const imageUrl = token?.metadata?.image ? ipfsToHttp(token.metadata.image) : null;
-  const { imgRef, dynamicTheme } = useDominantColor(imageUrl);
 
   const [imgError, setImgError] = useState(false);
   const {
@@ -233,10 +231,7 @@ export function AssetPageStandard() {
   const parentTokenId = attributes.find((a) => a.trait_type === "Parent Token ID")?.value ?? null;
 
   return (
-    <div
-      style={dynamicTheme ? (dynamicTheme as React.CSSProperties) : {}}
-      className="relative z-0 min-h-screen"
-    >
+    <div className="relative z-0 min-h-screen">
       {/*
        * `Token.isHidden` exists on the backend Prisma schema as a filter
        * column — hidden tokens are excluded from every list AND single-
@@ -251,18 +246,6 @@ export function AssetPageStandard() {
        * serialize(), then add to ApiToken in @medialane/sdk, then
        * restore this check.
        */}
-      {/* Hidden extraction image for dominant color — must be in component tree */}
-      {imageUrl && (
-        <img
-          ref={imgRef}
-          src={imageUrl}
-          crossOrigin="anonymous"
-          aria-hidden
-          alt=""
-          fetchPriority="high"
-          style={{ display: "none" }}
-        />
-      )}
       {/* Full-bleed atmospheric background from asset image */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         {imageUrl && (
@@ -274,14 +257,6 @@ export function AssetPageStandard() {
             style={{ filter: "blur(60px) saturate(1.5)" }}
           />
         )}
-        <div
-          className="absolute inset-0"
-          style={{
-            background: dynamicTheme
-              ? `hsl(var(--dynamic-primary) / 0.08)`
-              : "transparent"
-          }}
-        />
       </div>
 
       <PageContainer className="pt-20 space-y-8 pb-8">

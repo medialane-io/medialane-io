@@ -28,7 +28,6 @@ import { useAuth, SignInButton } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useOrderActions } from "./use-order-actions";
 import { useAcceptOffer } from "@/hooks/use-accept-offer";
-import { useDominantColor } from "@/hooks/use-dominant-color";
 import { useTokenRemixes } from "@/hooks/use-remix-offers";
 import { useTicketOnchain, type TicketOnchain } from "@/hooks/use-tickets";
 import { HelpIcon } from "@/components/ui/help-icon";
@@ -140,7 +139,6 @@ export function AssetPageTicket() {
   const shouldReduce = useReducedMotion();
 
   const imageUrl = token?.metadata?.image ? ipfsToHttp(token.metadata.image) : null;
-  const { imgRef, dynamicTheme } = useDominantColor(imageUrl);
 
   const [imgError, setImgError] = useState(false);
   const {
@@ -210,21 +208,7 @@ export function AssetPageTicket() {
     !LICENSE_TRAIT_TYPES.has(a.trait_type ?? "") && !activeTemplateKeys.has(a.trait_type ?? "");
 
   return (
-    <div
-      style={dynamicTheme ? (dynamicTheme as React.CSSProperties) : {}}
-      className="relative z-0 min-h-screen"
-    >
-      {imageUrl && (
-        <img
-          ref={imgRef}
-          src={imageUrl}
-          crossOrigin="anonymous"
-          aria-hidden
-          alt=""
-          fetchPriority="high"
-          style={{ display: "none" }}
-        />
-      )}
+    <div className="relative z-0 min-h-screen">
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         {imageUrl && (
           <img

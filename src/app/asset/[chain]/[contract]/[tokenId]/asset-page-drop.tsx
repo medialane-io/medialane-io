@@ -35,7 +35,6 @@ import { ShareButton } from "@/components/shared/share-button";
 import { ReportDialog } from "@/components/report-dialog";
 import { FloatingCommentsButton } from "@/components/asset/floating-comments-button";
 import { CommentsSection } from "@/components/asset/comments-section";
-import { useDominantColor } from "@/hooks/use-dominant-color";
 import { EXPLORER_URL } from "@/lib/constants";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AssetMarketsTab } from "./asset-markets-tab";
@@ -150,7 +149,6 @@ export function AssetPageDrop() {
   const shouldReduce = useReducedMotion();
 
   const imageUrl = token?.metadata?.image ? ipfsToHttp(token.metadata.image) : null;
-  const { imgRef, dynamicTheme } = useDominantColor(imageUrl);
 
   const [imgError, setImgError] = useState(false);
   const [purchaseOrder, setPurchaseOrder] = useState<ApiOrder | null>(null);
@@ -174,13 +172,7 @@ export function AssetPageDrop() {
   const name = token?.metadata?.name ?? `Token #${tokenId}`;
 
   return (
-    <div
-      style={dynamicTheme ? (dynamicTheme as React.CSSProperties) : {}}
-      className="relative z-0 min-h-screen"
-    >
-      {imageUrl && (
-        <img ref={imgRef} src={imageUrl} crossOrigin="anonymous" aria-hidden alt="" fetchPriority="high" style={{ display: "none" }} />
-      )}
+    <div className="relative z-0 min-h-screen">
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         {imageUrl && (
           <img src={imageUrl} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover opacity-20 scale-110" style={{ filter: "blur(60px) saturate(1.5)" }} />

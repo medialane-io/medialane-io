@@ -47,7 +47,6 @@
     "cmdk": "^1.1.1",
     "crypto-es": "^2.1.0",
     "date-fns": "^4.1.0",
-    "fast-average-color": "^9.5.2",
     "framer-motion": "latest",
     "input-otp": "1.4.1",
     "lucide-react": "^0.577.0",

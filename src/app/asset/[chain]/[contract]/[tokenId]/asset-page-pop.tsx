@@ -16,7 +16,6 @@ import { AddressDisplay } from "@/components/shared/address-display";
 import { PopClaimButton } from "@/components/claim/pop-claim-button";
 import { ShareButton } from "@/components/shared/share-button";
 import { ReportDialog } from "@/components/report-dialog";
-import { useDominantColor } from "@/hooks/use-dominant-color";
 import { EXPLORER_URL } from "@/lib/constants";
 
 export function AssetPagePop() {
@@ -28,7 +27,6 @@ export function AssetPagePop() {
   const shouldReduce = useReducedMotion();
 
   const imageUrl = token?.metadata?.image ? ipfsToHttp(token.metadata.image) : null;
-  const { imgRef, dynamicTheme } = useDominantColor(imageUrl);
   const [imgError, setImgError] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
 
@@ -38,21 +36,7 @@ export function AssetPagePop() {
   const creator = collection?.owner;
 
   return (
-    <div
-      style={dynamicTheme ? (dynamicTheme as React.CSSProperties) : {}}
-      className="relative z-0 min-h-screen"
-    >
-      {imageUrl && (
-        <img
-          ref={imgRef}
-          src={imageUrl}
-          crossOrigin="anonymous"
-          aria-hidden
-          alt=""
-          fetchPriority="high"
-          style={{ display: "none" }}
-        />
-      )}
+    <div className="relative z-0 min-h-screen">
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         {imageUrl && (
           <img
