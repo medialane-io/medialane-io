@@ -99,7 +99,18 @@ export async function GET(
     );
   }
 
-  const contentType = upstream.headers.get("content-type") ?? "application/octet-stream";
+  // Allowlist safe MIME-type prefixes — force `application/octet-stream` for
+  // scriptable types (image/svg+xml, text/html, text/javascript, …) so a
+  // malicious pinned file can't execute script in the app origin when opened
+  // directly through this same-origin proxy. Paired with `nosniff` below.
+  const upstreamContentType = upstream.headers.get("content-type") ?? "";
+  const SAFE_PREFIXES = [
+    "image/jpeg", "image/png", "image/gif", "image/webp", "image/avif",
+    "video/", "audio/", "model/", "font/", "application/json", "application/octet-stream",
+  ];
+  const contentType = SAFE_PREFIXES.some((p) => upstreamContentType.startsWith(p))
+    ? upstreamContentType
+    : "application/octet-stream";
 
   // Cap the body so a large CID can't buffer unbounded (shared with /api/img).
   const capped = await readBodyWithCap(upstream, MAX_BYTES);
@@ -111,6 +122,7 @@ export async function GET(
     status: 200,
     headers: {
       "Content-Type": contentType,
+      "X-Content-Type-Options": "nosniff",
       // IPFS content is immutable by CID. Authenticated responses must not be
       // shared by CDN caches since they were fetched with service credentials.
       // `s-maxage` (vs browser-only `max-age`) is what lets Vercel's edge
