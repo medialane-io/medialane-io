@@ -1,4 +1,4 @@
-import { buildFeeCall } from "@medialane/sdk";
+import { buildFeeCall } from "@medialane/sdk/starknet";
 import { ioFeeConfig } from "@/lib/fee";
 import type { ChipiTransactionParams, ChipiTransactionResult } from "@/hooks/use-chipi-transaction";
 

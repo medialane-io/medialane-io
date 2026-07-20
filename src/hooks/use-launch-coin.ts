@@ -16,18 +16,17 @@
 import { useState, useCallback } from "react";
 import { rewardToast } from "@/lib/reward-toast";
 import type { Call } from "starknet";
+import { getTokenBySymbol, normalizeAddress } from "@medialane/sdk";
 import {
   buildCreateCreatorCoinCall,
   buildLaunchOnEkuboCalls,
   parseCreatorCoinCreated,
-  getTokenBySymbol,
-  normalizeAddress,
   VALIDATED_EKUBO_PARAMS,
   coinToRaw as toRaw,
   teamCoinsRaw,
   buybackQuoteRaw,
   type CreatorCoinReceiptLike,
-} from "@medialane/sdk";
+} from "@medialane/sdk/starknet";
 import { useChipiTransaction, type ChipiCall } from "@/hooks/use-chipi-transaction";
 import { starknetProvider } from "@/lib/starknet";
 

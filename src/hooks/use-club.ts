@@ -2,7 +2,7 @@
 
 import useSWR from "swr";
 import { Contract, cairo, type Abi } from "starknet";
-import { IPClubCollectionABI } from "@medialane/sdk";
+import { IPClubCollectionABI } from "@medialane/sdk/starknet";
 import { starknetProvider } from "@/lib/starknet";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 

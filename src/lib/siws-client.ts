@@ -14,7 +14,7 @@ import {
   normalizeSiwsSignature,
   type SiwsSigner,
   type RequestSiwsTokenArgs as SdkRequestSiwsTokenArgs,
-} from "@medialane/sdk";
+} from "@medialane/sdk/starknet";
 import { MEDIALANE_BACKEND_URL } from "@/lib/constants";
 
 export type { SiwsSigner };

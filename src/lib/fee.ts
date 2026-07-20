@@ -1,4 +1,5 @@
-import { resolveFeeConfig, buildFeeCall } from "@medialane/sdk";
+import { resolveFeeConfig } from "@medialane/sdk";
+import { buildFeeCall } from "@medialane/sdk/starknet";
 
 export const ioFeeConfig = resolveFeeConfig({
   enabled: process.env.NEXT_PUBLIC_FEE_ENABLED !== "false",

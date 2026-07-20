@@ -1,4 +1,4 @@
-import { MedialaneClient } from "@medialane/sdk";
+import { MedialaneClient } from "@medialane/sdk/starknet";
 import {
   MEDIALANE_BACKEND_URL,
   MEDIALANE_API_KEY,

@@ -14,14 +14,14 @@ import Link from "next/link";
 import { Coins, ExternalLink, TrendingUp, ArrowRight, Lock, Sparkles, ImagePlus, X, Loader2 } from "lucide-react";
 import { useUser, useAuth } from "@clerk/nextjs";
 import { useWalletAuthMethod } from "@/hooks/use-wallet-auth-method";
+import { getTokenBySymbol, formatAmount } from "@medialane/sdk";
 import {
-  getTokenBySymbol, formatAmount,
   validateCoinName as validateName,
   validateCoinSymbol as validateSymbol,
   validateCoinSupply as validateSupply,
   coinToRaw as toRaw,
   teamCoinsRaw, buybackQuoteRaw, fdvHuman,
-} from "@medialane/sdk";
+} from "@medialane/sdk/starknet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

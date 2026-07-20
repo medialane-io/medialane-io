@@ -7,7 +7,7 @@
  */
 
 import useSWR from "swr";
-import { getCreatorCoinPrice, type CreatorCoinPrice } from "@medialane/sdk";
+import { getCreatorCoinPrice, type CreatorCoinPrice } from "@medialane/sdk/starknet";
 import { publicReadProvider } from "@/lib/starknet";
 
 export function useCoinPrice(coinAddress?: string | null) {

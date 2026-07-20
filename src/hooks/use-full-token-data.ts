@@ -2,7 +2,7 @@
 
 import useSWR from "swr";
 import { Contract, cairo, num, type Abi } from "starknet";
-import { IPNftABI } from "@medialane/sdk";
+import { IPNftABI } from "@medialane/sdk/starknet";
 import { publicReadProvider } from "@/lib/starknet";
 
 export interface FullTokenData {

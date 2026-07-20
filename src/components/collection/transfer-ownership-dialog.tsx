@@ -16,7 +16,7 @@ import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { useAuth } from "@clerk/nextjs";
 import { isWebAuthnSupported } from "@chipi-stack/nextjs";
 import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
-import { IPCollectionABI } from "@medialane/sdk";
+import { IPCollectionABI } from "@medialane/sdk/starknet";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useMarketplaceActionFlow } from "@/hooks/use-marketplace-action-flow";

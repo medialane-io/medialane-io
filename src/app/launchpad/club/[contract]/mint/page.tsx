@@ -18,7 +18,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Contract, cairo, CairoOption, CairoOptionVariant, type Abi } from "starknet";
-import { normalizeAddress, IPClubCollectionABI } from "@medialane/sdk";
+import { normalizeAddress } from "@medialane/sdk";
+import { IPClubCollectionABI } from "@medialane/sdk/starknet";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
