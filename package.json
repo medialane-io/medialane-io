@@ -26,7 +26,7 @@
     "@clerk/themes": "^2.4.57",
     "@hookform/resolvers": "^3.10.0",
     "@medialane/sdk": "0.72.0",
-    "@medialane/ui": "0.74.2",
+    "@medialane/ui": "0.75.0",
     "@next/third-parties": "^16.2.6",
     "@radix-ui/react-avatar": "^1.1.11",
     "@radix-ui/react-checkbox": "latest",
