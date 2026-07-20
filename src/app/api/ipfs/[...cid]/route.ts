@@ -99,13 +99,15 @@ export async function GET(
     );
   }
 
-  // Allowlist safe MIME-type prefixes — force `application/octet-stream` for
-  // scriptable types (image/svg+xml, text/html, text/javascript, …) so a
-  // malicious pinned file can't execute script in the app origin when opened
-  // directly through this same-origin proxy. Paired with `nosniff` below.
+  // Allowlist safe MIME-type prefixes; anything else (text/html,
+  // text/javascript, …) is served as `application/octet-stream` so it can't
+  // render as a scriptable document. SVG is allowed to keep its type so it
+  // renders as image artwork, but the CSP below (`sandbox` = opaque origin,
+  // no scripts) neutralises the direct-navigation XSS that an inline SVG
+  // would otherwise allow on this same-origin proxy.
   const upstreamContentType = upstream.headers.get("content-type") ?? "";
   const SAFE_PREFIXES = [
-    "image/jpeg", "image/png", "image/gif", "image/webp", "image/avif",
+    "image/jpeg", "image/png", "image/gif", "image/webp", "image/avif", "image/svg+xml",
     "video/", "audio/", "model/", "font/", "application/json", "application/octet-stream",
   ];
   const contentType = SAFE_PREFIXES.some((p) => upstreamContentType.startsWith(p))
@@ -123,6 +125,11 @@ export async function GET(
     headers: {
       "Content-Type": contentType,
       "X-Content-Type-Options": "nosniff",
+      // Neutralise scripts if this response is ever opened as a top-level
+      // document (e.g. an SVG navigated to directly): `sandbox` gives it a
+      // unique opaque origin with no script execution. Harmless for images/
+      // media loaded via <img>/<video> (CSP doesn't apply to subresources).
+      "Content-Security-Policy": "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; sandbox",
       // IPFS content is immutable by CID. Authenticated responses must not be
       // shared by CDN caches since they were fetched with service credentials.
       // `s-maxage` (vs browser-only `max-age`) is what lets Vercel's edge

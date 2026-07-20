@@ -221,6 +221,13 @@ export async function GET(req: NextRequest) {
     status: 200,
     headers: {
       "Content-Type": contentType,
+      // This route allows image/svg+xml. Neutralise script execution if the
+      // response is opened as a top-level document (direct navigation): nosniff
+      // stops MIME-sniffing, and the CSP `sandbox` gives it an opaque origin
+      // with no scripts. Harmless for images loaded via <img> (CSP doesn't
+      // apply to subresources).
+      "X-Content-Type-Options": "nosniff",
+      "Content-Security-Policy": "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; sandbox",
       // `s-maxage` lets Vercel's edge cache this across all visitors, not just
       // the requesting browser — repeat requests for the same URL are served
       // from the edge instead of re-fetching + re-streaming the origin.
