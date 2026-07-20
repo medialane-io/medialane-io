@@ -1,5 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { type NextRequest, NextResponse } from "next/server";
+import { readBodyWithCap } from "@/lib/proxy-body";
 
 const PINATA_JWT = process.env.PINATA_JWT;
 const DEDICATED_GATEWAY = process.env.PINATA_DEDICATED_GATEWAY;
@@ -9,6 +10,12 @@ const PUBLIC_GATEWAY = "https://gateway.pinata.cloud";
 // (no Clerk gate on the query param), so cap what a caller can ask a
 // paid-tier Pinata gateway to render.
 const MAX_WIDTH = 2000;
+
+// Cap the proxied body. The route is public and CID content is arbitrary
+// size, so an unbounded `arrayBuffer()` lets any caller pin server memory by
+// requesting a large pinned file. 25 MB covers the largest legit upload
+// (20 MB document) with headroom; images/metadata are far smaller.
+const MAX_BYTES = 25 * 1024 * 1024;
 
 /**
  * GET /api/ipfs/[...cid]?w=<width>
@@ -41,6 +48,12 @@ export async function GET(
   // Validate CID format — CIDv0 (Qm...) or CIDv1 (bafy..., bafk..., etc.)
   // Optional sub-path after the CID (letters, digits, dots, dashes, underscores, slashes)
   if (!/^(Qm[1-9A-HJ-NP-Za-km-z]{44,}|b[a-z2-7]{58,})(\/[\w.\-/]*)?$/.test(cidPath)) {
+    return NextResponse.json({ error: "Invalid IPFS path" }, { status: 400 });
+  }
+  // The sub-path grammar allows dots, so guard against `..` traversal segments
+  // escaping the gateway's /ipfs/ path (the host stays fixed, but no reason to
+  // forward a traversal to Pinata with our JWT attached).
+  if (cidPath.split("/").includes("..")) {
     return NextResponse.json({ error: "Invalid IPFS path" }, { status: 400 });
   }
 
@@ -87,9 +100,14 @@ export async function GET(
   }
 
   const contentType = upstream.headers.get("content-type") ?? "application/octet-stream";
-  const body = await upstream.arrayBuffer();
 
-  return new NextResponse(body, {
+  // Cap the body so a large CID can't buffer unbounded (shared with /api/img).
+  const capped = await readBodyWithCap(upstream, MAX_BYTES);
+  if (!capped.ok) {
+    return NextResponse.json({ error: capped.error }, { status: capped.status });
+  }
+
+  return new NextResponse(capped.body, {
     status: 200,
     headers: {
       "Content-Type": contentType,
