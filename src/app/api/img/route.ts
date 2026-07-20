@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { lookup } from "node:dns/promises";
 import { readBodyWithCap } from "@/lib/proxy-body";
 
 const ALLOWED_CONTENT_TYPES = new Set([
@@ -94,6 +95,30 @@ function isPrivateHost(hostname: string): boolean {
   return false;
 }
 
+/**
+ * DNS-resolution SSRF guard. `isPrivateHost` only inspects the literal
+ * hostname string — a public-looking name (evil.example) whose A/AAAA record
+ * points at an internal address (169.254.169.254, 10.x, …) sails past it.
+ * Resolve the name and re-check every returned address by its literal form.
+ * Returns true (block) on resolution failure — fail closed.
+ *
+ * Residual (same as the backend's resolvesToPrivateHost): this is a
+ * point-in-time check, not IP-pinned, so a record that changes between here
+ * and the fetch (rebinding) isn't caught — full closure needs a connect-time
+ * dispatcher, out of scope for the platform fetch.
+ */
+async function resolvesToPrivateHost(hostname: string): Promise<boolean> {
+  // A literal IP was already range-checked in validateUrl → isPrivateHost;
+  // resolving it again is unnecessary but harmless. Skip only obvious IPs.
+  try {
+    const records = await lookup(hostname, { all: true });
+    if (records.length === 0) return true;
+    return records.some((r) => isPrivateHost(r.address));
+  } catch {
+    return true; // resolution failed → don't risk it
+  }
+}
+
 function validateUrl(raw: string): { url: URL } | { error: string; status: number } {
   let parsed: URL;
   try {
@@ -120,6 +145,13 @@ function validateUrl(raw: string): { url: URL } | { error: string; status: numbe
 
 async function safeFetch(url: URL, hopsLeft: number): Promise<Response> {
   if (hopsLeft < 0) throw new Error("Too many redirects");
+
+  // Layer 2 SSRF guard: the hostname passed validateUrl's literal-string
+  // check; now confirm it doesn't RESOLVE to a private address. Runs on the
+  // initial URL and every redirect hop (both reach here).
+  if (await resolvesToPrivateHost(url.hostname)) {
+    throw new Error("Blocked: hostname resolves to a private address");
+  }
 
   const res = await fetch(url.toString(), {
     redirect: "manual",
