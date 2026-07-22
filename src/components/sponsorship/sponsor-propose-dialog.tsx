@@ -10,7 +10,7 @@ import { PinDialog } from "@/components/chipi/pin-dialog";
 import { useWriteAction } from "@/hooks/use-write-action";
 import { WalletSetupGate } from "@/components/transaction/wallet-setup-gate";
 import { STARKNET_IP_SPONSORSHIP_CONTRACT } from "@/lib/constants";
-import { LicenseTermsBuilder, EMPTY_SPONSORSHIP_TERMS, toLicenseMetadata, type SponsorshipTerms } from "@medialane/ui";
+import { LicenseTermsBuilder, EMPTY_SPONSORSHIP_TERMS, toLicenseMetadata, toDurationDays, type SponsorshipTerms } from "@medialane/ui";
 import { getTokenBySymbol, SUPPORTED_TOKENS } from "@medialane/sdk";
 import { IPSponsorshipABI } from "@medialane/sdk/starknet";
 import { pinSponsorshipTerms } from "@/lib/launchpad-metadata";
@@ -39,8 +39,8 @@ export function SponsorProposeDialog({
     if (!terms.amount || Number(terms.amount) <= 0) { toast.error("Add an amount before continuing"); return; }
     const token = getTokenBySymbol(terms.paymentTokenSymbol);
     if (!token) { toast.error("Pick a currency"); return; }
-    const durationDays = Number(terms.durationDays);
-    if (!durationDays || durationDays <= 0) { toast.error("How many days should the license last?"); return; }
+    const durationDays = toDurationDays(terms);
+    if (!durationDays) { toast.error("How long should the license last?"); return; }
 
     void action.run(async (secret) => {
       const licenseTermsUri = await pinSponsorshipTerms(toLicenseMetadata(terms));
