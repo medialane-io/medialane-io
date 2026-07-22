@@ -12,7 +12,7 @@ import { useUser } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useTokensByOwner } from "@/hooks/use-tokens";
 import { STARKNET_IP_SPONSORSHIP_CONTRACT } from "@/lib/constants";
-import { AssetPicker, AssetSearchPicker, LicenseTermsBuilder, EMPTY_SPONSORSHIP_TERMS, type OwnedAsset, type SponsorshipTerms } from "@medialane/ui";
+import { AssetPicker, AssetSearchPicker, LicenseTermsBuilder, EMPTY_SPONSORSHIP_TERMS, toLicenseMetadata, type OwnedAsset, type SponsorshipTerms } from "@medialane/ui";
 import { apiFetch } from "@/lib/api-fetch";
 import { getTokenBySymbol, SUPPORTED_TOKENS } from "@medialane/sdk";
 import { IPSponsorshipABI } from "@medialane/sdk/starknet";
@@ -138,22 +138,17 @@ export default function CreateSponsorshipOfferPage() {
 
   const onSubmit = () => {
     if (!nftContract || !tokenId) {
-      toast.error(mode === "offer" ? "Pick an asset first" : "Search for and pick an asset to sponsor");
+      toast.error(mode === "offer" ? "Choose which asset you're offering" : "Search for the asset you want to sponsor and pick it");
       return;
     }
-    if (!terms.amount || Number(terms.amount) <= 0) { toast.error("Enter an amount"); return; }
-    if (!terms.licenseText.trim()) { toast.error("Add license terms"); return; }
+    if (!terms.amount || Number(terms.amount) <= 0) { toast.error("Add an amount before continuing"); return; }
     const token = getTokenBySymbol(terms.paymentTokenSymbol);
-    if (!token) { toast.error("Unsupported currency"); return; }
+    if (!token) { toast.error("Pick a currency"); return; }
     const durationDays = Number(terms.durationDays);
-    if (!durationDays || durationDays <= 0) { toast.error("Enter a license length"); return; }
+    if (!durationDays || durationDays <= 0) { toast.error("How many days should the license last?"); return; }
 
     void action.run(async (secret) => {
-      const licenseTermsUri = await pinLaunchpadMetadata({
-        terms: terms.licenseText,
-        transferable: terms.transferable,
-        royaltyPercent: Number(terms.royaltyPercent || "0"),
-      });
+      const licenseTermsUri = await pinLaunchpadMetadata(toLicenseMetadata(terms));
 
       const amount = BigInt(Math.round(Number(terms.amount) * 10 ** token.decimals));
       const duration = durationDays * 86400;
@@ -220,7 +215,7 @@ export default function CreateSponsorshipOfferPage() {
       <ClaimRouteShell
         icon={<Handshake className="h-4 w-4 text-white" />}
         title="Set up a sponsorship"
-        subtitle="Either side can start the deal — offer your own asset for sponsors to bid on, or propose terms directly on one you'd like to sponsor."
+        subtitle="Found IP you'd like to back? Propose terms directly to its owner. Own something worth sponsoring? Post it and let sponsors bid."
         aside={<CreateSponsorshipAside />}
       >
         <div className="space-y-6">
