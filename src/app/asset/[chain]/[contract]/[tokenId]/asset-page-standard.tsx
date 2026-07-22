@@ -50,6 +50,8 @@ import { ReportDialog } from "@/components/report-dialog";
 import { HelpIcon } from "@/components/ui/help-icon";
 import { useOrderActions } from "./use-order-actions";
 import { useAcceptOffer } from "@/hooks/use-accept-offer";
+import { SponsorProposeDialog } from "@/components/sponsorship/sponsor-propose-dialog";
+import { SponsorSolicitDialog } from "@/components/sponsorship/sponsor-solicit-dialog";
 
 export function AssetPageStandard() {
   const { contract, tokenId } = useParams<{ contract: string; tokenId: string }>();
@@ -88,6 +90,8 @@ export function AssetPageStandard() {
   } = useAssetMarketplaceDialogState();
   const [reportOpen, setReportOpen] = useState(false);
   const [commentOpen, setCommentOpen] = useState(false);
+  const [sponsorProposeOpen, setSponsorProposeOpen] = useState(false);
+  const [sponsorSolicitOpen, setSponsorSolicitOpen] = useState(false);
 
   const { comments, total: commentTotal } = useComments(contract, tokenId);
   const { total: remixCount } = useTokenRemixes(contract, tokenId);
@@ -313,6 +317,10 @@ export function AssetPageStandard() {
               walletAddress={walletAddress}
               remixEnabled={remixPolicy.canRemixDirect}
               showDealOption={remixPolicy.showDealOption}
+              showSponsorOption={!isOwner}
+              onOpenSponsorProposal={() => setSponsorProposeOpen(true)}
+              showSponsorSolicitOption={isOwner}
+              onOpenSponsorSolicit={() => setSponsorSolicitOpen(true)}
               floorPriceRaw={collection?.floorPrice}
               lastSaleRaw={lastSaleRaw}
               renderAuthAction={(label) => (
@@ -466,6 +474,21 @@ export function AssetPageStandard() {
         resetCancelStep={resetCancelStep}
         acceptOfferHook={acceptOffer}
         onCancelListing={handleCancelClick}
+      />
+
+      <SponsorProposeDialog
+        open={sponsorProposeOpen}
+        onOpenChange={setSponsorProposeOpen}
+        nftContract={contract}
+        tokenId={tokenId}
+        tokenName={name}
+      />
+      <SponsorSolicitDialog
+        open={sponsorSolicitOpen}
+        onOpenChange={setSponsorSolicitOpen}
+        nftContract={contract}
+        tokenId={tokenId}
+        tokenName={name}
       />
 
     </div>
