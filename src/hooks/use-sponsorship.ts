@@ -80,7 +80,7 @@ export interface SponsorshipLicense {
   currentHolder?: string | null;
 }
 
-export function useSponsorshipOffers(params?: { nftContract?: string; author?: string; open?: boolean }) {
+export function useSponsorshipOffers(params?: { nftContract?: string; author?: string; owner?: string; open?: boolean }) {
   const key = `sponsorship-offers-${JSON.stringify(params ?? {})}`;
   const { data, error, isLoading, mutate } = useSWR<{ data: SponsorshipOffer[]; meta: unknown }>(
     key,
@@ -88,6 +88,7 @@ export function useSponsorshipOffers(params?: { nftContract?: string; author?: s
       const q = new URLSearchParams({ limit: "50" });
       if (params?.nftContract) q.set("nftContract", params.nftContract);
       if (params?.author) q.set("author", params.author);
+      if (params?.owner) q.set("owner", params.owner);
       if (params?.open !== undefined) q.set("open", String(params.open));
       return apiFetch<{ data: SponsorshipOffer[]; meta: unknown }>(`/v1/sponsorship/offers?${q}`);
     },
@@ -123,7 +124,7 @@ export function useSponsorshipBids(offerId: string | null) {
   return { bids: data ?? [], isLoading, error, mutate };
 }
 
-export function useSponsorshipProposals(params?: { nftContract?: string; proposer?: string; open?: boolean }) {
+export function useSponsorshipProposals(params?: { nftContract?: string; proposer?: string; owner?: string; open?: boolean }) {
   const key = `sponsorship-proposals-${JSON.stringify(params ?? {})}`;
   const { data, error, isLoading, mutate } = useSWR<{ data: SponsorshipProposal[]; meta: unknown }>(
     key,
@@ -131,6 +132,7 @@ export function useSponsorshipProposals(params?: { nftContract?: string; propose
       const q = new URLSearchParams({ limit: "50" });
       if (params?.nftContract) q.set("nftContract", params.nftContract);
       if (params?.proposer) q.set("proposer", params.proposer);
+      if (params?.owner) q.set("owner", params.owner);
       if (params?.open !== undefined) q.set("open", String(params.open));
       return apiFetch<{ data: SponsorshipProposal[]; meta: unknown }>(`/v1/sponsorship/proposals?${q}`);
     },
@@ -159,4 +161,36 @@ export function usePendingProposalsForAsset(nftContract: string | null) {
     nftContract ? { nftContract, open: true } : undefined
   );
   return { proposals: nftContract ? proposals : [], isLoading, error, mutate };
+}
+
+export function useSponsorshipLicenses(params?: { holder?: string; author?: string }) {
+  const key = `sponsorship-licenses-${JSON.stringify(params ?? {})}`;
+  const { data, error, isLoading, mutate } = useSWR<{ data: SponsorshipLicense[]; meta: unknown }>(
+    key,
+    () => {
+      const q = new URLSearchParams({ limit: "50" });
+      if (params?.holder) q.set("holder", params.holder);
+      if (params?.author) q.set("author", params.author);
+      return apiFetch<{ data: SponsorshipLicense[]; meta: unknown }>(`/v1/sponsorship/licenses?${q}`);
+    },
+    { revalidateOnFocus: false }
+  );
+
+  return { licenses: data?.data ?? [], meta: data?.meta, isLoading, error, mutate };
+}
+
+/** Received proposals + bids on the user's own offers, awaiting a decision —
+ *  the number the Portfolio nav badge shows. */
+export function useMySponsorshipDealCounts(walletAddress: string | null) {
+  const { proposals, isLoading: proposalsLoading } = useSponsorshipProposals(
+    walletAddress ? { owner: walletAddress, open: true } : undefined
+  );
+  const { offers, isLoading: offersLoading } = useSponsorshipOffers(
+    walletAddress ? { author: walletAddress, open: true } : undefined
+  );
+  // Bid counts would need a per-offer call — deferred to the portfolio page
+  // itself, which renders the real per-offer bid lists; this hook only
+  // feeds the nav badge with the proposal count.
+  void offers;
+  return { pendingCount: proposals.length, isLoading: proposalsLoading || offersLoading };
 }

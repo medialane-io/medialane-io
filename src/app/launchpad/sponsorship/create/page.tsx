@@ -5,7 +5,6 @@ import { Contract, CairoOption, CairoOptionVariant, type Abi } from "starknet";
 import { starknetProvider } from "@/lib/starknet";
 import { Handshake, CheckCircle2, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { useWriteAction } from "@/hooks/use-write-action";
 import { WalletSetupGate } from "@/components/transaction/wallet-setup-gate";
@@ -13,7 +12,8 @@ import { useUser } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useTokensByOwner } from "@/hooks/use-tokens";
 import { STARKNET_IP_SPONSORSHIP_CONTRACT } from "@/lib/constants";
-import { AssetPicker, LicenseTermsBuilder, EMPTY_SPONSORSHIP_TERMS, type OwnedAsset, type SponsorshipTerms } from "@medialane/ui";
+import { AssetPicker, AssetSearchPicker, LicenseTermsBuilder, EMPTY_SPONSORSHIP_TERMS, type OwnedAsset, type SponsorshipTerms } from "@medialane/ui";
+import { apiFetch } from "@/lib/api-fetch";
 import { getTokenBySymbol, SUPPORTED_TOKENS } from "@medialane/sdk";
 import { IPSponsorshipABI } from "@medialane/sdk/starknet";
 import { LaunchpadSuccessState, LaunchpadErrorState, LaunchpadProcessingState } from "@/components/launchpad/launchpad-success-state";
@@ -107,10 +107,9 @@ export default function CreateSponsorshipOfferPage() {
   const action = useWriteAction();
   const busy = action.status === "processing" || action.status === "confirming";
 
-  const [mode, setMode] = useState<Mode>("offer");
+  const [mode, setMode] = useState<Mode>("propose");
   const [selectedAsset, setSelectedAsset] = useState<OwnedAsset | null>(null);
-  const [proposeContract, setProposeContract] = useState("");
-  const [proposeTokenId, setProposeTokenId] = useState("");
+  const [proposeAsset, setProposeAsset] = useState<OwnedAsset | null>(null);
   const [terms, setTerms] = useState<SponsorshipTerms>({ ...EMPTY_SPONSORSHIP_TERMS, paymentTokenSymbol: "USDC" });
 
   const { tokens: ownedTokens, isLoading: assetsLoading } = useTokensByOwner(walletAddress ?? null, 1, 100);
@@ -121,12 +120,25 @@ export default function CreateSponsorshipOfferPage() {
     image: resolveTokenImage(t.metadata?.image),
   }));
 
-  const nftContract = mode === "offer" ? selectedAsset?.contractAddress : proposeContract.trim();
-  const tokenId = mode === "offer" ? selectedAsset?.tokenId : proposeTokenId.trim();
+  // AssetSearchPicker debounces internally; this just shapes the request/response.
+  const searchAssets = async (query: string): Promise<OwnedAsset[]> => {
+    const res = await apiFetch<{ data: { tokens: { contractAddress: string; tokenId: string; name: string | null; image: string | null }[] } }>(
+      `/v1/search?q=${encodeURIComponent(query)}&limit=16`
+    );
+    return res.data.tokens.map((t) => ({
+      contractAddress: t.contractAddress,
+      tokenId: t.tokenId,
+      name: t.name ?? `Token #${t.tokenId}`,
+      image: t.image ? resolveTokenImage(t.image) : null,
+    }));
+  };
+
+  const nftContract = mode === "offer" ? selectedAsset?.contractAddress : proposeAsset?.contractAddress;
+  const tokenId = mode === "offer" ? selectedAsset?.tokenId : proposeAsset?.tokenId;
 
   const onSubmit = () => {
     if (!nftContract || !tokenId) {
-      toast.error(mode === "offer" ? "Pick an asset first" : "Enter the asset's contract and token id");
+      toast.error(mode === "offer" ? "Pick an asset first" : "Search for and pick an asset to sponsor");
       return;
     }
     if (!terms.amount || Number(terms.amount) <= 0) { toast.error("Enter an amount"); return; }
@@ -187,7 +199,7 @@ export default function CreateSponsorshipOfferPage() {
         backHref="/launchpad/sponsorship"
         backLabel="Back to Sponsorship launchpad"
         actionLabel="Create another"
-        onAction={() => { action.reset(); setSelectedAsset(null); setProposeContract(""); setProposeTokenId(""); setTerms({ ...EMPTY_SPONSORSHIP_TERMS, paymentTokenSymbol: "USDC" }); }}
+        onAction={() => { action.reset(); setSelectedAsset(null); setProposeAsset(null); setTerms({ ...EMPTY_SPONSORSHIP_TERMS, paymentTokenSymbol: "USDC" }); }}
       />
     );
   }
@@ -243,13 +255,14 @@ export default function CreateSponsorshipOfferPage() {
                 {selectedAsset ? <PendingProposalsPanel nftContract={selectedAsset.contractAddress} /> : null}
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <p className="text-sm font-semibold">Which asset do you want to sponsor?</p>
-                <div className="grid grid-cols-[1fr_auto] gap-2">
-                  <Input placeholder="Asset contract address (0x…)" value={proposeContract} onChange={(e) => setProposeContract(e.target.value)} />
-                  <Input className="w-28" placeholder="Token ID" value={proposeTokenId} onChange={(e) => setProposeTokenId(e.target.value)} />
-                </div>
-                <p className="text-xs text-muted-foreground">Find these on the asset&apos;s page — copy the contract address and token id.</p>
+                <AssetSearchPicker
+                  search={searchAssets}
+                  selected={proposeAsset}
+                  onSelect={setProposeAsset}
+                  placeholder="Search by asset name or creator"
+                />
               </div>
             )}
 
