@@ -10,7 +10,7 @@ import { PinDialog } from "@/components/chipi/pin-dialog";
 import { useWriteAction } from "@/hooks/use-write-action";
 import { WalletSetupGate } from "@/components/transaction/wallet-setup-gate";
 import { STARKNET_IP_SPONSORSHIP_CONTRACT } from "@/lib/constants";
-import { LicenseTermsBuilder, EMPTY_SPONSORSHIP_TERMS, type SponsorshipTerms } from "@medialane/ui";
+import { LicenseTermsBuilder, EMPTY_SPONSORSHIP_TERMS, toLicenseMetadata, type SponsorshipTerms } from "@medialane/ui";
 import { getTokenBySymbol, SUPPORTED_TOKENS } from "@medialane/sdk";
 import { IPSponsorshipABI } from "@medialane/sdk/starknet";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
@@ -36,19 +36,14 @@ export function SponsorProposeDialog({
   const [terms, setTerms] = useState<SponsorshipTerms>({ ...EMPTY_SPONSORSHIP_TERMS, paymentTokenSymbol: "USDC" });
 
   const onSubmit = () => {
-    if (!terms.amount || Number(terms.amount) <= 0) { toast.error("Enter an amount"); return; }
-    if (!terms.licenseText.trim()) { toast.error("Add license terms"); return; }
+    if (!terms.amount || Number(terms.amount) <= 0) { toast.error("Add an amount before continuing"); return; }
     const token = getTokenBySymbol(terms.paymentTokenSymbol);
-    if (!token) { toast.error("Unsupported currency"); return; }
+    if (!token) { toast.error("Pick a currency"); return; }
     const durationDays = Number(terms.durationDays);
-    if (!durationDays || durationDays <= 0) { toast.error("Enter a license length"); return; }
+    if (!durationDays || durationDays <= 0) { toast.error("How many days should the license last?"); return; }
 
     void action.run(async (secret) => {
-      const licenseTermsUri = await pinLaunchpadMetadata({
-        terms: terms.licenseText,
-        transferable: terms.transferable,
-        royaltyPercent: Number(terms.royaltyPercent || "0"),
-      });
+      const licenseTermsUri = await pinLaunchpadMetadata(toLicenseMetadata(terms));
 
       const amount = BigInt(Math.round(Number(terms.amount) * 10 ** token.decimals));
       const duration = durationDays * 86400;
@@ -91,7 +86,7 @@ export function SponsorProposeDialog({
                 <Handshake className="h-4 w-4 text-brand-rose" />
                 Sponsor {tokenName ?? "this IP"}
               </DialogTitle>
-              <DialogDescription>Propose sponsorship terms — if the owner accepts, you receive a license instantly, no escrow.</DialogDescription>
+              <DialogDescription>Tell the owner what you&apos;re offering. If they accept, you get your license the moment you pay — no escrow, no waiting.</DialogDescription>
               <div className="space-y-4">
                 <LicenseTermsBuilder
                   value={terms}
