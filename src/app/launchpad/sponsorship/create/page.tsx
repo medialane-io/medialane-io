@@ -14,7 +14,7 @@ import { useUser } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useTokensByOwner } from "@/hooks/use-tokens";
 import { STARKNET_IP_SPONSORSHIP_CONTRACT } from "@/lib/constants";
-import { AssetPicker, AssetSearchPicker, LicenseTermsBuilder, EMPTY_SPONSORSHIP_TERMS, toLicenseMetadata, type OwnedAsset, type SponsorshipTerms } from "@medialane/ui";
+import { AssetPicker, AssetSearchPicker, LicenseTermsBuilder, EMPTY_SPONSORSHIP_TERMS, toLicenseMetadata, toDurationDays, type OwnedAsset, type SponsorshipTerms } from "@medialane/ui";
 import { apiFetch } from "@/lib/api-fetch";
 import { getTokenBySymbol, SUPPORTED_TOKENS } from "@medialane/sdk";
 import { IPSponsorshipABI } from "@medialane/sdk/starknet";
@@ -145,8 +145,8 @@ export default function CreateSponsorshipOfferPage() {
     if (!terms.amount || Number(terms.amount) <= 0) { toast.error("Add an amount before continuing"); return; }
     const token = getTokenBySymbol(terms.paymentTokenSymbol);
     if (!token) { toast.error("Pick a currency"); return; }
-    const durationDays = Number(terms.durationDays);
-    if (!durationDays || durationDays <= 0) { toast.error("How many days should the license last?"); return; }
+    const durationDays = toDurationDays(terms);
+    if (!durationDays) { toast.error("How long should the license last?"); return; }
 
     void action.run(async (secret) => {
       const licenseTermsUri = await pinSponsorshipTerms(toLicenseMetadata(terms));
