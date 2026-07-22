@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Contract, CairoOption, CairoOptionVariant, type Abi } from "starknet";
 import { starknetProvider } from "@/lib/starknet";
-import { Handshake, CheckCircle2, Loader2, X } from "lucide-react";
+import { Handshake, CheckCircle2, Loader2, X, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { useWriteAction } from "@/hooks/use-write-action";
 import { WalletSetupGate } from "@/components/transaction/wallet-setup-gate";
@@ -16,13 +18,12 @@ import { AssetPicker, AssetSearchPicker, LicenseTermsBuilder, EMPTY_SPONSORSHIP_
 import { apiFetch } from "@/lib/api-fetch";
 import { getTokenBySymbol, SUPPORTED_TOKENS } from "@medialane/sdk";
 import { IPSponsorshipABI } from "@medialane/sdk/starknet";
-import { LaunchpadSuccessState, LaunchpadErrorState, LaunchpadProcessingState } from "@/components/launchpad/launchpad-success-state";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { rewardToast } from "@/lib/reward-toast";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { Handshake as HandshakeAsideIcon, ShieldCheck, Coins, Gift } from "lucide-react";
 import { ClaimRail } from "@/components/claim/claim-rail";
-import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
+import { pinSponsorshipTerms } from "@/lib/launchpad-metadata";
 import { resolveTokenImage } from "@/lib/utils";
 import { usePendingProposalsForAsset } from "@/hooks/use-sponsorship";
 import { toast } from "sonner";
@@ -148,7 +149,7 @@ export default function CreateSponsorshipOfferPage() {
     if (!durationDays || durationDays <= 0) { toast.error("How many days should the license last?"); return; }
 
     void action.run(async (secret) => {
-      const licenseTermsUri = await pinLaunchpadMetadata(toLicenseMetadata(terms));
+      const licenseTermsUri = await pinSponsorshipTerms(toLicenseMetadata(terms));
 
       const amount = BigInt(Math.round(Number(terms.amount) * 10 ** token.decimals));
       const duration = durationDays * 86400;
@@ -174,30 +175,6 @@ export default function CreateSponsorshipOfferPage() {
       return result;
     });
   };
-
-  if (action.status === "error") {
-    return <LaunchpadErrorState description={action.error ?? "Failed to publish"} backHref="/launchpad/sponsorship" backLabel="Back to Sponsorship launchpad" onRetry={action.reset} />;
-  }
-  if (busy) return <LaunchpadProcessingState title={mode === "offer" ? "Creating your sponsorship offer…" : "Sending your proposal…"} />;
-
-  if (action.status === "success") {
-    return (
-      <LaunchpadSuccessState
-        icon={CheckCircle2}
-        accentClassName="bg-brand-rose/10"
-        iconClassName="text-brand-rose"
-        actionClassName="bg-brand-rose hover:brightness-110 text-white"
-        title={mode === "offer" ? "Offer created" : "Proposal sent"}
-        description={mode === "offer"
-          ? "Your sponsorship offer is live onchain. It will appear in the launchpad within a minute once indexed."
-          : "The asset's owner can now accept or decline your proposal."}
-        backHref="/launchpad/sponsorship"
-        backLabel="Back to Sponsorship launchpad"
-        actionLabel="Create another"
-        onAction={() => { action.reset(); setSelectedAsset(null); setProposeAsset(null); setTerms({ ...EMPTY_SPONSORSHIP_TERMS, paymentTokenSymbol: "USDC" }); }}
-      />
-    );
-  }
 
   if (!isSignedIn) {
     return (
@@ -271,16 +248,77 @@ export default function CreateSponsorshipOfferPage() {
               />
             </div>
 
-            <Button type="button" size="lg" className="w-full rounded-xl bg-brand-rose hover:brightness-110 text-white" disabled={busy} onClick={onSubmit}>
-              {busy
-                ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{mode === "offer" ? "Creating…" : "Sending…"}</>
-                : <><Handshake className="h-4 w-4 mr-2" />{mode === "offer" ? "Create Offer" : "Send proposal"}</>}
-            </Button>
+            <div className="btn-border-animated p-[1px] rounded-2xl">
+              <button
+                type="button"
+                disabled={busy}
+                onClick={onSubmit}
+                className="w-full h-12 rounded-[15px] flex items-center justify-center gap-2 text-base font-semibold text-white bg-transparent transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50"
+              >
+                {busy
+                  ? <><Loader2 className="h-4 w-4 animate-spin" />{mode === "offer" ? "Creating…" : "Sending…"}</>
+                  : <><Handshake className="h-4 w-4" />{mode === "offer" ? "Create Offer" : "Send proposal"}</>}
+              </button>
+            </div>
           </div>
       </ClaimRouteShell>
 
       <PinDialog {...action.pinDialogProps} title={mode === "offer" ? "Create sponsorship offer" : "Send sponsorship proposal"} description="Enter your PIN to publish this onchain." />
       <WalletSetupGate action={action} />
+
+      <Dialog open={busy || action.status === "success" || action.status === "error"} onOpenChange={(open) => { if (!open) action.reset(); }}>
+        <DialogContent className="max-w-md">
+          {busy ? (
+            <div className="text-center space-y-4 py-4">
+              <Loader2 className="h-10 w-10 animate-spin text-brand-rose mx-auto" />
+              <div className="space-y-1">
+                <DialogTitle>{mode === "offer" ? "Creating your sponsorship offer…" : "Sending your proposal…"}</DialogTitle>
+                <DialogDescription>Confirm in your wallet, then hang tight — this settles onchain.</DialogDescription>
+              </div>
+            </div>
+          ) : action.status === "success" ? (
+            <div className="text-center space-y-4 py-4">
+              <div className="flex justify-center">
+                <div className="h-16 w-16 rounded-full bg-brand-rose/10 flex items-center justify-center">
+                  <CheckCircle2 className="h-8 w-8 text-brand-rose" />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <DialogTitle>{mode === "offer" ? "Offer created" : "Proposal sent"}</DialogTitle>
+                <DialogDescription>
+                  {mode === "offer"
+                    ? "Your sponsorship offer is live onchain. It will appear in the launchpad within a minute once indexed."
+                    : "The asset's owner can now accept or decline your proposal."}
+                </DialogDescription>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button asChild variant="outline" className="flex-1">
+                  <Link href="/launchpad/sponsorship">Back to Sponsorship launchpad</Link>
+                </Button>
+                <Button
+                  className="flex-1 bg-brand-rose hover:brightness-110 text-white"
+                  onClick={() => { action.reset(); setSelectedAsset(null); setProposeAsset(null); setTerms({ ...EMPTY_SPONSORSHIP_TERMS, paymentTokenSymbol: "USDC" }); }}
+                >
+                  Create another
+                </Button>
+              </div>
+            </div>
+          ) : action.status === "error" ? (
+            <div className="text-center space-y-4 py-4">
+              <div className="flex justify-center">
+                <div className="h-16 w-16 rounded-full bg-destructive/10 flex items-center justify-center">
+                  <AlertCircle className="h-8 w-8 text-destructive" />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <DialogTitle>Something went wrong</DialogTitle>
+                <DialogDescription>{action.error ?? "Failed to publish. Your form is still filled in — just try again."}</DialogDescription>
+              </div>
+              <Button className="w-full bg-brand-rose hover:brightness-110 text-white" onClick={action.reset}>Try again</Button>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

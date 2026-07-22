@@ -13,7 +13,7 @@ import { STARKNET_IP_SPONSORSHIP_CONTRACT } from "@/lib/constants";
 import { LicenseTermsBuilder, EMPTY_SPONSORSHIP_TERMS, toLicenseMetadata, type SponsorshipTerms } from "@medialane/ui";
 import { getTokenBySymbol, SUPPORTED_TOKENS } from "@medialane/sdk";
 import { IPSponsorshipABI } from "@medialane/sdk/starknet";
-import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
+import { pinSponsorshipTerms } from "@/lib/launchpad-metadata";
 import { rewardToast } from "@/lib/reward-toast";
 import { toast } from "sonner";
 
@@ -44,7 +44,7 @@ export function SponsorSolicitDialog({
     if (!durationDays || durationDays <= 0) { toast.error("How many days should the license last?"); return; }
 
     void action.run(async (secret) => {
-      const licenseTermsUri = await pinLaunchpadMetadata(toLicenseMetadata(terms));
+      const licenseTermsUri = await pinSponsorshipTerms(toLicenseMetadata(terms));
 
       const amount = BigInt(Math.round(Number(terms.amount) * 10 ** token.decimals));
       const duration = durationDays * 86400;
@@ -100,11 +100,18 @@ export function SponsorSolicitDialog({
                   amountLabel="Minimum accepted bid"
                   disabled={busy}
                 />
-                <Button type="button" size="lg" className="w-full rounded-xl bg-brand-rose hover:brightness-110 text-white" disabled={busy} onClick={onSubmit}>
-                  {busy
-                    ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Creating…</>
-                    : <><Handshake className="h-4 w-4 mr-2" />Create offer</>}
-                </Button>
+                <div className="btn-border-animated p-[1px] rounded-2xl">
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={onSubmit}
+                    className="w-full h-12 rounded-[15px] flex items-center justify-center gap-2 text-base font-semibold text-white bg-transparent transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50"
+                  >
+                    {busy
+                      ? <><Loader2 className="h-4 w-4 animate-spin" />Creating…</>
+                      : <><Handshake className="h-4 w-4" />Create offer</>}
+                  </button>
+                </div>
               </div>
             </>
           )}
