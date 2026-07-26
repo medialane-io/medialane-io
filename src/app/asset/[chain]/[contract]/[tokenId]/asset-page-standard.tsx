@@ -7,13 +7,12 @@ import { assetHref, collectionHref } from "@/lib/routes";
 import { useToken, useTokenHistory } from "@/hooks/use-tokens";
 import { useTokenListings } from "@/hooks/use-orders";
 import { useCollection, useNearbyCollectionTokens } from "@/hooks/use-collections";
-import { Button } from "@/components/ui/button";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { PageContainer, AssetCollectionBar, AssetUtilityIcons, AssetMarketplacePanel } from "@medialane/ui";
 import { ipfsToHttp, timeUntil, formatDisplayPrice, checkIsOwner } from "@/lib/utils";
-import { DollarSign, UserCheck, Globe, Bot, Percent, Shield, Calendar, ShoppingCart, Layers, GitBranch } from "lucide-react";
+import { DollarSign, UserCheck, Globe, Bot, Percent, Shield, Calendar, Layers, GitBranch } from "lucide-react";
 import { FloatingCommentsButton } from "@/components/asset/floating-comments-button";
 import { LICENSE_TRAIT_TYPES } from "@/types/ip";
 import type { IPType } from "@/types/ip";
@@ -25,7 +24,7 @@ import { resolveRemixPolicy, getDerivativesTerm } from "@/lib/remix-policy";
 import { PriceHistoryChart } from "@/components/asset/price-history-chart";
 import { useComments } from "@/hooks/use-comments";
 import { EXPLORER_URL } from "@/lib/constants";
-import { useAuth, SignInButton } from "@clerk/nextjs";
+import { useAuth } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { toast } from "sonner";
 import { RemixesTab, ParentAttributionBanner } from "@/components/asset/remixes-tab";
@@ -44,6 +43,7 @@ import {
 import { AssetOverviewContent } from "./asset-overview-content";
 import { AssetHeaderBlock } from "@/components/asset/asset-header-block";
 import { OpenInDappCallout } from "@/components/asset/open-in-dapp-callout";
+import { SignedOutAssetActions } from "@/components/asset/signed-out-asset-actions";
 import { AssetMediaColumn } from "@/components/asset/asset-media-column";
 import { AssetLightbox } from "@/components/asset/asset-lightbox";
 import { ReportDialog } from "@/components/report-dialog";
@@ -323,15 +323,8 @@ export function AssetPageStandard() {
               onOpenSponsorSolicit={() => setSponsorSolicitOpen(true)}
               floorPriceRaw={collection?.floorPrice}
               lastSaleRaw={lastSaleRaw}
-              renderAuthAction={(label) => (
-                <SignInButton mode="modal">
-                  <div className="btn-border-animated p-[1px] rounded-2xl">
-                    <Button className="w-full h-12 text-base bg-transparent text-white rounded-[15px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98]">
-                      <ShoppingCart className="h-5 w-5 mr-2" />
-                      {label}
-                    </Button>
-                  </div>
-                </SignInButton>
+              renderAuthAction={() => (
+                <SignedOutAssetActions chain={token.chain} contract={contract} tokenId={tokenId} />
               )}
               renderHelp={(content) => <HelpIcon content={content} side="top" />}
               onCancelClick={handleCancelClick}
@@ -344,8 +337,9 @@ export function AssetPageStandard() {
               onProposeDeal={goToDeal}
             />
 
-            {/* Bridge to the chain-native dapp for self-custody / web3 users */}
-            <OpenInDappCallout chain={token.chain} contract={contract} tokenId={tokenId} />
+            {/* Bridge to the chain-native dapp for self-custody / web3 users
+                (signed-out visitors already see this inside SignedOutAssetActions) */}
+            {isSignedIn && <OpenInDappCallout chain={token.chain} contract={contract} tokenId={tokenId} />}
 
             {/* ERC-1155 ownership — shown after marketplace buttons */}
             {isERC1155 && token.balances && token.balances.length > 0 ? (
