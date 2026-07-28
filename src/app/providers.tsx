@@ -9,12 +9,15 @@ import { ChipiSessionUnlockProvider } from "@/contexts/chipi-session-unlock-cont
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { usePathname } from "next/navigation";
 import { GoogleAnalytics } from "@next/third-parties/google";
-import { NavCommandMenu, NavBrandButton } from "@medialane/ui";
+import { NavCommandMenu, NavBrandButton, ThemeAmbientBackground } from "@medialane/ui";
 import { NAV_COMMANDS } from "@/lib/nav-commands";
 import { NavAccountPanel } from "@/components/nav-account-panel";
 import { AccountSyncOnLogin } from "@/components/shared/account-sync-on-login";
 import { PasskeyCredentialSync } from "@/components/shared/passkey-credential-sync";
 import { NavThemeToggle } from "@/components/nav-theme-toggle";
+import { useSessionKey } from "@/hooks/use-session-key";
+import { useCreatorProfile } from "@/hooks/use-profiles";
+import { resolveTokenImage } from "@/lib/utils";
 
 const GA_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID;
 
@@ -47,10 +50,20 @@ function StandaloneShell({ children }: { children: React.ReactNode }) {
 }
 
 function MainShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const suppressAmbient =
+    pathname.startsWith("/asset/") ||
+    pathname.startsWith("/collections/") ||
+    pathname.startsWith("/creator/");
+  const { walletAddress } = useSessionKey();
+  const { profile } = useCreatorProfile(walletAddress ?? undefined);
+  const themeImageUrl = suppressAmbient ? null : resolveTokenImage(profile?.avatarImage);
+
   return (
     <ChipiSessionUnlockProvider>
       <NavCommandMenu commands={NAV_COMMANDS} accountSlot={<NavAccountPanel />} footerSlot={<NavThemeToggle />} />
       <div className="relative min-h-screen flex flex-col bg-background">
+        <ThemeAmbientBackground imageUrl={themeImageUrl} />
         <div className="fixed top-4 left-4 sm:left-6 lg:left-8 z-50">
           <NavBrandButton />
         </div>
