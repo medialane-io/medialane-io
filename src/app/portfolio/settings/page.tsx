@@ -1,10 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useAuth, useUser, useClerk } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useCreatorProfile } from "@/hooks/use-profiles";
 import { useMyUsernameClaim, submitUsernameClaim, checkUsernameAvailability } from "@/hooks/use-username-claims";
+import { useTokensByOwner } from "@/hooks/use-tokens";
+import { AssetPicker, type OwnedAsset } from "@medialane/ui";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AtSign, CheckCircle2, Clock, XCircle, Loader2, LogOut } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, resolveTokenImage } from "@/lib/utils";
 
 type CheckState = "idle" | "checking" | "available" | "taken";
 
@@ -83,6 +86,13 @@ export default function ProfileSettingsPage() {
   const { walletAddress } = useSessionKey();
   const { profile, isLoading: profileLoading, mutate } = useCreatorProfile(walletAddress ?? undefined);
   const { username: approvedUsername, claim, mutate: mutateClaim } = useMyUsernameClaim();
+  const { tokens: ownedTokens, isLoading: assetsLoading } = useTokensByOwner(walletAddress ?? null, 1, 100);
+  const ownedAssets: OwnedAsset[] = ownedTokens.map((t) => ({
+    contractAddress: t.contractAddress,
+    tokenId: t.tokenId,
+    name: t.metadata?.name ?? `Token #${t.tokenId}`,
+    image: resolveTokenImage(t.metadata?.image),
+  }));
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saved" | "error">("idle");
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -389,7 +399,26 @@ export default function ProfileSettingsPage() {
           <p className="text-xs text-muted-foreground mt-0.5">Images for your creator profile</p>
         </div>
         <div className="border-t border-border pt-4 space-y-4">
-          {field("avatarImage", "Avatar image", "ipfs://Qm…", "IPFS or HTTPS URL")}
+          <div className="space-y-1.5">
+            <Label>Avatar &amp; app theme</Label>
+            <p className="text-xs text-muted-foreground">
+              Pick one of your NFTs. It becomes your avatar and a subtle background theme across Medialane.
+            </p>
+            <AssetPicker
+              assets={ownedAssets}
+              isLoading={assetsLoading}
+              selected={ownedAssets.find((a) => a.image === form.avatarImage) ?? null}
+              onSelect={(asset) => setForm((f) => ({ ...f, avatarImage: asset.image ?? "" }))}
+              emptyStateHref="/launchpad/single-editions"
+              emptyStateLabel="Mint one"
+            />
+            <Link
+              href="/launchpad/single-editions"
+              className="inline-block text-xs font-medium text-foreground underline underline-offset-2"
+            >
+              Mint a new NFT to use as your theme
+            </Link>
+          </div>
           {field("bannerImage", "Banner image", "ipfs://Qm…", "IPFS or HTTPS URL, displayed at the top of your profile page")}
         </div>
       </div>
