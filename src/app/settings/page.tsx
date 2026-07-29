@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { PageContainer } from "@medialane/ui";
 import { canonical, buildSocialMetadata } from "@/lib/seo";
 import SettingsContent from "./settings-content";
 
@@ -14,9 +13,5 @@ export const metadata: Metadata = {
 };
 
 export default function SettingsPage() {
-  return (
-    <PageContainer className="box-border max-w-full pt-20 pb-16">
-      <SettingsContent />
-    </PageContainer>
-  );
+  return <SettingsContent />;
 }
