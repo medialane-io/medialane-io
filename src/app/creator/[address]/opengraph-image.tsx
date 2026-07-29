@@ -20,8 +20,6 @@ export default async function Image({
   const displayName = profile?.displayName ?? profile?.username ?? `@${address}`;
   const bio = profile?.bio ?? "";
   const avatarUrl = ipfsToHttpServer(profile?.avatarImage ?? "");
-  const bannerUrl = ipfsToHttpServer(profile?.bannerImage ?? "");
-  const bgUrl = bannerUrl || avatarUrl;
 
   return new ImageResponse(
     (
@@ -36,8 +34,8 @@ export default async function Image({
           position: "relative",
         }}
       >
-        {/* Background banner (blurred) */}
-        {bgUrl && (
+        {/* Background (blurred avatar) */}
+        {avatarUrl && (
           <div
             style={{
               position: "absolute",
@@ -47,7 +45,7 @@ export default async function Image({
           >
             { }
             <img
-              src={bgUrl}
+              src={avatarUrl}
               alt=""
               width={1200}
               height={630}

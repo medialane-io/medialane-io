@@ -32,7 +32,6 @@ type ProfileForm = {
   displayName: string;
   bio: string;
   avatarImage: string;
-  bannerImage: string;
   websiteUrl: string;
   twitterUrl: string;
   discordUrl: string;
@@ -101,11 +100,11 @@ function UsernameClaimInput({
 /**
  * The creator profile as a Medialane collectible card — same foil material
  * as `MedialaneCollectionCard` (the live preview on every mint form),
- * without its decorative gradient frame/sheen. A square hero image (banner
- * -> avatar -> first owned asset, the same fallback priority the real page
- * uses; shown as-is, no color wash) with the level badge overlaid
- * bottom-right, then name, bio, and all four link icons. Vertical,
- * self-contained, pure presentation — Save lives with the form, not here.
+ * without its decorative gradient frame/sheen. A square hero image (avatar
+ * -> first owned asset, the same fallback priority the real page uses;
+ * shown as-is, no color wash) with the level badge overlaid bottom-right,
+ * then name, bio, and all four link icons. Vertical, self-contained, pure
+ * presentation — Save lives with the form, not here.
  */
 function ProfileLivePreview({
   form, approvedUsername, walletAddress, fallbackImage,
@@ -117,7 +116,7 @@ function ProfileLivePreview({
   fallbackImage?: string | null;
 }) {
   const displayName = form.displayName || "Your name";
-  const heroUrl = resolveTokenImage(form.bannerImage) || resolveTokenImage(form.avatarImage) || fallbackImage || null;
+  const heroUrl = resolveTokenImage(form.avatarImage) || fallbackImage || null;
 
   return (
     <div className="rounded-[24px] border border-border/60 bg-card overflow-hidden">
@@ -290,7 +289,7 @@ export default function SettingsContent() {
   const [checkState, setCheckState] = useState<CheckState>("idle");
   const [checkReason, setCheckReason] = useState<string | undefined>();
   const [form, setForm] = useState<ProfileForm>({
-    displayName: "", bio: "", avatarImage: "", bannerImage: "",
+    displayName: "", bio: "", avatarImage: "",
     websiteUrl: "", twitterUrl: "", discordUrl: "", telegramUrl: "",
   });
 
@@ -299,7 +298,6 @@ export default function SettingsContent() {
       displayName: profile.displayName ?? "",
       bio: profile.bio ?? "",
       avatarImage: profile.avatarImage ?? "",
-      bannerImage: profile.bannerImage ?? "",
       websiteUrl: profile.websiteUrl ?? "",
       twitterUrl: profile.twitterUrl ?? "",
       discordUrl: profile.discordUrl ?? "",
@@ -366,7 +364,6 @@ export default function SettingsContent() {
         displayName: form.displayName || null,
         bio: form.bio || null,
         avatarImage: form.avatarImage || null,
-        bannerImage: form.bannerImage || null,
         websiteUrl: form.websiteUrl || null,
         twitterUrl: form.twitterUrl || null,
         discordUrl: form.discordUrl || null,
@@ -622,7 +619,6 @@ export default function SettingsContent() {
                 Mint a new NFT to use as your theme
               </Link>
             </div>
-            {field("bannerImage", "Banner image", "ipfs://Qm…", "IPFS or HTTPS URL, displayed at the top of your profile page")}
           </div>
         </div>
 

@@ -24,8 +24,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const bio = profile?.bio ?? `Creator profile for ${name} on Medialane.`;
   const description = truncateDescription(bio);
   const path = `/creator/${address}`;
-  const rawImage = profile?.avatarImage || profile?.bannerImage;
-  const imageUrl = rawImage ? ipfsToHttpServer(rawImage) : undefined;
+  const imageUrl = profile?.avatarImage ? ipfsToHttpServer(profile.avatarImage) : undefined;
   const social = buildSocialMetadata({ title: name, description, imageUrl, imageAlt: name });
 
   return {
@@ -50,7 +49,7 @@ export default async function CreatorPage({ params }: Props) {
   const name = profile?.displayName ?? profile?.username ?? `@${address}`;
   const bio = profile?.bio ?? `Creator profile for ${name} on Medialane.`;
   const path = `/creator/${address}`;
-  const image = ipfsToHttpServer(profile?.avatarImage || profile?.bannerImage || "");
+  const image = ipfsToHttpServer(profile?.avatarImage || "");
   const sameAs = [profile?.websiteUrl, profile?.twitterUrl].filter(Boolean);
 
   const jsonLd = [

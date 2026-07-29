@@ -130,8 +130,7 @@ export default function CreatorUsernamePageClient({ username }: Props) {
 
   const activeListings = orders.filter((o) => o.status === "ACTIVE" && o.offer.itemType === "ERC721");
 
-  const heroRaw = creator?.bannerImage
-    || creator?.avatarImage
+  const heroRaw = creator?.avatarImage
     || bannerTokens[0]?.metadata?.image
     || null;
   const heroImage = heroRaw ? ipfsToHttp(heroRaw) : null;

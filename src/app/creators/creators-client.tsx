@@ -13,10 +13,8 @@ import { Search, Users, Palette, X } from "lucide-react";
 import type { ApiCreatorProfile } from "@medialane/sdk";
 
 function CreatorCard({ creator }: { creator: ApiCreatorProfile }) {
-  // `collectionImage` shipped in SDK 0.24 (not yet on npm). Inline-extend the
-  // type until the bump lands; remove the intersection once the SDK publishes.
-  const rawSrc = creator.bannerImage || (creator as ApiCreatorProfile & { collectionImage?: string | null }).collectionImage || null;
-  const bannerUrl = rawSrc ? ipfsToHttp(rawSrc) : null;
+  const rawSrc = creator.avatarImage || creator.collectionImage || null;
+  const imageUrl = rawSrc ? ipfsToHttp(rawSrc) : null;
   const displayName = creator.displayName || creator.username || "";
 
   return (
@@ -24,8 +22,8 @@ function CreatorCard({ creator }: { creator: ApiCreatorProfile }) {
       href={`/creator/${creator.username}`}
       className="block relative aspect-[3/4] overflow-hidden rounded-2xl bg-muted active:scale-[0.97] transition-transform duration-150 select-none"
     >
-      {bannerUrl && (
-        <img src={bannerUrl} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover" />
+      {imageUrl && (
+        <img src={imageUrl} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover" />
       )}
       <div className="absolute bottom-0 inset-x-0 px-4 py-4">
         <p className="font-bold text-2xl text-white truncate">{displayName}</p>

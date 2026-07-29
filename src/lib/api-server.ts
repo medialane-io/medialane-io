@@ -59,7 +59,6 @@ export async function fetchCreatorProfile(username: string) {
     displayName?: string;
     bio?: string;
     avatarImage?: string;
-    bannerImage?: string;
     websiteUrl?: string | null;
     twitterUrl?: string | null;
     discordUrl?: string | null;
