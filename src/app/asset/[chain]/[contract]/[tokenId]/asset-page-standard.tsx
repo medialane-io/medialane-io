@@ -10,7 +10,8 @@ import { useCollection, useNearbyCollectionTokens } from "@/hooks/use-collection
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AddressDisplay } from "@/components/shared/address-display";
-import { PageContainer, AssetCollectionBar, AssetUtilityIcons, AssetMarketplacePanel } from "@medialane/ui";
+import { PageContainer, AssetCollectionBar, AssetUtilityIcons, AssetMarketplacePanel, isLivingRenderCollection } from "@medialane/ui";
+import type { Chain } from "@medialane/sdk";
 import { ipfsToHttp, timeUntil, formatDisplayPrice, checkIsOwner } from "@/lib/utils";
 import { DollarSign, UserCheck, Globe, Bot, Percent, Shield, Calendar, Layers, GitBranch } from "lucide-react";
 import { FloatingCommentsButton } from "@/components/asset/floating-comments-button";
@@ -201,6 +202,7 @@ export function AssetPageStandard() {
 
   const name = token.metadata?.name || `Token #${token.tokenId}`;
   const image = token.metadata?.image ? ipfsToHttp(token.metadata.image) : null;
+  const live = isLivingRenderCollection(token.chain as Chain, token.contractAddress);
   const description = token.metadata?.description;
   const attributes = Array.isArray(token.metadata?.attributes)
     ? (token.metadata.attributes as { trait_type?: string; value?: string }[])
@@ -274,6 +276,8 @@ export function AssetPageStandard() {
               imgError={imgError}
               onImageError={() => setImgError(true)}
               onZoom={() => setLightboxOpen(true)}
+              animationUrl={token.metadata?.animationUrl}
+              live={live}
               fallback={(
                 <div className="aspect-square flex items-center justify-center bg-gradient-to-br from-primary/10 to-brand-purple/10">
                   <span className="text-5xl tabular-nums text-muted-foreground">#{tokenId}</span>
