@@ -7,7 +7,7 @@ import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion
 import { useCollection, useCollectionTokens } from "@/hooks/use-collections";
 import { useOrders } from "@/hooks/use-orders";
 import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listing-card";
-import { AssetCard, AssetCardSkeleton, LoadMoreSentinel } from "@medialane/ui";
+import { AssetCard, AssetCardSkeleton, LoadMoreSentinel, isLivingRenderCollection } from "@medialane/ui";
 import { assetHref } from "@/lib/routes";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -174,6 +174,8 @@ function CollectionItems({ contract, activeListings }: { contract: string; activ
                   href={assetHref(t.chain as Chain, t.contractAddress, t.tokenId)}
                   name={t.metadata?.name || `Token #${t.tokenId}`}
                   image={t.metadata?.image}
+                  animationUrl={t.metadata?.animationUrl}
+                  live={isLivingRenderCollection(t.chain as Chain, t.contractAddress)}
                   ipType={t.metadata?.ipType}
                   price={listing ? listing.price : null}
                   fallbackId={t.tokenId}
