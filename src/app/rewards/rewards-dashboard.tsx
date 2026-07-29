@@ -323,7 +323,7 @@ const EARN_GROUPS: {
       { label: "Start or join a club", href: "/launchpad", Icon: UserRoundCheck },
       { label: "Open a sponsorship", href: "/launchpad", Icon: Handshake },
       { label: "Join the conversation", href: "/marketplace", Icon: MessageSquare },
-      { label: "Complete your profile", href: "/portfolio/settings", Icon: UserRoundCheck },
+      { label: "Complete your profile", href: "/settings", Icon: UserRoundCheck },
     ],
   },
 ];

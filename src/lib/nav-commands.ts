@@ -4,7 +4,7 @@ import {
   Briefcase, Search, Music, Palette, Film, Camera, Gem,
   Plus, Layers, Repeat2, Ticket, Zap, BookOpen, FileText,
   ShieldCheck, Wallet, Settings, List, Tag, ScrollText, Coins,
-  FolderInput, AtSign, Link2,
+  FolderInput, AtSign, Link2, Handshake,
 } from "lucide-react";
 
 export const NAV_COMMANDS: NavCommandGroup[] = [
@@ -29,6 +29,8 @@ export const NAV_COMMANDS: NavCommandGroup[] = [
       { id: "rewards",     label: "Rewards",      icon: Trophy,     href: "/rewards",     keywords: ["xp", "points", "scoreboard", "leaderboard", "badges", "rank"] },
       { id: "airdrop",     label: "Airdrop",      icon: Gift,       href: "/airdrop",     keywords: ["claim", "free", "drop", "genesis"] },
       { id: "search",      label: "Search",       icon: Search,     href: "/search",      keywords: ["find", "lookup", "query"] },
+      { id: "settings",    label: "Account Settings", icon: Settings, href: "/settings",  keywords: ["profile", "username", "preferences", "account"] },
+      { id: "wallet",      label: "My Wallet",    icon: Wallet,     href: "/settings/wallet", keywords: ["address", "starknet", "balance"] },
     ],
   },
   {
@@ -42,6 +44,12 @@ export const NAV_COMMANDS: NavCommandGroup[] = [
       { id: "browse-drops",         label: "Browse Drops",                 icon: Store,    href: "/launchpad/drop",               keywords: ["drop", "browse", "active"] },
       { id: "pop-create",           label: "Create POP Event",             icon: Ticket,   href: "/launchpad/pop/create",         keywords: ["pop", "proof of participation", "event", "community", "soulbound"] },
       { id: "pop-browse",           label: "Browse POP Events",            icon: Ticket,   href: "/launchpad/pop",                keywords: ["pop", "events", "proof of participation"] },
+      { id: "tickets-create",       label: "Create IP Tickets",            icon: Ticket,   href: "/launchpad/tickets/create",     keywords: ["tickets", "event", "verifiable", "attendee", "pass"] },
+      { id: "tickets-browse",       label: "Browse IP Tickets",            icon: Ticket,   href: "/launchpad/tickets",            keywords: ["tickets", "browse", "events"] },
+      { id: "club-create",          label: "Create IP Club",               icon: Users,    href: "/launchpad/club/create",        keywords: ["club", "membership", "tiers", "community", "fans"] },
+      { id: "club-browse",          label: "Browse IP Clubs",              icon: Users,    href: "/launchpad/club",               keywords: ["club", "membership", "browse"] },
+      { id: "sponsorship-create",   label: "Create IP Sponsorship",        icon: Handshake, href: "/launchpad/sponsorship/create", keywords: ["sponsorship", "sponsor", "license", "offer", "deal"] },
+      { id: "sponsorship-browse",   label: "Browse IP Sponsorship",        icon: Handshake, href: "/launchpad/sponsorship",        keywords: ["sponsorship", "browse", "offers"] },
       { id: "launch-coin",          label: "Launch a Creator Coin",        icon: Coins,    href: "/launchpad/coin/create",        keywords: ["coin", "creator coin", "erc20", "token", "ekubo", "liquidity", "launch"] },
       { id: "claim-memecoin",       label: "Claim a Memecoin",             icon: Coins,    href: "/launchpad/memecoin",           keywords: ["memecoin", "claim", "coin", "starknet", "unrug", "token"] },
       { id: "remix",                label: "Remix an Asset",               icon: Repeat2,  href: "/marketplace",                  keywords: ["remix", "derivative", "attribution", "fork"] },
@@ -64,8 +72,6 @@ export const NAV_COMMANDS: NavCommandGroup[] = [
       { id: "portfolio-offers",     label: "My Offers",        icon: List,      href: "/portfolio/offers",       keywords: ["bids", "made", "sent offers"] },
       { id: "portfolio-received",   label: "Received Offers",  icon: ScrollText, href: "/portfolio/received",   keywords: ["incoming", "bids", "offers received"] },
       { id: "portfolio-activity",   label: "My Activity",      icon: Activity,  href: "/portfolio/activity",    keywords: ["history", "transactions", "events"] },
-      { id: "portfolio-wallet",     label: "My Wallet",        icon: Wallet,    href: "/portfolio/wallet",       keywords: ["address", "starknet", "balance"] },
-      { id: "portfolio-settings",   label: "Account Settings", icon: Settings,  href: "/portfolio/settings",    keywords: ["profile", "username", "preferences"] },
     ],
   },
   {

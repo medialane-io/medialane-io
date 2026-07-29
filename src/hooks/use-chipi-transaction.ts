@@ -55,7 +55,7 @@ export type ChipiTransactionStatus =
  *    (TRANSACTION_EXECUTION_ERROR)"
  *
  * Replace with an actionable message pointing the user at the session
- * refresh UI in /portfolio/wallet.
+ * refresh UI in /settings/wallet.
  */
 function toFriendlyExecutionError(err: unknown): {
   message: string;

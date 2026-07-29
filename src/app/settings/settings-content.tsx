@@ -79,7 +79,7 @@ function UsernameClaimInput({
   );
 }
 
-export default function ProfileSettingsPage() {
+export default function SettingsContent() {
   const { getToken } = useAuth();
   const { user } = useUser();
   const { signOut } = useClerk();

@@ -8,6 +8,7 @@ import { NextResponse } from "next/server";
 // 2026-07-16), not a browse page, so it sign-gates like the others.
 const requiresSignIn = createRouteMatcher([
   "/portfolio(.*)",
+  "/settings(.*)",
   "/create(.*)",
   "/launchpad/single-editions(.*)",
   "/launchpad/(.*)/create",
@@ -23,6 +24,7 @@ const requiresSignIn = createRouteMatcher([
 // but they stay fully public for signed-out visitors (Google-Ads landings).
 const requiresOnboarding = createRouteMatcher([
   "/portfolio(.*)",
+  "/settings(.*)",
   "/create(.*)",
   "/launchpad/single-editions(.*)",
   "/launchpad/(.*)/create",

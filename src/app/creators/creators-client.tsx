@@ -137,7 +137,7 @@ export default function CreatorsPageClient() {
             </div>
             {!debouncedSearch && (
               <Button asChild variant="outline">
-                <Link href="/portfolio/settings">Claim username</Link>
+                <Link href="/settings">Claim username</Link>
               </Button>
             )}
           </div>
