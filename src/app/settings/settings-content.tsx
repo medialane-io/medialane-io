@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useAuth, useUser, useClerk } from "@clerk/nextjs";
+import { useAuth, useUser } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useCreatorProfile } from "@/hooks/use-profiles";
 import { useMyUsernameClaim, submitUsernameClaim, checkUsernameAvailability } from "@/hooks/use-username-claims";
@@ -21,7 +21,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  AtSign, CheckCircle2, Clock, XCircle, Loader2, LogOut, Settings as SettingsIcon,
+  AtSign, CheckCircle2, Clock, XCircle, Loader2, Settings as SettingsIcon,
   Globe, Twitter, MessageCircle, Send, ArrowUpRight, Gem, Tag, LayoutGrid, Trophy,
 } from "lucide-react";
 import { cn, resolveTokenImage } from "@/lib/utils";
@@ -38,8 +38,6 @@ type ProfileForm = {
   discordUrl: string;
   telegramUrl: string;
 };
-
-const CARD_FRAME_GRADIENT = "linear-gradient(135deg, #3b7bff, #8a5cf6 38%, #f6608f 70%, #fb8b46)";
 
 function UsernameClaimInput({
   value, onChange, onCheck, onSubmit, checkState, checkReason, loading, disabled,
@@ -101,14 +99,13 @@ function UsernameClaimInput({
 }
 
 /**
- * The creator profile as a Medialane collectible card — same brand-spectrum
- * frame + foil material + sheen as `MedialaneCollectionCard` (the live
- * preview on every mint form). Content mirrors the real `/creator/[username]`
- * hero exactly: a plain hero image (banner, falling back to avatar, then the
- * first owned asset — same priority the real page uses), no avatar circle
- * (io's hero doesn't render one either), name + level badge, bio, and all
- * four link icons. Vertical, self-contained, pure presentation — Save lives
- * with the form, not here.
+ * The creator profile as a Medialane collectible card — same foil material
+ * as `MedialaneCollectionCard` (the live preview on every mint form),
+ * without its decorative gradient frame/sheen. A square hero image (banner
+ * -> avatar -> first owned asset, the same fallback priority the real page
+ * uses; shown as-is, no color wash) with the level badge overlaid
+ * bottom-right, then name, bio, and all four link icons. Vertical,
+ * self-contained, pure presentation — Save lives with the form, not here.
  */
 function ProfileLivePreview({
   form, approvedUsername, walletAddress, fallbackImage,
@@ -123,92 +120,67 @@ function ProfileLivePreview({
   const heroUrl = resolveTokenImage(form.bannerImage) || resolveTokenImage(form.avatarImage) || fallbackImage || null;
 
   return (
-    <div style={{ perspective: "1000px" }}>
-      <div
-        className="rounded-[24px] p-[1.5px] shadow-[0_16px_40px_-16px_rgba(91,76,230,0.45)]"
-        style={{ background: CARD_FRAME_GRADIENT }}
-      >
-        <div className="ml-card-material relative rounded-[22.5px] overflow-hidden text-[#0a0e1f] dark:text-white ring-1 ring-inset ring-black/[0.06] dark:ring-white/[0.06]">
-          <p className="relative px-5 pt-4 text-[10px] font-bold uppercase tracking-[0.14em] text-[#0a0e1f]/45 dark:text-white/45">
-            Public preview
-          </p>
-
-          {/* Hero — same image + fallback priority as the real creator page */}
-          <div className="px-2.5 pt-2.5">
-            <div className="relative aspect-[16/9] w-full overflow-hidden rounded-[16px] ring-1 ring-black/10 dark:ring-white/10">
-              {heroUrl ? (
-                <Image src={heroUrl} alt="" fill unoptimized className="object-cover" />
-              ) : (
-                <div className="h-full w-full" style={{ background: CARD_FRAME_GRADIENT, opacity: 0.9 }} />
-              )}
+    <div className="rounded-[24px] border border-border/60 bg-card overflow-hidden">
+      {/* Hero — same image + fallback priority as the real creator page, shown as-is */}
+      <div className="px-2.5 pt-2.5">
+        <div className="relative aspect-square w-full overflow-hidden rounded-[16px] bg-muted ring-1 ring-black/10 dark:ring-white/10">
+          {heroUrl && <Image src={heroUrl} alt="" fill unoptimized className="object-cover" />}
+          {walletAddress && (
+            <div className="absolute bottom-2 right-2">
+              <CreatorScoreInline address={walletAddress} />
             </div>
-          </div>
-
-          {/* Holographic sheen — same as the mint preview card */}
-          <div
-            aria-hidden
-            className="ml-card-sheen pointer-events-none absolute inset-0 opacity-40"
-          />
-
-          <div className="relative px-5 pt-3 pb-5 space-y-3">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <p className="truncate text-[18px] font-bold leading-snug">{displayName}</p>
-                {walletAddress && <CreatorScoreInline address={walletAddress} />}
-              </div>
-              {approvedUsername ? (
-                <p className="text-[11px] tabular-nums text-[#0a0e1f]/55 dark:text-white/55">@{approvedUsername}</p>
-              ) : (
-                <p className="text-[11px] text-[#0a0e1f]/40 dark:text-white/40">No username yet</p>
-              )}
-            </div>
-
-            {form.bio && (
-              <p className="text-xs text-[#0a0e1f]/60 dark:text-white/60 leading-relaxed line-clamp-2">{form.bio}</p>
-            )}
-
-            {(form.websiteUrl || form.twitterUrl || form.discordUrl || form.telegramUrl) && (
-              <div className="flex items-center gap-2">
-                {form.websiteUrl && (
-                  <span className="h-7 w-7 rounded-full bg-black/5 dark:bg-white/10 flex items-center justify-center text-[#0a0e1f]/60 dark:text-white/60">
-                    <Globe className="h-3.5 w-3.5" />
-                  </span>
-                )}
-                {form.twitterUrl && (
-                  <span className="h-7 w-7 rounded-full bg-black/5 dark:bg-white/10 flex items-center justify-center text-[#0a0e1f]/60 dark:text-white/60">
-                    <Twitter className="h-3.5 w-3.5" />
-                  </span>
-                )}
-                {form.discordUrl && (
-                  <span className="h-7 w-7 rounded-full bg-black/5 dark:bg-white/10 flex items-center justify-center text-[#0a0e1f]/60 dark:text-white/60">
-                    <MessageCircle className="h-3.5 w-3.5" />
-                  </span>
-                )}
-                {form.telegramUrl && (
-                  <span className="h-7 w-7 rounded-full bg-black/5 dark:bg-white/10 flex items-center justify-center text-[#0a0e1f]/60 dark:text-white/60">
-                    <Send className="h-3.5 w-3.5" />
-                  </span>
-                )}
-              </div>
-            )}
-
-            <div className="my-1 h-px bg-black/10 dark:bg-white/10" />
-
-            <div className="flex items-center gap-2">
-              <span aria-hidden className="h-3.5 w-3.5 rounded-full shrink-0" style={{ background: CARD_FRAME_GRADIENT }} />
-              <span className="text-[9px] font-bold tracking-[0.18em] text-[#0a0e1f]/50 dark:text-white/50">MEDIALANE</span>
-              {approvedUsername && (
-                <Link
-                  href={`/creator/${approvedUsername}`}
-                  className="ml-auto inline-flex items-center gap-1 text-[11px] font-medium text-[#0a0e1f]/70 dark:text-white/70 hover:underline"
-                >
-                  View profile
-                  <ArrowUpRight className="h-3 w-3" />
-                </Link>
-              )}
-            </div>
-          </div>
+          )}
         </div>
+      </div>
+
+      <div className="px-5 pt-3 pb-5 space-y-3">
+        <div className="min-w-0">
+          <p className="truncate text-[18px] font-bold leading-snug text-foreground">{displayName}</p>
+          {approvedUsername ? (
+            <p className="text-[11px] tabular-nums text-muted-foreground">@{approvedUsername}</p>
+          ) : (
+            <p className="text-[11px] text-muted-foreground/60">No username yet</p>
+          )}
+        </div>
+
+        {form.bio && (
+          <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">{form.bio}</p>
+        )}
+
+        {(form.websiteUrl || form.twitterUrl || form.discordUrl || form.telegramUrl) && (
+          <div className="flex items-center gap-2">
+            {form.websiteUrl && (
+              <span className="h-7 w-7 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
+                <Globe className="h-3.5 w-3.5" />
+              </span>
+            )}
+            {form.twitterUrl && (
+              <span className="h-7 w-7 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
+                <Twitter className="h-3.5 w-3.5" />
+              </span>
+            )}
+            {form.discordUrl && (
+              <span className="h-7 w-7 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
+                <MessageCircle className="h-3.5 w-3.5" />
+              </span>
+            )}
+            {form.telegramUrl && (
+              <span className="h-7 w-7 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
+                <Send className="h-3.5 w-3.5" />
+              </span>
+            )}
+          </div>
+        )}
+
+        {approvedUsername && (
+          <Link
+            href={`/creator/${approvedUsername}`}
+            className="inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline"
+          >
+            View profile
+            <ArrowUpRight className="h-3 w-3" />
+          </Link>
+        )}
       </div>
     </div>
   );
@@ -272,7 +244,7 @@ function RewardsSnapshot({ address }: { address?: string | null }) {
         <div className="h-2 rounded-full bg-muted-foreground/15 overflow-hidden">
           <div
             className="h-full rounded-full"
-            style={{ width: `${rewards.progressPct}%`, background: CARD_FRAME_GRADIENT }}
+            style={{ width: `${rewards.progressPct}%`, backgroundColor: rewards.badgeColor }}
           />
         </div>
         {rewards.nextLevel && (
@@ -295,7 +267,6 @@ function RewardsSnapshot({ address }: { address?: string | null }) {
 export default function SettingsContent() {
   const { getToken } = useAuth();
   const { user } = useUser();
-  const { signOut } = useClerk();
   const { walletAddress } = useSessionKey();
   const { profile, isLoading: profileLoading, mutate } = useCreatorProfile(walletAddress ?? undefined);
   const { username: approvedUsername, claim, mutate: mutateClaim } = useMyUsernameClaim();
@@ -682,24 +653,6 @@ export default function SettingsContent() {
           {saveStatus === "error" && saveError && (
             <span className="text-sm text-destructive">{saveError}</span>
           )}
-        </div>
-
-        {/* Sign out */}
-        <div className="space-y-4 pt-4">
-          <div>
-            <h3 className="text-sm font-semibold text-foreground">Account</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">Manage your session</p>
-          </div>
-          <div className="border-t border-border pt-4">
-            <Button
-              variant="outline"
-              className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
-              onClick={() => signOut({ redirectUrl: "/" })}
-            >
-              <LogOut className="h-4 w-4" />
-              Sign out
-            </Button>
-          </div>
         </div>
       </div>
     </ServiceFormShell>
