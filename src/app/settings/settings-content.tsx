@@ -669,8 +669,8 @@ export default function SettingsContent() {
           </div>
         </div>
 
-        {/* Save — pinned to the form, not the preview rail */}
-        <div className="sticky bottom-4 z-10 rounded-2xl border border-border/60 bg-card/95 backdrop-blur-md p-4 shadow-lg flex items-center gap-3">
+        {/* Save — attached to the form, not the preview rail */}
+        <div className="pt-4 border-t border-border flex items-center gap-3">
           <Button onClick={handleSave} disabled={saving || !walletAddress || profileLoading} className="w-full sm:w-auto">
             {saving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving…</> : "Save changes"}
           </Button>
