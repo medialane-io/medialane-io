@@ -9,12 +9,14 @@ import { ChipiSessionUnlockProvider } from "@/contexts/chipi-session-unlock-cont
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { usePathname } from "next/navigation";
 import { GoogleAnalytics } from "@next/third-parties/google";
-import { NavCommandMenu, NavBrandButton, ThemeAmbientBackground } from "@medialane/ui";
+import { NavCommandMenu, NavBrandButton, NavAccountSheet, ThemeAmbientBackground } from "@medialane/ui";
 import { NAV_COMMANDS } from "@/lib/nav-commands";
-import { NavAccountPanel } from "@/components/nav-account-panel";
 import { AccountSyncOnLogin } from "@/components/shared/account-sync-on-login";
 import { PasskeyCredentialSync } from "@/components/shared/passkey-credential-sync";
 import { NavThemeToggle } from "@/components/nav-theme-toggle";
+import { NavConnectButton } from "@/components/nav-connect-button";
+import { HeaderWalletTrigger } from "@/components/nav-wallet-trigger";
+import { AccountPanel } from "@/components/account-panel";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useCreatorProfile } from "@/hooks/use-profiles";
 import { resolveTokenImage } from "@/lib/utils";
@@ -61,11 +63,22 @@ function MainShell({ children }: { children: React.ReactNode }) {
 
   return (
     <ChipiSessionUnlockProvider>
-      <NavCommandMenu commands={NAV_COMMANDS} accountSlot={<NavAccountPanel />} footerSlot={<NavThemeToggle />} />
+      <NavCommandMenu
+        commands={NAV_COMMANDS}
+        footerSlot={<NavThemeToggle />}
+        showKeyboardHints={false}
+        brandSlot={<NavConnectButton />}
+      />
+      <NavAccountSheet>
+        <AccountPanel />
+      </NavAccountSheet>
       <div className="relative min-h-screen flex flex-col bg-background">
         <ThemeAmbientBackground imageUrl={themeImageUrl} />
         <div className="fixed top-4 left-4 sm:left-6 lg:left-8 z-50">
           <NavBrandButton />
+        </div>
+        <div className="fixed top-4 right-4 sm:right-6 lg:right-8 z-50">
+          <HeaderWalletTrigger />
         </div>
         <main className="min-w-0 flex-1 overflow-x-hidden">{children}</main>
         <footer className="px-4 sm:px-6 lg:px-8 py-8 mt-auto">
