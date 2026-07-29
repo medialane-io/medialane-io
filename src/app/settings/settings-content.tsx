@@ -8,7 +8,11 @@ import { useSessionKey } from "@/hooks/use-session-key";
 import { useCreatorProfile } from "@/hooks/use-profiles";
 import { useMyUsernameClaim, submitUsernameClaim, checkUsernameAvailability } from "@/hooks/use-username-claims";
 import { useTokensByOwner } from "@/hooks/use-tokens";
-import { AssetPicker, ServiceFormShell, type OwnedAsset } from "@medialane/ui";
+import { useUserOrders } from "@/hooks/use-orders";
+import { useCollectionsByOwner } from "@/hooks/use-collections";
+import { useRewards } from "@/hooks/use-rewards";
+import { AssetPicker, ServiceFormShell, LevelBadge, type OwnedAsset } from "@medialane/ui";
+import { CreatorScoreInline } from "@/components/rewards/creator-score-inline";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +20,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AtSign, CheckCircle2, Clock, XCircle, Loader2, LogOut, Settings as SettingsIcon } from "lucide-react";
+import {
+  AtSign, CheckCircle2, Clock, XCircle, Loader2, LogOut, Settings as SettingsIcon,
+  Globe, Twitter, MessageCircle, Send, ArrowUpRight, Gem, Tag, LayoutGrid, Trophy,
+} from "lucide-react";
 import { cn, resolveTokenImage } from "@/lib/utils";
 
 type CheckState = "idle" | "checking" | "available" | "taken";
@@ -31,6 +38,8 @@ type ProfileForm = {
   discordUrl: string;
   telegramUrl: string;
 };
+
+const CARD_FRAME_GRADIENT = "linear-gradient(135deg, #3b7bff, #8a5cf6 38%, #f6608f 70%, #fb8b46)";
 
 function UsernameClaimInput({
   value, onChange, onCheck, onSubmit, checkState, checkReason, loading, disabled,
@@ -91,62 +100,194 @@ function UsernameClaimInput({
   );
 }
 
-/** Sticky right-rail preview of how the profile reads publicly, plus the persistent Save action. */
+/**
+ * The creator profile as a Medialane collectible card — same brand-spectrum
+ * frame + foil material + sheen as `MedialaneCollectionCard` (the live
+ * preview on every mint form). Content mirrors the real `/creator/[username]`
+ * hero exactly: a plain hero image (banner, falling back to avatar, then the
+ * first owned asset — same priority the real page uses), no avatar circle
+ * (io's hero doesn't render one either), name + level badge, bio, and all
+ * four link icons. Vertical, self-contained, pure presentation — Save lives
+ * with the form, not here.
+ */
 function ProfileLivePreview({
-  form, approvedUsername, saving, canSave, saveStatus, saveError, onSave,
+  form, approvedUsername, walletAddress, fallbackImage,
 }: {
   form: ProfileForm;
   approvedUsername?: string | null;
-  saving: boolean;
-  canSave: boolean;
-  saveStatus: "idle" | "saved" | "error";
-  saveError: string | null;
-  onSave: () => void;
+  walletAddress?: string | null;
+  /** First owned asset's image — the real page's last-resort hero fallback. */
+  fallbackImage?: string | null;
 }) {
-  const avatarUrl = resolveTokenImage(form.avatarImage);
+  const displayName = form.displayName || "Your name";
+  const heroUrl = resolveTokenImage(form.bannerImage) || resolveTokenImage(form.avatarImage) || fallbackImage || null;
 
   return (
-    <div className="rounded-2xl border border-border/60 bg-card p-6 space-y-5">
-      <div>
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Public preview</p>
-        <p className="mt-0.5 text-xs text-muted-foreground/70">How your profile appears to others</p>
-      </div>
+    <div style={{ perspective: "1000px" }}>
+      <div
+        className="rounded-[24px] p-[1.5px] shadow-[0_16px_40px_-16px_rgba(91,76,230,0.45)]"
+        style={{ background: CARD_FRAME_GRADIENT }}
+      >
+        <div className="ml-card-material relative rounded-[22.5px] overflow-hidden text-[#0a0e1f] dark:text-white ring-1 ring-inset ring-black/[0.06] dark:ring-white/[0.06]">
+          <p className="relative px-5 pt-4 text-[10px] font-bold uppercase tracking-[0.14em] text-[#0a0e1f]/45 dark:text-white/45">
+            Public preview
+          </p>
 
-      <div className="flex items-center gap-3">
-        {avatarUrl ? (
-          <Image src={avatarUrl} alt="" width={56} height={56} unoptimized className="h-14 w-14 rounded-full object-cover border border-border/60 shrink-0" />
-        ) : (
-          <div className="h-14 w-14 rounded-full bg-gradient-to-br from-brand-blue via-brand-purple to-brand-rose flex items-center justify-center shrink-0">
-            <span className="text-lg font-semibold text-white">{(form.displayName || "?").slice(0, 1).toUpperCase()}</span>
+          {/* Hero — same image + fallback priority as the real creator page */}
+          <div className="px-2.5 pt-2.5">
+            <div className="relative aspect-[16/9] w-full overflow-hidden rounded-[16px] ring-1 ring-black/10 dark:ring-white/10">
+              {heroUrl ? (
+                <Image src={heroUrl} alt="" fill unoptimized className="object-cover" />
+              ) : (
+                <div className="h-full w-full" style={{ background: CARD_FRAME_GRADIENT, opacity: 0.9 }} />
+              )}
+            </div>
           </div>
-        )}
-        <div className="min-w-0">
-          <p className="truncate font-semibold text-foreground">{form.displayName || "Your name"}</p>
-          {approvedUsername ? (
-            <p className="text-xs text-primary tabular-nums">@{approvedUsername}</p>
-          ) : (
-            <p className="text-xs text-muted-foreground/60">No username yet</p>
-          )}
+
+          {/* Holographic sheen — same as the mint preview card */}
+          <div
+            aria-hidden
+            className="ml-card-sheen pointer-events-none absolute inset-0 opacity-40"
+          />
+
+          <div className="relative px-5 pt-3 pb-5 space-y-3">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="truncate text-[18px] font-bold leading-snug">{displayName}</p>
+                {walletAddress && <CreatorScoreInline address={walletAddress} />}
+              </div>
+              {approvedUsername ? (
+                <p className="text-[11px] tabular-nums text-[#0a0e1f]/55 dark:text-white/55">@{approvedUsername}</p>
+              ) : (
+                <p className="text-[11px] text-[#0a0e1f]/40 dark:text-white/40">No username yet</p>
+              )}
+            </div>
+
+            {form.bio && (
+              <p className="text-xs text-[#0a0e1f]/60 dark:text-white/60 leading-relaxed line-clamp-2">{form.bio}</p>
+            )}
+
+            {(form.websiteUrl || form.twitterUrl || form.discordUrl || form.telegramUrl) && (
+              <div className="flex items-center gap-2">
+                {form.websiteUrl && (
+                  <span className="h-7 w-7 rounded-full bg-black/5 dark:bg-white/10 flex items-center justify-center text-[#0a0e1f]/60 dark:text-white/60">
+                    <Globe className="h-3.5 w-3.5" />
+                  </span>
+                )}
+                {form.twitterUrl && (
+                  <span className="h-7 w-7 rounded-full bg-black/5 dark:bg-white/10 flex items-center justify-center text-[#0a0e1f]/60 dark:text-white/60">
+                    <Twitter className="h-3.5 w-3.5" />
+                  </span>
+                )}
+                {form.discordUrl && (
+                  <span className="h-7 w-7 rounded-full bg-black/5 dark:bg-white/10 flex items-center justify-center text-[#0a0e1f]/60 dark:text-white/60">
+                    <MessageCircle className="h-3.5 w-3.5" />
+                  </span>
+                )}
+                {form.telegramUrl && (
+                  <span className="h-7 w-7 rounded-full bg-black/5 dark:bg-white/10 flex items-center justify-center text-[#0a0e1f]/60 dark:text-white/60">
+                    <Send className="h-3.5 w-3.5" />
+                  </span>
+                )}
+              </div>
+            )}
+
+            <div className="my-1 h-px bg-black/10 dark:bg-white/10" />
+
+            <div className="flex items-center gap-2">
+              <span aria-hidden className="h-3.5 w-3.5 rounded-full shrink-0" style={{ background: CARD_FRAME_GRADIENT }} />
+              <span className="text-[9px] font-bold tracking-[0.18em] text-[#0a0e1f]/50 dark:text-white/50">MEDIALANE</span>
+              {approvedUsername && (
+                <Link
+                  href={`/creator/${approvedUsername}`}
+                  className="ml-auto inline-flex items-center gap-1 text-[11px] font-medium text-[#0a0e1f]/70 dark:text-white/70 hover:underline"
+                >
+                  View profile
+                  <ArrowUpRight className="h-3 w-3" />
+                </Link>
+              )}
+            </div>
+          </div>
         </div>
       </div>
+    </div>
+  );
+}
 
-      {form.bio && (
-        <p className="text-sm text-muted-foreground line-clamp-3">{form.bio}</p>
-      )}
+function SnapshotStat({ icon: Icon, value, label }: { icon: React.ElementType; value: number; label: string }) {
+  return (
+    <div className="flex-1 min-w-0 text-center">
+      <div className="flex items-center justify-center gap-1 text-muted-foreground/70">
+        <Icon className="h-3 w-3" />
+      </div>
+      <p className="mt-1 text-lg font-bold tabular-nums text-foreground">{value}</p>
+      <p className="text-[10.5px] text-muted-foreground">{label}</p>
+    </div>
+  );
+}
 
-      <div className="pt-4 border-t border-border/60 space-y-2">
-        <Button onClick={onSave} disabled={!canSave || saving} className="w-full">
-          {saving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving…</> : "Save changes"}
-        </Button>
-        {saveStatus === "saved" && (
-          <p className="flex items-center justify-center gap-1.5 text-sm text-emerald-500">
-            <CheckCircle2 className="h-4 w-4" /> Saved
+/** Portfolio at a glance — same three counts the portfolio pages track, so this stays a quick pulse-check rather than a second portfolio surface. */
+function PortfolioSnapshot({ assets, listings, collections }: { assets: number; listings: number; collections: number }) {
+  return (
+    <div className="rounded-2xl border border-border/60 bg-card p-5 space-y-4">
+      <div>
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Portfolio</p>
+        <p className="mt-0.5 text-xs text-muted-foreground/70">What you own on Medialane</p>
+      </div>
+      <div className="flex items-center border-t border-border/60 pt-4">
+        <SnapshotStat icon={Gem} value={assets} label="Assets" />
+        <SnapshotStat icon={Tag} value={listings} label="Listed" />
+        <SnapshotStat icon={LayoutGrid} value={collections} label="Collections" />
+      </div>
+      <Link
+        href="/portfolio"
+        className="flex items-center justify-center gap-1 text-xs font-medium text-primary hover:underline"
+      >
+        View portfolio
+        <ArrowUpRight className="h-3 w-3" />
+      </Link>
+    </div>
+  );
+}
+
+/** Rewards at a glance — mirrors the same level/XP data the portfolio header and /rewards page read from `useRewards`. */
+function RewardsSnapshot({ address }: { address?: string | null }) {
+  const { data: rewards } = useRewards(address);
+  if (!rewards) return null;
+
+  return (
+    <div className="rounded-2xl border border-border/60 bg-card p-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Rewards</p>
+          <p className="mt-0.5 text-xs text-muted-foreground/70">Your creator journey</p>
+        </div>
+        <Trophy className="h-4 w-4 text-muted-foreground/50" />
+      </div>
+      <div className="border-t border-border/60 pt-4 space-y-2">
+        <div className="flex items-center justify-between">
+          <LevelBadge level={rewards.currentLevel} name={rewards.currentLevelName} badgeColor={rewards.badgeColor} />
+          <span className="text-xs tabular-nums text-muted-foreground">{rewards.totalXp.toLocaleString()} XP</span>
+        </div>
+        <div className="h-2 rounded-full bg-muted-foreground/15 overflow-hidden">
+          <div
+            className="h-full rounded-full"
+            style={{ width: `${rewards.progressPct}%`, background: CARD_FRAME_GRADIENT }}
+          />
+        </div>
+        {rewards.nextLevel && (
+          <p className="text-[10.5px] text-muted-foreground">
+            {rewards.nextLevel.xpRequired - rewards.totalXp} XP to Lv.{rewards.nextLevel.level} {rewards.nextLevel.name}
           </p>
         )}
-        {saveStatus === "error" && saveError && (
-          <p className="text-center text-sm text-destructive">{saveError}</p>
-        )}
       </div>
+      <Link
+        href="/rewards"
+        className="flex items-center justify-center gap-1 text-xs font-medium text-primary hover:underline"
+      >
+        View rewards
+        <ArrowUpRight className="h-3 w-3" />
+      </Link>
     </div>
   );
 }
@@ -159,12 +300,15 @@ export default function SettingsContent() {
   const { profile, isLoading: profileLoading, mutate } = useCreatorProfile(walletAddress ?? undefined);
   const { username: approvedUsername, claim, mutate: mutateClaim } = useMyUsernameClaim();
   const { tokens: ownedTokens, isLoading: assetsLoading } = useTokensByOwner(walletAddress ?? null, 1, 100);
+  const { orders } = useUserOrders(walletAddress ?? null);
+  const { collections } = useCollectionsByOwner(walletAddress ?? null);
   const ownedAssets: OwnedAsset[] = ownedTokens.map((t) => ({
     contractAddress: t.contractAddress,
     tokenId: t.tokenId,
     name: t.metadata?.name ?? `Token #${t.tokenId}`,
     image: resolveTokenImage(t.metadata?.image),
   }));
+  const activeListings = orders.filter((o) => o.status === "ACTIVE" && o.offer.itemType !== "ERC20");
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saved" | "error">("idle");
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -328,15 +472,20 @@ export default function SettingsContent() {
     <ServiceFormShell
       {...headerProps}
       aside={
-        <ProfileLivePreview
-          form={form}
-          approvedUsername={approvedUsername}
-          saving={saving}
-          canSave={!!walletAddress && !profileLoading}
-          saveStatus={saveStatus}
-          saveError={saveError}
-          onSave={handleSave}
-        />
+        <div className="space-y-4">
+          <ProfileLivePreview
+            form={form}
+            approvedUsername={approvedUsername}
+            walletAddress={walletAddress}
+            fallbackImage={ownedAssets[0]?.image}
+          />
+          <PortfolioSnapshot
+            assets={ownedAssets.length}
+            listings={activeListings.length}
+            collections={collections.length}
+          />
+          <RewardsSnapshot address={walletAddress} />
+        </div>
       }
     >
       <div className="space-y-8">
@@ -518,6 +667,21 @@ export default function SettingsContent() {
             {field("discordUrl", "Discord", "https://discord.gg/…")}
             {field("telegramUrl", "Telegram", "https://t.me/…")}
           </div>
+        </div>
+
+        {/* Save — pinned to the form, not the preview rail */}
+        <div className="sticky bottom-4 z-10 rounded-2xl border border-border/60 bg-card/95 backdrop-blur-md p-4 shadow-lg flex items-center gap-3">
+          <Button onClick={handleSave} disabled={saving || !walletAddress || profileLoading} className="w-full sm:w-auto">
+            {saving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving…</> : "Save changes"}
+          </Button>
+          {saveStatus === "saved" && (
+            <span className="flex items-center gap-1.5 text-sm text-emerald-500">
+              <CheckCircle2 className="h-4 w-4" /> Saved
+            </span>
+          )}
+          {saveStatus === "error" && saveError && (
+            <span className="text-sm text-destructive">{saveError}</span>
+          )}
         </div>
 
         {/* Sign out */}
