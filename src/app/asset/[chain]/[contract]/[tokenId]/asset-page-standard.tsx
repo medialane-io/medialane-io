@@ -10,7 +10,7 @@ import { useCollection, useNearbyCollectionTokens } from "@/hooks/use-collection
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AddressDisplay } from "@/components/shared/address-display";
-import { PageContainer, AssetCollectionBar, AssetUtilityIcons, AssetMarketplacePanel, isLivingRenderCollection } from "@medialane/ui";
+import { PageContainer, AssetCollectionBar, AssetUtilityIcons, AssetMarketplacePanel, AssetMediaColumn, isLivingRenderCollection } from "@medialane/ui";
 import type { Chain } from "@medialane/sdk";
 import { ipfsToHttp, timeUntil, formatDisplayPrice, checkIsOwner } from "@/lib/utils";
 import { DollarSign, UserCheck, Globe, Bot, Percent, Shield, Calendar, Layers, GitBranch } from "lucide-react";
@@ -45,7 +45,6 @@ import { AssetOverviewContent } from "./asset-overview-content";
 import { AssetHeaderBlock } from "@/components/asset/asset-header-block";
 import { OpenInDappCallout } from "@/components/asset/open-in-dapp-callout";
 import { SignedOutAssetActions } from "@/components/asset/signed-out-asset-actions";
-import { AssetMediaColumn } from "@/components/asset/asset-media-column";
 import { AssetLightbox } from "@/components/asset/asset-lightbox";
 import { ReportDialog } from "@/components/report-dialog";
 import { HelpIcon } from "@/components/ui/help-icon";
