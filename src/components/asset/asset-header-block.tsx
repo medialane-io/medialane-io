@@ -31,7 +31,7 @@ export function AssetHeaderBlock({
   ownerAddress,
 }: AssetHeaderBlockProps) {
   return (
-    <div>
+    <div className="min-w-0 flex-1">
       {ipType || showMultiEditionBadge ? (
         <div className="flex items-center gap-2 flex-wrap mb-2">
           {ipType ? <IpTypeBadge ipType={ipType} size="md" /> : null}
@@ -66,7 +66,7 @@ export function AssetHeaderBlock({
         </div>
       ) : null}
 
-      <h1 className="text-2xl lg:text-4xl font-bold leading-tight">{name}</h1>
+      <h1 className="text-2xl lg:text-4xl font-bold leading-tight break-words">{name}</h1>
 
       {description ? (
         <p className="text-sm text-muted-foreground leading-relaxed mt-3">{description}</p>
