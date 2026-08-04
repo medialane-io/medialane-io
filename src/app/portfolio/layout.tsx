@@ -145,18 +145,19 @@ export default function PortfolioLayout({ children }: { children: React.ReactNod
         }
       />
 
-      <PortfolioNav
-        sections={NAV_SECTIONS}
-        pathname={pathname}
-        badgeCounts={{
-          offers: counts.received,
-          remixes: counts.remix,
-          counters: counts.counter,
-          sponsorships: counts.sponsorships,
-        }}
-      />
+      {pathname !== "/portfolio" && (
+        <PortfolioNav
+          sections={NAV_SECTIONS}
+          pathname={pathname}
+          badgeCounts={{
+            offers: counts.received,
+            remixes: counts.remix,
+            counters: counts.counter,
+            sponsorships: counts.sponsorships,
+          }}
+        />
+      )}
 
-      {/* Page content */}
       {children}
     </div>
   );
