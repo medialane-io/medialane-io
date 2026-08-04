@@ -19,6 +19,14 @@ export {
 export const STARKNET_RPC_URL =
   readStringEnv(process.env.NEXT_PUBLIC_STARKNET_RPC_URL);
 
+// Server-only keyed RPC endpoint (no NEXT_PUBLIC_ prefix, so these evaluate to
+// "" in the browser bundle regardless — Next only inlines NEXT_PUBLIC_* vars).
+// Same priority chain /api/rpc/route.ts uses for its own upstream selection.
+export const RPC_MAIN_URL =
+  readStringEnv(process.env.ALCHEMY_RPC_URL) || readStringEnv(process.env.STARKNET_RPC_URL_SERVER);
+export const RPC_FALLBACK_URL =
+  readStringEnv(process.env.STARKNET_RPC_FALLBACK_URL, "https://rpc.starknet.lava.build");
+
 /**
  * `MEDIALANE_BACKEND_URL` is **environment-aware**:
  *
