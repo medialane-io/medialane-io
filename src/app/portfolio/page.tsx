@@ -4,28 +4,30 @@ import Link from "next/link";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useUserOrders } from "@/hooks/use-orders";
 import { useTokensByOwner } from "@/hooks/use-tokens";
-import { useRemixOffers } from "@/hooks/use-remix-offers";
 import { useActivitiesByAddress } from "@/hooks/use-activities";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
-import { PortfolioOverview, derivePortfolioCounts } from "@medialane/ui";
+import { PortfolioOverview, type PortfolioBentoTileConfig } from "@medialane/ui";
 import { AssetsGrid } from "@/components/portfolio/assets-grid";
 import { ActivityRow } from "@/components/shared/activity-row";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
+
+const TICKET_TYPES = new Set(["ticket", "club"]);
 
 export default function PortfolioOverviewPage() {
   const { walletAddress } = useSessionKey();
   const address = walletAddress ?? null;
 
   const { orders } = useUserOrders(address);
-  const { meta, isLoading: loadingTokens } = useTokensByOwner(address, 1, 4);
-  const { offers: remixOffers } = useRemixOffers("creator");
+  const { tokens, meta, isLoading: loadingTokens } = useTokensByOwner(address, 1, 8);
   const { activities, isLoading: loadingActivity } = useActivitiesByAddress(address);
   const { collections } = useCollectionsByOwner(address);
 
-  const counts = derivePortfolioCounts(orders, remixOffers, address);
   const totalAssets = meta?.total ?? null;
   const recentActivity = activities.slice(0, 5);
+  const passItems = tokens.filter((t) =>
+    TICKET_TYPES.has((t.metadata.ipType ?? "").toLowerCase()),
+  );
 
   const isEmpty =
     !loadingTokens &&
@@ -34,65 +36,109 @@ export default function PortfolioOverviewPage() {
     activities.length === 0 &&
     orders.length === 0;
 
-  const pendingCount = counts.received + counts.counter + counts.remix;
-  const compact = totalAssets != null && totalAssets < 3 && pendingCount === 0;
-
-  return (
-    <PortfolioOverview
-      stats={[
-        {
-          label: "Assets",
-          value: totalAssets,
-          sub: collections.length > 0
-            ? `${collections.length} collection${collections.length === 1 ? "" : "s"}`
-            : undefined,
-          href: "/portfolio/assets",
-        },
-        { label: "Listings", value: counts.listings, href: "/portfolio/listings" },
-        {
-          label: "Offers received",
-          value: counts.received,
-          sub: counts.received > 0 ? "Respond in Trading" : undefined,
-          href: "/portfolio/received",
-        },
-      ]}
-      quickActions={[
-        { label: "Creator launchpad", href: "/launchpad" },
-        { label: "Browse marketplace", href: "/marketplace" },
-      ]}
-      compact={compact}
-      assetsHref="/portfolio/assets"
-      assetsSlot={
+  const tiles: PortfolioBentoTileConfig[] = [
+    {
+      key: "collections",
+      title: "Collections",
+      href: "/portfolio/collections",
+      size: "tall",
+      isEmpty: collections.length === 0,
+      emptyState: (
+        <p className="text-sm text-muted-foreground py-8 text-center">
+          No collections yet.
+        </p>
+      ),
+      content: (
+        <div className="grid grid-cols-2 gap-3">
+          {collections.slice(0, 4).map((c) => (
+            <Link
+              key={c.contractAddress}
+              href={`/collections/${c.contractAddress}`}
+              className="text-sm truncate"
+            >
+              {c.name ?? c.contractAddress}
+            </Link>
+          ))}
+        </div>
+      ),
+    },
+    {
+      key: "assets",
+      title: "Assets",
+      href: "/portfolio/assets",
+      size: "wide",
+      action: (
+        <Button asChild size="sm" variant="outline">
+          <Link href="/portfolio/listings">List</Link>
+        </Button>
+      ),
+      isEmpty: !loadingTokens && totalAssets === 0,
+      emptyState: (
+        <p className="text-sm text-muted-foreground py-8 text-center">
+          No assets yet.
+        </p>
+      ),
+      content: (
         <AssetsGrid
           address={address}
           limit={4}
           gridClassName="grid grid-cols-2 xl:grid-cols-4 gap-4"
         />
-      }
-      activityHref="/portfolio/activity"
-      activitySlot={
-        loadingActivity ? (
-          <div className="space-y-2">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-14 rounded-xl bg-muted animate-pulse" />
-            ))}
-          </div>
-        ) : recentActivity.length > 0 ? (
-          <div className="rounded-xl border border-border overflow-hidden divide-y divide-border/50">
-            {recentActivity.map((activity, i) => (
-              <ActivityRow
-                key={`${activity.txHash}-${activity.type}-${i}`}
-                activity={activity}
-                showActor={false}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="rounded-xl border border-border p-6 text-center text-sm text-muted-foreground">
-            No activity yet.
-          </div>
-        )
-      }
+      ),
+    },
+    {
+      key: "tickets",
+      title: "Tickets & memberships",
+      href: "/portfolio/assets",
+      size: "compact",
+      isEmpty: !loadingTokens && passItems.length === 0,
+      emptyState: (
+        <p className="text-sm text-muted-foreground py-8 text-center">
+          No tickets or memberships yet.
+        </p>
+      ),
+      content: (
+        <div className="space-y-2">
+          {passItems.slice(0, 3).map((t) => (
+            <Link
+              key={`${t.contractAddress}-${t.tokenId}`}
+              href={`/asset/starknet/${t.contractAddress}/${t.tokenId}`}
+              className="block text-sm truncate"
+            >
+              {t.metadata.name ?? `#${t.tokenId}`}
+            </Link>
+          ))}
+        </div>
+      ),
+    },
+    {
+      key: "activity",
+      title: "Activity",
+      href: "/portfolio/activity",
+      size: "wide",
+      isEmpty: !loadingActivity && recentActivity.length === 0,
+      emptyState: (
+        <p className="text-sm text-muted-foreground py-8 text-center">
+          No activity yet.
+        </p>
+      ),
+      content: (
+        <div className="rounded-xl border border-border overflow-hidden divide-y divide-border/50">
+          {recentActivity.map((activity, i) => (
+            <ActivityRow
+              key={`${activity.txHash}-${activity.type}-${i}`}
+              activity={activity}
+              showActor={false}
+            />
+          ))}
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <PortfolioOverview
+      tiles={tiles}
       isEmpty={isEmpty}
       emptyState={
         <div className="rounded-xl border border-border p-10 text-center space-y-4">
