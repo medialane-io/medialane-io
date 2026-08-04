@@ -16,34 +16,23 @@ import { useRewards } from "@/hooks/use-rewards";
 import { useMySponsorshipDealCounts } from "@/hooks/use-sponsorship";
 import {
   PortfolioHeader,
-  PortfolioNav,
+  PortfolioChipFilter,
   derivePortfolioCounts,
-  type PortfolioNavSection,
+  type PortfolioChipFilterOption,
 } from "@medialane/ui";
 
-const NAV_SECTIONS: PortfolioNavSection[] = [
-  { label: "Overview", href: "/portfolio" },
-  {
-    label: "Items",
-    href: "/portfolio/assets",
-    children: [
-      { label: "Assets",      href: "/portfolio/assets" },
-      { label: "Collections", href: "/portfolio/collections" },
-    ],
-  },
-  {
-    label: "Trading",
-    href: "/portfolio/listings",
-    children: [
-      { label: "Listings",        href: "/portfolio/listings" },
-      { label: "Offers received", href: "/portfolio/received", badge: { key: "offers", variant: "destructive" } },
-      { label: "Offers sent",     href: "/portfolio/offers" },
-      { label: "Counter-offers",  href: "/portfolio/counter-offers", badge: { key: "counters", variant: "warning" } },
-      { label: "Licensing",       href: "/portfolio/licensing", badge: { key: "remixes", variant: "primary" } },
-      { label: "Sponsorships",    href: "/portfolio/sponsorships", badge: { key: "sponsorships", variant: "primary" } },
-    ],
-  },
-  { label: "Activity", href: "/portfolio/activity" },
+/** Every portfolio destination, flat — this chip bar is the section's only navigation, on every page. */
+const PORTFOLIO_SECTIONS: { key: string; label: string; href: string }[] = [
+  { key: "overview",    label: "Overview",            href: "/portfolio" },
+  { key: "assets",      label: "Assets",               href: "/portfolio/assets" },
+  { key: "collections", label: "Collections",           href: "/portfolio/collections" },
+  { key: "listings",    label: "Listings",              href: "/portfolio/listings" },
+  { key: "received",    label: "Offers received",       href: "/portfolio/received" },
+  { key: "offers",      label: "Offers sent",           href: "/portfolio/offers" },
+  { key: "counter",     label: "Counter-offers",        href: "/portfolio/counter-offers" },
+  { key: "licensing",   label: "Licensing",             href: "/portfolio/licensing" },
+  { key: "sponsorship", label: "Sponsorships",          href: "/portfolio/sponsorships" },
+  { key: "activity",    label: "Activity",              href: "/portfolio/activity" },
 ];
 
 export default function PortfolioLayout({ children }: { children: React.ReactNode }) {
@@ -145,18 +134,25 @@ export default function PortfolioLayout({ children }: { children: React.ReactNod
         }
       />
 
-      {pathname !== "/portfolio" && (
-        <PortfolioNav
-          sections={NAV_SECTIONS}
-          pathname={pathname}
-          badgeCounts={{
-            offers: counts.received,
-            remixes: counts.remix,
-            counters: counts.counter,
-            sponsorships: counts.sponsorships,
-          }}
-        />
-      )}
+      <PortfolioChipFilter
+        options={PORTFOLIO_SECTIONS.map((s): PortfolioChipFilterOption => ({
+          key: s.key,
+          href: s.href,
+          label:
+            s.key === "received" && counts.received > 0
+              ? `${s.label} (${counts.received})`
+              : s.key === "counter" && counts.counter > 0
+                ? `${s.label} (${counts.counter})`
+                : s.key === "licensing" && counts.remix > 0
+                  ? `${s.label} (${counts.remix})`
+                  : s.key === "sponsorship" && counts.sponsorships > 0
+                    ? `${s.label} (${counts.sponsorships})`
+                    : s.label,
+        }))}
+        value={pathname}
+        onChange={() => {}}
+        showAll={false}
+      />
 
       {children}
     </div>

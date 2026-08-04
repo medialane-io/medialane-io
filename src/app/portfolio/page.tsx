@@ -6,23 +6,13 @@ import { useUserOrders } from "@/hooks/use-orders";
 import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useActivitiesByAddress } from "@/hooks/use-activities";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
-import { PortfolioOverview, type PortfolioBentoTileConfig, type PortfolioOverviewLink } from "@medialane/ui";
+import { PortfolioOverview, type PortfolioBentoTileConfig } from "@medialane/ui";
 import { AssetsGrid } from "@/components/portfolio/assets-grid";
 import { ActivityRow } from "@/components/shared/activity-row";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
 
 const TICKET_TYPES = new Set(["ticket", "club"]);
-
-/** Sections with no bento tile of their own — reachable as chip-bar links. */
-const TRADING_LINKS: PortfolioOverviewLink[] = [
-  { label: "Listings", href: "/portfolio/listings" },
-  { label: "Offers received", href: "/portfolio/received" },
-  { label: "Offers sent", href: "/portfolio/offers" },
-  { label: "Counter-offers", href: "/portfolio/counter-offers" },
-  { label: "Licensing", href: "/portfolio/licensing" },
-  { label: "Sponsorships", href: "/portfolio/sponsorships" },
-];
 
 export default function PortfolioOverviewPage() {
   const { walletAddress } = useSessionKey();
@@ -121,7 +111,6 @@ export default function PortfolioOverviewPage() {
   return (
     <PortfolioOverview
       tiles={tiles}
-      links={TRADING_LINKS}
       isEmpty={isEmpty}
       emptyState={
         <div className="rounded-xl border border-border p-10 text-center space-y-4">
