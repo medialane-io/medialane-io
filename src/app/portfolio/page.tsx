@@ -34,31 +34,11 @@ export default function PortfolioOverviewPage() {
     activities.length === 0 &&
     orders.length === 0;
 
+  const pendingCount = counts.received + counts.counter + counts.remix;
+  const compact = totalAssets != null && totalAssets < 3 && pendingCount === 0;
+
   return (
     <PortfolioOverview
-      attention={[
-        {
-          label: `${counts.received} offer${counts.received === 1 ? "" : "s"} received`,
-          description: "Accept, counter, or decline",
-          href: "/portfolio/received",
-          count: counts.received,
-          tone: "destructive",
-        },
-        {
-          label: `${counts.counter} counter-offer${counts.counter === 1 ? "" : "s"}`,
-          description: "A seller countered your offer",
-          href: "/portfolio/counter-offers",
-          count: counts.counter,
-          tone: "warning",
-        },
-        {
-          label: `${counts.remix} licensing request${counts.remix === 1 ? "" : "s"}`,
-          description: "Someone wants to remix your work",
-          href: "/portfolio/licensing",
-          count: counts.remix,
-          tone: "primary",
-        },
-      ]}
       stats={[
         {
           label: "Assets",
@@ -80,6 +60,7 @@ export default function PortfolioOverviewPage() {
         { label: "Creator launchpad", href: "/launchpad" },
         { label: "Browse marketplace", href: "/marketplace" },
       ]}
+      compact={compact}
       assetsHref="/portfolio/assets"
       assetsSlot={
         <AssetsGrid
