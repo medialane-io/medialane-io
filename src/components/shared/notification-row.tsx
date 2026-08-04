@@ -2,31 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import {
-  Bell, HandCoins, Zap, Tag, Sparkles, ArrowRightLeft, X, Megaphone,
-} from "lucide-react";
+import { Bell } from "lucide-react";
 import { timeAgo, cn } from "@/lib/utils";
+import { NOTIFICATION_ICON, NOTIFICATION_COLOR } from "@/lib/notification-meta";
 import type { Notification } from "@/types/notification";
-
-const TYPE_ICON: Record<string, React.ElementType> = {
-  offer:        HandCoins,
-  sale:         Zap,
-  listing:      Tag,
-  mint:         Sparkles,
-  transfer:     ArrowRightLeft,
-  cancelled:    X,
-  announcement: Megaphone,
-};
-
-const TYPE_COLOR: Record<string, string> = {
-  offer:        "text-amber-400 bg-amber-500/10",
-  sale:         "text-violet-400 bg-violet-500/10",
-  listing:      "text-sky-400 bg-sky-500/10",
-  mint:         "text-emerald-400 bg-emerald-500/10",
-  transfer:     "text-slate-400 bg-slate-500/10",
-  cancelled:    "text-rose-400 bg-rose-500/10",
-  announcement: "text-purple-400 bg-purple-500/10",
-};
 
 interface NotificationRowProps {
   notification: Notification;
@@ -40,8 +19,8 @@ export function NotificationRow({
   compact = false,
 }: NotificationRowProps) {
   const { type, title, description, image, href, timestamp, isUnread } = notification;
-  const Icon = TYPE_ICON[type] ?? Bell;
-  const colorClass = TYPE_COLOR[type] ?? "text-muted-foreground bg-muted/40";
+  const Icon = NOTIFICATION_ICON[type] ?? Bell;
+  const colorClass = NOTIFICATION_COLOR[type] ?? "text-muted-foreground bg-muted/40";
 
   return (
     <Link

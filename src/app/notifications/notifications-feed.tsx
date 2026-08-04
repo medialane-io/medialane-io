@@ -12,12 +12,14 @@ import { cn } from "@/lib/utils";
 import type { Notification, NotificationType } from "@/types/notification";
 
 const FILTERS: { label: string; value: NotificationType | "" }[] = [
-  { label: "All",           value: ""             },
-  { label: "Offers",        value: "offer"        },
-  { label: "Sales",         value: "sale"         },
-  { label: "Listings",      value: "listing"      },
-  { label: "Mints",         value: "mint"         },
-  { label: "Announcements", value: "announcement" },
+  { label: "All",           value: ""               },
+  { label: "Offers",        value: "offer"          },
+  { label: "Accepted",      value: "offer_accepted" },
+  { label: "Sales",         value: "sale"           },
+  { label: "Received",      value: "asset_received" },
+  { label: "Listings",      value: "listing"        },
+  { label: "Mints",         value: "mint"           },
+  { label: "Announcements", value: "announcement"   },
 ];
 
 function dayLabel(timestamp: string): string {
@@ -46,7 +48,7 @@ function groupByDay(items: Notification[]): [string, Notification[]][] {
 export function NotificationsFeed() {
   const { isLoaded, isSignedIn } = useUser();
   const { walletAddress } = useSessionKey();
-  const { notifications, unreadCount, markAllRead } = useNotifications(
+  const { notifications, unreadCount, markAllRead, markRead } = useNotifications(
     isSignedIn ? walletAddress : null
   );
   const [typeFilter, setTypeFilter] = useState<NotificationType | "">("");
@@ -132,7 +134,11 @@ export function NotificationsFeed() {
               </p>
               <div className="rounded-2xl border border-border/40 overflow-hidden divide-y divide-border/30 bg-card/30">
                 {items.map((n) => (
-                  <NotificationRow key={n.id} notification={n} />
+                  <NotificationRow
+                    key={n.id}
+                    notification={n}
+                    onNavigate={() => markRead(n.id)}
+                  />
                 ))}
               </div>
             </div>

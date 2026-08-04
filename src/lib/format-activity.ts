@@ -96,3 +96,37 @@ export function formatOrderNotification(order: ApiOrder): FormattedEvent {
     href,
   };
 }
+
+export function formatOfferAcceptedNotification(order: ApiOrder): FormattedEvent {
+  const name  = order.token?.name ?? `#${order.nftTokenId}`;
+  const raw   = order.token?.image ?? null;
+  const image = raw ? ipfsToHttp(raw) : null;
+  const href  = order.nftContract && order.nftTokenId
+    ? assetHref("STARKNET", order.nftContract, order.nftTokenId)
+    : "/portfolio/assets";
+  const p = price(order.price);
+
+  return {
+    title: `Your offer was accepted`,
+    description: p ? `${name} · ${p}` : name,
+    image,
+    href,
+  };
+}
+
+export function formatAssetReceivedNotification(event: ApiActivity): FormattedEvent {
+  const contract = event.nftContract ?? event.contractAddress ?? "";
+  const tokenId  = event.nftTokenId ?? event.tokenId ?? "";
+  const href     = contract && tokenId ? assetHref("STARKNET", contract, tokenId) : "/portfolio/assets";
+  const raw      = event.token?.image ?? null;
+  const image    = raw ? ipfsToHttp(raw) : null;
+  const name     = event.token?.name ?? (tokenId ? `#${tokenId}` : "an asset");
+  const from     = event.from ? short(event.from) : null;
+
+  return {
+    title: `Asset received`,
+    description: from ? `${name} from ${from}` : name,
+    image,
+    href,
+  };
+}
