@@ -10,9 +10,13 @@ const KEY  = process.env.MEDIALANE_API_KEY ?? "";
 
 async function apiFetch<T>(path: string): Promise<T | null> {
   try {
+    // Hard 5s cap — these run inside page prerender/ISR regeneration, where a
+    // hanging backend would otherwise stall the build (Next kills a page
+    // render at 60s and fails the whole build after 3 attempts).
     const res = await fetch(`${BASE}${path}`, {
       headers: { "x-api-key": KEY },
       next: { revalidate: 60 },
+      signal: AbortSignal.timeout(5000),
     });
     if (!res.ok) return null;
     const json = await res.json();
