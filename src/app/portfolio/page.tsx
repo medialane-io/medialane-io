@@ -38,19 +38,39 @@ export default function PortfolioOverviewPage() {
 
   const tiles: PortfolioBentoTileConfig[] = [
     {
+      key: "assets",
+      title: "Assets",
+      href: "/portfolio/assets",
+      size: "large",
+      isEmpty: !loadingTokens && totalAssets === 0,
+      emptyState: (
+        <div className="text-center space-y-2">
+          <p className="text-sm text-muted-foreground">No assets yet.</p>
+          <Link href="/launchpad/single-editions" className="text-sm font-medium text-primary hover:underline">
+            Create your first asset
+          </Link>
+        </div>
+      ),
+      content: (
+        <AssetsGrid
+          address={address}
+          limit={4}
+          gridClassName="grid grid-cols-2 gap-3"
+        />
+      ),
+    },
+    {
       key: "collections",
       title: "Collections",
       href: "/portfolio/collections",
-      size: "tall",
+      size: "half",
       isEmpty: collections.length === 0,
       emptyState: (
-        <p className="text-sm text-muted-foreground py-8 text-center">
-          No collections yet.
-        </p>
+        <p className="text-sm text-muted-foreground text-center">No collections yet.</p>
       ),
       content: (
         <div className="grid grid-cols-2 gap-3">
-          {collections.slice(0, 4).map((c) => (
+          {collections.slice(0, 2).map((c) => (
             <Link
               key={c.contractAddress}
               href={`/collections/${c.contractAddress}`}
@@ -63,43 +83,17 @@ export default function PortfolioOverviewPage() {
       ),
     },
     {
-      key: "assets",
-      title: "Assets",
-      href: "/portfolio/assets",
-      size: "wide",
-      action: (
-        <Button asChild size="sm" variant="outline">
-          <Link href="/portfolio/listings">List</Link>
-        </Button>
-      ),
-      isEmpty: !loadingTokens && totalAssets === 0,
-      emptyState: (
-        <p className="text-sm text-muted-foreground py-8 text-center">
-          No assets yet.
-        </p>
-      ),
-      content: (
-        <AssetsGrid
-          address={address}
-          limit={4}
-          gridClassName="grid grid-cols-2 xl:grid-cols-4 gap-4"
-        />
-      ),
-    },
-    {
       key: "tickets",
       title: "Tickets & memberships",
       href: "/portfolio/assets",
-      size: "compact",
+      size: "half",
       isEmpty: !loadingTokens && passItems.length === 0,
       emptyState: (
-        <p className="text-sm text-muted-foreground py-8 text-center">
-          No tickets or memberships yet.
-        </p>
+        <p className="text-sm text-muted-foreground text-center">No tickets or memberships yet.</p>
       ),
       content: (
         <div className="space-y-2">
-          {passItems.slice(0, 3).map((t) => (
+          {passItems.slice(0, 2).map((t) => (
             <Link
               key={`${t.contractAddress}-${t.tokenId}`}
               href={`/asset/starknet/${t.contractAddress}/${t.tokenId}`}
@@ -115,15 +109,13 @@ export default function PortfolioOverviewPage() {
       key: "activity",
       title: "Activity",
       href: "/portfolio/activity",
-      size: "wide",
+      size: "full",
       isEmpty: !loadingActivity && recentActivity.length === 0,
       emptyState: (
-        <p className="text-sm text-muted-foreground py-8 text-center">
-          No activity yet.
-        </p>
+        <p className="text-sm text-muted-foreground text-center">No activity yet.</p>
       ),
       content: (
-        <div className="rounded-xl border border-border overflow-hidden divide-y divide-border/50">
+        <div className="rounded-xl border border-border/60 overflow-hidden divide-y divide-border/50">
           {recentActivity.map((activity, i) => (
             <ActivityRow
               key={`${activity.txHash}-${activity.type}-${i}`}
