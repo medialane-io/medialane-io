@@ -134,7 +134,7 @@ export default function CreateLicensingPage() {
         </Link>
         <div className="flex items-center gap-2 text-primary">
           <HandCoins className="h-5 w-5" />
-          <span className="text-sm font-semibold uppercase tracking-wider">Request a license</span>
+          <span className="text-sm font-semibold">Request a license</span>
         </div>
         <h1 className="text-3xl font-bold">License this asset</h1>
         <p className="text-muted-foreground max-w-xl">

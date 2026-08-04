@@ -192,7 +192,7 @@ function SearchResults() {
       <div className="space-y-4">
         <div className="flex items-center gap-2 text-primary">
           <Search className="h-5 w-5" />
-          <span className="text-sm font-semibold uppercase tracking-wider">Search</span>
+          <span className="text-sm font-semibold">Search</span>
         </div>
         <h1 className="text-3xl font-bold">Search</h1>
 

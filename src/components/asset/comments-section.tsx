@@ -288,7 +288,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
             {/* CTA label */}
             <div className="flex items-center gap-1.5">
               <Zap className="h-3 w-3" style={{ color: "hsl(var(--brand-blue))" }} />
-              <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "hsl(var(--brand-blue))" }}>
+              <span className="text-[10px] font-semibold" style={{ color: "hsl(var(--brand-blue))" }}>
                 Mint your message onchain
               </span>
             </div>

@@ -195,7 +195,7 @@ export default function CollectionsPageClient() {
 
             {/* Source */}
             <div className="space-y-2">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Source</p>
+              <p className="text-[10px] font-semibold text-muted-foreground">Source</p>
               <div className="flex flex-wrap gap-1.5">
                 {SERVICE_TABS.map(({ label, value }) => (
                   <button
@@ -217,7 +217,7 @@ export default function CollectionsPageClient() {
 
             {/* Sort */}
             <div className="space-y-2">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Sort</p>
+              <p className="text-[10px] font-semibold text-muted-foreground">Sort</p>
               <div className="flex flex-wrap gap-1.5">
                 {SORT_OPTIONS.map((opt) => (
                   <button
@@ -238,7 +238,7 @@ export default function CollectionsPageClient() {
 
             {/* Show */}
             <div className="space-y-2">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Show</p>
+              <p className="text-[10px] font-semibold text-muted-foreground">Show</p>
               <div className="flex flex-col gap-2">
                 <button
                   onClick={() => setFeatured((v) => !v)}

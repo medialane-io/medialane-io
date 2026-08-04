@@ -86,12 +86,12 @@ export function AssetProvenanceTab({
           <div className="rounded-xl border border-border bg-muted/20 p-3 text-center">
             <Activity className="h-4 w-4 text-muted-foreground mx-auto mb-1" />
             <p className="text-lg font-bold">{history.length}</p>
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Events</p>
+            <p className="text-[10px] text-muted-foreground">Events</p>
           </div>
           <div className="rounded-xl border border-border bg-muted/20 p-3 text-center">
             <ShoppingCart className="h-4 w-4 text-muted-foreground mx-auto mb-1" />
             <p className="text-lg font-bold">{sales.length}</p>
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Sales</p>
+            <p className="text-[10px] text-muted-foreground">Sales</p>
           </div>
           <div className="rounded-xl border border-border bg-muted/20 p-3 text-center">
             <TrendingUp className="h-4 w-4 text-muted-foreground mx-auto mb-1" />
@@ -106,12 +106,12 @@ export function AssetProvenanceTab({
             ) : (
               <p className="text-lg font-bold">—</p>
             )}
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Volume</p>
+            <p className="text-[10px] text-muted-foreground">Volume</p>
           </div>
           <div className="rounded-xl border border-border bg-muted/20 p-3 text-center">
             <UserCheck className="h-4 w-4 text-muted-foreground mx-auto mb-1" />
             <p className="text-lg font-bold">{allActors.size}</p>
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Participants</p>
+            <p className="text-[10px] text-muted-foreground">Participants</p>
           </div>
         </div>
       )}
@@ -119,7 +119,7 @@ export function AssetProvenanceTab({
       {/* Remixes section */}
       {remixCount > 0 && (
         <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Remixes ({remixCount})</p>
+          <p className="text-xs font-semibold text-muted-foreground">Remixes ({remixCount})</p>
           <RemixesTab contractAddress={contract} tokenId={tokenId} />
         </div>
       )}
@@ -129,7 +129,7 @@ export function AssetProvenanceTab({
 
       {/* Event timeline */}
       <div className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        <p className="text-xs font-semibold text-muted-foreground">
           History
           {firstEvent && (
             <span className="ml-2 font-normal normal-case">

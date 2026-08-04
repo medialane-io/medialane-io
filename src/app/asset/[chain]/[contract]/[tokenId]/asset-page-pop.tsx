@@ -160,7 +160,7 @@ export function AssetPagePop() {
             {creator && (
               <div className="rounded-xl border border-border px-4 py-3 flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Issued by</p>
+                  <p className="text-[10px] font-semibold text-muted-foreground">Issued by</p>
                   <Link href={`/creator/${creator}`} className="text-sm font-medium hover:text-primary transition-colors">
                     <AddressDisplay address={creator} chars={6} showCopy={false} />
                   </Link>

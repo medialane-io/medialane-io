@@ -56,7 +56,7 @@ export function AssetHeaderBlock({
 
       {ownerAddress ? (
         <div className="mb-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-          <span className="font-semibold uppercase tracking-wider">Owner</span>
+          <span className="font-semibold">Owner</span>
           <Link
             href={`/creator/${ownerAddress}`}
             className="hover:text-primary transition-colors font-medium"
