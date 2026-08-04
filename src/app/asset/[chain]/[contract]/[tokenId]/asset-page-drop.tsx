@@ -215,7 +215,7 @@ export function AssetPageDrop() {
               </div>
               {(token?.balances?.[0]?.owner ?? token?.owner) ? (
                 <div className="mb-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <span className="font-semibold uppercase tracking-wider">Owner</span>
+                  <span className="font-semibold">Owner</span>
                   <Link href={`/creator/${token?.balances?.[0]?.owner ?? token?.owner}`} className="hover:text-primary transition-colors font-medium">
                     <AddressDisplay address={(token?.balances?.[0]?.owner ?? token?.owner)!} />
                   </Link>
@@ -343,7 +343,7 @@ export function AssetPageDrop() {
             {/* Incoming offers (owner only) */}
             {isOwner && activeBids.length > 0 && (
               <div className="rounded-xl border border-border p-5 space-y-3">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Incoming offers ({activeBids.length})</p>
+                <p className="text-xs font-semibold text-muted-foreground">Incoming offers ({activeBids.length})</p>
                 <div className="space-y-2">
                   {activeBids.map((bid) => (
                     <div key={bid.orderHash} className="flex items-center justify-between gap-3 rounded-lg bg-muted/30 px-3 py-2">
@@ -407,7 +407,7 @@ export function AssetPageDrop() {
               {imageUrl && <Image src={imageUrl} alt={name} fill className="object-cover" unoptimized />}
             </div>
             <div className="min-w-0 flex-1">
-              <DialogTitle asChild><p className="text-[10px] font-medium uppercase tracking-wider text-brand-orange">Comments</p></DialogTitle>
+              <DialogTitle asChild><p className="text-[10px] font-medium text-brand-orange">Comments</p></DialogTitle>
               <p className="text-sm font-semibold truncate text-foreground">{name}</p>
             </div>
           </div>

@@ -6,7 +6,7 @@ import { useUserOrders } from "@/hooks/use-orders";
 import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useActivitiesByAddress } from "@/hooks/use-activities";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
-import { PortfolioOverview, type PortfolioBentoTileConfig } from "@medialane/ui";
+import { PortfolioOverview, CollectionCard, AssetCard, type PortfolioBentoTileConfig } from "@medialane/ui";
 import { AssetsGrid } from "@/components/portfolio/assets-grid";
 import { ActivityRow } from "@/components/shared/activity-row";
 import { Button } from "@/components/ui/button";
@@ -58,13 +58,7 @@ export default function PortfolioOverviewPage() {
       content: (
         <div className="grid grid-cols-2 gap-3">
           {collections.slice(0, 4).map((c) => (
-            <Link
-              key={c.contractAddress}
-              href={`/collections/${c.contractAddress}`}
-              className="text-sm truncate"
-            >
-              {c.name ?? c.contractAddress}
-            </Link>
+            <CollectionCard key={c.contractAddress} collection={c} />
           ))}
         </div>
       ),
@@ -75,15 +69,16 @@ export default function PortfolioOverviewPage() {
       href: "/portfolio/assets",
       isEmpty: !loadingTokens && passItems.length === 0,
       content: (
-        <div className="space-y-2">
+        <div className="grid grid-cols-2 gap-3">
           {passItems.slice(0, 4).map((t) => (
-            <Link
+            <AssetCard
               key={`${t.contractAddress}-${t.tokenId}`}
               href={`/asset/starknet/${t.contractAddress}/${t.tokenId}`}
-              className="block text-sm truncate"
-            >
-              {t.metadata.name ?? `#${t.tokenId}`}
-            </Link>
+              name={t.metadata.name ?? `#${t.tokenId}`}
+              image={t.metadata.image}
+              ipType={t.metadata.ipType}
+              fallbackId={t.tokenId}
+            />
           ))}
         </div>
       ),

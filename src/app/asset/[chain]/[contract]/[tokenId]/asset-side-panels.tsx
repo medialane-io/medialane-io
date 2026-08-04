@@ -32,7 +32,7 @@ export function AssetOwnersPanel({
 
   return (
     <div className="rounded-xl border border-border px-4 py-3 space-y-2">
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+      <p className="text-[11px] font-semibold text-muted-foreground">
         {label}
       </p>
       <div className="flex flex-col gap-1.5">
@@ -110,7 +110,7 @@ export function AssetCommentsDialog({
           </div>
           <div className="min-w-0 flex-1">
             <DialogTitle asChild>
-              <p className={`text-[10px] font-medium uppercase tracking-wider ${accentLabelClassName ?? ""}`}>
+              <p className={`text-[10px] font-medium ${accentLabelClassName ?? ""}`}>
                 Comments
               </p>
             </DialogTitle>

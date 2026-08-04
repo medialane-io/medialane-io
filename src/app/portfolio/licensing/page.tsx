@@ -39,7 +39,7 @@ export default function PortfolioLicensingPage() {
       <section className="space-y-3">
         <div className="flex items-center gap-2">
           <GitBranch className="h-4 w-4 text-primary" />
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">License requests received</h2>
+          <h2 className="text-sm font-semibold text-muted-foreground">License requests received</h2>
           {pendingIn.length > 0 && (
             <span className="h-5 min-w-5 rounded-full bg-primary text-[10px] font-bold text-primary-foreground flex items-center justify-center px-1">
               {pendingIn.length}
@@ -106,7 +106,7 @@ export default function PortfolioLicensingPage() {
       <section className="space-y-3">
         <div className="flex items-center gap-2">
           <GitBranch className="h-4 w-4 text-muted-foreground" />
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">License requests sent</h2>
+          <h2 className="text-sm font-semibold text-muted-foreground">License requests sent</h2>
         </div>
 
         {loadingOut ? (

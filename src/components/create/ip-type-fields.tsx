@@ -153,7 +153,7 @@ export function IPTypeFields({ ipType, onChange, uploadDocument }: IPTypeFieldsP
       {/* ── Document file → IPFS (Documents / Patents / Publications / Software) ── */}
       {docUpload && uploadDocument && (
         <section className="space-y-2">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          <p className="text-[11px] font-semibold text-muted-foreground">
             Document
           </p>
           {docUri ? (
@@ -215,7 +215,7 @@ export function IPTypeFields({ ipType, onChange, uploadDocument }: IPTypeFieldsP
       {/* ── Embeds (inline players) ─────────────────────────────── */}
       {template.embeds && template.embeds.length > 0 && (
         <section className="space-y-3">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Embeds</p>
+          <p className="text-[11px] font-semibold text-muted-foreground">Embeds</p>
           {template.embeds.map((platform) => {
             const meta = EMBED_PLATFORM_META[platform];
             const PIcon = meta.icon;
@@ -250,7 +250,7 @@ export function IPTypeFields({ ipType, onChange, uploadDocument }: IPTypeFieldsP
       {/* ── Social links (icon chips on the asset page) ─────────── */}
       {template.socials && template.socials.length > 0 && (
         <section className="space-y-3">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Social links</p>
+          <p className="text-[11px] font-semibold text-muted-foreground">Social links</p>
           {template.socials.map((platform) => {
             const meta = SOCIAL_PLATFORM_META[platform];
             const PIcon = meta.icon;

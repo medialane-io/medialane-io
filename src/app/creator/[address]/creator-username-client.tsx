@@ -65,7 +65,7 @@ function ActivityRow({ event, isLast }: { event: ApiActivity; isLast: boolean })
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className={cn("text-[11px] font-bold uppercase tracking-wider", meta.textColor)}>{meta.label}</span>
+              <span className={cn("text-[11px] font-bold", meta.textColor)}>{meta.label}</span>
               {contract && tokenId ? (
                 <Link href={assetHref("STARKNET", contract, tokenId)} className="text-xs text-muted-foreground tabular-nums hover:text-foreground transition-colors">
                   Token #{tokenId}
