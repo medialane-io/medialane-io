@@ -6,13 +6,23 @@ import { useUserOrders } from "@/hooks/use-orders";
 import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useActivitiesByAddress } from "@/hooks/use-activities";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
-import { PortfolioOverview, type PortfolioBentoTileConfig } from "@medialane/ui";
+import { PortfolioOverview, type PortfolioBentoTileConfig, type PortfolioOverviewLink } from "@medialane/ui";
 import { AssetsGrid } from "@/components/portfolio/assets-grid";
 import { ActivityRow } from "@/components/shared/activity-row";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
 
 const TICKET_TYPES = new Set(["ticket", "club"]);
+
+/** Sections with no bento tile of their own — reachable as chip-bar links. */
+const TRADING_LINKS: PortfolioOverviewLink[] = [
+  { label: "Listings", href: "/portfolio/listings" },
+  { label: "Offers received", href: "/portfolio/received" },
+  { label: "Offers sent", href: "/portfolio/offers" },
+  { label: "Counter-offers", href: "/portfolio/counter-offers" },
+  { label: "Licensing", href: "/portfolio/licensing" },
+  { label: "Sponsorships", href: "/portfolio/sponsorships" },
+];
 
 export default function PortfolioOverviewPage() {
   const { walletAddress } = useSessionKey();
@@ -41,16 +51,7 @@ export default function PortfolioOverviewPage() {
       key: "assets",
       title: "Assets",
       href: "/portfolio/assets",
-      size: "large",
       isEmpty: !loadingTokens && totalAssets === 0,
-      emptyState: (
-        <div className="text-center space-y-2">
-          <p className="text-sm text-muted-foreground">No assets yet.</p>
-          <Link href="/launchpad/single-editions" className="text-sm font-medium text-primary hover:underline">
-            Create your first asset
-          </Link>
-        </div>
-      ),
       content: (
         <AssetsGrid
           address={address}
@@ -63,14 +64,10 @@ export default function PortfolioOverviewPage() {
       key: "collections",
       title: "Collections",
       href: "/portfolio/collections",
-      size: "half",
       isEmpty: collections.length === 0,
-      emptyState: (
-        <p className="text-sm text-muted-foreground text-center">No collections yet.</p>
-      ),
       content: (
         <div className="grid grid-cols-2 gap-3">
-          {collections.slice(0, 2).map((c) => (
+          {collections.slice(0, 4).map((c) => (
             <Link
               key={c.contractAddress}
               href={`/collections/${c.contractAddress}`}
@@ -86,14 +83,10 @@ export default function PortfolioOverviewPage() {
       key: "tickets",
       title: "Tickets & memberships",
       href: "/portfolio/assets",
-      size: "half",
       isEmpty: !loadingTokens && passItems.length === 0,
-      emptyState: (
-        <p className="text-sm text-muted-foreground text-center">No tickets or memberships yet.</p>
-      ),
       content: (
         <div className="space-y-2">
-          {passItems.slice(0, 2).map((t) => (
+          {passItems.slice(0, 4).map((t) => (
             <Link
               key={`${t.contractAddress}-${t.tokenId}`}
               href={`/asset/starknet/${t.contractAddress}/${t.tokenId}`}
@@ -109,11 +102,8 @@ export default function PortfolioOverviewPage() {
       key: "activity",
       title: "Activity",
       href: "/portfolio/activity",
-      size: "full",
+      size: "wide",
       isEmpty: !loadingActivity && recentActivity.length === 0,
-      emptyState: (
-        <p className="text-sm text-muted-foreground text-center">No activity yet.</p>
-      ),
       content: (
         <div className="rounded-xl border border-border/60 overflow-hidden divide-y divide-border/50">
           {recentActivity.map((activity, i) => (
@@ -131,6 +121,7 @@ export default function PortfolioOverviewPage() {
   return (
     <PortfolioOverview
       tiles={tiles}
+      links={TRADING_LINKS}
       isEmpty={isEmpty}
       emptyState={
         <div className="rounded-xl border border-border p-10 text-center space-y-4">
