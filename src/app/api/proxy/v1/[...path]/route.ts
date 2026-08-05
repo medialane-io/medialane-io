@@ -15,6 +15,7 @@
  * routes (`/v1/users/me`, `/v1/creators/:wallet/profile`, …).
  */
 import { type NextRequest, NextResponse } from "next/server";
+import { isPathAllowed } from "./allowlist";
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL ?? "http://localhost:3001";
@@ -35,62 +36,9 @@ const HOP_BY_HOP_HEADERS = new Set([
   "accept-encoding",
 ]);
 
-// ─── Method/path allowlist ────────────────────────────────────────────────
-//
-// The proxy injects the server-only `MEDIALANE_API_KEY` into every outbound
-// request. The key is a fully-privileged tenant key — backend layered auth
-// (Clerk JWT, SNIP-12 signatures, on-chain ownership checks) handles the
-// real authorisation per route, but defense-in-depth at this boundary
-// limits the surface a leaked key or a future backend route addition can
-// reach through the io BFF.
-//
-// Scope rationale (audit `medialane-core/docs/audits/2026-05-25-medialane-io-bff-proxy-auth-audit.md`):
-//   - GET requests on /v1/* are ALL allowed — reads are public-equivalent
-//     and the audit confirmed there is no admin GET surface on /v1/.
-//     The previous per-resource GET enumeration caused a P0 incident
-//     (PR #44 → discover-page 403s for /v1/creators) when a new SDK
-//     method appeared without a matching pattern. Allowing all GETs
-//     prevents that entire class of incident. Postmortem #3 in the plan.
-//   - POST/PATCH/DELETE writes are an EXPLICIT enumeration. Any new
-//     mutating route requires a corresponding allowlist entry and an io PR.
-//
-// When adding a new mutating endpoint to the io app, add the (method, regex)
-// pair below. Match against the path AFTER the `/v1/` prefix.
-
-const ALLOWED_ROUTES: Record<string, RegExp[]> = {
-  // ── Reads (all GET /v1/* allowed) ──────────────────────────────────────
-  // Backend has no admin GET routes under /v1 — admin lives at /admin/* on
-  // a separate API_SECRET_KEY gate. So a wildcard here is safe.
-  GET: [/.+/],
-  // ── Mutations (explicit) ───────────────────────────────────────────────
-  POST: [
-    /^auth\/siws\/(nonce|verify)$/,                         // SIWS sign-in (mirrors the dapp's proxy allowlist)
-    /^collections\/(register|sync-tx|claim)$/,             // launchpad create + create/collection + on-chain claim
-    /^collections\/claim\/request$/,                       // manual-review claim request
-    /^collection-slug-claims$/,                            // collection settings slug claim
-    /^coins\/sync$/,                                       // creator coin launch → instant index
-    /^drop\/conditions$/,                                  // launchpad drop/create (identity-gated on backend — Clerk JWT or SIWS)
-    /^intents\/(listing|offer|counter-offer|fulfill|cancel|mint|create-collection|checkout)$/,  // marketplace + mint flows (signatures gate real auth)
-    /^intents\/[^/]+\/hydrate$/,                           // /v1/intents/:id/hydrate (tenant-scoped repair)
-    /^metadata\/(upload|upload-file)$/,                    // /v1/metadata/{upload,upload-file}
-    /^remix-offers(\/(auto|self\/confirm|[^/]+\/(confirm|reject|extend)))?$/,  // remix offer lifecycle
-    /^reports$/,                                           // /v1/reports (identity-gated on backend — Clerk JWT or SIWS)
-    /^users\/(me|register)$/,                              // /v1/users/{me,register} — me also covers upsertMyWallet
-    /^username-claims$/,                                   // /v1/username-claims
-  ],
-  PATCH: [
-    /^collections\/[^/]+\/profile$/,                       // updateCollectionProfile (identity-gated on backend — Clerk JWT or SIWS)
-    /^creators\/[^/]+\/profile$/,                          // updateCreatorProfile (identity-gated on backend — Clerk JWT or SIWS)
-    /^intents\/[^/]+\/(confirm|signature)$/,               // /v1/intents/:id/{confirm,signature}
-  ],
-  // DELETE intentionally empty — no io flow deletes through the proxy.
-};
-
-function isPathAllowed(method: string, path: string): boolean {
-  const patterns = ALLOWED_ROUTES[method.toUpperCase()];
-  if (!patterns) return false;
-  return patterns.some((re) => re.test(path));
-}
+// Method/path allowlist — see `./allowlist.ts` (split out from this route
+// handler because a route.ts file may only export recognized HTTP-method
+// handlers, and the allowlist logic needed to be independently unit-tested).
 
 async function handle(
   req: NextRequest,
