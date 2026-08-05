@@ -4,8 +4,6 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { Contract, type Abi } from "starknet";
-import { starknetProvider } from "@/lib/starknet";
 import {
   Award,
   CheckCircle2,
@@ -17,8 +15,9 @@ import { useWriteAction } from "@/hooks/use-write-action";
 import { WalletSetupGate } from "@/components/transaction/wallet-setup-gate";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useUser } from "@clerk/nextjs";
-import { toast } from "sonner";
-import { POPFactoryABI, STARKNET_POP_FACTORY_CONTRACT, type PopEventType } from "@/lib/launchpad-contracts";
+import { type PopEventType } from "@/lib/launchpad-contracts";
+import { useMedialaneClient } from "@/hooks/use-medialane-client";
+import { executePrebuiltIntent } from "@/lib/intent-tx";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { getDefaultClaimWindow, suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
@@ -35,6 +34,7 @@ export default function CreatePOPPage() {
   const { isSignedIn } = useUser();
   const { walletAddress } = useSessionKey();
   const action = useWriteAction();
+  const client = useMedialaneClient();
   const busy = action.status === "processing" || action.status === "confirming";
 
   const [eventType, setEventType] = useState<PopEventType>("Conference");
@@ -97,10 +97,6 @@ export default function CreatePOPPage() {
   };
 
   const onSubmit = (values: PopCreateFormValues) => {
-    if (!STARKNET_POP_FACTORY_CONTRACT) {
-      toast.error("POP Factory contract not configured");
-      return;
-    }
     setPendingValues(values);
     // Pass `values` through the closure — the passkey path runs synchronously,
     // before a same-tick setState settles. action.run gates wallet + unlock.
@@ -128,24 +124,21 @@ export default function CreatePOPPage() {
       new Date(`${pendingValues.claimEndDate}T${pendingValues.claimEndTime}:00`).getTime() / 1000
     );
 
-    const factory = new Contract(POPFactoryABI as unknown as Abi, STARKNET_POP_FACTORY_CONTRACT, starknetProvider);
-    const call = factory.populate("create_collection", [
-      pendingValues.name,
-      pendingValues.symbol,
+    // Metered through the intents API — the backend deploys via the POP
+    // factory server-side and returns fully-populated calls (no client-side
+    // calldata construction).
+    const intentRes = await client.api.createCollectionIntent({
+      owner: walletAddress,
+      name: pendingValues.name,
+      symbol: pendingValues.symbol,
       baseUri,
+      service: "pop-protocol",
       claimEndTimestamp,
-      { [eventType]: {} },
-    ]);
+      eventType,
+    });
 
     // action owns status/error — return the result, throw on real failure.
-    const result = await action.executeTransaction({
-      pin: secret,
-      calls: [{
-        contractAddress: STARKNET_POP_FACTORY_CONTRACT,
-        entrypoint: "create_collection",
-        calldata: call.calldata as string[],
-      }],
-    });
+    const result = await executePrebuiltIntent(action.executeTransaction, client, secret, intentRes.data, { confirm: false });
     if (result.status === "confirmed") rewardToast("launch_launchpad");
     return result;
   };

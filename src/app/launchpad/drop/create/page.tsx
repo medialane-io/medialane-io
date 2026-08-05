@@ -3,8 +3,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Contract, type Abi } from "starknet";
-import { starknetProvider } from "@/lib/starknet";
 import { Package, CheckCircle2 } from "lucide-react";
 import { Form } from "@/components/ui/form";
 import { PinDialog } from "@/components/chipi/pin-dialog";
@@ -14,7 +12,8 @@ import { useSessionKey } from "@/hooks/use-session-key";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { getListableTokens } from "@medialane/sdk";
-import { DropFactoryABI, STARKNET_DROP_FACTORY_CONTRACT } from "@/lib/launchpad-contracts";
+import { useMedialaneClient } from "@/hooks/use-medialane-client";
+import { executePrebuiltIntent } from "@/lib/intent-tx";
 import { DropCreateForm, type PaymentTokenOption } from "../drop-create-form";
 import { dropCreateSchema, type DropCreateFormValues } from "../drop-create-schema";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
@@ -39,6 +38,7 @@ export default function CreateDropPage() {
   const { isSignedIn } = useUser();
   const { walletAddress } = useSessionKey();
   const action = useWriteAction();
+  const client = useMedialaneClient();
   const busy = action.status === "processing" || action.status === "confirming";
 
   const [items, setItems] = useState<DraftItem[]>([]);
@@ -235,11 +235,11 @@ export default function CreateDropPage() {
     const paymentToken = priceFree ? "0x0" : selectedToken.address;
 
     const conditions = {
-      start_time: toTs(pendingValues.startDate, pendingValues.startTime),
-      end_time: toTs(pendingValues.endDate, pendingValues.endTime),
-      price: priceFree ? 0n : toWei(pendingValues.priceAmount ?? "0"),
-      payment_token: paymentToken,
-      max_quantity_per_wallet: maxPerWallet,
+      startTime: toTs(pendingValues.startDate, pendingValues.startTime),
+      endTime: toTs(pendingValues.endDate, pendingValues.endTime),
+      price: (priceFree ? 0n : toWei(pendingValues.priceAmount ?? "0")).toString(),
+      paymentToken,
+      maxQuantityPerWallet: maxPerWallet.toString(),
     };
 
     // Optional whitelist set at create time (creator-signed). The contract address isn't
@@ -247,15 +247,19 @@ export default function CreateDropPage() {
     // same PIN. To open the drop to everyone later, the creator toggles the allowlist off in Manage.
     const whitelist = pendingValues.whitelistEnabled ? parseAddresses(pendingValues.allowlistAddresses) : [];
 
-    const factory = new Contract(DropFactoryABI as unknown as Abi, STARKNET_DROP_FACTORY_CONTRACT, starknetProvider);
-    const call = factory.populate("create_drop", [
-      pendingValues.name, pendingValues.symbol, baseUri, maxSupply, conditions,
-    ]);
-
-    const result = await action.executeTransaction({
-      pin: secret,
-      calls: [{ contractAddress: STARKNET_DROP_FACTORY_CONTRACT, entrypoint: "create_drop", calldata: call.calldata as string[] }],
+    // Metered through the intents API — the backend deploys via the Drop
+    // factory server-side and returns fully-populated calls (no client-side
+    // calldata construction).
+    const intentRes = await client.api.createCollectionIntent({
+      owner: walletAddress,
+      name: pendingValues.name,
+      symbol: pendingValues.symbol,
+      baseUri,
+      service: "drop-collection",
+      maxSupply: maxSupply.toString(),
+      conditions,
     });
+    const result = await executePrebuiltIntent(action.executeTransaction, client, secret, intentRes.data, { confirm: false });
     if (result.status === "reverted") return result; // action surfaces the revert
     if (result.status === "confirmed") rewardToast("launch_launchpad");
 
