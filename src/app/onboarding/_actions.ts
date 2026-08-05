@@ -32,25 +32,31 @@ export async function completeOnboarding(walletData: WalletData) {
         template: process.env.NEXT_PUBLIC_CLERK_TEMPLATE_NAME || "chipipay",
       });
       if (token) {
-        const res = await fetch(`${BACKEND_URL}/v1/users/me`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            walletType: "CHIPIPAY",
-            appSource: "MEDIALANE_IO",
-            chain: "STARKNET",
-          }),
-        });
-        if (!res.ok) {
-          console.error("[ml-register] failed", {
-            appSource: "MEDIALANE_IO",
-            walletType: "CHIPIPAY",
-            source: "onboarding-action",
-            status: res.status,
+        const apiKey = process.env.MEDIALANE_API_KEY;
+        if (!apiKey) {
+          console.error("[ml-register] MEDIALANE_API_KEY is not configured on the server");
+        } else {
+          const res = await fetch(`${BACKEND_URL}/v1/users/me`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`,
+              "x-api-key": apiKey,
+            },
+            body: JSON.stringify({
+              walletType: "CHIPIPAY",
+              appSource: "MEDIALANE_IO",
+              chain: "STARKNET",
+            }),
           });
+          if (!res.ok) {
+            console.error("[ml-register] failed", {
+              appSource: "MEDIALANE_IO",
+              walletType: "CHIPIPAY",
+              source: "onboarding-action",
+              status: res.status,
+            });
+          }
         }
       }
     } catch (error) {
