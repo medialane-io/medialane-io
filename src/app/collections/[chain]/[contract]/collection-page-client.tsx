@@ -7,7 +7,7 @@ import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion
 import { useCollection, useCollectionTokens } from "@/hooks/use-collections";
 import { useOrders } from "@/hooks/use-orders";
 import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listing-card";
-import { AssetCard, AssetCardSkeleton, LoadMoreSentinel, isLivingRenderCollection } from "@medialane/ui";
+import { AssetCard, AssetCardSkeleton, LoadMoreSentinel, isLivingRenderCollection, HiddenContentBanner } from "@medialane/ui";
 import { assetHref } from "@/lib/routes";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -21,7 +21,6 @@ import { GatedContentHero } from "@/components/collection/gated-content-hero";
 import { OwnerSetupPanel } from "@/components/collection/owner-setup-panel";
 import { CreatorScoreInline } from "@/components/rewards/creator-score-inline";
 import { TransferCollectionOwnershipDialog } from "@/components/collection/transfer-ownership-dialog";
-import { HiddenContentBanner } from "@/components/hidden-content-banner";
 import Image from "next/image";
 import { ipfsToHttp, formatDisplayPrice, cn } from "@/lib/utils";
 import { useCollectionProfile } from "@/hooks/use-profiles";
