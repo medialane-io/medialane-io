@@ -24,6 +24,7 @@ import { Contract, num, type Abi } from "starknet";
 import { starknetProvider } from "@/lib/starknet";
 import { readAssignedEditionId } from "@/lib/erc1155-edition";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
+import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { MedialaneCollectionCard } from "@medialane/ui";
 import { MintEditionAside } from "@/components/claim/mint-edition-aside";
@@ -31,7 +32,6 @@ import { rewardToast } from "@/lib/reward-toast";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 import { EXPLORER_URL } from "@/lib/constants";
-import { serializeByteArray, encodeU256 } from "@/lib/cairo-calldata";
 import type { MetadataField } from "@/components/create/ip-type-fields";
 import { NftEditionsMintConfirmDialog } from "../../nfteditions-mint-confirm-dialog";
 import { NftEditionsMintForm } from "../../nfteditions-mint-form";
@@ -47,6 +47,7 @@ export default function MintIP1155Page() {
   const { isSignedIn } = useUser();
   const { walletAddress, hasWallet } = useSessionKey();
   const { executeTransaction, status: txStatus, txHash } = useChipiTransaction();
+  const client = useMedialaneClient();
 
   const [pinOpen, setPinOpen] = useState(false);
   const [walletSetupOpen, setWalletSetupOpen] = useState(false);
@@ -195,23 +196,28 @@ export default function MintIP1155Page() {
 
       setMintStep("processing");
 
-      const [valueLow, valueHigh] = encodeU256(BigInt(pendingValues.value));
+      if (!walletAddress) throw new Error("Wallet not ready. Please refresh and try again.");
+      const intentRes = await client.api.createMintIntent({
+        owner: walletAddress,
+        recipient: pendingValues.recipient,
+        collectionContract: collectionAddress,
+        tokenUri,
+        value: pendingValues.value,
+        // royaltyBps has no effect on mip-erc1155 mints — this form has no royalty field for editions mint.
+        royaltyBps: 0,
+      });
+      if (intentRes.data.requiresSignature) throw new Error("Expected a prebuilt mint intent");
 
       // The contract assigns the edition id on-chain (sequential from 1).
       const result = await executeTransaction({
         pin: secret,
-        calls: [{
-          contractAddress: collectionAddress,
-          entrypoint: "mint_edition",
-          calldata: [
-            pendingValues.recipient,
-            valueLow, valueHigh,
-            ...serializeByteArray(tokenUri),
-          ],
-        }],
+        calls: intentRes.data.calls as never,
       });
 
       if (result.status === "confirmed") {
+        // MINT intents accept confirmation (RECEIPT_HYDRATED_INTENT_TYPES) — report
+        // the tx so the backend can hydrate receipt-derived state if it needs to.
+        await client.api.confirmIntent(intentRes.data.id, result.txHash).catch(() => {});
         // Read the assigned id from the IPMinted event for the success/asset link.
         setMintedTokenId(await readAssignedEditionId(result.txHash, collectionAddress));
         if (walletAddress) invalidatePortfolioCache(walletAddress);

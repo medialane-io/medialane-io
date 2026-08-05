@@ -30,8 +30,7 @@ import { CreateClubAside } from "@/components/claim/create-club-aside";
 import { rewardToast } from "@/lib/reward-toast";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
-import { serializeByteArray } from "@/lib/cairo-calldata";
-import { STARKNET_IP_CLUB_FACTORY_CONTRACT } from "@/lib/constants";
+import { useMedialaneClient } from "@/hooks/use-medialane-client";
 
 const CLUB_DEPLOYED_SELECTOR = hash.getSelectorFromName("ClubDeployed");
 
@@ -50,6 +49,7 @@ export default function CreateClubPage() {
   const { isSignedIn } = useUser();
   const { walletAddress } = useSessionKey();
   const action = useWriteAction();
+  const client = useMedialaneClient();
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
   const [deployedAddress, setDeployedAddress] = useState<string | null>(null);
 
@@ -93,17 +93,17 @@ export default function CreateClubPage() {
       });
     }
 
+    const intentRes = await client.api.createCollectionIntent({
+      owner: walletAddress,
+      name: values.name,
+      symbol: values.symbol,
+      baseUri,
+      service: "ip-club",
+    });
+    if (intentRes.data.requiresSignature) throw new Error("Expected a prebuilt create-collection intent");
     const result = await action.executeTransaction({
       pin: secret,
-      calls: [{
-        contractAddress: STARKNET_IP_CLUB_FACTORY_CONTRACT,
-        entrypoint: "deploy_collection",
-        calldata: [
-          ...serializeByteArray(values.name),
-          ...serializeByteArray(values.symbol),
-          ...serializeByteArray(baseUri),
-        ],
-      }],
+      calls: intentRes.data.calls as never,
     });
 
     if (result.status !== "confirmed") {

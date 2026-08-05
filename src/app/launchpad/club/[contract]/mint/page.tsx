@@ -17,9 +17,8 @@ import {
   Users, Loader2, ImagePlus, X, ShieldCheck, ChevronDown, AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
-import { Contract, cairo, CairoOption, CairoOptionVariant, type Abi } from "starknet";
+import type { Call } from "starknet";
 import { normalizeAddress } from "@medialane/sdk";
-import { IPClubCollectionABI } from "@medialane/sdk/starknet";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,7 +37,7 @@ import { useCollection } from "@/hooks/use-collections";
 import { predictNextMembershipId } from "@/hooks/use-club";
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { rewardToast } from "@/lib/reward-toast";
-import { starknetProvider } from "@/lib/starknet";
+import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { cn } from "@/lib/utils";
 import { useUser } from "@clerk/nextjs";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
@@ -103,6 +102,7 @@ export default function CreateMembershipPage({ params }: { params: Promise<{ con
   const { address } = useWallet();
   const { collection, isLoading } = useCollection(contract);
   const action = useWriteAction();
+  const client = useMedialaneClient();
 
   const [licensingOpen, setLicensingOpen] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
@@ -123,7 +123,7 @@ export default function CreateMembershipPage({ params }: { params: Promise<{ con
     },
   });
 
-  const isOwner = !!address && !!collection?.owner && address.toLowerCase() === collection.owner.toLowerCase();
+  const isOwner = !!address && !!collection?.owner && normalizeAddress("STARKNET", address) === normalizeAddress("STARKNET", collection.owner);
 
   const handleImageSelect = async (file: File) => {
     if (file.size > 10 * 1024 * 1024) { toast.error("Max 10 MB"); return; }
@@ -190,29 +190,37 @@ export default function CreateMembershipPage({ params }: { params: Promise<{ con
     const endTime = dateToUnixTimestamp(values.endDate);
     const royaltyBps = Math.round(values.royalty * 100);
 
-    const col = new Contract(IPClubCollectionABI as unknown as Abi, contract, starknetProvider);
-
-    // Ids are sequential and only the owner can ever call create_membership,
-    // so the id can be predicted ahead of the tx and both calls bundled into
-    // one multicall — one PIN unlock for what is one "create" action.
+    // Ids are sequential and only the owner can ever call create_membership, so
+    // the id can still be predicted ahead of time and both intents' calls
+    // bundled into one multicall — one PIN unlock for one "create" action.
     const tierId = await predictNextMembershipId(contract);
     setMintedTierId(String(tierId));
 
-    const createCall = col.populate("create_membership", [
-      cairo.uint256(values.maxSupply),
-      startTime != null ? new CairoOption(CairoOptionVariant.Some, startTime) : new CairoOption(CairoOptionVariant.None),
-      endTime != null ? new CairoOption(CairoOptionVariant.Some, endTime) : new CairoOption(CairoOptionVariant.None),
+    const tierRes = await client.api.createTierIntent({
+      owner: address,
+      collection: contract,
+      service: "ip-club",
+      maxSupply: values.maxSupply,
+      startTime,
+      endTime,
       royaltyBps,
       metadataUri,
-    ]);
-    const mintCall = col.populate("mint", [address, cairo.uint256(tierId), cairo.uint256(values.maxSupply)]);
+    });
+    const mintRes = await client.api.createMintIntent({
+      owner: address,
+      recipient: address,
+      collectionContract: contract,
+      tokenId: String(tierId),
+      amount: values.maxSupply,
+    });
+    if (tierRes.data.requiresSignature || mintRes.data.requiresSignature) {
+      throw new Error("Expected prebuilt create-tier and mint intents");
+    }
 
+    const allCalls = [...(tierRes.data.calls as Call[]), ...(mintRes.data.calls as Call[])];
     const mintResult = await action.executeTransaction({
       pin: secret,
-      calls: [
-        { contractAddress: contract, entrypoint: "create_membership", calldata: createCall.calldata as string[] },
-        { contractAddress: contract, entrypoint: "mint", calldata: mintCall.calldata as string[] },
-      ],
+      calls: allCalls as never,
     });
     if (mintResult.status !== "confirmed") throw new Error(mintResult.revertReason ?? "Failed to create membership");
 
