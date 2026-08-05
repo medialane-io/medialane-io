@@ -29,6 +29,7 @@ import type { IPType } from "@/types/ip";
 import { IP_TEMPLATES, EMBED_PLATFORM_META, SOCIAL_PLATFORM_META } from "@/lib/ip-templates";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { normalizeAddress } from "@medialane/sdk";
 import type { ApiActivity, ApiOrder } from "@medialane/sdk";
 import { useComments } from "@/hooks/use-comments";
 import { EXPLORER_URL } from "@/lib/constants";
@@ -113,11 +114,11 @@ export function AssetPageEdition() {
   const isOwner = checkIsOwner(token, walletAddress);
   const holders = token?.balances ?? [];
   const quantityOwned = walletAddress
-    ? holders.find((h) => h.owner.toLowerCase() === walletAddress.toLowerCase())?.amount
+    ? holders.find((h) => normalizeAddress("STARKNET", h.owner) === normalizeAddress("STARKNET", walletAddress))?.amount
     : undefined;
 
   const myListing = isOwner
-    ? activeListings.find((l) => l.offerer.toLowerCase() === walletAddress!.toLowerCase())
+    ? activeListings.find((l) => normalizeAddress("STARKNET", l.offerer) === normalizeAddress("STARKNET", walletAddress!))
     : null;
 
 

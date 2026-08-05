@@ -11,6 +11,7 @@ import { useActivitiesByAddress } from "@/hooks/use-activities";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { ListingDialog } from "@/components/marketplace/listing-dialog";
+import { normalizeAddress } from "@medialane/sdk";
 import type { ApiToken } from "@medialane/sdk";
 import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
 import { AddressDisplay } from "@/components/shared/address-display";
@@ -173,8 +174,8 @@ export default function CreatorPageClient() {
 
   // Ownership detection
   const { walletAddress } = useSessionKey();
-  const isOwner = !!walletAddress &&
-    walletAddress.toLowerCase() === (address ?? "").toLowerCase();
+  const isOwner = !!walletAddress && !!address &&
+    normalizeAddress("STARKNET", walletAddress) === normalizeAddress("STARKNET", address);
 
   const { data: hiddenStatus } = useSWR<{ isHidden: boolean }>(
     address ? `/api/proxy/v1/creators/${address}/hidden` : null,

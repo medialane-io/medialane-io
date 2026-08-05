@@ -2,6 +2,7 @@
 
 import { use, useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@clerk/nextjs";
+import { normalizeAddress } from "@medialane/sdk";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useCollection } from "@/hooks/use-collections";
 import { useCollectionProfile } from "@/hooks/use-profiles";
@@ -106,7 +107,7 @@ function CollectionSlugClaimSection({
         if (!token) return;
         const { claims } = await getMedialaneClient().api.getMyCollectionSlugClaims(token);
         const match = claims.find(
-          (c) => c.contractAddress.toLowerCase() === contract.toLowerCase() && c.status === "PENDING"
+          (c) => normalizeAddress("STARKNET", c.contractAddress) === normalizeAddress("STARKNET", contract) && c.status === "PENDING"
         );
         if (match) setPendingSlug(match.slug);
       } catch {}
@@ -311,7 +312,7 @@ export default function CollectionSettingsPage({ params }: Props) {
     setForm(f => ({ ...f, [key]: e.target.value }));
 
   const isOwner = walletAddress && collection?.owner &&
-    walletAddress.toLowerCase() === collection.owner.toLowerCase();
+    normalizeAddress("STARKNET", walletAddress) === normalizeAddress("STARKNET", collection.owner);
 
   const isLoading = collectionLoading || profileLoading;
   const descLen = form.description.length;

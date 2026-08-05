@@ -31,7 +31,7 @@ import { TicketOwnerActions } from "@/components/tickets/ticket-owner-actions";
 import { ClubOwnerActions } from "@/components/club/club-owner-actions";
 import { PurchaseDialog } from "@/components/marketplace/purchase-dialog";
 import { useSessionKey } from "@/hooks/use-session-key";
-import { getService } from "@medialane/sdk";
+import { getService, normalizeAddress } from "@medialane/sdk";
 import type { ApiToken, ApiOrder, Chain, CollectionTokensSort } from "@medialane/sdk";
 
 const PAGE_SIZE = 24;
@@ -384,7 +384,7 @@ export default function CollectionPageClient() {
             {/* Right — flat utility cluster (no panel/chrome); owner actions,
                 contract, share & report, right-aligned on desktop */}
             <div className="flex flex-col gap-2.5 shrink-0 lg:items-end">
-              {walletAddress && collection.owner?.toLowerCase() === walletAddress.toLowerCase() && (
+              {walletAddress && collection.owner && normalizeAddress("STARKNET", collection.owner) === normalizeAddress("STARKNET", walletAddress) && (
                 <div className="flex items-center gap-2">
                   {getService(collection.service)?.id === "ip-tickets" && (
                     <TicketOwnerActions
@@ -499,7 +499,7 @@ export default function CollectionPageClient() {
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
                 {activeListings.map((o) => {
                   const isOwner = !!walletAddress && !!o.offerer &&
-                    o.offerer.toLowerCase() === walletAddress.toLowerCase();
+                    normalizeAddress("STARKNET", o.offerer) === normalizeAddress("STARKNET", walletAddress);
                   return <ListingCard key={o.orderHash} order={o} isOwner={isOwner} onBuy={isOwner ? undefined : handleBuy} />;
                 })}
               </div>
@@ -520,7 +520,7 @@ export default function CollectionPageClient() {
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
                 {activeBids.map((o) => {
                   const isOwner = !!walletAddress && !!o.offerer &&
-                    o.offerer.toLowerCase() === walletAddress.toLowerCase();
+                    normalizeAddress("STARKNET", o.offerer) === normalizeAddress("STARKNET", walletAddress);
                   return <ListingCard key={o.orderHash} order={o} isOwner={isOwner} />;
                 })}
               </div>
@@ -536,8 +536,8 @@ export default function CollectionPageClient() {
       </div>
 
       {/* ── Owner setup panel — after the items, before the footer ── */}
-      {!colLoading && collection && walletAddress &&
-        collection.owner?.toLowerCase() === walletAddress.toLowerCase() && (
+      {!colLoading && collection && walletAddress && collection.owner &&
+        normalizeAddress("STARKNET", collection.owner) === normalizeAddress("STARKNET", walletAddress) && (
         <>
           <OwnerSetupPanel
             contract={contract}

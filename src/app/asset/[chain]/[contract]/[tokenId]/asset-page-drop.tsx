@@ -40,14 +40,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AssetMarketsTab } from "./asset-markets-tab";
 import { AssetProvenanceTab } from "./asset-provenance-tab";
 import { HelpIcon } from "@/components/ui/help-icon";
-import { getListableTokens } from "@medialane/sdk";
+import { getListableTokens, normalizeAddress } from "@medialane/sdk";
 import type { ApiOrder, ApiActivity } from "@medialane/sdk";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 function getTokenByAddress(address: string) {
-  return getListableTokens().find((t) => t.address.toLowerCase() === address.toLowerCase()) ?? null;
+  return getListableTokens().find((t) => normalizeAddress("STARKNET", t.address) === normalizeAddress("STARKNET", address)) ?? null;
 }
 
 function DropStatusBadge({ status }: { status: ReturnType<typeof getDropStatus> }) {
@@ -167,7 +167,7 @@ export function AssetPageDrop() {
   )[0];
   const isOwner = checkIsOwner(token, walletAddress);
   const myListing = isOwner
-    ? activeListings.find((l) => l.offerer.toLowerCase() === walletAddress!.toLowerCase())
+    ? activeListings.find((l) => normalizeAddress("STARKNET", l.offerer) === normalizeAddress("STARKNET", walletAddress!))
     : null;
   const name = token?.metadata?.name ?? `Token #${tokenId}`;
 
@@ -318,7 +318,7 @@ export function AssetPageDrop() {
 
             {/* My active bid banner */}
             {!isOwner && walletAddress && (() => {
-              const myBid = activeBids.find((b) => b.offerer.toLowerCase() === walletAddress.toLowerCase());
+              const myBid = activeBids.find((b) => normalizeAddress("STARKNET", b.offerer) === normalizeAddress("STARKNET", walletAddress));
               if (!myBid) return null;
               return (
                 <div className="rounded-xl border border-amber-500/30 bg-amber-500/8 px-4 py-3 flex items-center justify-between gap-3">
