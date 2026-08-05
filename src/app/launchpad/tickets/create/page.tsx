@@ -31,6 +31,7 @@ import { rewardToast } from "@/lib/reward-toast";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
+import { executePrebuiltIntent } from "@/lib/intent-tx";
 
 const COLLECTION_DEPLOYED_SELECTOR = hash.getSelectorFromName("CollectionDeployed");
 
@@ -100,11 +101,7 @@ export default function CreateTicketCollectionPage() {
       baseUri,
       service: "ip-tickets",
     });
-    if (intentRes.data.requiresSignature) throw new Error("Expected a prebuilt create-collection intent");
-    const result = await action.executeTransaction({
-      pin: secret,
-      calls: intentRes.data.calls as never,
-    });
+    const result = await executePrebuiltIntent(action.executeTransaction, client, secret, intentRes.data, { confirm: false });
 
     if (result.status !== "confirmed") {
       throw new Error(result.revertReason ?? "Transaction reverted");

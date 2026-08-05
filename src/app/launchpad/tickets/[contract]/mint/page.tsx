@@ -17,7 +17,6 @@ import {
   Ticket, Loader2, ImagePlus, X, ShieldCheck, ChevronDown, AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
-import type { Call } from "starknet";
 import { normalizeAddress } from "@medialane/sdk";
 
 import { Button } from "@/components/ui/button";
@@ -39,6 +38,7 @@ import { predictNextTicketId } from "@/hooks/use-tickets";
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { rewardToast } from "@/lib/reward-toast";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
+import { executePrebuiltIntents } from "@/lib/intent-tx";
 import { cn } from "@/lib/utils";
 import { useUser } from "@clerk/nextjs";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
@@ -227,15 +227,10 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
       tokenId: String(ticketId),
       amount: values.maxSupply,
     });
-    if (tierRes.data.requiresSignature || mintRes.data.requiresSignature) {
-      throw new Error("Expected prebuilt create-tier and mint intents");
-    }
-
-    const allCalls = [...(tierRes.data.calls as Call[]), ...(mintRes.data.calls as Call[])];
-    const mintResult = await action.executeTransaction({
-      pin: secret,
-      calls: allCalls as never,
-    });
+    // Bundled into one multicall — one PIN unlock for what is one "mint" action.
+    // MINT accepts confirmation (RECEIPT_HYDRATED_INTENT_TYPES); CREATE_TIER's
+    // confirm attempt is swallowed (best-effort) same as it would be standalone.
+    const mintResult = await executePrebuiltIntents(action.executeTransaction, client, secret, [tierRes.data, mintRes.data]);
     if (mintResult.status !== "confirmed") throw new Error(mintResult.revertReason ?? "Failed to mint tickets");
 
     rewardToast("launch_launchpad");

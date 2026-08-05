@@ -25,6 +25,7 @@ import { starknetProvider } from "@/lib/starknet";
 import { readAssignedEditionId } from "@/lib/erc1155-edition";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
+import { executePrebuiltIntent } from "@/lib/intent-tx";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { MedialaneCollectionCard } from "@medialane/ui";
 import { MintEditionAside } from "@/components/claim/mint-edition-aside";
@@ -206,18 +207,12 @@ export default function MintIP1155Page() {
         // royaltyBps has no effect on mip-erc1155 mints — this form has no royalty field for editions mint.
         royaltyBps: 0,
       });
-      if (intentRes.data.requiresSignature) throw new Error("Expected a prebuilt mint intent");
-
       // The contract assigns the edition id on-chain (sequential from 1).
-      const result = await executeTransaction({
-        pin: secret,
-        calls: intentRes.data.calls as never,
-      });
+      // MINT intents accept confirmation (RECEIPT_HYDRATED_INTENT_TYPES) — the
+      // helper reports the tx so the backend can hydrate receipt-derived state.
+      const result = await executePrebuiltIntent(executeTransaction, client, secret, intentRes.data);
 
       if (result.status === "confirmed") {
-        // MINT intents accept confirmation (RECEIPT_HYDRATED_INTENT_TYPES) — report
-        // the tx so the backend can hydrate receipt-derived state if it needs to.
-        await client.api.confirmIntent(intentRes.data.id, result.txHash).catch(() => {});
         // Read the assigned id from the IPMinted event for the success/asset link.
         setMintedTokenId(await readAssignedEditionId(result.txHash, collectionAddress));
         if (walletAddress) invalidatePortfolioCache(walletAddress);
