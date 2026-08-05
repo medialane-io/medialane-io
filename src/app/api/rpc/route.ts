@@ -51,16 +51,11 @@ const ALLOWED_METHODS = new Set([
   "starknet_chainId",
   "starknet_blockNumber",
   "starknet_blockHashAndNumber",
-  // ── Block queries ─────────────────────────────────────────────────────────
-  "starknet_getBlockWithTxHashes",
-  "starknet_getBlockWithTxs",
   // ── Contract / account introspection ─────────────────────────────────────
   "starknet_getClassAt",
   "starknet_getClass",
   "starknet_getClassHashAt",          // Cairo 0 vs Cairo 1 account detection
   "starknet_getStorageAt",
-  // ── Events (used by SDK hooks and activity feeds) ─────────────────────────
-  "starknet_getEvents",
 ]);
 
 function isAllowedMethod(body: unknown): boolean {
