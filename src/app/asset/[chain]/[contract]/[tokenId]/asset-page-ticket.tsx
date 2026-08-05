@@ -21,6 +21,7 @@ import { LICENSE_TRAIT_TYPES } from "@/types/ip";
 import type { IPType } from "@/types/ip";
 import { IP_TEMPLATES, EMBED_PLATFORM_META, SOCIAL_PLATFORM_META } from "@/lib/ip-templates";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { normalizeAddress } from "@medialane/sdk";
 import type { ApiActivity } from "@medialane/sdk";
 import { useComments } from "@/hooks/use-comments";
 import { EXPLORER_URL } from "@/lib/constants";
@@ -172,12 +173,12 @@ export function AssetPageTicket() {
   const isOwner = checkIsOwner(token, walletAddress);
   const holders = token?.balances ?? [];
   const quantityOwned = walletAddress
-    ? holders.find((h) => h.owner.toLowerCase() === walletAddress.toLowerCase())?.amount
+    ? holders.find((h) => normalizeAddress("STARKNET", h.owner) === normalizeAddress("STARKNET", walletAddress))?.amount
     : undefined;
   const myQuantity = quantityOwned != null ? Number(quantityOwned) : 0;
 
   const myListing = isOwner
-    ? activeListings.find((l) => l.offerer.toLowerCase() === walletAddress!.toLowerCase())
+    ? activeListings.find((l) => normalizeAddress("STARKNET", l.offerer) === normalizeAddress("STARKNET", walletAddress!))
     : null;
 
   if (!token) return null;

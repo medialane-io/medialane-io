@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { CallData } from "starknet";
+import { normalizeAddress } from "@medialane/sdk";
 import { encodeTokenId } from "@/hooks/use-transfer";
 import { useAuth, SignInButton, useClerk } from "@clerk/nextjs";
 import { useComments } from "@/hooks/use-comments";
@@ -74,7 +75,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
   const isProcessing = action.status === "processing" || action.status === "confirming";
 
   const isOwn = (author: string) =>
-    !!walletAddress && author.toLowerCase() === walletAddress.toLowerCase();
+    !!walletAddress && normalizeAddress("STARKNET", author) === normalizeAddress("STARKNET", walletAddress);
 
   const isNearBottom = () => {
     const el = messagesRef.current;

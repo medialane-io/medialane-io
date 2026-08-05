@@ -31,7 +31,7 @@ import {
 import { registerRemix } from "@/hooks/use-remix-offers";
 import { serializeByteArray, encodeU256 } from "@/lib/cairo-calldata";
 import { readAssignedEditionId } from "@/lib/erc1155-edition";
-import { getService } from "@medialane/sdk";
+import { getService, normalizeAddress } from "@medialane/sdk";
 import { IP_TYPES, LICENSE_TYPES, type IPType } from "@/types/ip";
 import { ipfsToHttp, checkIsOwner } from "@/lib/utils";
 import { resolveRemixPolicy, getDerivativesTerm } from "@/lib/remix-policy";
@@ -114,7 +114,7 @@ export default function CreateRemixPage() {
   useEffect(() => {
     if (eligibleCollections.length > 0 && !collectionKey) {
       const match = eligibleCollections.find(
-        (c) => c.contractAddress.toLowerCase() === contract.toLowerCase()
+        (c) => normalizeAddress("STARKNET", c.contractAddress) === normalizeAddress("STARKNET", contract)
       );
       setCollectionKey(getCollectionKey(match ?? eligibleCollections[0]!));
     }
@@ -289,7 +289,7 @@ export default function CreateRemixPage() {
           try {
             const res = await client.api.getTokensByOwner(walletAddress, 1, 5);
             const newest = res.data?.find(
-              (t) => t.contractAddress.toLowerCase() === selectedCollection.contractAddress.toLowerCase()
+              (t) => normalizeAddress("STARKNET", t.contractAddress) === normalizeAddress("STARKNET", selectedCollection.contractAddress)
             );
             if (newest) { polledTokenId = newest.tokenId; break; }
           } catch { /* ignore */ }

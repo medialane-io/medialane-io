@@ -16,6 +16,7 @@ import { AlertCircle, ArrowLeftRight, CheckCircle2, ExternalLink, Inbox, Loader2
 import { EXPLORER_URL } from "@/lib/constants";
 import Image from "next/image";
 import Link from "next/link";
+import { normalizeAddress } from "@medialane/sdk";
 import type { ApiOrder } from "@medialane/sdk";
 
 
@@ -133,7 +134,7 @@ export function CounterOffersTable({ address }: { address: string }) {
   const counterOfferedBids = orders.filter(
     (o) =>
       o.offer.itemType === "ERC20" &&
-      o.offerer.toLowerCase() === address.toLowerCase() &&
+      normalizeAddress("STARKNET", o.offerer) === normalizeAddress("STARKNET", address) &&
       o.hasActiveCounterOffer === true
   );
 

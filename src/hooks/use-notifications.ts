@@ -12,6 +12,7 @@ import {
   formatAssetReceivedNotification,
 } from "@/lib/format-activity";
 import type { Notification, Announcement } from "@/types/notification";
+import { normalizeAddress } from "@medialane/sdk";
 import type { ApiActivity } from "@medialane/sdk";
 
 async function fetchAnnouncements(): Promise<Announcement[]> {
@@ -88,7 +89,7 @@ export function useNotifications(address: string | null | undefined) {
       if (
         event.type === "transfer" &&
         address &&
-        event.to?.toLowerCase() === address.toLowerCase()
+        !!event.to && normalizeAddress("STARKNET", event.to) === normalizeAddress("STARKNET", address)
       ) {
         const fmt = formatAssetReceivedNotification(event);
         items.push({
@@ -111,8 +112,8 @@ export function useNotifications(address: string | null | undefined) {
       const isMySale =
         event.type === "sale" &&
         address &&
-        (event.offerer?.toLowerCase() === address.toLowerCase() ||
-          event.from?.toLowerCase() === address.toLowerCase());
+        ((!!event.offerer && normalizeAddress("STARKNET", event.offerer) === normalizeAddress("STARKNET", address)) ||
+          (!!event.from && normalizeAddress("STARKNET", event.from) === normalizeAddress("STARKNET", address)));
 
       const fmt = formatActivity(event);
       items.push({

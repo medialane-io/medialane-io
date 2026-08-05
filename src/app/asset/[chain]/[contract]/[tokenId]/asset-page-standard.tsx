@@ -20,7 +20,7 @@ import type { IPType } from "@/types/ip";
 import { IP_TEMPLATES, EMBED_PLATFORM_META, SOCIAL_PLATFORM_META } from "@/lib/ip-templates";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ApiActivity, ApiOrder } from "@medialane/sdk";
-import { getService } from "@medialane/sdk";
+import { getService, normalizeAddress } from "@medialane/sdk";
 import { resolveRemixPolicy, getDerivativesTerm } from "@/lib/remix-policy";
 import { PriceHistoryChart } from "@/components/asset/price-history-chart";
 import { useComments } from "@/hooks/use-comments";
@@ -128,7 +128,7 @@ export function AssetPageStandard() {
   const isERC1155 = (token?.standard ?? collection?.standard) === "ERC1155";
 
   const myListing = isOwner
-    ? activeListings.find((l) => l.offerer.toLowerCase() === walletAddress!.toLowerCase())
+    ? activeListings.find((l) => normalizeAddress("STARKNET", l.offerer) === normalizeAddress("STARKNET", walletAddress!))
     : null;
 
 

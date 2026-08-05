@@ -14,6 +14,7 @@ import { getSeenOffers } from "@/hooks/use-unread-offers";
 import { CounterOfferDialog } from "@/components/marketplace/counter-offer-dialog";
 import Image from "next/image";
 import Link from "next/link";
+import { normalizeAddress } from "@medialane/sdk";
 import type { ApiOrder } from "@medialane/sdk";
 import type { AcceptOfferHook } from "@/hooks/use-accept-offer";
 
@@ -129,7 +130,7 @@ export function ReceivedOffersTable({ address }: ReceivedOffersTableProps) {
     (o) =>
       o.offer.itemType === "ERC20" &&
       o.status === "ACTIVE" &&
-      o.offerer.toLowerCase() !== address.toLowerCase()
+      normalizeAddress("STARKNET", o.offerer) !== normalizeAddress("STARKNET", address)
   );
 
   const handleCounter = (order: ApiOrder) => {

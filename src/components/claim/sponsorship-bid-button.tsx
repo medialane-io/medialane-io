@@ -14,7 +14,7 @@ import { rewardToast } from "@/lib/reward-toast";
 import { useUser } from "@clerk/nextjs";
 import { EXPLORER_URL } from "@/lib/constants";
 import { STARKNET_IP_SPONSORSHIP_CONTRACT } from "@/lib/constants";
-import { getListableTokens } from "@medialane/sdk";
+import { getListableTokens, normalizeAddress } from "@medialane/sdk";
 
 interface SponsorshipBidButtonProps {
   offerId: string;
@@ -35,7 +35,7 @@ export function SponsorshipBidButton({ offerId, minAmount, paymentToken, onBidPl
   const busy = action.status === "processing" || action.status === "confirming";
   const [amount, setAmount] = useState("");
 
-  const knownToken = getListableTokens().find((t) => t.address.toLowerCase() === paymentToken.toLowerCase());
+  const knownToken = getListableTokens().find((t) => normalizeAddress("STARKNET", t.address) === normalizeAddress("STARKNET", paymentToken));
   const decimals = knownToken?.decimals ?? 18;
   const minAmountDisplay = `${Number((BigInt(minAmount) * 10000n) / BigInt(10 ** decimals)) / 10000} ${knownToken?.symbol ?? "tokens"}`;
 

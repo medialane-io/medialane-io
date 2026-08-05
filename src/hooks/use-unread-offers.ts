@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { normalizeAddress } from "@medialane/sdk";
 import { useUserOrders } from "./use-orders";
 
 const STORAGE_KEY = "medialane-seen-offers";
@@ -39,7 +40,7 @@ export function useUnreadOffers(address: string | null | undefined) {
       (o) =>
         o.status === "ACTIVE" &&
         o.offer.itemType === "ERC20" &&
-        o.offerer.toLowerCase() !== address.toLowerCase()
+        normalizeAddress("STARKNET", o.offerer) !== normalizeAddress("STARKNET", address)
     );
     const seen = getSeenOffers();
     const unseen = receivedOffers.filter((o) => !seen.has(o.orderHash));

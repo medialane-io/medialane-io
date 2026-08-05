@@ -14,13 +14,13 @@ import { DropCountdown } from "@/components/launchpad/drop-countdown";
 import { useDropInfo, useOnChainDropState, getDropStatus, type DropConditions } from "@/hooks/use-drops";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { ipfsToHttp } from "@/lib/utils";
-import { getListableTokens } from "@medialane/sdk";
+import { getListableTokens, normalizeAddress } from "@medialane/sdk";
 import { cn } from "@/lib/utils";
 
 function getTokenByAddress(address: string) {
   return (
     getListableTokens().find(
-      (t) => t.address.toLowerCase() === address.toLowerCase()
+      (t) => normalizeAddress("STARKNET", t.address) === normalizeAddress("STARKNET", address)
     ) ?? null
   );
 }
@@ -133,7 +133,7 @@ export default function DropDetailPage({ contract }: { contract: string }) {
   const isOwner =
     walletAddress &&
     dropInfo.owner &&
-    walletAddress.toLowerCase() === dropInfo.owner.toLowerCase();
+    normalizeAddress("STARKNET", walletAddress) === normalizeAddress("STARKNET", dropInfo.owner);
 
   return (
     <div className="max-w-2xl mx-auto px-4 pt-10 pb-16 space-y-8">

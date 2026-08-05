@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Handshake, ShieldCheck, Coins, Plus } from "lucide-react";
+import { normalizeAddress } from "@medialane/sdk";
 import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion-primitives";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -38,7 +39,7 @@ function OfferBids({ offerId }: { offerId: string }) {
 
 function OfferCard({ offer }: { offer: SponsorshipOffer }) {
   const { walletAddress } = useSessionKey();
-  const isAuthor = walletAddress && offer.author.toLowerCase() === walletAddress.toLowerCase();
+  const isAuthor = walletAddress && normalizeAddress("STARKNET", offer.author) === normalizeAddress("STARKNET", walletAddress);
 
   return (
     <div className="bento-cell p-4 space-y-3">

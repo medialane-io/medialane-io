@@ -135,13 +135,14 @@ export function checkIsOwner(
   walletAddress: string | null | undefined
 ): boolean {
   if (!token || !walletAddress) return false;
+  const normalizedWallet = normalizeAddress("STARKNET", walletAddress);
   if (token.balances != null && token.balances.length > 0) {
     return token.balances.some(
-      (b) => b.owner.toLowerCase() === walletAddress.toLowerCase() && BigInt(b.amount) > 0n
+      (b) => normalizeAddress("STARKNET", b.owner) === normalizedWallet && BigInt(b.amount) > 0n
     );
   }
   if (!token.owner) return false;
-  return token.owner.toLowerCase() === walletAddress.toLowerCase();
+  return normalizeAddress("STARKNET", token.owner) === normalizedWallet;
 }
 
 export function formatExpiry(endTime: string | bigint): { label: string; urgent: boolean; expired: boolean } {

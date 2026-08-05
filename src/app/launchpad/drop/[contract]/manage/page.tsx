@@ -3,6 +3,7 @@
 import { use, useState } from "react";
 import Link from "next/link";
 import useSWR from "swr";
+import { normalizeAddress } from "@medialane/sdk";
 import {
   ArrowLeft, Users, ShieldCheck, ShieldOff, DollarSign,
   Loader2, CheckCircle2, AlertCircle, Trash2,
@@ -211,7 +212,7 @@ export default function DropManagePage({
   const isOwner =
     walletAddress &&
     dropInfo?.owner &&
-    walletAddress.toLowerCase() === dropInfo.owner.toLowerCase();
+    normalizeAddress("STARKNET", walletAddress) === normalizeAddress("STARKNET", dropInfo.owner);
 
   const isLoading = dropLoading || allowlistLoading;
 
