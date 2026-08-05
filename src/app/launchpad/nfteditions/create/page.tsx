@@ -18,6 +18,7 @@ import { normalizeAddress } from "@medialane/sdk";
 import { hash } from "starknet";
 import { starknetProvider } from "@/lib/starknet";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
+import { executePrebuiltIntent } from "@/lib/intent-tx";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
@@ -136,11 +137,7 @@ export default function CreateIP1155CollectionPage() {
         baseUri: collectionMetaUri ?? "",
         service: "mip-erc1155",
       });
-      if (intentRes.data.requiresSignature) throw new Error("Expected a prebuilt create-collection intent");
-      const result = await action.executeTransaction({
-        pin: secret,
-        calls: intentRes.data.calls as never,
-      });
+      const result = await executePrebuiltIntent(action.executeTransaction, client, secret, intentRes.data, { confirm: false });
 
       if (result.status !== "confirmed") {
         throw new Error(result.revertReason ?? "Transaction reverted");
