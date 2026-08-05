@@ -12,7 +12,7 @@ import { chargePlatformFee } from "@/lib/charge-fee";
 export function useFeeCharge() {
   const { executeTransaction } = useChipiTransaction();
   const chargeFee = useCallback(
-    (args: { surface: "marketplace" | "launchpad"; token: string; grossAmount: bigint; pin: string }) => {
+    (args: { surface: "marketplace" | "launchpad" | "sponsorship"; token: string; grossAmount: bigint; pin: string }) => {
       void chargePlatformFee({ ...args, executeTransaction });
     },
     [executeTransaction],

@@ -5,7 +5,7 @@ import type { ChipiTransactionParams, ChipiTransactionResult } from "@/hooks/use
 type ExecuteTransaction = (params: ChipiTransactionParams) => Promise<ChipiTransactionResult>;
 
 export interface ChargePlatformFeeParams {
-  surface: "marketplace" | "launchpad";
+  surface: "marketplace" | "launchpad" | "sponsorship";
   /** ERC-20 the fee is denominated in (the settlement payment token). */
   token: string;
   /** Settled gross amount in raw token units (price × quantity). */

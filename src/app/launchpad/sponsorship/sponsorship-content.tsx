@@ -14,7 +14,7 @@ import { useSponsorshipOffers, useSponsorshipBids } from "@/hooks/use-sponsorshi
 import type { SponsorshipOffer } from "@/hooks/use-sponsorship";
 import { useSessionKey } from "@/hooks/use-session-key";
 
-function OfferBids({ offerId }: { offerId: string }) {
+function OfferBids({ offerId, paymentToken }: { offerId: string; paymentToken: string }) {
   const { bids, isLoading, mutate } = useSponsorshipBids(offerId);
 
   if (isLoading) return <Skeleton className="h-8 w-full" />;
@@ -29,6 +29,8 @@ function OfferBids({ offerId }: { offerId: string }) {
           <SponsorshipAcceptButton
             offerId={offerId}
             sponsor={bid.sponsor}
+            paymentToken={paymentToken}
+            amount={bid.amount}
             onAccepted={() => mutate()}
           />
         </div>
@@ -55,7 +57,7 @@ function OfferCard({ offer }: { offer: SponsorshipOffer }) {
       </p>
 
       {isAuthor ? (
-        <OfferBids offerId={offer.offerId} />
+        <OfferBids offerId={offer.offerId} paymentToken={offer.paymentToken} />
       ) : (
         <SponsorshipBidButton offerId={offer.offerId} minAmount={offer.minAmount} paymentToken={offer.paymentToken} />
       )}
