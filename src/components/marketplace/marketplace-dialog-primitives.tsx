@@ -166,9 +166,9 @@ export function MarketplaceSuccessState({
           <Sparkles className="absolute -top-1 -right-1 h-5 w-5 text-brand-orange" />
         </div>
       )}
-      <div className="text-center space-y-1">
-        <p className="font-bold text-xl">{title}</p>
-        <p className="text-sm text-muted-foreground">{description}</p>
+      <div className="text-center space-y-1 max-w-full">
+        <p className="font-bold text-xl break-words">{title}</p>
+        <p className="text-sm text-muted-foreground break-words">{description}</p>
       </div>
       {txHash && <MarketplaceTxLink txHash={txHash} explorerUrl={explorerUrl} />}
       <Button className="w-full h-11" onClick={onDone}>Done</Button>
@@ -222,9 +222,9 @@ export function MarketplaceErrorState({
           <AlertCircle className="h-9 w-9 text-destructive" />
         </div>
       )}
-      <div className="text-center space-y-1">
-        <p className="font-bold text-xl">{title}</p>
-        <p className="text-sm text-muted-foreground">{description}</p>
+      <div className="text-center space-y-1 max-w-full">
+        <p className="font-bold text-xl break-words">{title}</p>
+        <p className="text-sm text-muted-foreground break-words">{description}</p>
       </div>
       {error ? (
         <Alert variant="destructive" className="text-left">
