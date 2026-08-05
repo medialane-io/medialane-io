@@ -17,6 +17,7 @@ import { useUser } from "@clerk/nextjs";
 import { normalizeAddress } from "@medialane/sdk";
 import { hash } from "starknet";
 import { starknetProvider } from "@/lib/starknet";
+import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
@@ -30,12 +31,10 @@ import {
   nftEditionsCreateSchema,
   type NftEditionsCreateFormValues,
 } from "../nfteditions-create-schema";
-import { STARKNET_COLLECTION_1155_CONTRACT } from "@/lib/constants";
 
 // Same-origin BFF proxy — injects MEDIALANE_API_KEY server-side.
 const API_BASE = "/api/proxy";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
-import { serializeByteArray } from "@/lib/cairo-calldata";
 
 const COLLECTION_DEPLOYED_SELECTOR = hash.getSelectorFromName("CollectionDeployed");
 
@@ -44,6 +43,7 @@ export default function CreateIP1155CollectionPage() {
   const { walletAddress } = useSessionKey();
   // One primitive owns gate → unlock (passkey/PIN) → execute → result + self-heal.
   const action = useWriteAction();
+  const client = useMedialaneClient();
   const [pendingValues, setPendingValues] = useState<NftEditionsCreateFormValues | null>(null);
   const [autoSymbol, setAutoSymbol] = useState("");
 
@@ -126,19 +126,20 @@ export default function CreateIP1155CollectionPage() {
       });
     }
 
-      // 2. Execute deploy_collection on the factory.
-      // v2 factory signature: deploy_collection(name, symbol, base_uri)
+      // 2. Create the collection through the metered intents API — the backend
+      // deploys via the mip-erc1155 factory server-side and returns
+      // fully-populated calls (no client-side calldata construction).
+      const intentRes = await client.api.createCollectionIntent({
+        owner: walletAddress,
+        name: pendingValues.name,
+        symbol: pendingValues.symbol,
+        baseUri: collectionMetaUri ?? "",
+        service: "mip-erc1155",
+      });
+      if (intentRes.data.requiresSignature) throw new Error("Expected a prebuilt create-collection intent");
       const result = await action.executeTransaction({
         pin: secret,
-        calls: [{
-          contractAddress: STARKNET_COLLECTION_1155_CONTRACT,
-          entrypoint: "deploy_collection",
-          calldata: [
-            ...serializeByteArray(pendingValues.name),
-            ...serializeByteArray(pendingValues.symbol),
-            ...serializeByteArray(collectionMetaUri ?? ""),
-          ],
-        }],
+        calls: intentRes.data.calls as never,
       });
 
       if (result.status !== "confirmed") {
