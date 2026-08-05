@@ -19,8 +19,8 @@ import { useMarketplace } from "@/hooks/use-marketplace";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { confirmRemixOffer } from "@/hooks/use-remix-offers";
 import { useSiwsToken } from "@/hooks/use-siws-token";
-import { serializeByteArray, encodeU256 } from "@/lib/cairo-calldata";
 import { readAssignedEditionId } from "@/lib/erc1155-edition";
+import { executePrebuiltIntent } from "@/lib/intent-tx";
 import { formatDisplayPrice } from "@/lib/utils";
 import { AlertCircle, Check, GitBranch, Loader2 } from "lucide-react";
 import type { RemixOffer } from "@/types/remix-offers";
@@ -149,21 +149,17 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
       let remixTokenId: string;
 
       if (standard === "ERC1155") {
-        // ERC-1155: the contract assigns the edition id on-chain (mint_edition);
-        // read it back from the IPMinted event.
-        const [valueLow, valueHigh] = encodeU256(BigInt(1));
-        const result = await executeTransaction({
-          pin: secret,
-          calls: [{
-            contractAddress: selectedCollection.contractAddress,
-            entrypoint: "mint_edition",
-            calldata: [
-              walletAddress,
-              valueLow, valueHigh,
-              ...serializeByteArray(pinData.uri),
-            ],
-          }],
+        // ERC-1155: backend-mediated via createMintIntent (service mip-erc1155);
+        // the contract assigns the edition id on-chain — read it back from the
+        // IPMinted event.
+        const intentRes = await client.api.createMintIntent({
+          owner: walletAddress,
+          recipient: walletAddress,
+          collectionContract: selectedCollection.contractAddress,
+          tokenUri: pinData.uri,
+          value: "1",
         });
+        const result = await executePrebuiltIntent(executeTransaction, client, secret, intentRes.data);
         if (result.status === "reverted") throw new Error(result.revertReason ?? "Mint reverted");
         remixTokenId = await readAssignedEditionId(result.txHash ?? "", selectedCollection.contractAddress);
       } else {
