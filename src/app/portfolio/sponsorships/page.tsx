@@ -2,18 +2,17 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Contract, type Abi } from "starknet";
-import { starknetProvider } from "@/lib/starknet";
 import { CheckCircle2, Handshake, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { useSessionKey } from "@/hooks/use-session-key";
 import { useWriteAction } from "@/hooks/use-write-action";
+import { useMedialaneClient } from "@/hooks/use-medialane-client";
+import { useFeeCharge } from "@/hooks/use-fee-charge";
+import { executePrebuiltIntent } from "@/lib/intent-tx";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { WalletSetupGate } from "@/components/transaction/wallet-setup-gate";
-import { STARKNET_IP_SPONSORSHIP_CONTRACT } from "@/lib/constants";
-import { IPSponsorshipABI } from "@medialane/sdk/starknet";
 import {
   useSponsorshipProposals, useSponsorshipOffers, useSponsorshipBids, useSponsorshipLicenses,
   type SponsorshipOffer,
@@ -22,20 +21,23 @@ import { assetHref } from "@/lib/routes";
 
 function OfferBidsRow({ offer }: { offer: SponsorshipOffer }) {
   const { bids, isLoading, mutate } = useSponsorshipBids(offer.offerId);
+  const { walletAddress } = useSessionKey();
+  const client = useMedialaneClient();
+  const { chargeFee } = useFeeCharge();
   const action = useWriteAction();
   const busy = action.status === "processing" || action.status === "confirming";
   const [activeSponsor, setActiveSponsor] = useState<string | null>(null);
 
-  const acceptBid = (sponsor: string) => {
+  const acceptBid = (sponsor: string, amount: string) => {
+    if (!walletAddress) return;
     setActiveSponsor(sponsor);
     void action.run(async (secret) => {
-      const contract = new Contract(IPSponsorshipABI as unknown as Abi, STARKNET_IP_SPONSORSHIP_CONTRACT, starknetProvider);
-      const call = contract.populate("accept_bid", [BigInt(offer.offerId), sponsor]);
-      const result = await action.executeTransaction({
-        pin: secret,
-        calls: [{ contractAddress: STARKNET_IP_SPONSORSHIP_CONTRACT, entrypoint: "accept_bid", calldata: call.calldata as string[] }],
-      });
-      if (result.status === "confirmed") await mutate();
+      const intentRes = await client.api.acceptSponsorshipBidIntent({ author: walletAddress, offerId: offer.offerId, sponsor });
+      const result = await executePrebuiltIntent(action.executeTransaction, client, secret, intentRes.data);
+      if (result.status === "confirmed") {
+        await mutate();
+        chargeFee({ surface: "sponsorship", token: offer.paymentToken, grossAmount: BigInt(amount), pin: secret });
+      }
       return result;
     });
   };
@@ -54,7 +56,7 @@ function OfferBidsRow({ offer }: { offer: SponsorshipOffer }) {
             size="sm"
             className="bg-brand-rose hover:brightness-110 text-white h-7 px-2.5"
             disabled={busy}
-            onClick={() => acceptBid(bid.sponsor)}
+            onClick={() => acceptBid(bid.sponsor, bid.amount)}
           >
             {busy && activeSponsor === bid.sponsor ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
           </Button>
@@ -68,20 +70,25 @@ function OfferBidsRow({ offer }: { offer: SponsorshipOffer }) {
 
 function ReceivedProposalsSection({ walletAddress }: { walletAddress: string }) {
   const { proposals, isLoading, mutate } = useSponsorshipProposals({ owner: walletAddress, open: true });
+  const client = useMedialaneClient();
+  const { chargeFee } = useFeeCharge();
   const action = useWriteAction();
   const busy = action.status === "processing" || action.status === "confirming";
   const [activeId, setActiveId] = useState<string | null>(null);
 
-  const respond = (proposalId: string, method: "accept_proposal" | "reject_proposal") => {
+  const respond = (proposalId: string, decision: "accept" | "reject", paymentToken: string, amount: string) => {
     setActiveId(proposalId);
     void action.run(async (secret) => {
-      const contract = new Contract(IPSponsorshipABI as unknown as Abi, STARKNET_IP_SPONSORSHIP_CONTRACT, starknetProvider);
-      const call = contract.populate(method, [BigInt(proposalId)]);
-      const result = await action.executeTransaction({
-        pin: secret,
-        calls: [{ contractAddress: STARKNET_IP_SPONSORSHIP_CONTRACT, entrypoint: method, calldata: call.calldata as string[] }],
-      });
-      if (result.status === "confirmed") await mutate();
+      const intentRes = decision === "accept"
+        ? await client.api.acceptSponsorshipProposalIntent({ owner: walletAddress, proposalId })
+        : await client.api.rejectSponsorshipProposalIntent({ owner: walletAddress, proposalId });
+      const result = await executePrebuiltIntent(action.executeTransaction, client, secret, intentRes.data);
+      if (result.status === "confirmed") {
+        await mutate();
+        if (decision === "accept") {
+          chargeFee({ surface: "sponsorship", token: paymentToken, grossAmount: BigInt(amount), pin: secret });
+        }
+      }
       return result;
     });
   };
@@ -102,10 +109,10 @@ function ReceivedProposalsSection({ walletAddress }: { walletAddress: string }) 
             </p>
           </div>
           <div className="flex gap-1.5 shrink-0">
-            <Button size="sm" variant="outline" disabled={busy} onClick={() => respond(p.proposalId, "reject_proposal")}>
+            <Button size="sm" variant="outline" disabled={busy} onClick={() => respond(p.proposalId, "reject", p.paymentToken, p.amount)}>
               {busy && activeId === p.proposalId ? <Loader2 className="h-3 w-3 animate-spin" /> : <X className="h-3 w-3" />}
             </Button>
-            <Button size="sm" className="bg-brand-rose hover:brightness-110 text-white" disabled={busy} onClick={() => respond(p.proposalId, "accept_proposal")}>
+            <Button size="sm" className="bg-brand-rose hover:brightness-110 text-white" disabled={busy} onClick={() => respond(p.proposalId, "accept", p.paymentToken, p.amount)}>
               {busy && activeId === p.proposalId ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
             </Button>
           </div>
@@ -119,6 +126,7 @@ function ReceivedProposalsSection({ walletAddress }: { walletAddress: string }) 
 
 function SentProposalsSection({ walletAddress }: { walletAddress: string }) {
   const { proposals, isLoading, mutate } = useSponsorshipProposals({ proposer: walletAddress, open: true });
+  const client = useMedialaneClient();
   const action = useWriteAction();
   const busy = action.status === "processing" || action.status === "confirming";
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -126,12 +134,8 @@ function SentProposalsSection({ walletAddress }: { walletAddress: string }) {
   const withdraw = (proposalId: string) => {
     setActiveId(proposalId);
     void action.run(async (secret) => {
-      const contract = new Contract(IPSponsorshipABI as unknown as Abi, STARKNET_IP_SPONSORSHIP_CONTRACT, starknetProvider);
-      const call = contract.populate("withdraw_proposal", [BigInt(proposalId)]);
-      const result = await action.executeTransaction({
-        pin: secret,
-        calls: [{ contractAddress: STARKNET_IP_SPONSORSHIP_CONTRACT, entrypoint: "withdraw_proposal", calldata: call.calldata as string[] }],
-      });
+      const intentRes = await client.api.withdrawSponsorshipProposalIntent({ proposer: walletAddress, proposalId });
+      const result = await executePrebuiltIntent(action.executeTransaction, client, secret, intentRes.data);
       if (result.status === "confirmed") await mutate();
       return result;
     });

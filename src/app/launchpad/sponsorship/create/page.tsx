@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Contract, CairoOption, CairoOptionVariant, type Abi } from "starknet";
-import { starknetProvider } from "@/lib/starknet";
 import { Handshake, CheckCircle2, Loader2, X, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -12,12 +10,13 @@ import { useWriteAction } from "@/hooks/use-write-action";
 import { WalletSetupGate } from "@/components/transaction/wallet-setup-gate";
 import { useUser } from "@clerk/nextjs";
 import { useSessionKey } from "@/hooks/use-session-key";
+import { useMedialaneClient } from "@/hooks/use-medialane-client";
+import { executePrebuiltIntent } from "@/lib/intent-tx";
+import { useFeeCharge } from "@/hooks/use-fee-charge";
 import { useTokensByOwner } from "@/hooks/use-tokens";
-import { STARKNET_IP_SPONSORSHIP_CONTRACT } from "@/lib/constants";
 import { AssetPicker, AssetSearchPicker, LicenseTermsBuilder, EMPTY_SPONSORSHIP_TERMS, toLicenseMetadata, toDurationDays, type OwnedAsset, type SponsorshipTerms } from "@medialane/ui";
 import { apiFetch } from "@/lib/api-fetch";
 import { getTokenBySymbol, SUPPORTED_TOKENS } from "@medialane/sdk";
-import { IPSponsorshipABI } from "@medialane/sdk/starknet";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { rewardToast } from "@/lib/reward-toast";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
@@ -30,10 +29,6 @@ import { toast } from "sonner";
 
 const LISTABLE_TOKENS = SUPPORTED_TOKENS.filter((t) => t.listable);
 const TOKEN_SYMBOLS = LISTABLE_TOKENS.map((t) => t.symbol);
-
-function sponsorshipContract() {
-  return new Contract(IPSponsorshipABI as unknown as Abi, STARKNET_IP_SPONSORSHIP_CONTRACT, starknetProvider);
-}
 
 function CreateSponsorshipAside() {
   return (
@@ -58,19 +53,27 @@ function CreateSponsorshipAside() {
 /** Pending proposals on a specific owned asset, with accept/reject actions. */
 function PendingProposalsPanel({ nftContract }: { nftContract: string }) {
   const { proposals, isLoading, mutate } = usePendingProposalsForAsset(nftContract);
+  const { walletAddress } = useSessionKey();
+  const client = useMedialaneClient();
+  const { chargeFee } = useFeeCharge();
   const action = useWriteAction();
   const busy = action.status === "processing" || action.status === "confirming";
   const [activeId, setActiveId] = useState<string | null>(null);
 
-  const respond = (proposalId: string, method: "accept_proposal" | "reject_proposal") => {
+  const respond = (proposalId: string, decision: "accept" | "reject", paymentToken: string, amount: string) => {
+    if (!walletAddress) return;
     setActiveId(proposalId);
     void action.run(async (secret) => {
-      const call = sponsorshipContract().populate(method, [BigInt(proposalId)]);
-      const result = await action.executeTransaction({
-        pin: secret,
-        calls: [{ contractAddress: STARKNET_IP_SPONSORSHIP_CONTRACT, entrypoint: method, calldata: call.calldata as string[] }],
-      });
-      if (result.status === "confirmed") await mutate();
+      const intentRes = decision === "accept"
+        ? await client.api.acceptSponsorshipProposalIntent({ owner: walletAddress, proposalId })
+        : await client.api.rejectSponsorshipProposalIntent({ owner: walletAddress, proposalId });
+      const result = await executePrebuiltIntent(action.executeTransaction, client, secret, intentRes.data);
+      if (result.status === "confirmed") {
+        await mutate();
+        if (decision === "accept") {
+          chargeFee({ surface: "sponsorship", token: paymentToken, grossAmount: BigInt(amount), pin: secret });
+        }
+      }
       return result;
     });
   };
@@ -85,10 +88,10 @@ function PendingProposalsPanel({ nftContract }: { nftContract: string }) {
         <div key={p.id} className="flex items-center justify-between gap-2 text-xs">
           <span className="truncate text-muted-foreground">{p.proposer} — {p.amount}</span>
           <div className="flex gap-1.5 shrink-0">
-            <Button size="sm" variant="outline" disabled={busy} onClick={() => respond(p.proposalId, "reject_proposal")}>
+            <Button size="sm" variant="outline" disabled={busy} onClick={() => respond(p.proposalId, "reject", p.paymentToken, p.amount)}>
               {busy && activeId === p.proposalId ? <Loader2 className="h-3 w-3 animate-spin" /> : <X className="h-3 w-3" />}
             </Button>
-            <Button size="sm" className="bg-brand-rose hover:brightness-110 text-white" disabled={busy} onClick={() => respond(p.proposalId, "accept_proposal")}>
+            <Button size="sm" className="bg-brand-rose hover:brightness-110 text-white" disabled={busy} onClick={() => respond(p.proposalId, "accept", p.paymentToken, p.amount)}>
               {busy && activeId === p.proposalId ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
             </Button>
           </div>
@@ -105,6 +108,7 @@ type Mode = "offer" | "propose";
 export default function CreateSponsorshipOfferPage() {
   const { isSignedIn } = useUser();
   const { walletAddress } = useSessionKey();
+  const client = useMedialaneClient();
   const action = useWriteAction();
   const busy = action.status === "processing" || action.status === "confirming";
 
@@ -138,6 +142,7 @@ export default function CreateSponsorshipOfferPage() {
   const tokenId = mode === "offer" ? selectedAsset?.tokenId : proposeAsset?.tokenId;
 
   const onSubmit = () => {
+    if (!walletAddress) { toast.error("Wallet not ready. Please refresh and try again."); return; }
     if (!nftContract || !tokenId) {
       toast.error(mode === "offer" ? "Choose which asset you're offering" : "Search for the asset you want to sponsor and pick it");
       return;
@@ -153,24 +158,21 @@ export default function CreateSponsorshipOfferPage() {
 
       const amount = BigInt(Math.round(Number(terms.amount) * 10 ** token.decimals));
       const duration = durationDays * 86400;
-      const royaltyBps = BigInt(Math.round(Number(terms.royaltyPercent || "0") * 100));
+      const royaltyBps = Math.round(Number(terms.royaltyPercent || "0") * 100);
 
-      const contract = sponsorshipContract();
-      const call = mode === "offer"
-        ? contract.populate("create_offer", [
-            nftContract, BigInt(tokenId), amount, duration, token.address,
-            licenseTermsUri, terms.transferable, royaltyBps, new CairoOption(CairoOptionVariant.None),
-          ])
-        : contract.populate("propose_sponsorship", [
-            nftContract, BigInt(tokenId), amount, duration, 0, token.address,
-            licenseTermsUri, terms.transferable, royaltyBps,
-          ]);
-      const entrypoint = mode === "offer" ? "create_offer" : "propose_sponsorship";
+      const intentRes = mode === "offer"
+        ? await client.api.createSponsorshipOfferIntent({
+            author: walletAddress, nftContract, tokenId, minAmount: amount.toString(),
+            duration, paymentToken: token.address, licenseTermsUri,
+            transferable: terms.transferable, royaltyBps,
+          })
+        : await client.api.createSponsorshipProposalIntent({
+            proposer: walletAddress, nftContract, tokenId, amount: amount.toString(),
+            duration, paymentToken: token.address, licenseTermsUri,
+            transferable: terms.transferable, royaltyBps,
+          });
 
-      const result = await action.executeTransaction({
-        pin: secret,
-        calls: [{ contractAddress: STARKNET_IP_SPONSORSHIP_CONTRACT, entrypoint, calldata: call.calldata as string[] }],
-      });
+      const result = await executePrebuiltIntent(action.executeTransaction, client, secret, intentRes.data);
       if (result.status === "confirmed" && mode === "offer") rewardToast("create_sponsorship_offer");
       return result;
     });

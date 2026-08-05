@@ -9,12 +9,19 @@ import { useWriteAction } from "@/hooks/use-write-action";
 import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { MarketplaceErrorState, MarketplaceSuccessState } from "@/components/marketplace/marketplace-dialog-primitives";
 import { useUser } from "@clerk/nextjs";
+import { useSessionKey } from "@/hooks/use-session-key";
+import { useMedialaneClient } from "@/hooks/use-medialane-client";
+import { useFeeCharge } from "@/hooks/use-fee-charge";
+import { executePrebuiltIntent } from "@/lib/intent-tx";
 import { EXPLORER_URL } from "@/lib/constants";
-import { STARKNET_IP_SPONSORSHIP_CONTRACT } from "@/lib/constants";
 
 interface SponsorshipAcceptButtonProps {
   offerId: string;
   sponsor: string;
+  /** The offer's payment token — needed to charge the platform fee. */
+  paymentToken: string;
+  /** The accepted bid's amount, raw token units — the fee's gross amount. */
+  amount: string;
   onAccepted?: () => void;
 }
 
@@ -24,8 +31,11 @@ interface SponsorshipAcceptButtonProps {
  * contract — to the sponsor, atomically in one call. v3: there is no second
  * receipt-mint call anymore (IPSponsorship embeds ERC721Component directly).
  */
-export function SponsorshipAcceptButton({ offerId, sponsor, onAccepted }: SponsorshipAcceptButtonProps) {
+export function SponsorshipAcceptButton({ offerId, sponsor, paymentToken, amount, onAccepted }: SponsorshipAcceptButtonProps) {
   const { isSignedIn } = useUser();
+  const { walletAddress } = useSessionKey();
+  const client = useMedialaneClient();
+  const { chargeFee } = useFeeCharge();
   const action = useWriteAction();
   const busy = action.status === "processing" || action.status === "confirming";
 
@@ -34,14 +44,17 @@ export function SponsorshipAcceptButton({ offerId, sponsor, onAccepted }: Sponso
       toast.error("Sign in to accept this bid");
       return;
     }
+    if (!walletAddress) {
+      toast.error("Wallet not ready. Please refresh and try again.");
+      return;
+    }
     void action.run(async (secret) => {
-      const result = await action.executeTransaction({
-        pin: secret,
-        calls: [
-          { contractAddress: STARKNET_IP_SPONSORSHIP_CONTRACT, entrypoint: "accept_bid", calldata: [offerId, "0", sponsor] },
-        ],
-      });
-      if (result.status === "confirmed") onAccepted?.();
+      const intentRes = await client.api.acceptSponsorshipBidIntent({ author: walletAddress, offerId, sponsor });
+      const result = await executePrebuiltIntent(action.executeTransaction, client, secret, intentRes.data);
+      if (result.status === "confirmed") {
+        onAccepted?.();
+        chargeFee({ surface: "sponsorship", token: paymentToken, grossAmount: BigInt(amount), pin: secret });
+      }
       return result;
     });
   };

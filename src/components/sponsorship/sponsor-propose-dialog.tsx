@@ -1,18 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Contract, type Abi } from "starknet";
-import { starknetProvider } from "@/lib/starknet";
 import { Handshake, Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { PinDialog } from "@/components/chipi/pin-dialog";
 import { useWriteAction } from "@/hooks/use-write-action";
 import { WalletSetupGate } from "@/components/transaction/wallet-setup-gate";
-import { STARKNET_IP_SPONSORSHIP_CONTRACT } from "@/lib/constants";
+import { useSessionKey } from "@/hooks/use-session-key";
+import { useMedialaneClient } from "@/hooks/use-medialane-client";
+import { executePrebuiltIntent } from "@/lib/intent-tx";
 import { LicenseTermsBuilder, EMPTY_SPONSORSHIP_TERMS, toLicenseMetadata, toDurationDays, type SponsorshipTerms } from "@medialane/ui";
 import { getTokenBySymbol, SUPPORTED_TOKENS } from "@medialane/sdk";
-import { IPSponsorshipABI } from "@medialane/sdk/starknet";
 import { pinSponsorshipTerms } from "@/lib/launchpad-metadata";
 import { toast } from "sonner";
 
@@ -33,9 +32,12 @@ export function SponsorProposeDialog({
 }: SponsorProposeDialogProps) {
   const action = useWriteAction();
   const busy = action.status === "processing" || action.status === "confirming";
+  const { walletAddress } = useSessionKey();
+  const client = useMedialaneClient();
   const [terms, setTerms] = useState<SponsorshipTerms>({ ...EMPTY_SPONSORSHIP_TERMS, paymentTokenSymbol: "USDC" });
 
   const onSubmit = () => {
+    if (!walletAddress) { toast.error("Wallet not ready. Please refresh and try again."); return; }
     if (!terms.amount || Number(terms.amount) <= 0) { toast.error("Add an amount before continuing"); return; }
     const token = getTokenBySymbol(terms.paymentTokenSymbol);
     if (!token) { toast.error("Pick a currency"); return; }
@@ -47,17 +49,20 @@ export function SponsorProposeDialog({
 
       const amount = BigInt(Math.round(Number(terms.amount) * 10 ** token.decimals));
       const duration = durationDays * 86400;
-      const royaltyBps = BigInt(Math.round(Number(terms.royaltyPercent || "0") * 100));
+      const royaltyBps = Math.round(Number(terms.royaltyPercent || "0") * 100);
 
-      const contract = new Contract(IPSponsorshipABI as unknown as Abi, STARKNET_IP_SPONSORSHIP_CONTRACT, starknetProvider);
-      const call = contract.populate("propose_sponsorship", [
-        nftContract, BigInt(tokenId), amount, duration, 0, token.address, licenseTermsUri, terms.transferable, royaltyBps,
-      ]);
-
-      const result = await action.executeTransaction({
-        pin: secret,
-        calls: [{ contractAddress: STARKNET_IP_SPONSORSHIP_CONTRACT, entrypoint: "propose_sponsorship", calldata: call.calldata as string[] }],
+      const intentRes = await client.api.createSponsorshipProposalIntent({
+        proposer: walletAddress,
+        nftContract,
+        tokenId,
+        amount: amount.toString(),
+        duration,
+        paymentToken: token.address,
+        licenseTermsUri,
+        transferable: terms.transferable,
+        royaltyBps,
       });
+      const result = await executePrebuiltIntent(action.executeTransaction, client, secret, intentRes.data);
       if (result.status === "confirmed") onSuccess?.();
       return result;
     });

@@ -12,8 +12,10 @@ import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { MarketplaceErrorState, MarketplaceSuccessState } from "@/components/marketplace/marketplace-dialog-primitives";
 import { rewardToast } from "@/lib/reward-toast";
 import { useUser } from "@clerk/nextjs";
+import { useSessionKey } from "@/hooks/use-session-key";
+import { useMedialaneClient } from "@/hooks/use-medialane-client";
+import { executePrebuiltIntent } from "@/lib/intent-tx";
 import { EXPLORER_URL } from "@/lib/constants";
-import { STARKNET_IP_SPONSORSHIP_CONTRACT } from "@/lib/constants";
 import { getListableTokens, normalizeAddress } from "@medialane/sdk";
 
 interface SponsorshipBidButtonProps {
@@ -23,14 +25,10 @@ interface SponsorshipBidButtonProps {
   onBidPlaced?: () => void;
 }
 
-function u256CallData(value: bigint): [string, string] {
-  const low = (value & BigInt("0xffffffffffffffffffffffffffffffff")).toString();
-  const high = (value >> 128n).toString();
-  return [low, high];
-}
-
 export function SponsorshipBidButton({ offerId, minAmount, paymentToken, onBidPlaced }: SponsorshipBidButtonProps) {
   const { isSignedIn } = useUser();
+  const { walletAddress } = useSessionKey();
+  const client = useMedialaneClient();
   const action = useWriteAction();
   const busy = action.status === "processing" || action.status === "confirming";
   const [amount, setAmount] = useState("");
@@ -44,20 +42,23 @@ export function SponsorshipBidButton({ offerId, minAmount, paymentToken, onBidPl
       toast.error("Sign in to place a bid");
       return;
     }
+    if (!walletAddress) {
+      toast.error("Wallet not ready. Please refresh and try again.");
+      return;
+    }
     if (!amount || Number(amount) <= 0) {
       toast.error("Enter a bid amount");
       return;
     }
     void action.run(async (secret) => {
       const amountBigInt = BigInt(Math.round(Number(amount) * 10 ** decimals));
-      const [low, high] = u256CallData(amountBigInt);
-      const result = await action.executeTransaction({
-        pin: secret,
-        calls: [
-          { contractAddress: paymentToken, entrypoint: "approve", calldata: [STARKNET_IP_SPONSORSHIP_CONTRACT, low, high] },
-          { contractAddress: STARKNET_IP_SPONSORSHIP_CONTRACT, entrypoint: "place_bid", calldata: [offerId, "0", low, high] },
-        ],
+      const intentRes = await client.api.placeSponsorshipBidIntent({
+        sponsor: walletAddress,
+        offerId,
+        amount: amountBigInt.toString(),
+        paymentToken,
       });
+      const result = await executePrebuiltIntent(action.executeTransaction, client, secret, intentRes.data);
       if (result.status === "confirmed") {
         onBidPlaced?.();
         rewardToast("place_sponsorship_bid");
