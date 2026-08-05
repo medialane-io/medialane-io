@@ -29,8 +29,8 @@ import {
   Collapsible, CollapsibleContent, CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { registerRemix } from "@/hooks/use-remix-offers";
-import { serializeByteArray, encodeU256 } from "@/lib/cairo-calldata";
 import { readAssignedEditionId } from "@/lib/erc1155-edition";
+import { executePrebuiltIntent } from "@/lib/intent-tx";
 import { getService, normalizeAddress } from "@medialane/sdk";
 import { IP_TYPES, LICENSE_TYPES, type IPType } from "@/types/ip";
 import { ipfsToHttp, checkIsOwner } from "@/lib/utils";
@@ -245,21 +245,17 @@ export default function CreateRemixPage() {
       let txHash: string;
 
       if (standard === "ERC1155") {
-        // ERC-1155: the contract assigns the edition id on-chain (mint_edition);
-        // read it back from the IPMinted event.
-        const [valueLow, valueHigh] = encodeU256(BigInt(1));
-        const result = await executeTransaction({
-          pin: secret,
-          calls: [{
-            contractAddress: selectedCollection.contractAddress,
-            entrypoint: "mint_edition",
-            calldata: [
-              walletAddress,
-              valueLow, valueHigh,
-              ...serializeByteArray(tokenUri),
-            ],
-          }],
+        // ERC-1155: backend-mediated via createMintIntent (service mip-erc1155);
+        // the contract assigns the edition id on-chain — read it back from the
+        // IPMinted event.
+        const intentRes = await client.api.createMintIntent({
+          owner: walletAddress,
+          recipient: walletAddress,
+          collectionContract: selectedCollection.contractAddress,
+          tokenUri,
+          value: "1",
         });
+        const result = await executePrebuiltIntent(executeTransaction, client, secret, intentRes.data);
         if (result.status === "reverted") throw new Error(result.revertReason ?? "Mint reverted");
         txHash = result.txHash ?? "";
         remixTokenId = await readAssignedEditionId(txHash, selectedCollection.contractAddress);
