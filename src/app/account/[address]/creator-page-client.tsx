@@ -17,7 +17,7 @@ import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { CreatorScoreInline } from "@/components/rewards/creator-score-inline";
 import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listing-card";
-import { CollectionCard, CollectionCardSkeleton } from "@medialane/ui";
+import { CollectionCard, CollectionCardSkeleton, HiddenContentBanner } from "@medialane/ui";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { timeAgo, formatDisplayPrice } from "@/lib/utils";
@@ -36,7 +36,6 @@ import {
 } from "lucide-react";
 import { ReportDialog } from "@/components/report-dialog";
 import { ShareButton } from "@/components/shared/share-button";
-import { HiddenContentBanner } from "@/components/hidden-content-banner";
 import type { ApiActivity } from "@medialane/sdk";
 import { cn } from "@/lib/utils";
 
