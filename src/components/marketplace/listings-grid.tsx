@@ -8,6 +8,7 @@ import { ListingCard, ListingCardSkeleton } from "./listing-card";
 import { PurchaseDialog } from "./purchase-dialog";
 import { Button } from "@/components/ui/button";
 import { LoadMoreSentinel } from "@medialane/ui";
+import { normalizeAddress } from "@medialane/sdk";
 import type { ApiOrder, SortOrder } from "@medialane/sdk";
 
 const PAGE_SIZE = 50;
@@ -114,7 +115,7 @@ export function ListingsGrid({ sort = "recent", currency, orderType = "", minPri
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {displayedOrders.map((order) => {
             const isOwner = !!walletAddress && !!order.offerer &&
-              order.offerer.toLowerCase() === walletAddress.toLowerCase();
+              normalizeAddress("STARKNET", order.offerer) === normalizeAddress("STARKNET", walletAddress);
             return (
               <ListingCard key={order.orderHash} order={order} onBuy={isOwner ? undefined : handleBuy} isOwner={isOwner} />
             );

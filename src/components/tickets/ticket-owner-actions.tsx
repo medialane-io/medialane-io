@@ -8,6 +8,7 @@
 
 import Link from "next/link";
 import { Ticket } from "lucide-react";
+import { normalizeAddress } from "@medialane/sdk";
 import { useWallet } from "@/hooks/use-wallet";
 
 export function TicketOwnerActions({
@@ -20,7 +21,7 @@ export function TicketOwnerActions({
   const { address } = useWallet();
 
   const isOwner =
-    !!address && !!owner && owner.toLowerCase() === address.toLowerCase();
+    !!address && !!owner && normalizeAddress("STARKNET", owner) === normalizeAddress("STARKNET", address);
   if (!isOwner) return null;
 
   return (

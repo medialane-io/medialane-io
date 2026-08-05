@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
+import { normalizeAddress } from "@medialane/sdk";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { useLeaderboard } from "@/hooks/use-rewards";
@@ -49,7 +50,7 @@ export function LeaderboardPanel({
       ) : (
         <div className="space-y-1">
           {rows.map((entry) => {
-            const isMe = myAddress?.toLowerCase() === entry.address.toLowerCase();
+            const isMe = !!myAddress && normalizeAddress("STARKNET", myAddress) === normalizeAddress("STARKNET", entry.address);
             return (
               <Link
                 key={entry.address}

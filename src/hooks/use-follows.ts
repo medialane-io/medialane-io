@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { normalizeAddress } from "@medialane/sdk";
 
 interface FollowsStore {
   followed: string[];
@@ -12,7 +13,7 @@ export const useFollows = create<FollowsStore>()(
     (set, get) => ({
       followed: [],
       toggle: (address) => {
-        const norm = address.toLowerCase();
+        const norm = normalizeAddress("STARKNET", address);
         const current = get().followed;
         set({
           followed: current.includes(norm)
@@ -20,7 +21,7 @@ export const useFollows = create<FollowsStore>()(
             : [...current, norm],
         });
       },
-      isFollowing: (address) => get().followed.includes(address.toLowerCase()),
+      isFollowing: (address) => get().followed.includes(normalizeAddress("STARKNET", address)),
     }),
     { name: "medialane-io-follows" }
   )

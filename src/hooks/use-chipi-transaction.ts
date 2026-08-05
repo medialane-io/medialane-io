@@ -6,6 +6,7 @@ import { useChipiWallet, useChipiContext } from "@chipi-stack/nextjs";
 import { TxBuilder } from "@chipi-stack/core";
 import { decryptPrivateKey } from "@chipi-stack/backend";
 import { Account } from "starknet";
+import { normalizeAddress } from "@medialane/sdk";
 import { starknetProvider } from "@/lib/starknet";
 import { mapWriteError } from "@/lib/chipi/map-write-error";
 import type { WalletCredentials } from "@/types";
@@ -143,7 +144,7 @@ export function useChipiTransaction() {
 
         const originalGetClassHashAt = account.getClassHashAt.bind(account);
         account.getClassHashAt = async (contractAddress: string) => {
-          if (contractAddress.toLowerCase() === account.address.toLowerCase()) {
+          if (normalizeAddress("STARKNET", contractAddress) === normalizeAddress("STARKNET", account.address)) {
             if (wallet.walletType === "READY") return READY_WALLET_CLASS_HASH;
             if (!wallet.walletType || wallet.walletType === "CHIPI") return CHIPI_WALLET_CLASS_HASH;
           }

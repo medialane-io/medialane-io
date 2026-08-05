@@ -13,7 +13,7 @@ import { useSessionKey } from "@/hooks/use-session-key";
 import { EXPLORER_URL } from "@/lib/constants";
 import { useUser } from "@clerk/nextjs";
 import { useDropMintStatus, type DropConditions } from "@/hooks/use-drops";
-import { getListableTokens } from "@medialane/sdk";
+import { getListableTokens, normalizeAddress } from "@medialane/sdk";
 import { useFeeCharge } from "@/hooks/use-fee-charge";
 import { rewardToast } from "@/lib/reward-toast";
 
@@ -65,7 +65,7 @@ export function CollectionDropMintButton({
 
   const paymentToken = isPaid && conditions
     ? getListableTokens().find(
-        (t) => t.address.toLowerCase() === conditions.paymentToken.toLowerCase()
+        (t) => normalizeAddress("STARKNET", t.address) === normalizeAddress("STARKNET", conditions.paymentToken)
       ) ?? null
     : null;
 
@@ -89,7 +89,7 @@ export function CollectionDropMintButton({
     if (isPaid && conditions && conditions.paymentToken !== "0x0") {
       // Verify the payment token is a known listable token before approving
       const knownToken = getListableTokens().find(
-        (t) => t.address.toLowerCase() === conditions.paymentToken.toLowerCase()
+        (t) => normalizeAddress("STARKNET", t.address) === normalizeAddress("STARKNET", conditions.paymentToken)
       );
       if (!knownToken) throw new Error("Unknown payment token — cannot proceed");
       // ERC-20 approve(collectionAddress, price as u256)
