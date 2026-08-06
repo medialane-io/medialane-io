@@ -2,7 +2,6 @@ import { test, expect } from "bun:test";
 import {
   ownerConstructorCalldata,
   computeWalletAddress,
-  buildDeployWalletCall,
   MEDIAWALLET_CLASS_HASH,
 } from "./account";
 
@@ -27,8 +26,3 @@ test("computeWalletAddress uses the MediaWallet class hash", () => {
   );
 });
 
-test("buildDeployWalletCall targets factory.deploy_wallet(owner, salt)", () => {
-  const call = buildDeployWalletCall("0xfac", OWNER, 0);
-  expect(call.contractAddress).toBe("0xfac");
-  expect(call.entrypoint).toBe("deploy_wallet");
-});

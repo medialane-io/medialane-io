@@ -1,4 +1,3 @@
-import { CallData, num, type BigNumberish, type Call } from "starknet";
 import { getCoordinates } from "@medialane/sdk";
 import { computeAccountAddress, ownerConstructorCalldata } from "@medialane/sdk/starknet";
 
@@ -10,23 +9,16 @@ export const MEDIAWALLET_CLASS_HASH = getCoordinates("STARKNET").mediaWalletClas
 export const computeWalletAddress = computeAccountAddress;
 export { ownerConstructorCalldata };
 
-/**
- * The permissionless `MediaWalletFactory.deploy_wallet(ownerPubkey, salt)`
- * call. `@medialane/sdk`'s starknet/business-provisioning module gained this
- * exact helper (`buildDeployWalletCall`) in the same migration this file is
- * part of, but that SDK change isn't published to npm yet — io's installed
- * `@medialane/sdk` predates it. Defined locally for now; replace this with
- * the SDK re-export once a new SDK version ships (same encoding, so the
- * swap is a no-op for every caller).
- */
-export function buildDeployWalletCall(
-  factoryAddress: string,
-  ownerPubkey: BigNumberish,
-  salt: BigNumberish = 0,
-): Call {
-  return {
-    contractAddress: factoryAddress,
-    entrypoint: "deploy_wallet",
-    calldata: CallData.compile([num.toHex(ownerPubkey), num.toHex(salt)]),
-  };
-}
+// Third-party-pays-gas deploy (for a relayer deploying on a user's behalf,
+// e.g. io's zero-funds onboarding) does NOT need a custom Medialane-declared
+// factory contract. Starknet ships a standard Universal Deployer Contract
+// (UDC), live on mainnet, verified 2026-08-06 at
+// 0x041a78e741e5af2fec34b695679bc6891742439f7afb8484ecd7766661ad02bf
+// (starknet.js's own `constants.UDC.ADDRESS`). Use `Account.deployContract`
+// directly — it already wraps the UDC:
+//
+//   relayerAccount.deployContract({
+//     classHash: MEDIAWALLET_CLASS_HASH,
+//     constructorCalldata: ownerConstructorCalldata(ownerPubkey),
+//     salt,
+//   });
