@@ -20,18 +20,18 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 import Link from "next/link";
-import { WalletSetupGate } from "@/components/transaction/wallet-setup-gate";
-import { useWriteAction } from "@/hooks/use-write-action";
-import { TransactionDialog } from "@/components/transaction/transaction-dialog";
+import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
+import { WalletTransactionDialog } from "@/components/transaction/wallet-transaction-dialog";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
+import { executeIntent } from "@/lib/wallet/intent-tx";
+import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { ActionButton, MedialaneCollectionCard } from "@medialane/ui";
 import { CreateCollectionAside } from "@/components/claim/create-collection-aside";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
-import { useSessionKey } from "@/hooks/use-session-key";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
 import { Layers, Loader2, ImagePlus, X } from "lucide-react";
-import type { ChipiCall } from "@/hooks/use-chipi-transaction";
 
 const schema = z.object({
   name: z.string().min(1, "Name required").max(100),
@@ -82,10 +82,10 @@ async function syncCollectionFromTx(txHash: string) {
 }
 
 export default function LaunchpadCreateCollectionPage() {
-  const { walletAddress } = useSessionKey();
+  const { address: walletAddress } = useWalletNativeSession();
   const client = useMedialaneClient();
-  // One primitive owns gate → unlock (passkey/PIN) → execute → result.
-  const action = useWriteAction();
+  // One primitive owns gate → unlock (passkey) → execute → result.
+  const action = useWalletWriteAction();
 
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
 
@@ -175,15 +175,14 @@ export default function LaunchpadCreateCollectionPage() {
       return;
     }
     setPendingValues(values);
-    // Pass `values` through the closure (synchronous-passkey rule). action.run
-    // gates signed-in/wallet and opens wallet setup itself when needed.
-    void action.run((secret) => runCreate(values, secret));
+    // Pass `values` through the closure (synchronous-passkey rule).
+    void action.run((signer) => runCreate(values, signer));
   };
 
   // The `prepare` body: build the calls, execute, and do the post-confirm sync.
-  // `secret` is the wallet-unlock material (PIN or passkey key). `useWriteAction`
-  // owns status/error — this returns the tx result and throws on real failure.
-  const runCreate = async (values: FormValues, secret: string) => {
+  // `useWalletWriteAction` owns status/error — this returns the tx result and
+  // throws on real failure.
+  const runCreate = async (values: FormValues, signer: StarknetVenueSigner) => {
     if (!walletAddress) throw new Error("Wallet not ready. Please refresh and try again.");
 
     // 1. Upload collection metadata JSON to IPFS so permissionless dapps can resolve
@@ -219,15 +218,9 @@ export default function LaunchpadCreateCollectionPage() {
       baseUri,
     });
 
-    const intent = intentRes.data;
-    // create-collection is always an unsigned (prebuilt-calls) intent.
-    if (intent.requiresSignature) throw new Error("Unexpected signed intent for create-collection");
-    const calls = intent.calls as unknown as ChipiCall[];
-    if (!calls || calls.length === 0) throw new Error("No calls returned from intent");
-
-    // 3. Execute the pre-signed calls via ChipiPay (gasless)
-    const result = await action.executeTransaction({ pin: secret, calls });
-    if (result.status === "reverted") return result; // action throws with the revert reason
+    // 3. Execute the pre-built calls (create-collection never requires a
+    // signature — executeIntent dispatches on that internally either way).
+    const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
 
     // Register from the tx so it appears in portfolio without waiting for the indexer.
     // Stay in "processing" until the backend confirms the CollectionCreated event.
@@ -248,13 +241,12 @@ export default function LaunchpadCreateCollectionPage() {
 
   return (
     <>
-      <TransactionDialog
+      <WalletTransactionDialog
         action={action}
         title="Confirm collection creation"
         processingLabel="Deploying collection…"
         firstStepLabel="Create collection intent"
         successTitle="Collection deployed!"
-        pinDescription="Enter your PIN to deploy your collection onchain."
       >
         <p className="text-sm text-muted-foreground text-center">
           <span className="font-medium text-foreground">{pendingValues?.name || "Your collection"}</span> is
@@ -274,7 +266,7 @@ export default function LaunchpadCreateCollectionPage() {
             <Link href="/launchpad/single-editions">Mint an asset</Link>
           </Button>
         </div>
-      </TransactionDialog>
+      </WalletTransactionDialog>
 
       <ClaimRouteShell
         icon={<Layers className="h-4 w-4 text-white" />}
@@ -454,8 +446,6 @@ export default function LaunchpadCreateCollectionPage() {
           </form>
         </Form>
       </ClaimRouteShell>
-
-      <WalletSetupGate action={action} />
     </>
   );
 }

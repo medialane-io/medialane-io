@@ -13,13 +13,12 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
-import { WalletSetupGate } from "@/components/transaction/wallet-setup-gate";
-import { useWriteAction } from "@/hooks/use-write-action";
-import { TransactionDialog } from "@/components/transaction/transaction-dialog";
-import { useSessionKey } from "@/hooks/use-session-key";
-import { useUser } from "@clerk/nextjs";
+import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
+import { WalletTransactionDialog } from "@/components/transaction/wallet-transaction-dialog";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { normalizeAddress } from "@medialane/sdk";
 import { hash } from "starknet";
+import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { starknetProvider } from "@/lib/starknet";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
@@ -31,7 +30,7 @@ import { rewardToast } from "@/lib/reward-toast";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
-import { executePrebuiltIntent } from "@/lib/intent-tx";
+import { executeIntent } from "@/lib/wallet/intent-tx";
 
 const CLUB_DEPLOYED_SELECTOR = hash.getSelectorFromName("ClubDeployed");
 
@@ -47,9 +46,8 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export default function CreateClubPage() {
-  const { isSignedIn } = useUser();
-  const { walletAddress } = useSessionKey();
-  const action = useWriteAction();
+  const { hasWallet, address: walletAddress } = useWalletNativeSession();
+  const action = useWalletWriteAction();
   const client = useMedialaneClient();
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
   const [deployedAddress, setDeployedAddress] = useState<string | null>(null);
@@ -75,11 +73,10 @@ export default function CreateClubPage() {
   const onSubmit = (values: FormValues) => {
     if (imageFile && !imageUri && !imageUploading) return;
     setPendingValues(values);
-    // Pass `values` through the closure (synchronous-passkey rule).
-    void action.run((secret) => handleUnlocked(values, secret));
+    void action.run((signer) => handleUnlocked(values, signer));
   };
 
-  const handleUnlocked = async (values: FormValues, secret: string) => {
+  const handleUnlocked = async (values: FormValues, signer: StarknetVenueSigner) => {
     if (!walletAddress) throw new Error("Wallet not ready. Please refresh and try again.");
     setDeployedAddress(null);
 
@@ -101,11 +98,7 @@ export default function CreateClubPage() {
       baseUri,
       service: "ip-club",
     });
-    const result = await executePrebuiltIntent(action.executeTransaction, client, secret, intentRes.data, { confirm: false });
-
-    if (result.status !== "confirmed") {
-      throw new Error(result.revertReason ?? "Transaction reverted");
-    }
+    const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
     rewardToast("create_club");
 
     // Best-effort: read the deployed address from the ClubDeployed event.
@@ -132,12 +125,12 @@ export default function CreateClubPage() {
     return result;
   };
 
-  if (!isSignedIn) {
+  if (!hasWallet) {
     return (
       <LaunchpadSignedOutState
         icon={Users}
         iconClassName="text-brand-purple"
-        title="Sign in to create a club"
+        title="Set up your wallet to create a club"
         description="Create a club, then mint membership cards for your community."
       />
     );
@@ -145,13 +138,12 @@ export default function CreateClubPage() {
 
   return (
     <>
-      <TransactionDialog
+      <WalletTransactionDialog
         action={action}
         title="Create club"
         processingLabel="Creating your club…"
         firstStepLabel="Prepare metadata"
         successTitle="Club created!"
-        pinDescription="Enter your PIN to create your club."
       >
         <p className="text-sm text-muted-foreground text-center">
           <span className="font-medium text-foreground">{pendingValues?.name || "Your club"}</span> is
@@ -173,7 +165,7 @@ export default function CreateClubPage() {
             </Button>
           )}
         </div>
-      </TransactionDialog>
+      </WalletTransactionDialog>
 
       <ClaimRouteShell
         icon={<Users className="h-4 w-4 text-white" />}
@@ -301,8 +293,6 @@ export default function CreateClubPage() {
           </form>
         </Form>
       </ClaimRouteShell>
-
-      <WalletSetupGate action={action} />
     </>
   );
 }
