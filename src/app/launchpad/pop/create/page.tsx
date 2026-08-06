@@ -3,21 +3,18 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Link from "next/link";
 import {
   Award,
   CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { PinDialog } from "@/components/chipi/pin-dialog";
-import { useWriteAction } from "@/hooks/use-write-action";
-import { WalletSetupGate } from "@/components/transaction/wallet-setup-gate";
-import { useSessionKey } from "@/hooks/use-session-key";
-import { useUser } from "@clerk/nextjs";
+import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { type PopEventType } from "@/lib/launchpad-contracts";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
-import { executePrebuiltIntent } from "@/lib/intent-tx";
+import { executeIntent } from "@/lib/wallet/intent-tx";
+import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { getDefaultClaimWindow, suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
@@ -31,9 +28,8 @@ import { CreatePopAside } from "@/components/claim/create-pop-aside";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 
 export default function CreatePOPPage() {
-  const { isSignedIn } = useUser();
-  const { walletAddress } = useSessionKey();
-  const action = useWriteAction();
+  const { hasWallet, address: walletAddress } = useWalletNativeSession();
+  const action = useWalletWriteAction();
   const client = useMedialaneClient();
   const busy = action.status === "processing" || action.status === "confirming";
 
@@ -98,14 +94,13 @@ export default function CreatePOPPage() {
 
   const onSubmit = (values: PopCreateFormValues) => {
     setPendingValues(values);
-    // Pass `values` through the closure — the passkey path runs synchronously,
-    // before a same-tick setState settles. action.run gates wallet + unlock.
-    void action.run((secret) => handleUnlocked(values, secret));
+    void action.run((signer) => handleUnlocked(values, signer));
   };
 
-  // `secret` is the wallet-unlock material — a typed PIN or the passkey key.
-  // `pendingValues` (param) shadows the display-only state.
-  const handleUnlocked = async (pendingValues: PopCreateFormValues, secret: string) => {
+  const handleUnlocked = async (
+    pendingValues: PopCreateFormValues,
+    signer: StarknetVenueSigner,
+  ) => {
     if (!walletAddress) throw new Error("Wallet not ready. Please refresh and try again.");
 
     // base_uri is embedded in the immutable POP deploy tx, so pinning must
@@ -137,9 +132,8 @@ export default function CreatePOPPage() {
       eventType,
     });
 
-    // action owns status/error — return the result, throw on real failure.
-    const result = await executePrebuiltIntent(action.executeTransaction, client, secret, intentRes.data, { confirm: false });
-    if (result.status === "confirmed") rewardToast("launch_launchpad");
+    const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
+    rewardToast("launch_launchpad");
     return result;
   };
 
@@ -181,14 +175,14 @@ export default function CreatePOPPage() {
     );
   }
 
-  // ── Not signed in ──────────────────────────────────────────────────────────
-  if (!isSignedIn) {
+  // ── No wallet yet ──────────────────────────────────────────────────────────
+  if (!hasWallet) {
     return (
       <LaunchpadSignedOutState
         icon={Award}
         iconClassName="text-green-500"
-        title="Sign in to create a POP event"
-        description="Sign in to deploy a credential collection onchain."
+        title="Set up your wallet to create a POP event"
+        description="Set up your wallet to deploy a credential collection onchain."
       />
     );
   }
@@ -237,11 +231,6 @@ export default function CreatePOPPage() {
           </form>
         </Form>
       </ClaimRouteShell>
-
-      <PinDialog {...action.pinDialogProps}
-        title="Deploy POP collection"
-        description="Enter your PIN to deploy your event credential collection onchain." />
-      <WalletSetupGate action={action} />
     </>
   );
 }
