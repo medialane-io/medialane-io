@@ -107,7 +107,7 @@ export function ReportDialog({ target, open, onOpenChange }: ReportDialogProps) 
       const token = getValidToken() ?? (await signIn());
       if (!token) {
         setSubmitStep("error");
-        setSubmitError("Please set up your wallet to submit a report.");
+        setSubmitError("Please secure your account to submit a report.");
         return;
       }
       const res = await fetch("/api/proxy/v1/reports", {

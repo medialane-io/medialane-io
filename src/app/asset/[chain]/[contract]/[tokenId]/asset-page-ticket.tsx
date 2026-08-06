@@ -274,7 +274,7 @@ export function AssetPageTicket() {
                   <Button asChild className="w-full h-12 text-base bg-transparent text-white rounded-[15px] flex items-center justify-center gap-2">
                     <Link href={`/wallet-onboarding?redirect_url=${encodeURIComponent(pathname)}`}>
                       <ShoppingCart className="h-5 w-5 mr-2" />
-                      Set up your wallet
+                      Set up account
                     </Link>
                   </Button>
                 </div>

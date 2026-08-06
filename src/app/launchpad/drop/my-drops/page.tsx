@@ -73,7 +73,7 @@ export default function MyDropsPage() {
     return (
       <div className="max-w-lg mx-auto px-4 pt-24 pb-8 text-center space-y-4">
         <Package className="h-10 w-10 text-muted-foreground/20 mx-auto" />
-        <h1 className="text-xl font-bold">Set up your wallet to view your drops</h1>
+        <h1 className="text-xl font-bold">Secure your account to view your drops</h1>
       </div>
     );
   }

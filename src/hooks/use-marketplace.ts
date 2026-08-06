@@ -198,7 +198,7 @@ export function useMarketplace() {
         }
       }
       throw new Error(
-        "Verification timed out. Check your wallet for the transaction status."
+        "Verification timed out. Check your account for the transaction status."
       );
     },
     [client]
@@ -214,7 +214,7 @@ export function useMarketplace() {
       intentFn: () => Promise<{ data: ApiIntentCreated }>,
       extraCalls?: Call[],
     ): Promise<string | undefined> => {
-      if (!walletAddress || !signer) throw new Error("Wallet not ready. Please wait a moment.");
+      if (!walletAddress || !signer) throw new Error("Account not ready. Please wait a moment.");
 
       const intent = (await intentFn()).data;
       if (!intent?.id) throw new Error("Intent creation failed: no data returned");

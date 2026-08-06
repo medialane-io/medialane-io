@@ -3,7 +3,7 @@ import { canonical, buildSocialMetadata } from "@/lib/seo";
 import SettingsContent from "./settings-content";
 
 const title = "Account Settings";
-const description = "Manage your public creator identity, username, and wallet connection.";
+const description = "Manage your public creator identity, username, and account.";
 
 export const metadata: Metadata = {
   title,

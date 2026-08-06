@@ -115,7 +115,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
     try {
       let authToken = getValidSiwsToken();
       if (!authToken) authToken = await siwsSignIn();
-      if (!authToken) throw new Error("Set up your wallet first");
+      if (!authToken) throw new Error("Secure your account first");
 
       // 1. Upload remix IPFS metadata
       const royaltyStr = offer.royaltyPct != null ? `${offer.royaltyPct}%` : undefined;

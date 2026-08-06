@@ -104,11 +104,16 @@ export function MarketplaceSignInGate({ title, description }: MarketplaceSignInG
         <p className="font-semibold">{title}</p>
         <p className="text-sm text-muted-foreground mt-1">{description}</p>
       </div>
-      <Button asChild className="w-full">
-        <Link href={`/wallet-onboarding?redirect_url=${encodeURIComponent(pathname)}`}>
-          Set up your wallet
-        </Link>
-      </Button>
+      <div className="btn-border-animated w-full p-[1px] rounded-lg">
+        <Button
+          asChild
+          className="w-full bg-transparent text-white rounded-[7px] hover:bg-transparent hover:brightness-110 active:scale-[0.98] transition-all"
+        >
+          <Link href={`/wallet-onboarding?redirect_url=${encodeURIComponent(pathname)}`}>
+            Set up account
+          </Link>
+        </Button>
+      </div>
     </div>
   );
 }

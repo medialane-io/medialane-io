@@ -77,7 +77,7 @@ export default function MyEventsPage() {
     return (
       <div className="max-w-lg mx-auto px-4 pt-24 pb-8 text-center space-y-4">
         <Award className="h-10 w-10 text-muted-foreground/20 mx-auto" />
-        <h1 className="text-xl font-bold">Set up your wallet to view your events</h1>
+        <h1 className="text-xl font-bold">Secure your account to view your events</h1>
       </div>
     );
   }

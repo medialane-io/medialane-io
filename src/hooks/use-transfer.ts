@@ -64,7 +64,7 @@ export function useTransfer() {
       setError(null);
 
       try {
-        if (!walletAddress || !signer) throw new Error("Wallet not ready. Please wait a moment.");
+        if (!walletAddress || !signer) throw new Error("Account not ready. Please wait a moment.");
         if (!isValidStarknetAddress(input.toAddress)) {
           throw new Error("Invalid recipient address.");
         }

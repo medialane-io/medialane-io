@@ -250,7 +250,7 @@ export default function DropManagePage({
   const handleWithdraw = () => {
     void execute(
       [{ contractAddress: contract, entrypoint: "withdraw_payments", calldata: [] }],
-      "Payments withdrawn to your wallet"
+      "Payments withdrawn to your account"
     );
   };
 

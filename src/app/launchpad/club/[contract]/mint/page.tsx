@@ -136,7 +136,7 @@ export default function CreateMembershipPage({ params }: { params: Promise<{ con
     setImageUploading(true);
     try {
       const token = getValidToken() ?? (await signIn());
-      if (!token) throw new Error("Set up your wallet first");
+      if (!token) throw new Error("Secure your account first");
       const uri = await uploadImageToIpfs(file, token);
       setImageUri(uri);
       toast.success("Image uploaded");
@@ -165,9 +165,9 @@ export default function CreateMembershipPage({ params }: { params: Promise<{ con
   };
 
   const handleUnlocked = async (values: FormValues, signer: StarknetVenueSigner) => {
-    if (!address) throw new Error("Wallet not ready. Please refresh and try again.");
+    if (!address) throw new Error("Account not ready. Please refresh and try again.");
     const siwsToken = getValidToken() ?? (await signIn());
-    if (!siwsToken) throw new Error("Set up your wallet first");
+    if (!siwsToken) throw new Error("Secure your account first");
     const metadataForm = new FormData();
     metadataForm.set("name", values.name);
     metadataForm.set("description", values.description ?? "");
@@ -231,8 +231,8 @@ export default function CreateMembershipPage({ params }: { params: Promise<{ con
       <LaunchpadSignedOutState
         icon={Users}
         iconClassName="text-brand-purple"
-        title="Set up your wallet to create memberships"
-        description="Create a membership tier and mint its supply to your wallet."
+        title="Secure your account to create memberships"
+        description="Create a membership tier and mint its supply to your account."
       />
     );
   }
@@ -437,7 +437,7 @@ export default function CreateMembershipPage({ params }: { params: Promise<{ con
                 <FormItem>
                   <FormLabel>Supply <span className="text-destructive">*</span></FormLabel>
                   <FormControl><Input type="number" min="1" placeholder="100" {...field} /></FormControl>
-                  <FormDescription>Minted to your wallet.</FormDescription>
+                  <FormDescription>Minted to your account.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )} />

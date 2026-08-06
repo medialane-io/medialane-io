@@ -41,13 +41,18 @@ export function WalletPanel() {
   if (!hasWallet) {
     return (
       <section className="space-y-3 rounded-lg border border-dashed border-border bg-card p-4">
-        <h2 className="text-base font-semibold">Wallet</h2>
+        <h2 className="text-base font-semibold">Account</h2>
         <p className="text-sm text-muted-foreground">
-          Set up your wallet to view your balance and send funds.
+          Secure your account to view your balance and send funds.
         </p>
-        <Button asChild>
-          <Link href="/wallet-onboarding?redirect_url=/settings/wallet">Set up your wallet</Link>
-        </Button>
+        <div className="btn-border-animated inline-block p-[1px] rounded-lg">
+          <Button
+            asChild
+            className="bg-transparent text-white rounded-[7px] hover:bg-transparent hover:brightness-110 active:scale-[0.98] transition-all"
+          >
+            <Link href="/wallet-onboarding?redirect_url=/settings/wallet">Set up account</Link>
+          </Button>
+        </div>
       </section>
     );
   }
@@ -97,9 +102,9 @@ export function WalletPanel() {
   return (
     <section className="space-y-4 rounded-lg border border-border bg-card p-4">
       <header>
-        <h2 className="text-base font-semibold">Wallet</h2>
+        <h2 className="text-base font-semibold">Account</h2>
         <p className="text-xs text-muted-foreground">
-          Self-custody Starknet wallet, secured by your device passkey.
+          Self-custody account, secured by your device passkey.
         </p>
       </header>
 

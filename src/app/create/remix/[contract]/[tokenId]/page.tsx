@@ -200,7 +200,7 @@ export default function CreateRemixPage() {
       };
 
       const authToken = getValidToken() ?? (await signIn());
-      if (!authToken) throw new Error("Set up your wallet first");
+      if (!authToken) throw new Error("Secure your account first");
 
       let tokenUri: string;
 

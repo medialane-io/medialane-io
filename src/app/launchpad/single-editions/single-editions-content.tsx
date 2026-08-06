@@ -296,7 +296,7 @@ export function SingleEditionsContent() {
 
   const uploadDocument = async (file: File) => {
     const token = getValidToken() ?? (await signIn());
-    if (!token) throw new Error("Set up your wallet first");
+    if (!token) throw new Error("Secure your account first");
     return uploadDocumentToIpfs(file, token);
   };
 
@@ -416,7 +416,7 @@ export function SingleEditionsContent() {
 
     try {
       const siwsToken = getValidToken() ?? (await signIn());
-      if (!siwsToken) throw new Error("Set up your wallet first");
+      if (!siwsToken) throw new Error("Secure your account first");
       const selectedCollection = collections.find((c) => c.collectionId === pendingValues.collectionId);
       updateMintDebug({
         step: "uploading",
@@ -553,7 +553,7 @@ export function SingleEditionsContent() {
       <LaunchpadSignedOutState
         icon={ImagePlus}
         iconClassName="text-brand-blue"
-        title="Set up your wallet to create"
+        title="Secure your account to create"
         description="Publish your creative work as a single-copy NFT in a collection you own."
       />
     );

@@ -138,7 +138,7 @@ export default function CoinCreatePage() {
     setProfileStatus("saving");
     try {
       const token = getValidToken() ?? (await signIn());
-      if (!token) throw new Error("Set up your wallet first");
+      if (!token) throw new Error("Secure your account first");
       await client.api.updateCollectionProfile(
         contractAddress,
         { ...(imageUri ? { image: imageUri } : {}), ...(description ? { description } : {}) },
@@ -151,7 +151,7 @@ export default function CoinCreatePage() {
   };
 
   const runLaunch = async (signer: StarknetVenueSigner) => {
-    if (!walletAddress) throw new Error("Wallet not ready. Please refresh and try again.");
+    if (!walletAddress) throw new Error("Account not ready. Please refresh and try again.");
     const input: LaunchCoinInput = { name, symbol, supplyHuman: supply, quoteSymbol: quote, teamPct };
     const result = await launch(input, signer, walletAddress);
     setCoinAddress(result.coinAddress);
@@ -178,7 +178,7 @@ export default function CoinCreatePage() {
         icon={TrendingUp}
         iconClassName="text-brand-rose"
         title="Launch a Creator Coin"
-        description="Set up your wallet to design and launch your own coin with permanently-locked liquidity, in a few clicks."
+        description="Secure your account to design and launch your own coin with permanently-locked liquidity, in a few clicks."
       />
     );
   }

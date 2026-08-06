@@ -111,7 +111,7 @@ export default function CreateIP1155CollectionPage() {
   // The `prepare` body. useWalletWriteAction owns status/error — return the
   // tx result.
   const handleUnlocked = async (pendingValues: NftEditionsCreateFormValues, signer: StarknetVenueSigner) => {
-    if (!walletAddress) throw new Error("Wallet not ready. Please refresh and try again.");
+    if (!walletAddress) throw new Error("Account not ready. Please refresh and try again.");
     setDeployedAddress(null);
 
     // 1. Pin metadata JSON to IPFS — base_uri goes on-chain into an immutable
@@ -119,7 +119,7 @@ export default function CreateIP1155CollectionPage() {
     let collectionMetaUri: string | undefined;
     if (imageUri) {
       const siwsToken = getValidToken() ?? (await signIn());
-      if (!siwsToken) throw new Error("Set up your wallet first");
+      if (!siwsToken) throw new Error("Secure your account first");
       collectionMetaUri = await pinLaunchpadMetadata({
         name: pendingValues.name,
         description: pendingValues.description || "",
@@ -196,7 +196,7 @@ export default function CreateIP1155CollectionPage() {
       <LaunchpadSignedOutState
         icon={Layers}
         iconClassName="text-brand-purple"
-        title="Set up your wallet to create a collection"
+        title="Secure your account to create a collection"
         description="Deploy a multi-edition ERC-1155 IP collection onchain."
       />
     );

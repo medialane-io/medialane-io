@@ -38,7 +38,7 @@ export function SponsorSolicitDialog({
   const [terms, setTerms] = useState<SponsorshipTerms>({ ...EMPTY_SPONSORSHIP_TERMS, paymentTokenSymbol: "USDC" });
 
   const onSubmit = () => {
-    if (!walletAddress) { toast.error("Wallet not ready. Please refresh and try again."); return; }
+    if (!walletAddress) { toast.error("Account not ready. Please refresh and try again."); return; }
     if (!terms.amount || Number(terms.amount) <= 0) { toast.error("Set a minimum bid before continuing"); return; }
     const token = getTokenBySymbol(terms.paymentTokenSymbol);
     if (!token) { toast.error("Pick a currency"); return; }
@@ -47,7 +47,7 @@ export function SponsorSolicitDialog({
 
     void action.run(async (signer) => {
       const siwsToken = getValidToken() ?? (await signIn());
-      if (!siwsToken) throw new Error("Set up your wallet first");
+      if (!siwsToken) throw new Error("Secure your account first");
       const licenseTermsUri = await pinSponsorshipTerms(toLicenseMetadata(terms), siwsToken);
 
       const amount = BigInt(Math.round(Number(terms.amount) * 10 ** token.decimals));

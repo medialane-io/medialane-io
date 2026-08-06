@@ -96,14 +96,20 @@ export function NotificationsFeed() {
         <div className="rounded-2xl border border-border/50 bg-muted/10 p-6 flex flex-col items-center gap-3 text-center">
           <Bell className="h-8 w-8 text-muted-foreground/40" />
           <div>
-            <p className="font-semibold text-sm">Set up your wallet to see your notifications</p>
+            <p className="font-semibold text-sm">Secure your account to see your notifications</p>
             <p className="text-xs text-muted-foreground mt-1">
               Offers, sales, and activity will appear here.
             </p>
           </div>
-          <Button size="sm" asChild>
-            <Link href="/wallet-onboarding?redirect_url=/notifications">Set up wallet</Link>
-          </Button>
+          <div className="btn-border-animated inline-block p-[1px] rounded-lg">
+            <Button
+              size="sm"
+              asChild
+              className="bg-transparent text-white rounded-[7px] hover:bg-transparent hover:brightness-110 active:scale-[0.98] transition-all"
+            >
+              <Link href="/wallet-onboarding?redirect_url=/notifications">Set up account</Link>
+            </Button>
+          </div>
         </div>
       )}
 

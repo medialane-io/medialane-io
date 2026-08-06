@@ -57,11 +57,16 @@ export default function PortfolioLayout({ children }: { children: React.ReactNod
         <Wallet className="h-12 w-12 mx-auto text-muted-foreground" />
         <h1 className="text-2xl font-bold">Secure your account</h1>
         <p className="text-muted-foreground max-w-sm mx-auto">
-          Set up your wallet to unlock your portfolio and start trading.
+          Secure your account to unlock your portfolio and start trading.
         </p>
-        <Button asChild>
-          <Link href="/wallet-onboarding?redirect_url=/portfolio">Get started</Link>
-        </Button>
+        <div className="btn-border-animated inline-block p-[1px] rounded-lg">
+          <Button
+            asChild
+            className="bg-transparent text-white rounded-[7px] hover:bg-transparent hover:brightness-110 active:scale-[0.98] transition-all"
+          >
+            <Link href="/wallet-onboarding?redirect_url=/portfolio">Get started</Link>
+          </Button>
+        </div>
       </div>
     );
   }

@@ -5,7 +5,7 @@ import type { NextRequest } from "next/server";
  * Wallet-native session state lives in localStorage only, not a server
  * session — so route gating can't happen here. Gated routes (portfolio, settings, create,
  * claim, the launchpad create/mint surfaces) each check `hasWallet` from
- * `useWalletNativeSession()` client-side and render a "set up your wallet"
+ * `useWalletNativeSession()` client-side and render a "secure your account"
  * state in place, same pattern as `portfolio/layout.tsx`. This middleware
  * now only forwards the request pathname, which `RootLayout` reads to pick
  * the /br locale.

@@ -79,7 +79,7 @@ export default function CreateClubPage() {
   };
 
   const handleUnlocked = async (values: FormValues, signer: StarknetVenueSigner) => {
-    if (!walletAddress) throw new Error("Wallet not ready. Please refresh and try again.");
+    if (!walletAddress) throw new Error("Account not ready. Please refresh and try again.");
     setDeployedAddress(null);
 
     // Pin collection metadata first — base_uri goes on-chain in the immutable
@@ -87,7 +87,7 @@ export default function CreateClubPage() {
     let baseUri = "";
     if (imageUri) {
       const siwsToken = getValidToken() ?? (await signIn());
-      if (!siwsToken) throw new Error("Set up your wallet first");
+      if (!siwsToken) throw new Error("Secure your account first");
       baseUri = await pinLaunchpadMetadata({
         name: values.name,
         description: values.description || "",
@@ -134,7 +134,7 @@ export default function CreateClubPage() {
       <LaunchpadSignedOutState
         icon={Users}
         iconClassName="text-brand-purple"
-        title="Set up your wallet to create a club"
+        title="Secure your account to create a club"
         description="Create a club, then mint membership cards for your community."
       />
     );

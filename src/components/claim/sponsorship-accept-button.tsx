@@ -38,7 +38,7 @@ export function SponsorshipAcceptButton({ offerId, sponsor, paymentToken, amount
 
   const handleAccept = () => {
     if (!hasWallet || !walletAddress) {
-      toast.error("Set up your wallet to accept this bid");
+      toast.error("Secure your account to accept this bid");
       return;
     }
     void action.run(async (signer) => {

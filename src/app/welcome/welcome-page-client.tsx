@@ -59,7 +59,7 @@ const JOURNEYS = [
 const HIGHLIGHTS = [
   {
     icon: Zap,
-    label: "Self-custody wallet",
+    label: "Self-custody account",
     description: "Secured by your device passkey — no seed phrase to write down or lose.",
   },
   {
@@ -85,7 +85,7 @@ function OnboardingBanner({
 }) {
   const steps = [
     { done: true, label: "Account created", sub: "Secured with a passkey" },
-    { done: true, label: "Wallet secured", sub: "MediaWallet on Starknet" },
+    { done: true, label: "Account secured", sub: "MediaWallet on Starknet" },
     {
       done: !!mintTxHash,
       label: mintTxHash ? "Genesis NFT minted" : "Genesis NFT",

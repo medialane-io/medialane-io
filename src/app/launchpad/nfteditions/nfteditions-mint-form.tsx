@@ -106,7 +106,7 @@ export function NftEditionsMintForm({
 
   const uploadDocument = async (file: File) => {
     const token = getValidToken() ?? (await signIn());
-    if (!token) throw new Error("Set up your wallet first");
+    if (!token) throw new Error("Secure your account first");
     return uploadDocumentToIpfs(file, token);
   };
 
@@ -250,7 +250,7 @@ export function NftEditionsMintForm({
             <FormControl>
               <Input placeholder="0x…" {...field} />
             </FormControl>
-            <FormDescription>Wallet that receives the minted tokens. Defaults to your wallet.</FormDescription>
+            <FormDescription>Account that receives the minted tokens. Defaults to your account.</FormDescription>
             <FormMessage />
           </FormItem>
         )} />

@@ -26,7 +26,7 @@ export function PopClaimButton({ collectionAddress }: PopClaimButtonProps) {
 
   const handleClaim = () => {
     if (!hasWallet) {
-      toast.error("Set up your wallet to claim your credential");
+      toast.error("Secure your account to claim your credential");
       return;
     }
     void action.run(async (signer) => {

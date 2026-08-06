@@ -38,7 +38,7 @@ export function ClaimCollectionPanel({ helperText }: { helperText?: React.ReactN
 
   async function handleAutoClaim() {
     if (!contractAddress.trim() || !walletAddress) {
-      toast.error("Connect your wallet first");
+      toast.error("Secure your account first");
       return;
     }
     setStep("verifying");

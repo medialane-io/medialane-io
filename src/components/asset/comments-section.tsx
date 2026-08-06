@@ -271,7 +271,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
               href={`/wallet-onboarding?redirect_url=${encodeURIComponent(pathname)}`}
               className="text-sm text-primary hover:underline"
             >
-              Set up your wallet to comment
+              Secure your account to comment
             </Link>
           </div>
         ) : (

@@ -96,10 +96,16 @@ function StatusRow({ address }: { address: string | null | undefined }) {
   if (!address) {
     return (
       <div className="flex flex-wrap items-center gap-3">
-        <p className="text-sm text-muted-foreground">Set up your wallet to see your score.</p>
-        <Button size="sm" asChild>
-          <Link href="/wallet-onboarding?redirect_url=/rewards">Set up wallet</Link>
-        </Button>
+        <p className="text-sm text-muted-foreground">Secure your account to see your score.</p>
+        <div className="btn-border-animated inline-block p-[1px] rounded-lg">
+          <Button
+            size="sm"
+            asChild
+            className="bg-transparent text-white rounded-[7px] hover:bg-transparent hover:brightness-110 active:scale-[0.98] transition-all"
+          >
+            <Link href="/wallet-onboarding?redirect_url=/rewards">Set up account</Link>
+          </Button>
+        </div>
       </div>
     );
   }

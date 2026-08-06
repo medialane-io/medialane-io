@@ -631,10 +631,10 @@ function GatedContentPanel({ state, contract }: { state: GatedContentState; cont
           <Lock className="h-8 w-8 text-muted-foreground/50" />
         </div>
         <div>
-          <p className="text-base font-semibold">Set up your wallet to unlock</p>
+          <p className="text-base font-semibold">Secure your account to unlock</p>
           <p className="text-sm text-muted-foreground mt-1 max-w-xs">
             This collection has exclusive content available only to verified holders.
-            Set up your wallet so we can check your holdings.
+            Secure your account so we can check your holdings.
           </p>
         </div>
         <p className="text-xs text-muted-foreground/60">

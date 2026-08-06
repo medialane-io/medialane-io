@@ -155,7 +155,7 @@ export default function CreateSponsorshipOfferPage() {
   const tokenId = mode === "offer" ? selectedAsset?.tokenId : proposeAsset?.tokenId;
 
   const onSubmit = () => {
-    if (!walletAddress) { toast.error("Wallet not ready. Please refresh and try again."); return; }
+    if (!walletAddress) { toast.error("Account not ready. Please refresh and try again."); return; }
     if (!nftContract || !tokenId) {
       toast.error(mode === "offer" ? "Choose which asset you're offering" : "Search for the asset you want to sponsor and pick it");
       return;
@@ -168,7 +168,7 @@ export default function CreateSponsorshipOfferPage() {
 
     void action.run(async (signer) => {
       const siwsToken = getValidToken() ?? (await signIn());
-      if (!siwsToken) throw new Error("Set up your wallet first");
+      if (!siwsToken) throw new Error("Secure your account first");
       const licenseTermsUri = await pinSponsorshipTerms(toLicenseMetadata(terms), siwsToken);
 
       const amount = BigInt(Math.round(Number(terms.amount) * 10 ** token.decimals));
@@ -198,8 +198,8 @@ export default function CreateSponsorshipOfferPage() {
       <LaunchpadSignedOutState
         icon={Handshake}
         iconClassName="text-brand-rose"
-        title="Set up your wallet to set up a sponsorship"
-        description="Set up your wallet to publish onchain."
+        title="Secure your account to set up a sponsorship"
+        description="Secure your account to publish onchain."
       />
     );
   }
@@ -287,7 +287,7 @@ export default function CreateSponsorshipOfferPage() {
               <Loader2 className="h-10 w-10 animate-spin text-brand-rose mx-auto" />
               <div className="space-y-1">
                 <DialogTitle>{mode === "offer" ? "Creating your sponsorship offer…" : "Sending your proposal…"}</DialogTitle>
-                <DialogDescription>Confirm in your wallet, then hang tight — this settles onchain.</DialogDescription>
+                <DialogDescription>Confirm the prompt, then hang tight — this settles onchain.</DialogDescription>
               </div>
             </div>
           ) : action.status === "success" ? (

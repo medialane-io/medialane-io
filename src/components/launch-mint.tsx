@@ -115,7 +115,7 @@ export function LaunchMint() {
     setMintStatusMsg("Preparing your NFT…");
 
     await action.run(async (signer) => {
-      if (!recipientAddress) throw new Error("Wallet address not found.");
+      if (!recipientAddress) throw new Error("Account not ready. Please refresh and try again.");
       if (!LAUNCH_MINT_CONTRACT) throw new Error("Mint contract not configured.");
 
       // Resolve token URI — normalize bare CIDs to ipfs:// scheme
@@ -134,7 +134,7 @@ export function LaunchMint() {
         );
         form.append("external_url", "https://medialane.io");
         const siwsToken = getValidToken() ?? (await signIn());
-        if (!siwsToken) throw new Error("Wallet address not found.");
+        if (!siwsToken) throw new Error("Account not ready. Please refresh and try again.");
         const res = await fetch("/api/pinata", withSiwsAuth(siwsToken, { method: "POST", body: form }));
         const data = await res.json();
         if (data.error) throw new Error("Metadata upload failed: " + data.error);
@@ -205,13 +205,13 @@ export function LaunchMint() {
               <div className="space-y-6">
                 <div className="space-y-3">
                   <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight leading-[1.1]">
-                    Set up your{" "}
+                    Secure your{" "}
                     <span className="bg-gradient-to-r from-primary via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                      Starknet wallet
+                      Medialane account
                     </span>
                   </h2>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    One quick step before minting — set up your self-custody wallet with a passkey. No seed phrases to write down.
+                    One quick step before minting — secure your self-custody account with a passkey. No seed phrases to write down.
                   </p>
                 </div>
 

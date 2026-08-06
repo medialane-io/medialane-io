@@ -31,7 +31,7 @@ export function SignedOutAssetActions({ chain, contract, tokenId }: SignedOutAss
           <Wallet className="h-[18px] w-[18px]" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-bold leading-snug">Set up your wallet</p>
+          <p className="text-sm font-bold leading-snug">Set up account</p>
           <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
             Buy, offer, and collect instantly — no seed phrase needed.
           </p>

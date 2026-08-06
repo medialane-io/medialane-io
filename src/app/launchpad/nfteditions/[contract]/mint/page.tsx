@@ -143,10 +143,10 @@ export default function MintIP1155Page() {
   };
 
   const handleUnlocked = async (values: NftEditionsMintFormValues, signer: StarknetVenueSigner) => {
-    if (!walletAddress || !imageUri) throw new Error("Wallet not ready. Please refresh and try again.");
+    if (!walletAddress || !imageUri) throw new Error("Account not ready. Please refresh and try again.");
 
     const siwsToken = getValidToken() ?? (await signIn());
-    if (!siwsToken) throw new Error("Set up your wallet first");
+    if (!siwsToken) throw new Error("Secure your account first");
 
     const metadataForm = new FormData();
     metadataForm.set("name", values.name);
@@ -234,8 +234,8 @@ export default function MintIP1155Page() {
       <LaunchpadSignedOutState
         icon={Sparkles}
         iconClassName="text-brand-purple"
-        title="Set up your wallet to create"
-        description="Set up your wallet to mint tokens into a multi-editions collection."
+        title="Secure your account to create"
+        description="Secure your account to mint tokens into a multi-editions collection."
       />
     );
   }

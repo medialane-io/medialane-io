@@ -195,10 +195,10 @@ export default function CreateDropPage() {
 
   // `pendingValues` (param) shadows the display-only state.
   const handleUnlocked = async (pendingValues: DropCreateFormValues, signer: StarknetVenueSigner) => {
-    if (!walletAddress) throw new Error("Wallet not ready. Please refresh and try again.");
+    if (!walletAddress) throw new Error("Account not ready. Please refresh and try again.");
 
     const siwsToken = getValidToken() ?? (await signIn());
-    if (!siwsToken) throw new Error("Set up your wallet first");
+    if (!siwsToken) throw new Error("Secure your account first");
 
     let baseUri = "";
     let maxSupply = 0n;
@@ -314,8 +314,8 @@ export default function CreateDropPage() {
       <LaunchpadSignedOutState
         icon={Package}
         iconClassName="text-brand-orange"
-        title="Set up your wallet to launch a drop"
-        description="Set up your wallet to deploy a limited-edition collection onchain."
+        title="Secure your account to launch a drop"
+        description="Secure your account to deploy a limited-edition collection onchain."
       />
     );
   }

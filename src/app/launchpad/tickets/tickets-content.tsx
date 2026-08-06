@@ -57,9 +57,9 @@ export function TicketsContent() {
                 </div>
               </div>
               <div className="space-y-1">
-                <p className="font-semibold text-sm">Set up your wallet to see your collections</p>
+                <p className="font-semibold text-sm">Secure your account to see your collections</p>
                 <p className="text-xs text-muted-foreground">
-                  Your tickets collections appear here once your wallet is ready.
+                  Your tickets collections appear here once your account is ready.
                 </p>
               </div>
             </div>

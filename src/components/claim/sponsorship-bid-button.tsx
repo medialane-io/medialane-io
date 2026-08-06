@@ -35,7 +35,7 @@ export function SponsorshipBidButton({ offerId, minAmount, paymentToken, onBidPl
 
   const handleBid = () => {
     if (!hasWallet || !walletAddress) {
-      toast.error("Set up your wallet to place a bid");
+      toast.error("Secure your account to place a bid");
       return;
     }
     if (!amount || Number(amount) <= 0) {

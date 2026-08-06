@@ -175,7 +175,7 @@ export function IP1155Content() {
             <div className="bento-cell p-10 flex flex-col items-center gap-4 text-center">
               <Layers className="h-10 w-10 text-muted-foreground/30" />
               <div>
-                <p className="font-semibold">Set up your wallet to see your collections</p>
+                <p className="font-semibold">Secure your account to see your collections</p>
                 <p className="text-sm text-muted-foreground mt-1">
                   Your editions collections will appear here.
                 </p>

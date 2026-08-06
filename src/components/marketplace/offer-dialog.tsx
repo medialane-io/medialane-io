@@ -203,8 +203,8 @@ export function OfferDialog({
 
           ) : !hasWallet ? (
             <MarketplaceSignInGate
-              title="Set up your wallet to make an offer"
-              description="You need a wallet to place offers."
+              title="Secure your account to make an offer"
+              description="You need an account to place offers."
             />
 
           ) : (

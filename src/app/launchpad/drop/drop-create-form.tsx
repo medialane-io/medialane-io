@@ -89,7 +89,7 @@ export function DropCreateForm({
 
   const uploadDocument = async (file: File) => {
     const token = getValidToken() ?? (await signIn());
-    if (!token) throw new Error("Set up your wallet first");
+    if (!token) throw new Error("Secure your account first");
     return uploadDocumentToIpfs(file, token);
   };
 

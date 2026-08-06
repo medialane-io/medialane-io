@@ -202,8 +202,8 @@ export function ListingDialog({
 
           ) : !hasWallet ? (
             <MarketplaceSignInGate
-              title="Set up your wallet to list"
-              description="You need a wallet to list assets for sale."
+              title="Secure your account to list"
+              description="You need an account to list assets for sale."
             />
 
           ) : (

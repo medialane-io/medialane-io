@@ -354,7 +354,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
 
                 {!hasWallet ? (
                   <p className="text-sm text-muted-foreground text-center py-2">
-                    Set up your wallet to purchase this asset.
+                    Secure your account to purchase this asset.
                   </p>
                 ) : (
                   <div className="btn-border-animated p-[1px] rounded-xl">

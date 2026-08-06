@@ -130,9 +130,9 @@ export function CounterOfferDialog({
             <div className="flex flex-col items-center gap-4 py-8 text-center">
               <Wallet className="h-10 w-10 text-muted-foreground" />
               <div>
-                <p className="font-semibold">Set up your wallet to send a counter-offer</p>
+                <p className="font-semibold">Secure your account to send a counter-offer</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  You need a wallet to counter bids.
+                  You need an account to counter bids.
                 </p>
               </div>
             </div>
@@ -255,7 +255,7 @@ export function CounterOfferDialog({
 
                   <Button type="submit" className="w-full h-11" disabled={isProcessing}>
                     <ArrowLeftRight className="h-4 w-4 mr-2" />
-                    {hasWallet ? "Send counter-offer" : "Set up wallet & counter"}
+                    {hasWallet ? "Send counter-offer" : "Set up account & counter"}
                   </Button>
                   <p className="text-[10px] text-center text-muted-foreground">
                     Your offer will be pushed onchain. Transaction sponsored by Medialane.

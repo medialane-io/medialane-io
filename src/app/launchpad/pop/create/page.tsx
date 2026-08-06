@@ -103,7 +103,7 @@ export default function CreatePOPPage() {
     pendingValues: PopCreateFormValues,
     signer: StarknetVenueSigner,
   ) => {
-    if (!walletAddress) throw new Error("Wallet not ready. Please refresh and try again.");
+    if (!walletAddress) throw new Error("Account not ready. Please refresh and try again.");
 
     // base_uri is embedded in the immutable POP deploy tx, so pinning must
     // succeed — a silent fallback ships an empty base_uri that can't be fixed.
@@ -116,7 +116,7 @@ export default function CreatePOPPage() {
     };
     if (imageUri) metadata.image = imageUri;
     const siwsToken = getValidToken() ?? (await signIn());
-    if (!siwsToken) throw new Error("Set up your wallet first");
+    if (!siwsToken) throw new Error("Secure your account first");
     const baseUri = await pinLaunchpadMetadata(metadata, siwsToken);
 
     const claimEndTimestamp = Math.floor(
@@ -185,8 +185,8 @@ export default function CreatePOPPage() {
       <LaunchpadSignedOutState
         icon={Award}
         iconClassName="text-green-500"
-        title="Set up your wallet to create a POP event"
-        description="Set up your wallet to deploy a credential collection onchain."
+        title="Secure your account to create a POP event"
+        description="Secure your account to deploy a credential collection onchain."
       />
     );
   }

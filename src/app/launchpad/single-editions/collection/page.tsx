@@ -145,7 +145,7 @@ export default function LaunchpadCreateCollectionPage() {
     setImageUploading(true);
     try {
       const token = getValidToken() ?? (await signIn());
-      if (!token) throw new Error("Set up your wallet first");
+      if (!token) throw new Error("Secure your account first");
       // Signed-url upload — straight to Pinata, bypasses Vercel's ~4.5 MB body cap.
       // Pinata has occasional slow spells — cap the wait so the user gets a
       // retry prompt instead of an endless spinner.
@@ -188,10 +188,10 @@ export default function LaunchpadCreateCollectionPage() {
   // `useWalletWriteAction` owns status/error — this returns the tx result and
   // throws on real failure.
   const runCreate = async (values: FormValues, signer: StarknetVenueSigner) => {
-    if (!walletAddress) throw new Error("Wallet not ready. Please refresh and try again.");
+    if (!walletAddress) throw new Error("Account not ready. Please refresh and try again.");
 
     const siwsToken = getValidToken() ?? (await signIn());
-    if (!siwsToken) throw new Error("Set up your wallet first");
+    if (!siwsToken) throw new Error("Secure your account first");
 
     // 1. Upload collection metadata JSON to IPFS so permissionless dapps can resolve
     //    the collection image onchain (base_uri → collection metadata → image field).
@@ -233,7 +233,7 @@ export default function LaunchpadCreateCollectionPage() {
     // Register from the tx so it appears in portfolio without waiting for the indexer.
     // Stay in "processing" until the backend confirms the CollectionCreated event.
     if (!result.txHash) {
-      throw new Error("Collection transaction completed without a transaction hash. Please refresh and check your wallet activity.");
+      throw new Error("Collection transaction completed without a transaction hash. Please refresh and check your account activity.");
     }
     await syncCollectionFromTx(result.txHash);
     invalidatePortfolioCache(walletAddress);

@@ -74,7 +74,7 @@ export default function CreateLicensingPage() {
       return;
     }
     const authToken = getValidToken() ?? (await signIn());
-    if (!authToken) { setError("Wallet sign-in required"); return; }
+    if (!authToken) { setError("Account sign-in required"); return; }
     setLoading(true);
     setError(null);
     try {

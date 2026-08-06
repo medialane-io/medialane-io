@@ -150,7 +150,7 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
     setImageUploading(true);
     try {
       const token = getValidToken() ?? (await signIn());
-      if (!token) throw new Error("Set up your wallet first");
+      if (!token) throw new Error("Secure your account first");
       const uri = await uploadImageToIpfs(file, token);
       setImageUri(uri);
       toast.success("Image uploaded");
@@ -179,9 +179,9 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
   };
 
   const handleUnlocked = async (values: FormValues, signer: StarknetVenueSigner) => {
-    if (!address) throw new Error("Wallet not ready. Please refresh and try again.");
+    if (!address) throw new Error("Account not ready. Please refresh and try again.");
     const siwsToken = getValidToken() ?? (await signIn());
-    if (!siwsToken) throw new Error("Set up your wallet first");
+    if (!siwsToken) throw new Error("Secure your account first");
     const metadataForm = new FormData();
     metadataForm.set("name", values.name);
     metadataForm.set("description", values.description ?? "");
@@ -245,8 +245,8 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
       <LaunchpadSignedOutState
         icon={Ticket}
         iconClassName="text-teal-500"
-        title="Set up your wallet to mint tickets"
-        description="Create a ticket type and mint its supply to your wallet."
+        title="Secure your account to mint tickets"
+        description="Create a ticket type and mint its supply to your account."
       />
     );
   }
@@ -451,7 +451,7 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
                 <FormItem>
                   <FormLabel>Supply <span className="text-destructive">*</span></FormLabel>
                   <FormControl><Input type="number" min="1" placeholder="100" {...field} /></FormControl>
-                  <FormDescription>Minted to your wallet.</FormDescription>
+                  <FormDescription>Minted to your account.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )} />

@@ -97,7 +97,7 @@ const POP_FEATURES = [
   {
     icon: Award,
     title: "Soulbound Credential",
-    desc: "Non-transferable — permanently tied to your wallet address onchain.",
+    desc: "Non-transferable — permanently tied to your account onchain.",
   },
   {
     icon: Users,
