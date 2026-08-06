@@ -6,7 +6,9 @@ import { renderHook, waitFor } from "@testing-library/react";
 // `document` (not just `window`/`localStorage` stubs — Phase 0+1's simpler
 // shim was enough for store.test.ts, but not for actually mounting a React
 // tree). happy-dom's global registrator provides a full DOM implementation.
-GlobalRegistrator.register();
+// Guarded: multiple test files run in the same process during a full suite
+// run, and double-registration throws.
+if (!GlobalRegistrator.isRegistered) GlobalRegistrator.register();
 
 // account-ops's isDeployed() makes a real RPC call — mock just that export
 // (keeping the rest real, since venue-signer.ts also imports `execute` from
