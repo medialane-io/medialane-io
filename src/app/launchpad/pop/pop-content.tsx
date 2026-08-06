@@ -106,8 +106,8 @@ const POP_FEATURES = [
   },
   {
     icon: Zap,
-    title: "Gas-Free Claiming",
-    desc: "Participants claim for free — no wallet balance required.",
+    title: "Free to Claim",
+    desc: "No protocol fee — participants claim one credential per event.",
   },
   {
     icon: ShieldCheck,

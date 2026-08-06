@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Copy, Check, ExternalLink, Send, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { Copy, Check, ExternalLink, Send, ArrowDownToLine, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useTokenBalance } from "@/hooks/use-erc20-balance";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ReceiveFundsDialog } from "@/components/wallet/receive-funds-dialog";
 import { getListableTokens, formatAmount } from "@medialane/sdk";
 import { EXPLORER_URL } from "@/lib/constants";
 import { cn } from "@/lib/utils";
@@ -27,6 +28,7 @@ const TRANSFERABLE_TOKENS = getListableTokens().map((t) => t.symbol);
 export function WalletPanel() {
   const { hasWallet, address, isDeployed } = useWalletNativeSession();
   const [copied, setCopied] = useState(false);
+  const [receiveOpen, setReceiveOpen] = useState(false);
   const [tokenSymbol, setTokenSymbol] = useState(TRANSFERABLE_TOKENS[0] ?? "STRK");
   const [toAddress, setToAddress] = useState("");
   const [amount, setAmount] = useState("");
@@ -122,7 +124,7 @@ export function WalletPanel() {
         </div>
         {isDeployed === false && (
           <p className="text-[11px] text-amber-500">
-            Not yet deployed onchain — this happens automatically with your first transaction.
+            Deploying onchain — this can take a moment after setup.
           </p>
         )}
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -131,10 +133,28 @@ export function WalletPanel() {
         </div>
       </div>
 
+      {rawBalance === 0n && (
+        <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-muted/50 px-4 py-3">
+          <p className="text-xs text-muted-foreground">
+            Your wallet has no funds. Deposit STRK or ETH to pay for transactions.
+          </p>
+          <Button size="sm" variant="outline" className="shrink-0 gap-1.5" onClick={() => setReceiveOpen(true)}>
+            <ArrowDownToLine className="h-3.5 w-3.5" />
+            Deposit
+          </Button>
+        </div>
+      )}
+
       <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <Send className="h-3.5 w-3.5 text-muted-foreground" />
-          <p className="text-sm font-medium">Send</p>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Send className="h-3.5 w-3.5 text-muted-foreground" />
+            <p className="text-sm font-medium">Send</p>
+          </div>
+          <Button size="sm" variant="ghost" className="h-7 gap-1.5 px-2 text-xs" onClick={() => setReceiveOpen(true)}>
+            <ArrowDownToLine className="h-3.5 w-3.5" />
+            Receive
+          </Button>
         </div>
 
         <div className="grid grid-cols-4 gap-1.5">
@@ -218,6 +238,10 @@ export function WalletPanel() {
           {isProcessing ? <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> Sending…</> : "Send"}
         </Button>
       </div>
+
+      {address && (
+        <ReceiveFundsDialog address={address} open={receiveOpen} onOpenChange={setReceiveOpen} />
+      )}
     </section>
   );
 }

@@ -10,7 +10,7 @@ import { getService } from "@medialane/sdk";
 import { LaunchpadGroupedSections, LaunchpadFilterBar, useLaunchpadFilter, type ServiceOverrides } from "@medialane/ui";
 import { ExternalLink, ArrowRight } from "lucide-react";
 
-// ── io-specific service overrides (hrefs, rollout flips, gasless-rail copy) ──
+// ── io-specific service overrides (hrefs, rollout flips) ──
 const IO_OVERRIDES: ServiceOverrides = {
   "nfts":             { href: "/launchpad/single-editions" },
   "limited-editions": { href: "/launchpad/nfteditions" },

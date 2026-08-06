@@ -140,8 +140,8 @@ const DROP_FEATURES = [
   },
   {
     icon: Zap,
-    title: "Gas-Free Minting",
-    desc: "Collectors mint without paying gas fees.",
+    title: "Free to Mint",
+    desc: "No protocol fee on top of the mint price.",
   },
   {
     icon: Layers,

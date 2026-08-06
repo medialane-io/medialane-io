@@ -56,7 +56,7 @@ function GenesisNftCard({ minted = false }: { minted?: boolean }) {
 
 const PERKS = [
   { icon: Gift, label: "Free to mint", sub: "Zero protocol fees" },
-  { icon: Zap, label: "Gas-free", sub: "Sponsored transactions" },
+  { icon: Zap, label: "Self-custody", sub: "Secured by your passkey" },
   { icon: Droplets, label: "Airdrop passport", sub: "Future distribution" },
   { icon: Shield, label: "Programmable IP", sub: "Immutable ownership" },
 ];
@@ -211,7 +211,7 @@ export function LaunchMint() {
                     </span>
                   </h2>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    One quick step before minting — set up your self-custody wallet with a passkey. No seed phrases, no gas fees.
+                    One quick step before minting — set up your self-custody wallet with a passkey. No seed phrases to write down.
                   </p>
                 </div>
 
@@ -258,7 +258,7 @@ export function LaunchMint() {
                         <ArrowRight className="h-4 w-4 ml-auto" />
                       </Button>
                       <p className="text-xs text-center text-muted-foreground">
-                        Limited edition · Mainnet Launch · Gas fees sponsored
+                        Limited edition · Mainnet Launch
                       </p>
                     </div>
                   </>

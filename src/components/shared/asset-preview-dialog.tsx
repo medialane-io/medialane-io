@@ -94,7 +94,7 @@ export function PreviewFooter() {
       <div className="flex items-start justify-center gap-1.5">
         <ShieldCheck className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
         <p className="text-[10px] text-center text-muted-foreground">
-          Protected onchain via our permissionless protocol · Gas fees sponsored by Medialane
+          Protected onchain via our permissionless protocol
         </p>
       </div>
     </div>

@@ -407,7 +407,7 @@ export function NftEditionsMintForm({
           Mint Edition
         </Button>
         <p className="text-xs text-center text-muted-foreground mt-2">
-          Free to mint — no gas fees.
+          Free to mint — protocol fee is zero.
         </p>
       </FadeIn>
     </div>

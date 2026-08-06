@@ -4,7 +4,7 @@ import { canonical, buildSocialMetadata } from "@/lib/seo";
 
 const title = "Medialane — Creator Launchpad + NFT Marketplace";
 const description =
-  "Mint, license, and trade intellectual property as NFTs on Starknet. Free to mint. Gas-free trading. Programmable royalties.";
+  "Mint, license, and trade intellectual property as NFTs on Starknet. Self-custody wallet, no seed phrase. Programmable royalties.";
 
 export const metadata: Metadata = {
   title,

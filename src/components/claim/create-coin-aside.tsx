@@ -9,7 +9,7 @@ export function CreateCoinAside() {
       steps={[
         "Design your coin — name, image and story",
         "Set the economics — supply, price and your share",
-        "Launch — gasless, liquidity locked forever",
+        "Launch — liquidity locked forever",
       ]}
       trustIcon={Lock}
       trustLead="Locked forever."

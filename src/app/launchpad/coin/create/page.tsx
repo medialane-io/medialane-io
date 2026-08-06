@@ -4,7 +4,7 @@
  * Creator Coin Launch Studio — the creator designs their coin (image,
  * description: platform-layer profile) with a live preview, sets the
  * economics in plain language, then launches through the existing
- * two-transaction gasless flow.
+ * two-transaction flow (deploy + Ekubo pool creation).
  *
  * Spec: medialane-core/docs/specs/2026-06-11-coin-launch-studio-design.md
  */
@@ -164,7 +164,7 @@ export default function CoinCreatePage() {
         icon={TrendingUp}
         iconClassName="text-brand-rose"
         title="Launch a Creator Coin"
-        description="Set up your wallet to design and launch your own coin with permanently-locked liquidity — gasless, in a few clicks."
+        description="Set up your wallet to design and launch your own coin with permanently-locked liquidity, in a few clicks."
       />
     );
   }
@@ -216,7 +216,7 @@ export default function CoinCreatePage() {
           status === "deploying" ? "Deploying your coin…" :
           status === "launching" ? "Opening the market…" : "Almost there…"
         }
-        description="Two on-chain steps, fully gasless. Please keep this window open."
+        description="Two on-chain steps. Please keep this window open."
       />
     );
   }
@@ -237,7 +237,7 @@ export default function CoinCreatePage() {
       <ServiceFormShell
         icon={<Coins className="h-4 w-4 text-white" />}
         title="Design your Creator Coin"
-        subtitle="Give it a face, set the numbers, and launch — gasless, with liquidity locked forever."
+        subtitle="Give it a face, set the numbers, and launch with liquidity locked forever."
         backSlot={<ClaimBackButton />}
         aside={
           <>
@@ -414,7 +414,7 @@ export default function CoinCreatePage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <Sparkles className="h-4 w-4 mt-0.5 text-emerald-500 shrink-0" />
-                  <span><span className="font-semibold">Gasless.</span> One confirmation with your PIN or passkey — we cover the fees.</span>
+                  <span><span className="font-semibold">One confirmation.</span> Sign once with your passkey to launch.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <TrendingUp className="h-4 w-4 mt-0.5 text-emerald-500 shrink-0" />

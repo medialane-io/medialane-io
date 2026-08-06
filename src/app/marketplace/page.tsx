@@ -3,7 +3,7 @@ import MarketplacePageClient from "./marketplace-page-client";
 import { canonical, buildSocialMetadata } from "@/lib/seo";
 
 const title = "Marketplace";
-const description = "Browse, buy, and license digital assets on the Medialane marketplace. Gasless trading onchain.";
+const description = "Browse, buy, and license digital assets on the Medialane marketplace, permissionlessly onchain.";
 
 export const metadata: Metadata = {
   title,

@@ -59,8 +59,8 @@ const JOURNEYS = [
 const HIGHLIGHTS = [
   {
     icon: Zap,
-    label: "Gasless transactions",
-    description: "Gas fees sponsored on every action — no ETH needed, ever.",
+    label: "Self-custody wallet",
+    description: "Secured by your device passkey — no seed phrase to write down or lose.",
   },
   {
     icon: Shield,

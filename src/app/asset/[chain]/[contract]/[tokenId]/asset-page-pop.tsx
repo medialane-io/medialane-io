@@ -136,7 +136,7 @@ export function AssetPagePop() {
                 </div>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500" />
-                  Gas-free claim · Verified on Starknet
+                  Verified on Starknet
                 </div>
               </div>
             </div>

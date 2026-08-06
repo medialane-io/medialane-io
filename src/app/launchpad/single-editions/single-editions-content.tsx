@@ -884,7 +884,7 @@ export function SingleEditionsContent() {
               Mint NFT
             </button>
             <p className="text-xs text-center text-muted-foreground">
-              Free to mint — no gas fees.
+              Free to mint — protocol fee is zero.
             </p>
           </form>
         </Form>

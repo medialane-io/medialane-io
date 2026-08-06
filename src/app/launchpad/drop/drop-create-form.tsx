@@ -355,7 +355,7 @@ export function DropCreateForm({
       >
         {isSubmitting ? (<><Loader2 className="h-4 w-4 animate-spin" />Launching…</>) : (<><Package className="h-4 w-4" />Launch Drop</>)}
       </button>
-      <p className="text-xs text-center text-muted-foreground">Supply equals the number of items you add. Free to launch — no gas fees.</p>
+      <p className="text-xs text-center text-muted-foreground">Supply equals the number of items you add. Free to launch — protocol fee is zero.</p>
     </div>
   );
 }

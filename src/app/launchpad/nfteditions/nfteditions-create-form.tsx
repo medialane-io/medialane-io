@@ -168,7 +168,7 @@ export function NftEditionsCreateForm({
         Publish Collection
       </button>
       <p className="text-xs text-center text-muted-foreground">
-        Free to publish — no gas fees.
+        Free to publish — protocol fee is zero.
       </p>
       <p className="text-xs text-center text-muted-foreground">
         Next step: mint pieces into this collection — you set the number of copies for each

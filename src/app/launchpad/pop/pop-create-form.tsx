@@ -304,7 +304,7 @@ export function PopCreateForm({
           )}
         </Button>
         <p className="text-xs text-center text-muted-foreground mt-2">
-          Free to publish — no gas fees.
+          Free to publish — protocol fee is zero.
         </p>
       </FadeIn>
     </div>

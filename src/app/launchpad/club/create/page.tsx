@@ -292,7 +292,7 @@ export default function CreateClubPage() {
               Create Club
             </button>
             <p className="text-xs text-center text-muted-foreground">
-              Free to publish — no gas fees.
+              Free to publish — protocol fee is zero.
             </p>
           </form>
         </Form>
