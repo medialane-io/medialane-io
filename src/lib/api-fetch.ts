@@ -24,7 +24,7 @@
  *     browser the value is `""` (the BFF proxy at `/api/proxy/v1/*` injects
  *     the real key server-side). On the server the real key is included.
  *   - `Authorization: Bearer <token>` is forwarded if the caller passes
- *     `bearer` — used for Clerk-gated routes.
+ *     `bearer` — used for SIWS-gated routes.
  *   - `Content-Type: application/json` is set automatically when a body is
  *     present.
  */
@@ -40,7 +40,7 @@ export class ApiError extends Error {
 export interface ApiFetchOptions {
   method?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
   body?: unknown;
-  /** Bearer token (Clerk JWT) for identity-aware routes. */
+  /** Bearer token (SIWS) for identity-aware routes. */
   bearer?: string | null;
   signal?: AbortSignal;
 }

@@ -14,7 +14,7 @@ export function useCoinPrice(coinAddress?: string | null) {
   const { data, error, isLoading, mutate } = useSWR<CreatorCoinPrice | null>(
     coinAddress ? `coin-price-${coinAddress}` : null,
     // Public, read-only Ekubo spot read — must work for logged-out visitors on
-    // /coins, so it uses the public provider (NOT the Clerk-gated /api/rpc proxy,
+    // /coins, so it uses the public provider (NOT the same-origin /api/rpc proxy,
     // which returns -32000 Unauthorized to anonymous users).
     () => getCreatorCoinPrice(coinAddress as string, publicReadProvider),
     {

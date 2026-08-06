@@ -24,9 +24,9 @@ import {
  * see @medialane/sdk/src/starknet/services/*.ts) that run directly from
  * client hooks. Server-side, use the real keyed endpoint. In the browser,
  * use ONLY the SDK's keyless public fallback list — never `/api/rpc` (that
- * proxy gates `starknet_call` behind a Clerk session, wrong for anonymous
- * reads — see `publicReadProvider` in `starknet.ts`) and never a
- * NEXT_PUBLIC_* var that might carry a keyed URL.
+ * proxy is same-origin-guarded and rate limited, meant for this app's own
+ * traffic, not anonymous discovery reads — see `publicReadProvider` in
+ * `starknet.ts`) and never a NEXT_PUBLIC_* var that might carry a keyed URL.
  */
 let _client: MedialaneClient | null = null;
 

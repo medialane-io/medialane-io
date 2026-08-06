@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { TxStatus } from "@/components/chipi/tx-status";
+import { TxStatus } from "@/components/transaction/tx-status";
 import { MarketplaceErrorState } from "@/components/marketplace/marketplace-dialog-primitives";
 import { EXPLORER_URL } from "@/lib/constants";
 import { ipfsToHttp } from "@/lib/utils";

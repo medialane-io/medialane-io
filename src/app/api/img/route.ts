@@ -15,7 +15,7 @@ const ALLOWED_CONTENT_TYPES = new Set([
 ]);
 
 const MAX_REDIRECTS = 5;
-// Cap image proxy responses at 15 MB. The endpoint is public (no Clerk
+// Cap image proxy responses at 15 MB. The endpoint is public (no auth
 // gate), so an unbounded `arrayBuffer()` lets any caller pin server memory
 // by pointing us at a large file. NFT thumbnails are typically <2 MB;
 // 15 MB covers high-res hero images with headroom.

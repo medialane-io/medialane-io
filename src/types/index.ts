@@ -30,12 +30,6 @@ export interface CounterOfferOrder {
   token: { name: string | null; image: string | null; description: string | null } | null;
 }
 
-export interface WalletCredentials {
-  publicKey: string;
-  encryptedPrivateKey: string;
-  walletType?: "CHIPI" | "READY" | (string & {});
-}
-
 export interface AssetCardProps {
   contractAddress: string;
   tokenId: string;

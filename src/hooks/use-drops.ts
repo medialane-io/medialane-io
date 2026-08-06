@@ -109,7 +109,7 @@ export function useOnChainDropState(contract: string | null) {
     contract ? `drop-onchain-${contract}` : null,
     async () => {
       // Public drop pages (viewable logged-out) → keyless public RPC, not the
-      // Clerk-gated /api/rpc proxy (which 401s anonymous visitors).
+      // same-origin /api/rpc proxy (rate-limited/same-origin-guarded, not meant for anonymous public read traffic).
       const c = new Contract({ abi: DropCollectionReadABI as unknown as Abi, address: contract!, providerOrAccount: publicReadProvider });
       const [cond, minted, max, allow, paused] = await Promise.all([
         c.get_claim_conditions() as Promise<{

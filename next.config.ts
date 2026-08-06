@@ -77,10 +77,6 @@ const nextConfig: NextConfig = {
         pathname: "/ipfs/**",
       },
       {
-        protocol: "https",
-        hostname: "**.clerk.com",
-      },
-      {
         // NFT token images can be hosted on any external CDN — allow all HTTPS sources.
         // Restricting by hostname breaks images for any collection not on Pinata/IPFS.
         protocol: "https",

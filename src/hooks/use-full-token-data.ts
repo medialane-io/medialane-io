@@ -30,7 +30,7 @@ export function useFullTokenData({ ipNftAddress, tokenId }: UseFullTokenDataArgs
     enabled ? ["full-token-data", ipNftAddress, tokenId!.toString()] : null,
     async () => {
       // Public asset page (viewable logged-out) → keyless public RPC, not the
-      // Clerk-gated /api/rpc proxy (which 401s anonymous visitors).
+      // same-origin /api/rpc proxy (rate-limited/same-origin-guarded, not meant for anonymous public read traffic).
       const contract = new Contract({ abi: IPNftABI as unknown as Abi, address: ipNftAddress!, providerOrAccount: publicReadProvider });
       try {
         const raw = await contract.call("get_full_token_data", [cairo.uint256(tokenId!)], {

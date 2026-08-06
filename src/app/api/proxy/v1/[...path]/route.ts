@@ -10,7 +10,7 @@
  * fetches (launchpad pages, `use-remix-offers`) should also hit
  * `/api/proxy/v1/...` instead of the backend origin.
  *
- * The user's Authorization header (Clerk JWT, if present) is passed
+ * The user's Authorization header (SIWS token, if present) is passed
  * through unchanged — the backend still uses it for identity-aware
  * routes (`/v1/users/me`, `/v1/creators/:wallet/profile`, …).
  */
