@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useUser, SignInButton } from "@clerk/nextjs";
 import { Users, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,12 +9,11 @@ import { ServiceHeader } from "@/components/claim/service-header";
 import { ClaimBackButton } from "@/components/claim/claim-back-button";
 import { CollectionCard } from "@medialane/ui";
 import { collectionHref } from "@/lib/routes";
-import { useWallet } from "@/hooks/use-wallet";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useMyClubCollections } from "@/hooks/use-club";
 
 export function ClubContent() {
-  const { isSignedIn } = useUser();
-  const { address } = useWallet();
+  const { hasWallet, address } = useWalletNativeSession();
   const { collections, isLoading } = useMyClubCollections(address ?? null);
 
   return (
@@ -50,7 +48,7 @@ export function ClubContent() {
           </div>
         </FadeIn>
 
-        {!isSignedIn ? (
+        {!hasWallet ? (
           <FadeIn>
             <div className="bento-cell border-dashed p-12 text-center space-y-4">
               <div className="flex justify-center">
@@ -59,14 +57,11 @@ export function ClubContent() {
                 </div>
               </div>
               <div className="space-y-1">
-                <p className="font-semibold text-sm">Sign in to see your clubs</p>
+                <p className="font-semibold text-sm">Set up your wallet to see your clubs</p>
                 <p className="text-xs text-muted-foreground">
-                  Your clubs appear here once you sign in.
+                  Your clubs appear here once your wallet is ready.
                 </p>
               </div>
-              <SignInButton mode="modal">
-                <Button size="sm" className="bg-brand-purple hover:brightness-110 text-white">Sign in</Button>
-              </SignInButton>
             </div>
           </FadeIn>
         ) : isLoading ? (

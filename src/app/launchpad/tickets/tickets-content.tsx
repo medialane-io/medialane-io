@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useUser, SignInButton } from "@clerk/nextjs";
 import { Ticket, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,12 +9,11 @@ import { ServiceHeader } from "@/components/claim/service-header";
 import { ClaimBackButton } from "@/components/claim/claim-back-button";
 import { CollectionCard } from "@medialane/ui";
 import { collectionHref } from "@/lib/routes";
-import { useWallet } from "@/hooks/use-wallet";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useMyTicketCollections } from "@/hooks/use-tickets";
 
 export function TicketsContent() {
-  const { isSignedIn } = useUser();
-  const { address } = useWallet();
+  const { hasWallet, address } = useWalletNativeSession();
   const { collections, isLoading } = useMyTicketCollections(address ?? null);
 
   return (
@@ -50,7 +48,7 @@ export function TicketsContent() {
           </div>
         </FadeIn>
 
-        {!isSignedIn ? (
+        {!hasWallet ? (
           <FadeIn>
             <div className="bento-cell border-dashed p-12 text-center space-y-4">
               <div className="flex justify-center">
@@ -59,14 +57,11 @@ export function TicketsContent() {
                 </div>
               </div>
               <div className="space-y-1">
-                <p className="font-semibold text-sm">Sign in to see your collections</p>
+                <p className="font-semibold text-sm">Set up your wallet to see your collections</p>
                 <p className="text-xs text-muted-foreground">
-                  Your tickets collections appear here once you sign in.
+                  Your tickets collections appear here once your wallet is ready.
                 </p>
               </div>
-              <SignInButton mode="modal">
-                <Button size="sm" className="bg-teal-600 hover:bg-teal-700 text-white">Sign in</Button>
-              </SignInButton>
             </div>
           </FadeIn>
         ) : isLoading ? (

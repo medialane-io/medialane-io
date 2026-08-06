@@ -3,16 +3,14 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useUser } from "@clerk/nextjs";
 import { collectionHref } from "@/lib/routes";
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion-primitives";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { ServiceHeader } from "@/components/claim/service-header";
 import { ClaimBackButton } from "@/components/claim/claim-back-button";
-import { SignInButton } from "@clerk/nextjs";
 import { ipfsToHttp } from "@/lib/utils";
 import {
   Layers, Sparkles, Plus, ArrowRight, Package,
@@ -128,8 +126,7 @@ function CollectionRowSkeleton() {
 }
 
 export function IP1155Content() {
-  const { isSignedIn } = useUser();
-  const { walletAddress } = useSessionKey();
+  const { hasWallet, address: walletAddress } = useWalletNativeSession();
   const { collections, isLoading } = useCollectionsByOwner(walletAddress ?? null);
 
   const erc1155 = useMemo(
@@ -173,19 +170,16 @@ export function IP1155Content() {
 
       {/* ── Collections list ── */}
       <section className="px-4 pt-8 space-y-5 max-w-5xl mx-auto">
-        {!isSignedIn ? (
+        {!hasWallet ? (
           <FadeIn>
             <div className="bento-cell p-10 flex flex-col items-center gap-4 text-center">
               <Layers className="h-10 w-10 text-muted-foreground/30" />
               <div>
-                <p className="font-semibold">Sign in to see your collections</p>
+                <p className="font-semibold">Set up your wallet to see your collections</p>
                 <p className="text-sm text-muted-foreground mt-1">
                   Your editions collections will appear here.
                 </p>
               </div>
-              <SignInButton mode="modal">
-                <Button>Sign in</Button>
-              </SignInButton>
             </div>
           </FadeIn>
         ) : isLoading ? (
