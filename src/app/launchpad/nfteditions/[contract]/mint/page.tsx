@@ -11,21 +11,17 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
 } from "@/components/ui/form";
-import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
-import {
-  MintProgressDialog,
-  type MintStep,
-} from "@/components/marketplace/mint-progress-dialog";
-import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
-import { useSessionKey } from "@/hooks/use-session-key";
-import { useUser } from "@clerk/nextjs";
+import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
+import { WalletTransactionDialog } from "@/components/transaction/wallet-transaction-dialog";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
+import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { normalizeAddress } from "@medialane/sdk";
 import { Contract, num, type Abi } from "starknet";
 import { starknetProvider } from "@/lib/starknet";
 import { readAssignedEditionId } from "@/lib/erc1155-edition";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
-import { executePrebuiltIntent } from "@/lib/intent-tx";
+import { executeIntent } from "@/lib/wallet/intent-tx";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { MedialaneCollectionCard } from "@medialane/ui";
 import { MintEditionAside } from "@/components/claim/mint-edition-aside";
@@ -34,7 +30,6 @@ import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 import { EXPLORER_URL } from "@/lib/constants";
 import type { MetadataField } from "@/components/create/ip-type-fields";
-import { NftEditionsMintConfirmDialog } from "../../nfteditions-mint-confirm-dialog";
 import { NftEditionsMintForm } from "../../nfteditions-mint-form";
 import {
   nftEditionsMintSchema,
@@ -45,16 +40,11 @@ export default function MintIP1155Page() {
   const { contract: rawContract } = useParams<{ contract: string }>();
   const collectionAddress = normalizeAddress("STARKNET", rawContract ?? "");
 
-  const { isSignedIn } = useUser();
-  const { walletAddress, hasWallet } = useSessionKey();
-  const { executeTransaction, status: txStatus, txHash } = useChipiTransaction();
+  const { hasWallet, address: walletAddress } = useWalletNativeSession();
+  const action = useWalletWriteAction();
   const client = useMedialaneClient();
 
-  const [pinOpen, setPinOpen] = useState(false);
-  const [walletSetupOpen, setWalletSetupOpen] = useState(false);
   const [pendingValues, setPendingValues] = useState<NftEditionsMintFormValues | null>(null);
-  const [mintStep, setMintStep] = useState<MintStep>("idle");
-  const [mintError, setMintError] = useState<string | null>(null);
   const [ownerCheck, setOwnerCheck] = useState<"loading" | "ok" | "denied">("loading");
   const [formError, setFormError] = useState<string | null>(null);
   // Read only at submit time — keep in a ref so each keystroke in IPTypeFields
@@ -145,92 +135,70 @@ export default function MintIP1155Page() {
     }
     setFormError(null);
     setPendingValues(values);
-    if (!hasWallet) { setWalletSetupOpen(true); return; }
-    setPinOpen(true);
+    setMintedTokenId(null);
+    void action.run((signer) => handleUnlocked(values, signer));
   };
 
-  // `secret` is the wallet-unlock material — a typed PIN or the passkey key
-  // (the confirm dialog runs Face ID / Touch ID for passkey users).
-  const handlePin = async (secret: string) => {
-    setPinOpen(false);
-    if (!pendingValues || !walletAddress || !imageUri) return;
+  const handleUnlocked = async (values: NftEditionsMintFormValues, signer: StarknetVenueSigner) => {
+    if (!walletAddress || !imageUri) throw new Error("Wallet not ready. Please refresh and try again.");
 
-    setMintStep("uploading");
-    setMintError(null);
+    const metadataForm = new FormData();
+    metadataForm.set("name", values.name);
+    metadataForm.set("description", values.description ?? "");
+    metadataForm.set("imageUri", imageUri);
+    if (values.external_url) metadataForm.set("external_url", values.external_url);
+    metadataForm.set("ipType", values.ipType);
+    metadataForm.set("licenseType", values.licenseType);
+    metadataForm.set("commercialUse", values.commercialUse);
+    metadataForm.set("derivatives", values.derivatives);
+    metadataForm.set("attribution", values.attribution);
+    metadataForm.set("geographicScope", values.geographicScope);
+    metadataForm.set("aiPolicy", values.aiPolicy);
+    metadataForm.set("royalty", String(values.royalty));
 
-    try {
-      const metadataForm = new FormData();
-      metadataForm.set("name", pendingValues.name);
-      metadataForm.set("description", pendingValues.description ?? "");
-      metadataForm.set("imageUri", imageUri);
-      if (pendingValues.external_url) metadataForm.set("external_url", pendingValues.external_url);
-      metadataForm.set("ipType", pendingValues.ipType);
-      metadataForm.set("licenseType", pendingValues.licenseType);
-      metadataForm.set("commercialUse", pendingValues.commercialUse);
-      metadataForm.set("derivatives", pendingValues.derivatives);
-      metadataForm.set("attribution", pendingValues.attribution);
-      metadataForm.set("geographicScope", pendingValues.geographicScope);
-      metadataForm.set("aiPolicy", pendingValues.aiPolicy);
-      metadataForm.set("royalty", String(pendingValues.royalty));
+    const seenTraits = new Set<string>();
+    const appendTrait = (traitType: string, value: string) => {
+      const cleanTrait = traitType.trim();
+      const cleanValue = value.trim();
+      const key = cleanTrait.toLowerCase();
+      if (!cleanTrait || !cleanValue || seenTraits.has(key)) return;
+      seenTraits.add(key);
+      metadataForm.append(`tmpl_${cleanTrait}`, cleanValue);
+    };
 
-      const seenTraits = new Set<string>();
-      const appendTrait = (traitType: string, value: string) => {
-        const cleanTrait = traitType.trim();
-        const cleanValue = value.trim();
-        const key = cleanTrait.toLowerCase();
-        if (!cleanTrait || !cleanValue || seenTraits.has(key)) return;
-        seenTraits.add(key);
-        metadataForm.append(`tmpl_${cleanTrait}`, cleanValue);
-      };
+    metadataFieldsRef.current.forEach(({ traitType, value }) => appendTrait(traitType, value));
+    appendTrait("Token Standard", "ERC-1155");
+    appendTrait("Editions", values.value);
+    appendTrait("Collection Contract", collectionAddress);
 
-      metadataFieldsRef.current.forEach(({ traitType, value }) => appendTrait(traitType, value));
-      appendTrait("Token Standard", "ERC-1155");
-      appendTrait("Editions", pendingValues.value);
-      appendTrait("Collection Contract", collectionAddress);
-
-      const uploadRes = await fetch("/api/pinata", { method: "POST", body: metadataForm });
-      const uploadData = await uploadRes.json();
-      if (!uploadRes.ok || uploadData.error || !uploadData.uri) {
-        throw new Error(uploadData.error ?? "Metadata upload failed");
-      }
-      const tokenUri: string = uploadData.uri;
-
-      setMintStep("processing");
-
-      if (!walletAddress) throw new Error("Wallet not ready. Please refresh and try again.");
-      const intentRes = await client.api.createMintIntent({
-        owner: walletAddress,
-        recipient: pendingValues.recipient,
-        collectionContract: collectionAddress,
-        tokenUri,
-        value: pendingValues.value,
-        // royaltyBps has no effect on mip-erc1155 mints — this form has no royalty field for editions mint.
-        royaltyBps: 0,
-      });
-      // The contract assigns the edition id on-chain (sequential from 1).
-      // MINT intents accept confirmation (RECEIPT_HYDRATED_INTENT_TYPES) — the
-      // helper reports the tx so the backend can hydrate receipt-derived state.
-      const result = await executePrebuiltIntent(executeTransaction, client, secret, intentRes.data);
-
-      if (result.status === "confirmed") {
-        // Read the assigned id from the IPMinted event for the success/asset link.
-        setMintedTokenId(await readAssignedEditionId(result.txHash, collectionAddress));
-        if (walletAddress) invalidatePortfolioCache(walletAddress);
-        setMintStep("success");
-        rewardToast("mint_asset");
-      } else {
-        setMintError(result.revertReason ?? "Transaction reverted");
-        setMintStep("error");
-      }
-    } catch (err) {
-      setMintError(err instanceof Error ? err.message : "Failed to mint token");
-      setMintStep("error");
+    const uploadRes = await fetch("/api/pinata", { method: "POST", body: metadataForm });
+    const uploadData = await uploadRes.json();
+    if (!uploadRes.ok || uploadData.error || !uploadData.uri) {
+      throw new Error(uploadData.error ?? "Metadata upload failed");
     }
+    const tokenUri: string = uploadData.uri;
+
+    const intentRes = await client.api.createMintIntent({
+      owner: walletAddress,
+      recipient: values.recipient,
+      collectionContract: collectionAddress,
+      tokenUri,
+      value: values.value,
+      // royaltyBps has no effect on mip-erc1155 mints — this form has no royalty field for editions mint.
+      royaltyBps: 0,
+    });
+    // The contract assigns the edition id on-chain (sequential from 1).
+    const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
+
+    // Read the assigned id from the IPMinted event for the success/asset link.
+    setMintedTokenId(await readAssignedEditionId(result.txHash, collectionAddress));
+    if (walletAddress) invalidatePortfolioCache(walletAddress);
+    rewardToast("mint_asset");
+    return result;
   };
 
   const handleMintAnother = () => {
-    setMintStep("idle");
-    setMintError(null);
+    action.reset();
     setPendingValues(null);
     metadataFieldsRef.current = [];
     setMetadataResetKey((key) => key + 1);
@@ -254,14 +222,14 @@ export default function MintIP1155Page() {
     });
   };
 
-  // ── Not signed in ─────────────────────────────────────────────────────────
-  if (!isSignedIn) {
+  // ── No wallet yet ──────────────────────────────────────────────────────────
+  if (!hasWallet) {
     return (
       <LaunchpadSignedOutState
         icon={Sparkles}
         iconClassName="text-brand-purple"
-        title="Sign in to create"
-        description="Sign in to mint tokens into multi-editions collection."
+        title="Set up your wallet to create"
+        description="Set up your wallet to mint tokens into a multi-editions collection."
       />
     );
   }
@@ -315,7 +283,7 @@ export default function MintIP1155Page() {
               imagePreview={imagePreview}
               imageUri={imageUri}
               imageUploading={imageUploading}
-              mintDisabled={imageUploading || mintStep !== "idle"}
+              mintDisabled={imageUploading || action.status !== "idle"}
               fileInputRef={fileInputRef}
               onImageSelect={handleImageSelect}
               onClearImage={clearImage}
@@ -335,32 +303,44 @@ export default function MintIP1155Page() {
         </Form>
       </ClaimRouteShell>
 
-      <NftEditionsMintConfirmDialog
-        open={pinOpen}
-        imagePreview={imagePreview}
-        assetName={form.getValues("name")}
-        quantity={form.getValues("value")}
-        onSubmit={handlePin}
-        onCancel={() => setPinOpen(false)}
-      />
-      <WalletSetupDialog
-        open={walletSetupOpen}
-        onOpenChange={setWalletSetupOpen}
-        onSuccess={() => { setWalletSetupOpen(false); setPinOpen(true); }}
-      />
-      <MintProgressDialog
-        open={mintStep !== "idle"}
-        mintStep={mintStep}
-        txStatus={txStatus}
-        assetName={form.getValues("name")}
-        imagePreview={imagePreview}
-        txHash={txHash}
-        error={mintError}
-        onMintAnother={handleMintAnother}
-        mintedTokenId={mintedTokenId ?? ""}
-        assetHref={assetHref("STARKNET", collectionAddress, mintedTokenId ?? "")}
-        explorerAssetHref={`${EXPLORER_URL}/nft/${collectionAddress}/${mintedTokenId ?? ""}`}
-      />
+      <WalletTransactionDialog
+        action={action}
+        title="Mint an edition"
+        processingLabel="Minting your edition…"
+        firstStepLabel="Upload metadata"
+        successTitle="Edition minted!"
+      >
+        <p className="text-sm text-muted-foreground text-center">
+          <span className="font-medium text-foreground">{pendingValues?.name || "Your token"}</span> is
+          live onchain.
+        </p>
+        {imagePreview && (
+          <div className="h-24 w-24 rounded-xl overflow-hidden border border-border shadow-md">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={imagePreview} alt={pendingValues?.name ?? ""} className="h-full w-full object-cover" />
+          </div>
+        )}
+        <div className="flex flex-col sm:flex-row gap-2 w-full pt-1">
+          <Button variant="outline" className="flex-1" onClick={handleMintAnother}>
+            Mint another
+          </Button>
+          {mintedTokenId && (
+            <Button asChild className="flex-1 bg-brand-purple hover:brightness-110 text-white">
+              <Link href={assetHref("STARKNET", collectionAddress, mintedTokenId)}>View asset</Link>
+            </Button>
+          )}
+        </div>
+        {mintedTokenId && (
+          <a
+            href={`${EXPLORER_URL}/nft/${collectionAddress}/${mintedTokenId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            View on explorer
+          </a>
+        )}
+      </WalletTransactionDialog>
     </>
   );
 }
