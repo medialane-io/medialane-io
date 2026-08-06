@@ -28,19 +28,18 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useWriteAction } from "@/hooks/use-write-action";
-import { TransactionDialog } from "@/components/transaction/transaction-dialog";
-import { WalletSetupGate } from "@/components/transaction/wallet-setup-gate";
-import { useWallet } from "@/hooks/use-wallet";
+import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
+import { WalletTransactionDialog } from "@/components/transaction/wallet-transaction-dialog";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useCollection } from "@/hooks/use-collections";
 import { useCollectionProfile } from "@/hooks/use-profiles";
 import { predictNextTicketId } from "@/hooks/use-tickets";
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { rewardToast } from "@/lib/reward-toast";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
-import { executePrebuiltIntents } from "@/lib/intent-tx";
+import { executeIntents } from "@/lib/wallet/intent-tx";
+import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { cn } from "@/lib/utils";
-import { useUser } from "@clerk/nextjs";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { MedialaneCollectionCard } from "@medialane/ui";
@@ -99,11 +98,10 @@ type FormValues = z.infer<typeof schema>;
 export default function MintTicketPage({ params }: { params: Promise<{ contract: string }> }) {
   const { contract: rawContract } = use(params);
   const contract = normalizeAddress("STARKNET", rawContract);
-  const { isSignedIn } = useUser();
-  const { address } = useWallet();
+  const { hasWallet, address } = useWalletNativeSession();
   const { collection, isLoading } = useCollection(contract);
   const { profile, isLoading: profileLoading } = useCollectionProfile(contract);
-  const action = useWriteAction();
+  const action = useWalletWriteAction();
   const client = useMedialaneClient();
 
   const [licensingOpen, setLicensingOpen] = useState(false);
@@ -172,10 +170,10 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
   const onSubmit = (values: FormValues) => {
     if (!imageUri) { toast.error("Upload a ticket image first"); return; }
     setMintedTicketId(null);
-    void action.run((secret) => handleUnlocked(values, secret));
+    void action.run((signer) => handleUnlocked(values, signer));
   };
 
-  const handleUnlocked = async (values: FormValues, secret: string) => {
+  const handleUnlocked = async (values: FormValues, signer: StarknetVenueSigner) => {
     if (!address) throw new Error("Wallet not ready. Please refresh and try again.");
     const metadataForm = new FormData();
     metadataForm.set("name", values.name);
@@ -227,22 +225,20 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
       tokenId: String(ticketId),
       amount: values.maxSupply,
     });
-    // Bundled into one multicall — one PIN unlock for what is one "mint" action.
-    // MINT accepts confirmation (RECEIPT_HYDRATED_INTENT_TYPES); CREATE_TIER's
-    // confirm attempt is swallowed (best-effort) same as it would be standalone.
-    const mintResult = await executePrebuiltIntents(action.executeTransaction, client, secret, [tierRes.data, mintRes.data]);
-    if (mintResult.status !== "confirmed") throw new Error(mintResult.revertReason ?? "Failed to mint tickets");
+    // Bundled into one multicall — one wallet confirmation for what is one
+    // "mint" action.
+    const mintResult = await executeIntents(signer, client, [tierRes.data, mintRes.data]);
 
     rewardToast("launch_launchpad");
     return mintResult;
   };
 
-  if (!isSignedIn) {
+  if (!hasWallet) {
     return (
       <LaunchpadSignedOutState
         icon={Ticket}
         iconClassName="text-teal-500"
-        title="Sign in to mint tickets"
+        title="Set up your wallet to mint tickets"
         description="Create a ticket type and mint its supply to your wallet."
       />
     );
@@ -280,13 +276,12 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
 
   return (
     <>
-      <TransactionDialog
+      <WalletTransactionDialog
         action={action}
         title="Mint tickets"
         processingLabel="Minting your tickets…"
         firstStepLabel="Upload ticket metadata"
         successTitle="Tickets minted!"
-        pinDescription="Enter your PIN to create and mint these tickets."
       >
         <p className="text-sm text-muted-foreground text-center">
           <span className="font-medium text-foreground">{form.getValues("maxSupply")}</span> ticket(s) are in
@@ -308,8 +303,7 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
             </Button>
           )}
         </div>
-      </TransactionDialog>
-      <WalletSetupGate action={action} />
+      </WalletTransactionDialog>
 
       <ClaimRouteShell
         icon={<Ticket className="h-4 w-4 text-white" />}
