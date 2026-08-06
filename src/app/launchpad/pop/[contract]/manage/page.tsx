@@ -10,13 +10,10 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { FadeIn } from "@/components/ui/motion-primitives";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PinDialog } from "@/components/chipi/pin-dialog";
-import { useWalletUnlock } from "@/hooks/use-wallet-unlock";
-import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
-import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useCollection } from "@/hooks/use-collections";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import type { Call } from "starknet";
 
 // ── Address parsing ───────────────────────────────────────────────────────────
 
@@ -139,45 +136,32 @@ export default function PopManagePage({
   params: Promise<{ contract: string }>;
 }) {
   const { contract } = use(params);
-  const { walletAddress, hasWallet } = useSessionKey();
+  const { address: walletAddress, hasWallet, signer } = useWalletNativeSession();
   const { collection, isLoading } = useCollection(contract);
-  const { executeTransaction, isSubmitting } = useChipiTransaction();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { unlock, pinDialogProps } = useWalletUnlock();
   const [txResult, setTxResult] = useState<{ type: "success" | "error"; message: string } | null>(null);
-  const [walletSetupOpen, setWalletSetupOpen] = useState(false);
 
   const isOwner =
     walletAddress &&
     collection?.owner &&
     normalizeAddress("STARKNET", walletAddress) === normalizeAddress("STARKNET", collection.owner);
 
-  const execute = (
-    calls: Array<{ contractAddress: string; entrypoint: string; calldata: string[] }>,
-    successMsg: string
-  ) => {
-    if (!hasWallet) { setWalletSetupOpen(true); return; }
-    // `secret` is the wallet-unlock material — a typed PIN or the passkey key.
-    // The trailing .catch handles unlock-level throws (e.g. passkey unavailable)
-    // that fire before the inner callback runs.
-    void unlock(async (secret) => {
-      try {
-        const result = await executeTransaction({ pin: secret, calls });
-        if (result.status === "confirmed") {
-          setTxResult({ type: "success", message: successMsg });
-        } else {
-          setTxResult({ type: "error", message: result.revertReason ?? "Transaction reverted" });
-        }
-      } catch (err) {
-        setTxResult({ type: "error", message: err instanceof Error ? err.message : "Transaction failed" });
-      }
-    }).catch((err) => {
-      setTxResult({ type: "error", message: err instanceof Error ? err.message : "Could not unlock your wallet" });
-    });
+  const execute = async (calls: Call[], successMsg: string) => {
+    if (!hasWallet || !signer) return;
+    setIsSubmitting(true);
+    try {
+      await signer.execute(calls);
+      setTxResult({ type: "success", message: successMsg });
+    } catch (err) {
+      setTxResult({ type: "error", message: err instanceof Error ? err.message : "Transaction failed" });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleBatchAdd = (addresses: string[]) => {
-    execute(
+    void execute(
       [{
         contractAddress: contract,
         entrypoint: "batch_add_to_allowlist",
@@ -188,7 +172,7 @@ export default function PopManagePage({
   };
 
   const handleRemove = (address: string) => {
-    execute(
+    void execute(
       [{ contractAddress: contract, entrypoint: "remove_from_allowlist", calldata: [address] }],
       "Participant removed from allowlist"
     );
@@ -323,17 +307,6 @@ export default function PopManagePage({
           </div>
         </DialogContent>
       </Dialog>
-
-      <PinDialog
-        {...pinDialogProps}
-        title="Confirm transaction"
-        description="Enter your PIN to sign this on-chain operation."
-      />
-
-      <WalletSetupDialog
-        open={walletSetupOpen}
-        onOpenChange={setWalletSetupOpen}
-      />
     </div>
   );
 }
