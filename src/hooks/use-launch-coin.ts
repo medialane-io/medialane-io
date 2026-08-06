@@ -1,8 +1,7 @@
 "use client";
 
 /**
- * useLaunchCoin (io) — Creator Coin launch through the ChipiPay atomic
- * chokepoint. Two sponsored transactions, one PIN entry:
+ * useLaunchCoin (io) — Creator Coin launch, two atomic multicalls:
  *
  *   1. `create_creator_coin` (via the metered `createCoinIntent` backend
  *      call) → read the coin address from the receipt (SDK `parseCreatorCoinCreated`).
@@ -27,7 +26,7 @@ import {
   buybackQuoteRaw,
   type CreatorCoinReceiptLike,
 } from "@medialane/sdk/starknet";
-import { useChipiTransaction, type ChipiCall } from "@/hooks/use-chipi-transaction";
+import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { starknetProvider } from "@/lib/starknet";
 
@@ -43,22 +42,13 @@ export interface LaunchCoinInput {
 
 export type LaunchStatus = "idle" | "deploying" | "launching" | "indexing" | "done" | "error";
 
-function toChipiCall(c: Call): ChipiCall {
-  return {
-    contractAddress: c.contractAddress,
-    entrypoint: c.entrypoint,
-    calldata: ((c.calldata ?? []) as unknown[]).map(String),
-  };
-}
-
 export function useLaunchCoin() {
-  const { executeTransaction } = useChipiTransaction();
   const client = useMedialaneClient();
   const [status, setStatus] = useState<LaunchStatus>("idle");
   const [error, setError] = useState<string | null>(null);
 
   const launch = useCallback(
-    async (input: LaunchCoinInput, pin: string, owner: string): Promise<{ coinAddress: string }> => {
+    async (input: LaunchCoinInput, signer: StarknetVenueSigner, owner: string): Promise<{ coinAddress: string; txHash: string }> => {
       setError(null);
 
       const quote = getTokenBySymbol(input.quoteSymbol);
@@ -80,13 +70,7 @@ export function useLaunchCoin() {
           initialSupply: supplyRaw.toString(),
         });
         if (createIntent.data.requiresSignature) throw new Error("Expected a prebuilt create-coin intent");
-        const created = await executeTransaction({
-          pin,
-          calls: (createIntent.data.calls as Call[]).map(toChipiCall),
-        });
-        if (created.status !== "confirmed") {
-          throw new Error(created.revertReason ?? "Coin deploy reverted");
-        }
+        const created = await signer.execute(createIntent.data.calls as Call[]);
 
         // The receipt is REQUIRED here (Tx2 needs the coin address) — retry the
         // read a few times before failing with an actionable message.
@@ -119,13 +103,7 @@ export function useLaunchCoin() {
           quoteFundAmount: buybackRaw.toString(),
         });
         if (launchIntent.data.requiresSignature) throw new Error("Expected a prebuilt launch-coin intent");
-        const launched = await executeTransaction({
-          pin,
-          calls: (launchIntent.data.calls as Call[]).map(toChipiCall),
-        });
-        if (launched.status !== "confirmed") {
-          throw new Error(launched.revertReason ?? "Ekubo launch reverted");
-        }
+        const launched = await signer.execute(launchIntent.data.calls as Call[]);
 
         // Index instantly (poll backstop covers failures).
         setStatus("indexing");
@@ -137,14 +115,14 @@ export function useLaunchCoin() {
 
         setStatus("done");
         rewardToast("launch_coin");
-        return { coinAddress };
+        return { coinAddress, txHash: launched.txHash };
       } catch (e) {
         setStatus("error");
         setError(e instanceof Error ? e.message : "Launch failed");
         throw e;
       }
     },
-    [executeTransaction, client]
+    [client]
   );
 
   return { launch, status, error };

@@ -12,8 +12,6 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Coins, ExternalLink, TrendingUp, ArrowRight, Lock, Sparkles, ImagePlus, X, Loader2 } from "lucide-react";
-import { useUser, useAuth } from "@clerk/nextjs";
-import { useWalletAuthMethod } from "@/hooks/use-wallet-auth-method";
 import { getTokenBySymbol, formatAmount } from "@medialane/sdk";
 import {
   validateCoinName as validateName,
@@ -26,8 +24,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { PinDialog } from "@/components/chipi/pin-dialog";
-import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { ClaimBackButton } from "@/components/claim/claim-back-button";
 import { ServiceFormShell, ActionButton } from "@medialane/ui";
 import { CreateCoinAside } from "@/components/claim/create-coin-aside";
@@ -38,12 +34,13 @@ import {
   LaunchpadErrorState,
 } from "@/components/launchpad/launchpad-success-state";
 import { CoinLaunchPreview, type CoinPreviewData } from "@/components/coin/coin-launch-preview";
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
+import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
+import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { useTokenBalance } from "@/hooks/use-erc20-balance";
 import { useLaunchCoin, type LaunchCoinInput } from "@/hooks/use-launch-coin";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
-import { getMedialaneClient } from "@/lib/medialane-client";
 import { cn } from "@/lib/utils";
 
 const QUOTE_OPTIONS = ["STRK", "ETH"] as const;
@@ -60,15 +57,9 @@ const DAPP_COLLECTIONS_BASE = "https://starknet.medialane.io/collections";
 type ProfileStatus = "idle" | "saving" | "saved" | "failed";
 
 export default function CoinCreatePage() {
-  const { isSignedIn } = useUser();
-  const { getToken } = useAuth();
-  const { walletAddress, hasWallet } = useSessionKey();
+  const { hasWallet, address: walletAddress } = useWalletNativeSession();
   const { launch, status, error } = useLaunchCoin();
-  // io wallets unlock with PIN or passkey — passkey-first when registered,
-  // PIN dialog otherwise (the passkey-derived key rides the same param).
-  // Authoritative (cross-device) signal, not just the device-local flag.
-  const { usesPasskey, authenticate, encryptKey } = useWalletAuthMethod();
-  const [authBusy, setAuthBusy] = useState(false);
+  const action = useWalletWriteAction();
 
   const [name, setName] = useState("");
   const [symbol, setSymbol] = useState("");
@@ -78,8 +69,6 @@ export default function CoinCreatePage() {
   const [quote, setQuote] = useState<Quote>("STRK");
   const [teamPct, setTeamPct] = useState(5);
 
-  const [pinOpen, setPinOpen] = useState(false);
-  const [walletSetupOpen, setWalletSetupOpen] = useState(false);
   const [coinAddress, setCoinAddress] = useState<string | null>(null);
   const [profileStatus, setProfileStatus] = useState<ProfileStatus>("idle");
 
@@ -137,60 +126,28 @@ export default function CoinCreatePage() {
   };
 
   /** Platform-layer identity: saved to the coin's CollectionProfile after launch.
-   *  claimedBy lands when the factory event is indexed (instant via sync in the
-   *  normal case; 50s poll worst case) — retry briefly, never block the success. */
-  const saveCoinProfile = async (contract: string) => {
+   *  updateCollectionProfile still requires a Clerk JWT server-side (backend
+   *  SIWS migration Stage 2 is paused) — with Clerk removed from io there's
+   *  no token to send, so this step is a no-op until the backend accepts
+   *  wallet-native auth on this endpoint. The launch itself doesn't depend
+   *  on it; the image/description can be added later from collection settings. */
+  const saveCoinProfile = async () => {
     if (!imageUri && !description) return;
-    setProfileStatus("saving");
-    for (let attempt = 0; attempt < 6; attempt++) {
-      try {
-        if (attempt > 0) await new Promise((r) => setTimeout(r, 10_000));
-        const token = await getToken();
-        if (!token) throw new Error("no session");
-        await getMedialaneClient().api.updateCollectionProfile(contract, {
-          displayName: name,
-          ...(description ? { description } : {}),
-          ...(imageUri ? { image: imageUri } : {}),
-        }, token);
-        setProfileStatus("saved");
-        return;
-      } catch {
-        // claimedBy may not be indexed yet — retry
-      }
-    }
     setProfileStatus("failed");
   };
 
-  const runLaunch = async (secret: string) => {
-    if (!walletAddress) return;
+  const runLaunch = async (signer: StarknetVenueSigner) => {
+    if (!walletAddress) throw new Error("Wallet not ready. Please refresh and try again.");
     const input: LaunchCoinInput = { name, symbol, supplyHuman: supply, quoteSymbol: quote, teamPct };
-    try {
-      const result = await launch(input, secret, walletAddress);
-      setCoinAddress(result.coinAddress);
-      void saveCoinProfile(result.coinAddress);
-    } catch {
-      // status/error handled by the hook; error state rendered below
-    }
+    const result = await launch(input, signer, walletAddress);
+    setCoinAddress(result.coinAddress);
+    void saveCoinProfile();
+    return { txHash: result.txHash };
   };
 
-  const handlePin = async (pin: string) => {
-    setPinOpen(false);
-    await runLaunch(pin);
-  };
-
-  const handleLaunchClick = async () => {
-    if (!canLaunch || authBusy) return;
-    if (!hasWallet) { setWalletSetupOpen(true); return; }
-    if (usesPasskey) {
-      setAuthBusy(true);
-      try {
-        const key = encryptKey ?? (await authenticate());
-        if (key) { await runLaunch(key); return; }
-      } catch { /* fall through to PIN */ } finally {
-        setAuthBusy(false);
-      }
-    }
-    setPinOpen(true);
+  const handleLaunchClick = () => {
+    if (!canLaunch || !hasWallet) return;
+    void action.run(runLaunch);
   };
 
   const handleReset = () => {
@@ -201,13 +158,13 @@ export default function CoinCreatePage() {
     clearImage();
   };
 
-  if (!isSignedIn) {
+  if (!hasWallet) {
     return (
       <LaunchpadSignedOutState
         icon={TrendingUp}
         iconClassName="text-brand-rose"
         title="Launch a Creator Coin"
-        description="Sign in to design and launch your own coin with permanently-locked liquidity — gasless, in a few clicks."
+        description="Set up your wallet to design and launch your own coin with permanently-locked liquidity — gasless, in a few clicks."
       />
     );
   }
@@ -469,10 +426,10 @@ export default function CoinCreatePage() {
                 tone="rose"
                 big
                 onClick={handleLaunchClick}
-                disabled={!canLaunch || authBusy}
-                className={`w-full ${!canLaunch || authBusy ? "opacity-40 pointer-events-none" : ""}`}
+                disabled={!canLaunch || action.status !== "idle"}
+                className={`w-full ${!canLaunch || action.status !== "idle" ? "opacity-40 pointer-events-none" : ""}`}
               >
-                {authBusy ? <><Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> Confirm with your passkey…</> : <>Launch your coin <ArrowRight className="h-4 w-4 ml-1.5" /></>}
+                {action.status !== "idle" ? <><Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> Launching…</> : <>Launch your coin <ArrowRight className="h-4 w-4 ml-1.5" /></>}
               </ActionButton>
               <p className="text-xs text-muted-foreground text-center">
                 <Link href="/launchpad/memecoin" className="underline active:text-foreground">
@@ -482,19 +439,6 @@ export default function CoinCreatePage() {
           </section>
         </div>
       </ServiceFormShell>
-
-      <PinDialog
-        open={pinOpen}
-        onSubmit={handlePin}
-        onCancel={() => setPinOpen(false)}
-        title="Confirm coin launch"
-        description="Enter your PIN to deploy and launch your coin."
-      />
-      <WalletSetupDialog
-        open={walletSetupOpen}
-        onOpenChange={setWalletSetupOpen}
-        onSuccess={() => { setWalletSetupOpen(false); setPinOpen(true); }}
-      />
     </>
   );
 }
