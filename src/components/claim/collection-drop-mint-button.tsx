@@ -1,20 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { toast } from "sonner";
 import { Loader2, CheckCircle2, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { PinDialog } from "@/components/chipi/pin-dialog";
-import { useWriteAction } from "@/hooks/use-write-action";
-import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
+import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { MarketplaceErrorState, MarketplaceSuccessState } from "@/components/marketplace/marketplace-dialog-primitives";
-import { useSessionKey } from "@/hooks/use-session-key";
 import { EXPLORER_URL } from "@/lib/constants";
-import { useUser } from "@clerk/nextjs";
 import { useDropMintStatus, type DropConditions } from "@/hooks/use-drops";
 import { getListableTokens, normalizeAddress } from "@medialane/sdk";
-import { useFeeCharge } from "@/hooks/use-fee-charge";
+import { buildFeeCall, type StarknetVenueSigner } from "@medialane/sdk/starknet";
+import { ioFeeConfig } from "@/lib/fee";
 import { rewardToast } from "@/lib/reward-toast";
 
 interface CollectionDropMintButtonProps {
@@ -50,15 +46,13 @@ export function CollectionDropMintButton({
   collectionAddress,
   conditions,
 }: CollectionDropMintButtonProps) {
-  const { isSignedIn } = useUser();
-  const { walletAddress, hasWallet } = useSessionKey();
+  const { address: walletAddress, hasWallet } = useWalletNativeSession();
   const { mintStatus, isLoading, mutate } = useDropMintStatus(
     collectionAddress,
     walletAddress ?? null
   );
-  const action = useWriteAction();
+  const action = useWalletWriteAction();
   const busy = action.status === "processing" || action.status === "confirming";
-  const { chargeFee } = useFeeCharge();
 
   const price = getPriceBigInt(conditions);
   const isPaid = price > 0n;
@@ -74,16 +68,11 @@ export function CollectionDropMintButton({
     : null;
 
   const handleMint = () => {
-    if (!isSignedIn) {
-      toast.error("Sign in to mint");
-      return;
-    }
-    // action.run gates wallet + unlock; we just build calls and execute.
+    if (!hasWallet) return;
     void action.run(handleUnlocked);
   };
 
-  // `secret` is the wallet-unlock material — a typed PIN or the passkey key.
-  const handleUnlocked = async (secret: string) => {
+  const handleUnlocked = async (signer: StarknetVenueSigner) => {
     const calls: Array<{ contractAddress: string; entrypoint: string; calldata: string[] }> = [];
 
     if (isPaid && conditions && conditions.paymentToken !== "0x0") {
@@ -108,21 +97,29 @@ export function CollectionDropMintButton({
       calldata: ["1", "0"],
     });
 
-    const result = await action.executeTransaction({ pin: secret, calls });
-    if (result.status === "reverted") return result;
+    // The platform fee is bundled into the SAME atomic multicall — no
+    // separate fire-and-forget transaction needed. That pattern existed only
+    // because ChipiPay's account was non-atomic; MediaWallet (like every
+    // real wallet on medialane-starknet) executes one multicall as a single
+    // all-or-nothing unit, so the fee can never be stranded on a reverted
+    // claim. Drop claim quantity is fixed at 1, so grossAmount = price.
+    if (isPaid && conditions && conditions.paymentToken !== "0x0") {
+      const feeCall = buildFeeCall(
+        { surface: "launchpad", token: conditions.paymentToken, grossAmount: price },
+        ioFeeConfig,
+      );
+      if (feeCall) {
+        calls.push({
+          contractAddress: feeCall.contractAddress,
+          entrypoint: feeCall.entrypoint,
+          calldata: feeCall.calldata as string[],
+        });
+      }
+    }
 
+    const result = await signer.execute(calls);
     mutate();
     rewardToast("claim_drop");
-    // Fee — un-awaited fire-and-forget; paid mints only. Drop claim quantity is
-    // fixed at 1, so grossAmount = price.
-    if (isPaid && conditions && conditions.paymentToken !== "0x0") {
-      chargeFee({
-        surface: "launchpad",
-        token: conditions.paymentToken,
-        grossAmount: price,
-        pin: secret,
-      });
-    }
     return result;
   };
 
@@ -174,21 +171,6 @@ export function CollectionDropMintButton({
           {mintedByWallet > 0 ? `You've minted ${mintedByWallet} · ` : ""}You can mint {remaining} more
         </p>
       )}
-
-      <PinDialog
-        {...action.pinDialogProps}
-        title={isPaid ? `Mint for ${priceDisplay}` : "Mint your drop token"}
-        description={
-          isPaid
-            ? "This will approve the payment and mint your token. Enter your PIN to confirm."
-            : "Enter your PIN to mint from this drop onchain."
-        }
-      />
-
-      <WalletSetupDialog
-        open={action.walletSetupOpen}
-        onOpenChange={action.setWalletSetupOpen}
-      />
 
       <Dialog open={action.status === "success" || action.status === "error"} onOpenChange={(open) => { if (!open) action.reset(); }}>
         <DialogContent className="max-w-[calc(100%-6px)] sm:max-w-md p-0 overflow-hidden gap-0 rounded-2xl">

@@ -5,12 +5,11 @@ import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { CallData } from "starknet";
 import { normalizeAddress } from "@medialane/sdk";
+import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { encodeTokenId } from "@/hooks/use-transfer";
-import { useAuth, SignInButton, useClerk } from "@clerk/nextjs";
 import { useComments } from "@/hooks/use-comments";
-import { useSessionKey } from "@/hooks/use-session-key";
-import { useWriteAction } from "@/hooks/use-write-action";
-import { PinDialog } from "@/components/chipi/pin-dialog";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
+import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -55,13 +54,11 @@ interface CommentsSectionProps {
 }
 
 export function CommentsSection({ contract, tokenId, className }: CommentsSectionProps) {
-  const { isSignedIn } = useAuth();
-  const { openSignIn } = useClerk();
-  const { hasWallet, walletAddress } = useSessionKey();
+  const { hasWallet, address: walletAddress } = useWalletNativeSession();
   const { comments, total, isLoading, mutate } = useComments(contract, tokenId);
   // One batched rewards lookup for all visible authors — never per row.
   const { data: authorLevels } = useRewardsBatch(comments.map((c) => c.author));
-  const action = useWriteAction();
+  const action = useWalletWriteAction();
 
   const [text, setText] = useState("");
   const [reportTarget, setReportTarget] = useState<ReportTarget | null>(null);
@@ -103,17 +100,14 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
     }
   };
 
-  // `secret` is the wallet-unlock material — a typed PIN or the passkey key.
-  const handleUnlocked = async (secret: string) => {
+  const handleUnlocked = async (signer: StarknetVenueSigner) => {
     const encoded = byteArrayFromUtf8(text.trim());
     const [tokenIdLow, tokenIdHigh] = encodeTokenId(tokenId);
     const calldata = CallData.compile([contract, { low: tokenIdLow, high: tokenIdHigh }, encoded]);
 
-    const result = await action.executeTransaction({
-      pin: secret,
-      calls: [{ contractAddress: STARKNET_NFTCOMMENTS_CONTRACT, entrypoint: "add_comment", calldata }],
-    });
-    if (result.status === "reverted") return result; // action surfaces the revert
+    const result = await signer.execute([
+      { contractAddress: STARKNET_NFTCOMMENTS_CONTRACT, entrypoint: "add_comment", calldata },
+    ]);
 
     setText("");
     if (composeRef.current) composeRef.current.style.height = "auto";
@@ -123,11 +117,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
   };
 
   const handleStartConversation = () => {
-    if (!isSignedIn) {
-      openSignIn();
-    } else {
-      composeRef.current?.focus();
-    }
+    if (hasWallet) composeRef.current?.focus();
   };
 
   return (
@@ -235,7 +225,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
                           {comment.content}
                         </div>
                       )}
-                      {!own && isSignedIn && (
+                      {!own && hasWallet && (
                         <button
                           className="absolute -top-1 -right-5 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground/40 hover:text-destructive/70"
                           title="Report comment"
@@ -273,14 +263,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
 
       {/* ── Compose bar ── */}
       <div className="border-t border-border/60 shrink-0">
-        {!isSignedIn ? (
-          <div className="flex items-center justify-center gap-2 px-4 h-16">
-            <p className="text-sm text-muted-foreground">Sign in to join the conversation</p>
-            <SignInButton mode="modal">
-              <Button variant="ghost" size="sm" className="rounded-full" style={{ color: "hsl(var(--brand-blue))" }}>Sign in</Button>
-            </SignInButton>
-          </div>
-        ) : !hasWallet ? (
+        {!hasWallet ? (
           <div className="flex items-center justify-center px-4 h-16">
             <p className="text-sm text-muted-foreground">Set up your wallet to comment</p>
           </div>
@@ -361,12 +344,6 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
         )}
       </div>
 
-      {/* ── PIN entry ── */}
-      <PinDialog
-        {...action.pinDialogProps}
-        title="Post comment onchain"
-        description="Enter your PIN to publish this comment permanently to Starknet."
-      />
 
       {/* ── Report dialog ── */}
       {reportTarget && (
