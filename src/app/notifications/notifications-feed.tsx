@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Bell, CheckCheck, Inbox, Filter } from "lucide-react";
-import { useUser, SignInButton } from "@clerk/nextjs";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useNotifications } from "@/hooks/use-notifications";
 import { NotificationRow } from "@/components/shared/notification-row";
@@ -46,10 +45,9 @@ function groupByDay(items: Notification[]): [string, Notification[]][] {
 }
 
 export function NotificationsFeed() {
-  const { isLoaded, isSignedIn } = useUser();
-  const { address: walletAddress } = useWalletNativeSession();
+  const { hasWallet, address: walletAddress } = useWalletNativeSession();
   const { notifications, unreadCount, markAllRead, markRead } = useNotifications(
-    isSignedIn ? walletAddress : null
+    hasWallet ? walletAddress : null
   );
   const [typeFilter, setTypeFilter] = useState<NotificationType | "">("");
 
@@ -93,24 +91,24 @@ export function NotificationsFeed() {
         )}
       </div>
 
-      {/* Sign-in gate for personal notifications */}
-      {isLoaded && !isSignedIn && (
+      {/* Wallet gate for personal notifications */}
+      {!hasWallet && (
         <div className="rounded-2xl border border-border/50 bg-muted/10 p-6 flex flex-col items-center gap-3 text-center">
           <Bell className="h-8 w-8 text-muted-foreground/40" />
           <div>
-            <p className="font-semibold text-sm">Sign in to see your notifications</p>
+            <p className="font-semibold text-sm">Set up your wallet to see your notifications</p>
             <p className="text-xs text-muted-foreground mt-1">
               Offers, sales, and activity will appear here.
             </p>
           </div>
-          <SignInButton mode="modal">
-            <Button size="sm">Sign in</Button>
-          </SignInButton>
+          <Button size="sm" asChild>
+            <Link href="/wallet-onboarding?redirect_url=/notifications">Set up wallet</Link>
+          </Button>
         </div>
       )}
 
       {/* Feed */}
-      {filtered.length === 0 && (isSignedIn || typeFilter === "announcement") ? (
+      {filtered.length === 0 && (hasWallet || typeFilter === "announcement") ? (
         <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
           <div className="h-14 w-14 rounded-2xl bg-muted/40 border border-border/50 flex items-center justify-center">
             <Inbox className="h-6 w-6 text-muted-foreground/40" />

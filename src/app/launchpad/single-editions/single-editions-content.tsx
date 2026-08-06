@@ -36,7 +36,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { MintProgressDialog } from "@/components/marketplace/mint-progress-dialog";
-import type { ChipiTransactionStatus } from "@/hooks/use-chipi-transaction";
+import type { MintTxStatus } from "@/types/mint-tx-status";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { MedialaneCollectionCard } from "@medialane/ui";
 import { CreateAssetAside } from "@/components/claim/create-asset-aside";
@@ -290,7 +290,7 @@ function CollectionPicker({
 
 export function SingleEditionsContent() {
   const { hasWallet, address: walletAddress, signer } = useWalletNativeSession();
-  const [status, setStatus] = useState<ChipiTransactionStatus>("idle");
+  const [status, setStatus] = useState<MintTxStatus>("idle");
   const [txHash, setTxHash] = useState<string | null>(null);
 
   // Fetch user's current Medialane ERC-721 collections from the API.

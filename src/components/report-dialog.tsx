@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { AlertCircle, CheckCircle, Flag, Loader2 } from "lucide-react";
 import {
   Dialog,
@@ -13,7 +14,8 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { useAuth, useClerk } from "@clerk/nextjs";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
+import { useSiwsToken } from "@/hooks/use-siws-token";
 import { normalizeAddress } from "@medialane/sdk";
 
 export type ReportTarget =
@@ -39,8 +41,10 @@ interface ReportDialogProps {
 }
 
 export function ReportDialog({ target, open, onOpenChange }: ReportDialogProps) {
-  const { isSignedIn, getToken } = useAuth();
-  const { openSignIn } = useClerk();
+  const { hasWallet } = useWalletNativeSession();
+  const { getValidToken, signIn } = useSiwsToken();
+  const router = useRouter();
+  const pathname = usePathname();
   const [categories, setCategories] = useState<string[]>([]);
   const [description, setDescription] = useState("");
   const [submitStep, setSubmitStep] = useState<"idle" | "submitting" | "success" | "error">("idle");
@@ -53,8 +57,8 @@ export function ReportDialog({ target, open, onOpenChange }: ReportDialogProps) 
   };
 
   const handleOpenChange = (next: boolean) => {
-    if (next && !isSignedIn) {
-      openSignIn();
+    if (next && !hasWallet) {
+      router.push(`/wallet-onboarding?redirect_url=${encodeURIComponent(pathname)}`);
       return;
     }
     if (!next && submitStep !== "submitting") {
@@ -74,7 +78,7 @@ export function ReportDialog({ target, open, onOpenChange }: ReportDialogProps) 
 
     // Normalize addresses + build the backend targetKey here; the backend
     // re-validates the key against these fields, and it derives the reporter
-    // identity from the forwarded Clerk JWT (never from the body).
+    // identity from the forwarded SIWS token (never from the body).
     const normalizedContract =
       target.type === "TOKEN" || target.type === "COLLECTION"
         ? normalizeAddress("STARKNET", target.contract)
@@ -100,10 +104,10 @@ export function ReportDialog({ target, open, onOpenChange }: ReportDialogProps) 
     };
 
     try {
-      const token = await getToken();
+      const token = getValidToken() ?? (await signIn());
       if (!token) {
         setSubmitStep("error");
-        setSubmitError("Please sign in to submit a report.");
+        setSubmitError("Please set up your wallet to submit a report.");
         return;
       }
       const res = await fetch("/api/proxy/v1/reports", {

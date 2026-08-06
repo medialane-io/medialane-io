@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useUser } from "@clerk/nextjs";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import {
   CheckCircle2, Sparkles, ExternalLink, ShoppingBag,
   Pencil, Package, Award, ArrowRight, X, Zap, Shield, Globe,
@@ -84,8 +84,8 @@ function OnboardingBanner({
   onDismiss: () => void;
 }) {
   const steps = [
-    { done: true, label: "Account created", sub: "Authenticated with Clerk" },
-    { done: true, label: "Wallet secured", sub: "Powered by ChipiPay on Starknet" },
+    { done: true, label: "Account created", sub: "Secured with a passkey" },
+    { done: true, label: "Wallet secured", sub: "MediaWallet on Starknet" },
     {
       done: !!mintTxHash,
       label: mintTxHash ? "Genesis NFT minted" : "Genesis NFT",
@@ -148,7 +148,7 @@ function OnboardingBanner({
 // ── Main component ────────────────────────────────────────────────────────────
 
 export function WelcomePageClient() {
-  const { user, isLoaded } = useUser();
+  const { address: walletAddress } = useWalletNativeSession();
   const [showBanner, setShowBanner] = useState(false);
   const [mintTxHash, setMintTxHash] = useState<string | null>(null);
 
@@ -161,12 +161,10 @@ export function WelcomePageClient() {
   }, []);
 
   useEffect(() => {
-    if (!isLoaded || !user?.id) return;
-    const stored = localStorage.getItem(`ml_genesis_${user.id}`);
+    if (!walletAddress) return;
+    const stored = localStorage.getItem(`ml_genesis_${walletAddress}`);
     if (stored) setMintTxHash(stored);
-  }, [isLoaded, user?.id]);
-
-  const firstName = user?.firstName ?? user?.username ?? null;
+  }, [walletAddress]);
 
   return (
     <div className="pb-24">
@@ -187,13 +185,8 @@ export function WelcomePageClient() {
             Welcome
           </span>
           <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight leading-tight">
-            {firstName ? (
-              <>Hey, {firstName}.<br />
-              <span className="gradient-text">What are you creating today?</span></>
-            ) : (
-              <>Your creativity,{" "}
-              <span className="gradient-text">on-chain.</span></>
-            )}
+            Your creativity,{" "}
+            <span className="gradient-text">on-chain.</span>
           </h1>
           <p className="mt-3 text-base text-muted-foreground max-w-xl">
             Mint, monetize, trade, and collect creative assets, rwa and nfts.

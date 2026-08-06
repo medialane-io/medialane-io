@@ -11,7 +11,6 @@ import { GoogleAnalytics } from "@next/third-parties/google";
 import { NavCommandMenu, NavBrandButton, NavAccountSheet, ThemeAmbientBackground } from "@medialane/ui";
 import { NAV_COMMANDS } from "@/lib/nav-commands";
 import { AccountSyncOnLogin } from "@/components/shared/account-sync-on-login";
-import { PasskeyCredentialSync } from "@/components/shared/passkey-credential-sync";
 import { NavThemeToggle } from "@/components/nav-theme-toggle";
 import { NavConnectButton } from "@/components/nav-connect-button";
 import { HeaderWalletTrigger } from "@/components/nav-wallet-trigger";
@@ -140,7 +139,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
       >
         {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
         <AccountSyncOnLogin />
-        <PasskeyCredentialSync />
         <Shell>{children}</Shell>
         <Toaster
           richColors

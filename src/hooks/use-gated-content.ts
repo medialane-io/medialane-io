@@ -1,10 +1,9 @@
 "use client";
 
 import useSWR from "swr";
-import { useAuth } from "@clerk/nextjs";
 import { apiFetch, ApiError } from "@/lib/api-fetch";
-import { useWallet } from "@/hooks/use-wallet";
-import { getStoredSiwsToken } from "@/lib/siws-client";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
+import { useSiwsToken } from "@/hooks/use-siws-token";
 
 export interface GatedContent {
   title: string | null;
@@ -20,17 +19,13 @@ export type GatedContentState =
   | { status: "error" };
 
 export function useGatedContent(contract: string | undefined): GatedContentState {
-  const { getToken, isSignedIn } = useAuth();
-  const { address: walletAddress } = useWallet();
+  const { hasWallet } = useWalletNativeSession();
+  const { getValidToken, signIn } = useSiwsToken();
 
   const { data, error, isLoading } = useSWR<GatedContent | "not_holder">(
-    contract && isSignedIn ? ["gated-content", contract] : null,
+    contract && hasWallet ? ["gated-content", contract] : null,
     async () => {
-      // Prefer a cached SIWS token (minted during onboarding) over the Clerk
-      // JWT — the backend accepts both (medialane-core spec 2026-06-30-
-      // remove-clerk-from-backend-design.md). No new prompt either way: a
-      // missing SIWS token just falls back to Clerk, same as before.
-      const token = (walletAddress && getStoredSiwsToken(walletAddress)) || (await getToken());
+      const token = getValidToken() ?? (await signIn());
       try {
         return await apiFetch<GatedContent>(
           `/v1/collections/${contract}/gated-content`,
@@ -46,7 +41,7 @@ export function useGatedContent(contract: string | undefined): GatedContentState
     { shouldRetryOnError: false, revalidateOnFocus: false }
   );
 
-  if (!isSignedIn) return { status: "not_signed_in" };
+  if (!hasWallet) return { status: "not_signed_in" };
   if (isLoading) return { status: "loading" };
   if (error) return { status: "error" };
   if (data === "not_holder" || data === undefined) return { status: "not_holder" };

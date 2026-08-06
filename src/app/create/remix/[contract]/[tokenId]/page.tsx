@@ -40,7 +40,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Call } from "starknet";
-import type { ChipiTransactionStatus } from "@/hooks/use-chipi-transaction";
+import type { MintTxStatus } from "@/types/mint-tx-status";
 
 // ── Main Page ────────────────────────────────────────────────────────────────
 
@@ -49,7 +49,7 @@ export default function CreateRemixPage() {
   const router = useRouter();
   const { address: walletAddress, signer } = useWalletNativeSession();
   const { getValidToken, signIn } = useSiwsToken();
-  const [txStatus, setTxStatus] = useState<ChipiTransactionStatus>("idle");
+  const [txStatus, setTxStatus] = useState<MintTxStatus>("idle");
   const client = useMedialaneClient();
   const { token, isLoading: tokenLoading } = useToken(contract, tokenId);
   const { collection: parentCollection } = useCollection(contract);

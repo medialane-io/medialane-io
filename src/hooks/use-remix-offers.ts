@@ -1,6 +1,6 @@
 import useSWR from "swr";
-import { useAuth } from "@clerk/nextjs";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
+import { useSiwsToken } from "@/hooks/use-siws-token";
 import type { RemixOffer, RemixOfferListResponse, PublicRemix } from "@/types/remix-offers";
 
 // Client-side hook. All requests go through the same-origin BFF proxy at
@@ -10,10 +10,10 @@ const API_BASE = "/api/proxy";
 
 // ─── Fetcher helpers ──────────────────────────────────────────────────────────
 
-async function apiFetch(url: string, clerkToken?: string | null, options?: RequestInit) {
+async function apiFetch(url: string, token?: string | null, options?: RequestInit) {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    ...(clerkToken ? { Authorization: `Bearer ${clerkToken}` } : {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
   const res = await fetch(url, { ...options, headers: { ...headers, ...(options?.headers as Record<string, string> ?? {}) } });
   if (!res.ok) {
@@ -31,15 +31,15 @@ async function apiFetch(url: string, clerkToken?: string | null, options?: Reque
 
 /** List remix offers for the authenticated user. */
 export function useRemixOffers(role: "creator" | "requester", status?: string) {
-  const { getToken } = useAuth();
   const { address: walletAddress } = useWalletNativeSession();
+  const { getValidToken, signIn } = useSiwsToken();
 
   const key = walletAddress ? `remix-offers-${role}-${status ?? "all"}` : null;
 
   const { data, error, isLoading, mutate } = useSWR<RemixOfferListResponse>(
     key,
     async () => {
-      const token = await getToken();
+      const token = getValidToken() ?? (await signIn());
       const params = new URLSearchParams({ role, ...(status ? { status } : {}) });
       return apiFetch(`${API_BASE}/v1/remix-offers?${params}`, token);
     },
@@ -77,9 +77,9 @@ export async function submitRemixOffer(
     message?: string;
     expiresInDays?: number;
   },
-  clerkToken: string
+  token: string
 ): Promise<RemixOffer> {
-  const res = await apiFetch(`${API_BASE}/v1/remix-offers`, clerkToken, {
+  const res = await apiFetch(`${API_BASE}/v1/remix-offers`, token, {
     method: "POST",
     body: JSON.stringify(body),
   });
@@ -89,9 +89,9 @@ export async function submitRemixOffer(
 /** Submit an auto (open-license) offer (Path 2). */
 export async function submitAutoRemixOffer(
   body: { originalContract: string; originalTokenId: string },
-  clerkToken: string
+  token: string
 ): Promise<RemixOffer> {
-  const res = await apiFetch(`${API_BASE}/v1/remix-offers/auto`, clerkToken, {
+  const res = await apiFetch(`${API_BASE}/v1/remix-offers/auto`, token, {
     method: "POST",
     body: JSON.stringify(body),
   });
@@ -114,9 +114,9 @@ export async function registerRemix(
     derivatives: boolean;
     royaltyPct?: number;
   },
-  clerkToken: string
+  token: string
 ): Promise<RemixOffer> {
-  const res = await apiFetch(`${API_BASE}/v1/remix-offers/self/confirm`, clerkToken, {
+  const res = await apiFetch(`${API_BASE}/v1/remix-offers/self/confirm`, token, {
     method: "POST",
     body: JSON.stringify(body),
   });
@@ -127,9 +127,9 @@ export async function registerRemix(
 export async function confirmRemixOffer(
   id: string,
   body: { remixContract: string; remixTokenId: string; approvedCollection: string; orderHash: string },
-  clerkToken: string
+  token: string
 ): Promise<RemixOffer> {
-  const res = await apiFetch(`${API_BASE}/v1/remix-offers/${id}/confirm`, clerkToken, {
+  const res = await apiFetch(`${API_BASE}/v1/remix-offers/${id}/confirm`, token, {
     method: "POST",
     body: JSON.stringify(body),
   });
@@ -137,8 +137,8 @@ export async function confirmRemixOffer(
 }
 
 /** Reject an offer. */
-export async function rejectRemixOffer(id: string, clerkToken: string): Promise<RemixOffer> {
-  const res = await apiFetch(`${API_BASE}/v1/remix-offers/${id}/reject`, clerkToken, {
+export async function rejectRemixOffer(id: string, token: string): Promise<RemixOffer> {
+  const res = await apiFetch(`${API_BASE}/v1/remix-offers/${id}/reject`, token, {
     method: "POST",
     body: JSON.stringify({}),
   });
@@ -146,8 +146,8 @@ export async function rejectRemixOffer(id: string, clerkToken: string): Promise<
 }
 
 /** Extend the expiry of a pending offer by 1–30 days. */
-export async function extendRemixOffer(id: string, days: number, clerkToken: string): Promise<RemixOffer> {
-  const res = await apiFetch(`${API_BASE}/v1/remix-offers/${id}/extend`, clerkToken, {
+export async function extendRemixOffer(id: string, days: number, token: string): Promise<RemixOffer> {
+  const res = await apiFetch(`${API_BASE}/v1/remix-offers/${id}/extend`, token, {
     method: "POST",
     body: JSON.stringify({ days }),
   });

@@ -2,7 +2,6 @@
 
 import type { ElementType } from "react";
 import Link from "next/link";
-import { SignInButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useWallet } from "@/hooks/use-wallet";
@@ -97,10 +96,10 @@ function StatusRow({ address }: { address: string | null | undefined }) {
   if (!address) {
     return (
       <div className="flex flex-wrap items-center gap-3">
-        <p className="text-sm text-muted-foreground">Sign in to see your score.</p>
-        <SignInButton mode="modal">
-          <Button size="sm">Sign in</Button>
-        </SignInButton>
+        <p className="text-sm text-muted-foreground">Set up your wallet to see your score.</p>
+        <Button size="sm" asChild>
+          <Link href="/wallet-onboarding?redirect_url=/rewards">Set up wallet</Link>
+        </Button>
       </div>
     );
   }

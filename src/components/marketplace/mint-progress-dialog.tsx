@@ -18,7 +18,7 @@ import {
   Tag,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import type { ChipiTransactionStatus } from "@/hooks/use-chipi-transaction";
+import type { MintTxStatus } from "@/types/mint-tx-status";
 
 export type MintStep = "idle" | "uploading" | "processing" | "success" | "error";
 export type ListingStep = "idle" | "polling" | "listing" | "listed" | "failed";
@@ -26,7 +26,7 @@ export type ListingStep = "idle" | "polling" | "listing" | "listed" | "failed";
 interface MintProgressDialogProps {
   open: boolean;
   mintStep: MintStep;
-  txStatus: ChipiTransactionStatus;
+  txStatus: MintTxStatus;
   assetName: string;
   imagePreview: string | null;
   txHash: string | null;
@@ -42,18 +42,18 @@ interface MintProgressDialogProps {
 const MINT_STEPS = [
   {
     label: "Upload to IPFS",
-    done: (mintStep: MintStep, txStatus: ChipiTransactionStatus) =>
+    done: (mintStep: MintStep, txStatus: MintTxStatus) =>
       mintStep === "processing" || mintStep === "success" ||
       txStatus === "submitting" || txStatus === "confirming" || txStatus === "confirmed",
   },
   {
     label: "Submit transaction",
-    done: (_: MintStep, txStatus: ChipiTransactionStatus) =>
+    done: (_: MintStep, txStatus: MintTxStatus) =>
       txStatus === "confirming" || txStatus === "confirmed",
   },
   {
     label: "Confirm onchain",
-    done: (_: MintStep, txStatus: ChipiTransactionStatus) =>
+    done: (_: MintStep, txStatus: MintTxStatus) =>
       txStatus === "confirmed",
   },
 ];
