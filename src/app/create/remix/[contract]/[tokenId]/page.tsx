@@ -5,15 +5,12 @@ import { useState, useRef, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { useAuth } from "@clerk/nextjs";
 import { assetHref } from "@/lib/routes";
 import { useToken } from "@/hooks/use-tokens";
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
+import { useSiwsToken } from "@/hooks/use-siws-token";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
-import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import { useCollectionsByOwner, useCollection } from "@/hooks/use-collections";
-import { PinDialog } from "@/components/chipi/pin-dialog";
-import { useWalletUnlock } from "@/hooks/use-wallet-unlock";
 import { MintProgressDialog } from "@/components/marketplace/mint-progress-dialog";
 import type { MintStep } from "@/components/marketplace/mint-progress-dialog";
 import { Button } from "@/components/ui/button";
@@ -30,7 +27,6 @@ import {
 } from "@/components/ui/collapsible";
 import { registerRemix } from "@/hooks/use-remix-offers";
 import { readAssignedEditionId } from "@/lib/erc1155-edition";
-import { executePrebuiltIntent } from "@/lib/intent-tx";
 import { getService, normalizeAddress } from "@medialane/sdk";
 import { IP_TYPES, LICENSE_TYPES, type IPType } from "@/types/ip";
 import { ipfsToHttp, checkIsOwner } from "@/lib/utils";
@@ -43,16 +39,17 @@ import {
   Shield, Percent, Boxes, Plus, Info,
 } from "lucide-react";
 import { toast } from "sonner";
-import type { ChipiCall } from "@/hooks/use-chipi-transaction";
+import type { Call } from "starknet";
+import type { ChipiTransactionStatus } from "@/hooks/use-chipi-transaction";
 
 // ── Main Page ────────────────────────────────────────────────────────────────
 
 export default function CreateRemixPage() {
   const { contract, tokenId } = useParams<{ contract: string; tokenId: string }>();
   const router = useRouter();
-  const { getToken } = useAuth();
-  const { walletAddress } = useSessionKey();
-  const { executeTransaction, status: txStatus } = useChipiTransaction();
+  const { address: walletAddress, signer } = useWalletNativeSession();
+  const { getValidToken, signIn } = useSiwsToken();
+  const [txStatus, setTxStatus] = useState<ChipiTransactionStatus>("idle");
   const client = useMedialaneClient();
   const { token, isLoading: tokenLoading } = useToken(contract, tokenId);
   const { collection: parentCollection } = useCollection(contract);
@@ -97,8 +94,6 @@ export default function CreateRemixPage() {
   const [royalty, setRoyalty] = useState("");
   const [advancedOpen, setAdvancedOpen] = useState(false);
 
-  // Owner mint flow — unlocks with the wallet's own method (passkey or PIN).
-  const { unlock, pinDialogProps } = useWalletUnlock();
   const [mintStep, setMintStep] = useState<MintStep>("idle");
   const [mintError, setMintError] = useState<string | null>(null);
   const previewUrlRef = useRef<string | null>(null);
@@ -167,18 +162,18 @@ export default function CreateRemixPage() {
   const handleCreateSubmit = () => {
     const err = validate();
     if (err) { toast.error(err); return; }
-    // .catch handles unlock-level throws (e.g. passkey unavailable here).
-    void unlock(handleUnlocked).catch((e) => {
-      setMintError(e instanceof Error ? e.message : "Could not unlock your wallet");
+    void handleUnlocked().catch((e) => {
+      setMintError(e instanceof Error ? e.message : "Something went wrong");
       setMintStep("error");
+      setTxStatus("error");
     });
   };
 
-  // `secret` is the wallet-unlock material — a typed PIN or the passkey key.
-  const handleUnlocked = async (secret: string) => {
-    if (!walletAddress) return;
+  const handleUnlocked = async () => {
+    if (!walletAddress || !signer) return;
     setMintError(null);
     setMintStep("uploading");
+    setTxStatus("idle");
 
     try {
       const selectedCollection = eligibleCollections.find((c) => getCollectionKey(c) === collectionKey);
@@ -255,8 +250,10 @@ export default function CreateRemixPage() {
           tokenUri,
           value: "1",
         });
-        const result = await executePrebuiltIntent(executeTransaction, client, secret, intentRes.data);
-        if (result.status === "reverted") throw new Error(result.revertReason ?? "Mint reverted");
+        if (intentRes.data.requiresSignature) throw new Error("Unexpected signed mint intent");
+        setTxStatus("submitting");
+        const result = await signer.execute(intentRes.data.calls as Call[]);
+        setTxStatus("confirmed");
         txHash = result.txHash ?? "";
         remixTokenId = await readAssignedEditionId(txHash, selectedCollection.contractAddress);
       } else {
@@ -271,11 +268,12 @@ export default function CreateRemixPage() {
         const mintIntent = intentRes.data;
         // mint is always an unsigned (prebuilt-calls) intent.
         if (mintIntent.requiresSignature) throw new Error("Unexpected signed mint intent");
-        const calls = mintIntent.calls as unknown as ChipiCall[];
+        const calls = mintIntent.calls as unknown as Call[];
         if (!calls?.length) throw new Error("No calls returned from mint intent");
 
-        const result = await executeTransaction({ pin: secret, calls });
-        if (result.status === "reverted") throw new Error(result.revertReason ?? "Mint reverted");
+        setTxStatus("submitting");
+        const result = await signer.execute(calls);
+        setTxStatus("confirmed");
         txHash = result.txHash ?? "";
 
         let polledTokenId: string | undefined;
@@ -295,8 +293,8 @@ export default function CreateRemixPage() {
       }
 
       // 3. Record the remix (parent → child attribution link)
-      const clerkToken = await getToken();
-      if (!clerkToken) throw new Error("Not authenticated");
+      const authToken = getValidToken() ?? (await signIn());
+      if (!authToken) throw new Error("Not authenticated");
       await registerRemix(
         {
           originalContract: contract,
@@ -308,7 +306,7 @@ export default function CreateRemixPage() {
           commercial,
           derivatives,
         },
-        clerkToken
+        authToken
       );
 
       setMintStep("success");
@@ -318,6 +316,7 @@ export default function CreateRemixPage() {
     } catch (err: unknown) {
       setMintError(err instanceof Error ? err.message : "Something went wrong");
       setMintStep("error");
+      setTxStatus("error");
     }
   };
 
@@ -367,12 +366,6 @@ export default function CreateRemixPage() {
         onMintAnother={() => { setMintStep("idle"); setMintError(null); }}
         listingStep="idle"
         listingError={null}
-      />
-
-      <PinDialog
-        {...pinDialogProps}
-        title="Confirm remix mint"
-        description="Enter your PIN to mint this remix onchain."
       />
 
       <div className="max-w-5xl mx-auto px-4 pt-14 pb-12 space-y-6">

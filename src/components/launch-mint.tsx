@@ -2,9 +2,8 @@
 
 import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
-import Link from "next/link";
-import { useUser, SignInButton, SignUpButton } from "@clerk/nextjs";
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
+import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { serializeByteArray } from "@/lib/cairo-calldata";
 import {
   Sparkles,
@@ -18,18 +17,15 @@ import {
   Gift,
   Droplets,
   ArrowRight,
-  Wallet,
-  User,
 } from "lucide-react";
-import { PinInput, validatePin } from "@/components/ui/pin-input";
 import { Button } from "@/components/ui/button";
-import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
 import {
   EXPLORER_URL,
   LAUNCH_MINT_CONTRACT,
   GENESIS_NFT_URI,
 } from "@/lib/constants";
 import { LaunchCountdown } from "./launch-countdown";
+import type { Call } from "starknet";
 
 // ─── Genesis NFT card ────────────────────────────────────────────────────────
 
@@ -58,7 +54,7 @@ function GenesisNftCard({ minted = false }: { minted?: boolean }) {
 
 const PERKS = [
   { icon: Gift, label: "Free to mint", sub: "Zero protocol fees" },
-  { icon: Zap, label: "Gas-free", sub: "Powered by Chipipay" },
+  { icon: Zap, label: "Gas-free", sub: "Sponsored transactions" },
   { icon: Droplets, label: "Airdrop passport", sub: "Future distribution" },
   { icon: Shield, label: "Programmable IP", sub: "Immutable ownership" },
 ];
@@ -86,46 +82,36 @@ function PerksGrid() {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-type MintStep = "ready" | "enter-pin" | "minting" | "success" | "error";
+type MintStep = "ready" | "minting" | "success" | "error";
 
 export function LaunchMint() {
-  const { isSignedIn, isLoaded, user } = useUser();
-  const { walletAddress: sessionWalletAddress, hasWallet, isLoadingWallet } = useSessionKey();
-  const { executeTransaction, status, statusMessage, error: txError, reset } = useChipiTransaction();
+  const { hasWallet, address: recipientAddress, isDeployed } = useWalletNativeSession();
+  const action = useWalletWriteAction();
 
   // Mint flow
   const [mintStep, setMintStep] = useState<MintStep>("ready");
-  const [mintPin, setMintPin] = useState("");
-  const [mintPinError, setMintPinError] = useState<string | null>(null);
   const [mintError, setMintError] = useState<string | null>(null);
   const [mintStatusMsg, setMintStatusMsg] = useState("");
   const [completedTxHash, setCompletedTxHash] = useState<string | null>(null);
 
-  const userId = user?.id;
-
   // Restore minted state from localStorage
   useEffect(() => {
-    if (!userId) return;
-    const stored = localStorage.getItem(`ml_genesis_${userId}`);
+    if (!recipientAddress) return;
+    const stored = localStorage.getItem(`ml_genesis_${recipientAddress}`);
     if (stored) {
       setCompletedTxHash(stored);
       setMintStep("success");
     }
-  }, [userId]);
-
-  const recipientAddress = sessionWalletAddress ?? undefined;
+  }, [recipientAddress]);
 
   // ── Mint ──────────────────────────────────────────────────────────────────
 
   const handleMint = useCallback(async () => {
-    const err = validatePin(mintPin);
-    if (err) { setMintPinError(err); return; }
-    setMintPinError(null);
     setMintError(null);
     setMintStep("minting");
     setMintStatusMsg("Preparing your NFT…");
 
-    try {
+    await action.run(async (signer) => {
       if (!recipientAddress) throw new Error("Wallet address not found.");
       if (!LAUNCH_MINT_CONTRACT) throw new Error("Mint contract not configured.");
 
@@ -153,37 +139,35 @@ export function LaunchMint() {
       setMintStatusMsg("Submitting transaction…");
       const calldata = [recipientAddress, ...serializeByteArray(tokenUri)];
 
-      const result = await executeTransaction({
-        pin: mintPin,
-        calls: [{ contractAddress: LAUNCH_MINT_CONTRACT, entrypoint: "mint_item", calldata }],
-      });
+      const result = await signer.execute([
+        { contractAddress: LAUNCH_MINT_CONTRACT, entrypoint: "mint_item", calldata },
+      ] as Call[]);
 
-      if (result.status === "confirmed") {
-        setMintStep("success");
-        setCompletedTxHash(result.txHash);
-        if (userId) localStorage.setItem(`ml_genesis_${userId}`, result.txHash);
-      } else {
-        throw new Error(result.revertReason || "Transaction reverted onchain.");
-      }
-    } catch (err: unknown) {
+      setMintStep("success");
+      setCompletedTxHash(result.txHash);
+      if (recipientAddress) localStorage.setItem(`ml_genesis_${recipientAddress}`, result.txHash);
+      return result;
+    });
+  }, [recipientAddress, action]);
+
+  useEffect(() => {
+    if (action.status === "error") {
       setMintStep("error");
-      setMintError(err instanceof Error ? err.message : "Mint failed. Please try again.");
+      setMintError(action.error);
     }
-  }, [mintPin, recipientAddress, userId, executeTransaction]);
+  }, [action.status, action.error]);
 
   const handleRetry = () => {
-    reset();
-    setMintPin("");
-    setMintPinError(null);
+    action.reset();
     setMintError(null);
     setMintStep("ready");
   };
 
   const handleResetMintGate = useCallback(() => {
-    if (userId) localStorage.removeItem(`ml_genesis_${userId}`);
+    if (recipientAddress) localStorage.removeItem(`ml_genesis_${recipientAddress}`);
     setCompletedTxHash(null);
     setMintStep("ready");
-  }, [userId]);
+  }, [recipientAddress]);
 
   // ── Render ────────────────────────────────────────────────────────────────
 
@@ -203,7 +187,7 @@ export function LaunchMint() {
           {/* Right: interactive panel */}
           <div>
             {/* ── Loading ── */}
-            {(!isLoaded || (isLoaded && isSignedIn && isLoadingWallet)) && (
+            {isDeployed === null && !hasWallet && (
               <div className="space-y-6">
                 <div className="h-10 w-48 rounded-lg bg-muted/40 animate-pulse" />
                 <div className="h-24 rounded-xl bg-muted/30 animate-pulse" />
@@ -211,80 +195,31 @@ export function LaunchMint() {
               </div>
             )}
 
-            {/* ── Not signed in ── */}
-            {isLoaded && !isSignedIn && (
-              <div className="space-y-2">
-                
+            {/* ── No wallet yet ── */}
+            {!hasWallet && (
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight leading-[1.1]">
+                    Set up your{" "}
+                    <span className="bg-gradient-to-r from-primary via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                      Starknet wallet
+                    </span>
+                  </h2>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    One quick step before minting — set up your self-custody wallet with a passkey. No seed phrases, no gas fees.
+                  </p>
+                </div>
 
                 <div className="space-y-2">
                   <LaunchCountdown />
                 </div>
 
                 <PerksGrid />
-
-                <div className="space-y-2.5 pt-1">
-                  <SignUpButton mode="modal">
-                    <Button
-                      size="lg"
-                      className="w-full rounded-xl h-12 text-base font-medium bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 shadow-lg shadow-primary/25"
-                    >
-                      <Sparkles className="h-4 w-4 mr-2" />
-                      Sign up
-
-                    </Button>
-                  </SignUpButton>
-                  <SignInButton mode="modal">
-                    <Button size="lg" variant="outline" className="w-full rounded-xl h-12 text-base font-medium">
-                      <User className="h-4 w-4 mr-2" />
-                      Sign in
-                    </Button>
-                  </SignInButton>
-
-                </div>
-              </div>
-            )}
-
-            {/* ── Signed in, no wallet: redirect to onboarding ── */}
-            {isLoaded && !isLoadingWallet && isSignedIn && !hasWallet && (
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                    <span className="text-emerald-400 font-medium">
-                      Signed in as {user?.primaryEmailAddress?.emailAddress}
-                    </span>
-                  </div>
-                  <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight leading-[1.1]">
-                    Secure your{" "}
-                    <span className="bg-gradient-to-r from-primary via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                      Starknet wallet
-                    </span>
-                  </h2>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    One quick step before minting — set up your invisible wallet with a passkey or PIN. No seed phrases, no gas fees.
-                  </p>
-                </div>
-
-                <Button
-                  size="lg"
-                  className="w-full rounded-xl h-12 font-bold gap-2 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 shadow-lg shadow-primary/25"
-                  asChild
-                >
-                  <Link href="/onboarding?redirect_url=/">
-                    <Wallet className="h-4 w-4" />
-                    Set up your wallet
-                    <ArrowRight className="h-4 w-4 ml-auto" />
-                  </Link>
-                </Button>
-
-                <p className="text-xs text-center text-muted-foreground">
-                  Takes less than a minute · Passkey or PIN
-                </p>
               </div>
             )}
 
             {/* ── Has wallet: mint flow ── */}
-            {isLoaded && !isLoadingWallet && isSignedIn && hasWallet && (
+            {hasWallet && (
               <div className="space-y-7">
                 {/* Header — shown on all sub-steps */}
                 {mintStep !== "success" && (
@@ -310,7 +245,7 @@ export function LaunchMint() {
                       <Button
                         size="lg"
                         className="w-full rounded-xl h-12 text-base font-bold gap-2 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 shadow-lg shadow-primary/25"
-                        onClick={() => setMintStep("enter-pin")}
+                        onClick={() => void handleMint()}
                         disabled={!LAUNCH_MINT_CONTRACT}
                       >
                         <Sparkles className="h-4 w-4" />
@@ -324,60 +259,6 @@ export function LaunchMint() {
                   </>
                 )}
 
-                {/* ── Enter PIN ── */}
-                {mintStep === "enter-pin" && (
-                  <div className="space-y-5">
-                    <div className="rounded-2xl border border-border/60 bg-card/50 p-5 space-y-4">
-                      <div>
-                        <p className="font-semibold mb-1">Confirm with your wallet PIN</p>
-                        <p className="text-sm text-muted-foreground">
-                          Enter the PIN you set when creating your wallet. This authorises the free mint.
-                        </p>
-                      </div>
-
-                      {/* Transaction summary */}
-                      <div className="rounded-lg bg-muted/30 px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-                        <span className="text-muted-foreground">NFT</span>
-                        <span className="font-medium">Medialane Genesis</span>
-                        <span className="text-muted-foreground">Price</span>
-                        <span className="font-medium text-emerald-400">Free</span>
-                        <span className="text-muted-foreground">Gas</span>
-                        <span className="font-medium text-emerald-400">Sponsored</span>
-                        <span className="text-muted-foreground">Network</span>
-                        <span className="font-medium">Starknet</span>
-                      </div>
-
-                      <PinInput
-                        value={mintPin}
-                        onChange={(v) => { setMintPin(v); setMintPinError(null); }}
-                        placeholder="Your wallet PIN"
-                        error={mintPinError}
-                        autoFocus
-                      />
-
-                      <div className="flex gap-2">
-                        <Button
-                          size="lg"
-                          className="flex-1 rounded-xl h-11 font-bold gap-2 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90"
-                          onClick={handleMint}
-                          disabled={mintPin.length < 6}
-                        >
-                          <Sparkles className="h-4 w-4" />
-                          Mint now
-                        </Button>
-                        <Button
-                          size="lg"
-                          variant="outline"
-                          className="rounded-xl h-11"
-                          onClick={() => { setMintPin(""); setMintPinError(null); setMintStep("ready"); }}
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
                 {/* ── Minting ── */}
                 {mintStep === "minting" && (
                   <div className="rounded-2xl border border-border/60 bg-card/50 p-6">
@@ -388,15 +269,15 @@ export function LaunchMint() {
                       <div>
                         <p className="font-semibold">Minting your Genesis NFT…</p>
                         <p className="text-sm text-muted-foreground mt-0.5">
-                          {mintStatusMsg || statusMessage || "Please wait…"}
+                          {mintStatusMsg || "Please wait…"}
                         </p>
                       </div>
                     </div>
                     <div className="mt-4 space-y-1.5">
                       {[
-                        { label: "Upload metadata", done: status !== "idle" },
-                        { label: "Submit transaction", done: status === "confirming" || status === "confirmed" },
-                        { label: "Confirm onchain", done: status === "confirmed" },
+                        { label: "Upload metadata", done: action.status !== "idle" },
+                        { label: "Submit transaction", done: action.status === "confirming" || action.status === "success" },
+                        { label: "Confirm onchain", done: action.status === "success" },
                       ].map(({ label, done }) => (
                         <div key={label} className="flex items-center gap-2 text-xs text-muted-foreground">
                           {done ? (
@@ -483,9 +364,9 @@ export function LaunchMint() {
                         <XCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
                         <div>
                           <p className="font-semibold text-sm">Mint failed</p>
-                          {(mintError || txError) && (
+                          {mintError && (
                             <p className="text-xs text-muted-foreground mt-1">
-                              {mintError || txError}
+                              {mintError}
                             </p>
                           )}
                         </div>

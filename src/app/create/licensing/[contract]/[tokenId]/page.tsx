@@ -4,11 +4,11 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { useAuth } from "@clerk/nextjs";
 import { assetHref } from "@/lib/routes";
 import { useToken } from "@/hooks/use-tokens";
 import { useCollection } from "@/hooks/use-collections";
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
+import { useSiwsToken } from "@/hooks/use-siws-token";
 import { submitRemixOffer } from "@/hooks/use-remix-offers";
 import { getListableTokens, getTokenBySymbol, getService } from "@medialane/sdk";
 import { LICENSE_TYPES } from "@/types/ip";
@@ -29,8 +29,8 @@ const TOKENS = getListableTokens();
 export default function CreateLicensingPage() {
   const { contract, tokenId } = useParams<{ contract: string; tokenId: string }>();
   const router = useRouter();
-  const { getToken } = useAuth();
-  const { walletAddress } = useSessionKey();
+  const { address: walletAddress } = useWalletNativeSession();
+  const { getValidToken, signIn } = useSiwsToken();
   const { token, isLoading: tokenLoading } = useToken(contract, tokenId);
   const { collection: parentCollection } = useCollection(contract);
 
@@ -73,8 +73,8 @@ export default function CreateLicensingPage() {
       setError("Enter a valid license fee");
       return;
     }
-    const clerkToken = await getToken();
-    if (!clerkToken) { setError("Sign in required"); return; }
+    const authToken = getValidToken() ?? (await signIn());
+    if (!authToken) { setError("Wallet sign-in required"); return; }
     setLoading(true);
     setError(null);
     try {
@@ -93,7 +93,7 @@ export default function CreateLicensingPage() {
           royaltyPct: royalty ? parseInt(royalty) : undefined,
           message: message.trim() || undefined,
         },
-        clerkToken,
+        authToken,
       );
       setStep("success");
     } catch (err: unknown) {
