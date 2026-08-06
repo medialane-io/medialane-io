@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { CollectionDropMintButton } from "@/components/claim/collection-drop-mint-button";
 import { DropCountdown } from "@/components/launchpad/drop-countdown";
 import { useDropInfo, useOnChainDropState, getDropStatus, type DropConditions } from "@/hooks/use-drops";
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { ipfsToHttp } from "@/lib/utils";
 import { getListableTokens, normalizeAddress } from "@medialane/sdk";
 import { cn } from "@/lib/utils";
@@ -95,7 +95,7 @@ function PriceDisplay({ conditions }: { conditions: DropConditions }) {
 }
 
 export default function DropDetailPage({ contract }: { contract: string }) {
-  const { walletAddress } = useSessionKey();
+  const { address: walletAddress } = useWalletNativeSession();
   const { dropInfo, isLoading } = useDropInfo(contract);
   // Live state from chain (authority); falls back to the backend record if RPC is down.
   const { state: chainState } = useOnChainDropState(contract);
@@ -298,7 +298,7 @@ export default function DropDetailPage({ contract }: { contract: string }) {
             </Button>
           )}
           <p className="text-xs text-center text-muted-foreground">
-            Gas is free. Your PIN signs the transaction.
+            Gas is free.
           </p>
         </div>
       </FadeIn>
