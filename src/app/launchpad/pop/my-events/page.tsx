@@ -6,8 +6,7 @@ import { Award, Plus, ExternalLink, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion-primitives";
-import { useSessionKey } from "@/hooks/use-session-key";
-import { useUser } from "@clerk/nextjs";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { ipfsToHttp } from "@/lib/utils";
 import useSWR from "swr";
 import type { ApiCollection } from "@medialane/sdk";
@@ -71,15 +70,14 @@ function MyEventCard({ collection }: { collection: ApiCollection }) {
 }
 
 export default function MyEventsPage() {
-  const { isSignedIn } = useUser();
-  const { walletAddress } = useSessionKey();
+  const { hasWallet, address: walletAddress } = useWalletNativeSession();
   const { data: collections, isLoading } = useMyEvents(walletAddress ?? null);
 
-  if (!isSignedIn) {
+  if (!hasWallet) {
     return (
       <div className="max-w-lg mx-auto px-4 pt-24 pb-8 text-center space-y-4">
         <Award className="h-10 w-10 text-muted-foreground/20 mx-auto" />
-        <h1 className="text-xl font-bold">Sign in to view your events</h1>
+        <h1 className="text-xl font-bold">Set up your wallet to view your events</h1>
       </div>
     );
   }
