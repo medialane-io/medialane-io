@@ -5,15 +5,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Package, CheckCircle2 } from "lucide-react";
 import { Form } from "@/components/ui/form";
-import { PinDialog } from "@/components/chipi/pin-dialog";
-import { useWriteAction } from "@/hooks/use-write-action";
-import { WalletSetupGate } from "@/components/transaction/wallet-setup-gate";
-import { useSessionKey } from "@/hooks/use-session-key";
-import { useUser } from "@clerk/nextjs";
+import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { toast } from "sonner";
 import { getListableTokens } from "@medialane/sdk";
+import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
-import { executePrebuiltIntent } from "@/lib/intent-tx";
+import { executeIntent } from "@/lib/wallet/intent-tx";
 import { DropCreateForm, type PaymentTokenOption } from "../drop-create-form";
 import { dropCreateSchema, type DropCreateFormValues } from "../drop-create-schema";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
@@ -35,9 +33,8 @@ const API_BASE = "/api/proxy";
 const PAYMENT_TOKENS = getListableTokens().map((t) => ({ symbol: t.symbol, address: t.address }));
 
 export default function CreateDropPage() {
-  const { isSignedIn } = useUser();
-  const { walletAddress } = useSessionKey();
-  const action = useWriteAction();
+  const { hasWallet, address: walletAddress } = useWalletNativeSession();
+  const action = useWalletWriteAction();
   const client = useMedialaneClient();
   const busy = action.status === "processing" || action.status === "confirming";
 
@@ -191,14 +188,11 @@ export default function CreateDropPage() {
   const onSubmit = (values: DropCreateFormValues) => {
     if (items.length === 0) { toast.error("Add at least one item"); return; }
     setPendingValues(values);
-    // Pass `values` through the closure — the passkey path runs synchronously,
-    // before a same-tick setState settles. action.run gates wallet + unlock.
-    void action.run((secret) => handleUnlocked(values, secret));
+    void action.run((signer) => handleUnlocked(values, signer));
   };
 
-  // `secret` is the wallet-unlock material — a typed PIN or the passkey key.
   // `pendingValues` (param) shadows the display-only state.
-  const handleUnlocked = async (pendingValues: DropCreateFormValues, secret: string) => {
+  const handleUnlocked = async (pendingValues: DropCreateFormValues, signer: StarknetVenueSigner) => {
     if (!walletAddress) throw new Error("Wallet not ready. Please refresh and try again.");
 
     let baseUri = "";
@@ -259,9 +253,8 @@ export default function CreateDropPage() {
       maxSupply: maxSupply.toString(),
       conditions,
     });
-    const result = await executePrebuiltIntent(action.executeTransaction, client, secret, intentRes.data, { confirm: false });
-    if (result.status === "reverted") return result; // action surfaces the revert
-    if (result.status === "confirmed") rewardToast("launch_launchpad");
+    const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
+    rewardToast("launch_launchpad");
 
     // If a whitelist was provided, find the new drop address (indexer ~6-30s) and set it.
     // Best-effort — the drop already exists onchain; the creator can finish in Manage.
@@ -269,13 +262,10 @@ export default function CreateDropPage() {
       const dropAddress = await pollForDropAddress(walletAddress);
       if (dropAddress) {
         try {
-          await action.executeTransaction({
-            pin: secret,
-            calls: [
-              { contractAddress: dropAddress, entrypoint: "set_allowlist_enabled", calldata: ["1"] },
-              { contractAddress: dropAddress, entrypoint: "batch_add_to_allowlist", calldata: batchAllowlistCalldata(whitelist) },
-            ],
-          });
+          await signer.execute([
+            { contractAddress: dropAddress, entrypoint: "set_allowlist_enabled", calldata: ["1"] },
+            { contractAddress: dropAddress, entrypoint: "batch_add_to_allowlist", calldata: batchAllowlistCalldata(whitelist) },
+          ]);
         } catch { /* owner can finish whitelist setup in Manage */ }
       }
     }
@@ -312,14 +302,14 @@ export default function CreateDropPage() {
     );
   }
 
-  // ── Not signed in ─────────────────────────────────────────────────────────
-  if (!isSignedIn) {
+  // ── No wallet yet ──────────────────────────────────────────────────────────
+  if (!hasWallet) {
     return (
       <LaunchpadSignedOutState
         icon={Package}
         iconClassName="text-brand-orange"
-        title="Sign in to launch a drop"
-        description="Sign in to deploy a limited-edition collection onchain."
+        title="Set up your wallet to launch a drop"
+        description="Set up your wallet to deploy a limited-edition collection onchain."
       />
     );
   }
@@ -380,13 +370,6 @@ export default function CreateDropPage() {
           </form>
         </Form>
       </ClaimRouteShell>
-
-      <PinDialog
-        {...action.pinDialogProps}
-        title="Deploy drop collection"
-        description="Enter your PIN to deploy your limited-edition collection onchain."
-      />
-      <WalletSetupGate action={action} />
     </>
   );
 }
