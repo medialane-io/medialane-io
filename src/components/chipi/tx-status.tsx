@@ -3,10 +3,10 @@
 import { Loader2, CheckCircle2, XCircle, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EXPLORER_URL } from "@/lib/constants";
-import type { ChipiTransactionStatus } from "@/hooks/use-chipi-transaction";
+import type { WalletWriteStatus } from "@/hooks/use-wallet-write-action";
 
 interface TxStatusProps {
-  status: ChipiTransactionStatus;
+  status: WalletWriteStatus;
   txHash: string | null;
   error?: string | null;
   statusMessage?: string;
@@ -17,13 +17,13 @@ export function TxStatus({ status, txHash, error, statusMessage }: TxStatusProps
 
   return (
     <div className="flex flex-col items-center gap-3 py-4">
-      {(status === "submitting" || status === "confirming") && (
+      {(status === "processing" || status === "confirming") && (
         <>
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
           <p className="text-sm text-muted-foreground">{statusMessage}</p>
         </>
       )}
-      {status === "confirmed" && (
+      {status === "success" && (
         <>
           <CheckCircle2 className="h-8 w-8 text-emerald-500" />
           <p className="text-sm font-medium">Transaction confirmed!</p>
@@ -36,7 +36,7 @@ export function TxStatus({ status, txHash, error, statusMessage }: TxStatusProps
           )}
         </>
       )}
-      {(status === "reverted" || status === "error") && (
+      {status === "error" && (
         <>
           <XCircle className="h-8 w-8 text-destructive" />
           <p className="text-sm font-medium text-destructive">Transaction failed</p>

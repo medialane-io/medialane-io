@@ -3,15 +3,12 @@
 import { useEffect } from "react";
 import { ShieldCheck } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
-import { useAuth } from "@clerk/nextjs";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { useMarketplace } from "@/hooks/use-marketplace";
-import { useMarketplaceActionFlow } from "@/hooks/use-marketplace-action-flow";
-import { MarketplacePinStep } from "@/components/marketplace/marketplace-dialog-primitives";
+import { useWalletMarketplaceActionFlow } from "@/hooks/use-wallet-marketplace-action-flow";
+import { MarketplaceConfirmStep } from "@/components/marketplace/marketplace-dialog-primitives";
 import { TransactionDialogStates } from "@/components/marketplace/transaction-dialog-states";
 import { resolveTokenImage, formatDisplayPrice } from "@/lib/utils";
-import { useWalletAuthMethod } from "@/hooks/use-wallet-auth-method";
 import type { ApiOrder } from "@medialane/sdk";
 
 interface CancelOrderDialogProps {
@@ -71,46 +68,22 @@ export function CancelOrderDialog({
   tokenName,
   tokenImage,
 }: CancelOrderDialogProps) {
-  const { isSignedIn } = useAuth();
+  const { cancelOrder, hasWallet, resetState } = useMarketplace();
+
   const {
-    cancelOrder,
-    hasWallet,
-    hasActiveSession,
-    setupSession,
-    isProcessing,
-    txStatus,
+    status,
     txHash,
     error,
-    resetState,
-  } = useMarketplace();
-
-  // Authoritative passkey-vs-PIN (cross-device), not just device-local WebAuthn support.
-  const { usesPasskey, authenticate, encryptKey } = useWalletAuthMethod();
-  const {
-    walletSetupOpen,
-    setWalletSetupOpen,
-    setPendingValues,
-    pin,
-    setPin,
-    pinError,
-    setPinError,
-    isAuthenticatingPasskey,
-    handlePin,
-    handleUsePasskey,
+    beginAction,
     resetActionFlow,
-  } = useMarketplaceActionFlow<{ orderHash: string; tokenStandard: string }>({
-    isSignedIn,
+  } = useWalletMarketplaceActionFlow<{ orderHash: string; tokenStandard: string }>({
     hasWallet,
-    hasActiveSession,
-    setupSession,
-    authenticate,
-    encryptKey,
-    executeAction: async (values, pinOrDerivedKey) => {
-      await cancelOrder({
+    executeAction: async (values) => {
+      const hash = await cancelOrder({
         orderHash: values.orderHash,
-        pin: pinOrDerivedKey,
         tokenStandard: values.tokenStandard,
       });
+      return hash ? { txHash: hash } : undefined;
     },
   });
 
@@ -121,17 +94,17 @@ export function CancelOrderDialog({
     if (open) {
       resetState();
       resetActionFlow();
-      if (order) {
-        setPendingValues({
-          orderHash: order.orderHash,
-          tokenStandard: order.offer.itemType,
-        });
-      }
     }
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const isProcessing = status === "processing" || status === "confirming";
   const handleClose = (v: boolean) => {
     if (!isProcessing) onOpenChange(v);
+  };
+
+  const handleConfirmCancel = () => {
+    if (!order) return;
+    beginAction({ orderHash: order.orderHash, tokenStandard: order.offer.itemType });
   };
 
   const resolvedName = order?.token?.name ?? tokenName ?? "Asset";
@@ -145,13 +118,11 @@ export function CancelOrderDialog({
         </DialogDescription>
 
         <TransactionDialogStates
-          status={txStatus}
-          statusMessage={
-            txStatus === "submitting" ? "Submitting cancellation…" : "Confirming onchain…"
-          }
+          status={status}
+          statusMessage="Confirming onchain…"
           txHash={txHash}
           error={error}
-          isSubmitting={isProcessing || txStatus === "confirming"}
+          isSubmitting={isProcessing}
           successTitle={`${resolvedVariant.charAt(0).toUpperCase()}${resolvedVariant.slice(1)} cancelled`}
           successBody={
             <>
@@ -166,27 +137,20 @@ export function CancelOrderDialog({
           errorDescription={`The transaction was submitted, but this ${resolvedVariant} could not be cancelled.`}
           errorAssetName={resolvedName}
           errorAssetImage={resolveTokenImage(order?.token?.image ?? tokenImage)}
-          onRetry={() => resetState()}
+          onRetry={handleConfirmCancel}
           onDone={() => { onOpenChange(false); onSuccess?.(); }}
         >
           {order && (
             <div className="space-y-0">
               <TokenHero order={order} variant={resolvedVariant} tokenName={tokenName} tokenImage={tokenImage} />
-              <MarketplacePinStep
-                description={`Enter your PIN to cancel this ${resolvedVariant}. This action cannot be undone.`}
-                pin={pin}
-                onPinChange={(value) => { setPin(value); setPinError(null); }}
-                pinError={pinError}
+              <MarketplaceConfirmStep
+                description={`Cancel this ${resolvedVariant}? This action cannot be undone.`}
                 error={error}
                 secondaryLabel="Keep it"
                 onSecondary={() => onOpenChange(false)}
                 primaryLabel={`Cancel ${resolvedVariant}`}
-                onPrimary={handlePin}
-                primaryDisabled={pin.length < 6}
+                onPrimary={handleConfirmCancel}
                 primaryVariant="destructive"
-                passkeySupported={usesPasskey}
-                isAuthenticatingPasskey={isAuthenticatingPasskey}
-                onUsePasskey={handleUsePasskey}
                 footer={(
                   <div className="flex items-start justify-center gap-1.5">
                     <ShieldCheck className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
@@ -201,11 +165,6 @@ export function CancelOrderDialog({
         </TransactionDialogStates>
 
       </DialogContent>
-      <WalletSetupDialog
-        open={walletSetupOpen}
-        onOpenChange={setWalletSetupOpen}
-        onSuccess={() => setWalletSetupOpen(false)}
-      />
     </Dialog>
   );
 }

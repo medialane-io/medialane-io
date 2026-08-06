@@ -2,17 +2,15 @@
 
 import { useState, useCallback } from "react";
 import { useSWRConfig } from "swr";
-import { useChipiTransaction } from "./use-chipi-transaction";
-import { useSessionKey } from "./use-session-key";
+import { useWalletNativeSession } from "./use-wallet-native-session";
 import { INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
 import { QUERY_PREFIX } from "@/lib/query-keys";
-import type { ChipiCall } from "./use-chipi-transaction";
+import type { Call } from "starknet";
 
 export interface TransferInput {
   contractAddress: string; // NFT contract address
   tokenId: string;         // Token ID — decimal ("42") or hex ("0x2a")
   toAddress: string;       // Recipient Starknet address
-  pin: string;             // ChipiPay PIN to decrypt wallet key
   tokenStandard?: "ERC721" | "ERC1155" | "UNKNOWN";
 }
 
@@ -35,9 +33,7 @@ export function encodeTokenId(tokenId: string): [string, string] {
 }
 
 export function useTransfer() {
-  const { executeTransaction, status, txHash, error: txError, reset } =
-    useChipiTransaction();
-  const { walletAddress, hasWallet, isLoadingWallet } = useSessionKey();
+  const { address: walletAddress, hasWallet, signer } = useWalletNativeSession();
   const { mutate } = useSWRConfig();
 
   const [isProcessing, setIsProcessing] = useState(false);
@@ -60,8 +56,7 @@ export function useTransfer() {
     setIsProcessing(false);
     setError(null);
     setHash(null);
-    reset();
-  }, [reset]);
+  }, []);
 
   const transferToken = useCallback(
     async (input: TransferInput) => {
@@ -69,7 +64,7 @@ export function useTransfer() {
       setError(null);
 
       try {
-        if (!walletAddress) throw new Error("Wallet not ready. Please wait a moment.");
+        if (!walletAddress || !signer) throw new Error("Wallet not ready. Please wait a moment.");
         if (!isValidStarknetAddress(input.toAddress)) {
           throw new Error("Invalid recipient address.");
         }
@@ -78,13 +73,11 @@ export function useTransfer() {
         }
         const [tokenIdLow, tokenIdHigh] = encodeTokenId(input.tokenId);
 
-        // useChipiTransaction resolves its own wallet internally via useChipiWallet.
-        // No walletOverride needed here — avoids coupling to ChipiPay's internal key shape.
         if (!input.tokenStandard) {
           throw new Error("Token standard could not be determined. Please try again or contact support.");
         }
         const isERC1155 = input.tokenStandard === "ERC1155";
-        const call: ChipiCall = isERC1155
+        const call: Call = isERC1155
           ? {
               contractAddress: input.contractAddress,
               entrypoint: "safe_transfer_from",
@@ -97,18 +90,8 @@ export function useTransfer() {
               calldata: [walletAddress, input.toAddress, tokenIdLow, tokenIdHigh],
             };
 
-        const result = await executeTransaction({
-          pin: input.pin,
-          calls: [call],
-        });
-
+        const result = await signer.execute([call]);
         setHash(result.txHash);
-
-        if (result.status === "reverted") {
-          const msg = result.revertReason || "Transfer reverted onchain";
-          setError(msg);
-          return undefined;
-        }
 
         invalidate();
         // Re-invalidate after indexer processes the block
@@ -121,18 +104,16 @@ export function useTransfer() {
         setIsProcessing(false);
       }
     },
-    [walletAddress, executeTransaction, invalidate]
+    [walletAddress, signer, invalidate]
   );
 
   return {
     transferToken,
     walletAddress,
     hasWallet,
-    isLoadingWallet,
     isProcessing,
-    txStatus: status,
-    txHash: hash ?? txHash,
-    error: error ?? txError,
+    txHash: hash,
+    error,
     resetState,
   };
 }

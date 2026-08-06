@@ -3,8 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { CheckCircle2, AlertCircle, ArrowLeftRight, ExternalLink, Loader2, LogIn, ArrowLeft } from "lucide-react";
-import { toast } from "sonner";
+import { CheckCircle2, AlertCircle, ArrowLeftRight, ExternalLink, Loader2, Wallet } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -25,15 +24,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { PinInput } from "@/components/ui/pin-input";
-import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
-import { useAuth, SignInButton } from "@clerk/nextjs";
 import { useMarketplace } from "@/hooks/use-marketplace";
-import { useMarketplaceActionFlow } from "@/hooks/use-marketplace-action-flow";
+import { useWalletMarketplaceActionFlow } from "@/hooks/use-wallet-marketplace-action-flow";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { EXPLORER_URL, DURATION_OPTIONS } from "@/lib/constants";
 import { marketplacePriceField, counterOfferDurationField } from "@/lib/marketplace-schemas";
-import { useWalletAuthMethod } from "@/hooks/use-wallet-auth-method";
 
 /** Convert a human-readable amount string to raw wei integer string. */
 function toRawWei(humanAmount: string, decimals: number): string {
@@ -71,54 +66,26 @@ export function CounterOfferDialog({
   currencySymbol,
   currencyDecimals,
 }: CounterOfferDialogProps) {
-  const { isSignedIn } = useAuth();
+  const { makeCounterOffer, hasWallet, resetState } = useMarketplace();
+
   const {
-    makeCounterOffer,
-    hasWallet,
-    hasActiveSession,
-    setupSession,
-    isProcessing,
-    txStatus,
+    pendingValues,
+    status,
     txHash,
     error,
-    resetState,
-  } = useMarketplace();
-
-  // Authoritative passkey-vs-PIN (cross-device), not just device-local WebAuthn support.
-  const { authenticate, encryptKey } = useWalletAuthMethod();
-
-  const {
-    walletSetupOpen,
-    setWalletSetupOpen,
-    pendingValues,
-    pin,
-    setPin,
-    pinError,
-    setPinError,
-    step,
-    setStep,
-    isAuthenticatingPasskey,
-    isActivatingSession,
     beginAction,
-    handlePin,
-    handleUsePasskey,
     resetActionFlow,
-  } = useMarketplaceActionFlow<FormValues>({
-    isSignedIn,
+  } = useWalletMarketplaceActionFlow<FormValues>({
     hasWallet,
-    hasActiveSession,
-    setupSession,
-    authenticate,
-    encryptKey,
-    executeAction: async (values, pinOrDerivedKey) => {
-      await makeCounterOffer({
+    executeAction: async (values) => {
+      const hash = await makeCounterOffer({
         originalOrderHash,
         counterPriceRaw: toRawWei(values.price, currencyDecimals),
         durationSeconds: values.durationSeconds,
         message: values.message || undefined,
         tokenName,
-        pin: pinOrDerivedKey,
       });
+      return hash ? { txHash: hash } : undefined;
     },
   });
 
@@ -127,8 +94,11 @@ export function CounterOfferDialog({
     defaultValues: { price: "", durationSeconds: 604800, message: "" },
   });
 
-  const onSubmit = async (values: FormValues) => {
-    await beginAction(values, 0);
+  const isProcessing = status === "processing" || status === "confirming";
+
+  const onSubmit = (values: FormValues) => {
+    if (!hasWallet) return;
+    beginAction(values);
   };
 
   const handleClose = (v: boolean) => {
@@ -140,17 +110,15 @@ export function CounterOfferDialog({
     }
   };
 
-  const isSuccess = txStatus === "confirmed" && !error;
+  const isSuccess = status === "success" && !error;
 
   return (
     <>
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>
-              {step === "pin" ? "Confirm with PIN" : "Send a counter-offer"}
-            </DialogTitle>
-            {step === "form" && (
+            <DialogTitle>Send a counter-offer</DialogTitle>
+            {!isProcessing && !isSuccess && (
               <DialogDescription>
                 Propose a different price to the buyer. Your NFT will be listed as a
                 counter-offer — verifiable on-chain.
@@ -158,18 +126,15 @@ export function CounterOfferDialog({
             )}
           </DialogHeader>
 
-          {!isSignedIn ? (
+          {!hasWallet ? (
             <div className="flex flex-col items-center gap-4 py-8 text-center">
-              <LogIn className="h-10 w-10 text-muted-foreground" />
+              <Wallet className="h-10 w-10 text-muted-foreground" />
               <div>
-                <p className="font-semibold">Sign in to send a counter-offer</p>
+                <p className="font-semibold">Set up your wallet to send a counter-offer</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  You need a Medialane account to counter bids.
+                  You need a wallet to counter bids.
                 </p>
               </div>
-              <SignInButton mode="modal">
-                <Button className="w-full">Sign in</Button>
-              </SignInButton>
             </div>
           ) : isSuccess ? (
             <div className="flex flex-col items-center gap-4 py-4">
@@ -188,64 +153,10 @@ export function CounterOfferDialog({
               )}
               <Button className="w-full" onClick={() => handleClose(false)}>Done</Button>
             </div>
-          ) : isActivatingSession ? (
-            <div className="flex flex-col items-center gap-4 py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <p className="text-sm text-muted-foreground">Activating wallet session…</p>
-            </div>
           ) : isProcessing ? (
             <div className="flex flex-col items-center gap-4 py-8">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <p className="text-sm text-muted-foreground">
-                {txStatus === "submitting" ? "Submitting counter-offer…" : "Confirming onchain…"}
-              </p>
-            </div>
-          ) : step === "pin" ? (
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                <div className="flex items-center gap-1.5">
-                  <CurrencyIcon symbol={currencySymbol} size={14} />
-                  <span className="tabular-nums font-semibold">{pendingValues?.price} {currencySymbol}</span>
-                </div>
-                <span className="text-muted-foreground text-xs truncate">
-                  · {tokenName ?? "token"}
-                </span>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Enter your security PIN to sign the counter-offer on-chain.
-              </p>
-              <PinInput
-                value={pin}
-                onChange={(v) => { setPin(v); setPinError(null); }}
-                error={pinError}
-                autoFocus
-              />
-              {error && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  className="gap-1.5"
-                  onClick={() => { setStep("form"); setPin(""); setPinError(null); }}
-                >
-                  <ArrowLeft className="h-4 w-4" /> Back
-                </Button>
-                <Button
-                  className="flex-1"
-                  disabled={pin.length < 6}
-                  onClick={handlePin}
-                >
-                  <ArrowLeftRight className="h-4 w-4 mr-2" />
-                  Send counter-offer
-                </Button>
-              </div>
-              <p className="text-[10px] text-center text-muted-foreground">
-                Gas is free. The counter creates a real on-chain order the buyer can accept.
-              </p>
+              <p className="text-sm text-muted-foreground">Confirming onchain…</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -355,15 +266,6 @@ export function CounterOfferDialog({
           )}
         </DialogContent>
       </Dialog>
-
-      <WalletSetupDialog
-        open={walletSetupOpen}
-        onOpenChange={setWalletSetupOpen}
-        onSuccess={() => {
-          setWalletSetupOpen(false);
-          setStep("pin");
-        }}
-      />
     </>
   );
 }

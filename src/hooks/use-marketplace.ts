@@ -1,28 +1,28 @@
 "use client";
 
 /**
- * useMarketplace — ChipiPay-powered marketplace operations via backend intent API.
+ * useMarketplace — wallet-native marketplace operations via backend intent API.
  *
  * Write flow (listing / offer / fulfill / cancel):
- *  1. Create intent via backend → { id, typedData }
- *  2. Sign typedData with session/owner key (SNIP-12, client-side)
- *  3. Submit signature → backend returns fully-built calls array
- *  4. Execute calls via ChipiPay (gasless)
+ *  1. Create intent via backend → { id, typedData } or { id, calls }
+ *  2. If requiresSignature: sign typedData (SNIP-12, client-side), submit
+ *     signature → backend returns fully-built calls array
+ *  3. Execute calls via the wallet's own atomic multicall (signer.execute)
  *
- * The backend owns all SNIP-12 struct building, nonce fetching, calldata encoding,
- * and approve-call prepending. The frontend only signs and executes.
+ * The backend owns all SNIP-12 struct building, nonce fetching, calldata
+ * encoding, and approve-call prepending. The frontend only signs and executes.
  */
 
 import { useState, useCallback } from "react";
 import { useSWRConfig } from "swr";
-import { useChipiTransaction } from "./use-chipi-transaction";
-import { useSessionKey } from "./use-session-key";
+import { useWalletNativeSession } from "./use-wallet-native-session";
 import { useMedialaneClient } from "./use-medialane-client";
-import { STARKNET_MARKETPLACE_721_CONTRACT, STARKNET_MARKETPLACE_1155_CONTRACT, SUPPORTED_TOKENS, INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
-import { getMarketplaceContractForStandard } from "@/lib/protocol/contracts";
+import { SUPPORTED_TOKENS, INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
 import { isErc1155Standard } from "@/lib/protocol/token-standard";
-import { QUERY_PREFIX, queryKeys } from "@/lib/query-keys";
-import type { ChipiCall } from "./use-chipi-transaction";
+import { QUERY_PREFIX } from "@/lib/query-keys";
+import { buildFeeCall } from "@medialane/sdk/starknet";
+import { ioFeeConfig } from "@/lib/fee";
+import type { Call, TypedData } from "starknet";
 import type { ApiIntentCreated } from "@medialane/sdk";
 
 /** Resolve a currency symbol (e.g. "USDC") to its on-chain contract address.
@@ -110,6 +110,10 @@ export interface FulfillOrderInput {
   tokenStandard?: string;
   /** ERC-1155 only: units to purchase. Defaults to 1 if omitted. */
   quantity?: string;
+  /** Platform fee token + gross amount — bundled into the same atomic
+   *  multicall as the fulfill call, when the fee config permits it. */
+  feeToken?: string;
+  feeGrossAmount?: bigint;
   // Legacy fields — kept for call-site compatibility, no longer used internally
   considerationToken?: string;
   considerationAmount?: string;
@@ -140,18 +144,7 @@ type TerminalIntentResult = {
 // ─── Hook ─────────────────────────────────────────────────────────────────
 
 export function useMarketplace() {
-  const { executeTransaction, status, txHash, error: txError, reset } =
-    useChipiTransaction();
-  const {
-    walletAddress,
-    hasWallet,
-    isLoadingWallet,
-    hasActiveSession,
-    isSettingUpSession,
-    setupSession,
-    signTypedData,
-    maybeClearSessionForAmountCap,
-  } = useSessionKey();
+  const { address: walletAddress, hasWallet, signer } = useWalletNativeSession();
   const client = useMedialaneClient();
   const { mutate } = useSWRConfig();
 
@@ -185,21 +178,7 @@ export function useMarketplace() {
     setIsProcessing(false);
     setError(null);
     setHash(null);
-    reset();
-  }, [reset]);
-
-  /** Execute pre-built calls via ChipiPay (gasless). */
-  const execWithPin = useCallback(
-    async (pin: string, calls: ChipiCall[]) => {
-      const result = await executeTransaction({
-        pin,
-        calls,
-      });
-      setHash(result.txHash);
-      return result;
-    },
-    [executeTransaction]
-  );
+  }, []);
 
   /**
    * Poll GET /v1/intents/:id until the backend settles to CONFIRMED or FAILED,
@@ -227,16 +206,15 @@ export function useMarketplace() {
 
   /**
    * Shared intent flow:
-   *  create intent → sign typedData → submit signature → execute via ChipiPay
-   *  → POST txHash to backend → poll until CONFIRMED or FAILED
+   *  create intent → sign typedData (if required) → submit signature →
+   *  execute via the wallet's own multicall → confirm → poll until terminal
    */
   const runIntent = useCallback(
     async (
-      pin: string,
       intentFn: () => Promise<{ data: ApiIntentCreated }>,
-      marketplaceContract?: string
+      extraCalls?: Call[],
     ): Promise<string | undefined> => {
-      if (!walletAddress) throw new Error("Wallet not ready. Please wait a moment.");
+      if (!walletAddress || !signer) throw new Error("Wallet not ready. Please wait a moment.");
 
       const intent = (await intentFn()).data;
       if (!intent?.id) throw new Error("Intent creation failed: no data returned");
@@ -247,24 +225,26 @@ export function useMarketplace() {
       //    the signature and returns the executable calls (listing/offer/cancel/counter).
       //  • else → calls are prebuilt server-side (fulfil/mint/create-collection);
       //    the caller IS the fulfiller, so there is no signature step.
-      let calls: ChipiCall[];
+      let calls: Call[];
       if (intent.requiresSignature) {
         // Sanitize typed data: replace any bare currency symbols (e.g. "USDC")
         // with their contract addresses so starknet.js can convert them to BigInt.
-        const sanitized = sanitizeTypedData(intent.typedData);
-        const sig = await signTypedData(sanitized, pin);
+        const sanitized = sanitizeTypedData(intent.typedData) as TypedData;
+        const sig = await signer.signTypedData(sanitized);
         const signedRes = await client.api.submitIntentSignature(intent.id, sig);
-        calls = signedRes.data.calls as ChipiCall[];
+        calls = signedRes.data.calls as Call[];
       } else {
-        calls = intent.calls as unknown as ChipiCall[];
+        calls = intent.calls as Call[];
       }
       if (!calls?.length) throw new Error("No calls returned from intent");
 
-      // Execute + confirm — identical tail for every intent kind.
-      const result = await execWithPin(pin, calls);
-      if (result.status === "reverted") {
-        throw new Error(result.revertReason || "Transaction reverted on chain");
-      }
+      // Bundle any extra calls (e.g. the platform fee) into the SAME atomic
+      // multicall — no separate fire-and-forget transaction.
+      if (extraCalls?.length) calls = [...calls, ...extraCalls];
+
+      // Execute — identical tail for every intent kind.
+      const result = await signer.execute(calls);
+      setHash(result.txHash);
 
       // Normalize: Starknet hashes are felt252 and may lack leading zeros — pad to 0x+64 chars
       const normalizedHash = "0x" + result.txHash.replace(/^0x/, "").padStart(64, "0");
@@ -287,21 +267,19 @@ export function useMarketplace() {
       setTimeout(() => invalidate(), INDEXER_REVALIDATION_DELAY_MS);
       return result.txHash;
     },
-    [walletAddress, signTypedData, client, execWithPin, invalidate, pollIntentUntilTerminal]
+    [walletAddress, signer, client, invalidate, pollIntentUntilTerminal]
   );
 
   // ── createListing ──────────────────────────────────────────────────────
 
   const createListing = useCallback(
-    async (input: CreateListingInput & { pin: string }) => {
+    async (input: CreateListingInput) => {
       setIsProcessing(true);
       setError(null);
       try {
         const endTime = Math.floor(Date.now() / 1000) + input.durationSeconds;
         const is1155 = isErc1155Standard(input.tokenStandard);
-        const marketplaceContract = getMarketplaceContractForStandard(input.tokenStandard);
         return await runIntent(
-          input.pin,
           () => client.api.createListingIntent({
             offerer: walletAddress!,
             nftContract: input.assetContract,
@@ -311,7 +289,6 @@ export function useMarketplace() {
             endTime,
             ...(is1155 ? { amount: input.amount || "1" } : {}),
           }),
-          marketplaceContract,
         );
       } catch (err: unknown) {
         const msg = toFriendlyError(err, "Failed to create listing");
@@ -327,20 +304,32 @@ export function useMarketplace() {
   // ── fulfillOrder (buy) ─────────────────────────────────────────────────
 
   const fulfillOrder = useCallback(
-    async (input: FulfillOrderInput & { pin: string }) => {
+    async (input: FulfillOrderInput) => {
       setIsProcessing(true);
       setError(null);
       try {
-        const marketplaceContract = getMarketplaceContractForStandard(input.tokenStandard);
+        const extraCalls: Call[] = [];
+        if (input.feeToken && input.feeGrossAmount != null) {
+          const feeCall = buildFeeCall(
+            { surface: "marketplace", token: input.feeToken, grossAmount: input.feeGrossAmount },
+            ioFeeConfig,
+          );
+          if (feeCall) {
+            extraCalls.push({
+              contractAddress: feeCall.contractAddress,
+              entrypoint: feeCall.entrypoint,
+              calldata: feeCall.calldata as string[],
+            });
+          }
+        }
         return await runIntent(
-          input.pin,
           () => client.api.createFulfillIntent({
             fulfiller: walletAddress!,
             orderHash: input.orderHash,
             tokenStandard: toApiStandard(input.tokenStandard),
             quantity: input.quantity,
           }),
-          marketplaceContract,
+          extraCalls,
         );
       } catch (err: unknown) {
         const msg = toFriendlyError(err, "Purchase failed");
@@ -356,14 +345,12 @@ export function useMarketplace() {
   // ── makeOffer ──────────────────────────────────────────────────────────
 
   const makeOffer = useCallback(
-    async (input: MakeOfferInput & { pin: string }) => {
+    async (input: MakeOfferInput) => {
       setIsProcessing(true);
       setError(null);
       try {
         const endTime = Math.floor(Date.now() / 1000) + input.durationSeconds;
-        const marketplaceContract = getMarketplaceContractForStandard(input.tokenStandard);
         return await runIntent(
-          input.pin,
           () => client.api.createOfferIntent({
             offerer: walletAddress!,
             nftContract: input.assetContract,
@@ -374,7 +361,6 @@ export function useMarketplace() {
             tokenStandard: toApiStandard(input.tokenStandard),
             quantity: isErc1155Standard(input.tokenStandard) ? (input.quantity || "1") : undefined,
           }),
-          marketplaceContract,
         );
       } catch (err: unknown) {
         const msg = toFriendlyError(err, "Failed to submit offer");
@@ -390,12 +376,11 @@ export function useMarketplace() {
   // ── makeCounterOffer ───────────────────────────────────────────────────
 
   const makeCounterOffer = useCallback(
-    async (input: MakeCounterOfferInput & { pin: string }) => {
+    async (input: MakeCounterOfferInput) => {
       setIsProcessing(true);
       setError(null);
       try {
         return await runIntent(
-          input.pin,
           () => client.api.createCounterOfferIntent({
             sellerAddress: walletAddress!,
             originalOrderHash: input.originalOrderHash,
@@ -418,19 +403,16 @@ export function useMarketplace() {
   // ── cancelOrder ────────────────────────────────────────────────────────
 
   const cancelOrder = useCallback(
-    async (input: CancelOrderInput & { pin: string }) => {
+    async (input: CancelOrderInput) => {
       setIsProcessing(true);
       setError(null);
       try {
-        const marketplaceContract = getMarketplaceContractForStandard(input.tokenStandard);
         return await runIntent(
-          input.pin,
           () => client.api.createCancelIntent({
             offerer: walletAddress!,
             orderHash: input.orderHash,
             tokenStandard: toApiStandard(input.tokenStandard),
           }),
-          marketplaceContract,
         );
       } catch (err: unknown) {
         const msg = toFriendlyError(err, "Cancellation failed");
@@ -456,15 +438,9 @@ export function useMarketplace() {
     cancelOrder,
     walletAddress,
     hasWallet,
-    isLoadingWallet,
-    hasActiveSession,
-    isSettingUpSession,
-    setupSession,
     isProcessing,
-    txStatus: status,
-    txHash: hash ?? txHash,
-    error: error ?? txError,
+    txHash: hash,
+    error,
     resetState,
-    maybeClearSessionForAmountCap,
   };
 }

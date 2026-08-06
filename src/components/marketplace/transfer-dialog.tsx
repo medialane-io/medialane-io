@@ -30,18 +30,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { useTransfer } from "@/hooks/use-transfer";
 import { useResolvedTokenStandard } from "@/hooks/use-resolved-token-standard";
 import {
-  MarketplacePinStep,
+  MarketplaceConfirmStep,
   MarketplaceDialogHero,
-  MarketplaceActivatingSession,
   MarketplaceErrorState,
 } from "@/components/marketplace/marketplace-dialog-primitives";
 import { EXPLORER_URL } from "@/lib/constants";
 import { resolveTokenImage } from "@/lib/utils";
-import { useWalletAuthMethod } from "@/hooks/use-wallet-auth-method";
 
 const schema = z.object({
   toAddress: z
@@ -57,9 +54,9 @@ type FormValues = z.infer<typeof schema>;
 // Explicit step machine — do NOT rely on the `isProcessing` flag from the
 // hook to render the processing UI. There's a one-frame gap between the
 // await resolving and `setStep("success")` firing during which isProcessing
-// is false AND step is still "pin" — which would flash the PIN dialog back.
-// Driving the dialog purely by `step` keeps every transition stable.
-type Step = "form" | "pin" | "processing" | "success";
+// is false AND step is still "confirm" — which would flash the confirm step
+// back. Driving the dialog purely by `step` keeps every transition stable.
+type Step = "form" | "confirm" | "processing" | "success";
 
 interface TransferDialogProps {
   open: boolean;
@@ -89,24 +86,15 @@ export function TransferDialog({
     transferToken,
     walletAddress,
     hasWallet,
-    isProcessing,
-    isLoadingWallet,
-    txStatus,
     txHash,
     error,
     resetState,
   } = useTransfer();
 
   const { tokenStandard: resolvedStandard } = useResolvedTokenStandard(contractAddress, tokenStandard);
-  // Authoritative passkey-vs-PIN (cross-device), not just device-local WebAuthn support.
-  const { usesPasskey, authenticate, encryptKey } = useWalletAuthMethod();
 
   const [step, setStep] = useState<Step>("form");
-  const [walletSetupOpen, setWalletSetupOpen] = useState(false);
   const [pendingAddress, setPendingAddress] = useState<string | null>(null);
-  const [pin, setPin] = useState("");
-  const [pinError, setPinError] = useState<string | null>(null);
-  const [isAuthenticatingPasskey, setIsAuthenticatingPasskey] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -120,8 +108,6 @@ export function TransferDialog({
       resetState();
       form.reset();
       setPendingAddress(null);
-      setPin("");
-      setPinError(null);
       setStep("form");
       onOpenChange(v);
     }
@@ -132,8 +118,6 @@ export function TransferDialog({
       resetState();
       form.reset();
       setPendingAddress(null);
-      setPin("");
-      setPinError(null);
       setStep("form");
     }
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -149,65 +133,24 @@ export function TransferDialog({
         // BigInt parse failed — Zod regex already validated the format
       }
     }
+    if (!hasWallet) return;
     setPendingAddress(values.toAddress);
-    if (!hasWallet) {
-      setWalletSetupOpen(true);
-      return;
-    }
-    setStep("pin");
+    setStep("confirm");
   };
 
-  const executeTransfer = async (pinOrKey: string): Promise<string | undefined> => {
-    if (!pendingAddress) return undefined;
+  const handleConfirmTransfer = async () => {
+    if (!pendingAddress) return;
     // setStep("processing") BEFORE awaiting transferToken — guarantees the
-    // processing UI is the only thing the user sees from PIN-submit until
-    // either a tx hash arrives (success) or the call rejects (error). The
-    // hook's `isProcessing` flag may flip false mid-transition; this state
-    // machine doesn't depend on it.
+    // processing UI is the only thing the user sees until either a tx hash
+    // arrives (success) or the call rejects (error).
     setStep("processing");
-    return await transferToken({
+    const hash = await transferToken({
       contractAddress,
       tokenId,
       toAddress: pendingAddress,
-      pin: pinOrKey,
       tokenStandard: resolvedStandard,
     });
-  };
-
-  const handlePin = async () => {
-    setPinError(null);
-    const hash = await executeTransfer(pin);
-    if (hash) {
-      setStep("success");
-    } else {
-      // The transfer never reached the chain (paymaster reject, validation,
-      // RPC failure). Surface the inline error in the PIN step so the user
-      // can retry without losing their input.
-      setStep("pin");
-      // `error` is from a prior closure snapshot — use the latest by reading
-      // from the hook on next render via a microtask hop.
-      queueMicrotask(() => { if (error) setPinError(error); });
-    }
-  };
-
-  const handleUsePasskey = async () => {
-    setIsAuthenticatingPasskey(true);
-    try {
-      const derivedKey = encryptKey ?? (await authenticate());
-      if (!derivedKey) throw new Error("Passkey authentication failed");
-      const hash = await executeTransfer(derivedKey);
-      if (hash) {
-        setStep("success");
-      } else {
-        setStep("pin");
-        queueMicrotask(() => { if (error) setPinError(error); });
-      }
-    } catch {
-      setStep("pin");
-      setPinError("Passkey authentication failed. Try your PIN instead.");
-    } finally {
-      setIsAuthenticatingPasskey(false);
-    }
+    setStep(hash ? "success" : "confirm");
   };
 
   const displayName = tokenName || `Token #${tokenId}`;
@@ -302,18 +245,13 @@ export function TransferDialog({
             <div className="flex flex-col items-center gap-5 p-6 py-8">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <div className="text-center space-y-1">
-                <p className="font-semibold">
-                  {txStatus === "submitting" ? "Submitting transfer…" : "Confirming on Starknet…"}
-                </p>
+                <p className="font-semibold">Confirming on Starknet…</p>
                 <p className="text-sm text-muted-foreground">Please wait, do not close this window.</p>
               </div>
             </div>
 
-          ) : isLoadingWallet ? (
-            <MarketplaceActivatingSession />
-
-          ) : step === "pin" ? (
-            /* ── PIN step ────────────────────────────────────────────── */
+          ) : step === "confirm" ? (
+            /* ── Confirm step ────────────────────────────────────────── */
             <>
               <div className="flex items-end justify-between px-6 pt-3 pb-1">
                 <div className="min-w-0">
@@ -323,21 +261,14 @@ export function TransferDialog({
                   </p>
                 </div>
               </div>
-              <MarketplacePinStep
-                description="Enter your PIN to authorise this transfer. This action cannot be undone."
-                pin={pin}
-                onPinChange={(v) => { setPin(v); setPinError(null); }}
-                pinError={pinError}
+              <MarketplaceConfirmStep
+                description="Transfer this asset? This action cannot be undone."
                 error={error}
                 secondaryLabel="Back"
-                onSecondary={() => { setStep("form"); setPin(""); setPinError(null); }}
+                onSecondary={() => setStep("form")}
                 primaryLabel="Transfer"
-                onPrimary={handlePin}
-                primaryDisabled={pin.length < 6 || isProcessing}
+                onPrimary={handleConfirmTransfer}
                 primaryIcon={<ArrowRightLeft className="h-4 w-4" />}
-                passkeySupported={usesPasskey}
-                isAuthenticatingPasskey={isAuthenticatingPasskey}
-                onUsePasskey={handleUsePasskey}
                 footer={shieldFooter}
               />
             </>
@@ -374,7 +305,6 @@ export function TransferDialog({
                         <FormControl>
                           <Input
                             placeholder="0x…"
-                            disabled={isProcessing}
                             autoComplete="off"
                             spellCheck={false}
                             {...field}
@@ -393,10 +323,10 @@ export function TransferDialog({
                   )}
 
                   <div className="pt-1 space-y-2">
-                    <div className={`btn-border-animated p-[1px] rounded-xl ${(isProcessing || isLoadingWallet) ? "pointer-events-none" : ""}`}>
+                    <div className="btn-border-animated p-[1px] rounded-xl">
                       <button
                         type="submit"
-                        disabled={isProcessing || isLoadingWallet}
+                        disabled={!hasWallet}
                         className="w-full h-11 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-transparent"
                       >
                         <ArrowRightLeft className="h-4 w-4" />
@@ -411,15 +341,6 @@ export function TransferDialog({
           )}
         </DialogContent>
       </Dialog>
-
-      <WalletSetupDialog
-        open={walletSetupOpen}
-        onOpenChange={setWalletSetupOpen}
-        onSuccess={() => {
-          setWalletSetupOpen(false);
-          setStep("pin");
-        }}
-      />
     </>
   );
 }

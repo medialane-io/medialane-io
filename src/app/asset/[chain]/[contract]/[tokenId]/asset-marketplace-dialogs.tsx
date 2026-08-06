@@ -5,7 +5,6 @@ import { ListingDialog } from "@/components/marketplace/listing-dialog";
 import { OfferDialog } from "@/components/marketplace/offer-dialog";
 import { PurchaseDialog } from "@/components/marketplace/purchase-dialog";
 import { TransferDialog } from "@/components/marketplace/transfer-dialog";
-import { PinDialog } from "@/components/chipi/pin-dialog";
 import { AcceptOfferDialog } from "@/components/marketplace/accept-offer-dialog";
 import type { ApiOrder } from "@medialane/sdk";
 import type { AcceptOfferHook } from "@/hooks/use-accept-offer";
@@ -49,9 +48,6 @@ interface AssetMarketplaceDialogsProps {
   setOfferOpen: (open: boolean) => void;
   transferOpen: boolean;
   setTransferOpen: (open: boolean) => void;
-  cancelPinOpen: boolean;
-  handleCancelPin: (pin: string) => Promise<void>;
-  dismissCancelPin: () => void;
   cancelStep: CancelStep;
   cancelError: string | null;
   resetCancelStep: () => void;
@@ -76,9 +72,6 @@ export function AssetMarketplaceDialogs({
   setOfferOpen,
   transferOpen,
   setTransferOpen,
-  cancelPinOpen,
-  handleCancelPin,
-  dismissCancelPin,
   cancelStep,
   cancelError,
   resetCancelStep,
@@ -130,14 +123,6 @@ export function AssetMarketplaceDialogs({
         tokenName={tokenName}
         tokenImage={tokenImage ?? undefined}
         tokenStandard={tokenStandard}
-      />
-
-      <PinDialog
-        open={cancelPinOpen}
-        onSubmit={handleCancelPin}
-        onCancel={dismissCancelPin}
-        title="Cancel listing"
-        description={`Enter your PIN to cancel the listing for ${tokenName}.`}
       />
 
       <CancelListingDialog

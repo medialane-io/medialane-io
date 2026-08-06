@@ -5,7 +5,7 @@ import { useSWRConfig } from "swr";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { AlertCircle, Tag, Layers, Zap, ShieldCheck, Loader2 } from "lucide-react";
+import { AlertCircle, Tag, Layers, ShieldCheck, Loader2 } from "lucide-react";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { fireConfetti } from "@/lib/confetti";
 import { rewardToast } from "@/lib/reward-toast";
@@ -16,15 +16,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
-import { useAuth } from "@clerk/nextjs";
 import { useMarketplace } from "@/hooks/use-marketplace";
-import { useMarketplaceActionFlow } from "@/hooks/use-marketplace-action-flow";
+import { useWalletMarketplaceActionFlow } from "@/hooks/use-wallet-marketplace-action-flow";
 import { useResolvedTokenStandard } from "@/hooks/use-resolved-token-standard";
 import {
-  MarketplacePinStep,
   MarketplaceProcessingState,
-  MarketplaceActivatingSession,
   MarketplaceSignInGate,
   MarketplaceSuccessState,
   MarketplaceErrorState,
@@ -34,10 +30,8 @@ import {
 } from "@/components/marketplace/marketplace-dialog-primitives";
 import { EXPLORER_URL, DURATION_OPTIONS } from "@/lib/constants";
 import { resolveTokenImage } from "@/lib/utils";
-import { parseFormPriceUsdc } from "@/lib/chipi/session-preferences";
 import { getListableTokens } from "@medialane/sdk";
 import { marketplacePriceField, marketplaceCurrencyField, marketplaceDurationField } from "@/lib/marketplace-schemas";
-import { useWalletAuthMethod } from "@/hooks/use-wallet-auth-method";
 
 const CURRENCIES = getListableTokens().map((t) => t.symbol);
 
@@ -76,50 +70,20 @@ export function ListingDialog({
   const tokenImage = resolveTokenImage(tokenImageRaw);
   const { tokenStandard: resolvedStandard, isResolving } = useResolvedTokenStandard(assetContract, tokenStandard);
   const is1155 = resolvedStandard === "ERC1155";
-  const { isSignedIn } = useAuth();
   const { mutate } = useSWRConfig();
+  const { createListing, hasWallet, resetState } = useMarketplace();
+
   const {
-    createListing,
-    hasWallet,
-    hasActiveSession,
-    setupSession,
-    maybeClearSessionForAmountCap,
-    isProcessing,
-    txStatus,
+    pendingValues,
+    status,
     txHash,
     error,
-    resetState,
-  } = useMarketplace();
-
-  // Authoritative passkey-vs-PIN (cross-device), not just device-local WebAuthn support.
-  const { usesPasskey, authenticate, encryptKey } = useWalletAuthMethod();
-
-  const {
-    walletSetupOpen,
-    setWalletSetupOpen,
-    pendingValues,
-    pin,
-    setPin,
-    pinError,
-    setPinError,
-    step,
-    setStep,
-    isAuthenticatingPasskey,
-    isActivatingSession,
     beginAction,
-    handlePin,
-    handleUsePasskey,
     resetActionFlow,
-  } = useMarketplaceActionFlow<FormValues>({
-    isSignedIn,
+  } = useWalletMarketplaceActionFlow<FormValues>({
     hasWallet,
-    hasActiveSession,
-    setupSession,
-    maybeClearSessionForAmountCap,
-    authenticate,
-    encryptKey,
-    executeAction: async (values, pinOrDerivedKey) => {
-      await createListing({
+    executeAction: async (values) => {
+      const hash = await createListing({
         assetContract,
         tokenId,
         tokenName,
@@ -128,8 +92,8 @@ export function ListingDialog({
         durationSeconds: values.durationSeconds,
         tokenStandard: resolvedStandard,
         amount: is1155 ? (values.amount || "1") : undefined,
-        pin: pinOrDerivedKey,
       });
+      return hash ? { txHash: hash } : undefined;
     },
   });
 
@@ -138,8 +102,8 @@ export function ListingDialog({
     defaultValues: { price: "", currency: "USDC", durationSeconds: 2592000, amount: "1" },
   });
 
-  const onSubmit = async (values: FormValues) => {
-    if (!isSignedIn) return;
+  const onSubmit = (values: FormValues) => {
+    if (!hasWallet) return;
     if (is1155) {
       const qty = parseInt(values.amount ?? "", 10);
       if (!values.amount || isNaN(qty) || qty < 1) {
@@ -147,16 +111,17 @@ export function ListingDialog({
         return;
       }
     }
-    await beginAction(values, parseFormPriceUsdc(values.price));
+    beginAction(values);
   };
 
-  const isSuccess = !isProcessing && txStatus === "confirmed" && !error;
-  const isTerminalError = !isProcessing && !!error && !!txHash;
+  const busy = status === "processing" || status === "confirming";
+  const isSuccess = status === "success";
+  const isTerminalError = status === "error";
 
   // Prevent accidental backdrop/Escape dismiss when success or error details are visible —
   // user must click "Done" explicitly so they don't miss the confirmation.
   const handleClose = (v: boolean) => {
-    if (!isProcessing && !isSuccess && !isTerminalError) onOpenChange(v);
+    if (!busy && !isSuccess && !isTerminalError) onOpenChange(v);
   };
 
   useEffect(() => {
@@ -224,76 +189,22 @@ export function ListingDialog({
               error={error}
               txHash={txHash}
               explorerUrl={EXPLORER_URL}
-              onRetry={() => { resetState(); setStep("form"); }}
+              onRetry={() => resetState()}
               onDone={() => onOpenChange(false)}
             />
 
-          ) : isActivatingSession ? (
-            <MarketplaceActivatingSession />
-
-          ) : isProcessing ? (
+          ) : busy ? (
             <MarketplaceProcessingState
-              title={txStatus === "submitting" ? "Submitting listing…" : "Confirming onchain…"}
+              title="Confirming onchain…"
               imageUrl={tokenImage}
               imageAlt={name}
             />
 
-          ) : !isSignedIn ? (
+          ) : !hasWallet ? (
             <MarketplaceSignInGate
-              title="Sign in to list"
-              description="You need a Medialane account to list assets for sale."
+              title="Set up your wallet to list"
+              description="You need a wallet to list assets for sale."
             />
-
-          ) : step === "pin" ? (
-            <>
-              <MarketplaceDialogHero
-                tokenImage={tokenImage}
-                tokenName={tokenName}
-                tokenId={tokenId}
-                fallbackIcon={<Tag className="h-12 w-12 text-brand-blue/30" />}
-                badge={is1155 ? (
-                  <span className="absolute top-3 left-3 inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-brand-purple/40 bg-brand-purple/20 text-brand-purple backdrop-blur-sm">
-                    <Layers className="h-3 w-3" />
-                    Multi-edition
-                  </span>
-                ) : undefined}
-              />
-              <div className="flex items-end justify-between px-6 pt-3 pb-1">
-                <div className="min-w-0">
-                  <p className="font-bold text-lg leading-tight truncate">{name}</p>
-                  <div className="flex items-center gap-1 mt-1">
-                    <Zap className="h-3 w-3 text-emerald-500" />
-                    <span className="text-[11px] font-medium text-emerald-500">Gasless · Starknet</span>
-                  </div>
-                </div>
-                <div className="shrink-0 text-right ml-4">
-                  <p className="font-bold text-xl leading-tight">
-                    {pendingValues?.price}{" "}
-                    <span className="text-sm font-normal text-muted-foreground">{pendingValues?.currency}</span>
-                  </p>
-                  {is1155 && pendingValues?.amount && pendingValues.amount !== "1" && (
-                    <p className="text-xs text-muted-foreground">×{pendingValues.amount} editions</p>
-                  )}
-                </div>
-              </div>
-              <MarketplacePinStep
-                description="Enter your PIN to sign this listing."
-                pin={pin}
-                onPinChange={(value) => { setPin(value); setPinError(null); }}
-                pinError={pinError}
-                error={error}
-                secondaryLabel="Back"
-                onSecondary={() => { setStep("form"); setPin(""); setPinError(null); }}
-                primaryLabel="List"
-                onPrimary={handlePin}
-                primaryDisabled={pin.length < 6}
-                primaryIcon={<Tag className="h-4 w-4" />}
-                passkeySupported={usesPasskey}
-                isAuthenticatingPasskey={isAuthenticatingPasskey}
-                onUsePasskey={handleUsePasskey}
-                footer={shieldFooter}
-              />
-            </>
 
           ) : (
             <>
@@ -331,7 +242,7 @@ export function ListingDialog({
                                 )}
                               </div>
                               <FormControl>
-                                <Input type="number" min="1" step="1" placeholder="1" disabled={isProcessing} {...field} />
+                                <Input type="number" min="1" step="1" placeholder="1" disabled={busy} {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -345,7 +256,7 @@ export function ListingDialog({
                               <FormLabel>Price / edition</FormLabel>
                               <div className="relative">
                                 <FormControl>
-                                  <Input type="number" step="any" placeholder="0.00" className="pr-16" disabled={isProcessing} {...field} />
+                                  <Input type="number" step="any" placeholder="0.00" className="pr-16" disabled={busy} {...field} />
                                 </FormControl>
                                 <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
                                   <CurrencyIcon symbol={form.watch("currency")} size={13} />
@@ -366,7 +277,7 @@ export function ListingDialog({
                             <FormLabel>Price</FormLabel>
                             <div className="relative">
                               <FormControl>
-                                <Input type="number" step="any" placeholder="0.00" className="pr-20" disabled={isProcessing} {...field} />
+                                <Input type="number" step="any" placeholder="0.00" className="pr-20" disabled={busy} {...field} />
                               </FormControl>
                               <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
                                 <CurrencyIcon symbol={form.watch("currency")} size={14} />
@@ -390,7 +301,7 @@ export function ListingDialog({
                               currencies={CURRENCIES}
                               value={field.value}
                               onChange={field.onChange}
-                              disabled={isProcessing}
+                              disabled={busy}
                             />
                           </FormControl>
                         </FormItem>
@@ -408,7 +319,7 @@ export function ListingDialog({
                               options={DURATION_OPTIONS}
                               value={field.value}
                               onChange={field.onChange}
-                              disabled={isProcessing}
+                              disabled={busy}
                             />
                           </FormControl>
                         </FormItem>
@@ -423,11 +334,11 @@ export function ListingDialog({
                     )}
 
                     <div className="pt-1 space-y-2">
-                      <div className={`btn-border-animated p-[1px] rounded-xl ${(isProcessing || isResolving) ? "pointer-events-none" : ""}`}>
+                      <div className={`btn-border-animated p-[1px] rounded-xl ${(busy || isResolving) ? "pointer-events-none" : ""}`}>
                         <button
                           type="submit"
                           className="w-full h-11 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-transparent"
-                          disabled={isProcessing || isResolving}
+                          disabled={busy || isResolving}
                         >
                           {isResolving ? (
                             <><Loader2 className="h-4 w-4 animate-spin" /> Resolving asset…</>
@@ -447,12 +358,6 @@ export function ListingDialog({
 
         </DialogContent>
       </Dialog>
-
-      <WalletSetupDialog
-        open={walletSetupOpen}
-        onOpenChange={setWalletSetupOpen}
-        onSuccess={() => { setWalletSetupOpen(false); setStep("pin"); }}
-      />
     </>
   );
 }

@@ -7,20 +7,15 @@ import { TxStatus } from "@/components/chipi/tx-status";
 import { MarketplaceErrorState } from "@/components/marketplace/marketplace-dialog-primitives";
 import { EXPLORER_URL } from "@/lib/constants";
 import { ipfsToHttp } from "@/lib/utils";
-import type { ChipiTransactionStatus } from "@/hooks/use-chipi-transaction";
+import type { WalletWriteStatus } from "@/hooks/use-wallet-write-action";
 
 /**
  * Shared transaction dialog state machine. Renders the success / error /
  * processing branches that contract-call dialogs all share; children render
- * for the idle (form / pin entry) phase.
- *
- * Accepts the surface exposed by `useChipiTransaction`. CancelOrderDialog
- * (which goes through `useMarketplace`) uses a slightly different status
- * field name and isn't migrated yet — it's a follow-up if/when its hook is
- * unified.
+ * for the idle (form / confirm) phase.
  */
 interface TransactionDialogStatesProps {
-  status: ChipiTransactionStatus | undefined;
+  status: WalletWriteStatus | undefined;
   statusMessage?: string;
   txHash: string | null;
   error: string | null;
@@ -62,7 +57,7 @@ export function TransactionDialogStates({
   onDone,
   children,
 }: TransactionDialogStatesProps) {
-  const isSuccess = status === "confirmed" && !error;
+  const isSuccess = status === "success" && !error;
   const isTerminalError = !isSubmitting && !!error && !!txHash;
 
   if (isSuccess) {

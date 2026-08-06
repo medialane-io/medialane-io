@@ -20,13 +20,13 @@ export function useWalletWriteAction() {
   const [error, setError] = useState<string | null>(null);
 
   const run = useCallback(
-    async (execute: (signer: StarknetVenueSigner) => Promise<{ txHash: string }>) => {
+    async (execute: (signer: StarknetVenueSigner) => Promise<{ txHash: string } | void>) => {
       if (!hasWallet || !signer) return;
       setStatus("processing");
       setError(null);
       try {
         const result = await execute(signer);
-        setTxHash(result.txHash);
+        if (result?.txHash) setTxHash(result.txHash);
         setStatus("confirming");
         setStatus("success");
       } catch (err) {

@@ -64,9 +64,9 @@ export function AssetPageStandard() {
 
   const {
     isProcessing,
-    orderToCancel, cancelPinOpen, cancelStep, cancelError,
-    handleCancelClick, handleCancelPin,
-    dismissCancelPin, resetCancelStep,
+    orderToCancel, cancelStep, cancelError,
+    handleCancelClick,
+    resetCancelStep,
   } = useOrderActions({ mutateListings });
   const acceptOffer = useAcceptOffer({ mutateListings, activeListings: listings.filter(
     (l) => l.status === "ACTIVE" && (l.offer.itemType === "ERC721" || l.offer.itemType === "ERC1155")
@@ -459,9 +459,6 @@ export function AssetPageStandard() {
         setOfferOpen={setOfferOpen}
         transferOpen={transferOpen}
         setTransferOpen={setTransferOpen}
-        cancelPinOpen={cancelPinOpen}
-        handleCancelPin={handleCancelPin}
-        dismissCancelPin={dismissCancelPin}
         cancelStep={cancelStep}
         cancelError={cancelError}
         resetCancelStep={resetCancelStep}

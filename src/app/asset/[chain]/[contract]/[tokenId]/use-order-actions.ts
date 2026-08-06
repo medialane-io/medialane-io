@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useMarketplace } from "@/hooks/use-marketplace";
-import { useWalletUnlock } from "@/hooks/use-wallet-unlock";
 import type { ApiOrder } from "@medialane/sdk";
 
 interface UseOrderActionsOptions {
@@ -13,15 +12,13 @@ interface UseOrderActionsOptions {
 
 export function useOrderActions({ mutateListings, tokenStandard }: UseOrderActionsOptions) {
   const { cancelOrder, isProcessing } = useMarketplace();
-  // Unlocks with the wallet's own method — passkey (no dialog) or PIN.
-  const { unlock, pinDialogProps } = useWalletUnlock();
 
   const [orderToCancel, setOrderToCancel] = useState<ApiOrder | null>(null);
   const [cancelStep, setCancelStep] = useState<"idle" | "processing" | "success" | "error">("idle");
   const [cancelError, setCancelError] = useState<string | null>(null);
 
-  // `secret` is the wallet-unlock material — a typed PIN or the passkey key.
-  const runCancel = async (order: ApiOrder, secret: string) => {
+  const handleCancelClick = async (order: ApiOrder) => {
+    setOrderToCancel(order);
     setCancelStep("processing");
     setCancelError(null);
     try {
@@ -32,7 +29,6 @@ export function useOrderActions({ mutateListings, tokenStandard }: UseOrderActio
           : order.offer.itemType;
       await cancelOrder({
         orderHash: order.orderHash,
-        pin: secret,
         tokenStandard: tokenStandard ?? orderNftStandard,
       });
       setCancelStep("success");
@@ -43,34 +39,12 @@ export function useOrderActions({ mutateListings, tokenStandard }: UseOrderActio
     }
   };
 
-  const handleCancelClick = (order: ApiOrder) => {
-    setOrderToCancel(order);
-    // `unlock` can throw before runCancel executes (e.g. a passkey-only wallet
-    // whose passkey is unavailable here) — surface it in the cancel result state.
-    void (async () => {
-      try {
-        await unlock((secret) => runCancel(order, secret));
-      } catch (err: unknown) {
-        setCancelStep("error");
-        setCancelError(err instanceof Error ? err.message : "Could not unlock your wallet");
-      }
-    })();
-  };
-
   return {
     isProcessing,
     orderToCancel,
-    // Same public shape as before — now backed by the passkey-or-PIN unlock
-    // hook, so consumers need no changes and passkey users skip the dialog.
-    cancelPinOpen: pinDialogProps.open,
     cancelStep,
     cancelError,
     handleCancelClick,
-    handleCancelPin: pinDialogProps.onSubmit,
-    dismissCancelPin: () => {
-      pinDialogProps.onCancel();
-      setOrderToCancel(null);
-    },
     resetCancelStep: () => {
       setCancelStep("idle");
       setCancelError(null);

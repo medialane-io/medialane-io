@@ -1,12 +1,10 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { AlertCircle, CheckCircle2, ExternalLink, Loader2, LogIn, Sparkles } from "lucide-react";
+import { AlertCircle, CheckCircle2, ExternalLink, Loader2, Wallet, Sparkles } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { PinInput } from "@/components/ui/pin-input";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
-import { SignInButton } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -85,20 +83,9 @@ export function MarketplaceProcessingState({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// MarketplaceActivatingSession
-// ─────────────────────────────────────────────────────────────────────────────
-
-export function MarketplaceActivatingSession() {
-  return (
-    <div className="flex flex-col items-center gap-4 p-6 py-10">
-      <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      <p className="text-sm text-muted-foreground">Activating wallet session…</p>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// MarketplaceSignInGate
+// MarketplaceSignInGate — despite the name, gates on wallet readiness, not
+// Clerk sign-in. Kept for import-site stability across the marketplace
+// dialogs; no CTA yet since wallet onboarding UI isn't wired into a modal.
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface MarketplaceSignInGateProps {
@@ -109,14 +96,11 @@ interface MarketplaceSignInGateProps {
 export function MarketplaceSignInGate({ title, description }: MarketplaceSignInGateProps) {
   return (
     <div className="flex flex-col items-center gap-4 p-6 py-10 text-center">
-      <LogIn className="h-10 w-10 text-muted-foreground" />
+      <Wallet className="h-10 w-10 text-muted-foreground" />
       <div>
         <p className="font-semibold">{title}</p>
         <p className="text-sm text-muted-foreground mt-1">{description}</p>
       </div>
-      <SignInButton mode="modal">
-        <Button className="w-full">Sign in</Button>
-      </SignInButton>
     </div>
   );
 }
@@ -343,15 +327,15 @@ export function DurationPicker({ options, value, onChange, disabled }: DurationP
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// MarketplacePinStep
+// MarketplaceConfirmStep — a review-before-execute step for actions with
+// meaningful context (e.g. "accepting an offer leaves listings unfulfillable")
+// that shouldn't fire the instant the button is clicked. No PIN: unlocking
+// happens implicitly inside the wallet's own signer.execute() call.
 // ─────────────────────────────────────────────────────────────────────────────
 
-interface MarketplacePinStepProps {
+interface MarketplaceConfirmStepProps {
   summary?: ReactNode;
   description: string;
-  pin: string;
-  onPinChange: (value: string) => void;
-  pinError: string | null;
   error?: string | null;
   secondaryLabel: string;
   onSecondary: () => void;
@@ -360,18 +344,12 @@ interface MarketplacePinStepProps {
   primaryDisabled?: boolean;
   primaryIcon?: ReactNode;
   primaryVariant?: "default" | "destructive";
-  passkeySupported?: boolean;
-  isAuthenticatingPasskey?: boolean;
-  onUsePasskey?: () => void;
   footer?: ReactNode;
 }
 
-export function MarketplacePinStep({
+export function MarketplaceConfirmStep({
   summary,
   description,
-  pin,
-  onPinChange,
-  pinError,
   error,
   secondaryLabel,
   onSecondary,
@@ -380,11 +358,8 @@ export function MarketplacePinStep({
   primaryDisabled,
   primaryIcon,
   primaryVariant = "default",
-  passkeySupported = false,
-  isAuthenticatingPasskey = false,
-  onUsePasskey,
   footer,
-}: MarketplacePinStepProps) {
+}: MarketplaceConfirmStepProps) {
   const primaryButton = primaryVariant === "destructive" ? (
     <Button
       variant="destructive"
@@ -416,13 +391,6 @@ export function MarketplacePinStep({
     <div className="px-6 pb-6 pt-3 space-y-4">
       {summary}
       <p className="text-sm text-muted-foreground">{description}</p>
-      <PinInput
-        value={pin}
-        onChange={onPinChange}
-        onKeyDown={(e) => { if (e.key === "Enter" && !primaryDisabled) onPrimary(); }}
-        error={pinError}
-        autoFocus
-      />
       {error ? (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
@@ -439,23 +407,6 @@ export function MarketplacePinStep({
         </Button>
         {primaryButton}
       </div>
-      {passkeySupported && onUsePasskey ? (
-        <Button
-          variant="outline"
-          className="w-full text-xs"
-          disabled={isAuthenticatingPasskey}
-          onClick={onUsePasskey}
-        >
-          {isAuthenticatingPasskey ? (
-            <>
-              <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
-              Authenticating…
-            </>
-          ) : (
-            "Use passkey instead"
-          )}
-        </Button>
-      ) : null}
       {footer}
     </div>
   );

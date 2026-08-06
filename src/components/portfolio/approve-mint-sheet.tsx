@@ -2,29 +2,25 @@
 
 import { useState } from "react";
 import { getService } from "@medialane/sdk";
-import { useAuth } from "@clerk/nextjs";
 import { assetHref } from "@/lib/routes";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PinDialog } from "@/components/chipi/pin-dialog";
-import { useWalletUnlock } from "@/hooks/use-wallet-unlock";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
-import { useSessionKey } from "@/hooks/use-session-key";
-import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
-import { useMarketplace } from "@/hooks/use-marketplace";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { confirmRemixOffer } from "@/hooks/use-remix-offers";
 import { useSiwsToken } from "@/hooks/use-siws-token";
 import { readAssignedEditionId } from "@/lib/erc1155-edition";
-import { executePrebuiltIntent } from "@/lib/intent-tx";
+import { executeIntent } from "@/lib/wallet/intent-tx";
+import { useMarketplace } from "@/hooks/use-marketplace";
 import { formatDisplayPrice } from "@/lib/utils";
 import { AlertCircle, Check, GitBranch, Loader2 } from "lucide-react";
 import type { RemixOffer } from "@/types/remix-offers";
-import type { ChipiCall } from "@/hooks/use-chipi-transaction";
+import type { Call } from "starknet";
 import { INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
 
 interface Props {
@@ -35,10 +31,8 @@ interface Props {
 }
 
 export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props) {
-  const { getToken } = useAuth();
-  const { walletAddress } = useSessionKey();
+  const { address: walletAddress, signer } = useWalletNativeSession();
   const { getValidToken: getValidSiwsToken, signIn: siwsSignIn } = useSiwsToken();
-  const { executeTransaction } = useChipiTransaction();
   const { createListing } = useMarketplace();
   const client = useMedialaneClient();
 
@@ -65,7 +59,6 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
 
   const [selectedCollectionKey, setSelectedCollectionKey] = useState<string | null>(null);
   const [remixName, setRemixName] = useState("");
-  const { unlock, pinDialogProps } = useWalletUnlock();
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [newAssetLink, setNewAssetLink] = useState<string | null>(null);
@@ -105,17 +98,16 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
       setFormError("This collection is not enrolled in the registry.");
       return;
     }
-    // .catch handles unlock-level throws (e.g. passkey unavailable here).
-    void unlock(handleUnlocked).catch((err) => {
-      setApproveError(err instanceof Error ? err.message : "Could not unlock your wallet");
+    void handleUnlocked().catch((err) => {
+      setApproveError(err instanceof Error ? err.message : "Approval failed");
       setLoading(false);
     });
   };
 
-  // `secret` is the wallet-unlock material — a typed PIN or the passkey key.
-  const handleUnlocked = async (secret: string) => {
-    if (!offer || !walletAddress || !effectiveCollectionKey || !selectedCollection) return;
+  const handleUnlocked = async () => {
+    if (!offer || !walletAddress || !signer || !effectiveCollectionKey || !selectedCollection) return;
     setLoading(true);
+    setApproveError(null);
 
     const standard = selectedCollection.standard ?? "ERC721";
 
@@ -159,8 +151,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
           tokenUri: pinData.uri,
           value: "1",
         });
-        const result = await executePrebuiltIntent(executeTransaction, client, secret, intentRes.data);
-        if (result.status === "reverted") throw new Error(result.revertReason ?? "Mint reverted");
+        const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
         remixTokenId = await readAssignedEditionId(result.txHash ?? "", selectedCollection.contractAddress);
       } else {
         // ERC-721: backend-mediated via createMintIntent, poll for assigned tokenId
@@ -174,14 +165,10 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
         const mintIntent = intentRes.data;
         // mint is always an unsigned (prebuilt-calls) intent.
         if (mintIntent.requiresSignature) throw new Error("Unexpected signed mint intent");
-        const mintCalls = mintIntent.calls as unknown as ChipiCall[];
+        const mintCalls = mintIntent.calls as unknown as Call[];
         if (!mintCalls?.length) throw new Error("No mint calls returned");
 
-        const mintResult = await executeTransaction({
-          pin: secret,
-          calls: mintCalls,
-        });
-        if (mintResult.status === "reverted") throw new Error(mintResult.revertReason ?? "Mint reverted");
+        await signer.execute(mintCalls);
 
         // Poll for the registry-assigned tokenId
         let polledTokenId: string | undefined;
@@ -207,7 +194,6 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
         durationSeconds: 30 * 24 * 60 * 60,
         tokenStandard: standard === "ERC1155" ? "ERC1155" : undefined,
         amount: standard === "ERC1155" ? "1" : undefined,
-        pin: secret,
       });
 
       // 4. Poll for listing to get orderHash
@@ -228,22 +214,11 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
       }
       if (!orderHash) throw new Error("Could not confirm listing orderHash — check portfolio shortly");
 
-      // 5. Confirm offer in backend. Prefer SIWS (mint one now — `secret` is
-      // already in scope from the unlock above, no new prompt) over the
-      // Clerk JWT; the backend accepts both (medialane-core spec
-      // 2026-06-30-remove-clerk-from-backend-design.md). Fall back to Clerk
-      // if SIWS minting fails for any reason — never block the confirm on it.
+      // 5. Confirm offer in backend via SIWS (mint one now if there's no
+      // cached token — the wallet already signed above, so this is the same
+      // trust boundary, just a second signature).
       let authToken = getValidSiwsToken();
-      if (!authToken) {
-        try {
-          authToken = await siwsSignIn(secret);
-        } catch (err) {
-          console.error("[ml-siws] mint failed during remix confirm", {
-            error: err instanceof Error ? err.message : String(err),
-          });
-        }
-      }
-      if (!authToken) authToken = await getToken();
+      if (!authToken) authToken = await siwsSignIn();
       if (!authToken) throw new Error("Not authenticated");
       await confirmRemixOffer(
         offer.id,
@@ -267,120 +242,112 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
   };
 
   return (
-    <>
-      <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="w-full max-w-sm p-0 overflow-hidden gap-0 flex flex-col max-h-[90svh]">
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="w-full max-w-sm p-0 overflow-hidden gap-0 flex flex-col max-h-[90svh]">
 
-          {/* Header */}
-          <div className="flex items-center gap-2 pr-10 pl-5 py-4 border-b border-border/60">
-            <GitBranch className="h-4 w-4 text-primary shrink-0" />
-            <DialogTitle className="text-base font-bold">Grant license &amp; mint</DialogTitle>
-          </div>
+        {/* Header */}
+        <div className="flex items-center gap-2 pr-10 pl-5 py-4 border-b border-border/60">
+          <GitBranch className="h-4 w-4 text-primary shrink-0" />
+          <DialogTitle className="text-base font-bold">Grant license &amp; mint</DialogTitle>
+        </div>
 
-          {/* Body */}
-          <div className="flex-1 overflow-y-auto px-5 py-4">
-            {done ? (
-              <div className="flex flex-col items-center gap-4 py-8 text-center">
-                <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Check className="h-8 w-8 text-primary" />
-                </div>
-                <p className="text-lg font-semibold">License granted — derivative minted</p>
-                <p className="text-sm text-muted-foreground">The buyer will see &quot;Complete Purchase&quot; in their portfolio.</p>
-                {newAssetLink && (
-                  <Button variant="outline" size="sm" asChild>
-                    <a href={newAssetLink}>View new asset</a>
-                  </Button>
-                )}
-                <Button className="w-full" onClick={() => onOpenChange(false)}>
-                  Done
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto px-5 py-4">
+          {done ? (
+            <div className="flex flex-col items-center gap-4 py-8 text-center">
+              <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                <Check className="h-8 w-8 text-primary" />
+              </div>
+              <p className="text-lg font-semibold">License granted — derivative minted</p>
+              <p className="text-sm text-muted-foreground">The buyer will see &quot;Complete Purchase&quot; in their portfolio.</p>
+              {newAssetLink && (
+                <Button variant="outline" size="sm" asChild>
+                  <a href={newAssetLink}>View new asset</a>
                 </Button>
-              </div>
-            ) : (
-              <div className="space-y-5">
-                {formError && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{formError}</AlertDescription>
-                  </Alert>
-                )}
-                {approveError && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{approveError}</AlertDescription>
-                  </Alert>
-                )}
-                {offer && (
-                  <div className="rounded-xl border border-border bg-muted/30 p-3 text-sm space-y-1">
-                    <p><span className="text-muted-foreground">Token</span> #{offer.originalTokenId}</p>
-                    <p><span className="text-muted-foreground">License</span> {offer.licenseType}</p>
-                    <p><span className="text-muted-foreground">Price</span> {priceDisplay}</p>
-                    {offer.message && <p className="text-muted-foreground italic">&quot;{offer.message}&quot;</p>}
-                  </div>
-                )}
-
-                <div className="space-y-1.5">
-                  <Label>Remix Name</Label>
-                  <Input
-                    placeholder={effectiveName}
-                    value={remixName}
-                    onChange={(e) => setRemixName(e.target.value)}
-                  />
+              )}
+              <Button className="w-full" onClick={() => onOpenChange(false)}>
+                Done
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-5">
+              {formError && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{formError}</AlertDescription>
+                </Alert>
+              )}
+              {approveError && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{approveError}</AlertDescription>
+                </Alert>
+              )}
+              {offer && (
+                <div className="rounded-xl border border-border bg-muted/30 p-3 text-sm space-y-1">
+                  <p><span className="text-muted-foreground">Token</span> #{offer.originalTokenId}</p>
+                  <p><span className="text-muted-foreground">License</span> {offer.licenseType}</p>
+                  <p><span className="text-muted-foreground">Price</span> {priceDisplay}</p>
+                  {offer.message && <p className="text-muted-foreground italic">&quot;{offer.message}&quot;</p>}
                 </div>
+              )}
 
-                <div className="space-y-1.5">
-                  <Label>Mint into collection</Label>
-                  {eligibleCollections.length === 0 ? (
-                    <p className="text-xs text-destructive">No eligible collections.</p>
-                  ) : (
-                    <Select
-                      value={effectiveCollectionKey ?? ""}
-                      onValueChange={setSelectedCollectionKey}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select collection" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {eligibleCollections.map((c) => (
-                          <SelectItem key={c.collectionId ?? c.contractAddress} value={c.collectionId ?? c.contractAddress}>
-                            <span className="flex items-center gap-2">
-                              {c.name ?? c.contractAddress.slice(0, 14) + "…"}
-                              {c.standard && (
-                                <span className="text-[10px] tabular-nums text-muted-foreground">{c.standard}</span>
-                              )}
-                            </span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                </div>
+              <div className="space-y-1.5">
+                <Label>Remix Name</Label>
+                <Input
+                  placeholder={effectiveName}
+                  value={remixName}
+                  onChange={(e) => setRemixName(e.target.value)}
+                />
               </div>
-            )}
-          </div>
 
-          {/* Footer */}
-          {!done && (
-            <div className="px-5 pt-3 pb-5 border-t border-border/60 space-y-3">
-              <button
-                className="w-full h-11 rounded-[11px] bg-brand-purple text-white text-sm font-semibold flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
-                onClick={handleApprove}
-                disabled={loading || eligibleCollections.length === 0}
-              >
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <GitBranch className="h-4 w-4" />}
-                Grant license & mint
-              </button>
-              <p className="text-[10px] text-center text-muted-foreground">Two ChipiPay operations (mint + listing). Gas is free.</p>
+              <div className="space-y-1.5">
+                <Label>Mint into collection</Label>
+                {eligibleCollections.length === 0 ? (
+                  <p className="text-xs text-destructive">No eligible collections.</p>
+                ) : (
+                  <Select
+                    value={effectiveCollectionKey ?? ""}
+                    onValueChange={setSelectedCollectionKey}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select collection" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {eligibleCollections.map((c) => (
+                        <SelectItem key={c.collectionId ?? c.contractAddress} value={c.collectionId ?? c.contractAddress}>
+                          <span className="flex items-center gap-2">
+                            {c.name ?? c.contractAddress.slice(0, 14) + "…"}
+                            {c.standard && (
+                              <span className="text-[10px] tabular-nums text-muted-foreground">{c.standard}</span>
+                            )}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
             </div>
           )}
+        </div>
 
-        </DialogContent>
-      </Dialog>
+        {/* Footer */}
+        {!done && (
+          <div className="px-5 pt-3 pb-5 border-t border-border/60 space-y-3">
+            <button
+              className="w-full h-11 rounded-[11px] bg-brand-purple text-white text-sm font-semibold flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
+              onClick={handleApprove}
+              disabled={loading || eligibleCollections.length === 0}
+            >
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <GitBranch className="h-4 w-4" />}
+              Grant license & mint
+            </button>
+            <p className="text-[10px] text-center text-muted-foreground">Two onchain operations (mint + listing). Gas is free.</p>
+          </div>
+        )}
 
-      <PinDialog
-        {...pinDialogProps}
-        title="Confirm licensed mint"
-        description="Enter your PIN to mint the remix and create the listing."
-      />
-    </>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { UserRoundCog } from "lucide-react";
-import { Contract, cairo, type Abi } from "starknet";
+import { Contract, cairo, type Abi, type Call } from "starknet";
 import {
   Dialog,
   DialogContent,
@@ -12,15 +12,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
-import { useAuth } from "@clerk/nextjs";
-import { isWebAuthnSupported } from "@chipi-stack/nextjs";
-import { usePasskeyAuth } from "@chipi-stack/chipi-passkey/hooks";
 import { IPCollectionABI } from "@medialane/sdk/starknet";
-import { useSessionKey } from "@/hooks/use-session-key";
-import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
-import { useMarketplaceActionFlow } from "@/hooks/use-marketplace-action-flow";
-import { MarketplacePinStep } from "@/components/marketplace/marketplace-dialog-primitives";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
+import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
+import { MarketplaceConfirmStep } from "@/components/marketplace/marketplace-dialog-primitives";
 import { TransactionDialogStates } from "@/components/marketplace/transaction-dialog-states";
 import { STARKNET_COLLECTION_721_CONTRACT } from "@/lib/constants";
 import { starknetProvider } from "@/lib/starknet";
@@ -49,45 +44,37 @@ export function TransferCollectionOwnershipDialog({
   onOpenChange,
   onTransferred,
 }: TransferOwnershipDialogProps) {
-  const { isSignedIn } = useAuth();
-  const { hasWallet, hasActiveSession, setupSession } = useSessionKey();
-  const { executeTransaction, status, statusMessage, txHash, error, reset, isSubmitting } =
-    useChipiTransaction();
+  const { hasWallet } = useWalletNativeSession();
+  const action = useWalletWriteAction();
 
   const [newOwner, setNewOwner] = useState("");
-  const [passkeySupported] = useState(
-    () => typeof window !== "undefined" && isWebAuthnSupported()
-  );
-  const { authenticate, encryptKey } = usePasskeyAuth();
+  const [step, setStep] = useState<"form" | "confirm">("form");
 
   const trimmed = newOwner.trim();
   const isValid = /^0x[0-9a-fA-F]{1,64}$/.test(trimmed);
   const wouldNoop =
     isValid && normalizeAddress("STARKNET", trimmed) === normalizeAddress("STARKNET", currentOwner);
 
-  const {
-    walletSetupOpen,
-    setWalletSetupOpen,
-    setPendingValues,
-    pin,
-    setPin,
-    pinError,
-    setPinError,
-    step,
-    setStep,
-    isAuthenticatingPasskey,
-    beginAction,
-    handlePin,
-    handleUsePasskey,
-    resetActionFlow,
-  } = useMarketplaceActionFlow<{ newOwner: string }>({
-    isSignedIn,
-    hasWallet,
-    hasActiveSession,
-    setupSession,
-    authenticate,
-    encryptKey,
-    executeAction: async (values, pinOrDerivedKey) => {
+  useEffect(() => {
+    if (open) {
+      action.reset();
+      setNewOwner("");
+      setStep("form");
+    }
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const isSubmitting = action.status === "processing" || action.status === "confirming";
+  const handleClose = (next: boolean) => {
+    if (!isSubmitting) onOpenChange(next);
+  };
+
+  const submitForm = () => {
+    if (!isValid || wouldNoop) return;
+    setStep("confirm");
+  };
+
+  const handleConfirmTransfer = () => {
+    void action.run(async (signer) => {
       const contract = new Contract({
         abi: IPCollectionABI as unknown as Abi,
         address: STARKNET_COLLECTION_721_CONTRACT,
@@ -95,40 +82,19 @@ export function TransferCollectionOwnershipDialog({
       });
       const call = contract.populate("transfer_collection_ownership", [
         cairo.uint256(BigInt(collectionId)),
-        values.newOwner,
+        trimmed,
       ]);
       const calldata = Array.isArray(call.calldata)
         ? (call.calldata as unknown as string[]).map(String)
         : [];
-      await executeTransaction({
-        pin: pinOrDerivedKey,
-        calls: [
-          {
-            contractAddress: STARKNET_COLLECTION_721_CONTRACT,
-            entrypoint: "transfer_collection_ownership",
-            calldata,
-          },
-        ],
-      });
-    },
-  });
-
-  useEffect(() => {
-    if (open) {
-      reset();
-      resetActionFlow();
-      setNewOwner("");
-    }
-  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleClose = (next: boolean) => {
-    if (!isSubmitting) onOpenChange(next);
-  };
-
-  const submitForm = () => {
-    if (!isValid || wouldNoop) return;
-    setPendingValues({ newOwner: trimmed });
-    void beginAction({ newOwner: trimmed }, 0);
+      return signer.execute([
+        {
+          contractAddress: STARKNET_COLLECTION_721_CONTRACT,
+          entrypoint: "transfer_collection_ownership",
+          calldata,
+        },
+      ] as Call[]);
+    });
   };
 
   return (
@@ -142,10 +108,10 @@ export function TransferCollectionOwnershipDialog({
         </DialogDescription>
 
         <TransactionDialogStates
-          status={status}
-          statusMessage={statusMessage}
-          txHash={txHash}
-          error={error}
+          status={action.status}
+          statusMessage="Confirming onchain…"
+          txHash={action.txHash}
+          error={action.error}
           isSubmitting={isSubmitting}
           successTitle="Ownership transferred"
           successBody={
@@ -156,7 +122,7 @@ export function TransferCollectionOwnershipDialog({
           errorTitle="Transfer failed"
           errorDescription="The transaction was submitted, but ownership could not be transferred."
           errorAssetName={collectionName ?? "Collection"}
-          onRetry={() => reset()}
+          onRetry={() => action.reset()}
           onDone={() => {
             onOpenChange(false);
             onTransferred?.();
@@ -199,45 +165,26 @@ export function TransferCollectionOwnershipDialog({
               <Button
                 className="flex-1"
                 onClick={submitForm}
-                disabled={!isValid || wouldNoop}
+                disabled={!isValid || wouldNoop || !hasWallet}
               >
                 Continue
               </Button>
             </div>
           </div>
         ) : (
-          // step === "pin"
-          <MarketplacePinStep
-            description={`Enter your PIN to transfer ownership to ${trimmed.slice(0, 6)}…${trimmed.slice(-4)}.`}
-            pin={pin}
-            onPinChange={(value) => {
-              setPin(value);
-              setPinError(null);
-            }}
-            pinError={pinError}
-            error={error}
+          // step === "confirm"
+          <MarketplaceConfirmStep
+            description={`Transfer ownership to ${trimmed.slice(0, 6)}…${trimmed.slice(-4)}?`}
+            error={action.error}
             secondaryLabel="Back"
-            onSecondary={() => {
-              setStep("form");
-              setPin("");
-              setPinError(null);
-            }}
+            onSecondary={() => setStep("form")}
             primaryLabel="Transfer ownership"
-            onPrimary={handlePin}
-            primaryDisabled={pin.length < 6}
+            onPrimary={handleConfirmTransfer}
             primaryIcon={<UserRoundCog className="h-4 w-4" />}
-            passkeySupported={passkeySupported && !!encryptKey}
-            isAuthenticatingPasskey={isAuthenticatingPasskey}
-            onUsePasskey={handleUsePasskey}
           />
           )}
         </TransactionDialogStates>
       </DialogContent>
-      <WalletSetupDialog
-        open={walletSetupOpen}
-        onOpenChange={setWalletSetupOpen}
-        onSuccess={() => setWalletSetupOpen(false)}
-      />
     </Dialog>
   );
 }

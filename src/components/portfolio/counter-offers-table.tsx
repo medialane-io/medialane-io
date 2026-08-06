@@ -6,11 +6,9 @@ import { assetHref } from "@/lib/routes";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyOrError } from "@/components/ui/empty-or-error";
-import { PinDialog } from "@/components/chipi/pin-dialog";
-import { useWriteAction } from "@/hooks/use-write-action";
+import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useMarketplace } from "@/hooks/use-marketplace";
-import { useFeeCharge } from "@/hooks/use-fee-charge";
 import { ipfsToHttp, formatDisplayPrice, formatExpiry, cn } from "@/lib/utils";
 import { AlertCircle, ArrowLeftRight, CheckCircle2, ExternalLink, Inbox, Loader2, Sparkles } from "lucide-react";
 import { EXPLORER_URL } from "@/lib/constants";
@@ -31,7 +29,7 @@ function CounterOfferFetcher({
 }: {
   originalBid: ApiOrder;
   isProcessing: boolean;
-  onAccept: (counter: ApiOrder, original: ApiOrder) => void;
+  onAccept: (counter: ApiOrder) => void;
 }) {
   const { counterOffers } = useCounterOffers({ originalOrderHash: originalBid.orderHash });
   const counter = counterOffers[0];
@@ -102,7 +100,7 @@ function CounterOfferFetcher({
           variant="default"
           className="h-8 text-xs"
           disabled={isProcessing || isExpiredOrFilled}
-          onClick={() => onAccept(counter, originalBid)}
+          onClick={() => onAccept(counter)}
         >
           {isExpiredOrFilled ? (counter.status !== "ACTIVE" ? counter.status : "Expired") : "Accept"}
         </Button>
@@ -114,10 +112,8 @@ function CounterOfferFetcher({
 export function CounterOffersTable({ address }: { address: string }) {
   const { orders, isLoading, error, mutate } = useUserOrders(address);
   const { fulfillOrder, isProcessing } = useMarketplace();
-  const { chargeFee } = useFeeCharge();
-  const action = useWriteAction();
+  const action = useWalletWriteAction();
   const [selectedCounter, setSelectedCounter] = useState<ApiOrder | null>(null);
-  const [originalForSelected, setOriginalForSelected] = useState<ApiOrder | null>(null);
   // The existing processing → success/error result dialog is driven by the
   // unified action state (so the user never has to check the explorer).
   const resultStep = action.status;
@@ -138,21 +134,21 @@ export function CounterOffersTable({ address }: { address: string }) {
       o.hasActiveCounterOffer === true
   );
 
-  const handleAccept = (counter: ApiOrder, original: ApiOrder) => {
+  const handleAccept = (counter: ApiOrder) => {
     setSelectedCounter(counter);
-    setOriginalForSelected(original);
-    // Pass `counter` through the closure — the passkey path runs synchronously,
-    // before the setSelectedCounter above settles.
-    void action.run((secret) => handleUnlocked(counter, secret));
+    void action.run(() => handleUnlocked(counter));
   };
 
-  // `secret` is the wallet-unlock material — a typed PIN or the passkey key.
   // action owns status/error; this returns the result and throws on failure.
-  const handleUnlocked = async (counter: ApiOrder, secret: string) => {
+  const handleUnlocked = async (counter: ApiOrder) => {
+    // Buyer (this user) bears the platform fee on the counter-listing's
+    // ERC-20 amount, same as a listing purchase — bundled into the same
+    // atomic multicall as the accept, not a separate fire-and-forget tx.
     const hash = await fulfillOrder({
       orderHash: counter.orderHash,
-      pin: secret,
       tokenStandard: counter.consideration.itemType,
+      feeToken: counter.consideration.token ?? "",
+      feeGrossAmount: BigInt(counter.consideration.startAmount ?? "0"),
     });
     if (!hash) {
       mutate();
@@ -161,23 +157,8 @@ export function CounterOffersTable({ address }: { address: string }) {
         "We couldn't complete the counter-offer accept. The transaction may have been rejected or the order may have expired. Please refresh and try again."
       );
     }
-    // Fee — fire-and-forget post-confirm. Buyer (this user) bears the platform
-    // fee on the counter-listing's ERC-20 amount, same as a listing purchase.
-    const feeGrossAmount = BigInt(counter.consideration.startAmount ?? "0");
-    console.info("[medialane] platform fee queued", {
-      surface: "marketplace",
-      orderHash: counter.orderHash,
-      token: counter.consideration.token,
-      grossAmount: feeGrossAmount.toString(),
-    });
-    chargeFee({
-      surface: "marketplace",
-      token: counter.consideration.token ?? "",
-      grossAmount: feeGrossAmount,
-      pin: secret,
-    });
     mutate();
-    return { status: "confirmed", txHash: hash };
+    return { txHash: hash };
   };
 
   const dismissResult = () => {
@@ -185,7 +166,6 @@ export function CounterOffersTable({ address }: { address: string }) {
     if (action.status === "processing" || action.status === "confirming") return;
     action.reset();
     setSelectedCounter(null);
-    setOriginalForSelected(null);
   };
 
   const counterDisplayName =
@@ -225,18 +205,7 @@ export function CounterOffersTable({ address }: { address: string }) {
         </div>
       </EmptyOrError>
 
-      <PinDialog
-        {...action.pinDialogProps}
-        title="Accept counter-offer"
-        description={
-          selectedCounter && originalForSelected
-            ? `Accept seller's counter of ${formatDisplayPrice(selectedCounter.price.formatted ?? "")} ${selectedCounter.price.currency ?? ""} for ${selectedCounter.token?.name || `#${selectedCounter.nftTokenId}`}?`
-            : "Enter your PIN to accept the counter-offer."
-        }
-      />
-
-      {/* Processing / success / error feedback dialog. Opens automatically
-          after PinDialog submit; user can only dismiss success/error. */}
+      {/* Processing / success / error feedback dialog. */}
       <Dialog
         open={resultStep !== "idle"}
         onOpenChange={(v) => { if (!v) dismissResult(); }}

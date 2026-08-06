@@ -65,9 +65,9 @@ export function AssetPageEdition() {
   const { tokens: collectionTokens } = useNearbyCollectionTokens(contract, tokenId);
   const {
     isProcessing,
-    orderToCancel, cancelPinOpen, cancelStep, cancelError,
-    handleCancelClick, handleCancelPin,
-    dismissCancelPin, resetCancelStep,
+    orderToCancel, cancelStep, cancelError,
+    handleCancelClick,
+    resetCancelStep,
   } = useOrderActions({ mutateListings, tokenStandard: "ERC1155" });
   const acceptOffer = useAcceptOffer({ mutateListings, tokenStandard: "ERC1155", activeListings: listings.filter(
     (l) => l.status === "ACTIVE" && (l.offer.itemType === "ERC721" || l.offer.itemType === "ERC1155")
@@ -332,9 +332,6 @@ export function AssetPageEdition() {
         setOfferOpen={setOfferOpen}
         transferOpen={transferOpen}
         setTransferOpen={setTransferOpen}
-        cancelPinOpen={cancelPinOpen}
-        handleCancelPin={handleCancelPin}
-        dismissCancelPin={dismissCancelPin}
         cancelStep={cancelStep}
         cancelError={cancelError}
         resetCancelStep={resetCancelStep}

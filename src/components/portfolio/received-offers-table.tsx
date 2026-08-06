@@ -37,7 +37,9 @@ function ReceivedOfferRow({
   const name = order.token?.name || `#${order.nftTokenId}`;
   const image = order.token?.image ? ipfsToHttp(order.token.image) : null;
   const expiry = formatExpiry(order.endTime);
-  const isProcessing = acceptHook.resultStep === "processing" && acceptHook.selectedOrder?.orderHash === order.orderHash;
+  const isProcessing =
+    (acceptHook.status === "processing" || acceptHook.status === "confirming") &&
+    acceptHook.selectedOrder?.orderHash === order.orderHash;
 
   return (
     <div className={cn(

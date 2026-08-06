@@ -164,9 +164,9 @@ export function AssetPageMembership() {
   const { isMember } = useIsMemberOf(contract, tokenId, walletAddress ?? null);
   const {
     isProcessing,
-    orderToCancel: _orderToCancel, cancelPinOpen, cancelStep, cancelError,
-    handleCancelClick, handleCancelPin,
-    dismissCancelPin, resetCancelStep,
+    orderToCancel: _orderToCancel, cancelStep, cancelError,
+    handleCancelClick,
+    resetCancelStep,
   } = useOrderActions({ mutateListings, tokenStandard: "ERC1155" });
   const acceptOffer = useAcceptOffer({ mutateListings, tokenStandard: "ERC1155", activeListings: listings.filter(
     (l) => l.status === "ACTIVE" && (l.offer.itemType === "ERC721" || l.offer.itemType === "ERC1155")
@@ -422,9 +422,6 @@ export function AssetPageMembership() {
         setOfferOpen={setOfferOpen}
         transferOpen={transferOpen}
         setTransferOpen={setTransferOpen}
-        cancelPinOpen={cancelPinOpen}
-        handleCancelPin={handleCancelPin}
-        dismissCancelPin={dismissCancelPin}
         cancelStep={cancelStep}
         cancelError={cancelError}
         resetCancelStep={resetCancelStep}

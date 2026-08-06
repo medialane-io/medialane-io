@@ -137,9 +137,9 @@ export function AssetPageDrop() {
   const { listings, mutate: mutateListings } = useTokenListings(contract, tokenId);
   const {
     isProcessing,
-    orderToCancel, cancelPinOpen, cancelStep, cancelError,
-    handleCancelClick, handleCancelPin,
-    dismissCancelPin, resetCancelStep,
+    orderToCancel, cancelStep, cancelError,
+    handleCancelClick,
+    resetCancelStep,
   } = useOrderActions({ mutateListings });
   const acceptOffer = useAcceptOffer({ mutateListings, activeListings: listings.filter(
     (l) => l.status === "ACTIVE" && (l.offer.itemType === "ERC721" || l.offer.itemType === "ERC1155")
@@ -420,7 +420,6 @@ export function AssetPageDrop() {
       {purchaseOrder && <PurchaseDialog order={purchaseOrder} open onOpenChange={(v) => { if (!v) setPurchaseOrder(null); }} onSuccess={mutateListings} />}
       <ListingDialog open={listOpen} onOpenChange={setListOpen} assetContract={contract} tokenId={tokenId} tokenName={name} tokenStandard="ERC721" tokenImage={imageUrl} onSuccess={mutateListings} />
       <OfferDialog open={offerOpen} onOpenChange={setOfferOpen} assetContract={contract} tokenId={tokenId} tokenName={name} tokenImage={imageUrl ?? undefined} tokenStandard="ERC721" />
-      <PinDialog open={cancelPinOpen} onSubmit={handleCancelPin} onCancel={dismissCancelPin} title="Cancel listing" description={`Enter your PIN to cancel the listing for ${name}.`} />
       <AcceptOfferDialog hook={acceptOffer} tokenName={name} tokenImage={imageUrl} onCancelListing={handleCancelClick} />
       <CancelListingDialog cancelStep={cancelStep} cancelError={cancelError} tokenName={name} tokenImage={imageUrl} onReset={resetCancelStep} />
 

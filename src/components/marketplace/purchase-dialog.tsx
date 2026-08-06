@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useAuth } from "@clerk/nextjs";
 import {
   AlertCircle, ExternalLink, Loader2,
   ShoppingCart, RefreshCw, Zap, Minus, Plus,
@@ -15,22 +14,16 @@ import { assetHref as buildAssetHref } from "@/lib/routes";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { useMarketplace } from "@/hooks/use-marketplace";
-import { useMarketplaceActionFlow } from "@/hooks/use-marketplace-action-flow";
-import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
-import { chargePlatformFee } from "@/lib/charge-fee";
+import { useWalletMarketplaceActionFlow } from "@/hooks/use-wallet-marketplace-action-flow";
 import {
   MarketplaceErrorState,
-  MarketplacePinStep,
   MarketplaceTxLink,
 } from "@/components/marketplace/marketplace-dialog-primitives";
 import { EXPLORER_URL } from "@/lib/constants";
 import type { ApiOrder } from "@medialane/sdk";
 import { formatDisplayPrice, ipfsToHttp } from "@/lib/utils";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
-import { useWalletAuthMethod } from "@/hooks/use-wallet-auth-method";
-import { orderPriceToUsdcNumber } from "@/lib/chipi/session-preferences";
 
 interface PurchaseDialogProps {
   order: ApiOrder;
@@ -39,7 +32,7 @@ interface PurchaseDialogProps {
   onSuccess?: () => void;
 }
 
-type Step = "details" | "pin" | "processing" | "success";
+type Step = "details" | "processing" | "success";
 
 // ── Token hero — full-bleed image + name/price ───────────────────────────────
 function TokenHero({ order, quantity }: { order: ApiOrder; quantity: number }) {
@@ -188,22 +181,7 @@ function SuccessScreen({
 
 export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: PurchaseDialogProps) {
   const router = useRouter();
-  const { isSignedIn } = useAuth();
-  const {
-    fulfillOrder,
-    hasWallet,
-    hasActiveSession,
-    setupSession,
-    maybeClearSessionForAmountCap,
-    isProcessing,
-    txHash,
-    error,
-    resetState,
-  } = useMarketplace();
-
-  // Dedicated tx instance for the post-confirmation fee — separate from the
-  // buy's, so its status state never collides with the purchase flow.
-  const { executeTransaction: executeFeeTransaction } = useChipiTransaction();
+  const { fulfillOrder, hasWallet, resetState } = useMarketplace();
 
   const [step, setStep] = useState<Step>("details");
   const [quantity, setQuantity] = useState(1);
@@ -214,9 +192,6 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
     ? Math.max(1, parseInt(order.remainingAmount ?? order.offer.startAmount ?? "1", 10))
     : 1;
 
-  // Authoritative passkey-vs-PIN (cross-device), not just device-local WebAuthn support.
-  const { usesPasskey, authenticate, encryptKey } = useWalletAuthMethod();
-
   const handlePurchaseSuccess = (hash: string | null) => {
     setSuccessTxHash(hash ?? null);
     setStep("success");
@@ -225,67 +200,39 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
   };
 
   const {
-    walletSetupOpen,
-    setWalletSetupOpen,
-    pin,
-    setPin,
-    pinError,
-    setPinError,
-    isAuthenticatingPasskey,
-    isActivatingSession,
+    status,
+    txHash,
+    error,
     beginAction,
-    handlePin,
-    handleUsePasskey,
     resetActionFlow,
-  } = useMarketplaceActionFlow<{ quantity: number }>({
-    isSignedIn,
+  } = useWalletMarketplaceActionFlow<{ quantity: number }>({
     hasWallet,
-    hasActiveSession,
-    setupSession,
-    maybeClearSessionForAmountCap,
-    authenticate,
-    encryptKey,
-    executeAction: async (values, pinOrDerivedKey) => {
+    executeAction: async (values) => {
       setStep("processing");
       const qty = is1155 ? String(values.quantity) : undefined;
+      // The platform fee is bundled into the SAME atomic multicall as the
+      // fulfill call — no separate fire-and-forget transaction.
+      const feeQuantity = is1155 ? BigInt(values.quantity || 1) : 1n;
+      const feeGrossAmount = BigInt(order.consideration.startAmount ?? "0") * feeQuantity;
       const hash = await fulfillOrder({
         orderHash: order.orderHash,
-        pin: pinOrDerivedKey,
         tokenStandard: order.offer.itemType,
         quantity: qty,
+        feeToken: order.consideration.token ?? "",
+        feeGrossAmount,
       });
 
       if (hash) {
         handlePurchaseSuccess(hash);
-        // Fee — fired un-awaited (fire-and-forget). The success UI is already
-        // shown; the user never waits on this. Only runs because the buy
-        // confirmed (fulfillOrder returns a hash only on CONFIRMED; it throws
-        // on FAILED). order.consideration is the ERC-20 payment side.
-        const feeQuantity = is1155 ? BigInt(values.quantity || 1) : 1n;
-        const feeGrossAmount = BigInt(order.consideration.startAmount ?? "0") * feeQuantity;
-        console.info("[medialane] platform fee queued", {
-          surface: "marketplace",
-          orderHash: order.orderHash,
-          token: order.consideration.token,
-          grossAmount: feeGrossAmount.toString(),
-        });
-        void chargePlatformFee({
-          surface: "marketplace",
-          token: order.consideration.token ?? "",
-          grossAmount: feeGrossAmount,
-          pin: pinOrDerivedKey,
-          executeTransaction: executeFeeTransaction,
-        });
-      } else {
-        setStep("details");
+        return { txHash: hash };
       }
+      setStep("details");
     },
   });
 
-  const handleBuyClick = async () => {
-    const priceUsdc = orderPriceToUsdcNumber(order) * quantity;
-    await beginAction({ quantity }, priceUsdc);
-    setStep("pin");
+  const handleBuyClick = () => {
+    if (!hasWallet) return;
+    beginAction({ quantity });
   };
 
   const handleClose = (v: boolean) => {
@@ -303,11 +250,8 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
     }
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const processingMessage =
-    isProcessing
-      ? "Verifying marketplace order…"
-      : "Confirming on Starknet…";
-  const isTerminalError = !isProcessing && !!error && !!txHash;
+  const processingMessage = "Confirming on Starknet…";
+  const isTerminalError = status === "error";
 
   return (
     <>
@@ -343,51 +287,19 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
               onDone={() => onOpenChange(false)}
             />
 
-          ) : step === "processing" || isActivatingSession ? (
-            /* Processing / activating session */
+          ) : step === "processing" ? (
+            /* Processing */
             <div className="flex flex-col items-center gap-4 p-6 py-10">
               <div className="relative">
                 <Loader2 className="h-10 w-10 animate-spin text-primary" />
               </div>
               <div className="text-center space-y-1">
-                <p className="text-sm font-medium">
-                  {isActivatingSession ? "Activating wallet session…" : processingMessage}
-                </p>
-                {txHash && step === "processing" ? (
+                <p className="text-sm font-medium">{processingMessage}</p>
+                {txHash ? (
                   <MarketplaceTxLink txHash={txHash} explorerUrl={EXPLORER_URL} className="mt-1" />
                 ) : null}
               </div>
               <p className="text-xs text-muted-foreground">Please wait, do not close this window.</p>
-            </div>
-
-          ) : step === "pin" ? (
-            /* ── PIN step ──────────────────────────────────────────────── */
-            <div className="space-y-4">
-              <TokenHero order={order} quantity={quantity} />
-              <MarketplacePinStep
-                description="Enter your PIN to confirm this purchase."
-                pin={pin}
-                onPinChange={(value) => { setPin(value); setPinError(null); }}
-                pinError={pinError}
-                error={error}
-                secondaryLabel="Back"
-                onSecondary={() => { setStep("details"); setPin(""); setPinError(null); }}
-                primaryLabel="Buy now"
-                onPrimary={handlePin}
-                primaryDisabled={pin.length < 6}
-                primaryIcon={<ShoppingCart className="h-4 w-4" />}
-                passkeySupported={usesPasskey}
-                isAuthenticatingPasskey={isAuthenticatingPasskey}
-                onUsePasskey={handleUsePasskey}
-                footer={(
-                  <div className="flex items-start justify-center gap-1.5">
-                    <ShieldCheck className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
-                    <p className="text-[10px] text-center text-muted-foreground">
-                      All purchases settle atomically onchain — your asset is transferred instantly with the payment. Gas is sponsored by Medialane.
-                    </p>
-                  </div>
-                )}
-              />
             </div>
 
           ) : (
@@ -440,9 +352,9 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
                   </div>
                 )}
 
-                {!isSignedIn ? (
+                {!hasWallet ? (
                   <p className="text-sm text-muted-foreground text-center py-2">
-                    Sign in to purchase this asset.
+                    Set up your wallet to purchase this asset.
                   </p>
                 ) : (
                   <div className="btn-border-animated p-[1px] rounded-xl">
@@ -468,12 +380,6 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
 
         </DialogContent>
       </Dialog>
-
-      <WalletSetupDialog
-        open={walletSetupOpen}
-        onOpenChange={setWalletSetupOpen}
-        onSuccess={() => { setWalletSetupOpen(false); setStep("pin"); }}
-      />
     </>
   );
 }

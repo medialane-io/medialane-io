@@ -14,7 +14,6 @@ interface RunParams {
   currencySymbol: string;
   durationSeconds: number;
   tokenName: string;
-  pin: string;
   tokenStandard?: string;
 }
 
@@ -35,7 +34,6 @@ export function usePostMintListing() {
     currencySymbol,
     durationSeconds,
     tokenName,
-    pin,
     tokenStandard,
   }: RunParams) {
     setListingStep("polling");
@@ -71,7 +69,6 @@ export function usePostMintListing() {
       if (newToken) {
         setListingStep("listing");
         await createListing({
-          pin,
           assetContract: newToken.contractAddress,
           tokenId: newToken.tokenId,
           price,
