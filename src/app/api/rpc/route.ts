@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { PUBLIC_RPC_FALLBACKS, isTransientRpcError } from "@medialane/sdk";
 
 // Configured private endpoints first, then the SDK's shared public fallback
@@ -22,8 +21,10 @@ const RPC_URLS = Array.from(new Set([
  *
  * Client usage: set NEXT_PUBLIC_STARKNET_PROVIDER_URL=/api/rpc
  *
- * Security:
- *  - Requires an active Clerk session (prevents unauthenticated quota exhaustion).
+ * Security (mirrors medialane-starknet's /api/rpc — wallet-native has no
+ * server session to gate on):
+ *  - Same-origin guard: reject browser requests whose Origin is a different host.
+ *  - Per-IP rate limit bounds abuse from non-browser callers.
  *  - Only forwards methods in ALLOWED_METHODS (prevents abuse of expensive trace/debug methods).
  *  - Handles both single requests and JSON-RPC batch arrays.
  */
@@ -58,6 +59,44 @@ const ALLOWED_METHODS = new Set([
   "starknet_getStorageAt",
 ]);
 
+/**
+ * Same-origin guard. Blocks browser cross-origin abuse (which always carries an
+ * Origin header) without breaking same-origin calls that omit it. Returns false
+ * only when an Origin is present AND its host differs from the request host.
+ */
+function isSameOrigin(req: NextRequest): boolean {
+  const origin = req.headers.get("origin");
+  if (!origin) return true; // no Origin (SSR / non-CORS) → allow
+  const host = req.headers.get("host");
+  try {
+    return new URL(origin).host === host;
+  } catch {
+    return false;
+  }
+}
+
+// Per-IP rate limit. The same-origin guard only stops cross-origin *browsers*
+// (a request with no Origin header is allowed), so a script can still use this
+// as an open RPC relay and drain the keyed upstream's quota. Cap per-IP volume
+// — generous enough for legit heavy use, tight enough to bound abuse.
+// Per-process (Vercel lambdas don't share memory); acceptable for cost-drain
+// protection, not correctness.
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX = 600;
+const ipCounts = new Map<string, { count: number; resetAt: number }>();
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = ipCounts.get(ip);
+  if (!entry || now >= entry.resetAt) {
+    ipCounts.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return true;
+  }
+  if (entry.count >= RATE_LIMIT_MAX) return false;
+  entry.count += 1;
+  return true;
+}
+
 function isAllowedMethod(body: unknown): boolean {
   if (Array.isArray(body)) {
     return body.every((item) => isAllowedMethod(item));
@@ -80,10 +119,10 @@ function isAllowedMethod(body: unknown): boolean {
  * — starknet.js doesn't use batches in any of our flows, and an error
  * during a batched op is a hard failure either way.
  */
-function rpcError(code: number, message: string, id: number | null = null) {
+function rpcError(code: number, message: string, status = 200, id: number | null = null) {
   return NextResponse.json(
     { jsonrpc: "2.0", error: { code, message }, id },
-    { status: 200 },
+    { status },
   );
 }
 
@@ -92,10 +131,13 @@ function rpcError(code: number, message: string, id: number | null = null) {
 // lives in @medialane/sdk `isTransientRpcError` — single source of truth.
 
 export async function POST(req: NextRequest) {
-  // Require an active Clerk session — all on-chain interactions in this app require login.
-  const { userId } = await auth();
-  if (!userId) {
-    return rpcError(-32000, "Unauthorized");
+  if (!isSameOrigin(req)) {
+    return rpcError(-32600, "Cross-origin requests are not allowed", 403);
+  }
+
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
+  if (!checkRateLimit(ip)) {
+    return rpcError(-32005, "Too many requests", 429);
   }
 
   let body: unknown;

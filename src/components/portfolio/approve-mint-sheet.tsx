@@ -14,6 +14,7 @@ import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { confirmRemixOffer } from "@/hooks/use-remix-offers";
 import { useSiwsToken } from "@/hooks/use-siws-token";
+import { withSiwsAuth } from "@/lib/pinata-fetch";
 import { readAssignedEditionId } from "@/lib/erc1155-edition";
 import { executeIntent } from "@/lib/wallet/intent-tx";
 import { useMarketplace } from "@/hooks/use-marketplace";
@@ -112,6 +113,10 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
     const standard = selectedCollection.standard ?? "ERC721";
 
     try {
+      let authToken = getValidSiwsToken();
+      if (!authToken) authToken = await siwsSignIn();
+      if (!authToken) throw new Error("Set up your wallet first");
+
       // 1. Upload remix IPFS metadata
       const royaltyStr = offer.royaltyPct != null ? `${offer.royaltyPct}%` : undefined;
       const metadata = {
@@ -129,11 +134,11 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
           { trait_type: "Creator", value: walletAddress },
         ],
       };
-      const pinRes = await fetch("/api/pinata/json", {
+      const pinRes = await fetch("/api/pinata/json", withSiwsAuth(authToken, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(metadata),
-      });
+      }));
       const pinData = await pinRes.json().catch(() => ({}));
       if (!pinRes.ok || !pinData.uri) throw new Error(pinData.error ?? "Metadata upload failed");
 
@@ -214,12 +219,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
       }
       if (!orderHash) throw new Error("Could not confirm listing orderHash — check portfolio shortly");
 
-      // 5. Confirm offer in backend via SIWS (mint one now if there's no
-      // cached token — the wallet already signed above, so this is the same
-      // trust boundary, just a second signature).
-      let authToken = getValidSiwsToken();
-      if (!authToken) authToken = await siwsSignIn();
-      if (!authToken) throw new Error("Not authenticated");
+      // 5. Confirm offer in backend via SIWS — reuses the token minted above.
       await confirmRemixOffer(
         offer.id,
         {

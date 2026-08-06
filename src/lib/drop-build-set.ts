@@ -1,6 +1,7 @@
 "use client";
 
 import { uploadImageToIpfs } from "@/lib/upload-image";
+import { withSiwsAuth } from "@/lib/pinata-fetch";
 
 // License/IP fields shared across every item in the drop (the "shared defaults").
 // Derived from the chosen LICENSE_TYPES preset + IP type at create time.
@@ -40,14 +41,15 @@ export interface BuiltSet {
 export async function buildDropSet(
   items: DropItemInput[],
   license: SharedLicense,
-  collection: CollectionCover
+  collection: CollectionCover,
+  siwsToken: string
 ): Promise<BuiltSet> {
   if (items.length === 0) throw new Error("Add at least one item");
 
   // Upload each image sequentially (small curated sets; stays under Pinata rate limits).
   const fields = [];
   for (const item of items) {
-    const imageUri = await uploadImageToIpfs(item.imageFile);
+    const imageUri = await uploadImageToIpfs(item.imageFile, siwsToken);
     fields.push({
       name: item.name,
       description: item.description ?? "",
@@ -64,11 +66,11 @@ export async function buildDropSet(
     });
   }
 
-  const res = await fetch("/api/pinata/directory", {
+  const res = await fetch("/api/pinata/directory", withSiwsAuth(siwsToken, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ items: fields, collection }),
-  });
+  }));
   if (!res.ok) {
     const err = (await res.json().catch(() => null)) as { error?: string } | null;
     throw new Error(err?.error ?? "Directory pin failed");

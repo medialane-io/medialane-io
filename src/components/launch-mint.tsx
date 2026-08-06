@@ -4,6 +4,8 @@ import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
+import { useSiwsToken } from "@/hooks/use-siws-token";
+import { withSiwsAuth } from "@/lib/pinata-fetch";
 import { serializeByteArray } from "@/lib/cairo-calldata";
 import {
   Sparkles,
@@ -87,6 +89,7 @@ type MintStep = "ready" | "minting" | "success" | "error";
 export function LaunchMint() {
   const { hasWallet, address: recipientAddress, isDeployed } = useWalletNativeSession();
   const action = useWalletWriteAction();
+  const { getValidToken, signIn } = useSiwsToken();
 
   // Mint flow
   const [mintStep, setMintStep] = useState<MintStep>("ready");
@@ -130,7 +133,9 @@ export function LaunchMint() {
           "Claim your exclusive Genesis NFT."
         );
         form.append("external_url", "https://medialane.io");
-        const res = await fetch("/api/pinata", { method: "POST", body: form });
+        const siwsToken = getValidToken() ?? (await signIn());
+        if (!siwsToken) throw new Error("Wallet address not found.");
+        const res = await fetch("/api/pinata", withSiwsAuth(siwsToken, { method: "POST", body: form }));
         const data = await res.json();
         if (data.error) throw new Error("Metadata upload failed: " + data.error);
         tokenUri = data.uri;
@@ -148,7 +153,7 @@ export function LaunchMint() {
       if (recipientAddress) localStorage.setItem(`ml_genesis_${recipientAddress}`, result.txHash);
       return result;
     });
-  }, [recipientAddress, action]);
+  }, [recipientAddress, action, getValidToken, signIn]);
 
   useEffect(() => {
     if (action.status === "error") {

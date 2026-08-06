@@ -17,6 +17,7 @@ import { dropCreateSchema, type DropCreateFormValues } from "../drop-create-sche
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { getDefaultDropSchedule, suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
 import { buildDropSet } from "@/lib/drop-build-set";
+import { useSiwsToken } from "@/hooks/use-siws-token";
 import { parseAddresses, batchAllowlistCalldata } from "../drop-allowlist";
 import type { DraftItem } from "../drop-item-list";
 import type { MetadataField } from "@/components/create/ip-type-fields";
@@ -34,6 +35,7 @@ const PAYMENT_TOKENS = getListableTokens().map((t) => ({ symbol: t.symbol, addre
 
 export default function CreateDropPage() {
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
+  const { getValidToken, signIn } = useSiwsToken();
   const action = useWalletWriteAction();
   const client = useMedialaneClient();
   const busy = action.status === "processing" || action.status === "confirming";
@@ -195,6 +197,9 @@ export default function CreateDropPage() {
   const handleUnlocked = async (pendingValues: DropCreateFormValues, signer: StarknetVenueSigner) => {
     if (!walletAddress) throw new Error("Wallet not ready. Please refresh and try again.");
 
+    const siwsToken = getValidToken() ?? (await signIn());
+    if (!siwsToken) throw new Error("Set up your wallet first");
+
     let baseUri = "";
     let maxSupply = 0n;
     try {
@@ -215,7 +220,8 @@ export default function CreateDropPage() {
           royalty: pendingValues.royalty,
           templateTraits: metadataFieldsRef.current,
         },
-        { name: pendingValues.name, description: pendingValues.descriptionTemplate, image: imageUri }
+        { name: pendingValues.name, description: pendingValues.descriptionTemplate, image: imageUri },
+        siwsToken
       );
       baseUri = built.baseUri;
       maxSupply = BigInt(built.count);

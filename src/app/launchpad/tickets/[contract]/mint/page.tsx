@@ -35,6 +35,8 @@ import { useCollection } from "@/hooks/use-collections";
 import { useCollectionProfile } from "@/hooks/use-profiles";
 import { predictNextTicketId } from "@/hooks/use-tickets";
 import { uploadImageToIpfs } from "@/lib/upload-image";
+import { withSiwsAuth } from "@/lib/pinata-fetch";
+import { useSiwsToken } from "@/hooks/use-siws-token";
 import { rewardToast } from "@/lib/reward-toast";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { executeIntents } from "@/lib/wallet/intent-tx";
@@ -99,6 +101,7 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
   const { contract: rawContract } = use(params);
   const contract = normalizeAddress("STARKNET", rawContract);
   const { hasWallet, address } = useWalletNativeSession();
+  const { getValidToken, signIn } = useSiwsToken();
   const { collection, isLoading } = useCollection(contract);
   const { profile, isLoading: profileLoading } = useCollectionProfile(contract);
   const action = useWalletWriteAction();
@@ -146,7 +149,9 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
     setImageUri(null);
     setImageUploading(true);
     try {
-      const uri = await uploadImageToIpfs(file);
+      const token = getValidToken() ?? (await signIn());
+      if (!token) throw new Error("Set up your wallet first");
+      const uri = await uploadImageToIpfs(file, token);
       setImageUri(uri);
       toast.success("Image uploaded");
     } catch (err) {
@@ -175,6 +180,8 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
 
   const handleUnlocked = async (values: FormValues, signer: StarknetVenueSigner) => {
     if (!address) throw new Error("Wallet not ready. Please refresh and try again.");
+    const siwsToken = getValidToken() ?? (await signIn());
+    if (!siwsToken) throw new Error("Set up your wallet first");
     const metadataForm = new FormData();
     metadataForm.set("name", values.name);
     metadataForm.set("description", values.description ?? "");
@@ -193,7 +200,7 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
     metadataForm.append("tmpl_Max Supply", values.maxSupply);
     metadataForm.append("tmpl_Collection Contract", contract);
 
-    const uploadRes = await fetch("/api/pinata", { method: "POST", body: metadataForm });
+    const uploadRes = await fetch("/api/pinata", withSiwsAuth(siwsToken, { method: "POST", body: metadataForm }));
     const uploadData = await uploadRes.json();
     if (!uploadRes.ok || uploadData.error || !uploadData.uri) throw new Error(uploadData.error ?? "Metadata upload failed");
     const metadataUri: string = uploadData.uri;

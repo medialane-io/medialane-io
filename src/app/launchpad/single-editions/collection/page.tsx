@@ -1,6 +1,7 @@
 "use client";
 
 import { uploadImageToIpfs } from "@/lib/upload-image";
+import { withSiwsAuth } from "@/lib/pinata-fetch";
 import { rewardToast } from "@/lib/reward-toast";
 import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -23,6 +24,7 @@ import Link from "next/link";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { WalletTransactionDialog } from "@/components/transaction/wallet-transaction-dialog";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
+import { useSiwsToken } from "@/hooks/use-siws-token";
 import { executeIntent } from "@/lib/wallet/intent-tx";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
@@ -83,6 +85,7 @@ async function syncCollectionFromTx(txHash: string) {
 
 export default function LaunchpadCreateCollectionPage() {
   const { address: walletAddress } = useWalletNativeSession();
+  const { getValidToken, signIn } = useSiwsToken();
   const client = useMedialaneClient();
   // One primitive owns gate → unlock (passkey) → execute → result.
   const action = useWalletWriteAction();
@@ -141,11 +144,13 @@ export default function LaunchpadCreateCollectionPage() {
     setImageUri(null);
     setImageUploading(true);
     try {
+      const token = getValidToken() ?? (await signIn());
+      if (!token) throw new Error("Set up your wallet first");
       // Signed-url upload — straight to Pinata, bypasses Vercel's ~4.5 MB body cap.
       // Pinata has occasional slow spells — cap the wait so the user gets a
       // retry prompt instead of an endless spinner.
       const uri = await Promise.race([
-        uploadImageToIpfs(file),
+        uploadImageToIpfs(file, token),
         new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error("the image service is slow right now — please try again")), 60_000),
         ),
@@ -185,13 +190,16 @@ export default function LaunchpadCreateCollectionPage() {
   const runCreate = async (values: FormValues, signer: StarknetVenueSigner) => {
     if (!walletAddress) throw new Error("Wallet not ready. Please refresh and try again.");
 
+    const siwsToken = getValidToken() ?? (await signIn());
+    if (!siwsToken) throw new Error("Set up your wallet first");
+
     // 1. Upload collection metadata JSON to IPFS so permissionless dapps can resolve
     //    the collection image onchain (base_uri → collection metadata → image field).
     //    base_uri is embedded in the immutable deploy tx, so this MUST succeed —
     //    a silent fallback ships an empty base_uri that can never be fixed.
     let baseUri: string | undefined;
     if (imageUri) {
-      const metaRes = await fetch("/api/pinata/json", {
+      const metaRes = await fetch("/api/pinata/json", withSiwsAuth(siwsToken, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -200,7 +208,7 @@ export default function LaunchpadCreateCollectionPage() {
           image: imageUri,
           external_link: values.external_link || "https://medialane.io",
         }),
-      });
+      }));
       const metaData = await metaRes.json().catch(() => ({}));
       if (!metaRes.ok || !metaData.uri) {
         throw new Error("Couldn't save your collection details. Please try again.");

@@ -3,7 +3,7 @@
  *
  * Pins a sponsorship deal's declarative terms (@medialane/ui's
  * `toLicenseMetadata()` shape — licenseType, territory, deliverables, etc.)
- * to IPFS. Requires an active Clerk session.
+ * to IPFS. Requires a valid SIWS wallet session.
  *
  * Separate from `/api/pinata/json` on purpose: that route's ALLOWED_FIELDS
  * allowlist is scoped to OpenSea-style NFT metadata (name/description/image/
@@ -17,8 +17,8 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { PinataSDK } from "pinata";
+import { getSiwsWallet } from "@/lib/siws-server";
 
 function getPinata() {
   const jwt = process.env.PINATA_JWT;
@@ -30,8 +30,7 @@ function getPinata() {
 }
 
 export async function POST(req: NextRequest) {
-  const { userId } = await auth();
-  if (!userId) {
+  if (!getSiwsWallet(req.headers.get("authorization"))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

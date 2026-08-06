@@ -20,6 +20,7 @@ import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { executeIntent } from "@/lib/wallet/intent-tx";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
+import { useSiwsToken } from "@/hooks/use-siws-token";
 import { suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { MedialaneCollectionCard } from "@medialane/ui";
@@ -40,6 +41,7 @@ const COLLECTION_DEPLOYED_SELECTOR = hash.getSelectorFromName("CollectionDeploye
 
 export default function CreateIP1155CollectionPage() {
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
+  const { getValidToken, signIn } = useSiwsToken();
   // One primitive owns gate → unlock (passkey) → execute → result.
   const action = useWalletWriteAction();
   const client = useMedialaneClient();
@@ -116,12 +118,14 @@ export default function CreateIP1155CollectionPage() {
     //    deploy, so this MUST succeed; pinLaunchpadMetadata throws on failure.
     let collectionMetaUri: string | undefined;
     if (imageUri) {
+      const siwsToken = getValidToken() ?? (await signIn());
+      if (!siwsToken) throw new Error("Set up your wallet first");
       collectionMetaUri = await pinLaunchpadMetadata({
         name: pendingValues.name,
         description: pendingValues.description || "",
         image: imageUri,
         external_link: pendingValues.external_link || "",
-      });
+      }, siwsToken);
     }
 
       // 2. Create the collection through the metered intents API — the backend

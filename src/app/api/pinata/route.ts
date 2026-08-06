@@ -2,7 +2,7 @@
  * POST /api/pinata
  *
  * Server-side digital asset upload endpoint.
- * Requires an active Clerk session — prevents unauthorized Pinata quota usage.
+ * Requires a valid SIWS wallet session — prevents unauthorized Pinata quota usage.
  *
  * Accepts multipart/form-data:
  *   file            File?    — cover image (JPG/PNG/GIF/SVG/WebP, max 10 MB)
@@ -24,15 +24,15 @@
  *                              Max 30 fields. Reserved trait names are silently ignored.
  *
  * Note: "creator" is NOT accepted from the client — it is derived server-side from
- * the authenticated Clerk session to prevent impersonation.
+ * the authenticated SIWS token to prevent impersonation.
  *
  * Response: { uri: "ipfs://...", imageUri: "ipfs://..." | null, cid: string }
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth, clerkClient } from "@clerk/nextjs/server";
 import { PinataSDK } from "pinata";
 import { buildAssetMetadata } from "@/lib/asset-metadata";
+import { getSiwsWallet } from "@/lib/siws-server";
 
 const pinata = new PinataSDK({
   pinataJwt: process.env.PINATA_JWT!,
@@ -51,15 +51,10 @@ const MAX_TEMPLATE_FIELDS = 30;
 
 export async function POST(req: NextRequest) {
   // ── Auth ─────────────────────────────────────────────────────────────────────
-  const { userId } = await auth();
-  if (!userId) {
+  const creator = getSiwsWallet(req.headers.get("authorization"));
+  if (!creator) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
-  // Derive creator wallet server-side from Clerk — never trust client-supplied value.
-  const client = await clerkClient();
-  const clerkUser = await client.users.getUser(userId);
-  const creator = (clerkUser.publicMetadata?.publicKey as string | undefined) ?? null;
 
   try {
     const formData = await req.formData();

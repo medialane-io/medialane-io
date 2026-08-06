@@ -5,7 +5,7 @@
  * files directly to Pinata without routing the bytes through this server —
  * Vercel caps serverless request bodies at ~4.5 MB (413), so anything larger
  * must bypass it.
- * Requires an active Clerk session.
+ * Requires a valid SIWS wallet session.
  *
  * Body (JSON, optional): { kind?: "image" | "document" } — defaults to "image"
  * (existing image callers POST with no body).
@@ -14,8 +14,8 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { PinataSDK } from "pinata";
+import { getSiwsWallet } from "@/lib/siws-server";
 
 const pinata = new PinataSDK({
   pinataJwt: process.env.PINATA_JWT!,
@@ -44,8 +44,7 @@ const MAX_BYTES: Record<"image" | "document", number> = {
 };
 
 export async function POST(req: NextRequest) {
-  const { userId } = await auth();
-  if (!userId) {
+  if (!getSiwsWallet(req.headers.get("authorization"))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

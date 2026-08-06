@@ -2,15 +2,15 @@
  * POST /api/pinata/json
  *
  * Uploads a JSON document to Pinata/IPFS.
- * Requires an active Clerk session.
+ * Requires a valid SIWS wallet session.
  *
  * Accepts: application/json body (any JSON object)
  * Response: { uri: "ipfs://...", cid: string }
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { PinataSDK } from "pinata";
+import { getSiwsWallet } from "@/lib/siws-server";
 
 function getPinata() {
   const jwt = process.env.PINATA_JWT;
@@ -22,8 +22,7 @@ function getPinata() {
 }
 
 export async function POST(req: NextRequest) {
-  const { userId } = await auth();
-  if (!userId) {
+  if (!getSiwsWallet(req.headers.get("authorization"))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

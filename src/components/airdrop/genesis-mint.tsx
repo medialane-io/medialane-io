@@ -5,6 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
+import { useSiwsToken } from "@/hooks/use-siws-token";
+import { withSiwsAuth } from "@/lib/pinata-fetch";
 import { serializeByteArray } from "@/lib/cairo-calldata";
 import {
   Sparkles,
@@ -55,6 +57,7 @@ export function GenesisMint() {
   const { hasWallet, address: walletAddress, isDeployed } = useWalletNativeSession();
   const pathname = usePathname();
   const action = useWalletWriteAction();
+  const { getValidToken, signIn } = useSiwsToken();
 
   const [mintStep, setMintStep] = useState<MintStep>("ready");
   const [mintError, setMintError] = useState<string | null>(null);
@@ -89,7 +92,9 @@ export function GenesisMint() {
         form.append("name", "Medialane Launch Airdrop");
         form.append("description", "Early participant in the Medialane airdrop campaign.");
         form.append("external_url", "https://medialane.io/mint");
-        const res = await fetch("/api/pinata", { method: "POST", body: form });
+        const siwsToken = getValidToken() ?? (await signIn());
+        if (!siwsToken) throw new Error("Account not found. Please try again.");
+        const res = await fetch("/api/pinata", withSiwsAuth(siwsToken, { method: "POST", body: form }));
         const data = await res.json();
         if (data.error) throw new Error("Failed to register. Please try again.");
         tokenUri = data.uri;
@@ -107,7 +112,7 @@ export function GenesisMint() {
       if (storageKey) localStorage.setItem(storageKey, result.txHash);
       return result;
     });
-  }, [walletAddress, storageKey, action]);
+  }, [walletAddress, storageKey, action, getValidToken, signIn]);
 
   useEffect(() => {
     if (action.status === "error") {

@@ -11,6 +11,7 @@ import { executeIntent } from "@/lib/wallet/intent-tx";
 import { LicenseTermsBuilder, EMPTY_SPONSORSHIP_TERMS, toLicenseMetadata, toDurationDays, type SponsorshipTerms } from "@medialane/ui";
 import { getTokenBySymbol, SUPPORTED_TOKENS } from "@medialane/sdk";
 import { pinSponsorshipTerms } from "@/lib/launchpad-metadata";
+import { useSiwsToken } from "@/hooks/use-siws-token";
 import { rewardToast } from "@/lib/reward-toast";
 import { toast } from "sonner";
 
@@ -32,6 +33,7 @@ export function SponsorSolicitDialog({
   const action = useWalletWriteAction();
   const busy = action.status === "processing" || action.status === "confirming";
   const { address: walletAddress } = useWalletNativeSession();
+  const { getValidToken, signIn } = useSiwsToken();
   const client = useMedialaneClient();
   const [terms, setTerms] = useState<SponsorshipTerms>({ ...EMPTY_SPONSORSHIP_TERMS, paymentTokenSymbol: "USDC" });
 
@@ -44,7 +46,9 @@ export function SponsorSolicitDialog({
     if (!durationDays) { toast.error("How long should the license last?"); return; }
 
     void action.run(async (signer) => {
-      const licenseTermsUri = await pinSponsorshipTerms(toLicenseMetadata(terms));
+      const siwsToken = getValidToken() ?? (await signIn());
+      if (!siwsToken) throw new Error("Set up your wallet first");
+      const licenseTermsUri = await pinSponsorshipTerms(toLicenseMetadata(terms), siwsToken);
 
       const amount = BigInt(Math.round(Number(terms.amount) * 10 ** token.decimals));
       const duration = durationDays * 86400;

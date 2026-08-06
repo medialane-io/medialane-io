@@ -20,6 +20,8 @@ import { Contract, num, type Abi } from "starknet";
 import { starknetProvider } from "@/lib/starknet";
 import { readAssignedEditionId } from "@/lib/erc1155-edition";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
+import { withSiwsAuth } from "@/lib/pinata-fetch";
+import { useSiwsToken } from "@/hooks/use-siws-token";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { executeIntent } from "@/lib/wallet/intent-tx";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
@@ -41,6 +43,7 @@ export default function MintIP1155Page() {
   const collectionAddress = normalizeAddress("STARKNET", rawContract ?? "");
 
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
+  const { getValidToken, signIn } = useSiwsToken();
   const action = useWalletWriteAction();
   const client = useMedialaneClient();
 
@@ -142,6 +145,9 @@ export default function MintIP1155Page() {
   const handleUnlocked = async (values: NftEditionsMintFormValues, signer: StarknetVenueSigner) => {
     if (!walletAddress || !imageUri) throw new Error("Wallet not ready. Please refresh and try again.");
 
+    const siwsToken = getValidToken() ?? (await signIn());
+    if (!siwsToken) throw new Error("Set up your wallet first");
+
     const metadataForm = new FormData();
     metadataForm.set("name", values.name);
     metadataForm.set("description", values.description ?? "");
@@ -171,7 +177,7 @@ export default function MintIP1155Page() {
     appendTrait("Editions", values.value);
     appendTrait("Collection Contract", collectionAddress);
 
-    const uploadRes = await fetch("/api/pinata", { method: "POST", body: metadataForm });
+    const uploadRes = await fetch("/api/pinata", withSiwsAuth(siwsToken, { method: "POST", body: metadataForm }));
     const uploadData = await uploadRes.json();
     if (!uploadRes.ok || uploadData.error || !uploadData.uri) {
       throw new Error(uploadData.error ?? "Metadata upload failed");

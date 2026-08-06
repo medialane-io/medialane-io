@@ -16,6 +16,7 @@ import {
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { WalletTransactionDialog } from "@/components/transaction/wallet-transaction-dialog";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
+import { useSiwsToken } from "@/hooks/use-siws-token";
 import { normalizeAddress } from "@medialane/sdk";
 import { hash } from "starknet";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
@@ -47,6 +48,7 @@ type FormValues = z.infer<typeof schema>;
 
 export default function CreateClubPage() {
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
+  const { getValidToken, signIn } = useSiwsToken();
   const action = useWalletWriteAction();
   const client = useMedialaneClient();
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
@@ -84,11 +86,13 @@ export default function CreateClubPage() {
     // deploy, so a failed pin is fatal (pinLaunchpadMetadata throws).
     let baseUri = "";
     if (imageUri) {
+      const siwsToken = getValidToken() ?? (await signIn());
+      if (!siwsToken) throw new Error("Set up your wallet first");
       baseUri = await pinLaunchpadMetadata({
         name: values.name,
         description: values.description || "",
         image: imageUri,
-      });
+      }, siwsToken);
     }
 
     const intentRes = await client.api.createCollectionIntent({

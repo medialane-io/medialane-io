@@ -1,4 +1,3 @@
-import { auth } from "@clerk/nextjs/server";
 import { type NextRequest, NextResponse } from "next/server";
 import { readBodyWithCap } from "@/lib/proxy-body";
 
@@ -6,9 +5,8 @@ const PINATA_JWT = process.env.PINATA_JWT;
 const DEDICATED_GATEWAY = process.env.PINATA_DEDICATED_GATEWAY;
 const PUBLIC_GATEWAY = "https://gateway.pinata.cloud";
 
-// Reasonable ceiling for a proxied thumbnail request — this route is public
-// (no Clerk gate on the query param), so cap what a caller can ask a
-// paid-tier Pinata gateway to render.
+// Reasonable ceiling for a proxied thumbnail request — this route is public,
+// so cap what a caller can ask a paid-tier Pinata gateway to render.
 const MAX_WIDTH = 2000;
 
 // Cap the proxied body. The route is public and CID content is arbitrary
@@ -17,12 +15,33 @@ const MAX_WIDTH = 2000;
 // (20 MB document) with headroom; images/metadata are far smaller.
 const MAX_BYTES = 25 * 1024 * 1024;
 
+// Per-IP rate limit — the route has no session to gate on (wallet-native has
+// no server session), so this bounds abuse of the paid dedicated gateway.
+// Per-process (Vercel lambdas don't share memory); acceptable for cost-drain
+// protection, not correctness.
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX = 300;
+const ipCounts = new Map<string, { count: number; resetAt: number }>();
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = ipCounts.get(ip);
+  if (!entry || now >= entry.resetAt) {
+    ipCounts.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return true;
+  }
+  if (entry.count >= RATE_LIMIT_MAX) return false;
+  entry.count += 1;
+  return true;
+}
+
 /**
  * GET /api/ipfs/[...cid]?w=<width>
  *
- * Server-side IPFS proxy. For authenticated users, uses the dedicated
- * Pinata gateway with JWT for better rate limits. For anonymous users,
- * falls back to the public gateway without forwarding credentials.
+ * Server-side IPFS proxy. Uses the dedicated Pinata gateway with JWT when
+ * configured (better rate limits), falling back to the public gateway
+ * otherwise. Public route — every visitor gets the same treatment; per-IP
+ * rate limiting is what bounds abuse (see above).
  *
  * Supports paths: /api/ipfs/QmXxx  and  /api/ipfs/QmXxx/image.png
  *
@@ -33,15 +52,19 @@ const MAX_BYTES = 25 * 1024 * 1024;
  * (avatars, thumbnails) — omit it to get the original file untouched.
  *
  * `/files/{cid}` requires a Pinata auth token even on the "public" gateway
- * domain (confirmed in prod: anonymous requests 401). Since anonymous
- * requests never carry `PINATA_JWT` by design, resize is only attempted for
- * authenticated requests on the dedicated gateway — anonymous callers always
- * get the unresized original via `/ipfs/{cid}`, never a 401.
+ * domain (confirmed in prod: unauthenticated requests 401), so resize is
+ * only attempted when a dedicated gateway + JWT are configured — otherwise
+ * every caller gets the unresized original via `/ipfs/{cid}`, never a 401.
  */
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ cid: string[] }> }
 ) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
+  if (!checkRateLimit(ip)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   const { cid: segments } = await params;
   const cidPath = segments.join("/");
 
@@ -57,23 +80,16 @@ export async function GET(
     return NextResponse.json({ error: "Invalid IPFS path" }, { status: 400 });
   }
 
-  const { userId } = await auth();
-  const isAuthenticated = !!userId;
-
-  // Only attach PINATA_JWT and use the dedicated gateway for authenticated users.
-  // Anonymous users use the public gateway without credentials.
-  const gateway = isAuthenticated && DEDICATED_GATEWAY
-    ? DEDICATED_GATEWAY
-    : PUBLIC_GATEWAY;
+  const useDedicated = !!DEDICATED_GATEWAY && !!PINATA_JWT;
+  const gateway = useDedicated ? DEDICATED_GATEWAY : PUBLIC_GATEWAY;
 
   const headers: HeadersInit = {};
-  if (isAuthenticated && PINATA_JWT) {
+  if (useDedicated) {
     headers["Authorization"] = `Bearer ${PINATA_JWT}`;
   }
 
   const width = Number.parseInt(req.nextUrl.searchParams.get("w") ?? "", 10);
-  const canResize = isAuthenticated && !!DEDICATED_GATEWAY && !!PINATA_JWT;
-  const wantsResize = canResize && Number.isFinite(width) && width > 0 && width <= MAX_WIDTH;
+  const wantsResize = useDedicated && Number.isFinite(width) && width > 0 && width <= MAX_WIDTH;
 
   // Optimization params are only documented on `/files/{cid}`; leave every
   // other (unresized) caller on the classic `/ipfs/{cid}` path unchanged.
@@ -130,15 +146,9 @@ export async function GET(
       // unique opaque origin with no script execution. Harmless for images/
       // media loaded via <img>/<video> (CSP doesn't apply to subresources).
       "Content-Security-Policy": "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; sandbox",
-      // IPFS content is immutable by CID. Authenticated responses must not be
-      // shared by CDN caches since they were fetched with service credentials.
-      // `s-maxage` (vs browser-only `max-age`) is what lets Vercel's edge
-      // cache the anonymous response across *all* visitors, not just the
-      // requesting browser — the same CID is served straight from the edge
-      // after the first request anywhere, no repeat Pinata round trip.
-      "Cache-Control": isAuthenticated
-        ? "private, max-age=31536000, immutable"
-        : "public, max-age=31536000, s-maxage=31536000, immutable",
+      // IPFS content is immutable by CID — safe to cache at the CDN edge
+      // (s-maxage) across all visitors, not just the requesting browser.
+      "Cache-Control": "public, max-age=31536000, s-maxage=31536000, immutable",
       "Access-Control-Allow-Origin": "*",
     },
   });

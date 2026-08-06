@@ -20,6 +20,7 @@ import {
 import { IPTypeFields, type MetadataField } from "@/components/create/ip-type-fields";
 import { ToggleGroup, Section } from "@/components/create/create-form-primitives";
 import { uploadDocumentToIpfs } from "@/lib/upload-document";
+import { useSiwsToken } from "@/hooks/use-siws-token";
 import { DropItemList, type DraftItem } from "./drop-item-list";
 import type { DropCreateFormValues } from "./drop-create-schema";
 
@@ -84,6 +85,13 @@ export function DropCreateForm({
   const whitelistEnabled = form.watch("whitelistEnabled");
   const [licensingOpen, setLicensingOpen] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const { getValidToken, signIn } = useSiwsToken();
+
+  const uploadDocument = async (file: File) => {
+    const token = getValidToken() ?? (await signIn());
+    if (!token) throw new Error("Set up your wallet first");
+    return uploadDocumentToIpfs(file, token);
+  };
 
   useEffect(() => {
     if (!tokenDropdownOpen) return;
@@ -245,7 +253,7 @@ export function DropCreateForm({
                   </Select>
                 </FormItem>
               )} />
-              <IPTypeFields ipType={form.watch("ipType") as IPType} onChange={onMetadataFieldsChange} uploadDocument={uploadDocumentToIpfs} />
+              <IPTypeFields ipType={form.watch("ipType") as IPType} onChange={onMetadataFieldsChange} uploadDocument={uploadDocument} />
       </CollapsibleSection>
 
       {/* Drop settings */}

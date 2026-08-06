@@ -17,6 +17,7 @@ import { executeIntent } from "@/lib/wallet/intent-tx";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
+import { useSiwsToken } from "@/hooks/use-siws-token";
 import { getDefaultClaimWindow, suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
 import { PopCreateForm } from "../pop-create-form";
 import { popCreateSchema, type PopCreateFormValues } from "../pop-create-schema";
@@ -29,6 +30,7 @@ import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed
 
 export default function CreatePOPPage() {
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
+  const { getValidToken, signIn } = useSiwsToken();
   const action = useWalletWriteAction();
   const client = useMedialaneClient();
   const busy = action.status === "processing" || action.status === "confirming";
@@ -113,7 +115,9 @@ export default function CreatePOPPage() {
       ],
     };
     if (imageUri) metadata.image = imageUri;
-    const baseUri = await pinLaunchpadMetadata(metadata);
+    const siwsToken = getValidToken() ?? (await signIn());
+    if (!siwsToken) throw new Error("Set up your wallet first");
+    const baseUri = await pinLaunchpadMetadata(metadata, siwsToken);
 
     const claimEndTimestamp = Math.floor(
       new Date(`${pendingValues.claimEndDate}T${pendingValues.claimEndTime}:00`).getTime() / 1000

@@ -1,6 +1,7 @@
 "use client";
 
 import { uploadImageToIpfs } from "@/lib/upload-image";
+import { withSiwsAuth } from "@/lib/pinata-fetch";
 import { useState, useRef, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
@@ -198,11 +199,14 @@ export default function CreateRemixPage() {
         ],
       };
 
+      const authToken = getValidToken() ?? (await signIn());
+      if (!authToken) throw new Error("Set up your wallet first");
+
       let tokenUri: string;
 
       if (imageFile) {
         // Signed-url upload — straight to Pinata, bypasses Vercel's ~4.5 MB body cap
-        const imageUri = await uploadImageToIpfs(imageFile);
+        const imageUri = await uploadImageToIpfs(imageFile, authToken);
         const formData = new FormData();
         formData.set("imageUri", imageUri);
         formData.set("name", metadata.name);
@@ -218,16 +222,16 @@ export default function CreateRemixPage() {
         formData.set("royalty", royalty || "0");
         formData.append("tmpl_Parent Contract", contract);
         formData.append("tmpl_Parent Token ID", tokenId);
-        const uploadRes = await fetch("/api/pinata", { method: "POST", body: formData });
+        const uploadRes = await fetch("/api/pinata", withSiwsAuth(authToken, { method: "POST", body: formData }));
         const uploadData = await uploadRes.json();
         if (!uploadRes.ok || !uploadData.uri) throw new Error(uploadData.error ?? "Upload failed");
         tokenUri = uploadData.uri;
       } else {
-        const pinRes = await fetch("/api/pinata/json", {
+        const pinRes = await fetch("/api/pinata/json", withSiwsAuth(authToken, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(metadata),
-        });
+        }));
         const pinData = await pinRes.json();
         if (!pinRes.ok || !pinData.uri) throw new Error(pinData.error ?? "Metadata upload failed");
         tokenUri = pinData.uri;
@@ -293,8 +297,6 @@ export default function CreateRemixPage() {
       }
 
       // 3. Record the remix (parent → child attribution link)
-      const authToken = getValidToken() ?? (await signIn());
-      if (!authToken) throw new Error("Not authenticated");
       await registerRemix(
         {
           originalContract: contract,

@@ -1,6 +1,7 @@
 "use client";
 
 import { uploadImageToIpfs } from "@/lib/upload-image";
+import { withSiwsAuth } from "@/lib/pinata-fetch";
 import { rewardToast } from "@/lib/reward-toast";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { getService } from "@medialane/sdk";
@@ -34,6 +35,7 @@ import { CollapsibleSection } from "@/components/ui/collapsible-section";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
+import { useSiwsToken } from "@/hooks/use-siws-token";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { MintProgressDialog } from "@/components/marketplace/mint-progress-dialog";
 import type { MintTxStatus } from "@/types/mint-tx-status";
@@ -290,6 +292,14 @@ function CollectionPicker({
 
 export function SingleEditionsContent() {
   const { hasWallet, address: walletAddress, signer } = useWalletNativeSession();
+  const { getValidToken, signIn } = useSiwsToken();
+
+  const uploadDocument = async (file: File) => {
+    const token = getValidToken() ?? (await signIn());
+    if (!token) throw new Error("Set up your wallet first");
+    return uploadDocumentToIpfs(file, token);
+  };
+
   const [status, setStatus] = useState<MintTxStatus>("idle");
   const [txHash, setTxHash] = useState<string | null>(null);
 
@@ -405,6 +415,8 @@ export function SingleEditionsContent() {
     setMintStep("uploading");
 
     try {
+      const siwsToken = getValidToken() ?? (await signIn());
+      if (!siwsToken) throw new Error("Set up your wallet first");
       const selectedCollection = collections.find((c) => c.collectionId === pendingValues.collectionId);
       updateMintDebug({
         step: "uploading",
@@ -430,7 +442,7 @@ export function SingleEditionsContent() {
       formData.set("royalty", String(pendingValues.royalty));
       if (imageFile) {
         // Signed-url upload — straight to Pinata, bypasses Vercel's ~4.5 MB body cap
-        formData.set("imageUri", await uploadImageToIpfs(imageFile));
+        formData.set("imageUri", await uploadImageToIpfs(imageFile, siwsToken));
       }
 
       // Forward template and custom metadata fields as standard NFT attributes.
@@ -438,7 +450,7 @@ export function SingleEditionsContent() {
         if (traitType && value) formData.append(`tmpl_${traitType}`, value);
       });
 
-      const uploadRes = await fetch("/api/pinata", { method: "POST", body: formData });
+      const uploadRes = await fetch("/api/pinata", withSiwsAuth(siwsToken, { method: "POST", body: formData }));
       const uploadData = await uploadRes.json();
       if (!uploadRes.ok || uploadData.error) {
         throw new Error(uploadData.error ?? "Image upload failed");
@@ -860,7 +872,7 @@ export function SingleEditionsContent() {
                       key={metadataResetKey}
                       ipType={form.watch("ipType") as IPType}
                       onChange={handleMetadataFields}
-                  uploadDocument={uploadDocumentToIpfs}
+                  uploadDocument={uploadDocument}
                     />
             </CollapsibleSection>
 

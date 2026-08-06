@@ -21,6 +21,7 @@ import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed
 import { Handshake as HandshakeAsideIcon, ShieldCheck, Coins, Gift } from "lucide-react";
 import { ClaimRail } from "@/components/claim/claim-rail";
 import { pinSponsorshipTerms } from "@/lib/launchpad-metadata";
+import { useSiwsToken } from "@/hooks/use-siws-token";
 import { resolveTokenImage } from "@/lib/utils";
 import { usePendingProposalsForAsset } from "@/hooks/use-sponsorship";
 import { toast } from "sonner";
@@ -119,6 +120,7 @@ type Mode = "offer" | "propose";
 
 export default function CreateSponsorshipOfferPage() {
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
+  const { getValidToken, signIn } = useSiwsToken();
   const client = useMedialaneClient();
   const action = useWalletWriteAction();
   const busy = action.status === "processing" || action.status === "confirming";
@@ -165,7 +167,9 @@ export default function CreateSponsorshipOfferPage() {
     if (!durationDays) { toast.error("How long should the license last?"); return; }
 
     void action.run(async (signer) => {
-      const licenseTermsUri = await pinSponsorshipTerms(toLicenseMetadata(terms));
+      const siwsToken = getValidToken() ?? (await signIn());
+      if (!siwsToken) throw new Error("Set up your wallet first");
+      const licenseTermsUri = await pinSponsorshipTerms(toLicenseMetadata(terms), siwsToken);
 
       const amount = BigInt(Math.round(Number(terms.amount) * 10 ** token.decimals));
       const duration = durationDays * 86400;

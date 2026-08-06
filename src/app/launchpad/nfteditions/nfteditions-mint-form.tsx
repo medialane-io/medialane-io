@@ -32,6 +32,7 @@ import {
 import { FadeIn } from "@/components/ui/motion-primitives";
 import { IPTypeFields, type MetadataField } from "@/components/create/ip-type-fields";
 import { uploadDocumentToIpfs } from "@/lib/upload-document";
+import { useSiwsToken } from "@/hooks/use-siws-token";
 import { cn } from "@/lib/utils";
 import {
   AI_POLICIES,
@@ -101,6 +102,13 @@ export function NftEditionsMintForm({
   const [licensingOpen, setLicensingOpen] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [ipTypeOpen, setIpTypeOpen] = useState(false);
+  const { getValidToken, signIn } = useSiwsToken();
+
+  const uploadDocument = async (file: File) => {
+    const token = getValidToken() ?? (await signIn());
+    if (!token) throw new Error("Set up your wallet first");
+    return uploadDocumentToIpfs(file, token);
+  };
 
   const handleLicenseChange = (value: string) => {
     form.setValue("licenseType", value);
@@ -383,7 +391,7 @@ export function NftEditionsMintForm({
                   key={metadataResetKey}
                   ipType={form.watch("ipType") as IPType}
                   onChange={onMetadataFieldsChange}
-                  uploadDocument={uploadDocumentToIpfs}
+                  uploadDocument={uploadDocument}
                 />
         </CollapsibleSection>
       </FadeIn>

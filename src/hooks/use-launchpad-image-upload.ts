@@ -1,6 +1,7 @@
 "use client";
 
 import { uploadImageToIpfs } from "@/lib/upload-image";
+import { useSiwsToken } from "@/hooks/use-siws-token";
 import { useEffect, useRef, useState } from "react";
 
 interface UseLaunchpadImageUploadOptions {
@@ -28,6 +29,7 @@ export function useLaunchpadImageUpload({
   const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const previewUrlRef = useRef<string | null>(null);
+  const { getValidToken, signIn } = useSiwsToken();
 
   useEffect(() => {
     return () => {
@@ -72,11 +74,13 @@ export function useLaunchpadImageUpload({
     setImageUploading(true);
 
     try {
+      const token = getValidToken() ?? (await signIn());
+      if (!token) throw new Error("Set up your wallet first");
       // Signed-url upload — straight to Pinata, bypasses Vercel's ~4.5 MB body cap.
       // IPFS pinning is an external service with occasional slow spells — cap the
       // wait so the user gets a retry prompt instead of an endless spinner.
       const uri = await Promise.race([
-        uploadImageToIpfs(file),
+        uploadImageToIpfs(file, token),
         new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error("the image service is slow right now — please try again")), 60_000),
         ),

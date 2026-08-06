@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth, clerkClient } from "@clerk/nextjs/server";
 import { buildAssetMetadata, type BuildAssetMetadataInput } from "@/lib/asset-metadata";
+import { getSiwsWallet } from "@/lib/siws-server";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -15,8 +15,8 @@ type DropItemFields = Omit<BuildAssetMetadataInput, "creator" | "registrationDat
 // Each item is encoded with buildAssetMetadata — byte-identical to a normal IP asset
 // (OpenSea + Berne license attributes), so every drop token is a first-class asset.
 export async function POST(req: NextRequest) {
-  const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const creator = getSiwsWallet(req.headers.get("authorization"));
+  if (!creator) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = (await req.json().catch(() => null)) as {
     items?: DropItemFields[];
@@ -42,10 +42,6 @@ export async function POST(req: NextRequest) {
   const jwt = process.env.PINATA_JWT;
   if (!jwt) return NextResponse.json({ error: "Pinata not configured" }, { status: 500 });
 
-  // Derive creator wallet server-side from Clerk — never trust a client value.
-  const client = await clerkClient();
-  const clerkUser = await client.users.getUser(userId);
-  const creator = (clerkUser.publicMetadata?.publicKey as string | undefined) ?? null;
   const registrationDate = new Date().toISOString().split("T")[0]; // one stamp for the whole set
 
   // Pinata pins a DIRECTORY only when the files share a common folder path in their names
