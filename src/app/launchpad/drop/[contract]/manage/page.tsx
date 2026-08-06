@@ -12,16 +12,13 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { FadeIn } from "@/components/ui/motion-primitives";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PinDialog } from "@/components/chipi/pin-dialog";
-import { useWalletUnlock } from "@/hooks/use-wallet-unlock";
-import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
-import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useDropInfo, useOnChainDropState } from "@/hooks/use-drops";
 import { starknetProvider } from "@/lib/starknet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { parseAddresses, batchAllowlistCalldata } from "../../drop-allowlist";
+import type { Call } from "starknet";
 
 // ── On-chain reads ────────────────────────────────────────────────────────────
 
@@ -195,7 +192,7 @@ export default function DropManagePage({
   params: Promise<{ contract: string }>;
 }) {
   const { contract } = use(params);
-  const { walletAddress, hasWallet } = useSessionKey();
+  const { address: walletAddress, hasWallet, signer } = useWalletNativeSession();
   const { dropInfo, isLoading: dropLoading } = useDropInfo(contract);
   const { state: dropState } = useOnChainDropState(contract);
   const {
@@ -203,11 +200,9 @@ export default function DropManagePage({
     isLoading: allowlistLoading,
     mutate: mutateAllowlist,
   } = useAllowlistEnabled(contract);
-  const { executeTransaction, isSubmitting } = useChipiTransaction();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { unlock, pinDialogProps } = useWalletUnlock();
   const [txResult, setTxResult] = useState<{ type: "success" | "error"; message: string } | null>(null);
-  const [walletSetupOpen, setWalletSetupOpen] = useState(false);
 
   const isOwner =
     walletAddress &&
@@ -216,55 +211,44 @@ export default function DropManagePage({
 
   const isLoading = dropLoading || allowlistLoading;
 
-  const execute = (
-    calls: Array<{ contractAddress: string; entrypoint: string; calldata: string[] }>,
-    successMsg: string
-  ) => {
-    if (!hasWallet) { setWalletSetupOpen(true); return; }
-    // `secret` is the wallet-unlock material — a typed PIN or the passkey key.
-    // The trailing .catch handles unlock-level throws (e.g. passkey unavailable)
-    // that fire before the inner callback runs.
-    void unlock(async (secret) => {
+  const execute = async (calls: Call[], successMsg: string) => {
+    if (!hasWallet || !signer) return;
+    setIsSubmitting(true);
     try {
-      const result = await executeTransaction({ pin: secret, calls });
-      if (result.status === "confirmed") {
-        setTxResult({ type: "success", message: successMsg });
-        mutateAllowlist();
-      } else {
-        setTxResult({ type: "error", message: result.revertReason ?? "Transaction reverted" });
-      }
+      await signer.execute(calls);
+      setTxResult({ type: "success", message: successMsg });
+      mutateAllowlist();
     } catch (err) {
       setTxResult({ type: "error", message: err instanceof Error ? err.message : "Transaction failed" });
+    } finally {
+      setIsSubmitting(false);
     }
-    }).catch((err) => {
-      setTxResult({ type: "error", message: err instanceof Error ? err.message : "Could not unlock your wallet" });
-    });
   };
 
   const handleToggleAllowlist = () => {
     const enabling = !allowlistEnabled;
-    execute(
+    void execute(
       [{ contractAddress: contract, entrypoint: "set_allowlist_enabled", calldata: [enabling ? "1" : "0"] }],
       enabling ? "Allowlist mode enabled" : "Switched to open mint"
     );
   };
 
   const handleBatchAdd = (addresses: string[]) => {
-    execute(
+    void execute(
       [{ contractAddress: contract, entrypoint: "batch_add_to_allowlist", calldata: batchAllowlistCalldata(addresses) }],
       `Added ${addresses.length} address${addresses.length !== 1 ? "es" : ""} to allowlist`
     );
   };
 
   const handleRemove = (address: string) => {
-    execute(
+    void execute(
       [{ contractAddress: contract, entrypoint: "remove_from_allowlist", calldata: [address] }],
       "Address removed from allowlist"
     );
   };
 
   const handleWithdraw = () => {
-    execute(
+    void execute(
       [{ contractAddress: contract, entrypoint: "withdraw_payments", calldata: [] }],
       "Payments withdrawn to your wallet"
     );
@@ -429,17 +413,6 @@ export default function DropManagePage({
           </div>
         </DialogContent>
       </Dialog>
-
-      <PinDialog
-        {...pinDialogProps}
-        title="Confirm transaction"
-        description="Enter your PIN to sign this on-chain operation."
-      />
-
-      <WalletSetupDialog
-        open={walletSetupOpen}
-        onOpenChange={setWalletSetupOpen}
-      />
     </div>
   );
 }
