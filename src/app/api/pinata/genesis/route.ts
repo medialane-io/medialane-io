@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PinataSDK } from "pinata";
 import crypto from "crypto";
-
-const pinata = new PinataSDK({
-  pinataJwt: process.env.PINATA_JWT!,
-  pinataGateway: process.env.NEXT_PUBLIC_PINATA_GATEWAY || "https://gateway.pinata.cloud",
-});
+import { uploadFileToBackend, uploadJsonToBackend } from "@/lib/backend-metadata";
 
 const DEFAULT_NAME = "Medialane Genesis";
 const DEFAULT_DESCRIPTION = "This commemorative token marks the official launch of Medialane on Starknet.";
@@ -79,8 +74,8 @@ export async function POST(req: NextRequest) {
     }
 
     // 1. Upload image
-    const imageUpload = await pinata.upload.public.file(imageFile);
-    const imageUri = `ipfs://${imageUpload.cid}`;
+    const imageUpload = await uploadFileToBackend(imageFile);
+    const imageUri = imageUpload.uri;
 
     // 2. Build genesis metadata
     const metadata = {
@@ -99,14 +94,10 @@ export async function POST(req: NextRequest) {
     };
 
     // 3. Upload metadata JSON
-    const metadataBlob = new Blob([JSON.stringify(metadata, null, 2)], {
-      type: "application/json",
-    });
-    const metadataFile = new File([metadataBlob], "metadata.json", { type: "application/json" });
-    const metadataUpload = await pinata.upload.public.file(metadataFile);
+    const metadataUpload = await uploadJsonToBackend(metadata);
 
     return NextResponse.json({
-      uri: `ipfs://${metadataUpload.cid}`,
+      uri: metadataUpload.uri,
       imageUri,
       cid: metadataUpload.cid,
     });

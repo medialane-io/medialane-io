@@ -1,13 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { readBodyWithCap } from "@/lib/proxy-body";
 
-const PINATA_JWT = process.env.PINATA_JWT;
-const DEDICATED_GATEWAY = process.env.PINATA_DEDICATED_GATEWAY;
 const PUBLIC_GATEWAY = "https://gateway.pinata.cloud";
-
-// Reasonable ceiling for a proxied thumbnail request — this route is public,
-// so cap what a caller can ask a paid-tier Pinata gateway to render.
-const MAX_WIDTH = 2000;
 
 // Cap the proxied body. The route is public and CID content is arbitrary
 // size, so an unbounded `arrayBuffer()` lets any caller pin server memory by
@@ -16,9 +10,9 @@ const MAX_WIDTH = 2000;
 const MAX_BYTES = 25 * 1024 * 1024;
 
 // Per-IP rate limit — the route has no session to gate on (wallet-native has
-// no server session), so this bounds abuse of the paid dedicated gateway.
-// Per-process (Vercel lambdas don't share memory); acceptable for cost-drain
-// protection, not correctness.
+// no server session), so this bounds abuse of the public gateway. Per-process
+// (Vercel lambdas don't share memory); acceptable for cost-drain protection,
+// not correctness.
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = 300;
 const ipCounts = new Map<string, { count: number; resetAt: number }>();
@@ -36,25 +30,15 @@ function checkRateLimit(ip: string): boolean {
 }
 
 /**
- * GET /api/ipfs/[...cid]?w=<width>
+ * GET /api/ipfs/[...cid]
  *
- * Server-side IPFS proxy. Uses the dedicated Pinata gateway with JWT when
- * configured (better rate limits), falling back to the public gateway
- * otherwise. Public route — every visitor gets the same treatment; per-IP
- * rate limiting is what bounds abuse (see above).
+ * Server-side IPFS proxy over Pinata's public gateway. Public route —
+ * every visitor gets the same treatment; per-IP rate limiting is what
+ * bounds abuse (see above). io holds no Pinata credential, so there's no
+ * dedicated-gateway or resize path here — that's a backend/medialane-owned
+ * upgrade, not something to route around by giving io its own key.
  *
  * Supports paths: /api/ipfs/QmXxx  and  /api/ipfs/QmXxx/image.png
- *
- * Optional `w` query param requests an on-the-fly resized/re-encoded
- * rendition via Pinata's gateway image optimization (`img-width` etc,
- * only documented on the `/files/{cid}` path — not the classic `/ipfs/{cid}`
- * one). Callers should only pass `w` for known-small display slots
- * (avatars, thumbnails) — omit it to get the original file untouched.
- *
- * `/files/{cid}` requires a Pinata auth token even on the "public" gateway
- * domain (confirmed in prod: unauthenticated requests 401), so resize is
- * only attempted when a dedicated gateway + JWT are configured — otherwise
- * every caller gets the unresized original via `/ipfs/{cid}`, never a 401.
  */
 export async function GET(
   req: NextRequest,
@@ -74,36 +58,16 @@ export async function GET(
     return NextResponse.json({ error: "Invalid IPFS path" }, { status: 400 });
   }
   // The sub-path grammar allows dots, so guard against `..` traversal segments
-  // escaping the gateway's /ipfs/ path (the host stays fixed, but no reason to
-  // forward a traversal to Pinata with our JWT attached).
+  // escaping the gateway's /ipfs/ path.
   if (cidPath.split("/").includes("..")) {
     return NextResponse.json({ error: "Invalid IPFS path" }, { status: 400 });
   }
 
-  const useDedicated = !!DEDICATED_GATEWAY && !!PINATA_JWT;
-  const gateway = useDedicated ? DEDICATED_GATEWAY : PUBLIC_GATEWAY;
-
-  const headers: HeadersInit = {};
-  if (useDedicated) {
-    headers["Authorization"] = `Bearer ${PINATA_JWT}`;
-  }
-
-  const width = Number.parseInt(req.nextUrl.searchParams.get("w") ?? "", 10);
-  const wantsResize = useDedicated && Number.isFinite(width) && width > 0 && width <= MAX_WIDTH;
-
-  // Optimization params are only documented on `/files/{cid}`; leave every
-  // other (unresized) caller on the classic `/ipfs/{cid}` path unchanged.
-  const url = new URL(`${gateway}/${wantsResize ? "files" : "ipfs"}/${cidPath}`);
-  if (wantsResize) {
-    url.searchParams.set("img-width", String(width));
-    url.searchParams.set("img-fit", "cover");
-    url.searchParams.set("img-format", "auto");
-    url.searchParams.set("img-quality", "80");
-  }
+  const url = `${PUBLIC_GATEWAY}/ipfs/${cidPath}`;
 
   let upstream: Response;
   try {
-    upstream = await fetch(url, { headers, next: { revalidate: 86400 } });
+    upstream = await fetch(url, { next: { revalidate: 86400 } });
   } catch {
     return NextResponse.json({ error: "Failed to fetch from IPFS" }, { status: 502 });
   }

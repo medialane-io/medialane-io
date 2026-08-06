@@ -3,31 +3,20 @@
  *
  * Pins a sponsorship deal's declarative terms (@medialane/ui's
  * `toLicenseMetadata()` shape — licenseType, territory, deliverables, etc.)
- * to IPFS. Requires a valid SIWS wallet session.
+ * to IPFS via medialane-backend's metered Pinata path. Requires a valid
+ * SIWS wallet session.
  *
  * Separate from `/api/pinata/json` on purpose: that route's ALLOWED_FIELDS
  * allowlist is scoped to OpenSea-style NFT metadata (name/description/image/
- * attributes) — sponsorship terms are a different document shape entirely and
- * were being rejected with 400 by that allowlist (every sponsorship pin on
- * this app failed until this route existed; starknet's equivalent route has
- * no such allowlist, which is why it never hit this).
+ * attributes) — sponsorship terms are a different document shape entirely.
  *
  * Accepts: application/json body (any JSON object, size-capped)
  * Response: { uri: "ipfs://...", cid: string }
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { PinataSDK } from "pinata";
 import { getSiwsWallet } from "@/lib/siws-server";
-
-function getPinata() {
-  const jwt = process.env.PINATA_JWT;
-  if (!jwt) throw new Error("PINATA_JWT environment variable is not set");
-  return new PinataSDK({
-    pinataJwt: jwt,
-    pinataGateway: process.env.NEXT_PUBLIC_PINATA_GATEWAY || "https://gateway.pinata.cloud",
-  });
-}
+import { uploadJsonToBackend } from "@/lib/backend-metadata";
 
 export async function POST(req: NextRequest) {
   if (!getSiwsWallet(req.headers.get("authorization"))) {
@@ -45,12 +34,8 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const pinata = getPinata();
-    const blob = new Blob([JSON.stringify(body)], { type: "application/json" });
-    const file = new File([blob], "sponsorship-terms.json", { type: "application/json" });
-    const upload = await pinata.upload.public.file(file);
-    const uri = `ipfs://${upload.cid}`;
-    return NextResponse.json({ uri, cid: upload.cid });
+    const { uri, cid } = await uploadJsonToBackend(body);
+    return NextResponse.json({ uri, cid });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Upload failed";
     console.error("[pinata/sponsorship-terms] upload failed:", message, err);

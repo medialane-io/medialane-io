@@ -1,7 +1,7 @@
 /**
  * POST /api/pinata/json
  *
- * Uploads a JSON document to Pinata/IPFS.
+ * Uploads a JSON document to IPFS via medialane-backend's metered Pinata path.
  * Requires a valid SIWS wallet session.
  *
  * Accepts: application/json body (any JSON object)
@@ -9,17 +9,8 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { PinataSDK } from "pinata";
 import { getSiwsWallet } from "@/lib/siws-server";
-
-function getPinata() {
-  const jwt = process.env.PINATA_JWT;
-  if (!jwt) throw new Error("PINATA_JWT environment variable is not set");
-  return new PinataSDK({
-    pinataJwt: jwt,
-    pinataGateway: process.env.NEXT_PUBLIC_PINATA_GATEWAY || "https://gateway.pinata.cloud",
-  });
-}
+import { uploadJsonToBackend } from "@/lib/backend-metadata";
 
 export async function POST(req: NextRequest) {
   if (!getSiwsWallet(req.headers.get("authorization"))) {
@@ -49,12 +40,8 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const pinata = getPinata();
-    const blob = new Blob([JSON.stringify(body)], { type: "application/json" });
-    const file = new File([blob], "metadata.json", { type: "application/json" });
-    const upload = await pinata.upload.public.file(file);
-    const uri = `ipfs://${upload.cid}`;
-    return NextResponse.json({ uri, cid: upload.cid });
+    const { uri, cid } = await uploadJsonToBackend(body);
+    return NextResponse.json({ uri, cid });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Upload failed";
     console.error("[pinata/json] upload failed:", message, err);

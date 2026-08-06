@@ -40,7 +40,7 @@ Medialane is a platform for the **creative economy on Starknet**. It bridges Web
 - Licensing metadata embedded in IPFS as ERC-721 attributes (OpenSea-compatible + Berne Convention compliant)
 - Media tab on asset pages — embedded players for YouTube, Spotify, SoundCloud, TikTok
 - Creator wallet address embedded in every asset as `{ trait_type: "Creator", value: walletAddress }`
-- Direct Pinata upload — metadata stored on IPFS, not on centralized servers
+- Uploads pinned to IPFS through medialane-backend's metered Pinata path — io holds no Pinata credential of its own
 - Create and deploy ERC-721 collections on Starknet
 - Collection metadata JSON uploaded to IPFS at creation time — `baseUri` set onchain so any dApp can resolve collection images permissionlessly
 - **NFT Editions** (`/launchpad/nfteditions`) — mint multi-edition ERC-1155 tokens into your IP Collection 1155 contracts; each edition has its own artwork, supply, and on-chain provenance
@@ -137,14 +137,15 @@ User (device passkey)
        ├─ First use: backend relayer deploys the wallet onchain (UDC), then SIWS signs the user in
        ├─ Create/asset page
        │    └─ POST /api/pinata (Next.js server route, SIWS-authenticated)
-       │         └─ Pinata → IPFS (image + metadata JSON)
-       │              └─ ipfs:// URI → mint tx on Starknet
+       │         └─ medialane-backend /v1/metadata/* (metered Pinata upload)
+       │              └─ Pinata → IPFS (image + metadata JSON)
+       │                   └─ ipfs:// URI → mint tx on Starknet
        └─ Marketplace operations
             └─ SNIP-12 signing → medialane-backend (Railway)
                  └─ Starknet Mainnet (onchain)
 ```
 
-Asset uploads go **directly to Pinata** from the Next.js server — the backend is never involved in the upload path. This keeps digital assets fully decentralized.
+Every Pinata write goes through medialane-backend's `/v1/metadata/*` API, metered against the same tenant key as every other write in the app — io holds no Pinata credential of its own.
 
 ---
 
@@ -252,8 +253,7 @@ Notes:
 | `NEXT_PUBLIC_MARKETPLACE_1155_CONTRACT_MAINNET` | ERC-1155 marketplace protocol contract |
 | `NEXT_PUBLIC_COLLECTION_721_CONTRACT_MAINNET` | ERC-721 mint protocol contract |
 | `NEXT_PUBLIC_COLLECTION_1155_CONTRACT_MAINNET` | ERC-1155 mint protocol contract |
-| `PINATA_JWT` | Pinata JWT (server-side, not exposed to client) |
-| `NEXT_PUBLIC_PINATA_GATEWAY` | Pinata IPFS gateway URL |
+| `NEXT_PUBLIC_PINATA_GATEWAY` | Pinata IPFS gateway URL (reads only — uploads go through medialane-backend) |
 
 ### Commands
 
@@ -271,7 +271,7 @@ bun lint         # ESLint
 ```
 src/
   app/
-    api/pinata/       # Universal digital asset upload (SIWS-gated, direct Pinata)
+    api/pinata/       # Universal digital asset upload (SIWS-gated, proxies to medialane-backend)
     api/rpc/          # Same-origin Starknet RPC proxy (keyed endpoint stays server-side)
     asset/            # /asset/[contract]/[tokenId] — dispatcher routes to POP/Drop/Edition/Standard page
     create/           # /create/asset + /create/collection + /create/remix/[contract]/[tokenId]

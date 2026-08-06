@@ -30,14 +30,9 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { PinataSDK } from "pinata";
 import { buildAssetMetadata } from "@/lib/asset-metadata";
 import { getSiwsWallet } from "@/lib/siws-server";
-
-const pinata = new PinataSDK({
-  pinataJwt: process.env.PINATA_JWT!,
-  pinataGateway: process.env.NEXT_PUBLIC_PINATA_GATEWAY || "https://gateway.pinata.cloud",
-});
+import { uploadFileToBackend, uploadJsonToBackend } from "@/lib/backend-metadata";
 
 const ALLOWED_IMAGE_TYPES = new Set([
   "image/jpeg",
@@ -116,8 +111,8 @@ export async function POST(req: NextRequest) {
             { status: 400 }
           );
         }
-        const imageUpload = await pinata.upload.public.file(imageFile);
-        imageUri = `ipfs://${imageUpload.cid}`;
+        const imageUpload = await uploadFileToBackend(imageFile);
+        imageUri = imageUpload.uri;
       }
     }
 
@@ -153,10 +148,10 @@ export async function POST(req: NextRequest) {
       templateTraits,
     });
 
-    const metadataUpload = await pinata.upload.public.json(metadata);
+    const metadataUpload = await uploadJsonToBackend(metadata);
 
     return NextResponse.json({
-      uri: `ipfs://${metadataUpload.cid}`,
+      uri: metadataUpload.uri,
       imageUri,
       cid: metadataUpload.cid,
     });

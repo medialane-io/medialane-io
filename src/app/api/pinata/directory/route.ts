@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { buildAssetMetadata, type BuildAssetMetadataInput } from "@/lib/asset-metadata";
 import { getSiwsWallet } from "@/lib/siws-server";
+import { uploadDirectoryToBackend } from "@/lib/backend-metadata";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -9,11 +10,12 @@ export const maxDuration = 60;
 // `creator` and `registrationDate` are injected server-side, never trusted from the client.
 type DropItemFields = Omit<BuildAssetMetadataInput, "creator" | "registrationDate">;
 
-// Pins an ordered array of per-token metadata as a single IPFS directory:
-// items[0] → file "1", items[1] → file "2", … so callers set
-//   base_uri = ipfs://<folderCID>/   →   token_uri(N) = ipfs://<folderCID>/N
-// Each item is encoded with buildAssetMetadata — byte-identical to a normal IP asset
-// (OpenSea + Berne license attributes), so every drop token is a first-class asset.
+// Pins an ordered array of per-token metadata as a single IPFS directory (via
+// medialane-backend's metered Pinata path): items[0] → file "1", items[1] →
+// file "2", … so callers set base_uri = ipfs://<folderCID>/ → token_uri(N) =
+// ipfs://<folderCID>/N. Each item is encoded with buildAssetMetadata —
+// byte-identical to a normal IP asset (OpenSea + Berne license attributes),
+// so every drop token is a first-class asset.
 export async function POST(req: NextRequest) {
   const creator = getSiwsWallet(req.headers.get("authorization"));
   if (!creator) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -39,45 +41,31 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const jwt = process.env.PINATA_JWT;
-  if (!jwt) return NextResponse.json({ error: "Pinata not configured" }, { status: 500 });
-
   const registrationDate = new Date().toISOString().split("T")[0]; // one stamp for the whole set
 
-  // Pinata pins a DIRECTORY only when the files share a common folder path in their names
-  // AND wrapWithDirectory is false; it then returns the CID of that folder, so children resolve
-  // at <cid>/<tokenId> and <cid>/collection.json (verified 2026-06-15). Flat names / wrap:true
-  // are rejected with "More than one file ... provided for pinning" — do not change this shape.
-  const form = new FormData();
-  items.forEach((fields, i) => {
-    const tokenId = i + 1; // contract mints sequentially from token id 1
-    const metadata = buildAssetMetadata({ ...fields, creator, registrationDate });
-    const blob = new Blob([JSON.stringify(metadata)], { type: "application/json" });
-    form.append("file", blob, `drop/${tokenId}`);
-  });
+  const files: { name: string; content: unknown }[] = items.map((fields, i) => ({
+    name: String(i + 1), // contract mints sequentially from token id 1
+    content: buildAssetMetadata({ ...fields, creator, registrationDate }),
+  }));
 
   // Collection-level metadata (card image/name/description) lives alongside the token files
   // as collection.json. The backend resolves the drop card from <baseUri>collection.json.
   // It never collides with the integer tokenId files.
-  const collection = {
-    name: body?.collection?.name ?? "",
-    description: body?.collection?.description ?? "",
-    image: body?.collection?.image ?? null,
-  };
-  form.append("file", new Blob([JSON.stringify(collection)], { type: "application/json" }), "drop/collection.json");
-
-  form.append("pinataOptions", JSON.stringify({ wrapWithDirectory: false }));
-  form.append("pinataMetadata", JSON.stringify({ name: `drop-metadata-${Date.now()}` }));
-
-  const res = await fetch("https://api.pinata.cloud/pinning/pinFileToIPFS", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${jwt}` },
-    body: form,
+  files.push({
+    name: "collection.json",
+    content: {
+      name: body?.collection?.name ?? "",
+      description: body?.collection?.description ?? "",
+      image: body?.collection?.image ?? null,
+    },
   });
-  if (!res.ok) {
-    const text = await res.text();
-    return NextResponse.json({ error: `Pinata error: ${text}` }, { status: 502 });
+
+  try {
+    const { cid, baseUri } = await uploadDirectoryToBackend(files);
+    return NextResponse.json({ cid, baseUri });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Directory pin failed";
+    console.error("[/api/pinata/directory]", err);
+    return NextResponse.json({ error: message }, { status: 502 });
   }
-  const json = (await res.json()) as { IpfsHash: string };
-  return NextResponse.json({ cid: json.IpfsHash, baseUri: `ipfs://${json.IpfsHash}/` });
 }
