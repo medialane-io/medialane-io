@@ -1,7 +1,8 @@
 "use client";
 
 import useSWR from "swr";
-import { useAuth } from "@clerk/nextjs";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
+import { useSiwsToken } from "@/hooks/use-siws-token";
 import { type ApiCreatorProfile } from "@medialane/sdk";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { apiFetch, ApiError } from "@/lib/api-fetch";
@@ -18,14 +19,15 @@ export interface UsernameClaim {
 
 export type { ApiCreatorProfile as CreatorByUsername };
 
-/** Fetch the current user's username claim status (requires Clerk auth + API key). */
+/** Fetch the current wallet's username claim status (requires SIWS + API key). */
 export function useMyUsernameClaim() {
-  const { getToken, isSignedIn } = useAuth();
+  const { hasWallet } = useWalletNativeSession();
+  const { getValidToken, signIn } = useSiwsToken();
 
   const { data, error, isLoading, mutate } = useSWR(
-    isSignedIn ? "username-claim-me" : null,
+    hasWallet ? "username-claim-me" : null,
     async () => {
-      const token = await getToken();
+      const token = getValidToken() ?? (await signIn());
       return apiFetch<{ username: string | null; claim: UsernameClaim | null }>(
         "/v1/username-claims/me",
         { bearer: token }

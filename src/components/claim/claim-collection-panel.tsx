@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useAuth } from "@clerk/nextjs";
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
+import { useSiwsToken } from "@/hooks/use-siws-token";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,8 +24,8 @@ const DEFAULT_HELPER_TEXT =
   "Paste the Starknet contract address you own — an NFT collection or a coin. Coins are reviewed by our team before they go live.";
 
 export function ClaimCollectionPanel({ helperText }: { helperText?: React.ReactNode } = {}) {
-  const { getToken } = useAuth();
-  const { walletAddress } = useSessionKey();
+  const { address: walletAddress } = useWalletNativeSession();
+  const { getValidToken, signIn } = useSiwsToken();
   const [contractAddress, setContractAddress] = useState("");
   const [email, setEmail] = useState("");
   const [notes, setNotes] = useState("");
@@ -43,7 +43,7 @@ export function ClaimCollectionPanel({ helperText }: { helperText?: React.ReactN
     }
     setStep("verifying");
     try {
-      const token = await getToken();
+      const token = getValidToken() ?? (await signIn());
       if (!token) throw new Error("Not authenticated");
       const result = await getMedialaneClient().api.claimCollection(
         contractAddress.trim(),

@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useAuth, useUser } from "@clerk/nextjs";
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
+import { useSiwsToken } from "@/hooks/use-siws-token";
 import { useMyUsernameClaim, submitUsernameClaim, checkUsernameAvailability } from "@/hooks/use-username-claims";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,9 +64,8 @@ function UsernameInput({ value, onChange, onCheck, onSubmit, checkState, checkRe
  */
 export function UsernameClaimPanel({ bare = false }: { bare?: boolean } = {}) {
   const shell = bare ? "space-y-3 max-w-lg" : "bento-cell p-5 space-y-3";
-  const { getToken } = useAuth();
-  const { user } = useUser();
-  const { walletAddress } = useSessionKey();
+  const { address: walletAddress } = useWalletNativeSession();
+  const { getValidToken, signIn } = useSiwsToken();
   const { username: approvedUsername, claim, mutate: mutateClaim } = useMyUsernameClaim();
   const [claimInput, setClaimInput] = useState("");
   const [claiming, setClaiming] = useState(false);
@@ -95,10 +94,9 @@ export function UsernameClaimPanel({ bare = false }: { bare?: boolean } = {}) {
     setClaimStatus("idle");
     setClaimError(null);
     try {
-      const token = await getToken();
+      const token = getValidToken() ?? (await signIn());
       if (!token) throw new Error("Not authenticated");
-      const notifyEmail = user?.primaryEmailAddress?.emailAddress;
-      const result = await submitUsernameClaim(claimInput.trim().toLowerCase(), token, notifyEmail);
+      const result = await submitUsernameClaim(claimInput.trim().toLowerCase(), token);
       if (result.error) {
         setClaimStatus("error");
         setClaimError(result.error);
