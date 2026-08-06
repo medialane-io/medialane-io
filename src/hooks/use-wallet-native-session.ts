@@ -19,7 +19,10 @@ export interface WalletNativeSession {
  * session-key lifecycle.
  */
 export function useWalletNativeSession(): WalletNativeSession {
-  const [address, setAddress] = useState<string | null>(null);
+  // localStorage reads are synchronous — resolve address on first render
+  // instead of lagging a tick behind via useEffect (which would otherwise
+  // flash a false "no wallet" state on every mount).
+  const [address, setAddress] = useState<string | null>(() => loadSealedOwner()?.address ?? null);
   const [deployed, setDeployed] = useState<boolean | null>(null);
 
   useEffect(() => {

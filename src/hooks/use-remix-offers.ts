@@ -1,6 +1,6 @@
 import useSWR from "swr";
 import { useAuth } from "@clerk/nextjs";
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import type { RemixOffer, RemixOfferListResponse, PublicRemix } from "@/types/remix-offers";
 
 // Client-side hook. All requests go through the same-origin BFF proxy at
@@ -32,7 +32,7 @@ async function apiFetch(url: string, clerkToken?: string | null, options?: Reque
 /** List remix offers for the authenticated user. */
 export function useRemixOffers(role: "creator" | "requester", status?: string) {
   const { getToken } = useAuth();
-  const { walletAddress } = useSessionKey();
+  const { address: walletAddress } = useWalletNativeSession();
 
   const key = walletAddress ? `remix-offers-${role}-${status ?? "all"}` : null;
 

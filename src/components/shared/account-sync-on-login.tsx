@@ -1,41 +1,28 @@
 "use client";
 
 import { useEffect } from "react";
-import { useAuth } from "@clerk/nextjs";
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
+import { useSiwsToken } from "@/hooks/use-siws-token";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import { getStoredSiwsToken } from "@/lib/siws-client";
 
-const CLERK_TEMPLATE = process.env.NEXT_PUBLIC_CLERK_TEMPLATE_NAME || "chipipay";
 const SESSION_KEY_PREFIX = "ml_io_synced_";
 
 export function AccountSyncOnLogin() {
-  const { isSignedIn, isLoaded, userId, getToken } = useAuth();
-  const { walletAddress, hasWallet } = useSessionKey();
+  const { hasWallet, address: walletAddress } = useWalletNativeSession();
+  const { getValidToken, signIn } = useSiwsToken();
 
   useEffect(() => {
-    if (!isLoaded || !isSignedIn || !userId || !hasWallet || !walletAddress) return;
+    if (!hasWallet || !walletAddress) return;
 
-    // Key on (userId, walletAddress, walletType) so a future walletType
-    // change (e.g. a second identityProvider lands) forces a re-sync.
-    // Today walletType is always CHIPIPAY on io, but matching the dapp's
-    // cache shape keeps the two onboarding paths drift-free.
-    const walletType = "CHIPIPAY" as const;
+    const walletType = "MEDIAWALLET" as const;
     const appSource = "MEDIALANE_IO" as const;
-    const key = `${SESSION_KEY_PREFIX}${userId}:${walletAddress}:${walletType}`;
+    const key = `${SESSION_KEY_PREFIX}${walletAddress}:${walletType}`;
     if (sessionStorage.getItem(key)) return;
 
     let cancelled = false;
     (async () => {
       try {
-        // Prefer a cached SIWS token (minted during onboarding — see
-        // onboarding/page.tsx) over the Clerk JWT. Falls back to Clerk for
-        // accounts that onboarded before this existed; the backend accepts
-        // both (medialane-core spec 2026-06-30-remove-clerk-from-backend-
-        // design.md). No new prompt here either way — a missing SIWS token
-        // just means this sync uses Clerk, same as before.
-        const siwsToken = getStoredSiwsToken(walletAddress);
-        const token = siwsToken ?? (await getToken({ template: CLERK_TEMPLATE }));
+        const token = getValidToken() ?? (await signIn());
         if (!token || cancelled) return;
         await getMedialaneClient().api.upsertMyWallet(token, {
           walletType,
@@ -60,7 +47,7 @@ export function AccountSyncOnLogin() {
     return () => {
       cancelled = true;
     };
-  }, [isLoaded, isSignedIn, userId, hasWallet, walletAddress, getToken]);
+  }, [hasWallet, walletAddress, getValidToken, signIn]);
 
   return null;
 }

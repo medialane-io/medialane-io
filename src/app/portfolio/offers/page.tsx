@@ -1,9 +1,9 @@
 "use client";
 
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { OffersTable } from "@/components/portfolio/offers-table";
 
 export default function PortfolioOffersPage() {
-  const { walletAddress } = useSessionKey();
+  const { address: walletAddress } = useWalletNativeSession();
   return <OffersTable address={walletAddress!} />;
 }

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { DiscoverActivityStrip } from "@medialane/ui";
 import { useOrders } from "@/hooks/use-orders";
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { PurchaseDialog } from "@/components/marketplace/purchase-dialog";
 import { normalizeAddress } from "@medialane/sdk";
 import type { ApiOrder } from "@medialane/sdk";
@@ -13,7 +13,7 @@ import type { ApiOrder } from "@medialane/sdk";
  *  activities + scoreboard) — see discover/community-section.tsx. */
 export function FeedSection() {
   const { orders, isLoading } = useOrders({ status: "ACTIVE", sort: "recent", limit: 10 });
-  const { walletAddress } = useSessionKey();
+  const { address: walletAddress } = useWalletNativeSession();
   const [buyOrder, setBuyOrder] = useState<ApiOrder | null>(null);
 
   return (

@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { Inter, Urbanist } from "next/font/google";
-import { ClerkProvider } from "@clerk/nextjs";
-import { ptBR } from "@clerk/localizations";
-import { ChipiProvider } from "@chipi-stack/nextjs";
 import { Providers } from "./providers";
 import { JsonLd } from "@/components/seo/json-ld";
 import { APP_URL, defaultRobots } from "@/lib/seo";
@@ -85,25 +82,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const isBrLocale = pathname.startsWith("/br");
 
   return (
-    <ClerkProvider
-      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!}
-      afterSignOutUrl="/"
-      // FALLBACK (not FORCE): only applies when a sign-up has no explicit
-      // redirect. Campaign buttons (/br/mint, /mint, /airdrop) set their own
-      // component-level forceRedirectUrl and MUST win — a global *force* here
-      // overrides them and bounces ad sign-ups off the campaign route (the
-      // af3bba6 regression). Do not change back to signUpForceRedirectUrl.
-      signUpFallbackRedirectUrl="/onboarding"
-      localization={isBrLocale ? ptBR : undefined}
-    >
-      <ChipiProvider>
-        <html lang={isBrLocale ? "pt-BR" : "en"} suppressHydrationWarning>
-          <body className={`${inter.className} ${urbanist.variable}`}>
-            <JsonLd data={siteJsonLd} />
-            <Providers>{children}</Providers>
-          </body>
-        </html>
-      </ChipiProvider>
-    </ClerkProvider>
+    <html lang={isBrLocale ? "pt-BR" : "en"} suppressHydrationWarning>
+      <body className={`${inter.className} ${urbanist.variable}`}>
+        <JsonLd data={siteJsonLd} />
+        <Providers>{children}</Providers>
+      </body>
+    </html>
   );
 }

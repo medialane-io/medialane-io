@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { Button } from "@/components/ui/button";
 import { EmptyOrError } from "@/components/ui/empty-or-error";
@@ -10,7 +10,7 @@ import { ClaimCollectionPanel } from "@/components/claim/claim-collection-panel"
 import { Layers, Plus, Download } from "lucide-react";
 
 export default function PortfolioCollectionsPage() {
-  const { walletAddress } = useSessionKey();
+  const { address: walletAddress } = useWalletNativeSession();
   const { collections, isLoading, error, mutate } = useCollectionsByOwner(walletAddress ?? null);
 
   return (

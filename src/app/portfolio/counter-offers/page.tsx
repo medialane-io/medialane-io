@@ -1,9 +1,9 @@
 "use client";
 
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { CounterOffersTable } from "@/components/portfolio/counter-offers-table";
 
 export default function PortfolioCounterOffersPage() {
-  const { walletAddress } = useSessionKey();
+  const { address: walletAddress } = useWalletNativeSession();
   return <CounterOffersTable address={walletAddress!} />;
 }

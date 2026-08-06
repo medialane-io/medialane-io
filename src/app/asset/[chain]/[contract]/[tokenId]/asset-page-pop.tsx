@@ -9,7 +9,7 @@ import { Award, Users, Shield, CheckCircle2, ExternalLink, Flag } from "lucide-r
 import { useToken } from "@/hooks/use-tokens";
 import { useCollection } from "@/hooks/use-collections";
 import { usePopClaimStatus } from "@/hooks/use-pop";
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { PageContainer } from "@medialane/ui";
 import { ipfsToHttp } from "@/lib/utils";
 import { AddressDisplay } from "@/components/shared/address-display";
@@ -20,7 +20,7 @@ import { EXPLORER_URL } from "@/lib/constants";
 
 export function AssetPagePop() {
   const { contract, tokenId } = useParams<{ contract: string; tokenId: string }>();
-  const { walletAddress } = useSessionKey();
+  const { address: walletAddress } = useWalletNativeSession();
   const { token } = useToken(contract, tokenId);
   const { collection } = useCollection(contract);
   const { claimStatus } = usePopClaimStatus(contract, walletAddress ?? null);

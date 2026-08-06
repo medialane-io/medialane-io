@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useOrders } from "@/hooks/use-orders";
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { ListingCard, ListingCardSkeleton } from "./listing-card";
 import { PurchaseDialog } from "./purchase-dialog";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,7 @@ interface ListingsGridProps {
 }
 
 export function ListingsGrid({ sort = "recent", currency, orderType = "", minPrice, maxPrice }: ListingsGridProps = {}) {
-  const { walletAddress } = useSessionKey();
+  const { address: walletAddress } = useWalletNativeSession();
   const [page, setPage] = useState(1);
   const [allOrders, setAllOrders] = useState<ApiOrder[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<ApiOrder | null>(null);

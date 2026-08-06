@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Bell, CheckCheck, Inbox, Filter } from "lucide-react";
 import { useUser, SignInButton } from "@clerk/nextjs";
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useNotifications } from "@/hooks/use-notifications";
 import { NotificationRow } from "@/components/shared/notification-row";
 import { Button } from "@/components/ui/button";
@@ -47,7 +47,7 @@ function groupByDay(items: Notification[]): [string, Notification[]][] {
 
 export function NotificationsFeed() {
   const { isLoaded, isSignedIn } = useUser();
-  const { walletAddress } = useSessionKey();
+  const { address: walletAddress } = useWalletNativeSession();
   const { notifications, unreadCount, markAllRead, markRead } = useNotifications(
     isSignedIn ? walletAddress : null
   );

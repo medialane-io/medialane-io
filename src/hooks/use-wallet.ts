@@ -1,21 +1,18 @@
 "use client";
 
-import { useSessionKey } from "./use-session-key";
+import { useWalletNativeSession } from "./use-wallet-native-session";
 
 /**
  * Normalized wallet hook — single interface across all wallet types.
  * Use this when a component only needs to know WHO the user is.
  *
- * Delegates to useSessionKey() which resolves address via 3-tier fallback:
- * ChipiPay API → Clerk JWT claim → Medialane backend DB.
- *
- * For signing, session keys, or transaction execution — use useSessionKey()
+ * For signing or transaction execution, use useWalletNativeSession()
  * or useMarketplace() directly.
  */
 export function useWallet() {
-  const { walletAddress, hasWallet } = useSessionKey();
+  const { address, hasWallet } = useWalletNativeSession();
   return {
-    address: walletAddress,
+    address,
     isConnected: hasWallet,
   };
 }

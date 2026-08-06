@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useUserOrders } from "@/hooks/use-orders";
 import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useActivitiesByAddress } from "@/hooks/use-activities";
@@ -15,7 +15,7 @@ import { Sparkles } from "lucide-react";
 const TICKET_TYPES = new Set(["ticket", "club"]);
 
 export default function PortfolioOverviewPage() {
-  const { walletAddress } = useSessionKey();
+  const { address: walletAddress } = useWalletNativeSession();
   const address = walletAddress ?? null;
 
   const { orders } = useUserOrders(address);

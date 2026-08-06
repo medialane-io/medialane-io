@@ -1,9 +1,9 @@
 "use client";
 
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { PortfolioActivity } from "@/components/portfolio/portfolio-activity";
 
 export default function PortfolioActivityPage() {
-  const { walletAddress } = useSessionKey();
+  const { address: walletAddress } = useWalletNativeSession();
   return <PortfolioActivity address={walletAddress ?? null} />;
 }

@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useAuth, useUser } from "@clerk/nextjs";
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
+import { useSiwsToken } from "@/hooks/use-siws-token";
 import { useCreatorProfile } from "@/hooks/use-profiles";
 import { useMyUsernameClaim, submitUsernameClaim, checkUsernameAvailability } from "@/hooks/use-username-claims";
 import { useTokensByOwner } from "@/hooks/use-tokens";
@@ -22,7 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   AtSign, CheckCircle2, Clock, XCircle, Loader2, Settings as SettingsIcon,
-  Globe, Twitter, MessageCircle, Send, ArrowUpRight, Gem, Tag, LayoutGrid, Trophy,
+  Globe, Twitter, MessageCircle, Send, ArrowUpRight, Gem, Tag, LayoutGrid, Trophy, Wallet,
 } from "lucide-react";
 import { cn, resolveTokenImage } from "@/lib/utils";
 
@@ -264,9 +264,8 @@ function RewardsSnapshot({ address }: { address?: string | null }) {
 }
 
 export default function SettingsContent() {
-  const { getToken } = useAuth();
-  const { user } = useUser();
-  const { walletAddress } = useSessionKey();
+  const { address: walletAddress, hasWallet } = useWalletNativeSession();
+  const { getValidToken, signIn } = useSiwsToken();
   const { profile, isLoading: profileLoading, mutate } = useCreatorProfile(walletAddress ?? undefined);
   const { username: approvedUsername, claim, mutate: mutateClaim } = useMyUsernameClaim();
   const { tokens: ownedTokens, isLoading: assetsLoading } = useTokensByOwner(walletAddress ?? null, 1, 100);
@@ -323,10 +322,9 @@ export default function SettingsContent() {
     if (!claimInput.trim()) return;
     setClaiming(true);
     try {
-      const token = await getToken();
+      const token = getValidToken() ?? (await signIn());
       if (!token) throw new Error("Not authenticated");
-      const notifyEmail = user?.primaryEmailAddress?.emailAddress;
-      const result = await submitUsernameClaim(claimInput.trim().toLowerCase(), token, notifyEmail);
+      const result = await submitUsernameClaim(claimInput.trim().toLowerCase(), token);
       if (result.error) {
         setClaimStatus("error");
         setClaimError(result.error);
@@ -357,7 +355,7 @@ export default function SettingsContent() {
     setSaving(true);
     setSaveError(null);
     try {
-      const token = await getToken();
+      const token = getValidToken() ?? (await signIn());
       if (!token) throw new Error("Not authenticated");
       // Backend Zod schema rejects empty strings for URL fields — send null to clear them
       const payload = {
@@ -421,6 +419,21 @@ export default function SettingsContent() {
     title: "Profile Settings",
     subtitle: "Manage your public creator identity.",
   };
+
+  if (!hasWallet) {
+    return (
+      <div className="px-4 sm:px-6 lg:px-8 py-24 text-center space-y-4">
+        <Wallet className="h-12 w-12 mx-auto text-muted-foreground" />
+        <h1 className="text-2xl font-bold">Secure your account</h1>
+        <p className="text-muted-foreground max-w-sm mx-auto">
+          Set up your wallet to manage your creator settings.
+        </p>
+        <Button asChild>
+          <Link href="/wallet-onboarding?redirect_url=/settings">Get started</Link>
+        </Button>
+      </div>
+    );
+  }
 
   if (profileLoading || (walletAddress && !profile && profileLoading !== false)) {
     return (

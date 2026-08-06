@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { assetHref } from "@/lib/routes";
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useRemixOffers } from "@/hooks/use-remix-offers";
 import { ApproveMintSheet } from "@/components/portfolio/approve-mint-sheet";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import type { RemixOffer } from "@/types/remix-offers";
 import Link from "next/link";
 
 export default function PortfolioLicensingPage() {
-  const { walletAddress } = useSessionKey();
+  const { address: walletAddress } = useWalletNativeSession();
   const { offers: incoming, isLoading: loadingIn, mutate: mutateIn } = useRemixOffers("creator");
   const { offers: outgoing, isLoading: loadingOut } = useRemixOffers("requester");
 

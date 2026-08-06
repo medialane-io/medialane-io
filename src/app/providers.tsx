@@ -5,7 +5,6 @@ import { Toaster, toast } from "sonner";
 import Link from "next/link";
 import { MedialaneLogo } from "@/components/brand/medialane-logo";
 import { SWRConfig } from "swr";
-import { ChipiSessionUnlockProvider } from "@/contexts/chipi-session-unlock-context";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { usePathname } from "next/navigation";
 import { GoogleAnalytics } from "@next/third-parties/google";
@@ -17,7 +16,7 @@ import { NavThemeToggle } from "@/components/nav-theme-toggle";
 import { NavConnectButton } from "@/components/nav-connect-button";
 import { HeaderWalletTrigger } from "@/components/nav-wallet-trigger";
 import { AccountPanel } from "@/components/account-panel";
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useCreatorProfile } from "@/hooks/use-profiles";
 import { resolveTokenImage } from "@/lib/utils";
 
@@ -57,12 +56,12 @@ function MainShell({ children }: { children: React.ReactNode }) {
     pathname.startsWith("/asset/") ||
     pathname.startsWith("/collections/") ||
     pathname.startsWith("/creator/");
-  const { walletAddress } = useSessionKey();
+  const { address: walletAddress } = useWalletNativeSession();
   const { profile } = useCreatorProfile(walletAddress ?? undefined);
   const themeImageUrl = suppressAmbient ? null : resolveTokenImage(profile?.avatarImage);
 
   return (
-    <ChipiSessionUnlockProvider>
+    <>
       <NavCommandMenu
         commands={NAV_COMMANDS}
         footerSlot={<NavThemeToggle />}
@@ -98,7 +97,7 @@ function MainShell({ children }: { children: React.ReactNode }) {
           </div>
         </footer>
       </div>
-    </ChipiSessionUnlockProvider>
+    </>
   );
 }
 

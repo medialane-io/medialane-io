@@ -29,7 +29,7 @@ import { CollectionServiceAction } from "@/components/services/collection-servic
 import { TicketOwnerActions } from "@/components/tickets/ticket-owner-actions";
 import { ClubOwnerActions } from "@/components/club/club-owner-actions";
 import { PurchaseDialog } from "@/components/marketplace/purchase-dialog";
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { getService, normalizeAddress } from "@medialane/sdk";
 import type { ApiToken, ApiOrder, Chain, CollectionTokensSort } from "@medialane/sdk";
 
@@ -209,7 +209,7 @@ export default function CollectionPageClient() {
   const [descOverflows, setDescOverflows] = useState(false);
   const descRef = useRef<HTMLParagraphElement>(null);
 
-  const { walletAddress } = useSessionKey();
+  const { address: walletAddress } = useWalletNativeSession();
   const { collection, isLoading: colLoading } = useCollection(contract);
   const { profile } = useCollectionProfile(contract);
   const gatedState = useGatedContent(profile?.hasGatedContent ? contract : undefined);

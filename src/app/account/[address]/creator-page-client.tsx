@@ -9,7 +9,7 @@ import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useUserOrders } from "@/hooks/use-orders";
 import { useActivitiesByAddress } from "@/hooks/use-activities";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { ListingDialog } from "@/components/marketplace/listing-dialog";
 import { normalizeAddress } from "@medialane/sdk";
 import type { ApiToken } from "@medialane/sdk";
@@ -172,7 +172,7 @@ export default function CreatorPageClient() {
   const addr = address ?? null;
 
   // Ownership detection
-  const { walletAddress } = useSessionKey();
+  const { address: walletAddress } = useWalletNativeSession();
   const isOwner = !!walletAddress && !!address &&
     normalizeAddress("STARKNET", walletAddress) === normalizeAddress("STARKNET", address);
 
