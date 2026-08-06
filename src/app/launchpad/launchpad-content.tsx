@@ -2,8 +2,7 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
-import { useUser } from "@clerk/nextjs";
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { Button } from "@/components/ui/button";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { FadeIn } from "@/components/ui/motion-primitives";
@@ -30,8 +29,7 @@ const IO_OVERRIDES: ServiceOverrides = {
 
 // ── Page ────────────────────────────────────────────────────────────────────
 export function LaunchpadContent() {
-  const { isSignedIn } = useUser();
-  const { walletAddress } = useSessionKey();
+  const { hasWallet, address: walletAddress } = useWalletNativeSession();
   const filter = useLaunchpadFilter();
   const { collections } = useCollectionsByOwner(walletAddress ?? null);
 
@@ -105,7 +103,7 @@ export function LaunchpadContent() {
       </section>
 
       {/* ── Portfolio shortcut ────────────────────────────────── */}
-      {isSignedIn && (
+      {hasWallet && (
         <section className="px-4">
           <FadeIn>
             <div className="rounded-2xl border border-border/40 p-5 bg-gradient-to-r from-brand-navy/10 to-brand-purple/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

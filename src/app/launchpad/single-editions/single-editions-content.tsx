@@ -33,18 +33,15 @@ import {
 import { CollapsibleSection } from "@/components/ui/collapsible-section";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
-import { PinDialog } from "@/components/chipi/pin-dialog";
-import { useWalletUnlock } from "@/hooks/use-wallet-unlock";
-import { recordWalletAuthMethod } from "@/lib/actions/wallet-auth-method";
-import { useChipiTransaction } from "@/hooks/use-chipi-transaction";
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { MintProgressDialog } from "@/components/marketplace/mint-progress-dialog";
+import type { ChipiTransactionStatus } from "@/hooks/use-chipi-transaction";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { MedialaneCollectionCard } from "@medialane/ui";
 import { CreateAssetAside } from "@/components/claim/create-asset-aside";
 import type { MintStep } from "@/components/marketplace/mint-progress-dialog";
+import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 import { cn, ipfsToHttp } from "@/lib/utils";
 import {
@@ -74,7 +71,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
-import type { ChipiCall } from "@/hooks/use-chipi-transaction";
+import type { Call } from "starknet";
+import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 
 const schema = z.object({
   collectionId: z.string().min(1, "Select a collection"),
@@ -291,8 +289,9 @@ function CollectionPicker({
 }
 
 export function SingleEditionsContent() {
-  const { executeTransaction, status, txHash } = useChipiTransaction();
-  const { walletAddress } = useSessionKey();
+  const { hasWallet, address: walletAddress, signer } = useWalletNativeSession();
+  const [status, setStatus] = useState<ChipiTransactionStatus>("idle");
+  const [txHash, setTxHash] = useState<string | null>(null);
 
   // Fetch user's current Medialane ERC-721 collections from the API.
   const { collections: allCollections, isLoading: collectionsLoading } = useCollectionsByOwner(walletAddress ?? null);
@@ -300,8 +299,6 @@ export function SingleEditionsContent() {
     (c) => getService(c.service)?.id === "mip-erc721" && c.collectionId != null
   );
 
-  const [walletSetupOpen, setWalletSetupOpen] = useState(false);
-  const { unlock, pinDialogProps, recordedMethod } = useWalletUnlock();
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -327,8 +324,6 @@ export function SingleEditionsContent() {
       if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
     };
   }, []);
-
-  const hasWallet = !!walletAddress;
 
   const updateMintDebug = (patch: Partial<MintDebugSnapshot>) => {
     const next: MintDebugSnapshot = {
@@ -393,24 +388,15 @@ export function SingleEditionsContent() {
   };
 
   const onSubmit = (values: FormValues) => {
+    if (!walletAddress || !signer) return;
     setPendingValues(values);
-    if (!hasWallet) {
-      setWalletSetupOpen(true);
-      return;
-    }
-    // Pass `values` through the closure — NOT via pendingValues state — because
-    // the passkey path runs synchronously, before a same-tick setState settles.
-    // The .catch handles unlock-level throws (e.g. passkey unavailable here).
-    void unlock((secret, method) => handleUnlocked(values, secret, method)).catch((err) => {
-      setMintError(err instanceof Error ? err.message : "Could not unlock your wallet");
+    void handleUnlocked(values, signer).catch((err) => {
+      setMintError(err instanceof Error ? err.message : "Something went wrong");
       setMintStep("error");
     });
   };
 
-  // `secret` is the wallet-unlock material — a typed PIN or the passkey key.
-  // `pendingValues` (param) shadows the display-only state so the body reads the
-  // freshly-submitted values even on the synchronous passkey path.
-  const handleUnlocked = async (pendingValues: FormValues, secret: string, method: "pin" | "passkey") => {
+  const handleUnlocked = async (pendingValues: FormValues, signer: StarknetVenueSigner) => {
     if (!pendingValues || !walletAddress) return;
 
     setMintError(null);
@@ -487,16 +473,12 @@ export function SingleEditionsContent() {
         })),
       });
 
-      // 3. Execute via ChipiPay
-      const result = await executeTransaction({
-        pin: secret,
-        calls: intentData.calls as ChipiCall[],
-      });
-
-      if (result.status === "reverted") {
-        throw new Error(result.revertReason || "Mint transaction reverted on chain");
-      }
-      updateMintDebug({ step: "tx_executed", txHash: result.txHash, txStatus: result.status });
+      // 3. Execute via the wallet's own atomic multicall.
+      setStatus("submitting");
+      const result = await signer.execute(intentData.calls as Call[]);
+      setTxHash(result.txHash);
+      setStatus("confirming");
+      updateMintDebug({ step: "tx_executed", txHash: result.txHash });
 
       const intentId = intentData.id;
       if (!intentId) {
@@ -509,11 +491,9 @@ export function SingleEditionsContent() {
         throw new Error("Mint transaction confirmed, but backend receipt hydration failed.");
       }
 
+      setStatus("confirmed");
       setMintStep("success");
       rewardToast("mint_asset");
-      // Self-heal the authoritative record — `secret` just decrypted the wallet,
-      // so `method` is proven (corrects a stale "passkey" record on a PIN wallet).
-      if (method !== recordedMethod) void recordWalletAuthMethod(method);
       invalidatePortfolioCache(walletAddress);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Something went wrong";
@@ -522,6 +502,7 @@ export function SingleEditionsContent() {
       const rawError =
         err instanceof Error && err.cause instanceof Error ? err.cause.message : undefined;
       updateMintDebug({ step: "error", error: message, rawError, txHash, txStatus: status });
+      setStatus("error");
       setMintError(message);
       setMintStep("error");
     }
@@ -529,6 +510,8 @@ export function SingleEditionsContent() {
 
   const handleMintAnother = () => {
     setMintStep("idle");
+    setStatus("idle");
+    setTxHash(null);
     setMintError(null);
     setMintDebug(null);
     mintDebugRef.current = null;
@@ -552,6 +535,17 @@ export function SingleEditionsContent() {
     setImagePreview(null);
     if (imageInputRef.current) imageInputRef.current.value = "";
   };
+
+  if (!hasWallet) {
+    return (
+      <LaunchpadSignedOutState
+        icon={ImagePlus}
+        iconClassName="text-brand-blue"
+        title="Set up your wallet to create"
+        description="Publish your creative work as a single-copy NFT in a collection you own."
+      />
+    );
+  }
 
   return (
     <>
@@ -883,27 +877,6 @@ export function SingleEditionsContent() {
           </form>
         </Form>
       </ClaimRouteShell>
-
-      <PinDialog
-        {...pinDialogProps}
-        title="Confirm mint"
-        description="Enter your PIN to mint this asset onchain."
-      />
-
-      <WalletSetupDialog
-        open={walletSetupOpen}
-        onOpenChange={setWalletSetupOpen}
-        onSuccess={() => {
-          setWalletSetupOpen(false);
-          // A wallet from this dialog is PIN-based — unlock takes the async PIN
-          // path, so pendingValues state is settled by this tick.
-          const v = pendingValues;
-          if (v) void unlock((secret, method) => handleUnlocked(v, secret, method)).catch((err) => {
-            setMintError(err instanceof Error ? err.message : "Could not unlock your wallet");
-            setMintStep("error");
-          });
-        }}
-      />
     </>
   );
 }
