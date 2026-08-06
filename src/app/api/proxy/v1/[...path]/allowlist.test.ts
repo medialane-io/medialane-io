@@ -42,3 +42,7 @@ test("POST /v1/intents/<type> with extra path segments (other than /hydrate) is 
 test("unrelated POST routes are still rejected", () => {
   expect(isPathAllowed("POST", "admin/accounts/1/credits/grant")).toBe(false);
 });
+
+test("POST /v1/wallet/deploy is allowed (new-signup bootstrap)", () => {
+  expect(isPathAllowed("POST", "wallet/deploy")).toBe(true);
+});
