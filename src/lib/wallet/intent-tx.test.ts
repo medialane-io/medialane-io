@@ -1,6 +1,7 @@
 import { test, expect } from "bun:test";
-import { executePrebuiltIntent, signAndExecuteIntent, confirmIntentBestEffort } from "./intent-tx";
+import { confirmIntentBestEffort, executeIntent, executeIntents } from "./intent-tx";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
+import type { ApiIntentCreated } from "@medialane/sdk";
 
 function fakeSigner(overrides: Partial<StarknetVenueSigner> = {}): StarknetVenueSigner {
   return {
@@ -21,35 +22,46 @@ function fakeClient(overrides: Record<string, unknown> = {}) {
   } as never;
 }
 
-test("executePrebuiltIntent executes the intent's calls and confirms by default", async () => {
+const PREBUILT: ApiIntentCreated = {
+  id: "intent-1",
+  expiresAt: "2026-01-01T00:00:00Z",
+  requiresSignature: false,
+  calls: [{ contractAddress: "0xc", entrypoint: "e", calldata: [] }],
+};
+
+const SIGNED: ApiIntentCreated = {
+  id: "intent-2",
+  expiresAt: "2026-01-01T00:00:00Z",
+  requiresSignature: true,
+  typedData: { domain: {}, message: {}, primaryType: "x", types: {} } as never,
+};
+
+test("executeIntent executes a prebuilt intent's calls directly and confirms by default", async () => {
   let confirmedWith: [string, string] | null = null;
   const client = fakeClient({ confirmIntent: async (id: string, txHash: string) => { confirmedWith = [id, txHash]; } });
-  const result = await executePrebuiltIntent(fakeSigner(), client, { id: "intent-1", calls: [] });
+  const result = await executeIntent(fakeSigner(), client, PREBUILT);
   expect(result.txHash).toBe("0xtx");
   expect(confirmedWith).toEqual(["intent-1", "0xtx"]);
 });
 
-test("executePrebuiltIntent skips confirmation when confirm:false", async () => {
+test("executeIntent skips confirmation when confirm:false", async () => {
   let confirmCalled = false;
   const client = fakeClient({ confirmIntent: async () => { confirmCalled = true; } });
-  await executePrebuiltIntent(fakeSigner(), client, { id: "intent-1", calls: [] }, { confirm: false });
+  await executeIntent(fakeSigner(), client, PREBUILT, { confirm: false });
   expect(confirmCalled).toBe(false);
 });
 
-test("executePrebuiltIntent never throws when confirmation fails (best-effort)", async () => {
+test("executeIntent never throws when confirmation fails (best-effort)", async () => {
   const client = fakeClient({ confirmIntent: async () => { throw new Error("network error"); } });
-  const result = await executePrebuiltIntent(fakeSigner(), client, { id: "intent-1", calls: [] });
+  const result = await executeIntent(fakeSigner(), client, PREBUILT);
   expect(result.txHash).toBe("0xtx");
 });
 
-test("signAndExecuteIntent signs typed data, submits, then executes the populated calls", async () => {
+test("executeIntent signs typed data, submits, then executes the populated calls for a signature-required intent", async () => {
   const signed: unknown[] = [];
   const signer = fakeSigner({ signTypedData: async (td) => { signed.push(td); return ["0xr", "0xs"]; } });
   const client = fakeClient();
-  const result = await signAndExecuteIntent(signer, client, {
-    id: "intent-2",
-    typedData: { domain: {}, message: {}, primaryType: "x", types: {} } as never,
-  });
+  const result = await executeIntent(signer, client, SIGNED);
   expect(signed.length).toBe(1);
   expect(result.txHash).toBe("0xtx");
 });
@@ -57,4 +69,24 @@ test("signAndExecuteIntent signs typed data, submits, then executes the populate
 test("confirmIntentBestEffort swallows errors", async () => {
   const client = fakeClient({ confirmIntent: async () => { throw new Error("boom"); } });
   await expect(confirmIntentBestEffort(client, "id", "0xtx")).resolves.toBeUndefined();
+});
+
+test("executeIntents bundles multiple prebuilt intents' calls into one multicall", async () => {
+  const calls: unknown[] = [];
+  const signer = fakeSigner({ execute: async (c) => { calls.push(...c); return { txHash: "0xbundled" }; } });
+  const confirmed: string[] = [];
+  const client = fakeClient({ confirmIntent: async (id: string) => { confirmed.push(id); } });
+
+  const second: ApiIntentCreated = { ...PREBUILT, id: "intent-3", calls: [{ contractAddress: "0xd", entrypoint: "f", calldata: [] }] };
+  const result = await executeIntents(signer, client, [PREBUILT, second]);
+
+  expect(calls.length).toBe(2);
+  expect(result.txHash).toBe("0xbundled");
+  expect(confirmed.sort()).toEqual(["intent-1", "intent-3"]);
+});
+
+test("executeIntents throws if any intent requires a signature", async () => {
+  await expect(executeIntents(fakeSigner(), fakeClient(), [PREBUILT, SIGNED])).rejects.toThrow(
+    "Expected prebuilt intents (requiresSignature=false)",
+  );
 });
