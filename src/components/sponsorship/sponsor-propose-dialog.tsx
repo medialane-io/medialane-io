@@ -4,12 +4,10 @@ import { useState } from "react";
 import { Handshake, Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { PinDialog } from "@/components/chipi/pin-dialog";
-import { useWriteAction } from "@/hooks/use-write-action";
-import { WalletSetupGate } from "@/components/transaction/wallet-setup-gate";
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
-import { executePrebuiltIntent } from "@/lib/intent-tx";
+import { executeIntent } from "@/lib/wallet/intent-tx";
 import { LicenseTermsBuilder, EMPTY_SPONSORSHIP_TERMS, toLicenseMetadata, toDurationDays, type SponsorshipTerms } from "@medialane/ui";
 import { getTokenBySymbol, SUPPORTED_TOKENS } from "@medialane/sdk";
 import { pinSponsorshipTerms } from "@/lib/launchpad-metadata";
@@ -30,9 +28,9 @@ interface SponsorProposeDialogProps {
 export function SponsorProposeDialog({
   open, onOpenChange, nftContract, tokenId, tokenName, onSuccess,
 }: SponsorProposeDialogProps) {
-  const action = useWriteAction();
+  const action = useWalletWriteAction();
   const busy = action.status === "processing" || action.status === "confirming";
-  const { walletAddress } = useSessionKey();
+  const { address: walletAddress } = useWalletNativeSession();
   const client = useMedialaneClient();
   const [terms, setTerms] = useState<SponsorshipTerms>({ ...EMPTY_SPONSORSHIP_TERMS, paymentTokenSymbol: "USDC" });
 
@@ -44,7 +42,7 @@ export function SponsorProposeDialog({
     const durationDays = toDurationDays(terms);
     if (!durationDays) { toast.error("How long should the license last?"); return; }
 
-    void action.run(async (secret) => {
+    void action.run(async (signer) => {
       const licenseTermsUri = await pinSponsorshipTerms(toLicenseMetadata(terms));
 
       const amount = BigInt(Math.round(Number(terms.amount) * 10 ** token.decimals));
@@ -62,8 +60,8 @@ export function SponsorProposeDialog({
         transferable: terms.transferable,
         royaltyBps,
       });
-      const result = await executePrebuiltIntent(action.executeTransaction, client, secret, intentRes.data);
-      if (result.status === "confirmed") onSuccess?.();
+      const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
+      onSuccess?.();
       return result;
     });
   };
@@ -117,8 +115,6 @@ export function SponsorProposeDialog({
           )}
         </DialogContent>
       </Dialog>
-      <PinDialog {...action.pinDialogProps} title="Send sponsorship proposal" description="Enter your PIN to publish this onchain." />
-      <WalletSetupGate action={action} />
     </>
   );
 }

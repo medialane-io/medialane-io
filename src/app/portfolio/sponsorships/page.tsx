@@ -6,13 +6,13 @@ import { CheckCircle2, Handshake, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AddressDisplay } from "@/components/shared/address-display";
-import { useSessionKey } from "@/hooks/use-session-key";
-import { useWriteAction } from "@/hooks/use-write-action";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
+import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
-import { useFeeCharge } from "@/hooks/use-fee-charge";
-import { executePrebuiltIntent } from "@/lib/intent-tx";
-import { PinDialog } from "@/components/chipi/pin-dialog";
-import { WalletSetupGate } from "@/components/transaction/wallet-setup-gate";
+import { executeIntent, confirmIntentBestEffort } from "@/lib/wallet/intent-tx";
+import { buildFeeCall } from "@medialane/sdk/starknet";
+import { ioFeeConfig } from "@/lib/fee";
+import type { Call } from "starknet";
 import {
   useSponsorshipProposals, useSponsorshipOffers, useSponsorshipBids, useSponsorshipLicenses,
   type SponsorshipOffer,
@@ -21,24 +21,34 @@ import { assetHref } from "@/lib/routes";
 
 function OfferBidsRow({ offer }: { offer: SponsorshipOffer }) {
   const { bids, isLoading, mutate } = useSponsorshipBids(offer.offerId);
-  const { walletAddress } = useSessionKey();
+  const { address: walletAddress } = useWalletNativeSession();
   const client = useMedialaneClient();
-  const { chargeFee } = useFeeCharge();
-  const action = useWriteAction();
+  const action = useWalletWriteAction();
   const busy = action.status === "processing" || action.status === "confirming";
   const [activeSponsor, setActiveSponsor] = useState<string | null>(null);
 
   const acceptBid = (sponsor: string, amount: string) => {
     if (!walletAddress) return;
     setActiveSponsor(sponsor);
-    void action.run(async (secret) => {
+    void action.run(async (signer) => {
       const intentRes = await client.api.acceptSponsorshipBidIntent({ author: walletAddress, offerId: offer.offerId, sponsor });
-      const result = await executePrebuiltIntent(action.executeTransaction, client, secret, intentRes.data);
-      if (result.status === "confirmed") {
-        await mutate();
-        chargeFee({ surface: "sponsorship", token: offer.paymentToken, grossAmount: BigInt(amount), pin: secret });
+      const intent = intentRes.data;
+      if (intent.requiresSignature) throw new Error("Unexpected signature requirement on sponsorship accept");
+      const calls: Call[] = [...(intent.calls as Call[])];
+
+      // Bundle the platform fee into the SAME atomic multicall as the accept.
+      const feeCall = buildFeeCall(
+        { surface: "sponsorship", token: offer.paymentToken, grossAmount: BigInt(amount) },
+        ioFeeConfig,
+      );
+      if (feeCall) {
+        calls.push({ contractAddress: feeCall.contractAddress, entrypoint: feeCall.entrypoint, calldata: feeCall.calldata as string[] });
       }
-      return result;
+
+      const { txHash } = await signer.execute(calls);
+      await confirmIntentBestEffort(client, intent.id, txHash);
+      await mutate();
+      return { txHash };
     });
   };
 
@@ -62,8 +72,6 @@ function OfferBidsRow({ offer }: { offer: SponsorshipOffer }) {
           </Button>
         </div>
       ))}
-      <PinDialog {...action.pinDialogProps} title="Accept bid" description="Enter your PIN to confirm." />
-      <WalletSetupGate action={action} />
     </div>
   );
 }
@@ -71,25 +79,34 @@ function OfferBidsRow({ offer }: { offer: SponsorshipOffer }) {
 function ReceivedProposalsSection({ walletAddress }: { walletAddress: string }) {
   const { proposals, isLoading, mutate } = useSponsorshipProposals({ owner: walletAddress, open: true });
   const client = useMedialaneClient();
-  const { chargeFee } = useFeeCharge();
-  const action = useWriteAction();
+  const action = useWalletWriteAction();
   const busy = action.status === "processing" || action.status === "confirming";
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const respond = (proposalId: string, decision: "accept" | "reject", paymentToken: string, amount: string) => {
     setActiveId(proposalId);
-    void action.run(async (secret) => {
+    void action.run(async (signer) => {
       const intentRes = decision === "accept"
         ? await client.api.acceptSponsorshipProposalIntent({ owner: walletAddress, proposalId })
         : await client.api.rejectSponsorshipProposalIntent({ owner: walletAddress, proposalId });
-      const result = await executePrebuiltIntent(action.executeTransaction, client, secret, intentRes.data);
-      if (result.status === "confirmed") {
-        await mutate();
-        if (decision === "accept") {
-          chargeFee({ surface: "sponsorship", token: paymentToken, grossAmount: BigInt(amount), pin: secret });
+      const intent = intentRes.data;
+      if (intent.requiresSignature) throw new Error("Unexpected signature requirement on sponsorship response");
+      const calls: Call[] = [...(intent.calls as Call[])];
+
+      if (decision === "accept") {
+        const feeCall = buildFeeCall(
+          { surface: "sponsorship", token: paymentToken, grossAmount: BigInt(amount) },
+          ioFeeConfig,
+        );
+        if (feeCall) {
+          calls.push({ contractAddress: feeCall.contractAddress, entrypoint: feeCall.entrypoint, calldata: feeCall.calldata as string[] });
         }
       }
-      return result;
+
+      const { txHash } = await signer.execute(calls);
+      await confirmIntentBestEffort(client, intent.id, txHash);
+      await mutate();
+      return { txHash };
     });
   };
 
@@ -118,8 +135,6 @@ function ReceivedProposalsSection({ walletAddress }: { walletAddress: string }) 
           </div>
         </div>
       ))}
-      <PinDialog {...action.pinDialogProps} title="Respond to proposal" description="Enter your PIN to confirm." />
-      <WalletSetupGate action={action} />
     </div>
   );
 }
@@ -127,16 +142,16 @@ function ReceivedProposalsSection({ walletAddress }: { walletAddress: string }) 
 function SentProposalsSection({ walletAddress }: { walletAddress: string }) {
   const { proposals, isLoading, mutate } = useSponsorshipProposals({ proposer: walletAddress, open: true });
   const client = useMedialaneClient();
-  const action = useWriteAction();
+  const action = useWalletWriteAction();
   const busy = action.status === "processing" || action.status === "confirming";
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const withdraw = (proposalId: string) => {
     setActiveId(proposalId);
-    void action.run(async (secret) => {
+    void action.run(async (signer) => {
       const intentRes = await client.api.withdrawSponsorshipProposalIntent({ proposer: walletAddress, proposalId });
-      const result = await executePrebuiltIntent(action.executeTransaction, client, secret, intentRes.data);
-      if (result.status === "confirmed") await mutate();
+      const result = await executeIntent(signer, client, intentRes.data);
+      await mutate();
       return result;
     });
   };
@@ -160,14 +175,12 @@ function SentProposalsSection({ walletAddress }: { walletAddress: string }) {
           </Button>
         </div>
       ))}
-      <PinDialog {...action.pinDialogProps} title="Withdraw proposal" description="Enter your PIN to confirm." />
-      <WalletSetupGate action={action} />
     </div>
   );
 }
 
 export default function PortfolioSponsorshipsPage() {
-  const { walletAddress } = useSessionKey();
+  const { address: walletAddress } = useWalletNativeSession();
   const { offers } = useSponsorshipOffers(walletAddress ? { author: walletAddress, open: true } : undefined);
   const { licenses: held, isLoading: heldLoading } = useSponsorshipLicenses(walletAddress ? { holder: walletAddress } : undefined);
   const { licenses: issued, isLoading: issuedLoading } = useSponsorshipLicenses(walletAddress ? { author: walletAddress } : undefined);
