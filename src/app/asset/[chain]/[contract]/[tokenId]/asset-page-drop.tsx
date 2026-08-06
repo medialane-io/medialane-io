@@ -29,7 +29,6 @@ import { PurchaseDialog } from "@/components/marketplace/purchase-dialog";
 import { ListingDialog } from "@/components/marketplace/listing-dialog";
 import { OfferDialog } from "@/components/marketplace/offer-dialog";
 import { TransferDialog } from "@/components/marketplace/transfer-dialog";
-import { PinDialog } from "@/components/chipi/pin-dialog";
 import { ShareButton } from "@/components/shared/share-button";
 import { ReportDialog } from "@/components/report-dialog";
 import { FloatingCommentsButton } from "@/components/asset/floating-comments-button";
