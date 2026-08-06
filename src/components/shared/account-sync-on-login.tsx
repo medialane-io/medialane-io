@@ -9,7 +9,7 @@ const SESSION_KEY_PREFIX = "ml_io_synced_";
 
 export function AccountSyncOnLogin() {
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
-  const { getValidToken, signIn } = useSiwsToken();
+  const { getValidToken } = useSiwsToken();
 
   useEffect(() => {
     if (!hasWallet || !walletAddress) return;
@@ -19,11 +19,20 @@ export function AccountSyncOnLogin() {
     const key = `${SESSION_KEY_PREFIX}${walletAddress}:${walletType}`;
     if (sessionStorage.getItem(key)) return;
 
+    // Only ever use an ALREADY-cached, still-valid token here — this effect
+    // runs on every page mount with no user gesture, so it must never call
+    // signIn() (WebAuthn requires one; calling it gesture-less either hard
+    // fails or, worse, surfaces an OS-level auth prompt out of nowhere,
+    // repeatedly, on pages that have nothing to do with signing in). If
+    // there's no valid cached token, skip silently — the eventual real
+    // sign-in (write action, claim, etc.) is itself gesture-backed and
+    // registers the wallet via its own bearer token at that point.
+    const token = getValidToken();
+    if (!token) return;
+
     let cancelled = false;
     (async () => {
       try {
-        const token = getValidToken() ?? (await signIn());
-        if (!token || cancelled) return;
         await getMedialaneClient().api.upsertMyWallet(token, {
           walletType,
           appSource,
@@ -47,7 +56,7 @@ export function AccountSyncOnLogin() {
     return () => {
       cancelled = true;
     };
-  }, [hasWallet, walletAddress, getValidToken, signIn]);
+  }, [hasWallet, walletAddress, getValidToken]);
 
   return null;
 }
