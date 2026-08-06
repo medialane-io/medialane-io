@@ -7,7 +7,8 @@
 
 import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
 import { assetHref, collectionHref } from "@/lib/routes";
 import { useToken, useTokenHistory } from "@/hooks/use-tokens";
 import { useTokenListings } from "@/hooks/use-orders";
@@ -118,6 +119,7 @@ function TicketPanel({ ticket }: { ticket: TicketOnchain }) {
 
 export function AssetPageTicket() {
   const { contract, tokenId } = useParams<{ contract: string; tokenId: string }>();
+  const pathname = usePathname();
   const router = useRouter();
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
   const { collection } = useCollection(contract);
@@ -269,9 +271,11 @@ export function AssetPageTicket() {
               lastSaleRaw={lastSaleRaw}
               renderAuthAction={() => (
                 <div className="btn-border-animated p-[1px] rounded-2xl">
-                  <Button disabled className="w-full h-12 text-base bg-transparent text-white rounded-[15px] flex items-center justify-center gap-2">
-                    <ShoppingCart className="h-5 w-5 mr-2" />
-                    Set up your wallet
+                  <Button asChild className="w-full h-12 text-base bg-transparent text-white rounded-[15px] flex items-center justify-center gap-2">
+                    <Link href={`/wallet-onboarding?redirect_url=${encodeURIComponent(pathname)}`}>
+                      <ShoppingCart className="h-5 w-5 mr-2" />
+                      Set up your wallet
+                    </Link>
                   </Button>
                 </div>
               )}

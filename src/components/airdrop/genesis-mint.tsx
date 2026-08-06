@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { serializeByteArray } from "@/lib/cairo-calldata";
@@ -52,6 +53,7 @@ type MintStep = "ready" | "minting" | "success" | "error";
 
 export function GenesisMint() {
   const { hasWallet, address: walletAddress, isDeployed } = useWalletNativeSession();
+  const pathname = usePathname();
   const action = useWalletWriteAction();
 
   const [mintStep, setMintStep] = useState<MintStep>("ready");
@@ -136,7 +138,9 @@ export function GenesisMint() {
     return (
       <div className="flex items-center gap-3 py-2">
         <Wallet className="h-5 w-5 text-muted-foreground" />
-        <p className="text-sm text-muted-foreground">Set up your wallet to join.</p>
+        <Link href={`/wallet-onboarding?redirect_url=${encodeURIComponent(pathname)}`} className="text-sm text-primary hover:underline">
+          Set up your wallet to join.
+        </Link>
       </div>
     );
   }

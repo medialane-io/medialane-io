@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Wallet } from "lucide-react";
 import { OpenInDappCallout } from "./open-in-dapp-callout";
 
@@ -18,9 +20,13 @@ interface SignedOutAssetActionsProps {
  * asset as medialane.io adds more chains.
  */
 export function SignedOutAssetActions({ chain, contract, tokenId }: SignedOutAssetActionsProps) {
+  const pathname = usePathname();
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-stretch">
-      <div className="flex h-full w-full items-start gap-3 rounded-2xl border border-transparent bg-gradient-to-br from-brand-blue/15 via-brand-purple/10 to-transparent p-4 text-left">
+      <Link
+        href={`/wallet-onboarding?redirect_url=${encodeURIComponent(pathname)}`}
+        className="group flex h-full w-full items-start gap-3 rounded-2xl border border-transparent bg-gradient-to-br from-brand-blue/15 via-brand-purple/10 to-transparent p-4 text-left transition-colors hover:border-brand-purple/30"
+      >
         <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-blue to-brand-purple text-white">
           <Wallet className="h-[18px] w-[18px]" />
         </div>
@@ -30,7 +36,7 @@ export function SignedOutAssetActions({ chain, contract, tokenId }: SignedOutAss
             Buy, offer, and collect instantly — no seed phrase needed.
           </p>
         </div>
-      </div>
+      </Link>
 
       <OpenInDappCallout chain={chain} contract={contract} tokenId={tokenId} />
     </div>

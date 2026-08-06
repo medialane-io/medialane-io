@@ -1,6 +1,10 @@
 "use client";
 
 import type { ElementType } from "react";
+import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
+import { Wallet } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface LaunchpadSignedOutStateProps {
   icon: ElementType;
@@ -15,11 +19,21 @@ export function LaunchpadSignedOutState({
   title,
   description,
 }: LaunchpadSignedOutStateProps) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.size ? `${pathname}?${searchParams.toString()}` : pathname;
+
   return (
     <div className="max-w-lg mx-auto px-4 pt-24 pb-8 text-center space-y-4">
       <Icon className={`h-10 w-10 mx-auto ${iconClassName}`} />
       <h1 className="text-2xl font-bold">{title}</h1>
       <p className="text-muted-foreground">{description}</p>
+      <Button asChild>
+        <Link href={`/wallet-onboarding?redirect_url=${encodeURIComponent(redirectTo)}`}>
+          <Wallet className="h-4 w-4 mr-1.5" />
+          Set up your wallet
+        </Link>
+      </Button>
     </div>
   );
 }

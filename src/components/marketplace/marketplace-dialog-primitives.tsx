@@ -1,6 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { AlertCircle, CheckCircle2, ExternalLink, Loader2, Wallet, Sparkles } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -85,7 +87,7 @@ export function MarketplaceProcessingState({
 // ─────────────────────────────────────────────────────────────────────────────
 // MarketplaceSignInGate — despite the name, gates on wallet readiness, not
 // Clerk sign-in. Kept for import-site stability across the marketplace
-// dialogs; no CTA yet since wallet onboarding UI isn't wired into a modal.
+// dialogs.
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface MarketplaceSignInGateProps {
@@ -94,6 +96,7 @@ interface MarketplaceSignInGateProps {
 }
 
 export function MarketplaceSignInGate({ title, description }: MarketplaceSignInGateProps) {
+  const pathname = usePathname();
   return (
     <div className="flex flex-col items-center gap-4 p-6 py-10 text-center">
       <Wallet className="h-10 w-10 text-muted-foreground" />
@@ -101,6 +104,11 @@ export function MarketplaceSignInGate({ title, description }: MarketplaceSignInG
         <p className="font-semibold">{title}</p>
         <p className="text-sm text-muted-foreground mt-1">{description}</p>
       </div>
+      <Button asChild className="w-full">
+        <Link href={`/wallet-onboarding?redirect_url=${encodeURIComponent(pathname)}`}>
+          Set up your wallet
+        </Link>
+      </Button>
     </div>
   );
 }

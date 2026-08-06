@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -13,7 +14,24 @@ import { typedData as starknetTypedData } from "starknet";
 
 type Step = "start" | "creating-passkey" | "deploying" | "signing-in" | "done" | "error";
 
+/** Same-origin relative path guard — prevents open redirects via redirect_url. */
+function safeRelative(path: string | null | undefined, fallback: string): string {
+  if (!path || !path.startsWith("/") || path.startsWith("//")) return fallback;
+  return path;
+}
+
 export default function WalletOnboardingPage() {
+  return (
+    <Suspense fallback={null}>
+      <WalletOnboardingForm />
+    </Suspense>
+  );
+}
+
+function WalletOnboardingForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = safeRelative(searchParams.get("redirect_url"), "/welcome");
   const [step, setStep] = useState<Step>("start");
   const [error, setError] = useState<string | null>(null);
 
@@ -65,6 +83,11 @@ export default function WalletOnboardingPage() {
             <CardTitle>You&apos;re all set!</CardTitle>
             <CardDescription>Your account is ready.</CardDescription>
           </CardHeader>
+          <CardContent>
+            <Button className="w-full" onClick={() => router.push(redirectTo)}>
+              Continue
+            </Button>
+          </CardContent>
         </Card>
       </div>
     );

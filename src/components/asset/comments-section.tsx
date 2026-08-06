@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
 import { CallData } from "starknet";
 import { normalizeAddress } from "@medialane/sdk";
@@ -55,6 +56,7 @@ interface CommentsSectionProps {
 
 export function CommentsSection({ contract, tokenId, className }: CommentsSectionProps) {
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
+  const pathname = usePathname();
   const { comments, total, isLoading, mutate } = useComments(contract, tokenId);
   // One batched rewards lookup for all visible authors — never per row.
   const { data: authorLevels } = useRewardsBatch(comments.map((c) => c.author));
@@ -265,7 +267,12 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
       <div className="border-t border-border/60 shrink-0">
         {!hasWallet ? (
           <div className="flex items-center justify-center px-4 h-16">
-            <p className="text-sm text-muted-foreground">Set up your wallet to comment</p>
+            <Link
+              href={`/wallet-onboarding?redirect_url=${encodeURIComponent(pathname)}`}
+              className="text-sm text-primary hover:underline"
+            >
+              Set up your wallet to comment
+            </Link>
           </div>
         ) : (
           <div className="px-3 pt-2 pb-3 space-y-2">
