@@ -25,8 +25,7 @@ import { resolveRemixPolicy, getDerivativesTerm } from "@/lib/remix-policy";
 import { PriceHistoryChart } from "@/components/asset/price-history-chart";
 import { useComments } from "@/hooks/use-comments";
 import { EXPLORER_URL } from "@/lib/constants";
-import { useAuth } from "@clerk/nextjs";
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { toast } from "sonner";
 import { RemixesTab, ParentAttributionBanner } from "@/components/asset/remixes-tab";
 import { useTokenRemixes } from "@/hooks/use-remix-offers";
@@ -55,8 +54,7 @@ import { SponsorSolicitDialog } from "@/components/sponsorship/sponsor-solicit-d
 export function AssetPageStandard() {
   const { contract, tokenId } = useParams<{ contract: string; tokenId: string }>();
   const router = useRouter();
-  const { isSignedIn } = useAuth();
-  const { walletAddress } = useSessionKey();
+  const { hasWallet, address: walletAddress } = useWalletNativeSession();
   const { collection } = useCollection(contract);
   const { token, isLoading } = useToken(contract, tokenId);
   const { listings, mutate: mutateListings } = useTokenListings(contract, tokenId);
@@ -310,7 +308,7 @@ export function AssetPageStandard() {
             <AssetMarketplacePanel
               cheapest={cheapest}
               isOwner={isOwner}
-              isSignedIn={!!isSignedIn}
+              isSignedIn={hasWallet}
               isProcessing={isProcessing}
               isERC1155={isERC1155}
               myListing={myListing ?? null}
@@ -338,7 +336,7 @@ export function AssetPageStandard() {
 
             {/* Bridge to the chain-native dapp for self-custody / web3 users
                 (signed-out visitors already see this inside SignedOutAssetActions) */}
-            {isSignedIn && <OpenInDappCallout chain={token.chain} contract={contract} tokenId={tokenId} />}
+            {hasWallet && <OpenInDappCallout chain={token.chain} contract={contract} tokenId={tokenId} />}
 
             {/* ERC-1155 ownership — shown after marketplace buttons */}
             {isERC1155 && token.balances && token.balances.length > 0 ? (

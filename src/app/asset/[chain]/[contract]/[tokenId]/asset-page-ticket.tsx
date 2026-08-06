@@ -25,8 +25,7 @@ import { normalizeAddress } from "@medialane/sdk";
 import type { ApiActivity } from "@medialane/sdk";
 import { useComments } from "@/hooks/use-comments";
 import { EXPLORER_URL } from "@/lib/constants";
-import { useAuth, SignInButton } from "@clerk/nextjs";
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useOrderActions } from "./use-order-actions";
 import { useAcceptOffer } from "@/hooks/use-accept-offer";
 import { useTokenRemixes } from "@/hooks/use-remix-offers";
@@ -120,8 +119,7 @@ function TicketPanel({ ticket }: { ticket: TicketOnchain }) {
 export function AssetPageTicket() {
   const { contract, tokenId } = useParams<{ contract: string; tokenId: string }>();
   const router = useRouter();
-  const { isSignedIn } = useAuth();
-  const { walletAddress } = useSessionKey();
+  const { hasWallet, address: walletAddress } = useWalletNativeSession();
   const { collection } = useCollection(contract);
   const { token } = useToken(contract, tokenId);
   const { listings, mutate: mutateListings } = useTokenListings(contract, tokenId);
@@ -261,7 +259,7 @@ export function AssetPageTicket() {
             <AssetMarketplacePanel
               cheapest={cheapest}
               isOwner={isOwner}
-              isSignedIn={!!isSignedIn}
+              isSignedIn={hasWallet}
               isProcessing={isProcessing}
               isERC1155
               myListing={myListing ?? null}
@@ -269,15 +267,13 @@ export function AssetPageTicket() {
               walletAddress={walletAddress}
               floorPriceRaw={collection?.floorPrice}
               lastSaleRaw={lastSaleRaw}
-              renderAuthAction={(label) => (
-                <SignInButton mode="modal">
-                  <div className="btn-border-animated p-[1px] rounded-2xl">
-                    <Button className="w-full h-12 text-base bg-transparent text-white rounded-[15px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98]">
-                      <ShoppingCart className="h-5 w-5 mr-2" />
-                      {label}
-                    </Button>
-                  </div>
-                </SignInButton>
+              renderAuthAction={() => (
+                <div className="btn-border-animated p-[1px] rounded-2xl">
+                  <Button disabled className="w-full h-12 text-base bg-transparent text-white rounded-[15px] flex items-center justify-center gap-2">
+                    <ShoppingCart className="h-5 w-5 mr-2" />
+                    Set up your wallet
+                  </Button>
+                </div>
               )}
               renderHelp={(content) => <HelpIcon content={content} side="top" />}
               onCancelClick={handleCancelClick}

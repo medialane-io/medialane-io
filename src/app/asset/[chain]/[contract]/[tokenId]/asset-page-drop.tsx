@@ -13,12 +13,11 @@ import {
 import { useToken, useTokenHistory } from "@/hooks/use-tokens";
 import { useOnChainDropState, getDropStatus, type DropConditions } from "@/hooks/use-drops";
 import { useTokenListings } from "@/hooks/use-orders";
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useOrderActions } from "./use-order-actions";
 import { CancelListingDialog } from "./cancel-listing-dialog";
 import { useAcceptOffer } from "@/hooks/use-accept-offer";
 import { AcceptOfferDialog } from "@/components/marketplace/accept-offer-dialog";
-import { useAuth, SignInButton } from "@clerk/nextjs";
 import { useComments } from "@/hooks/use-comments";
 import { useTokenRemixes } from "@/hooks/use-remix-offers";
 import { PageContainer } from "@medialane/ui";
@@ -129,8 +128,7 @@ function DropInfoPanel({ conditions, totalMinted }: { conditions: DropConditions
 export function AssetPageDrop() {
   const { contract, tokenId } = useParams<{ contract: string; tokenId: string }>();
   const router = useRouter();
-  const { isSignedIn } = useAuth();
-  const { walletAddress } = useSessionKey();
+  const { hasWallet, address: walletAddress } = useWalletNativeSession();
   const { token } = useToken(contract, tokenId);
   const { state: dropState } = useOnChainDropState(contract);
   const { history } = useTokenHistory(contract, tokenId);
@@ -264,7 +262,7 @@ export function AssetPageDrop() {
                       </button>
                     </div>
                   </div>
-                ) : isSignedIn ? (
+                ) : hasWallet ? (
                   <div className="grid grid-cols-2 gap-2">
                     <div className="btn-border-animated p-[1px] rounded-2xl">
                       <button className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 px-3 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-transparent" onClick={() => setPurchaseOrder(cheapest)}>
@@ -278,13 +276,11 @@ export function AssetPageDrop() {
                     </div>
                   </div>
                 ) : (
-                  <SignInButton mode="modal">
-                    <div className="btn-border-animated p-[1px] rounded-2xl">
-                      <Button className="w-full h-12 text-base bg-transparent text-white rounded-[15px] flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98]">
-                        <ShoppingCart className="h-5 w-5 mr-2" />Sign in to trade
-                      </Button>
-                    </div>
-                  </SignInButton>
+                  <div className="btn-border-animated p-[1px] rounded-2xl">
+                    <Button disabled className="w-full h-12 text-base bg-transparent text-white rounded-[15px] flex items-center justify-center gap-2">
+                      <ShoppingCart className="h-5 w-5 mr-2" />Set up your wallet to trade
+                    </Button>
+                  </div>
                 )}
               </div>
             ) : (
@@ -302,16 +298,14 @@ export function AssetPageDrop() {
                       </button>
                     </div>
                   </div>
-                ) : isSignedIn ? (
+                ) : hasWallet ? (
                   <div className="btn-border-animated p-[1px] rounded-2xl">
                     <button className="w-full h-10 rounded-[15px] flex items-center justify-center gap-2 px-3 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-brand-orange" onClick={() => setOfferOpen(true)}>
                       <HandCoins className="h-4 w-4" />Make offer
                     </button>
                   </div>
                 ) : (
-                  <SignInButton mode="modal">
-                    <Button variant="outline" className="w-full">Sign in to make an offer</Button>
-                  </SignInButton>
+                  <Button variant="outline" disabled className="w-full">Set up your wallet to make an offer</Button>
                 )}
               </div>
             )}
