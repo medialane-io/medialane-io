@@ -98,8 +98,7 @@ export function CollectionDropMintButton({
     });
 
     // The platform fee is bundled into the SAME atomic multicall — no
-    // separate fire-and-forget transaction needed. That pattern existed only
-    // because ChipiPay's account was non-atomic; MediaWallet (like every
+    // separate fire-and-forget transaction needed. MediaWallet (like every
     // real wallet on medialane-starknet) executes one multicall as a single
     // all-or-nothing unit, so the fee can never be stranded on a reverted
     // claim. Drop claim quantity is fixed at 1, so grossAmount = price.

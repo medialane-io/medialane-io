@@ -14,9 +14,8 @@ export interface WalletNativeSession {
 }
 
 /**
- * Wallet-native identity — the MediaWallet equivalent of ChipiPay's
- * useSessionKey, deliberately minimal: address resolution and a signer, no
- * session-key lifecycle.
+ * Wallet-native identity — deliberately minimal: address resolution and a
+ * signer, no session-key lifecycle.
  */
 export function useWalletNativeSession(): WalletNativeSession {
   // localStorage reads are synchronous — resolve address on first render

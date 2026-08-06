@@ -3,8 +3,7 @@ import type { NextRequest } from "next/server";
 
 /**
  * Wallet-native session state lives in localStorage only, not a server
- * session — so route gating can no longer happen here (Clerk's JWT-based
- * `clerkMiddleware` is gone). Gated routes (portfolio, settings, create,
+ * session — so route gating can't happen here. Gated routes (portfolio, settings, create,
  * claim, the launchpad create/mint surfaces) each check `hasWallet` from
  * `useWalletNativeSession()` client-side and render a "set up your wallet"
  * state in place, same pattern as `portfolio/layout.tsx`. This middleware

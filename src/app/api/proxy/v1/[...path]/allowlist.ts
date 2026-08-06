@@ -5,7 +5,7 @@
  *
  * The proxy injects the server-only `MEDIALANE_API_KEY` into every outbound
  * request. The key is a fully-privileged tenant key — backend layered auth
- * (Clerk JWT, SNIP-12 signatures, on-chain ownership checks) handles the
+ * (SIWS tokens, SNIP-12 signatures, on-chain ownership checks) handles the
  * real authorisation per route, but defense-in-depth at this boundary
  * limits the surface a leaked key or a future backend route addition can
  * reach through the io BFF.
@@ -49,18 +49,18 @@ const ALLOWED_ROUTES: Record<string, RegExp[]> = {
     /^collections\/claim\/request$/,                       // manual-review claim request
     /^collection-slug-claims$/,                            // collection settings slug claim
     /^coins\/sync$/,                                       // creator coin launch → instant index
-    /^drop\/conditions$/,                                  // launchpad drop/create (identity-gated on backend — Clerk JWT or SIWS)
+    /^drop\/conditions$/,                                  // launchpad drop/create (identity-gated on backend via SIWS)
     /^metadata\/(upload|upload-file)$/,                    // /v1/metadata/{upload,upload-file}
     /^remix-offers(\/(auto|self\/confirm|[^/]+\/(confirm|reject|extend)))?$/,  // remix offer lifecycle
-    /^reports$/,                                           // /v1/reports (identity-gated on backend — Clerk JWT or SIWS)
+    /^reports$/,                                           // /v1/reports (identity-gated on backend via SIWS)
     /^users\/(me|register)$/,                              // /v1/users/{me,register} — me also covers upsertMyWallet
     /^username-claims$/,                                   // /v1/username-claims
     /^wallet\/deploy$/,                                     // relayer-paid UDC deploy (new-signup bootstrap)
   ],
   PATCH: [
     /^intents\/[^/]+\/(confirm|signature)$/,               // /v1/intents/:id/{confirm,signature} — sign/confirm lifecycle for any intent
-    /^collections\/[^/]+\/profile$/,                       // updateCollectionProfile (identity-gated on backend — Clerk JWT or SIWS)
-    /^creators\/[^/]+\/profile$/,                          // updateCreatorProfile (identity-gated on backend — Clerk JWT or SIWS)
+    /^collections\/[^/]+\/profile$/,                       // updateCollectionProfile (identity-gated on backend via SIWS)
+    /^creators\/[^/]+\/profile$/,                          // updateCreatorProfile (identity-gated on backend via SIWS)
   ],
   // DELETE intentionally empty — no io flow deletes through the proxy.
 };

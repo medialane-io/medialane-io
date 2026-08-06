@@ -41,12 +41,10 @@ const makeSteps = (firstStepLabel: string) => [
 ];
 
 /**
- * The wallet-native equivalent of TransactionDialog (`@/components/transaction/
- * transaction-dialog.tsx`) — same visual design (progress steps, confetti,
- * error state), driven by `useWalletWriteAction` instead of the ChipiPay
- * `WriteAction`. No PIN dialog: the new wallet module is passkey-only, and
- * unlocking happens implicitly inside the signer's own execute() call, not
- * as a separate step this dialog needs to orchestrate.
+ * Progress-steps transaction dialog (confetti on success, error state),
+ * driven by `useWalletWriteAction`. No PIN dialog: the wallet module is
+ * passkey-only, and unlocking happens implicitly inside the signer's own
+ * execute() call, not as a separate step this dialog needs to orchestrate.
  */
 export function WalletTransactionDialog({
   action,

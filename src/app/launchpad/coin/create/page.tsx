@@ -36,10 +36,12 @@ import {
 import { CoinLaunchPreview, type CoinPreviewData } from "@/components/coin/coin-launch-preview";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
+import { useSiwsToken } from "@/hooks/use-siws-token";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { useTokenBalance } from "@/hooks/use-erc20-balance";
 import { useLaunchCoin, type LaunchCoinInput } from "@/hooks/use-launch-coin";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
+import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
 import { cn } from "@/lib/utils";
 
@@ -60,6 +62,8 @@ export default function CoinCreatePage() {
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
   const { launch, status, error } = useLaunchCoin();
   const action = useWalletWriteAction();
+  const { getValidToken, signIn } = useSiwsToken();
+  const client = useMedialaneClient();
 
   const [name, setName] = useState("");
   const [symbol, setSymbol] = useState("");
@@ -125,15 +129,25 @@ export default function CoinCreatePage() {
     teamPct,
   };
 
-  /** Platform-layer identity: saved to the coin's CollectionProfile after launch.
-   *  updateCollectionProfile still requires a Clerk JWT server-side (backend
-   *  SIWS migration Stage 2 is paused) — with Clerk removed from io there's
-   *  no token to send, so this step is a no-op until the backend accepts
-   *  wallet-native auth on this endpoint. The launch itself doesn't depend
-   *  on it; the image/description can be added later from collection settings. */
-  const saveCoinProfile = async () => {
+  /** Platform-layer identity: saved to the coin's CollectionProfile after
+   *  launch, authenticated via SIWS. The launch itself doesn't depend on
+   *  this — the image/description can be added later from collection
+   *  settings if this best-effort save fails. */
+  const saveCoinProfile = async (contractAddress: string) => {
     if (!imageUri && !description) return;
-    setProfileStatus("failed");
+    setProfileStatus("saving");
+    try {
+      const token = getValidToken() ?? (await signIn());
+      if (!token) throw new Error("Set up your wallet first");
+      await client.api.updateCollectionProfile(
+        contractAddress,
+        { ...(imageUri ? { image: imageUri } : {}), ...(description ? { description } : {}) },
+        token
+      );
+      setProfileStatus("saved");
+    } catch {
+      setProfileStatus("failed");
+    }
   };
 
   const runLaunch = async (signer: StarknetVenueSigner) => {
@@ -141,7 +155,7 @@ export default function CoinCreatePage() {
     const input: LaunchCoinInput = { name, symbol, supplyHuman: supply, quoteSymbol: quote, teamPct };
     const result = await launch(input, signer, walletAddress);
     setCoinAddress(result.coinAddress);
-    void saveCoinProfile();
+    void saveCoinProfile(result.coinAddress);
     return { txHash: result.txHash };
   };
 

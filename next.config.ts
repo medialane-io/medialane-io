@@ -5,7 +5,7 @@ const securityHeaders = [
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
   // X-XSS-Protection removed — deprecated in all modern browsers and actively
   // harmful in some older IE versions. CSP is the correct replacement but requires
-  // mapping all Clerk/ChipiPay domains first — deferred until domains are confirmed.
+  // mapping all third-party domains first — deferred until domains are confirmed.
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
   {

@@ -7,9 +7,8 @@ import { useWalletNativeSession } from "./use-wallet-native-session";
 export type WalletWriteStatus = "idle" | "processing" | "confirming" | "success" | "error";
 
 /**
- * The wallet-native replacement for ChipiPay's useWriteAction — no PIN
- * dialog, no passkey-vs-PIN detection (that ambiguity doesn't exist for the
- * new wallet module). Unlocking happens implicitly inside the signer's own
+ * No PIN dialog, no passkey-vs-PIN detection — the wallet module is
+ * passkey-only. Unlocking happens implicitly inside the signer's own
  * execute() call. This hook's only job: gate on wallet presence, track
  * status, run the caller's execute function against the current signer.
  */

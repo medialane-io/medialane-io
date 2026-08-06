@@ -1,9 +1,8 @@
 "use client";
 
 /**
- * Thin wrapper over @medialane/sdk's SIWS client (single source since 0.44.0
- * — see medialane-core/docs/specs/2026-06-30-remove-clerk-from-backend-
- * design.md §IX; medialane-starknet shares the same source).
+ * Thin wrapper over @medialane/sdk's SIWS client (single source since
+ * 0.44.0; medialane-starknet shares the same source).
  */
 import {
   requestSiwsToken as sdkRequestSiwsToken,

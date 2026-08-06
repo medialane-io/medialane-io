@@ -86,7 +86,7 @@ export function MarketplaceProcessingState({
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MarketplaceSignInGate — despite the name, gates on wallet readiness, not
-// Clerk sign-in. Kept for import-site stability across the marketplace
+// a sign-in step. Kept for import-site stability across the marketplace
 // dialogs.
 // ─────────────────────────────────────────────────────────────────────────────
 

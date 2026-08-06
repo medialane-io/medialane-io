@@ -4,7 +4,7 @@
 
 **Creator Launchpad + NFT Marketplace for Programmable IP on Starknet**
 
-Medialane is a consumer-grade Web3 application that lets creators mint, license, and trade intellectual property as NFTs — with no wallet required, gasless transactions, and immutable licensing embedded directly in IPFS metadata. Built on [Starknet](https://starknet.io) with ZK-powered scalability.
+Medialane is a consumer-grade Web3 application that lets creators mint, license, and trade intellectual property as NFTs — with a self-custody wallet secured by your device passkey (no seed phrase) and immutable licensing embedded directly in IPFS metadata. Built on [Starknet](https://starknet.io) with ZK-powered scalability.
 
 Live at [medialane.io](https://medialane.io)
 
@@ -17,7 +17,7 @@ Medialane is a platform for the **creative economy on Starknet**. It bridges Web
 - **Creators** mint their work (art, music, video, documents, code, patents) as IP NFTs with programmable licensing terms embedded immutably in IPFS metadata
 - **Collectors** browse, buy, and make offers on digital assets in a full-featured NFT marketplace
 - **Licensing** is Berne Convention-compliant — commercial use, derivative rights, attribution, territory, AI policy, and royalty are all encoded as OpenSea-compatible ERC-721 attributes
-- **No wallet needed** — accounts are email/social (Clerk) and wallets are created invisibly on first use via ChipiPay (SNIP-9 session keys for gasless transactions)
+- **No seed phrase** — a self-custody Starknet wallet (MediaWallet) is created on first use, sealed by your device passkey (Face ID / Touch ID / Windows Hello)
 
 ---
 
@@ -41,7 +41,7 @@ Medialane is a platform for the **creative economy on Starknet**. It bridges Web
 - Media tab on asset pages — embedded players for YouTube, Spotify, SoundCloud, TikTok
 - Creator wallet address embedded in every asset as `{ trait_type: "Creator", value: walletAddress }`
 - Direct Pinata upload — metadata stored on IPFS, not on centralized servers
-- Create and deploy ERC-721 collections on Starknet (gasless)
+- Create and deploy ERC-721 collections on Starknet
 - Collection metadata JSON uploaded to IPFS at creation time — `baseUri` set onchain so any dApp can resolve collection images permissionlessly
 - **NFT Editions** (`/launchpad/nfteditions`) — mint multi-edition ERC-1155 tokens into your IP Collection 1155 contracts; each edition has its own artwork, supply, and on-chain provenance
 - **IP Tickets** (`/launchpad/tickets`) — deploy a ticket collection and sell redeemable, tradeable ERC-721 tickets for events and access
@@ -51,7 +51,7 @@ Medialane is a platform for the **creative economy on Starknet**. It bridges Web
 ### NFT Marketplace
 - Browse, search, and filter all Medialane digital assets
 - Buy NFTs directly or make offers with USDC, USDT, ETH, STRK, or WBTC
-- **Cart dialog** — centered modal with blurred atmospheric backdrop, item thumbnails, individual Buy buttons, and "Buy all N items" batch checkout with a single PIN
+- **Cart dialog** — centered modal with blurred atmospheric backdrop, item thumbnails, individual Buy buttons, and "Buy all N items" batch checkout with a single passkey confirmation
 - Accept, cancel, and manage listings and offers from the portfolio
 - **Service-specific asset pages** — each asset type gets a tailored experience:
   - **POP Protocol** — soulbound credential view, claim-only, no secondary market
@@ -99,12 +99,11 @@ Medialane is a platform for the **creative economy on Starknet**. It bridges Web
 - Portfolio Remixes page (`/portfolio/remix-offers`) — incoming requests (creator view with Approve/Reject) and outgoing requests (requester view) with status badges for all 7 states
 - Remix count badge on portfolio nav link for pending requests
 
-### Invisible Wallet (ChipiPay)
-- Sign in with email, Google, or any Clerk-supported provider
-- Wallet created on first use — protected by a 6-12 digit PIN (AES-encrypted key, never stored in plaintext)
-- Passkey support as the primary wallet auth method (PIN as fallback)
-- Session keys (SNIP-9) valid for 6 hours — single PIN to unlock a session, no per-transaction prompts
-- Gasless transactions sponsored by ChipiPay
+### Self-Custody Wallet (MediaWallet)
+- One-time setup: a WebAuthn passkey (Face ID / Touch ID / Windows Hello) derives an owner key via the PRF extension, sealed client-side with AES-GCM — the private key never leaves the device unencrypted and Medialane never sees it
+- Wallet is deployed onchain by a backend relayer via Starknet's Universal Deployer Contract, sponsored so setup costs the user nothing — the account is owned by the user from the first block, no interim custody
+- SIWS (Sign-In With Starknet) — a passkey-signed message authenticates the wallet to the Medialane backend, no separate login step
+- Every transaction after setup is signed with the same passkey and paid for by the wallet itself — deposit STRK/ETH to it like any external Starknet wallet (Receive dialog with QR code)
 
 ### Interoperability
 - ERC-721 standard — compatible with any Starknet wallet, explorer, and marketplace
@@ -120,8 +119,7 @@ Medialane is a platform for the **creative economy on Starknet**. It bridges Web
 |---|---|
 | Framework | Next.js 15 (App Router) |
 | UI | Tailwind CSS + shadcn/ui (Radix) + Framer Motion |
-| Auth | Clerk 6 (email, social, passkey) |
-| Wallet | ChipiPay (`@chipi-stack/nextjs`) — invisible Starknet wallets |
+| Wallet | MediaWallet — self-custody, WebAuthn passkey owner key, SIWS auth |
 | Blockchain | Starknet Mainnet via starknet.js |
 | SDK | `@medialane/sdk` — marketplace + API operations |
 | IPFS | Pinata — direct upload from Next.js API route (no backend hop) |
@@ -134,16 +132,16 @@ Medialane is a platform for the **creative economy on Starknet**. It bridges Web
 ## Architecture
 
 ```
-User (email/passkey)
-  └─ Clerk Auth
-       └─ ChipiPay (invisible Starknet wallet)
-            ├─ Create/asset page
-            │    └─ POST /api/pinata (Next.js server route)
-            │         └─ Pinata → IPFS (image + metadata JSON)
-            │              └─ ipfs:// URI → mint tx on Starknet
-            └─ Marketplace operations
-                 └─ SNIP-12 signing → medialane-backend (Railway)
-                      └─ Starknet Mainnet (onchain)
+User (device passkey)
+  └─ MediaWallet (self-custody, passkey-sealed owner key)
+       ├─ First use: backend relayer deploys the wallet onchain (UDC), then SIWS signs the user in
+       ├─ Create/asset page
+       │    └─ POST /api/pinata (Next.js server route, SIWS-authenticated)
+       │         └─ Pinata → IPFS (image + metadata JSON)
+       │              └─ ipfs:// URI → mint tx on Starknet
+       └─ Marketplace operations
+            └─ SNIP-12 signing → medialane-backend (Railway)
+                 └─ Starknet Mainnet (onchain)
 ```
 
 Asset uploads go **directly to Pinata** from the Next.js server — the backend is never involved in the upload path. This keeps digital assets fully decentralized.
@@ -221,7 +219,7 @@ bun install
 
 # Configure environment
 cp .env.example .env.local
-# Fill in Clerk, ChipiPay, Pinata, Starknet RPC, and backend URL
+# Fill in SIWS, Pinata, Starknet RPC, and backend URL
 
 # Start dev server
 bun dev
@@ -246,10 +244,7 @@ Notes:
 
 | Variable | Purpose |
 |---|---|
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key |
-| `CLERK_SECRET_KEY` | Clerk secret key |
-| `NEXT_PUBLIC_CHIPI_API_KEY` | ChipiPay API key |
-| `NEXT_PUBLIC_CLERK_TEMPLATE_NAME` | Must be `chipipay` |
+| `SIWS_SECRET` | SIWS (Sign-In With Starknet) token verification secret — must match medialane-backend |
 | `NEXT_PUBLIC_MEDIALANE_BACKEND_URL` | Medialane API base URL |
 | `NEXT_PUBLIC_MEDIALANE_API_KEY` | Medialane API key (from portal) |
 | `NEXT_PUBLIC_STARKNET_RPC_URL` | Starknet RPC endpoint |
@@ -276,30 +271,34 @@ bun lint         # ESLint
 ```
 src/
   app/
-    api/pinata/       # Universal digital asset upload (Clerk-gated, direct Pinata)
+    api/pinata/       # Universal digital asset upload (SIWS-gated, direct Pinata)
+    api/rpc/          # Same-origin Starknet RPC proxy (keyed endpoint stays server-side)
     asset/            # /asset/[contract]/[tokenId] — dispatcher routes to POP/Drop/Edition/Standard page
     create/           # /create/asset + /create/collection + /create/remix/[contract]/[tokenId]
     marketplace/      # /marketplace — browse + filter + search
     portfolio/        # /portfolio — owned tokens, listings, offers, activity, remix-offers
-    onboarding/       # /onboarding — wallet creation (passkey-first)
+    wallet-onboarding/ # Passkey creation → relayer deploy → SIWS sign-in
     ...
   components/
-    chipi/            # WalletSetupDialog, SessionSetupDialog, PinDialog
+    wallet/           # WalletPanel, ReceiveFundsDialog, AddressQr
     marketplace/      # PurchaseDialog, ListingDialog, OfferDialog
     layout/           # AppSidebar (sidebar-07 shell)
-    ui/               # shadcn/ui components + PinInput
+    ui/               # shadcn/ui components
   hooks/
-    use-session-key.ts      # Wallet derivation + SNIP-9 session keys
-    use-marketplace.ts      # All write ops (list, offer, fulfill, cancel)
-    use-chipi-transaction.ts # ChipiPay execution + status
-    use-cart.ts             # Zustand cart store (localStorage persist)
-  types/
-    ip.ts             # LICENSE_TYPES, IP_TYPES, GEOGRAPHIC_SCOPES, AI_POLICIES, …
-    index.ts          # Local app types (CartItem, etc.)
+    use-wallet-native-session.ts # Wallet address/signer from the sealed passkey key
+    use-wallet-write-action.ts   # Write-action status machine (idle/processing/confirming/success/error)
+    use-marketplace.ts           # All write ops (list, offer, fulfill, cancel)
+    use-siws-token.ts            # SIWS token mint/cache for identity-aware backend routes
+    use-cart.ts                  # Zustand cart store (localStorage persist)
   lib/
+    wallet/           # passkey.ts, account.ts, account-ops.ts, venue-signer.ts, deploy-relay.ts, guardian.ts
+    siws-server.ts    # Server-side SIWS token verification (API routes)
     constants.ts      # Contract addresses, env vars, token list
     medialane-client.ts # @medialane/sdk singleton
     utils.ts          # ipfsToHttp, timeUntil, formatPrice, cn
+  types/
+    ip.ts             # LICENSE_TYPES, IP_TYPES, GEOGRAPHIC_SCOPES, AI_POLICIES, …
+    index.ts          # Local app types (CartItem, etc.)
 ```
 
 ---
