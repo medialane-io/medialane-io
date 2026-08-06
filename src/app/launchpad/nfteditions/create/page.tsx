@@ -9,16 +9,15 @@ import {
   Form,
 } from "@/components/ui/form";
 import Link from "next/link";
-import { WalletSetupGate } from "@/components/transaction/wallet-setup-gate";
-import { useWriteAction } from "@/hooks/use-write-action";
-import { TransactionDialog } from "@/components/transaction/transaction-dialog";
-import { useSessionKey } from "@/hooks/use-session-key";
-import { useUser } from "@clerk/nextjs";
+import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
+import { WalletTransactionDialog } from "@/components/transaction/wallet-transaction-dialog";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { normalizeAddress } from "@medialane/sdk";
 import { hash } from "starknet";
+import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { starknetProvider } from "@/lib/starknet";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
-import { executePrebuiltIntent } from "@/lib/intent-tx";
+import { executeIntent } from "@/lib/wallet/intent-tx";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
@@ -40,10 +39,9 @@ import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 const COLLECTION_DEPLOYED_SELECTOR = hash.getSelectorFromName("CollectionDeployed");
 
 export default function CreateIP1155CollectionPage() {
-  const { isSignedIn } = useUser();
-  const { walletAddress } = useSessionKey();
-  // One primitive owns gate → unlock (passkey/PIN) → execute → result + self-heal.
-  const action = useWriteAction();
+  const { hasWallet, address: walletAddress } = useWalletNativeSession();
+  // One primitive owns gate → unlock (passkey) → execute → result.
+  const action = useWalletWriteAction();
   const client = useMedialaneClient();
   const [pendingValues, setPendingValues] = useState<NftEditionsCreateFormValues | null>(null);
   const [autoSymbol, setAutoSymbol] = useState("");
@@ -104,14 +102,13 @@ export default function CreateIP1155CollectionPage() {
       return;
     }
     setPendingValues(values);
-    // Pass `values` through the closure (synchronous-passkey rule). action.run
-    // gates signed-in/wallet and opens wallet setup itself when needed.
-    void action.run((secret) => handleUnlocked(values, secret));
+    // Pass `values` through the closure (synchronous-passkey rule).
+    void action.run((signer) => handleUnlocked(values, signer));
   };
 
-  // The `prepare` body. `secret` is the wallet-unlock material (PIN or passkey
-  // key). useWriteAction owns status/error/self-heal — return the tx result.
-  const handleUnlocked = async (pendingValues: NftEditionsCreateFormValues, secret: string) => {
+  // The `prepare` body. useWalletWriteAction owns status/error — return the
+  // tx result.
+  const handleUnlocked = async (pendingValues: NftEditionsCreateFormValues, signer: StarknetVenueSigner) => {
     if (!walletAddress) throw new Error("Wallet not ready. Please refresh and try again.");
     setDeployedAddress(null);
 
@@ -137,11 +134,7 @@ export default function CreateIP1155CollectionPage() {
         baseUri: collectionMetaUri ?? "",
         service: "mip-erc1155",
       });
-      const result = await executePrebuiltIntent(action.executeTransaction, client, secret, intentRes.data, { confirm: false });
-
-      if (result.status !== "confirmed") {
-        throw new Error(result.revertReason ?? "Transaction reverted");
-      }
+      const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
       rewardToast("create_collection");
 
       // 3. Extract deployed collection address from CollectionDeployed event.
@@ -193,13 +186,13 @@ export default function CreateIP1155CollectionPage() {
     return result;
   };
 
-  // ── Not signed in ─────────────────────────────────────────────────────────
-  if (!isSignedIn) {
+  // ── No wallet yet ──────────────────────────────────────────────────────────
+  if (!hasWallet) {
     return (
       <LaunchpadSignedOutState
         icon={Layers}
         iconClassName="text-brand-purple"
-        title="Sign in to create a collection"
+        title="Set up your wallet to create a collection"
         description="Deploy a multi-edition ERC-1155 IP collection onchain."
       />
     );
@@ -207,13 +200,12 @@ export default function CreateIP1155CollectionPage() {
 
   return (
     <>
-      <TransactionDialog
+      <WalletTransactionDialog
         action={action}
         title="Deploy ERC-1155 collection"
         processingLabel="Deploying collection…"
         firstStepLabel="Prepare metadata"
         successTitle="Collection deployed!"
-        pinDescription="Enter your PIN to deploy your IP collection onchain."
       >
         <p className="text-sm text-muted-foreground text-center">
           <span className="font-medium text-foreground">{pendingValues?.name || "Your collection"}</span> is
@@ -235,7 +227,7 @@ export default function CreateIP1155CollectionPage() {
             </Button>
           )}
         </div>
-      </TransactionDialog>
+      </WalletTransactionDialog>
 
       <ClaimRouteShell
         icon={<Layers className="h-4 w-4 text-white" />}
@@ -275,8 +267,6 @@ export default function CreateIP1155CollectionPage() {
           </form>
         </Form>
       </ClaimRouteShell>
-
-      <WalletSetupGate action={action} />
     </>
   );
 }
