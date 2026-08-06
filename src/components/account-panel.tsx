@@ -22,13 +22,19 @@ export function AccountPanel() {
     return (
       <div className="space-y-3 text-center py-4">
         <Wallet className="h-8 w-8 mx-auto text-muted-foreground" />
-        <p className="text-sm text-muted-foreground">Set up your wallet to get started.</p>
-        <Button asChild className="w-full gap-2" onClick={close}>
-          <Link href="/wallet-onboarding">
-            <Wallet className="h-4 w-4" />
-            Set up wallet
-          </Link>
-        </Button>
+        <p className="text-sm text-muted-foreground">Let&apos;s secure your account to get started.</p>
+        <div className="btn-border-animated p-[1px] rounded-lg">
+          <Button
+            asChild
+            className="w-full gap-2 bg-transparent text-white rounded-[7px] hover:bg-transparent hover:brightness-110 active:scale-[0.98] transition-all"
+            onClick={close}
+          >
+            <Link href="/wallet-onboarding">
+              <Wallet className="h-4 w-4" />
+              Set up account
+            </Link>
+          </Button>
+        </div>
       </div>
     );
   }
@@ -45,7 +51,7 @@ export function AccountPanel() {
           <Wallet className="h-5 w-5 text-muted-foreground" />
         </div>
         <div className="min-w-0 flex-1">
-          <h3 className="truncate text-base font-semibold">Medialane wallet</h3>
+          <h3 className="truncate text-base font-semibold">Medialane account</h3>
           {address && (
             <AddressDisplay address={address} chars={4} className="mt-1 text-xs text-muted-foreground" />
           )}
@@ -58,7 +64,7 @@ export function AccountPanel() {
         onClick={handleRemove}
       >
         <LogOut className="h-4 w-4" />
-        Remove wallet from this device
+        Remove account from this device
       </Button>
     </div>
   );

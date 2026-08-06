@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,6 +34,7 @@ function WalletOnboardingForm() {
   const redirectTo = safeRelative(searchParams.get("redirect_url"), "/welcome");
   const [step, setStep] = useState<Step>("start");
   const [error, setError] = useState<string | null>(null);
+  const startedRef = useRef(false);
 
   const runOnboarding = async () => {
     setError(null);
@@ -70,6 +71,25 @@ function WalletOnboardingForm() {
     }
   };
 
+  // Auto-start on arrival — the user already expressed intent by clicking
+  // "Set up account" on whatever screen sent them here. Re-asking them to
+  // confirm the same action again on this page is exactly the friction this
+  // flow exists to avoid. WebAuthn's user-gesture requirement is normally
+  // satisfied by that earlier click carrying through client-side navigation
+  // (React Router / Next.js Link never triggers a full page reload, so the
+  // browser's "sticky activation" window is still open when this effect
+  // fires). If a browser blocks it anyway — e.g. someone opened this URL
+  // directly with no prior click, so there's no gesture to carry through —
+  // WebAuthn throws NotAllowedError, caught above as a PasskeyCancelledError,
+  // which lands on the "error" step and reveals a manual retry button. That
+  // manual button is the only path a real click is required, never a second
+  // "yes I meant it" confirmation of the same action.
+  useEffect(() => {
+    if (startedRef.current) return;
+    startedRef.current = true;
+    void runOnboarding();
+  }, []);
+
   if (step === "done") {
     return (
       <div className="min-h-[80vh] flex items-center justify-center px-4">
@@ -93,7 +113,7 @@ function WalletOnboardingForm() {
     );
   }
 
-  const isWorking = step === "creating-passkey" || step === "deploying" || step === "signing-in";
+  const isWorking = step === "start" || step === "creating-passkey" || step === "deploying" || step === "signing-in";
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4">
@@ -114,13 +134,25 @@ function WalletOnboardingForm() {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          <Button className="w-full gap-2" size="lg" onClick={runOnboarding} disabled={isWorking}>
-            {isWorking ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-            {step === "creating-passkey" && "Creating passkey…"}
-            {step === "deploying" && "Setting up your account…"}
-            {step === "signing-in" && "Signing in…"}
-            {(step === "start" || step === "error") && "Get started"}
-          </Button>
+          {isWorking ? (
+            <div className="flex w-full items-center justify-center gap-2 py-2.5 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              {step === "start" && "Preparing…"}
+              {step === "creating-passkey" && "Creating passkey…"}
+              {step === "deploying" && "Setting up your account…"}
+              {step === "signing-in" && "Signing in…"}
+            </div>
+          ) : (
+            <div className="btn-border-animated w-full p-[1px] rounded-lg">
+              <Button
+                className="w-full gap-2 bg-transparent text-white rounded-[7px] hover:bg-transparent hover:brightness-110 active:scale-[0.98] transition-all"
+                size="lg"
+                onClick={runOnboarding}
+              >
+                Try again
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
