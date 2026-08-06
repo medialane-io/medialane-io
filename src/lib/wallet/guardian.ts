@@ -84,7 +84,7 @@ export function decodeEscapeAndStatus(res: string[]): EscapeInfo {
 
 async function accountAs(sealed: SealedOwner, targetAddress: string, rpc?: string): Promise<Account> {
   const signer = await unlockOwnerKey(sealed);
-  return new Account(walletProvider(rpc), norm(targetAddress), signer, "1");
+  return new Account({ provider: walletProvider(rpc), address: norm(targetAddress), signer, cairoVersion: "1" });
 }
 
 export async function getGuardians(address: string, rpc?: string): Promise<GuardianInfo[]> {

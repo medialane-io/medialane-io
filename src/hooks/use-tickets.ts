@@ -42,7 +42,7 @@ function parseOption(v: unknown): number | null {
 }
 
 async function readTicket(contract: string, tokenId: string): Promise<TicketOnchain> {
-  const col = new Contract(IPTicketCollectionABI as unknown as Abi, contract, starknetProvider);
+  const col = new Contract({ abi: IPTicketCollectionABI as unknown as Abi, address: contract, providerOrAccount: starknetProvider });
   const t = (await col.call("get_ticket", [cairo.uint256(tokenId)])) as {
     max_supply: bigint; minted: bigint; start_time: unknown; end_time: unknown; royalty_bps: bigint | number;
   };
@@ -65,7 +65,7 @@ export interface TicketListItem extends TicketOnchain {
 }
 
 async function readTicketCount(contract: string): Promise<number> {
-  const col = new Contract(IPTicketCollectionABI as unknown as Abi, contract, starknetProvider);
+  const col = new Contract({ abi: IPTicketCollectionABI as unknown as Abi, address: contract, providerOrAccount: starknetProvider });
   return Number(await col.call("ticket_count", []));
 }
 

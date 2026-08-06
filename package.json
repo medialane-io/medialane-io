@@ -59,7 +59,7 @@
     "react-is": "^19.2.6",
     "recharts": "^3.8.1",
     "sonner": "^1.7.4",
-    "starknet": "^6.24.1",
+    "starknet": "^10.0.2",
     "swr": "^2.4.1",
     "tailwind-merge": "^2.6.1",
     "tailwindcss-animate": "^1.0.7",

@@ -127,7 +127,7 @@ export default function MintIP1155Page() {
       inputs: [], outputs: [{ type: "core::starknet::contract_address::ContractAddress" }],
       state_mutability: "view",
     }];
-    const contract = new Contract(OWNER_ABI as unknown as Abi, collectionAddress, starknetProvider);
+    const contract = new Contract({ abi: OWNER_ABI as unknown as Abi, address: collectionAddress, providerOrAccount: starknetProvider });
     (contract as unknown as { owner: () => Promise<unknown> }).owner()
       .then((raw: unknown) => {
         // starknet.js decodes a ContractAddress as a bigint; String(bigint) is

@@ -6,15 +6,11 @@ import { useChipiWallet, useChipiContext } from "@chipi-stack/nextjs";
 import { TxBuilder } from "@chipi-stack/core";
 import { decryptPrivateKey } from "@chipi-stack/backend";
 import { Account } from "starknet";
-import { normalizeAddress } from "@medialane/sdk";
 import { starknetProvider } from "@/lib/starknet";
 import { mapWriteError } from "@/lib/chipi/map-write-error";
 import type { WalletCredentials } from "@/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────
-
-const CHIPI_WALLET_CLASS_HASH = "0x053f4f8791ed5bed0fddaa553d180c664e32cfaf8316bb232ae77bb08f459f2a";
-const READY_WALLET_CLASS_HASH = "0x036078334509b514626504edc9fb252328d1a240e4e948bef8d0c08dff45927f";
 
 export type ChipiCall = {
   contractAddress: string;
@@ -140,16 +136,22 @@ export function useChipiTransaction() {
         // Build a starknet.js Account; ChipiPay's wallet.publicKey is the account address.
         // cairoVersion "1" is passed explicitly — ChipiPay accounts are Cairo 1 — so
         // starknet.js skips on-chain cairo-version detection (a getClassHashAt RPC call).
-        const account = new Account(starknetProvider, wallet.publicKey, privateKey, "1");
+        const account = new Account({
+          provider: starknetProvider,
+          address: wallet.publicKey,
+          signer: privateKey,
+          cairoVersion: "1",
+        });
 
-        const originalGetClassHashAt = account.getClassHashAt.bind(account);
-        account.getClassHashAt = async (contractAddress: string) => {
-          if (normalizeAddress("STARKNET", contractAddress) === normalizeAddress("STARKNET", account.address)) {
-            if (wallet.walletType === "READY") return READY_WALLET_CLASS_HASH;
-            if (!wallet.walletType || wallet.walletType === "CHIPI") return CHIPI_WALLET_CLASS_HASH;
-          }
-          return originalGetClassHashAt(contractAddress);
-        };
+        // The v6-era getClassHashAt override (short-circuiting ChipiPay's own
+        // internal class-hash lookup with a known READY/CHIPI class hash) is
+        // removed here, not ported: v10's Account no longer extends
+        // RpcProvider, so it doesn't inherit getClassHashAt at all — there is
+        // no longer a method on this object to override the same way. This
+        // whole ChipiPay execution path is legacy, already slated for
+        // replacement by the wallet-native executor (medialane-core plan
+        // 2026-08-06-medialane-io-wallet-native-executor-foundation.md) —
+        // fixed for type-correctness under v10 here, not redesigned.
 
         // Atomic gasless execution: TxBuilder batches every call into ONE
         // transaction; sendSponsored() runs it via the ChipiPay paymaster.

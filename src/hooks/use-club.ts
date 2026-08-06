@@ -42,7 +42,7 @@ function parseOption(v: unknown): number | null {
 }
 
 async function readMembership(contract: string, tokenId: string): Promise<MembershipOnchain> {
-  const col = new Contract(IPClubCollectionABI as unknown as Abi, contract, starknetProvider);
+  const col = new Contract({ abi: IPClubCollectionABI as unknown as Abi, address: contract, providerOrAccount: starknetProvider });
   const m = (await col.call("get_membership", [cairo.uint256(tokenId)])) as {
     max_supply: bigint; minted: bigint; start_time: unknown; end_time: unknown; royalty_bps: bigint | number;
   };
@@ -133,7 +133,7 @@ export function useIsMemberOf(
   const { data, error, isLoading } = useSWR<boolean>(
     key,
     async () => {
-      const col = new Contract(IPClubCollectionABI as unknown as Abi, contract!, starknetProvider);
+      const col = new Contract({ abi: IPClubCollectionABI as unknown as Abi, address: contract!, providerOrAccount: starknetProvider });
       return Boolean(await col.call("is_member_of", [cairo.uint256(tokenId!), wallet!]));
     },
     { revalidateOnFocus: false, shouldRetryOnError: false }

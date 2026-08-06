@@ -45,7 +45,7 @@ export async function signTypedDataWithWallet(
     throw new Error("Incorrect PIN. Please try again.");
   }
 
-  const signingAccount = new Account(starknetProvider, walletAddress, privateKey);
+  const signingAccount = new Account({ provider: starknetProvider, address: walletAddress, signer: privateKey });
   const sig = await signingAccount.signMessage(typedData as TypedData);
   return stark.formatSignature(sig);
 }

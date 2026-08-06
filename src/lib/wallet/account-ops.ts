@@ -23,10 +23,9 @@ export const USDC_TOKEN = tokenAddress("USDC");
 
 export async function accountFor(sealed: SealedOwner, rpc?: string): Promise<Account> {
   const signer = await unlockOwnerKey(sealed);
-  // starknet@6.24.1's Account constructor is positional, not object-form —
-  // media-wallet's starknet@10 uses `new Account({ provider, address, signer,
-  // cairoVersion })`; io's installed major version does not accept that shape.
-  return new Account(walletProvider(rpc), sealed.address, signer, "1");
+  // io was bumped to starknet@10 (matching media-wallet and the backend) —
+  // object-form constructor, same as everywhere else on the platform now.
+  return new Account({ provider: walletProvider(rpc), address: sealed.address, signer, cairoVersion: "1" });
 }
 
 export async function isDeployed(address: string, rpc?: string): Promise<boolean> {

@@ -88,11 +88,11 @@ export function TransferCollectionOwnershipDialog({
     authenticate,
     encryptKey,
     executeAction: async (values, pinOrDerivedKey) => {
-      const contract = new Contract(
-        IPCollectionABI as unknown as Abi,
-        STARKNET_COLLECTION_721_CONTRACT,
-        starknetProvider
-      );
+      const contract = new Contract({
+        abi: IPCollectionABI as unknown as Abi,
+        address: STARKNET_COLLECTION_721_CONTRACT,
+        providerOrAccount: starknetProvider,
+      });
       const call = contract.populate("transfer_collection_ownership", [
         cairo.uint256(BigInt(collectionId)),
         values.newOwner,
