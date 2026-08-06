@@ -28,18 +28,17 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useWriteAction } from "@/hooks/use-write-action";
-import { TransactionDialog } from "@/components/transaction/transaction-dialog";
-import { WalletSetupGate } from "@/components/transaction/wallet-setup-gate";
-import { useWallet } from "@/hooks/use-wallet";
+import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
+import { WalletTransactionDialog } from "@/components/transaction/wallet-transaction-dialog";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useCollection } from "@/hooks/use-collections";
 import { predictNextMembershipId } from "@/hooks/use-club";
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { rewardToast } from "@/lib/reward-toast";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
-import { executePrebuiltIntents } from "@/lib/intent-tx";
+import { executeIntents } from "@/lib/wallet/intent-tx";
+import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { cn } from "@/lib/utils";
-import { useUser } from "@clerk/nextjs";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { MedialaneCollectionCard } from "@medialane/ui";
@@ -98,10 +97,9 @@ type FormValues = z.infer<typeof schema>;
 export default function CreateMembershipPage({ params }: { params: Promise<{ contract: string }> }) {
   const { contract: rawContract } = use(params);
   const contract = normalizeAddress("STARKNET", rawContract);
-  const { isSignedIn } = useUser();
-  const { address } = useWallet();
+  const { hasWallet, address } = useWalletNativeSession();
   const { collection, isLoading } = useCollection(contract);
-  const action = useWriteAction();
+  const action = useWalletWriteAction();
   const client = useMedialaneClient();
 
   const [licensingOpen, setLicensingOpen] = useState(false);
@@ -158,10 +156,10 @@ export default function CreateMembershipPage({ params }: { params: Promise<{ con
   const onSubmit = (values: FormValues) => {
     if (!imageUri) { toast.error("Upload a membership image first"); return; }
     setMintedTierId(null);
-    void action.run((secret) => handleUnlocked(values, secret));
+    void action.run((signer) => handleUnlocked(values, signer));
   };
 
-  const handleUnlocked = async (values: FormValues, secret: string) => {
+  const handleUnlocked = async (values: FormValues, signer: StarknetVenueSigner) => {
     if (!address) throw new Error("Wallet not ready. Please refresh and try again.");
     const metadataForm = new FormData();
     metadataForm.set("name", values.name);
@@ -213,22 +211,20 @@ export default function CreateMembershipPage({ params }: { params: Promise<{ con
       tokenId: String(tierId),
       amount: values.maxSupply,
     });
-    // Bundled into one multicall — one PIN unlock for what is one "create" action.
-    // MINT accepts confirmation (RECEIPT_HYDRATED_INTENT_TYPES); CREATE_TIER's
-    // confirm attempt is swallowed (best-effort) same as it would be standalone.
-    const mintResult = await executePrebuiltIntents(action.executeTransaction, client, secret, [tierRes.data, mintRes.data]);
-    if (mintResult.status !== "confirmed") throw new Error(mintResult.revertReason ?? "Failed to create membership");
+    // Bundled into one multicall — one wallet confirmation for what is one
+    // "create" action.
+    const mintResult = await executeIntents(signer, client, [tierRes.data, mintRes.data]);
 
     rewardToast("launch_launchpad");
     return mintResult;
   };
 
-  if (!isSignedIn) {
+  if (!hasWallet) {
     return (
       <LaunchpadSignedOutState
         icon={Users}
         iconClassName="text-brand-purple"
-        title="Sign in to create memberships"
+        title="Set up your wallet to create memberships"
         description="Create a membership tier and mint its supply to your wallet."
       />
     );
@@ -266,13 +262,12 @@ export default function CreateMembershipPage({ params }: { params: Promise<{ con
 
   return (
     <>
-      <TransactionDialog
+      <WalletTransactionDialog
         action={action}
         title="Create membership"
         processingLabel="Creating your membership…"
         firstStepLabel="Upload membership metadata"
         successTitle="Membership created!"
-        pinDescription="Enter your PIN to create and mint this membership."
       >
         <p className="text-sm text-muted-foreground text-center">
           <span className="font-medium text-foreground">{form.getValues("maxSupply")}</span> membership
@@ -294,8 +289,7 @@ export default function CreateMembershipPage({ params }: { params: Promise<{ con
             </Button>
           )}
         </div>
-      </TransactionDialog>
-      <WalletSetupGate action={action} />
+      </WalletTransactionDialog>
 
       <ClaimRouteShell
         icon={<Users className="h-4 w-4 text-white" />}
