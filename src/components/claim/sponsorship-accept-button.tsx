@@ -4,16 +4,15 @@ import { toast } from "sonner";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { PinDialog } from "@/components/chipi/pin-dialog";
-import { useWriteAction } from "@/hooks/use-write-action";
-import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { MarketplaceErrorState, MarketplaceSuccessState } from "@/components/marketplace/marketplace-dialog-primitives";
-import { useUser } from "@clerk/nextjs";
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
+import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
-import { useFeeCharge } from "@/hooks/use-fee-charge";
-import { executePrebuiltIntent } from "@/lib/intent-tx";
+import { confirmIntentBestEffort } from "@/lib/wallet/intent-tx";
+import { buildFeeCall } from "@medialane/sdk/starknet";
+import { ioFeeConfig } from "@/lib/fee";
 import { EXPLORER_URL } from "@/lib/constants";
+import type { Call } from "starknet";
 
 interface SponsorshipAcceptButtonProps {
   offerId: string;
@@ -32,30 +31,41 @@ interface SponsorshipAcceptButtonProps {
  * receipt-mint call anymore (IPSponsorship embeds ERC721Component directly).
  */
 export function SponsorshipAcceptButton({ offerId, sponsor, paymentToken, amount, onAccepted }: SponsorshipAcceptButtonProps) {
-  const { isSignedIn } = useUser();
-  const { walletAddress } = useSessionKey();
+  const { hasWallet, address: walletAddress } = useWalletNativeSession();
   const client = useMedialaneClient();
-  const { chargeFee } = useFeeCharge();
-  const action = useWriteAction();
+  const action = useWalletWriteAction();
   const busy = action.status === "processing" || action.status === "confirming";
 
   const handleAccept = () => {
-    if (!isSignedIn) {
-      toast.error("Sign in to accept this bid");
+    if (!hasWallet || !walletAddress) {
+      toast.error("Set up your wallet to accept this bid");
       return;
     }
-    if (!walletAddress) {
-      toast.error("Wallet not ready. Please refresh and try again.");
-      return;
-    }
-    void action.run(async (secret) => {
+    void action.run(async (signer) => {
       const intentRes = await client.api.acceptSponsorshipBidIntent({ author: walletAddress, offerId, sponsor });
-      const result = await executePrebuiltIntent(action.executeTransaction, client, secret, intentRes.data);
-      if (result.status === "confirmed") {
-        onAccepted?.();
-        chargeFee({ surface: "sponsorship", token: paymentToken, grossAmount: BigInt(amount), pin: secret });
+      const intent = intentRes.data;
+      if (intent.requiresSignature) throw new Error("Unexpected signature requirement on sponsorship accept");
+      const calls: Call[] = [...(intent.calls as Call[])];
+
+      // The platform fee is bundled into the SAME atomic multicall as the
+      // accept — no separate fire-and-forget transaction, so the fee can
+      // never be stranded on a reverted accept.
+      const feeCall = buildFeeCall(
+        { surface: "sponsorship", token: paymentToken, grossAmount: BigInt(amount) },
+        ioFeeConfig,
+      );
+      if (feeCall) {
+        calls.push({
+          contractAddress: feeCall.contractAddress,
+          entrypoint: feeCall.entrypoint,
+          calldata: feeCall.calldata as string[],
+        });
       }
-      return result;
+
+      const { txHash } = await signer.execute(calls);
+      await confirmIntentBestEffort(client, intent.id, txHash);
+      onAccepted?.();
+      return { txHash };
     });
   };
 
@@ -65,9 +75,6 @@ export function SponsorshipAcceptButton({ offerId, sponsor, paymentToken, amount
         {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
         Accept
       </Button>
-
-      <PinDialog {...action.pinDialogProps} title="Accept sponsorship bid" description="This will settle the sponsor's payment and issue their license. Enter your PIN to confirm." />
-      <WalletSetupDialog open={action.walletSetupOpen} onOpenChange={action.setWalletSetupOpen} />
 
       <Dialog open={action.status === "success" || action.status === "error"} onOpenChange={(open) => { if (!open) action.reset(); }}>
         <DialogContent className="max-w-[calc(100%-6px)] sm:max-w-md p-0 overflow-hidden gap-0 rounded-2xl">

@@ -5,14 +5,12 @@ import Link from "next/link";
 import { Handshake, CheckCircle2, Loader2, X, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { PinDialog } from "@/components/chipi/pin-dialog";
-import { useWriteAction } from "@/hooks/use-write-action";
-import { WalletSetupGate } from "@/components/transaction/wallet-setup-gate";
-import { useUser } from "@clerk/nextjs";
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
+import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
-import { executePrebuiltIntent } from "@/lib/intent-tx";
-import { useFeeCharge } from "@/hooks/use-fee-charge";
+import { executeIntent, confirmIntentBestEffort } from "@/lib/wallet/intent-tx";
+import { buildFeeCall } from "@medialane/sdk/starknet";
+import { ioFeeConfig } from "@/lib/fee";
 import { useTokensByOwner } from "@/hooks/use-tokens";
 import { AssetPicker, AssetSearchPicker, LicenseTermsBuilder, EMPTY_SPONSORSHIP_TERMS, toLicenseMetadata, toDurationDays, type OwnedAsset, type SponsorshipTerms } from "@medialane/ui";
 import { apiFetch } from "@/lib/api-fetch";
@@ -26,6 +24,7 @@ import { pinSponsorshipTerms } from "@/lib/launchpad-metadata";
 import { resolveTokenImage } from "@/lib/utils";
 import { usePendingProposalsForAsset } from "@/hooks/use-sponsorship";
 import { toast } from "sonner";
+import type { Call } from "starknet";
 
 const LISTABLE_TOKENS = SUPPORTED_TOKENS.filter((t) => t.listable);
 const TOKEN_SYMBOLS = LISTABLE_TOKENS.map((t) => t.symbol);
@@ -53,28 +52,43 @@ function CreateSponsorshipAside() {
 /** Pending proposals on a specific owned asset, with accept/reject actions. */
 function PendingProposalsPanel({ nftContract }: { nftContract: string }) {
   const { proposals, isLoading, mutate } = usePendingProposalsForAsset(nftContract);
-  const { walletAddress } = useSessionKey();
+  const { address: walletAddress } = useWalletNativeSession();
   const client = useMedialaneClient();
-  const { chargeFee } = useFeeCharge();
-  const action = useWriteAction();
+  const action = useWalletWriteAction();
   const busy = action.status === "processing" || action.status === "confirming";
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const respond = (proposalId: string, decision: "accept" | "reject", paymentToken: string, amount: string) => {
     if (!walletAddress) return;
     setActiveId(proposalId);
-    void action.run(async (secret) => {
+    void action.run(async (signer) => {
       const intentRes = decision === "accept"
         ? await client.api.acceptSponsorshipProposalIntent({ owner: walletAddress, proposalId })
         : await client.api.rejectSponsorshipProposalIntent({ owner: walletAddress, proposalId });
-      const result = await executePrebuiltIntent(action.executeTransaction, client, secret, intentRes.data);
-      if (result.status === "confirmed") {
-        await mutate();
-        if (decision === "accept") {
-          chargeFee({ surface: "sponsorship", token: paymentToken, grossAmount: BigInt(amount), pin: secret });
+      const intent = intentRes.data;
+      if (intent.requiresSignature) throw new Error("Unexpected signature requirement on sponsorship response");
+      const calls: Call[] = [...(intent.calls as Call[])];
+
+      // Bundle the platform fee into the SAME atomic multicall as the accept
+      // — no separate fire-and-forget transaction.
+      if (decision === "accept") {
+        const feeCall = buildFeeCall(
+          { surface: "sponsorship", token: paymentToken, grossAmount: BigInt(amount) },
+          ioFeeConfig,
+        );
+        if (feeCall) {
+          calls.push({
+            contractAddress: feeCall.contractAddress,
+            entrypoint: feeCall.entrypoint,
+            calldata: feeCall.calldata as string[],
+          });
         }
       }
-      return result;
+
+      const { txHash } = await signer.execute(calls);
+      await confirmIntentBestEffort(client, intent.id, txHash);
+      await mutate();
+      return { txHash };
     });
   };
 
@@ -97,8 +111,6 @@ function PendingProposalsPanel({ nftContract }: { nftContract: string }) {
           </div>
         </div>
       ))}
-      <PinDialog {...action.pinDialogProps} title="Respond to proposal" description="Enter your PIN to confirm." />
-      <WalletSetupGate action={action} />
     </div>
   );
 }
@@ -106,10 +118,9 @@ function PendingProposalsPanel({ nftContract }: { nftContract: string }) {
 type Mode = "offer" | "propose";
 
 export default function CreateSponsorshipOfferPage() {
-  const { isSignedIn } = useUser();
-  const { walletAddress } = useSessionKey();
+  const { hasWallet, address: walletAddress } = useWalletNativeSession();
   const client = useMedialaneClient();
-  const action = useWriteAction();
+  const action = useWalletWriteAction();
   const busy = action.status === "processing" || action.status === "confirming";
 
   const [mode, setMode] = useState<Mode>("propose");
@@ -153,7 +164,7 @@ export default function CreateSponsorshipOfferPage() {
     const durationDays = toDurationDays(terms);
     if (!durationDays) { toast.error("How long should the license last?"); return; }
 
-    void action.run(async (secret) => {
+    void action.run(async (signer) => {
       const licenseTermsUri = await pinSponsorshipTerms(toLicenseMetadata(terms));
 
       const amount = BigInt(Math.round(Number(terms.amount) * 10 ** token.decimals));
@@ -172,19 +183,19 @@ export default function CreateSponsorshipOfferPage() {
             transferable: terms.transferable, royaltyBps,
           });
 
-      const result = await executePrebuiltIntent(action.executeTransaction, client, secret, intentRes.data);
-      if (result.status === "confirmed" && mode === "offer") rewardToast("create_sponsorship_offer");
+      const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
+      if (mode === "offer") rewardToast("create_sponsorship_offer");
       return result;
     });
   };
 
-  if (!isSignedIn) {
+  if (!hasWallet) {
     return (
       <LaunchpadSignedOutState
         icon={Handshake}
         iconClassName="text-brand-rose"
-        title="Sign in to set up a sponsorship"
-        description="Sign in to publish onchain."
+        title="Set up your wallet to set up a sponsorship"
+        description="Set up your wallet to publish onchain."
       />
     );
   }
@@ -264,9 +275,6 @@ export default function CreateSponsorshipOfferPage() {
             </div>
           </div>
       </ClaimRouteShell>
-
-      <PinDialog {...action.pinDialogProps} title={mode === "offer" ? "Create sponsorship offer" : "Send sponsorship proposal"} description="Enter your PIN to publish this onchain." />
-      <WalletSetupGate action={action} />
 
       <Dialog open={busy || action.status === "success" || action.status === "error"} onOpenChange={(open) => { if (!open) action.reset(); }}>
         <DialogContent className="max-w-md">

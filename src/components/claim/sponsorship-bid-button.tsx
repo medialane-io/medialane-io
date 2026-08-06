@@ -6,15 +6,12 @@ import { Loader2, Handshake } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { PinDialog } from "@/components/chipi/pin-dialog";
-import { useWriteAction } from "@/hooks/use-write-action";
-import { WalletSetupDialog } from "@/components/chipi/wallet-setup-dialog";
 import { MarketplaceErrorState, MarketplaceSuccessState } from "@/components/marketplace/marketplace-dialog-primitives";
 import { rewardToast } from "@/lib/reward-toast";
-import { useUser } from "@clerk/nextjs";
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
+import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
-import { executePrebuiltIntent } from "@/lib/intent-tx";
+import { executeIntent } from "@/lib/wallet/intent-tx";
 import { EXPLORER_URL } from "@/lib/constants";
 import { getListableTokens, normalizeAddress } from "@medialane/sdk";
 
@@ -26,10 +23,9 @@ interface SponsorshipBidButtonProps {
 }
 
 export function SponsorshipBidButton({ offerId, minAmount, paymentToken, onBidPlaced }: SponsorshipBidButtonProps) {
-  const { isSignedIn } = useUser();
-  const { walletAddress } = useSessionKey();
+  const { hasWallet, address: walletAddress } = useWalletNativeSession();
   const client = useMedialaneClient();
-  const action = useWriteAction();
+  const action = useWalletWriteAction();
   const busy = action.status === "processing" || action.status === "confirming";
   const [amount, setAmount] = useState("");
 
@@ -38,19 +34,15 @@ export function SponsorshipBidButton({ offerId, minAmount, paymentToken, onBidPl
   const minAmountDisplay = `${Number((BigInt(minAmount) * 10000n) / BigInt(10 ** decimals)) / 10000} ${knownToken?.symbol ?? "tokens"}`;
 
   const handleBid = () => {
-    if (!isSignedIn) {
-      toast.error("Sign in to place a bid");
-      return;
-    }
-    if (!walletAddress) {
-      toast.error("Wallet not ready. Please refresh and try again.");
+    if (!hasWallet || !walletAddress) {
+      toast.error("Set up your wallet to place a bid");
       return;
     }
     if (!amount || Number(amount) <= 0) {
       toast.error("Enter a bid amount");
       return;
     }
-    void action.run(async (secret) => {
+    void action.run(async (signer) => {
       const amountBigInt = BigInt(Math.round(Number(amount) * 10 ** decimals));
       const intentRes = await client.api.placeSponsorshipBidIntent({
         sponsor: walletAddress,
@@ -58,11 +50,9 @@ export function SponsorshipBidButton({ offerId, minAmount, paymentToken, onBidPl
         amount: amountBigInt.toString(),
         paymentToken,
       });
-      const result = await executePrebuiltIntent(action.executeTransaction, client, secret, intentRes.data);
-      if (result.status === "confirmed") {
-        onBidPlaced?.();
-        rewardToast("place_sponsorship_bid");
-      }
+      const result = await executeIntent(signer, client, intentRes.data);
+      onBidPlaced?.();
+      rewardToast("place_sponsorship_bid");
       return result;
     });
   };
@@ -76,9 +66,6 @@ export function SponsorshipBidButton({ offerId, minAmount, paymentToken, onBidPl
           Bid
         </Button>
       </div>
-
-      <PinDialog {...action.pinDialogProps} title="Place a sponsorship bid" description="This will approve your payment token and place your bid. Enter your PIN to confirm." />
-      <WalletSetupDialog open={action.walletSetupOpen} onOpenChange={action.setWalletSetupOpen} />
 
       <Dialog open={action.status === "success" || action.status === "error"} onOpenChange={(open) => { if (!open) action.reset(); }}>
         <DialogContent className="max-w-[calc(100%-6px)] sm:max-w-md p-0 overflow-hidden gap-0 rounded-2xl">

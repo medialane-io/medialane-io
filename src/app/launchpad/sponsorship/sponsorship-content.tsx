@@ -12,7 +12,7 @@ import { SponsorshipBidButton } from "@/components/claim/sponsorship-bid-button"
 import { SponsorshipAcceptButton } from "@/components/claim/sponsorship-accept-button";
 import { useSponsorshipOffers, useSponsorshipBids } from "@/hooks/use-sponsorship";
 import type { SponsorshipOffer } from "@/hooks/use-sponsorship";
-import { useSessionKey } from "@/hooks/use-session-key";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 
 function OfferBids({ offerId, paymentToken }: { offerId: string; paymentToken: string }) {
   const { bids, isLoading, mutate } = useSponsorshipBids(offerId);
@@ -40,7 +40,7 @@ function OfferBids({ offerId, paymentToken }: { offerId: string; paymentToken: s
 }
 
 function OfferCard({ offer }: { offer: SponsorshipOffer }) {
-  const { walletAddress } = useSessionKey();
+  const { address: walletAddress } = useWalletNativeSession();
   const isAuthor = walletAddress && normalizeAddress("STARKNET", offer.author) === normalizeAddress("STARKNET", walletAddress);
 
   return (
