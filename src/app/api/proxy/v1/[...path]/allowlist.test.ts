@@ -43,8 +43,8 @@ test("unrelated POST routes are still rejected", () => {
   expect(isPathAllowed("POST", "admin/accounts/1/credits/grant")).toBe(false);
 });
 
-test("POST /v1/wallet/deploy is allowed (new-signup bootstrap)", () => {
-  expect(isPathAllowed("POST", "wallet/deploy")).toBe(true);
+test("POST /v1/wallet/deploy is no longer allowed (removed — see AVNU-sponsored deploy)", () => {
+  expect(isPathAllowed("POST", "wallet/deploy")).toBe(false);
 });
 
 test("POST /v1/auth/email/request-code and /verify-code are allowed", () => {

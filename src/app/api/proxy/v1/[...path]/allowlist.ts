@@ -57,7 +57,6 @@ const ALLOWED_ROUTES: Record<string, RegExp[]> = {
     /^users\/(me|register)$/,                              // /v1/users/{me,register} — me also covers upsertMyWallet
     /^users\/me\/generate-wallet$/,                         // settings — manual "new wallet" escape hatch (rare edge case)
     /^username-claims$/,                                   // /v1/username-claims
-    /^wallet\/deploy$/,                                     // relayer-paid UDC deploy (new-signup bootstrap)
   ],
   PATCH: [
     /^intents\/[^/]+\/(confirm|signature)$/,               // /v1/intents/:id/{confirm,signature} — sign/confirm lifecycle for any intent
