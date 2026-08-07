@@ -45,6 +45,7 @@ const ALLOWED_ROUTES: Record<string, RegExp[]> = {
     /^intents\/[a-z-]+$/,                                   // POST /v1/intents/<type> — see namespace rationale above
     /^intents\/[^/]+\/hydrate$/,                            // /v1/intents/:id/hydrate (tenant-scoped repair)
     /^auth\/siws\/(nonce|verify)$/,                         // SIWS sign-in (mirrors the dapp's proxy allowlist)
+    /^auth\/email\/(request-code|verify-code)$/,            // email verification (wallet-onboarding)
     /^collections\/(register|sync-tx|claim)$/,             // launchpad create + create/collection + on-chain claim
     /^collections\/claim\/request$/,                       // manual-review claim request
     /^collection-slug-claims$/,                            // collection settings slug claim
