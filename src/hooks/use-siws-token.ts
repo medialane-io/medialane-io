@@ -18,14 +18,28 @@ import {
  * `getValidToken()` returns a cached, unexpired token or null; call
  * `signIn()` to mint a fresh one when null.
  */
+/** Thrown by signIn() when the local wallet exists but isn't deployed on-chain yet — a distinct, recoverable state (see WalletDeploymentDialog / the redirect-to-onboarding banner), not a generic sign-in failure. */
+export class WalletNotDeployedError extends Error {
+  constructor() {
+    super("Wallet is not deployed yet.");
+    this.name = "WalletNotDeployedError";
+  }
+}
+
 export function useSiwsToken() {
-  const { address: walletAddress, signer } = useWalletNativeSession();
+  const { address: walletAddress, signer, isDeployed } = useWalletNativeSession();
   const [token, setToken] = useState<string | null>(null);
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const signIn = useCallback(async (): Promise<string | null> => {
     if (!walletAddress || !signer) return null;
+    // Skip the network round-trip (and the resulting account_not_deployed
+    // 400) entirely when we already know locally the wallet isn't
+    // deployed — surfaces as a distinct error type instead of a generic
+    // "sign-in failed" every hook that opportunistically calls signIn()
+    // would otherwise show.
+    if (isDeployed === false) throw new WalletNotDeployedError();
 
     const siwsSigner: SiwsSigner = {
       signMessage: (typedData) => signer.signTypedData(typedData),
@@ -44,7 +58,7 @@ export function useSiwsToken() {
     } finally {
       setIsSigningIn(false);
     }
-  }, [walletAddress, signer]);
+  }, [walletAddress, signer, isDeployed]);
 
   /** Cached, unexpired token if one exists — null otherwise (never prompts). */
   const getValidToken = useCallback((): string | null => {
