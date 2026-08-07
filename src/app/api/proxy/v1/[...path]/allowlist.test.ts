@@ -46,3 +46,12 @@ test("unrelated POST routes are still rejected", () => {
 test("POST /v1/wallet/deploy is allowed (new-signup bootstrap)", () => {
   expect(isPathAllowed("POST", "wallet/deploy")).toBe(true);
 });
+
+test("POST /v1/auth/email/request-code and /verify-code are allowed", () => {
+  expect(isPathAllowed("POST", "auth/email/request-code")).toBe(true);
+  expect(isPathAllowed("POST", "auth/email/verify-code")).toBe(true);
+});
+
+test("POST /v1/auth/email/something-else is rejected", () => {
+  expect(isPathAllowed("POST", "auth/email/something-else")).toBe(false);
+});

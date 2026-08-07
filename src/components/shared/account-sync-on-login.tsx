@@ -33,10 +33,14 @@ export function AccountSyncOnLogin() {
     let cancelled = false;
     (async () => {
       try {
+        const pendingEmailToken = sessionStorage.getItem("ml_pending_email_token");
+        if (pendingEmailToken) sessionStorage.removeItem("ml_pending_email_token");
+
         await getMedialaneClient().api.upsertMyWallet(token, {
           walletType,
           appSource,
           chain: "STARKNET",
+          ...(pendingEmailToken ? { emailVerificationToken: pendingEmailToken } : {}),
         });
         if (!cancelled) sessionStorage.setItem(key, "1");
       } catch (error) {
