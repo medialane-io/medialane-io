@@ -7,9 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Loader2, ShieldCheck, CheckCircle2, AlertCircle } from "lucide-react";
-import { createOwnerKey, signWith, signWithPrivateKey, type SealedOwner } from "@/lib/wallet/passkey";
+import { createOwnerKey, signWith, signWithPrivateKey, unlockOwnerKey, type SealedOwner } from "@/lib/wallet/passkey";
 import { loadSealedOwner, saveSealedOwner } from "@/lib/wallet/store";
-import { deployWalletViaRelay } from "@/lib/wallet/deploy-relay";
+import { deployWalletSponsored } from "@/lib/wallet/deploy-relay";
 import { requestSiwsToken } from "@medialane/sdk/starknet";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { typedData as starknetTypedData } from "starknet";
@@ -144,7 +144,15 @@ function WalletOnboardingForm() {
       setStep("deploying");
       // Deploy MUST complete before SIWS — SIWS verify rejects counterfactual
       // (not-yet-deployed) accounts. See the design spec's Global Constraints.
-      await deployWalletViaRelay(sealed.ownerPubKey);
+      // AVNU's paymaster executes this as one atomic, sponsored transaction —
+      // by the time it resolves, the wallet is genuinely deployed (no
+      // separate confirmation-wait step needed, unlike the old relayer+UDC
+      // path this replaces).
+      await deployWalletSponsored(
+        sealed.address,
+        sealed.ownerPubKey,
+        freshPrivateKey ?? (await unlockOwnerKey(sealed)),
+      );
 
       setStep("signing-in");
       const siwsToken = await requestSiwsToken({
