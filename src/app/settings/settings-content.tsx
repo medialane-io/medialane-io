@@ -16,15 +16,18 @@ import { CreatorScoreInline } from "@/components/rewards/creator-score-inline";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { completeWalletDeployment } from "@/lib/wallet/complete-deployment";
 import { WalletDeploymentDialog } from "@/components/wallet/wallet-deployment-dialog";
+import { EmailVerifyDialog } from "@/components/settings/email-verify-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   AtSign, CheckCircle2, Clock, XCircle, Loader2, Settings as SettingsIcon,
   Globe, Twitter, MessageCircle, Send, ArrowUpRight, Gem, Tag, LayoutGrid, Trophy, Wallet,
+  Mail, User,
 } from "lucide-react";
 import { cn, resolveTokenImage } from "@/lib/utils";
 
@@ -294,9 +297,7 @@ export default function SettingsContent() {
     websiteUrl: "", twitterUrl: "", discordUrl: "", telegramUrl: "",
   });
   const [emailStatus, setEmailStatus] = useState<{ email: string | null; verified: boolean } | null>(null);
-  const [verifyStep, setVerifyStep] = useState<"idle" | "code-sent" | "verifying">("idle");
-  const [verifyCode, setVerifyCode] = useState("");
-  const [verifyError, setVerifyError] = useState<string | null>(null);
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [generatingWallet, setGeneratingWallet] = useState(false);
   const [generateWalletError, setGenerateWalletError] = useState<string | null>(null);
   const [resumeDialogOpen, setResumeDialogOpen] = useState(false);
@@ -409,46 +410,11 @@ export default function SettingsContent() {
     }
   }
 
-  async function handleRequestVerificationCode() {
-    if (!emailStatus?.email) return;
-    setVerifyError(null);
-    try {
-      const res = await fetch("/api/proxy/v1/auth/email/request-code", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: emailStatus.email }),
-      });
-      if (!res.ok) throw new Error("Couldn't send the code. Please try again.");
-      setVerifyStep("code-sent");
-    } catch (err) {
-      setVerifyError(err instanceof Error ? err.message : "Couldn't send the code. Please try again.");
-    }
-  }
-
-  async function handleVerifyCode() {
-    if (!emailStatus?.email) return;
-    setVerifyStep("verifying");
-    setVerifyError(null);
-    try {
-      const res = await fetch("/api/proxy/v1/auth/email/verify-code", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: emailStatus.email, code: verifyCode }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error((data as { error?: string }).error ?? "Incorrect code. Please try again.");
-      const token = getValidToken() ?? (await signIn());
-      if (!token) throw new Error("Not authenticated");
-      await getMedialaneClient().api.upsertMyWallet(token, {
-        emailVerificationToken: (data as { token: string }).token,
-      });
-      setEmailStatus((s) => (s ? { ...s, verified: true } : s));
-      setVerifyStep("idle");
-      setVerifyCode("");
-    } catch (err) {
-      setVerifyError(err instanceof Error ? err.message : "Incorrect code. Please try again.");
-      setVerifyStep("code-sent");
-    }
+  async function handleEmailVerified(emailVerificationToken: string) {
+    const token = getValidToken() ?? (await signIn());
+    if (!token) throw new Error("Not authenticated");
+    await getMedialaneClient().api.upsertMyWallet(token, { emailVerificationToken });
+    setEmailStatus((s) => (s ? { ...s, verified: true } : s));
   }
 
   async function attachNewWallet(newWalletSiwsToken: string, authToken: string) {
@@ -521,8 +487,8 @@ export default function SettingsContent() {
 
   const headerProps = {
     icon: <SettingsIcon className="h-4 w-4 text-white" />,
-    title: "Profile Settings",
-    subtitle: "Manage your public creator identity.",
+    title: "Settings",
+    subtitle: "Your public profile and your account.",
   };
 
   if (!hasWallet) {
@@ -579,7 +545,19 @@ export default function SettingsContent() {
         </div>
       }
     >
-      <div className="space-y-8">
+      <Tabs defaultValue="profile" className="space-y-8">
+        <TabsList>
+          <TabsTrigger value="profile" className="gap-1.5">
+            <User className="h-3.5 w-3.5" />
+            Profile
+          </TabsTrigger>
+          <TabsTrigger value="account" className="gap-1.5">
+            <Wallet className="h-3.5 w-3.5" />
+            Account
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="profile" className="space-y-8 mt-0">
         {/* Username claim */}
         <div className="space-y-4">
           <div>
@@ -694,44 +672,6 @@ export default function SettingsContent() {
           </div>
         </div>
 
-        {/* Email verification */}
-        {emailStatus?.email && !emailStatus.verified && (
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-sm font-semibold text-foreground">Email</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {emailStatus.email} — not verified yet.
-              </p>
-            </div>
-            <div className="border-t border-border pt-4 space-y-3">
-              {verifyError && <p className="text-sm text-destructive">{verifyError}</p>}
-              {verifyStep === "idle" && (
-                <Button onClick={handleRequestVerificationCode} variant="outline" size="sm">
-                  Send verification code
-                </Button>
-              )}
-              {(verifyStep === "code-sent" || verifyStep === "verifying") && (
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={6}
-                    placeholder="000000"
-                    value={verifyCode}
-                    onChange={(e) => setVerifyCode(e.target.value.replace(/\D/g, ""))}
-                    disabled={verifyStep === "verifying"}
-                    className="w-32 text-center tracking-[0.3em]"
-                  />
-                  <Button onClick={handleVerifyCode} disabled={verifyStep === "verifying" || verifyCode.length !== 6} size="sm">
-                    {verifyStep === "verifying" ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
-                    Verify
-                  </Button>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
         {/* Identity */}
         <div className="space-y-4">
           <div>
@@ -752,32 +692,6 @@ export default function SettingsContent() {
             </div>
           </div>
         </div>
-
-        {/* Generate a new wallet — rare-case escape hatch */}
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-sm font-semibold text-foreground">Wallet</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              If this account&apos;s wallet isn&apos;t one you set up yourself, you can create a new one.
-            </p>
-          </div>
-          <div className="border-t border-border pt-4 space-y-3">
-            {generateWalletError && <p className="text-sm text-destructive">{generateWalletError}</p>}
-            <Button onClick={handleGenerateNewWallet} disabled={generatingWallet} variant="outline" size="sm">
-              {generatingWallet ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
-              Generate a new wallet
-            </Button>
-          </div>
-        </div>
-
-        <WalletDeploymentDialog
-          open={resumeDialogOpen}
-          onOpenChange={setResumeDialogOpen}
-          onComplete={async ({ siwsToken }) => {
-            if (!oldWalletToken) return;
-            await attachNewWallet(siwsToken, oldWalletToken);
-          }}
-        />
 
         {/* Media */}
         <div className="space-y-4">
@@ -837,7 +751,86 @@ export default function SettingsContent() {
             <span className="text-sm text-destructive">{saveError}</span>
           )}
         </div>
-      </div>
+        </TabsContent>
+
+        <TabsContent value="account" className="space-y-8 mt-0">
+          {/* Email */}
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                <Mail className="h-4 w-4" />
+                Email
+              </h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Used for account notices and signing back in.
+              </p>
+            </div>
+            <div className="border-t border-border pt-4">
+              {emailStatus?.email ? (
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-sm text-foreground truncate">{emailStatus.email}</span>
+                    {emailStatus.verified ? (
+                      <Badge variant="outline" className="border-emerald-500/40 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 text-[10px] gap-1">
+                        <CheckCircle2 className="h-3 w-3" /> Verified
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="border-yellow-500/40 text-yellow-700 dark:text-yellow-400 bg-yellow-500/10 text-[10px] gap-1">
+                        <Clock className="h-3 w-3" /> Not verified
+                      </Badge>
+                    )}
+                  </div>
+                  {!emailStatus.verified && (
+                    <Button onClick={() => setEmailDialogOpen(true)} variant="outline" size="sm">
+                      Verify email
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No email on this account yet.</p>
+              )}
+            </div>
+          </div>
+
+          {/* Wallet — rare-case escape hatch */}
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                <Wallet className="h-4 w-4" />
+                Wallet
+              </h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                If this account&apos;s wallet isn&apos;t one you set up yourself, you can create a new one.
+              </p>
+            </div>
+            <div className="border-t border-border pt-4 space-y-3">
+              {generateWalletError && <p className="text-sm text-destructive">{generateWalletError}</p>}
+              <Button onClick={handleGenerateNewWallet} disabled={generatingWallet} variant="outline" size="sm">
+                {generatingWallet ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
+                Generate a new wallet
+              </Button>
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      {emailStatus?.email && (
+        <EmailVerifyDialog
+          open={emailDialogOpen}
+          onOpenChange={setEmailDialogOpen}
+          email={emailStatus.email}
+          onVerified={handleEmailVerified}
+        />
+      )}
+
+      <WalletDeploymentDialog
+        open={resumeDialogOpen}
+        onOpenChange={setResumeDialogOpen}
+        onComplete={async ({ siwsToken }) => {
+          if (!oldWalletToken) return;
+          await attachNewWallet(siwsToken, oldWalletToken);
+        }}
+      />
     </ServiceFormShell>
   );
 }
