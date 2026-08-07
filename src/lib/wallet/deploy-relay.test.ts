@@ -31,7 +31,16 @@ test("deployWalletSponsored calls build then execute and returns the tx hash", a
       );
     }
     if (url === "/api/wallet/deploy-sponsored/execute") {
-      expect(body.signature).toBeDefined();
+      // Reproduced live 2026-08-07: account.signMessage() returns a
+      // WeierstrassSignatureType object ({r, s, ...}), not an array, for a
+      // raw-private-key signer — a naive Array.from() over that silently
+      // produces [] with no error, which then reached AVNU as an invalid
+      // signature. Assert real content, not just "defined", so this class
+      // of bug can never pass silently again.
+      expect(Array.isArray(body.signature)).toBe(true);
+      expect(body.signature.length).toBe(2);
+      expect(body.signature[0]).toMatch(/^0x[0-9a-f]+$/i);
+      expect(body.signature[1]).toMatch(/^0x[0-9a-f]+$/i);
       expect(body.deployment).toEqual({ fake: "deployment" });
       return new Response(JSON.stringify({ transactionHash: "0xtxhash" }), { status: 200 });
     }

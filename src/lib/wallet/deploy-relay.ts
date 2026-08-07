@@ -1,4 +1,4 @@
-import { Account } from "starknet";
+import { Account, stark } from "starknet";
 import { walletProvider } from "./provider";
 
 /**
@@ -31,9 +31,12 @@ export async function deployWalletSponsored(
     cairoVersion: "1",
   });
   const rawSignature = await account.signMessage(typedData as never);
-  // starknet.js signatures may come back as bigint[]/WeierstrassSignatureType
-  // — JSON.stringify can't serialize a bigint, so normalize to strings.
-  const signature = Array.from(rawSignature as Iterable<bigint | string>, (v) => v.toString());
+  // signMessage() can return either a plain string array or a
+  // WeierstrassSignatureType object ({r, s, ...}) depending on the signer —
+  // a raw-private-key signer returns the latter. Array.from() over that
+  // silently yields [] with no error (reproduced live 2026-08-07). Use
+  // starknet.js's own signatureToHexArray, which handles both shapes.
+  const signature = stark.signatureToHexArray(rawSignature);
 
   const executeRes = await fetch("/api/wallet/deploy-sponsored/execute", {
     method: "POST",
