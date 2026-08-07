@@ -41,14 +41,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: "SMTP is not configured" }, { status: 500 });
   }
 
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT),
-    secure: Number(process.env.SMTP_PORT) === 465,
-    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-  });
-
   try {
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT),
+      secure: Number(process.env.SMTP_PORT) === 465,
+      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    });
     await transporter.sendMail({
       from: process.env.CONTACT_FROM_EMAIL || process.env.SMTP_USER,
       to,
@@ -57,7 +56,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     });
     return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error("[mail-relay] send failed", { err: err instanceof Error ? err.message : String(err) });
-    return NextResponse.json({ error: "Send failed" }, { status: 502 });
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[mail-relay] send failed", { message });
+    // Surface the real error message (temporary — this route is internal,
+    // not browser-reachable, so no sensitive info leaks to a client) so a
+    // failure is diagnosable instead of an opaque 502.
+    return NextResponse.json({ error: "Send failed", detail: message }, { status: 502 });
   }
 }
