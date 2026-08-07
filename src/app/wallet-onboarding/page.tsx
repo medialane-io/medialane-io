@@ -7,12 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Loader2, ShieldCheck, CheckCircle2, AlertCircle } from "lucide-react";
-import { createOwnerKey, signWith, signWithPrivateKey, unlockOwnerKey, type SealedOwner } from "@/lib/wallet/passkey";
-import { loadSealedOwner, saveSealedOwner } from "@/lib/wallet/store";
-import { deployWalletSponsored } from "@/lib/wallet/deploy-relay";
-import { requestSiwsToken } from "@medialane/sdk/starknet";
+import { completeWalletDeployment } from "@/lib/wallet/complete-deployment";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import { typedData as starknetTypedData } from "starknet";
 
 type Step = "email" | "checking-email" | "registering" | "code" | "verifying-code" | "creating-passkey" | "deploying" | "signing-in" | "done" | "error";
 
@@ -120,53 +116,7 @@ function WalletOnboardingForm() {
   const runOnboarding = async () => {
     setError(null);
     try {
-      // Resume an existing local owner key if setup was previously
-      // interrupted after passkey creation but before deploy confirmed —
-      // creating a fresh one here would silently orphan it (a new passkey
-      // key pair, unrelated to the stranded one, with no way to ever
-      // recover the stranded wallet's signing key afterward).
-      let sealed: SealedOwner | null = loadSealedOwner();
-      // Set only when we just created a fresh key this run — lets the
-      // sign-in step below skip a second, redundant WebAuthn ceremony by
-      // reusing the plaintext key already in memory from creation. A
-      // resumed key (loaded from storage, above) never has this — it goes
-      // through the normal unlock-via-WebAuthn path, since the plaintext
-      // key was never persisted.
-      let freshPrivateKey: string | null = null;
-      if (!sealed) {
-        setStep("creating-passkey");
-        const created = await createOwnerKey();
-        sealed = created.sealed;
-        freshPrivateKey = created.privateKeyHex;
-        saveSealedOwner(sealed);
-      }
-
-      setStep("deploying");
-      // Deploy MUST complete before SIWS — SIWS verify rejects counterfactual
-      // (not-yet-deployed) accounts. See the design spec's Global Constraints.
-      // AVNU's paymaster executes this as one atomic, sponsored transaction —
-      // by the time it resolves, the wallet is genuinely deployed (no
-      // separate confirmation-wait step needed, unlike the old relayer+UDC
-      // path this replaces).
-      await deployWalletSponsored(
-        sealed.address,
-        sealed.ownerPubKey,
-        freshPrivateKey ?? (await unlockOwnerKey(sealed)),
-      );
-
-      setStep("signing-in");
-      const siwsToken = await requestSiwsToken({
-        backendUrl: "/api/proxy",
-        walletAddress: sealed.address,
-        signer: {
-          signMessage: async (td) => {
-            const msgHash = starknetTypedData.getMessageHash(td, sealed.address);
-            return freshPrivateKey
-              ? signWithPrivateKey(freshPrivateKey, msgHash)
-              : signWith(sealed, msgHash);
-          },
-        },
-      });
+      const { siwsToken } = await completeWalletDeployment(setStep);
 
       // Attach the wallet to the account created at the email step
       // directly, right here — not deferred to AccountSyncOnLogin firing

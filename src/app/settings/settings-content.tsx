@@ -14,11 +14,8 @@ import { useRewards } from "@/hooks/use-rewards";
 import { AssetPicker, ServiceFormShell, LevelBadge, type OwnedAsset } from "@medialane/ui";
 import { CreatorScoreInline } from "@/components/rewards/creator-score-inline";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import { createOwnerKey, signWithPrivateKey } from "@/lib/wallet/passkey";
-import { saveSealedOwner } from "@/lib/wallet/store";
-import { deployWalletSponsored } from "@/lib/wallet/deploy-relay";
-import { requestSiwsToken } from "@medialane/sdk/starknet";
-import { typedData as starknetTypedData } from "starknet";
+import { completeWalletDeployment } from "@/lib/wallet/complete-deployment";
+import { WalletDeploymentDialog } from "@/components/wallet/wallet-deployment-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -302,6 +299,11 @@ export default function SettingsContent() {
   const [verifyError, setVerifyError] = useState<string | null>(null);
   const [generatingWallet, setGeneratingWallet] = useState(false);
   const [generateWalletError, setGenerateWalletError] = useState<string | null>(null);
+  const [resumeDialogOpen, setResumeDialogOpen] = useState(false);
+  // Captured once, before the new local key overwrites the current signer —
+  // /v1/users/me/generate-wallet needs proof of the *old* wallet, which
+  // becomes unsignable from this device the moment the new key is saved.
+  const [oldWalletToken, setOldWalletToken] = useState<string | null>(null);
 
   useEffect(() => {
     if (!walletAddress) return;
@@ -449,34 +451,41 @@ export default function SettingsContent() {
     }
   }
 
+  async function attachNewWallet(newWalletSiwsToken: string, authToken: string) {
+    const res = await fetch("/api/proxy/v1/users/me/generate-wallet", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
+      body: JSON.stringify({ newWalletSiwsToken }),
+    });
+    if (!res.ok) throw new Error("Failed to switch to the new wallet");
+    window.location.reload();
+  }
+
   async function handleGenerateNewWallet() {
     setGeneratingWallet(true);
     setGenerateWalletError(null);
+    // Must authenticate as the CURRENT wallet before creating any new local
+    // key — completeWalletDeployment(forceNew) overwrites the local signer
+    // immediately, before backend confirmation, so the old wallet becomes
+    // unsignable from this device the moment it runs.
+    let authToken: string | null = null;
     try {
-      const created = await createOwnerKey();
-      saveSealedOwner(created.sealed);
-      await deployWalletSponsored(created.sealed.address, created.sealed.ownerPubKey, created.privateKeyHex);
-      const newWalletSiwsToken = await requestSiwsToken({
-        backendUrl: "/api/proxy",
-        walletAddress: created.sealed.address,
-        signer: {
-          signMessage: async (td) => {
-            const msgHash = starknetTypedData.getMessageHash(td, created.sealed.address);
-            return signWithPrivateKey(created.privateKeyHex, msgHash);
-          },
-        },
-      });
-      const token = getValidToken() ?? (await signIn());
-      if (!token) throw new Error("Not authenticated");
-      const res = await fetch("/api/proxy/v1/users/me/generate-wallet", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ newWalletSiwsToken }),
-      });
-      if (!res.ok) throw new Error("Failed to switch to the new wallet");
-      window.location.reload();
-    } catch (err) {
-      setGenerateWalletError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      authToken = getValidToken() ?? (await signIn());
+      if (!authToken) throw new Error("Not authenticated");
+    } catch {
+      setGenerateWalletError("Something went wrong. Please try again.");
+      setGeneratingWallet(false);
+      return;
+    }
+    setOldWalletToken(authToken);
+
+    try {
+      const { siwsToken: newWalletSiwsToken } = await completeWalletDeployment(() => {}, { forceNew: true });
+      await attachNewWallet(newWalletSiwsToken, authToken);
+    } catch {
+      // The new key is already saved locally at this point — let the user
+      // resume deployment instead of re-authenticating and abandoning it.
+      setResumeDialogOpen(true);
     } finally {
       setGeneratingWallet(false);
     }
@@ -760,6 +769,15 @@ export default function SettingsContent() {
             </Button>
           </div>
         </div>
+
+        <WalletDeploymentDialog
+          open={resumeDialogOpen}
+          onOpenChange={setResumeDialogOpen}
+          onComplete={async ({ siwsToken }) => {
+            if (!oldWalletToken) return;
+            await attachNewWallet(siwsToken, oldWalletToken);
+          }}
+        />
 
         {/* Media */}
         <div className="space-y-4">
