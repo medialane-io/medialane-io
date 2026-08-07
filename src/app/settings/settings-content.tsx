@@ -14,6 +14,11 @@ import { useRewards } from "@/hooks/use-rewards";
 import { AssetPicker, ServiceFormShell, LevelBadge, type OwnedAsset } from "@medialane/ui";
 import { CreatorScoreInline } from "@/components/rewards/creator-score-inline";
 import { getMedialaneClient } from "@/lib/medialane-client";
+import { createOwnerKey, signWithPrivateKey } from "@/lib/wallet/passkey";
+import { saveSealedOwner } from "@/lib/wallet/store";
+import { deployWalletViaRelay } from "@/lib/wallet/deploy-relay";
+import { requestSiwsToken } from "@medialane/sdk/starknet";
+import { typedData as starknetTypedData } from "starknet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -295,6 +300,8 @@ export default function SettingsContent() {
   const [verifyStep, setVerifyStep] = useState<"idle" | "code-sent" | "verifying">("idle");
   const [verifyCode, setVerifyCode] = useState("");
   const [verifyError, setVerifyError] = useState<string | null>(null);
+  const [generatingWallet, setGeneratingWallet] = useState(false);
+  const [generateWalletError, setGenerateWalletError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!walletAddress) return;
@@ -439,6 +446,39 @@ export default function SettingsContent() {
     } catch (err) {
       setVerifyError(err instanceof Error ? err.message : "Incorrect code. Please try again.");
       setVerifyStep("code-sent");
+    }
+  }
+
+  async function handleGenerateNewWallet() {
+    setGeneratingWallet(true);
+    setGenerateWalletError(null);
+    try {
+      const created = await createOwnerKey();
+      saveSealedOwner(created.sealed);
+      await deployWalletViaRelay(created.sealed.ownerPubKey);
+      const newWalletSiwsToken = await requestSiwsToken({
+        backendUrl: "/api/proxy",
+        walletAddress: created.sealed.address,
+        signer: {
+          signMessage: async (td) => {
+            const msgHash = starknetTypedData.getMessageHash(td, created.sealed.address);
+            return signWithPrivateKey(created.privateKeyHex, msgHash);
+          },
+        },
+      });
+      const token = getValidToken() ?? (await signIn());
+      if (!token) throw new Error("Not authenticated");
+      const res = await fetch("/api/proxy/v1/users/me/generate-wallet", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ newWalletSiwsToken }),
+      });
+      if (!res.ok) throw new Error("Failed to switch to the new wallet");
+      window.location.reload();
+    } catch (err) {
+      setGenerateWalletError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    } finally {
+      setGeneratingWallet(false);
     }
   }
 
@@ -701,6 +741,23 @@ export default function SettingsContent() {
                 placeholder="Tell the world about yourself and your work…"
               />
             </div>
+          </div>
+        </div>
+
+        {/* Generate a new wallet — rare-case escape hatch */}
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">Wallet</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              If this account&apos;s wallet isn&apos;t one you set up yourself, you can create a new one.
+            </p>
+          </div>
+          <div className="border-t border-border pt-4 space-y-3">
+            {generateWalletError && <p className="text-sm text-destructive">{generateWalletError}</p>}
+            <Button onClick={handleGenerateNewWallet} disabled={generatingWallet} variant="outline" size="sm">
+              {generatingWallet ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
+              Generate a new wallet
+            </Button>
           </div>
         </div>
 
