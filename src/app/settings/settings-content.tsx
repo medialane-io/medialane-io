@@ -16,7 +16,7 @@ import { CreatorScoreInline } from "@/components/rewards/creator-score-inline";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { createOwnerKey, signWithPrivateKey } from "@/lib/wallet/passkey";
 import { saveSealedOwner } from "@/lib/wallet/store";
-import { deployWalletViaRelay } from "@/lib/wallet/deploy-relay";
+import { deployWalletSponsored } from "@/lib/wallet/deploy-relay";
 import { requestSiwsToken } from "@medialane/sdk/starknet";
 import { typedData as starknetTypedData } from "starknet";
 import { Button } from "@/components/ui/button";
@@ -455,7 +455,7 @@ export default function SettingsContent() {
     try {
       const created = await createOwnerKey();
       saveSealedOwner(created.sealed);
-      await deployWalletViaRelay(created.sealed.ownerPubKey);
+      await deployWalletSponsored(created.sealed.address, created.sealed.ownerPubKey, created.privateKeyHex);
       const newWalletSiwsToken = await requestSiwsToken({
         backendUrl: "/api/proxy",
         walletAddress: created.sealed.address,
