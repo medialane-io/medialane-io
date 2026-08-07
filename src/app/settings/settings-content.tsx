@@ -291,6 +291,20 @@ export default function SettingsContent() {
     displayName: "", bio: "", avatarImage: "",
     websiteUrl: "", twitterUrl: "", discordUrl: "", telegramUrl: "",
   });
+  const [emailStatus, setEmailStatus] = useState<{ email: string | null; verified: boolean } | null>(null);
+  const [verifyStep, setVerifyStep] = useState<"idle" | "code-sent" | "verifying">("idle");
+  const [verifyCode, setVerifyCode] = useState("");
+  const [verifyError, setVerifyError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!walletAddress) return;
+    (async () => {
+      const token = getValidToken();
+      if (!token) return;
+      const result = await getMedialaneClient().api.getMyWallet(token);
+      if (result) setEmailStatus({ email: result.email ?? null, verified: result.emailVerified ?? false });
+    })();
+  }, [walletAddress, getValidToken]);
 
   useEffect(() => {
     if (profile) setForm({
@@ -383,6 +397,48 @@ export default function SettingsContent() {
       setSaveError(e instanceof Error ? e.message : "Failed to save changes");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleRequestVerificationCode() {
+    if (!emailStatus?.email) return;
+    setVerifyError(null);
+    try {
+      const res = await fetch("/api/proxy/v1/auth/email/request-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: emailStatus.email }),
+      });
+      if (!res.ok) throw new Error("Couldn't send the code. Please try again.");
+      setVerifyStep("code-sent");
+    } catch (err) {
+      setVerifyError(err instanceof Error ? err.message : "Couldn't send the code. Please try again.");
+    }
+  }
+
+  async function handleVerifyCode() {
+    if (!emailStatus?.email) return;
+    setVerifyStep("verifying");
+    setVerifyError(null);
+    try {
+      const res = await fetch("/api/proxy/v1/auth/email/verify-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: emailStatus.email, code: verifyCode }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((data as { error?: string }).error ?? "Incorrect code. Please try again.");
+      const token = getValidToken() ?? (await signIn());
+      if (!token) throw new Error("Not authenticated");
+      await getMedialaneClient().api.upsertMyWallet(token, {
+        emailVerificationToken: (data as { token: string }).token,
+      });
+      setEmailStatus((s) => (s ? { ...s, verified: true } : s));
+      setVerifyStep("idle");
+      setVerifyCode("");
+    } catch (err) {
+      setVerifyError(err instanceof Error ? err.message : "Incorrect code. Please try again.");
+      setVerifyStep("code-sent");
     }
   }
 
@@ -588,6 +644,44 @@ export default function SettingsContent() {
             )}
           </div>
         </div>
+
+        {/* Email verification */}
+        {emailStatus?.email && !emailStatus.verified && (
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-sm font-semibold text-foreground">Email</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {emailStatus.email} — not verified yet.
+              </p>
+            </div>
+            <div className="border-t border-border pt-4 space-y-3">
+              {verifyError && <p className="text-sm text-destructive">{verifyError}</p>}
+              {verifyStep === "idle" && (
+                <Button onClick={handleRequestVerificationCode} variant="outline" size="sm">
+                  Send verification code
+                </Button>
+              )}
+              {(verifyStep === "code-sent" || verifyStep === "verifying") && (
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    placeholder="000000"
+                    value={verifyCode}
+                    onChange={(e) => setVerifyCode(e.target.value.replace(/\D/g, ""))}
+                    disabled={verifyStep === "verifying"}
+                    className="w-32 text-center tracking-[0.3em]"
+                  />
+                  <Button onClick={handleVerifyCode} disabled={verifyStep === "verifying" || verifyCode.length !== 6} size="sm">
+                    {verifyStep === "verifying" ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
+                    Verify
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Identity */}
         <div className="space-y-4">
