@@ -46,3 +46,4 @@ package-lock.json
 playwright.config.ts
 /e2e-tests/
 /.github/
+.env*
