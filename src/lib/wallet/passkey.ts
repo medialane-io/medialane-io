@@ -128,7 +128,21 @@ async function aesKeyFrom(secret: Uint8Array<ArrayBuffer>): Promise<CryptoKey> {
   );
 }
 
-export async function createOwnerKey(): Promise<SealedOwner> {
+export interface CreatedOwner {
+  sealed: SealedOwner;
+  /**
+   * Plaintext private key — in-memory only, never persisted anywhere.
+   * The WebAuthn create() ceremony that just ran already produced the PRF
+   * secret used to derive this key; returning it lets the very first
+   * sign-in (moments later, same page load) skip a second, redundant
+   * WebAuthn ceremony to re-derive the same secret. Any later sign-in
+   * (a resumed SealedOwner loaded from storage) still goes through
+   * unlockOwnerKey/signWith as normal — the plaintext key was never saved.
+   */
+  privateKeyHex: string;
+}
+
+export async function createOwnerKey(): Promise<CreatedOwner> {
   assertBrowser();
   const reg = await registerPasskey();
 
@@ -158,11 +172,14 @@ export async function createOwnerKey(): Promise<SealedOwner> {
     enc(priv),
   );
   return {
-    credentialId,
-    ownerPubKey,
-    address: computeWalletAddress(ownerPubKey, 0),
-    iv: b64(iv),
-    ciphertext: b64(ciphertext),
+    sealed: {
+      credentialId,
+      ownerPubKey,
+      address: computeWalletAddress(ownerPubKey, 0),
+      iv: b64(iv),
+      ciphertext: b64(ciphertext),
+    },
+    privateKeyHex: priv,
   };
 }
 
@@ -180,7 +197,14 @@ export async function unlockOwnerKey(sealed: SealedOwner): Promise<string> {
 
 export async function signWith(sealed: SealedOwner, msgHash: string): Promise<[string, string]> {
   const priv = await unlockOwnerKey(sealed);
-  const sig = ec.starkCurve.sign(msgHash, priv);
+  return signWithPrivateKey(priv, msgHash);
+}
+
+/** Signs directly with an already-known plaintext private key — no WebAuthn
+ *  ceremony. Used for the first sign-in right after createOwnerKey(), whose
+ *  plaintext key is already in memory (see CreatedOwner). */
+export function signWithPrivateKey(privateKeyHex: string, msgHash: string): [string, string] {
+  const sig = ec.starkCurve.sign(msgHash, privateKeyHex);
   return [num.toHex(sig.r), num.toHex(sig.s)];
 }
 

@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Loader2, ShieldCheck, CheckCircle2, AlertCircle } from "lucide-react";
-import { createOwnerKey, signWith, type SealedOwner } from "@/lib/wallet/passkey";
+import { createOwnerKey, signWith, signWithPrivateKey, type SealedOwner } from "@/lib/wallet/passkey";
 import { loadSealedOwner, saveSealedOwner } from "@/lib/wallet/store";
 import { deployWalletViaRelay } from "@/lib/wallet/deploy-relay";
 import { requestSiwsToken } from "@medialane/sdk/starknet";
@@ -68,9 +68,18 @@ function WalletOnboardingForm() {
       // key pair, unrelated to the stranded one, with no way to ever
       // recover the stranded wallet's signing key afterward).
       let sealed: SealedOwner | null = loadSealedOwner();
+      // Set only when we just created a fresh key this run — lets the
+      // sign-in step below skip a second, redundant WebAuthn ceremony by
+      // reusing the plaintext key already in memory from creation. A
+      // resumed key (loaded from storage, above) never has this — it goes
+      // through the normal unlock-via-WebAuthn path, since the plaintext
+      // key was never persisted.
+      let freshPrivateKey: string | null = null;
       if (!sealed) {
         setStep("creating-passkey");
-        sealed = await createOwnerKey();
+        const created = await createOwnerKey();
+        sealed = created.sealed;
+        freshPrivateKey = created.privateKeyHex;
         saveSealedOwner(sealed);
       }
 
@@ -84,8 +93,12 @@ function WalletOnboardingForm() {
         backendUrl: "/api/proxy",
         walletAddress: sealed.address,
         signer: {
-          signMessage: (td) =>
-            signWith(sealed, starknetTypedData.getMessageHash(td, sealed.address)),
+          signMessage: async (td) => {
+            const msgHash = starknetTypedData.getMessageHash(td, sealed.address);
+            return freshPrivateKey
+              ? signWithPrivateKey(freshPrivateKey, msgHash)
+              : signWith(sealed, msgHash);
+          },
         },
       });
 
@@ -96,8 +109,13 @@ function WalletOnboardingForm() {
       // flow's copy until that service exists and is wired in.
 
       setStep("done");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    } catch {
+      // Never surface raw backend/SDK error text here — it can contain
+      // technical language ("wallet", "Starknet", "deploy") this flow is
+      // deliberately designed to keep invisible to non-crypto users. One
+      // plain message, always; "Try again" safely resumes from wherever it
+      // stopped (runOnboarding reuses the existing local key if present).
+      setError("Something went wrong setting up your account. Please try again.");
       setStep("error");
     }
   };
