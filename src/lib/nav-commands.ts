@@ -3,7 +3,7 @@ import {
   Home, Telescope, Store, LayoutGrid, Users, Activity, Trophy, Gift,
   Briefcase, Search, Music, Palette, Film, Camera, Gem,
   Plus, Layers, Repeat2, Ticket, Zap, BookOpen, FileText,
-  ShieldCheck, Wallet, Settings, List, Tag, ScrollText, Coins,
+  ShieldCheck, Settings, List, Tag, ScrollText, Coins,
   FolderInput, AtSign, Link2, Handshake,
 } from "lucide-react";
 
@@ -30,7 +30,6 @@ export const NAV_COMMANDS: NavCommandGroup[] = [
       { id: "airdrop",     label: "Airdrop",      icon: Gift,       href: "/airdrop",     keywords: ["claim", "free", "drop", "genesis"] },
       { id: "search",      label: "Search",       icon: Search,     href: "/search",      keywords: ["find", "lookup", "query"] },
       { id: "settings",    label: "Account Settings", icon: Settings, href: "/settings",  keywords: ["profile", "username", "preferences", "account"] },
-      { id: "wallet",      label: "My Wallet",    icon: Wallet,     href: "/settings/wallet", keywords: ["address", "starknet", "balance"] },
     ],
   },
   {
