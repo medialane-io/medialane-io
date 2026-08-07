@@ -9,6 +9,11 @@
 import { type NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 
+// nodemailer needs Node's raw TCP/TLS sockets — must run on the Node.js
+// runtime, not Edge (Edge has no `net`/`tls` module and crashes hard,
+// before this file's own try/catch can produce a real error response).
+export const runtime = "nodejs";
+
 function buildVerificationCodeEmailHtml(code: string): string {
   return `
     <p>Hi there,</p>
