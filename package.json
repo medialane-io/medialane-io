@@ -14,6 +14,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@avnu/avnu-sdk": "^4.2.0",
     "@hookform/resolvers": "^3.10.0",
     "@medialane/sdk": "0.85.3",
     "@medialane/ui": "0.95.1",
