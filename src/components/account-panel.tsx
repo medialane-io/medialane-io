@@ -16,7 +16,7 @@ import { clearSealedOwner } from "@/lib/wallet/store";
  */
 export function AccountPanel() {
   const { close } = useNavAccountSheet();
-  const { address, hasWallet } = useWalletNativeSession();
+  const { address, hasWallet, isDeployed } = useWalletNativeSession();
 
   if (!hasWallet) {
     return (
@@ -32,6 +32,32 @@ export function AccountPanel() {
             <Link href="/wallet-onboarding">
               <Wallet className="h-4 w-4" />
               Set up account
+            </Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // A local owner key exists but the wallet never confirmed as deployed —
+  // setup was interrupted (relay error, closed tab, network drop) before
+  // completing. /wallet-onboarding resumes with this exact key rather than
+  // creating a new one, so send the user back there instead of presenting
+  // this as a finished account.
+  if (isDeployed === false) {
+    return (
+      <div className="space-y-3 text-center py-4">
+        <Wallet className="h-8 w-8 mx-auto text-muted-foreground" />
+        <p className="text-sm text-muted-foreground">Your account setup didn&apos;t finish. Let&apos;s pick up where you left off.</p>
+        <div className="btn-border-animated p-[1px] rounded-lg">
+          <Button
+            asChild
+            className="w-full gap-2 bg-transparent text-white rounded-[7px] hover:bg-transparent hover:brightness-110 active:scale-[0.98] transition-all"
+            onClick={close}
+          >
+            <Link href="/wallet-onboarding">
+              <Wallet className="h-4 w-4" />
+              Finish setting up
             </Link>
           </Button>
         </div>

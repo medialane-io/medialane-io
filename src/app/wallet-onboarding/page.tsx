@@ -8,7 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Loader2, ShieldCheck, CheckCircle2, AlertCircle } from "lucide-react";
 import { createOwnerKey, signWith, type SealedOwner } from "@/lib/wallet/passkey";
-import { saveSealedOwner } from "@/lib/wallet/store";
+import { loadSealedOwner, saveSealedOwner } from "@/lib/wallet/store";
 import { deployWalletViaRelay } from "@/lib/wallet/deploy-relay";
 import { requestSiwsToken } from "@medialane/sdk/starknet";
 import { typedData as starknetTypedData } from "starknet";
@@ -83,9 +83,17 @@ function WalletOnboardingForm() {
   const runOnboarding = async () => {
     setError(null);
     try {
-      setStep("creating-passkey");
-      const sealed: SealedOwner = await createOwnerKey();
-      saveSealedOwner(sealed);
+      // Resume an existing local owner key if setup was previously
+      // interrupted after passkey creation but before deploy confirmed —
+      // creating a fresh one here would silently orphan it (a new passkey
+      // key pair, unrelated to the stranded one, with no way to ever
+      // recover the stranded wallet's signing key afterward).
+      let sealed: SealedOwner | null = loadSealedOwner();
+      if (!sealed) {
+        setStep("creating-passkey");
+        sealed = await createOwnerKey();
+        saveSealedOwner(sealed);
+      }
 
       setStep("deploying");
       // Deploy MUST complete before SIWS — SIWS verify rejects counterfactual
