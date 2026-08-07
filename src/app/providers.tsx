@@ -11,13 +11,14 @@ import { GoogleAnalytics } from "@next/third-parties/google";
 import { NavCommandMenu, NavBrandButton, NavAccountSheet, ThemeAmbientBackground } from "@medialane/ui";
 import { NAV_COMMANDS } from "@/lib/nav-commands";
 import { AccountSyncOnLogin } from "@/components/shared/account-sync-on-login";
-import { UndeployedWalletPrompt } from "@/components/wallet/undeployed-wallet-prompt";
+import { UndeployedWalletRedirect } from "@/components/wallet/undeployed-wallet-redirect";
 import { NavThemeToggle } from "@/components/nav-theme-toggle";
 import { NavConnectButton } from "@/components/nav-connect-button";
 import { HeaderWalletTrigger } from "@/components/nav-wallet-trigger";
 import { AccountPanel } from "@/components/account-panel";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useCreatorProfile } from "@/hooks/use-profiles";
+import { WalletNotDeployedError } from "@/hooks/use-siws-token";
 import { resolveTokenImage } from "@/lib/utils";
 
 const GA_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID;
@@ -133,6 +134,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
                 ? (err as { status: number }).status
                 : null;
             if (status === 401 || status === 403) return;
+            // Wallet isn't deployed yet — UndeployedWalletRedirect is already
+            // sending the user to /wallet-onboarding to fix it; a toast here
+            // would just be redundant noise on top of that redirect.
+            if (err instanceof WalletNotDeployedError) return;
 
             toast.error(toFriendlyToastMessage(err));
           },
@@ -140,7 +145,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       >
         {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
         <AccountSyncOnLogin />
-        <UndeployedWalletPrompt />
+        <UndeployedWalletRedirect />
         <Shell>{children}</Shell>
         <Toaster
           richColors
