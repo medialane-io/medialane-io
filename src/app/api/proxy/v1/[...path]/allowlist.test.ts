@@ -55,3 +55,11 @@ test("POST /v1/auth/email/request-code and /verify-code are allowed", () => {
 test("POST /v1/auth/email/something-else is rejected", () => {
   expect(isPathAllowed("POST", "auth/email/something-else")).toBe(false);
 });
+
+test("POST /v1/auth/email/register-account is allowed", () => {
+  expect(isPathAllowed("POST", "auth/email/register-account")).toBe(true);
+});
+
+test("POST /v1/users/me/generate-wallet is allowed", () => {
+  expect(isPathAllowed("POST", "users/me/generate-wallet")).toBe(true);
+});

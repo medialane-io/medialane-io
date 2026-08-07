@@ -45,7 +45,7 @@ const ALLOWED_ROUTES: Record<string, RegExp[]> = {
     /^intents\/[a-z-]+$/,                                   // POST /v1/intents/<type> — see namespace rationale above
     /^intents\/[^/]+\/hydrate$/,                            // /v1/intents/:id/hydrate (tenant-scoped repair)
     /^auth\/siws\/(nonce|verify)$/,                         // SIWS sign-in (mirrors the dapp's proxy allowlist)
-    /^auth\/email\/(request-code|verify-code)$/,            // email verification (wallet-onboarding)
+    /^auth\/email\/(request-code|verify-code|register-account)$/,  // account-first onboarding (wallet-onboarding)
     /^collections\/(register|sync-tx|claim)$/,             // launchpad create + create/collection + on-chain claim
     /^collections\/claim\/request$/,                       // manual-review claim request
     /^collection-slug-claims$/,                            // collection settings slug claim
@@ -55,6 +55,7 @@ const ALLOWED_ROUTES: Record<string, RegExp[]> = {
     /^remix-offers(\/(auto|self\/confirm|[^/]+\/(confirm|reject|extend)))?$/,  // remix offer lifecycle
     /^reports$/,                                           // /v1/reports (identity-gated on backend via SIWS)
     /^users\/(me|register)$/,                              // /v1/users/{me,register} — me also covers upsertMyWallet
+    /^users\/me\/generate-wallet$/,                         // settings — manual "new wallet" escape hatch (rare edge case)
     /^username-claims$/,                                   // /v1/username-claims
     /^wallet\/deploy$/,                                     // relayer-paid UDC deploy (new-signup bootstrap)
   ],
