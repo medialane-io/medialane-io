@@ -1,6 +1,5 @@
 "use client";
 
-import { Wallet } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { NavWalletTrigger as SharedNavWalletTrigger } from "@medialane/ui";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
@@ -16,10 +15,13 @@ import { UserShieldIcon } from "@/components/icons/user-shield-icon";
  * "Set up account" / "Finish setting up" button screen for either
  * no-wallet case — the click on this ring itself is the only click.
  *
- * Connected-state glyph is a user-shield (person-primary, shield badge —
- * not the shield-primary composition), sized up (18px vs the shared
- * component's 14px default) to sit closer to the ring's edge instead of
- * floating in a lot of empty padding (2026-08-08).
+ * The glyph is the same user-shield (person-primary, shield badge — not the
+ * shield-primary composition) in every state, connected or not — this app
+ * has no third-party "connect a wallet" moment to distinguish from account
+ * state, so there's nothing for a plain `Wallet` icon to signal that this
+ * icon doesn't already cover. Sized up (18px vs the shared component's
+ * 14px default) to sit closer to the ring's edge instead of floating in a
+ * lot of empty padding (2026-08-08).
  */
 export function HeaderWalletTrigger() {
   const { hasWallet, isDeployed } = useWalletNativeSession();
@@ -36,11 +38,13 @@ export function HeaderWalletTrigger() {
     }
   };
 
+  const icon = <UserShieldIcon className="h-[18px] w-[18px]" style={{ color: "hsl(var(--brand-blue))" }} />;
+
   return (
     <SharedNavWalletTrigger
       connected={hasWallet}
-      disconnectedIcon={<Wallet className="h-3.5 w-3.5" />}
-      connectedIcon={<UserShieldIcon className="h-[18px] w-[18px]" style={{ color: "hsl(var(--brand-blue))" }} />}
+      disconnectedIcon={icon}
+      connectedIcon={icon}
       onClick={handleClick}
     />
   );
