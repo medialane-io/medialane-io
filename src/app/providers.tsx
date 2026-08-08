@@ -8,14 +8,14 @@ import { SWRConfig } from "swr";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { usePathname } from "next/navigation";
 import { GoogleAnalytics } from "@next/third-parties/google";
-import { NavCommandMenu, NavBrandButton, NavAccountSheet, ThemeAmbientBackground } from "@medialane/ui";
+import { NavCommandMenu, NavBrandButton, ThemeAmbientBackground } from "@medialane/ui";
 import { NAV_COMMANDS } from "@/lib/nav-commands";
 import { AccountSyncOnLogin } from "@/components/shared/account-sync-on-login";
 import { UndeployedWalletRedirect } from "@/components/wallet/undeployed-wallet-redirect";
 import { NavThemeToggle } from "@/components/nav-theme-toggle";
 import { NavConnectButton } from "@/components/nav-connect-button";
 import { HeaderWalletTrigger } from "@/components/nav-wallet-trigger";
-import { AccountPanel } from "@/components/account-panel";
+import { WalletPanelOverlay } from "@/components/wallet-panel/wallet-panel-overlay";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useCreatorProfile } from "@/hooks/use-profiles";
 import { WalletNotDeployedError } from "@/hooks/use-siws-token";
@@ -69,9 +69,7 @@ function MainShell({ children }: { children: React.ReactNode }) {
         showKeyboardHints={false}
         brandSlot={<NavConnectButton />}
       />
-      <NavAccountSheet>
-        <AccountPanel />
-      </NavAccountSheet>
+      <WalletPanelOverlay />
       <div className="relative min-h-screen flex flex-col bg-background">
         <ThemeAmbientBackground imageUrl={themeImageUrl} />
         <div className="fixed top-4 left-4 sm:left-6 lg:left-8 z-50">

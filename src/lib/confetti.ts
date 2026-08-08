@@ -1,12 +1,12 @@
 import confetti from "canvas-confetti";
 
 export function fireConfetti() {
-  const defaults = { zIndex: 9999, colors: ["#a855f7", "#6366f1", "#10b981", "#f59e0b", "#ec4899"] };
+  if (typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
 
-  // Initial burst from centre
+  const defaults = { zIndex: 9999, colors: ["#3b7bff", "#8a5cf6", "#f6608f", "#fb8b46", "#5b4ce6"] };
+
   confetti({ ...defaults, particleCount: 80, spread: 70, origin: { y: 0.6 } });
 
-  // Delayed cannons from each side
   setTimeout(() => {
     confetti({ ...defaults, particleCount: 60, angle: 60, spread: 55, origin: { x: 0, y: 0.65 } });
     confetti({ ...defaults, particleCount: 60, angle: 120, spread: 55, origin: { x: 1, y: 0.65 } });
