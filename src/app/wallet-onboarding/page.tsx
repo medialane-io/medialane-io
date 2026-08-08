@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,6 +31,7 @@ function WalletOnboardingForm() {
   const redirectTo = safeRelative(searchParams.get("redirect_url"), "/welcome");
   const [step, setStep] = useState<Step | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const startedRef = useRef(false);
 
   const runOnboarding = async () => {
     setError(null);
@@ -52,6 +53,22 @@ function WalletOnboardingForm() {
       setStep("error");
     }
   };
+
+  // Auto-start on arrival — no confirm click. A hard one-shot guard (ref, not
+  // state) prevents the double-fire that broke this before (2026-08-06,
+  // commit 07b30af): React can run this effect more than once (StrictMode,
+  // fast refresh), and each run must never be allowed to call
+  // navigator.credentials.create() again once one is already in flight —
+  // that's what stacked overlapping native dialogs last time. If the
+  // browser has no live user-activation to satisfy WebAuthn (e.g. this URL
+  // opened with no prior gesture at all), createOwnerKey() throws
+  // PasskeyCancelledError, caught below, landing on "error" with a real
+  // click to retry — the only path a click is ever required on this page.
+  useEffect(() => {
+    if (startedRef.current) return;
+    startedRef.current = true;
+    void runOnboarding();
+  }, []);
 
   if (step === "done") {
     return (
@@ -76,7 +93,7 @@ function WalletOnboardingForm() {
     );
   }
 
-  const isWorking = step === "creating-passkey" || step === "deploying" || step === "signing-in";
+  const isWorking = step === null || step === "creating-passkey" || step === "deploying" || step === "signing-in";
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4">
@@ -97,21 +114,22 @@ function WalletOnboardingForm() {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          {isWorking ? (
+          {isWorking && (
             <div className="flex w-full items-center justify-center gap-2 py-2.5 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
-              {step === "creating-passkey" && "Creating passkey…"}
+              {(step === null || step === "creating-passkey") && "Creating passkey…"}
               {step === "deploying" && "Setting up your wallet…"}
               {step === "signing-in" && "Signing in…"}
             </div>
-          ) : (
+          )}
+          {step === "error" && (
             <div className="btn-border-animated w-full p-[1px] rounded-lg">
               <Button
                 className="w-full gap-2 bg-transparent text-white rounded-[7px] hover:bg-transparent hover:brightness-110 active:scale-[0.98] transition-all"
                 size="lg"
                 onClick={runOnboarding}
               >
-                {step === "error" ? "Try again" : "Get started"}
+                Try again
               </Button>
             </div>
           )}
