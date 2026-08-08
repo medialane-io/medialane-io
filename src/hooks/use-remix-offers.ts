@@ -1,31 +1,8 @@
 import useSWR from "swr";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSiwsToken } from "@/hooks/use-siws-token";
+import { apiFetch } from "@/lib/api-fetch";
 import type { RemixOffer, RemixOfferListResponse, PublicRemix } from "@/types/remix-offers";
-
-// Client-side hook. All requests go through the same-origin BFF proxy at
-// `/api/proxy/v1/...`, which injects the server-only API key. The key is
-// never present in the browser bundle.
-const API_BASE = "/api/proxy";
-
-// ─── Fetcher helpers ──────────────────────────────────────────────────────────
-
-async function apiFetch(url: string, token?: string | null, options?: RequestInit) {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-  const res = await fetch(url, { ...options, headers: { ...headers, ...(options?.headers as Record<string, string> ?? {}) } });
-  if (!res.ok) {
-    const err: unknown = await res.json().catch(() => ({}));
-    const errorMsg =
-      err && typeof err === "object" && "error" in err && typeof err.error === "string"
-        ? err.error
-        : `Request failed: ${res.status}`;
-    throw new Error(errorMsg);
-  }
-  return res.json();
-}
 
 // ─── Hooks ────────────────────────────────────────────────────────────────────
 
@@ -41,7 +18,7 @@ export function useRemixOffers(role: "creator" | "requester", status?: string) {
     async () => {
       const token = getValidToken() ?? (await signIn());
       const params = new URLSearchParams({ role, ...(status ? { status } : {}) });
-      return apiFetch(`${API_BASE}/v1/remix-offers?${params}`, token);
+      return apiFetch(`/v1/remix-offers?${params}`, { bearer: token });
     },
     { refreshInterval: 30000, revalidateOnFocus: false }
   );
@@ -53,8 +30,7 @@ export function useRemixOffers(role: "creator" | "requester", status?: string) {
 export function useTokenRemixes(contract: string | null, tokenId: string | null) {
   const { data, error, isLoading, mutate } = useSWR<{ data: PublicRemix[]; meta: { total: number } }>(
     contract && tokenId ? `token-remixes-${contract}-${tokenId}` : null,
-    () =>
-      fetch(`${API_BASE}/v1/tokens/${contract}/${tokenId}/remixes`).then((r) => r.json()),
+    () => apiFetch(`/v1/tokens/${contract}/${tokenId}/remixes`),
     { refreshInterval: 60000, revalidateOnFocus: false }
   );
 
@@ -79,10 +55,7 @@ export async function submitRemixOffer(
   },
   token: string
 ): Promise<RemixOffer> {
-  const res = await apiFetch(`${API_BASE}/v1/remix-offers`, token, {
-    method: "POST",
-    body: JSON.stringify(body),
-  });
+  const res = await apiFetch<{ data: RemixOffer }>(`/v1/remix-offers`, { method: "POST", body, bearer: token });
   return res.data;
 }
 
@@ -91,10 +64,7 @@ export async function submitAutoRemixOffer(
   body: { originalContract: string; originalTokenId: string },
   token: string
 ): Promise<RemixOffer> {
-  const res = await apiFetch(`${API_BASE}/v1/remix-offers/auto`, token, {
-    method: "POST",
-    body: JSON.stringify(body),
-  });
+  const res = await apiFetch<{ data: RemixOffer }>(`/v1/remix-offers/auto`, { method: "POST", body, bearer: token });
   return res.data;
 }
 
@@ -116,10 +86,7 @@ export async function registerRemix(
   },
   token: string
 ): Promise<RemixOffer> {
-  const res = await apiFetch(`${API_BASE}/v1/remix-offers/self/confirm`, token, {
-    method: "POST",
-    body: JSON.stringify(body),
-  });
+  const res = await apiFetch<{ data: RemixOffer }>(`/v1/remix-offers/self/confirm`, { method: "POST", body, bearer: token });
   return res.data;
 }
 
@@ -129,27 +96,18 @@ export async function confirmRemixOffer(
   body: { remixContract: string; remixTokenId: string; approvedCollection: string; orderHash: string },
   token: string
 ): Promise<RemixOffer> {
-  const res = await apiFetch(`${API_BASE}/v1/remix-offers/${id}/confirm`, token, {
-    method: "POST",
-    body: JSON.stringify(body),
-  });
+  const res = await apiFetch<{ data: RemixOffer }>(`/v1/remix-offers/${id}/confirm`, { method: "POST", body, bearer: token });
   return res.data;
 }
 
 /** Reject an offer. */
 export async function rejectRemixOffer(id: string, token: string): Promise<RemixOffer> {
-  const res = await apiFetch(`${API_BASE}/v1/remix-offers/${id}/reject`, token, {
-    method: "POST",
-    body: JSON.stringify({}),
-  });
+  const res = await apiFetch<{ data: RemixOffer }>(`/v1/remix-offers/${id}/reject`, { method: "POST", body: {}, bearer: token });
   return res.data;
 }
 
 /** Extend the expiry of a pending offer by 1–30 days. */
 export async function extendRemixOffer(id: string, days: number, token: string): Promise<RemixOffer> {
-  const res = await apiFetch(`${API_BASE}/v1/remix-offers/${id}/extend`, token, {
-    method: "POST",
-    body: JSON.stringify({ days }),
-  });
+  const res = await apiFetch<{ data: RemixOffer }>(`/v1/remix-offers/${id}/extend`, { method: "POST", body: { days }, bearer: token });
   return res.data;
 }

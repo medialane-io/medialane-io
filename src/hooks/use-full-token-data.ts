@@ -1,9 +1,7 @@
 "use client";
 
 import useSWR from "swr";
-import { Contract, cairo, num, type Abi } from "starknet";
-import { IPNftABI } from "@medialane/sdk/starknet";
-import { publicReadProvider } from "@/lib/starknet";
+import { apiFetch } from "@/lib/api-fetch";
 
 export interface FullTokenData {
   owner: string;
@@ -18,7 +16,11 @@ interface UseFullTokenDataArgs {
 }
 
 /**
- * Wraps the audited IPNft.get_full_token_data view.
+ * Wraps the audited IPNft.get_full_token_data view, served by the backend's
+ * metered GET /v1/ipnft/:contract/:tokenId pass-through
+ * (medialane-backend/src/api/routes/ipnft-onchain.ts) — the backend does the
+ * same on-chain read server-side, credited, instead of the browser reading
+ * the chain directly via keyless public RPC.
  * Returns owner + metadata URI + original creator + mint timestamp in a single read.
  * Returns null for tokens whose contract does not implement get_full_token_data
  * (legacy / external collections) — callers must treat null as "no signal".
@@ -29,29 +31,10 @@ export function useFullTokenData({ ipNftAddress, tokenId }: UseFullTokenDataArgs
   const { data, error, isLoading } = useSWR<FullTokenData | null>(
     enabled ? ["full-token-data", ipNftAddress, tokenId!.toString()] : null,
     async () => {
-      // Public asset page (viewable logged-out) → keyless public RPC, not the
-      // same-origin /api/rpc proxy (rate-limited/same-origin-guarded, not meant for anonymous public read traffic).
-      const contract = new Contract({ abi: IPNftABI as unknown as Abi, address: ipNftAddress!, providerOrAccount: publicReadProvider });
-      try {
-        const raw = await contract.call("get_full_token_data", [cairo.uint256(tokenId!)], {
-          blockIdentifier: "latest",
-        });
-        const tuple = raw as unknown as [unknown, unknown, unknown, unknown];
-        const ownerRaw = tuple[0];
-        const metadataUri = String(tuple[1] ?? "");
-        const creatorRaw = tuple[2];
-        const registeredAtRaw = tuple[3];
-
-        return {
-          owner: "0x" + num.toBigInt(String(ownerRaw)).toString(16).padStart(64, "0"),
-          metadataUri,
-          originalCreator:
-            "0x" + num.toBigInt(String(creatorRaw)).toString(16).padStart(64, "0"),
-          registeredAt: Number(num.toBigInt(String(registeredAtRaw))),
-        };
-      } catch {
-        return null;
-      }
+      const { data } = await apiFetch<{ data: FullTokenData | null }>(
+        `/v1/ipnft/${ipNftAddress}/${tokenId!.toString()}`
+      );
+      return data;
     },
     { revalidateOnFocus: false, refreshInterval: 0 }
   );

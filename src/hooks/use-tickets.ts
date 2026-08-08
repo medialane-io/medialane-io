@@ -4,6 +4,7 @@ import useSWR from "swr";
 import { Contract, cairo, type Abi } from "starknet";
 import { IPTicketCollectionABI } from "@medialane/sdk/starknet";
 import { starknetProvider } from "@/lib/starknet";
+import { apiFetch } from "@/lib/api-fetch";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 
 // ── useMyTicketCollections ────────────────────────────────────────────────────
@@ -20,8 +21,11 @@ export function useMyTicketCollections(ownerAddress: string | null) {
 }
 
 // ── useTicketOnchain ──────────────────────────────────────────────────────────
-// Per-ticket on-chain record via get_ticket(token_id) — supply, minted count,
-// validity window, royalty. Failover-covered read provider + SWR.
+// Per-ticket record (supply, minted count, validity window, royalty), served
+// by the backend's metered GET /v1/tickets/:contract/:tokenId pass-through
+// (medialane-backend/src/api/routes/tickets-onchain.ts) — the backend does
+// the same get_ticket(token_id) read server-side, credited, instead of the
+// browser reading the chain directly and evading the credit gate.
 
 export interface TicketOnchain {
   maxSupply: bigint;
@@ -31,51 +35,58 @@ export interface TicketOnchain {
   royaltyBps: number;
 }
 
-function parseOption(v: unknown): number | null {
-  if (v == null) return null;
-  if (typeof v === "object" && v !== null && "unwrap" in v && typeof (v as { unwrap: unknown }).unwrap === "function") {
-    const inner = (v as { unwrap: () => unknown }).unwrap();
-    return inner != null ? Number(inner as number | bigint) : null;
-  }
-  if (typeof v === "bigint" || typeof v === "number") return Number(v);
-  return null;
+interface TicketOnchainResponse {
+  maxSupply: string;
+  minted: string;
+  startTime: number | null;
+  endTime: number | null;
+  royaltyBps: number;
 }
 
 async function readTicket(contract: string, tokenId: string): Promise<TicketOnchain> {
-  const col = new Contract({ abi: IPTicketCollectionABI as unknown as Abi, address: contract, providerOrAccount: starknetProvider });
-  const t = (await col.call("get_ticket", [cairo.uint256(tokenId)])) as {
-    max_supply: bigint; minted: bigint; start_time: unknown; end_time: unknown; royalty_bps: bigint | number;
-  };
+  const { data } = await apiFetch<{ data: TicketOnchainResponse }>(`/v1/tickets/${contract}/${tokenId}`);
   return {
-    maxSupply: BigInt(t.max_supply),
-    minted: BigInt(t.minted),
-    startTime: parseOption(t.start_time),
-    endTime: parseOption(t.end_time),
-    royaltyBps: Number(t.royalty_bps),
+    maxSupply: BigInt(data.maxSupply),
+    minted: BigInt(data.minted),
+    startTime: data.startTime,
+    endTime: data.endTime,
+    royaltyBps: data.royaltyBps,
   };
 }
 
 // ── useTicketList ─────────────────────────────────────────────────────────────
-// All tickets in a collection, straight from the chain: one ticket_count()
-// read, then get_ticket per id. Includes tickets that have never been minted —
-// which the indexer can't know about yet.
+// All tickets in a collection: one count read, then one ticket read per id,
+// both via the credited backend routes above. Includes tickets that have
+// never been minted — which the indexer can't know about yet.
 
 export interface TicketListItem extends TicketOnchain {
   id: string;
 }
 
-async function readTicketCount(contract: string): Promise<number> {
-  const col = new Contract({ abi: IPTicketCollectionABI as unknown as Abi, address: contract, providerOrAccount: starknetProvider });
-  return Number(await col.call("ticket_count", []));
+async function readTicketCountBilled(contract: string): Promise<number> {
+  const { data } = await apiFetch<{ data: { count: number } }>(`/v1/tickets/${contract}/count`);
+  return data.count;
 }
 
 async function readTicketList(contract: string): Promise<TicketListItem[]> {
-  const count = await readTicketCount(contract);
+  const count = await readTicketCountBilled(contract);
   const tickets: TicketListItem[] = [];
   for (let id = 1; id <= count; id++) {
     tickets.push({ id: String(id), ...(await readTicket(contract, String(id))) });
   }
   return tickets;
+}
+
+// ── readTicketCount (raw RPC) ─────────────────────────────────────────────────
+// Deliberately NOT routed through the backend: predictNextTicketId below fires
+// immediately before bundling create_ticket+mint into one multicall and needs
+// the freshest possible on-chain count for that to be correct — same class as
+// a nonce/fee-estimate read, not a discovery read the credited backend could
+// serve instead (same precedent as io's club-id prediction and the dapp's own
+// ticket-id prediction).
+async function readTicketCount(contract: string): Promise<number> {
+  const col = new Contract({ abi: IPTicketCollectionABI as unknown as Abi, address: contract, providerOrAccount: starknetProvider });
+  return Number(await col.call("ticket_count", []));
 }
 
 // ── predictNextTicketId ───────────────────────────────────────────────────────

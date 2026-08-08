@@ -16,8 +16,6 @@ import { WalletTransactionDialog } from "@/components/transaction/wallet-transac
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { normalizeAddress } from "@medialane/sdk";
-import { Contract, num, type Abi } from "starknet";
-import { starknetProvider } from "@/lib/starknet";
 import { readAssignedEditionId } from "@/lib/erc1155-edition";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { withSiwsAuth } from "@/lib/pinata-fetch";
@@ -112,24 +110,22 @@ export default function MintIP1155Page() {
     }
   }, [autoExternalUrl, collectionAddress, form]);
 
-  // Verify the connected wallet is the collection owner before showing the form
+  // Verify the connected wallet is the collection owner before showing the
+  // form. Reads the indexed Collection.owner via the credited backend
+  // (GET /v1/collections/:contract) instead of a raw on-chain call — the
+  // backend already indexes this field, so a second live RPC read was a
+  // pure duplicate that also bypassed the credit gate. A failed read now
+  // denies rather than silently granting access (the previous raw-RPC
+  // version fell back to "ok" on any error, including a transient one).
   useEffect(() => {
     if (!walletAddress || !collectionAddress) return;
-    const OWNER_ABI = [{
-      type: "function", name: "owner",
-      inputs: [], outputs: [{ type: "core::starknet::contract_address::ContractAddress" }],
-      state_mutability: "view",
-    }];
-    const contract = new Contract({ abi: OWNER_ABI as unknown as Abi, address: collectionAddress, providerOrAccount: starknetProvider });
-    (contract as unknown as { owner: () => Promise<unknown> }).owner()
-      .then((raw: unknown) => {
-        // starknet.js decodes a ContractAddress as a bigint; String(bigint) is
-        // decimal, which normalizeAddress would mis-parse as hex. Convert first.
-        const onChainOwner = normalizeAddress("STARKNET", "0x" + num.toBigInt(String(raw)).toString(16));
+    client.api.getCollection(collectionAddress)
+      .then(({ data }) => {
+        const onChainOwner = data.owner ? normalizeAddress("STARKNET", data.owner) : null;
         setOwnerCheck(onChainOwner === normalizeAddress("STARKNET", walletAddress) ? "ok" : "denied");
       })
-      .catch(() => setOwnerCheck("ok"));
-  }, [walletAddress, collectionAddress]);
+      .catch(() => setOwnerCheck("denied"));
+  }, [client, walletAddress, collectionAddress]);
 
   const onSubmit = (values: NftEditionsMintFormValues) => {
     if (!imageUri) {

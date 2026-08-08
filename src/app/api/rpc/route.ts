@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PUBLIC_RPC_FALLBACKS, isTransientRpcError } from "@medialane/sdk";
+import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
 
 // Configured private endpoints first, then the SDK's shared public fallback
 // list (lava.build, …). Public providers are still rate-limited, so rotation
@@ -97,6 +98,41 @@ function checkRateLimit(ip: string): boolean {
   return true;
 }
 
+function extractMethod(body: unknown): string {
+  if (Array.isArray(body)) return "batch";
+  if (body && typeof body === "object") {
+    const method = (body as Record<string, unknown>).method;
+    if (typeof method === "string") return method;
+  }
+  return "unknown";
+}
+
+/**
+ * Bill this app's credit balance for the upcoming upstream RPC call, via the
+ * backend's metered POST /v1/rpc/meter (medialane-backend/src/api/routes/rpc-meter.ts).
+ * The RPC call itself still goes straight to Alchemy with this app's own key
+ * below — this only makes it a credited action instead of a free bypass.
+ * Returns false (caller must refuse to forward) on insufficient credits or
+ * any billing failure — an RPC call this app can't account for must not run.
+ */
+async function billRpcCall(method: string): Promise<boolean> {
+  if (!MEDIALANE_API_KEY) {
+    console.error("[/api/rpc] MEDIALANE_API_KEY is not configured — refusing to bill/forward");
+    return false;
+  }
+  try {
+    const res = await fetch(`${MEDIALANE_BACKEND_URL.replace(/\/$/, "")}/v1/rpc/meter`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-api-key": MEDIALANE_API_KEY },
+      body: JSON.stringify({ method }),
+    });
+    return res.ok;
+  } catch (err) {
+    console.error("[/api/rpc] billing call failed", { err: err instanceof Error ? err.message : String(err) });
+    return false;
+  }
+}
+
 function isAllowedMethod(body: unknown): boolean {
   if (Array.isArray(body)) {
     return body.every((item) => isAllowedMethod(item));
@@ -152,6 +188,11 @@ export async function POST(req: NextRequest) {
       ? String((body as Record<string, unknown>).method ?? "<unknown>")
       : "<batch or invalid>";
     return rpcError(-32601, `Method not allowed: ${method}`);
+  }
+
+  const method = extractMethod(body);
+  if (!(await billRpcCall(method))) {
+    return rpcError(-32003, "Insufficient credits or billing unavailable — RPC call not forwarded", 402);
   }
 
   let lastError = "No RPC upstream configured";
