@@ -1,9 +1,10 @@
 "use client";
 
-import { ShieldUser, Wallet } from "lucide-react";
+import { Wallet } from "lucide-react";
 import { NavWalletTrigger as SharedNavWalletTrigger } from "@medialane/ui";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletPanel } from "@/components/wallet-panel/wallet-panel-overlay";
+import { UserShieldIcon } from "@/components/icons/user-shield-icon";
 
 /**
  * The global header's top-right account entry point (fixed, mirrors
@@ -13,9 +14,10 @@ import { useWalletPanel } from "@/components/wallet-panel/wallet-panel-overlay";
  * address) plus the real wallet screens (balances, send/receive, activity)
  * that sheet never had.
  *
- * Connected-state glyph is a shield-user, not the shared component's plain
- * user default — io's account is a self-custody key, not a connected
- * third-party wallet, so the icon should read that way (2026-08-08).
+ * Connected-state glyph is a user-shield (person-primary, shield badge —
+ * not the shield-primary composition), sized up (18px vs the shared
+ * component's 14px default) to sit closer to the ring's edge instead of
+ * floating in a lot of empty padding (2026-08-08).
  */
 export function HeaderWalletTrigger() {
   const { hasWallet } = useWalletNativeSession();
@@ -25,7 +27,7 @@ export function HeaderWalletTrigger() {
     <SharedNavWalletTrigger
       connected={hasWallet}
       disconnectedIcon={<Wallet className="h-3.5 w-3.5" />}
-      connectedIcon={<ShieldUser className="h-3.5 w-3.5" style={{ color: "hsl(var(--brand-blue))" }} />}
+      connectedIcon={<UserShieldIcon className="h-[18px] w-[18px]" style={{ color: "hsl(var(--brand-blue))" }} />}
       onClick={open}
     />
   );
