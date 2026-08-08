@@ -1,0 +1,49 @@
+/**
+ * Server-only: executes a signed AVNU-paymaster `invoke` transaction against
+ * an already-deployed MediaWallet account. Companion to build/route.ts, see
+ * that file's header for why this can't run client-side (the AVNU API key
+ * would leak).
+ */
+import { type NextRequest, NextResponse } from "next/server";
+import { PaymasterRpc } from "starknet";
+
+export const runtime = "nodejs";
+
+const AVNU_PAYMASTER_URL = "https://starknet.paymaster.avnu.fi";
+
+function paymaster(): PaymasterRpc {
+  const apiKey = process.env.AVNU_PAYMASTER_API_KEY;
+  if (!apiKey) throw new Error("AVNU_PAYMASTER_API_KEY is not set");
+  return new PaymasterRpc({
+    nodeUrl: AVNU_PAYMASTER_URL,
+    headers: { "x-paymaster-api-key": apiKey },
+  });
+}
+
+export async function POST(req: NextRequest) {
+  const body = (await req.json().catch(() => null)) as
+    | { userAddress?: string; typedData?: unknown; signature?: string[] }
+    | null;
+  if (!body?.userAddress || !body.typedData || !body.signature) {
+    return NextResponse.json(
+      { error: "userAddress, typedData, and signature are required" },
+      { status: 400 },
+    );
+  }
+
+  try {
+    const result = await paymaster().executeTransaction(
+      {
+        type: "invoke",
+        invoke: { userAddress: body.userAddress, typedData: body.typedData as never, signature: body.signature },
+      },
+      { version: "0x1", feeMode: { mode: "sponsored" } },
+    );
+    return NextResponse.json({ transactionHash: (result as { transaction_hash: string }).transaction_hash });
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Failed to execute sponsored invoke transaction" },
+      { status: 502 },
+    );
+  }
+}
