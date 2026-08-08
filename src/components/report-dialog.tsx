@@ -58,7 +58,7 @@ export function ReportDialog({ target, open, onOpenChange }: ReportDialogProps) 
 
   const handleOpenChange = (next: boolean) => {
     if (next && !hasWallet) {
-      router.push(`/wallet-onboarding?redirect_url=${encodeURIComponent(pathname)}`);
+      router.push(`/connect?redirect_url=${encodeURIComponent(pathname)}`);
       return;
     }
     if (!next && submitStep !== "submitting") {

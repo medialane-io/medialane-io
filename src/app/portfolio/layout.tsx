@@ -64,7 +64,7 @@ export default function PortfolioLayout({ children }: { children: React.ReactNod
             asChild
             className="bg-transparent text-white rounded-[7px] hover:bg-transparent hover:brightness-110 active:scale-[0.98] transition-all"
           >
-            <Link href="/wallet-onboarding?redirect_url=/portfolio">Get started</Link>
+            <Link href="/connect?redirect_url=/portfolio">Get started</Link>
           </Button>
         </div>
       </div>

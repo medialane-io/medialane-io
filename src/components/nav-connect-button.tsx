@@ -21,7 +21,7 @@ export function NavConnectButton() {
     <span className="flex shrink-0 items-center gap-2 text-[10px] text-muted-foreground/50">
       {!hasWallet && (
         <Link
-          href="/wallet-onboarding"
+          href="/connect"
           onClick={close}
           className="ml-gbtn relative flex items-center gap-1.5 rounded-lg bg-transparent px-2.5 py-1 text-[11px] font-semibold text-foreground transition-opacity hover:opacity-90 active:scale-[0.98]"
           style={{ "--ml-grad": "conic-gradient(from 0deg, #3b7bff, #8a5cf6, #f6608f, #3b7bff)" } as React.CSSProperties}

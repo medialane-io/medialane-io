@@ -268,7 +268,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
         {!hasWallet ? (
           <div className="flex items-center justify-center px-4 h-16">
             <Link
-              href={`/wallet-onboarding?redirect_url=${encodeURIComponent(pathname)}`}
+              href={`/connect?redirect_url=${encodeURIComponent(pathname)}`}
               className="text-sm text-primary hover:underline"
             >
               Secure your account to comment

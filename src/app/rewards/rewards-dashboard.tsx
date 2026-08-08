@@ -103,7 +103,7 @@ function StatusRow({ address }: { address: string | null | undefined }) {
             asChild
             className="bg-transparent text-white rounded-[7px] hover:bg-transparent hover:brightness-110 active:scale-[0.98] transition-all"
           >
-            <Link href="/wallet-onboarding?redirect_url=/rewards">Set up account</Link>
+            <Link href="/connect?redirect_url=/rewards">Set up account</Link>
           </Button>
         </div>
       </div>
