@@ -278,7 +278,7 @@ export function AssetPageDrop() {
                 ) : (
                   <div className="btn-border-animated p-[1px] rounded-2xl">
                     <Button asChild className="w-full h-12 text-base bg-transparent text-white rounded-[15px] flex items-center justify-center gap-2">
-                      <Link href={`/wallet-onboarding?redirect_url=${encodeURIComponent(pathname)}`}>
+                      <Link href={`/connect?redirect_url=${encodeURIComponent(pathname)}`}>
                         <ShoppingCart className="h-5 w-5 mr-2" />Set up account to trade
                       </Link>
                     </Button>
@@ -308,7 +308,7 @@ export function AssetPageDrop() {
                   </div>
                 ) : (
                   <Button variant="outline" asChild className="w-full">
-                    <Link href={`/wallet-onboarding?redirect_url=${encodeURIComponent(pathname)}`}>Set up account to make an offer</Link>
+                    <Link href={`/connect?redirect_url=${encodeURIComponent(pathname)}`}>Set up account to make an offer</Link>
                   </Button>
                 )}
               </div>

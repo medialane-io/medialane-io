@@ -109,7 +109,7 @@ export function MarketplaceSignInGate({ title, description }: MarketplaceSignInG
           asChild
           className="w-full bg-transparent text-white rounded-[7px] hover:bg-transparent hover:brightness-110 active:scale-[0.98] transition-all"
         >
-          <Link href={`/wallet-onboarding?redirect_url=${encodeURIComponent(pathname)}`}>
+          <Link href={`/connect?redirect_url=${encodeURIComponent(pathname)}`}>
             Set up account
           </Link>
         </Button>

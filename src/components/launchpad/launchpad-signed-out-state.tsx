@@ -33,7 +33,7 @@ export function LaunchpadSignedOutState({
           asChild
           className="bg-transparent text-white rounded-[7px] hover:bg-transparent hover:brightness-110 active:scale-[0.98] transition-all"
         >
-          <Link href={`/wallet-onboarding?redirect_url=${encodeURIComponent(redirectTo)}`}>
+          <Link href={`/connect?redirect_url=${encodeURIComponent(redirectTo)}`}>
             <Wallet className="h-4 w-4 mr-1.5" />
             Set up account
           </Link>
