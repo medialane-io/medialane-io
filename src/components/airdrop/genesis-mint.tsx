@@ -16,38 +16,11 @@ import {
   RefreshCw,
   XCircle,
   Wallet,
-  ImageIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { EXPLORER_URL, MINT_CONTRACT, MINT_NFT_URI, MINT_NFT_IMAGE_URL } from "@/lib/constants";
+import { GradientButton } from "@medialane/ui";
+import { EXPLORER_URL, MINT_CONTRACT, MINT_NFT_URI } from "@/lib/constants";
 import type { Call } from "starknet";
-
-// ─── Featured airdrop image ────────────────────────────────────────────────────
-
-export function AirdropEventCard() {
-  const [errored, setErrored] = useState(false);
-  const src = MINT_NFT_IMAGE_URL || "/genesis.jpg";
-  return (
-    <div className="relative rounded-2xl overflow-hidden border border-border/40 shadow-xl shadow-black/10 aspect-square w-full">
-      {errored ? (
-        <div className="w-full h-full bg-gradient-to-br from-yellow-500/10 via-orange-500/10 to-purple-500/10 flex flex-col items-center justify-center gap-3">
-          <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center">
-            <ImageIcon className="h-7 w-7 text-primary/40" />
-          </div>
-          <p className="text-xs text-muted-foreground font-medium">Medialane Airdrop 2026</p>
-        </div>
-      ) : (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={src}
-          alt="Medialane Creator's Airdrop"
-          className="w-full h-full object-cover"
-          onError={() => setErrored(true)}
-        />
-      )}
-    </div>
-  );
-}
 
 // ─── Genesis Mint ─────────────────────────────────────────────────────────────
 
@@ -151,7 +124,7 @@ export function GenesisMint() {
   }
 
   return (
-    <div className="rounded-2xl border border-border/50 bg-card/60 backdrop-blur-sm p-5 space-y-4 shadow-lg shadow-black/5">
+    <div className="space-y-4">
       {mintStep === "ready" && (
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-sm">
@@ -160,17 +133,10 @@ export function GenesisMint() {
               Account active — mint your passport
             </span>
           </div>
-          <div className="btn-border-animated p-[1px] rounded-2xl">
-            <Button
-              size="lg"
-              className="w-full h-12 font-bold gap-2 bg-transparent text-white rounded-[15px] hover:bg-transparent hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
-              onClick={handleClaim}
-              disabled={!MINT_CONTRACT}
-            >
-              <Sparkles className="h-4 w-4" />
-              {MINT_CONTRACT ? "Claim my spot" : "Airdrop not started yet"}
-            </Button>
-          </div>
+          <GradientButton big onClick={handleClaim} disabled={!MINT_CONTRACT}>
+            <Sparkles className="h-4 w-4" />
+            {MINT_CONTRACT ? "Claim my spot" : "Airdrop not started yet"}
+          </GradientButton>
         </div>
       )}
 

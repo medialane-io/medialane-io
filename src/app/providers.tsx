@@ -104,8 +104,7 @@ function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   if (
     pathname === "/br" || pathname.startsWith("/br/") ||
-    pathname === "/mint" ||
-    pathname === "/airdrop"
+    pathname === "/mint"
   ) {
     return <StandaloneShell>{children}</StandaloneShell>;
   }
