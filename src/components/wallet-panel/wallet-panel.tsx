@@ -48,7 +48,7 @@ export function WalletPanel({ onClose }: { onClose: () => void }) {
 
   switch (view.name) {
     case "home":
-      return <WalletPanelHome onNavigate={setView} />;
+      return <WalletPanelHome onNavigate={setView} onClose={onClose} />;
     case "send":
       return <WalletPanelSend initialToken={view.token} onNavigate={setView} onDone={() => setView({ name: "home" })} />;
     case "token":

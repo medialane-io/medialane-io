@@ -10,13 +10,21 @@ import { ActivateCard } from "./activate-card";
 import { QuickAction } from "./quick-action";
 import { AddressQr } from "./address-qr";
 import { ActionModal } from "./action-modal";
+import { SectionHeader } from "./section-header";
 import { SuccessDialog } from "./success-dialog";
+import { WalletPanelHeader } from "./wallet-panel-header";
 import { WALLET_TOKENS, type WalletToken } from "./wallet-tokens";
 import { useUsdPrices } from "./use-usd-prices";
 import { fmt, fmtUsd, rawToNumber } from "@/lib/wallet-format";
 import type { WalletPanelView } from "./types";
 
-export function WalletPanelHome({ onNavigate }: { onNavigate: (view: WalletPanelView) => void }) {
+export function WalletPanelHome({
+  onNavigate,
+  onClose,
+}: {
+  onNavigate: (view: WalletPanelView) => void;
+  onClose: () => void;
+}) {
   const { address, isDeployed } = useWalletNativeSession();
   // WALLET_TOKENS is a fixed, known set (STRK/ETH/USDC/WBTC) — called
   // explicitly rather than in a loop so hook order stays static per React's
@@ -91,6 +99,8 @@ export function WalletPanelHome({ onNavigate }: { onNavigate: (view: WalletPanel
       className="relative flex flex-col gap-6 px-5 pb-8 pt-2"
       style={{ transform: pull ? `translateY(${pull}px)` : undefined, transition: pull ? "none" : "transform 0.2s ease" }}
     >
+      {address && <WalletPanelHeader address={address} onNavigate={onClose} />}
+
       <section>
         <div className="flex items-end justify-center gap-2">
           <span className="font-[family-name:var(--font-display)] text-5xl font-extrabold tracking-tight tabular-nums">
@@ -134,6 +144,7 @@ export function WalletPanelHome({ onNavigate }: { onNavigate: (view: WalletPanel
       )}
 
       <section>
+        <SectionHeader title="Tokens" />
         <div className="mt-2 flex flex-col gap-2">
           {WALLET_TOKENS.map((t) => {
             const { rawBalance, decimals } = balances[t.symbol];
