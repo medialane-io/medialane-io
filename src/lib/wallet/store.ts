@@ -22,6 +22,17 @@ export function saveSealedOwner(sealed: SealedOwner): void {
   window.dispatchEvent(new Event(EVENT));
 }
 
+/**
+ * Notify listeners (useWalletNativeSession's isDeployed check, in
+ * particular) that on-chain state changed without the local key itself
+ * changing — e.g. right after a deploy succeeds. Without this, isDeployed
+ * stays stuck at whatever it was on last mount/wallet-change, since
+ * checkIsDeployed() only re-runs on that event.
+ */
+export function notifyWalletChange(): void {
+  window.dispatchEvent(new Event(EVENT));
+}
+
 export function clearSealedOwner(): void {
   localStorage.removeItem(STORE_KEY);
   window.dispatchEvent(new Event(EVENT));

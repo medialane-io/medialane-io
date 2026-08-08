@@ -1,7 +1,7 @@
 import { typedData as starknetTypedData } from "starknet";
 import { requestSiwsToken } from "@medialane/sdk/starknet";
 import { createOwnerKey, signWith, signWithPrivateKey, unlockOwnerKey, type SealedOwner } from "./passkey";
-import { loadSealedOwner, saveSealedOwner } from "./store";
+import { loadSealedOwner, saveSealedOwner, notifyWalletChange } from "./store";
 import { deployWalletSponsored } from "./deploy-relay";
 
 export type DeploymentStep = "creating-passkey" | "deploying" | "signing-in";
@@ -63,6 +63,13 @@ export async function completeWalletDeployment(
       },
     },
   });
+  // SIWS verify itself rejects counterfactual (undeployed) accounts, so
+  // reaching this point proves the deploy is confirmed on-chain — the
+  // safest point to tell useWalletNativeSession() to recheck isDeployed.
+  // Without this, nothing invalidates that stale "not deployed" reading
+  // from before this call started, and UndeployedWalletRedirect sends the
+  // user right back here in a loop even after a genuinely successful setup.
+  notifyWalletChange();
 
   return { sealed, siwsToken };
 }

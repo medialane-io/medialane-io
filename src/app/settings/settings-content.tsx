@@ -11,7 +11,9 @@ import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useUserOrders } from "@/hooks/use-orders";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { useRewards } from "@/hooks/use-rewards";
-import { AssetPicker, ServiceFormShell, LevelBadge, type OwnedAsset } from "@medialane/ui";
+import { useTokenBalance } from "@/hooks/use-erc20-balance";
+import { AssetPicker, AddressDisplay, ServiceFormShell, LevelBadge, type OwnedAsset } from "@medialane/ui";
+import { EXPLORER_URL } from "@/lib/constants";
 import { CreatorScoreInline } from "@/components/rewards/creator-score-inline";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { completeWalletDeployment } from "@/lib/wallet/complete-deployment";
@@ -27,9 +29,9 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   AtSign, CheckCircle2, Clock, XCircle, Loader2, Settings as SettingsIcon,
   Globe, Twitter, MessageCircle, Send, ArrowUpRight, Gem, Tag, LayoutGrid, Trophy, Wallet,
-  Mail, User,
+  Mail, User, ShieldCheck, ShieldAlert,
 } from "lucide-react";
-import { cn, resolveTokenImage } from "@/lib/utils";
+import { cn, resolveTokenImage, formatPrice } from "@/lib/utils";
 
 type CheckState = "idle" | "checking" | "available" | "taken";
 
@@ -269,7 +271,10 @@ function RewardsSnapshot({ address }: { address?: string | null }) {
 }
 
 export default function SettingsContent() {
-  const { address: walletAddress, hasWallet } = useWalletNativeSession();
+  const { address: walletAddress, hasWallet, isDeployed } = useWalletNativeSession();
+  const { rawBalance: strkBalance, decimals: strkDecimals } = useTokenBalance("STRK", walletAddress);
+  const { rawBalance: ethBalance, decimals: ethDecimals } = useTokenBalance("ETH", walletAddress);
+  const { rawBalance: usdcBalance, decimals: usdcDecimals } = useTokenBalance("USDC", walletAddress);
   const { getValidToken, signIn } = useSiwsToken();
   const { profile, isLoading: profileLoading, mutate } = useCreatorProfile(walletAddress ?? undefined);
   const { username: approvedUsername, claim, mutate: mutateClaim } = useMyUsernameClaim();
@@ -792,18 +797,62 @@ export default function SettingsContent() {
             </div>
           </div>
 
-          {/* Wallet — rare-case escape hatch */}
+          {/* Wallet */}
           <div className="space-y-4">
             <div>
               <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
                 <Wallet className="h-4 w-4" />
                 Wallet
               </h3>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="text-xs text-muted-foreground mt-0.5">Your self-custody Starknet wallet</p>
+            </div>
+            <div className="border-t border-border pt-4 space-y-4">
+              {walletAddress && (
+                <>
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <AddressDisplay address={walletAddress} chars={6} showCopy />
+                    {isDeployed === false ? (
+                      <Badge variant="outline" className="border-yellow-500/40 text-yellow-700 dark:text-yellow-400 bg-yellow-500/10 text-[10px] gap-1">
+                        <ShieldAlert className="h-3 w-3" /> Deploying
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="border-emerald-500/40 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 text-[10px] gap-1">
+                        <ShieldCheck className="h-3 w-3" /> Deployed
+                      </Badge>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3">
+                    {[
+                      { symbol: "STRK", balance: strkBalance, decimals: strkDecimals },
+                      { symbol: "ETH", balance: ethBalance, decimals: ethDecimals },
+                      { symbol: "USDC", balance: usdcBalance, decimals: usdcDecimals },
+                    ].map(({ symbol, balance, decimals }) => (
+                      <div key={symbol} className="rounded-lg border border-border p-3">
+                        <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{symbol}</p>
+                        <p className="text-sm font-medium tabular-nums text-foreground mt-0.5">
+                          {balance !== null ? formatPrice(balance.toString(), decimals) : <Skeleton className="h-4 w-12 mt-0.5" />}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <a
+                    href={`${EXPLORER_URL}/contract/${walletAddress}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                  >
+                    View on Voyager
+                    <ArrowUpRight className="h-3 w-3" />
+                  </a>
+                </>
+              )}
+            </div>
+            <div className="border-t border-border pt-4 space-y-2">
+              <p className="text-xs text-muted-foreground">
                 If this account&apos;s wallet isn&apos;t one you set up yourself, you can create a new one.
               </p>
-            </div>
-            <div className="border-t border-border pt-4 space-y-3">
               {generateWalletError && <p className="text-sm text-destructive">{generateWalletError}</p>}
               <Button onClick={handleGenerateNewWallet} disabled={generatingWallet} variant="outline" size="sm">
                 {generatingWallet ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
