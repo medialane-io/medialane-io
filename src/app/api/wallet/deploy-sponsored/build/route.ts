@@ -9,22 +9,12 @@
  * data to sign.
  */
 import { type NextRequest, NextResponse } from "next/server";
-import { PaymasterRpc, CallData, uint256, type PreparedDeployAndInvokeTransaction } from "starknet";
+import { CallData, uint256, type PreparedDeployAndInvokeTransaction } from "starknet";
 import { getTokenBySymbol } from "@medialane/sdk";
 import { MEDIAWALLET_CLASS_HASH, ownerConstructorCalldata } from "@/lib/wallet/account";
+import { paymaster } from "@/lib/wallet/paymaster-server";
 
 export const runtime = "nodejs";
-
-const AVNU_PAYMASTER_URL = "https://starknet.paymaster.avnu.fi";
-
-function paymaster(): PaymasterRpc {
-  const apiKey = process.env.AVNU_PAYMASTER_API_KEY;
-  if (!apiKey) throw new Error("AVNU_PAYMASTER_API_KEY is not set");
-  return new PaymasterRpc({
-    nodeUrl: AVNU_PAYMASTER_URL,
-    headers: { "x-paymaster-api-key": apiKey },
-  });
-}
 
 export async function POST(req: NextRequest) {
   const body = (await req.json().catch(() => null)) as
