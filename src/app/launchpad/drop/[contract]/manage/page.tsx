@@ -2,7 +2,6 @@
 
 import { use, useState } from "react";
 import Link from "next/link";
-import useSWR from "swr";
 import { normalizeAddress } from "@medialane/sdk";
 import {
   ArrowLeft, Users, ShieldCheck, ShieldOff, DollarSign,
@@ -14,37 +13,17 @@ import { FadeIn } from "@/components/ui/motion-primitives";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useDropInfo, useOnChainDropState } from "@/hooks/use-drops";
-import { starknetProvider } from "@/lib/starknet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { parseAddresses, batchAllowlistCalldata } from "../../drop-allowlist";
 import type { Call } from "starknet";
 
-// ── On-chain reads ────────────────────────────────────────────────────────────
-
-function useAllowlistEnabled(contract: string) {
-  return useSWR<boolean>(
-    `allowlist-enabled-${contract}`,
-    async () => {
-      const res = await starknetProvider.callContract({
-        contractAddress: contract,
-        entrypoint: "is_allowlist_enabled",
-        calldata: [],
-      });
-      return res[0] !== "0x0";
-    },
-    { revalidateOnFocus: false, shouldRetryOnError: false }
-  );
-}
-
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 function AllowlistToggle({
-  contract,
   enabled,
   onToggle,
 }: {
-  contract: string;
   enabled: boolean;
   onToggle: () => void;
 }) {
@@ -194,12 +173,8 @@ export default function DropManagePage({
   const { contract } = use(params);
   const { address: walletAddress, hasWallet, signer } = useWalletNativeSession();
   const { dropInfo, isLoading: dropLoading } = useDropInfo(contract);
-  const { state: dropState } = useOnChainDropState(contract);
-  const {
-    data: allowlistEnabled,
-    isLoading: allowlistLoading,
-    mutate: mutateAllowlist,
-  } = useAllowlistEnabled(contract);
+  const { state: dropState, isLoading: dropStateLoading, mutate: mutateDropState } = useOnChainDropState(contract);
+  const allowlistEnabled = dropState?.allowlistEnabled;
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [txResult, setTxResult] = useState<{ type: "success" | "error"; message: string } | null>(null);
@@ -209,7 +184,7 @@ export default function DropManagePage({
     dropInfo?.owner &&
     normalizeAddress("STARKNET", walletAddress) === normalizeAddress("STARKNET", dropInfo.owner);
 
-  const isLoading = dropLoading || allowlistLoading;
+  const isLoading = dropLoading || dropStateLoading;
 
   const execute = async (calls: Call[], successMsg: string) => {
     if (!hasWallet || !signer) return;
@@ -217,7 +192,7 @@ export default function DropManagePage({
     try {
       await signer.execute(calls);
       setTxResult({ type: "success", message: successMsg });
-      mutateAllowlist();
+      mutateDropState();
     } catch (err) {
       setTxResult({ type: "error", message: err instanceof Error ? err.message : "Transaction failed" });
     } finally {
@@ -320,7 +295,6 @@ export default function DropManagePage({
       {/* Allowlist toggle */}
       <FadeIn delay={0.08}>
         <AllowlistToggle
-          contract={contract}
           enabled={allowlistEnabled ?? false}
           onToggle={handleToggleAllowlist}
         />
