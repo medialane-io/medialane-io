@@ -4,7 +4,10 @@
   "private": true,
   "overrides": {
     "picomatch": "2.3.2",
-    "postcss": "8.5.14"
+    "postcss": "8.5.26",
+    "brace-expansion": "1.1.18",
+    "js-yaml": "4.3.1",
+    "sharp": "0.35.3"
   },
   "scripts": {
     "dev": "next dev",
