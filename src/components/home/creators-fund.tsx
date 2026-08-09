@@ -4,7 +4,7 @@ import { CreatorsFundSection } from "@medialane/ui";
 import { useLeaderboard } from "@/hooks/use-rewards";
 
 export function CreatorsFund() {
-  const { data, isLoading } = useLeaderboard(1, 4);
+  const { data, isLoading } = useLeaderboard(1, 5);
 
   return (
     <CreatorsFundSection
