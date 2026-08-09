@@ -41,7 +41,7 @@
     "framer-motion": "latest",
     "input-otp": "1.4.1",
     "lucide-react": "^0.577.0",
-    "next": "15.5.18",
+    "next": "15.5.21",
     "next-themes": "latest",
     "nodemailer": "^9.0.5",
     "qrcode-generator": "^2.0.4",

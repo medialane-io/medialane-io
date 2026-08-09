@@ -13,6 +13,7 @@ import { CallData, uint256, type PreparedDeployAndInvokeTransaction } from "star
 import { getTokenBySymbol } from "@medialane/sdk";
 import { MEDIAWALLET_CLASS_HASH, ownerConstructorCalldata } from "@/lib/wallet/account";
 import { paymaster } from "@/lib/wallet/paymaster-server";
+import { billPaymasterCall } from "@/lib/wallet/paymaster-billing";
 
 export const runtime = "nodejs";
 
@@ -27,6 +28,10 @@ export async function POST(req: NextRequest) {
 
   const strk = getTokenBySymbol("STRK");
   if (!strk) return NextResponse.json({ error: "STRK token not found in registry" }, { status: 500 });
+
+  if (!(await billPaymasterCall("deploy/build"))) {
+    return NextResponse.json({ error: "Insufficient credits or billing unavailable" }, { status: 402 });
+  }
 
   try {
     const prepared = (await paymaster().buildTransaction(
