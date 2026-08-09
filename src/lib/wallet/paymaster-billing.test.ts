@@ -1,9 +1,14 @@
 import { afterEach, describe, expect, mock, test } from "bun:test";
 
-// constants.ts reads MEDIALANE_API_KEY at module-load time, and module
-// caching means only the first dynamic `import("./paymaster-billing")`
-// below actually evaluates it — set this before any test runs.
-process.env.MEDIALANE_API_KEY = "test-key";
+// Mock the module directly rather than setting process.env — constants.ts
+// reads MEDIALANE_API_KEY at module-load time, and bun's module cache is
+// process-wide across the whole test run, so whichever test file imports
+// "@/lib/constants" first (not necessarily this one) freezes the value for
+// every other test in the same `bun test` invocation.
+mock.module("@/lib/constants", () => ({
+  MEDIALANE_BACKEND_URL: "http://localhost:3001",
+  MEDIALANE_API_KEY: "test-key",
+}));
 
 describe("billPaymasterCall", () => {
   afterEach(() => {
@@ -14,7 +19,7 @@ describe("billPaymasterCall", () => {
   test("returns true when the backend accepts the charge", async () => {
     globalThis.fetch = mock(async (url: string, init?: RequestInit) => {
       expect(url).toBe("http://localhost:3001/v1/paymaster/invoke/build");
-      expect((init!.headers as Record<string, string>)["x-api-key"]).toBeTruthy();
+      expect((init!.headers as Record<string, string>)["x-api-key"]).toBe("test-key");
       return new Response(JSON.stringify({ data: { billed: true } }), { status: 200 });
     }) as never;
 
