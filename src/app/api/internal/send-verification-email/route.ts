@@ -7,6 +7,7 @@
  * relays the send here over HTTPS with a shared secret instead.
  */
 import { type NextRequest, NextResponse } from "next/server";
+import { createHmac, timingSafeEqual } from "node:crypto";
 import nodemailer from "nodemailer";
 
 // nodemailer needs Node's raw TCP/TLS sockets — must run on the Node.js
@@ -25,8 +26,18 @@ function buildVerificationCodeEmailHtml(code: string): string {
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  const secret = req.headers.get("x-relay-secret");
-  if (!secret || secret !== process.env.MAIL_RELAY_SECRET) {
+  const relaySecret = process.env.MAIL_RELAY_SECRET;
+  if (!relaySecret) {
+    return NextResponse.json({ error: "MAIL_RELAY_SECRET not configured" }, { status: 500 });
+  }
+  const provided = req.headers.get("x-relay-secret") ?? "";
+
+  // HMAC both sides to a fixed 32-byte digest before comparing — avoids
+  // length leakage from a raw timingSafeEqual on unequal-length inputs.
+  const hmacKey = "mail-relay-auth";
+  const expected = createHmac("sha256", hmacKey).update(relaySecret).digest();
+  const actual = createHmac("sha256", hmacKey).update(provided).digest();
+  if (!timingSafeEqual(expected, actual)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
