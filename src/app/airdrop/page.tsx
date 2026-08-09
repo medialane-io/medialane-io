@@ -37,7 +37,7 @@ const REWARDS = [
     color: "text-brand-orange",
     bg: "bg-brand-orange/10",
     title: "A real share of revenue",
-    desc: "Every $1,000 Medialane earns gets split among participants, by your Score Board points.",
+    desc: "Every $1,000 Medialane earns gets split among participants, weighted by XP.",
   },
   {
     icon: Star,
