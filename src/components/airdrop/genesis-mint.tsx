@@ -147,7 +147,7 @@ export function GenesisMint() {
       <div className="flex items-center gap-3 py-2">
         <Wallet className="h-5 w-5 text-muted-foreground" />
         <Link href={`/connect?redirect_url=${encodeURIComponent(pathname)}`} className="text-sm text-primary hover:underline">
-          Secure your account to join.
+          Connect your account to join — takes 10 seconds.
         </Link>
       </div>
     );
