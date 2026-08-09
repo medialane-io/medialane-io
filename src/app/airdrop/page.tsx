@@ -89,10 +89,7 @@ export default function AirdropPage() {
               <span className="text-xs font-semibold text-brand-orange">Creators Fund Campaign</span>
             </div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.05]">
-              Creator&apos;s{" "}
-              <span className="bg-gradient-to-r from-brand-blue via-brand-purple to-brand-orange bg-clip-text text-transparent">
-                Fund
-              </span>
+              Creator&apos;s <span className="text-brand-orange">Fund</span>
             </h1>
             <p className="text-lg lg:text-xl text-muted-foreground leading-relaxed max-w-md">
               Every dollar Medialane makes gets shared back with the people building here. Sign up and you&apos;re already in.
@@ -173,16 +170,16 @@ export default function AirdropPage() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div className="relative rounded-2xl border border-border/40 bg-card overflow-hidden p-6 space-y-2">
-            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-brand-blue to-brand-purple" />
-            <p className="text-4xl font-black bg-gradient-to-r from-brand-blue to-brand-purple bg-clip-text text-transparent">$1,000</p>
+            <div className="absolute inset-x-0 top-0 h-[3px] bg-brand-blue" />
+            <p className="text-4xl font-black text-brand-blue">$1,000</p>
             <p className="font-bold">= one full distribution</p>
             <p className="text-base text-muted-foreground leading-relaxed">
               Every time the fund hits this mark, it goes out to everyone who&apos;s in. $10,000 earned means 10 rounds paid out.
             </p>
           </div>
           <div className="relative rounded-2xl border border-border/40 bg-card overflow-hidden p-6 space-y-2">
-            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-brand-purple to-brand-rose" />
-            <p className="text-4xl font-black bg-gradient-to-r from-brand-purple to-brand-rose bg-clip-text text-transparent">Your XP</p>
+            <div className="absolute inset-x-0 top-0 h-[3px] bg-brand-purple" />
+            <p className="text-4xl font-black text-brand-purple">Your XP</p>
             <p className="font-bold">= your cut of every round</p>
             <p className="text-base text-muted-foreground leading-relaxed">
               The more you create, trade, and show up, the bigger your slice — every single round.
