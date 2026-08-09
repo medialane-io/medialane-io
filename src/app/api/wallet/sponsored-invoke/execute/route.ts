@@ -6,6 +6,7 @@
  */
 import { type NextRequest, NextResponse } from "next/server";
 import { paymaster } from "@/lib/wallet/paymaster-server";
+import { billPaymasterCall } from "@/lib/wallet/paymaster-billing";
 
 export const runtime = "nodejs";
 
@@ -18,6 +19,10 @@ export async function POST(req: NextRequest) {
       { error: "userAddress, typedData, and signature are required" },
       { status: 400 },
     );
+  }
+
+  if (!(await billPaymasterCall("invoke/execute"))) {
+    return NextResponse.json({ error: "Insufficient credits or billing unavailable" }, { status: 402 });
   }
 
   try {

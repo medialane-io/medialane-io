@@ -9,6 +9,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { type Call, type PreparedInvokeTransaction } from "starknet";
 import { paymaster } from "@/lib/wallet/paymaster-server";
+import { billPaymasterCall } from "@/lib/wallet/paymaster-billing";
 
 export const runtime = "nodejs";
 
@@ -18,6 +19,10 @@ export async function POST(req: NextRequest) {
     | null;
   if (!body?.userAddress || !body.calls?.length) {
     return NextResponse.json({ error: "userAddress and a non-empty calls array are required" }, { status: 400 });
+  }
+
+  if (!(await billPaymasterCall("invoke/build"))) {
+    return NextResponse.json({ error: "Insufficient credits or billing unavailable" }, { status: 402 });
   }
 
   try {
