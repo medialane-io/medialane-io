@@ -15,6 +15,17 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // @medialane/ui's single barrel entry point pulls all ~65 components (and
+  // their heaviest deps — framer-motion, Radix primitives, the full
+  // lucide-react set) into any route importing even one small component.
+  // Next's compiler rewrites barrel imports to per-file deep imports at
+  // build time when the package is listed here. Confirmed via bun run
+  // build: /rewards' First Load JS dropped 407kB → 254kB (~38%); other
+  // routes were already narrowly importing and saw no measurable change
+  // (see medialane-core memory: medialane-ui-barrel-bloat).
+  experimental: {
+    optimizePackageImports: ["@medialane/ui"],
+  },
   // Both `typescript.ignoreBuildErrors` and `eslint.ignoreDuringBuilds` were
   // removed 2026-05-26 — the original blockers (DropFactoryABI export, 71
   // legacy lint errors) are resolved. tsc --noEmit is clean and all 52
