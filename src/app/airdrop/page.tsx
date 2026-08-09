@@ -4,14 +4,10 @@ import {
   Sparkles,
   CheckCircle2,
   XCircle,
-  Info,
   Shield,
   FileCheck,
   Coins,
   Star,
-  UserCheck,
-  PenLine,
-  ShoppingCart,
 } from "lucide-react";
 import { GenesisMint, AirdropEventCard } from "@/components/airdrop/genesis-mint";
 import { canonical } from "@/lib/seo";
@@ -33,37 +29,49 @@ const REWARDS = [
     icon: FileCheck,
     color: "text-brand-blue",
     bg: "bg-brand-blue/10",
-    title: "Airdrop participation",
-    desc: "Medialane will run airdrop campaigns to reward early supporters. By joining now, you secure your spot in the first distribution and future rewards.",
+    title: "First in line",
+    desc: "You're automatically in the very first distribution — and every one after it.",
   },
   {
     icon: Coins,
     color: "text-brand-orange",
     bg: "bg-brand-orange/10",
-    title: "Creator fund distributions",
-    desc: "Each time the Creator's Fund reaches $1,000, it is distributed to participants by Score Board points. The more you contribute, the larger your share.",
+    title: "A real share of revenue",
+    desc: "Every $1,000 Medialane earns gets split among participants, by your Score Board points.",
   },
   {
     icon: Star,
     color: "text-brand-purple",
     bg: "bg-brand-purple/10",
-    title: "Founding member status",
-    desc: "Early participants are permanently recognized as founding members of the community.",
+    title: "Founding member, forever",
+    desc: "That badge never expires. You were here first.",
   },
 ];
 
-const PHASES = [
+const STEPS = [
   {
-    label: "Distribution rounds",
-    milestone: "Every $1,000",
-    desc: "Each time the Creator's Fund reaches $1,000, that amount is airdropped to all participants. Every dollar of revenue is returned — $5,000 means 5 rounds, $10,000 means 10.",
-    gradient: "from-brand-blue to-brand-purple",
+    n: "1",
+    color: "bg-emerald-500/15 text-emerald-500",
+    title: "Register",
+    tag: "Minimum — you're in",
+    tagColor: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
+    desc: "Sign up. That's the whole bar — no strings attached.",
   },
   {
-    label: "Your share",
-    milestone: "Score Board points",
-    desc: "Each round is split by Score Board points. You earn points by creating, trading, and engaging on Medialane — your points are your share of every distribution.",
-    gradient: "from-brand-purple to-brand-rose",
+    n: "2",
+    color: "bg-brand-purple/15 text-brand-purple",
+    title: "Create",
+    tag: "Bonus",
+    tagColor: "bg-brand-purple/15 text-brand-purple",
+    desc: "Publish your work — photos, music, art, writing. Bigger share.",
+  },
+  {
+    n: "3",
+    color: "bg-brand-orange/15 text-brand-orange",
+    title: "Trade",
+    tag: "Biggest bonus",
+    tagColor: "bg-brand-orange/15 text-brand-orange",
+    desc: "Buy, sell, collect. Active traders get the biggest share.",
   },
 ];
 
@@ -75,7 +83,7 @@ export default function AirdropPage() {
       <section className="py-14 lg:py-20">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
 
-          <div className="space-y-5">
+          <div className="space-y-6">
             <div className="inline-flex items-center gap-2 rounded-full border border-brand-orange/30 bg-brand-orange/5 px-3 py-1">
               <Sparkles className="h-3.5 w-3.5 text-brand-orange" />
               <span className="text-xs font-semibold text-brand-orange">Creators Fund Campaign</span>
@@ -86,8 +94,8 @@ export default function AirdropPage() {
                 Fund
               </span>
             </h1>
-            <p className="text-base lg:text-lg text-muted-foreground leading-relaxed">
-              Join the Creator&apos;s Airdrop to earn rewards. Sign up, create, trade, and grow with us from day one.
+            <p className="text-lg lg:text-xl text-muted-foreground leading-relaxed max-w-md">
+              Every dollar Medialane makes gets shared back with the people building here. Sign up and you&apos;re already in.
             </p>
 
             <GenesisMint />
@@ -100,174 +108,134 @@ export default function AirdropPage() {
         </div>
       </section>
 
-      {/* ── Airdrop rewards ── */}
-      <section className="py-10 border-t border-border/30 space-y-6">
+      {/* ── What you get ── */}
+      <section className="py-14 space-y-8">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Rewards</p>
-          <h2 className="text-2xl sm:text-3xl font-black">What early participants earn</h2>
-          <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-            Exclusive to participants who join during the launch campaign.
+          <h2 className="text-3xl sm:text-4xl font-black">What you actually get</h2>
+          <p className="text-base text-muted-foreground mt-2 leading-relaxed">
+            No fine print games — just three real perks, for joining now.
           </p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-6">
           {REWARDS.map(({ icon: Icon, color, bg, title, desc }) => (
-            <div key={title} className="flex flex-col gap-4 p-5 rounded-2xl border border-border/40 bg-card/30 hover:bg-card/50 transition-colors">
-              <div className={`h-11 w-11 rounded-xl ${bg} flex items-center justify-center shrink-0`}>
-                <Icon className={`h-5 w-5 ${color}`} />
+            <div key={title} className="flex flex-col gap-3">
+              <div className={`h-12 w-12 rounded-xl ${bg} flex items-center justify-center shrink-0`}>
+                <Icon className={`h-6 w-6 ${color}`} />
               </div>
-              <div>
-                <p className="font-bold">{title}</p>
-                <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{desc}</p>
-              </div>
+              <p className="font-bold text-lg">{title}</p>
+              <p className="text-base text-muted-foreground leading-relaxed">{desc}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ── Participation tiers ── */}
-      <section className="py-10 border-t border-border/30 space-y-6">
+      {/* ── How it works ── */}
+      <section className="py-14 space-y-8">
         <div className="max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">How it works</p>
-          <h2 className="text-2xl sm:text-3xl font-black">Sign up. That&apos;s it.</h2>
-          <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-            Creating an account is all you need to be eligible. Do more — earn more.
+          <h2 className="text-3xl sm:text-4xl font-black">Sign up. That&apos;s it.</h2>
+          <p className="text-base text-muted-foreground mt-2 leading-relaxed">
+            Creating an account gets you in. Do more, and you earn more.
           </p>
         </div>
 
-        <div className="rounded-2xl border-2 border-emerald-500/30 bg-emerald-500/5 p-6">
-          <div className="flex items-start gap-4">
-            <div className="h-12 w-12 rounded-xl bg-emerald-500/15 flex items-center justify-center shrink-0">
-              <UserCheck className="h-6 w-6 text-emerald-500" />
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <p className="font-black text-lg">Register</p>
-                <span className="text-xs font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 px-2.5 py-0.5 rounded-full">Minimum — you&apos;re in</span>
+        <div className="relative pl-2">
+          <div className="absolute left-[23px] top-4 bottom-4 w-px bg-border/50" aria-hidden />
+          <div className="space-y-8">
+            {STEPS.map(({ n, color, title, tag, tagColor, desc }) => (
+              <div key={title} className="relative flex items-start gap-5">
+                <div className={`relative z-10 h-12 w-12 rounded-full ${color} flex items-center justify-center font-black text-lg shrink-0`}>
+                  {n}
+                </div>
+                <div className="flex-1 pt-1.5">
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <p className="font-bold text-xl">{title}</p>
+                    <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${tagColor}`}>{tag}</span>
+                  </div>
+                  <p className="text-base text-muted-foreground mt-1 leading-relaxed">{desc}</p>
+                </div>
               </div>
-              <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-                Sign up and claim your record. That&apos;s the only requirement to participate in the airdrop.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="rounded-2xl border border-border/40 bg-card/30 p-5 space-y-3">
-            <div className="flex items-center justify-between gap-3">
-              <div className="h-10 w-10 rounded-xl bg-brand-purple/10 flex items-center justify-center">
-                <PenLine className="h-5 w-5 text-brand-purple" />
-              </div>
-              <span className="text-xs font-semibold text-brand-purple bg-brand-purple/10 px-2.5 py-1 rounded-full">Bonus</span>
-            </div>
-            <div>
-              <p className="font-bold">Create content</p>
-              <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-                Publish original work — photos, music, art, or writing. Creators get a larger share of each distribution.
-              </p>
-            </div>
-          </div>
-          <div className="rounded-2xl border border-border/40 bg-card/30 p-5 space-y-3">
-            <div className="flex items-center justify-between gap-3">
-              <div className="h-10 w-10 rounded-xl bg-brand-orange/10 flex items-center justify-center">
-                <ShoppingCart className="h-5 w-5 text-brand-orange" />
-              </div>
-              <span className="text-xs font-semibold text-brand-orange bg-brand-orange/10 px-2.5 py-1 rounded-full">Biggest bonus</span>
-            </div>
-            <div>
-              <p className="font-bold">Trade &amp; collect</p>
-              <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-                Buy, sell, and collaborate with other creators. Active participants receive the highest share.
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ── Distribution phases ── */}
-      <section className="py-10 border-t border-border/30 space-y-6">
+      {/* ── How the money moves ── */}
+      <section className="py-14 space-y-8">
         <div className="max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Distribution</p>
-          <h2 className="text-2xl sm:text-3xl font-black">How distribution works</h2>
-          <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-            Every $1,000 the Creator&apos;s Fund collects is airdropped to participants — weighted by Score Board points.
-            See how XP determines your share on the{" "}
+          <h2 className="text-3xl sm:text-4xl font-black">How the money moves</h2>
+          <p className="text-base text-muted-foreground mt-2 leading-relaxed">
+            Simple math: what Medialane earns, you earn. See your exact share on the{" "}
             <Link href="/rewards" className="text-foreground underline underline-offset-2 hover:text-brand-orange transition-colors">
               Rewards
             </Link>{" "}
             page.
           </p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {PHASES.map(({ label, milestone, desc, gradient }) => (
-            <div key={label} className="relative rounded-2xl border border-border/40 bg-card overflow-hidden p-5 space-y-3">
-              <div className={`absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r ${gradient}`} />
-              <div className="flex items-center justify-between gap-3">
-                <p className="font-bold text-lg">{label}</p>
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-muted/50 text-muted-foreground">{milestone}</span>
-              </div>
-              <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
-            </div>
-          ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="relative rounded-2xl border border-border/40 bg-card overflow-hidden p-6 space-y-2">
+            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-brand-blue to-brand-purple" />
+            <p className="text-4xl font-black bg-gradient-to-r from-brand-blue to-brand-purple bg-clip-text text-transparent">$1,000</p>
+            <p className="font-bold">= one full distribution</p>
+            <p className="text-base text-muted-foreground leading-relaxed">
+              Every time the fund hits this mark, it goes out to everyone who&apos;s in. $10,000 earned means 10 rounds paid out.
+            </p>
+          </div>
+          <div className="relative rounded-2xl border border-border/40 bg-card overflow-hidden p-6 space-y-2">
+            <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-brand-purple to-brand-rose" />
+            <p className="text-4xl font-black bg-gradient-to-r from-brand-purple to-brand-rose bg-clip-text text-transparent">Your XP</p>
+            <p className="font-bold">= your cut of every round</p>
+            <p className="text-base text-muted-foreground leading-relaxed">
+              The more you create, trade, and show up, the bigger your slice — every single round.
+            </p>
+          </div>
         </div>
-        <div className="rounded-2xl border border-border/40 bg-muted/10 p-4 flex items-start gap-3">
-          <Info className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            The Creator&apos;s Airdrop campaign runs until July 1, 2027. All platform revenue collected during that window is returned to participants.
-          </p>
-        </div>
-        <a
-          href="https://medialane.org/creators-fund"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="rounded-2xl border border-border/40 bg-muted/10 p-4 flex items-start gap-3 hover:border-border transition-colors"
-        >
-          <Coins className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            The Creator&apos;s Fund is a public wallet — track its live balance and every airdrop at <span className="text-foreground font-medium">medialane.org/creators-fund</span>.
-            <span className="block tabular-nums text-xs mt-1 break-all">0x064c51746dbcb7498cc6e4b8abfcacd60805c0762b0411bb0515c611b5ae8223</span>
-          </p>
-        </a>
+        <p className="text-base text-muted-foreground leading-relaxed">
+          Runs through July 2027 — every dollar earned during that window comes back to you. Don&apos;t take our word for it —{" "}
+          <a
+            href="https://medialane.org/creators-fund"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-foreground underline underline-offset-2 hover:text-brand-orange transition-colors"
+          >
+            watch the fund live
+          </a>
+          .
+          <span className="block tabular-nums text-sm text-muted-foreground/70 mt-1 break-all">0x064c51746dbcb7498cc6e4b8abfcacd60805c0762b0411bb0515c611b5ae8223</span>
+        </p>
       </section>
 
-      {/* ── Rules + Disclaimer ── */}
-      <section className="py-10 border-t border-border/30 pb-16">
+      {/* ── The fine print ── */}
+      <section className="py-14 pb-16 space-y-8">
+        <h2 className="text-3xl sm:text-4xl font-black">The fine print</h2>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
 
-          <div className="space-y-5">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Rules</p>
-              <h2 className="text-2xl font-black">Participation rules</h2>
-            </div>
-
+          <div className="space-y-6">
             <div className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-widest text-brand-blue">Who can join</p>
-              <div className="space-y-2">
+              <p className="font-bold text-brand-blue">Who can join</p>
+              <div className="space-y-2.5">
                 {[
                   "Anyone who creates a free Medialane account.",
                   "No ID, no card, no approval required.",
                 ].map((text) => (
                   <div key={text} className="flex items-start gap-3">
-                    <div className="h-5 w-5 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0 mt-0.5">
-                      <CheckCircle2 className="h-3 w-3 text-emerald-500" />
-                    </div>
-                    <span className="text-sm text-muted-foreground leading-relaxed">{text}</span>
+                    <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" />
+                    <span className="text-base text-muted-foreground leading-relaxed">{text}</span>
                   </div>
                 ))}
               </div>
             </div>
 
             <div className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-widest text-destructive/70">What gets you removed</p>
-              <div className="space-y-2">
+              <p className="font-bold text-destructive/80">What gets you removed</p>
+              <div className="space-y-2.5">
                 {[
                   "Automated bots or duplicate registrations.",
                   "Artificially inflating activity or scores.",
                 ].map((text) => (
                   <div key={text} className="flex items-start gap-3">
-                    <div className="h-5 w-5 rounded-full bg-destructive/10 flex items-center justify-center shrink-0 mt-0.5">
-                      <XCircle className="h-3 w-3 text-destructive" />
-                    </div>
-                    <span className="text-sm text-muted-foreground leading-relaxed">{text}</span>
+                    <XCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+                    <span className="text-base text-muted-foreground leading-relaxed">{text}</span>
                   </div>
                 ))}
               </div>
@@ -276,10 +244,13 @@ export default function AirdropPage() {
 
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <Shield className="h-4 w-4 text-muted-foreground" />
-              <h2 className="text-2xl font-black">Disclaimer</h2>
+              <Shield className="h-5 w-5 text-muted-foreground" />
+              <p className="font-bold text-lg">The legal stuff, in full</p>
             </div>
-            <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
+            <p className="text-base text-muted-foreground leading-relaxed">
+              We have to spell this out because we&apos;re a real platform. Here&apos;s the whole deal, no shortcuts:
+            </p>
+            <div className="space-y-3 text-base text-muted-foreground leading-relaxed">
               <p>Medialane is a content publishing and creator rewards platform. This campaign is not a financial product, investment scheme, lottery, or gambling service.</p>
               <p>Participation does not guarantee any financial return. Fund distributions, if any occur, may take the form of platform credits, digital assets, or other community resources.</p>
               <p>The participation record is a digital record of community membership. It has no inherent monetary value and is not a financial instrument.</p>
