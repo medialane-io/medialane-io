@@ -73,7 +73,7 @@ export function CommunitySection() {
       <div className="lg:col-span-7 space-y-4 sm:space-y-5">
         <ColumnHeader
           icon={<Activity className="h-3.5 w-3.5 text-white" />}
-          iconBg="bg-gradient-to-br from-brand-indigo to-brand-blue shadow-brand-indigo/20"
+          iconBg="bg-gradient-to-br from-brand-purple to-brand-blue shadow-brand-purple/20"
           title="Activities"
           caption={
             !isLoading && (
