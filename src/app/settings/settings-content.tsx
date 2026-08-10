@@ -11,7 +11,7 @@ import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useUserOrders } from "@/hooks/use-orders";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { useRewards } from "@/hooks/use-rewards";
-import { useTokenBalance } from "@/hooks/use-erc20-balance";
+import { useWalletPanel } from "@/components/wallet-panel/wallet-panel-overlay";
 import { AssetPicker, AddressDisplay, ServiceFormShell, LevelBadge, type OwnedAsset } from "@medialane/ui";
 import { EXPLORER_URL } from "@/lib/constants";
 import { CreatorScoreInline } from "@/components/rewards/creator-score-inline";
@@ -31,7 +31,7 @@ import {
   Globe, Twitter, MessageCircle, Send, ArrowUpRight, Gem, Tag, LayoutGrid, Trophy, Wallet,
   Mail, User, ShieldCheck, ShieldAlert,
 } from "lucide-react";
-import { cn, resolveTokenImage, formatPrice } from "@/lib/utils";
+import { cn, resolveTokenImage } from "@/lib/utils";
 
 type CheckState = "idle" | "checking" | "available" | "taken";
 
@@ -272,9 +272,7 @@ function RewardsSnapshot({ address }: { address?: string | null }) {
 
 export default function SettingsContent() {
   const { address: walletAddress, hasWallet, isDeployed } = useWalletNativeSession();
-  const { rawBalance: strkBalance, decimals: strkDecimals } = useTokenBalance("STRK", walletAddress);
-  const { rawBalance: ethBalance, decimals: ethDecimals } = useTokenBalance("ETH", walletAddress);
-  const { rawBalance: usdcBalance, decimals: usdcDecimals } = useTokenBalance("USDC", walletAddress);
+  const { open: openWalletPanel } = useWalletPanel();
   const { getValidToken, signIn } = useSiwsToken();
   const { profile, isLoading: profileLoading, mutate } = useCreatorProfile(walletAddress ?? undefined);
   const { username: approvedUsername, claim, mutate: mutateClaim } = useMyUsernameClaim();
@@ -822,30 +820,21 @@ export default function SettingsContent() {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-3 gap-3">
-                    {[
-                      { symbol: "STRK", balance: strkBalance, decimals: strkDecimals },
-                      { symbol: "ETH", balance: ethBalance, decimals: ethDecimals },
-                      { symbol: "USDC", balance: usdcBalance, decimals: usdcDecimals },
-                    ].map(({ symbol, balance, decimals }) => (
-                      <div key={symbol} className="rounded-lg border border-border p-3">
-                        <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{symbol}</p>
-                        <p className="text-sm font-medium tabular-nums text-foreground mt-0.5">
-                          {balance !== null ? formatPrice(balance.toString(), decimals) : <Skeleton className="h-4 w-12 mt-0.5" />}
-                        </p>
-                      </div>
-                    ))}
+                  <div className="flex items-center gap-4 flex-wrap">
+                    <Button onClick={openWalletPanel} variant="outline" size="sm">
+                      <Wallet className="mr-1.5 h-3.5 w-3.5" />
+                      Open wallet
+                    </Button>
+                    <a
+                      href={`${EXPLORER_URL}/contract/${walletAddress}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                    >
+                      View on Voyager
+                      <ArrowUpRight className="h-3 w-3" />
+                    </a>
                   </div>
-
-                  <a
-                    href={`${EXPLORER_URL}/contract/${walletAddress}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
-                  >
-                    View on Voyager
-                    <ArrowUpRight className="h-3 w-3" />
-                  </a>
                 </>
               )}
             </div>
