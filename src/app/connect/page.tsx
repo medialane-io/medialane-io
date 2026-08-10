@@ -8,6 +8,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Loader2, ShieldCheck, CheckCircle2, AlertCircle } from "lucide-react";
 import { getMedialaneClient } from "@/lib/medialane-client";
+import { JourneyPanel } from "@/components/connect/journey-panel";
+import { ValuePropCarousel } from "@/components/connect/value-prop-carousel";
 
 type Step = "email" | "checking-email" | "registering" | "code" | "verifying-code" | "has-wallet";
 
@@ -190,48 +192,49 @@ function ConnectForm() {
   }
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-2">
-            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <ShieldCheck className="h-6 w-6 text-primary" />
+    <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-sm space-y-8">
+        <Card className="w-full">
+          <CardHeader className="text-center gap-4">
+            <JourneyPanel />
+            <div>
+              <CardTitle>Start your creator journey</CardTitle>
+              <CardDescription>Enter your email to begin.</CardDescription>
             </div>
-          </div>
-          <CardTitle>Get started</CardTitle>
-          <CardDescription>Enter your email to continue.</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col items-center gap-4">
-          {error && (
-            <Alert variant="destructive" className="w-full">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          <Input
-            type="email"
-            placeholder="you@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            disabled={step === "checking-email" || step === "registering"}
-            className="w-full"
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && email) void continueWithEmail();
-            }}
-          />
-          <div className="btn-border-animated w-full p-[1px] rounded-lg">
-            <Button
-              className="w-full gap-2 bg-transparent text-white rounded-[7px] hover:bg-transparent hover:brightness-110 active:scale-[0.98] transition-all"
-              size="lg"
-              onClick={continueWithEmail}
-              disabled={step === "checking-email" || step === "registering" || !email}
-            >
-              {step === "checking-email" || step === "registering" ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              Continue
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center gap-4">
+            {error && (
+              <Alert variant="destructive" className="w-full">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            <Input
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={step === "checking-email" || step === "registering"}
+              className="w-full"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && email) void continueWithEmail();
+              }}
+            />
+            <div className="btn-border-animated w-full p-[1px] rounded-lg">
+              <Button
+                className="w-full gap-2 bg-transparent text-white rounded-[7px] hover:bg-transparent hover:brightness-110 active:scale-[0.98] transition-all"
+                size="lg"
+                onClick={continueWithEmail}
+                disabled={step === "checking-email" || step === "registering" || !email}
+              >
+                {step === "checking-email" || step === "registering" ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                Continue
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+        <ValuePropCarousel />
+      </div>
     </div>
   );
 }
