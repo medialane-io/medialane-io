@@ -245,7 +245,8 @@
   .animate-blob-slow,
   .animate-pulse-glow,
   .animate-spin-slow,
-  .animate-sparkle {
+  .animate-sparkle,
+  .value-prop-track {
     animation: none;
   }
 }
@@ -253,6 +254,13 @@
 @keyframes scroll-strip {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
+}
+
+.value-prop-track {
+  animation: scroll-strip 36s linear infinite;
+}
+.value-prop-track[data-paused="true"] {
+  animation-play-state: paused;
 }
 
 @keyframes kenburns {
