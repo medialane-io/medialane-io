@@ -33,17 +33,17 @@ const VALUE_PROPS: { label: string; icon: LucideIcon }[] = [
 function Track({ hidden }: { hidden?: boolean }) {
   return (
     <div
-      className="flex shrink-0 gap-3"
+      className="flex shrink-0 gap-4"
       aria-hidden={hidden || undefined}
       data-testid={hidden ? undefined : "value-prop-track-primary"}
     >
       {VALUE_PROPS.map(({ label, icon: Icon }) => (
         <div
           key={label}
-          className="flex w-[168px] shrink-0 flex-col items-center gap-2 rounded-xl border border-border/50 bg-card/50 p-4 text-center"
+          className="flex aspect-[3/4] w-[200px] shrink-0 flex-col items-center justify-center gap-3 rounded-2xl border border-border/50 bg-card/50 p-6 text-center"
         >
-          <Icon className="h-5 w-5 text-primary" />
-          <span className="text-xs font-medium text-foreground">{label}</span>
+          <Icon className="h-7 w-7 text-primary" />
+          <span className="text-sm font-medium text-foreground">{label}</span>
         </div>
       ))}
     </div>
@@ -59,13 +59,13 @@ export function ValuePropCarousel() {
 
   return (
     <div
-      className="overflow-hidden"
+      className="value-prop-fade overflow-hidden"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onTouchStart={() => setPaused(true)}
       onTouchEnd={() => setPaused(false)}
     >
-      <div className="value-prop-track flex w-max gap-3" data-paused={paused}>
+      <div className="value-prop-track flex w-max gap-4" data-paused={paused}>
         <Track />
         <Track hidden />
       </div>

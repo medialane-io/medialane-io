@@ -257,10 +257,15 @@
 }
 
 .value-prop-track {
-  animation: scroll-strip 36s linear infinite;
+  animation: scroll-strip 70s linear infinite;
 }
 .value-prop-track[data-paused="true"] {
   animation-play-state: paused;
+}
+/* Fades the carousel's edges instead of hard-clipping cards mid-shape. */
+.value-prop-fade {
+  mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
 }
 
 @keyframes kenburns {
