@@ -21,7 +21,7 @@ export default function PortfolioOverviewPage() {
   const { orders } = useUserOrders(address);
   const { tokens, meta, isLoading: loadingTokens } = useTokensByOwner(address, 1, 8);
   const { activities, isLoading: loadingActivity } = useActivitiesByAddress(address);
-  const { collections } = useCollectionsByOwner(address);
+  const { collections, isLoading: loadingCollections } = useCollectionsByOwner(address);
 
   const totalAssets = meta?.total ?? null;
   const recentActivity = activities.slice(0, 5);
@@ -32,9 +32,11 @@ export default function PortfolioOverviewPage() {
   const isEmpty =
     !loadingTokens &&
     !loadingActivity &&
+    !loadingCollections &&
     totalAssets === 0 &&
     activities.length === 0 &&
-    orders.length === 0;
+    orders.length === 0 &&
+    collections.length === 0;
 
   const tiles: PortfolioBentoTileConfig[] = [
     {
