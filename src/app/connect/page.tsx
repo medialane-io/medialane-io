@@ -8,7 +8,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Loader2, ShieldCheck, CheckCircle2, AlertCircle } from "lucide-react";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import { JourneyPanel } from "@/components/connect/journey-panel";
 import { ValuePropCarousel } from "@/components/connect/value-prop-carousel";
 
 type Step = "email" | "checking-email" | "registering" | "code" | "verifying-code" | "has-wallet";
@@ -195,12 +194,13 @@ function ConnectForm() {
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-sm space-y-8">
         <Card className="w-full">
-          <CardHeader className="text-center gap-4">
-            <JourneyPanel />
-            <div>
-              <CardTitle>Start your creator journey</CardTitle>
-              <CardDescription>Enter your email to begin.</CardDescription>
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-2">
+              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <ShieldCheck className="h-6 w-6 text-primary" />
+              </div>
             </div>
+            <CardTitle>Connect with your email</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-4">
             {error && (
