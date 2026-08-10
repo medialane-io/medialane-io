@@ -125,8 +125,8 @@ function WalletOnboardingForm() {
               <ShieldCheck className="h-6 w-6 text-primary" />
             </div>
           </div>
-          <CardTitle>Set up your wallet</CardTitle>
-          <CardDescription>Passkey, Face ID, Touch ID.</CardDescription>
+          <CardTitle>Secure your account</CardTitle>
+          <CardDescription>Use your passkey, Face ID, or Touch ID to create your unique access.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-4">
           {error && (
