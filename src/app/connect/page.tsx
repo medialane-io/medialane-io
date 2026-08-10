@@ -1,16 +1,19 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Loader2, ShieldCheck, CheckCircle2, AlertCircle } from "lucide-react";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { ValuePropCarousel } from "@/components/connect/value-prop-carousel";
 
 type Step = "email" | "checking-email" | "registering" | "code" | "verifying-code" | "has-wallet";
+
+const RESEND_COOLDOWN_SECONDS = 60;
 
 /** Same-origin relative path guard — prevents open redirects via redirect_url. */
 function safeRelative(path: string | null | undefined): string | null {
@@ -42,6 +45,15 @@ function ConnectForm() {
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [resending, setResending] = useState(false);
+
+  // Ticks the resend cooldown down to 0, one second at a time.
+  useEffect(() => {
+    if (resendCooldown === 0) return;
+    const id = setTimeout(() => setResendCooldown((s) => Math.max(0, s - 1)), 1000);
+    return () => clearTimeout(id);
+  }, [resendCooldown]);
 
   const goToWalletOnboarding = (accountToken: string) => {
     sessionStorage.setItem("ml_pending_account_token", accountToken);
@@ -89,6 +101,7 @@ function ConnectForm() {
         body: JSON.stringify({ email }),
       });
       if (!res.ok) throw new Error("request-code failed");
+      setResendCooldown(RESEND_COOLDOWN_SECONDS);
       setStep("code");
     } catch {
       setError("Couldn't send the code. Please try again.");
@@ -96,14 +109,38 @@ function ConnectForm() {
     }
   };
 
-  const verifyLoginCode = async () => {
+  const resendCode = async () => {
+    if (resendCooldown > 0 || resending) return;
+    setResending(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/proxy/v1/auth/email/request-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((data as { error?: string }).error ?? "Couldn't resend the code. Please try again.");
+      setResendCooldown(RESEND_COOLDOWN_SECONDS);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Couldn't resend the code. Please try again.");
+    } finally {
+      setResending(false);
+    }
+  };
+
+  // Accepts an explicit code so the InputOTP onComplete callback (which
+  // fires with the just-completed value ahead of the `code` state update
+  // landing) can trigger an immediate, correct auto-submit.
+  const verifyLoginCode = async (codeOverride?: string) => {
+    const codeToVerify = codeOverride ?? code;
     setError(null);
     setStep("verifying-code");
     try {
       const res = await fetch("/api/proxy/v1/auth/email/verify-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, code }),
+        body: JSON.stringify({ email, code: codeToVerify }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error((data as { error?: string }).error ?? "Incorrect code");
@@ -163,27 +200,51 @@ function ConnectForm() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            <Input
-              type="text"
-              inputMode="numeric"
+            <InputOTP
               maxLength={6}
-              placeholder="000000"
               value={code}
-              onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+              onChange={(value) => setCode(value.replace(/\D/g, ""))}
+              onComplete={(value) => void verifyLoginCode(value)}
               disabled={step === "verifying-code"}
-              className="w-full text-center tracking-[0.5em]"
-            />
+            >
+              <InputOTPGroup>
+                {[0, 1, 2, 3, 4, 5].map((i) => (
+                  <InputOTPSlot key={i} index={i} className="h-12 w-11 text-lg font-semibold" />
+                ))}
+              </InputOTPGroup>
+            </InputOTP>
             <div className="btn-border-animated w-full p-[1px] rounded-lg">
               <Button
                 className="w-full gap-2 bg-transparent text-white rounded-[7px] hover:bg-transparent hover:brightness-110 active:scale-[0.98] transition-all"
                 size="lg"
-                onClick={verifyLoginCode}
+                onClick={() => void verifyLoginCode()}
                 disabled={step === "verifying-code" || code.length !== 6}
               >
                 {step === "verifying-code" ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                 Verify
               </Button>
             </div>
+            <p className="text-xs text-muted-foreground text-center leading-relaxed">
+              Didn&apos;t receive it? Check your spam, or{" "}
+              {resendCooldown > 0 ? (
+                <span>resend in {resendCooldown}s</span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => void resendCode()}
+                  disabled={resending}
+                  className="underline underline-offset-2 hover:text-foreground disabled:opacity-50"
+                >
+                  {resending ? "resending…" : "resend the code"}
+                </button>
+              )}
+              .
+              <br />
+              Still stuck?{" "}
+              <a href="mailto:dao@medialane.org" className="underline underline-offset-2 hover:text-foreground">
+                dao@medialane.org
+              </a>
+            </p>
           </CardContent>
         </Card>
       </div>
