@@ -1,7 +1,8 @@
-import { Account, num, type Call } from "starknet";
+import { num, type Call } from "starknet";
 import { norm } from "./account-ops";
-import { unlockOwnerKey, type SealedOwner } from "./passkey";
+import type { SealedOwner } from "./passkey";
 import { walletProvider } from "./provider";
+import { executeSponsored } from "./sponsored-invoke";
 
 const SIGNER_TYPE_NAMES = ["Starknet", "Secp256k1", "Secp256r1"] as const;
 type SignerTypeName = (typeof SIGNER_TYPE_NAMES)[number];
@@ -82,11 +83,6 @@ export function decodeEscapeAndStatus(res: string[]): EscapeInfo {
   return { readyAt, escapeType, status };
 }
 
-async function accountAs(sealed: SealedOwner, targetAddress: string, rpc?: string): Promise<Account> {
-  const signer = await unlockOwnerKey(sealed);
-  return new Account({ provider: walletProvider(rpc), address: norm(targetAddress), signer, cairoVersion: "1" });
-}
-
 export async function getGuardians(address: string, rpc?: string): Promise<GuardianInfo[]> {
   const res = await walletProvider(rpc).callContract({
     contractAddress: norm(address),
@@ -114,27 +110,36 @@ export async function getEscapeSecurityPeriod(address: string, rpc?: string): Pr
   return Number(res[0]);
 }
 
-export async function setFirstGuardian(sealed: SealedOwner, guardianPubkey: string, rpc?: string) {
-  const account = await accountAs(sealed, sealed.address, rpc);
-  return account.execute([buildSetFirstGuardianCall(sealed.address, guardianPubkey)]);
+export async function setFirstGuardian(sealed: SealedOwner, guardianPubkey: string) {
+  const { transactionHash } = await executeSponsored(sealed, [
+    buildSetFirstGuardianCall(sealed.address, guardianPubkey),
+  ]);
+  return transactionHash;
 }
 
 export async function triggerEscapeOwner(
   guardianSealed: SealedOwner,
   targetAddress: string,
   newOwnerPubkey: string,
-  rpc?: string,
 ) {
-  const account = await accountAs(guardianSealed, targetAddress, rpc);
-  return account.execute([buildTriggerEscapeOwnerCall(targetAddress, newOwnerPubkey)]);
+  const { transactionHash } = await executeSponsored(
+    guardianSealed,
+    [buildTriggerEscapeOwnerCall(targetAddress, newOwnerPubkey)],
+    norm(targetAddress),
+  );
+  return transactionHash;
 }
 
-export async function completeEscapeOwner(guardianSealed: SealedOwner, targetAddress: string, rpc?: string) {
-  const account = await accountAs(guardianSealed, targetAddress, rpc);
-  return account.execute([buildCompleteEscapeOwnerCall(targetAddress)]);
+export async function completeEscapeOwner(guardianSealed: SealedOwner, targetAddress: string) {
+  const { transactionHash } = await executeSponsored(
+    guardianSealed,
+    [buildCompleteEscapeOwnerCall(targetAddress)],
+    norm(targetAddress),
+  );
+  return transactionHash;
 }
 
-export async function cancelEscape(sealed: SealedOwner, rpc?: string) {
-  const account = await accountAs(sealed, sealed.address, rpc);
-  return account.execute([buildCancelEscapeCall(sealed.address)]);
+export async function cancelEscape(sealed: SealedOwner) {
+  const { transactionHash } = await executeSponsored(sealed, [buildCancelEscapeCall(sealed.address)]);
+  return transactionHash;
 }

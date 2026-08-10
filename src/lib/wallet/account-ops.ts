@@ -1,7 +1,5 @@
-import { Account, validateAndParseAddress, type Call } from "starknet";
+import { validateAndParseAddress } from "starknet";
 import { normalizeAddress, getTokenBySymbol } from "@medialane/sdk";
-import { MEDIAWALLET_CLASS_HASH, ownerConstructorCalldata } from "./account";
-import { unlockOwnerKey, type SealedOwner } from "./passkey";
 import { walletProvider } from "./provider";
 
 export const norm = (address: string): string => normalizeAddress("STARKNET", address);
@@ -21,13 +19,6 @@ export const STRK_TOKEN = tokenAddress("STRK");
 export const ETH_TOKEN = tokenAddress("ETH");
 export const USDC_TOKEN = tokenAddress("USDC");
 
-export async function accountFor(sealed: SealedOwner, rpc?: string): Promise<Account> {
-  const signer = await unlockOwnerKey(sealed);
-  // io was bumped to starknet@10 (matching media-wallet and the backend) —
-  // object-form constructor, same as everywhere else on the platform now.
-  return new Account({ provider: walletProvider(rpc), address: sealed.address, signer, cairoVersion: "1" });
-}
-
 export async function isDeployed(address: string, rpc?: string): Promise<boolean> {
   try {
     await walletProvider(rpc).getClassHashAt(norm(address));
@@ -35,19 +26,4 @@ export async function isDeployed(address: string, rpc?: string): Promise<boolean
   } catch {
     return false;
   }
-}
-
-export async function deploySelf(sealed: SealedOwner, rpc?: string) {
-  const account = await accountFor(sealed, rpc);
-  return account.deployAccount({
-    classHash: MEDIAWALLET_CLASS_HASH,
-    constructorCalldata: ownerConstructorCalldata(sealed.ownerPubKey),
-    addressSalt: 0,
-    contractAddress: sealed.address,
-  });
-}
-
-export async function execute(sealed: SealedOwner, calls: Call[], rpc?: string) {
-  const account = await accountFor(sealed, rpc);
-  return account.execute(calls);
 }
