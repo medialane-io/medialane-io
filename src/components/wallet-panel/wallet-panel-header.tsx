@@ -7,6 +7,7 @@ import { CurrencyIcon } from "@medialane/ui";
 import { useCreatorProfile } from "@/hooks/use-profiles";
 import { resolveTokenImage } from "@/lib/utils";
 import { short } from "@/lib/wallet-format";
+import { CreatorScoreInline } from "@/components/rewards/creator-score-inline";
 
 /**
  * Ported from media-wallet's WalletHeader — the identity row at the top of
@@ -55,6 +56,7 @@ export function WalletPanelHeader({ address, onNavigate }: { address: string; on
           {short(address)}
           {copied && <span className="text-[10px]">· copied ✓</span>}
         </button>
+        <CreatorScoreInline address={address} size="sm" className="mt-1.5" />
       </div>
       <Link
         href="/settings"
