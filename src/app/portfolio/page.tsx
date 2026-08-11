@@ -110,19 +110,19 @@ export default function PortfolioOverviewPage() {
       tiles={tiles}
       isEmpty={isEmpty}
       emptyState={
-        <div className="rounded-xl border border-border p-10 text-center space-y-4">
-          <Sparkles className="h-8 w-8 mx-auto text-primary" />
+        <div className="rounded-2xl bg-gradient-to-br from-brand-purple to-brand-orange p-10 text-center space-y-4 text-white">
+          <Sparkles className="h-8 w-8 mx-auto" />
           <div className="space-y-1">
-            <h2 className="text-lg font-semibold">Start your portfolio</h2>
-            <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+            <h2 className="text-xl font-black tracking-tight">Start your portfolio</h2>
+            <p className="text-sm font-medium text-white/80 max-w-sm mx-auto">
               Mint your first asset or explore the marketplace — everything you own and trade shows up here.
             </p>
           </div>
           <div className="flex items-center justify-center gap-3">
-            <Button asChild>
+            <Button asChild className="bg-white text-foreground hover:bg-white/90">
               <Link href="/launchpad/single-editions">Create an asset</Link>
             </Button>
-            <Button asChild variant="outline">
+            <Button asChild variant="outline" className="border-white/40 text-white hover:bg-white/10">
               <Link href="/marketplace">Browse marketplace</Link>
             </Button>
           </div>
