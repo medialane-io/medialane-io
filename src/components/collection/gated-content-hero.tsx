@@ -36,7 +36,7 @@ export function GatedContentHero({ profile, gatedState, onViewExclusive }: Gated
             <Icon className="h-5 w-5" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest leading-none">
+            <p className="text-[10px] font-bold text-emerald-500 leading-none">
               ✓ You&apos;re a holder — unlocked
             </p>
             <p className="text-sm font-bold text-foreground leading-snug mt-1 truncate">
@@ -61,7 +61,7 @@ export function GatedContentHero({ profile, gatedState, onViewExclusive }: Gated
           </div>
           <div className="flex-1 min-w-0">
             <p
-              className="text-[10px] font-bold uppercase tracking-widest leading-none mb-1"
+              className="text-[10px] font-bold leading-none mb-1"
               style={{
                 background: "linear-gradient(90deg, #3b7bff, #8a5cf6, #f6608f)",
                 WebkitBackgroundClip: "text",

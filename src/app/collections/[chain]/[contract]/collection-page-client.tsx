@@ -250,7 +250,7 @@ export default function CollectionPageClient() {
     { label: "Holders", display: collection?.holderCount  != null ? String(collection.holderCount)  : "—", symbol: null },
     { label: "Floor",   display: floorParsed.numStr,  symbol: floorParsed.symbol },
     { label: "Volume",  display: volumeParsed.numStr, symbol: volumeParsed.symbol },
-  ];
+  ].filter((s) => s.label !== "Volume" || s.display !== "—");
 
   return (
     <div className="relative z-0 min-h-screen">
@@ -316,7 +316,7 @@ export default function CollectionPageClient() {
                     symbol ? "min-w-[80px]" : "min-w-[60px] items-center text-center"
                   )}
                 >
-                  <p className="text-[9px] text-muted-foreground uppercase tracking-widest mb-1">{label}</p>
+                  <p className="text-[9px] text-muted-foreground mb-1">{label}</p>
                   {symbol ? (
                     <div className="flex items-center gap-1.5">
                       <CurrencyIcon symbol={symbol} size={15} />
@@ -341,6 +341,40 @@ export default function CollectionPageClient() {
           get their own row below, stacks on mobile ── */}
       {!colLoading && collection && (
         <div className="px-4 sm:px-6 pt-4 pb-2 space-y-3">
+          {/* Owner-only actions, own row (only rendered for the owner — never empty) */}
+          {walletAddress && collection.owner && normalizeAddress("STARKNET", collection.owner) === normalizeAddress("STARKNET", walletAddress) && (
+            <div className="flex items-center justify-end gap-2">
+              {getService(collection.service)?.id === "ip-tickets" && (
+                <TicketOwnerActions
+                  contractAddress={collection.contractAddress}
+                  owner={collection.owner}
+                />
+              )}
+              {getService(collection.service)?.id === "ip-club" && (
+                <ClubOwnerActions
+                  contractAddress={collection.contractAddress}
+                  owner={collection.owner}
+                />
+              )}
+              {collection.standard === "ERC1155" && getService(collection.service)?.id === "mip-erc1155" && (
+                <Link
+                  href={`/launchpad/nfteditions/${contract}/mint`}
+                  className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold text-white bg-brand-purple hover:brightness-110 active:scale-[0.98] transition"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Mint editions
+                </Link>
+              )}
+              <Link
+                href={`/portfolio/collections/${contract}/settings`}
+                className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold border border-border hover:bg-muted active:scale-[0.98] transition text-muted-foreground hover:text-foreground"
+              >
+                <Settings className="h-3.5 w-3.5" />
+                Settings
+              </Link>
+            </div>
+          )}
+
           <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:gap-6">
             <div className="flex-1 min-w-0 lg:max-w-2xl">
               {collection.description && (
@@ -366,12 +400,13 @@ export default function CollectionPageClient() {
               )}
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
               <AddressDisplay
                 address={collection.contractAddress ?? ""}
                 chars={6}
                 className="text-xs text-muted-foreground"
               />
+              {collection.owner && <CreatorChip address={collection.owner} />}
               <ShareButton
                 title={collection.name ?? "Collection"}
                 variant="ghost"
@@ -387,46 +422,6 @@ export default function CollectionPageClient() {
               </button>
             </div>
           </div>
-
-          {/* Creator chip + owner actions, own row */}
-          {collection.owner && (
-            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-              <CreatorChip address={collection.owner} />
-
-              {walletAddress && normalizeAddress("STARKNET", collection.owner) === normalizeAddress("STARKNET", walletAddress) && (
-                <div className="flex items-center gap-2">
-                  {getService(collection.service)?.id === "ip-tickets" && (
-                    <TicketOwnerActions
-                      contractAddress={collection.contractAddress}
-                      owner={collection.owner}
-                    />
-                  )}
-                  {getService(collection.service)?.id === "ip-club" && (
-                    <ClubOwnerActions
-                      contractAddress={collection.contractAddress}
-                      owner={collection.owner}
-                    />
-                  )}
-                  {collection.standard === "ERC1155" && getService(collection.service)?.id === "mip-erc1155" && (
-                    <Link
-                      href={`/launchpad/nfteditions/${contract}/mint`}
-                      className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold text-white bg-brand-purple hover:brightness-110 active:scale-[0.98] transition"
-                    >
-                      <Sparkles className="h-3.5 w-3.5" />
-                      Mint editions
-                    </Link>
-                  )}
-                  <Link
-                    href={`/portfolio/collections/${contract}/settings`}
-                    className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold border border-border hover:bg-muted active:scale-[0.98] transition text-muted-foreground hover:text-foreground"
-                  >
-                    <Settings className="h-3.5 w-3.5" />
-                    Settings
-                  </Link>
-                </div>
-              )}
-            </div>
-          )}
 
           {/* Service action slot (POP claim, Drop mint, etc.) */}
           <CollectionServiceAction
@@ -771,7 +766,7 @@ function GatedContentPanel({
       </div>
 
       <div className="space-y-1.5">
-        <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">
+        <p className="text-[10px] font-bold text-emerald-500">
           ✓ Verified holder
         </p>
         <h3 className="text-xl font-bold">{content.title ?? "Exclusive Content"}</h3>

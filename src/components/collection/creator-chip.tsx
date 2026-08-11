@@ -11,7 +11,7 @@ export function CreatorChip({ address }: { address: string }) {
   return (
     <Link
       href={`/account/${address}`}
-      className="inline-flex items-center gap-1.5 text-sm rounded-full px-2 py-1 -mx-2 hover:bg-muted/60 active:scale-[0.98] transition"
+      className="inline-flex items-center gap-1.5 text-sm rounded-full px-2 py-1 hover:bg-muted/60 active:scale-[0.98] transition"
     >
       <span className="text-muted-foreground shrink-0">by</span>
       {label ? (
