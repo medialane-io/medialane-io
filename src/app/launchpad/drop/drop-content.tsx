@@ -74,7 +74,7 @@ function DropCollectionCard({ collection }: { collection: ApiCollection }) {
               unoptimized
             />
           ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-brand-orange/40 via-amber-500/30 to-brand-price/50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-orange/40 via-amber-500/30 to-brand-maeve/50 flex items-center justify-center">
               <span className="text-7xl font-black text-white/10 select-none">{initial}</span>
             </div>
           )}
