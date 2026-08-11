@@ -19,8 +19,12 @@ import { ShareButton } from "@/components/shared/share-button";
 import { CollectionFilters } from "@/components/collection/collection-filters";
 import { GatedContentHero } from "@/components/collection/gated-content-hero";
 import { OwnerSetupPanel } from "@/components/collection/owner-setup-panel";
-import { CreatorScoreInline } from "@/components/rewards/creator-score-inline";
 import { TransferCollectionOwnershipDialog } from "@/components/collection/transfer-ownership-dialog";
+import { CollectionActivityTab } from "@/components/collection/collection-activity-tab";
+import { OrderSortControl, sortOrders, type OrderSort } from "@/components/collection/order-sort-control";
+import { MakeOfferPicker } from "@/components/collection/make-offer-picker";
+import { CollectionTraitsTab } from "@/components/collection/collection-traits-tab";
+import { CreatorChip } from "@/components/collection/creator-chip";
 import Image from "next/image";
 import { ipfsToHttp, formatDisplayPrice, cn } from "@/lib/utils";
 import { useCollectionProfile } from "@/hooks/use-profiles";
@@ -200,7 +204,11 @@ export default function CollectionPageClient() {
   const { contract } = useParams<{ contract: string }>();
   const [reportOpen, setReportOpen] = useState(false);
   const [ownershipTransferOpen, setOwnershipTransferOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("items");
+  const [activeTab, setActiveTab] = useState("assets");
+  const [marketSubTab, setMarketSubTab] = useState<"listings" | "offers">("listings");
+  const [provenanceSubTab, setProvenanceSubTab] = useState<"activity" | "traits">("activity");
+  const [listingsSort, setListingsSort] = useState<OrderSort>("recent");
+  const [offersSort, setOffersSort] = useState<OrderSort>("recent");
   const [buyOrder, setBuyOrder] = useState<ApiOrder | null>(null);
   const [purchaseOpen, setPurchaseOpen] = useState(false);
   const handleBuy = (o: ApiOrder) => { setBuyOrder(o); setPurchaseOpen(true); };
@@ -269,6 +277,25 @@ export default function CollectionPageClient() {
 
           {/* Bottom overlay: title + stat chips — backdrop blur only, no borders, no scrim */}
           <div className="absolute bottom-0 left-0 right-0 px-4 sm:px-6 pb-4 sm:pb-6 space-y-3 z-10">
+            {/* Type + symbol eyebrow — white/blur so it holds up over arbitrary artwork */}
+            {(collection?.symbol || collection?.standard) && (
+              <div className="flex items-center gap-2 flex-wrap">
+                {collection?.standard === "ERC1155" ? (
+                  <span className="text-[11px] font-semibold text-white/90 bg-white/15 backdrop-blur-md rounded-full px-2.5 py-0.5">
+                    Multi-edition NFT
+                  </span>
+                ) : collection?.standard === "ERC721" ? (
+                  <span className="text-[11px] font-semibold text-white/90 bg-white/15 backdrop-blur-md rounded-full px-2.5 py-0.5">
+                    Single NFT
+                  </span>
+                ) : null}
+                {collection?.symbol && (
+                  <span className="tabular-nums text-[11px] text-white/90 bg-white/15 backdrop-blur-md rounded-full px-2.5 py-0.5">
+                    {collection.symbol}
+                  </span>
+                )}
+              </div>
+            )}
 
             {/* Title — plain text with a subtle shadow, no background box */}
             <h1 className="text-3xl sm:text-5xl lg:text-7xl font-bold text-white leading-tight"
@@ -312,45 +339,8 @@ export default function CollectionPageClient() {
       {!colLoading && collection && (
         <div className="px-4 sm:px-6 pt-5 pb-2">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between lg:gap-8">
-            {/* Left — identity & description */}
+            {/* Left — description, creator, service action (badges moved into the hero eyebrow) */}
             <div className="space-y-3 min-w-0 lg:max-w-2xl">
-              {/* Type + symbol badges (moved down out of the hero, grouped with the meta) */}
-              {(collection.symbol || collection.standard) && (
-                <div className="flex items-center gap-2 flex-wrap">
-                  {collection.standard === "ERC1155" ? (
-                    <span className="text-[11px] font-semibold bg-brand-purple/15 text-brand-purple dark:text-brand-purple rounded-full px-2.5 py-0.5">
-                      Multi-edition NFT
-                    </span>
-                  ) : collection.standard === "ERC721" ? (
-                    <span className="text-[11px] font-semibold bg-muted text-muted-foreground rounded-full px-2.5 py-0.5">
-                      Single NFT
-                    </span>
-                  ) : null}
-                  {collection.symbol && (
-                    <span className="tabular-nums text-[11px] bg-muted text-muted-foreground rounded-full px-2.5 py-0.5">
-                      {collection.symbol}
-                    </span>
-                  )}
-                </div>
-              )}
-
-              {/* By owner — links to the address-based account route
-                  (/creator/[slug] is username-only; addresses 404 there) */}
-              {collection.owner && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <span>by</span>
-                  <Link href={`/account/${collection.owner}`} className="hover:underline underline-offset-2">
-                    <AddressDisplay
-                      address={collection.owner}
-                      chars={6}
-                      showCopy={false}
-                      className="font-medium text-foreground"
-                    />
-                  </Link>
-                  <CreatorScoreInline address={collection.owner} size="sm" />
-                </div>
-              )}
-
               {collection.description && (
                 <>
                   <p
@@ -381,8 +371,8 @@ export default function CollectionPageClient() {
             </div>
 
             {/* Right — flat utility cluster (no panel/chrome); owner actions,
-                contract, share & report, right-aligned on desktop */}
-            <div className="flex flex-col gap-2.5 shrink-0 lg:items-end">
+                creator chip, contract, share & report, right-aligned on desktop */}
+            <div className="flex flex-col gap-3 shrink-0 w-full lg:w-auto lg:items-end">
               {walletAddress && collection.owner && normalizeAddress("STARKNET", collection.owner) === normalizeAddress("STARKNET", walletAddress) && (
                 <div className="flex items-center gap-2">
                   {getService(collection.service)?.id === "ip-tickets" && (
@@ -416,8 +406,10 @@ export default function CollectionPageClient() {
                 </div>
               )}
 
+              {/* Creator smart chip — address route (/creator/[slug] is username-only) */}
+              {collection.owner && <CreatorChip address={collection.owner} />}
+
               <div className="flex items-center gap-2">
-                <span className="text-[11px] uppercase tracking-widest text-muted-foreground/50">Contract</span>
                 <AddressDisplay
                   address={collection.contractAddress ?? ""}
                   chars={6}
@@ -462,14 +454,14 @@ export default function CollectionPageClient() {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <div className="sticky top-0 z-10 pt-3 pb-1">
             <TabsList className="w-full sm:w-auto">
-              <TabsTrigger value="items" className="flex-1 sm:flex-none">
-                Items{collection?.totalSupply ? ` (${collection.totalSupply.toLocaleString()})` : ""}
+              <TabsTrigger value="assets" className="flex-1 sm:flex-none">
+                Assets{collection?.totalSupply ? ` (${collection.totalSupply.toLocaleString()})` : ""}
               </TabsTrigger>
-              <TabsTrigger value="listings" className="flex-1 sm:flex-none">
-                Listings{!ordersLoading && activeListings.length > 0 && ` (${activeListings.length})`}
+              <TabsTrigger value="market" className="flex-1 sm:flex-none">
+                Market{!ordersLoading && (activeListings.length + activeBids.length) > 0 && ` (${activeListings.length + activeBids.length})`}
               </TabsTrigger>
-              <TabsTrigger value="offers" className="flex-1 sm:flex-none">
-                Offers{!ordersLoading && activeBids.length > 0 && ` (${activeBids.length})`}
+              <TabsTrigger value="provenance" className="flex-1 sm:flex-none">
+                Provenance
               </TabsTrigger>
               {profile?.hasGatedContent && (
                 <TabsTrigger value="exclusive" className="flex-1 sm:flex-none gap-1.5">
@@ -480,55 +472,107 @@ export default function CollectionPageClient() {
             </TabsList>
           </div>
 
-          <TabsContent value="items" className="mt-4">
+          <TabsContent value="assets" className="mt-4">
             <CollectionItems contract={contract} activeListings={activeListings} />
           </TabsContent>
 
-          <TabsContent value="listings" className="mt-4">
-            {ordersLoading ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
-                {Array.from({ length: 8 }).map((_, i) => <ListingCardSkeleton key={i} />)}
-              </div>
-            ) : activeListings.length === 0 ? (
-              <EmptyState
-                title="No active listings"
-                body="When items in this collection are listed for sale, they'll appear here."
-              />
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
-                {activeListings.map((o) => {
-                  const isOwner = !!walletAddress && !!o.offerer &&
-                    normalizeAddress("STARKNET", o.offerer) === normalizeAddress("STARKNET", walletAddress);
-                  return <ListingCard key={o.orderHash} order={o} isOwner={isOwner} onBuy={isOwner ? undefined : handleBuy} />;
-                })}
-              </div>
-            )}
+          <TabsContent value="market" className="mt-4">
+            <Tabs value={marketSubTab} onValueChange={(v) => setMarketSubTab(v as "listings" | "offers")}>
+              <TabsList className="h-9">
+                <TabsTrigger value="listings" className="text-xs px-3 py-1">
+                  Listings{!ordersLoading && activeListings.length > 0 && ` (${activeListings.length})`}
+                </TabsTrigger>
+                <TabsTrigger value="offers" className="text-xs px-3 py-1">
+                  Offers{!ordersLoading && activeBids.length > 0 && ` (${activeBids.length})`}
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="listings" className="mt-4">
+                {ordersLoading ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
+                    {Array.from({ length: 8 }).map((_, i) => <ListingCardSkeleton key={i} />)}
+                  </div>
+                ) : activeListings.length === 0 ? (
+                  <EmptyState
+                    title="No active listings"
+                    body="When items in this collection are listed for sale, they'll appear here."
+                  />
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex justify-end">
+                      <OrderSortControl value={listingsSort} onChange={setListingsSort} />
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
+                      {sortOrders(activeListings, listingsSort).map((o) => {
+                        const isOwner = !!walletAddress && !!o.offerer &&
+                          normalizeAddress("STARKNET", o.offerer) === normalizeAddress("STARKNET", walletAddress);
+                        return <ListingCard key={o.orderHash} order={o} isOwner={isOwner} onBuy={isOwner ? undefined : handleBuy} />;
+                      })}
+                    </div>
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="offers" className="mt-4">
+                <div className="flex justify-between items-center mb-3">
+                  <div />
+                  <div className="flex items-center gap-2">
+                    {!ordersLoading && activeBids.length > 0 && (
+                      <OrderSortControl value={offersSort} onChange={setOffersSort} />
+                    )}
+                    <MakeOfferPicker contract={contract} />
+                  </div>
+                </div>
+                {ordersLoading ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
+                    {Array.from({ length: 8 }).map((_, i) => <ListingCardSkeleton key={i} />)}
+                  </div>
+                ) : activeBids.length === 0 ? (
+                  <EmptyState
+                    title="No active offers"
+                    body="Make the first offer, or check back when collectors start bidding."
+                  />
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
+                    {sortOrders(activeBids, offersSort).map((o) => {
+                      const isOwner = !!walletAddress && !!o.offerer &&
+                        normalizeAddress("STARKNET", o.offerer) === normalizeAddress("STARKNET", walletAddress);
+                      return <ListingCard key={o.orderHash} order={o} isOwner={isOwner} />;
+                    })}
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
-          <TabsContent value="offers" className="mt-4">
-            {ordersLoading ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
-                {Array.from({ length: 8 }).map((_, i) => <ListingCardSkeleton key={i} />)}
-              </div>
-            ) : activeBids.length === 0 ? (
-              <EmptyState
-                title="No active offers"
-                body="Collection-wide offers will appear here when placed."
-              />
+          <TabsContent value="provenance" className="mt-4">
+            {collection?.standard && (collection.totalSupply ?? 0) > 1 ? (
+              <Tabs value={provenanceSubTab} onValueChange={(v) => setProvenanceSubTab(v as "activity" | "traits")}>
+                <TabsList className="h-9">
+                  <TabsTrigger value="activity" className="text-xs px-3 py-1">Activity</TabsTrigger>
+                  <TabsTrigger value="traits" className="text-xs px-3 py-1">Traits</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="activity" className="mt-4">
+                  <CollectionActivityTab contract={contract} />
+                </TabsContent>
+
+                <TabsContent value="traits" className="mt-4">
+                  <CollectionTraitsTab contract={contract} />
+                </TabsContent>
+              </Tabs>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
-                {activeBids.map((o) => {
-                  const isOwner = !!walletAddress && !!o.offerer &&
-                    normalizeAddress("STARKNET", o.offerer) === normalizeAddress("STARKNET", walletAddress);
-                  return <ListingCard key={o.orderHash} order={o} isOwner={isOwner} />;
-                })}
-              </div>
+              <CollectionActivityTab contract={contract} />
             )}
           </TabsContent>
 
           {profile?.hasGatedContent && (
             <TabsContent value="exclusive" className="mt-4">
-              <GatedContentPanel state={gatedState} contract={contract} />
+              <GatedContentPanel
+                state={gatedState}
+                contract={contract}
+                onBrowseListings={() => { setMarketSubTab("listings"); setActiveTab("market"); }}
+              />
             </TabsContent>
           )}
         </Tabs>
@@ -623,7 +667,15 @@ const CONTENT_TYPE_CONFIG: Record<string, { icon: React.ReactNode; cta: string }
   LINK:     { icon: <Link2 className="h-5 w-5" />,    cta: "Access content" },
 };
 
-function GatedContentPanel({ state, contract }: { state: GatedContentState; contract: string }) {
+function GatedContentPanel({
+  state,
+  contract,
+  onBrowseListings,
+}: {
+  state: GatedContentState;
+  contract: string;
+  onBrowseListings: () => void;
+}) {
   if (state.status === "not_signed_in") {
     return (
       <div className="py-16 flex flex-col items-center gap-4 text-center max-w-sm mx-auto">
@@ -667,8 +719,8 @@ function GatedContentPanel({ state, contract }: { state: GatedContentState; cont
         </div>
         <div className="flex flex-col items-center gap-2">
           <a
-            href="#listings"
-            onClick={(e) => { e.preventDefault(); document.querySelector('[data-value="listings"]')?.dispatchEvent(new MouseEvent("click", { bubbles: true })); }}
+            href="#market"
+            onClick={(e) => { e.preventDefault(); onBrowseListings(); }}
             className="inline-flex items-center gap-2 bg-foreground text-background hover:opacity-90 font-semibold px-5 py-2.5 rounded-xl transition-all text-sm"
           >
             <ShoppingBag className="h-4 w-4" />
