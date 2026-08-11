@@ -36,11 +36,11 @@
     --sidebar-ring: 221 83% 53%;
 
     /* Medialane brand tokens — additive alongside shadcn defaults */
-    --brand-blue: 221 83% 53%;
-    --brand-navy: 224 87% 20%;
-    --brand-rose: 350 89% 60%;
-    --brand-purple: 271 81% 56%;
-    --brand-orange: 21 90% 44%;
+    --brand-blue: 220 100% 62%;
+    --brand-navy: 229 51% 8%;
+    --brand-rose: 341 89% 67%;
+    --brand-purple: 258 90% 66%;
+    --brand-orange: 23 96% 63%;
   }
 
   .dark {
@@ -75,11 +75,11 @@
     --sidebar-ring: 271 60% 65%;
 
     /* Medialane brand tokens */
-    --brand-blue: 221 83% 53%;
-    --brand-navy: 224 87% 20%;
-    --brand-rose: 350 89% 60%;
-    --brand-purple: 271 81% 56%;
-    --brand-orange: 21 90% 44%;
+    --brand-blue: 220 100% 62%;
+    --brand-navy: 229 51% 8%;
+    --brand-rose: 341 89% 67%;
+    --brand-purple: 258 90% 66%;
+    --brand-orange: 23 96% 63%;
   }
 }
 
