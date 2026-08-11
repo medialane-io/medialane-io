@@ -11,7 +11,6 @@ import { LeaderboardPanel } from "@/components/rewards/leaderboard-panel";
 import type { ApiRewardsBadge } from "@medialane/sdk";
 import {
   LevelBadge,
-  XpProgress,
   LevelUpCelebration,
   BadgeUnlockToastContent,
   useRewardsCelebrations,
@@ -42,7 +41,6 @@ import {
   HandCoins,
   Flame,
   Zap,
-  Sparkles,
 } from "lucide-react";
 
 const ACTION_LABELS: Record<string, string> = {
@@ -137,20 +135,20 @@ function Hero() {
   );
 }
 
-// ── My score — a real editorial stat, not a boxed tile ──────────────────────────
+// ── My score — one single panel, subtle gradient, top-right of the hero ────────
 
-function StatusRow({ address }: { address: string | null | undefined }) {
+function StatusPanel({ address }: { address: string | null | undefined }) {
   const { data: rewards, isLoading } = useRewards(address);
   const { data: config } = useRewardsConfig();
 
   if (!address) {
     return (
-      <div className="flex flex-wrap items-center gap-4">
-        <p className="text-base text-foreground/70 font-medium">Secure your account to see your score.</p>
+      <div className="shrink-0 rounded-3xl bg-gradient-to-br from-brand-rose/10 via-brand-orange/[0.06] to-transparent p-6 space-y-3 sm:max-w-xs">
+        <p className="text-sm text-foreground/70 font-medium">Secure your account to see your score.</p>
         <Button
           size="lg"
           asChild
-          className="bg-brand-rose hover:bg-brand-rose/90 text-white font-bold rounded-full px-7"
+          className="bg-brand-rose hover:bg-brand-rose/90 text-white font-bold rounded-full px-7 w-full"
         >
           <Link href="/connect?redirect_url=/rewards">Set up account</Link>
         </Button>
@@ -159,7 +157,7 @@ function StatusRow({ address }: { address: string | null | undefined }) {
   }
 
   if (isLoading || !rewards || !config) {
-    return <Skeleton className="h-24 w-full max-w-lg rounded-2xl" />;
+    return <Skeleton className="h-40 w-full sm:w-80 rounded-3xl shrink-0" />;
   }
 
   const levelXp = config.levels.find((l) => l.level === rewards.currentLevel)?.xpRequired ?? 0;
@@ -168,32 +166,31 @@ function StatusRow({ address }: { address: string | null | undefined }) {
   const pct = nextLevelXp ? Math.min(100, Math.round(((rewards.totalXp - levelXp) / (nextLevelXp - levelXp)) * 100)) : 100;
 
   return (
-    <div className="flex flex-wrap items-end gap-x-10 gap-y-4">
-      <div>
-        <p className="text-7xl sm:text-8xl font-black tabular-nums leading-none tracking-tight">
-          {rewards.totalXp.toLocaleString()}
-        </p>
-        <p className="text-sm font-bold uppercase tracking-widest text-foreground/40 mt-2">XP earned</p>
+    <div className="shrink-0 rounded-3xl bg-gradient-to-br from-brand-rose/10 via-brand-orange/[0.06] to-transparent p-6 sm:min-w-[300px]">
+      <p className="text-6xl font-black tabular-nums leading-none tracking-tight">
+        {rewards.totalXp.toLocaleString()}
+      </p>
+      <p className="text-xs font-bold uppercase tracking-widest text-foreground/40 mt-1.5">XP earned</p>
+
+      <div className="mt-4 flex items-center gap-2">
+        <LevelBadge level={rewards.currentLevel} name={rewards.currentLevelName} badgeColor={rewards.badgeColor} size="md" />
       </div>
-      <div className="flex-1 min-w-[220px] space-y-2 pb-2">
-        <div className="flex items-center gap-2">
-          <LevelBadge level={rewards.currentLevel} name={rewards.currentLevelName} badgeColor={rewards.badgeColor} size="lg" />
-          {!hasXp && <span className="text-sm text-foreground/60 font-medium">Mint, collect, or complete your profile to start.</span>}
+      {!hasXp && (
+        <p className="text-sm text-foreground/60 font-medium mt-2">Mint, collect, or complete your profile to start.</p>
+      )}
+      {rewards.nextLevel && (
+        <div className="mt-3 space-y-1.5">
+          <div className="h-2 w-full rounded-full bg-foreground/[0.08] overflow-hidden">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-brand-rose to-brand-orange transition-[width]"
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+          <p className="text-sm font-semibold text-foreground/60">
+            {(nextLevelXp! - rewards.totalXp).toLocaleString()} XP to {rewards.nextLevel.name}
+          </p>
         </div>
-        {rewards.nextLevel && (
-          <>
-            <div className="h-2.5 w-full max-w-sm rounded-full bg-foreground/[0.08] overflow-hidden">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-brand-rose to-brand-orange transition-[width]"
-                style={{ width: `${pct}%` }}
-              />
-            </div>
-            <p className="text-sm font-semibold text-foreground/60">
-              {(nextLevelXp! - rewards.totalXp).toLocaleString()} XP to {rewards.nextLevel.name}
-            </p>
-          </>
-        )}
-      </div>
+      )}
     </div>
   );
 }
@@ -289,11 +286,6 @@ function CreatorsFundCard() {
       <div className="pointer-events-none absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-black/10 blur-3xl" />
 
       <div className="relative space-y-6">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-black uppercase tracking-wide">
-          <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
-          Live
-        </span>
-
         <h2 className="text-3xl font-black tracking-tight leading-none">
           Creator&apos;s Fund
         </h2>
@@ -368,7 +360,7 @@ function BadgesPanel({ address }: { address: string | null | undefined }) {
               key={badge.key}
               title={badge.description}
               className={`flex flex-col items-center gap-1.5 rounded-2xl p-3 text-center transition-colors ${
-                isEarned ? "bg-brand-rose text-white" : "bg-foreground/[0.04] text-foreground/40"
+                isEarned ? "bg-brand-blue text-white" : "bg-foreground/[0.04] text-foreground/40"
               }`}
             >
               <Icon className="h-5 w-5" />
@@ -412,19 +404,22 @@ export function RewardsDashboard() {
           onDismiss={dismiss}
         />
       )}
-      <Hero />
-      <StatusRow address={address} />
+
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-8">
+        <Hero />
+        <StatusPanel address={address} />
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-14 items-start">
-        {/* Left — the features: how to earn, who's already earning, your own history */}
+        {/* Left — real members already earning + your own history */}
         <div className="lg:col-span-7 space-y-14">
-          <EarnMorePanel />
           <CommunityPanel address={address} />
           <PersonalPanel address={address} />
         </div>
 
-        {/* Right — the fund + what's achievable */}
+        {/* Right — how to earn, the fund, what's achievable */}
         <div className="lg:col-span-5 space-y-10">
+          <EarnMorePanel />
           <CreatorsFundCard />
           <BadgesPanel address={address} />
         </div>
