@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useCreatorProfile } from "@/hooks/use-profiles";
 import { AddressDisplay } from "@/components/shared/address-display";
-import { CreatorScoreInline } from "@/components/rewards/creator-score-inline";
 
 export function CreatorChip({ address }: { address: string }) {
   const { profile } = useCreatorProfile(address);
@@ -20,7 +19,6 @@ export function CreatorChip({ address }: { address: string }) {
       ) : (
         <AddressDisplay address={address} chars={6} showCopy={false} className="font-semibold text-foreground" />
       )}
-      <CreatorScoreInline address={address} size="sm" />
     </Link>
   );
 }
