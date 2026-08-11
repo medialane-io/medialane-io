@@ -152,14 +152,21 @@ function CollectionItems({ contract, activeListings }: { contract: string; activ
 
   return (
     <>
-      <div className="space-y-4">
-        <CollectionFilters
-          tokens={allTokens}
-          selected={selectedFilters}
-          onChange={setSelectedFilters}
-          sort={sort}
-          onSortChange={handleSortChange}
-        />
+      <div className="space-y-3">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-xs text-muted-foreground">
+            {filteredTokens.length !== allTokens.length
+              ? `${filteredTokens.length} of ${meta?.total?.toLocaleString() ?? allTokens.length} items`
+              : `${meta?.total?.toLocaleString() ?? allTokens.length} item${allTokens.length === 1 ? "" : "s"}`}
+          </p>
+          <CollectionFilters
+            tokens={allTokens}
+            selected={selectedFilters}
+            onChange={setSelectedFilters}
+            sort={sort}
+            onSortChange={handleSortChange}
+          />
+        </div>
         {filteredTokens.length === 0 && Object.keys(selectedFilters).length > 0 ? (
           <EmptyState
             title="No items match these filters"
@@ -337,78 +344,35 @@ export default function CollectionPageClient() {
       {/* ── Meta section — flat layout (no boxed panel, no extra padding); identity
           on the left, a lightweight right-aligned utility cluster fills the width ── */}
       {!colLoading && collection && (
-        <div className="px-4 sm:px-6 pt-5 pb-2">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between lg:gap-8">
-            {/* Left — description, creator, service action (badges moved into the hero eyebrow) */}
-            <div className="space-y-3 min-w-0 lg:max-w-2xl">
-              {collection.description && (
-                <>
-                  <p
-                    ref={descRef}
-                    className={cn(
-                      "text-sm text-muted-foreground leading-relaxed",
-                      descClamped && !descExpanded && "line-clamp-3"
-                    )}
-                  >
-                    {collection.description}
-                  </p>
-                  {descOverflows && (
-                    <button
-                      onClick={() => setDescExpanded((e) => !e)}
-                      className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
-                    >
-                      {descExpanded ? "Show less" : "Show more"}
-                    </button>
-                  )}
-                </>
+        <div className="px-4 sm:px-6 pt-4 pb-2 space-y-3">
+          {collection.description && (
+            <div className="lg:max-w-2xl">
+              <p
+                ref={descRef}
+                className={cn(
+                  "text-sm text-muted-foreground leading-relaxed",
+                  descClamped && !descExpanded && "line-clamp-3"
+                )}
+              >
+                {collection.description}
+              </p>
+              {descOverflows && (
+                <button
+                  onClick={() => setDescExpanded((e) => !e)}
+                  className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
+                >
+                  {descExpanded ? "Show less" : "Show more"}
+                </button>
               )}
-
-              {/* Service action slot (POP claim, Drop mint, etc.) */}
-              <CollectionServiceAction
-                service={collection.service}
-                contractAddress={collection.contractAddress}
-              />
             </div>
+          )}
 
-            {/* Right — flat utility cluster (no panel/chrome); owner actions,
-                creator chip, contract, share & report, right-aligned on desktop */}
-            <div className="flex flex-col gap-3 shrink-0 w-full lg:w-auto lg:items-end">
-              {walletAddress && collection.owner && normalizeAddress("STARKNET", collection.owner) === normalizeAddress("STARKNET", walletAddress) && (
-                <div className="flex items-center gap-2">
-                  {getService(collection.service)?.id === "ip-tickets" && (
-                    <TicketOwnerActions
-                      contractAddress={collection.contractAddress}
-                      owner={collection.owner}
-                    />
-                  )}
-                  {getService(collection.service)?.id === "ip-club" && (
-                    <ClubOwnerActions
-                      contractAddress={collection.contractAddress}
-                      owner={collection.owner}
-                    />
-                  )}
-                  {collection.standard === "ERC1155" && getService(collection.service)?.id === "mip-erc1155" && (
-                    <Link
-                      href={`/launchpad/nfteditions/${contract}/mint`}
-                      className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold text-white bg-brand-purple hover:brightness-110 active:scale-[0.98] transition"
-                    >
-                      <Sparkles className="h-3.5 w-3.5" />
-                      Mint editions
-                    </Link>
-                  )}
-                  <Link
-                    href={`/portfolio/collections/${contract}/settings`}
-                    className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold border border-border hover:bg-muted active:scale-[0.98] transition text-muted-foreground hover:text-foreground"
-                  >
-                    <Settings className="h-3.5 w-3.5" />
-                    Settings
-                  </Link>
-                </div>
-              )}
-
-              {/* Creator smart chip — address route (/creator/[slug] is username-only) */}
+          {/* Identity row — creator chip + contract/share/report together, one line
+              (wraps on mobile instead of stacking as separate rows) */}
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+            <div className="flex flex-wrap items-center gap-3 min-w-0">
               {collection.owner && <CreatorChip address={collection.owner} />}
-
+              <span className="hidden sm:inline text-muted-foreground/25">·</span>
               <div className="flex items-center gap-2">
                 <AddressDisplay
                   address={collection.contractAddress ?? ""}
@@ -425,7 +389,46 @@ export default function CollectionPageClient() {
                 </button>
               </div>
             </div>
+
+            {walletAddress && collection.owner && normalizeAddress("STARKNET", collection.owner) === normalizeAddress("STARKNET", walletAddress) && (
+              <div className="flex items-center gap-2">
+                {getService(collection.service)?.id === "ip-tickets" && (
+                  <TicketOwnerActions
+                    contractAddress={collection.contractAddress}
+                    owner={collection.owner}
+                  />
+                )}
+                {getService(collection.service)?.id === "ip-club" && (
+                  <ClubOwnerActions
+                    contractAddress={collection.contractAddress}
+                    owner={collection.owner}
+                  />
+                )}
+                {collection.standard === "ERC1155" && getService(collection.service)?.id === "mip-erc1155" && (
+                  <Link
+                    href={`/launchpad/nfteditions/${contract}/mint`}
+                    className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold text-white bg-brand-purple hover:brightness-110 active:scale-[0.98] transition"
+                  >
+                    <Sparkles className="h-3.5 w-3.5" />
+                    Mint editions
+                  </Link>
+                )}
+                <Link
+                  href={`/portfolio/collections/${contract}/settings`}
+                  className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold border border-border hover:bg-muted active:scale-[0.98] transition text-muted-foreground hover:text-foreground"
+                >
+                  <Settings className="h-3.5 w-3.5" />
+                  Settings
+                </Link>
+              </div>
+            )}
           </div>
+
+          {/* Service action slot (POP claim, Drop mint, etc.) */}
+          <CollectionServiceAction
+            service={collection.service}
+            contractAddress={collection.contractAddress}
+          />
 
           <ReportDialog
             target={{
