@@ -60,7 +60,7 @@ export function AssetProvenanceTab({
     <div className="mt-4 space-y-6">
 
       {/* Onchain attestation badge */}
-      <div className="flex items-center gap-2 rounded-lg bg-primary/5 border border-primary/20 px-4 py-2.5">
+      <div className="flex items-center gap-2 rounded-lg bg-primary/5 px-4 py-2.5">
         <Fingerprint className="h-4 w-4 text-primary shrink-0" />
         <div className="min-w-0">
           <p className="text-xs font-semibold text-primary">Onchain Provenance</p>
@@ -83,17 +83,17 @@ export function AssetProvenanceTab({
       {/* Stats grid */}
       {history.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="rounded-xl border border-border bg-muted/20 p-3 text-center">
+          <div className="rounded-xl bg-muted/20 p-3 text-center">
             <Activity className="h-4 w-4 text-muted-foreground mx-auto mb-1" />
             <p className="text-lg font-bold">{history.length}</p>
             <p className="text-[10px] text-muted-foreground">Events</p>
           </div>
-          <div className="rounded-xl border border-border bg-muted/20 p-3 text-center">
+          <div className="rounded-xl bg-muted/20 p-3 text-center">
             <ShoppingCart className="h-4 w-4 text-muted-foreground mx-auto mb-1" />
             <p className="text-lg font-bold">{sales.length}</p>
             <p className="text-[10px] text-muted-foreground">Sales</p>
           </div>
-          <div className="rounded-xl border border-border bg-muted/20 p-3 text-center">
+          <div className="rounded-xl bg-muted/20 p-3 text-center">
             <TrendingUp className="h-4 w-4 text-muted-foreground mx-auto mb-1" />
             {volumeSummary.length > 0 ? (
               <div className="space-y-0.5">
@@ -108,7 +108,7 @@ export function AssetProvenanceTab({
             )}
             <p className="text-[10px] text-muted-foreground">Volume</p>
           </div>
-          <div className="rounded-xl border border-border bg-muted/20 p-3 text-center">
+          <div className="rounded-xl bg-muted/20 p-3 text-center">
             <UserCheck className="h-4 w-4 text-muted-foreground mx-auto mb-1" />
             <p className="text-lg font-bold">{allActors.size}</p>
             <p className="text-[10px] text-muted-foreground">Participants</p>
@@ -139,7 +139,7 @@ export function AssetProvenanceTab({
         </p>
 
         {history.length === 0 ? (
-          <div className="rounded-xl border border-border bg-muted/10 py-12 flex flex-col items-center gap-3 text-center">
+          <div className="rounded-xl bg-muted/10 py-12 flex flex-col items-center gap-3 text-center">
             <Activity className="h-8 w-8 text-muted-foreground/30" />
             <p className="text-sm text-muted-foreground">No activity recorded yet.</p>
           </div>
@@ -175,7 +175,7 @@ export function AssetProvenanceTab({
 
                     {/* Row content */}
                     <div
-                      className={`flex-1 min-w-0 rounded-xl border border-border/60 bg-card/40 px-3 py-2.5 transition-colors group-hover:border-border group-hover:bg-card/60 ${txLink ? "cursor-pointer" : ""}`}
+                      className={`flex-1 min-w-0 rounded-xl bg-card/40 px-3 py-2.5 transition-colors group-hover:bg-card/60 ${txLink ? "cursor-pointer" : ""}`}
                       onClick={() => txLink && window.open(txLink, "_blank", "noopener,noreferrer")}
                     >
                       <div className="flex items-start justify-between gap-3">

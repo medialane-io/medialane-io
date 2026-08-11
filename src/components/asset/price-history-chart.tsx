@@ -52,15 +52,11 @@ export function PriceHistoryChart({ history }: PriceHistoryChartProps) {
   }, [history]);
 
   if (!chartData) {
-    return (
-      <p className="text-sm text-muted-foreground py-4 text-center">
-        Not enough sales data to show price history.
-      </p>
-    );
+    return null;
   }
 
   return (
-    <div className="rounded-xl border border-border bg-card/50 p-4 space-y-2">
+    <div className="rounded-xl bg-card/50 p-4 space-y-2">
       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
         Price history · {chartData.currency}
       </p>

@@ -25,7 +25,7 @@ export function CreationRecord({ originalCreator, registeredAt }: CreationRecord
   });
 
   return (
-    <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
+    <div className="rounded-lg bg-amber-500/5 p-4">
       <div className="flex items-center gap-2 mb-3">
         <Award className="h-4 w-4 text-amber-500" />
         <p className="text-sm font-semibold text-amber-500">Creation Record</p>
