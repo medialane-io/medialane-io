@@ -27,8 +27,8 @@ function CreatorIdentity({ address }: { address: string }) {
   const name = profile?.displayName || profile?.username;
 
   return (
-    <span className="inline-flex min-w-0 items-center gap-2">
-      <span className="relative h-6 w-6 shrink-0 overflow-hidden rounded-full bg-foreground/[0.06]">
+    <span className="inline-flex min-w-0 items-center gap-2.5">
+      <span className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full bg-foreground/[0.08]">
         <Image
           src={avatarUrl ?? "/icon.png"}
           alt=""
@@ -38,9 +38,9 @@ function CreatorIdentity({ address }: { address: string }) {
         />
       </span>
       {name ? (
-        <span className="truncate text-xs font-medium">{name}</span>
+        <span className="truncate text-base font-bold">{name}</span>
       ) : (
-        <AddressDisplay address={address} chars={4} showCopy={false} className="text-xs font-medium" />
+        <AddressDisplay address={address} chars={4} showCopy={false} className="text-base font-bold" />
       )}
     </span>
   );
