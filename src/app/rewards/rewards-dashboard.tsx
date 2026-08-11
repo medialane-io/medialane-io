@@ -1,7 +1,6 @@
 "use client";
 
-import type { ElementType } from "react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -11,19 +10,15 @@ import { useRewards, useRewardsConfig, useRewardsEvents } from "@/hooks/use-rewa
 import { LeaderboardPanel } from "@/components/rewards/leaderboard-panel";
 import type { ApiRewardsBadge } from "@medialane/sdk";
 import {
-  ScoreSummaryCard,
+  LevelBadge,
   XpProgress,
-  LevelLadder,
-  JourneyPath,
   LevelUpCelebration,
   BadgeUnlockToastContent,
   useRewardsCelebrations,
-  type JourneyStep,
 } from "@medialane/ui";
 import {
   Gift,
   ExternalLink,
-  Zap,
   Palette,
   Layers,
   Tag,
@@ -46,6 +41,7 @@ import {
   Award,
   HandCoins,
   Flame,
+  Zap,
   Sparkles,
 } from "lucide-react";
 
@@ -81,25 +77,48 @@ const BADGE_ICONS: Record<string, LucideIcon> = {
   Handshake,
 };
 
-// ── Journey paths ────────────────────────────────────────────────────────────
+// ── Ways to earn — the actual feature catalog, not a personal checklist ────────
 
-const CREATOR_JOURNEY: JourneyStep[] = [
-  { actionType: "complete_profile", label: "Complete your profile", href: "/settings", icon: UserRoundCheck },
-  { actionType: "mint_asset", label: "Mint an asset", href: "/launchpad/single-editions", icon: Palette },
-  { actionType: "create_collection", label: "Create a collection", href: "/launchpad/single-editions/collection", icon: Layers },
-  { actionType: "list_asset", label: "List an asset for sale", href: "/portfolio/assets", icon: Tag },
-  { actionType: "offer_accepted_seller", label: "Get your first sale", href: "/portfolio/assets", icon: HandCoins },
-  { actionType: "launch_launchpad", label: "Launch a drop or POP", href: "/launchpad", icon: Rocket },
-  { actionType: "launch_coin", label: "Launch a creator coin", href: "/launchpad/coin/create", icon: Coins },
-];
-
-const COLLECTOR_JOURNEY: JourneyStep[] = [
-  { actionType: "complete_profile", label: "Complete your profile", href: "/settings", icon: UserRoundCheck },
-  { actionType: "buy_asset", label: "Collect an asset", href: "/marketplace", icon: ShoppingBag },
-  { actionType: "make_offer", label: "Make an offer", href: "/marketplace", icon: Handshake },
-  { actionType: "join_club", label: "Join a club", href: "/launchpad", icon: UserRoundCheck },
-  { actionType: "buy_ticket", label: "Get an event ticket", href: "/launchpad", icon: Ticket },
-  { actionType: "comment", label: "Join the conversation", href: "/marketplace", icon: MessageSquare },
+const EARN_GROUPS: {
+  title: string;
+  colorClass: string;
+  bgClass: string;
+  items: { label: string; href: string; Icon: LucideIcon }[];
+}[] = [
+  {
+    title: "Create",
+    colorClass: "text-brand-purple",
+    bgClass: "bg-brand-purple/10 hover:bg-brand-purple/15 text-brand-purple",
+    items: [
+      { label: "Create a collection", href: "/launchpad/single-editions/collection", Icon: Layers },
+      { label: "Mint an asset", href: "/launchpad/single-editions", Icon: Palette },
+      { label: "Launch a drop or POP", href: "/launchpad", Icon: Rocket },
+      { label: "Launch a creator coin", href: "/launchpad/coin/create", Icon: Coins },
+      { label: "Remix existing work", href: "/marketplace", Icon: GitBranch },
+    ],
+  },
+  {
+    title: "Collect",
+    colorClass: "text-brand-blue",
+    bgClass: "bg-brand-blue/10 hover:bg-brand-blue/15 text-brand-blue",
+    items: [
+      { label: "Collect an asset", href: "/marketplace", Icon: ShoppingBag },
+      { label: "Make an offer", href: "/marketplace", Icon: Handshake },
+      { label: "List an asset for sale", href: "/portfolio/assets", Icon: Tag },
+      { label: "Get an event ticket", href: "/launchpad", Icon: Ticket },
+    ],
+  },
+  {
+    title: "Connect",
+    colorClass: "text-brand-rose",
+    bgClass: "bg-brand-rose/10 hover:bg-brand-rose/15 text-brand-rose",
+    items: [
+      { label: "Start or join a club", href: "/launchpad", Icon: UserRoundCheck },
+      { label: "Open a sponsorship", href: "/launchpad", Icon: Handshake },
+      { label: "Join the conversation", href: "/marketplace", Icon: MessageSquare },
+      { label: "Complete your profile", href: "/settings", Icon: UserRoundCheck },
+    ],
+  },
 ];
 
 // ── Hero ──────────────────────────────────────────────────────────────────────
@@ -121,7 +140,7 @@ function Hero() {
   );
 }
 
-// ── My score ──────────────────────────────────────────────────────────────────
+// ── My score — one plain, friendly line, not a stat wall ───────────────────────
 
 function StatusRow({ address }: { address: string | null | undefined }) {
   const { data: rewards, isLoading } = useRewards(address);
@@ -145,56 +164,46 @@ function StatusRow({ address }: { address: string | null | undefined }) {
   }
 
   if (isLoading || !rewards || !config) {
-    return (
-      <div className="flex gap-3">
-        <Skeleton className="h-14 w-36 rounded-xl" />
-        <Skeleton className="h-14 w-36 rounded-xl" />
-        <Skeleton className="h-14 w-48 rounded-xl" />
-      </div>
-    );
+    return <Skeleton className="h-20 w-full rounded-xl" />;
   }
 
   const levelXp = config.levels.find((l) => l.level === rewards.currentLevel)?.xpRequired ?? 0;
+  const nextLevelXp = rewards.nextLevel?.xpRequired ?? null;
+  const hasXp = rewards.totalXp > 0;
 
   return (
-    <div className="flex items-center gap-5">
-      <XpProgress
-        totalXp={rewards.totalXp}
-        levelXp={levelXp}
-        nextLevelXp={rewards.nextLevel?.xpRequired ?? null}
-        badgeColor={rewards.badgeColor}
-        variant="ring"
-        size={72}
-      />
-      <ScoreSummaryCard
-        level={rewards.currentLevel}
-        levelName={rewards.currentLevelName}
-        badgeColor={rewards.badgeColor}
-        totalXp={rewards.totalXp}
-        levelXp={levelXp}
-        nextLevel={rewards.nextLevel}
-        topBadges={rewards.badges.slice(0, 4)}
-        className="flex-1"
-      />
+    <div className="rounded-xl border border-border/40 bg-card px-5 py-4 space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <LevelBadge level={rewards.currentLevel} name={rewards.currentLevelName} badgeColor={rewards.badgeColor} size="md" />
+          <p className="text-sm text-muted-foreground">
+            {hasXp ? "Earning steadily — keep going." : "You haven't earned XP yet — mint, collect, or complete your profile to start."}
+          </p>
+        </div>
+        <span className="text-2xl font-black tabular-nums shrink-0">
+          {rewards.totalXp.toLocaleString()}
+          <span className="ml-1 text-xs font-normal text-muted-foreground">XP</span>
+        </span>
+      </div>
+      {rewards.nextLevel && (
+        <div className="space-y-1.5">
+          <XpProgress
+            totalXp={rewards.totalXp}
+            levelXp={levelXp}
+            nextLevelXp={nextLevelXp}
+            badgeColor={rewards.badgeColor}
+            variant="bar"
+          />
+          <p className="text-xs text-muted-foreground">
+            {(nextLevelXp! - rewards.totalXp).toLocaleString()} XP to {rewards.nextLevel.name}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
 
-// ── Your journey (level ladder) ────────────────────────────────────────────────
-
-function JourneyLadder({ address }: { address: string | null | undefined }) {
-  const { data: rewards } = useRewards(address);
-  const { data: config } = useRewardsConfig();
-  if (!address || !rewards || !config) return null;
-  return (
-    <section className="space-y-3">
-      <SectionLabel>Your journey</SectionLabel>
-      <LevelLadder levels={config.levels} currentLevel={rewards.currentLevel} />
-    </section>
-  );
-}
-
-// ── Personal breakdown ────────────────────────────────────────────────────────
+// ── Personal breakdown — only ever shows when there's something real to show ───
 
 function PersonalPanel({ address }: { address: string | null | undefined }) {
   const { data: rewards } = useRewards(address);
@@ -233,6 +242,47 @@ function PersonalPanel({ address }: { address: string | null | undefined }) {
   );
 }
 
+// ── Community ─────────────────────────────────────────────────────────────────
+
+function CommunityPanel({ address }: { address: string | null | undefined }) {
+  return (
+    <section className="space-y-4">
+      <div>
+        <SectionLabel>Community</SectionLabel>
+        <p className="text-sm text-muted-foreground mt-1.5">Real members already earning XP.</p>
+      </div>
+      <LeaderboardPanel myAddress={address} showHeading={false} limit={12} />
+    </section>
+  );
+}
+
+// ── Ways to earn ──────────────────────────────────────────────────────────────
+
+function EarnMorePanel() {
+  return (
+    <section className="space-y-4">
+      <SectionLabel>Ways to earn</SectionLabel>
+      {EARN_GROUPS.map((group) => (
+        <div key={group.title} className="space-y-2">
+          <p className={`text-xs font-bold ${group.colorClass}`}>{group.title}</p>
+          <div className="flex flex-wrap gap-1.5">
+            {group.items.map(({ label, href, Icon }) => (
+              <Link
+                key={href + label}
+                href={href}
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${group.bgClass}`}
+              >
+                <Icon className="h-3.5 w-3.5" />
+                {label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      ))}
+    </section>
+  );
+}
+
 // ── Creator's Fund card ───────────────────────────────────────────────────────
 
 function CreatorsFundCard() {
@@ -253,19 +303,28 @@ function CreatorsFundCard() {
         </div>
 
         <h2 className="relative text-xl font-black tracking-tight leading-tight">
-          Creator&apos;s{" "}
-          <span className="bg-gradient-to-r from-brand-rose to-brand-orange bg-clip-text text-transparent">Fund</span>
+          Creator&apos;s <span className="text-brand-orange">Fund</span>
         </h2>
 
         <p className="relative text-sm text-muted-foreground leading-relaxed">
-          Every $1,000 the community brings to Medialane, we send back out —
-          split between everyone creating, collecting, and taking part.
+          Every dollar Medialane earns gets shared back with the people building here.
         </p>
+
+        <div className="relative grid grid-cols-2 gap-3">
+          <div className="rounded-xl border border-border/40 bg-background/40 p-3">
+            <p className="text-lg font-black text-brand-blue">$1,000</p>
+            <p className="text-xs text-muted-foreground leading-snug mt-0.5">= one full distribution, split by XP</p>
+          </div>
+          <div className="rounded-xl border border-border/40 bg-background/40 p-3">
+            <p className="text-lg font-black text-brand-purple">Your XP</p>
+            <p className="text-xs text-muted-foreground leading-snug mt-0.5">= your cut of every round, forever</p>
+          </div>
+        </div>
 
         <div className="relative flex flex-col gap-2 pt-1">
           <Link
             href="/airdrop"
-            className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-brand-rose to-brand-orange hover:opacity-90 transition-opacity shadow-lg shadow-brand-rose/20"
+            className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white bg-brand-rose hover:brightness-110 transition-all"
           >
             <Gift className="h-4 w-4" />
             How the fund works
@@ -307,7 +366,7 @@ function BadgesPanel({ address }: { address: string | null | undefined }) {
 
   return (
     <section className="space-y-3">
-      <SectionLabel>Badges</SectionLabel>
+      <SectionLabel>Badges to earn</SectionLabel>
       <div className="flex flex-wrap gap-1.5">
         {config.badges.map((badge: ApiRewardsBadge) => {
           const isEarned = earnedKeys.has(badge.key);
@@ -318,7 +377,7 @@ function BadgesPanel({ address }: { address: string | null | undefined }) {
               title={badge.description}
               className={
                 isEarned
-                  ? "inline-flex items-center gap-1.5 rounded-full border border-brand-rose/30 bg-gradient-to-r from-brand-rose/15 to-brand-orange/10 px-3 py-1.5 text-xs font-semibold text-foreground"
+                  ? "inline-flex items-center gap-1.5 rounded-full border border-brand-rose/30 bg-brand-rose/10 px-3 py-1.5 text-xs font-semibold text-foreground"
                   : "inline-flex items-center gap-1.5 rounded-full border border-border/50 px-3 py-1.5 text-xs font-medium text-muted-foreground/60"
               }
             >
@@ -328,40 +387,6 @@ function BadgesPanel({ address }: { address: string | null | undefined }) {
           );
         })}
       </div>
-    </section>
-  );
-}
-
-// ── Your journey to earn ─────────────────────────────────────────────────────
-
-function JourneyPanel({ address }: { address: string | null | undefined }) {
-  const { data: rewards } = useRewards(address);
-  const breakdown = rewards?.breakdown ?? {};
-  const creatorDone = CREATOR_JOURNEY.filter((s) => (breakdown[s.actionType] ?? 0) > 0).length;
-  const collectorDone = COLLECTOR_JOURNEY.filter((s) => (breakdown[s.actionType] ?? 0) > 0).length;
-  const [persona, setPersona] = useState<"create" | "collect">(
-    collectorDone > creatorDone ? "collect" : "create"
-  );
-
-  return (
-    <section className="space-y-4">
-      <div className="flex items-center justify-between">
-        <SectionLabel>Your journey to earn</SectionLabel>
-        <div className="flex gap-1 rounded-full border border-border/40 p-0.5">
-          {(["create", "collect"] as const).map((p) => (
-            <button
-              key={p}
-              onClick={() => setPersona(p)}
-              className={`rounded-full px-3 py-1 text-xs font-semibold capitalize transition-colors ${
-                persona === p ? "bg-foreground text-background" : "text-muted-foreground"
-              }`}
-            >
-              {p}
-            </button>
-          ))}
-        </div>
-      </div>
-      <JourneyPath steps={persona === "create" ? CREATOR_JOURNEY : COLLECTOR_JOURNEY} breakdown={breakdown} />
     </section>
   );
 }
@@ -386,10 +411,6 @@ export function RewardsDashboard() {
 
   useEffect(() => {
     if (newBadgeKeys.length === 0 || !rewards) return;
-    // The hook already persisted the new baseline the moment it detected
-    // these keys, so this effect only needs to render the toasts — no
-    // dismiss() call needed here (that would also clear an in-progress
-    // level-up overlay if both fired in the same snapshot).
     for (const key of newBadgeKeys) {
       const badge = rewards.badges.find((b) => b.key === key);
       if (badge) toast(<BadgeUnlockToastContent badge={badge} />, { duration: 4500 });
@@ -408,23 +429,19 @@ export function RewardsDashboard() {
       )}
       <Hero />
       <StatusRow address={address} />
-      <JourneyLadder address={address} />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-        {/* Left — scoreboard */}
+        {/* Left — the features: how to earn, who's already earning, your own history */}
         <div className="lg:col-span-7 space-y-10">
+          <EarnMorePanel />
+          <CommunityPanel address={address} />
           <PersonalPanel address={address} />
-          <section className="space-y-4">
-            <SectionLabel>Scoreboard</SectionLabel>
-            <LeaderboardPanel myAddress={address} showHeading={false} />
-          </section>
         </div>
 
-        {/* Right — fund + badges + journey */}
+        {/* Right — the fund + what's achievable */}
         <div className="lg:col-span-5 space-y-8">
           <CreatorsFundCard />
           <BadgesPanel address={address} />
-          <JourneyPanel address={address} />
         </div>
       </div>
     </div>

@@ -1,11 +1,14 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
 import { LeaderboardTable } from "@medialane/ui";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { useLeaderboard } from "@/hooks/use-rewards";
+import { useCreatorProfile } from "@/hooks/use-profiles";
+import { resolveTokenImage } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
 export interface LeaderboardPanelProps {
@@ -14,6 +17,33 @@ export interface LeaderboardPanelProps {
   showHeading?: boolean;
   viewAllHref?: string;
   className?: string;
+}
+
+/** Avatar + display name when a creator has set a profile, falling back to
+ *  a plain address — real identity where it exists, never fabricated. */
+function CreatorIdentity({ address }: { address: string }) {
+  const { profile } = useCreatorProfile(address);
+  const avatarUrl = resolveTokenImage(profile?.avatarImage);
+  const name = profile?.displayName || profile?.username;
+
+  return (
+    <span className="inline-flex min-w-0 items-center gap-2">
+      <span className="relative h-6 w-6 shrink-0 overflow-hidden rounded-full bg-foreground/[0.06]">
+        <Image
+          src={avatarUrl ?? "/icon.png"}
+          alt=""
+          fill
+          unoptimized
+          className={avatarUrl ? "object-cover" : "object-cover p-[15%] opacity-50"}
+        />
+      </span>
+      {name ? (
+        <span className="truncate text-xs font-medium">{name}</span>
+      ) : (
+        <AddressDisplay address={address} chars={4} showCopy={false} className="text-xs font-medium" />
+      )}
+    </span>
+  );
 }
 
 export function LeaderboardPanel({
@@ -53,7 +83,7 @@ export function LeaderboardPanel({
           highlightAddress={myAddress}
           renderAddress={(address) => (
             <Link href={`/account/${address}`} className="hover:text-foreground transition-colors">
-              <AddressDisplay address={address} chars={4} showCopy={false} className="text-xs font-medium" />
+              <CreatorIdentity address={address} />
             </Link>
           )}
         />
