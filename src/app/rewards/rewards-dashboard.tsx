@@ -129,7 +129,11 @@ function Hero() {
       </h1>
       <p className="text-lg text-foreground/70 max-w-xl leading-relaxed font-medium">
         Every action earns XP. Active members receive allocations from the
-        Creator&apos;s Fund — the more you participate, the more you earn.
+        Creator&apos;s Fund — the more you participate, the more you earn.{" "}
+        <Link href="/journey" className="text-foreground underline underline-offset-2 hover:text-brand-orange transition-colors">
+          See the full system
+        </Link>
+        .
       </p>
     </section>
   );

@@ -41,7 +41,7 @@ function MyDropCard({ collection }: { collection: ApiCollection }) {
         {imageUrl ? (
           <Image src={imageUrl} alt={collection.name ?? "Drop"} fill className="object-cover" unoptimized />
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-brand-orange/40 to-brand-price/50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-gradient-to-br from-brand-orange/40 to-brand-maeve/50 flex items-center justify-center">
             <span className="text-2xl font-black text-white/20">{initial}</span>
           </div>
         )}
