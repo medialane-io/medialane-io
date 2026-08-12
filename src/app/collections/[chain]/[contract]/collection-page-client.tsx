@@ -6,7 +6,7 @@ import { useParams } from "next/navigation";
 import { useCollection, useCollectionTokens } from "@/hooks/use-collections";
 import { useOrders } from "@/hooks/use-orders";
 import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listing-card";
-import { AssetCard, AssetCardSkeleton, LoadMoreSentinel, isLivingRenderCollection, HiddenContentBanner, CollectionHeroBanner } from "@medialane/ui";
+import { AssetCard, AssetCardSkeleton, LoadMoreSentinel, isLivingRenderCollection, HiddenContentBanner, CollectionHeroBanner, ClubOwnerActions, OrderSortControl, sortOrders, type OrderSort } from "@medialane/ui";
 import { assetHref } from "@/lib/routes";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddressDisplay } from "@/components/shared/address-display";
@@ -19,7 +19,6 @@ import { GatedContentHero } from "@/components/collection/gated-content-hero";
 import { OwnerSetupPanel } from "@/components/collection/owner-setup-panel";
 import { TransferCollectionOwnershipDialog } from "@/components/collection/transfer-ownership-dialog";
 import { CollectionActivityTab } from "@/components/collection/collection-activity-tab";
-import { OrderSortControl, sortOrders, type OrderSort } from "@/components/collection/order-sort-control";
 import { MakeOfferPicker } from "@/components/collection/make-offer-picker";
 import { CollectionTraitsTab } from "@/components/collection/collection-traits-tab";
 import { CreatorChip } from "@/components/collection/creator-chip";
@@ -28,7 +27,6 @@ import { useCollectionProfile } from "@/hooks/use-profiles";
 import { useGatedContent, type GatedContentState } from "@/hooks/use-gated-content";
 import { CollectionServiceAction } from "@/components/services/collection-service-action";
 import { TicketOwnerActions } from "@/components/tickets/ticket-owner-actions";
-import { ClubOwnerActions } from "@/components/club/club-owner-actions";
 import { PurchaseDialog } from "@/components/marketplace/purchase-dialog";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { getService, normalizeAddress } from "@medialane/sdk";
@@ -265,7 +263,7 @@ export default function CollectionPageClient() {
               {getService(collection.service)?.id === "ip-club" && (
                 <ClubOwnerActions
                   contractAddress={collection.contractAddress}
-                  owner={collection.owner}
+                  isOwner
                 />
               )}
               {collection.standard === "ERC1155" && getService(collection.service)?.id === "mip-erc1155" && (
