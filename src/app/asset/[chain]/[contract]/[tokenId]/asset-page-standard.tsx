@@ -24,6 +24,8 @@ import { getService, normalizeAddress } from "@medialane/sdk";
 import { resolveRemixPolicy, getDerivativesTerm } from "@/lib/remix-policy";
 import { PriceHistoryChart } from "@/components/asset/price-history-chart";
 import { useComments } from "@/hooks/use-comments";
+import { useUsdPrices } from "@/hooks/use-usd-prices";
+import { usdValueFor } from "@/lib/wallet-format";
 import { EXPLORER_URL } from "@/lib/constants";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { toast } from "sonner";
@@ -112,6 +114,9 @@ export function AssetPageStandard() {
   const cheapest = [...activeListings].sort((a, b) =>
     BigInt(a.consideration.startAmount) < BigInt(b.consideration.startAmount) ? -1 : 1
   )[0];
+
+  const usdPrices = useUsdPrices();
+  const cheapestUsd = usdValueFor(cheapest?.price?.formatted, cheapest?.price?.currency, usdPrices);
 
   // Most recent "sale" activity — `history`'s sort order isn't guaranteed, so
   // pick the max-timestamp entry explicitly rather than assuming array order.
@@ -305,6 +310,7 @@ export function AssetPageStandard() {
 
             <AssetMarketplacePanel
               cheapest={cheapest}
+              usdValue={cheapestUsd}
               isOwner={isOwner}
               isSignedIn={hasWallet}
               isProcessing={isProcessing}

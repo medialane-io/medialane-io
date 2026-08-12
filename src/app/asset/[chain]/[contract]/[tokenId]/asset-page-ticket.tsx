@@ -25,6 +25,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { normalizeAddress } from "@medialane/sdk";
 import type { ApiActivity } from "@medialane/sdk";
 import { useComments } from "@/hooks/use-comments";
+import { useUsdPrices } from "@/hooks/use-usd-prices";
+import { usdValueFor } from "@/lib/wallet-format";
 import { EXPLORER_URL } from "@/lib/constants";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useOrderActions } from "./use-order-actions";
@@ -165,6 +167,9 @@ export function AssetPageTicket() {
     BigInt(a.consideration.startAmount) < BigInt(b.consideration.startAmount) ? -1 : 1
   )[0];
 
+  const usdPrices = useUsdPrices();
+  const cheapestUsd = usdValueFor(cheapest?.price?.formatted, cheapest?.price?.currency, usdPrices);
+
   const lastSale = (history as ApiActivity[])
     .filter((h) => h.type === "sale" && h.price?.formatted)
     .reduce<ApiActivity | null>((latest, h) => (!latest || h.timestamp > latest.timestamp ? h : latest), null);
@@ -260,6 +265,7 @@ export function AssetPageTicket() {
 
             <AssetMarketplacePanel
               cheapest={cheapest}
+              usdValue={cheapestUsd}
               isOwner={isOwner}
               isSignedIn={hasWallet}
               isProcessing={isProcessing}
