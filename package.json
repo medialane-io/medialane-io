@@ -14,7 +14,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "audit:dead-code": "npx knip"
   },
   "dependencies": {
     "@avnu/avnu-sdk": "^4.2.0",
