@@ -9,7 +9,7 @@ import {
   type CollectionSort,
 } from "@medialane/ui";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import type { CollectionTokensSort } from "@medialane/sdk";
+import type { ApiCollection, CollectionTokensSort } from "@medialane/sdk";
 
 export type { CollectionSort };
 
@@ -19,9 +19,11 @@ export function useCollections(
   isFeatured?: boolean,
   sort: CollectionSort = "recent",
   hideEmpty = true,
-  service?: string
+  service?: string,
+  standard?: string,
+  fallback?: ApiCollection[]
 ) {
-  return useCollectionsBase(getMedialaneClient, page, limit, isFeatured, sort, hideEmpty, service);
+  return useCollectionsBase(getMedialaneClient, page, limit, isFeatured, sort, hideEmpty, service, standard, fallback);
 }
 
 export function useCollection(contract: string | null) {
