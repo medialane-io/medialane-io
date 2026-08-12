@@ -180,6 +180,15 @@ export function WalletPanelHome({
           onClose={() => setActivated(false)}
         />
       )}
+
+      <a
+        href="https://starknet.medialane.io"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-center text-xs text-muted-foreground/60 transition-colors hover:text-muted-foreground"
+      >
+        Use other wallet
+      </a>
     </main>
   );
 }

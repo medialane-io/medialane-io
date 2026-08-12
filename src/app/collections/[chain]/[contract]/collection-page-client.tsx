@@ -3,13 +3,11 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
 import { useCollection, useCollectionTokens } from "@/hooks/use-collections";
 import { useOrders } from "@/hooks/use-orders";
 import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listing-card";
-import { AssetCard, AssetCardSkeleton, LoadMoreSentinel, isLivingRenderCollection, HiddenContentBanner } from "@medialane/ui";
+import { AssetCard, AssetCardSkeleton, LoadMoreSentinel, isLivingRenderCollection, HiddenContentBanner, CollectionHeroBanner } from "@medialane/ui";
 import { assetHref } from "@/lib/routes";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { Loader2, Flag, Inbox, Lock, Unlock, Play, FileText, Link2, Sparkles, Settings, ShoppingBag, Music, Radio, UserRoundCog } from "lucide-react";
@@ -25,7 +23,6 @@ import { OrderSortControl, sortOrders, type OrderSort } from "@/components/colle
 import { MakeOfferPicker } from "@/components/collection/make-offer-picker";
 import { CollectionTraitsTab } from "@/components/collection/collection-traits-tab";
 import { CreatorChip } from "@/components/collection/creator-chip";
-import Image from "next/image";
 import { ipfsToHttp, formatDisplayPrice, cn } from "@/lib/utils";
 import { useCollectionProfile } from "@/hooks/use-profiles";
 import { useGatedContent, type GatedContentState } from "@/hooks/use-gated-content";
@@ -38,20 +35,6 @@ import { getService, normalizeAddress } from "@medialane/sdk";
 import type { ApiToken, ApiOrder, Chain, CollectionTokensSort } from "@medialane/sdk";
 
 const PAGE_SIZE = 24;
-
-const CURRENCY_ICONS: Record<string, string> = {
-  STRK: "/strk.svg",
-  ETH: "/eth.svg",
-  USDC: "/usdc.svg",
-  USDT: "/usdt.svg",
-  WBTC: "/btc.svg",
-};
-
-function CurrencyIcon({ symbol, size = 16 }: { symbol: string; size?: number }) {
-  const src = CURRENCY_ICONS[symbol?.toUpperCase()];
-  if (!src) return <span className="text-xs font-semibold text-muted-foreground">{symbol}</span>;
-  return <Image src={src} alt={symbol} width={size} height={size} className="inline-block shrink-0" />;
-}
 
 /**
  * Parse a backend price string like "0.000012000000 WBTC" into a clean display + symbol.
@@ -254,87 +237,16 @@ export default function CollectionPageClient() {
 
   return (
     <div className="relative z-0 min-h-screen">
-      {/* Atmospheric blur background */}
-      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        {bannerUrl && (
-          <img
-            src={bannerUrl}
-            alt=""
-            aria-hidden
-            className="absolute inset-0 w-full h-full object-cover opacity-20 scale-110"
-            style={{ filter: "blur(60px) saturate(1.5)" }}
-          />
-        )}
-      </div>
-
       {(collection as { isHidden?: boolean } | null | undefined)?.isHidden && <HiddenContentBanner />}
 
-      {/* ── Full-bleed hero banner ── */}
-      {colLoading ? (
-        <Skeleton className="w-full h-[50svh]" />
-      ) : (
-        <div className="relative w-full overflow-hidden h-[50svh]">
-          {/* Parallax / gradient fill */}
-          <ParallaxBanner imageUrl={bannerUrl} contract={contract} />
-
-          {/* Bottom overlay: title + stat chips — backdrop blur only, no borders, no scrim */}
-          <div className="absolute bottom-0 left-0 right-0 px-4 sm:px-6 pb-4 sm:pb-6 space-y-3 z-10">
-            {/* Type + symbol eyebrow — white/blur so it holds up over arbitrary artwork */}
-            {(collection?.symbol || collection?.standard) && (
-              <div className="flex items-center gap-2 flex-wrap">
-                {collection?.standard === "ERC1155" ? (
-                  <span className="text-[11px] font-semibold text-white/90 bg-white/15 backdrop-blur-md rounded-full px-2.5 py-0.5">
-                    Multi-edition NFT
-                  </span>
-                ) : collection?.standard === "ERC721" ? (
-                  <span className="text-[11px] font-semibold text-white/90 bg-white/15 backdrop-blur-md rounded-full px-2.5 py-0.5">
-                    Single NFT
-                  </span>
-                ) : null}
-                {collection?.symbol && (
-                  <span className="tabular-nums text-[11px] text-white/90 bg-white/15 backdrop-blur-md rounded-full px-2.5 py-0.5">
-                    {collection.symbol}
-                  </span>
-                )}
-              </div>
-            )}
-
-            {/* Title — plain text with a subtle shadow, no background box */}
-            <h1 className="text-3xl sm:text-5xl lg:text-7xl font-bold text-white leading-tight"
-              style={{ textShadow: "0 1px 12px rgba(0,0,0,0.4)" }}>
-              {collection?.name ?? "Unnamed Collection"}
-            </h1>
-
-            {/* Stat chips — theme-aware frosted glass so they read in both light and
-                dark (was hardcoded dark). Floor/Volume show the currency icon only. */}
-            <div className="flex gap-2 flex-wrap">
-              {stats.map(({ label, display, symbol }) => (
-                <div
-                  key={label}
-                  className={cn(
-                    "bg-background/75 backdrop-blur-md rounded-xl px-3 py-2 flex flex-col justify-center shrink-0",
-                    symbol ? "min-w-[80px]" : "min-w-[60px] items-center text-center"
-                  )}
-                >
-                  <p className="text-[9px] text-muted-foreground mb-1">{label}</p>
-                  {symbol ? (
-                    <div className="flex items-center gap-1.5">
-                      <CurrencyIcon symbol={symbol} size={15} />
-                      <p className="text-sm sm:text-base font-bold text-foreground tabular-nums leading-tight truncate">
-                        {display}
-                      </p>
-                    </div>
-                  ) : (
-                    <p className="text-base sm:text-lg font-bold text-foreground tabular-nums leading-tight">
-                      {display}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+      <CollectionHeroBanner
+        bannerUrl={bannerUrl}
+        loading={colLoading}
+        standard={collection?.standard}
+        symbol={collection?.symbol}
+        name={collection?.name ?? "Unnamed Collection"}
+        stats={stats}
+      />
 
       {/* ── Meta section — two columns on large screens: description left,
           contract/share/report top-right; creator chip + owner actions
@@ -630,26 +542,6 @@ export default function CollectionPageClient() {
 // ---------------------------------------------------------------------------
 // Sub-components
 // ---------------------------------------------------------------------------
-
-function ParallaxBanner({ imageUrl, contract }: { imageUrl: string | null; contract: string }) {
-  const { scrollY } = useScroll();
-  const shouldReduce = useReducedMotion();
-  const y = useTransform(scrollY, [0, 500], [0, shouldReduce ? 0 : 150]);
-
-  if (!imageUrl) {
-    return <div className="absolute inset-0 w-full h-full bg-muted" />;
-  }
-
-  return (
-    <motion.img
-      src={imageUrl}
-      alt=""
-      aria-hidden
-      style={{ y }}
-      className="absolute inset-0 w-full h-full object-cover scale-110"
-    />
-  );
-}
 
 function EmptyState({ title, body }: { title: string; body: string }) {
   return (

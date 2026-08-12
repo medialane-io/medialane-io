@@ -15,13 +15,13 @@ import { UserShieldIcon } from "@/components/icons/user-shield-icon";
  * opens the wallet panel overlay in place. The "⌘K" shortcut hint stays
  * regardless of state.
  *
- * Only the two "needs setup" states get the filled brand-gradient CTA
+ * The two "needs setup" states get the filled brand-gradient CTA
  * (`.btn-border-animated` as a 1px wrapper around a transparent-fill button
- * — the same technique `GradientButton` uses, sized for this footer slot) —
- * that treatment is for the primary "connect" action. Once there's a wallet
- * to open, it's a routine action, so it gets the quieter outlined treatment
- * instead. Icon is the same user-shield glyph `HeaderWalletTrigger` uses in
- * every state, connected or not.
+ * — the same technique `GradientButton` uses, sized for this footer slot).
+ * The connected state reads "Connect" too and gets a solid brand-blue fill
+ * with a white icon, so the footer entry point stays visually consistent
+ * regardless of session state. Icon is the same user-shield glyph
+ * `HeaderWalletTrigger` uses in every state, connected or not.
  */
 export function NavConnectButton() {
   const { hasWallet, isDeployed } = useWalletNativeSession();
@@ -72,10 +72,11 @@ export function NavConnectButton() {
           closeMenu();
           openWalletPanel();
         }}
-        className="flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1 text-[11px] font-semibold text-foreground transition-colors hover:bg-muted active:scale-[0.98]"
+        className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98]"
+        style={{ backgroundColor: "hsl(var(--brand-blue))" }}
       >
-        <UserShieldIcon className="h-3 w-3" style={{ color: "hsl(var(--brand-blue))" }} />
-        Wallet
+        <UserShieldIcon className="h-3 w-3 text-white" />
+        Connect
       </button>
       <Kbd />
     </span>
