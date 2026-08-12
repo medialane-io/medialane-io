@@ -33,6 +33,8 @@ import { getListableTokens } from "@medialane/sdk";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useTokenBalance, hasSufficientBalance } from "@/hooks/use-erc20-balance";
 import { marketplacePriceField, marketplaceCurrencyField, marketplaceDurationField } from "@/lib/marketplace-schemas";
+import { useUsdPrices } from "@/hooks/use-usd-prices";
+import { usdValueFor } from "@/lib/wallet-format";
 
 const CURRENCIES = getListableTokens().map((t) => t.symbol);
 
@@ -114,6 +116,8 @@ export function OfferDialog({
     return (qty * price).toFixed(decimals <= 6 ? 6 : 18);
   })();
   const balanceSufficient = hasSufficientBalance(rawBalance, totalRequired, decimals);
+  const usdPrices = useUsdPrices();
+  const usdEquivalent = usdValueFor(totalRequired || undefined, watchedCurrency, usdPrices);
 
   const onSubmit = (values: FormValues) => {
     if (!hasWallet) return;
@@ -321,6 +325,10 @@ export function OfferDialog({
                         </FormItem>
                       )}
                     />
+
+                    {usdEquivalent && (
+                      <p className="text-xs text-muted-foreground -mt-1">≈ {usdEquivalent}</p>
+                    )}
 
                     {balanceSufficient === false && (
                       <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/8 px-3 py-2.5">

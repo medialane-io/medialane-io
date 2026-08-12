@@ -14,6 +14,8 @@ import { MoreHorizontal, Layers, ArrowRightLeft, Flag, GitBranch, HandCoins, Arr
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import { useMarketplace } from "@/hooks/use-marketplace";
+import { useUsdPrices } from "@/hooks/use-usd-prices";
+import { usdValueFor } from "@/lib/wallet-format";
 import { CancelListingDialog } from "@/app/asset/[chain]/[contract]/[tokenId]/cancel-listing-dialog";
 import { assetHref, collectionHref } from "@/lib/routes";
 import { ReportDialog } from "@/components/report-dialog";
@@ -40,6 +42,8 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
   const router = useRouter();
   const { mutate } = useSWRConfig();
   const { cancelOrder } = useMarketplace();
+  const usdPrices = useUsdPrices();
+  const usdValue = usdValueFor(order.price?.formatted, order.price?.currency, usdPrices);
 
   const [reportOpen, setReportOpen] = useState(false);
 
@@ -74,7 +78,7 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
 
   // Compact grids: delegate entirely (no actions).
   if (compact) {
-    return <PackageListingCard order={order} compact />;
+    return <PackageListingCard order={order} compact usdValue={usdValue} />;
   }
 
   // ─── Owner cancel — the auth-coupled primary control stays here ─────────────
@@ -251,6 +255,7 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
         onBuy={isListing && !isOwner ? onBuy : undefined}
         primaryAction={isListing && isOwner ? cancelPrimary : undefined}
         overflowMenu={isListing ? (isOwner ? ownerMenu : buyerMenu) : offerMenu}
+        usdValue={usdValue}
       />
 
       {reportOpen && (

@@ -1,5 +1,6 @@
 import { formatAmount } from "@medialane/sdk";
 import { EXPLORER_URL } from "@/lib/constants";
+import type { UsdPrices } from "@/hooks/use-usd-prices";
 
 // Ported from media-wallet's src/lib/format.ts. Kept as a separate module
 // (not merged into src/lib/utils.ts) because the wallet-panel components
@@ -33,6 +34,24 @@ export const fmt = (raw: bigint | null, decimals = 18, dp = 4): string => {
 
 export const fmtUsd = (n: number): string =>
   n > 0 && n < 0.01 ? "<$0.01" : `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+/**
+ * USD equivalent of a human-readable token amount, or null when there's no
+ * live rate for the currency — callers must render nothing rather than a
+ * stale or fabricated conversion.
+ */
+export const usdValueFor = (
+  amountFormatted: string | null | undefined,
+  currency: string | null | undefined,
+  usdPrices: UsdPrices | null
+): string | null => {
+  if (!amountFormatted || !currency || !usdPrices) return null;
+  const rate = usdPrices[currency.toUpperCase() as keyof UsdPrices];
+  if (rate == null) return null;
+  const amount = parseFloat(amountFormatted);
+  if (isNaN(amount)) return null;
+  return fmtUsd(amount * rate);
+};
 
 export const when = (iso: string): string => {
   const d = new Date(iso);

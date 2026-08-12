@@ -1,6 +1,8 @@
 "use client";
 
 import { useForm } from "react-hook-form";
+import { useUsdPrices } from "@/hooks/use-usd-prices";
+import { usdValueFor } from "@/lib/wallet-format";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { CheckCircle2, AlertCircle, ArrowLeftRight, ExternalLink, Loader2, Wallet } from "lucide-react";
@@ -95,6 +97,9 @@ export function CounterOfferDialog({
   });
 
   const isProcessing = status === "processing" || status === "confirming";
+  const usdPrices = useUsdPrices();
+  const watchedPrice = form.watch("price");
+  const usdEquivalent = usdValueFor(watchedPrice || undefined, currencySymbol, usdPrices);
 
   const onSubmit = (values: FormValues) => {
     if (!hasWallet) return;
@@ -191,6 +196,9 @@ export function CounterOfferDialog({
                             <span className="text-xs font-bold">{currencySymbol}</span>
                           </div>
                         </div>
+                        {usdEquivalent && (
+                          <p className="text-xs text-muted-foreground">≈ {usdEquivalent}</p>
+                        )}
                         <FormMessage />
                       </FormItem>
                     )}
