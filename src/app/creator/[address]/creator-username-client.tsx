@@ -16,6 +16,8 @@ import { CreatorAnalytics } from "@/components/creator/creator-analytics";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ipfsToHttp, timeAgo, formatDisplayPrice } from "@/lib/utils";
+import { useUsdPrices } from "@/hooks/use-usd-prices";
+import { usdValueFor } from "@/lib/wallet-format";
 import { normalizeAddress } from "@medialane/sdk";
 import {
   Globe, Twitter, MessageCircle, Send,
@@ -118,6 +120,7 @@ type TabId = (typeof TABS)[number]["id"];
 
 export default function CreatorUsernamePageClient({ username }: Props) {
   const [activeTab, setActiveTab] = useState<TabId>("assets");
+  const usdPrices = useUsdPrices();
 
   const { creator, isLoading, error } = useCreatorByUsername(username);
   const walletAddress = creator?.walletAddress ? normalizeAddress("STARKNET", creator.walletAddress) : null;
@@ -262,9 +265,16 @@ export default function CreatorUsernamePageClient({ username }: Props) {
             <EmptyState icon={ImageIcon} heading="No assets yet" body="This creator hasn't minted any digital assets on Medialane yet." />
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {tokens.map((t) => (
-                <TokenCard key={`${t.contractAddress}-${t.tokenId}`} token={t} />
-              ))}
+              {tokens.map((t) => {
+                const listingOrder = t.activeOrders?.find((o) => o.offer.itemType === "ERC721" || o.offer.itemType === "ERC1155");
+                return (
+                  <TokenCard
+                    key={`${t.contractAddress}-${t.tokenId}`}
+                    token={t}
+                    usdValue={usdValueFor(listingOrder?.price.formatted, listingOrder?.price.currency, usdPrices)}
+                  />
+                );
+              })}
             </div>
           )
         )}

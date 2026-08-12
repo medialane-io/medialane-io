@@ -8,6 +8,8 @@ import { MotionCard } from "@/components/ui/motion-primitives";
 import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
 import { CollectionCard, CollectionCardSkeleton } from "@medialane/ui";
 import { useCollectionTokens } from "@/hooks/use-collections";
+import { useUsdPrices } from "@/hooks/use-usd-prices";
+import { usdValueFor } from "@/lib/wallet-format";
 import type { ApiCollection } from "@medialane/sdk";
 
 // Square "View all" end card — matches token card width
@@ -41,6 +43,7 @@ export function CollectionCarouselRow({
   const scrollStartLeft = useRef(0);
 
   const { tokens, isLoading } = useCollectionTokens(collection.contractAddress, 1, 10);
+  const usdPrices = useUsdPrices();
 
   function onMouseDown(e: React.MouseEvent) {
     isDragging.current = true;
@@ -95,11 +98,17 @@ export function CollectionCarouselRow({
                 <TokenCardSkeleton />
               </div>
             ))
-          : tokens.map((token) => (
-              <div key={`${token.contractAddress}-${token.tokenId}`} className="snap-start shrink-0 w-64">
-                <TokenCard token={token} />
-              </div>
-            ))}
+          : tokens.map((token) => {
+              const listingOrder = token.activeOrders?.find((o) => o.offer.itemType === "ERC721" || o.offer.itemType === "ERC1155");
+              return (
+                <div key={`${token.contractAddress}-${token.tokenId}`} className="snap-start shrink-0 w-64">
+                  <TokenCard
+                    token={token}
+                    usdValue={usdValueFor(listingOrder?.price.formatted, listingOrder?.price.currency, usdPrices)}
+                  />
+                </div>
+              );
+            })}
 
         {/* View all CTA */}
         {!isLoading && (
