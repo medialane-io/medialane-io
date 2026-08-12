@@ -79,25 +79,32 @@ function TokenHero({ order, quantity }: { order: ApiOrder; quantity: number }) {
             ? formatDisplayPrice(totalPrice!.toFixed(order.price.decimals <= 6 ? 2 : 4))
             : formatDisplayPrice(order.price.formatted);
           const stable = isStableCurrency(order.price.currency);
+          const displayFace = "font-[family-name:var(--font-display)] font-extrabold tracking-tight tabular-nums";
 
           return (
             <div className="shrink-0 text-right ml-4">
               {totalUsd ? (
-                <p className="font-bold text-2xl">{totalUsd}</p>
+                <p className={`${displayFace} text-2xl`}>{totalUsd}</p>
               ) : (
-                <p className="flex items-center gap-1.5 font-bold text-2xl justify-end">
-                  <CurrencyIcon symbol={order.price.currency} size={18} />
+                <p className={`flex items-center gap-2 justify-end ${displayFace} text-2xl`}>
+                  <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-foreground/[0.06]">
+                    <CurrencyIcon symbol={order.price.currency} size={13} />
+                  </span>
                   {totalCryptoDisplay}
                 </p>
               )}
-              <p className="text-xs text-muted-foreground inline-flex items-center gap-1 justify-end">
-                {totalUsd && <CurrencyIcon symbol={order.price.currency} size={11} />}
+              <p className="text-sm font-semibold text-muted-foreground inline-flex items-center gap-1.5 justify-end mt-0.5">
+                {totalUsd && (
+                  <span className="grid h-4 w-4 shrink-0 place-items-center rounded-full bg-foreground/[0.06]">
+                    <CurrencyIcon symbol={order.price.currency} size={10} />
+                  </span>
+                )}
                 {totalUsd
                   ? (stable ? order.price.currency : `${totalCryptoDisplay} ${order.price.currency}`)
                   : order.price.currency}
               </p>
               {showTotal && (
-                <p className="text-2xs text-muted-foreground/60">
+                <p className="text-2xs text-muted-foreground/60 mt-0.5">
                   {formatDisplayPrice(order.price.formatted)} × {quantity} {order.price.currency}
                 </p>
               )}
