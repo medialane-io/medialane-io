@@ -23,6 +23,8 @@ import { MakeOfferPicker } from "@/components/collection/make-offer-picker";
 import { CollectionTraitsTab } from "@/components/collection/collection-traits-tab";
 import { CreatorChip } from "@/components/collection/creator-chip";
 import { ipfsToHttp, formatDisplayPrice, cn } from "@/lib/utils";
+import { useUsdPrices } from "@/hooks/use-usd-prices";
+import { usdValueFor } from "@/lib/wallet-format";
 import { useCollectionProfile } from "@/hooks/use-profiles";
 import { useGatedContent, type GatedContentState } from "@/hooks/use-gated-content";
 import { CollectionServiceAction } from "@/components/services/collection-service-action";
@@ -68,6 +70,8 @@ function CollectionItems({ contract, activeListings }: { contract: string; activ
     setPage(1);
     setAllTokens([]);
   }
+
+  const usdPrices = useUsdPrices();
 
   // Build tokenId → listing map so listed items can show their price
   const listingByTokenId = useMemo(() => {
@@ -163,7 +167,10 @@ function CollectionItems({ contract, activeListings }: { contract: string; activ
                   animationUrl={t.metadata?.animationUrl}
                   live={isLivingRenderCollection(t.chain as Chain, t.contractAddress)}
                   ipType={t.metadata?.ipType}
-                  price={listing ? listing.price : null}
+                  price={listing ? {
+                    ...listing.price,
+                    usdValue: usdValueFor(listing.price?.formatted, listing.price?.currency, usdPrices),
+                  } : null}
                   fallbackId={t.tokenId}
                   indexing={
                     t.metadataStatus === "PENDING" || t.metadataStatus === "FETCHING"
