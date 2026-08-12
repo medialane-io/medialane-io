@@ -26,6 +26,7 @@ import { formatDisplayPrice, ipfsToHttp } from "@/lib/utils";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { useUsdPrices } from "@/hooks/use-usd-prices";
 import { usdValueFor } from "@/lib/wallet-format";
+import { isStableCurrency } from "@medialane/ui";
 import { useErc20Balance } from "@/hooks/use-erc20-balance";
 import { getTokenBySymbol } from "@medialane/sdk";
 import { buildSwapCalls } from "@/lib/wallet/swap-calls";
@@ -73,24 +74,36 @@ function TokenHero({ order, quantity }: { order: ApiOrder; quantity: number }) {
             <span className="text-[11px] font-medium text-emerald-500">Digital Asset Ownership</span>
           </div>
         </div>
-        {order.price && (
-          <div className="shrink-0 text-right ml-4">
-            <p className="flex items-center gap-1.5 font-bold text-2xl justify-end">
-              <CurrencyIcon symbol={order.price.currency} size={18} />
-              {showTotal
-                ? formatDisplayPrice(totalPrice!.toFixed(order.price.decimals <= 6 ? 2 : 4))
-                : formatDisplayPrice(order.price.formatted)}
-            </p>
-            {showTotal ? (
-              <p className="text-xs text-muted-foreground">
-                {formatDisplayPrice(order.price.formatted)} × {quantity} {order.price.currency}
+        {order.price && (() => {
+          const totalCryptoDisplay = showTotal
+            ? formatDisplayPrice(totalPrice!.toFixed(order.price.decimals <= 6 ? 2 : 4))
+            : formatDisplayPrice(order.price.formatted);
+          const stable = isStableCurrency(order.price.currency);
+
+          return (
+            <div className="shrink-0 text-right ml-4">
+              {totalUsd ? (
+                <p className="font-bold text-2xl">{totalUsd}</p>
+              ) : (
+                <p className="flex items-center gap-1.5 font-bold text-2xl justify-end">
+                  <CurrencyIcon symbol={order.price.currency} size={18} />
+                  {totalCryptoDisplay}
+                </p>
+              )}
+              <p className="text-xs text-muted-foreground inline-flex items-center gap-1 justify-end">
+                {totalUsd && <CurrencyIcon symbol={order.price.currency} size={11} />}
+                {totalUsd
+                  ? (stable ? order.price.currency : `${totalCryptoDisplay} ${order.price.currency}`)
+                  : order.price.currency}
               </p>
-            ) : (
-              <p className="text-xs text-muted-foreground">{order.price.currency}</p>
-            )}
-            {totalUsd && <p className="text-xs text-muted-foreground/70">≈ {totalUsd}</p>}
-          </div>
-        )}
+              {showTotal && (
+                <p className="text-2xs text-muted-foreground/60">
+                  {formatDisplayPrice(order.price.formatted)} × {quantity} {order.price.currency}
+                </p>
+              )}
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
