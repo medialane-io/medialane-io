@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-export type UsdPrices = Partial<Record<"STRK" | "ETH" | "USDC" | "WBTC", number>>;
+export type UsdPrices = Partial<Record<"STRK" | "ETH" | "USDC" | "USDT" | "WBTC", number>>;
 
 const REFRESH_MS = 60_000;
 

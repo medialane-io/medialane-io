@@ -114,6 +114,10 @@ export interface FulfillOrderInput {
    *  multicall as the fulfill call, when the fee config permits it. */
   feeToken?: string;
   feeGrossAmount?: bigint;
+  /** Auto-swap approve+swap calls (from /api/wallet/swap/build), prepended
+   *  ahead of the fulfill call in the same atomic multicall when the buyer
+   *  is paying with a token other than the order's own currency. */
+  swapCalls?: Call[];
   // Legacy fields — kept for call-site compatibility, no longer used internally
   considerationToken?: string;
   considerationAmount?: string;
@@ -212,7 +216,7 @@ export function useMarketplace() {
   const runIntent = useCallback(
     async (
       intentFn: () => Promise<{ data: ApiIntentCreated }>,
-      extraCalls?: Call[],
+      extra?: { prependCalls?: Call[]; appendCalls?: Call[] },
     ): Promise<string | undefined> => {
       if (!walletAddress || !signer) throw new Error("Account not ready. Please wait a moment.");
 
@@ -238,9 +242,10 @@ export function useMarketplace() {
       }
       if (!calls?.length) throw new Error("No calls returned from intent");
 
-      // Bundle any extra calls (e.g. the platform fee) into the SAME atomic
-      // multicall — no separate fire-and-forget transaction.
-      if (extraCalls?.length) calls = [...calls, ...extraCalls];
+      // Bundle any extra calls (e.g. an auto-swap, the platform fee) into the
+      // SAME atomic multicall — no separate fire-and-forget transaction.
+      if (extra?.prependCalls?.length) calls = [...extra.prependCalls, ...calls];
+      if (extra?.appendCalls?.length) calls = [...calls, ...extra.appendCalls];
 
       // Execute — identical tail for every intent kind.
       const result = await signer.execute(calls);
@@ -329,7 +334,7 @@ export function useMarketplace() {
             tokenStandard: toApiStandard(input.tokenStandard),
             quantity: input.quantity,
           }),
-          extraCalls,
+          { prependCalls: input.swapCalls, appendCalls: extraCalls },
         );
       } catch (err: unknown) {
         const msg = toFriendlyError(err, "Purchase failed");

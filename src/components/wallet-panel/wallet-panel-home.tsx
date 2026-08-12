@@ -14,7 +14,7 @@ import { SectionHeader } from "./section-header";
 import { SuccessDialog } from "./success-dialog";
 import { WalletPanelHeader } from "./wallet-panel-header";
 import { WALLET_TOKENS, type WalletToken } from "./wallet-tokens";
-import { useUsdPrices } from "./use-usd-prices";
+import { useUsdPrices } from "@/hooks/use-usd-prices";
 import { fmt, fmtUsd, rawToNumber } from "@/lib/wallet-format";
 import type { WalletPanelView } from "./types";
 

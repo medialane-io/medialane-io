@@ -13,7 +13,7 @@ import { BackButton } from "./back-button";
 import { QuickAction } from "./quick-action";
 import { SectionHeader } from "./section-header";
 import { WalletActivityIcon } from "./wallet-activity-icon";
-import { useUsdPrices } from "./use-usd-prices";
+import { useUsdPrices } from "@/hooks/use-usd-prices";
 import type { WalletToken } from "./wallet-tokens";
 import type { WalletPanelView } from "./types";
 

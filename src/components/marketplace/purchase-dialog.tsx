@@ -24,6 +24,12 @@ import { EXPLORER_URL } from "@/lib/constants";
 import type { ApiOrder } from "@medialane/sdk";
 import { formatDisplayPrice, ipfsToHttp } from "@/lib/utils";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
+import { useUsdPrices } from "@/hooks/use-usd-prices";
+import { usdValueFor } from "@/lib/wallet-format";
+import { useErc20Balance } from "@/hooks/use-erc20-balance";
+import { getTokenBySymbol } from "@medialane/sdk";
+import { buildSwapCalls } from "@/lib/wallet/swap-calls";
+import { PayWithPicker } from "@/components/marketplace/pay-with-picker";
 
 interface PurchaseDialogProps {
   order: ApiOrder;
@@ -38,10 +44,14 @@ type Step = "details" | "processing" | "success";
 function TokenHero({ order, quantity }: { order: ApiOrder; quantity: number }) {
   const image = order.token?.image ? ipfsToHttp(order.token.image) : null;
   const name = order.token?.name || `Token #${order.nftTokenId}`;
+  const usdPrices = useUsdPrices();
 
   const unitPrice = order.price?.formatted ? parseFloat(order.price.formatted) : null;
   const totalPrice = unitPrice !== null ? unitPrice * quantity : null;
   const showTotal = quantity > 1 && totalPrice !== null;
+  const totalUsd = totalPrice !== null
+    ? usdValueFor(String(totalPrice), order.price?.currency, usdPrices)
+    : null;
 
   return (
     <div>
@@ -78,6 +88,7 @@ function TokenHero({ order, quantity }: { order: ApiOrder; quantity: number }) {
             ) : (
               <p className="text-xs text-muted-foreground">{order.price.currency}</p>
             )}
+            {totalUsd && <p className="text-xs text-muted-foreground/70">≈ {totalUsd}</p>}
           </div>
         )}
       </div>
@@ -181,16 +192,29 @@ function SuccessScreen({
 
 export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: PurchaseDialogProps) {
   const router = useRouter();
-  const { fulfillOrder, hasWallet, resetState } = useMarketplace();
+  const { fulfillOrder, hasWallet, walletAddress, resetState } = useMarketplace();
 
   const [step, setStep] = useState<Step>("details");
   const [quantity, setQuantity] = useState(1);
   const [successTxHash, setSuccessTxHash] = useState<string | null>(null);
+  const [paymentSymbol, setPaymentSymbol] = useState<string | null>(null);
 
   const is1155 = order.offer?.itemType === "ERC1155";
   const maxQty = is1155
     ? Math.max(1, parseInt(order.remainingAmount ?? order.offer.startAmount ?? "1", 10))
     : 1;
+
+  // The exact amount (raw wei, order's own currency) the fulfill call needs —
+  // shared by the balance check below and the swap-build step in executeAction.
+  const requiredRaw = BigInt(order.consideration.startAmount ?? "0") * BigInt(is1155 ? quantity : 1);
+  const orderCurrencyToken = order.price?.currency ? getTokenBySymbol(order.price.currency) : undefined;
+  const { rawBalance: orderCurrencyBalance, isLoading: balanceLoading } = useErc20Balance(
+    orderCurrencyToken?.address ?? null,
+    walletAddress
+  );
+  // Explicitly false (not null/loading) before showing the pay-with picker —
+  // never flash it while the balance is still resolving.
+  const needsSwap = !balanceLoading && orderCurrencyBalance !== null && orderCurrencyBalance < requiredRaw;
 
   const handlePurchaseSuccess = (hash: string | null) => {
     setSuccessTxHash(hash ?? null);
@@ -205,7 +229,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
     error,
     beginAction,
     resetActionFlow,
-  } = useWalletMarketplaceActionFlow<{ quantity: number }>({
+  } = useWalletMarketplaceActionFlow<{ quantity: number; paymentSymbol: string | null }>({
     hasWallet,
     executeAction: async (values) => {
       setStep("processing");
@@ -214,12 +238,33 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
       // fulfill call — no separate fire-and-forget transaction.
       const feeQuantity = is1155 ? BigInt(values.quantity || 1) : 1n;
       const feeGrossAmount = BigInt(order.consideration.startAmount ?? "0") * feeQuantity;
+
+      // Auto-swap: buyer is paying with a token other than the order's own
+      // currency. Build a FRESH swap quote+calls right now (never reuse the
+      // picker's browsing estimate) and prepend them into the same atomic
+      // multicall as the fulfill call — one signature, one transaction.
+      let swapCalls: import("starknet").Call[] | undefined;
+      if (values.paymentSymbol && order.price?.currency && walletAddress) {
+        try {
+          const built = await buildSwapCalls({
+            sellSymbol: values.paymentSymbol,
+            buySymbol: order.price.currency,
+            buyAmountRaw: feeGrossAmount.toString(),
+            takerAddress: walletAddress,
+          });
+          swapCalls = built.calls;
+        } catch {
+          throw new Error("Price moved before the swap could be prepared — please try again.");
+        }
+      }
+
       const hash = await fulfillOrder({
         orderHash: order.orderHash,
         tokenStandard: order.offer.itemType,
         quantity: qty,
         feeToken: order.consideration.token ?? "",
         feeGrossAmount,
+        swapCalls,
       });
 
       if (hash) {
@@ -230,9 +275,11 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
     },
   });
 
+  const canBuy = !needsSwap || !!paymentSymbol;
+
   const handleBuyClick = () => {
-    if (!hasWallet) return;
-    beginAction({ quantity });
+    if (!hasWallet || !canBuy) return;
+    beginAction({ quantity, paymentSymbol: needsSwap ? paymentSymbol : null });
   };
 
   const handleClose = (v: boolean) => {
@@ -247,6 +294,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
       setStep("details");
       setQuantity(1);
       setSuccessTxHash(null);
+      setPaymentSymbol(null);
     }
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -352,18 +400,29 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
                   </div>
                 )}
 
+                {hasWallet && needsSwap && order.price?.currency && (
+                  <PayWithPicker
+                    orderCurrency={order.price.currency}
+                    requiredRaw={requiredRaw}
+                    walletAddress={walletAddress}
+                    selected={paymentSymbol}
+                    onSelect={setPaymentSymbol}
+                  />
+                )}
+
                 {!hasWallet ? (
                   <p className="text-sm text-muted-foreground text-center py-2">
                     Secure your account to purchase this asset.
                   </p>
                 ) : (
-                  <div className="btn-border-animated p-[1px] rounded-xl">
+                  <div className={`btn-border-animated p-[1px] rounded-xl ${!canBuy ? "opacity-50 pointer-events-none" : ""}`}>
                     <button
                       className="w-full h-12 rounded-[11px] flex items-center justify-center gap-2 text-base font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-transparent"
                       onClick={handleBuyClick}
+                      disabled={!canBuy}
                     >
                       {error ? <RefreshCw className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
-                      {error ? "Try again" : hasWallet ? "Buy now" : "Secure account & buy"}
+                      {error ? "Try again" : needsSwap && !paymentSymbol ? "Select a token to pay with" : "Buy now"}
                     </button>
                   </div>
                 )}
