@@ -1,8 +1,12 @@
 import useSWR from "swr";
+import { useTokenRemixes as useTokenRemixesBase } from "@medialane/ui";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSiwsToken } from "@/hooks/use-siws-token";
 import { apiFetch } from "@/lib/api-fetch";
-import type { RemixOffer, RemixOfferListResponse, PublicRemix } from "@/types/remix-offers";
+import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
+import type { RemixOffer, RemixOfferListResponse } from "@/types/remix-offers";
+
+const apiConfig = { baseUrl: MEDIALANE_BACKEND_URL, apiKey: MEDIALANE_API_KEY };
 
 // ─── Hooks ────────────────────────────────────────────────────────────────────
 
@@ -28,13 +32,7 @@ export function useRemixOffers(role: "creator" | "requester", status?: string) {
 
 /** Public remixes of a token. */
 export function useTokenRemixes(contract: string | null, tokenId: string | null) {
-  const { data, error, isLoading, mutate } = useSWR<{ data: PublicRemix[]; meta: { total: number } }>(
-    contract && tokenId ? `token-remixes-${contract}-${tokenId}` : null,
-    () => apiFetch(`/v1/tokens/${contract}/${tokenId}/remixes`),
-    { refreshInterval: 60000, revalidateOnFocus: false }
-  );
-
-  return { remixes: data?.data ?? [], total: data?.meta.total ?? 0, isLoading, error, mutate };
+  return useTokenRemixesBase(apiConfig, contract, tokenId);
 }
 
 // ─── Mutation helpers ─────────────────────────────────────────────────────────
