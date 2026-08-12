@@ -8,6 +8,8 @@ import { TransferDialog } from "@/components/marketplace/transfer-dialog";
 import { CancelOrderDialog } from "@/components/marketplace/cancel-order-dialog";
 import { EmptyOrError } from "@/components/ui/empty-or-error";
 import { LoadMoreSentinel } from "@medialane/ui";
+import { useUsdPrices } from "@/hooks/use-usd-prices";
+import { usdValueFor } from "@/lib/wallet-format";
 import { ImageIcon } from "lucide-react";
 import type { ApiToken } from "@medialane/sdk";
 
@@ -24,6 +26,7 @@ export function AssetsGrid({ address, limit, gridClassName }: AssetsGridProps) {
   const [allTokens, setAllTokens] = useState<ApiToken[]>([]);
 
   const { tokens, meta, isLoading, error, mutate } = useTokensByOwner(address, page, limit ?? 20);
+  const usdPrices = useUsdPrices();
 
   // Accumulate pages
   useEffect(() => {
@@ -98,16 +101,20 @@ export function AssetsGrid({ address, limit, gridClassName }: AssetsGridProps) {
         }
       >
         <div className={gridCols}>
-          {displayTokens.map((token) => (
-            <TokenCard
-              key={`${token.contractAddress}-${token.tokenId}`}
-              token={token}
-              isOwner
-              onList={handleList}
-              onTransfer={handleTransfer}
-              onCancel={handleCancelRequest}
-            />
-          ))}
+          {displayTokens.map((token) => {
+            const listingOrder = token.activeOrders?.find((o) => o.offer.itemType === "ERC721" || o.offer.itemType === "ERC1155");
+            return (
+              <TokenCard
+                key={`${token.contractAddress}-${token.tokenId}`}
+                token={token}
+                isOwner
+                usdValue={usdValueFor(listingOrder?.price.formatted, listingOrder?.price.currency, usdPrices)}
+                onList={handleList}
+                onTransfer={handleTransfer}
+                onCancel={handleCancelRequest}
+              />
+            );
+          })}
         </div>
 
         <LoadMoreSentinel

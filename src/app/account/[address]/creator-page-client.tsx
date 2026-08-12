@@ -21,6 +21,8 @@ import { CollectionCard, CollectionCardSkeleton, HiddenContentBanner } from "@me
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { timeAgo, formatDisplayPrice } from "@/lib/utils";
+import { useUsdPrices } from "@/hooks/use-usd-prices";
+import { usdValueFor } from "@/lib/wallet-format";
 import {
   Tag,
   Handshake,
@@ -166,6 +168,7 @@ function EmptyState({
 export default function CreatorPageClient() {
   const { address } = useParams<{ address: string }>();
   const [activeTab, setActiveTab] = useState<TabId>("assets");
+  const usdPrices = useUsdPrices();
   const [reportOpen,    setReportOpen]    = useState(false);
   const [listTarget, setListTarget] = useState<{ contract: string; tokenId: string; name?: string; image?: string | null } | null>(null);
 
@@ -300,19 +303,23 @@ export default function CreatorPageClient() {
               />
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                {tokens.map((t) => (
-                  <TokenCard
-                    key={`${t.contractAddress}-${t.tokenId}`}
-                    token={t}
-                    isOwner={isOwner}
-                    onList={isOwner ? (t: ApiToken) => setListTarget({
-                      contract: t.contractAddress,
-                      tokenId: t.tokenId,
-                      name: t.metadata?.name ?? undefined,
-                      image: t.metadata?.image ?? null,
-                    }) : undefined}
-                  />
-                ))}
+                {tokens.map((t) => {
+                  const listingOrder = t.activeOrders?.find((o) => o.offer.itemType === "ERC721" || o.offer.itemType === "ERC1155");
+                  return (
+                    <TokenCard
+                      key={`${t.contractAddress}-${t.tokenId}`}
+                      token={t}
+                      isOwner={isOwner}
+                      usdValue={usdValueFor(listingOrder?.price.formatted, listingOrder?.price.currency, usdPrices)}
+                      onList={isOwner ? (t: ApiToken) => setListTarget({
+                        contract: t.contractAddress,
+                        tokenId: t.tokenId,
+                        name: t.metadata?.name ?? undefined,
+                        image: t.metadata?.image ?? null,
+                      }) : undefined}
+                    />
+                  );
+                })}
               </div>
             )
           )}
