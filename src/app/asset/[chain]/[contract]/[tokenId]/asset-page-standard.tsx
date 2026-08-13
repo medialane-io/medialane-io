@@ -142,7 +142,6 @@ export function AssetPageStandard() {
   });
 
   const goToRemix = () => router.push(`/create/remix/${contract}/${tokenId}`);
-  const goToDeal = () => router.push(`/create/licensing/${contract}/${tokenId}`);
 
   if (isLoading) {
     return (
@@ -333,7 +332,11 @@ export function AssetPageStandard() {
               onOpenPurchase={setPurchaseOrder}
               onOpenOffer={() => setOfferOpen(true)}
               onOpenRemix={goToRemix}
-              onProposeDeal={goToDeal}
+              // No onProposeDeal — the License button is removed from this
+              // page, but showDealOption still goes through so
+              // AssetMarketplacePanel's "no-derivatives" fallback copy
+              // stays accurate. The button itself needs BOTH showDealOption
+              // AND onProposeDeal, so omitting just this one hides it.
             />
 
             {/* Bridge to the chain-native dapp for self-custody / web3 users
