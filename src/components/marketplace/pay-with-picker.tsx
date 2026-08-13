@@ -9,31 +9,21 @@ import { useWalletPanel } from "@/components/wallet-panel/wallet-panel-overlay";
 import { fmt } from "@/lib/wallet-format";
 import { cn } from "@/lib/utils";
 
-interface PayWithOptionProps {
+/** Purely presentational — every value it needs is computed by the parent,
+ *  which already fetched the balance and quote to decide whether this row
+ *  (and the picker as a whole) has anything selectable at all. */
+function PayWithOption({
+  symbol, decimals, rawBalance, sellAmount, isLoading, insufficient, selected, onSelect,
+}: {
   symbol: string;
   decimals: number;
   rawBalance: bigint;
-  orderCurrency: string;
-  requiredRaw: bigint;
-  walletAddress: string | null;
+  sellAmount: bigint | null;
+  isLoading: boolean;
+  insufficient: boolean;
   selected: boolean;
   onSelect: () => void;
-}
-
-/**
- * Only ever rendered for a token the wallet actually holds (balance > 0) —
- * PayWithPicker filters zero-balance tokens out before this even mounts, so
- * "Insufficient" here always means "some, but not enough for this specific
- * purchase," never "nothing at all."
- */
-function PayWithOption({
-  symbol, decimals, rawBalance, orderCurrency, requiredRaw, walletAddress, selected, onSelect,
-}: PayWithOptionProps) {
-  const { quote, isLoading } = useSwapQuote(symbol, orderCurrency, requiredRaw.toString(), walletAddress);
-
-  const sellAmount = quote ? BigInt(quote.sellAmount) : null;
-  const insufficient = sellAmount !== null && rawBalance < sellAmount;
-
+}) {
   return (
     <button
       type="button"
@@ -65,6 +55,25 @@ function PayWithOption({
   );
 }
 
+function FundWalletPrompt({ message, onFund }: { message: string; onFund: () => void }) {
+  return (
+    <div className="space-y-2 rounded-lg border border-amber-500/20 bg-amber-500/5 p-4 text-center">
+      <Wallet className="mx-auto h-5 w-5 text-amber-500" />
+      <p className="text-sm font-medium">{message}</p>
+      <p className="text-xs text-muted-foreground">
+        Add STRK, ETH, USDC, USDT, or WBTC to your Medialane wallet to complete this purchase.
+      </p>
+      <button
+        type="button"
+        onClick={onFund}
+        className="text-xs font-semibold text-primary hover:underline"
+      >
+        Fund your wallet
+      </button>
+    </div>
+  );
+}
+
 interface PayWithPickerProps {
   orderCurrency: string;
   requiredRaw: bigint;
@@ -79,35 +88,64 @@ interface PayWithPickerProps {
  * instead, auto-swapped into the order's currency as part of the same
  * atomic purchase transaction.
  *
- * Balances for the fixed 5-token universe are fetched here (one explicit
- * useErc20Balance call per known symbol, not a loop — hook order must
- * never depend on props) so this component can decide, up front, which
- * tokens are even worth offering: a zero balance can never cover a swap
- * regardless of rate, so those rows are filtered out entirely instead of
- * shown disabled. If every token is zero, the picker is replaced by a
- * "fund your wallet" prompt rather than an empty, unusable list.
+ * Balances AND quotes for the fixed 5-token universe are fetched here (one
+ * explicit call per known symbol, never in a loop — hook order must never
+ * depend on props), not inside each row, so this component can tell —
+ * before rendering anything — whether the picker has a single genuinely
+ * selectable option. Two distinct "you can't do this" states, not one:
+ * holding nothing at all (never worth quoting) vs. holding some of a
+ * token but not enough to cover the swap (e.g. 0.97 STRK when the swap
+ * needs ~5714 STRK) — both replace the picker with an honest message and
+ * a path to fund the wallet, instead of a "pay with another token" header
+ * and an unusable "Select a token" button sitting over an all-insufficient
+ * list.
  */
 export function PayWithPicker({ orderCurrency, requiredRaw, walletAddress, selected, onSelect }: PayWithPickerProps) {
   const { open: openWalletPanel } = useWalletPanel();
   const alternatives = SUPPORTED_TOKENS.filter((t) => t.listable && t.symbol !== orderCurrency);
 
-  const ethBalance = useErc20Balance(getTokenBySymbol("ETH")?.address ?? null, walletAddress);
-  const strkBalance = useErc20Balance(getTokenBySymbol("STRK")?.address ?? null, walletAddress);
-  const usdcBalance = useErc20Balance(getTokenBySymbol("USDC")?.address ?? null, walletAddress);
-  const usdtBalance = useErc20Balance(getTokenBySymbol("USDT")?.address ?? null, walletAddress);
-  const wbtcBalance = useErc20Balance(getTokenBySymbol("WBTC")?.address ?? null, walletAddress);
-  const balancesBySymbol: Record<string, ReturnType<typeof useErc20Balance>> = {
-    ETH: ethBalance, STRK: strkBalance, USDC: usdcBalance, USDT: usdtBalance, WBTC: wbtcBalance,
+  const balanceETH = useErc20Balance(getTokenBySymbol("ETH")?.address ?? null, walletAddress);
+  const balanceSTRK = useErc20Balance(getTokenBySymbol("STRK")?.address ?? null, walletAddress);
+  const balanceUSDC = useErc20Balance(getTokenBySymbol("USDC")?.address ?? null, walletAddress);
+  const balanceUSDT = useErc20Balance(getTokenBySymbol("USDT")?.address ?? null, walletAddress);
+  const balanceWBTC = useErc20Balance(getTokenBySymbol("WBTC")?.address ?? null, walletAddress);
+  const balances: Record<string, ReturnType<typeof useErc20Balance>> = {
+    ETH: balanceETH, STRK: balanceSTRK, USDC: balanceUSDC, USDT: balanceUSDT, WBTC: balanceWBTC,
   };
 
-  const stillLoading = alternatives.some((t) => balancesBySymbol[t.symbol]?.isLoading);
-  const held = alternatives
-    .map((token) => ({ token, rawBalance: balancesBySymbol[token.symbol]?.rawBalance ?? null }))
-    .filter((entry): entry is { token: (typeof alternatives)[number]; rawBalance: bigint } =>
-      entry.rawBalance !== null && entry.rawBalance > 0n
-    );
+  // Only worth a quote (a credit-metered call) when the token is a real
+  // alternative (not the order's own currency) AND the wallet holds any of
+  // it at all — a zero balance can never cover a swap regardless of rate.
+  // useSwapQuote already treats a null sellSymbol as "don't fetch."
+  const requiredStr = requiredRaw.toString();
+  const quoteFor = (symbol: string) =>
+    symbol !== orderCurrency && (balances[symbol].rawBalance ?? 0n) > 0n ? symbol : null;
+  const quoteETH = useSwapQuote(quoteFor("ETH"), orderCurrency, requiredStr, walletAddress);
+  const quoteSTRK = useSwapQuote(quoteFor("STRK"), orderCurrency, requiredStr, walletAddress);
+  const quoteUSDC = useSwapQuote(quoteFor("USDC"), orderCurrency, requiredStr, walletAddress);
+  const quoteUSDT = useSwapQuote(quoteFor("USDT"), orderCurrency, requiredStr, walletAddress);
+  const quoteWBTC = useSwapQuote(quoteFor("WBTC"), orderCurrency, requiredStr, walletAddress);
+  const quotes: Record<string, ReturnType<typeof useSwapQuote>> = {
+    ETH: quoteETH, STRK: quoteSTRK, USDC: quoteUSDC, USDT: quoteUSDT, WBTC: quoteWBTC,
+  };
 
-  if (stillLoading) {
+  const rows = alternatives.map((token) => {
+    const balance = balances[token.symbol];
+    const quote = quotes[token.symbol];
+    const rawBalance = balance.rawBalance ?? 0n;
+    const hasBalance = rawBalance > 0n;
+    const sellAmount = quote.quote ? BigInt(quote.quote.sellAmount) : null;
+    const isLoading = hasBalance && quote.isLoading;
+    const sufficient = hasBalance && sellAmount !== null && rawBalance >= sellAmount;
+    return { token, rawBalance, hasBalance, sellAmount, isLoading, sufficient };
+  });
+
+  const held = rows.filter((r) => r.hasBalance);
+  const anyBalanceLoading = alternatives.some((t) => balances[t.symbol].isLoading);
+  const anyStillQuoting = held.some((r) => r.isLoading);
+  const anySufficient = held.some((r) => r.sufficient);
+
+  if (anyBalanceLoading) {
     return (
       <div className="flex items-center justify-center gap-2 rounded-lg border border-border px-3 py-4 text-xs text-muted-foreground">
         <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -117,21 +155,24 @@ export function PayWithPicker({ orderCurrency, requiredRaw, walletAddress, selec
   }
 
   if (held.length === 0) {
+    return <FundWalletPrompt message="Your wallet has no funds" onFund={openWalletPanel} />;
+  }
+
+  if (anyStillQuoting) {
     return (
-      <div className="space-y-2 rounded-lg border border-amber-500/20 bg-amber-500/5 p-4 text-center">
-        <Wallet className="mx-auto h-5 w-5 text-amber-500" />
-        <p className="text-sm font-medium">Your wallet has no funds</p>
-        <p className="text-xs text-muted-foreground">
-          Add STRK, ETH, USDC, USDT, or WBTC to your Medialane wallet to complete this purchase.
-        </p>
-        <button
-          type="button"
-          onClick={openWalletPanel}
-          className="text-xs font-semibold text-primary hover:underline"
-        >
-          Fund your wallet
-        </button>
+      <div className="flex items-center justify-center gap-2 rounded-lg border border-border px-3 py-4 text-xs text-muted-foreground">
+        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        Checking exchange rates…
       </div>
+    );
+  }
+
+  if (!anySufficient) {
+    return (
+      <FundWalletPrompt
+        message="You don't have enough of any supported token to complete this purchase"
+        onFund={openWalletPanel}
+      />
     );
   }
 
@@ -141,17 +182,17 @@ export function PayWithPicker({ orderCurrency, requiredRaw, walletAddress, selec
         Your {orderCurrency} balance is too low — pay with another token instead:
       </p>
       <div className="space-y-1.5">
-        {held.map(({ token, rawBalance }) => (
+        {held.map((row) => (
           <PayWithOption
-            key={token.symbol}
-            symbol={token.symbol}
-            decimals={token.decimals}
-            rawBalance={rawBalance}
-            orderCurrency={orderCurrency}
-            requiredRaw={requiredRaw}
-            walletAddress={walletAddress}
-            selected={selected === token.symbol}
-            onSelect={() => onSelect(token.symbol)}
+            key={row.token.symbol}
+            symbol={row.token.symbol}
+            decimals={row.token.decimals}
+            rawBalance={row.rawBalance}
+            sellAmount={row.sellAmount}
+            isLoading={row.isLoading}
+            insufficient={!row.sufficient}
+            selected={selected === row.token.symbol}
+            onSelect={() => onSelect(row.token.symbol)}
           />
         ))}
       </div>
