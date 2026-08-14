@@ -14,10 +14,20 @@ import { getTokenBySymbol } from "@medialane/sdk";
 import { MEDIAWALLET_CLASS_HASH, ownerConstructorCalldata } from "@/lib/wallet/account";
 import { paymaster } from "@/lib/wallet/paymaster-server";
 import { billPaymasterCall } from "@/lib/wallet/paymaster-billing";
+import { createRateLimiter, isSameOrigin, requestIp } from "@/lib/api-route-guard";
 
 export const runtime = "nodejs";
 
+const checkRateLimit = createRateLimiter(60_000, 30);
+
 export async function POST(req: NextRequest) {
+  if (!isSameOrigin(req)) {
+    return NextResponse.json({ error: "Cross-origin requests are not allowed" }, { status: 403 });
+  }
+  if (!checkRateLimit(requestIp(req))) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   const body = (await req.json().catch(() => null)) as
     | { ownerPubkey?: string; ownerAddress?: string; salt?: string }
     | null;

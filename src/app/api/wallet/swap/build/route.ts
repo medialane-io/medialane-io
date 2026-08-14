@@ -14,13 +14,23 @@ import { type NextRequest, NextResponse } from "next/server";
 import { getQuotes, quoteToCalls } from "@avnu/avnu-sdk";
 import { getTokenBySymbol, stringifyBigInts } from "@medialane/sdk";
 import { billSwapCall } from "@/lib/wallet/swap-billing";
+import { createRateLimiter, isSameOrigin, requestIp } from "@/lib/api-route-guard";
 
 export const runtime = "nodejs";
 
 /** Fixed per the design spec — not user-adjustable in this phase. */
 const DEFAULT_SLIPPAGE = 0.01;
 
+const checkRateLimit = createRateLimiter(60_000, 30);
+
 export async function POST(req: NextRequest) {
+  if (!isSameOrigin(req)) {
+    return NextResponse.json({ error: "Cross-origin requests are not allowed" }, { status: 403 });
+  }
+  if (!checkRateLimit(requestIp(req))) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   const body = (await req.json().catch(() => null)) as
     | { sellSymbol?: string; buySymbol?: string; buyAmountRaw?: string; takerAddress?: string }
     | null;

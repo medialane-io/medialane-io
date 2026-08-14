@@ -31,8 +31,8 @@ export const starknetProvider = new RpcProvider({
  * limited, meant for this app's own signed-in write/read traffic, not for
  * routing every anonymous discovery read through it.
  *
- * It uses ONLY the SDK's keyless public fallback list (lava.build, blastapi,
- * nethermind) — never the Alchemy endpoint. The Alchemy URL carries our API key
+ * It uses ONLY the SDK's keyless public fallback list (lava.build) — never
+ * the Alchemy endpoint. The Alchemy URL carries our API key
  * and must stay server-side (it lives in ALCHEMY_RPC_URL, used only inside
  * /api/rpc); routing browser traffic through it would leak the key. We also skip
  * NEXT_PUBLIC_STARKNET_RPC_URL here so a misconfigured keyed value in that var
