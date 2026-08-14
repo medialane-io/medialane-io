@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { validatePin } from "@/components/ui/pin-input";
+import { friendlyErrorMessage } from "@/lib/friendly-error";
 
 interface UseMarketplaceActionFlowOptions<TValues> {
   isSignedIn: boolean | undefined;
@@ -61,7 +62,7 @@ export function useMarketplaceActionFlow<TValues>({
       try {
         await setupSession(pin);
       } catch (err: unknown) {
-        setPinError(err instanceof Error ? err.message : "Session setup failed. Please try again.");
+        setPinError(friendlyErrorMessage(err, "Session setup failed. Please try again."));
         return;
       } finally {
         setIsActivatingSession(false);
@@ -85,7 +86,7 @@ export function useMarketplaceActionFlow<TValues>({
       setPin("");
       setStep("form");
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Passkey authentication failed";
+      const msg = friendlyErrorMessage(err, "Passkey authentication failed");
       setPinError(msg);
     } finally {
       setIsAuthenticatingPasskey(false);

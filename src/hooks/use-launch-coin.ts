@@ -14,6 +14,7 @@ import {
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { starknetProvider } from "@/lib/starknet";
+import { friendlyErrorMessage } from "@/lib/friendly-error";
 
 const API_BASE = "/api/proxy";
 
@@ -95,7 +96,7 @@ export function useLaunchCoin() {
         return { coinAddress, txHash: launched.txHash };
       } catch (e) {
         setStatus("error");
-        setError(e instanceof Error ? e.message : "Launch failed");
+        setError(friendlyErrorMessage(e, "Launch failed"));
         throw e;
       }
     },

@@ -32,6 +32,7 @@ import {
   Mail, User, ShieldCheck, ShieldAlert,
 } from "lucide-react";
 import { cn, resolveTokenImage } from "@/lib/utils";
+import { friendlyErrorMessage } from "@/lib/friendly-error";
 
 type CheckState = "idle" | "checking" | "available" | "taken";
 
@@ -393,7 +394,7 @@ export default function SettingsContent() {
       setTimeout(() => setSaveStatus("idle"), 3000);
     } catch (e: unknown) {
       setSaveStatus("error");
-      setSaveError(e instanceof Error ? e.message : "Failed to save changes");
+      setSaveError(friendlyErrorMessage(e, "Failed to save changes"));
     } finally {
       setSaving(false);
     }

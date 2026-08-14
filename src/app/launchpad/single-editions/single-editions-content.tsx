@@ -75,6 +75,7 @@ import { toast } from "sonner";
 import Link from "next/link";
 import type { Call } from "starknet";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
+import { friendlyErrorMessage } from "@/lib/friendly-error";
 
 const schema = z.object({
   collectionId: z.string().min(1, "Select a collection"),
@@ -394,7 +395,7 @@ export function SingleEditionsContent() {
     if (!walletAddress || !signer) return;
     setPendingValues(values);
     void handleUnlocked(values, signer).catch((err) => {
-      setMintError(err instanceof Error ? err.message : "Something went wrong");
+      setMintError(friendlyErrorMessage(err));
       setMintStep("error");
     });
   };
@@ -497,7 +498,7 @@ export function SingleEditionsContent() {
       rewardToast("mint_asset");
       invalidatePortfolioCache(walletAddress);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Something went wrong";
+      const message = friendlyErrorMessage(err);
 
       const rawError =
         err instanceof Error && err.cause instanceof Error ? err.cause.message : undefined;

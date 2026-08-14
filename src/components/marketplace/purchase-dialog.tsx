@@ -391,6 +391,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
                         variant="outline" size="icon" className="h-7 w-7"
                         disabled={quantity <= 1}
                         onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                        aria-label="Decrease quantity"
                       >
                         <Minus className="h-3 w-3" />
                       </Button>
@@ -399,6 +400,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
                         variant="outline" size="icon" className="h-7 w-7"
                         disabled={quantity >= maxQty}
                         onClick={() => setQuantity(q => Math.min(maxQty, q + 1))}
+                        aria-label="Increase quantity"
                       >
                         <Plus className="h-3 w-3" />
                       </Button>

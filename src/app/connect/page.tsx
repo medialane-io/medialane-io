@@ -10,6 +10,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { Loader2, ShieldCheck, CheckCircle2, AlertCircle } from "lucide-react";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { ValuePropCarousel } from "@/components/connect/value-prop-carousel";
+import { friendlyErrorMessage } from "@/lib/friendly-error";
 
 type Step = "email" | "checking-email" | "registering" | "code" | "verifying-code" | "has-wallet";
 
@@ -113,7 +114,7 @@ function ConnectForm() {
       if (!res.ok) throw new Error((data as { error?: string }).error ?? "Couldn't resend the code. Please try again.");
       setResendCooldown(RESEND_COOLDOWN_SECONDS);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Couldn't resend the code. Please try again.");
+      setError(friendlyErrorMessage(err, "Couldn't resend the code. Please try again."));
     } finally {
       setResending(false);
     }
@@ -140,7 +141,7 @@ function ConnectForm() {
         setStep("has-wallet");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Incorrect code. Please try again.");
+      setError(friendlyErrorMessage(err, "Incorrect code. Please try again."));
       setStep("code");
     }
   };

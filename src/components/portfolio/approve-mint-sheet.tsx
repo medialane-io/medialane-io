@@ -23,6 +23,7 @@ import { AlertCircle, Check, GitBranch, Loader2 } from "lucide-react";
 import type { RemixOffer } from "@/types/remix-offers";
 import type { Call } from "starknet";
 import { INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
+import { friendlyErrorMessage } from "@/lib/friendly-error";
 
 interface Props {
   offer: RemixOffer | null;
@@ -95,7 +96,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
       return;
     }
     void handleUnlocked().catch((err) => {
-      setApproveError(err instanceof Error ? err.message : "Approval failed");
+      setApproveError(friendlyErrorMessage(err, "Approval failed"));
       setLoading(false);
     });
   };
@@ -222,7 +223,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
       setDone(true);
       setTimeout(() => onSuccess?.(), INDEXER_REVALIDATION_DELAY_MS);
     } catch (err: unknown) {
-      setApproveError(err instanceof Error ? err.message : "Approval failed");
+      setApproveError(friendlyErrorMessage(err, "Approval failed"));
     } finally {
       setLoading(false);
     }

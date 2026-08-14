@@ -20,6 +20,7 @@ import { CancelListingDialog } from "@/app/asset/[chain]/[contract]/[tokenId]/ca
 import { assetHref, collectionHref } from "@/lib/routes";
 import { ReportDialog } from "@/components/report-dialog";
 import type { ApiOrder } from "@medialane/sdk";
+import { friendlyErrorMessage } from "@/lib/friendly-error";
 
 export { ListingCardSkeleton };
 
@@ -61,7 +62,7 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
       invalidateOrders();
     } catch (err) {
       setCancelStep("error");
-      setCancelError(err instanceof Error ? err.message : "Cancellation failed");
+      setCancelError(friendlyErrorMessage(err, "Cancellation failed"));
     }
   };
 

@@ -11,6 +11,7 @@ import { buildFeeCall } from "@medialane/sdk/starknet";
 import { ioFeeConfig } from "@/lib/fee";
 import type { Call, TypedData } from "starknet";
 import type { ApiIntentCreated } from "@medialane/sdk";
+import { friendlyErrorMessage } from "@/lib/friendly-error";
 
 function resolveCurrencyAddress(symbolOrAddress: string): string {
   if (symbolOrAddress.startsWith("0x")) return symbolOrAddress;
@@ -32,7 +33,7 @@ function toApiStandard(standard?: string): "ERC721" | "ERC1155" | undefined {
 }
 
 function toFriendlyError(err: unknown, fallback: string): string {
-  const raw = err instanceof Error ? err.message : fallback;
+  const raw = friendlyErrorMessage(err, fallback);
   if (/invalid body|400|bad request/i.test(raw)) {
     return "Something went wrong processing your request. Please try again, or contact Medialane support if the issue persists.";
   }

@@ -23,6 +23,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronLeft, ChevronDown, Shield, DollarSign, Percent, HandCoins, Loader2, Check } from "lucide-react";
+import { friendlyErrorMessage } from "@/lib/friendly-error";
 
 const TOKENS = getListableTokens();
 
@@ -98,7 +99,7 @@ export default function CreateLicensingPage() {
       setStep("success");
     } catch (err: unknown) {
       setStep("error");
-      setError(err instanceof Error ? err.message : "Failed to send license request");
+      setError(friendlyErrorMessage(err, "Failed to send license request"));
     } finally {
       setLoading(false);
     }

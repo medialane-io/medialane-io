@@ -41,6 +41,7 @@ import { MedialaneCollectionCard } from "@medialane/ui";
 import { CreateTicketAside } from "@/components/claim/create-ticket-aside";
 import { collectionHref } from "@/lib/routes";
 import { LICENSE_TYPES, GEOGRAPHIC_SCOPES, AI_POLICIES, DERIVATIVES_OPTIONS } from "@/types/ip";
+import { friendlyErrorMessage } from "@/lib/friendly-error";
 
 function dateToUnixTimestamp(dateStr: string | undefined): number | undefined {
   if (!dateStr) return undefined;
@@ -147,7 +148,7 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
     } catch (err) {
       if (previewRef.current) { URL.revokeObjectURL(previewRef.current); previewRef.current = null; }
       setImagePreview(null);
-      toast.error("Image upload failed", { description: err instanceof Error ? err.message : undefined });
+      toast.error("Image upload failed", { description: friendlyErrorMessage(err) });
     } finally {
       setImageUploading(false);
     }

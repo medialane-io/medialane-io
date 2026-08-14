@@ -178,6 +178,7 @@ export function AssetPagePop() {
                 className="flex items-center gap-1 text-muted-foreground hover:text-foreground"
                 onClick={() => setReportOpen(true)}
                 title="Report this asset"
+                aria-label="Report this asset"
               >
                 <Flag className="w-4 h-4" />
               </button>

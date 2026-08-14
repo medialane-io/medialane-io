@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import type { ApiOrder } from "@medialane/sdk";
+import { friendlyErrorMessage } from "@/lib/friendly-error";
 
 interface UseOrderActionsOptions {
   mutateListings: () => void;
@@ -35,7 +36,7 @@ export function useOrderActions({ mutateListings, tokenStandard }: UseOrderActio
       mutateListings();
     } catch (err: unknown) {
       setCancelStep("error");
-      setCancelError(err instanceof Error ? err.message : "Cancellation failed");
+      setCancelError(friendlyErrorMessage(err, "Cancellation failed"));
     }
   };
 

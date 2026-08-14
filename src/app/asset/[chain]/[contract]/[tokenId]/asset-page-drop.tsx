@@ -364,7 +364,7 @@ export function AssetPageDrop() {
                 <span className="text-xs font-medium truncate group-hover:text-primary transition-colors">Drop page</span>
               </Link>
               <ShareButton title={name} variant="ghost" size="icon" />
-              <button className="flex items-center gap-1 text-muted-foreground hover:text-foreground" onClick={() => setReportOpen(true)}><Flag className="w-4 h-4" /></button>
+              <button className="flex items-center gap-1 text-muted-foreground hover:text-foreground" onClick={() => setReportOpen(true)} aria-label="Report this asset"><Flag className="w-4 h-4" /></button>
             </div>
 
             <ReportDialog target={{ type: "TOKEN", contract, tokenId, name }} open={reportOpen} onOpenChange={setReportOpen} />
