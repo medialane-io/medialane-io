@@ -6,23 +6,6 @@ import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletPanel } from "@/components/wallet-panel/wallet-panel-overlay";
 import { UserShieldIcon } from "@/components/icons/user-shield-icon";
 
-/**
- * Replaces the command menu footer's static "medialane" text (NavCommandMenu's
- * `brandSlot`) with a wallet entry point — mirrors medialane-starknet's
- * `NavConnectButton`, adapted to this app's own account state machine (same
- * one `HeaderWalletTrigger` uses): no account yet -> /connect; a stranded
- * undeployed key -> /wallet-onboarding to resume; a fully set-up wallet ->
- * opens the wallet panel overlay in place. The "⌘K" shortcut hint stays
- * regardless of state.
- *
- * The two "needs setup" states get the filled brand-gradient CTA
- * (`.btn-border-animated` as a 1px wrapper around a transparent-fill button
- * — the same technique `GradientButton` uses, sized for this footer slot).
- * The connected state reads "Connect" too and gets a solid brand-blue fill
- * with a white icon, so the footer entry point stays visually consistent
- * regardless of session state. Icon is the same user-shield glyph
- * `HeaderWalletTrigger` uses in every state, connected or not.
- */
 export function NavConnectButton() {
   const { hasWallet, isDeployed } = useWalletNativeSession();
   const { close: closeMenu } = useNavCommandMenu();

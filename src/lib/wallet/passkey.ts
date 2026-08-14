@@ -26,7 +26,6 @@ const b64 = (buf: ArrayBuffer | Uint8Array): string =>
 const PRF_SALT = enc("medialane://io/owner-key/v1");
 const HKDF_INFO = enc("medialane-io-owner-key");
 
-/** Thrown when the user dismisses/cancels the passkey prompt, or it times out. Not a bug — expected user action. */
 export class PasskeyCancelledError extends Error {
   constructor() {
     super("Passkey confirmation was cancelled.");
@@ -130,15 +129,7 @@ async function aesKeyFrom(secret: Uint8Array<ArrayBuffer>): Promise<CryptoKey> {
 
 export interface CreatedOwner {
   sealed: SealedOwner;
-  /**
-   * Plaintext private key — in-memory only, never persisted anywhere.
-   * The WebAuthn create() ceremony that just ran already produced the PRF
-   * secret used to derive this key; returning it lets the very first
-   * sign-in (moments later, same page load) skip a second, redundant
-   * WebAuthn ceremony to re-derive the same secret. Any later sign-in
-   * (a resumed SealedOwner loaded from storage) still goes through
-   * unlockOwnerKey/signWith as normal — the plaintext key was never saved.
-   */
+
   privateKeyHex: string;
 }
 
@@ -200,9 +191,6 @@ export async function signWith(sealed: SealedOwner, msgHash: string): Promise<[s
   return signWithPrivateKey(priv, msgHash);
 }
 
-/** Signs directly with an already-known plaintext private key — no WebAuthn
- *  ceremony. Used for the first sign-in right after createOwnerKey(), whose
- *  plaintext key is already in memory (see CreatedOwner). */
 export function signWithPrivateKey(privateKeyHex: string, msgHash: string): [string, string] {
   const sig = ec.starkCurve.sign(msgHash, privateKeyHex);
   return [num.toHex(sig.r), num.toHex(sig.s)];

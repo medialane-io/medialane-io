@@ -30,7 +30,7 @@ export default async function Image({
           overflow: "hidden",
         }}
       >
-        {/* Left content panel */}
+
         <div
           style={{
             display: "flex",
@@ -40,7 +40,7 @@ export default async function Image({
             padding: "52px 48px",
           }}
         >
-          {/* Brand pill */}
+
           <div
             style={{
               display: "flex",
@@ -59,7 +59,6 @@ export default async function Image({
             </span>
           </div>
 
-          {/* Title + description */}
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
             <div
               style={{
@@ -79,7 +78,6 @@ export default async function Image({
             )}
           </div>
 
-          {/* Footer */}
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#9b72ff" }} />
             <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 16, letterSpacing: "0.5px" }}>
@@ -88,7 +86,6 @@ export default async function Image({
           </div>
         </div>
 
-        {/* Right image panel */}
         {imageUrl ? (
           <div
             style={{
@@ -100,7 +97,7 @@ export default async function Image({
               flexShrink: 0,
             }}
           >
-            { }
+
             <img
               src={imageUrl}
               alt={name}
@@ -108,7 +105,7 @@ export default async function Image({
               height={630}
               style={{ objectFit: "cover", width: "100%", height: "100%" }}
             />
-            {/* Left fade into background */}
+
             <div
               style={{
                 position: "absolute",
@@ -118,7 +115,7 @@ export default async function Image({
             />
           </div>
         ) : (
-          /* Placeholder pattern when no image */
+
           <div
             style={{
               display: "flex",

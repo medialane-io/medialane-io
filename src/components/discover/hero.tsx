@@ -11,7 +11,6 @@ export function Hero() {
   return (
     <div className="space-y-6 pt-14 pb-6 border-b border-border/50">
 
-      {/* Headline */}
       <motion.div
         className="text-3xl font-black leading-[1.1]"
         style={{ perspective: "800px" }}
@@ -24,7 +23,6 @@ export function Hero() {
         </h1>
       </motion.div>
 
-      {/* Stats chips */}
       {stats && (
         <motion.div
           className="flex flex-wrap gap-2"
@@ -48,7 +46,6 @@ export function Hero() {
         </motion.div>
       )}
 
-      {/* Scrolling ticker */}
       <ActivityTicker limit={10} />
     </div>
   );

@@ -10,7 +10,6 @@ import { AssetPreviewEdition } from "./asset-preview-edition";
 import { AssetPreviewPop } from "./asset-preview-pop";
 import { AssetPreviewDrop } from "./asset-preview-drop";
 
-// ── Shared prop type used by all four variants ────────────────────────────────
 export interface AssetPreviewContentProps {
   token: ApiToken;
   isOwner: boolean;
@@ -19,8 +18,6 @@ export interface AssetPreviewContentProps {
   onCancel?: (token: ApiToken) => void;
   onTransfer?: (token: ApiToken) => void;
 }
-
-// ── Shared sub-components ─────────────────────────────────────────────────────
 
 export function PreviewHero({
   image,
@@ -142,7 +139,6 @@ export function PreviewActionList({ actions }: { actions: PreviewAction[] }) {
   );
 }
 
-// ── Dispatch logic ────────────────────────────────────────────────────────────
 function pickVariant(service?: string | null, standard?: string): string {
   return (
     getService(service)?.uiVariant ??
@@ -150,7 +146,6 @@ function pickVariant(service?: string | null, standard?: string): string {
   );
 }
 
-// ── Dispatcher ────────────────────────────────────────────────────────────────
 interface AssetPreviewDialogProps {
   token: ApiToken;
   service?: string | null;

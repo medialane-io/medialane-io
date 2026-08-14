@@ -3,9 +3,6 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
-/** Portal target scoped to the wallet panel's own DOM node — not io's
- * app-wide canvas — so modals/overlays stay visually clipped inside the
- * phone-shaped panel instead of spilling over the rest of the page. */
 export const WALLET_PANEL_PORTAL_ID = "wallet-panel-canvas";
 
 export function CanvasPortal({ children }: { children: React.ReactNode }) {

@@ -32,8 +32,7 @@ export function useGatedContent(contract: string | undefined): GatedContentState
           { bearer: token }
         );
       } catch (err) {
-        // 403 is a meaningful state — caller is signed in but doesn't hold a
-        // token from this collection. Map to a sentinel instead of an error.
+
         if (err instanceof ApiError && err.status === 403) return "not_holder";
         throw err;
       }

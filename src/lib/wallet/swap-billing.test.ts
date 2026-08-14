@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, mock, test } from "bun:test";
 
-// See paymaster-billing.test.ts for why this is a module mock, not process.env.
 mock.module("@/lib/constants", () => ({
   MEDIALANE_BACKEND_URL: "http://localhost:3001",
   MEDIALANE_API_KEY: "test-key",
@@ -8,7 +7,7 @@ mock.module("@/lib/constants", () => ({
 
 describe("billSwapCall", () => {
   afterEach(() => {
-    // @ts-expect-error test cleanup
+
     delete globalThis.fetch;
   });
 

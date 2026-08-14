@@ -22,7 +22,7 @@ import { starknetProvider } from "@/lib/starknet";
 import { normalizeAddress } from "@medialane/sdk";
 
 interface TransferOwnershipDialogProps {
-  /** On-chain numeric collection ID (decimal string). */
+
   collectionId: string;
   currentOwner: string;
   collectionName?: string | null;
@@ -31,11 +31,6 @@ interface TransferOwnershipDialogProps {
   onTransferred?: () => void;
 }
 
-/**
- * Per-collection ownership handoff via the audited IPCollection registry.
- * The new owner controls future minting and ownership transfers for this
- * collection only — existing tokens are unaffected.
- */
 export function TransferCollectionOwnershipDialog({
   collectionId,
   currentOwner,
@@ -61,7 +56,7 @@ export function TransferCollectionOwnershipDialog({
       setNewOwner("");
       setStep("form");
     }
-  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const isSubmitting = action.status === "processing" || action.status === "confirming";
   const handleClose = (next: boolean) => {
@@ -172,7 +167,7 @@ export function TransferCollectionOwnershipDialog({
             </div>
           </div>
         ) : (
-          // step === "confirm"
+
           <MarketplaceConfirmStep
             description={`Transfer ownership to ${trimmed.slice(0, 6)}…${trimmed.slice(-4)}?`}
             error={action.error}

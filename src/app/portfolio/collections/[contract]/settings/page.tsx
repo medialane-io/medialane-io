@@ -371,7 +371,6 @@ export default function CollectionSettingsPage({ params }: Props) {
   return (
     <div className="space-y-6 max-w-2xl pb-16">
 
-      {/* Page header */}
       <div>
         <h1 className="text-xl font-semibold">Collection Settings</h1>
         <p className="text-sm text-muted-foreground mt-1">
@@ -388,7 +387,6 @@ export default function CollectionSettingsPage({ params }: Props) {
         )}
       </div>
 
-      {/* ── Identity ── */}
       <SectionCard id="identity">
         <SectionHeader
           icon={User}
@@ -443,7 +441,6 @@ export default function CollectionSettingsPage({ params }: Props) {
         </div>
       </SectionCard>
 
-      {/* ── Media ── */}
       <SectionCard id="media">
         <SectionHeader
           icon={ImageIcon}
@@ -476,7 +473,6 @@ export default function CollectionSettingsPage({ params }: Props) {
         </div>
       </SectionCard>
 
-      {/* ── Exclusive Content ── */}
       <SectionCard id="exclusive" className={form.gatedEnabled ? "border-emerald-500/30 bg-emerald-500/[0.03]" : ""}>
         <SectionHeader
           icon={Lock}
@@ -496,7 +492,6 @@ export default function CollectionSettingsPage({ params }: Props) {
 
         <div className="pt-1 border-t border-border space-y-5">
 
-          {/* Toggle */}
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium">
@@ -571,7 +566,6 @@ export default function CollectionSettingsPage({ params }: Props) {
                 )}
               </FieldRow>
 
-              {/* Preview of what holders see */}
               {form.gatedContentTitle && (
                 <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4 space-y-1.5">
                   <p className="text-[10px] font-semibold text-emerald-500 uppercase tracking-widest">
@@ -586,7 +580,6 @@ export default function CollectionSettingsPage({ params }: Props) {
             </div>
           )}
 
-          {/* How it works */}
           {!form.gatedEnabled && (
             <div className="rounded-lg bg-muted/50 border border-border p-4 space-y-2">
               <p className="text-xs font-semibold text-foreground">How it works</p>
@@ -609,7 +602,6 @@ export default function CollectionSettingsPage({ params }: Props) {
         </div>
       </SectionCard>
 
-      {/* ── Links ── */}
       <SectionCard id="links">
         <SectionHeader
           icon={Globe}
@@ -640,10 +632,8 @@ export default function CollectionSettingsPage({ params }: Props) {
         </div>
       </SectionCard>
 
-      {/* ── Claim your collection URL ── */}
       <CollectionSlugClaimSection contract={contract} profile={profile} />
 
-      {/* Save */}
       <div className="flex items-center gap-3 pt-2">
         <Button
           onClick={handleSave}

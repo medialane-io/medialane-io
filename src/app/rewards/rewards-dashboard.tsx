@@ -75,8 +75,6 @@ const BADGE_ICONS: Record<string, LucideIcon> = {
   Handshake,
 };
 
-// ── Ways to earn — bold icon tiles, not tiny pills ──────────────────────────────
-
 const EARN_GROUPS: {
   title: string;
   textClass: string;
@@ -119,8 +117,6 @@ const EARN_GROUPS: {
   },
 ];
 
-// ── Hero ──────────────────────────────────────────────────────────────────────
-
 function Hero() {
   return (
     <section className="space-y-5">
@@ -138,8 +134,6 @@ function Hero() {
     </section>
   );
 }
-
-// ── My score — one single panel, subtle gradient, top-right of the hero ────────
 
 function StatusPanel({ address }: { address: string | null | undefined }) {
   const { data: rewards, isLoading } = useRewards(address);
@@ -199,8 +193,6 @@ function StatusPanel({ address }: { address: string | null | undefined }) {
   );
 }
 
-// ── Personal breakdown ────────────────────────────────────────────────────────
-
 function PersonalPanel({ address }: { address: string | null | undefined }) {
   const { data: rewards } = useRewards(address);
   const { data: events } = useRewardsEvents(address, 1, 6);
@@ -238,8 +230,6 @@ function PersonalPanel({ address }: { address: string | null | undefined }) {
   );
 }
 
-// ── Community ─────────────────────────────────────────────────────────────────
-
 function CommunityPanel({ address }: { address: string | null | undefined }) {
   return (
     <section className="space-y-5">
@@ -251,8 +241,6 @@ function CommunityPanel({ address }: { address: string | null | undefined }) {
     </section>
   );
 }
-
-// ── Ways to earn — bold icon tiles ───────────────────────────────────────────────
 
 function EarnMorePanel() {
   return (
@@ -280,8 +268,6 @@ function EarnMorePanel() {
     </section>
   );
 }
-
-// ── Creator's Fund — the signature moment ────────────────────────────────────────
 
 function CreatorsFundCard() {
   return (
@@ -332,8 +318,6 @@ function CreatorsFundCard() {
   );
 }
 
-// ── Badges ────────────────────────────────────────────────────────────────────
-
 function BadgesPanel({ address }: { address: string | null | undefined }) {
   const { data: config, isLoading } = useRewardsConfig();
   const { data: rewards } = useRewards(address);
@@ -377,13 +361,9 @@ function BadgesPanel({ address }: { address: string | null | undefined }) {
   );
 }
 
-// ── Shared section title — full-weight, no muted low-contrast label ────────────
-
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return <h2 className="text-2xl font-black tracking-tight text-foreground">{children}</h2>;
 }
-
-// ── Dashboard ─────────────────────────────────────────────────────────────────
 
 export function RewardsDashboard() {
   const { address } = useWallet();
@@ -415,13 +395,12 @@ export function RewardsDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-14 items-start">
-        {/* Left — real members already earning + your own history */}
+
         <div className="lg:col-span-7 space-y-14">
           <CommunityPanel address={address} />
           <PersonalPanel address={address} />
         </div>
 
-        {/* Right — how to earn, the fund, what's achievable */}
         <div className="lg:col-span-5 space-y-10">
           <EarnMorePanel />
           <CreatorsFundCard />

@@ -27,11 +27,6 @@ import { cn } from "@/lib/utils";
 
 const MAX_LEN = 1000;
 
-/**
- * Build a Cairo ByteArray from any Unicode string.
- * starknet.js byteArrayFromString is ASCII-only — this encodes as UTF-8 first,
- * then packs bytes into 31-byte felt252 chunks (Cairo ByteArray layout).
- */
 function byteArrayFromUtf8(str: string): { data: string[]; pending_word: string; pending_word_len: number } {
   const bytes = new TextEncoder().encode(str);
   const data: string[] = [];
@@ -58,7 +53,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
   const pathname = usePathname();
   const { comments, total, isLoading, mutate } = useComments(contract, tokenId);
-  // One batched rewards lookup for all visible authors — never per row.
+
   const { data: authorLevels } = useRewardsBatch(comments.map((c) => c.author));
   const action = useWalletWriteAction();
 
@@ -86,7 +81,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
     if (isNearBottom()) {
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }
-     
+
   }, [comments.length]);
 
   const handleTextInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -125,7 +120,6 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
   return (
     <div className={cn("flex flex-col h-[480px] overflow-hidden", className)}>
 
-      {/* ── Messages ── */}
       <div ref={messagesRef} className="flex-1 overflow-y-auto px-4 py-4">
         {isLoading ? (
           <div className="space-y-4">
@@ -177,7 +171,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
                   key={comment.id}
                   className={`group flex gap-2.5 ${own ? "flex-row-reverse" : "flex-row"}`}
                 >
-                  {/* Avatar */}
+
                   <Link href={`/creator/${comment.author}`} className="shrink-0 mt-0.5">
                     <div
                       className="h-9 w-9 rounded-full flex items-center justify-center text-[11px] font-bold text-white select-none ring-2 ring-background hover:ring-primary/40 transition-all"
@@ -188,7 +182,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
                   </Link>
 
                   <div className={`flex flex-col max-w-[75%] gap-1 ${own ? "items-end" : "items-start"}`}>
-                    {/* Author + timestamp */}
+
                     <div className={`flex items-center gap-2 px-1 ${own ? "flex-row-reverse" : "flex-row"}`}>
                       <Link
                         href={`/creator/${comment.author}`}
@@ -213,7 +207,6 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
                       </span>
                     </div>
 
-                    {/* Bubble */}
                     <div className="relative">
                       {own ? (
                         <div
@@ -238,7 +231,6 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
                       )}
                     </div>
 
-                    {/* Onchain proof */}
                     {comment.txHash && (
                       <a
                         href={`${EXPLORER_URL}/tx/${comment.txHash}`}
@@ -263,7 +255,6 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
         )}
       </div>
 
-      {/* ── Compose bar ── */}
       <div className="border-t border-border/60 shrink-0">
         {!hasWallet ? (
           <div className="flex items-center justify-center px-4 h-16">
@@ -276,14 +267,14 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
           </div>
         ) : (
           <div className="px-3 pt-2 pb-3 space-y-2">
-            {/* CTA label */}
+
             <div className="flex items-center gap-1.5">
               <Zap className="h-3 w-3" style={{ color: "hsl(var(--brand-blue))" }} />
               <span className="text-[10px] font-semibold" style={{ color: "hsl(var(--brand-blue))" }}>
                 Mint your message onchain
               </span>
             </div>
-            {/* Input area */}
+
             <div
               className="rounded-xl border bg-background/60 transition-all focus-within:ring-2"
               style={{
@@ -351,8 +342,6 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
         )}
       </div>
 
-
-      {/* ── Report dialog ── */}
       {reportTarget && (
         <ReportDialog
           target={reportTarget}
@@ -361,7 +350,6 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
         />
       )}
 
-      {/* ── Transaction status ── */}
       <Dialog open={action.status !== "idle"} onOpenChange={(v) => { if (!v) action.reset(); }}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>

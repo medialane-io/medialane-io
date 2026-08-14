@@ -1,11 +1,5 @@
 "use client";
 
-// Membership asset page — the ip-club uiVariant. Same shape as the edition
-// page with the token presented as a membership tier: the on-chain validity
-// window and supply from get_membership, and a holder-facing "Your membership"
-// state driven by the on-chain is_member_of check. The window gates
-// membership, never minting or trading.
-
 import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useParams, useRouter, usePathname } from "next/navigation";
@@ -41,8 +35,6 @@ import { AssetProvenanceTab } from "./asset-provenance-tab";
 import { AssetCommentsDialog, AssetOwnersPanel } from "./asset-side-panels";
 import { AssetOverviewContent } from "./asset-overview-content";
 import { AssetMarketplaceDialogs, useAssetMarketplaceDialogState } from "./asset-marketplace-dialogs";
-
-// ── Membership status (window-derived only) ───────────────────────────────────
 
 type MembershipStatus = "upcoming" | "active" | "ended" | "lifetime";
 
@@ -91,9 +83,6 @@ function MembershipStatusChip({ status }: { status: MembershipStatus }) {
     </span>
   );
 }
-
-// ── Membership panel — identity, supply, royalty, validity window, and the
-// connected holder's own state (quantity + on-chain is_member_of).
 
 function MembershipPanel({
   membership,
@@ -149,8 +138,6 @@ function MembershipPanel({
     </div>
   );
 }
-
-// ── Page ──────────────────────────────────────────────────────────────────────
 
 export function AssetPageMembership() {
   const { contract, tokenId } = useParams<{ contract: string; tokenId: string }>();

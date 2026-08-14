@@ -1,9 +1,4 @@
-/**
- * Server-only: executes a signed AVNU-paymaster `invoke` transaction against
- * an already-deployed MediaWallet account. Companion to build/route.ts, see
- * that file's header for why this can't run client-side (the AVNU API key
- * would leak).
- */
+
 import { type NextRequest, NextResponse } from "next/server";
 import { paymaster } from "@/lib/wallet/paymaster-server";
 import { billPaymasterCall } from "@/lib/wallet/paymaster-billing";

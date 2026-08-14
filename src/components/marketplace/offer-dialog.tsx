@@ -134,7 +134,7 @@ export function OfferDialog({
 
   useEffect(() => {
     if (open) { resetState(); form.reset(); resetActionFlow(); }
-  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const confettiFired = useRef(false);
   useEffect(() => {

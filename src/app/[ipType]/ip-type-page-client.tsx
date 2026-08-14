@@ -17,7 +17,6 @@ import type { ApiToken, Chain } from "@medialane/sdk";
 
 const PAGE_SIZE = 24;
 
-// ---- Filter chip (shared pill used in the filters dialog) ----
 function FilterChip({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) {
   return (
     <button
@@ -34,7 +33,6 @@ function FilterChip({ active, onClick, label }: { active: boolean; onClick: () =
   );
 }
 
-// ---- Main page ----
 interface IpTypePageClientProps {
   slug: string;
 }
@@ -47,14 +45,12 @@ export function IpTypePageClient({ slug }: IpTypePageClientProps) {
   const [allTokens, setAllTokens] = useState<ApiToken[]>([]);
   const prevSlug = useRef(slug);
 
-  // Filter + sort state
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<"recent" | "price_asc" | "price_desc">("recent");
   const [licenseFilter, setLicenseFilter] = useState<string>("all");
   const [creatorSearchInput, setCreatorSearchInput] = useState("");
   const [creatorSearch, setCreatorSearch] = useState("");
 
-  // Reset on slug change
   useEffect(() => {
     if (prevSlug.current !== slug) {
       prevSlug.current = slug;
@@ -63,7 +59,6 @@ export function IpTypePageClient({ slug }: IpTypePageClientProps) {
     }
   }, [slug]);
 
-  // Debounce creator search
   useEffect(() => {
     const t = setTimeout(() => setCreatorSearch(creatorSearchInput), 300);
     return () => clearTimeout(t);
@@ -71,7 +66,6 @@ export function IpTypePageClient({ slug }: IpTypePageClientProps) {
 
   const { tokens, meta, isLoading } = useTokensByIpType(slug, page, PAGE_SIZE);
 
-  // Accumulate pages
   useEffect(() => {
     if (isLoading) return;
     if (page === 1) {
@@ -85,7 +79,6 @@ export function IpTypePageClient({ slug }: IpTypePageClientProps) {
     }
   }, [tokens, isLoading, page]);
 
-  // Active filter count (non-default values only)
   const activeFilterCount =
     (sortOrder !== "recent" ? 1 : 0) +
     (licenseFilter !== "all" ? 1 : 0) +
@@ -100,7 +93,6 @@ export function IpTypePageClient({ slug }: IpTypePageClientProps) {
     setListedOnly(false);
   };
 
-  // Apply filters + sort client-side
   let displayed = listedOnly
     ? allTokens.filter((t) => (t.activeOrders?.length ?? 0) > 0)
     : [...allTokens];
@@ -144,7 +136,7 @@ export function IpTypePageClient({ slug }: IpTypePageClientProps) {
 
   return (
     <PageContainer className="box-border max-w-full pt-20 pb-16 space-y-8">
-      {/* Header */}
+
       <div className="space-y-4">
         <div className="flex items-center gap-4">
           {config && Icon && (
@@ -164,7 +156,6 @@ export function IpTypePageClient({ slug }: IpTypePageClientProps) {
           </div>
         </div>
 
-        {/* Filters bar — single entry point + removable active chips */}
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => setFiltersOpen(true)}
@@ -210,7 +201,6 @@ export function IpTypePageClient({ slug }: IpTypePageClientProps) {
           )}
         </div>
 
-        {/* Filters dialog — matches the marketplace panel aesthetic */}
         <Dialog open={filtersOpen} onOpenChange={setFiltersOpen}>
           <DialogContent className="w-full max-w-sm sm:max-w-md p-0 overflow-hidden gap-0 flex flex-col max-h-[85svh]">
             <div className="flex items-center justify-between px-5 py-4 border-b border-border/60 pr-12">
@@ -226,7 +216,7 @@ export function IpTypePageClient({ slug }: IpTypePageClientProps) {
             </div>
 
             <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
-              {/* Status */}
+
               <div className="space-y-2">
                 <p className="text-[10px] font-semibold text-muted-foreground">Status</p>
                 <div className="flex flex-wrap gap-1.5">
@@ -239,7 +229,6 @@ export function IpTypePageClient({ slug }: IpTypePageClientProps) {
                 </div>
               </div>
 
-              {/* Sort */}
               <div className="space-y-2">
                 <p className="text-[10px] font-semibold text-muted-foreground">Sort</p>
                 <div className="flex flex-wrap gap-1.5">
@@ -249,7 +238,6 @@ export function IpTypePageClient({ slug }: IpTypePageClientProps) {
                 </div>
               </div>
 
-              {/* License */}
               <div className="space-y-2">
                 <p className="text-[10px] font-semibold text-muted-foreground">License</p>
                 <div className="flex flex-wrap gap-1.5">
@@ -264,7 +252,6 @@ export function IpTypePageClient({ slug }: IpTypePageClientProps) {
                 </div>
               </div>
 
-              {/* Creator */}
               <div className="space-y-2">
                 <p className="text-[10px] font-semibold text-muted-foreground">Creator</p>
                 <div className="relative">
@@ -278,7 +265,6 @@ export function IpTypePageClient({ slug }: IpTypePageClientProps) {
                 </div>
               </div>
 
-              {/* IP Type */}
               <div className="space-y-2 pt-1 border-t border-border/60">
                 <p className="text-[10px] font-semibold text-muted-foreground">IP Type</p>
                 <div className="flex flex-wrap gap-1.5">
@@ -310,7 +296,6 @@ export function IpTypePageClient({ slug }: IpTypePageClientProps) {
         </Dialog>
       </div>
 
-      {/* Grid */}
       {isInitialLoading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {Array.from({ length: PAGE_SIZE }).map((_, i) => (

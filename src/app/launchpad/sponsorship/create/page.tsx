@@ -50,7 +50,6 @@ function CreateSponsorshipAside() {
   );
 }
 
-/** Pending proposals on a specific owned asset, with accept/reject actions. */
 function PendingProposalsPanel({ nftContract }: { nftContract: string }) {
   const { proposals, isLoading, mutate } = usePendingProposalsForAsset(nftContract);
   const { address: walletAddress } = useWalletNativeSession();
@@ -70,8 +69,6 @@ function PendingProposalsPanel({ nftContract }: { nftContract: string }) {
       if (intent.requiresSignature) throw new Error("Unexpected signature requirement on sponsorship response");
       const calls: Call[] = [...(intent.calls as Call[])];
 
-      // Bundle the platform fee into the SAME atomic multicall as the accept
-      // — no separate fire-and-forget transaction.
       if (decision === "accept") {
         const feeCall = buildFeeCall(
           { surface: "sponsorship", token: paymentToken, grossAmount: BigInt(amount) },
@@ -138,7 +135,6 @@ export default function CreateSponsorshipOfferPage() {
     image: resolveTokenImage(t.metadata?.image),
   }));
 
-  // AssetSearchPicker debounces internally; this just shapes the request/response.
   const searchAssets = async (query: string): Promise<OwnedAsset[]> => {
     const res = await apiFetch<{ data: { tokens: { contractAddress: string; tokenId: string; name: string | null; image: string | null }[] } }>(
       `/v1/search?q=${encodeURIComponent(query)}&limit=16`

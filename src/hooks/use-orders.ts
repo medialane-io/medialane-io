@@ -35,7 +35,6 @@ export function useCounterOffers(args: { originalOrderHash?: string | null; sell
   return useCounterOffersBase(getMedialaneClient, args);
 }
 
-/** Fetch active ERC20 offers received by the given address (offers on tokens they hold). */
 export function useReceivedOffers(address: string | null) {
   return useReceivedOffersBase(apiConfig, address);
 }

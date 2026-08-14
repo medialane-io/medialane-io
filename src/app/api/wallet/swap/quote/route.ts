@@ -1,14 +1,4 @@
-/**
- * Server-only: fetches an AVNU swap quote for the "pay with any token"
- * auto-swap flow (see docs/superpowers/specs/2026-08-12-usd-price-autoswap-design.md).
- * Billed via billSwapCall before any AVNU call — this route never forwards
- * to AVNU on insufficient credits. AVNU's swap quote endpoint needs no API
- * key, but that doesn't exempt it from metering (see swap-billing.ts).
- *
- * This is the browsing-estimate phase — stale-tolerant, used only to show
- * "≈ X token" in the pay-with picker. The buy-time flow re-fetches a fresh
- * quote itself before calling /swap/build.
- */
+
 import { type NextRequest, NextResponse } from "next/server";
 import { getQuotes } from "@avnu/avnu-sdk";
 import { getTokenBySymbol, stringifyBigInts } from "@medialane/sdk";

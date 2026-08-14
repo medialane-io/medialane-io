@@ -1,12 +1,4 @@
-/**
- * POST /api/pinata/json
- *
- * Uploads a JSON document to IPFS via medialane-backend's metered Pinata path.
- * Requires a valid SIWS wallet session.
- *
- * Accepts: application/json body (any JSON object)
- * Response: { uri: "ipfs://...", cid: string }
- */
+
 
 import { NextRequest, NextResponse } from "next/server";
 import { getSiwsWallet } from "@/lib/siws-server";
@@ -22,7 +14,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "JSON object body required" }, { status: 400 });
   }
 
-  // Only allow known NFT metadata fields — prevents arbitrary content pinning.
   const ALLOWED_FIELDS = new Set([
     "name", "description", "image", "external_link", "external_url", "attributes",
   ]);
@@ -34,7 +25,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const MAX_BYTES = 50 * 1024; // 50 KB
+  const MAX_BYTES = 50 * 1024;
   if (JSON.stringify(body).length > MAX_BYTES) {
     return NextResponse.json({ error: "Payload too large (max 50 KB)" }, { status: 413 });
   }

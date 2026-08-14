@@ -18,8 +18,6 @@ interface CollectionDropMintButtonProps {
   conditions?: DropConditions;
 }
 
-// 10,000 tokens at 18 decimals — any drop priced above this is almost certainly
-// a tampered API response. Prevents unlimited ERC-20 approval from a bad backend.
 const MAX_APPROVAL_AMOUNT = 10_000n * 10n ** 18n;
 
 function getPriceBigInt(conditions?: DropConditions): bigint {
@@ -76,12 +74,12 @@ export function CollectionDropMintButton({
     const calls: Array<{ contractAddress: string; entrypoint: string; calldata: string[] }> = [];
 
     if (isPaid && conditions && conditions.paymentToken !== "0x0") {
-      // Verify the payment token is a known listable token before approving
+
       const knownToken = getListableTokens().find(
         (t) => normalizeAddress("STARKNET", t.address) === normalizeAddress("STARKNET", conditions.paymentToken)
       );
       if (!knownToken) throw new Error("Unknown payment token — cannot proceed");
-      // ERC-20 approve(collectionAddress, price as u256)
+
       const [priceLow, priceHigh] = u256CallData(price);
       calls.push({
         contractAddress: conditions.paymentToken,
@@ -90,18 +88,12 @@ export function CollectionDropMintButton({
       });
     }
 
-    // claim(quantity: u256(1))
     calls.push({
       contractAddress: collectionAddress,
       entrypoint: "claim",
       calldata: ["1", "0"],
     });
 
-    // The platform fee is bundled into the SAME atomic multicall — no
-    // separate fire-and-forget transaction needed. MediaWallet (like every
-    // real wallet on medialane-starknet) executes one multicall as a single
-    // all-or-nothing unit, so the fee can never be stranded on a reverted
-    // claim. Drop claim quantity is fixed at 1, so grossAmount = price.
     if (isPaid && conditions && conditions.paymentToken !== "0x0") {
       const feeCall = buildFeeCall(
         { surface: "launchpad", token: conditions.paymentToken, grossAmount: price },
@@ -131,7 +123,6 @@ export function CollectionDropMintButton({
     );
   }
 
-  // Per-wallet allowance: maxPerWallet "0" = unlimited.
   const maxPerWallet = conditions ? parseInt(conditions.maxPerWallet, 10) : 0;
   const mintedByWallet = mintStatus?.mintedByWallet ?? 0;
   const remaining = maxPerWallet > 0 ? Math.max(0, maxPerWallet - mintedByWallet) : Infinity;

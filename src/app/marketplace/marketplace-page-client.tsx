@@ -42,7 +42,7 @@ function SearchBar() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<ApiSearchResult | null>(null);
   const [open, setOpen] = useState(false);
-  // Use a nullable type so React infers MutableRefObject (not RefObject with readonly `current`)
+
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleChange = (value: string) => {
@@ -54,7 +54,7 @@ function SearchBar() {
         const res = await client.api.search(value.trim(), 8);
         setResults(res.data);
         setOpen(true);
-      } catch { /* ignore */ }
+      } catch {  }
     }, 300);
   };
 
@@ -208,7 +208,7 @@ export default function MarketplacePageClient() {
     setMinInput(min);
     setMaxInput(max);
     if (priceDebounce.current) clearTimeout(priceDebounce.current);
-    // Capture decimals at call time to avoid stale closure inside the timeout
+
     const decimals = getTokenBySymbol(currency)?.decimals ?? 18;
     priceDebounce.current = setTimeout(() => {
       try {
@@ -226,7 +226,7 @@ export default function MarketplacePageClient() {
 
   const handleCurrencyChange = (c: string) => {
     setCurrency(currency === c ? "" : c);
-    // Clear price inputs when currency changes — decimals differ between tokens
+
     setMinInput("");
     setMaxInput("");
     setMinPrice(undefined);
@@ -249,16 +249,14 @@ export default function MarketplacePageClient() {
 
   return (
     <PageContainer className="box-border max-w-full pt-14 pb-8 space-y-8">
-      {/* Header */}
+
       <div className="space-y-2 pt-8">
         <h1 className="text-3xl font-bold">Onchain markets</h1>
         <PlatformStatsBar />
       </div>
 
-      {/* Live activity ticker */}
       <ActivityTicker limit={12} />
 
-      {/* Filter toolbar */}
       <div className="space-y-2">
         <div className="flex items-center gap-2 flex-wrap">
           <div className="flex-1 min-w-0">
@@ -283,7 +281,6 @@ export default function MarketplacePageClient() {
           </button>
         </div>
 
-        {/* Active filter pills — quick-clear */}
         {hasFilters && (
           <div className="flex flex-wrap gap-1.5">
             {sort !== "recent" && (
@@ -315,10 +312,9 @@ export default function MarketplacePageClient() {
         )}
       </div>
 
-      {/* Filters dialog */}
       <Dialog open={filtersOpen} onOpenChange={setFiltersOpen}>
         <DialogContent className="w-full max-w-sm sm:max-w-md p-0 overflow-hidden gap-0 flex flex-col max-h-[85svh]">
-          {/* Header */}
+
           <div className="flex items-center justify-between px-5 py-4 border-b border-border/60 pr-12">
             <DialogTitle className="text-base font-bold flex items-center gap-2">
               <SlidersHorizontal className="h-4 w-4 text-primary" />
@@ -331,10 +327,8 @@ export default function MarketplacePageClient() {
             )}
           </div>
 
-          {/* Scrollable body */}
           <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
 
-            {/* Sort */}
             <div className="space-y-2">
               <p className="text-[10px] font-semibold text-muted-foreground">Sort</p>
               <div className="flex flex-wrap gap-1.5">
@@ -355,7 +349,6 @@ export default function MarketplacePageClient() {
               </div>
             </div>
 
-            {/* Type */}
             <div className="space-y-2">
               <p className="text-[10px] font-semibold text-muted-foreground">Order type</p>
               <div className="flex flex-wrap gap-1.5">
@@ -376,7 +369,6 @@ export default function MarketplacePageClient() {
               </div>
             </div>
 
-            {/* Currency */}
             <div className="space-y-2">
               <p className="text-[10px] font-semibold text-muted-foreground">Currency</p>
               <div className="flex flex-wrap gap-1.5">
@@ -398,7 +390,6 @@ export default function MarketplacePageClient() {
               </div>
             </div>
 
-            {/* Price range */}
             <div className="space-y-2">
               <p className="text-[10px] font-semibold text-muted-foreground">Price range</p>
               <div className="flex items-center gap-2">
@@ -422,7 +413,6 @@ export default function MarketplacePageClient() {
               </div>
             </div>
 
-            {/* IP Type */}
             <div className="space-y-2 pt-1 border-t border-border/60">
               <p className="flex items-center gap-1 text-[10px] font-semibold text-muted-foreground">
                 IP Type
@@ -438,7 +428,6 @@ export default function MarketplacePageClient() {
 
           </div>
 
-          {/* Footer */}
           <div className="px-5 py-3 border-t border-border/60">
             <Button className="w-full" onClick={() => setFiltersOpen(false)}>
               Apply filters
@@ -448,7 +437,6 @@ export default function MarketplacePageClient() {
         </DialogContent>
       </Dialog>
 
-      {/* Grid */}
       <ListingsGrid
         sort={sort}
         currency={currency ? getTokenBySymbol(currency)?.address : undefined}

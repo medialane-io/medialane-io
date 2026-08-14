@@ -1,12 +1,4 @@
-/**
- * lucide's "user-shield" glyph (person-primary, shield badge in the corner)
- * — hand-authored from the icon's real path data rather than bumping
- * lucide-react's major version app-wide for one icon. lucide-react@0.577.0
- * (installed here) only ships the inverse composition ("shield-user":
- * shield-primary, person inscribed inside); "user-shield" first appears in
- * a later major. Path data matches lucide-react's exactly, same ISC-licensed
- * icon set this app already draws every other glyph from.
- */
+
 export function UserShieldIcon({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return (
     <svg

@@ -1,7 +1,6 @@
 import { LayoutGrid, UserCircle, Link2 } from "lucide-react";
 import { ClaimRail } from "@/components/claim/claim-rail";
 
-/** Right-rail content for /claim/collection. */
 export function ClaimCollectionAside() {
   return (
     <ClaimRail

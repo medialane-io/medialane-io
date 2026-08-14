@@ -14,8 +14,6 @@ const tokenFor = (symbol: WalletTokenSymbol, name: string): WalletToken => {
   return { symbol, name, address: t.address, decimals: t.decimals };
 };
 
-// The four tokens io's own wallet UI already pins (Settings → Account),
-// matching media-wallet's pinned set minus USDT.
 export const WALLET_TOKENS: WalletToken[] = [
   tokenFor("STRK", "Starknet"),
   tokenFor("ETH", "Ethereum"),

@@ -6,7 +6,7 @@ import { LaunchMint } from "@/components/launch-mint";
 export function GenesisMintSection() {
   return (
     <section className="relative space-y-8">
-      {/* Header */}
+
       <div className="relative text-center space-y-3 max-w-xl mx-auto">
         <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 text-sm font-semibold text-emerald-400">
           <Gem className="h-3.5 w-3.5" />
@@ -18,7 +18,6 @@ export function GenesisMintSection() {
         </h2>
       </div>
 
-      {/* Mint widget */}
       <div className="relative">
         <LaunchMint />
       </div>

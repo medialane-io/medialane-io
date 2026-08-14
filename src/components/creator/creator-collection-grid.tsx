@@ -25,7 +25,7 @@ function CollectionCover({
       href={collectionHref("STARKNET", collection.contractAddress)}
       className="group block relative rounded-2xl overflow-hidden border border-border/60 hover:border-border transition-colors active:scale-[0.99] duration-300"
     >
-      {/* Cover image — aspect-[3/4] portrait like collection cards */}
+
       <div className="relative aspect-[3/4] w-full bg-muted overflow-hidden">
         {showImage ? (
           <Image
@@ -44,12 +44,10 @@ function CollectionCover({
           </div>
         )}
 
-        {/* Gradient fade at bottom */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
-        {/* Floating info */}
         <div className="absolute bottom-0 left-0 right-0 p-3 space-y-1">
-          {/* Name */}
+
           {!collection.name && collection.metadataStatus === "PENDING" ? (
             <span className="flex items-center gap-1 text-[10px] text-white/60">
               <Loader2 className="h-2.5 w-2.5 animate-spin" />
@@ -61,7 +59,6 @@ function CollectionCover({
             </p>
           )}
 
-          {/* Stats row */}
           <div className="flex items-center gap-2 flex-wrap">
             {collection.totalSupply != null && (
               <span className="text-[10px] font-medium text-white/70">

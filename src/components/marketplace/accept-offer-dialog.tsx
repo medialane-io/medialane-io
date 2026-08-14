@@ -17,11 +17,11 @@ import type { ApiOrder } from "@medialane/sdk";
 
 interface AcceptOfferDialogProps {
   hook: AcceptOfferHook;
-  /** Fallback token name shown when order.token is null */
+
   tokenName?: string;
-  /** Fallback token image shown when order.token is null */
+
   tokenImage?: string | null;
-  /** Called when user clicks "Cancel listing" on one of the blocking listings */
+
   onCancelListing?: (order: ApiOrder) => void;
 }
 
@@ -156,7 +156,7 @@ export function AcceptOfferDialog({ hook, tokenName, tokenImage, onCancelListing
             onDone={dismiss}
           />
         ) : (
-          /* Confirm step */
+
           <>
             <MarketplaceDialogHero
               tokenImage={image}

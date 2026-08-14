@@ -38,20 +38,15 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
   const client = useMedialaneClient();
 
   const { collections } = useCollectionsByOwner(walletAddress ?? null);
-  // Only current Medialane mint protocols are eligible here.
+
   const eligibleCollections = collections.filter(
     (c) =>
       getService(c.service)?.id === "mip-erc1155" ||
       (getService(c.service)?.id === "mip-erc721" && c.collectionId != null)
   );
 
-  // "collection key" is collectionId for ERC-721, contractAddress for ERC-1155
   const collectionKey = (c: (typeof eligibleCollections)[0]) => c.collectionId ?? c.contractAddress;
 
-  // When eligibleCollections is empty (`?? {}` fallback), collectionKey reads
-  // .collectionId / .contractAddress off the empty object → both undefined →
-  // the outer `?? null` returns null. The empty-object cast is a structural
-  // placeholder, never actually used as a real collection.
   type CollectionKeyable = Partial<{ collectionId: string; contractAddress: string }>;
   const defaultCollectionKey =
     collectionKey(
@@ -68,7 +63,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
 
   const effectiveCollectionKey = selectedCollectionKey ?? defaultCollectionKey;
   const selectedCollection = eligibleCollections.find((c) => collectionKey(c) === effectiveCollectionKey);
-  // For ERC-721 createMintIntent the collectionId is still required
+
   const effectiveCollectionId = selectedCollection?.collectionId ?? null;
 
   const priceDisplay = offer?.price
@@ -117,7 +112,6 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
       if (!authToken) authToken = await siwsSignIn();
       if (!authToken) throw new Error("Secure your account first");
 
-      // 1. Upload remix IPFS metadata
       const royaltyStr = offer.royaltyPct != null ? `${offer.royaltyPct}%` : undefined;
       const metadata = {
         name: effectiveName,
@@ -142,13 +136,10 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
       const pinData = await pinRes.json().catch(() => ({}));
       if (!pinRes.ok || !pinData.uri) throw new Error(pinData.error ?? "Metadata upload failed");
 
-      // 2. Mint — branch on token standard
       let remixTokenId: string;
 
       if (standard === "ERC1155") {
-        // ERC-1155: backend-mediated via createMintIntent (service mip-erc1155);
-        // the contract assigns the edition id on-chain — read it back from the
-        // IPMinted event.
+
         const intentRes = await client.api.createMintIntent({
           owner: walletAddress,
           recipient: walletAddress,
@@ -159,23 +150,22 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
         const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
         remixTokenId = await readAssignedEditionId(result.txHash ?? "", selectedCollection.contractAddress);
       } else {
-        // ERC-721: backend-mediated via createMintIntent, poll for assigned tokenId
+
         const intentRes = await client.api.createMintIntent({
           owner: walletAddress,
           collectionId: effectiveCollectionId!,
           recipient: walletAddress,
           tokenUri: pinData.uri,
-          royaltyBps: 0, // remix-approval mint has no royalty input UI yet — default to none
+          royaltyBps: 0,
         });
         const mintIntent = intentRes.data;
-        // mint is always an unsigned (prebuilt-calls) intent.
+
         if (mintIntent.requiresSignature) throw new Error("Unexpected signed mint intent");
         const mintCalls = mintIntent.calls as unknown as Call[];
         if (!mintCalls?.length) throw new Error("No mint calls returned");
 
         await signer.execute(mintCalls);
 
-        // Poll for the registry-assigned tokenId
         let polledTokenId: string | undefined;
         const mintDeadline = Date.now() + 10_000;
         while (Date.now() < mintDeadline) {
@@ -184,13 +174,12 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
             const tokensRes = await client.api.getTokensByOwner(walletAddress, 1, 5);
             const newest = tokensRes.data?.find((t) => t.contractAddress === selectedCollection.contractAddress);
             if (newest) { polledTokenId = newest.tokenId; break; }
-          } catch { /* ignore */ }
+          } catch {  }
         }
         if (!polledTokenId) throw new Error("Could not determine remix token ID");
         remixTokenId = polledTokenId;
       }
 
-      // 3. Create marketplace listing for the buyer
       await createListing({
         assetContract: selectedCollection.contractAddress,
         tokenId: remixTokenId,
@@ -201,7 +190,6 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
         amount: standard === "ERC1155" ? "1" : undefined,
       });
 
-      // 4. Poll for listing to get orderHash
       let orderHash: string | undefined;
       const listingDeadline = Date.now() + 15_000;
       while (Date.now() < listingDeadline) {
@@ -215,11 +203,10 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
             (o) => o.status === "ACTIVE" && o.offer.itemType === standard
           );
           if (listing) { orderHash = listing.orderHash; break; }
-        } catch { /* ignore */ }
+        } catch {  }
       }
       if (!orderHash) throw new Error("Could not confirm listing orderHash — check portfolio shortly");
 
-      // 5. Confirm offer in backend via SIWS — reuses the token minted above.
       await confirmRemixOffer(
         offer.id,
         {
@@ -245,13 +232,11 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="w-full max-w-sm p-0 overflow-hidden gap-0 flex flex-col max-h-[90svh]">
 
-        {/* Header */}
         <div className="flex items-center gap-2 pr-10 pl-5 py-4 border-b border-border/60">
           <GitBranch className="h-4 w-4 text-primary shrink-0" />
           <DialogTitle className="text-base font-bold">Grant license &amp; mint</DialogTitle>
         </div>
 
-        {/* Body */}
         <div className="flex-1 overflow-y-auto px-5 py-4">
           {done ? (
             <div className="flex flex-col items-center gap-4 py-8 text-center">
@@ -332,7 +317,6 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
           )}
         </div>
 
-        {/* Footer */}
         {!done && (
           <div className="px-5 pt-3 pb-5 border-t border-border/60 space-y-3">
             <button

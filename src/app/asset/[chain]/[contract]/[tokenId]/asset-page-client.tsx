@@ -13,8 +13,6 @@ import { AssetPageMembership } from "./asset-page-membership";
 import { getService } from "@medialane/sdk";
 import { PageContainer } from "@medialane/ui";
 
-// Registry-driven (05-service-model). External/unknown collections
-// (service null → getService undefined) fall back to standard.
 function detectAssetType(
   service: string | null | undefined,
   standard: string | undefined

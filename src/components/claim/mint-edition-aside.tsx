@@ -1,7 +1,6 @@
 import { Sparkles, Layers, FileCheck, Gift } from "lucide-react";
 import { ClaimRail } from "@/components/claim/claim-rail";
 
-/** Right-rail content for /launchpad/nfteditions/[contract]/mint. */
 export function MintEditionAside() {
   return (
     <ClaimRail

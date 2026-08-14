@@ -23,18 +23,9 @@ import { resolveTokenImage } from "@/lib/utils";
 
 const GA_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID;
 
-// Technical markers that mean an error message is a raw RPC / protocol blob
-// (e.g. "RPC: starknet_call … -32000: Unauthorized") — never show these
-// verbatim. They read as "the platform is broken" even when the real cause is
-// benign (an expired session, a coin with no Ekubo pool, a rate-limited node).
 const TECHNICAL_ERROR_RE =
   /\bRPC:|starknet_|-3\d{4}\b|\bunauthorized\b|execution error|\bfelt\b|\bcalldata\b|entry_point|0x[0-9a-f]{6}|[{}]/i;
 
-/**
- * Map an SWR fetch/read error to a user-facing toast message. Raw technical
- * strings collapse to a generic friendly line; short, already-human messages
- * (e.g. a validation error from the backend) pass through unchanged.
- */
 function toFriendlyToastMessage(err: unknown): string {
   const FALLBACK = "Something went wrong. Please try again in a moment.";
   if (!(err instanceof Error) || !err.message) return FALLBACK;
@@ -118,22 +109,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <SWRConfig
         value={{
           onError: (err: unknown) => {
-            // 401/403 are auth state, not a runtime error worth screaming at the
-            // user. A SIWS token can expire silently between page loads, and
-            // every identity-aware hook (gated content, etc.) will 401 until
-            // it re-signs-in. Surfacing the raw backend error ("Invalid or
-            // expired session token") as a red toast made the platform feel
-            // broken when it was just an expired session. Each hook that
-            // cares about auth state already handles 401 locally (graceful
-            // empty/null fallback).
+
             const status =
               err && typeof err === "object" && "status" in err && typeof (err as { status: unknown }).status === "number"
                 ? (err as { status: number }).status
                 : null;
             if (status === 401 || status === 403) return;
-            // Wallet isn't deployed yet — UndeployedWalletRedirect is already
-            // sending the user to /wallet-onboarding to fix it; a toast here
-            // would just be redundant noise on top of that redirect.
+
             if (err instanceof WalletNotDeployedError) return;
 
             toast.error(toFriendlyToastMessage(err));

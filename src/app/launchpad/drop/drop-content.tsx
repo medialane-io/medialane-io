@@ -14,8 +14,6 @@ import { ipfsToHttp } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import type { ApiCollection } from "@medialane/sdk";
 
-// Inline metadata-attribute shape — kept local because ApiCollection in SDK 0.23
-// does not yet expose token metadata attributes on collection objects (planned for 0.24+).
 type CollectionWithAttributes = ApiCollection & {
   attributes?: { trait_type?: string; value?: string }[];
 };
@@ -55,7 +53,7 @@ function DropCollectionCard({ collection }: { collection: ApiCollection }) {
   const imageUrl = collection.image ? ipfsToHttp(collection.image) : null;
   const showImage = imageUrl && !imgError;
   const initial = (collection.name ?? "D").charAt(0).toUpperCase();
-  // Real status from chain (conditions + supply); falls back to indexed supply if RPC is down.
+
   const { state } = useOnChainDropState(collection.contractAddress);
   const minted = state?.totalMinted ?? collection.totalSupply ?? 0;
   const status = getDropStatus(state?.conditions ?? null, minted);
@@ -153,8 +151,6 @@ const DROP_FEATURES = [
 export function DropContent() {
   const { collections, isLoading } = useDropCollections();
 
-  // Filter: show only collections without a Private visibility attribute.
-  // Inert until backend indexes collection attributes — safe for legacy collections.
   const publicCollections = collections.filter(
     (c) =>
       (c as CollectionWithAttributes).attributes?.find((a) => a.trait_type === "Visibility")?.value !== "Private"
@@ -163,7 +159,6 @@ export function DropContent() {
   return (
     <div className="pb-16 space-y-10">
 
-      {/* ── Header ── */}
       <section className="px-4 pt-10 max-w-5xl mx-auto">
         <ClaimBackButton />
         <FadeIn>
@@ -189,7 +184,6 @@ export function DropContent() {
         </FadeIn>
       </section>
 
-      {/* Features grid */}
       <section className="px-4 max-w-5xl mx-auto">
         <FadeIn>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -204,7 +198,6 @@ export function DropContent() {
         </FadeIn>
       </section>
 
-      {/* Collections grid */}
       <section className="px-4 space-y-4 max-w-5xl mx-auto">
         <FadeIn>
           <div className="flex items-center justify-between">

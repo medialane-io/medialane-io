@@ -1,7 +1,6 @@
 import { Link2, Share2, LayoutGrid, Sparkles } from "lucide-react";
 import { ClaimRail } from "@/components/claim/claim-rail";
 
-/** Right-rail content for /claim/collection-name. */
 export function ClaimCollectionNameAside() {
   return (
     <ClaimRail

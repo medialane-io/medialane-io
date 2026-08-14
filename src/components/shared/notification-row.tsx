@@ -33,7 +33,7 @@ export function NotificationRow({
         "hover:bg-muted/40"
       )}
     >
-      {/* Thumbnail + type badge */}
+
       <div className="relative shrink-0 mt-0.5">
         {image ? (
           <>
@@ -68,7 +68,6 @@ export function NotificationRow({
         )}
       </div>
 
-      {/* Text */}
       <div className="flex-1 min-w-0 space-y-0.5">
         <p
           className={cn(
@@ -82,7 +81,6 @@ export function NotificationRow({
         <p className="text-[10px] text-muted-foreground/50 pt-0.5">{timeAgo(timestamp)}</p>
       </div>
 
-      {/* Unread dot */}
       {isUnread && (
         <div className="h-2 w-2 rounded-full bg-primary shrink-0 mt-2" />
       )}

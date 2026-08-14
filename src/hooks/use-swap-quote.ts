@@ -29,12 +29,6 @@ async function fetchQuote(
   return quote;
 }
 
-/**
- * Browsing-estimate swap quote for the "pay with" picker — stale-tolerant,
- * refreshed periodically, informational only. Never reused to build calls;
- * the buy-time flow fetches its own fresh quote via /api/wallet/swap/build
- * (see buildSwapCalls in lib/wallet/swap-calls.ts).
- */
 export function useSwapQuote(
   sellSymbol: string | null,
   buySymbol: string | null,

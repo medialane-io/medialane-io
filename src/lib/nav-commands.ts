@@ -8,8 +8,7 @@ import {
 } from "lucide-react";
 
 export const NAV_COMMANDS: NavCommandGroup[] = [
-  // Primary navigation — no heading: renders first and emphasized as the
-  // top-level menu. Keep this to the few most important destinations.
+
   {
     items: [
       { id: "home",        label: "Medialane",    icon: Home,      href: "/",            keywords: ["home", "frontpage", "start", "homepage", "main"], description: "Start here" },

@@ -3,11 +3,6 @@
 import useSWR from "swr";
 import { apiFetch } from "@/lib/api-fetch";
 
-// Mirrors medialane-backend's Prisma models 1:1 (src/api/routes/sponsorship.ts) —
-// v3: one contract is both the offer/bid/proposal registry and the license
-// collection. `duration`/`royaltyBps` are plain numbers; `transferable`/
-// `expiresAt` are declarative only, never contract-enforced.
-
 export interface SponsorshipOffer {
   id: string;
   chain: string;
@@ -155,7 +150,6 @@ export function useSponsorshipProposal(proposalId: string | null) {
   return { proposal: data ?? null, isLoading, error, mutate };
 }
 
-/** Proposals awaiting the CURRENT asset owner's decision — for a specific owned asset. */
 export function usePendingProposalsForAsset(nftContract: string | null) {
   const { proposals, isLoading, error, mutate } = useSponsorshipProposals(
     nftContract ? { nftContract, open: true } : undefined
@@ -179,8 +173,6 @@ export function useSponsorshipLicenses(params?: { holder?: string; author?: stri
   return { licenses: data?.data ?? [], meta: data?.meta, isLoading, error, mutate };
 }
 
-/** Received proposals + bids on the user's own offers, awaiting a decision —
- *  the number the Portfolio nav badge shows. */
 export function useMySponsorshipDealCounts(walletAddress: string | null) {
   const { proposals, isLoading: proposalsLoading } = useSponsorshipProposals(
     walletAddress ? { owner: walletAddress, open: true } : undefined
@@ -188,9 +180,7 @@ export function useMySponsorshipDealCounts(walletAddress: string | null) {
   const { offers, isLoading: offersLoading } = useSponsorshipOffers(
     walletAddress ? { author: walletAddress, open: true } : undefined
   );
-  // Bid counts would need a per-offer call — deferred to the portfolio page
-  // itself, which renders the real per-offer bid lists; this hook only
-  // feeds the nav badge with the proposal count.
+
   void offers;
   return { pendingCount: proposals.length, isLoading: proposalsLoading || offersLoading };
 }

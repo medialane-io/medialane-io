@@ -13,7 +13,6 @@ export default async function Image({
 }) {
   const { address } = await params;
 
-  // Only fetch profile for username slugs — wallet addresses redirect to /account
   const isWallet = address.startsWith("0x") || address.startsWith("0X");
   const profile = isWallet ? null : await fetchCreatorProfile(address);
 
@@ -34,7 +33,7 @@ export default async function Image({
           position: "relative",
         }}
       >
-        {/* Background (blurred avatar) */}
+
         {avatarUrl && (
           <div
             style={{
@@ -43,7 +42,7 @@ export default async function Image({
               display: "flex",
             }}
           >
-            { }
+
             <img
               src={avatarUrl}
               alt=""
@@ -61,7 +60,6 @@ export default async function Image({
           </div>
         )}
 
-        {/* Content */}
         <div
           style={{
             display: "flex",
@@ -72,7 +70,7 @@ export default async function Image({
             position: "relative",
           }}
         >
-          {/* Brand pill */}
+
           <div
             style={{
               display: "flex",
@@ -91,7 +89,6 @@ export default async function Image({
             </span>
           </div>
 
-          {/* Avatar + name row */}
           <div style={{ display: "flex", alignItems: "center", gap: "32px" }}>
             {avatarUrl ? (
               <div
@@ -105,7 +102,7 @@ export default async function Image({
                   flexShrink: 0,
                 }}
               >
-                { }
+
                 <img
                   src={avatarUrl}
                   alt={displayName}
@@ -153,7 +150,6 @@ export default async function Image({
             </div>
           </div>
 
-          {/* Footer */}
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#9b72ff" }} />
             <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 16 }}>medialane.io</span>

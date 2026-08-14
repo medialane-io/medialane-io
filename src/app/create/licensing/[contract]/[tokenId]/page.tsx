@@ -120,7 +120,7 @@ export default function CreateLicensingPage() {
       </div>
     );
   }
-  // You can't license your own work; licensing needs a reachable Medialane owner.
+
   if (viewerIsOwner || !policy.dealAvailable) {
     router.replace(assetHref("STARKNET", contract, tokenId));
     return null;
@@ -142,7 +142,6 @@ export default function CreateLicensingPage() {
         </p>
       </div>
 
-      {/* Parent asset */}
       <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-4">
         {originalImage && (
           <Image src={originalImage} alt={originalName} width={48} height={48} className="rounded-lg object-cover" unoptimized />

@@ -1,14 +1,4 @@
-/**
- * Server-only: executes a signed AVNU-paymaster deploy_and_invoke
- * transaction. Companion to build/route.ts — see that file's header for
- * why deploy_and_invoke, not bare deploy, and why this can't run
- * client-side (the AVNU API key would leak).
- *
- * `deployment` must be the exact object build/route.ts returned — it's
- * not re-derivable from `typedData` alone (confirmed against starknet.js's
- * PreparedDeployAndInvokeTransaction type: `deployment` and `typed_data`
- * are sibling fields, not nested).
- */
+
 import { type NextRequest, NextResponse } from "next/server";
 import { paymaster } from "@/lib/wallet/paymaster-server";
 import { billPaymasterCall } from "@/lib/wallet/paymaster-billing";

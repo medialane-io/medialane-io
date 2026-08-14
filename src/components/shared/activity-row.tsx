@@ -25,10 +25,9 @@ interface ActivityRowProps {
   activity: ApiActivity;
   showActor?: boolean;
   showExplorer?: boolean;
-  /** Tighter vertical padding for compact widget contexts */
+
   compact?: boolean;
-  /** Pre-fetched via the /v1/rewards/batch endpoint by the parent list — never
-   *  fetched per row. Renders a level chip next to the actor when present. */
+
   actorLevel?: ApiRewardsBatchEntry;
 }
 
@@ -57,7 +56,6 @@ export function ActivityRow({
     null;
   const txLink = activity.txHash ? `${EXPLORER_URL}/tx/${activity.txHash}` : null;
 
-  // Use batch-enriched token data — avoids per-row API calls
   const tokenName = activity.token?.name ?? (tokenId ? `#${tokenId}` : "—");
   const rawImage = activity.token?.image ?? null;
   const tokenImage = rawImage ? ipfsToHttp(rawImage) : null;
@@ -75,7 +73,7 @@ export function ActivityRow({
         compact ? "pl-4 pr-5 py-2.5" : "pl-4 pr-5 py-3.5"
       )}
     >
-      {/* Type icon */}
+
       <div
         className={cn(
           "rounded-lg flex items-center justify-center shrink-0",
@@ -91,7 +89,6 @@ export function ActivityRow({
         />
       </div>
 
-      {/* Token thumbnail */}
       <div
         className={cn(
           "rounded-md overflow-hidden shrink-0 bg-muted relative",
@@ -110,7 +107,7 @@ export function ActivityRow({
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-brand-purple/15 to-brand-blue/15" aria-hidden />
         )}
-        {/* ERC-1155 badge */}
+
         {is1155 && (
           <span className="absolute -bottom-1 -right-1 text-[8px] font-bold bg-brand-purple text-white rounded px-0.5 leading-tight">
             1155
@@ -118,7 +115,6 @@ export function ActivityRow({
         )}
       </div>
 
-      {/* Content: asset name + friendly message */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 leading-tight">
           {contract && tokenId ? (
@@ -161,7 +157,6 @@ export function ActivityRow({
         </p>
       </div>
 
-      {/* Right: price + time + explorer */}
       <div className="flex items-center gap-2.5 shrink-0">
         {activity.price?.formatted && (
           <div className="text-right">

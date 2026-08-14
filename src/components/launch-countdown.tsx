@@ -40,7 +40,7 @@ function DigitBlock({ value, label }: { value: string; label: string }) {
 }
 
 export function LaunchCountdown() {
-  // Start with null to avoid SSR/client mismatch
+
   const [time, setTime] = useState<ReturnType<typeof getTimeLeft> | null>(null);
 
   useEffect(() => {
@@ -50,7 +50,7 @@ export function LaunchCountdown() {
   }, []);
 
   if (!time) {
-    // Server / pre-hydration placeholder — same dimensions, no text
+
     return (
       <div className="flex items-end gap-2 sm:gap-3">
         {["Days", "Hours", "Mins", "Secs"].map((label, i) => (

@@ -105,8 +105,6 @@ export default function CreatePOPPage() {
   ) => {
     if (!walletAddress) throw new Error("Account not ready. Please refresh and try again.");
 
-    // base_uri is embedded in the immutable POP deploy tx, so pinning must
-    // succeed — a silent fallback ships an empty base_uri that can't be fixed.
     const metadata: Record<string, unknown> = {
       name: pendingValues.name,
       attributes: [
@@ -123,9 +121,6 @@ export default function CreatePOPPage() {
       new Date(`${pendingValues.claimEndDate}T${pendingValues.claimEndTime}:00`).getTime() / 1000
     );
 
-    // Metered through the intents API — the backend deploys via the POP
-    // factory server-side and returns fully-populated calls (no client-side
-    // calldata construction).
     const intentRes = await client.api.createCollectionIntent({
       owner: walletAddress,
       name: pendingValues.name,
@@ -141,7 +136,6 @@ export default function CreatePOPPage() {
     return result;
   };
 
-  // ── Error ──────────────────────────────────────────────────────────────────
   if (action.status === "error") {
     return (
       <LaunchpadErrorState
@@ -153,15 +147,10 @@ export default function CreatePOPPage() {
     );
   }
 
-  // ── Processing ─────────────────────────────────────────────────────────────
-  // Full-page feedback while the on-chain tx is pending. Without this, the
-  // user sees the form with a disabled button and may think nothing is
-  // happening — they could navigate away mid-tx.
   if (busy) {
     return <LaunchpadProcessingState title="Creating your POP event…" />;
   }
 
-  // ── Success ────────────────────────────────────────────────────────────────
   if (action.status === "success") {
     return (
       <LaunchpadSuccessState
@@ -179,7 +168,6 @@ export default function CreatePOPPage() {
     );
   }
 
-  // ── No wallet yet ──────────────────────────────────────────────────────────
   if (!hasWallet) {
     return (
       <LaunchpadSignedOutState
@@ -191,7 +179,6 @@ export default function CreatePOPPage() {
     );
   }
 
-  // ── Create form ────────────────────────────────────────────────────────────
   return (
     <>
       <ClaimRouteShell

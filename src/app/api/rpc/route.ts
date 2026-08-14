@@ -2,9 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { PUBLIC_RPC_FALLBACKS, isTransientRpcError } from "@medialane/sdk";
 import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
 
-// Configured private endpoints first, then the SDK's shared public fallback
-// list (lava.build, …). Public providers are still rate-limited, so rotation
-// continues on transient JSON-RPC errors / non-JSON responses.
 const RPC_URLS = Array.from(new Set([
   process.env.ALCHEMY_RPC_URL,
   process.env.ALCHEMY_URL,
@@ -13,61 +10,35 @@ const RPC_URLS = Array.from(new Set([
   ...PUBLIC_RPC_FALLBACKS,
 ].filter((url): url is string => Boolean(url))));
 
-/**
- * Server-side Starknet RPC proxy.
- *
- * Forwards JSON-RPC POST requests to Alchemy (or any configured RPC endpoint)
- * without exposing the API key to the browser. Eliminates the CORS block and
- * Alchemy 429 → no-CORS-header failure that caused waitForTransaction to hang.
- *
- * Client usage: set NEXT_PUBLIC_STARKNET_PROVIDER_URL=/api/rpc
- *
- * Security (mirrors medialane-starknet's /api/rpc — wallet-native has no
- * server session to gate on):
- *  - Same-origin guard: reject browser requests whose Origin is a different host.
- *  - Per-IP rate limit bounds abuse from non-browser callers.
- *  - Only forwards methods in ALLOWED_METHODS (prevents abuse of expensive trace/debug methods).
- *  - Handles both single requests and JSON-RPC batch arrays.
- */
-
-// Allowlist of JSON-RPC methods forwarded to Alchemy.
-// Covers all features: mint, listing, offer, cancel, comments, launchpad,
-// create collection/asset, remix — plus starknet.js v6 internal calls.
-// Dangerous methods (trace, declare, deploy-account) are intentionally excluded.
 const ALLOWED_METHODS = new Set([
-  // ── Core read/write ───────────────────────────────────────────────────────
+
   "starknet_call",
   "starknet_addInvokeTransaction",
-  // ── Transaction lifecycle ─────────────────────────────────────────────────
+
   "starknet_getTransactionReceipt",
   "starknet_getTransactionStatus",
-  "starknet_getTransactionByHash",    // starknet.js v6 replacement for getTransaction
-  "starknet_getTransaction",          // kept for older SDK paths
-  "starknet_getBlockWithReceipts",    // waitForTransaction fallback path in starknet.js v6
-  // ── Fee estimation & nonce ────────────────────────────────────────────────
+  "starknet_getTransactionByHash",
+  "starknet_getTransaction",
+  "starknet_getBlockWithReceipts",
+
   "starknet_estimateFee",
   "starknet_getNonce",
   "starknet_simulateTransactions",
-  // ── Provider initialisation (called automatically by starknet.js) ─────────
-  "starknet_specVersion",             // version handshake on every provider init
+
+  "starknet_specVersion",
   "starknet_chainId",
   "starknet_blockNumber",
   "starknet_blockHashAndNumber",
-  // ── Contract / account introspection ─────────────────────────────────────
+
   "starknet_getClassAt",
   "starknet_getClass",
-  "starknet_getClassHashAt",          // Cairo 0 vs Cairo 1 account detection
+  "starknet_getClassHashAt",
   "starknet_getStorageAt",
 ]);
 
-/**
- * Same-origin guard. Blocks browser cross-origin abuse (which always carries an
- * Origin header) without breaking same-origin calls that omit it. Returns false
- * only when an Origin is present AND its host differs from the request host.
- */
 function isSameOrigin(req: NextRequest): boolean {
   const origin = req.headers.get("origin");
-  if (!origin) return true; // no Origin (SSR / non-CORS) → allow
+  if (!origin) return true;
   const host = req.headers.get("host");
   try {
     return new URL(origin).host === host;
@@ -76,12 +47,6 @@ function isSameOrigin(req: NextRequest): boolean {
   }
 }
 
-// Per-IP rate limit. The same-origin guard only stops cross-origin *browsers*
-// (a request with no Origin header is allowed), so a script can still use this
-// as an open RPC relay and drain the keyed upstream's quota. Cap per-IP volume
-// — generous enough for legit heavy use, tight enough to bound abuse.
-// Per-process (Vercel lambdas don't share memory); acceptable for cost-drain
-// protection, not correctness.
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = 600;
 const ipCounts = new Map<string, { count: number; resetAt: number }>();
@@ -107,14 +72,6 @@ function extractMethod(body: unknown): string {
   return "unknown";
 }
 
-/**
- * Bill this app's credit balance for the upcoming upstream RPC call, via the
- * backend's metered POST /v1/rpc/meter (medialane-backend/src/api/routes/rpc-meter.ts).
- * The RPC call itself still goes straight to Alchemy with this app's own key
- * below — this only makes it a credited action instead of a free bypass.
- * Returns false (caller must refuse to forward) on insufficient credits or
- * any billing failure — an RPC call this app can't account for must not run.
- */
 async function billRpcCall(method: string): Promise<boolean> {
   if (!MEDIALANE_API_KEY) {
     console.error("[/api/rpc] MEDIALANE_API_KEY is not configured — refusing to bill/forward");
@@ -144,27 +101,12 @@ function isAllowedMethod(body: unknown): boolean {
   return false;
 }
 
-/**
- * JSON-RPC error envelope. Every error path through this route returns
- * this shape with HTTP 200 so client-side starknet.js (which expects a
- * JSON body and crashes on `.json()` otherwise) can surface a meaningful
- * error to the caller instead of blowing up with
- * "Failed to execute 'json' on 'Response': Unexpected end of JSON input".
- *
- * If the original request is a batch we still return a single error here
- * — starknet.js doesn't use batches in any of our flows, and an error
- * during a batched op is a hard failure either way.
- */
 function rpcError(code: number, message: string, status = 200, id: number | null = null) {
   return NextResponse.json(
     { jsonrpc: "2.0", error: { code, message }, id },
     { status },
   );
 }
-
-// Transient-error detection (which JSON-RPC failures are worth rotating onto
-// the next upstream, vs. deterministic contract errors that must propagate)
-// lives in @medialane/sdk `isTransientRpcError` — single source of truth.
 
 export async function POST(req: NextRequest) {
   if (!isSameOrigin(req)) {
@@ -205,8 +147,6 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify(body),
       });
 
-      // Read as text first so a non-JSON upstream (Alchemy rate limit HTML,
-      // Cloudflare error page, empty body) doesn't crash `.json()`.
       const text = await response.text();
       const upstream = rpcUrl.split("/")[2];
       if (!text) {
@@ -221,11 +161,6 @@ export async function POST(req: NextRequest) {
       try {
         const data = JSON.parse(text);
 
-        // Some providers wrap rate limits / capacity failures in a valid
-        // JSON-RPC envelope (HTTP 200, body = { jsonrpc, error: {...} }).
-        // Rotating onto the next fallback recovers from those without the
-        // client ever seeing the transient failure. Deterministic contract
-        // errors (revert, invalid params, missing block) propagate verbatim.
         if (isTransientRpcError({ status: response.status, body: data })) {
           const errObj = (data as { error?: { code?: unknown; message?: unknown } }).error;
           lastError = `Upstream RPC returned transient JSON-RPC error: ${String(errObj?.message ?? "(no message)")}`;
@@ -237,9 +172,6 @@ export async function POST(req: NextRequest) {
           continue;
         }
 
-        // Pass the JSON-RPC envelope through verbatim — the client's RPC layer
-        // knows how to handle JSON-RPC `error` objects. Always use HTTP 200 so
-        // it actually gets to read the body.
         return NextResponse.json(data, { status: 200 });
       } catch {
         lastError = `Upstream RPC returned non-JSON (HTTP ${response.status})`;

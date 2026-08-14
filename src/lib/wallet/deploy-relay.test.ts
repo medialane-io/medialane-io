@@ -1,9 +1,6 @@
 import { test, expect, mock } from "bun:test";
 import { deployWalletSponsored } from "./deploy-relay";
 
-// A minimal but genuinely schema-valid TypedData payload — signMessage()
-// validates real structure (types/primaryType/domain/message), so a bare
-// placeholder object isn't enough to exercise the sign step.
 const FAKE_TYPED_DATA = {
   types: {
     StarknetDomain: [
@@ -31,12 +28,7 @@ test("deployWalletSponsored calls build then execute and returns the tx hash", a
       );
     }
     if (url === "/api/wallet/deploy-sponsored/execute") {
-      // Reproduced live 2026-08-07: account.signMessage() returns a
-      // WeierstrassSignatureType object ({r, s, ...}), not an array, for a
-      // raw-private-key signer — a naive Array.from() over that silently
-      // produces [] with no error, which then reached AVNU as an invalid
-      // signature. Assert real content, not just "defined", so this class
-      // of bug can never pass silently again.
+
       expect(Array.isArray(body.signature)).toBe(true);
       expect(body.signature.length).toBe(2);
       expect(body.signature[0]).toMatch(/^0x[0-9a-f]+$/i);
@@ -47,9 +39,6 @@ test("deployWalletSponsored calls build then execute and returns the tx hash", a
     throw new Error(`Unexpected fetch to ${url}`);
   }) as never;
 
-  // A real, valid Stark-curve private key (test-only) — signing needs a
-  // genuine key, not a placeholder, since account.signMessage() does real
-  // elliptic-curve math over the typed data hash.
   const testPrivateKey = "0x1";
   const result = await deployWalletSponsored(
     "0x00112233445566778899aabbccddeeff0011223344556677889900112233",

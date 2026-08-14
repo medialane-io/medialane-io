@@ -35,7 +35,7 @@ export default function PortfolioLicensingPage() {
 
   return (
     <div className="space-y-8">
-      {/* Incoming license requests (creator view) */}
+
       <section className="space-y-3">
         <div className="flex items-center gap-2">
           <GitBranch className="h-4 w-4 text-primary" />
@@ -102,7 +102,6 @@ export default function PortfolioLicensingPage() {
         )}
       </section>
 
-      {/* Outgoing license requests (requester view) */}
       <section className="space-y-3">
         <div className="flex items-center gap-2">
           <GitBranch className="h-4 w-4 text-muted-foreground" />

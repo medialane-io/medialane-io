@@ -41,8 +41,6 @@ import { ShareButton } from "@/components/shared/share-button";
 import type { ApiActivity } from "@medialane/sdk";
 import { cn } from "@/lib/utils";
 
-// ─── Activity feed ───────────────────────────────────────────────────────────
-
 const ACTIVITY_META: Record<
   string,
   { label: string; textColor: string; bg: string }
@@ -72,7 +70,7 @@ function ActivityRow({ event, isLast }: { event: ApiActivity; isLast: boolean })
 
   return (
     <div className="flex gap-4 group">
-      {/* Timeline spine */}
+
       <div className="flex flex-col items-center shrink-0 w-9">
         <div
           className={cn(
@@ -85,7 +83,6 @@ function ActivityRow({ event, isLast }: { event: ApiActivity; isLast: boolean })
         {!isLast && <div className="flex-1 w-px bg-border/50 mt-1.5 min-h-4" />}
       </div>
 
-      {/* Row body */}
       <div className="flex-1 pb-5 min-w-0 pt-1">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -128,8 +125,6 @@ function ActivityRow({ event, isLast }: { event: ApiActivity; isLast: boolean })
   );
 }
 
-// ─── Tab config ──────────────────────────────────────────────────────────────
-
 const TABS = [
   { id: "assets",      label: "Assets",      Icon: LayoutGrid },
   { id: "listings",    label: "Listings",    Icon: ShoppingBag },
@@ -138,8 +133,6 @@ const TABS = [
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
-
-// ─── Empty state ─────────────────────────────────────────────────────────────
 
 function EmptyState({
   icon: Icon,
@@ -163,8 +156,6 @@ function EmptyState({
   );
 }
 
-// ─── Page ────────────────────────────────────────────────────────────────────
-
 export default function CreatorPageClient() {
   const { address } = useParams<{ address: string }>();
   const [activeTab, setActiveTab] = useState<TabId>("assets");
@@ -174,7 +165,6 @@ export default function CreatorPageClient() {
 
   const addr = address ?? null;
 
-  // Ownership detection
   const { address: walletAddress } = useWalletNativeSession();
   const isOwner = !!walletAddress && !!address &&
     normalizeAddress("STARKNET", walletAddress) === normalizeAddress("STARKNET", address);
@@ -184,7 +174,6 @@ export default function CreatorPageClient() {
     (url: string) => fetch(url).then(r => (r.ok ? r.json() : { isHidden: false }))
   );
 
-  // Lazy data fetching — only load when tab is active
   const { tokens,      isLoading: tokensLoading      } = useTokensByOwner(activeTab === "assets"      ? addr : null);
   const { orders,      isLoading: ordersLoading      } = useUserOrders(activeTab === "listings"    ? addr : null);
   const { collections, isLoading: collectionsLoading } = useCollectionsByOwner(activeTab === "collections" ? addr : null);
@@ -194,7 +183,6 @@ export default function CreatorPageClient() {
     (o) => o.status === "ACTIVE" && o.offer.itemType === "ERC721"
   );
 
-  // Tab count badges — only shown once that tab has been visited and loaded
   const tabBadge: Partial<Record<TabId, number>> = {
     ...(activeTab === "assets"      && !tokensLoading      && { assets:      tokens.length }),
     ...(activeTab === "listings"    && !ordersLoading      && { listings:    activeListings.length }),
@@ -206,7 +194,6 @@ export default function CreatorPageClient() {
     <div className="min-h-screen pb-20">
       {hiddenStatus?.isHidden === true && <HiddenContentBanner />}
 
-      {/* ── Header ───────────────────────────────────────────────────────── */}
       <div className="px-6 pt-20 pb-2 flex items-start justify-between gap-3">
         <div className="space-y-1.5 min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -246,7 +233,6 @@ export default function CreatorPageClient() {
           onOpenChange={setReportOpen}
         />
 
-        {/* ── Tab navigation ────────────────────────────────────────────── */}
         <div className="sticky top-0 z-10 -mx-6 px-6 bg-background/75 backdrop-blur-sm border-b border-border">
           <div className="flex items-center gap-0.5 overflow-x-auto scrollbar-none -mb-px">
             {TABS.map(({ id, label, Icon }) => {
@@ -286,10 +272,8 @@ export default function CreatorPageClient() {
           </div>
         </div>
 
-        {/* ── Tab content ───────────────────────────────────────────────── */}
         <div className="mt-6">
 
-          {/* Assets */}
           {activeTab === "assets" && (
             tokensLoading ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -324,7 +308,6 @@ export default function CreatorPageClient() {
             )
           )}
 
-          {/* Listings */}
           {activeTab === "listings" && (
             ordersLoading ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -345,7 +328,6 @@ export default function CreatorPageClient() {
             )
           )}
 
-          {/* Collections */}
           {activeTab === "collections" && (
             collectionsLoading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -366,7 +348,6 @@ export default function CreatorPageClient() {
             )
           )}
 
-          {/* Activity */}
           {activeTab === "activity" && (
             <div className="max-w-2xl">
               {activitiesLoading ? (
@@ -408,7 +389,6 @@ export default function CreatorPageClient() {
         </div>
       </div>
 
-      {/* ── Action dialogs ────────────────────────────────────────────────── */}
       {listTarget && (
         <ListingDialog
           open={!!listTarget}

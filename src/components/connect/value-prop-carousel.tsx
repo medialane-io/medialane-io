@@ -27,9 +27,6 @@ const VALUE_PROPS: { label: string; icon: LucideIcon }[] = [
   { label: "NFT Marketplace", icon: ShoppingBag },
 ];
 
-/** One pass of the value-prop cards. Rendered twice (see ValuePropCarousel)
- *  so the CSS translateX(-50%) loop has no visible seam. `hidden` marks the
- *  second, purely-decorative copy so screen readers don't announce it twice. */
 function Track({ hidden }: { hidden?: boolean }) {
   return (
     <div
@@ -50,10 +47,6 @@ function Track({ hidden }: { hidden?: boolean }) {
   );
 }
 
-/** Continuous auto-scrolling strip of platform value props, below the
- *  /connect sign-up form. Static content — no network dependency, cannot
- *  fail. Pauses on hover (desktop) and touch (mobile); freezes entirely
- *  under prefers-reduced-motion (handled purely in CSS, see globals.css). */
 export function ValuePropCarousel() {
   const [paused, setPaused] = useState(false);
 

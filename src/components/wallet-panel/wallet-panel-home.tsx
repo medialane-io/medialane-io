@@ -26,9 +26,7 @@ export function WalletPanelHome({
   onClose: () => void;
 }) {
   const { address, isDeployed } = useWalletNativeSession();
-  // WALLET_TOKENS is a fixed, known set (STRK/ETH/USDC/WBTC) — called
-  // explicitly rather than in a loop so hook order stays static per React's
-  // rules of hooks.
+
   const balances: Record<WalletToken["symbol"], ReturnType<typeof useTokenBalance>> = {
     STRK: useTokenBalance("STRK", address),
     ETH: useTokenBalance("ETH", address),
@@ -76,7 +74,7 @@ export function WalletPanelHome({
     try {
       await navigator.share?.({ text: address });
     } catch {
-      // user cancelled the share sheet — not an error
+
     }
   };
 

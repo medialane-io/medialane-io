@@ -2,14 +2,14 @@ import { Award, Package, Ticket } from "lucide-react";
 import { BRAND } from "@/lib/brand";
 
 export interface ServiceConfig {
-  /** Canonical service id (01-core-model §III), e.g. "pop-protocol". */
+
   serviceId: string;
   name: string;
   description: string;
   icon: React.ComponentType<{ className?: string }>;
-  /** Badge text shown on launchpad card and collection detail */
+
   badge: string;
-  /** Color classes from BRAND */
+
   color: {
     text: string;
     bgSolid: string;
@@ -17,13 +17,10 @@ export interface ServiceConfig {
     to: string;
   };
   launchpadHref: string;
-  /** Whether to show a claim/mint action on the collection detail page */
+
   hasDetailAction: boolean;
 }
 
-// UI-presentation config keyed by canonical service id (complements the
-// SDK behavioral registry getService()). Re-keyed from the legacy source
-// enum during the service-model refactor (Phase 2C).
 export const SERVICE_REGISTRY: Record<string, ServiceConfig> = {
   "pop-protocol": {
     serviceId: "pop-protocol",
@@ -72,7 +69,6 @@ export const SERVICE_REGISTRY: Record<string, ServiceConfig> = {
   },
 };
 
-/** Look up UI config by canonical service id (collection.service). */
 export function getServiceConfig(serviceId: string | null | undefined): ServiceConfig | null {
   if (!serviceId) return null;
   return SERVICE_REGISTRY[serviceId] ?? null;

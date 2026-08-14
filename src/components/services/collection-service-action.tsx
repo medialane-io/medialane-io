@@ -9,9 +9,6 @@ interface CollectionServiceActionProps {
   contractAddress: string;
 }
 
-// Visitor-facing service actions (left column). Owner-gated actions
-// (ip-tickets create/mint) live in the page's right owner cluster instead —
-// see TicketOwnerActions.
 export function CollectionServiceAction({ service, contractAddress }: CollectionServiceActionProps) {
   const config = getServiceConfig(service);
   if (!config?.hasDetailAction) return null;

@@ -87,12 +87,11 @@ export default function LaunchpadCreateCollectionPage() {
   const { address: walletAddress } = useWalletNativeSession();
   const { getValidToken, signIn } = useSiwsToken();
   const client = useMedialaneClient();
-  // One primitive owns gate → unlock (passkey) → execute → result.
+
   const action = useWalletWriteAction();
 
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
 
-  // Image upload state
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -115,7 +114,6 @@ export default function LaunchpadCreateCollectionPage() {
     defaultValues: { name: "", symbol: "", description: "", external_link: "" },
   });
 
-  // Once the wallet address is known, pre-fill the external_link with the creator page URL
   useEffect(() => {
     if (walletAddress && !form.getValues("external_link")) {
       form.setValue("external_link", `https://medialane.io/account/${walletAddress}`);
@@ -125,7 +123,7 @@ export default function LaunchpadCreateCollectionPage() {
   const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/svg+xml", "image/webp"];
 
   const handleImageSelect = async (file: File) => {
-    const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
+    const MAX_BYTES = 10 * 1024 * 1024;
     setImageUploadError(null);
     setImageUploadSuccess(null);
     if (!ALLOWED_TYPES.includes(file.type)) {
@@ -146,9 +144,7 @@ export default function LaunchpadCreateCollectionPage() {
     try {
       const token = getValidToken() ?? (await signIn());
       if (!token) throw new Error("Secure your account first");
-      // Signed-url upload — straight to Pinata, bypasses Vercel's ~4.5 MB body cap.
-      // Pinata has occasional slow spells — cap the wait so the user gets a
-      // retry prompt instead of an endless spinner.
+
       const uri = await Promise.race([
         uploadImageToIpfs(file, token),
         new Promise<never>((_, reject) =>
@@ -174,29 +170,22 @@ export default function LaunchpadCreateCollectionPage() {
   };
 
   const onSubmit = (values: FormValues) => {
-    // If the user selected an image but the upload failed, block submission
+
     if (imageFile && !imageUri && !imageUploading) {
       setImageUploadError("Please re-upload your collection image before continuing.");
       return;
     }
     setPendingValues(values);
-    // Pass `values` through the closure (synchronous-passkey rule).
+
     void action.run((signer) => runCreate(values, signer));
   };
 
-  // The `prepare` body: build the calls, execute, and do the post-confirm sync.
-  // `useWalletWriteAction` owns status/error — this returns the tx result and
-  // throws on real failure.
   const runCreate = async (values: FormValues, signer: StarknetVenueSigner) => {
     if (!walletAddress) throw new Error("Account not ready. Please refresh and try again.");
 
     const siwsToken = getValidToken() ?? (await signIn());
     if (!siwsToken) throw new Error("Secure your account first");
 
-    // 1. Upload collection metadata JSON to IPFS so permissionless dapps can resolve
-    //    the collection image onchain (base_uri → collection metadata → image field).
-    //    base_uri is embedded in the immutable deploy tx, so this MUST succeed —
-    //    a silent fallback ships an empty base_uri that can never be fixed.
     let baseUri: string | undefined;
     if (imageUri) {
       const metaRes = await fetch("/api/pinata/json", withSiwsAuth(siwsToken, {
@@ -216,7 +205,6 @@ export default function LaunchpadCreateCollectionPage() {
       baseUri = metaData.uri;
     }
 
-    // 2. Create collection intent — pre-signed, returns calls immediately
     const intentRes = await client.api.createCollectionIntent({
       owner: walletAddress,
       name: values.name,
@@ -226,12 +214,8 @@ export default function LaunchpadCreateCollectionPage() {
       baseUri,
     });
 
-    // 3. Execute the pre-built calls (create-collection never requires a
-    // signature — executeIntent dispatches on that internally either way).
     const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
 
-    // Register from the tx so it appears in portfolio without waiting for the indexer.
-    // Stay in "processing" until the backend confirms the CollectionCreated event.
     if (!result.txHash) {
       throw new Error("Collection transaction completed without a transaction hash. Please refresh and check your account activity.");
     }
@@ -262,7 +246,7 @@ export default function LaunchpadCreateCollectionPage() {
         </p>
         {imagePreview && (
           <div className="h-24 w-24 rounded-xl overflow-hidden border border-border shadow-md">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
+
             <img src={imagePreview} alt={pendingValues?.name ?? ""} className="h-full w-full object-cover" />
           </div>
         )}
@@ -282,7 +266,7 @@ export default function LaunchpadCreateCollectionPage() {
         subtitle="Set up a collection to mint your work into — free to publish, and it's yours."
         aside={
           <>
-            {/* Live collectors-card preview of the collection being created */}
+
             <MedialaneCollectionCard
               image={imagePreview}
               name={form.watch("name") || "My Creative Works"}
@@ -295,7 +279,7 @@ export default function LaunchpadCreateCollectionPage() {
       >
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-            {/* Collection image */}
+
             <div className="space-y-2">
               <p className="text-sm font-medium">Collection image</p>
               <div className="flex items-start gap-4">

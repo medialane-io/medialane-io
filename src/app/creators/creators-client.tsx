@@ -56,7 +56,7 @@ export default function CreatorsPageClient() {
 
   return (
     <div className="pb-8">
-      {/* Hero */}
+
       <section className="relative overflow-hidden">
         <div className="px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
           <FadeIn delay={0.08}>
@@ -66,7 +66,6 @@ export default function CreatorsPageClient() {
             </h1>
           </FadeIn>
 
-          {/* Stats + search row */}
           <FadeIn delay={0.22}>
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
               {!isLoading && total > 0 && (
@@ -99,7 +98,6 @@ export default function CreatorsPageClient() {
         </div>
       </section>
 
-      {/* Grid */}
       <section className="px-4 sm:px-6 lg:px-8 py-8">
         {isLoading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">

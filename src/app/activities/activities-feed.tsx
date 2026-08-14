@@ -93,7 +93,6 @@ export function ActivitiesFeed() {
     }
   }, [activities, isLoading, page]);
 
-  // One batched rewards lookup per page — never per row.
   const pageActors = allActivities
     .map((a) => a.offerer ?? a.fulfiller ?? (a.type === "mint" ? a.to : a.from))
     .filter((a): a is string => Boolean(a));
@@ -108,7 +107,6 @@ export function ActivitiesFeed() {
     <div className="space-y-5">
       <AnnouncementsBanner announcements={announcements} />
 
-      {/* Live stats bar */}
       {total != null && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <span className="flex items-center gap-1.5">
@@ -127,7 +125,6 @@ export function ActivitiesFeed() {
         </div>
       )}
 
-      {/* Type filter chips with icons */}
       <div className="flex flex-wrap gap-2">
         {TYPE_FILTERS.map((f) => {
           const typeConfig = f.value ? ACTIVITY_TYPE_CONFIG[f.value] : null;

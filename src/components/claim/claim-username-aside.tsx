@@ -1,7 +1,6 @@
 import { AtSign, UserCircle, Sparkles, BadgeCheck } from "lucide-react";
 import { ClaimRail } from "@/components/claim/claim-rail";
 
-/** Right-rail content for /claim/username. */
 export function ClaimUsernameAside() {
   return (
     <ClaimRail

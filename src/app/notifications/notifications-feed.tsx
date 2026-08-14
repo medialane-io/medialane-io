@@ -59,7 +59,7 @@ export function NotificationsFeed() {
 
   return (
     <div className="space-y-6">
-      {/* Toolbar */}
+
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
           <Filter className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
@@ -91,7 +91,6 @@ export function NotificationsFeed() {
         )}
       </div>
 
-      {/* Wallet gate for personal notifications */}
       {!hasWallet && (
         <div className="rounded-2xl border border-border/50 bg-muted/10 p-6 flex flex-col items-center gap-3 text-center">
           <Bell className="h-8 w-8 text-muted-foreground/40" />
@@ -113,7 +112,6 @@ export function NotificationsFeed() {
         </div>
       )}
 
-      {/* Feed */}
       {filtered.length === 0 && (hasWallet || typeFilter === "announcement") ? (
         <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
           <div className="h-14 w-14 rounded-2xl bg-muted/40 border border-border/50 flex items-center justify-center">

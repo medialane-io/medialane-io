@@ -151,7 +151,7 @@ function CollectionThumb({ image, size }: { image: string | null | undefined; si
       )}
     >
       {imageUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
+
         <img src={imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
       ) : (
         <div className="absolute inset-0 flex items-center justify-center">
@@ -162,9 +162,6 @@ function CollectionThumb({ image, size }: { image: string | null | undefined; si
   );
 }
 
-/** Collection field — a compact trigger showing the selected collection
- *  (thumbnail + name + work count) that opens a searchable list, so the form
- *  stays the same height whether the creator has one collection or fifty. */
 function CollectionPicker({
   collections,
   loading,
@@ -303,7 +300,6 @@ export function SingleEditionsContent() {
   const [status, setStatus] = useState<MintTxStatus>("idle");
   const [txHash, setTxHash] = useState<string | null>(null);
 
-  // Fetch user's current Medialane ERC-721 collections from the API.
   const { collections: allCollections, isLoading: collectionsLoading } = useCollectionsByOwner(walletAddress ?? null);
   const collections = allCollections.filter(
     (c) => getService(c.service)?.id === "mip-erc721" && c.collectionId != null
@@ -319,8 +315,7 @@ export function SingleEditionsContent() {
   const [mintError, setMintError] = useState<string | null>(null);
   const [mintDebug, setMintDebug] = useState<MintDebugSnapshot | null>(null);
   const mintDebugRef = useRef<MintDebugSnapshot | null>(null);
-  // Read only at submit time — keep in a ref so each keystroke in IPTypeFields
-  // doesn't re-render this whole form (the cause of the visible flicker).
+
   const metadataFieldsRef = useRef<MetadataField[]>([]);
   const handleMetadataFields = useCallback((fields: MetadataField[]) => {
     metadataFieldsRef.current = fields;
@@ -371,14 +366,12 @@ export function SingleEditionsContent() {
     },
   });
 
-  // Default to the creator's only collection, or their most recently created one.
   useEffect(() => {
     if (collections.length > 0 && !form.getValues("collectionId")) {
       form.setValue("collectionId", collections[0].collectionId!);
     }
   }, [collections, form]);
 
-  // When a collection is selected, pre-fill external_url with the collection page URL
   const selectedCollectionId = form.watch("collectionId");
   useEffect(() => {
     const col = collections.find((c) => c.collectionId === selectedCollectionId);
@@ -426,7 +419,6 @@ export function SingleEditionsContent() {
         collectionName: selectedCollection?.name ?? selectedCollection?.symbol ?? null,
       });
 
-      // 1. Upload image + metadata to IPFS via /api/pinata
       const formData = new FormData();
       formData.set("name", pendingValues.name);
       formData.set("description", pendingValues.description ?? "");
@@ -441,11 +433,10 @@ export function SingleEditionsContent() {
       formData.set("aiPolicy", pendingValues.aiPolicy);
       formData.set("royalty", String(pendingValues.royalty));
       if (imageFile) {
-        // Signed-url upload — straight to Pinata, bypasses Vercel's ~4.5 MB body cap
+
         formData.set("imageUri", await uploadImageToIpfs(imageFile, siwsToken));
       }
 
-      // Forward template and custom metadata fields as standard NFT attributes.
       metadataFieldsRef.current.forEach(({ traitType, value }) => {
         if (traitType && value) formData.append(`tmpl_${traitType}`, value);
       });
@@ -461,13 +452,12 @@ export function SingleEditionsContent() {
 
       setMintStep("processing");
 
-      // 2. Create mint intent — backend validates ownership onchain + encodes Cairo calldata
       const intentRes = await createMintIntentWithDebug({
         owner: walletAddress,
         collectionId: pendingValues.collectionId,
         recipient: walletAddress,
         tokenUri,
-        // Form royalty is a percentage (0–50); EIP-2981 is basis points. Set once, immutable.
+
         royaltyBps: Math.round(pendingValues.royalty * 100),
       }, updateMintDebug);
 
@@ -485,7 +475,6 @@ export function SingleEditionsContent() {
         })),
       });
 
-      // 3. Execute via the wallet's own atomic multicall.
       setStatus("submitting");
       const result = await signer.execute(intentData.calls as Call[]);
       setTxHash(result.txHash);
@@ -509,8 +498,7 @@ export function SingleEditionsContent() {
       invalidatePortfolioCache(walletAddress);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Something went wrong";
-      // When the message is a friendly remap, the original reason is on `cause` —
-      // record it so __MEDIALANE_MINT_DEBUG__ exposes the real paymaster error.
+
       const rawError =
         err instanceof Error && err.cause instanceof Error ? err.cause.message : undefined;
       updateMintDebug({ step: "error", error: message, rawError, txHash, txStatus: status });
@@ -591,7 +579,6 @@ export function SingleEditionsContent() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 
-            {/* Collection picker */}
             <FormField
               control={form.control}
               name="collectionId"
@@ -612,7 +599,6 @@ export function SingleEditionsContent() {
               )}
             />
 
-            {/* Cover image */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Cover image</label>
               <div
@@ -624,7 +610,7 @@ export function SingleEditionsContent() {
                 onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); imageInputRef.current?.click(); } }}
               >
                 {imagePreview ? (
-                  // eslint-disable-next-line @next/next/no-img-element
+
                   <img src={imagePreview} alt="Preview" className="mx-auto max-h-48 rounded-lg object-contain" />
                 ) : (
                   <div className="flex flex-col items-center gap-2 text-muted-foreground">
@@ -662,7 +648,6 @@ export function SingleEditionsContent() {
               </div>
             </div>
 
-            {/* Name */}
             <FormField
               control={form.control}
               name="name"
@@ -677,7 +662,6 @@ export function SingleEditionsContent() {
               )}
             />
 
-            {/* Description */}
             <FormField
               control={form.control}
               name="description"
@@ -696,7 +680,6 @@ export function SingleEditionsContent() {
               )}
             />
 
-            {/* External URL */}
             <FormField
               control={form.control}
               name="external_url"
@@ -711,7 +694,6 @@ export function SingleEditionsContent() {
               )}
             />
 
-            {/* Licensing Terms — optional, collapsed by default */}
             <CollapsibleSection
               open={licensingOpen}
               onOpenChange={setLicensingOpen}
@@ -836,7 +818,6 @@ export function SingleEditionsContent() {
                     </Collapsible>
             </CollapsibleSection>
 
-            {/* IP Type & template fields — optional, collapsed by default */}
             <CollapsibleSection
               open={ipTypeOpen}
               onOpenChange={setIpTypeOpen}

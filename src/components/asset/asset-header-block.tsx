@@ -16,11 +16,6 @@ interface AssetHeaderBlockProps {
   ownerAddress?: string | null;
 }
 
-/**
- * Story-first asset header (standard page). Title is one step smaller than the
- * shared `@medialane/ui` block. The IP-type pill sits above the owner row —
- * it's the asset's category, the first thing to read before who owns it.
- */
 export function AssetHeaderBlock({
   name,
   description,

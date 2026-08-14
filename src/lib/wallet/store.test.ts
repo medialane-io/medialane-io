@@ -1,13 +1,6 @@
 import { test, expect, beforeEach } from "bun:test";
 import type { SealedOwner } from "./passkey";
 
-// bun test's runtime has no DOM: `window` and `localStorage` are both
-// undefined globals (unlike a browser, where `window` is the global object
-// itself). store.ts's SSR guard (`typeof window === "undefined"`) needs
-// `window` to resolve to something truthy for the browser code paths under
-// test to run at all; `dispatchEvent`/`addEventListener`/`Event` are already
-// implemented on bun's `globalThis`, so aliasing `window` to `globalThis`
-// is enough — only `localStorage` needs an actual in-memory shim.
 if (typeof (globalThis as { window?: unknown }).window === "undefined") {
   (globalThis as { window: unknown }).window = globalThis;
 }

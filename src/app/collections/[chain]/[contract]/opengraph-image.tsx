@@ -31,7 +31,7 @@ export default async function Image({
           overflow: "hidden",
         }}
       >
-        {/* Left content */}
+
         <div
           style={{
             display: "flex",
@@ -41,7 +41,7 @@ export default async function Image({
             padding: "52px 48px",
           }}
         >
-          {/* Brand pill */}
+
           <div
             style={{
               display: "flex",
@@ -60,7 +60,6 @@ export default async function Image({
             </span>
           </div>
 
-          {/* Title + meta */}
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
             <div
               style={{
@@ -95,14 +94,12 @@ export default async function Image({
             )}
           </div>
 
-          {/* Footer */}
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#60a0ff" }} />
             <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 16 }}>medialane.io</span>
           </div>
         </div>
 
-        {/* Right image */}
         {imageUrl ? (
           <div
             style={{
@@ -114,7 +111,7 @@ export default async function Image({
               flexShrink: 0,
             }}
           >
-            { }
+
             <img
               src={imageUrl}
               alt={name}

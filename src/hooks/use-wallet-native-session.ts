@@ -13,14 +13,8 @@ export interface WalletNativeSession {
   signer: StarknetVenueSigner | null;
 }
 
-/**
- * Wallet-native identity — deliberately minimal: address resolution and a
- * signer, no session-key lifecycle.
- */
 export function useWalletNativeSession(): WalletNativeSession {
-  // localStorage reads are synchronous — resolve address on first render
-  // instead of lagging a tick behind via useEffect (which would otherwise
-  // flash a false "no wallet" state on every mount).
+
   const [address, setAddress] = useState<string | null>(() => loadSealedOwner()?.address ?? null);
   const [deployed, setDeployed] = useState<boolean | null>(null);
 

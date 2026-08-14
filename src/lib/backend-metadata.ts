@@ -1,13 +1,6 @@
 import "server-only";
 import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
 
-/**
- * Server-only calls to medialane-backend's `/v1/metadata/*` — the metered
- * Pinata upload path. io holds no Pinata credential of its own; every
- * upload goes through here so it's tracked against the tenant API key,
- * same as every other write in the app.
- */
-
 function backendUrl(path: string): string {
   return `${MEDIALANE_BACKEND_URL.replace(/\/$/, "")}/v1/metadata/${path}`;
 }
@@ -21,7 +14,6 @@ export interface BackendUploadResult {
   uri: string;
 }
 
-/** POST /v1/metadata/upload — pin an arbitrary JSON object, returns its ipfs:// URI. */
 export async function uploadJsonToBackend(json: unknown): Promise<BackendUploadResult> {
   const res = await fetch(backendUrl("upload"), {
     method: "POST",
@@ -33,7 +25,6 @@ export async function uploadJsonToBackend(json: unknown): Promise<BackendUploadR
   return { cid: data.data.cid, uri: data.data.url };
 }
 
-/** POST /v1/metadata/upload-file — pin a single media file, returns its ipfs:// URI. */
 export async function uploadFileToBackend(file: File): Promise<BackendUploadResult> {
   const form = new FormData();
   form.append("file", file, file.name);
@@ -47,7 +38,6 @@ export async function uploadFileToBackend(file: File): Promise<BackendUploadResu
   return { cid: data.data.cid, uri: data.data.url };
 }
 
-/** POST /v1/metadata/upload-directory — pin named JSON files together under one folder CID. */
 export async function uploadDirectoryToBackend(
   files: { name: string; content: unknown }[],
 ): Promise<{ cid: string; baseUri: string }> {
@@ -64,7 +54,6 @@ export async function uploadDirectoryToBackend(
   return data.data;
 }
 
-/** GET /v1/metadata/signed-url — a short-lived signed Pinata upload URL for large files. */
 export async function getBackendSignedUrl(kind: "image" | "document" = "image"): Promise<string> {
   const res = await fetch(`${backendUrl("signed-url")}?kind=${kind}`, {
     method: "GET",

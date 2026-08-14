@@ -13,13 +13,12 @@ async function fetchErc20Balance(tokenAddress: string, holderAddress: string): P
     },
     "latest"
   );
-  // ERC-20 balanceOf returns a u256: [low, high]
+
   const low = BigInt(result[0]);
   const high = BigInt(result[1]);
   return low + (high << 128n);
 }
 
-/** Raw bigint balance for any ERC-20 token by contract address. Refreshes every 30s. */
 export function useErc20Balance(tokenAddress: string | null, holderAddress: string | null) {
   const { data, error, isLoading } = useSWR(
     tokenAddress && holderAddress ? ["erc20-balance", tokenAddress, holderAddress] : null,
@@ -29,24 +28,19 @@ export function useErc20Balance(tokenAddress: string | null, holderAddress: stri
       revalidateOnFocus: false,
       shouldRetryOnError: false,
       onError: () => {
-        // Balance reads are advisory UI data; action flows still validate on submit.
+
       },
     }
   );
   return { rawBalance: data ?? null, isLoading, error };
 }
 
-/** Balance for a token identified by symbol (e.g. "USDC"). Includes decimals for formatting. */
 export function useTokenBalance(symbol: string | null, holderAddress: string | null) {
   const token = symbol ? getListableTokens().find((t) => t.symbol === symbol) ?? null : null;
   const { rawBalance, isLoading, error } = useErc20Balance(token?.address ?? null, holderAddress);
   return { rawBalance, isLoading, error, decimals: token?.decimals ?? 18 };
 }
 
-/**
- * Returns true when the holder has enough balance to cover the required amount.
- * Returns null when balance is still loading or the amount is unparseable.
- */
 export function hasSufficientBalance(
   rawBalance: bigint | null,
   requiredHuman: string,

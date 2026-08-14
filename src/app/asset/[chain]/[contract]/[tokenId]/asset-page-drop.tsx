@@ -179,7 +179,7 @@ export function AssetPageDrop() {
 
       <PageContainer className="pt-20 space-y-8 pb-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-10 gap-8 items-start">
-          {/* Image */}
+
           <motion.div
             initial={shouldReduce ? false : { scale: 1.0, opacity: 0 }}
             animate={{ scale: 1.02, opacity: 1 }}
@@ -197,7 +197,6 @@ export function AssetPageDrop() {
             </div>
           </motion.div>
 
-          {/* Right column */}
           <motion.div
             initial={shouldReduce ? false : { opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -225,10 +224,8 @@ export function AssetPageDrop() {
               )}
             </div>
 
-            {/* Drop info panel */}
             {dropState && <DropInfoPanel conditions={dropState.conditions} totalMinted={dropState.totalMinted} />}
 
-            {/* Secondary market action box */}
             {cheapest ? (
               <div className="rounded-2xl border border-border p-5 space-y-4">
                 <div className="flex items-center gap-2">
@@ -314,7 +311,6 @@ export function AssetPageDrop() {
               </div>
             )}
 
-            {/* My active bid banner */}
             {!isOwner && walletAddress && (() => {
               const myBid = activeBids.find((b) => normalizeAddress("STARKNET", b.offerer) === normalizeAddress("STARKNET", walletAddress));
               if (!myBid) return null;
@@ -338,7 +334,6 @@ export function AssetPageDrop() {
               );
             })()}
 
-            {/* Incoming offers (owner only) */}
             {isOwner && activeBids.length > 0 && (
               <div className="rounded-xl border border-border p-5 space-y-3">
                 <p className="text-xs font-semibold text-muted-foreground">Incoming offers ({activeBids.length})</p>
@@ -360,7 +355,6 @@ export function AssetPageDrop() {
               </div>
             )}
 
-            {/* Links */}
             <div className="flex items-center gap-3 text-sm">
               <a href={`${EXPLORER_URL}/contract/${contract}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-muted-foreground hover:text-foreground">
                 Contract <ExternalLink className="h-3 w-3" />
@@ -377,7 +371,6 @@ export function AssetPageDrop() {
           </motion.div>
         </div>
 
-        {/* Tabs */}
         <Tabs defaultValue="markets">
           <TabsList>
             <TabsTrigger value="markets">

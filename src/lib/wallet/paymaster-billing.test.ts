@@ -1,10 +1,5 @@
 import { afterEach, describe, expect, mock, test } from "bun:test";
 
-// Mock the module directly rather than setting process.env — constants.ts
-// reads MEDIALANE_API_KEY at module-load time, and bun's module cache is
-// process-wide across the whole test run, so whichever test file imports
-// "@/lib/constants" first (not necessarily this one) freezes the value for
-// every other test in the same `bun test` invocation.
 mock.module("@/lib/constants", () => ({
   MEDIALANE_BACKEND_URL: "http://localhost:3001",
   MEDIALANE_API_KEY: "test-key",
@@ -12,7 +7,7 @@ mock.module("@/lib/constants", () => ({
 
 describe("billPaymasterCall", () => {
   afterEach(() => {
-    // @ts-expect-error test cleanup
+
     delete globalThis.fetch;
   });
 

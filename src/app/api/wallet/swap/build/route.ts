@@ -1,15 +1,4 @@
-/**
- * Server-only: builds the approve+swap Call[] for the auto-swap-to-purchase
- * flow, via AVNU's getQuotes + quoteToCalls. Billed via billSwapCall before
- * any AVNU call. Companion to quote/route.ts — see that file's header.
- *
- * Always fetches a FRESH quote (never reuses a client-supplied quoteId from
- * the browsing-estimate phase) so the built calldata reflects current
- * market data. buyAmountRaw is treated as an exact-output request: the
- * caller gets exactly that much of buyToken, with slippage applied to how
- * much of sellToken is spent — so the downstream purchase call is always
- * guaranteed enough of the order's currency to succeed.
- */
+
 import { type NextRequest, NextResponse } from "next/server";
 import { getQuotes, quoteToCalls } from "@avnu/avnu-sdk";
 import { getTokenBySymbol, stringifyBigInts } from "@medialane/sdk";
@@ -18,7 +7,6 @@ import { createRateLimiter, isSameOrigin, requestIp } from "@/lib/api-route-guar
 
 export const runtime = "nodejs";
 
-/** Fixed per the design spec — not user-adjustable in this phase. */
 const DEFAULT_SLIPPAGE = 0.01;
 
 const checkRateLimit = createRateLimiter(60_000, 30);

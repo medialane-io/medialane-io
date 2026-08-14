@@ -134,7 +134,6 @@ function SearchResults() {
   const [hasError, setHasError] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Keep input in sync if URL param changes (e.g. browser back/forward)
   useEffect(() => {
     setInputValue(q);
   }, [q]);
@@ -160,7 +159,7 @@ function SearchResults() {
       }
     });
     return () => { cancelled = true; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [q]);
 
   function handleInputChange(value: string) {
@@ -188,7 +187,7 @@ function SearchResults() {
 
   return (
     <PageContainer className="box-border max-w-full pt-14 pb-8 space-y-8">
-      {/* Header */}
+
       <div className="space-y-4">
         <div className="flex items-center gap-2 text-primary">
           <Search className="h-5 w-5" />
@@ -196,7 +195,6 @@ function SearchResults() {
         </div>
         <h1 className="text-3xl font-bold">Search</h1>
 
-        {/* Search input */}
         <div className="relative max-w-xl">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
           <Input
@@ -260,7 +258,7 @@ function SearchResults() {
 
       {!isLoading && results && (
         <>
-          {/* Creators */}
+
           {creators.length > 0 && (
             <section className="space-y-4">
               <div className="flex items-center gap-2">
@@ -277,7 +275,6 @@ function SearchResults() {
             </section>
           )}
 
-          {/* Collections */}
           {collections.length > 0 && (
             <section className="space-y-4">
               <div className="flex items-center gap-2">
@@ -294,7 +291,6 @@ function SearchResults() {
             </section>
           )}
 
-          {/* Tokens */}
           {tokens.length > 0 && (
             <section className="space-y-4">
               <div className="flex items-center gap-2">

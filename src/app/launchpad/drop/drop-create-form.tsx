@@ -102,7 +102,6 @@ export function DropCreateForm({
     return () => { document.removeEventListener("mousedown", onPointer); document.removeEventListener("keydown", onEsc); };
   }, [onSetTokenDropdownOpen, tokenDropdownOpen]);
 
-  // Selecting a license preset fills the derived commercial/derivatives/attribution fields.
   const handleLicenseChange = (value: string) => {
     form.setValue("licenseType", value);
     const def = LICENSE_TYPES.find((l) => l.value === value);
@@ -115,7 +114,7 @@ export function DropCreateForm({
 
   return (
     <div className="space-y-5">
-      {/* Cover image */}
+
       <div className="space-y-2">
         <label className="text-sm font-medium">Cover image <span className="text-muted-foreground font-normal">(optional)</span></label>
         <div
@@ -127,7 +126,7 @@ export function DropCreateForm({
           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileInputRef.current?.click(); } }}
         >
           {imagePreview ? (
-            // eslint-disable-next-line @next/next/no-img-element
+
             <img src={imagePreview} alt="Cover preview" className="mx-auto max-h-48 rounded-lg object-contain" />
           ) : (
             <div className="flex flex-col items-center gap-2 text-muted-foreground">
@@ -146,7 +145,6 @@ export function DropCreateForm({
         </div>
       </div>
 
-      {/* Name */}
       <FormField control={form.control} name="name" render={({ field }) => (
         <FormItem>
           <FormLabel>Collection name *</FormLabel>
@@ -156,7 +154,6 @@ export function DropCreateForm({
         </FormItem>
       )} />
 
-      {/* Symbol */}
       <FormField control={form.control} name="symbol" render={({ field }) => (
         <FormItem>
           <FormLabel>Symbol *</FormLabel>
@@ -168,7 +165,6 @@ export function DropCreateForm({
         </FormItem>
       )} />
 
-      {/* Items */}
       <Section title="Items" icon={<Layers className="h-4 w-4" />}>
         <p className="text-xs text-muted-foreground">
           Each image becomes a unique, individually-licensed token. Supply equals the number of items.
@@ -176,7 +172,6 @@ export function DropCreateForm({
         <DropItemList items={items} collectionName={collectionName} onAddFiles={onAddItemFiles} onRemove={onRemoveItem} onEdit={onEditItem} />
       </Section>
 
-      {/* Licensing Terms — collapsible panel (matches /launchpad/single-editions) */}
       <CollapsibleSection
         open={licensingOpen}
         onOpenChange={setLicensingOpen}
@@ -236,7 +231,6 @@ export function DropCreateForm({
               </Collapsible>
       </CollapsibleSection>
 
-      {/* IP Type & Metadata — collapsible panel (matches /launchpad/single-editions) */}
       <CollapsibleSection
         open={ipTypeOpen}
         onOpenChange={onSetIpTypeOpen}
@@ -256,9 +250,8 @@ export function DropCreateForm({
               <IPTypeFields ipType={form.watch("ipType") as IPType} onChange={onMetadataFieldsChange} uploadDocument={uploadDocument} />
       </CollapsibleSection>
 
-      {/* Drop settings */}
       <Section title="Drop settings" icon={<Package className="h-4 w-4" />}>
-        {/* Price */}
+
         <div className="space-y-2">
           <label className="text-sm font-medium">Mint price</label>
           <ToggleGroup value={priceFree ? "Free" : "Paid"} options={["Free", "Paid"]} onChange={(v) => onSetPriceFree(v === "Free")} />
@@ -291,7 +284,6 @@ export function DropCreateForm({
           <p className="text-xs text-muted-foreground">A free claim, or a fixed price per token.</p>
         </div>
 
-        {/* Max per wallet */}
         <FormField control={form.control} name="maxPerWallet" render={({ field }) => (
           <FormItem>
             <FormLabel>Max per wallet</FormLabel>
@@ -300,7 +292,6 @@ export function DropCreateForm({
           </FormItem>
         )} />
 
-        {/* Mint window */}
         <div className="space-y-2">
           <label className="text-sm font-medium">Mint window *</label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -321,7 +312,6 @@ export function DropCreateForm({
           </div>
         </div>
 
-        {/* Visibility */}
         <div className="space-y-2">
           <label className="text-sm font-medium">Listing visibility</label>
           <ToggleGroup value={isPublic ? "Public" : "Hidden"} options={["Public", "Hidden"]} onChange={(v) => onSetPublic(v === "Public")} />
@@ -329,7 +319,6 @@ export function DropCreateForm({
         </div>
       </Section>
 
-      {/* Whitelist — collapsible panel; opening it enables the gate */}
       <CollapsibleSection
         open={whitelistEnabled}
         onOpenChange={(o) => form.setValue("whitelistEnabled", o)}
@@ -347,7 +336,6 @@ export function DropCreateForm({
               )} />
       </CollapsibleSection>
 
-      {/* Submit */}
       <button
         type="submit"
         disabled={isSubmitting || imageUploading}

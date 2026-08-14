@@ -1,15 +1,6 @@
 import { Account, stark } from "starknet";
 import { walletProvider } from "./provider";
 
-/**
- * Deploys a new wallet gaslessly via AVNU's sponsored paymaster — replaces
- * the old relayer+UDC deploy (see design spec
- * 2026-08-05-medialane-io-wallet-native-frictionless-design.md §3.3, the
- * 2026-08-07 correction, for why). Two round-trips to io's own API routes
- * (never AVNU directly — the API key stays server-side) bracket one local
- * signature: build the sponsored transaction, sign it with the
- * passkey-derived key, execute it.
- */
 export async function deployWalletSponsored(
   ownerAddress: string,
   ownerPubkey: string,
@@ -31,11 +22,7 @@ export async function deployWalletSponsored(
     cairoVersion: "1",
   });
   const rawSignature = await account.signMessage(typedData as never);
-  // signMessage() can return either a plain string array or a
-  // WeierstrassSignatureType object ({r, s, ...}) depending on the signer —
-  // a raw-private-key signer returns the latter. Array.from() over that
-  // silently yields [] with no error (reproduced live 2026-08-07). Use
-  // starknet.js's own signatureToHexArray, which handles both shapes.
+
   const signature = stark.signatureToHexArray(rawSignature);
 
   const executeRes = await fetch("/api/wallet/deploy-sponsored/execute", {

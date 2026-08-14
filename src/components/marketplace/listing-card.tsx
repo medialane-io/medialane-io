@@ -26,18 +26,12 @@ export { ListingCardSkeleton };
 interface ListingCardProps {
   order: ApiOrder;
   onBuy?: (order: ApiOrder) => void;
-  /** Compact mode: tighter layout, no action buttons. For dense grids. */
+
   compact?: boolean;
-  /** True when the viewer owns this listing — shows owner actions instead of buyer actions. */
+
   isOwner?: boolean;
 }
 
-/**
- * io's ListingCard is a thin wrapper over `@medialane/ui`'s shared card: the
- * package owns layout/visuals; this wrapper keeps io's owner cancel flow and
- * the action menus, injected via the card's `primaryAction` + `overflowMenu`
- * slots.
- */
 export function ListingCard({ order, onBuy, compact = false, isOwner = false }: ListingCardProps) {
   const router = useRouter();
   const { mutate } = useSWRConfig();
@@ -47,7 +41,6 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
 
   const [reportOpen, setReportOpen] = useState(false);
 
-  // ─── Cancel flow state ────────────────────────────────────────────────────
   const [cancelStep, setCancelStep] = useState<"idle" | "processing" | "success" | "error">("idle");
   const [cancelError, setCancelError] = useState<string | null>(null);
 
@@ -76,12 +69,10 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
   const name = order.token?.name ?? `Token #${order.nftTokenId}`;
   const image = order.token?.image ? ipfsToHttp(order.token.image) : null;
 
-  // Compact grids: delegate entirely (no actions).
   if (compact) {
     return <PackageListingCard order={order} compact usdValue={usdValue} />;
   }
 
-  // ─── Owner cancel — the auth-coupled primary control stays here ─────────────
   const cancelPrimary = (
     <button
       disabled={cancelStep === "processing"}
@@ -95,7 +86,6 @@ export function ListingCard({ order, onBuy, compact = false, isOwner = false }: 
     </button>
   );
 
-  // ─── Overflow menus ─────────────────────────────────────────────────────────
   const ownerMenu = (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

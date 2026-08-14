@@ -1,13 +1,4 @@
-/**
- * Server-only: builds an AVNU-paymaster-sponsored deploy_and_invoke
- * transaction (new wallet deployment bundled with a harmless zero-amount
- * STRK self-transfer — the only executable paymaster shape with an
- * unambiguous signature story; see design spec
- * 2026-08-05-medialane-io-wallet-native-frictionless-design.md §3.3,
- * 2026-08-07 correction). The AVNU API key never reaches the browser —
- * this route holds it, the browser only ever sees the returned typed
- * data to sign.
- */
+
 import { type NextRequest, NextResponse } from "next/server";
 import { CallData, uint256, type PreparedDeployAndInvokeTransaction } from "starknet";
 import { getTokenBySymbol } from "@medialane/sdk";
@@ -67,8 +58,7 @@ export async function POST(req: NextRequest) {
       },
       { version: "0x1", feeMode: { mode: "sponsored" } },
     )) as PreparedDeployAndInvokeTransaction;
-    // `deployment` is echoed back verbatim (not re-derivable from typed_data
-    // alone) — the client must carry it through unchanged to /execute.
+
     return NextResponse.json({ typedData: prepared.typed_data, deployment: prepared.deployment });
   } catch (err) {
     return NextResponse.json(

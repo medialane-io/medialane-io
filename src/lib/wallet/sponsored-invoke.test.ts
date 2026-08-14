@@ -5,9 +5,6 @@ const FAKE_SEALED: SealedOwner = {
   credentialId: "cred1", ownerPubKey: "0xabc", address: "0xdeadbeef", iv: "iv1", ciphertext: "ct1",
 };
 
-// A minimal but genuinely schema-valid TypedData payload —
-// starknetTypedData.getMessageHash() (called before the mocked signWith)
-// validates real structure (types/primaryType/domain/message).
 const FAKE_TYPED_DATA = {
   types: {
     StarknetDomain: [
@@ -23,9 +20,6 @@ const FAKE_TYPED_DATA = {
   message: { value: "1" },
 };
 
-// signWith() runs a real WebAuthn ceremony (unavailable in bun:test), so it's
-// mocked at the module level, same pattern use-wallet-write-action.test.ts
-// uses for its own passkey-adjacent dependency.
 mock.module("./passkey", () => ({
   signWith: async () => ["0xr", "0xs"] as [string, string],
 }));

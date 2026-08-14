@@ -10,15 +10,15 @@ import type { useWalletWriteAction, WalletWriteStatus } from "@/hooks/use-wallet
 
 interface WalletTransactionDialogProps {
   action: ReturnType<typeof useWalletWriteAction>;
-  /** Accessible title. */
+
   title: string;
-  /** Heading shown during processing. Defaults to "Processing…". */
+
   processingLabel?: string;
-  /** Label for the first progress step. Defaults to "Prepare transaction". */
+
   firstStepLabel?: string;
-  /** Heading shown on success. Defaults to "Done!". */
+
   successTitle?: string;
-  /** Flow-specific success content + CTAs (the success slot). */
+
   children?: ReactNode;
 }
 
@@ -40,12 +40,6 @@ const makeSteps = (firstStepLabel: string) => [
   },
 ];
 
-/**
- * Progress-steps transaction dialog (confetti on success, error state),
- * driven by `useWalletWriteAction`. No PIN dialog: the wallet module is
- * passkey-only, and unlocking happens implicitly inside the signer's own
- * execute() call, not as a separate step this dialog needs to orchestrate.
- */
 export function WalletTransactionDialog({
   action,
   title,
@@ -83,7 +77,6 @@ export function WalletTransactionDialog({
           {isProcessing ? processingLabel : isSuccess ? successTitle : title}
         </DialogTitle>
 
-        {/* ── Processing ── */}
         {isProcessing && (
           <div className="flex flex-col items-center gap-6 py-4">
             <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
@@ -121,7 +114,6 @@ export function WalletTransactionDialog({
           </div>
         )}
 
-        {/* ── Success ── */}
         {isSuccess && (
           <div className="flex flex-col items-center gap-5 py-2">
             <div className="relative">
@@ -142,12 +134,11 @@ export function WalletTransactionDialog({
                 <ExternalLink className="h-3 w-3" />
               </a>
             )}
-            {/* Flow-specific success content + CTAs */}
+
             {children}
           </div>
         )}
 
-        {/* ── Error ── */}
         {isError && (
           <div className="flex flex-col items-center gap-5 py-2">
             <div className="h-16 w-16 rounded-full bg-destructive/10 flex items-center justify-center">

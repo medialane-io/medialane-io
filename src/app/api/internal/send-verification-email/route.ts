@@ -1,18 +1,8 @@
-/**
- * Internal mail relay — NOT part of the /v1/* BFF proxy, not reachable by
- * browser clients. Exists because medialane-backend (Railway, Hobby plan)
- * cannot open outbound SMTP connections at all — Railway blocks ports
- * 25/465/587 on Free/Trial/Hobby plans (connection times out on connect).
- * This Vercel deployment's outbound network is unrestricted, so the backend
- * relays the send here over HTTPS with a shared secret instead.
- */
+
 import { type NextRequest, NextResponse } from "next/server";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import nodemailer from "nodemailer";
 
-// nodemailer needs Node's raw TCP/TLS sockets — must run on the Node.js
-// runtime, not Edge (Edge has no `net`/`tls` module and crashes hard,
-// before this file's own try/catch can produce a real error response).
 export const runtime = "nodejs";
 
 function buildVerificationCodeEmailHtml(code: string): string {
@@ -32,8 +22,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
   const provided = req.headers.get("x-relay-secret") ?? "";
 
-  // HMAC both sides to a fixed 32-byte digest before comparing — avoids
-  // length leakage from a raw timingSafeEqual on unequal-length inputs.
   const hmacKey = "mail-relay-auth";
   const expected = createHmac("sha256", hmacKey).update(relaySecret).digest();
   const actual = createHmac("sha256", hmacKey).update(provided).digest();

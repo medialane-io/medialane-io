@@ -78,13 +78,7 @@ export function AssetMarketplaceDialogs({
   acceptOfferHook,
   onCancelListing,
 }: AssetMarketplaceDialogsProps) {
-  // A dialog's on-chain tx confirming doesn't mean the backend has indexed
-  // the resulting event yet (~6s poll cycle) — an immediate mutate() can
-  // still return the pre-write list, leaving stale UI (e.g. "List on
-  // Marketplace" after a listing actually went through) until the next
-  // scheduled poll. One extra revalidation a few seconds later closes that
-  // gap without waiting for the full poll interval. Same pattern as
-  // useMarketplace()'s own "stale order sync".
+
   const handleSuccess = useCallback(() => {
     mutateListings();
     setTimeout(mutateListings, 8000);

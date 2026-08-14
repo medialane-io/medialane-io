@@ -76,9 +76,7 @@ export function useLaunchpadImageUpload({
     try {
       const token = getValidToken() ?? (await signIn());
       if (!token) throw new Error("Secure your account first");
-      // Signed-url upload — straight to Pinata, bypasses Vercel's ~4.5 MB body cap.
-      // IPFS pinning is an external service with occasional slow spells — cap the
-      // wait so the user gets a retry prompt instead of an endless spinner.
+
       const uri = await Promise.race([
         uploadImageToIpfs(file, token),
         new Promise<never>((_, reject) =>

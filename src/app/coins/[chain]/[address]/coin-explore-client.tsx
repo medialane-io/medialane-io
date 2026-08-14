@@ -1,12 +1,5 @@
 "use client";
 
-/**
- * CoinExploreClient — io's READ-ONLY coin page. io discovers/explores coins;
- * trading happens on the per-chain app, so this shows identity + live price +
- * stats, and the primary CTA links out to the coin's chain app (Starknet
- * today). No swap here by design.
- */
-
 import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -35,8 +28,6 @@ export function CoinExploreClient({ address }: { address: string }) {
     [price, supply]
   );
 
-  // Not a coin under /coins (e.g. an NFT collection address) → send to the
-  // collection page (effect, not in render).
   useEffect(() => {
     if (!isLoading && !coin) router.replace(collectionHref("STARKNET", address));
   }, [isLoading, coin, address, router]);
@@ -50,7 +41,6 @@ export function CoinExploreClient({ address }: { address: string }) {
   const logo = logoUri ? ipfsToHttp(logoUri) : null;
   const initials = symbol.trim().slice(0, 2).toUpperCase();
 
-  // Only render stats that resolve — no empty placeholder boxes.
   const stats: { label: string; value: string }[] = [];
   if (supply != null && supply > 0) stats.push({ label: "Supply", value: formatCompact(supply) });
   if (marketCap != null) stats.push({ label: "Market Cap", value: `${formatCompact(marketCap)} ${price?.quoteSymbol ?? ""}`.trim() });
@@ -58,7 +48,7 @@ export function CoinExploreClient({ address }: { address: string }) {
 
   return (
     <div className="relative z-0 min-h-screen">
-      {/* Atmospheric blur background — same settings as the asset pages. */}
+
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         {logo && (
           <Image
@@ -75,7 +65,7 @@ export function CoinExploreClient({ address }: { address: string }) {
       </div>
 
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 pt-20 pb-12 space-y-6">
-        {/* Identity */}
+
         <div className="flex items-center gap-4">
           {logo ? (
             <Image src={logo} alt={symbol} width={64} height={64} unoptimized className="h-16 w-16 rounded-full object-cover border border-border/60 shrink-0" />
@@ -93,7 +83,6 @@ export function CoinExploreClient({ address }: { address: string }) {
           </div>
         </div>
 
-        {/* Live price */}
         <Panel className="p-5">
           <p className="mb-1.5 text-[11px] uppercase tracking-widest text-muted-foreground">Price</p>
           {priceLoading ? (
@@ -109,14 +98,12 @@ export function CoinExploreClient({ address }: { address: string }) {
           <p className="mt-2 text-[11px] text-muted-foreground/70">Live market price · updates every 30s</p>
         </Panel>
 
-        {/* Stats — only those that resolve */}
         {stats.length > 0 && (
           <div className={cn("grid gap-3", stats.length === 1 ? "grid-cols-1" : stats.length === 2 ? "grid-cols-2" : "grid-cols-3")}>
             {stats.map((s) => <StatCell key={s.label} label={s.label} value={s.value} />)}
           </div>
         )}
 
-        {/* Trade CTA → per-chain app */}
         {coin && (
           <div className="btn-border-animated p-[1px] rounded-2xl">
             <a
@@ -130,7 +117,6 @@ export function CoinExploreClient({ address }: { address: string }) {
           </div>
         )}
 
-        {/* Meta */}
         <div className="flex items-center gap-3 pt-1 text-xs text-muted-foreground/70">
           <span>{address.slice(0, 6)}…{address.slice(-4)}</span>
           <a href={`${EXPLORER_URL}/contract/${address}`} target="_blank" rel="noopener noreferrer" className="hover:text-foreground"><ExternalLink className="h-3.5 w-3.5" /></a>
@@ -143,10 +129,6 @@ export function CoinExploreClient({ address }: { address: string }) {
   );
 }
 
-/**
- * Auxiliary panel — card surface with a subtle brand gradient fill (Primary
- * gradient, blue→purple) layered over the base, per the design system.
- */
 function Panel({ className, children }: { className?: string; children: React.ReactNode }) {
   return (
     <div className={cn("relative overflow-hidden rounded-2xl border border-border/60 bg-card/70 backdrop-blur-sm", className)}>

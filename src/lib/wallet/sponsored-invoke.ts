@@ -1,20 +1,6 @@
 import { typedData as starknetTypedData, type Call, type TypedData } from "starknet";
 import { signWith, type SealedOwner } from "./passkey";
 
-/**
- * Executes calls against an already-deployed MediaWallet account via AVNU's
- * sponsored paymaster — the post-deploy sibling of `deployWalletSponsored`
- * (see design spec 2026-08-08-io-sponsored-invoke-design.md). Two round-trips
- * to io's own API routes (never AVNU directly — the API key stays
- * server-side) bracket one local signature: build the sponsored invoke
- * transaction, sign the returned SNIP-9 outside-execution typed data with the
- * passkey-derived key, execute it.
- *
- * `userAddress` defaults to the signer's own address. Pass it explicitly for
- * guardian actions, where a guardian's key co-signs a call executed against
- * the *target* wallet's address (D-15: guardian recovery is gasless too,
- * same as every other io write).
- */
 export async function executeSponsored(
   sealed: SealedOwner,
   calls: Call[],

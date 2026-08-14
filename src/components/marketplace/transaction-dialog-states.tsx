@@ -9,11 +9,6 @@ import { EXPLORER_URL } from "@/lib/constants";
 import { ipfsToHttp } from "@/lib/utils";
 import type { WalletWriteStatus } from "@/hooks/use-wallet-write-action";
 
-/**
- * Shared transaction dialog state machine. Renders the success / error /
- * processing branches that contract-call dialogs all share; children render
- * for the idle (form / confirm) phase.
- */
 interface TransactionDialogStatesProps {
   status: WalletWriteStatus | undefined;
   statusMessage?: string;
@@ -21,21 +16,21 @@ interface TransactionDialogStatesProps {
   error: string | null;
   isSubmitting: boolean;
   successTitle: string;
-  /** ReactNode so consumers can render dynamic content (addresses, totals, …). */
+
   successBody: ReactNode;
-  /** Optional asset image rendered between the check mark and the title. ipfs:// or http(s). */
+
   successImage?: string | null;
-  /** Alt text for the success image. */
+
   successImageAlt?: string;
   errorTitle: string;
   errorDescription: string;
-  /** Optional name passed through to MarketplaceErrorState. */
+
   errorAssetName?: string;
-  /** Optional image passed through to MarketplaceErrorState. */
+
   errorAssetImage?: string | null;
   onRetry: () => void;
   onDone: () => void;
-  /** Rendered when no terminal state is active (idle / form / pin entry). */
+
   children: ReactNode;
 }
 

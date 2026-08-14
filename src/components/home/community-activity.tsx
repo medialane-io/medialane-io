@@ -12,7 +12,7 @@ import { timeAgo } from "@/lib/utils";
 export function CommunityActivity() {
   const { activities, isLoading } = useActivities({ limit: 10 });
   const [lastUpdated, setLastUpdated] = useState(() => new Date().toISOString());
-  // Tick every 15s so the "updated X ago" label refreshes visually
+
   const [, setTick] = useState(0);
 
   useEffect(() => {
@@ -28,7 +28,7 @@ export function CommunityActivity() {
     <section className="space-y-5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          {/* Icon with live pulse */}
+
           <div className="relative h-8 w-8 rounded-xl bg-gradient-to-br from-brand-purple to-brand-blue flex items-center justify-center shadow-lg shadow-brand-purple/20 shrink-0">
             <Activity className="h-4 w-4 text-white" />
             <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">

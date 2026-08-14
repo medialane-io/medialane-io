@@ -51,7 +51,6 @@ export default function PortfolioCollectionsPage() {
         </div>
       </EmptyOrError>
 
-      {/* Claim an existing collection */}
       <div className="pt-6 border-t border-border space-y-4">
         <div className="flex items-center gap-2">
           <Download className="h-4 w-4 text-muted-foreground" />

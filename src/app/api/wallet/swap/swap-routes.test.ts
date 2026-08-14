@@ -1,11 +1,5 @@
 import { afterEach, describe, expect, mock, test } from "bun:test";
 
-// Regression guard for the "nothing forwards to AVNU without a debit first"
-// invariant (medialane-backend audit, 2026-08-13): both routes must call
-// billSwapCall and bail on a false return BEFORE touching AVNU. A refactor
-// that drops or reorders that call would silently let swaps bypass metering
-// with no error — these tests fail loudly if that happens.
-
 const getQuotesMock = mock(async () => [{ quoteId: "q1" }]);
 const quoteToCallsMock = mock(async () => ({ calls: [], chainId: "0x1" }));
 

@@ -1,13 +1,5 @@
 import { createHmac, timingSafeEqual } from "crypto";
 
-/**
- * Server-side SIWS token verifier.
- * Mirrors the logic in medialane-backend/src/utils/siwsToken.ts (and
- * medialane-starknet's identical `lib/siws-server.ts`).
- * Requires SIWS_SECRET env var (same value as the backend).
- *
- * Returns the wallet address on success, null on any failure.
- */
 export function verifySiwsToken(raw: string): string | null {
   const secret = process.env.SIWS_SECRET;
   if (!secret) return null;
@@ -41,7 +33,6 @@ export function verifySiwsToken(raw: string): string | null {
   return data.sub;
 }
 
-/** Extract and verify the SIWS token from an Authorization: Bearer header. */
 export function getSiwsWallet(authHeader: string | null): string | null {
   if (!authHeader?.startsWith("Bearer ")) return null;
   return verifySiwsToken(authHeader.slice(7));

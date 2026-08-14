@@ -5,7 +5,6 @@ import { useMedialaneClient } from "./use-medialane-client";
 import type { ApiToken, ApiResponse } from "@medialane/sdk";
 import { queryKeys } from "@/lib/query-keys";
 
-// Stable empty array — prevents useEffect dependency loops when SWR has no data yet
 const EMPTY_TOKENS: ApiToken[] = [];
 
 export function useToken(contract: string | null, tokenId: string | null) {

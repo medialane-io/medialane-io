@@ -2,16 +2,12 @@ import { test, expect, mock } from "bun:test";
 import { GlobalRegistrator } from "@happy-dom/global-registrator";
 import { renderHook, waitFor, act } from "@testing-library/react";
 
-// Guard against double-registration when multiple test files run in the
-// same process (bun test across the whole suite, not just this file).
 if (!GlobalRegistrator.isRegistered) GlobalRegistrator.register();
 
 const FAKE_SEALED = {
   credentialId: "cred1", ownerPubKey: "0xabc", address: "0xdeadbeef", iv: "iv1", ciphertext: "ct1",
 };
 
-// Mock the session hook directly — this test is about the write-action state
-// machine, not wallet-native-session's own already-tested logic.
 mock.module("./use-wallet-native-session", () => ({
   useWalletNativeSession: () => ({
     address: FAKE_SEALED.address,
@@ -70,5 +66,5 @@ test("walletNotReady is true and run is a no-op when there's no wallet", async (
   await act(async () => {
     await result.current.run(async (signer) => signer.execute([]));
   });
-  expect(result.current.status).toBe("idle"); // never ran
+  expect(result.current.status).toBe("idle");
 });

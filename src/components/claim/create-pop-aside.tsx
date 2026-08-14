@@ -1,7 +1,6 @@
 import { Award, Ticket, LayoutGrid, Gift } from "lucide-react";
 import { ClaimRail } from "@/components/claim/claim-rail";
 
-/** Right-rail content for /launchpad/pop/create. */
 export function CreatePopAside() {
   return (
     <ClaimRail

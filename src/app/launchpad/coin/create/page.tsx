@@ -1,14 +1,5 @@
 "use client";
 
-/**
- * Creator Coin Launch Studio — the creator designs their coin (image,
- * description: platform-layer profile) with a live preview, sets the
- * economics in plain language, then launches through the existing
- * two-transaction flow (deploy + Ekubo pool creation).
- *
- * Spec: medialane-core/docs/specs/2026-06-11-coin-launch-studio-design.md
- */
-
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Coins, ExternalLink, TrendingUp, ArrowRight, Lock, Sparkles, ImagePlus, X, Loader2 } from "lucide-react";
@@ -129,10 +120,6 @@ export default function CoinCreatePage() {
     teamPct,
   };
 
-  /** Platform-layer identity: saved to the coin's CollectionProfile after
-   *  launch, authenticated via SIWS. The launch itself doesn't depend on
-   *  this — the image/description can be added later from collection
-   *  settings if this best-effort save fails. */
   const saveCoinProfile = async (contractAddress: string) => {
     if (!imageUri && !description) return;
     setProfileStatus("saving");
@@ -262,13 +249,12 @@ export default function CoinCreatePage() {
       >
         <div className="space-y-7">
 
-          {/* ── Give it a face ── */}
           <section className="space-y-4">
             <div>
               <h3 className="text-lg font-bold">Give it a face</h3>
               <p className="text-sm text-muted-foreground">This is how your coin shows up across Medialane.</p>
             </div>
-              {/* Feature image — platform-layer profile, shown everywhere the coin appears */}
+
               <div className="space-y-1.5">
                 <Label>Coin image</Label>
                 <div className="flex items-center gap-4">
@@ -278,7 +264,7 @@ export default function CoinCreatePage() {
                     className="relative h-24 w-24 shrink-0 rounded-full overflow-hidden border border-dashed border-border bg-muted/20 flex items-center justify-center"
                   >
                     {imagePreview ? (
-                      // eslint-disable-next-line @next/next/no-img-element
+
                       <img src={imagePreview} alt="Coin" className="h-full w-full object-cover" />
                     ) : (
                       <ImagePlus className="h-6 w-6 text-muted-foreground" />
@@ -339,7 +325,6 @@ export default function CoinCreatePage() {
 
           <div className="h-px bg-border/60" />
 
-          {/* ── Set the numbers ── */}
           <section className="space-y-4">
             <div>
               <h3 className="text-lg font-bold">Set the numbers</h3>
@@ -419,7 +404,6 @@ export default function CoinCreatePage() {
 
           <div className="h-px bg-border/60" />
 
-          {/* ── Launch ── */}
           <section className="space-y-4">
               <ul className="space-y-2.5 text-sm">
                 <li className="flex items-start gap-2">

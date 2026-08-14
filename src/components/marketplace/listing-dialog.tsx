@@ -118,15 +118,13 @@ export function ListingDialog({
   const isSuccess = status === "success";
   const isTerminalError = status === "error";
 
-  // Prevent accidental backdrop/Escape dismiss when success or error details are visible —
-  // user must click "Done" explicitly so they don't miss the confirmation.
   const handleClose = (v: boolean) => {
     if (!busy && !isSuccess && !isTerminalError) onOpenChange(v);
   };
 
   useEffect(() => {
     if (open) { resetState(); form.reset(); resetActionFlow(); }
-  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const confettiFired = useRef(false);
   useEffect(() => {

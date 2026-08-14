@@ -1,18 +1,4 @@
-/**
- * POST /api/pinata/sponsorship-terms
- *
- * Pins a sponsorship deal's declarative terms (@medialane/ui's
- * `toLicenseMetadata()` shape — licenseType, territory, deliverables, etc.)
- * to IPFS via medialane-backend's metered Pinata path. Requires a valid
- * SIWS wallet session.
- *
- * Separate from `/api/pinata/json` on purpose: that route's ALLOWED_FIELDS
- * allowlist is scoped to OpenSea-style NFT metadata (name/description/image/
- * attributes) — sponsorship terms are a different document shape entirely.
- *
- * Accepts: application/json body (any JSON object, size-capped)
- * Response: { uri: "ipfs://...", cid: string }
- */
+
 
 import { NextRequest, NextResponse } from "next/server";
 import { getSiwsWallet } from "@/lib/siws-server";
@@ -28,7 +14,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "JSON object body required" }, { status: 400 });
   }
 
-  const MAX_BYTES = 50 * 1024; // 50 KB
+  const MAX_BYTES = 50 * 1024;
   if (JSON.stringify(body).length > MAX_BYTES) {
     return NextResponse.json({ error: "Payload too large (max 50 KB)" }, { status: 413 });
   }

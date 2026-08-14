@@ -19,7 +19,6 @@ export interface UsernameClaim {
 
 export type { ApiCreatorProfile as CreatorByUsername };
 
-/** Fetch the current wallet's username claim status (requires SIWS + API key). */
 export function useMyUsernameClaim() {
   const { hasWallet } = useWalletNativeSession();
   const { getValidToken, signIn } = useSiwsToken();
@@ -39,7 +38,6 @@ export function useMyUsernameClaim() {
   return { username: data?.username ?? null, claim: data?.claim ?? null, isLoading, error, mutate };
 }
 
-/** Check if a username is available (no auth required). */
 export async function checkUsernameAvailability(
   username: string
 ): Promise<{ available: boolean; reason?: string }> {
@@ -48,7 +46,6 @@ export async function checkUsernameAvailability(
   );
 }
 
-/** Submit a username claim. */
 export async function submitUsernameClaim(
   username: string,
   token: string,
@@ -66,7 +63,6 @@ export async function submitUsernameClaim(
   }
 }
 
-/** Resolve a username slug to a creator profile (public, no auth). */
 export function useCreatorByUsername(username: string | null | undefined) {
   const { data, error, isLoading } = useSWR(
     username ? `creator-by-username-${username}` : null,

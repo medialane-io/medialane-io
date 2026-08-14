@@ -16,11 +16,11 @@ interface CancelOrderDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
-  /** Controls the label shown — auto-detected from order type if omitted. */
+
   variant?: "listing" | "offer";
-  /** Fallback token name when order.token is not enriched. */
+
   tokenName?: string | null;
-  /** Fallback token image when order.token is not enriched. */
+
   tokenImage?: string | null;
 }
 
@@ -95,7 +95,7 @@ export function CancelOrderDialog({
       resetState();
       resetActionFlow();
     }
-  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const isProcessing = status === "processing" || status === "confirming";
   const handleClose = (v: boolean) => {

@@ -43,7 +43,7 @@ const CLAIM_CARDS: { href: string; icon: LucideIcon; iconClass: string; title: s
 export function ClaimPageClient() {
   return (
     <div className="mx-auto px-4 sm:px-6 py-12 max-w-5xl space-y-16 pb-20">
-      {/* Page header */}
+
       <div className="space-y-2">
         <div className="flex items-center gap-2.5">
           <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary to-brand-purple flex items-center justify-center shadow-lg shadow-primary/20">
@@ -56,12 +56,10 @@ export function ClaimPageClient() {
         </p>
       </div>
 
-      {/* Section 1 — Genesis Mint */}
       <section>
         <LaunchMint />
       </section>
 
-      {/* Section 2 — Claim cards */}
       <section className="space-y-8">
         <SectionDivider label="Claims" />
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

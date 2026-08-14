@@ -1,7 +1,6 @@
 import { Package, Clock, LayoutGrid, Gift } from "lucide-react";
 import { ClaimRail } from "@/components/claim/claim-rail";
 
-/** Right-rail content for /launchpad/drop/create. */
 export function CreateDropAside() {
   return (
     <ClaimRail

@@ -1,8 +1,6 @@
 import { Lock } from "lucide-react";
 import { ClaimRail } from "@/components/claim/claim-rail";
 
-/** Right-rail panels for /launchpad/coin/create — shown under the live preview.
- *  No "What's included" panel (the live preview fills that role). */
 export function CreateCoinAside() {
   return (
     <ClaimRail

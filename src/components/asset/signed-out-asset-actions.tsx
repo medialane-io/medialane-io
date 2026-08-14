@@ -6,19 +6,12 @@ import { Wallet } from "lucide-react";
 import { OpenInDappCallout } from "./open-in-dapp-callout";
 
 interface SignedOutAssetActionsProps {
-  /** Chain of the asset (e.g. "STARKNET") — passed through to the dapp bridge. */
+
   chain: string;
   contract: string;
   tokenId: string;
 }
 
-/**
- * Balanced 2-column entry point for visitors without a wallet yet: a
- * wallet-setup prompt on the left (works the same regardless of the asset's
- * chain) and the chain-native dapp bridge on the right (already
- * parameterized by `chain` in OpenInDappCallout) — the two ways to trade an
- * asset as medialane.io adds more chains.
- */
 export function SignedOutAssetActions({ chain, contract, tokenId }: SignedOutAssetActionsProps) {
   const pathname = usePathname();
   return (

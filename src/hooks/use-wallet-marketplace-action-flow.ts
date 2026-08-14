@@ -1,13 +1,5 @@
 "use client";
 
-/**
- * Wallet-native replacement for useMarketplaceActionFlow — no PIN step, no
- * passkey-vs-PIN branch, no session activation. Unlocking happens implicitly
- * inside the wallet's own signer.execute() call. Callers gate on `hasWallet`
- * before calling beginAction, and the returned `status`/`txHash`/`error`
- * mirror useWalletWriteAction's shape for a single in-flight action.
- */
-
 import { useState, useCallback } from "react";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";

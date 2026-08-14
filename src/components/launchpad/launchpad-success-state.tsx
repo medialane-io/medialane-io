@@ -56,18 +56,11 @@ export function LaunchpadSuccessState({
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-
 interface LaunchpadProcessingStateProps {
   title?: string;
   description?: string;
 }
 
-/**
- * Full-page processing screen for launchpad flows. Replaces the form while
- * the on-chain tx is pending so the user has unambiguous feedback that
- * something is happening, instead of staring at a disabled button.
- */
 export function LaunchpadProcessingState({
   title = "Confirming on Starknet…",
   description = "Please wait, do not close this window. This usually takes 10–20 seconds.",
@@ -86,8 +79,6 @@ export function LaunchpadProcessingState({
     </div>
   );
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
 
 interface LaunchpadErrorStateProps {
   title?: string;

@@ -104,22 +104,13 @@ function UsernameClaimInput({
   );
 }
 
-/**
- * The creator profile as a Medialane collectible card — same foil material
- * as `MedialaneCollectionCard` (the live preview on every mint form),
- * without its decorative gradient frame/sheen. A square hero image (avatar
- * -> first owned asset, the same fallback priority the real page uses;
- * shown as-is, no color wash) with the level badge overlaid bottom-right,
- * then name, bio, and all four link icons. Vertical, self-contained, pure
- * presentation — Save lives with the form, not here.
- */
 function ProfileLivePreview({
   form, approvedUsername, walletAddress, fallbackImage,
 }: {
   form: ProfileForm;
   approvedUsername?: string | null;
   walletAddress?: string | null;
-  /** First owned asset's image — the real page's last-resort hero fallback. */
+
   fallbackImage?: string | null;
 }) {
   const displayName = form.displayName || "Your name";
@@ -127,7 +118,7 @@ function ProfileLivePreview({
 
   return (
     <div className="rounded-[24px] border border-border/60 bg-card overflow-hidden">
-      {/* Hero — same image + fallback priority as the real creator page, shown as-is */}
+
       <div className="px-2.5 pt-2.5">
         <div className="relative aspect-square w-full overflow-hidden rounded-[16px] bg-muted ring-1 ring-black/10 dark:ring-white/10">
           {heroUrl && <Image src={heroUrl} alt="" fill unoptimized className="object-cover" />}
@@ -204,7 +195,6 @@ function SnapshotStat({ icon: Icon, value, label }: { icon: React.ElementType; v
   );
 }
 
-/** Portfolio at a glance — same three counts the portfolio pages track, so this stays a quick pulse-check rather than a second portfolio surface. */
 function PortfolioSnapshot({ assets, listings, collections }: { assets: number; listings: number; collections: number }) {
   return (
     <div className="rounded-2xl border border-border/60 bg-card p-5 space-y-4">
@@ -228,7 +218,6 @@ function PortfolioSnapshot({ assets, listings, collections }: { assets: number; 
   );
 }
 
-/** Rewards at a glance — mirrors the same level/XP data the portfolio header and /rewards page read from `useRewards`. */
 function RewardsSnapshot({ address }: { address?: string | null }) {
   const { data: rewards } = useRewards(address);
   if (!rewards) return null;
@@ -304,9 +293,7 @@ export default function SettingsContent() {
   const [generatingWallet, setGeneratingWallet] = useState(false);
   const [generateWalletError, setGenerateWalletError] = useState<string | null>(null);
   const [resumeDialogOpen, setResumeDialogOpen] = useState(false);
-  // Captured once, before the new local key overwrites the current signer —
-  // /v1/users/me/generate-wallet needs proof of the *old* wallet, which
-  // becomes unsignable from this device the moment the new key is saved.
+
   const [oldWalletToken, setOldWalletToken] = useState<string | null>(null);
 
   useEffect(() => {
@@ -384,7 +371,7 @@ export default function SettingsContent() {
     try {
       const token = getValidToken() ?? (await signIn());
       if (!token) throw new Error("Not authenticated");
-      // Backend Zod schema rejects empty strings for URL fields — send null to clear them
+
       const payload = {
         displayName: form.displayName || null,
         bio: form.bio || null,
@@ -394,8 +381,7 @@ export default function SettingsContent() {
         discordUrl: form.discordUrl || null,
         telegramUrl: form.telegramUrl || null,
       };
-      // The SDK return type is the success shape; the backend can still send
-      // an error object on validation failure, hence the inline union.
+
       const result = await getMedialaneClient().api.updateCreatorProfile(walletAddress, payload, token) as
         | { walletAddress: string }
         | { error?: string };
@@ -433,10 +419,7 @@ export default function SettingsContent() {
   async function handleGenerateNewWallet() {
     setGeneratingWallet(true);
     setGenerateWalletError(null);
-    // Must authenticate as the CURRENT wallet before creating any new local
-    // key — completeWalletDeployment(forceNew) overwrites the local signer
-    // immediately, before backend confirmation, so the old wallet becomes
-    // unsignable from this device the moment it runs.
+
     let authToken: string | null = null;
     try {
       authToken = getValidToken() ?? (await signIn());
@@ -452,8 +435,7 @@ export default function SettingsContent() {
       const { siwsToken: newWalletSiwsToken } = await completeWalletDeployment(() => {}, { forceNew: true });
       await attachNewWallet(newWalletSiwsToken, authToken);
     } catch {
-      // The new key is already saved locally at this point — let the user
-      // resume deployment instead of re-authenticating and abandoning it.
+
       setResumeDialogOpen(true);
     } finally {
       setGeneratingWallet(false);
@@ -561,7 +543,7 @@ export default function SettingsContent() {
         </TabsList>
 
         <TabsContent value="profile" className="space-y-8 mt-0">
-        {/* Username claim */}
+
         <div className="space-y-4">
           <div>
             <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
@@ -574,7 +556,7 @@ export default function SettingsContent() {
           </div>
 
           <div className="border-t border-border pt-4 space-y-3">
-            {/* Approved */}
+
             {approvedUsername && (
               <div className={cn(
                 "rounded-xl border border-green-500/40 bg-green-500/5 p-4 flex items-start gap-3"
@@ -595,7 +577,6 @@ export default function SettingsContent() {
               </div>
             )}
 
-            {/* Pending review */}
             {!approvedUsername && claim?.status === "PENDING" && (
               <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/5 p-4 flex items-start gap-3">
                 <Clock className="h-4 w-4 text-yellow-600 dark:text-yellow-400 mt-0.5 shrink-0" />
@@ -613,7 +594,6 @@ export default function SettingsContent() {
               </div>
             )}
 
-            {/* Rejected — allow retry */}
             {!approvedUsername && claim?.status === "REJECTED" && (
               <div className="space-y-4">
                 <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 flex items-start gap-3">
@@ -646,7 +626,6 @@ export default function SettingsContent() {
               </div>
             )}
 
-            {/* No claim yet */}
             {!approvedUsername && !claim && (
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
@@ -675,7 +654,6 @@ export default function SettingsContent() {
           </div>
         </div>
 
-        {/* Identity */}
         <div className="space-y-4">
           <div>
             <h3 className="text-sm font-semibold text-foreground">Identity</h3>
@@ -696,7 +674,6 @@ export default function SettingsContent() {
           </div>
         </div>
 
-        {/* Media */}
         <div className="space-y-4">
           <div>
             <h3 className="text-sm font-semibold text-foreground">Media</h3>
@@ -726,7 +703,6 @@ export default function SettingsContent() {
           </div>
         </div>
 
-        {/* Links */}
         <div className="space-y-4">
           <div>
             <h3 className="text-sm font-semibold text-foreground">Links</h3>
@@ -740,7 +716,6 @@ export default function SettingsContent() {
           </div>
         </div>
 
-        {/* Save — attached to the form, not the preview rail */}
         <div className="pt-4 border-t border-border flex items-center gap-3">
           <Button onClick={handleSave} disabled={saving || !walletAddress || profileLoading} className="w-full sm:w-auto">
             {saving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving…</> : "Save changes"}
@@ -757,7 +732,7 @@ export default function SettingsContent() {
         </TabsContent>
 
         <TabsContent value="account" className="space-y-8 mt-0">
-          {/* Email */}
+
           <div className="space-y-4">
             <div>
               <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
@@ -795,7 +770,6 @@ export default function SettingsContent() {
             </div>
           </div>
 
-          {/* Wallet */}
           <div className="space-y-4">
             <div>
               <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">

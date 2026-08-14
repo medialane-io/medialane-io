@@ -1,27 +1,16 @@
 import { Wallet } from "lucide-react";
 
-/** Title-case a chain slug/enum for display ("STARKNET" → "Starknet"). */
 function chainLabel(chain: string): string {
   return chain.charAt(0).toUpperCase() + chain.slice(1).toLowerCase();
 }
 
 interface OpenInDappCalloutProps {
-  /** Asset chain (e.g. "STARKNET") — picks the per-chain dapp subdomain. */
+
   chain: string;
   contract: string;
   tokenId: string;
 }
 
-/**
- * Bridge from the chain-agnostic consumer app (medialane.io) to the
- * chain-native dapp for web3 users. medialane.io trades with a managed,
- * frictionless wallet; the dapp lets users connect their own wallet and
- * trade non-custodially on the asset's native chain.
- *
- * The dapp lives at `<chain>.medialane.io` (today: starknet.medialane.io;
- * planned: ethereum/solana/base/bitcoin), mirroring the asset at the same
- * id — so this stays correct as more chains come online.
- */
 export function OpenInDappCallout({ chain, contract, tokenId }: OpenInDappCalloutProps) {
   const label = chainLabel(chain);
   const url = `https://${chain.toLowerCase()}.medialane.io/asset/${contract}/${tokenId}`;

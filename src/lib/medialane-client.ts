@@ -11,29 +11,6 @@ import {
   STARKNET_COLLECTION_1155_CONTRACT,
 } from "./constants";
 
-/**
- * SDK client. The constants are already environment-aware:
- * - Server-side: real backend URL + real API key.
- * - Browser: `/api/proxy` (same-origin BFF) + empty key (the proxy adds it).
- *
- * Replaces the legacy `NEXT_PUBLIC_MEDIALANE_API_KEY` pattern that
- * shipped the key in the JS bundle.
- *
- * `rpcUrl` gets the same care: the SDK builds its own `RpcProvider` from it
- * for the on-chain reads that remain genuinely tx-adjacent — live token
- * balance, live Ekubo coin price, and id-prediction reads that run
- * immediately before bundling a create+mint multicall (see
- * `predictNextMembershipId` in `use-club.ts`). Discovery reads that a
- * credited backend route can serve instead (club membership, ticket tiers,
- * ip-erc721 full-token-data, live drop state) go through the backend's
- * metered pass-through routes now, not this client — see
- * `medialane-backend/src/api/routes/{club,tickets,ipnft,drop}-onchain.ts`.
- * Server-side, use the real keyed endpoint. In the browser, use ONLY the
- * SDK's keyless public fallback list — never `/api/rpc` (that proxy is
- * same-origin-guarded and rate limited, meant for this app's own traffic,
- * not anonymous discovery reads — see `publicReadProvider` in `starknet.ts`)
- * and never a NEXT_PUBLIC_* var that might carry a keyed URL.
- */
 let _client: MedialaneClient | null = null;
 
 export function medialaneConfig() {

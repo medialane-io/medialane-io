@@ -3,8 +3,6 @@
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
-/** Generic back: returns to wherever the user came from (launchpad card,
- *  /claim hub, etc.), falling back to the claims hub on a cold load. */
 export function ClaimBackButton() {
   const router = useRouter();
   return (

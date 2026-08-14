@@ -1,20 +1,5 @@
 "use client";
 
-/**
- * useLaunchCoin (io) — Creator Coin launch, two atomic multicalls:
- *
- *   1. `create_creator_coin` (via the metered `createCoinIntent` backend
- *      call) → read the coin address from the receipt (SDK `parseCreatorCoinCreated`).
- *   2. quote `transfer` (buyback pre-fund) + `launch_on_ekubo` multicall
- *      (via the metered `launchCoinIntent` backend call).
- *   3. `POST /v1/coins/sync` for instant indexing (50s factory poll backstop).
- *
- * Calldata comes from the backend's intents API — same builders the SDK used
- * to expose client-side (`buildCreateCreatorCoinCall`/`buildLaunchOnEkuboCalls`),
- * now behind `/v1/intents/create-coin` and `/v1/intents/launch-coin` so the
- * deploy + launch are metered like every other collection creation.
- */
-
 import { useState, useCallback } from "react";
 import { rewardToast } from "@/lib/reward-toast";
 import type { Call } from "starknet";
@@ -35,9 +20,9 @@ const API_BASE = "/api/proxy";
 export interface LaunchCoinInput {
   name: string;
   symbol: string;
-  supplyHuman: string; // validated whole-number string
+  supplyHuman: string;
   quoteSymbol: "STRK" | "ETH";
-  teamPct: number; // 0–10
+  teamPct: number;
 }
 
 export type LaunchStatus = "idle" | "deploying" | "launching" | "indexing" | "done" | "error";
@@ -60,8 +45,7 @@ export function useLaunchCoin() {
       const ownerAddr = normalizeAddress("STARKNET", owner);
 
       try {
-        // Tx1 — deploy the coin (full supply to the Factory). Metered through
-        // the intents API — no client-side calldata construction.
+
         setStatus("deploying");
         const createIntent = await client.api.createCoinIntent({
           owner: ownerAddr,
@@ -72,14 +56,12 @@ export function useLaunchCoin() {
         if (createIntent.data.requiresSignature) throw new Error("Expected a prebuilt create-coin intent");
         const created = await signer.execute(createIntent.data.calls as Call[]);
 
-        // The receipt is REQUIRED here (Tx2 needs the coin address) — retry the
-        // read a few times before failing with an actionable message.
         let receipt: CreatorCoinReceiptLike | null = null;
         for (let attempt = 0; attempt < 4 && !receipt; attempt++) {
           try {
             if (attempt > 0) await new Promise((r) => setTimeout(r, 2500));
             receipt = (await starknetProvider.getTransactionReceipt(created.txHash)) as CreatorCoinReceiptLike;
-          } catch { /* retry */ }
+          } catch {  }
         }
         if (!receipt) {
           throw new Error(
@@ -88,10 +70,6 @@ export function useLaunchCoin() {
         }
         const coinAddress = parseCreatorCoinCreated(receipt);
 
-        // Tx2 — launch on Ekubo at the fixed validated price; buyback pre-funded
-        // in the same atomic multicall. Anti-snipe off (delay 0) in v1. Metered
-        // through the intents API — the backend defaults the Ekubo pool params
-        // to the same validated constant the SDK builder used to apply client-side.
         setStatus("launching");
         const launchIntent = await client.api.launchCoinIntent({
           owner: ownerAddr,
@@ -105,13 +83,12 @@ export function useLaunchCoin() {
         if (launchIntent.data.requiresSignature) throw new Error("Expected a prebuilt launch-coin intent");
         const launched = await signer.execute(launchIntent.data.calls as Call[]);
 
-        // Index instantly (poll backstop covers failures).
         setStatus("indexing");
         await fetch(`${API_BASE}/v1/coins/sync`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ coinAddress, owner: ownerAddr }),
-        }).catch(() => { /* poll backstop will index it */ });
+        }).catch(() => {  });
 
         setStatus("done");
         rewardToast("launch_coin");

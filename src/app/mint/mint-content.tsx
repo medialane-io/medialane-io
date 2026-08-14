@@ -33,7 +33,7 @@ function EventCard() {
           <p className="text-sm text-muted-foreground font-medium">Medialane Airdrop 2026</p>
         </div>
       ) : (
-        // eslint-disable-next-line @next/next/no-img-element
+
         <img
           src={src}
           alt="Medialane Creator's Airdrop"
@@ -56,7 +56,6 @@ export function MintContent() {
       <div className="flex-1 w-full">
         <div className="max-w-5xl mx-auto px-5 sm:px-8">
 
-          {/* ── Hero ── */}
           <section className="py-10 lg:py-16">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
 
@@ -91,7 +90,6 @@ export function MintContent() {
             </div>
           </section>
 
-          {/* ── Learn more (collapsed) ── */}
           <details className="group border-t border-border/30">
             <summary className="flex items-center justify-center gap-2 py-6 cursor-pointer list-none text-sm font-medium text-muted-foreground hover:text-foreground transition-colors [&::-webkit-details-marker]:hidden">
               Learn more about the campaign

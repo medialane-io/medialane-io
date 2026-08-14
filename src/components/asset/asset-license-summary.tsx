@@ -6,14 +6,6 @@ import { licenseSummary } from "@/lib/license-summary";
 
 type AssetAttribute = { trait_type?: string; value?: string };
 
-/**
- * Human-first license callout for the asset hero column. Leads with one
- * plain-language sentence (the same one the metadata implies), then a row of
- * glanceable fact pills — so a buyer understands the rights at a glance without
- * digging into the Overview tab. The detailed receipts (full license bento +
- * Berne banner) still live in the Overview tab. Renders nothing when the asset
- * carries no license data.
- */
 export function AssetLicenseSummary({ attributes }: { attributes: AssetAttribute[] }) {
   const summary = licenseSummary(attributes);
   if (!summary) return null;

@@ -6,7 +6,7 @@ import type { ApiOrder } from "@medialane/sdk";
 
 interface UseOrderActionsOptions {
   mutateListings: () => void;
-  /** Force a specific token standard for cancel (e.g. "ERC1155"). Falls back to the order's NFT item type. */
+
   tokenStandard?: string;
 }
 
@@ -22,7 +22,7 @@ export function useOrderActions({ mutateListings, tokenStandard }: UseOrderActio
     setCancelStep("processing");
     setCancelError(null);
     try {
-      // For bid orders, offer.itemType is "ERC20" and the NFT standard is in consideration.itemType
+
       const orderNftStandard =
         order.offer.itemType === "ERC20"
           ? order.consideration.itemType

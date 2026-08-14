@@ -6,9 +6,7 @@ function isHexAddress(value: string): value is HexAddress {
 
 export function readAddressEnv(
   value: string | undefined,
-  // `fallback` is `string` (not HexAddress): the SDK's address constants are
-  // typed `string` since the 0.37 chain-registry refactor. We validate whichever
-  // value wins, so the HexAddress return is still guaranteed.
+
   fallback: string,
   name: string
 ): HexAddress {

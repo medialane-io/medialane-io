@@ -11,8 +11,6 @@ import { ipfsToHttp } from "@/lib/utils";
 import useSWR from "swr";
 import type { ApiCollection } from "@medialane/sdk";
 
-// Same-origin BFF proxy — injects MEDIALANE_API_KEY server-side. The key
-// is never present in the browser bundle.
 const API_BASE = "/api/proxy";
 
 function useMyEvents(ownerAddress: string | null) {

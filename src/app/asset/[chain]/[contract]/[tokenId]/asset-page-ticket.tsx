@@ -1,10 +1,5 @@
 "use client";
 
-// Ticket asset page — the ip-tickets uiVariant. Same shape as the edition page
-// with the token presented as a ticket: the on-chain validity window and supply
-// from get_ticket, and a holder-facing "Your ticket" door panel driven by the
-// on-chain is_valid check.
-
 import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useParams, useRouter, usePathname } from "next/navigation";
@@ -40,8 +35,6 @@ import { AssetProvenanceTab } from "./asset-provenance-tab";
 import { AssetCommentsDialog, AssetOwnersPanel } from "./asset-side-panels";
 import { AssetOverviewContent } from "./asset-overview-content";
 import { AssetMarketplaceDialogs, useAssetMarketplaceDialogState } from "./asset-marketplace-dialogs";
-
-// ── Ticket status (window-derived only — that's what affects holders) ────────
 
 type TicketStatus = "upcoming" | "valid" | "ended";
 
@@ -85,10 +78,6 @@ function TicketStatusChip({ status }: { status: TicketStatus }) {
   );
 }
 
-// ── Ticket panel — identity, quantity, royalty, and validity window. Holder
-// status (quantity held, valid/ready-to-present) lives in the owner row
-// after the action buttons — not duplicated here.
-
 function TicketPanel({ ticket }: { ticket: TicketOnchain }) {
   const status = ticketStatus(ticket);
   const hasWindow = ticket.startTime != null || ticket.endTime != null;
@@ -116,8 +105,6 @@ function TicketPanel({ ticket }: { ticket: TicketOnchain }) {
     </div>
   );
 }
-
-// ── Page ──────────────────────────────────────────────────────────────────────
 
 export function AssetPageTicket() {
   const { contract, tokenId } = useParams<{ contract: string; tokenId: string }>();

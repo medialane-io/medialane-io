@@ -1,6 +1,5 @@
 export type { ApiOrder, ApiToken, ApiCollection, ApiOrdersQuery, OrderStatus } from "@medialane/sdk";
 
-/** A counter-offer order — an ERC721 listing linked to an original buyer bid. */
 export interface CounterOfferOrder {
   id: string;
   chain: string;
@@ -45,7 +44,7 @@ export interface CartItem {
   orderHash: string;
   nftContract: string;
   nftTokenId: string;
-  /** Token standard of the listed asset — used to route fulfillment correctly. */
+
   itemType: "ERC721" | "ERC1155";
   name: string;
   image: string;
@@ -55,6 +54,6 @@ export interface CartItem {
   offerer: string;
   considerationToken: string;
   considerationAmount: string;
-  /** ERC-1155 only: number of units to purchase (defaults to "1") */
+
   quantity?: string;
 }

@@ -16,7 +16,7 @@ export const dropCreateSchema = z
       .min(1, "Symbol required")
       .max(10)
       .regex(/^[A-Z0-9]+$/, "Uppercase letters and numbers only"),
-    // ── Shared license defaults — applied to every item (per-item override in the list) ──
+
     ipType: z.enum(IP_TYPES),
     licenseType: z.string().min(1, "License required"),
     commercialUse: z.string().default(""),
@@ -26,7 +26,7 @@ export const dropCreateSchema = z
     aiPolicy: z.string().default(""),
     royalty: z.coerce.number().min(0).max(50).default(0),
     descriptionTemplate: z.string().max(500).optional(),
-    // ── Single public window (M1); presale fields added in M3 ──
+
     priceAmount: z
       .string()
       .default("")
@@ -42,7 +42,7 @@ export const dropCreateSchema = z
       .regex(/^\d+$/, "Must be a positive integer")
       .refine((v: string) => parseInt(v, 10) >= 1, "Minimum 1")
       .default("1"),
-    // ── Optional whitelist: restrict minting to specific addresses ──
+
     whitelistEnabled: z.boolean().default(false),
     allowlistAddresses: z.string().default(""),
   })

@@ -1,12 +1,6 @@
 import { test, expect } from "bun:test";
 import { isPathAllowed } from "./allowlist";
 
-// Every /v1/intents/<type> creation route medialane-backend exposes must be
-// reachable through the proxy. Found 2026-08-05 auditing io against the
-// medialane-starknet backend-bypass fix: the prior per-verb enumeration was
-// already missing "create-tier" (needed for ip-tickets/ip-club tier creation)
-// even though listing/offer/etc. were present — the exact class of drift the
-// starknet proxy hit in production a day earlier.
 const INTENT_TYPES = [
   "mint", "create-collection", "create-tier",
   "listing", "offer", "cancel", "fulfill", "checkout", "counter-offer",

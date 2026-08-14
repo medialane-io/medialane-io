@@ -2,13 +2,6 @@
 
 import { withSiwsAuth } from "@/lib/pinata-fetch";
 
-/** Uploads an IP-type document file to IPFS via a Pinata signed upload URL.
- *
- *  Two-step: this SIWS-gated route issues a short-lived signed URL, then the
- *  browser uploads the file STRAIGHT to Pinata — the bytes never touch our
- *  server (Vercel 413s request bodies over ~4.5 MB).
- *
- *  Resolves to the ipfs:// URI stored as the "Document File" trait. */
 export async function uploadDocumentToIpfs(file: File, siwsToken: string): Promise<string> {
   const signedRes = await fetch("/api/pinata/signed-url", withSiwsAuth(siwsToken, {
     method: "POST",

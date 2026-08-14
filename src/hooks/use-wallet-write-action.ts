@@ -6,12 +6,6 @@ import { useWalletNativeSession } from "./use-wallet-native-session";
 
 export type WalletWriteStatus = "idle" | "processing" | "confirming" | "success" | "error";
 
-/**
- * No PIN dialog, no passkey-vs-PIN detection — the wallet module is
- * passkey-only. Unlocking happens implicitly inside the signer's own
- * execute() call. This hook's only job: gate on wallet presence, track
- * status, run the caller's execute function against the current signer.
- */
 export function useWalletWriteAction() {
   const { hasWallet, signer } = useWalletNativeSession();
   const [status, setStatus] = useState<WalletWriteStatus>("idle");

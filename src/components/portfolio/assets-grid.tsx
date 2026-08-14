@@ -15,9 +15,9 @@ import type { ApiToken } from "@medialane/sdk";
 
 interface AssetsGridProps {
   address: string | null;
-  /** Compact mode (Overview): fetch only `limit` tokens, no pagination. */
+
   limit?: number;
-  /** Override the grid columns (used by the narrower Overview column). */
+
   gridClassName?: string;
 }
 
@@ -28,12 +28,10 @@ export function AssetsGrid({ address, limit, gridClassName }: AssetsGridProps) {
   const { tokens, meta, isLoading, error, mutate } = useTokensByOwner(address, page, limit ?? 20);
   const usdPrices = useUsdPrices();
 
-  // Accumulate pages
   useEffect(() => {
     setAllTokens((prev) => (page === 1 ? tokens : [...prev, ...tokens]));
   }, [tokens, page]);
 
-  // Reset when address changes
   useEffect(() => {
     setPage(1);
     setAllTokens([]);
@@ -61,15 +59,12 @@ export function AssetsGrid({ address, limit, gridClassName }: AssetsGridProps) {
     setCancelOpen(true);
   };
 
-  // After a write op, reset to page 1 and let SWR refetch
   const handleSuccess = () => {
     setPage(1);
     setAllTokens([]);
     mutate();
   };
 
-  // Use live SWR tokens on page 1 to avoid the empty-state flash while
-  // the useEffect that populates `allTokens` hasn't run yet.
   const displayTokens = page === 1 ? tokens : allTokens;
   const hasMore = limit ? false : meta ? (meta.total ?? 0) > displayTokens.length : false;
   const gridCols =

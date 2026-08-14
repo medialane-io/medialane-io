@@ -4,7 +4,6 @@ import useSWR from "swr";
 import { apiFetch } from "@/lib/api-fetch";
 import type { ApiToken, ApiResponse } from "@medialane/sdk";
 
-// Direct fetch — bypasses SDK since getTokens() isn't in the current SDK version
 export function useTokensByIpType(
   ipTypeSlug: string | null,
   page = 1,

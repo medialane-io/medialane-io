@@ -14,7 +14,6 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { address } = await params;
 
-  // Wallet addresses redirect server-side — metadata will be picked up by /account/[address]
   if (address.startsWith("0x") || address.startsWith("0X")) {
     return { title: `${address.slice(0, 8)}… | Medialane` };
   }
@@ -39,8 +38,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function CreatorPage({ params }: Props) {
   const { address } = await params;
 
-  // Wallet addresses start with 0x — redirect them to /account/[address]
-  // to keep /creator/[slug] exclusively for username-based profiles.
   if (address.startsWith("0x") || address.startsWith("0X")) {
     redirect(`/account/${address}`);
   }
@@ -73,7 +70,6 @@ export default async function CreatorPage({ params }: Props) {
     ]),
   ];
 
-  // Otherwise treat as a username slug
   return (
     <>
       <JsonLd data={jsonLd} />

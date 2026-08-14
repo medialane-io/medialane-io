@@ -7,14 +7,6 @@ import { completeWalletDeployment } from "@/lib/wallet/complete-deployment";
 
 const BRAND_GRADIENT = "linear-gradient(115deg,#3b7bff,#8a5cf6,#f6608f,#fb8b46,#3b7bff)";
 
-/**
- * media-wallet gates this card on "funded" (its self-funded deploy_account
- * needs STRK in the account first). io's deploy is AVNU-sponsored/gasless —
- * no funding step exists — so this always offers the single "Activate"
- * action, wired to io's own deploy flow instead of media-wallet's
- * self-funded one. Visual treatment (card-base, gradient CTA, copy tone)
- * kept verbatim.
- */
 export function ActivateCard({ onActivated }: { onActivated: (txHash?: string) => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);

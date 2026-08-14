@@ -36,7 +36,6 @@ function OfferBidsRow({ offer }: { offer: SponsorshipOffer }) {
       if (intent.requiresSignature) throw new Error("Unexpected signature requirement on sponsorship accept");
       const calls: Call[] = [...(intent.calls as Call[])];
 
-      // Bundle the platform fee into the SAME atomic multicall as the accept.
       const feeCall = buildFeeCall(
         { surface: "sponsorship", token: offer.paymentToken, grossAmount: BigInt(amount) },
         ioFeeConfig,

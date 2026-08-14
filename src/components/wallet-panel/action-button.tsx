@@ -1,8 +1,5 @@
 "use client";
 
-// Kept local: not part of @medialane/ui's public API (its ActionButton picks
-// these internally from the same `action` prop), but QuickAction needs the
-// raw color to paint its icon chip, not a full button.
 export const ACTION_GRADIENTS: Record<string, [string, string, string]> = {
   buy: ["#3b7bff", "#8a5cf6", "#3b7bff"],
   submit: ["#d6359a", "#5b4ce6", "#d6359a"],

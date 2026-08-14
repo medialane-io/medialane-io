@@ -2,11 +2,6 @@ import { formatAmount } from "@medialane/sdk";
 import { EXPLORER_URL } from "@/lib/constants";
 import type { UsdPrices } from "@/hooks/use-usd-prices";
 
-// Ported from media-wallet's src/lib/format.ts. Kept as a separate module
-// (not merged into src/lib/utils.ts) because the wallet-panel components
-// ported alongside it call these exact signatures verbatim — fmt(raw,
-// decimals, dp) etc. differ from utils.ts's formatPrice(amount, decimals).
-
 export const gateway = (u: string | null): string | null =>
   !u ? null : u.startsWith("ipfs://") ? `https://ipfs.io/ipfs/${u.slice(7)}` : u;
 
@@ -16,10 +11,6 @@ export const short = (a?: string | null): string =>
 export const explorerTokenUrl = (address: string): string => `${EXPLORER_URL}/token/${address}`;
 export const explorerTxUrl = (txHash: string): string => `${EXPLORER_URL}/tx/${txHash}`;
 
-/**
- * Display-only numeric conversion for fiat-value math (never for on-chain
- * amounts/approvals — bigint → Number loses precision on very large values).
- */
 export const rawToNumber = (raw: bigint | null, decimals: number): number => {
   if (raw == null) return 0;
   return Number(raw) / 10 ** decimals;
@@ -35,11 +26,6 @@ export const fmt = (raw: bigint | null, decimals = 18, dp = 4): string => {
 export const fmtUsd = (n: number): string =>
   n > 0 && n < 0.01 ? "<$0.01" : `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-/**
- * USD equivalent of a human-readable token amount, or null when there's no
- * live rate for the currency — callers must render nothing rather than a
- * stale or fabricated conversion.
- */
 export const usdValueFor = (
   amountFormatted: string | null | undefined,
   currency: string | null | undefined,

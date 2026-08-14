@@ -4,20 +4,9 @@ import { uploadFileToBackend, uploadJsonToBackend } from "@/lib/backend-metadata
 
 const DEFAULT_NAME = "Medialane Genesis";
 const DEFAULT_DESCRIPTION = "This commemorative token marks the official launch of Medialane on Starknet.";
-/**
- * POST /api/pinata/genesis
- *
- * Admin-only endpoint for pre-baking genesis NFT metadata before launch.
- * Call once, then set NEXT_PUBLIC_GENESIS_NFT_URI to the returned `uri`.
- *
- * Auth: Authorization: Bearer {ADMIN_SECRET}
- * Body: multipart/form-data
- *   - image (File, required) — genesis artwork
- *   - name  (string, optional)
- *   - description (string, optional)
- */
+
 export async function POST(req: NextRequest) {
-  // ── Auth ──────────────────────────────────────────────────────────────────
+
   const adminSecret = process.env.ADMIN_SECRET;
   if (!adminSecret) {
     return NextResponse.json({ error: "ADMIN_SECRET not configured" }, { status: 500 });
@@ -26,9 +15,6 @@ export async function POST(req: NextRequest) {
   const authHeader = req.headers.get("authorization") ?? "";
   const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
 
-  // HMAC both sides to a fixed 32-byte digest before comparing.
-  // This eliminates length leakage: timingSafeEqual always runs regardless
-  // of input length, so the short-circuit &&-length-check is avoided.
   const hmacKey = "genesis-auth";
   const expected = crypto.createHmac("sha256", hmacKey).update(adminSecret).digest();
   const actual   = crypto.createHmac("sha256", hmacKey).update(token).digest();
@@ -65,7 +51,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
+    const MAX_SIZE = 10 * 1024 * 1024;
     if (imageFile.size > MAX_SIZE) {
       return NextResponse.json(
         { error: "File too large. Maximum size is 10 MB." },
@@ -73,11 +59,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 1. Upload image
     const imageUpload = await uploadFileToBackend(imageFile);
     const imageUri = imageUpload.uri;
 
-    // 2. Build genesis metadata
     const metadata = {
       name,
       description,
@@ -93,7 +77,6 @@ export async function POST(req: NextRequest) {
       ],
     };
 
-    // 3. Upload metadata JSON
     const metadataUpload = await uploadJsonToBackend(metadata);
 
     return NextResponse.json({

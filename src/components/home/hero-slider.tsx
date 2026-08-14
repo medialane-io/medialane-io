@@ -10,7 +10,6 @@ import { useCollections } from "@/hooks/use-collections";
 import { ipfsToHttp, formatDisplayPrice, cn } from "@/lib/utils";
 import type { ApiCollection } from "@medialane/sdk";
 
-// ---- Single slide ----
 function HeroSlide({
   collection,
   active,
@@ -30,7 +29,7 @@ function HeroSlide({
         active ? "opacity-100" : "opacity-0 pointer-events-none"
       )}
     >
-      {/* Background image with continuous Ken Burns CSS animation */}
+
       {imageUrl ? (
         <div className="absolute inset-0 overflow-hidden">
           <div className="animate-kenburns absolute inset-0">
@@ -48,10 +47,8 @@ function HeroSlide({
         <div className="absolute inset-0 bg-gradient-to-br from-brand-purple/40 via-brand-blue/20 to-brand-navy/60" />
       )}
 
-      {/* Darkening overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/30 to-black/0" />
 
-      {/* Content */}
       <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-10 flex flex-col gap-3">
         <Link href={collectionHref("STARKNET", collection.contractAddress)} className="hover:opacity-90 transition-opacity">
           <h2 className="text-4xl lg:text-5xl font-semibold text-white leading-tight">{name}</h2>
@@ -69,7 +66,6 @@ function HeroSlide({
   );
 }
 
-// ---- Fallback when no featured collections are available ----
 function HeroPlaceholder() {
   return (
     <div className="absolute inset-0 bg-gradient-to-br from-brand-purple/30 via-brand-blue/20 to-brand-navy/50 flex flex-col items-center justify-center gap-4 text-center px-6 overflow-hidden">
@@ -94,7 +90,6 @@ function HeroPlaceholder() {
   );
 }
 
-// ---- Main slider ----
 export function HeroSlider() {
   const { collections, isLoading } = useCollections(1, 3, true, "recent");
   const [current, setCurrent] = useState(0);

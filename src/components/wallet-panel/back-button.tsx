@@ -1,8 +1,5 @@
 "use client";
 
-/** Pops the wallet panel's own internal view stack — there's no browser
- * route to go back to, the panel is a single overlay with client-side
- * view-state (home/send/receive/token/activity). */
 export function BackButton({ onBack }: { onBack: () => void }) {
   return (
     <button

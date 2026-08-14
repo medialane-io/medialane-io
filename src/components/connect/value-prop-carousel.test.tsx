@@ -42,9 +42,7 @@ test("duplicates the track for a seamless loop", () => {
 
 test("marks the duplicate track aria-hidden so screen readers don't double-announce it", () => {
   const { container } = render(<ValuePropCarousel />);
-  // Scope to a <div aria-hidden> specifically — lucide icons render their
-  // own aria-hidden <svg>, which a bare `[aria-hidden="true"]` selector
-  // would match first instead of the intended duplicate track wrapper.
+
   const hidden = container.querySelector('div[aria-hidden="true"]');
   expect(hidden).toBeTruthy();
   expect(within(hidden as HTMLElement).getByText("Own your work")).toBeTruthy();

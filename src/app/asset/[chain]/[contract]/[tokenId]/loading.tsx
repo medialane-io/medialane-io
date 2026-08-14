@@ -4,14 +4,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function AssetLoading() {
   return (
     <PageContainer className="pt-20 pb-8 space-y-8">
-      {/* Breadcrumb */}
+
       <Skeleton className="h-4 w-48" />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-10 gap-6 items-start">
-        {/* Image */}
+
         <Skeleton className="aspect-[4/3] w-full rounded-2xl" />
 
-        {/* Right column — mirrors the live layout */}
         <div className="space-y-6">
           <div className="space-y-3">
             <Skeleton className="h-3 w-28" />

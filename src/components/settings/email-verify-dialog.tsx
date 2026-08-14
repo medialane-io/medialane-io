@@ -25,13 +25,6 @@ interface EmailVerifyDialogProps {
   onVerified: (emailVerificationToken: string) => Promise<void> | void;
 }
 
-/**
- * Self-contained email verification flow — request code (fires the moment
- * the dialog opens, no extra click), enter code, verify, clear success
- * state. Replaces the old bare button + inline input with real step
- * feedback at every stage instead of a single static "not verified yet"
- * line.
- */
 export function EmailVerifyDialog({ open, onOpenChange, email, onVerified }: EmailVerifyDialogProps) {
   const [step, setStep] = useState<Step>("sending");
   const [code, setCode] = useState("");
@@ -63,7 +56,7 @@ export function EmailVerifyDialog({ open, onOpenChange, email, onVerified }: Ema
       setCode("");
       void sendCode();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [open]);
 
   useEffect(() => {

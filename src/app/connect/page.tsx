@@ -15,7 +15,6 @@ type Step = "email" | "checking-email" | "registering" | "code" | "verifying-cod
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
-/** Same-origin relative path guard — prevents open redirects via redirect_url. */
 function safeRelative(path: string | null | undefined): string | null {
   if (!path || !path.startsWith("/") || path.startsWith("//")) return null;
   return path;
@@ -29,14 +28,6 @@ export default function ConnectPage() {
   );
 }
 
-/**
- * Account entry point — process 1 (register, unverified email) and process 3
- * (email-registered users get a login code). Deliberately knows nothing
- * about wallets: on success it hands off to /wallet-onboarding (process 2),
- * which owns passkey creation + AVNU-sponsored deploy entirely on its own.
- * Named /connect, not /sign-up, because we don't yet know whether this
- * visitor has an account — the email step is what determines that.
- */
 function ConnectForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -48,7 +39,6 @@ function ConnectForm() {
   const [resendCooldown, setResendCooldown] = useState(0);
   const [resending, setResending] = useState(false);
 
-  // Ticks the resend cooldown down to 0, one second at a time.
   useEffect(() => {
     if (resendCooldown === 0) return;
     const id = setTimeout(() => setResendCooldown((s) => Math.max(0, s - 1)), 1000);
@@ -129,9 +119,6 @@ function ConnectForm() {
     }
   };
 
-  // Accepts an explicit code so the InputOTP onComplete callback (which
-  // fires with the just-completed value ahead of the `code` state update
-  // landing) can trigger an immediate, correct auto-submit.
   const verifyLoginCode = async (codeOverride?: string) => {
     const codeToVerify = codeOverride ?? code;
     setError(null);
@@ -146,12 +133,10 @@ function ConnectForm() {
       if (!res.ok) throw new Error((data as { error?: string }).error ?? "Incorrect code");
       const { accountToken } = data as { accountToken?: string };
       if (accountToken) {
-        // Walletless account — hand off straight to wallet deployment.
+
         goToWalletOnboarding(accountToken);
       } else {
-        // This account already has a wallet — the code only proved email
-        // ownership, it can never grant access to that wallet (design
-        // spec §6). That wallet's own device/passkey is the only way in.
+
         setStep("has-wallet");
       }
     } catch (err) {

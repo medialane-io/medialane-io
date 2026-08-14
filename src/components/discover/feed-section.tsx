@@ -8,9 +8,6 @@ import { PurchaseDialog } from "@/components/marketplace/purchase-dialog";
 import { normalizeAddress } from "@medialane/sdk";
 import type { ApiOrder } from "@medialane/sdk";
 
-/** The "Activity" recent-listings carousel. The old "Community" carousel that
- *  used to live alongside this was replaced by CommunitySection (2-column
- *  activities + scoreboard) — see discover/community-section.tsx. */
 export function FeedSection() {
   const { orders, isLoading } = useOrders({ status: "ACTIVE", sort: "recent", limit: 10 });
   const { address: walletAddress } = useWalletNativeSession();

@@ -1,9 +1,5 @@
 "use client";
 
-/**
- * Thin wrapper over @medialane/sdk's SIWS client (single source since
- * 0.44.0; medialane-starknet shares the same source).
- */
 import {
   requestSiwsToken as sdkRequestSiwsToken,
   getStoredSiwsToken,

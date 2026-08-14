@@ -1,12 +1,5 @@
 "use client";
 
-// Create Membership — creates a new membership tier and mints its full supply
-// straight to the creator's own wallet, in one action. Same shape as the IP
-// Tickets mint page: one form, no redundant panels, no recipient field — the
-// creator ends up holding the membership cards and lists them on the
-// marketplace like any other asset. The validity window gates membership,
-// never minting, so a future season pass can be minted and sold today.
-
 import { use, useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -195,9 +188,6 @@ export default function CreateMembershipPage({ params }: { params: Promise<{ con
     const endTime = dateToUnixTimestamp(values.endDate);
     const royaltyBps = Math.round(values.royalty * 100);
 
-    // Ids are sequential and only the owner can ever call create_membership, so
-    // the id can still be predicted ahead of time and both intents' calls
-    // bundled into one multicall — one PIN unlock for one "create" action.
     const tierId = await predictNextMembershipId(contract);
     setMintedTierId(String(tierId));
 
@@ -218,8 +208,7 @@ export default function CreateMembershipPage({ params }: { params: Promise<{ con
       tokenId: String(tierId),
       amount: values.maxSupply,
     });
-    // Bundled into one multicall — one wallet confirmation for what is one
-    // "create" action.
+
     const mintResult = await executeIntents(signer, client, [tierRes.data, mintRes.data]);
 
     rewardToast("launch_launchpad");
@@ -282,7 +271,7 @@ export default function CreateMembershipPage({ params }: { params: Promise<{ con
         </p>
         {imagePreview && (
           <div className="h-24 w-24 rounded-xl overflow-hidden border border-border shadow-md">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
+
             <img src={imagePreview} alt={form.getValues("name")} className="h-full w-full object-cover" />
           </div>
         )}

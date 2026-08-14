@@ -28,7 +28,6 @@ import { rewardToast } from "@/lib/reward-toast";
 import { CreateDropAside } from "@/components/claim/create-drop-aside";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 
-// API_BASE = same-origin BFF proxy that injects the server-only API key.
 const API_BASE = "/api/proxy";
 
 const PAYMENT_TOKENS = getListableTokens().map((t) => ({ symbol: t.symbol, address: t.address }));
@@ -41,8 +40,7 @@ export default function CreateDropPage() {
   const busy = action.status === "processing" || action.status === "confirming";
 
   const [items, setItems] = useState<DraftItem[]>([]);
-  // Read only at submit time — keep in a ref so each keystroke in IPTypeFields
-  // doesn't re-render this whole form (the cause of the visible flicker).
+
   const metadataFieldsRef = useRef<MetadataField[]>([]);
   const handleMetadataFields = useCallback((fields: MetadataField[]) => {
     metadataFieldsRef.current = fields;
@@ -115,7 +113,6 @@ export default function CreateDropPage() {
     }
   }, [form, priceFree]);
 
-  // ── Item handlers ───────────────────────────────────────────────────────────
   const addItemFiles = (files: File[]) => {
     setItems((prev) => [
       ...prev,
@@ -172,7 +169,6 @@ export default function CreateDropPage() {
     setAutoSymbol("");
   };
 
-  // Poll the indexer for the freshly-deployed drop collection address (~6-30s cycle).
   const pollForDropAddress = async (ownerAddress: string): Promise<string | null> => {
     const headers = { "Content-Type": "application/json" };
     for (let attempt = 0; attempt < 12; attempt++) {
@@ -182,7 +178,7 @@ export default function CreateDropPage() {
         const json = await res.json();
         const latest = json?.data?.[0];
         if (latest?.contractAddress) return latest.contractAddress as string;
-      } catch { /* keep polling */ }
+      } catch {  }
     }
     return null;
   };
@@ -193,7 +189,6 @@ export default function CreateDropPage() {
     void action.run((signer) => handleUnlocked(values, signer));
   };
 
-  // `pendingValues` (param) shadows the display-only state.
   const handleUnlocked = async (pendingValues: DropCreateFormValues, signer: StarknetVenueSigner) => {
     if (!walletAddress) throw new Error("Account not ready. Please refresh and try again.");
 
@@ -242,14 +237,8 @@ export default function CreateDropPage() {
       maxQuantityPerWallet: maxPerWallet.toString(),
     };
 
-    // Optional whitelist set at create time (creator-signed). The contract address isn't
-    // known until create_drop executes, so the allowlist is set in a second call under the
-    // same PIN. To open the drop to everyone later, the creator toggles the allowlist off in Manage.
     const whitelist = pendingValues.whitelistEnabled ? parseAddresses(pendingValues.allowlistAddresses) : [];
 
-    // Metered through the intents API — the backend deploys via the Drop
-    // factory server-side and returns fully-populated calls (no client-side
-    // calldata construction).
     const intentRes = await client.api.createCollectionIntent({
       owner: walletAddress,
       name: pendingValues.name,
@@ -262,8 +251,6 @@ export default function CreateDropPage() {
     const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
     rewardToast("launch_launchpad");
 
-    // If a whitelist was provided, find the new drop address (indexer ~6-30s) and set it.
-    // Best-effort — the drop already exists onchain; the creator can finish in Manage.
     if (whitelist.length > 0) {
       const dropAddress = await pollForDropAddress(walletAddress);
       if (dropAddress) {
@@ -272,25 +259,22 @@ export default function CreateDropPage() {
             { contractAddress: dropAddress, entrypoint: "set_allowlist_enabled", calldata: ["1"] },
             { contractAddress: dropAddress, entrypoint: "batch_add_to_allowlist", calldata: batchAllowlistCalldata(whitelist) },
           ]);
-        } catch { /* owner can finish whitelist setup in Manage */ }
+        } catch {  }
       }
     }
     return result;
   };
 
-  // ── Error ───────────────────────────────────────────────────────────────────
   if (action.status === "error") {
     return (
       <LaunchpadErrorState description={action.error ?? "Failed to create drop"} backHref="/launchpad/drop" backLabel="Back to Drops" onRetry={action.reset} />
     );
   }
 
-  // ── Processing ──────────────────────────────────────────────────────────────
   if (busy) {
     return <LaunchpadProcessingState title="Creating your drop…" />;
   }
 
-  // ── Success ─────────────────────────────────────────────────────────────────
   if (action.status === "success") {
     return (
       <LaunchpadSuccessState
@@ -308,7 +292,6 @@ export default function CreateDropPage() {
     );
   }
 
-  // ── No wallet yet ──────────────────────────────────────────────────────────
   if (!hasWallet) {
     return (
       <LaunchpadSignedOutState
@@ -320,7 +303,6 @@ export default function CreateDropPage() {
     );
   }
 
-  // ── Launch form ────────────────────────────────────────────────────────────
   return (
     <>
       <ClaimRouteShell

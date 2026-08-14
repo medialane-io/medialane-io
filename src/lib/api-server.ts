@@ -1,18 +1,11 @@
-/**
- * Server-side fetch helpers for generateMetadata.
- * Server-only — uses `MEDIALANE_API_KEY` (no NEXT_PUBLIC_ prefix) so the
- * key never ends up in the browser bundle. Returns null on any error so
- * metadata falls back gracefully.
- */
+
 
 const BASE = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL ?? "";
 const KEY  = process.env.MEDIALANE_API_KEY ?? "";
 
 async function apiFetch<T>(path: string): Promise<T | null> {
   try {
-    // Hard 5s cap — these run inside page prerender/ISR regeneration, where a
-    // hanging backend would otherwise stall the build (Next kills a page
-    // render at 60s and fails the whole build after 3 attempts).
+
     const res = await fetch(`${BASE}${path}`, {
       headers: { "x-api-key": KEY },
       next: { revalidate: 60 },

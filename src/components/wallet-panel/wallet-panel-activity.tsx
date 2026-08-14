@@ -172,7 +172,7 @@ function ProtocolActivityRow({ item }: { item: ApiActivity }) {
     <div className="flex items-center gap-3 rounded-2xl bg-card/40 px-4 py-3 backdrop-blur-sm">
       <div className="h-11 w-11 shrink-0 overflow-hidden rounded-2xl" style={img ? undefined : { background: gradFor(seed) }}>
         {img && (
-          // eslint-disable-next-line @next/next/no-img-element
+
           <img src={img} alt="" loading="lazy" className="h-full w-full object-cover" />
         )}
       </div>

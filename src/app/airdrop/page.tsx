@@ -79,7 +79,6 @@ export default function AirdropPage() {
   return (
     <div className="max-w-5xl mx-auto px-5 sm:px-8">
 
-      {/* ── Hero ── */}
       <section className="py-14 lg:py-20">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
 
@@ -105,7 +104,6 @@ export default function AirdropPage() {
         </div>
       </section>
 
-      {/* ── What you get ── */}
       <section className="py-14 space-y-8">
         <div>
           <h2 className="text-3xl sm:text-4xl font-black">What you actually get</h2>
@@ -126,7 +124,6 @@ export default function AirdropPage() {
         </div>
       </section>
 
-      {/* ── How it works ── */}
       <section className="py-14 space-y-8">
         <div className="max-w-2xl">
           <h2 className="text-3xl sm:text-4xl font-black">Sign up. That&apos;s it.</h2>
@@ -156,7 +153,6 @@ export default function AirdropPage() {
         </div>
       </section>
 
-      {/* ── How the money moves ── */}
       <section className="py-14 space-y-8">
         <div className="max-w-2xl">
           <h2 className="text-3xl sm:text-4xl font-black">How the money moves</h2>
@@ -201,7 +197,6 @@ export default function AirdropPage() {
         </p>
       </section>
 
-      {/* ── The fine print ── */}
       <section className="py-14 pb-16 space-y-8">
         <h2 className="text-3xl sm:text-4xl font-black">The fine print</h2>
 

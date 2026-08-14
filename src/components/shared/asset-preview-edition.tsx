@@ -33,7 +33,6 @@ export function AssetPreviewEdition({ token, isOwner, onClose }: AssetPreviewCon
   const currentOwner = token.balances?.[0]?.owner ?? token.owner ?? null;
   const ownerHref = currentOwner ? `/account/${currentOwner}` : null;
 
-  // suppress unused warning — imgError is set via onError on the img tag inside PreviewHero
   void imgError;
 
   const secondaryActions: PreviewAction[] = [];
@@ -74,7 +73,6 @@ export function AssetPreviewEdition({ token, isOwner, onClose }: AssetPreviewCon
         }
       />
 
-      {/* Name + price */}
       <div className="flex items-start justify-between px-5 pt-4 pb-1 shrink-0">
         <div className="min-w-0 flex-1 mr-3">
           <p className="font-bold text-lg leading-tight line-clamp-2">{name}</p>
@@ -96,11 +94,10 @@ export function AssetPreviewEdition({ token, isOwner, onClose }: AssetPreviewCon
       <PreviewMeta token={token} />
       {currentOwner && <PreviewOwnerRow owner={currentOwner} />}
 
-      {/* Actions */}
       <div className="px-5 pb-2 pt-3 space-y-3 flex-1 overflow-y-auto">
         {!isOwner && activeOrder && (
           <>
-            {/* Quantity stepper */}
+
             <div className="flex items-center justify-between px-1">
               <span className="text-sm text-muted-foreground">Quantity</span>
               <div className="flex items-center gap-3">
@@ -123,7 +120,6 @@ export function AssetPreviewEdition({ token, isOwner, onClose }: AssetPreviewCon
               </div>
             </div>
 
-            {/* Buy CTA */}
             <div className="btn-border-animated p-[1px] rounded-xl">
               <button
                 type="button"

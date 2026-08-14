@@ -1,20 +1,11 @@
 type Attr = { trait_type?: string; value?: string };
 
 const get = (a: Attr[], key: string): string | undefined => {
-  // Attribute values can be numbers at runtime (OpenSea allows numeric `value`s);
-  // coerce so the callers' `.toLowerCase()` never throws.
+
   const v = a.find((x) => x.trait_type?.toLowerCase() === key)?.value;
   return v == null ? undefined : String(v);
 };
 
-/**
- * One plain-language sentence summarizing the license, derived from the license
- * traits. Deliberately omits attribution/credit wording (not the place for it).
- * Returns null when there's no license data to summarize.
- *
- * Trait keys match the asset metadata: "Commercial Use", "Derivatives",
- * "AI Policy", "Territory".
- */
 export function licenseSummary(attributes: Attr[]): string | null {
   const commercialRaw = get(attributes, "commercial use");
   const derivatives = (get(attributes, "derivatives") ?? "").toLowerCase();

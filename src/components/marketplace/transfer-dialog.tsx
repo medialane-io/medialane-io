@@ -51,11 +51,7 @@ const schema = z.object({
 });
 
 type FormValues = z.infer<typeof schema>;
-// Explicit step machine — do NOT rely on the `isProcessing` flag from the
-// hook to render the processing UI. There's a one-frame gap between the
-// await resolving and `setStep("success")` firing during which isProcessing
-// is false AND step is still "confirm" — which would flash the confirm step
-// back. Driving the dialog purely by `step` keeps every transition stable.
+
 type Step = "form" | "confirm" | "processing" | "success";
 
 interface TransferDialogProps {
@@ -102,8 +98,7 @@ export function TransferDialog({
   });
 
   const handleClose = (v: boolean) => {
-    // Block close while in-flight or showing the final success screen
-    // (user dismisses success via Done). Error screen uses its own onDone.
+
     if (step !== "processing" && step !== "success") {
       resetState();
       form.reset();
@@ -120,7 +115,7 @@ export function TransferDialog({
       setPendingAddress(null);
       setStep("form");
     }
-  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const onSubmit = (values: FormValues) => {
     if (walletAddress) {
@@ -130,7 +125,7 @@ export function TransferDialog({
           return;
         }
       } catch {
-        // BigInt parse failed — Zod regex already validated the format
+
       }
     }
     if (!hasWallet) return;
@@ -140,9 +135,7 @@ export function TransferDialog({
 
   const handleConfirmTransfer = async () => {
     if (!pendingAddress) return;
-    // setStep("processing") BEFORE awaiting transferToken — guarantees the
-    // processing UI is the only thing the user sees until either a tx hash
-    // arrives (success) or the call rejects (error).
+
     setStep("processing");
     const hash = await transferToken({
       contractAddress,
@@ -157,10 +150,7 @@ export function TransferDialog({
   const recipientShort = pendingAddress
     ? `${pendingAddress.slice(0, 8)}…${pendingAddress.slice(-6)}`
     : "";
-  // Terminal on-chain revert: tx made it to the chain (have hash) but reverted
-  // (have error). Driven off the hook flags rather than `step` because the
-  // step machine routes back to "pin" on no-hash errors; revert-with-hash
-  // needs its own dedicated screen so the user can see the explorer link.
+
   const isTerminalError = step !== "processing" && step !== "success" && !!error && !!txHash;
 
   const shieldFooter = (
@@ -188,7 +178,6 @@ export function TransferDialog({
             fallbackIcon={<ArrowRightLeft className="h-12 w-12 text-brand-blue/30" />}
           />
 
-          {/* ── Success ──────────────────────────────────────────────── */}
           {step === "success" ? (
             <div className="flex flex-col items-center gap-5 p-6 py-8">
               <div className="relative">
@@ -241,7 +230,7 @@ export function TransferDialog({
             />
 
           ) : step === "processing" ? (
-            /* ── Processing ─────────────────────────────────────────── */
+
             <div className="flex flex-col items-center gap-5 p-6 py-8">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <div className="text-center space-y-1">
@@ -251,7 +240,7 @@ export function TransferDialog({
             </div>
 
           ) : step === "confirm" ? (
-            /* ── Confirm step ────────────────────────────────────────── */
+
             <>
               <div className="flex items-end justify-between px-6 pt-3 pb-1">
                 <div className="min-w-0">
@@ -274,7 +263,7 @@ export function TransferDialog({
             </>
 
           ) : (
-            /* ── Form step ───────────────────────────────────────────── */
+
             <div className="px-5 pb-4 pt-3 space-y-3">
               <p className="font-bold text-base leading-tight truncate">{displayName}</p>
 

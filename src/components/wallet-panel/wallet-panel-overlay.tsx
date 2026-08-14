@@ -9,9 +9,6 @@ import { WALLET_PANEL_PORTAL_ID } from "./action-modal";
 const WL_OPEN = "ml:wallet-panel-open";
 const WL_CLOSE = "ml:wallet-panel-close";
 
-/** Same open/close-by-event pattern as @medialane/ui's useNavCommandMenu —
- * lets any component (the header trigger, a future nav command) open the
- * panel without prop-drilling state through the app shell. */
 export function useWalletPanel() {
   return {
     open: () => document.dispatchEvent(new CustomEvent(WL_OPEN)),
@@ -19,13 +16,6 @@ export function useWalletPanel() {
   };
 }
 
-/**
- * Reuses @medialane/ui's NavCommandMenu overlay recipe verbatim — the same
- * `.nav-canvas-overlay` backdrop (blur(48px) saturate(1.5)) behind a
- * centered, fade+slide+scale animated panel — but sized to a vertical phone
- * aspect ratio instead of the command menu's wide card, and holding the
- * wallet UI instead of the command list.
- */
 export function WalletPanelOverlay() {
   const [open, setOpen] = React.useState(false);
 

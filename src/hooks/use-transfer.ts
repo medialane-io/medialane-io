@@ -8,23 +8,18 @@ import { QUERY_PREFIX } from "@/lib/query-keys";
 import type { Call } from "starknet";
 
 export interface TransferInput {
-  contractAddress: string; // NFT contract address
-  tokenId: string;         // Token ID — decimal ("42") or hex ("0x2a")
-  toAddress: string;       // Recipient Starknet address
+  contractAddress: string;
+  tokenId: string;
+  toAddress: string;
   tokenStandard?: "ERC721" | "ERC1155" | "UNKNOWN";
 }
 
-/** Returns true if addr is a valid non-zero Starknet address (0x + 1–64 hex chars). */
 function isValidStarknetAddress(addr: string): boolean {
   if (!/^0x[0-9a-fA-F]{1,64}$/.test(addr)) return false;
   const stripped = addr.replace(/^0x0*/, "");
-  return stripped.length > 0; // reject 0x0
+  return stripped.length > 0;
 }
 
-/**
- * Encode a token ID (decimal or hex string) into two felt252 values
- * for Starknet u256 calldata: [low_128_bits, high_128_bits].
- */
 export function encodeTokenId(tokenId: string): [string, string] {
   const id = BigInt(tokenId);
   const low = (id & BigInt("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")).toString();
@@ -40,7 +35,6 @@ export function useTransfer() {
   const [error, setError] = useState<string | null>(null);
   const [hash, setHash] = useState<string | null>(null);
 
-  /** Invalidate owned-token and single-token SWR caches after a transfer. */
   const invalidate = useCallback(() => {
     mutate(
       (key) => {
@@ -81,7 +75,7 @@ export function useTransfer() {
           ? {
               contractAddress: input.contractAddress,
               entrypoint: "safe_transfer_from",
-              // safe_transfer_from(from, to, id: u256, value: u256, data: Array<felt252>)
+
               calldata: [walletAddress, input.toAddress, tokenIdLow, tokenIdHigh, "1", "0", "0"],
             }
           : {
@@ -94,7 +88,7 @@ export function useTransfer() {
         setHash(result.txHash);
 
         invalidate();
-        // Re-invalidate after indexer processes the block
+
         setTimeout(() => invalidate(), INDEXER_REVALIDATION_DELAY_MS);
         return result.txHash;
       } catch (err: unknown) {

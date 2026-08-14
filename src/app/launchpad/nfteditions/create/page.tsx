@@ -33,7 +33,6 @@ import {
   type NftEditionsCreateFormValues,
 } from "../nfteditions-create-schema";
 
-// Same-origin BFF proxy — injects MEDIALANE_API_KEY server-side.
 const API_BASE = "/api/proxy";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 
@@ -42,7 +41,7 @@ const COLLECTION_DEPLOYED_SELECTOR = hash.getSelectorFromName("CollectionDeploye
 export default function CreateIP1155CollectionPage() {
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
   const { getValidToken, signIn } = useSiwsToken();
-  // One primitive owns gate → unlock (passkey) → execute → result.
+
   const action = useWalletWriteAction();
   const client = useMedialaneClient();
   const [pendingValues, setPendingValues] = useState<NftEditionsCreateFormValues | null>(null);
@@ -104,18 +103,14 @@ export default function CreateIP1155CollectionPage() {
       return;
     }
     setPendingValues(values);
-    // Pass `values` through the closure (synchronous-passkey rule).
+
     void action.run((signer) => handleUnlocked(values, signer));
   };
 
-  // The `prepare` body. useWalletWriteAction owns status/error — return the
-  // tx result.
   const handleUnlocked = async (pendingValues: NftEditionsCreateFormValues, signer: StarknetVenueSigner) => {
     if (!walletAddress) throw new Error("Account not ready. Please refresh and try again.");
     setDeployedAddress(null);
 
-    // 1. Pin metadata JSON to IPFS — base_uri goes on-chain into an immutable
-    //    deploy, so this MUST succeed; pinLaunchpadMetadata throws on failure.
     let collectionMetaUri: string | undefined;
     if (imageUri) {
       const siwsToken = getValidToken() ?? (await signIn());
@@ -128,9 +123,6 @@ export default function CreateIP1155CollectionPage() {
       }, siwsToken);
     }
 
-      // 2. Create the collection through the metered intents API — the backend
-      // deploys via the mip-erc1155 factory server-side and returns
-      // fully-populated calls (no client-side calldata construction).
       const intentRes = await client.api.createCollectionIntent({
         owner: walletAddress,
         name: pendingValues.name,
@@ -141,15 +133,9 @@ export default function CreateIP1155CollectionPage() {
       const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
       rewardToast("create_collection");
 
-      // 3. Extract deployed collection address from CollectionDeployed event.
-      // Best-effort: if we can't parse the event the tx still succeeded — the
-      // collection will appear in portfolio once the indexer processes the event.
       let addr: string | null = null;
       try {
-        // waitForTransaction already confirmed the tx; getTransactionReceipt may
-        // fail due to RPC rate-limits or proxy issues, so we retry once.
-        // Receipt shape is a starknet.js union; we only touch `.events`, so a
-        // narrow local type is enough.
+
         type ReceiptEvent = { keys?: string[]; data?: string[] };
         type ReceiptShape = { events?: ReceiptEvent[] };
         let receipt: ReceiptShape | null = null;
@@ -158,18 +144,15 @@ export default function CreateIP1155CollectionPage() {
             if (attempt > 0) await new Promise((r) => setTimeout(r, 2000));
             const raw: unknown = await starknetProvider.getTransactionReceipt(result.txHash);
             receipt = raw as ReceiptShape;
-          } catch { /* retry */ }
+          } catch {  }
         }
         const events: ReceiptEvent[] = receipt?.events ?? [];
         const deployEvent = events.find((e) =>
           e.keys?.[0] && BigInt(e.keys[0]) === BigInt(COLLECTION_DEPLOYED_SELECTOR)
         );
         if (deployEvent?.keys?.[1]) addr = normalizeAddress("STARKNET", deployEvent.keys[1]);
-      } catch { /* non-fatal — tx confirmed, collection will appear in portfolio */ }
+      } catch {  }
 
-      // 4. Register with backend so it appears in portfolio immediately.
-      // If addr is null (event parse failed), the indexer will pick it up on the
-      // next block poll — no action needed and we still show success.
       if (addr) {
         try {
           await fetch(`${API_BASE}/v1/collections/register`, {
@@ -182,7 +165,7 @@ export default function CreateIP1155CollectionPage() {
               source: "MEDIALANE_ERC1155",
             }),
           });
-        } catch { /* non-fatal */ }
+        } catch {  }
       }
 
     if (walletAddress) invalidatePortfolioCache(walletAddress);
@@ -190,7 +173,6 @@ export default function CreateIP1155CollectionPage() {
     return result;
   };
 
-  // ── No wallet yet ──────────────────────────────────────────────────────────
   if (!hasWallet) {
     return (
       <LaunchpadSignedOutState
@@ -217,7 +199,7 @@ export default function CreateIP1155CollectionPage() {
         </p>
         {imagePreview && (
           <div className="h-24 w-24 rounded-xl overflow-hidden border border-border shadow-md">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
+
             <img src={imagePreview} alt={pendingValues?.name ?? ""} className="h-full w-full object-cover" />
           </div>
         )}
@@ -266,8 +248,7 @@ export default function CreateIP1155CollectionPage() {
             {uploadError && (
               <p className="text-xs text-destructive mt-1">{uploadError}</p>
             )}
-            {/* Upload success is shown inline next to the image (create-form) —
-                no page-bottom duplicate. */}
+
           </form>
         </Form>
       </ClaimRouteShell>

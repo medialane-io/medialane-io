@@ -47,7 +47,6 @@ export function AssetPreviewPop({ token, onClose }: AssetPreviewContentProps) {
         }
       />
 
-      {/* Name + credential identity */}
       <div className="px-5 pt-4 pb-1 shrink-0">
         <p className="font-bold text-lg leading-tight line-clamp-2">{name}</p>
         <div className="flex items-center gap-1.5 mt-1.5 px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
@@ -60,7 +59,6 @@ export function AssetPreviewPop({ token, onClose }: AssetPreviewContentProps) {
       <PreviewMeta token={token} />
       {creatorOwner && <PreviewOwnerRow owner={creatorOwner} label="Creator" />}
 
-      {/* Claim CTA + actions */}
       <div className="px-5 pb-2 pt-3 space-y-2 flex-1 overflow-y-auto">
         <a
           href={assetHref}

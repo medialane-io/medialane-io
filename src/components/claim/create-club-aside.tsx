@@ -1,8 +1,6 @@
 import { Users, ChevronRight } from "lucide-react";
 import { ClaimRail } from "@medialane/ui";
 
-/** Right-rail content for /launchpad/club/create. */
-
 export function CreateClubAside() {
   return (
     <ClaimRail

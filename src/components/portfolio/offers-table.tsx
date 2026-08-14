@@ -42,12 +42,11 @@ function OfferRow({
 
   return (
     <div className="flex items-center gap-4 px-4 py-3 hover:bg-muted/40 transition-colors">
-      {/* Thumbnail */}
+
       <div className="relative h-12 w-12 rounded-lg overflow-hidden border border-border shrink-0 bg-gradient-to-br from-muted to-muted-foreground/20">
         {image && <Image src={image} alt={name} fill unoptimized sizes="48px" className="object-cover" />}
       </div>
 
-      {/* Asset */}
       <div className="flex-1 min-w-0">
         <Link
           href={assetHref("STARKNET", order.nftContract, order.nftTokenId)}
@@ -58,7 +57,6 @@ function OfferRow({
         <span className="text-xs text-muted-foreground">Offer</span>
       </div>
 
-      {/* Offer price */}
       <div className="text-right shrink-0 hidden sm:block">
         <p className="text-sm font-semibold">
           {formatDisplayPrice(order.price.formatted)}{" "}
@@ -66,14 +64,12 @@ function OfferRow({
         </p>
       </div>
 
-      {/* Expires */}
       <div className="shrink-0 hidden md:block">
         <p className={cn("text-sm", expiry.expired && "text-muted-foreground", expiry.urgent && "text-destructive font-medium")}>
           {expiry.label}
         </p>
       </div>
 
-      {/* Actions */}
       <div className="flex items-center gap-2 shrink-0">
         <a
           href={`${EXPLORER_URL}/tx/${order.txHash.created}`}
@@ -108,7 +104,6 @@ export function OffersTable({ address }: OffersTableProps) {
     (o) => o.offer.itemType === "ERC20" && o.status === "ACTIVE"
   );
 
-  // Per-currency totals
   const currencyTotals = myOffers.reduce<Record<string, number>>((acc, o) => {
     const sym = o.price.currency ?? "?";
     acc[sym] = (acc[sym] ?? 0) + parseFloat(o.price.formatted ?? "0");
@@ -145,7 +140,7 @@ export function OffersTable({ address }: OffersTableProps) {
             </p>
           )}
           <div className="rounded-lg border border-border overflow-hidden">
-            {/* Column headers */}
+
             <div className="flex items-center gap-4 px-4 py-2 text-xs uppercase tracking-wide text-muted-foreground border-b border-border bg-muted/30">
               <div className="w-12 shrink-0" />
               <div className="flex-1">Asset</div>

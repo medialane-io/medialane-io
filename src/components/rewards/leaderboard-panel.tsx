@@ -19,8 +19,6 @@ export interface LeaderboardPanelProps {
   className?: string;
 }
 
-/** Avatar + display name when a creator has set a profile, falling back to
- *  a plain address — real identity where it exists, never fabricated. */
 function CreatorIdentity({ address }: { address: string }) {
   const { profile } = useCreatorProfile(address);
   const avatarUrl = resolveTokenImage(profile?.avatarImage);

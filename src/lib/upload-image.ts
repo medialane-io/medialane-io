@@ -2,14 +2,6 @@
 
 import { withSiwsAuth } from "@/lib/pinata-fetch";
 
-/** Uploads an image to IPFS via a Pinata signed upload URL.
- *
- *  Two-step: the SIWS-gated /api/pinata/signed-url route issues a short-lived
- *  signed URL, then the browser uploads the file STRAIGHT to Pinata — the bytes
- *  never touch our server. Vercel 413s request bodies over ~4.5 MB, so the old
- *  direct-proxy routes silently broke for larger images.
- *
- *  Resolves to the ipfs:// URI. */
 export async function uploadImageToIpfs(file: File, siwsToken: string): Promise<string> {
   const signedRes = await fetch("/api/pinata/signed-url", withSiwsAuth(siwsToken, {
     method: "POST",

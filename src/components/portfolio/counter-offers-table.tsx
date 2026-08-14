@@ -17,11 +17,6 @@ import Link from "next/link";
 import { normalizeAddress } from "@medialane/sdk";
 import type { ApiOrder } from "@medialane/sdk";
 
-
-/**
- * Fetches and renders a single counter-offer row for one original bid.
- * Isolated into its own component to safely use SWR hooks per bid.
- */
 function CounterOfferFetcher({
   originalBid,
   isProcessing,
@@ -61,7 +56,6 @@ function CounterOfferFetcher({
         </div>
       </div>
 
-      {/* Original bid → Counter price */}
       <div className="shrink-0 hidden sm:flex flex-col items-end gap-0.5">
         <p className="text-xs text-muted-foreground line-through">
           {formatDisplayPrice(originalBid.price.formatted)} {originalBid.price.currency}
@@ -114,19 +108,11 @@ export function CounterOffersTable({ address }: { address: string }) {
   const { fulfillOrder, isProcessing } = useMarketplace();
   const action = useWalletWriteAction();
   const [selectedCounter, setSelectedCounter] = useState<ApiOrder | null>(null);
-  // The existing processing → success/error result dialog is driven by the
-  // unified action state (so the user never has to check the explorer).
+
   const resultStep = action.status;
   const resultTxHash = action.txHash;
   const resultError = action.error;
 
-  // My bids that the seller has countered.
-  // Predicate: ERC-20 offer (bid) I made + the backend-derived flag
-  // `hasActiveCounterOffer` is true. The flag was added in SDK 0.22.0
-  // alongside backend support; it replaces the legacy
-  // `status === "COUNTER_OFFERED"` check (audit P0-1, 01-core-model §V —
-  // counter-offers are linked orders, not a third lifecycle state).
-  // The parent bid keeps `status: ACTIVE`.
   const counterOfferedBids = orders.filter(
     (o) =>
       o.offer.itemType === "ERC20" &&
@@ -139,11 +125,8 @@ export function CounterOffersTable({ address }: { address: string }) {
     void action.run(() => handleUnlocked(counter));
   };
 
-  // action owns status/error; this returns the result and throws on failure.
   const handleUnlocked = async (counter: ApiOrder) => {
-    // Buyer (this user) bears the platform fee on the counter-listing's
-    // ERC-20 amount, same as a listing purchase — bundled into the same
-    // atomic multicall as the accept, not a separate fire-and-forget tx.
+
     const hash = await fulfillOrder({
       orderHash: counter.orderHash,
       tokenStandard: counter.consideration.itemType,
@@ -152,7 +135,7 @@ export function CounterOffersTable({ address }: { address: string }) {
     });
     if (!hash) {
       mutate();
-      // fulfillOrder swallowed an error internally and returned undefined.
+
       throw new Error(
         "We couldn't complete the counter-offer accept. The transaction may have been rejected or the order may have expired. Please refresh and try again."
       );
@@ -162,7 +145,7 @@ export function CounterOffersTable({ address }: { address: string }) {
   };
 
   const dismissResult = () => {
-    // Block dismissal while the tx is in flight — same UX as purchase / listing.
+
     if (action.status === "processing" || action.status === "confirming") return;
     action.reset();
     setSelectedCounter(null);
@@ -205,7 +188,6 @@ export function CounterOffersTable({ address }: { address: string }) {
         </div>
       </EmptyOrError>
 
-      {/* Processing / success / error feedback dialog. */}
       <Dialog
         open={resultStep !== "idle"}
         onOpenChange={(v) => { if (!v) dismissResult(); }}
@@ -216,7 +198,6 @@ export function CounterOffersTable({ address }: { address: string }) {
             On-chain status for the counter-offer you accepted.
           </DialogDescription>
 
-          {/* Token hero (image + name) — shared across all result states */}
           <div className="flex flex-col items-center gap-3 pt-6 px-6">
             <div className="relative h-24 w-24 rounded-xl overflow-hidden border border-border bg-gradient-to-br from-muted to-muted-foreground/20">
               {counterImage && (

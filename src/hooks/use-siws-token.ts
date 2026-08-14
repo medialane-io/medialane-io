@@ -8,17 +8,6 @@ import {
   type SiwsSigner,
 } from "@/lib/siws-client";
 
-/**
- * Mint + cache a SIWS token for the current wallet, backed by the
- * wallet-native signer's own signTypedData — no PIN/passkey secret needed,
- * unlocking happens implicitly inside the signer's call. Mirrors
- * medialane-starknet's siws-client.ts caching semantics (24h TTL, one prompt
- * per day at most).
- *
- * `getValidToken()` returns a cached, unexpired token or null; call
- * `signIn()` to mint a fresh one when null.
- */
-/** Thrown by signIn() when the local wallet exists but isn't deployed on-chain yet — a distinct, recoverable state (see WalletDeploymentDialog / the redirect-to-onboarding banner), not a generic sign-in failure. */
 export class WalletNotDeployedError extends Error {
   constructor() {
     super("Wallet is not deployed yet.");
@@ -34,11 +23,7 @@ export function useSiwsToken() {
 
   const signIn = useCallback(async (): Promise<string | null> => {
     if (!walletAddress || !signer) return null;
-    // Skip the network round-trip (and the resulting account_not_deployed
-    // 400) entirely when we already know locally the wallet isn't
-    // deployed — surfaces as a distinct error type instead of a generic
-    // "sign-in failed" every hook that opportunistically calls signIn()
-    // would otherwise show.
+
     if (isDeployed === false) throw new WalletNotDeployedError();
 
     const siwsSigner: SiwsSigner = {
@@ -60,7 +45,6 @@ export function useSiwsToken() {
     }
   }, [walletAddress, signer, isDeployed]);
 
-  /** Cached, unexpired token if one exists — null otherwise (never prompts). */
   const getValidToken = useCallback((): string | null => {
     if (!walletAddress) return null;
     const existing = getStoredSiwsToken(walletAddress);

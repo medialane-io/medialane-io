@@ -15,8 +15,6 @@ import { GitBranch, ImageIcon, Inbox } from "lucide-react";
 
 const PAGE_SIZE = 24;
 
-/** Lists tokens whose creator-declared license permits derivatives
- *  (backend: GET /v1/tokens?derivatives=allowed). */
 function useRemixableTokens() {
   const [tokens, setTokens] = useState<ApiToken[]>([]);
   const [page, setPage] = useState(1);

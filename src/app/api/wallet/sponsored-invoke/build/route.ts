@@ -1,11 +1,4 @@
-/**
- * Server-only: builds an AVNU-paymaster-sponsored `invoke` transaction
- * against an already-deployed MediaWallet account, the post-deploy sibling
- * of `deploy-sponsored/build` (see that route's header, and design spec
- * 2026-08-08-io-sponsored-invoke-design.md). The AVNU API key never reaches
- * the browser, this route holds it, the browser only ever sees the returned
- * typed data (SNIP-9 outside execution) to sign.
- */
+
 import { type NextRequest, NextResponse } from "next/server";
 import { type Call, type PreparedInvokeTransaction } from "starknet";
 import { paymaster } from "@/lib/wallet/paymaster-server";

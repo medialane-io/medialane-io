@@ -9,7 +9,7 @@ import "@medialane/ui/styles";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
-// Brand display face — headings pick it up via --font-display (@medialane/ui styles).
+
 const urbanist = Urbanist({ subsets: ["latin"], display: "swap", variable: "--font-display" });
 
 export const metadata: Metadata = {

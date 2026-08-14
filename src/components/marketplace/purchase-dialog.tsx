@@ -41,7 +41,6 @@ interface PurchaseDialogProps {
 
 type Step = "details" | "processing" | "success";
 
-// ── Token hero — full-bleed image + name/price ───────────────────────────────
 function TokenHero({ order, quantity }: { order: ApiOrder; quantity: number }) {
   const image = order.token?.image ? ipfsToHttp(order.token.image) : null;
   const name = order.token?.name || `Token #${order.nftTokenId}`;
@@ -116,7 +115,6 @@ function TokenHero({ order, quantity }: { order: ApiOrder; quantity: number }) {
   );
 }
 
-// ── Success screen ────────────────────────────────────────────────────────────
 function SuccessScreen({
   order,
   quantity,
@@ -142,7 +140,7 @@ function SuccessScreen({
 
   return (
     <div className="flex flex-col">
-      {/* Full-width hero image with success overlay */}
+
       <div className="relative h-56 w-full bg-muted overflow-hidden shrink-0">
         {image ? (
           <img src={image} alt={name ?? ""} className="h-full w-full object-cover" />
@@ -165,9 +163,8 @@ function SuccessScreen({
         </div>
       </div>
 
-      {/* Body */}
       <div className="px-5 py-5 space-y-4">
-        {/* Summary — only what matters after purchase */}
+
         <div className="rounded-xl border border-border divide-y divide-border text-sm">
           {order.price && (
             <div className="flex items-center justify-between px-4 py-2.5">
@@ -196,7 +193,6 @@ function SuccessScreen({
           )}
         </div>
 
-        {/* CTAs */}
         <div className="flex flex-col sm:flex-row gap-2 w-full">
           <Button variant="outline" className="flex-1" asChild>
             <Link href={assetHref} onClick={onClose}>View asset</Link>
@@ -224,16 +220,13 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
     ? Math.max(1, parseInt(order.remainingAmount ?? order.offer.startAmount ?? "1", 10))
     : 1;
 
-  // The exact amount (raw wei, order's own currency) the fulfill call needs —
-  // shared by the balance check below and the swap-build step in executeAction.
   const requiredRaw = BigInt(order.consideration.startAmount ?? "0") * BigInt(is1155 ? quantity : 1);
   const orderCurrencyToken = order.price?.currency ? getTokenBySymbol(order.price.currency) : undefined;
   const { rawBalance: orderCurrencyBalance, isLoading: balanceLoading } = useErc20Balance(
     orderCurrencyToken?.address ?? null,
     walletAddress
   );
-  // Explicitly false (not null/loading) before showing the pay-with picker —
-  // never flash it while the balance is still resolving.
+
   const needsSwap = !balanceLoading && orderCurrencyBalance !== null && orderCurrencyBalance < requiredRaw;
 
   const handlePurchaseSuccess = (hash: string | null) => {
@@ -254,15 +247,10 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
     executeAction: async (values) => {
       setStep("processing");
       const qty = is1155 ? String(values.quantity) : undefined;
-      // The platform fee is bundled into the SAME atomic multicall as the
-      // fulfill call — no separate fire-and-forget transaction.
+
       const feeQuantity = is1155 ? BigInt(values.quantity || 1) : 1n;
       const feeGrossAmount = BigInt(order.consideration.startAmount ?? "0") * feeQuantity;
 
-      // Auto-swap: buyer is paying with a token other than the order's own
-      // currency. Build a FRESH swap quote+calls right now (never reuse the
-      // picker's browsing estimate) and prepend them into the same atomic
-      // multicall as the fulfill call — one signature, one transaction.
       let swapCalls: import("starknet").Call[] | undefined;
       if (values.paymentSymbol && order.price?.currency && walletAddress) {
         try {
@@ -303,7 +291,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
   };
 
   const handleClose = (v: boolean) => {
-    if (step === "processing" || step === "success") return; // block close during tx and on success screen
+    if (step === "processing" || step === "success") return;
     onOpenChange(v);
   };
 
@@ -316,7 +304,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
       setSuccessTxHash(null);
       setPaymentSymbol(null);
     }
-  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const processingMessage = "Confirming on Starknet…";
   const isTerminalError = status === "error";
@@ -332,7 +320,6 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
             Confirm and complete this marketplace purchase with your Medialane wallet.
           </DialogDescription>
 
-          {/* ── Success ──────────────────────────────────────────────────── */}
           {step === "success" ? (
             <SuccessScreen
               order={order}
@@ -356,7 +343,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
             />
 
           ) : step === "processing" ? (
-            /* Processing */
+
             <div className="flex flex-col items-center gap-4 p-6 py-10">
               <div className="relative">
                 <Loader2 className="h-10 w-10 animate-spin text-primary" />
@@ -371,7 +358,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
             </div>
 
           ) : (
-            /* ── Details step ──────────────────────────────────────────── */
+
             <div className="space-y-0">
               <TokenHero order={order} quantity={quantity} />
               <div className="px-6 pb-6 pt-3 space-y-3">

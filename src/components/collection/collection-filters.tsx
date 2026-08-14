@@ -44,7 +44,6 @@ export function CollectionFilters({
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="w-full max-w-sm p-0 overflow-hidden gap-0 flex flex-col max-h-[85svh]">
 
-          {/* Header */}
           <div className="flex items-center justify-between pr-10 pl-5 py-4 border-b border-border/60 shrink-0">
             <DialogTitle className="text-base font-bold flex items-center gap-2">
               <SlidersHorizontal className="h-4 w-4" />
@@ -73,7 +72,6 @@ export function CollectionFilters({
             onToggleValue={toggleValue}
           />
 
-          {/* Footer */}
           <div className="px-5 pt-3 pb-5 border-t border-border/60 shrink-0">
             <button
               className="w-full h-11 rounded-[11px] bg-brand-purple text-white text-sm font-semibold flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.98] transition-all"

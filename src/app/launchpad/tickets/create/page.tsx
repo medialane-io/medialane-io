@@ -82,8 +82,6 @@ export default function CreateTicketCollectionPage() {
     if (!walletAddress) throw new Error("Account not ready. Please refresh and try again.");
     setDeployedAddress(null);
 
-    // Pin collection metadata first — base_uri goes on-chain in the immutable
-    // deploy, so a failed pin is fatal (pinLaunchpadMetadata throws).
     let baseUri = "";
     if (imageUri) {
       const siwsToken = getValidToken() ?? (await signIn());
@@ -105,7 +103,6 @@ export default function CreateTicketCollectionPage() {
     const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
     rewardToast("create_ticket_collection");
 
-    // Best-effort: read the deployed address from the CollectionDeployed event.
     let addr: string | null = null;
     try {
       type ReceiptEvent = { keys?: string[] };
@@ -116,13 +113,13 @@ export default function CreateTicketCollectionPage() {
           if (attempt > 0) await new Promise((r) => setTimeout(r, 2000));
           const raw: unknown = await starknetProvider.getTransactionReceipt(result.txHash);
           receipt = raw as ReceiptShape;
-        } catch { /* retry */ }
+        } catch {  }
       }
       const deployEvent = (receipt?.events ?? []).find((e) =>
         e.keys?.[0] && BigInt(e.keys[0]) === BigInt(COLLECTION_DEPLOYED_SELECTOR)
       );
       if (deployEvent?.keys?.[1]) addr = normalizeAddress("STARKNET", deployEvent.keys[1]);
-    } catch { /* non-fatal — tx confirmed, the indexer picks it up on the next poll */ }
+    } catch {  }
 
     if (walletAddress) invalidatePortfolioCache(walletAddress);
     setDeployedAddress(addr);
@@ -155,7 +152,7 @@ export default function CreateTicketCollectionPage() {
         </p>
         {imagePreview && (
           <div className="h-24 w-24 rounded-xl overflow-hidden border border-border shadow-md">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
+
             <img src={imagePreview} alt={pendingValues?.name ?? ""} className="h-full w-full object-cover" />
           </div>
         )}
@@ -189,7 +186,7 @@ export default function CreateTicketCollectionPage() {
       >
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-            {/* Collection image */}
+
             <div className="space-y-2">
               <p className="text-sm font-medium">Collection image</p>
               <div className="flex items-start gap-4">

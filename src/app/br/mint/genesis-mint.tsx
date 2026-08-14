@@ -105,8 +105,6 @@ export function GenesisMint() {
     setMintStep("ready");
   }, [storageKey]);
 
-  // ── Render ───────────────────────────────────────────────────────────────────
-
   if (!hasWallet || isDeployed === null) {
     return (
       <div className="space-y-3">

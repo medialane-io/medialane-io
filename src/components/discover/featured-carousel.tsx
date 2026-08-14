@@ -77,7 +77,6 @@ export function FeaturedCarousel() {
   const next = useCallback(() => setActive((p) => (p + 1) % total), [total]);
   const prev = useCallback(() => setActive((p) => (p - 1 + total) % total), [total]);
 
-  // Reset active index when collection list changes
   useEffect(() => { setActive(0); }, [total]);
 
   useEffect(() => {

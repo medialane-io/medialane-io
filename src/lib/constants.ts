@@ -1,7 +1,5 @@
 import { readOptionalAddressEnv, readStringEnv } from "./env";
 
-// Protocol contract addresses — the SDK's chain-named constants (single source).
-// No NEXT_PUBLIC_ overrides, no *_MAINNET.
 export {
   SUPPORTED_TOKENS,
   STARKNET_MARKETPLACE_721_CONTRACT,
@@ -19,39 +17,13 @@ export {
 export const STARKNET_RPC_URL =
   readStringEnv(process.env.NEXT_PUBLIC_STARKNET_RPC_URL);
 
-// Server-only keyed RPC endpoint (no NEXT_PUBLIC_ prefix, so these evaluate to
-// "" in the browser bundle regardless — Next only inlines NEXT_PUBLIC_* vars).
-// Same priority chain /api/rpc/route.ts uses for its own upstream selection.
 export const RPC_MAIN_URL =
   readStringEnv(process.env.ALCHEMY_RPC_URL) || readStringEnv(process.env.STARKNET_RPC_URL_SERVER);
 export const RPC_FALLBACK_URL =
   readStringEnv(process.env.STARKNET_RPC_FALLBACK_URL, "https://rpc.starknet.lava.build");
 
-/**
- * `MEDIALANE_BACKEND_URL` is **environment-aware**:
- *
- * - **Server-side** (RSC, BFF routes, sitemap): the real backend URL.
- *   Paired with `MEDIALANE_API_KEY` below (which holds the real server-only
- *   key on this side), so existing `${MEDIALANE_BACKEND_URL}/v1/...` + the
- *   `x-api-key: MEDIALANE_API_KEY` header pattern works unchanged.
- *
- * - **Browser**: `/api/proxy` — same-origin BFF that injects the real API
- *   key server-side (see `src/app/api/proxy/v1/[...path]/route.ts`).
- *   `MEDIALANE_API_KEY` is the empty string here, so any
- *   `x-api-key: MEDIALANE_API_KEY` header the client sends is harmless;
- *   the proxy strips and replaces it.
- *
- * The result: the legacy `NEXT_PUBLIC_MEDIALANE_API_KEY` pattern (which
- * shipped the key in the JS bundle) is gone, but existing call sites that
- * import these constants need no code changes.
- */
 const isServer = typeof window === "undefined";
 
-// On the client, target the same-origin BFF proxy. We use an absolute URL
-// (origin + path) rather than a bare path because `MedialaneClient`'s Zod
-// schema validates `backendUrl` with `z.string().url()` — `/api/proxy`
-// alone is rejected as not a URL. fetch() against the absolute same-origin
-// URL works identically to a relative one in the browser.
 export const MEDIALANE_BACKEND_URL = isServer
   ? readStringEnv(process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL, "http://localhost:3001")
   : `${window.location.origin}/api/proxy`;
@@ -60,11 +32,6 @@ export const MEDIALANE_API_KEY = isServer
   ? readStringEnv(process.env.MEDIALANE_API_KEY)
   : "";
 
-// Regression guard: if a future refactor accidentally renames the env var to
-// `NEXT_PUBLIC_MEDIALANE_API_KEY` (the exact bug the BFF proxy replaced), or
-// otherwise causes a non-empty key to materialize in the browser bundle, fail
-// loudly at module init rather than silently leaking. The check runs only in
-// the browser — server-side the key is supposed to be set.
 if (!isServer && MEDIALANE_API_KEY) {
   throw new Error(
     "MEDIALANE_API_KEY is non-empty in the browser bundle — the server-only " +
@@ -82,7 +49,6 @@ export const EXPLORER_URL =
 export const MINT_CONTRACT =
   readOptionalAddressEnv(process.env.NEXT_PUBLIC_MINT_CONTRACT, "NEXT_PUBLIC_MINT_CONTRACT");
 
-// Genesis launch mint (alias kept for env compat)
 export const LAUNCH_MINT_CONTRACT =
   readOptionalAddressEnv(
     process.env.NEXT_PUBLIC_LAUNCH_MINT_CONTRACT,
@@ -92,25 +58,21 @@ export const LAUNCH_MINT_CONTRACT =
 export const GENESIS_NFT_URI =
   readStringEnv(process.env.NEXT_PUBLIC_GENESIS_NFT_URI);
 
-/** Optional: direct image URL shown in the NFT card preview (e.g. Pinata gateway URL). */
 export const GENESIS_NFT_IMAGE_URL =
   readStringEnv(process.env.NEXT_PUBLIC_GENESIS_NFT_IMAGE_URL);
 
-// Brazil event exclusive mint
 export const BR_MINT_CONTRACT =
   readOptionalAddressEnv(process.env.NEXT_PUBLIC_BR_MINT_CONTRACT, "NEXT_PUBLIC_BR_MINT_CONTRACT");
 
 export const BR_NFT_URI =
   readStringEnv(process.env.NEXT_PUBLIC_BR_NFT_URI);
 
-// Global airdrop campaign (/mint)
 export const MINT_NFT_URI =
   readStringEnv(process.env.NEXT_PUBLIC_MINT_NFT_URI);
 
 export const MINT_NFT_IMAGE_URL =
   readStringEnv(process.env.NEXT_PUBLIC_MINT_NFT_IMAGE_URL);
 
-/** Delay (ms) before re-fetching after a write op, allowing the indexer to process the block. */
 export const INDEXER_REVALIDATION_DELAY_MS = 10_000;
 
 export const DURATION_OPTIONS = [

@@ -1,8 +1,6 @@
 import { Ticket, ChevronRight } from "lucide-react";
 import { ClaimRail } from "@medialane/ui";
 
-/** Right-rail content for /launchpad/tickets/create. */
-
 export function CreateTicketAside() {
   return (
     <ClaimRail

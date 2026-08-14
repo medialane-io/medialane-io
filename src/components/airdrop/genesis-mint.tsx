@@ -23,8 +23,6 @@ import { GradientButton } from "@medialane/ui";
 import { EXPLORER_URL, MINT_CONTRACT, MINT_NFT_URI, MINT_NFT_IMAGE_URL } from "@/lib/constants";
 import type { Call } from "starknet";
 
-// ─── Featured airdrop image ────────────────────────────────────────────────────
-
 export function AirdropEventCard() {
   const [errored, setErrored] = useState(false);
   const src = MINT_NFT_IMAGE_URL || "/genesis.jpg";
@@ -39,7 +37,7 @@ export function AirdropEventCard() {
             <p className="text-xs text-muted-foreground font-medium">Medialane Airdrop</p>
           </div>
         ) : (
-          // eslint-disable-next-line @next/next/no-img-element
+
           <img
             src={src}
             alt="Medialane Creator's Airdrop"
@@ -51,8 +49,6 @@ export function AirdropEventCard() {
     </div>
   );
 }
-
-// ─── Genesis Mint ─────────────────────────────────────────────────────────────
 
 type MintStep = "ready" | "minting" | "success" | "error";
 
@@ -139,8 +135,6 @@ export function GenesisMint() {
     setCompletedTxHash(null);
     setMintStep("ready");
   }, [storageKey]);
-
-  // ── Render ───────────────────────────────────────────────────────────────────
 
   if (!hasWallet || isDeployed === null) {
     return (

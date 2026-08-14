@@ -1,12 +1,5 @@
 "use client";
 
-// Mint Tickets — creates a new ticket type and mints its full supply straight
-// to the creator's own wallet, in one action. Same shape as the ERC-1155
-// edition mint page: one form, no redundant panels, no recipient field — the
-// creator ends up holding the tickets and lists them on the marketplace like
-// any other asset. Listing/holder management for existing tickets lives on
-// the collection page, not here.
-
 import { use, useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -127,10 +120,7 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
   });
 
   useEffect(() => {
-    // Wait for the profile fetch to settle before defaulting — otherwise this
-    // fires once with no slug (setting the plain contract URL), and the
-    // "field already has a value" guard blocks the nicer slug URL from ever
-    // landing once the profile actually loads.
+
     if (!contract || profileLoading) return;
     const suggested = profile?.slug
       ? `https://medialane.io/collection/${profile.slug}`
@@ -209,9 +199,6 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
     const endTime = dateToUnixTimestamp(values.endDate);
     const royaltyBps = Math.round(values.royalty * 100);
 
-    // Ids are sequential and only the owner can ever call create_ticket, so the
-    // id can still be predicted ahead of time and both intents' calls bundled
-    // into one multicall — one PIN unlock for what is one "mint" action.
     const ticketId = await predictNextTicketId(contract);
     setMintedTicketId(String(ticketId));
 
@@ -232,8 +219,7 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
       tokenId: String(ticketId),
       amount: values.maxSupply,
     });
-    // Bundled into one multicall — one wallet confirmation for what is one
-    // "mint" action.
+
     const mintResult = await executeIntents(signer, client, [tierRes.data, mintRes.data]);
 
     rewardToast("launch_launchpad");
@@ -296,7 +282,7 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
         </p>
         {imagePreview && (
           <div className="h-24 w-24 rounded-xl overflow-hidden border border-border shadow-md">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
+
             <img src={imagePreview} alt={form.getValues("name")} className="h-full w-full object-cover" />
           </div>
         )}

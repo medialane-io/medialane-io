@@ -76,9 +76,6 @@ export function ReportDialog({ target, open, onOpenChange }: ReportDialogProps) 
     setSubmitStep("submitting");
     setSubmitError(null);
 
-    // Normalize addresses + build the backend targetKey here; the backend
-    // re-validates the key against these fields, and it derives the reporter
-    // identity from the forwarded SIWS token (never from the body).
     const normalizedContract =
       target.type === "TOKEN" || target.type === "COLLECTION"
         ? normalizeAddress("STARKNET", target.contract)

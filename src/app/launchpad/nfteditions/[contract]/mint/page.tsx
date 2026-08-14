@@ -48,15 +48,14 @@ export default function MintIP1155Page() {
   const [pendingValues, setPendingValues] = useState<NftEditionsMintFormValues | null>(null);
   const [ownerCheck, setOwnerCheck] = useState<"loading" | "ok" | "denied">("loading");
   const [formError, setFormError] = useState<string | null>(null);
-  // Read only at submit time — keep in a ref so each keystroke in IPTypeFields
-  // doesn't re-render this whole form (the cause of the visible flicker).
+
   const metadataFieldsRef = useRef<MetadataField[]>([]);
   const handleMetadataFields = useCallback((fields: MetadataField[]) => {
     metadataFieldsRef.current = fields;
   }, []);
   const [metadataResetKey, setMetadataResetKey] = useState(0);
   const [autoExternalUrl, setAutoExternalUrl] = useState("");
-  // The on-chain-assigned edition id, read from the IPMinted event in the mint handler.
+
   const [mintedTokenId, setMintedTokenId] = useState<string | null>(null);
   const {
     imagePreview,
@@ -91,15 +90,12 @@ export default function MintIP1155Page() {
     },
   });
 
-  // Pre-fill recipient with connected wallet
   useEffect(() => {
     if (walletAddress && !form.getValues("recipient")) {
       form.setValue("recipient", walletAddress);
     }
   }, [walletAddress, form]);
 
-  // Pre-fill external URL with the collection page (the edition id is assigned
-  // on-chain at mint, so it isn't known here).
   useEffect(() => {
     if (!collectionAddress) return;
     const suggested = `https://medialane.io/collections/${collectionAddress}`;
@@ -110,13 +106,6 @@ export default function MintIP1155Page() {
     }
   }, [autoExternalUrl, collectionAddress, form]);
 
-  // Verify the connected wallet is the collection owner before showing the
-  // form. Reads the indexed Collection.owner via the credited backend
-  // (GET /v1/collections/:contract) instead of a raw on-chain call — the
-  // backend already indexes this field, so a second live RPC read was a
-  // pure duplicate that also bypassed the credit gate. A failed read now
-  // denies rather than silently granting access (the previous raw-RPC
-  // version fell back to "ok" on any error, including a transient one).
   useEffect(() => {
     if (!walletAddress || !collectionAddress) return;
     client.api.getCollection(collectionAddress)
@@ -186,13 +175,12 @@ export default function MintIP1155Page() {
       collectionContract: collectionAddress,
       tokenUri,
       value: values.value,
-      // royaltyBps has no effect on mip-erc1155 mints — this form has no royalty field for editions mint.
+
       royaltyBps: 0,
     });
-    // The contract assigns the edition id on-chain (sequential from 1).
+
     const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
 
-    // Read the assigned id from the IPMinted event for the success/asset link.
     setMintedTokenId(await readAssignedEditionId(result.txHash, collectionAddress));
     if (walletAddress) invalidatePortfolioCache(walletAddress);
     rewardToast("mint_asset");
@@ -224,7 +212,6 @@ export default function MintIP1155Page() {
     });
   };
 
-  // ── No wallet yet ──────────────────────────────────────────────────────────
   if (!hasWallet) {
     return (
       <LaunchpadSignedOutState
@@ -236,7 +223,6 @@ export default function MintIP1155Page() {
     );
   }
 
-  // ── Ownership check ───────────────────────────────────────────────────────
   if (ownerCheck === "denied") {
     return (
       <div className="max-w-lg mx-auto px-4 pt-24 pb-8 text-center space-y-4">
@@ -252,7 +238,6 @@ export default function MintIP1155Page() {
     );
   }
 
-  // ── Mint form ──────────────────────────────────────────────────────────────
   return (
     <>
       <ClaimRouteShell
@@ -318,7 +303,7 @@ export default function MintIP1155Page() {
         </p>
         {imagePreview && (
           <div className="h-24 w-24 rounded-xl overflow-hidden border border-border shadow-md">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
+
             <img src={imagePreview} alt={pendingValues?.name ?? ""} className="h-full w-full object-cover" />
           </div>
         )}

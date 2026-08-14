@@ -32,7 +32,6 @@ import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { EXPLORER_URL, DURATION_OPTIONS } from "@/lib/constants";
 import { marketplacePriceField, counterOfferDurationField } from "@/lib/marketplace-schemas";
 
-/** Convert a human-readable amount string to raw wei integer string. */
 function toRawWei(humanAmount: string, decimals: number): string {
   const parts = humanAmount.replace(/,/g, "").split(".");
   const integer = BigInt(parts[0] || "0");
@@ -53,7 +52,7 @@ interface CounterOfferDialogProps {
   onOpenChange: (open: boolean) => void;
   originalOrderHash: string;
   tokenName?: string;
-  /** Human-readable current bid (e.g. "12.5 USDC") — shown for reference */
+
   currentBid?: string;
   currencySymbol: string;
   currencyDecimals: number;

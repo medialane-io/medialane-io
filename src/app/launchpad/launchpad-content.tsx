@@ -10,7 +10,6 @@ import { getService } from "@medialane/sdk";
 import { LaunchpadGroupedSections, LaunchpadFilterBar, useLaunchpadFilter, type ServiceOverrides } from "@medialane/ui";
 import { ExternalLink, ArrowRight } from "lucide-react";
 
-// ── io-specific service overrides (hrefs, rollout flips) ──
 const IO_OVERRIDES: ServiceOverrides = {
   "nfts":             { href: "/launchpad/single-editions" },
   "limited-editions": { href: "/launchpad/nfteditions" },
@@ -27,13 +26,11 @@ const IO_OVERRIDES: ServiceOverrides = {
   "ip-sponsorship": { href: "/launchpad/sponsorship" },
 };
 
-// ── Page ────────────────────────────────────────────────────────────────────
 export function LaunchpadContent() {
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
   const filter = useLaunchpadFilter();
   const { collections } = useCollectionsByOwner(walletAddress ?? null);
 
-  // Live per-user facts on the cards — real counts, shown only when nonzero.
   const overrides = useMemo<ServiceOverrides>(() => {
     const nftCount = collections.filter((c) => getService(c.service)?.id === "mip-erc721").length;
     const editionsCount = collections.filter((c) => c.standard === "ERC1155").length;
@@ -45,7 +42,6 @@ export function LaunchpadContent() {
   return (
     <div className="relative pb-20 space-y-8 sm:space-y-10">
 
-      {/* ── Starknet dapp widget — top right, scrolls with the page ─ */}
       <a
         href="https://starknet.medialane.io/launchpad"
         target="_blank"
@@ -56,7 +52,6 @@ export function LaunchpadContent() {
         <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
       </a>
 
-      {/* ── Header ───────────────────────────────────────────── */}
       <section className="px-4 pt-16 sm:pt-20 space-y-5">
         <FadeIn>
           <h1 className="text-3xl sm:text-4xl font-semibold leading-tight">Launchpad</h1>
@@ -72,7 +67,6 @@ export function LaunchpadContent() {
         </FadeIn>
       </section>
 
-      {/* ── Grouped services (shared @medialane/ui component) ─── */}
       <section className="px-4">
         <LaunchpadGroupedSections
           overrides={overrides}
@@ -82,7 +76,6 @@ export function LaunchpadContent() {
         />
       </section>
 
-      {/* ── Web3 dapp callout ─────────────────────────────────── */}
       <section className="px-4">
         <FadeIn>
           <div className="rounded-2xl border border-border/40 p-5 bg-gradient-to-r from-brand-blue/10 to-brand-purple/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -102,7 +95,6 @@ export function LaunchpadContent() {
         </FadeIn>
       </section>
 
-      {/* ── Portfolio shortcut ────────────────────────────────── */}
       {hasWallet && (
         <section className="px-4">
           <FadeIn>

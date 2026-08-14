@@ -35,7 +35,7 @@ export function PinInput({
             const raw = e.target.value;
             const stripped = raw.replace(/\D/g, "").slice(0, 12);
             if (raw.length > stripped.length) {
-              // Non-digit or over-length characters were stripped — show a brief hint
+
               if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
               setHint("Digits only (0–9)");
               hintTimerRef.current = setTimeout(() => setHint(null), 1500);

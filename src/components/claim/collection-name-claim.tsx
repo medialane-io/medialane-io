@@ -9,9 +9,6 @@ import { EmptyOrError } from "@/components/ui/empty-or-error";
 import { ipfsToHttp } from "@/lib/utils";
 import { CheckCircle2, ImageIcon, Plus, ArrowRight } from "lucide-react";
 
-/** Slug claiming is per-collection and owned by the collection settings page
- *  (single source of truth). This panel lets the creator pick which of their
- *  collections to name, then deep-links into that collection's settings. */
 export function CollectionNameClaim() {
   const { address: walletAddress } = useWalletNativeSession();
   const { collections, isLoading, error, mutate } = useCollectionsByOwner(walletAddress ?? null);

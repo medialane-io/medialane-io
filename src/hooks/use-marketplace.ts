@@ -1,18 +1,5 @@
 "use client";
 
-/**
- * useMarketplace — wallet-native marketplace operations via backend intent API.
- *
- * Write flow (listing / offer / fulfill / cancel):
- *  1. Create intent via backend → { id, typedData } or { id, calls }
- *  2. If requiresSignature: sign typedData (SNIP-12, client-side), submit
- *     signature → backend returns fully-built calls array
- *  3. Execute calls via the wallet's own atomic multicall (signer.execute)
- *
- * The backend owns all SNIP-12 struct building, nonce fetching, calldata
- * encoding, and approve-call prepending. The frontend only signs and executes.
- */
-
 import { useState, useCallback } from "react";
 import { useSWRConfig } from "swr";
 import { useWalletNativeSession } from "./use-wallet-native-session";
@@ -25,8 +12,6 @@ import { ioFeeConfig } from "@/lib/fee";
 import type { Call, TypedData } from "starknet";
 import type { ApiIntentCreated } from "@medialane/sdk";
 
-/** Resolve a currency symbol (e.g. "USDC") to its on-chain contract address.
- *  Returns the input unchanged if it already looks like an address. */
 function resolveCurrencyAddress(symbolOrAddress: string): string {
   if (symbolOrAddress.startsWith("0x")) return symbolOrAddress;
   const token = SUPPORTED_TOKENS.find(
@@ -36,19 +21,16 @@ function resolveCurrencyAddress(symbolOrAddress: string): string {
   return token.address;
 }
 
-/** Build a symbol→address map for all supported tokens. */
 const SYMBOL_TO_ADDRESS: Record<string, string> = Object.fromEntries(
   SUPPORTED_TOKENS.map((t) => [t.symbol, t.address])
 );
 
-/** Strip "UNKNOWN" before sending to the backend — the API only accepts "ERC721" | "ERC1155" | undefined. */
 function toApiStandard(standard?: string): "ERC721" | "ERC1155" | undefined {
   if (standard === "ERC1155") return "ERC1155";
   if (standard === "ERC721") return "ERC721";
   return undefined;
 }
 
-/** Map technical backend errors to a user-friendly support message. */
 function toFriendlyError(err: unknown, fallback: string): string {
   const raw = err instanceof Error ? err.message : fallback;
   if (/invalid body|400|bad request/i.test(raw)) {
@@ -57,11 +39,6 @@ function toFriendlyError(err: unknown, fallback: string): string {
   return raw;
 }
 
-/**
- * Walk typed data recursively and replace any plain currency symbol strings
- * (e.g. "USDC") with their contract addresses. Fixes backends that embed the
- * symbol instead of the address in ContractAddress fields.
- */
 function sanitizeTypedData(value: unknown): unknown {
   if (typeof value === "string") {
     const upper = value.toUpperCase();
@@ -79,8 +56,6 @@ function sanitizeTypedData(value: unknown): unknown {
   return value;
 }
 
-// ─── Types ────────────────────────────────────────────────────────────────
-
 export interface CreateListingInput {
   assetContract: string;
   tokenId: string;
@@ -88,7 +63,7 @@ export interface CreateListingInput {
   price: string;
   currencySymbol: string;
   durationSeconds: number;
-  /** Number of units to list. Required for ERC-1155, omit for ERC-721. */
+
   amount?: string;
   tokenStandard?: "ERC721" | "ERC1155" | "UNKNOWN";
 }
@@ -101,24 +76,21 @@ export interface MakeOfferInput {
   currencySymbol: string;
   durationSeconds: number;
   tokenStandard?: "ERC721" | "ERC1155" | "UNKNOWN";
-  /** ERC-1155 only: number of units to offer on. Defaults to "1". */
+
   quantity?: string;
 }
 
 export interface FulfillOrderInput {
   orderHash: string;
   tokenStandard?: string;
-  /** ERC-1155 only: units to purchase. Defaults to 1 if omitted. */
+
   quantity?: string;
-  /** Platform fee token + gross amount — bundled into the same atomic
-   *  multicall as the fulfill call, when the fee config permits it. */
+
   feeToken?: string;
   feeGrossAmount?: bigint;
-  /** Auto-swap approve+swap calls (from /api/wallet/swap/build), prepended
-   *  ahead of the fulfill call in the same atomic multicall when the buyer
-   *  is paying with a token other than the order's own currency. */
+
   swapCalls?: Call[];
-  // Legacy fields — kept for call-site compatibility, no longer used internally
+
   considerationToken?: string;
   considerationAmount?: string;
   nftContract?: string;
@@ -132,9 +104,9 @@ export interface CancelOrderInput {
 
 export interface MakeCounterOfferInput {
   originalOrderHash: string;
-  /** Raw wei price (not human-readable) */
+
   counterPriceRaw: string;
-  /** Duration in seconds (3600–2592000) */
+
   durationSeconds: number;
   message?: string;
   tokenName?: string;
@@ -145,21 +117,13 @@ type TerminalIntentResult = {
   intent: Record<string, unknown>;
 };
 
-// ─── Hook ─────────────────────────────────────────────────────────────────
-
 export function useMarketplace() {
   const { address: walletAddress, hasWallet, signer } = useWalletNativeSession();
   const client = useMedialaneClient();
   const { mutate } = useSWRConfig();
 
-  /** Invalidate all order + token caches after a write operation. */
   const invalidate = useCallback(() => {
-    // Revalidate matching keys WITHOUT clearing cached data. Passing `undefined`
-    // as mutate's data arg wiped the token cache to undefined mid-purchase,
-    // which unmounted the asset page's variant component (it gates rendering on
-    // token data being present) and destroyed the open success dialog.
-    // mutate(filter) alone = stale-while-revalidate: data stays until the
-    // refetch resolves, so the page never unmounts.
+
     mutate((key) => {
       if (typeof key !== "string") return false;
       return (
@@ -184,10 +148,6 @@ export function useMarketplace() {
     setHash(null);
   }, []);
 
-  /**
-   * Poll GET /v1/intents/:id until the backend settles to CONFIRMED or FAILED,
-   * or until the timeout is reached.
-   */
   const pollIntentUntilTerminal = useCallback(
     async (id: string): Promise<TerminalIntentResult> => {
       const MAX_ATTEMPTS = 10;
@@ -208,11 +168,6 @@ export function useMarketplace() {
     [client]
   );
 
-  /**
-   * Shared intent flow:
-   *  create intent → sign typedData (if required) → submit signature →
-   *  execute via the wallet's own multicall → confirm → poll until terminal
-   */
   const runIntent = useCallback(
     async (
       intentFn: () => Promise<{ data: ApiIntentCreated }>,
@@ -223,16 +178,9 @@ export function useMarketplace() {
       const intent = (await intentFn()).data;
       if (!intent?.id) throw new Error("Intent creation failed: no data returned");
 
-      // Resolve the executable calls — the only part that differs by intent kind.
-      // The SDK's discriminated union enforces the right field per branch:
-      //  • requiresSignature → sign the SNIP-12 typedData, then the backend injects
-      //    the signature and returns the executable calls (listing/offer/cancel/counter).
-      //  • else → calls are prebuilt server-side (fulfil/mint/create-collection);
-      //    the caller IS the fulfiller, so there is no signature step.
       let calls: Call[];
       if (intent.requiresSignature) {
-        // Sanitize typed data: replace any bare currency symbols (e.g. "USDC")
-        // with their contract addresses so starknet.js can convert them to BigInt.
+
         const sanitized = sanitizeTypedData(intent.typedData) as TypedData;
         const sig = await signer.signTypedData(sanitized);
         const signedRes = await client.api.submitIntentSignature(intent.id, sig);
@@ -242,22 +190,16 @@ export function useMarketplace() {
       }
       if (!calls?.length) throw new Error("No calls returned from intent");
 
-      // Bundle any extra calls (e.g. an auto-swap, the platform fee) into the
-      // SAME atomic multicall — no separate fire-and-forget transaction.
       if (extra?.prependCalls?.length) calls = [...extra.prependCalls, ...calls];
       if (extra?.appendCalls?.length) calls = [...calls, ...extra.appendCalls];
 
-      // Execute — identical tail for every intent kind.
       const result = await signer.execute(calls);
       setHash(result.txHash);
 
-      // Normalize: Starknet hashes are felt252 and may lack leading zeros — pad to 0x+64 chars
       const normalizedHash = "0x" + result.txHash.replace(/^0x/, "").padStart(64, "0");
 
-      // Submit tx hash to backend — verifies receipt + marketplace events server-side
       await client.api.confirmIntent(intent.id, normalizedHash);
 
-      // Poll until backend reports terminal status (CONFIRMED or FAILED)
       const terminal = await pollIntentUntilTerminal(intent.id);
 
       if (terminal.status === "FAILED") {
@@ -268,14 +210,12 @@ export function useMarketplace() {
       }
 
       invalidate();
-      // Re-invalidate after indexer processes the block (~10s) to reflect chain state
+
       setTimeout(() => invalidate(), INDEXER_REVALIDATION_DELAY_MS);
       return result.txHash;
     },
     [walletAddress, signer, client, invalidate, pollIntentUntilTerminal]
   );
-
-  // ── createListing ──────────────────────────────────────────────────────
 
   const createListing = useCallback(
     async (input: CreateListingInput) => {
@@ -298,15 +238,13 @@ export function useMarketplace() {
       } catch (err: unknown) {
         const msg = toFriendlyError(err, "Failed to create listing");
         setError(msg);
-        // error is shown inline in listing-dialog's Alert — no toast needed
+
       } finally {
         setIsProcessing(false);
       }
     },
     [walletAddress, runIntent, client]
   );
-
-  // ── fulfillOrder (buy) ─────────────────────────────────────────────────
 
   const fulfillOrder = useCallback(
     async (input: FulfillOrderInput) => {
@@ -339,15 +277,13 @@ export function useMarketplace() {
       } catch (err: unknown) {
         const msg = toFriendlyError(err, "Purchase failed");
         setError(msg);
-        // error is shown inline in purchase-dialog's Alert — no toast needed
+
       } finally {
         setIsProcessing(false);
       }
     },
     [walletAddress, runIntent, client]
   );
-
-  // ── makeOffer ──────────────────────────────────────────────────────────
 
   const makeOffer = useCallback(
     async (input: MakeOfferInput) => {
@@ -370,15 +306,13 @@ export function useMarketplace() {
       } catch (err: unknown) {
         const msg = toFriendlyError(err, "Failed to submit offer");
         setError(msg);
-        // error is shown inline in offer-dialog's Alert — no toast needed
+
       } finally {
         setIsProcessing(false);
       }
     },
     [walletAddress, runIntent, client]
   );
-
-  // ── makeCounterOffer ───────────────────────────────────────────────────
 
   const makeCounterOffer = useCallback(
     async (input: MakeCounterOfferInput) => {
@@ -397,15 +331,13 @@ export function useMarketplace() {
       } catch (err: unknown) {
         const msg = toFriendlyError(err, "Counter-offer failed");
         setError(msg);
-        // error is surfaced via setError — dialogs read the error state directly
+
       } finally {
         setIsProcessing(false);
       }
     },
     [walletAddress, runIntent]
   );
-
-  // ── cancelOrder ────────────────────────────────────────────────────────
 
   const cancelOrder = useCallback(
     async (input: CancelOrderInput) => {
@@ -422,10 +354,7 @@ export function useMarketplace() {
       } catch (err: unknown) {
         const msg = toFriendlyError(err, "Cancellation failed");
         setError(msg);
-        // error is shown in CancelListingDialog's error state — no toast needed
-        // Invalidate after failure: the backend may have synced the order to CANCELLED
-        // (e.g. the order was already cancelled on-chain but DB was stale). This ensures
-        // the UI reflects the corrected state instead of continuing to show a stale listing.
+
         invalidate();
         setTimeout(() => invalidate(), INDEXER_REVALIDATION_DELAY_MS);
       } finally {

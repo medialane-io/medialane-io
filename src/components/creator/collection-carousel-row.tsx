@@ -12,7 +12,6 @@ import { useUsdPrices } from "@/hooks/use-usd-prices";
 import { usdValueFor } from "@/lib/wallet-format";
 import type { ApiCollection } from "@medialane/sdk";
 
-// Square "View all" end card — matches token card width
 function ViewAllCard({ href }: { href: string }) {
   return (
     <Link href={href} className="snap-start shrink-0 w-64 block">
@@ -64,7 +63,7 @@ export function CollectionCarouselRow({
 
   return (
     <div className="space-y-3">
-      {/* Row header */}
+
       <div className="flex items-center justify-between">
         <h3 className="text-base font-semibold truncate max-w-[70%]">
           {collection.name ?? "Unnamed Collection"}
@@ -77,7 +76,6 @@ export function CollectionCarouselRow({
         </Link>
       </div>
 
-      {/* Scroll strip — w-64 cards, collection cover uses vertical aspect-[3/4] like frontpage */}
       <div
         ref={scrollRef}
         className="flex items-end gap-3 overflow-x-auto scrollbar-none snap-x snap-mandatory cursor-grab active:cursor-grabbing pb-1"
@@ -86,12 +84,11 @@ export function CollectionCarouselRow({
         onMouseUp={onMouseUp}
         onMouseLeave={onMouseUp}
       >
-        {/* Collection cover — vertical aspect-[3/4] matching frontpage CollectionCard */}
+
         <div className="snap-start shrink-0 w-64">
           <CollectionCard collection={collection} />
         </div>
 
-        {/* Token cards */}
         {isLoading
           ? Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="snap-start shrink-0 w-64">
@@ -110,7 +107,6 @@ export function CollectionCarouselRow({
               );
             })}
 
-        {/* View all CTA */}
         {!isLoading && (
           <ViewAllCard href={collectionHref("STARKNET", collection.contractAddress)} />
         )}

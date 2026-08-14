@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export interface DraftItem {
-  id: string; // crypto.randomUUID()
+  id: string;
   file: File;
-  previewUrl: string; // URL.createObjectURL(file)
+  previewUrl: string;
   name: string;
   description: string;
 }

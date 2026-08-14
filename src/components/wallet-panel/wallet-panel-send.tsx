@@ -84,7 +84,7 @@ export function WalletPanelSend({
       const text = await navigator.clipboard.readText();
       if (text) setTo(text.trim());
     } catch {
-      // clipboard read denied — leave the field as-is
+
     }
   };
 

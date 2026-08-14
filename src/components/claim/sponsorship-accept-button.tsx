@@ -17,19 +17,13 @@ import type { Call } from "starknet";
 interface SponsorshipAcceptButtonProps {
   offerId: string;
   sponsor: string;
-  /** The offer's payment token — needed to charge the platform fee. */
+
   paymentToken: string;
-  /** The accepted bid's amount, raw token units — the fee's gross amount. */
+
   amount: string;
   onAccepted?: () => void;
 }
 
-/**
- * Author-only. `accept_bid` settles the sponsor's payment (allowance pull,
- * no escrow) and mints the license — a real, standard ERC-721 on this same
- * contract — to the sponsor, atomically in one call. v3: there is no second
- * receipt-mint call anymore (IPSponsorship embeds ERC721Component directly).
- */
 export function SponsorshipAcceptButton({ offerId, sponsor, paymentToken, amount, onAccepted }: SponsorshipAcceptButtonProps) {
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
   const client = useMedialaneClient();
@@ -47,9 +41,6 @@ export function SponsorshipAcceptButton({ offerId, sponsor, paymentToken, amount
       if (intent.requiresSignature) throw new Error("Unexpected signature requirement on sponsorship accept");
       const calls: Call[] = [...(intent.calls as Call[])];
 
-      // The platform fee is bundled into the SAME atomic multicall as the
-      // accept — no separate fire-and-forget transaction, so the fee can
-      // never be stranded on a reverted accept.
       const feeCall = buildFeeCall(
         { surface: "sponsorship", token: paymentToken, grossAmount: BigInt(amount) },
         ioFeeConfig,

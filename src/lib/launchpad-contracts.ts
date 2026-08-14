@@ -1,7 +1,4 @@
-/**
- * Launchpad contract addresses and minimal ABIs.
- * Once @medialane/sdk exports these, import from there instead.
- */
+
 
 export { STARKNET_DROP_FACTORY_CONTRACT, STARKNET_POP_FACTORY_CONTRACT } from "./constants";
 
@@ -14,7 +11,6 @@ export type PopEventType =
   | "Course"
   | "Other";
 
-/** Minimal ABI for create_drop on the Drop Factory contract */
 export const DropFactoryABI = [
   {
     type: "struct",
@@ -42,7 +38,6 @@ export const DropFactoryABI = [
   },
 ] as const;
 
-/** Minimal ABI for create_collection on the POP Factory contract */
 export const POPFactoryABI = [
   {
     type: "enum",
@@ -72,12 +67,6 @@ export const POPFactoryABI = [
   },
 ] as const;
 
-/**
- * Minimal read ABI for DropCollection view calls (verified against the deployed class
- * 0x00092e72… on 2026-06-15). Used by use-drops to read live state from chain instead of
- * the fragile backend conditions mirror. Includes the ClaimConditions struct so starknet.js
- * can decode get_claim_conditions().
- */
 export const DropCollectionReadABI = [
   {
     type: "struct",

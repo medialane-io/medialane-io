@@ -9,10 +9,6 @@ import { Button } from "@/components/ui/button";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { cn } from "@/lib/utils";
 
-// ─────────────────────────────────────────────────────────────────────────────
-// MarketplaceTxLink
-// ─────────────────────────────────────────────────────────────────────────────
-
 interface MarketplaceTxLinkProps {
   txHash: string;
   explorerUrl: string;
@@ -39,10 +35,6 @@ export function MarketplaceTxLink({
     </a>
   );
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// MarketplaceProcessingState
-// ─────────────────────────────────────────────────────────────────────────────
 
 interface MarketplaceProcessingStateProps {
   title: string;
@@ -84,12 +76,6 @@ export function MarketplaceProcessingState({
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// MarketplaceSignInGate — despite the name, gates on wallet readiness, not
-// a sign-in step. Kept for import-site stability across the marketplace
-// dialogs.
-// ─────────────────────────────────────────────────────────────────────────────
-
 interface MarketplaceSignInGateProps {
   title: string;
   description: string;
@@ -117,10 +103,6 @@ export function MarketplaceSignInGate({ title, description }: MarketplaceSignInG
     </div>
   );
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// MarketplaceSuccessState
-// ─────────────────────────────────────────────────────────────────────────────
 
 interface MarketplaceSuccessStateProps {
   tokenImage?: string | null;
@@ -173,10 +155,6 @@ export function MarketplaceSuccessState({
     </div>
   );
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// MarketplaceErrorState
-// ─────────────────────────────────────────────────────────────────────────────
 
 interface MarketplaceErrorStateProps {
   tokenImage?: string | null;
@@ -242,10 +220,6 @@ export function MarketplaceErrorState({
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// MarketplaceDialogHero
-// ─────────────────────────────────────────────────────────────────────────────
-
 interface MarketplaceDialogHeroProps {
   tokenImage?: string | null;
   tokenName?: string;
@@ -276,10 +250,6 @@ export function MarketplaceDialogHero({
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// CurrencyPicker
-// ─────────────────────────────────────────────────────────────────────────────
-
 interface CurrencyPickerProps {
   currencies: string[];
   value: string;
@@ -308,10 +278,6 @@ export function CurrencyPicker({ currencies, value, onChange, disabled }: Curren
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// DurationPicker
-// ─────────────────────────────────────────────────────────────────────────────
-
 interface DurationPickerProps {
   options: ReadonlyArray<{ label: string; seconds: number }>;
   value: number;
@@ -338,13 +304,6 @@ export function DurationPicker({ options, value, onChange, disabled }: DurationP
     </div>
   );
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// MarketplaceConfirmStep — a review-before-execute step for actions with
-// meaningful context (e.g. "accepting an offer leaves listings unfulfillable")
-// that shouldn't fire the instant the button is clicked. No PIN: unlocking
-// happens implicitly inside the wallet's own signer.execute() call.
-// ─────────────────────────────────────────────────────────────────────────────
 
 interface MarketplaceConfirmStepProps {
   summary?: ReactNode;

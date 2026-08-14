@@ -1,15 +1,4 @@
-/**
- * Server interactions for the single-editions mint flow.
- *
- * Extracted from single-editions-content.tsx — these are pure async helpers
- * with no React state or hooks. Each takes an `updateDebug` callback that the
- * page's `__MEDIALANE_MINT_DEBUG__` snapshot uses for in-window debugging.
- *
- * Kept on raw fetch (not the shared `lib/api-fetch` helper) because the
- * sequencing here — request → log → response-text → log → JSON-parse →
- * log — drives the debug snapshot more granularly than a single apiFetch
- * round-trip would allow.
- */
+
 import { MEDIALANE_API_KEY, MEDIALANE_BACKEND_URL } from "@/lib/constants";
 
 export type MintDebugSnapshot = {
@@ -33,14 +22,12 @@ export type MintDebugSnapshot = {
   intentStatus?: string;
   terminalIntent?: Record<string, unknown>;
   error?: string;
-  /** Raw underlying error when `error` is a friendly remap (e.g. the real
-   *  reason behind a session/auth message). Set from `err.cause`. */
+
   rawError?: string;
 };
 
 export type UpdateDebug = (patch: Partial<MintDebugSnapshot>) => MintDebugSnapshot;
 
-/** POST /v1/intents/mint — create a mint intent. */
 export async function createMintIntentWithDebug(
   body: { owner: string; collectionId: string; recipient: string; tokenUri: string; royaltyBps: number },
   updateDebug: UpdateDebug
@@ -89,7 +76,6 @@ export async function createMintIntentWithDebug(
   return responseJson as { data?: { id?: string; calls?: { contractAddress: string; entrypoint?: string; calldata?: unknown[] }[] } };
 }
 
-/** PATCH /v1/intents/:id/confirm — confirm tx hash after on-chain mint. */
 export async function confirmMintIntentWithDebug(
   id: string,
   txHash: string,
@@ -137,7 +123,6 @@ export async function confirmMintIntentWithDebug(
   return normalizedHash;
 }
 
-/** GET /v1/intents/:id — poll until CONFIRMED or FAILED, max 10 attempts × 3s. */
 export async function pollMintIntentUntilTerminal(
   id: string,
   updateDebug: UpdateDebug

@@ -108,7 +108,6 @@ export function MintProgressDialog({
           {isProcessing ? "Minting asset…" : isListing ? "Listing on marketplace…" : isFullSuccess ? "Asset minted and listed!" : isSuccess ? "Asset minted!" : "Mint failed"}
         </DialogTitle>
 
-        {/* ── Processing (mint) ── */}
         {isProcessing && (
           <div className="flex flex-col items-center gap-6 py-4">
             <div className="relative">
@@ -169,7 +168,6 @@ export function MintProgressDialog({
           </div>
         )}
 
-        {/* ── Listing in progress ── */}
         {isListing && (
           <div className="flex flex-col items-center gap-6 py-4">
             <div className="relative">
@@ -207,7 +205,6 @@ export function MintProgressDialog({
           </div>
         )}
 
-        {/* ── Full success (mint + listed) ── */}
         {isFullSuccess && (
           <div className="flex flex-col items-center gap-5 py-2">
             {imagePreview ? (
@@ -285,7 +282,6 @@ export function MintProgressDialog({
           </div>
         )}
 
-        {/* ── Mint success only (no listing, or listing failed) ── */}
         {isSuccess && (
           <div className="flex flex-col items-center gap-5 py-2">
             {imagePreview ? (
@@ -372,7 +368,6 @@ export function MintProgressDialog({
           </div>
         )}
 
-        {/* ── Error ── */}
         {isError && (
           <div className="flex flex-col items-center gap-5 py-2">
             <div className="h-16 w-16 rounded-full bg-destructive/10 flex items-center justify-center">

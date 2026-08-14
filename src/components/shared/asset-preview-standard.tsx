@@ -37,7 +37,6 @@ export function AssetPreviewStandard({
   const currentOwner = token.balances?.[0]?.owner ?? token.owner ?? null;
   const ownerHref = currentOwner ? `/account/${currentOwner}` : null;
 
-
   const handleList = () => {
     if (onList) { onClose(); onList(token); } else setListOpen(true);
   };
@@ -50,7 +49,6 @@ export function AssetPreviewStandard({
     if (onTransfer) { onClose(); onTransfer(token); }
   };
 
-  // ── Primary CTA ─────────────────────────────────────────────────────────────
   const renderPrimary = () => {
     if (!isOwner && activeOrder) {
       return (
@@ -98,7 +96,6 @@ export function AssetPreviewStandard({
     return null;
   };
 
-  // ── Secondary actions ────────────────────────────────────────────────────────
   const secondaryActions: PreviewAction[] = [];
 
   if (!isOwner) {
@@ -132,7 +129,6 @@ export function AssetPreviewStandard({
     <>
       <PreviewHero image={image} name={name} ipType={token.metadata?.ipType} />
 
-      {/* Name + price */}
       <div className="flex items-start justify-between px-5 pt-4 pb-1 shrink-0">
         <div className="min-w-0 flex-1 mr-3">
           <p className="font-bold text-lg leading-tight line-clamp-2">{name}</p>
@@ -154,7 +150,6 @@ export function AssetPreviewStandard({
       <PreviewMeta token={token} />
       {currentOwner && <PreviewOwnerRow owner={currentOwner} />}
 
-      {/* Actions */}
       <div className="px-5 pb-2 pt-3 space-y-2 flex-1 overflow-y-auto">
         {renderPrimary()}
         <PreviewActionList actions={secondaryActions} />

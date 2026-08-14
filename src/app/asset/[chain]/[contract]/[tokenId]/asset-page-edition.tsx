@@ -109,8 +109,6 @@ export function AssetPageEdition() {
   const usdPrices = useUsdPrices();
   const cheapestUsd = usdValueFor(cheapest?.price?.formatted, cheapest?.price?.currency, usdPrices);
 
-  // Most recent "sale" activity — `history`'s sort order isn't guaranteed, so
-  // pick the max-timestamp entry explicitly rather than assuming array order.
   const lastSale = (history as ApiActivity[])
     .filter((h) => h.type === "sale" && h.price?.formatted)
     .reduce<ApiActivity | null>((latest, h) => (!latest || h.timestamp > latest.timestamp ? h : latest), null);
@@ -125,7 +123,6 @@ export function AssetPageEdition() {
   const myListing = isOwner
     ? activeListings.find((l) => normalizeAddress("STARKNET", l.offerer) === normalizeAddress("STARKNET", walletAddress!))
     : null;
-
 
   if (!token) return null;
 
@@ -187,7 +184,6 @@ export function AssetPageEdition() {
             stats={buildEditionStats(totalEditions, uniqueOwners)}
           />
 
-          {/* Right column */}
           <motion.div
             initial={shouldReduce ? false : { opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -260,7 +256,6 @@ export function AssetPageEdition() {
           </motion.div>
         </div>
 
-        {/* Tabs */}
         <Tabs defaultValue="overview">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>

@@ -4,8 +4,6 @@ import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 
-/** Stale-deploy chunk errors: a tab left open across a deploy asks for chunks
- *  that no longer exist. A full reload fetches the new build and fixes it. */
 function isStaleChunkError(error: Error): boolean {
   return /ChunkLoadError|Loading chunk .* failed|dynamically imported module|Importing a module script failed/i.test(
     `${error.name} ${error.message}`
@@ -21,7 +19,7 @@ export default function GlobalError({
 }) {
   useEffect(() => {
     console.error(error);
-    // Auto-recover ONCE from stale-deploy chunk errors (guard loops via sessionStorage).
+
     if (isStaleChunkError(error) && !sessionStorage.getItem("ml_chunk_reload")) {
       sessionStorage.setItem("ml_chunk_reload", "1");
       window.location.reload();

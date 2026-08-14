@@ -25,7 +25,7 @@ export function markOffersAsSeen(hashes: string[]) {
     const seen = getSeenOffers();
     hashes.forEach((h) => seen.add(h));
     localStorage.setItem(STORAGE_KEY, JSON.stringify([...seen]));
-  } catch { /* ignore */ }
+  } catch {  }
 }
 
 export function useUnreadOffers(address: string | null | undefined) {
@@ -34,8 +34,7 @@ export function useUnreadOffers(address: string | null | undefined) {
 
   useEffect(() => {
     if (!address || orders.length === 0) { setUnreadCount(0); return; }
-    // Received offers: ACTIVE bids where consideration (NFT) owner is this address.
-    // Exclude offers sent by this user themselves.
+
     const receivedOffers = orders.filter(
       (o) =>
         o.status === "ACTIVE" &&

@@ -25,13 +25,6 @@ interface WalletDeploymentDialogProps {
   onComplete: (result: CompleteWalletDeploymentResult) => void | Promise<void>;
 }
 
-/**
- * Shared recovery UI for "your wallet exists locally but isn't deployed
- * on-chain yet" — surfaced whenever SIWS returns account_not_deployed.
- * Resumes deployment for the already-created local key via
- * completeWalletDeployment, the same implementation /wallet-onboarding
- * uses for a fresh setup.
- */
 export function WalletDeploymentDialog({ open, onOpenChange, onComplete }: WalletDeploymentDialogProps) {
   const [step, setStep] = useState<DeploymentStep | null>(null);
   const [error, setError] = useState<string | null>(null);

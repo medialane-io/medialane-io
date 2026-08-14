@@ -22,7 +22,6 @@ const SORT_OPTIONS: { label: string; value: CollectionSort }[] = [
   { label: "A → Z",      value: "name"    },
 ];
 
-// Faceted service filter — backend /v1/collections?service= (Phase 2D).
 const SERVICE_TABS = [
   { label: "All",        value: undefined    },
   { label: "POP Events", value: "pop-protocol" },
@@ -48,7 +47,6 @@ export default function CollectionsPageClient() {
     service
   );
 
-  // Reset accumulated list whenever filters change
   const prevFilters = useRef({ sort, featured, hideEmpty, service });
   useEffect(() => {
     const f = prevFilters.current;
@@ -59,7 +57,6 @@ export default function CollectionsPageClient() {
     }
   }, [sort, featured, hideEmpty, service]);
 
-  // Append new page to accumulated list
   useEffect(() => {
     if (isLoading || collections.length === 0) return;
     setAllCollections((prev) => {
@@ -92,9 +89,8 @@ export default function CollectionsPageClient() {
   return (
     <PageContainer className="box-border max-w-full pt-14 pb-8 space-y-8">
 
-      {/* Header */}
       <div className="space-y-2 pt-8">
-        
+
         <h1 className="text-3xl font-bold">Onchain Collections</h1>
         <div className="flex flex-wrap items-center gap-2 mt-1">
           {meta?.total != null && (
@@ -118,7 +114,6 @@ export default function CollectionsPageClient() {
         </div>
       </div>
 
-      {/* Toolbar */}
       <div className="flex items-center gap-2 pb-3 border-b border-border/60 flex-wrap">
         <button
           onClick={() => setFiltersOpen(true)}
@@ -138,7 +133,6 @@ export default function CollectionsPageClient() {
           )}
         </button>
 
-        {/* Active filter pills — quick-clear */}
         {service !== undefined && (
           <span className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border border-primary/40 bg-primary/10 text-primary">
             <Award className="h-3 w-3" />
@@ -174,10 +168,9 @@ export default function CollectionsPageClient() {
         )}
       </div>
 
-      {/* Filters dialog */}
       <Dialog open={filtersOpen} onOpenChange={setFiltersOpen}>
         <DialogContent className="w-full max-w-sm sm:max-w-md p-0 overflow-hidden gap-0 flex flex-col max-h-[85svh]">
-          {/* Header */}
+
           <div className="flex items-center justify-between px-5 py-4 border-b border-border/60 pr-12">
             <DialogTitle className="text-base font-bold flex items-center gap-2">
               <SlidersHorizontal className="h-4 w-4 text-primary" />
@@ -190,10 +183,8 @@ export default function CollectionsPageClient() {
             )}
           </div>
 
-          {/* Scrollable body */}
           <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
 
-            {/* Source */}
             <div className="space-y-2">
               <p className="text-[10px] font-semibold text-muted-foreground">Source</p>
               <div className="flex flex-wrap gap-1.5">
@@ -215,7 +206,6 @@ export default function CollectionsPageClient() {
               </div>
             </div>
 
-            {/* Sort */}
             <div className="space-y-2">
               <p className="text-[10px] font-semibold text-muted-foreground">Sort</p>
               <div className="flex flex-wrap gap-1.5">
@@ -236,7 +226,6 @@ export default function CollectionsPageClient() {
               </div>
             </div>
 
-            {/* Show */}
             <div className="space-y-2">
               <p className="text-[10px] font-semibold text-muted-foreground">Show</p>
               <div className="flex flex-col gap-2">
@@ -284,7 +273,6 @@ export default function CollectionsPageClient() {
 
           </div>
 
-          {/* Footer */}
           <div className="px-5 py-3 border-t border-border/60">
             <Button className="w-full" onClick={() => setFiltersOpen(false)}>
               Apply filters
@@ -294,7 +282,6 @@ export default function CollectionsPageClient() {
         </DialogContent>
       </Dialog>
 
-      {/* Grid */}
       {isInitialLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {Array.from({ length: 9 }).map((_, i) => <CollectionCardSkeleton key={i} />)}

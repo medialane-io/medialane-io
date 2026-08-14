@@ -42,7 +42,7 @@ export function useMarketplaceActionFlow<TValues>({
     const cleared = maybeClearSessionForAmountCap
       ? await maybeClearSessionForAmountCap(amountForSessionCap)
       : false;
-    void cleared; // session was cleared silently — user will re-enter PIN in the dialog
+    void cleared;
     setStep("pin");
     return true;
   };
@@ -86,7 +86,7 @@ export function useMarketplaceActionFlow<TValues>({
       setStep("form");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Passkey authentication failed";
-      setPinError(msg); // show inline in the dialog's PIN step
+      setPinError(msg);
     } finally {
       setIsAuthenticatingPasskey(false);
     }

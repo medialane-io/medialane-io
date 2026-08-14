@@ -13,8 +13,6 @@ import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion-primitives"
 import { EXPLORER_URL } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
-// ── Journey cards ─────────────────────────────────────────────────────────────
-
 const JOURNEYS = [
   {
     icon: ShoppingBag,
@@ -54,8 +52,6 @@ const JOURNEYS = [
   },
 ] as const;
 
-// ── Platform highlights ───────────────────────────────────────────────────────
-
 const HIGHLIGHTS = [
   {
     icon: Zap,
@@ -73,8 +69,6 @@ const HIGHLIGHTS = [
     description: "All assets are real, permanent, and permissionlessly verifiable.",
   },
 ] as const;
-
-// ── Onboarding checklist (one-time) ──────────────────────────────────────────
 
 function OnboardingBanner({
   mintTxHash,
@@ -145,8 +139,6 @@ function OnboardingBanner({
   );
 }
 
-// ── Main component ────────────────────────────────────────────────────────────
-
 export function WelcomePageClient() {
   const { address: walletAddress } = useWalletNativeSession();
   const [showBanner, setShowBanner] = useState(false);
@@ -169,7 +161,6 @@ export function WelcomePageClient() {
   return (
     <div className="pb-24">
 
-      {/* ── Onboarding checklist banner (first visit only) ── */}
       {showBanner && (
         <OnboardingBanner
           mintTxHash={mintTxHash}
@@ -177,7 +168,6 @@ export function WelcomePageClient() {
         />
       )}
 
-      {/* ── Hero ── */}
       <FadeIn delay={0.04}>
         <div className="max-w-5xl mx-auto px-4 pt-10 pb-2">
           <span className="pill-badge inline-flex gap-1.5 mb-3">
@@ -194,7 +184,6 @@ export function WelcomePageClient() {
         </div>
       </FadeIn>
 
-      {/* ── Genesis NFT (if not yet minted) ── */}
       {!mintTxHash && (
         <FadeIn delay={0.1}>
           <div className="mt-10">
@@ -208,7 +197,6 @@ export function WelcomePageClient() {
         </FadeIn>
       )}
 
-      {/* ── Journey cards ── */}
       <FadeIn delay={mintTxHash ? 0.1 : 0.16}>
         <div className="max-w-5xl mx-auto px-4 mt-10">
           <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">
@@ -243,7 +231,6 @@ export function WelcomePageClient() {
         </div>
       </FadeIn>
 
-      {/* ── Platform highlights ── */}
       <FadeIn delay={mintTxHash ? 0.16 : 0.22}>
         <div className="max-w-5xl mx-auto px-4 mt-10">
           <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">
@@ -263,7 +250,6 @@ export function WelcomePageClient() {
         </div>
       </FadeIn>
 
-      {/* ── Minted state: show tx + nav ── */}
       {mintTxHash && (
         <FadeIn delay={0.22}>
           <div className="max-w-5xl mx-auto px-4 mt-10">

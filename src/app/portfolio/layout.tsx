@@ -18,7 +18,6 @@ import {
   type PortfolioChipFilterOption,
 } from "@medialane/ui";
 
-/** Every portfolio destination, flat — this chip bar is the section's only navigation, on every page. */
 const PORTFOLIO_SECTIONS: { key: string; label: string; href: string }[] = [
   { key: "overview",    label: "Overview",            href: "/portfolio" },
   { key: "assets",      label: "Assets",               href: "/portfolio/assets" },

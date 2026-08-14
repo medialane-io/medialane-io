@@ -15,16 +15,12 @@ import { useCollection } from "@/hooks/use-collections";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import type { Call } from "starknet";
 
-// ── Address parsing ───────────────────────────────────────────────────────────
-
 function parseAddresses(raw: string): string[] {
   return raw
     .split(/[\n,\s]+/)
     .map((a) => a.trim())
     .filter((a) => /^0x[0-9a-fA-F]+$/.test(a));
 }
-
-// ── Sub-components ────────────────────────────────────────────────────────────
 
 function BatchAddSection({
   onAdd,
@@ -127,8 +123,6 @@ function RemoveSection({
     </div>
   );
 }
-
-// ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function PopManagePage({
   params,
@@ -246,27 +240,18 @@ export default function PopManagePage({
         </div>
       </FadeIn>
 
-      {/* Batch add */}
       <FadeIn delay={0.12}>
         <BatchAddSection onAdd={handleBatchAdd} isSubmitting={isSubmitting} />
       </FadeIn>
 
-      {/* Remove single */}
       <FadeIn delay={0.16}>
         <RemoveSection onRemove={handleRemove} isSubmitting={isSubmitting} />
       </FadeIn>
 
-
-      {/* Tx feedback dialog — opens while the on-chain operation is pending
-          (processing) and stays open through the success/error outcome.
-          Previously this dialog only opened AFTER the tx settled, so during
-          the 10–20s waiting window the user saw nothing but a spinning
-          button. Driving it off `isSubmitting || txResult` gives the user
-          unambiguous "tx in progress" feedback the moment PIN is submitted. */}
       <Dialog
         open={isSubmitting || !!txResult}
         onOpenChange={(v) => {
-          // Cannot dismiss while in-flight — same UX as the marketplace dialogs.
+
           if (!v && !isSubmitting) setTxResult(null);
         }}
       >

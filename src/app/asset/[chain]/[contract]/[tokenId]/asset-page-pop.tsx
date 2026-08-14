@@ -51,7 +51,7 @@ export function AssetPagePop() {
 
       <PageContainer className="pt-20 space-y-8 pb-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-10 gap-8 items-start">
-          {/* Credential image */}
+
           <motion.div
             initial={shouldReduce ? false : { scale: 1.0, opacity: 0 }}
             animate={{ scale: 1.02, opacity: 1 }}
@@ -85,14 +85,13 @@ export function AssetPagePop() {
             </div>
           </motion.div>
 
-          {/* Right column */}
           <motion.div
             initial={shouldReduce ? false : { opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
             className="space-y-6"
           >
-            {/* Header */}
+
             <div className="space-y-2">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-500">
@@ -106,7 +105,6 @@ export function AssetPagePop() {
               )}
             </div>
 
-            {/* Claim / status box */}
             <div className="rounded-2xl border border-border p-5 space-y-4">
               {claimStatus?.hasClaimed ? (
                 <div className="space-y-3">
@@ -141,7 +139,6 @@ export function AssetPagePop() {
               </div>
             </div>
 
-            {/* Stats */}
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-xl border border-border bg-muted/20 p-4 text-center">
                 <p className="text-2xl font-black">{totalClaimed.toLocaleString()}</p>
@@ -156,7 +153,6 @@ export function AssetPagePop() {
               </div>
             </div>
 
-            {/* Issuer */}
             {creator && (
               <div className="rounded-xl border border-border px-4 py-3 flex items-center justify-between gap-3">
                 <div>
@@ -168,7 +164,6 @@ export function AssetPagePop() {
               </div>
             )}
 
-            {/* Links */}
             <div className="flex items-center gap-3 text-sm">
               <a
                 href={`${EXPLORER_URL}/contract/${contract}`}

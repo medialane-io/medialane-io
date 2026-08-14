@@ -36,11 +36,6 @@ import type { ApiToken, ApiOrder, Chain, CollectionTokensSort } from "@medialane
 
 const PAGE_SIZE = 24;
 
-/**
- * Parse a backend price string like "0.000012000000 WBTC" into a clean display + symbol.
- * - Strips trailing zeros from the decimal part (e.g. "1.500000" → "1.50")
- * - Guards against pre-fix raw-wei values stored in the DB (> 1e12 → "—")
- */
 function parsePriceDisplay(raw: string | null | undefined): { numStr: string; symbol: string | null } {
   if (!raw) return { numStr: "—", symbol: null };
   const parts = raw.trim().split(" ");
@@ -48,12 +43,12 @@ function parsePriceDisplay(raw: string | null | undefined): { numStr: string; sy
   const numericPart = sym ? parts.slice(0, -1).join(" ") : raw;
   const num = Number(numericPart);
   if (isNaN(num)) return { numStr: "—", symbol: sym };
-  // Implausibly large → likely raw wei stored before the stats fix
+
   if (num > 1e12) return { numStr: "—", symbol: null };
-  // Format with adaptive decimals, then strip trailing zeros after decimal point
+
   const formatted = formatDisplayPrice(numericPart);
   if (!formatted || formatted === "—") return { numStr: "—", symbol: sym };
-  // Remove trailing zeros: "0.000012000000" → "0.000012", "1.500000" → "1.50"
+
   const clean = formatted.replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "");
   return { numStr: clean || "—", symbol: sym };
 }
@@ -73,7 +68,6 @@ function CollectionItems({ contract, activeListings }: { contract: string; activ
 
   const usdPrices = useUsdPrices();
 
-  // Build tokenId → listing map so listed items can show their price
   const listingByTokenId = useMemo(() => {
     const map = new Map<string, ApiOrder>();
     for (const o of activeListings) {
@@ -92,7 +86,6 @@ function CollectionItems({ contract, activeListings }: { contract: string; activ
     }
   }, [tokens, page]);
 
-  // Enrich tokens with listing data so listed items show Buy button
   const enrichedTokens = useMemo(() => {
     if (listingByTokenId.size === 0) return allTokens;
     return allTokens.map((t) => {
@@ -109,7 +102,7 @@ function CollectionItems({ contract, activeListings }: { contract: string; activ
       const attrs = Array.isArray(token.metadata?.attributes)
         ? (token.metadata.attributes as { trait_type?: string; value?: string }[])
         : [];
-      // AND across trait types, OR within a type's selected values.
+
       return filterEntries.every(([traitType, values]) =>
         attrs.some((a) => a.trait_type === traitType && values.includes(String(a.value)))
       );
@@ -253,12 +246,9 @@ export default function CollectionPageClient() {
         stats={stats}
       />
 
-      {/* ── Meta section — two columns on large screens: description left,
-          contract/share/report top-right; creator chip + owner actions
-          get their own row below, stacks on mobile ── */}
       {!colLoading && collection && (
         <div className="px-4 sm:px-6 pt-4 pb-2 space-y-3">
-          {/* Owner-only actions, own row (only rendered for the owner — never empty) */}
+
           {walletAddress && collection.owner && normalizeAddress("STARKNET", collection.owner) === normalizeAddress("STARKNET", walletAddress) && (
             <div className="flex items-center justify-end gap-2">
               {getService(collection.service)?.id === "ip-tickets" && (
@@ -340,7 +330,6 @@ export default function CollectionPageClient() {
             </div>
           </div>
 
-          {/* Service action slot (POP claim, Drop mint, etc.) */}
           <CollectionServiceAction
             service={collection.service}
             contractAddress={collection.contractAddress}
@@ -358,7 +347,6 @@ export default function CollectionPageClient() {
         </div>
       )}
 
-      {/* ── Gated content hero — visible to all visitors ── */}
       {!colLoading && collection && profile && (
         <GatedContentHero
           profile={profile}
@@ -367,8 +355,6 @@ export default function CollectionPageClient() {
         />
       )}
 
-
-      {/* ── Tabs ── */}
       <div className="px-4 sm:px-6 pb-12">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <div className="sticky top-0 z-10 pt-3 pb-1">
@@ -497,7 +483,6 @@ export default function CollectionPageClient() {
         </Tabs>
       </div>
 
-      {/* ── Owner setup panel — after the items, before the footer ── */}
       {!colLoading && collection && walletAddress && collection.owner &&
         normalizeAddress("STARKNET", collection.owner) === normalizeAddress("STARKNET", walletAddress) && (
         <>
@@ -505,8 +490,7 @@ export default function CollectionPageClient() {
             contract={contract}
             profile={profile ?? null}
           />
-          {/* Per-collection ownership handoff — audited MIP registry only.
-              Cutover gate avoids surfacing on legacy v2 collections. */}
+
           {collection.collectionId &&
             collection.standard === "ERC721" &&
             collection.createdAt >= "2026-05-14" && (
@@ -532,7 +516,6 @@ export default function CollectionPageClient() {
         </>
       )}
 
-      {/* Inline buy for listed items (Listings tab) */}
       {buyOrder && (
         <PurchaseDialog
           order={buyOrder}
@@ -543,10 +526,6 @@ export default function CollectionPageClient() {
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Sub-components
-// ---------------------------------------------------------------------------
 
 function EmptyState({ title, body }: { title: string; body: string }) {
   return (
@@ -652,7 +631,7 @@ function GatedContentPanel({
 
   return (
     <div className="py-8 flex flex-col items-center gap-6 text-center max-w-md mx-auto">
-      {/* Unlock badge */}
+
       <div className="relative">
         <div className="h-20 w-20 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
           <Unlock className="h-10 w-10" />

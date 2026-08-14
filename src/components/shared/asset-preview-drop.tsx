@@ -45,7 +45,6 @@ export function AssetPreviewDrop({ token, onClose }: AssetPreviewContentProps) {
         }
       />
 
-      {/* Name */}
       <div className="px-5 pt-4 pb-1 shrink-0">
         <p className="font-bold text-lg leading-tight line-clamp-2">{name}</p>
         {token.metadata?.ipType && (
@@ -55,7 +54,6 @@ export function AssetPreviewDrop({ token, onClose }: AssetPreviewContentProps) {
 
       <PreviewMeta token={token} />
 
-      {/* Join Drop CTA + actions */}
       <div className="px-5 pb-2 pt-3 space-y-2 flex-1 overflow-y-auto">
         <a
           href={assetHref}

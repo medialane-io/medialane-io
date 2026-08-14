@@ -29,8 +29,6 @@ import {
 import { LaunchCountdown } from "./launch-countdown";
 import type { Call } from "starknet";
 
-// ─── Genesis NFT card ────────────────────────────────────────────────────────
-
 function GenesisNftCard({ minted = false }: { minted?: boolean }) {
   return (
     <div className="relative w-96 rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-primary/30">
@@ -51,8 +49,6 @@ function GenesisNftCard({ minted = false }: { minted?: boolean }) {
     </div>
   );
 }
-
-// ─── Perks ────────────────────────────────────────────────────────────────────
 
 const PERKS = [
   { icon: Gift, label: "Free to mint", sub: "Zero protocol fees" },
@@ -82,8 +78,6 @@ function PerksGrid() {
   );
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
-
 type MintStep = "ready" | "minting" | "success" | "error";
 
 export function LaunchMint() {
@@ -91,13 +85,11 @@ export function LaunchMint() {
   const action = useWalletWriteAction();
   const { getValidToken, signIn } = useSiwsToken();
 
-  // Mint flow
   const [mintStep, setMintStep] = useState<MintStep>("ready");
   const [mintError, setMintError] = useState<string | null>(null);
   const [mintStatusMsg, setMintStatusMsg] = useState("");
   const [completedTxHash, setCompletedTxHash] = useState<string | null>(null);
 
-  // Restore minted state from localStorage
   useEffect(() => {
     if (!recipientAddress) return;
     const stored = localStorage.getItem(`ml_genesis_${recipientAddress}`);
@@ -106,8 +98,6 @@ export function LaunchMint() {
       setMintStep("success");
     }
   }, [recipientAddress]);
-
-  // ── Mint ──────────────────────────────────────────────────────────────────
 
   const handleMint = useCallback(async () => {
     setMintError(null);
@@ -118,7 +108,6 @@ export function LaunchMint() {
       if (!recipientAddress) throw new Error("Account not ready. Please refresh and try again.");
       if (!LAUNCH_MINT_CONTRACT) throw new Error("Mint contract not configured.");
 
-      // Resolve token URI — normalize bare CIDs to ipfs:// scheme
       let tokenUri = GENESIS_NFT_URI
         ? GENESIS_NFT_URI.startsWith("ipfs://") || GENESIS_NFT_URI.startsWith("ar://")
           ? GENESIS_NFT_URI
@@ -174,24 +163,21 @@ export function LaunchMint() {
     setMintStep("ready");
   }, [recipientAddress]);
 
-  // ── Render ────────────────────────────────────────────────────────────────
-
   const isSuccess = mintStep === "success";
 
   return (
     <div className="relative flex items-center">
-      
+
       <div className="mx-auto px-4 py-8 relative max-w-5xl">
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-          {/* Left: NFT card */}
+
           <div className="flex justify-center">
             <GenesisNftCard minted={isSuccess} />
           </div>
 
-          {/* Right: interactive panel */}
           <div>
-            {/* ── Loading ── */}
+
             {isDeployed === null && !hasWallet && (
               <div className="space-y-6">
                 <div className="h-10 w-48 rounded-lg bg-muted/40 animate-pulse" />
@@ -200,7 +186,6 @@ export function LaunchMint() {
               </div>
             )}
 
-            {/* ── No wallet yet ── */}
             {!hasWallet && (
               <div className="space-y-6">
                 <div className="space-y-3">
@@ -223,10 +208,9 @@ export function LaunchMint() {
               </div>
             )}
 
-            {/* ── Has wallet: mint flow ── */}
             {hasWallet && (
               <div className="space-y-7">
-                {/* Header — shown on all sub-steps */}
+
                 {mintStep !== "success" && (
                   <div className="space-y-3">
 
@@ -239,7 +223,6 @@ export function LaunchMint() {
                   </div>
                 )}
 
-                {/* ── Ready ── */}
                 {mintStep === "ready" && (
                   <>
                     <div className="space-y-2">
@@ -264,7 +247,6 @@ export function LaunchMint() {
                   </>
                 )}
 
-                {/* ── Minting ── */}
                 {mintStep === "minting" && (
                   <div className="rounded-2xl border border-border/60 bg-card/50 p-6">
                     <div className="flex items-center gap-4">
@@ -297,7 +279,6 @@ export function LaunchMint() {
                   </div>
                 )}
 
-                {/* ── Success ── */}
                 {mintStep === "success" && (
                   <div className="space-y-5">
                     <div className="space-y-3">
@@ -361,7 +342,6 @@ export function LaunchMint() {
                   </div>
                 )}
 
-                {/* ── Error ── */}
                 {mintStep === "error" && (
                   <div className="space-y-4">
                     <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-5 space-y-3">

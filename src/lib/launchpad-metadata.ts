@@ -2,10 +2,6 @@
 
 import { withSiwsAuth } from "@/lib/pinata-fetch";
 
-// Pins metadata JSON to IPFS and returns its ipfs:// URI. This URI is embedded
-// as base_uri in an immutable collection-deploy tx, so a failure MUST throw —
-// never return a falsy fallback that would ship an empty base_uri. Callers run
-// inside the write pipeline, which surfaces the thrown message.
 export async function pinLaunchpadMetadata(metadata: Record<string, unknown>, siwsToken: string): Promise<string> {
   const response = await fetch("/api/pinata/json", withSiwsAuth(siwsToken, {
     method: "POST",
@@ -19,9 +15,6 @@ export async function pinLaunchpadMetadata(metadata: Record<string, unknown>, si
   return data.uri;
 }
 
-/** Same shape as `pinLaunchpadMetadata`, but for `@medialane/ui`'s
- *  `toLicenseMetadata()` sponsorship-terms document — `/api/pinata/json`'s
- *  field allowlist is scoped to NFT metadata and rejects this shape. */
 export async function pinSponsorshipTerms(metadata: Record<string, unknown>, siwsToken: string): Promise<string> {
   const response = await fetch("/api/pinata/sponsorship-terms", withSiwsAuth(siwsToken, {
     method: "POST",

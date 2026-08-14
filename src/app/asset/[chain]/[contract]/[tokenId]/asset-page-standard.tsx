@@ -93,20 +93,18 @@ export function AssetPageStandard() {
   const { total: remixCount } = useTokenRemixes(contract, tokenId);
 
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  // Collection siblings for the filmstrip nav — from the (paged) collection
-  // token list; the filmstrip hides itself when the collection has ≤1 item.
+
   const { tokens: collectionTokens } = useNearbyCollectionTokens(contract, tokenId);
 
-  // Audited IPNft creation record — null for legacy / external contracts.
   const { data: fullTokenData } = useFullTokenData({
     ipNftAddress: contract,
     tokenId: tokenId ? (() => { try { return BigInt(tokenId); } catch { return undefined; } })() : undefined,
   });
-  // Listings = NFT in offer (ERC721 or ERC1155 — someone selling the token)
+
   const activeListings = listings.filter(
     (l) => l.status === "ACTIVE" && (l.offer.itemType === "ERC721" || l.offer.itemType === "ERC1155")
   );
-  // Bids = ERC20 in offer (someone bidding to buy the NFT)
+
   const activeBids = listings.filter(
     (l) => l.status === "ACTIVE" && l.offer.itemType === "ERC20"
   );
@@ -118,8 +116,6 @@ export function AssetPageStandard() {
   const usdPrices = useUsdPrices();
   const cheapestUsd = usdValueFor(cheapest?.price?.formatted, cheapest?.price?.currency, usdPrices);
 
-  // Most recent "sale" activity — `history`'s sort order isn't guaranteed, so
-  // pick the max-timestamp entry explicitly rather than assuming array order.
   const lastSale = (history as ApiActivity[])
     .filter((h) => h.type === "sale" && h.price?.formatted)
     .reduce<ApiActivity | null>((latest, h) => (!latest || h.timestamp > latest.timestamp ? h : latest), null);
@@ -132,9 +128,6 @@ export function AssetPageStandard() {
     ? activeListings.find((l) => normalizeAddress("STARKNET", l.offerer) === normalizeAddress("STARKNET", walletAddress!))
     : null;
 
-
-  // Remix is permissionless (self-mint), gated only by the creator's declared
-  // Derivatives term at the app layer. The deal flow is the consent override.
   const remixPolicy = resolveRemixPolicy({
     parentNoDerivatives: getDerivativesTerm(token?.metadata?.attributes) === "Not Allowed",
     viewerIsParentOwner: isOwner,
@@ -205,14 +198,10 @@ export function AssetPageStandard() {
     ? (token.metadata.attributes as { trait_type?: string; value?: string }[])
     : [];
 
-  // Derive active template once — shared by Media tab visibility check and attribute grid filtering.
-  // Per-type keys avoid cross-type collisions from shared keys like "Genre", "Duration".
   const activeTemplate = IP_TEMPLATES[
     (attributes.find((a) => a.trait_type?.toLowerCase() === "ip type")?.value ?? "") as IPType
   ];
-  // Keys rendered by IPTypeDisplay (embeds + socials) — kept out of the generic
-  // attribute grid. Trait values (Artist, Genre, custom traits) intentionally
-  // fall through to the Attributes grid.
+
   const activeTemplateEmbedSocialKeys = activeTemplate
     ? [
         ...(activeTemplate.embeds ?? []).map((p) => EMBED_PLATFORM_META[p].traitKey),
@@ -225,31 +214,15 @@ export function AssetPageStandard() {
     attributes.some((a) => a.trait_type === k && a.value)
   );
 
-  // Predicate for filtering template + license attributes out of attribute grids.
   const isDisplayAttr = (a: { trait_type?: string }): boolean =>
     !LICENSE_TRAIT_TYPES.has(a.trait_type ?? "") && !activeTemplateKeys.has(a.trait_type ?? "");
 
-  // Remix / parent detection
   const parentContract = attributes.find((a) => a.trait_type === "Parent Contract")?.value ?? null;
   const parentTokenId = attributes.find((a) => a.trait_type === "Parent Token ID")?.value ?? null;
 
   return (
     <div className="relative z-0 min-h-screen">
-      {/*
-       * `Token.isHidden` exists on the backend Prisma schema as a filter
-       * column — hidden tokens are excluded from every list AND single-
-       * token endpoint (see medialane-backend tokens.ts:39,157,201,218).
-       * The field is never serialised on the response, so this banner
-       * can never render: a hidden token would 404 before reaching this
-       * component. Removing the cast + dead branch.
-       *
-       * If we ever want to display hidden tokens with a moderation
-       * banner instead of 404'ing them, the change is in backend: drop
-       * `isHidden: false` from the WHERE clause + include the field in
-       * serialize(), then add to ApiToken in @medialane/sdk, then
-       * restore this check.
-       */}
-      {/* Full-bleed atmospheric background from asset image */}
+
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         {imageUrl && (
           <img
@@ -263,7 +236,7 @@ export function AssetPageStandard() {
       </div>
 
       <PageContainer className="pt-20 space-y-8 pb-8">
-        {/* Top: image + info — 50/50 on desktop, image-first single column on mobile */}
+
         <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-10 gap-6 items-start">
           <div className="space-y-3">
             <AssetMediaColumn
@@ -283,7 +256,6 @@ export function AssetPageStandard() {
             />
           </div>
 
-          {/* Right column */}
           <motion.div
             initial={shouldReduce ? false : { opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -332,24 +304,15 @@ export function AssetPageStandard() {
               onOpenPurchase={setPurchaseOrder}
               onOpenOffer={() => setOfferOpen(true)}
               onOpenRemix={goToRemix}
-              // No onProposeDeal — the License button is removed from this
-              // page, but showDealOption still goes through so
-              // AssetMarketplacePanel's "no-derivatives" fallback copy
-              // stays accurate. The button itself needs BOTH showDealOption
-              // AND onProposeDeal, so omitting just this one hides it.
+
             />
 
-            {/* Bridge to the chain-native dapp for self-custody / web3 users
-                (signed-out visitors already see this inside SignedOutAssetActions) */}
             {hasWallet && <OpenInDappCallout chain={token.chain} contract={contract} tokenId={tokenId} />}
 
-            {/* ERC-1155 ownership — shown after marketplace buttons */}
             {isERC1155 && token.balances && token.balances.length > 0 ? (
               <AssetOwnersPanel balances={token.balances} maxVisible={5} />
             ) : null}
 
-            {/* Details + rights — separated from the action group by a hairline
-                so the column reads as placard sections, not one flat stack. */}
             <div className="pt-5 border-t border-border/40 space-y-5">
               <AssetCollectionBar
                 collectionName={collection?.name ?? contract.slice(0, 8) + "…"}
@@ -376,7 +339,6 @@ export function AssetPageStandard() {
           </motion.div>
         </div>
 
-        {/* Tabs */}
         <Tabs defaultValue="overview">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -388,7 +350,6 @@ export function AssetPageStandard() {
             </TabsTrigger>
           </TabsList>
 
-          {/* Overview tab — media embeds + license + attributes */}
           <TabsContent value="overview">
             <AssetOverviewContent
               attributes={attributes}
@@ -397,8 +358,6 @@ export function AssetPageStandard() {
             />
           </TabsContent>
 
-
-          {/* Markets tab — listings + offers */}
           <TabsContent value="markets">
             <AssetMarketsTab
               activeListings={activeListings}
@@ -412,7 +371,6 @@ export function AssetPageStandard() {
             />
           </TabsContent>
 
-          {/* Provenance tab — history + remixes */}
           <TabsContent value="provenance">
             <AssetProvenanceTab
               history={history as ApiActivity[]}
@@ -426,7 +384,6 @@ export function AssetPageStandard() {
 
         </Tabs>
       </PageContainer>
-
 
       <AssetLightbox open={lightboxOpen} onOpenChange={setLightboxOpen} image={image} alt={name} />
 

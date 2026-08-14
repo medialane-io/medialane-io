@@ -29,25 +29,11 @@ export function truncateDescription(value: string, max = 160): string {
   return `${value.slice(0, Math.max(0, max - 1)).trimEnd()}…`;
 }
 
-/**
- * Always returns a usable share image — falls back to the site default
- * (/og-image.jpg) when a page has no content image of its own. Next.js does
- * NOT deep-merge `openGraph`/`twitter` from the root layout into a page that
- * defines its own — a page whose content image failed to resolve (or that
- * never set one) previously shipped with NO og:image at all, which several
- * platforms (Discord, Telegram, Slack) render as a bare link with no card.
- */
 export function socialImage(imageUrl?: string | null, alt = "Medialane") {
   const url = imageUrl || absoluteUrl("/og-image.jpg");
   return { url, width: 1200, height: 630, alt };
 }
 
-/**
- * Builds a complete, guaranteed-image `openGraph` + `twitter` pair for a page.
- * `title` should be the bare page title (no " | Medialane" suffix) — the
- * suffix is only applied here, since OG/Twitter tags don't get the root
- * layout's title template applied to them.
- */
 export function buildSocialMetadata(opts: {
   title: string;
   description: string;
@@ -78,7 +64,6 @@ export interface BreadcrumbItem {
   path: string;
 }
 
-/** JSON-LD BreadcrumbList for a page's position in the site hierarchy. */
 export function buildBreadcrumbJsonLd(items: BreadcrumbItem[]) {
   return {
     "@context": "https://schema.org",
@@ -92,7 +77,6 @@ export function buildBreadcrumbJsonLd(items: BreadcrumbItem[]) {
   };
 }
 
-/** JSON-LD Product for a fungible/tradeable asset detail page (e.g. a coin). */
 export function buildProductJsonLd(opts: {
   name: string;
   path: string;

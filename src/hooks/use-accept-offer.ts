@@ -9,9 +9,9 @@ import type { ApiOrder } from "@medialane/sdk";
 
 interface UseAcceptOfferOptions {
   mutateListings: () => void;
-  /** Force a specific NFT token standard (e.g. "ERC1155"). Falls back to the order's item types. */
+
   tokenStandard?: string;
-  /** Active sell listings for the same token. When non-empty, a warning step is shown before executing. */
+
   activeListings?: ApiOrder[];
 }
 
@@ -95,7 +95,7 @@ export function useAcceptOffer({ mutateListings, tokenStandard, activeListings =
     handleAcceptClick,
     confirmAccept,
     dismiss,
-    // Listing warning
+
     warningOpen,
     activeListings,
     proceedFromWarning,

@@ -7,7 +7,7 @@ export interface FullTokenData {
   owner: string;
   metadataUri: string;
   originalCreator: string;
-  registeredAt: number; // unix seconds
+  registeredAt: number;
 }
 
 interface UseFullTokenDataArgs {
@@ -15,16 +15,6 @@ interface UseFullTokenDataArgs {
   tokenId: bigint | undefined;
 }
 
-/**
- * Wraps the audited IPNft.get_full_token_data view, served by the backend's
- * metered GET /v1/ipnft/:contract/:tokenId pass-through
- * (medialane-backend/src/api/routes/ipnft-onchain.ts) — the backend does the
- * same on-chain read server-side, credited, instead of the browser reading
- * the chain directly via keyless public RPC.
- * Returns owner + metadata URI + original creator + mint timestamp in a single read.
- * Returns null for tokens whose contract does not implement get_full_token_data
- * (legacy / external collections) — callers must treat null as "no signal".
- */
 export function useFullTokenData({ ipNftAddress, tokenId }: UseFullTokenDataArgs) {
   const enabled = Boolean(ipNftAddress && tokenId !== undefined);
 

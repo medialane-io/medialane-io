@@ -18,8 +18,6 @@ import { cn } from "@/lib/utils";
 import { parseAddresses, batchAllowlistCalldata } from "../../drop-allowlist";
 import type { Call } from "starknet";
 
-// ── Sub-components ────────────────────────────────────────────────────────────
-
 function AllowlistToggle({
   enabled,
   onToggle,
@@ -163,8 +161,6 @@ function RemoveSection({
   );
 }
 
-// ── Main page ─────────────────────────────────────────────────────────────────
-
 export default function DropManagePage({
   params,
 }: {
@@ -292,7 +288,6 @@ export default function DropManagePage({
         </div>
       </FadeIn>
 
-      {/* Allowlist toggle */}
       <FadeIn delay={0.08}>
         <AllowlistToggle
           enabled={allowlistEnabled ?? false}
@@ -300,17 +295,14 @@ export default function DropManagePage({
         />
       </FadeIn>
 
-      {/* Batch add */}
       <FadeIn delay={0.12}>
         <BatchAddSection onAdd={handleBatchAdd} isSubmitting={isSubmitting} />
       </FadeIn>
 
-      {/* Remove single */}
       <FadeIn delay={0.16}>
         <RemoveSection onRemove={handleRemove} isSubmitting={isSubmitting} />
       </FadeIn>
 
-      {/* Withdraw payments */}
       {isPaidDrop && (
         <FadeIn delay={0.2}>
           <div className="bento-cell p-5 space-y-3">
@@ -339,11 +331,6 @@ export default function DropManagePage({
         </FadeIn>
       )}
 
-
-      {/* Tx feedback dialog — opens while the on-chain operation is pending
-          (processing) and stays open through the success/error outcome.
-          Previously the dialog only opened AFTER the tx settled, so the user
-          saw nothing but a spinning button during the 10–20s wait. */}
       <Dialog
         open={isSubmitting || !!txResult}
         onOpenChange={(v) => {

@@ -138,9 +138,8 @@ export default function CreatorUsernamePageClient({ username }: Props) {
     || null;
   const heroImage = heroRaw ? ipfsToHttp(heroRaw) : null;
 
-  // Show displayName if set, else username without @ prefix
   const displayName = creator?.displayName || creator?.username || username;
-  // Show username as subtitle only when displayName is different
+
   const showUsername = creator?.displayName && creator?.username && creator.displayName !== creator.username;
 
   const tabBadge: Partial<Record<TabId, number>> = {
@@ -188,15 +187,13 @@ export default function CreatorUsernamePageClient({ username }: Props) {
   return (
     <div className="pt-14 pb-20 min-h-screen overflow-x-hidden">
 
-      {/* ── Hero banner ─────────────────────────────────────────────────── */}
       {heroImage && (
         <div className="w-full h-[32vw] min-h-[180px] max-h-[320px] overflow-hidden bg-muted">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+
           <img src={heroImage} alt="" aria-hidden className="w-full h-full object-cover" />
         </div>
       )}
 
-      {/* ── Identity ────────────────────────────────────────────────────── */}
       <div className="px-6 pt-5 pb-1">
         <div className="flex flex-wrap items-center gap-2">
           <h1 className="text-2xl font-bold leading-tight">{displayName}</h1>
@@ -220,7 +217,6 @@ export default function CreatorUsernamePageClient({ username }: Props) {
         )}
       </div>
 
-      {/* ── Tab navigation ──────────────────────────────────────────────── */}
       <div className="sticky top-0 z-20 px-6 bg-background/95 backdrop-blur-sm border-b border-border mt-4">
         <div className="flex items-center gap-0.5 overflow-x-auto scrollbar-none -mb-px">
           {TABS.map(({ id, label, Icon }) => {
@@ -252,10 +248,8 @@ export default function CreatorUsernamePageClient({ username }: Props) {
         </div>
       </div>
 
-      {/* ── Tab content ─────────────────────────────────────────────────── */}
       <div className="px-6 mt-6">
 
-        {/* Assets */}
         {activeTab === "assets" && (
           tokensLoading ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -279,7 +273,6 @@ export default function CreatorUsernamePageClient({ username }: Props) {
           )
         )}
 
-        {/* Collections */}
         {activeTab === "collections" && (
           colsLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -296,7 +289,6 @@ export default function CreatorUsernamePageClient({ username }: Props) {
           )
         )}
 
-        {/* Listings */}
         {activeTab === "listings" && (
           ordersLoading ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -311,14 +303,12 @@ export default function CreatorUsernamePageClient({ username }: Props) {
           )
         )}
 
-        {/* Analytics */}
         {activeTab === "analytics" && (
           <div className="max-w-2xl">
             <CreatorAnalytics activities={activities} isLoading={activitiesLoading} />
           </div>
         )}
 
-        {/* Activity */}
         {activeTab === "activity" && (
           <div className="max-w-2xl">
             {activitiesLoading ? (
