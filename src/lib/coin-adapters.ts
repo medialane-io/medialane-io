@@ -6,13 +6,16 @@ import type { CoinFilter, CoinSort, CoinCollectionLike } from "@medialane/ui";
 import { MEDIALANE_BACKEND_URL } from "@/lib/constants";
 import { coinHref as buildCoinHref } from "@/lib/routes";
 import { useCoinPrice } from "@/hooks/use-coin-price";
+import { useUsdPrices, usdPriceFor } from "@/hooks/use-usd-prices";
 
 const TRADE_APP: Record<string, string> = { STARKNET: "https://starknet.medialane.io" };
 const tradeAppFor = (chain?: string | null) => TRADE_APP[(chain ?? "STARKNET").toString().toUpperCase()] ?? TRADE_APP.STARKNET;
 
 export function useCoinPriceAdapter(collection: CoinCollectionLike) {
   const { price, isLoading } = useCoinPrice(collection.contractAddress);
-  return { price, isLoading };
+  const usdPrices = useUsdPrices();
+  const quoteUsdRate = price?.quoteSymbol ? usdPriceFor(usdPrices, price.quoteSymbol) : undefined;
+  return { price: price ? { ...price, quoteUsdRate } : price, isLoading };
 }
 
 export function useCoinsAdapter({ filter, sort }: { filter: CoinFilter; sort: CoinSort }) {
