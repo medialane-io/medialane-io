@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Image from "next/image";
 import { ShieldCheck } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
@@ -33,7 +34,7 @@ function TokenHero({ order, variant, tokenName, tokenImage }: { order: ApiOrder;
     <div>
       <div className="relative h-32 w-full bg-muted overflow-hidden">
         {image ? (
-          <img src={image} alt={name ?? "Asset"} className="h-full w-full object-cover" />
+          <Image src={image} alt={name ?? "Asset"} fill className="object-cover" />
         ) : (
           <div className="h-full w-full bg-gradient-to-br from-destructive/20 via-brand-rose/10 to-transparent" />
         )}

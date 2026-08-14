@@ -246,9 +246,9 @@ export default function LaunchpadCreateCollectionPage() {
           live onchain. Start minting assets into it.
         </p>
         {imagePreview && (
-          <div className="h-24 w-24 rounded-xl overflow-hidden border border-border shadow-md">
+          <div className="relative h-24 w-24 rounded-xl overflow-hidden border border-border shadow-md">
 
-            <img src={imagePreview} alt={pendingValues?.name ?? ""} className="h-full w-full object-cover" />
+            <Image src={imagePreview} alt={pendingValues?.name ?? ""} fill className="object-cover" />
           </div>
         )}
         <div className="flex flex-col sm:flex-row gap-2 w-full pt-1">

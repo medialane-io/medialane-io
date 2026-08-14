@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useParams, useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { assetHref, collectionHref } from "@/lib/routes";
 import { useToken, useTokenHistory } from "@/hooks/use-tokens";
 import { useTokenListings } from "@/hooks/use-orders";
@@ -238,11 +239,12 @@ export function AssetPageMembership() {
     <div className="relative z-0 min-h-screen">
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         {imageUrl && (
-          <img
+          <Image
             src={imageUrl}
             alt=""
             aria-hidden
-            className="absolute inset-0 w-full h-full object-cover opacity-20 scale-110"
+            fill
+            className="object-cover opacity-20 scale-110"
             style={{ filter: "blur(60px) saturate(1.5)" }}
           />
         )}

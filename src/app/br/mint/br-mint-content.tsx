@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import {
   CheckCircle2,
   XCircle,
@@ -32,10 +33,11 @@ function EventCard() {
         </div>
       ) : (
 
-        <img
+        <Image
           src={src}
           alt="Medialane Airdrop de Prêmios"
-          className="w-full h-full object-cover"
+          fill
+          className="object-cover"
           onError={() => setErrored(true)}
         />
       )}

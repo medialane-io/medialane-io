@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Image from "next/image";
 import type { ApiWalletActivity, ApiActivity } from "@medialane/sdk";
 import { getTokenBySymbol } from "@medialane/sdk";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
@@ -170,10 +171,9 @@ function ProtocolActivityRow({ item }: { item: ApiActivity }) {
   const seed = item.txHash ?? item.orderHash ?? item.type;
   return (
     <div className="flex items-center gap-3 rounded-2xl bg-card/40 px-4 py-3 backdrop-blur-sm">
-      <div className="h-11 w-11 shrink-0 overflow-hidden rounded-2xl" style={img ? undefined : { background: gradFor(seed) }}>
+      <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-2xl" style={img ? undefined : { background: gradFor(seed) }}>
         {img && (
-
-          <img src={img} alt="" loading="lazy" className="h-full w-full object-cover" />
+          <Image src={img} alt="" fill className="object-cover" />
         )}
       </div>
       <div className="min-w-0 flex-1">

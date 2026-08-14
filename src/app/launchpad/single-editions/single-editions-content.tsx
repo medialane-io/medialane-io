@@ -4,6 +4,7 @@ import { uploadImageToIpfs } from "@/lib/upload-image";
 import { withSiwsAuth } from "@/lib/pinata-fetch";
 import { rewardToast } from "@/lib/reward-toast";
 import { useState, useRef, useEffect, useCallback } from "react";
+import NextImage from "next/image";
 import { getService } from "@medialane/sdk";
 import type { ApiCollection } from "@medialane/sdk";
 import { useForm } from "react-hook-form";
@@ -153,7 +154,7 @@ function CollectionThumb({ image, size }: { image: string | null | undefined; si
     >
       {imageUrl ? (
 
-        <img src={imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <NextImage src={imageUrl} alt="" fill className="object-cover" />
       ) : (
         <div className="absolute inset-0 flex items-center justify-center">
           <Boxes className="h-4 w-4 text-muted-foreground/40" />
@@ -612,6 +613,7 @@ export function SingleEditionsContent() {
               >
                 {imagePreview ? (
 
+                  // eslint-disable-next-line @next/next/no-img-element -- intrinsic-sized upload preview (object-contain, no fixed box), not a next/image fill candidate
                   <img src={imagePreview} alt="Preview" className="mx-auto max-h-48 rounded-lg object-contain" />
                 ) : (
                   <div className="flex flex-col items-center gap-2 text-muted-foreground">

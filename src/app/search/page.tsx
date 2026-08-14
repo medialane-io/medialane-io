@@ -106,9 +106,9 @@ function CreatorCard({ creator }: { creator: ApiSearchCreatorResult }) {
       href={`/creator/${creator.username}`}
       className="card-base flex items-center gap-3 p-3 hover:border-primary/30 hover:bg-muted/30 transition-all"
     >
-      <div className="h-9 w-9 rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 flex items-center justify-center shrink-0 overflow-hidden">
+      <div className="relative h-9 w-9 rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 flex items-center justify-center shrink-0 overflow-hidden">
         {avatarUrl ? (
-          <img src={avatarUrl} alt={displayName} className="h-full w-full object-cover" />
+          <Image src={avatarUrl} alt={displayName} fill className="object-cover" />
         ) : (
           <span className="text-sm font-bold text-primary-foreground">{displayName.charAt(0).toUpperCase()}</span>
         )}

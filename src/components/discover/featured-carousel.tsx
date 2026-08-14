@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { collectionHref } from "@/lib/routes";
 import { useCollections } from "@/hooks/use-collections";
@@ -20,11 +21,11 @@ function Slide({ collection }: { collection: ApiCollection }) {
   return (
     <div className="relative w-full h-full">
       {image ? (
-        <img
+        <Image
           src={image}
           alt={name}
-          loading="lazy"
-          className="absolute inset-0 w-full h-full object-cover"
+          fill
+          className="object-cover"
         />
       ) : (
         <div className="absolute inset-0 bg-gradient-to-br from-brand-purple/30 via-brand-blue/20 to-brand-navy/40" />

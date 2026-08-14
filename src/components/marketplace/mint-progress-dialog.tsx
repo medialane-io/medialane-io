@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Image from "next/image";
 import { fireConfetti } from "@/lib/confetti";
 import {
   Dialog,
@@ -113,7 +114,7 @@ export function MintProgressDialog({
             <div className="relative">
               {imagePreview ? (
                 <div className="relative h-20 w-20 rounded-2xl overflow-hidden border border-border shadow-md">
-                  <img src={imagePreview} alt={assetName} className="h-full w-full object-cover" />
+                  <Image src={imagePreview} alt={assetName} fill className="object-cover" />
                   <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
                     <Loader2 className="h-7 w-7 animate-spin text-primary" />
                   </div>
@@ -209,8 +210,8 @@ export function MintProgressDialog({
           <div className="flex flex-col items-center gap-5 py-2">
             {imagePreview ? (
               <div className="relative">
-                <div className="h-32 w-32 rounded-2xl overflow-hidden border border-border shadow-lg">
-                  <img src={imagePreview} alt={assetName} className="h-full w-full object-cover" />
+                <div className="relative h-32 w-32 rounded-2xl overflow-hidden border border-border shadow-lg">
+                  <Image src={imagePreview} alt={assetName} fill className="object-cover" />
                 </div>
                 <div className="absolute -bottom-2 -right-2 h-9 w-9 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg border-2 border-background">
                   <CheckCircle2 className="h-5 w-5 text-white" />
@@ -286,8 +287,8 @@ export function MintProgressDialog({
           <div className="flex flex-col items-center gap-5 py-2">
             {imagePreview ? (
               <div className="relative">
-                <div className="h-32 w-32 rounded-2xl overflow-hidden border border-border shadow-lg">
-                  <img src={imagePreview} alt={assetName} className="h-full w-full object-cover" />
+                <div className="relative h-32 w-32 rounded-2xl overflow-hidden border border-border shadow-lg">
+                  <Image src={imagePreview} alt={assetName} fill className="object-cover" />
                 </div>
                 <div className="absolute -bottom-2 -right-2 h-9 w-9 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg border-2 border-background">
                   <CheckCircle2 className="h-5 w-5 text-white" />

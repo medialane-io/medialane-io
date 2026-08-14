@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { Coins, ExternalLink, TrendingUp, ArrowRight, Lock, Sparkles, ImagePlus, X, Loader2 } from "lucide-react";
 import { getTokenBySymbol, formatAmount } from "@medialane/sdk";
@@ -265,7 +266,7 @@ export default function CoinCreatePage() {
                   >
                     {imagePreview ? (
 
-                      <img src={imagePreview} alt="Coin" className="h-full w-full object-cover" />
+                      <Image src={imagePreview} alt="Coin" fill className="object-cover" />
                     ) : (
                       <ImagePlus className="h-6 w-6 text-muted-foreground" />
                     )}
