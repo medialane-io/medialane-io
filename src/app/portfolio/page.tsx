@@ -46,12 +46,13 @@ export default function PortfolioOverviewPage() {
       key: "assets",
       title: "Assets",
       href: "/portfolio/assets",
+      size: "large",
       isEmpty: !loadingTokens && totalAssets === 0,
       content: (
         <AssetsGrid
           address={address}
-          limit={4}
-          gridClassName="grid grid-cols-2 gap-3"
+          limit={6}
+          gridClassName="grid grid-cols-2 sm:grid-cols-3 gap-3 h-full"
         />
       ),
     },
