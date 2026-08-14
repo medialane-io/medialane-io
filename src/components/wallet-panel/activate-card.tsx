@@ -39,7 +39,7 @@ export function ActivateCard({ onActivated }: { onActivated: (txHash?: string) =
           Activate my wallet
         </ActionButton>
         <p className="mx-auto max-w-[22rem] text-sm leading-relaxed text-muted-foreground">
-          Your permissionless self custody wallet will be permanent onchain. Activation is free — gas is sponsored.
+          Your vault is stored securely and ready whenever you need it. Activating is free — no gas fees.
         </p>
         {error && <p className="text-xs text-destructive">{error}</p>}
       </div>
