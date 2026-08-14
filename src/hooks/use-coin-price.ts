@@ -2,13 +2,13 @@
 
 import useSWR from "swr";
 import { getCreatorCoinPrice, type CreatorCoinPrice } from "@medialane/sdk/starknet";
-import { publicReadProvider } from "@/lib/starknet";
+import { starknetProvider } from "@/lib/starknet";
 
 export function useCoinPrice(coinAddress?: string | null) {
   const { data, error, isLoading, mutate } = useSWR<CreatorCoinPrice | null>(
     coinAddress ? `coin-price-${coinAddress}` : null,
 
-    () => getCreatorCoinPrice(coinAddress as string, publicReadProvider),
+    () => getCreatorCoinPrice(coinAddress as string, starknetProvider),
     {
       revalidateOnFocus: false,
       refreshInterval: 30_000,

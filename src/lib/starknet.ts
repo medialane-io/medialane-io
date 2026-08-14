@@ -9,5 +9,3 @@ export const starknetProvider = new RpcProvider({
   blockIdentifier: "latest",
   baseFetch: createFailoverFetch([PRIMARY]),
 });
-
-export const publicReadProvider = starknetProvider;
