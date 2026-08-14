@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useCreators } from "@/hooks/use-creators";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -23,7 +24,7 @@ function CreatorCard({ creator }: { creator: ApiCreatorProfile }) {
       className="block relative aspect-[3/4] overflow-hidden rounded-2xl bg-muted active:scale-[0.97] transition-transform duration-150 select-none"
     >
       {imageUrl && (
-        <img src={imageUrl} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover" />
+        <Image src={imageUrl} alt="" aria-hidden fill className="object-cover" />
       )}
       <div className="absolute bottom-0 inset-x-0 px-4 py-4">
         <p className="font-bold text-2xl text-white truncate">{displayName}</p>

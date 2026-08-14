@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Layers } from "lucide-react";
@@ -198,9 +199,9 @@ export default function CreateIP1155CollectionPage() {
           live onchain. Mint editions into it.
         </p>
         {imagePreview && (
-          <div className="h-24 w-24 rounded-xl overflow-hidden border border-border shadow-md">
+          <div className="relative h-24 w-24 rounded-xl overflow-hidden border border-border shadow-md">
 
-            <img src={imagePreview} alt={pendingValues?.name ?? ""} className="h-full w-full object-cover" />
+            <Image src={imagePreview} alt={pendingValues?.name ?? ""} fill className="object-cover" />
           </div>
         )}
         <div className="flex flex-col sm:flex-row gap-2 w-full pt-1">

@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import Image from "next/image";
 import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TxStatus } from "@/components/transaction/tx-status";
@@ -62,11 +63,12 @@ export function TransactionDialogStates({
           <CheckCircle2 className="h-9 w-9 text-emerald-500" />
         </div>
         {successImage && (
-          <div className="h-24 w-24 rounded-2xl overflow-hidden border border-border shadow-md">
-            <img
+          <div className="relative h-24 w-24 rounded-2xl overflow-hidden border border-border shadow-md">
+            <Image
               src={ipfsToHttp(successImage)}
               alt={successImageAlt ?? "Asset"}
-              className="h-full w-full object-cover"
+              fill
+              className="object-cover"
             />
           </div>
         )}

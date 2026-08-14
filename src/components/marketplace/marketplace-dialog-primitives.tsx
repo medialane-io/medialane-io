@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { AlertCircle, CheckCircle2, ExternalLink, Loader2, Wallet, Sparkles } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -57,7 +58,7 @@ export function MarketplaceProcessingState({
     <div className="flex flex-col items-center gap-5 p-6 py-8">
       {imageUrl ? (
         <div className="relative h-20 w-20 rounded-2xl overflow-hidden border border-border shadow-md">
-          <img src={imageUrl} alt={imageAlt} className="h-full w-full object-cover" />
+          <Image src={imageUrl} alt={imageAlt} fill className="object-cover" />
           <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
             <Loader2 className="h-7 w-7 animate-spin text-primary" />
           </div>
@@ -129,8 +130,8 @@ export function MarketplaceSuccessState({
     <div className="flex flex-col items-center gap-5 p-6 py-8">
       {tokenImage ? (
         <div className="relative">
-          <div className="h-32 w-32 rounded-2xl overflow-hidden border border-border shadow-lg">
-            <img src={tokenImage} alt={name} className="h-full w-full object-cover" />
+          <div className="relative h-32 w-32 rounded-2xl overflow-hidden border border-border shadow-lg">
+            <Image src={tokenImage} alt={name} fill className="object-cover" />
           </div>
           <div className="absolute -bottom-2 -right-2 h-9 w-9 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg border-2 border-background">
             <CheckCircle2 className="h-5 w-5 text-white" />
@@ -185,8 +186,8 @@ export function MarketplaceErrorState({
     <div className="flex flex-col items-center gap-5 p-6 py-8">
       {tokenImage ? (
         <div className="relative">
-          <div className="h-32 w-32 rounded-2xl overflow-hidden border border-border shadow-lg">
-            <img src={tokenImage} alt={name} className="h-full w-full object-cover" />
+          <div className="relative h-32 w-32 rounded-2xl overflow-hidden border border-border shadow-lg">
+            <Image src={tokenImage} alt={name} fill className="object-cover" />
           </div>
           <div className="absolute -bottom-2 -right-2 h-9 w-9 rounded-full bg-destructive flex items-center justify-center shadow-lg border-2 border-background">
             <AlertCircle className="h-5 w-5 text-white" />
@@ -239,7 +240,7 @@ export function MarketplaceDialogHero({
   return (
     <div className="relative h-32 w-full bg-muted overflow-hidden shrink-0">
       {tokenImage ? (
-        <img src={tokenImage} alt={name} className="h-full w-full object-cover" />
+        <Image src={tokenImage} alt={name} fill className="object-cover" />
       ) : (
         <div className="h-full w-full bg-gradient-to-br from-brand-blue/20 via-brand-purple/10 to-transparent flex items-center justify-center">
           {fallbackIcon}

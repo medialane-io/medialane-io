@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { ShieldCheck, Tag, UserCircle2 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { IpTypeBadge } from "@/components/shared/ip-type-badge";
@@ -33,7 +34,7 @@ export function PreviewHero({
   return (
     <div className="relative h-52 w-full bg-muted overflow-hidden shrink-0">
       {image ? (
-        <img src={image} alt={name} className="h-full w-full object-cover" />
+        <Image src={image} alt={name} fill className="object-cover" />
       ) : (
         <div className="h-full w-full bg-gradient-to-br from-brand-blue/20 via-brand-purple/10 to-transparent flex items-center justify-center">
           <Tag className="h-12 w-12 text-brand-blue/30" />

@@ -39,11 +39,12 @@ export function AssetPagePop() {
     <div className="relative z-0 min-h-screen">
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         {imageUrl && (
-          <img
+          <Image
             src={imageUrl}
             alt=""
             aria-hidden
-            className="absolute inset-0 w-full h-full object-cover opacity-20 scale-110"
+            fill
+            className="object-cover opacity-20 scale-110"
             style={{ filter: "blur(60px) saturate(1.5)" }}
           />
         )}

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { assetHref } from "@/lib/routes";
 import { useCreatorByUsername } from "@/hooks/use-username-claims";
 import { useTokensByOwner } from "@/hooks/use-tokens";
@@ -188,9 +189,8 @@ export default function CreatorUsernamePageClient({ username }: Props) {
     <div className="pt-14 pb-20 min-h-screen overflow-x-hidden">
 
       {heroImage && (
-        <div className="w-full h-[32vw] min-h-[180px] max-h-[320px] overflow-hidden bg-muted">
-
-          <img src={heroImage} alt="" aria-hidden className="w-full h-full object-cover" />
+        <div className="relative w-full h-[32vw] min-h-[180px] max-h-[320px] overflow-hidden bg-muted">
+          <Image src={heroImage} alt="" aria-hidden fill className="object-cover" />
         </div>
       )}
 

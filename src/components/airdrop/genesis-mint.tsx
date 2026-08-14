@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
@@ -38,10 +39,11 @@ export function AirdropEventCard() {
           </div>
         ) : (
 
-          <img
+          <Image
             src={src}
             alt="Medialane Creator's Airdrop"
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
             onError={() => setErrored(true)}
           />
         )}
