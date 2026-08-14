@@ -31,10 +31,6 @@ export default function PortfolioOverviewPage() {
   const passItems = tokens.filter((t) =>
     TICKET_TYPES.has((t.metadata.ipType ?? "").toLowerCase()),
   );
-  // "large" only earns its keep once there's enough to actually fill it —
-  // a 2x2 hero cell around a single asset card is a worse look than a
-  // normal 1x1 tile, not a better one.
-  const assetsIsLarge = totalAssets != null && totalAssets >= 4;
 
   const isEmpty =
     !loadingTokens &&
@@ -50,18 +46,11 @@ export default function PortfolioOverviewPage() {
       key: "assets",
       title: "Assets",
       href: "/portfolio/assets",
-      size: assetsIsLarge ? "large" : "default",
       isEmpty: !loadingTokens && totalAssets === 0,
-      content: assetsIsLarge ? (
+      content: (
         <AssetsGrid
           address={address}
           limit={6}
-          gridClassName="grid grid-cols-2 sm:grid-cols-3 gap-3 h-full"
-        />
-      ) : (
-        <AssetsGrid
-          address={address}
-          limit={4}
           gridClassName="grid grid-cols-2 gap-3"
         />
       ),
