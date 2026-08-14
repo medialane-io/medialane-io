@@ -13,7 +13,7 @@ import { BackButton } from "./back-button";
 import { QuickAction } from "./quick-action";
 import { SectionHeader } from "./section-header";
 import { WalletActivityIcon } from "./wallet-activity-icon";
-import { useUsdPrices } from "@/hooks/use-usd-prices";
+import { useUsdPrices, usdPriceFor } from "@/hooks/use-usd-prices";
 import type { WalletToken } from "./wallet-tokens";
 import type { WalletPanelView } from "./types";
 
@@ -27,7 +27,7 @@ export function WalletPanelTokenDetail({
   const { address: walletAddress } = useWalletNativeSession();
   const { rawBalance: bal } = useErc20Balance(token.address, walletAddress);
   const usdPrices = useUsdPrices();
-  const price = usdPrices?.[token.symbol] ?? null;
+  const price = usdPriceFor(usdPrices, token.symbol) ?? null;
 
   const voyager = useMemo(() => explorerTokenUrl(token.address), [token.address]);
   const heldValue = bal != null && price != null ? rawToNumber(bal, token.decimals) * price : null;

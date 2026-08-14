@@ -795,7 +795,7 @@ export default function SettingsContent() {
                   </div>
 
                   <div className="flex items-center gap-4 flex-wrap">
-                    <Button onClick={openWalletPanel} variant="outline" size="sm">
+                    <Button onClick={() => openWalletPanel()} variant="outline" size="sm">
                       <Wallet className="mr-1.5 h-3.5 w-3.5" />
                       Open wallet
                     </Button>
