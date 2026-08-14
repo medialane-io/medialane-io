@@ -34,6 +34,7 @@ import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
 import { Layers, Loader2, ImagePlus, X } from "lucide-react";
+import { friendlyErrorMessage } from "@/lib/friendly-error";
 
 const schema = z.object({
   name: z.string().min(1, "Name required").max(100),
@@ -154,7 +155,7 @@ export default function LaunchpadCreateCollectionPage() {
       setImageUri(uri);
       setImageUploadSuccess("Image uploaded to IPFS");
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Upload failed";
+      const msg = friendlyErrorMessage(err, "Upload failed");
       setImageUploadError(`Image upload failed: ${msg}`);
       setImageUri(null);
     } finally {

@@ -14,6 +14,7 @@ import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useCollection } from "@/hooks/use-collections";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import type { Call } from "starknet";
+import { friendlyErrorMessage } from "@/lib/friendly-error";
 
 function parseAddresses(raw: string): string[] {
   return raw
@@ -148,7 +149,7 @@ export default function PopManagePage({
       await signer.execute(calls);
       setTxResult({ type: "success", message: successMsg });
     } catch (err) {
-      setTxResult({ type: "error", message: err instanceof Error ? err.message : "Transaction failed" });
+      setTxResult({ type: "error", message: friendlyErrorMessage(err, "Transaction failed") });
     } finally {
       setIsSubmitting(false);
     }

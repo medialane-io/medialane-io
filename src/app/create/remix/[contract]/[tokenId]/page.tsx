@@ -42,6 +42,7 @@ import {
 import { toast } from "sonner";
 import type { Call } from "starknet";
 import type { MintTxStatus } from "@/types/mint-tx-status";
+import { friendlyErrorMessage } from "@/lib/friendly-error";
 
 export default function CreateRemixPage() {
   const { contract, tokenId } = useParams<{ contract: string; tokenId: string }>();
@@ -150,7 +151,7 @@ export default function CreateRemixPage() {
     const err = validate();
     if (err) { toast.error(err); return; }
     void handleUnlocked().catch((e) => {
-      setMintError(e instanceof Error ? e.message : "Something went wrong");
+      setMintError(friendlyErrorMessage(e));
       setMintStep("error");
       setTxStatus("error");
     });
@@ -297,7 +298,7 @@ export default function CreateRemixPage() {
         router.push(assetHref("STARKNET", selectedCollection.contractAddress, remixTokenId));
       }, INDEXER_REVALIDATION_DELAY_MS);
     } catch (err: unknown) {
-      setMintError(err instanceof Error ? err.message : "Something went wrong");
+      setMintError(friendlyErrorMessage(err));
       setMintStep("error");
       setTxStatus("error");
     }

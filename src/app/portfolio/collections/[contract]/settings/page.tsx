@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { friendlyErrorMessage } from "@/lib/friendly-error";
 
 interface Props { params: Promise<{ contract: string }> }
 
@@ -141,7 +142,7 @@ function CollectionSlugClaimSection({
       setPendingSlug(claim.slug);
       setSubmitState("done");
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to submit claim.";
+      const msg = friendlyErrorMessage(err, "Failed to submit claim.");
       setSubmitError(msg);
       setSubmitState("error");
     }
@@ -360,7 +361,7 @@ export default function CollectionSettingsPage({ params }: Props) {
       setTimeout(() => setSaveStatus("idle"), 3000);
     } catch (e) {
       setSaveStatus("error");
-      setSaveError(e instanceof Error ? e.message : "Failed to save changes");
+      setSaveError(friendlyErrorMessage(e, "Failed to save changes"));
     } finally {
       setSaving(false);
     }

@@ -323,6 +323,7 @@ export default function CollectionPageClient() {
               <button
                 onClick={() => setReportOpen(true)}
                 title="Report this collection"
+                aria-label="Report this collection"
                 className="text-muted-foreground/40 hover:text-muted-foreground transition-colors"
               >
                 <Flag className="w-3.5 h-3.5" />

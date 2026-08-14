@@ -13,6 +13,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { friendlyErrorMessage } from "@/lib/friendly-error";
 
 type Step = "sending" | "code" | "verifying" | "success" | "error";
 
@@ -46,7 +47,7 @@ export function EmailVerifyDialog({ open, onOpenChange, email, onVerified }: Ema
       setCooldown(RESEND_COOLDOWN_S);
       setTimeout(() => inputRef.current?.focus(), 50);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Couldn't send the code. Please try again.");
+      setError(friendlyErrorMessage(err, "Couldn't send the code. Please try again."));
       setStep("error");
     }
   };
@@ -81,7 +82,7 @@ export function EmailVerifyDialog({ open, onOpenChange, email, onVerified }: Ema
       toast.success("Email verified");
       setTimeout(() => onOpenChange(false), 1200);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Incorrect code. Please try again.");
+      setError(friendlyErrorMessage(err, "Incorrect code. Please try again."));
       setCode("");
       setStep("code");
       setTimeout(() => inputRef.current?.focus(), 50);

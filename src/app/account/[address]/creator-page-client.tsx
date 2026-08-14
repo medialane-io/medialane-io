@@ -215,7 +215,7 @@ export default function CreatorPageClient() {
         </div>
         <div className="flex items-center gap-1 shrink-0 pt-1">
           <ShareButton title="Creator Profile" size="icon" variant="ghost" />
-          <Button variant="ghost" size="icon" onClick={() => setReportOpen(true)}>
+          <Button variant="ghost" size="icon" onClick={() => setReportOpen(true)} aria-label="Report this profile">
             <Flag className="w-4 h-4 text-muted-foreground" />
           </Button>
         </div>

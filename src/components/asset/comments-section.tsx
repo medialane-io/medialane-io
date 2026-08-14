@@ -224,6 +224,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
                         <button
                           className="absolute -top-1 -right-5 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground/40 hover:text-destructive/70"
                           title="Report comment"
+                          aria-label="Report comment"
                           onClick={() => setReportTarget({ type: "COMMENT", commentId: comment.id })}
                         >
                           <Flag className="h-3 w-3" />

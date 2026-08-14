@@ -6,6 +6,7 @@ import { useWalletNativeSession } from "./use-wallet-native-session";
 import { INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
 import { QUERY_PREFIX } from "@/lib/query-keys";
 import type { Call } from "starknet";
+import { friendlyErrorMessage } from "@/lib/friendly-error";
 
 export interface TransferInput {
   contractAddress: string;
@@ -92,7 +93,7 @@ export function useTransfer() {
         setTimeout(() => invalidate(), INDEXER_REVALIDATION_DELAY_MS);
         return result.txHash;
       } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : "Transfer failed";
+        const msg = friendlyErrorMessage(err, "Transfer failed");
         setError(msg);
       } finally {
         setIsProcessing(false);

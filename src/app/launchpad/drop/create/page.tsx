@@ -27,6 +27,7 @@ import { MedialaneCollectionCard } from "@medialane/ui";
 import { rewardToast } from "@/lib/reward-toast";
 import { CreateDropAside } from "@/components/claim/create-drop-aside";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
+import { friendlyErrorMessage } from "@/lib/friendly-error";
 
 const API_BASE = "/api/proxy";
 
@@ -221,7 +222,7 @@ export default function CreateDropPage() {
       baseUri = built.baseUri;
       maxSupply = BigInt(built.count);
     } catch (err) {
-      throw new Error(err instanceof Error ? err.message : "Failed to prepare drop metadata");
+      throw new Error(friendlyErrorMessage(err, "Failed to prepare drop metadata"));
     }
 
     const toTs = (d: string, t: string) => Math.floor(new Date(`${d}T${t}:00`).getTime() / 1000);
