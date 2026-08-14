@@ -12,6 +12,8 @@ import { tradeHref, useCoin } from "@/lib/coin-adapters";
 import { CoinSwapWidget } from "@/components/coin/coin-swap-widget";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletPanel } from "@/components/wallet-panel/wallet-panel-overlay";
+import { useUsdPrices, usdPriceFor } from "@/hooks/use-usd-prices";
+import { fmtUsd } from "@/lib/wallet-format";
 import { collectionHref } from "@/lib/routes";
 import { ipfsToHttp, cn } from "@/lib/utils";
 import { EXPLORER_URL } from "@/lib/constants";
@@ -27,11 +29,16 @@ export function CoinExploreClient({ address }: { address: string }) {
   const { supply } = useCoinSupply(address, coin?.decimals ?? 18);
   const { hasWallet } = useWalletNativeSession();
   const { open: openWalletPanel } = useWalletPanel();
+  const usdPrices = useUsdPrices();
 
   const marketCap = useMemo(
     () => (price && supply != null && supply > 0 ? price.quotePerCoin * supply : null),
     [price, supply]
   );
+
+  const quoteUsdRate = price?.quoteSymbol ? usdPriceFor(usdPrices, price.quoteSymbol) : undefined;
+  const priceUsd = price && quoteUsdRate != null ? price.quotePerCoin * quoteUsdRate : null;
+  const marketCapUsd = marketCap != null && quoteUsdRate != null ? marketCap * quoteUsdRate : null;
 
   useEffect(() => {
     if (!isLoading && !coin) router.replace(collectionHref("STARKNET", address));
@@ -49,7 +56,14 @@ export function CoinExploreClient({ address }: { address: string }) {
 
   const stats: { label: string; value: string }[] = [];
   if (supply != null && supply > 0) stats.push({ label: "Supply", value: formatCompact(supply) });
-  if (marketCap != null) stats.push({ label: "Market Cap", value: `${formatCompact(marketCap)} ${price?.quoteSymbol ?? ""}`.trim() });
+  if (marketCap != null) {
+    stats.push({
+      label: "Market Cap",
+      value: marketCapUsd != null
+        ? fmtUsd(marketCapUsd)
+        : `${formatCompact(marketCap)} ${price?.quoteSymbol ?? ""}`.trim(),
+    });
+  }
   if (price?.quoteSymbol) stats.push({ label: "Priced in", value: price.quoteSymbol });
 
   return (
@@ -94,9 +108,12 @@ export function CoinExploreClient({ address }: { address: string }) {
           {priceLoading ? (
             <div className="h-9 w-40 rounded bg-muted-foreground/20 animate-pulse" />
           ) : price ? (
-            <div className="flex items-baseline gap-2">
+            <div className="flex items-baseline gap-2 flex-wrap">
               <span className="text-3xl font-bold tabular-nums text-brand-orange">{formatCoinPrice(price.quotePerCoin)}</span>
               <span className="text-sm text-muted-foreground">{price.quoteSymbol ?? "quote"} / {symbol}</span>
+              {priceUsd != null && (
+                <span className="text-sm text-muted-foreground/70">≈ {fmtUsd(priceUsd)}</span>
+              )}
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">Not trading yet — no market price available.</p>
