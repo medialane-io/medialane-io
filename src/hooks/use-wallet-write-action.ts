@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { useWalletNativeSession } from "./use-wallet-native-session";
+import { friendlyErrorMessage } from "@/lib/friendly-error";
 
 export type WalletWriteStatus = "idle" | "processing" | "confirming" | "success" | "error";
 
@@ -23,7 +24,7 @@ export function useWalletWriteAction() {
         setStatus("confirming");
         setStatus("success");
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Something went wrong");
+        setError(friendlyErrorMessage(err));
         setStatus("error");
       }
     },
