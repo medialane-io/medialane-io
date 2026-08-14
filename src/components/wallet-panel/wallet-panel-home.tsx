@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { CurrencyIcon } from "@medialane/ui";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useTokenBalance } from "@/hooks/use-erc20-balance";
+import { useTokensByOwner } from "@/hooks/use-tokens";
 import { ActionButton } from "@medialane/ui";
 import { TrustNote } from "./action-button";
 import { ActivateCard } from "./activate-card";
@@ -14,6 +15,8 @@ import { SectionHeader } from "./section-header";
 import { SuccessDialog } from "./success-dialog";
 import { WalletPanelHeader } from "./wallet-panel-header";
 import { WALLET_TOKENS, type WalletToken } from "./wallet-tokens";
+import { pickVaultTeaserItems } from "./vault-teaser-items";
+import { VaultTeaserStrip } from "./vault-teaser-strip";
 import { useUsdPrices, usdPriceFor } from "@/hooks/use-usd-prices";
 import { fmt, fmtUsd, rawToNumber } from "@/lib/wallet-format";
 import type { WalletPanelView } from "./types";
@@ -35,6 +38,9 @@ export function WalletPanelHome({
     USDC: useTokenBalance("USDC", address),
     WBTC: useTokenBalance("WBTC", address),
   };
+
+  const { tokens, isLoading: loadingVault } = useTokensByOwner(address, 1, 6);
+  const vaultItems = pickVaultTeaserItems(tokens, 6);
 
   const usdPrices = useUsdPrices();
   const [panel, setPanel] = useState<"receive" | null>(autoOpenReceive ? "receive" : null);
@@ -101,19 +107,39 @@ export function WalletPanelHome({
     >
       {address && <WalletPanelHeader address={address} onNavigate={onClose} />}
 
-      <section>
-        <div className="flex items-end justify-center gap-2">
-          <span className="font-[family-name:var(--font-display)] text-5xl font-extrabold tracking-tight tabular-nums">
-            {hideBalances ? "••••" : usdPrices === null ? "…" : fmtUsd(totalUsd)}
-          </span>
+      <section className="flex flex-col gap-4">
+        <div>
+          <h1 className="font-[family-name:var(--font-display)] text-xl font-bold tracking-tight">
+            Welcome to your vault
+          </h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            {hideBalances ? "••••" : usdPrices === null ? "…" : `${fmtUsd(totalUsd)} available`}
+          </p>
         </div>
+        <VaultTeaserStrip
+          items={vaultItems}
+          isLoading={loadingVault}
+          onViewVault={() => window.location.assign("/portfolio")}
+        />
       </section>
 
-      <div className="grid grid-cols-3 gap-2">
-        <QuickAction label="Send" action="offer" disabled={!canSend} onClick={() => onNavigate({ name: "send" })} icon={<ArrowUp />} />
-        <QuickAction label="Receive" action="buy" onClick={() => setPanel(panel === "receive" ? null : "receive")} icon={<ArrowDown />} />
-        <QuickAction label="Activity" action="submit" onClick={() => onNavigate({ name: "activity" })} icon={<ActivityIcon />} />
-      </div>
+      {funded ? (
+        <div className="grid grid-cols-3 gap-2">
+          <QuickAction label="Send" action="vault" disabled={!canSend} onClick={() => onNavigate({ name: "send" })} icon={<ArrowUp />} />
+          <QuickAction label="Receive" action="vault" onClick={() => setPanel(panel === "receive" ? null : "receive")} icon={<ArrowDown />} />
+          <QuickAction label="Activity" action="vault" onClick={() => onNavigate({ name: "activity" })} icon={<ActivityIcon />} />
+        </div>
+      ) : (
+        isDeployed === true && (
+          <button
+            onClick={() => setPanel(panel === "receive" ? null : "receive")}
+            className="h-[54px] w-full rounded-[13px] text-[15px] font-semibold text-white transition-transform active:scale-[0.99]"
+            style={{ background: "linear-gradient(115deg,#3b7bff,#5b4ce6)" }}
+          >
+            Fund your account
+          </button>
+        )
+      )}
 
       {isDeployed === false && <ActivateCard onActivated={() => setActivated(true)} />}
 
@@ -175,8 +201,8 @@ export function WalletPanelHome({
 
       {activated && (
         <SuccessDialog
-          title="Wallet activated"
-          message="Your permissionless account is now live on Starknet"
+          title="Vault activated"
+          message="Your vault is live and ready to use"
           onClose={() => setActivated(false)}
         />
       )}
