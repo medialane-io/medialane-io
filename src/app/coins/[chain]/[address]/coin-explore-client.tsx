@@ -4,11 +4,14 @@ import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowUpRight, ExternalLink } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpRight, ExternalLink } from "lucide-react";
 import { coinKind, formatCoinPrice } from "@medialane/ui";
 import { useCoinPrice } from "@/hooks/use-coin-price";
 import { useCoinSupply } from "@/hooks/use-coin-supply";
 import { tradeHref, useCoin } from "@/lib/coin-adapters";
+import { CoinSwapWidget } from "@/components/coin/coin-swap-widget";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
+import { useWalletPanel } from "@/components/wallet-panel/wallet-panel-overlay";
 import { collectionHref } from "@/lib/routes";
 import { ipfsToHttp, cn } from "@/lib/utils";
 import { EXPLORER_URL } from "@/lib/constants";
@@ -22,6 +25,8 @@ export function CoinExploreClient({ address }: { address: string }) {
   const { coin, isLoading } = useCoin(address);
   const { price, isLoading: priceLoading } = useCoinPrice(address);
   const { supply } = useCoinSupply(address, coin?.decimals ?? 18);
+  const { hasWallet } = useWalletNativeSession();
+  const { open: openWalletPanel } = useWalletPanel();
 
   const marketCap = useMemo(
     () => (price && supply != null && supply > 0 ? price.quotePerCoin * supply : null),
@@ -34,6 +39,7 @@ export function CoinExploreClient({ address }: { address: string }) {
 
   if (!isLoading && !coin) return null;
 
+  const isStarknet = (coin?.chain ?? "STARKNET").toString().toUpperCase() === "STARKNET";
   const name = coin?.name ?? "Creator Coin";
   const symbol = coin?.symbol ?? "COIN";
   const kind = coinKind(coin?.service);
@@ -104,7 +110,38 @@ export function CoinExploreClient({ address }: { address: string }) {
           </div>
         )}
 
-        {coin && (
+        {coin && isStarknet && price?.quoteSymbol && (
+          <CoinSwapWidget
+            coinAddress={coin.contractAddress}
+            coinSymbol={symbol}
+            coinDecimals={coin.decimals ?? 18}
+            quoteSymbol={price.quoteSymbol}
+          />
+        )}
+
+        {coin && isStarknet && hasWallet && (
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() =>
+                openWalletPanel({
+                  name: "send",
+                  token: { symbol, name, address: coin.contractAddress, decimals: coin.decimals ?? 18 },
+                })
+              }
+              className="flex items-center justify-center gap-2 rounded-2xl border border-border/60 bg-card/70 py-3 text-sm font-semibold transition-colors hover:bg-card"
+            >
+              <ArrowUp className="h-4 w-4" /> Send {symbol}
+            </button>
+            <button
+              onClick={() => openWalletPanel({ name: "home", autoOpenReceive: true })}
+              className="flex items-center justify-center gap-2 rounded-2xl border border-border/60 bg-card/70 py-3 text-sm font-semibold transition-colors hover:bg-card"
+            >
+              <ArrowDown className="h-4 w-4" /> Receive
+            </button>
+          </div>
+        )}
+
+        {coin && (!isStarknet || !price?.quoteSymbol) && (
           <div className="btn-border-animated p-[1px] rounded-2xl">
             <a
               href={tradeHref({ chain: coin.chain, contractAddress: coin.contractAddress })}

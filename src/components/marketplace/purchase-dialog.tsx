@@ -255,9 +255,9 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
       if (values.paymentSymbol && order.price?.currency && walletAddress) {
         try {
           const built = await buildSwapCalls({
-            sellSymbol: values.paymentSymbol,
-            buySymbol: order.price.currency,
-            buyAmountRaw: feeGrossAmount.toString(),
+            sell: values.paymentSymbol,
+            buy: order.price.currency,
+            amountRaw: feeGrossAmount.toString(),
             takerAddress: walletAddress,
           });
           swapCalls = built.calls;

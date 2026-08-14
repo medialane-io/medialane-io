@@ -6,7 +6,7 @@ import { parseAmount, formatAmount } from "@medialane/sdk";
 import { CurrencyIcon, ActionButton } from "@medialane/ui";
 import { starknetProvider } from "@/lib/starknet";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useTokenBalance } from "@/hooks/use-erc20-balance";
+import { useErc20Balance, useTokenBalance } from "@/hooks/use-erc20-balance";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { friendlyErrorMessage } from "@/lib/friendly-error";
 import { fmt, short } from "@/lib/wallet-format";
@@ -56,10 +56,13 @@ export function WalletPanelSend({
   const eth = useTokenBalance("ETH", address);
   const usdc = useTokenBalance("USDC", address);
   const wbtc = useTokenBalance("WBTC", address);
-  const balancesBySymbol: Record<WalletToken["symbol"], bigint | null> = {
+  // Balances for the pinned picker sheet — kept separate from the active
+  // currency's balance below, since currency may be an ad-hoc coin token
+  // (from a coin's own page) that isn't one of the 4 pinned tokens.
+  const pinnedBalancesBySymbol: Record<string, bigint | null> = {
     STRK: strk.rawBalance, ETH: eth.rawBalance, USDC: usdc.rawBalance, WBTC: wbtc.rawBalance,
   };
-  const currencyBalance = balancesBySymbol[currency.symbol];
+  const { rawBalance: currencyBalance } = useErc20Balance(currency.address, address);
 
   const [to, setTo] = useState("");
   const [amount, setAmount] = useState("");
@@ -205,7 +208,7 @@ export function WalletPanelSend({
         <CurrencySheet
           title="Choose currency"
           tokens={WALLET_TOKENS}
-          balances={balancesBySymbol}
+          balances={pinnedBalancesBySymbol}
           onSelect={(t) => {
             setCurrency(t);
             setPickerOpen(false);

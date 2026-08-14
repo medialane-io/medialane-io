@@ -1,8 +1,9 @@
 
 import { type NextRequest, NextResponse } from "next/server";
 import { getQuotes } from "@avnu/avnu-sdk";
-import { getTokenBySymbol, stringifyBigInts } from "@medialane/sdk";
+import { stringifyBigInts } from "@medialane/sdk";
 import { billSwapCall } from "@/lib/wallet/swap-billing";
+import { resolveSwapToken, resolveSwapAmount } from "@/lib/wallet/swap-token";
 import { createRateLimiter, isSameOrigin, requestIp } from "@/lib/api-route-guard";
 
 export const runtime = "nodejs";
@@ -18,19 +19,28 @@ export async function POST(req: NextRequest) {
   }
 
   const body = (await req.json().catch(() => null)) as
-    | { sellSymbol?: string; buySymbol?: string; buyAmountRaw?: string; takerAddress?: string }
+    | {
+        sellSymbol?: string;
+        buySymbol?: string;
+        sellTokenAddress?: string;
+        buyTokenAddress?: string;
+        sellAmountRaw?: string;
+        buyAmountRaw?: string;
+        takerAddress?: string;
+      }
     | null;
-  if (!body?.sellSymbol || !body.buySymbol || !body.buyAmountRaw) {
-    return NextResponse.json(
-      { error: "sellSymbol, buySymbol, and buyAmountRaw are required" },
-      { status: 400 },
-    );
+  if (!body) {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
-  const sellToken = getTokenBySymbol(body.sellSymbol);
-  const buyToken = getTokenBySymbol(body.buySymbol);
-  if (!sellToken || !buyToken) {
-    return NextResponse.json({ error: "Unsupported currency" }, { status: 400 });
+  const sellToken = resolveSwapToken({ symbol: body.sellSymbol, address: body.sellTokenAddress });
+  const buyToken = resolveSwapToken({ symbol: body.buySymbol, address: body.buyTokenAddress });
+  const swapAmount = resolveSwapAmount(body);
+  if (!sellToken || !buyToken || !swapAmount) {
+    return NextResponse.json(
+      { error: "Unsupported currency, or exactly one of sellAmountRaw/buyAmountRaw must be given" },
+      { status: 400 },
+    );
   }
 
   if (!(await billSwapCall("quote"))) {
@@ -41,7 +51,7 @@ export async function POST(req: NextRequest) {
     const quotes = await getQuotes({
       sellTokenAddress: sellToken.address,
       buyTokenAddress: buyToken.address,
-      buyAmount: BigInt(body.buyAmountRaw),
+      ...swapAmount,
       takerAddress: body.takerAddress,
     });
     const best = quotes[0];

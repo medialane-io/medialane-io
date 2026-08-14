@@ -5,22 +5,28 @@ import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import { WalletPanel } from "./wallet-panel";
 import { WALLET_PANEL_PORTAL_ID } from "./action-modal";
+import type { WalletPanelView } from "./types";
 
 const WL_OPEN = "ml:wallet-panel-open";
 const WL_CLOSE = "ml:wallet-panel-close";
 
 export function useWalletPanel() {
   return {
-    open: () => document.dispatchEvent(new CustomEvent(WL_OPEN)),
+    open: (view?: WalletPanelView) =>
+      document.dispatchEvent(new CustomEvent<WalletPanelView | undefined>(WL_OPEN, { detail: view })),
     close: () => document.dispatchEvent(new CustomEvent(WL_CLOSE)),
   };
 }
 
 export function WalletPanelOverlay() {
   const [open, setOpen] = React.useState(false);
+  const [initialView, setInitialView] = React.useState<WalletPanelView | undefined>(undefined);
 
   React.useEffect(() => {
-    const onOpen = () => setOpen(true);
+    const onOpen = (e: Event) => {
+      setInitialView((e as CustomEvent<WalletPanelView | undefined>).detail);
+      setOpen(true);
+    };
     const onClose = () => setOpen(false);
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpen(false);
@@ -74,7 +80,7 @@ export function WalletPanelOverlay() {
                 <X className="h-4 w-4" />
               </button>
               <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-                <WalletPanel onClose={close} />
+                <WalletPanel onClose={close} initialView={initialView} />
               </div>
             </div>
           </motion.div>

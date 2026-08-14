@@ -14,16 +14,18 @@ import { SectionHeader } from "./section-header";
 import { SuccessDialog } from "./success-dialog";
 import { WalletPanelHeader } from "./wallet-panel-header";
 import { WALLET_TOKENS, type WalletToken } from "./wallet-tokens";
-import { useUsdPrices } from "@/hooks/use-usd-prices";
+import { useUsdPrices, usdPriceFor } from "@/hooks/use-usd-prices";
 import { fmt, fmtUsd, rawToNumber } from "@/lib/wallet-format";
 import type { WalletPanelView } from "./types";
 
 export function WalletPanelHome({
   onNavigate,
   onClose,
+  autoOpenReceive,
 }: {
   onNavigate: (view: WalletPanelView) => void;
   onClose: () => void;
+  autoOpenReceive?: boolean;
 }) {
   const { address, isDeployed } = useWalletNativeSession();
 
@@ -35,7 +37,7 @@ export function WalletPanelHome({
   };
 
   const usdPrices = useUsdPrices();
-  const [panel, setPanel] = useState<"receive" | null>(null);
+  const [panel, setPanel] = useState<"receive" | null>(autoOpenReceive ? "receive" : null);
   const [hideBalances, setHideBalances] = useState(false);
   const [copied, setCopied] = useState(false);
   const [activated, setActivated] = useState(false);
@@ -80,7 +82,7 @@ export function WalletPanelHome({
 
   const usd = (symbol: WalletToken["symbol"]) => {
     const { rawBalance, decimals } = balances[symbol];
-    return rawToNumber(rawBalance, decimals) * (usdPrices?.[symbol] ?? 0);
+    return rawToNumber(rawBalance, decimals) * (usdPriceFor(usdPrices, symbol) ?? 0);
   };
   const totalUsd = WALLET_TOKENS.reduce((sum, t) => sum + usd(t.symbol), 0);
 
