@@ -9,6 +9,8 @@ import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { PortfolioOverview, CollectionCard, AssetCard, type PortfolioBentoTileConfig } from "@medialane/ui";
 import { AssetsGrid } from "@/components/portfolio/assets-grid";
 import { ActivityRow } from "@/components/shared/activity-row";
+import { UsernameClaimPanel } from "@/components/shared/username-claim-panel";
+import { useMyUsernameClaim } from "@/hooks/use-username-claims";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
 
@@ -22,6 +24,7 @@ export default function PortfolioOverviewPage() {
   const { tokens, meta, isLoading: loadingTokens } = useTokensByOwner(address, 1, 8);
   const { activities, isLoading: loadingActivity } = useActivitiesByAddress(address);
   const { collections, isLoading: loadingCollections } = useCollectionsByOwner(address);
+  const { username, isLoading: loadingUsername } = useMyUsernameClaim();
 
   const totalAssets = meta?.total ?? null;
   const recentActivity = activities.slice(0, 5);
@@ -51,6 +54,13 @@ export default function PortfolioOverviewPage() {
           gridClassName="grid grid-cols-2 gap-3"
         />
       ),
+    },
+    {
+      key: "username",
+      title: "Creator Username",
+      href: "/claim/username",
+      isEmpty: loadingUsername || !!username,
+      content: <UsernameClaimPanel bare />,
     },
     {
       key: "collections",
