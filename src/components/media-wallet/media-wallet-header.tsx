@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { CurrencyIcon } from "@medialane/ui";
 import { useCreatorProfile } from "@/hooks/use-profiles";
 import { useMyUsernameClaim } from "@/hooks/use-username-claims";
 import { resolveTokenImage } from "@/lib/utils";
@@ -24,33 +23,28 @@ export function MediaWalletHeader({ address, onNavigate }: { address: string; on
   const headline = username ? `@${username}` : short(address);
 
   return (
-    <header className="flex items-center gap-3 pr-12">
-      <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-foreground/[0.06]">
+    <header className="flex flex-col items-center gap-2 pt-1">
+      <Link
+        href="/settings"
+        onClick={onNavigate}
+        aria-label="Settings"
+        className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full bg-foreground/[0.06] ring-2 ring-foreground/10 transition-transform active:scale-95"
+      >
         <Image
           src={avatarUrl ?? "/icon.png"}
           alt=""
           fill
           unoptimized
-          className={avatarUrl ? "object-cover" : "object-cover p-[12%]"}
+          className={avatarUrl ? "object-cover" : "object-cover p-[16%]"}
         />
-      </div>
-      <div className="min-w-0 flex-1">
-        <button
-          onClick={copy}
-          className="truncate text-left font-[family-name:var(--font-display)] text-lg font-bold tracking-tight"
-        >
-          {headline}
-          {copied && <span className="ml-1.5 text-[10px] font-normal text-muted-foreground">copied ✓</span>}
-        </button>
-      </div>
-      <Link
-        href="/settings"
-        onClick={onNavigate}
-        aria-label="Settings"
-        className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-foreground/[0.06] transition-transform active:scale-95"
-      >
-        <CurrencyIcon symbol="STRK" size={20} />
       </Link>
+      <button
+        onClick={copy}
+        className="font-[family-name:var(--font-display)] text-lg font-bold tracking-tight"
+      >
+        {headline}
+        {copied && <span className="ml-1.5 text-[10px] font-normal text-muted-foreground">copied ✓</span>}
+      </button>
     </header>
   );
 }

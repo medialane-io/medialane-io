@@ -28,47 +28,76 @@ export function ReceiveCard({ address }: { address: string }) {
   const starknetLogo = resolvedTheme === "light" ? "/Starknet-Light.svg" : "/Starknet-Dark.svg";
 
   return (
-    <div className="flex flex-col gap-5">
-      <div className="text-center">
-        <p className="text-sm text-muted-foreground">Receive assets with your address:</p>
-        <p className="mt-1.5 break-all font-mono text-sm font-medium">{address}</p>
-        <div className="mt-3 flex items-center justify-center gap-3">
+    <div className="flex flex-col gap-4">
+      <p className="text-center text-sm text-muted-foreground">Receive assets with your address:</p>
+
+      <button
+        onClick={copy}
+        className="flex items-center justify-center gap-2 rounded-2xl bg-foreground/[0.06] px-4 py-3.5 text-center transition-colors active:bg-foreground/[0.1]"
+      >
+        <span className="break-all font-mono text-sm font-medium">{address}</span>
+        <CopyIcon className="shrink-0 opacity-50" />
+      </button>
+
+      <div className="flex gap-2">
+        <button
+          onClick={copy}
+          className="h-11 flex-1 rounded-full border border-border text-sm font-semibold text-foreground transition-transform active:scale-[0.99] hover:bg-foreground/[0.04]"
+        >
+          {copied ? "Copied ✓" : "Copy"}
+        </button>
+        {typeof navigator !== "undefined" && !!navigator.share && (
           <button
-            onClick={copy}
-            className="text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground"
+            onClick={shareAddress}
+            className="h-11 flex-1 rounded-full border border-border text-sm font-semibold text-foreground transition-transform active:scale-[0.99] hover:bg-foreground/[0.04]"
           >
-            {copied ? "Copied ✓" : "Copy"}
+            Share
           </button>
-          {typeof navigator !== "undefined" && !!navigator.share && (
-            <button
-              onClick={shareAddress}
-              className="text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Share
-            </button>
-          )}
-        </div>
+        )}
       </div>
 
       <AddressQr value={address} />
 
-      <div className="flex flex-col items-center gap-2 text-center">
-        <Image src={starknetLogo} alt="Starknet" width={26} height={26} />
-        <p className="max-w-[22rem] text-xs leading-relaxed text-muted-foreground">
-          Your onchain account is self-custody and permissionless. Please use only
-          the Starknet blockchain to send and receive assets.
+      <div className="flex items-center gap-3 rounded-2xl bg-card/40 px-4 py-3 backdrop-blur-sm">
+        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-foreground/[0.06]">
+          <Image src={starknetLogo} alt="Starknet" width={22} height={22} />
+        </div>
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          Your onchain account is self-custody and permissionless. Please use
+          only the Starknet blockchain to send and receive assets.
         </p>
       </div>
 
-      <a
-        href={FUNDING_DOCS_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex h-[54px] w-full items-center justify-center rounded-[13px] text-[15px] font-semibold text-white transition-transform active:scale-[0.99]"
-        style={{ background: "linear-gradient(115deg,#3b7bff,#5b4ce6)" }}
-      >
-        Deposit money
-      </a>
+      <div className="flex flex-col items-center gap-2 pt-1 text-center">
+        <p className="text-xs text-muted-foreground">Don&apos;t have tokens yet?</p>
+        <a
+          href={FUNDING_DOCS_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex h-10 items-center justify-center rounded-full border border-brand-blue/50 px-5 text-sm font-semibold text-brand-blue transition-colors hover:bg-brand-blue/10"
+        >
+          How to fund your account
+        </a>
+      </div>
     </div>
+  );
+}
+
+function CopyIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <rect x="9" y="9" width="13" height="13" rx="2" />
+      <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+    </svg>
   );
 }

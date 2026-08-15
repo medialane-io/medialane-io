@@ -7,18 +7,18 @@ import { QuickAction } from "./quick-action";
 
 afterEach(() => cleanup());
 
-test("Send, Receive, and Activity all render the same core gradient", () => {
+test("Send, Receive, Launch, and Activity each render a distinct action color", () => {
   const { getByText } = render(
     <>
-      <QuickAction label="Send" action="core" icon={<span />} onClick={() => {}} />
-      <QuickAction label="Receive" action="core" icon={<span />} onClick={() => {}} />
-      <QuickAction label="Activity" action="core" icon={<span />} onClick={() => {}} />
+      <QuickAction label="Send" action="buy" icon={<span />} onClick={() => {}} />
+      <QuickAction label="Receive" action="offer" icon={<span />} onClick={() => {}} />
+      <QuickAction label="Launch" action="remix" icon={<span />} onClick={() => {}} />
+      <QuickAction label="Activity" action="submit" icon={<span />} onClick={() => {}} />
     </>
   );
-  const icons = ["Send", "Receive", "Activity"].map((label) => {
+  const grads = ["Send", "Receive", "Launch", "Activity"].map((label) => {
     const button = getByText(label).closest("button")!;
     return (button.querySelector("span") as HTMLElement).style.getPropertyValue("--ml-grad");
   });
-  expect(icons[0]).toBe(icons[1]);
-  expect(icons[1]).toBe(icons[2]);
+  expect(new Set(grads).size).toBe(4);
 });
