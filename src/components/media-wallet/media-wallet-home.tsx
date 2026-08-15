@@ -91,11 +91,11 @@ export function MediaWalletHome({
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
-      className="relative flex flex-col gap-6 px-5 pb-8 pt-2"
+      className="relative flex min-h-full flex-col gap-6 px-5 pb-8 pt-2"
       style={{ transform: pull ? `translateY(${pull}px)` : undefined, transition: pull ? "none" : "transform 0.2s ease" }}
     >
       {address && (
-        <div className="flex flex-col items-center gap-3">
+        <div className="flex flex-col items-center gap-2">
           <MediaWalletHeader address={address} onNavigate={onClose} />
           <span className="font-[family-name:var(--font-display)] text-5xl font-extrabold tracking-tight tabular-nums">
             {hideBalances ? "••••" : usdPrices === null ? "…" : fmtUsd(totalUsd)}
@@ -105,10 +105,10 @@ export function MediaWalletHome({
 
       {funded ? (
         <div className="grid grid-cols-4 gap-2">
-          <QuickAction label="Send" action="core" disabled={!canSend} onClick={() => onNavigate({ name: "send" })} icon={<ArrowUp />} />
-          <QuickAction label="Receive" action="core" onClick={() => setPanel(panel === "receive" ? null : "receive")} icon={<ArrowDown />} />
-          <QuickAction label="Launch" action="core" onClick={goLaunch} icon={<RocketIcon />} />
-          <QuickAction label="Activity" action="core" onClick={() => onNavigate({ name: "activity" })} icon={<ActivityIcon />} />
+          <QuickAction label="Send" action="buy" disabled={!canSend} onClick={() => onNavigate({ name: "send" })} icon={<ArrowUp />} />
+          <QuickAction label="Receive" action="offer" onClick={() => setPanel(panel === "receive" ? null : "receive")} icon={<ArrowDown />} />
+          <QuickAction label="Launch" action="remix" onClick={goLaunch} icon={<RocketIcon />} />
+          <QuickAction label="Activity" action="submit" onClick={() => onNavigate({ name: "activity" })} icon={<ActivityIcon />} />
         </div>
       ) : (
         isDeployed === true && (
@@ -125,7 +125,7 @@ export function MediaWalletHome({
       {isDeployed === false && <ActivateCard onActivated={() => setActivated(true)} />}
 
       {panel === "receive" && address && (
-        <ActionModal title="Receive" onClose={() => setPanel(null)}>
+        <ActionModal onClose={() => setPanel(null)}>
           <ReceiveCard address={address} />
         </ActionModal>
       )}
@@ -181,7 +181,7 @@ export function MediaWalletHome({
         href="https://starknet.medialane.io"
         target="_blank"
         rel="noopener noreferrer"
-        className="text-center text-xs text-muted-foreground/60 transition-colors hover:text-muted-foreground"
+        className="mt-auto text-center text-xs text-muted-foreground/60 transition-colors hover:text-muted-foreground"
       >
         Connect another wallet
       </a>
