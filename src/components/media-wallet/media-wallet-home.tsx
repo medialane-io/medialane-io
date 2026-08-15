@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CurrencyIcon } from "@medialane/ui";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useTokenBalance } from "@/hooks/use-erc20-balance";
 import { useTokensByOwner } from "@/hooks/use-tokens";
+import { useEmailVerificationStatus } from "@/hooks/use-email-verification-required";
 import { ActivateCard } from "./activate-card";
 import { QuickAction } from "./quick-action";
 import { ReceiveCard } from "./receive-card";
@@ -31,6 +33,8 @@ export function MediaWalletHome({
 }) {
   const { address, isDeployed } = useWalletNativeSession();
   const router = useRouter();
+  const emailStatus = useEmailVerificationStatus();
+  const needsEmailVerification = !!emailStatus?.email && !emailStatus.emailVerified;
 
   const balances: Record<WalletToken["symbol"], ReturnType<typeof useTokenBalance>> = {
     STRK: useTokenBalance("STRK", address),
@@ -124,6 +128,22 @@ export function MediaWalletHome({
 
       {isDeployed === false && <ActivateCard onActivated={() => setActivated(true)} />}
 
+      {needsEmailVerification && (
+        <Link
+          href="/settings?tab=account"
+          onClick={onClose}
+          className="flex items-center gap-3 rounded-2xl bg-brand-orange/10 px-4 py-3 transition-colors hover:bg-brand-orange/15"
+        >
+          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand-orange/15">
+            <MailIcon />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-semibold">Verify your email</div>
+            <div className="text-xs text-muted-foreground">Required to claim a username or list assets for sale</div>
+          </div>
+        </Link>
+      )}
+
       {panel === "receive" && address && (
         <ActionModal onClose={() => setPanel(null)}>
           <ReceiveCard address={address} />
@@ -207,6 +227,14 @@ function ActivityIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
       <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+    </svg>
+  );
+}
+function MailIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-brand-orange">
+      <rect x="2" y="4" width="20" height="16" rx="2" />
+      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
     </svg>
   );
 }

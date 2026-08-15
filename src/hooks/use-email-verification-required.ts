@@ -5,9 +5,15 @@ import { useSiwsToken } from "./use-siws-token";
 import { useWalletNativeSession } from "./use-wallet-native-session";
 import { getMedialaneClient } from "@/lib/medialane-client";
 
+export interface EmailVerificationStatus {
+  email: string | null;
+  emailVerified: boolean;
+  requiresEmailVerification: boolean;
+}
+
 // Only reads an already-cached SIWS token — never triggers a sign-in prompt
 // just from rendering a page that happens to check this.
-export function useEmailVerificationRequired(): boolean {
+export function useEmailVerificationStatus(): EmailVerificationStatus | null {
   const { address } = useWalletNativeSession();
   const { getValidToken } = useSiwsToken();
 
@@ -21,5 +27,14 @@ export function useEmailVerificationRequired(): boolean {
     { revalidateOnFocus: false, shouldRetryOnError: false }
   );
 
-  return data?.requiresEmailVerification ?? false;
+  if (!data) return null;
+  return {
+    email: data.email ?? null,
+    emailVerified: data.emailVerified ?? false,
+    requiresEmailVerification: data.requiresEmailVerification ?? false,
+  };
+}
+
+export function useEmailVerificationRequired(): boolean {
+  return useEmailVerificationStatus()?.requiresEmailVerification ?? false;
 }

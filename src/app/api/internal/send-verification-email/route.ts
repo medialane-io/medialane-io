@@ -7,11 +7,19 @@ export const runtime = "nodejs";
 
 function buildVerificationCodeEmailHtml(code: string): string {
   return `
-    <p>Hi there,</p>
-    <p>Your Medialane verification code is:</p>
-    <p style="font-size: 28px; font-weight: bold; letter-spacing: 4px;">${code}</p>
-    <p>This code expires in 10 minutes. If you didn't request this, you can safely ignore this email.</p>
-    <p>— The Medialane Team</p>
+    <div style="max-width:480px;margin:0 auto;padding:32px 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
+      <div style="text-align:center;padding-bottom:28px;">
+        <img src="https://medialane.io/medialane-light-logo.png" alt="Medialane" height="28" style="height:28px;" />
+      </div>
+      <div style="background:#f6f7f9;border-radius:16px;padding:32px 24px;text-align:center;">
+        <p style="margin:0 0 4px;color:#111827;font-size:15px;">Your verification code</p>
+        <div style="font-size:32px;font-weight:800;letter-spacing:8px;color:#111827;margin:16px 0;">${code}</div>
+        <p style="margin:0;color:#6b7280;font-size:13px;">This code expires in 10 minutes.</p>
+      </div>
+      <p style="text-align:center;color:#9ca3af;font-size:12px;margin-top:24px;">
+        If you didn't request this, you can safely ignore this email.
+      </p>
+    </div>
   `;
 }
 
