@@ -15,7 +15,7 @@ import { UndeployedWalletRedirect } from "@/components/wallet/undeployed-wallet-
 import { NavThemeToggle } from "@/components/nav-theme-toggle";
 import { NavConnectButton } from "@/components/nav-connect-button";
 import { HeaderWalletTrigger } from "@/components/nav-wallet-trigger";
-import { WalletPanelOverlay } from "@/components/wallet-panel/wallet-panel-overlay";
+import { MediaWalletOverlay } from "@/components/media-wallet/media-wallet-overlay";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useCreatorProfile } from "@/hooks/use-profiles";
 import { WalletNotDeployedError } from "@/hooks/use-siws-token";
@@ -60,7 +60,7 @@ function MainShell({ children }: { children: React.ReactNode }) {
         showKeyboardHints={false}
         brandSlot={<NavConnectButton />}
       />
-      <WalletPanelOverlay />
+      <MediaWalletOverlay />
       <div className="relative min-h-screen flex flex-col bg-background">
         <ThemeAmbientBackground imageUrl={themeImageUrl} />
         <div className="fixed top-4 left-4 sm:left-6 lg:left-8 z-50">

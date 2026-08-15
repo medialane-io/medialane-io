@@ -3,12 +3,12 @@
 import { useRouter } from "next/navigation";
 import { NavWalletTrigger as SharedNavWalletTrigger } from "@medialane/ui";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useWalletPanel } from "@/components/wallet-panel/wallet-panel-overlay";
+import { useMediaWallet } from "@/components/media-wallet/media-wallet-overlay";
 import { UserShieldIcon } from "@/components/icons/user-shield-icon";
 
 export function HeaderWalletTrigger() {
   const { hasWallet, isDeployed } = useWalletNativeSession();
-  const { open } = useWalletPanel();
+  const { open } = useMediaWallet();
   const router = useRouter();
 
   const handleClick = () => {

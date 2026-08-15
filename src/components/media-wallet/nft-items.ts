@@ -1,6 +1,6 @@
 import type { ApiToken } from "@medialane/sdk";
 
-export interface VaultTeaserItem {
+export interface NftItem {
   key: string;
   href: string;
   name: string;
@@ -9,7 +9,7 @@ export interface VaultTeaserItem {
   fallbackId: string;
 }
 
-export function pickVaultTeaserItems(tokens: ApiToken[], limit: number): VaultTeaserItem[] {
+export function pickNftItems(tokens: ApiToken[], limit: number): NftItem[] {
   return tokens.slice(0, limit).map((token) => ({
     key: `${token.contractAddress}-${token.tokenId}`,
     href: `/asset/starknet/${token.contractAddress}/${token.tokenId}`,

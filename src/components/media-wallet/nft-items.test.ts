@@ -1,5 +1,5 @@
 import { test, expect } from "bun:test";
-import { pickVaultTeaserItems } from "./vault-teaser-items";
+import { pickNftItems } from "./nft-items";
 import type { ApiToken } from "@medialane/sdk";
 
 function makeToken(overrides: Partial<ApiToken> = {}): ApiToken {
@@ -37,8 +37,8 @@ function makeToken(overrides: Partial<ApiToken> = {}): ApiToken {
   } as ApiToken;
 }
 
-test("maps a token to a teaser item with an asset-page href", () => {
-  const items = pickVaultTeaserItems([makeToken()], 6);
+test("maps a token to an NFT item with an asset-page href", () => {
+  const items = pickNftItems([makeToken()], 6);
   expect(items).toEqual([
     {
       key: "0xabc-1",
@@ -56,7 +56,7 @@ test("falls back to a numbered name when metadata.name is missing", () => {
     tokenId: "42",
     metadata: { ...makeToken().metadata, name: null },
   });
-  const [item] = pickVaultTeaserItems([token], 6);
+  const [item] = pickNftItems([token], 6);
   expect(item.name).toBe("#42");
 });
 
@@ -64,9 +64,9 @@ test("caps results at the given limit", () => {
   const tokens = Array.from({ length: 10 }, (_, i) =>
     makeToken({ tokenId: String(i), contractAddress: `0xcontract${i}` })
   );
-  expect(pickVaultTeaserItems(tokens, 4)).toHaveLength(4);
+  expect(pickNftItems(tokens, 4)).toHaveLength(4);
 });
 
 test("returns an empty array for no tokens", () => {
-  expect(pickVaultTeaserItems([], 6)).toEqual([]);
+  expect(pickNftItems([], 6)).toEqual([]);
 });

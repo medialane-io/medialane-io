@@ -20,13 +20,13 @@ mock.module("@/hooks/use-username-claims", () => ({
 }));
 
 const { cleanup, render } = await import("@testing-library/react");
-const { WalletPanelHeader } = await import("./wallet-panel-header");
+const { MediaWalletHeader } = await import("./media-wallet-header");
 
 afterEach(() => cleanup());
 
 test("shows the truncated address by default when no username is claimed", () => {
   const { getByText, queryByText } = render(
-    <WalletPanelHeader address="0x36a8000000000000000000000000000000000020d2" onNavigate={() => {}} />
+    <MediaWalletHeader address="0x36a8000000000000000000000000000000000020d2" onNavigate={() => {}} />
   );
   expect(getByText(/0x36a8…20d2/i)).toBeTruthy();
   expect(queryByText("Media Wallet")).toBeNull();

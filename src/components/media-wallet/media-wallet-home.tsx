@@ -1,36 +1,36 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { CurrencyIcon } from "@medialane/ui";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useTokenBalance } from "@/hooks/use-erc20-balance";
 import { useTokensByOwner } from "@/hooks/use-tokens";
-import { ActionButton } from "@medialane/ui";
-import { TrustNote } from "./action-button";
 import { ActivateCard } from "./activate-card";
 import { QuickAction } from "./quick-action";
-import { AddressQr } from "./address-qr";
+import { ReceiveCard } from "./receive-card";
 import { ActionModal } from "./action-modal";
 import { SectionHeader } from "./section-header";
 import { SuccessDialog } from "./success-dialog";
-import { WalletPanelHeader } from "./wallet-panel-header";
+import { MediaWalletHeader } from "./media-wallet-header";
 import { WALLET_TOKENS, type WalletToken } from "./wallet-tokens";
-import { pickVaultTeaserItems } from "./vault-teaser-items";
-import { VaultTeaserStrip } from "./vault-teaser-strip";
+import { pickNftItems } from "./nft-items";
+import { NftStrip } from "./nft-strip";
 import { useUsdPrices, usdPriceFor } from "@/hooks/use-usd-prices";
 import { fmt, fmtUsd, rawToNumber } from "@/lib/wallet-format";
-import type { WalletPanelView } from "./types";
+import type { MediaWalletView } from "./types";
 
-export function WalletPanelHome({
+export function MediaWalletHome({
   onNavigate,
   onClose,
   autoOpenReceive,
 }: {
-  onNavigate: (view: WalletPanelView) => void;
+  onNavigate: (view: MediaWalletView) => void;
   onClose: () => void;
   autoOpenReceive?: boolean;
 }) {
   const { address, isDeployed } = useWalletNativeSession();
+  const router = useRouter();
 
   const balances: Record<WalletToken["symbol"], ReturnType<typeof useTokenBalance>> = {
     STRK: useTokenBalance("STRK", address),
@@ -39,13 +39,12 @@ export function WalletPanelHome({
     WBTC: useTokenBalance("WBTC", address),
   };
 
-  const { tokens, isLoading: loadingVault } = useTokensByOwner(address, 1, 6);
-  const vaultItems = pickVaultTeaserItems(tokens, 6);
+  const { tokens, isLoading: loadingNfts } = useTokensByOwner(address, 1, 6);
+  const nftItems = pickNftItems(tokens, 6);
 
   const usdPrices = useUsdPrices();
   const [panel, setPanel] = useState<"receive" | null>(autoOpenReceive ? "receive" : null);
   const [hideBalances, setHideBalances] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [activated, setActivated] = useState(false);
   const [pull, setPull] = useState(0);
   const startY = useRef<number | null>(null);
@@ -70,22 +69,6 @@ export function WalletPanelHome({
     startY.current = null;
   };
 
-  const copy = () => {
-    if (!address) return;
-    navigator.clipboard?.writeText(address).catch(() => {});
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  };
-
-  const shareAddress = async () => {
-    if (!address) return;
-    try {
-      await navigator.share?.({ text: address });
-    } catch {
-
-    }
-  };
-
   const usd = (symbol: WalletToken["symbol"]) => {
     const { rawBalance, decimals } = balances[symbol];
     return rawToNumber(rawBalance, decimals) * (usdPriceFor(usdPrices, symbol) ?? 0);
@@ -97,6 +80,11 @@ export function WalletPanelHome({
   const funded = strkBalance != null && strkBalance > 0n;
   const canSend = isDeployed === true && funded;
 
+  const goLaunch = () => {
+    onClose();
+    router.push("/launchpad");
+  };
+
   return (
     <main
       ref={mainRef}
@@ -106,29 +94,21 @@ export function WalletPanelHome({
       className="relative flex flex-col gap-6 px-5 pb-8 pt-2"
       style={{ transform: pull ? `translateY(${pull}px)` : undefined, transition: pull ? "none" : "transform 0.2s ease" }}
     >
-      {address && <WalletPanelHeader address={address} onNavigate={onClose} />}
-
-      <section className="flex flex-col gap-4">
-        <div>
-          <h1 className="font-[family-name:var(--font-display)] text-xl font-bold tracking-tight">
-            Welcome to your vault
-          </h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            {hideBalances ? "••••" : usdPrices === null ? "…" : `${fmtUsd(totalUsd)} available`}
-          </p>
+      {address && (
+        <div className="flex flex-col items-center gap-3">
+          <MediaWalletHeader address={address} onNavigate={onClose} />
+          <span className="font-[family-name:var(--font-display)] text-5xl font-extrabold tracking-tight tabular-nums">
+            {hideBalances ? "••••" : usdPrices === null ? "…" : fmtUsd(totalUsd)}
+          </span>
         </div>
-        <VaultTeaserStrip
-          items={vaultItems}
-          isLoading={loadingVault}
-          onViewVault={() => window.location.assign("/portfolio")}
-        />
-      </section>
+      )}
 
       {funded ? (
-        <div className="grid grid-cols-3 gap-2">
-          <QuickAction label="Send" action="vault" disabled={!canSend} onClick={() => onNavigate({ name: "send" })} icon={<ArrowUp />} />
-          <QuickAction label="Receive" action="vault" onClick={() => setPanel(panel === "receive" ? null : "receive")} icon={<ArrowDown />} />
-          <QuickAction label="Activity" action="vault" onClick={() => onNavigate({ name: "activity" })} icon={<ActivityIcon />} />
+        <div className="grid grid-cols-4 gap-2">
+          <QuickAction label="Send" action="core" disabled={!canSend} onClick={() => onNavigate({ name: "send" })} icon={<ArrowUp />} />
+          <QuickAction label="Receive" action="core" onClick={() => setPanel(panel === "receive" ? null : "receive")} icon={<ArrowDown />} />
+          <QuickAction label="Launch" action="core" onClick={goLaunch} icon={<RocketIcon />} />
+          <QuickAction label="Activity" action="core" onClick={() => onNavigate({ name: "activity" })} icon={<ActivityIcon />} />
         </div>
       ) : (
         isDeployed === true && (
@@ -146,33 +126,13 @@ export function WalletPanelHome({
 
       {panel === "receive" && address && (
         <ActionModal title="Receive" onClose={() => setPanel(null)}>
-          <div className="flex flex-col gap-3">
-            <AddressQr value={address} />
-            <div className="rounded-2xl bg-foreground/[0.05] p-4">
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Your address</div>
-              <div className="mt-1.5 break-all font-mono text-sm">{address}</div>
-            </div>
-            <div className="flex gap-2">
-              <ActionButton action="license" big onClick={copy} className="flex-1">
-                {copied ? "Copied ✓" : "Copy"}
-              </ActionButton>
-              {typeof navigator !== "undefined" && !!navigator.share && (
-                <button
-                  onClick={shareAddress}
-                  className="h-[54px] flex-1 rounded-[13px] border border-border text-[15px] font-semibold text-foreground transition-transform active:scale-[0.99] hover:bg-foreground/[0.04]"
-                >
-                  Share
-                </button>
-              )}
-            </div>
-            <TrustNote>Send only Starknet assets to this address.</TrustNote>
-          </div>
+          <ReceiveCard address={address} />
         </ActionModal>
       )}
 
       {heldTokens.length > 0 && (
         <section>
-          <SectionHeader title="Balances" />
+          <SectionHeader title="Tokens" />
           <div className="mt-2 flex flex-col gap-2">
             {heldTokens.map((t) => {
               const { rawBalance, decimals } = balances[t.symbol];
@@ -202,10 +162,17 @@ export function WalletPanelHome({
         </section>
       )}
 
+      <section>
+        <SectionHeader title="NFTs" />
+        <div className="mt-2">
+          <NftStrip items={nftItems} isLoading={loadingNfts} />
+        </div>
+      </section>
+
       {activated && (
         <SuccessDialog
-          title="Vault activated"
-          message="Your vault is live and ready to use"
+          title="Account activated"
+          message="Your account is live and ready to use"
           onClose={() => setActivated(false)}
         />
       )}
@@ -216,7 +183,7 @@ export function WalletPanelHome({
         rel="noopener noreferrer"
         className="text-center text-xs text-muted-foreground/60 transition-colors hover:text-muted-foreground"
       >
-        Use other wallet
+        Connect another wallet
       </a>
     </main>
   );
@@ -240,6 +207,15 @@ function ActivityIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
       <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+    </svg>
+  );
+}
+function RocketIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 00-2.91-.09z" />
+      <path d="M12 15l-3-3a22 22 0 012-3.95A12.88 12.88 0 0122 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 01-4 2z" />
+      <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" />
     </svg>
   );
 }

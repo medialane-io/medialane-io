@@ -16,7 +16,7 @@ import { ActionModal, BusyOverlay } from "./action-modal";
 import { CurrencySheet } from "./currency-sheet";
 import { WALLET_TOKENS, type WalletToken } from "./wallet-tokens";
 import { SuccessDialog } from "./success-dialog";
-import type { WalletPanelView } from "./types";
+import type { MediaWalletView } from "./types";
 
 function isValidStarknetAddress(address: string): boolean {
   try {
@@ -38,13 +38,13 @@ async function estimateSendFee(address: string, token: string, to: string, amoun
   return { feeRaw: est.overall_fee, unit: est.unit };
 }
 
-export function WalletPanelSend({
+export function MediaWalletSend({
   initialToken,
   onNavigate,
   onDone,
 }: {
   initialToken?: WalletToken;
-  onNavigate: (view: WalletPanelView) => void;
+  onNavigate: (view: MediaWalletView) => void;
   onDone: () => void;
 }) {
   const { address } = useWalletNativeSession();

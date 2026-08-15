@@ -11,7 +11,7 @@ import { useCoinSupply } from "@/hooks/use-coin-supply";
 import { tradeHref, useCoin } from "@/lib/coin-adapters";
 import { CoinSwapWidget } from "@/components/coin/coin-swap-widget";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useWalletPanel } from "@/components/wallet-panel/wallet-panel-overlay";
+import { useMediaWallet } from "@/components/media-wallet/media-wallet-overlay";
 import { useUsdPrices, usdPriceFor } from "@/hooks/use-usd-prices";
 import { fmtUsd } from "@/lib/wallet-format";
 import { collectionHref } from "@/lib/routes";
@@ -28,7 +28,7 @@ export function CoinExploreClient({ address }: { address: string }) {
   const { price, isLoading: priceLoading } = useCoinPrice(address);
   const { supply } = useCoinSupply(address, coin?.decimals ?? 18);
   const { hasWallet } = useWalletNativeSession();
-  const { open: openWalletPanel } = useWalletPanel();
+  const { open: openWalletPanel } = useMediaWallet();
   const usdPrices = useUsdPrices();
 
   const marketCap = useMemo(

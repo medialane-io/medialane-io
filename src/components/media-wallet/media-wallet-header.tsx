@@ -9,7 +9,7 @@ import { useMyUsernameClaim } from "@/hooks/use-username-claims";
 import { resolveTokenImage } from "@/lib/utils";
 import { short } from "@/lib/wallet-format";
 
-export function WalletPanelHeader({ address, onNavigate }: { address: string; onNavigate: () => void }) {
+export function MediaWalletHeader({ address, onNavigate }: { address: string; onNavigate: () => void }) {
   const { profile } = useCreatorProfile(address);
   const { username } = useMyUsernameClaim();
   const [copied, setCopied] = useState(false);

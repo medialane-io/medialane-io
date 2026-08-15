@@ -5,7 +5,7 @@ import { Loader2, Wallet } from "lucide-react";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { useErc20Balance } from "@/hooks/use-erc20-balance";
 import { useSwapQuote } from "@/hooks/use-swap-quote";
-import { useWalletPanel } from "@/components/wallet-panel/wallet-panel-overlay";
+import { useMediaWallet } from "@/components/media-wallet/media-wallet-overlay";
 import { fmt } from "@/lib/wallet-format";
 import { cn } from "@/lib/utils";
 
@@ -80,7 +80,7 @@ interface PayWithPickerProps {
 }
 
 export function PayWithPicker({ orderCurrency, requiredRaw, walletAddress, selected, onSelect }: PayWithPickerProps) {
-  const { open: openWalletPanel } = useWalletPanel();
+  const { open: openWalletPanel } = useMediaWallet();
   const alternatives = SUPPORTED_TOKENS.filter((t) => t.listable && t.symbol !== orderCurrency);
 
   const balanceETH = useErc20Balance(getTokenBySymbol("ETH")?.address ?? null, walletAddress);

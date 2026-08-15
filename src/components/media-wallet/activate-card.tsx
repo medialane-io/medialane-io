@@ -39,7 +39,7 @@ export function ActivateCard({ onActivated }: { onActivated: (txHash?: string) =
           Activate my wallet
         </ActionButton>
         <p className="mx-auto max-w-[22rem] text-sm leading-relaxed text-muted-foreground">
-          Your vault is stored securely and ready whenever you need it. Activating is free — no gas fees.
+          Your account is stored securely and ready whenever you need it. Activating is free — no gas fees.
         </p>
         {error && <p className="text-xs text-destructive">{error}</p>}
       </div>

@@ -3,28 +3,28 @@
 import * as React from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
-import { WalletPanel } from "./wallet-panel";
-import { WALLET_PANEL_PORTAL_ID } from "./action-modal";
-import type { WalletPanelView } from "./types";
+import { MediaWallet } from "./media-wallet";
+import { MEDIA_WALLET_PORTAL_ID } from "./action-modal";
+import type { MediaWalletView } from "./types";
 
-const WL_OPEN = "ml:wallet-panel-open";
-const WL_CLOSE = "ml:wallet-panel-close";
+const WL_OPEN = "ml:media-wallet-open";
+const WL_CLOSE = "ml:media-wallet-close";
 
-export function useWalletPanel() {
+export function useMediaWallet() {
   return {
-    open: (view?: WalletPanelView) =>
-      document.dispatchEvent(new CustomEvent<WalletPanelView | undefined>(WL_OPEN, { detail: view })),
+    open: (view?: MediaWalletView) =>
+      document.dispatchEvent(new CustomEvent<MediaWalletView | undefined>(WL_OPEN, { detail: view })),
     close: () => document.dispatchEvent(new CustomEvent(WL_CLOSE)),
   };
 }
 
-export function WalletPanelOverlay() {
+export function MediaWalletOverlay() {
   const [open, setOpen] = React.useState(false);
-  const [initialView, setInitialView] = React.useState<WalletPanelView | undefined>(undefined);
+  const [initialView, setInitialView] = React.useState<MediaWalletView | undefined>(undefined);
 
   React.useEffect(() => {
     const onOpen = (e: Event) => {
-      setInitialView((e as CustomEvent<WalletPanelView | undefined>).detail);
+      setInitialView((e as CustomEvent<MediaWalletView | undefined>).detail);
       setOpen(true);
     };
     const onClose = () => setOpen(false);
@@ -64,7 +64,7 @@ export function WalletPanelOverlay() {
             onClick={close}
           >
             <div
-              id={WALLET_PANEL_PORTAL_ID}
+              id={MEDIA_WALLET_PORTAL_ID}
               className={
                 "relative flex w-full max-w-[390px] flex-col overflow-hidden rounded-[32px] " +
                 "aspect-[9/19.5] max-h-[85dvh] " +
@@ -80,7 +80,7 @@ export function WalletPanelOverlay() {
                 <X className="h-4 w-4" />
               </button>
               <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-                <WalletPanel onClose={close} initialView={initialView} />
+                <MediaWallet onClose={close} initialView={initialView} />
               </div>
             </div>
           </motion.div>
