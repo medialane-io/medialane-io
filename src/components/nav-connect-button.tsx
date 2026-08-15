@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { useNavCommandMenu } from "@medialane/ui";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useWalletPanel } from "@/components/wallet-panel/wallet-panel-overlay";
+import { useMediaWallet } from "@/components/media-wallet/media-wallet-overlay";
 import { UserShieldIcon } from "@/components/icons/user-shield-icon";
 
 export function NavConnectButton() {
   const { hasWallet, isDeployed } = useWalletNativeSession();
   const { close: closeMenu } = useNavCommandMenu();
-  const { open: openWalletPanel } = useWalletPanel();
+  const { open: openWalletPanel } = useMediaWallet();
 
   if (!hasWallet) {
     return (

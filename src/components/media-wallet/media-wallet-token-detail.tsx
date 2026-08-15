@@ -15,14 +15,14 @@ import { SectionHeader } from "./section-header";
 import { WalletActivityIcon } from "./wallet-activity-icon";
 import { useUsdPrices, usdPriceFor } from "@/hooks/use-usd-prices";
 import type { WalletToken } from "./wallet-tokens";
-import type { WalletPanelView } from "./types";
+import type { MediaWalletView } from "./types";
 
-export function WalletPanelTokenDetail({
+export function MediaWalletTokenDetail({
   token,
   onNavigate,
 }: {
   token: WalletToken;
-  onNavigate: (view: WalletPanelView) => void;
+  onNavigate: (view: MediaWalletView) => void;
 }) {
   const { address: walletAddress } = useWalletNativeSession();
   const { rawBalance: bal } = useErc20Balance(token.address, walletAddress);

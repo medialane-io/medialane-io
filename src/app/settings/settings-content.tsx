@@ -11,7 +11,7 @@ import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useUserOrders } from "@/hooks/use-orders";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { useRewards } from "@/hooks/use-rewards";
-import { useWalletPanel } from "@/components/wallet-panel/wallet-panel-overlay";
+import { useMediaWallet } from "@/components/media-wallet/media-wallet-overlay";
 import { AssetPicker, AddressDisplay, ServiceFormShell, LevelBadge, type OwnedAsset } from "@medialane/ui";
 import { EXPLORER_URL } from "@/lib/constants";
 import { CreatorScoreInline } from "@/components/rewards/creator-score-inline";
@@ -262,7 +262,7 @@ function RewardsSnapshot({ address }: { address?: string | null }) {
 
 export default function SettingsContent() {
   const { address: walletAddress, hasWallet, isDeployed } = useWalletNativeSession();
-  const { open: openWalletPanel } = useWalletPanel();
+  const { open: openWalletPanel } = useMediaWallet();
   const { getValidToken, signIn } = useSiwsToken();
   const { profile, isLoading: profileLoading, mutate } = useCreatorProfile(walletAddress ?? undefined);
   const { username: approvedUsername, claim, mutate: mutateClaim } = useMyUsernameClaim();

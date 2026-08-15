@@ -17,7 +17,7 @@ test("activation copy contains no crypto jargon", () => {
   }
 });
 
-test("activation copy still communicates the vault is free and gas-sponsored", () => {
+test("activation copy still communicates the account is free and gas-sponsored", () => {
   const { getByText } = render(<ActivateCard onActivated={() => {}} />);
   expect(getByText(/no gas fees/i)).toBeTruthy();
 });

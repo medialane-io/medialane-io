@@ -6,7 +6,7 @@ export const ACTION_GRADIENTS: Record<string, [string, string, string]> = {
   offer: ["#f6608f", "#fb8b46", "#f6608f"],
   remix: ["#8a5cf6", "#f6608f", "#8a5cf6"],
   license: ["#3b7bff", "#5b4ce6", "#3b7bff"],
-  vault: ["#3b7bff", "#5b4ce6", "#3b7bff"],
+  core: ["#3b7bff", "#5b4ce6", "#3b7bff"],
 };
 export const ACTION_FOREGROUNDS: Record<string, string> = {
   buy: "#3b7bff",
@@ -14,7 +14,7 @@ export const ACTION_FOREGROUNDS: Record<string, string> = {
   offer: "#fb7a32",
   remix: "#8a3ff0",
   license: "#3b7bff",
-  vault: "#3b7bff",
+  core: "#3b7bff",
 };
 
 export function TrustNote({ children, center }: { children: React.ReactNode; center?: boolean }) {

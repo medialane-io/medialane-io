@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
-export const WALLET_PANEL_PORTAL_ID = "wallet-panel-canvas";
+export const MEDIA_WALLET_PORTAL_ID = "media-wallet-canvas";
 
 export function CanvasPortal({ children }: { children: React.ReactNode }) {
   const [el, setEl] = useState<HTMLElement | null>(null);
   useEffect(() => {
-    setEl(document.getElementById(WALLET_PANEL_PORTAL_ID));
+    setEl(document.getElementById(MEDIA_WALLET_PORTAL_ID));
   }, []);
   return el ? createPortal(children, el) : null;
 }

@@ -13,7 +13,7 @@ import { friendlyErrorMessage } from "@/lib/friendly-error";
 import { BackButton } from "./back-button";
 import { WalletActivityIcon } from "./wallet-activity-icon";
 import { ActionModal } from "./action-modal";
-import type { WalletPanelView } from "./types";
+import type { MediaWalletView } from "./types";
 
 const GRADS = [
   "linear-gradient(135deg,#3b7bff,#8a5cf6)",
@@ -27,7 +27,7 @@ const gradFor = (seed: string) => {
   return GRADS[Math.abs(h) % GRADS.length];
 };
 
-export function WalletPanelActivity({ onNavigate }: { onNavigate: (view: WalletPanelView) => void }) {
+export function MediaWalletActivity({ onNavigate }: { onNavigate: (view: MediaWalletView) => void }) {
   const { address } = useWalletNativeSession();
   const [items, setItems] = useState<MergedActivityItem[] | null>(null);
   const [error, setError] = useState<string | null>(null);

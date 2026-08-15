@@ -7,12 +7,12 @@ import { QuickAction } from "./quick-action";
 
 afterEach(() => cleanup());
 
-test("Send, Receive, and Activity all render the same vault gradient", () => {
+test("Send, Receive, and Activity all render the same core gradient", () => {
   const { getByText } = render(
     <>
-      <QuickAction label="Send" action="vault" icon={<span />} onClick={() => {}} />
-      <QuickAction label="Receive" action="vault" icon={<span />} onClick={() => {}} />
-      <QuickAction label="Activity" action="vault" icon={<span />} onClick={() => {}} />
+      <QuickAction label="Send" action="core" icon={<span />} onClick={() => {}} />
+      <QuickAction label="Receive" action="core" icon={<span />} onClick={() => {}} />
+      <QuickAction label="Activity" action="core" icon={<span />} onClick={() => {}} />
     </>
   );
   const icons = ["Send", "Receive", "Activity"].map((label) => {
