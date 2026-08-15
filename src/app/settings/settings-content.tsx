@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSiwsToken } from "@/hooks/use-siws-token";
@@ -35,6 +36,22 @@ import { cn, resolveTokenImage } from "@/lib/utils";
 import { friendlyErrorMessage } from "@/lib/friendly-error";
 
 type CheckState = "idle" | "checking" | "available" | "taken";
+
+const EMAIL_GATE_ERROR = "Verify your email to claim a username.";
+
+function ClaimError({ error, onVerifyEmail }: { error: string; onVerifyEmail: () => void }) {
+  if (error === EMAIL_GATE_ERROR) {
+    return (
+      <p className="text-sm text-destructive mt-2">
+        {error}{" "}
+        <button type="button" onClick={onVerifyEmail} className="underline font-medium hover:text-foreground">
+          Verify email
+        </button>
+      </p>
+    );
+  }
+  return <p className="text-sm text-destructive mt-2">{error}</p>;
+}
 
 type ProfileForm = {
   displayName: string;
@@ -261,6 +278,9 @@ function RewardsSnapshot({ address }: { address?: string | null }) {
 }
 
 export default function SettingsContent() {
+  const searchParams = useSearchParams();
+  const defaultTab = searchParams.get("tab") === "account" ? "account" : "profile";
+  const [activeTab, setActiveTab] = useState(defaultTab);
   const { address: walletAddress, hasWallet, isDeployed } = useWalletNativeSession();
   const { open: openWalletPanel } = useMediaWallet();
   const { getValidToken, signIn } = useSiwsToken();
@@ -531,7 +551,7 @@ export default function SettingsContent() {
         </div>
       }
     >
-      <Tabs defaultValue="profile" className="space-y-8">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
         <TabsList>
           <TabsTrigger value="profile" className="gap-1.5">
             <User className="h-3.5 w-3.5" />
@@ -622,7 +642,7 @@ export default function SettingsContent() {
                   <p className="text-sm text-emerald-500 mt-2">✓ Claim submitted — the Medialane DAO team will review it shortly.</p>
                 )}
                 {claimStatus === "error" && claimError && (
-                  <p className="text-sm text-destructive mt-2">{claimError}</p>
+                  <ClaimError error={claimError} onVerifyEmail={() => setActiveTab("account")} />
                 )}
               </div>
             )}
@@ -648,7 +668,7 @@ export default function SettingsContent() {
                   <p className="text-sm text-emerald-500 mt-2">✓ Claim submitted — the Medialane DAO team will review it shortly.</p>
                 )}
                 {claimStatus === "error" && claimError && (
-                  <p className="text-sm text-destructive mt-2">{claimError}</p>
+                  <ClaimError error={claimError} onVerifyEmail={() => setActiveTab("account")} />
                 )}
               </div>
             )}

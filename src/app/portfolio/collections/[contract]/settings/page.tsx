@@ -254,7 +254,17 @@ function CollectionSlugClaimSection({
         )}
 
         {submitState === "error" && (
-          <p className="text-xs text-destructive">{submitError}</p>
+          <p className="text-xs text-destructive">
+            {submitError}
+            {submitError === "Verify your email to claim a collection." && (
+              <>
+                {" "}
+                <Link href="/settings?tab=account" className="underline font-medium hover:text-foreground">
+                  Verify email
+                </Link>
+              </>
+            )}
+          </p>
         )}
 
         <p className="text-xs text-muted-foreground">
