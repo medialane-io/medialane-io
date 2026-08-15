@@ -30,7 +30,7 @@ export function ActionModal({
     <CanvasPortal>
       <div className="absolute inset-0 z-50 flex items-center justify-center p-5">
         <ActionBackdrop onClose={onClose} />
-        <div className="relative z-10 w-full max-w-[360px] rounded-3xl border border-border bg-card p-5">
+        <div className="relative z-10 w-full max-w-[360px] rounded-3xl bg-card p-5">
           <div className={`mb-4 flex items-center ${title ? "justify-between" : "justify-end"}`}>
             {title && (
               <h2 className="font-[family-name:var(--font-display)] text-lg font-bold tracking-tight">{title}</h2>
