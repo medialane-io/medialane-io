@@ -91,6 +91,7 @@ export function WalletPanelHome({
     return rawToNumber(rawBalance, decimals) * (usdPriceFor(usdPrices, symbol) ?? 0);
   };
   const totalUsd = WALLET_TOKENS.reduce((sum, t) => sum + usd(t.symbol), 0);
+  const heldTokens = WALLET_TOKENS.filter((t) => (balances[t.symbol].rawBalance ?? 0n) > 0n);
 
   const strkBalance = balances.STRK.rawBalance;
   const funded = strkBalance != null && strkBalance > 0n;
@@ -169,35 +170,37 @@ export function WalletPanelHome({
         </ActionModal>
       )}
 
-      <section>
-        <SectionHeader title="Tokens" />
-        <div className="mt-2 flex flex-col gap-2">
-          {WALLET_TOKENS.map((t) => {
-            const { rawBalance, decimals } = balances[t.symbol];
-            return (
-              <button
-                key={t.symbol}
-                onClick={() => onNavigate({ name: "token", token: t })}
-                className="flex items-center gap-3 rounded-2xl bg-card/40 px-4 py-3 text-left backdrop-blur-sm transition-colors hover:bg-card/60"
-              >
-                <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-foreground/[0.06]">
-                  <CurrencyIcon symbol={t.symbol} size={24} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-sm font-semibold">{t.symbol}</div>
-                  <div className="text-xs text-muted-foreground">{t.name}</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-sm font-semibold tabular-nums">{hideBalances ? "••••" : fmt(rawBalance, decimals)}</div>
-                  {!hideBalances && usdPrices !== null && (
-                    <div className="text-xs text-muted-foreground tabular-nums">{fmtUsd(usd(t.symbol))}</div>
-                  )}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </section>
+      {heldTokens.length > 0 && (
+        <section>
+          <SectionHeader title="Balances" />
+          <div className="mt-2 flex flex-col gap-2">
+            {heldTokens.map((t) => {
+              const { rawBalance, decimals } = balances[t.symbol];
+              return (
+                <button
+                  key={t.symbol}
+                  onClick={() => onNavigate({ name: "token", token: t })}
+                  className="flex items-center gap-3 rounded-2xl bg-card/40 px-4 py-3 text-left backdrop-blur-sm transition-colors hover:bg-card/60"
+                >
+                  <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-foreground/[0.06]">
+                    <CurrencyIcon symbol={t.symbol} size={24} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-semibold">{t.symbol}</div>
+                    <div className="text-xs text-muted-foreground">{t.name}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm font-semibold tabular-nums">{hideBalances ? "••••" : fmt(rawBalance, decimals)}</div>
+                    {!hideBalances && usdPrices !== null && (
+                      <div className="text-xs text-muted-foreground tabular-nums">{fmtUsd(usd(t.symbol))}</div>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {activated && (
         <SuccessDialog
