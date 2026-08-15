@@ -66,7 +66,7 @@ export function MediaWalletHeader({ address, onNavigate }: { address: string; on
             name={rewards.currentLevelName}
             badgeColor={rewards.badgeColor}
             size="sm"
-            className="absolute -bottom-1 -right-1 shadow-md"
+            className="absolute -bottom-2 -right-4 shadow-md"
           />
         )}
       </Link>

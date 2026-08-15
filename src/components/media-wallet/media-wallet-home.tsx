@@ -95,7 +95,7 @@ export function MediaWalletHome({
       style={{ transform: pull ? `translateY(${pull}px)` : undefined, transition: pull ? "none" : "transform 0.2s ease" }}
     >
       {address && (
-        <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-col items-center gap-4">
           <MediaWalletHeader address={address} onNavigate={onClose} />
           <span className="font-[family-name:var(--font-display)] text-5xl font-extrabold tracking-tight tabular-nums">
             {hideBalances ? "••••" : usdPrices === null ? "…" : fmtUsd(totalUsd)}
