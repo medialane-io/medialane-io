@@ -25,6 +25,7 @@ import { useUsdPrices } from "@/hooks/use-usd-prices";
 import { usdValueFor } from "@/lib/wallet-format";
 import { EXPLORER_URL } from "@/lib/constants";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
+import { useEmailVerificationRequired } from "@/hooks/use-email-verification-required";
 import { useOrderActions } from "./use-order-actions";
 import { useAcceptOffer } from "@/hooks/use-accept-offer";
 import { useTokenRemixes } from "@/hooks/use-remix-offers";
@@ -145,6 +146,7 @@ export function AssetPageMembership() {
   const pathname = usePathname();
   const router = useRouter();
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
+  const listingRequiresEmailVerification = useEmailVerificationRequired();
   const { collection } = useCollection(contract);
   const { token } = useToken(contract, tokenId);
   const { listings, mutate: mutateListings } = useTokenListings(contract, tokenId);
@@ -299,6 +301,7 @@ export function AssetPageMembership() {
               activeBids={activeBids}
               walletAddress={walletAddress}
               floorPriceRaw={collection?.floorPrice}
+              listingRequiresEmailVerification={listingRequiresEmailVerification}
               lastSaleRaw={lastSaleRaw}
               renderAuthAction={() => (
                 <div className="btn-border-animated p-[1px] rounded-2xl">

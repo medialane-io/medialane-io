@@ -29,6 +29,7 @@ import { useUsdPrices } from "@/hooks/use-usd-prices";
 import { usdValueFor } from "@/lib/wallet-format";
 import { EXPLORER_URL } from "@/lib/constants";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
+import { useEmailVerificationRequired } from "@/hooks/use-email-verification-required";
 import { toast } from "sonner";
 import { RemixesTab, ParentAttributionBanner } from "@/components/asset/remixes-tab";
 import { useTokenRemixes } from "@/hooks/use-remix-offers";
@@ -57,6 +58,7 @@ export function AssetPageStandard() {
   const { contract, tokenId } = useParams<{ contract: string; tokenId: string }>();
   const router = useRouter();
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
+  const listingRequiresEmailVerification = useEmailVerificationRequired();
   const { collection } = useCollection(contract);
   const { token, isLoading } = useToken(contract, tokenId);
   const { listings, mutate: mutateListings } = useTokenListings(contract, tokenId);
@@ -295,6 +297,7 @@ export function AssetPageStandard() {
               showDealOption={remixPolicy.showDealOption}
               floorPriceRaw={collection?.floorPrice}
               lastSaleRaw={lastSaleRaw}
+              listingRequiresEmailVerification={listingRequiresEmailVerification}
               renderAuthAction={() => (
                 <SignedOutAssetActions chain={token.chain} contract={contract} tokenId={tokenId} />
               )}
