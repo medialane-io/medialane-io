@@ -12,6 +12,12 @@ mock.module("@/hooks/use-profiles", () => ({
 mock.module("@/hooks/use-username-claims", () => ({
   useMyUsernameClaim: () => ({ username: "mochi", isLoading: false }),
 }));
+mock.module("@/hooks/use-rewards", () => ({
+  useRewards: () => ({ data: undefined, isLoading: false }),
+}));
+mock.module("@/hooks/use-siws-token", () => ({
+  useSiwsToken: () => ({ getValidToken: () => null, signIn: async () => null }),
+}));
 
 const { cleanup, render } = await import("@testing-library/react");
 const { MediaWalletHeader } = await import("./media-wallet-header");

@@ -3,17 +3,35 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { CurrencyIcon } from "@medialane/ui";
+import useSWR from "swr";
+import { CurrencyIcon, LevelBadge } from "@medialane/ui";
 import { useCreatorProfile } from "@/hooks/use-profiles";
 import { useMyUsernameClaim } from "@/hooks/use-username-claims";
+import { useSiwsToken } from "@/hooks/use-siws-token";
+import { useRewards } from "@/hooks/use-rewards";
+import { getMedialaneClient } from "@/lib/medialane-client";
 import { resolveTokenImage } from "@/lib/utils";
 import { short } from "@/lib/wallet-format";
 
 export function MediaWalletHeader({ address, onNavigate }: { address: string; onNavigate: () => void }) {
   const { profile } = useCreatorProfile(address);
   const { username } = useMyUsernameClaim();
+  const { getValidToken } = useSiwsToken();
+  const { data: rewards } = useRewards(address);
   const [copied, setCopied] = useState(false);
   const avatarUrl = resolveTokenImage(profile?.avatarImage);
+
+  // Only reads an already-cached SIWS token — never triggers a sign-in
+  // prompt just from opening the wallet panel.
+  const { data: wallet } = useSWR(
+    ["media-wallet-header-email", address],
+    async () => {
+      const token = getValidToken();
+      if (!token) return null;
+      return getMedialaneClient().api.getMyWallet(token);
+    },
+    { revalidateOnFocus: false, shouldRetryOnError: false }
+  );
 
   const copy = () => {
     navigator.clipboard?.writeText(address).catch(() => {});
@@ -22,6 +40,7 @@ export function MediaWalletHeader({ address, onNavigate }: { address: string; on
   };
 
   const headline = username ? `@${username}` : short(address);
+  const verifiedEmail = wallet?.emailVerified ? wallet.email : null;
 
   return (
     <header className="flex flex-col items-center gap-2 pt-1">
@@ -51,6 +70,14 @@ export function MediaWalletHeader({ address, onNavigate }: { address: string; on
           <CurrencyIcon symbol="STRK" size={16} />
         </Link>
       </div>
+      {(rewards || verifiedEmail) && (
+        <div className="flex items-center gap-2">
+          {rewards && (
+            <LevelBadge level={rewards.currentLevel} name={rewards.currentLevelName} badgeColor={rewards.badgeColor} size="sm" />
+          )}
+          {verifiedEmail && <span className="text-xs text-muted-foreground">{verifiedEmail}</span>}
+        </div>
+      )}
     </header>
   );
 }
