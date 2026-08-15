@@ -2,13 +2,11 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { useTheme } from "next-themes";
 import { AddressQr } from "./address-qr";
 
 const FUNDING_DOCS_URL = "https://docs.medialane.io/learn/funding-your-account";
 
 export function ReceiveCard({ address }: { address: string }) {
-  const { resolvedTheme } = useTheme();
   const [copied, setCopied] = useState(false);
 
   const copy = () => {
@@ -16,16 +14,6 @@ export function ReceiveCard({ address }: { address: string }) {
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };
-
-  const shareAddress = async () => {
-    try {
-      await navigator.share?.({ text: address });
-    } catch {
-
-    }
-  };
-
-  const starknetLogo = resolvedTheme === "light" ? "/Starknet-Light.svg" : "/Starknet-Dark.svg";
 
   return (
     <div className="flex flex-col gap-4">
@@ -36,33 +24,20 @@ export function ReceiveCard({ address }: { address: string }) {
         className="flex items-center justify-center gap-2 rounded-2xl bg-foreground/[0.06] px-4 py-3.5 text-center transition-colors active:bg-foreground/[0.1]"
       >
         <span className="break-all font-mono text-sm font-medium">{address}</span>
-        <CopyIcon className="shrink-0 opacity-50" />
-      </button>
-
-      <div className="flex gap-2">
-        <button
-          onClick={copy}
-          className="h-11 flex-1 rounded-full border border-border text-sm font-semibold text-foreground transition-transform active:scale-[0.99] hover:bg-foreground/[0.04]"
-        >
-          {copied ? "Copied ✓" : "Copy"}
-        </button>
-        {typeof navigator !== "undefined" && !!navigator.share && (
-          <button
-            onClick={shareAddress}
-            className="h-11 flex-1 rounded-full border border-border text-sm font-semibold text-foreground transition-transform active:scale-[0.99] hover:bg-foreground/[0.04]"
-          >
-            Share
-          </button>
+        {copied ? (
+          <span className="shrink-0 text-xs font-semibold text-muted-foreground">Copied ✓</span>
+        ) : (
+          <CopyIcon className="shrink-0 opacity-50" />
         )}
-      </div>
+      </button>
 
       <AddressQr value={address} />
 
       <div className="flex items-center gap-3 rounded-2xl bg-card/40 px-4 py-3 backdrop-blur-sm">
         <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-foreground/[0.06]">
-          <Image src={starknetLogo} alt="Starknet" width={22} height={22} />
+          <Image src="/Starknet-icon.svg" alt="Starknet" width={20} height={20} />
         </div>
-        <p className="text-xs leading-relaxed text-muted-foreground">
+        <p className="text-sm leading-relaxed text-muted-foreground">
           Your onchain account is self-custody and permissionless. Please use
           only the Starknet blockchain to send and receive assets.
         </p>
