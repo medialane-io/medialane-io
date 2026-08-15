@@ -311,6 +311,10 @@ export default function SettingsContent() {
   });
   const [emailStatus, setEmailStatus] = useState<{ email: string | null; verified: boolean } | null>(null);
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [emailEditOpen, setEmailEditOpen] = useState(false);
+  const [emailInput, setEmailInput] = useState("");
+  const [emailChangeStatus, setEmailChangeStatus] = useState<"idle" | "saving" | "error">("idle");
+  const [emailChangeError, setEmailChangeError] = useState<string | null>(null);
   const [generatingWallet, setGeneratingWallet] = useState(false);
   const [generateWalletError, setGenerateWalletError] = useState<string | null>(null);
   const [resumeDialogOpen, setResumeDialogOpen] = useState(false);
@@ -320,12 +324,12 @@ export default function SettingsContent() {
   useEffect(() => {
     if (!walletAddress) return;
     (async () => {
-      const token = getValidToken();
+      const token = getValidToken() ?? (await signIn());
       if (!token) return;
       const result = await getMedialaneClient().api.getMyWallet(token);
       if (result) setEmailStatus({ email: result.email ?? null, verified: result.emailVerified ?? false });
     })();
-  }, [walletAddress, getValidToken]);
+  }, [walletAddress, getValidToken, signIn]);
 
   useEffect(() => {
     if (profile) setForm({
@@ -425,6 +429,26 @@ export default function SettingsContent() {
     if (!token) throw new Error("Not authenticated");
     await getMedialaneClient().api.upsertMyWallet(token, { emailVerificationToken });
     setEmailStatus((s) => (s ? { ...s, verified: true } : s));
+  }
+
+  async function handleChangeEmail() {
+    const email = emailInput.trim();
+    if (!email) return;
+    setEmailChangeStatus("saving");
+    setEmailChangeError(null);
+    try {
+      const token = getValidToken() ?? (await signIn());
+      if (!token) throw new Error("Not authenticated");
+      const result = await getMedialaneClient().api.changeMyEmail(email, token);
+      setEmailStatus({ email: result.email, verified: result.emailVerified });
+      setEmailEditOpen(false);
+      setEmailInput("");
+      setEmailChangeStatus("idle");
+      setEmailDialogOpen(true);
+    } catch (err) {
+      setEmailChangeStatus("error");
+      setEmailChangeError(friendlyErrorMessage(err, "Failed to update email"));
+    }
   }
 
   async function attachNewWallet(newWalletSiwsToken: string, authToken: string) {
@@ -764,29 +788,66 @@ export default function SettingsContent() {
                 Used for account notices and signing back in.
               </p>
             </div>
-            <div className="border-t border-border pt-4">
-              {emailStatus?.email ? (
-                <div className="flex items-center justify-between gap-3 flex-wrap">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-sm text-foreground truncate">{emailStatus.email}</span>
-                    {emailStatus.verified ? (
-                      <Badge variant="outline" className="border-emerald-500/40 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 text-[10px] gap-1">
-                        <CheckCircle2 className="h-3 w-3" /> Verified
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="border-yellow-500/40 text-yellow-700 dark:text-yellow-400 bg-yellow-500/10 text-[10px] gap-1">
-                        <Clock className="h-3 w-3" /> Not verified
-                      </Badge>
-                    )}
-                  </div>
-                  {!emailStatus.verified && (
-                    <Button onClick={() => setEmailDialogOpen(true)} variant="outline" size="sm">
-                      Verify email
+            <div className="border-t border-border pt-4 space-y-3">
+              {emailEditOpen ? (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Input
+                      type="email"
+                      value={emailInput}
+                      onChange={(e) => { setEmailInput(e.target.value); setEmailChangeStatus("idle"); setEmailChangeError(null); }}
+                      placeholder="you@example.com"
+                      disabled={emailChangeStatus === "saving"}
+                      className="max-w-xs"
+                      onKeyDown={(e) => e.key === "Enter" && emailInput.trim() && void handleChangeEmail()}
+                    />
+                    <Button onClick={handleChangeEmail} disabled={!emailInput.trim() || emailChangeStatus === "saving"} size="sm">
+                      {emailChangeStatus === "saving" ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
+                      Save
                     </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => { setEmailEditOpen(false); setEmailInput(""); setEmailChangeStatus("idle"); setEmailChangeError(null); }}
+                      disabled={emailChangeStatus === "saving"}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                  {emailChangeStatus === "error" && emailChangeError && (
+                    <p className="text-sm text-destructive">{emailChangeError}</p>
                   )}
+                  <p className="text-xs text-muted-foreground">You&apos;ll need to verify the new email.</p>
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">No email on this account yet.</p>
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  {emailStatus?.email ? (
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-sm text-foreground truncate">{emailStatus.email}</span>
+                      {emailStatus.verified ? (
+                        <Badge variant="outline" className="border-emerald-500/40 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 text-[10px] gap-1">
+                          <CheckCircle2 className="h-3 w-3" /> Verified
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="border-yellow-500/40 text-yellow-700 dark:text-yellow-400 bg-yellow-500/10 text-[10px] gap-1">
+                          <Clock className="h-3 w-3" /> Not verified
+                        </Badge>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No email on this account yet.</p>
+                  )}
+                  <div className="flex items-center gap-2">
+                    {emailStatus?.email && !emailStatus.verified && (
+                      <Button onClick={() => setEmailDialogOpen(true)} variant="outline" size="sm">
+                        Verify email
+                      </Button>
+                    )}
+                    <Button onClick={() => { setEmailEditOpen(true); setEmailInput(emailStatus?.email ?? ""); }} variant="ghost" size="sm">
+                      {emailStatus?.email ? "Change email" : "Add email"}
+                    </Button>
+                  </div>
+                </div>
               )}
             </div>
           </div>
