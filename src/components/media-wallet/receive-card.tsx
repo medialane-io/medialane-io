@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { AddressQr } from "./address-qr";
+import { CopyIcon } from "./copy-icon";
 
 const FUNDING_DOCS_URL = "https://docs.medialane.io/learn/funding-your-account";
 
@@ -49,30 +50,11 @@ export function ReceiveCard({ address }: { address: string }) {
           href={FUNDING_DOCS_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex h-10 items-center justify-center rounded-full border border-brand-blue/50 px-5 text-sm font-semibold text-brand-blue transition-colors hover:bg-brand-blue/10"
+          className="inline-flex h-10 items-center justify-center rounded-full bg-brand-blue/10 px-5 text-sm font-semibold text-brand-blue transition-colors hover:bg-brand-blue/15"
         >
           How to fund your account
         </a>
       </div>
     </div>
-  );
-}
-
-function CopyIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <rect x="9" y="9" width="13" height="13" rx="2" />
-      <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
-    </svg>
   );
 }

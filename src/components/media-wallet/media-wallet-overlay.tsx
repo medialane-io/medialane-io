@@ -1,8 +1,10 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
+import { CurrencyIcon } from "@medialane/ui";
 import { MediaWallet } from "./media-wallet";
 import { MEDIA_WALLET_PORTAL_ID } from "./action-modal";
 import type { MediaWalletView } from "./types";
@@ -72,13 +74,23 @@ export function MediaWalletOverlay() {
               }
               onClick={(e) => e.stopPropagation()}
             >
-              <button
-                onClick={close}
-                aria-label="Close wallet"
-                className="absolute right-3 top-3 z-20 grid h-8 w-8 place-items-center rounded-full bg-foreground/[0.06] text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground"
-              >
-                <X className="h-4 w-4" />
-              </button>
+              <div className="absolute right-3 top-3 z-20 flex items-center gap-2">
+                <Link
+                  href="/settings"
+                  onClick={close}
+                  aria-label="Settings"
+                  className="grid h-8 w-8 place-items-center rounded-full bg-foreground/[0.06] text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground"
+                >
+                  <CurrencyIcon symbol="STRK" size={16} />
+                </Link>
+                <button
+                  onClick={close}
+                  aria-label="Close wallet"
+                  className="grid h-8 w-8 place-items-center rounded-full bg-foreground/[0.06] text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
               <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
                 <MediaWallet onClose={close} initialView={initialView} />
               </div>
