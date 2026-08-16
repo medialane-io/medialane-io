@@ -5,6 +5,7 @@ import { NotificationsFeed } from "./notifications-feed";
 export const metadata: Metadata = {
   title: "Notifications — Medialane",
   description: "Your offers, activity, and platform announcements.",
+  robots: { index: false },
 };
 
 export default function NotificationsPage() {

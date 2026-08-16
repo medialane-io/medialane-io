@@ -53,7 +53,13 @@ const siteJsonLd = [
     name: "Medialane",
     url: APP_URL,
     logo: `${APP_URL}/medialane.png`,
-    sameAs: ["https://x.com/medialane_io", "https://docs.medialane.io"],
+    sameAs: [
+      "https://x.com/medialane_io",
+      "https://docs.medialane.io",
+      "https://www.youtube.com/@MedialaneIO",
+      "https://github.com/medialane-io",
+      "https://www.instagram.com/medialane_io/",
+    ],
   },
   {
     "@context": "https://schema.org",

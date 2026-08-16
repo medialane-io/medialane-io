@@ -4,6 +4,7 @@ import { WelcomePageClient } from "./welcome-page-client";
 export const metadata: Metadata = {
   title: "Welcome to Medialane",
   description: "Your account is live onchain. Explore the marketplace or create your first asset.",
+  robots: { index: false },
 };
 
 export default function WelcomePage() {
