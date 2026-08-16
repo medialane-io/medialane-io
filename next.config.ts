@@ -58,38 +58,9 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
-    // All external images are proxied server-side through /api/ipfs and /api/img,
-    // so Vercel's /_next/image optimizer is not needed and hits quota on free plan.
     unoptimized: true,
     remotePatterns: [
       {
-        protocol: "https",
-        hostname: "gateway.pinata.cloud",
-        pathname: "/ipfs/**",
-      },
-      {
-        // Dedicated Pinata gateways (e.g. myapp.mypinata.cloud)
-        protocol: "https",
-        hostname: "**.mypinata.cloud",
-      },
-      {
-        protocol: "https",
-        hostname: "ipfs.io",
-        pathname: "/ipfs/**",
-      },
-      {
-        protocol: "https",
-        hostname: "dweb.link",
-        pathname: "/ipfs/**",
-      },
-      {
-        protocol: "https",
-        hostname: "cloudflare-ipfs.com",
-        pathname: "/ipfs/**",
-      },
-      {
-        // NFT token images can be hosted on any external CDN — allow all HTTPS sources.
-        // Restricting by hostname breaks images for any collection not on Pinata/IPFS.
         protocol: "https",
         hostname: "**",
       },
