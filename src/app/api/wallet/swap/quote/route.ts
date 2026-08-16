@@ -1,4 +1,3 @@
-
 import { type NextRequest, NextResponse } from "next/server";
 import { getQuotes } from "@avnu/avnu-sdk";
 import { stringifyBigInts } from "@medialane/sdk";

@@ -1,4 +1,3 @@
-
 import { type NextRequest, NextResponse } from "next/server";
 import { paymaster } from "@/lib/wallet/paymaster-server";
 import { billPaymasterCall } from "@/lib/wallet/paymaster-billing";

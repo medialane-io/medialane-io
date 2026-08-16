@@ -1,4 +1,3 @@
-
 import { type NextRequest, NextResponse } from "next/server";
 import { type Call, type PreparedInvokeTransaction } from "starknet";
 import { paymaster } from "@/lib/wallet/paymaster-server";
