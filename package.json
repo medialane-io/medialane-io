@@ -14,6 +14,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "test": "bun test",
     "typecheck": "tsc --noEmit",
     "audit:dead-code": "npx knip"
   },
