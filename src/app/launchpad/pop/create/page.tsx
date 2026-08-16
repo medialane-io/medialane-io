@@ -7,7 +7,6 @@ import {
   Award,
   CheckCircle2,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
@@ -37,7 +36,7 @@ export default function CreatePOPPage() {
 
   const [eventType, setEventType] = useState<PopEventType>("Conference");
   const [isPublic, setIsPublic] = useState(false);
-  const [pendingValues, setPendingValues] = useState<PopCreateFormValues | null>(null);
+  const [, setPendingValues] = useState<PopCreateFormValues | null>(null);
   const [autoSymbol, setAutoSymbol] = useState("");
   const {
     imagePreview,

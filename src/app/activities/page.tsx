@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { ActivitiesFeed } from "./activities-feed";
-import { Activity } from "lucide-react";
 import { PageContainer } from "@medialane/ui";
 import { canonical, buildSocialMetadata } from "@/lib/seo";
 

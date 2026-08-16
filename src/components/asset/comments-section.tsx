@@ -52,7 +52,7 @@ interface CommentsSectionProps {
 export function CommentsSection({ contract, tokenId, className }: CommentsSectionProps) {
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
   const pathname = usePathname();
-  const { comments, total, isLoading, mutate } = useComments(contract, tokenId);
+  const { comments, isLoading, mutate } = useComments(contract, tokenId);
 
   const { data: authorLevels } = useRewardsBatch(comments.map((c) => c.author));
   const action = useWalletWriteAction();

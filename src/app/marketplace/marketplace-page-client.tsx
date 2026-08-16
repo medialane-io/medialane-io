@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { assetHref, collectionHref } from "@/lib/routes";
@@ -9,7 +9,7 @@ import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Search, X, Store, SlidersHorizontal } from "lucide-react";
+import { Search, X, SlidersHorizontal } from "lucide-react";
 import { ActivityTicker } from "@/components/shared/activity-ticker";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import type { ApiSearchResult } from "@medialane/sdk";

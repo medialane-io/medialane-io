@@ -11,18 +11,9 @@ import { useTokenListings } from "@/hooks/use-orders";
 import { useCollection, useNearbyCollectionTokens } from "@/hooks/use-collections";
 import { Button } from "@/components/ui/button";
 import { PageContainer, AssetCollectionBar, AssetUtilityIcons, AssetMarketplacePanel, AssetHeaderBlock, AssetMediaColumn, buildEditionStats } from "@medialane/ui";
-import { ipfsToHttp, timeUntil, formatDisplayPrice, checkIsOwner } from "@/lib/utils";
+import { ipfsToHttp, checkIsOwner } from "@/lib/utils";
 import {
-  DollarSign,
-  GitBranch,
-  UserCheck,
-  Globe,
-  Bot,
-  Percent,
-  Shield,
-  Calendar,
   Layers,
-  Users,
   ShoppingCart,
 } from "lucide-react";
 import { FloatingCommentsButton } from "@/components/asset/floating-comments-button";
@@ -30,9 +21,8 @@ import { LICENSE_TRAIT_TYPES } from "@/types/ip";
 import type { IPType } from "@/types/ip";
 import { IP_TEMPLATES, EMBED_PLATFORM_META, SOCIAL_PLATFORM_META } from "@/lib/ip-templates";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { normalizeAddress } from "@medialane/sdk";
-import type { ApiActivity, ApiOrder } from "@medialane/sdk";
+import type { ApiActivity } from "@medialane/sdk";
 import { useComments } from "@/hooks/use-comments";
 import { useUsdPrices } from "@/hooks/use-usd-prices";
 import { usdValueFor } from "@/lib/wallet-format";
@@ -41,7 +31,6 @@ import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useEmailVerificationRequired } from "@/hooks/use-email-verification-required";
 import { useOrderActions } from "./use-order-actions";
 import { useAcceptOffer } from "@/hooks/use-accept-offer";
-import { toast } from "sonner";
 import { useTokenRemixes } from "@/hooks/use-remix-offers";
 import { HelpIcon } from "@/components/ui/help-icon";
 import { ReportDialog } from "@/components/report-dialog";
@@ -70,7 +59,7 @@ export function AssetPageEdition() {
   const { tokens: collectionTokens } = useNearbyCollectionTokens(contract, tokenId);
   const {
     isProcessing,
-    orderToCancel, cancelStep, cancelError,
+    cancelStep, cancelError,
     handleCancelClick,
     resetCancelStep,
   } = useOrderActions({ mutateListings, tokenStandard: "ERC1155" });
@@ -95,7 +84,7 @@ export function AssetPageEdition() {
   const [reportOpen, setReportOpen] = useState(false);
   const [commentOpen, setCommentOpen] = useState(false);
 
-  const { comments: _comments, total: commentTotal } = useComments(contract, tokenId);
+  const { total: commentTotal } = useComments(contract, tokenId);
   const { total: remixCount } = useTokenRemixes(contract, tokenId);
 
   const activeListings = listings.filter(

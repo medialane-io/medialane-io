@@ -8,7 +8,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import {
   Package, ExternalLink, Clock, HandCoins,
   Tag, ArrowRightLeft, ShoppingCart, X, CheckCircle,
-  Loader2, Flag, GitBranch, DollarSign, Users, Shield, Calendar,
+  Loader2, Flag, GitBranch, DollarSign, Shield, Calendar,
 } from "lucide-react";
 import { useToken, useTokenHistory } from "@/hooks/use-tokens";
 import { useOnChainDropState, getDropStatus, type DropConditions } from "@/hooks/use-drops";
@@ -40,8 +40,7 @@ import { AssetProvenanceTab } from "./asset-provenance-tab";
 import { HelpIcon } from "@/components/ui/help-icon";
 import { getListableTokens, normalizeAddress } from "@medialane/sdk";
 import type { ApiOrder, ApiActivity } from "@medialane/sdk";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { toast } from "sonner";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 function getTokenByAddress(address: string) {
@@ -135,7 +134,7 @@ export function AssetPageDrop() {
   const { listings, mutate: mutateListings } = useTokenListings(contract, tokenId);
   const {
     isProcessing,
-    orderToCancel, cancelStep, cancelError,
+    cancelStep, cancelError,
     handleCancelClick,
     resetCancelStep,
   } = useOrderActions({ mutateListings });
