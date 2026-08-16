@@ -2,7 +2,7 @@
 
 import useSWR from "swr";
 import { useMedialaneClient } from "./use-medialane-client";
-import type { ApiToken, ApiResponse } from "@medialane/sdk";
+import type { ApiToken } from "@medialane/sdk";
 import { queryKeys } from "@/lib/query-keys";
 
 const EMPTY_TOKENS: ApiToken[] = [];

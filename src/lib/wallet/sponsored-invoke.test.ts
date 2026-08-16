@@ -22,6 +22,8 @@ const FAKE_TYPED_DATA = {
 
 mock.module("./passkey", () => ({
   signWith: async () => ["0xr", "0xs"] as [string, string],
+  signWithPrivateKey: () => ["0xr", "0xs"] as [string, string],
+  unlockOwnerKey: async () => "0xprivkey",
 }));
 
 const { executeSponsored } = await import("./sponsored-invoke");

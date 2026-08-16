@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { useWalletNativeSession } from "./use-wallet-native-session";
+import { lockVenueSigner } from "@/lib/wallet/venue-signer";
 import { friendlyErrorMessage } from "@/lib/friendly-error";
 
 export type WalletWriteStatus = "idle" | "processing" | "confirming" | "success" | "error";
@@ -26,6 +27,8 @@ export function useWalletWriteAction() {
       } catch (err) {
         setError(friendlyErrorMessage(err));
         setStatus("error");
+      } finally {
+        lockVenueSigner(signer.address);
       }
     },
     [hasWallet, signer],

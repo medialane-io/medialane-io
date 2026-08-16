@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
+import { lockVenueSigner } from "@/lib/wallet/venue-signer";
 import {
   getStoredSiwsToken,
   requestSiwsToken,
@@ -42,6 +43,7 @@ export function useSiwsToken() {
       setError(message);
       throw err instanceof Error ? err : new Error(message);
     } finally {
+      lockVenueSigner(walletAddress);
       setIsSigningIn(false);
     }
   }, [walletAddress, signer, isDeployed]);

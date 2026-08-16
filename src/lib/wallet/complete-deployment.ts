@@ -1,6 +1,6 @@
 import { typedData as starknetTypedData } from "starknet";
 import { requestSiwsToken } from "@medialane/sdk/starknet";
-import { createOwnerKey, signWith, signWithPrivateKey, unlockOwnerKey, type SealedOwner } from "./passkey";
+import { createOwnerKey, signWithPrivateKey, unlockOwnerKey, type SealedOwner } from "./passkey";
 import { loadSealedOwner, saveSealedOwner, notifyWalletChange } from "./store";
 import { deployWalletSponsored } from "./deploy-relay";
 
@@ -16,22 +16,22 @@ export async function completeWalletDeployment(
   options: { forceNew?: boolean } = {},
 ): Promise<CompleteWalletDeploymentResult> {
   let sealed: SealedOwner | null = options.forceNew ? null : loadSealedOwner();
-  let freshPrivateKey: string | null = null;
+  let privateKey: string;
   if (!sealed) {
     onStep("creating-passkey");
     const created = await createOwnerKey();
     sealed = created.sealed;
-    freshPrivateKey = created.privateKeyHex;
+    privateKey = created.privateKeyHex;
     saveSealedOwner(sealed);
+  } else {
+    // Resuming an existing (undeployed) wallet: one passkey unlock here, reused
+    // below for the SIWS sign-in too, so the user isn't prompted twice.
+    privateKey = await unlockOwnerKey(sealed);
   }
 
   onStep("deploying");
 
-  await deployWalletSponsored(
-    sealed.address,
-    sealed.ownerPubKey,
-    freshPrivateKey ?? (await unlockOwnerKey(sealed)),
-  );
+  await deployWalletSponsored(sealed.address, sealed.ownerPubKey, privateKey);
 
   onStep("signing-in");
   const siwsToken = await requestSiwsToken({
@@ -40,9 +40,7 @@ export async function completeWalletDeployment(
     signer: {
       signMessage: async (td) => {
         const msgHash = starknetTypedData.getMessageHash(td, sealed!.address);
-        return freshPrivateKey
-          ? signWithPrivateKey(freshPrivateKey, msgHash)
-          : signWith(sealed!, msgHash);
+        return signWithPrivateKey(privateKey, msgHash);
       },
     },
   });

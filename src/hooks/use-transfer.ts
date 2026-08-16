@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { useSWRConfig } from "swr";
 import { useWalletNativeSession } from "./use-wallet-native-session";
+import { lockVenueSigner } from "@/lib/wallet/venue-signer";
 import { INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
 import { QUERY_PREFIX } from "@/lib/query-keys";
 import type { Call } from "starknet";
@@ -96,6 +97,7 @@ export function useTransfer() {
         const msg = friendlyErrorMessage(err, "Transfer failed");
         setError(msg);
       } finally {
+        if (walletAddress) lockVenueSigner(walletAddress);
         setIsProcessing(false);
       }
     },

@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { loadSealedOwner, onWalletChange } from "@/lib/wallet/store";
 import { isDeployed as checkIsDeployed } from "@/lib/wallet/account-ops";
 import { starknetVenueSigner } from "@/lib/wallet/venue-signer";
+import type { SealedOwner } from "@/lib/wallet/passkey";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 
 export interface WalletNativeSession {
@@ -15,15 +16,15 @@ export interface WalletNativeSession {
 
 export function useWalletNativeSession(): WalletNativeSession {
 
-  const [address, setAddress] = useState<string | null>(() => loadSealedOwner()?.address ?? null);
+  const [sealed, setSealed] = useState<SealedOwner | null>(() => loadSealedOwner());
   const [deployed, setDeployed] = useState<boolean | null>(null);
 
   useEffect(() => {
     const sync = () => {
-      const sealed = loadSealedOwner();
-      setAddress(sealed?.address ?? null);
-      if (sealed) {
-        checkIsDeployed(sealed.address).then(setDeployed).catch(() => setDeployed(false));
+      const next = loadSealedOwner();
+      setSealed(next);
+      if (next) {
+        checkIsDeployed(next.address).then(setDeployed).catch(() => setDeployed(false));
       } else {
         setDeployed(null);
       }
@@ -32,12 +33,17 @@ export function useWalletNativeSession(): WalletNativeSession {
     return onWalletChange(sync);
   }, []);
 
-  const sealed = loadSealedOwner();
+  // Stable across renders (only recreated when the wallet itself changes) so
+  // callbacks derived from `signer` elsewhere (e.g. useMarketplace's
+  // createListing/fulfillOrder) don't get a new identity every render. Key
+  // lifetime is bounded per-action, not per-signer-instance — see
+  // lockVenueSigner in venue-signer.ts.
+  const signer = useMemo(() => (sealed ? starknetVenueSigner(sealed) : null), [sealed]);
 
   return {
-    address,
-    hasWallet: address !== null,
+    address: sealed?.address ?? null,
+    hasWallet: sealed !== null,
     isDeployed: deployed,
-    signer: sealed ? starknetVenueSigner(sealed) : null,
+    signer,
   };
 }
