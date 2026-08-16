@@ -1,5 +1,3 @@
-
-
 import type { Call, TypedData } from "starknet";
 import type { StarknetVenueSigner, MedialaneClient } from "@medialane/sdk/starknet";
 import type { ApiIntentCreated } from "@medialane/sdk";
@@ -9,7 +7,7 @@ export async function confirmIntentBestEffort(
   intentId: string,
   txHash: string,
 ): Promise<void> {
-  await client.api.confirmIntent(intentId, txHash).catch(() => {  });
+  await client.api.confirmIntent(intentId, txHash).catch(() => {});
 }
 
 export interface ExecuteIntentOpts {
