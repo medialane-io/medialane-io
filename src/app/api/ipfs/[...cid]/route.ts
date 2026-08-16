@@ -1,7 +1,15 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { readBodyWithCap } from "@/lib/proxy-body";
+import { PINATA_GATEWAY } from "@/lib/constants";
 
-const PUBLIC_GATEWAY = "https://gateway.pinata.cloud";
+// Second gateway to fall back to when the primary times out or errors —
+// Pinata's shared public gateway (the default for PINATA_GATEWAY when no
+// dedicated gateway is configured) throttles heavily under load and can
+// take 30+ seconds to even return a 404 (confirmed live 2026-08-16). A
+// bounded timeout + fallback keeps a single degraded gateway from hanging
+// every image on the site.
+const FALLBACK_GATEWAY = "https://ipfs.io";
+const GATEWAY_TIMEOUT_MS = 8_000;
 
 const MAX_BYTES = 25 * 1024 * 1024;
 
@@ -41,20 +49,24 @@ export async function GET(
     return NextResponse.json({ error: "Invalid IPFS path" }, { status: 400 });
   }
 
-  const url = `${PUBLIC_GATEWAY}/ipfs/${cidPath}`;
-
-  let upstream: Response;
-  try {
-    upstream = await fetch(url, { next: { revalidate: 86400 } });
-  } catch {
-    return NextResponse.json({ error: "Failed to fetch from IPFS" }, { status: 502 });
+  async function fetchGateway(base: string): Promise<Response | null> {
+    try {
+      const res = await fetch(`${base}/ipfs/${cidPath}`, {
+        next: { revalidate: 86400 },
+        signal: AbortSignal.timeout(GATEWAY_TIMEOUT_MS),
+      });
+      return res.ok ? res : null;
+    } catch {
+      return null;
+    }
   }
 
-  if (!upstream.ok) {
-    return NextResponse.json(
-      { error: `IPFS gateway returned ${upstream.status}` },
-      { status: upstream.status }
-    );
+  const upstream =
+    (await fetchGateway(PINATA_GATEWAY)) ??
+    (PINATA_GATEWAY !== FALLBACK_GATEWAY ? await fetchGateway(FALLBACK_GATEWAY) : null);
+
+  if (!upstream) {
+    return NextResponse.json({ error: "Failed to fetch from IPFS" }, { status: 502 });
   }
 
   const upstreamContentType = upstream.headers.get("content-type") ?? "";
