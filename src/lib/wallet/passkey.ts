@@ -1,5 +1,7 @@
-import { ec, num } from "starknet";
+import { deriveAesKey, generateStarkKeyPair, sealPrivateKey, unsealPrivateKey, signWithPrivateKey } from "@medialane/sdk/starknet";
 import { computeWalletAddress } from "./account";
+
+export { signWithPrivateKey } from "@medialane/sdk/starknet";
 
 const RP_NAME = "Medialane";
 
@@ -116,17 +118,6 @@ async function prfSecret(credentialId: string): Promise<Uint8Array<ArrayBuffer>>
   return new Uint8Array(result);
 }
 
-async function aesKeyFrom(secret: Uint8Array<ArrayBuffer>): Promise<CryptoKey> {
-  const hkdf = await crypto.subtle.importKey("raw", secret, "HKDF", false, ["deriveKey"]);
-  return crypto.subtle.deriveKey(
-    { name: "HKDF", hash: "SHA-256", salt: new Uint8Array(new ArrayBuffer(0)), info: HKDF_INFO },
-    hkdf,
-    { name: "AES-GCM", length: 256 },
-    false,
-    ["encrypt", "decrypt"],
-  );
-}
-
 export interface CreatedOwner {
   sealed: SealedOwner;
 
@@ -149,19 +140,10 @@ export async function createOwnerKey(): Promise<CreatedOwner> {
   }
 
   const credentialId = reg.credentialId;
-  const priv =
-    "0x" +
-    Array.from(ec.starkCurve.utils.randomPrivateKey())
-      .map((b) => b.toString(16).padStart(2, "0"))
-      .join("");
-  const ownerPubKey = ec.starkCurve.getStarkKey(priv);
-  const aes = await aesKeyFrom(secret);
+  const { privateKeyHex: priv, publicKeyHex: ownerPubKey } = generateStarkKeyPair();
+  const aes = await deriveAesKey(secret, HKDF_INFO);
   const iv = rand(12);
-  const ciphertext = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv },
-    aes,
-    enc(priv),
-  );
+  const ciphertext = await sealPrivateKey(aes, iv, priv);
   return {
     sealed: {
       credentialId,
@@ -177,23 +159,13 @@ export async function createOwnerKey(): Promise<CreatedOwner> {
 export async function unlockOwnerKey(sealed: SealedOwner): Promise<string> {
   assertBrowser();
   const secret = await prfSecret(sealed.credentialId);
-  const aes = await aesKeyFrom(secret);
-  const privBuf = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: unb64(sealed.iv) },
-    aes,
-    unb64(sealed.ciphertext),
-  );
-  return new TextDecoder().decode(privBuf);
+  const aes = await deriveAesKey(secret, HKDF_INFO);
+  return unsealPrivateKey(aes, unb64(sealed.iv), unb64(sealed.ciphertext));
 }
 
 export async function signWith(sealed: SealedOwner, msgHash: string): Promise<[string, string]> {
   const priv = await unlockOwnerKey(sealed);
   return signWithPrivateKey(priv, msgHash);
-}
-
-export function signWithPrivateKey(privateKeyHex: string, msgHash: string): [string, string] {
-  const sig = ec.starkCurve.sign(msgHash, privateKeyHex);
-  return [num.toHex(sig.r), num.toHex(sig.s)];
 }
 
 export async function passkeySupported(): Promise<boolean> {
