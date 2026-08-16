@@ -1,96 +1,49 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { readBodyWithCap } from "@/lib/proxy-body";
-import { PINATA_GATEWAY } from "@/lib/constants";
+import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
+import { createRateLimiter, isSameOrigin, requestIp } from "@/lib/api-route-guard";
 
-// Second gateway to fall back to when the primary times out or errors —
-// Pinata's shared public gateway (the default for PINATA_GATEWAY when no
-// dedicated gateway is configured) throttles heavily under load and can
-// take 30+ seconds to even return a 404 (confirmed live 2026-08-16). A
-// bounded timeout + fallback keeps a single degraded gateway from hanging
-// every image on the site.
-const FALLBACK_GATEWAY = "https://ipfs.io";
-const GATEWAY_TIMEOUT_MS = 8_000;
+export const runtime = "nodejs";
 
-const MAX_BYTES = 25 * 1024 * 1024;
-
-const RATE_LIMIT_WINDOW_MS = 60_000;
-const RATE_LIMIT_MAX = 300;
-const ipCounts = new Map<string, { count: number; resetAt: number }>();
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const entry = ipCounts.get(ip);
-  if (!entry || now >= entry.resetAt) {
-    ipCounts.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
-    return true;
-  }
-  if (entry.count >= RATE_LIMIT_MAX) return false;
-  entry.count += 1;
-  return true;
-}
+const checkRateLimit = createRateLimiter(60_000, 300);
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ cid: string[] }> }
 ) {
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
-  if (!checkRateLimit(ip)) {
+  if (!isSameOrigin(req)) {
+    return NextResponse.json({ error: "Cross-origin requests are not allowed" }, { status: 403 });
+  }
+  if (!checkRateLimit(requestIp(req))) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
 
   const { cid: segments } = await params;
   const cidPath = segments.join("/");
 
-  if (!/^(Qm[1-9A-HJ-NP-Za-km-z]{44,}|b[a-z2-7]{58,})(\/[\w.\-/]*)?$/.test(cidPath)) {
-    return NextResponse.json({ error: "Invalid IPFS path" }, { status: 400 });
+  if (!MEDIALANE_API_KEY) {
+    return NextResponse.json({ error: "MEDIALANE_API_KEY is not configured" }, { status: 500 });
   }
 
-  if (cidPath.split("/").includes("..")) {
-    return NextResponse.json({ error: "Invalid IPFS path" }, { status: 400 });
+  let upstream: Response;
+  try {
+    upstream = await fetch(`${MEDIALANE_BACKEND_URL.replace(/\/$/, "")}/v1/metadata/file/${cidPath}`, {
+      headers: { "x-api-key": MEDIALANE_API_KEY },
+      next: { revalidate: 86400 },
+    });
+  } catch {
+    return NextResponse.json({ error: "Failed to fetch from backend" }, { status: 502 });
   }
 
-  async function fetchGateway(base: string): Promise<Response | null> {
-    try {
-      const res = await fetch(`${base}/ipfs/${cidPath}`, {
-        next: { revalidate: 86400 },
-        signal: AbortSignal.timeout(GATEWAY_TIMEOUT_MS),
-      });
-      return res.ok ? res : null;
-    } catch {
-      return null;
-    }
+  if (!upstream.ok) {
+    return NextResponse.json({ error: `Backend returned ${upstream.status}` }, { status: upstream.status });
   }
 
-  const upstream =
-    (await fetchGateway(PINATA_GATEWAY)) ??
-    (PINATA_GATEWAY !== FALLBACK_GATEWAY ? await fetchGateway(FALLBACK_GATEWAY) : null);
-
-  if (!upstream) {
-    return NextResponse.json({ error: "Failed to fetch from IPFS" }, { status: 502 });
-  }
-
-  const upstreamContentType = upstream.headers.get("content-type") ?? "";
-  const SAFE_PREFIXES = [
-    "image/jpeg", "image/png", "image/gif", "image/webp", "image/avif", "image/svg+xml",
-    "video/", "audio/", "model/", "font/", "application/json", "application/octet-stream",
-  ];
-  const contentType = SAFE_PREFIXES.some((p) => upstreamContentType.startsWith(p))
-    ? upstreamContentType
-    : "application/octet-stream";
-
-  const capped = await readBodyWithCap(upstream, MAX_BYTES);
-  if (!capped.ok) {
-    return NextResponse.json({ error: capped.error }, { status: capped.status });
-  }
-
-  return new NextResponse(capped.body, {
+  return new NextResponse(upstream.body, {
     status: 200,
     headers: {
-      "Content-Type": contentType,
+      "Content-Type": upstream.headers.get("content-type") ?? "application/octet-stream",
       "X-Content-Type-Options": "nosniff",
-
       "Content-Security-Policy": "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; sandbox",
-
       "Cache-Control": "public, max-age=31536000, s-maxage=31536000, immutable",
       "Access-Control-Allow-Origin": "*",
     },
