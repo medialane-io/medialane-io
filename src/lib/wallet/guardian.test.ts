@@ -1,57 +1,34 @@
-import { test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import {
   buildSetFirstGuardianCall,
   buildTriggerEscapeOwnerCall,
   buildCompleteEscapeOwnerCall,
   buildCancelEscapeCall,
-  decodeGuardiansInfo,
-  decodeEscapeAndStatus,
-} from "./guardian";
-import { norm } from "./account-ops";
+} from "@medialane/sdk/starknet";
 
-const PUBKEY = "0x61cc05c5da6e9b1403a27ffa564498cd2b8cda1428b053b08dbbd1cceb744c6";
-const PUBKEY_DECIMAL = BigInt(PUBKEY).toString();
+// The calldata-encoding behavior itself is covered upstream by
+// @medialane/sdk's own guardian.test.ts — this file only proves io's
+// migration wired the SDK module in correctly, without re-mocking
+// "./sponsored-invoke" (that's sponsored-invoke.test.ts's job; mock.module
+// on a shared module leaks across test files in the same bun test run and
+// broke that file's own tests when tried here).
+describe("io guardian module", () => {
+  test("re-exports the SDK's guardian calldata builders unchanged", async () => {
+    const guardian = await import("./guardian");
+    expect(guardian.buildSetFirstGuardianCall).toBe(buildSetFirstGuardianCall);
+    expect(guardian.buildTriggerEscapeOwnerCall).toBe(buildTriggerEscapeOwnerCall);
+    expect(guardian.buildCompleteEscapeOwnerCall).toBe(buildCompleteEscapeOwnerCall);
+    expect(guardian.buildCancelEscapeCall).toBe(buildCancelEscapeCall);
+  });
 
-test("buildSetFirstGuardianCall: change_guardians([], [Signer::Starknet(pubkey)])", () => {
-  const call = buildSetFirstGuardianCall("0xfeed", PUBKEY);
-  expect(call.contractAddress).toBe(norm("0xfeed"));
-  expect(call.entrypoint).toBe("change_guardians");
-  expect((call.calldata as string[]).map((f) => BigInt(f).toString())).toEqual([
-    "0", "1", "0", PUBKEY_DECIMAL,
-  ]);
-});
-
-test("buildTriggerEscapeOwnerCall: trigger_escape_owner(Signer::Starknet(pubkey))", () => {
-  const call = buildTriggerEscapeOwnerCall("0xdead", PUBKEY);
-  expect(call.contractAddress).toBe(norm("0xdead"));
-  expect(call.entrypoint).toBe("trigger_escape_owner");
-});
-
-test("buildCompleteEscapeOwnerCall: escape_owner(), no calldata", () => {
-  const call = buildCompleteEscapeOwnerCall("0xbeef");
-  expect(call.entrypoint).toBe("escape_owner");
-  expect(call.calldata).toEqual([]);
-});
-
-test("buildCancelEscapeCall: cancel_escape(), no calldata", () => {
-  const call = buildCancelEscapeCall("0xc0de");
-  expect(call.entrypoint).toBe("cancel_escape");
-  expect(call.calldata).toEqual([]);
-});
-
-test("decodeGuardiansInfo: empty set", () => {
-  expect(decodeGuardiansInfo(["0x0"])).toEqual([]);
-});
-
-test("decodeGuardiansInfo: one Starknet-type guardian", () => {
-  const guid = "0x123";
-  expect(decodeGuardiansInfo(["0x1", "0x0", guid, PUBKEY])).toEqual([
-    { type: "Starknet", guid, storedValue: PUBKEY },
-  ]);
-});
-
-test("decodeEscapeAndStatus: no escape in progress", () => {
-  expect(decodeEscapeAndStatus(["0x0", "0x0", "0x1", "0x0"])).toEqual({
-    readyAt: 0, escapeType: "None", status: "None",
+  test("exposes the AVNU-sponsored execution wrappers", async () => {
+    const guardian = await import("./guardian");
+    expect(typeof guardian.setFirstGuardian).toBe("function");
+    expect(typeof guardian.triggerEscapeOwner).toBe("function");
+    expect(typeof guardian.completeEscapeOwner).toBe("function");
+    expect(typeof guardian.cancelEscape).toBe("function");
+    expect(typeof guardian.getGuardians).toBe("function");
+    expect(typeof guardian.getEscape).toBe("function");
+    expect(typeof guardian.getEscapeSecurityPeriod).toBe("function");
   });
 });
