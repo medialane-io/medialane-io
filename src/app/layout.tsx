@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import { Inter, Urbanist } from "next/font/google";
 import { Providers } from "./providers";
 import { JsonLd } from "@/components/seo/json-ld";
@@ -76,13 +75,9 @@ export const viewport = {
   maximumScale: 5,
 };
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const headersList = await headers();
-  const pathname = headersList.get("x-pathname") ?? "";
-  const isBrLocale = pathname.startsWith("/br");
-
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang={isBrLocale ? "pt-BR" : "en"} suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} ${urbanist.variable}`}>
         <JsonLd data={siteJsonLd} />
         <Providers>{children}</Providers>
