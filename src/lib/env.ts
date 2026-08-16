@@ -26,5 +26,5 @@ export function readOptionalAddressEnv(value: string | undefined, name: string):
 }
 
 export function readStringEnv(value: string | undefined, fallback = ""): string {
-  return value ?? fallback;
+  return value || fallback;
 }
