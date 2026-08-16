@@ -52,7 +52,7 @@ export default function CreateDropPage() {
   const [tokenDropdownOpen, setTokenDropdownOpen] = useState(false);
   const [selectedToken, setSelectedToken] = useState<PaymentTokenOption>(PAYMENT_TOKENS[0]);
 
-  const [pendingValues, setPendingValues] = useState<DropCreateFormValues | null>(null);
+  const [, setPendingValues] = useState<DropCreateFormValues | null>(null);
   const [autoSymbol, setAutoSymbol] = useState("");
 
   const {

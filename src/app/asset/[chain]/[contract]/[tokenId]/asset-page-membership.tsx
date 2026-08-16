@@ -156,7 +156,7 @@ export function AssetPageMembership() {
   const { isMember } = useIsMemberOf(contract, tokenId, walletAddress ?? null);
   const {
     isProcessing,
-    orderToCancel: _orderToCancel, cancelStep, cancelError,
+    cancelStep, cancelError,
     handleCancelClick,
     resetCancelStep,
   } = useOrderActions({ mutateListings, tokenStandard: "ERC1155" });

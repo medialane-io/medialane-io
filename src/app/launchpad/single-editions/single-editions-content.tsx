@@ -315,7 +315,7 @@ export function SingleEditionsContent() {
   const [ipTypeOpen, setIpTypeOpen] = useState(false);
   const [mintStep, setMintStep] = useState<MintStep>("idle");
   const [mintError, setMintError] = useState<string | null>(null);
-  const [mintDebug, setMintDebug] = useState<MintDebugSnapshot | null>(null);
+  const [, setMintDebug] = useState<MintDebugSnapshot | null>(null);
   const mintDebugRef = useRef<MintDebugSnapshot | null>(null);
 
   const metadataFieldsRef = useRef<MetadataField[]>([]);

@@ -29,7 +29,7 @@ import {
 import { registerRemix } from "@/hooks/use-remix-offers";
 import { readAssignedEditionId } from "@/lib/erc1155-edition";
 import { getService, normalizeAddress } from "@medialane/sdk";
-import { IP_TYPES, LICENSE_TYPES, type IPType } from "@/types/ip";
+import { IP_TYPES, LICENSE_TYPES } from "@/types/ip";
 import { ipfsToHttp, checkIsOwner } from "@/lib/utils";
 import { resolveRemixPolicy, getDerivativesTerm } from "@/lib/remix-policy";
 import { ToggleGroup, Section } from "@/components/create/create-form-primitives";

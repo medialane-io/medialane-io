@@ -55,7 +55,6 @@ export default function CreateIP1155CollectionPage() {
     imageUri,
     imageUploading,
     uploadError,
-    uploadSuccess,
     fileInputRef,
     handleImageSelect,
     clearImage,

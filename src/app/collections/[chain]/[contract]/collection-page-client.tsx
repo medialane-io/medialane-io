@@ -476,7 +476,6 @@ export default function CollectionPageClient() {
             <TabsContent value="exclusive" className="mt-4">
               <GatedContentPanel
                 state={gatedState}
-                contract={contract}
                 onBrowseListings={() => { setMarketSubTab("listings"); setActiveTab("market"); }}
               />
             </TabsContent>
@@ -548,11 +547,9 @@ const CONTENT_TYPE_CONFIG: Record<string, { icon: React.ReactNode; cta: string }
 
 function GatedContentPanel({
   state,
-  contract,
   onBrowseListings,
 }: {
   state: GatedContentState;
-  contract: string;
   onBrowseListings: () => void;
 }) {
   if (state.status === "not_signed_in") {

@@ -25,7 +25,7 @@ interface WalletTransactionDialogProps {
 const makeSteps = (firstStepLabel: string) => [
   {
     label: firstStepLabel,
-    done: (_: WalletWriteStatus) => true,
+    done: () => true,
     active: (s: WalletWriteStatus) => s === "idle",
   },
   {

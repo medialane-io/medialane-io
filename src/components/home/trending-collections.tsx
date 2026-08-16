@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { TrendingUp } from "lucide-react";
 import { useCollections } from "@/hooks/use-collections";
 import { CollectionCard, CollectionCardSkeleton, ScrollSection } from "@medialane/ui";

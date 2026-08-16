@@ -8,30 +8,24 @@ import { assetHref, collectionHref } from "@/lib/routes";
 import { useToken, useTokenHistory } from "@/hooks/use-tokens";
 import { useTokenListings } from "@/hooks/use-orders";
 import { useCollection, useNearbyCollectionTokens } from "@/hooks/use-collections";
-import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AddressDisplay } from "@/components/shared/address-display";
 import { PageContainer, AssetCollectionBar, AssetUtilityIcons, AssetMarketplacePanel, AssetMediaColumn, isLivingRenderCollection } from "@medialane/ui";
 import type { Chain } from "@medialane/sdk";
-import { ipfsToHttp, timeUntil, formatDisplayPrice, checkIsOwner } from "@/lib/utils";
-import { DollarSign, UserCheck, Globe, Bot, Percent, Shield, Calendar, Layers, GitBranch } from "lucide-react";
+import { ipfsToHttp, checkIsOwner } from "@/lib/utils";
 import { FloatingCommentsButton } from "@/components/asset/floating-comments-button";
 import { LICENSE_TRAIT_TYPES } from "@/types/ip";
 import type { IPType } from "@/types/ip";
 import { IP_TEMPLATES, EMBED_PLATFORM_META, SOCIAL_PLATFORM_META } from "@/lib/ip-templates";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { ApiActivity, ApiOrder } from "@medialane/sdk";
+import type { ApiActivity } from "@medialane/sdk";
 import { getService, normalizeAddress } from "@medialane/sdk";
 import { resolveRemixPolicy, getDerivativesTerm } from "@/lib/remix-policy";
-import { PriceHistoryChart } from "@/components/asset/price-history-chart";
 import { useComments } from "@/hooks/use-comments";
 import { useUsdPrices } from "@/hooks/use-usd-prices";
 import { usdValueFor } from "@/lib/wallet-format";
 import { EXPLORER_URL } from "@/lib/constants";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useEmailVerificationRequired } from "@/hooks/use-email-verification-required";
-import { toast } from "sonner";
-import { RemixesTab, ParentAttributionBanner } from "@/components/asset/remixes-tab";
 import { useTokenRemixes } from "@/hooks/use-remix-offers";
 import { AssetMarketsTab } from "./asset-markets-tab";
 import { AssetProvenanceTab } from "./asset-provenance-tab";
@@ -66,7 +60,7 @@ export function AssetPageStandard() {
 
   const {
     isProcessing,
-    orderToCancel, cancelStep, cancelError,
+    cancelStep, cancelError,
     handleCancelClick,
     resetCancelStep,
   } = useOrderActions({ mutateListings });
@@ -92,7 +86,7 @@ export function AssetPageStandard() {
   const [reportOpen, setReportOpen] = useState(false);
   const [commentOpen, setCommentOpen] = useState(false);
 
-  const { comments, total: commentTotal } = useComments(contract, tokenId);
+  const { total: commentTotal } = useComments(contract, tokenId);
   const { total: remixCount } = useTokenRemixes(contract, tokenId);
 
   const [lightboxOpen, setLightboxOpen] = useState(false);

@@ -122,7 +122,7 @@ export function AssetPageTicket() {
   const { ticket } = useTicketOnchain(contract, tokenId);
   const {
     isProcessing,
-    orderToCancel: _orderToCancel, cancelStep, cancelError,
+    cancelStep, cancelError,
     handleCancelClick,
     resetCancelStep,
   } = useOrderActions({ mutateListings, tokenStandard: "ERC1155" });
@@ -170,8 +170,6 @@ export function AssetPageTicket() {
   const quantityOwned = walletAddress
     ? holders.find((h) => normalizeAddress("STARKNET", h.owner) === normalizeAddress("STARKNET", walletAddress))?.amount
     : undefined;
-  const myQuantity = quantityOwned != null ? Number(quantityOwned) : 0;
-
   const myListing = isOwner
     ? activeListings.find((l) => normalizeAddress("STARKNET", l.offerer) === normalizeAddress("STARKNET", walletAddress!))
     : null;

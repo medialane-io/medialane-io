@@ -108,7 +108,6 @@ export default function LaunchpadCreateCollectionPage() {
     };
   }, []);
 
-  const hasWallet = !!walletAddress;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
