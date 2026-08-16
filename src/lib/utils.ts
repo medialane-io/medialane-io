@@ -2,7 +2,7 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { formatDistanceToNow } from "date-fns";
 import { normalizeAddress } from "@medialane/sdk";
-import { SUPPORTED_TOKENS, MEDIA_BASE_URL } from "./constants";
+import { SUPPORTED_TOKENS } from "./constants";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -65,13 +65,16 @@ export function formatDisplayPrice(price: string | number | null | undefined): s
   return currencyPart ? `${formatted} ${currencyPart}` : formatted;
 }
 
-export function ipfsToHttp(uri: string | null | undefined, _width?: number): string {
+export function ipfsToHttp(uri: string | null | undefined, width?: number): string {
   if (!uri) return "/placeholder.svg";
   if (uri.startsWith("ipfs://")) {
-    return `${MEDIA_BASE_URL}/media/ipfs/${uri.slice(7)}`;
+
+    const cid = uri.slice(7);
+    return width ? `/api/ipfs/${cid}?w=${width}` : `/api/ipfs/${cid}`;
   }
   if (uri.startsWith("https://") || uri.startsWith("http://")) {
-    return `${MEDIA_BASE_URL}/media/external?url=${encodeURIComponent(uri)}`;
+
+    return `/api/img?url=${encodeURIComponent(uri)}`;
   }
 
   if (uri.startsWith("data:image/")) {
@@ -83,9 +86,7 @@ export function ipfsToHttp(uri: string | null | undefined, _width?: number): str
 
 export function resolveTokenImage(raw: string | null | undefined): string | null {
   if (!raw) return null;
-  if (raw.startsWith("/") || raw.startsWith("data:") || raw.startsWith(`${MEDIA_BASE_URL}/media/`)) {
-    return raw;
-  }
+  if (raw.startsWith("/") || raw.startsWith("data:")) return raw;
   return ipfsToHttp(raw);
 }
 

@@ -28,9 +28,6 @@ export const MEDIALANE_BACKEND_URL = isServer
   ? readStringEnv(process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL, "http://localhost:3001")
   : `${window.location.origin}/api/proxy`;
 
-export const MEDIA_BASE_URL =
-  readStringEnv(process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL, "http://localhost:3001");
-
 export const MEDIALANE_API_KEY = isServer
   ? readStringEnv(process.env.MEDIALANE_API_KEY)
   : "";
@@ -42,6 +39,9 @@ if (!isServer && MEDIALANE_API_KEY) {
     "carries the tenant API key, and that the isServer branch above is intact."
   );
 }
+
+export const PINATA_GATEWAY =
+  readStringEnv(process.env.NEXT_PUBLIC_PINATA_GATEWAY, "https://gateway.pinata.cloud");
 
 export const EXPLORER_URL =
   readStringEnv(process.env.NEXT_PUBLIC_EXPLORER_URL, "https://voyager.online");
