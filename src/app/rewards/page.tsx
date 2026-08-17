@@ -24,8 +24,8 @@ export default function RewardsPage() {
         <Info className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
         <p className="text-xs text-muted-foreground leading-relaxed">
           The community can adjust point values and badge criteria over time to
-          keep the fund fair as Medialane grows. Your share for each round is
-          set when that round is paid out.
+          keep the fund fair as Medialane grows. Your share of each distribution is
+          set when that distribution goes out.
         </p>
       </footer>
     </PageContainer>

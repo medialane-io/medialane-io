@@ -143,7 +143,7 @@ export function GenesisMint() {
       <div className="flex items-center gap-3 py-2">
         <Wallet className="h-5 w-5 text-muted-foreground" />
         <Link href={`/connect?redirect_url=${encodeURIComponent(pathname)}`} className="text-sm text-primary hover:underline">
-          Connect your account to join — takes 10 seconds.
+          Connect your account to join, it takes 10 seconds.
         </Link>
       </div>
     );
@@ -156,7 +156,7 @@ export function GenesisMint() {
           <div className="flex items-center gap-2 text-sm">
             <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
             <span className="text-emerald-600 dark:text-emerald-400 font-medium">
-              Account active — mint your passport
+              Account active, mint your passport
             </span>
           </div>
           <GradientButton big onClick={handleClaim} disabled={!MINT_CONTRACT}>

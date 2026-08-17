@@ -13,65 +13,38 @@ import { GenesisMint, AirdropEventCard } from "@/components/airdrop/genesis-mint
 import { canonical } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Creator's Airdrop — Medialane",
-  description: "Everything you need to know about the Medialane Creator's Airdrop — how participation works, what you earn, and how to join.",
+  title: "Creator's Airdrop | Medialane",
+  description: "How the Medialane Creator's Airdrop works: what earns XP, how distributions happen, and how to join.",
   alternates: canonical("/airdrop"),
   openGraph: {
-    title: "Creator's Airdrop — Medialane",
-    description: "Everything you need to know about the Medialane Creator's Airdrop — how participation works, what you earn, and how to join.",
+    title: "Creator's Airdrop | Medialane",
+    description: "How the Medialane Creator's Airdrop works: what earns XP, how distributions happen, and how to join.",
     url: "/airdrop",
     type: "website",
   },
 };
 
-const REWARDS = [
+const EARN_GROUPS = [
   {
     icon: FileCheck,
     color: "text-brand-blue",
     bg: "bg-brand-blue/10",
-    title: "First in line",
-    desc: "You're automatically in the very first distribution — and every one after it.",
+    title: "Get started",
+    desc: "Sign up with your email. You're included from that point on, and it's the only requirement.",
   },
   {
     icon: Coins,
     color: "text-brand-orange",
     bg: "bg-brand-orange/10",
-    title: "A real share of revenue",
-    desc: "Every $1,000 Medialane earns gets split among participants, weighted by XP.",
+    title: "Create",
+    desc: "Mint, publish, launch collections or drops. Each action adds to your XP.",
   },
   {
     icon: Star,
     color: "text-brand-purple",
     bg: "bg-brand-purple/10",
-    title: "Founding member, forever",
-    desc: "That badge never expires. You were here first.",
-  },
-];
-
-const STEPS = [
-  {
-    n: "1",
-    color: "bg-emerald-500/15 text-emerald-500",
-    title: "Register",
-    tag: "Minimum — you're in",
-    tagColor: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
-    desc: "Sign up. That's the whole bar — no strings attached.",
-  },
-  {
-    n: "2",
-    color: "bg-brand-purple/15 text-brand-purple",
-    title: "Create",
-    tag: "Bonus",
-    tagColor: "bg-brand-purple/15 text-brand-purple",
-    desc: "Publish your work — photos, music, art, writing. Bigger share.",
-  },
-  {
-    n: "3",
-    color: "bg-brand-orange/15 text-brand-orange",
-    title: "Trade",
-    tag: "Biggest bonus",
-    tagColor: "bg-brand-orange/15 text-brand-orange",
-    desc: "Buy, sell, collect. Active traders get the biggest share.",
+    title: "Trade and engage",
+    desc: "Buy, sell, make offers, collaborate. This adds to the same XP total too.",
   },
 ];
 
@@ -91,7 +64,7 @@ export default function AirdropPage() {
               Creator&apos;s <span className="text-brand-orange">Fund</span>
             </h1>
             <p className="text-lg lg:text-xl text-muted-foreground leading-relaxed max-w-md">
-              Every dollar Medialane makes gets shared back with the people building here. Sign up and you&apos;re already in.
+              A share of what Medialane earns is set aside for the people building here. Sign up and you&apos;re already in.
             </p>
 
             <GenesisMint />
@@ -105,14 +78,21 @@ export default function AirdropPage() {
       </section>
 
       <section className="py-14 space-y-8">
-        <div>
-          <h2 className="text-3xl sm:text-4xl font-black">What you actually get</h2>
+        <div className="max-w-2xl">
+          <h2 className="text-3xl sm:text-4xl font-black">How you earn</h2>
           <p className="text-base text-muted-foreground mt-2 leading-relaxed">
-            No fine print games — just three real perks, for joining now.
+            Every real interaction with Medialane earns XP, and your total XP relative to
+            everyone else&apos;s decides your share of each distribution. Signing up is enough
+            to be included; everything below adds to the same running total. See your exact
+            score on the{" "}
+            <Link href="/rewards" className="text-foreground underline underline-offset-2 hover:text-brand-orange transition-colors">
+              Rewards
+            </Link>{" "}
+            page.
           </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-6">
-          {REWARDS.map(({ icon: Icon, color, bg, title, desc }) => (
+          {EARN_GROUPS.map(({ icon: Icon, color, bg, title, desc }) => (
             <div key={title} className="flex flex-col gap-3">
               <div className={`h-12 w-12 rounded-xl ${bg} flex items-center justify-center shrink-0`}>
                 <Icon className={`h-6 w-6 ${color}`} />
@@ -124,77 +104,25 @@ export default function AirdropPage() {
         </div>
       </section>
 
-      <section className="py-14 space-y-8">
-        <div className="max-w-2xl">
-          <h2 className="text-3xl sm:text-4xl font-black">Sign up. That&apos;s it.</h2>
-          <p className="text-base text-muted-foreground mt-2 leading-relaxed">
-            Creating an account gets you in. Do more, and you earn more.
+      <section className="py-14 space-y-4">
+        <div className="max-w-2xl space-y-3">
+          <h2 className="text-3xl sm:text-4xl font-black">The Creator&apos;s Fund</h2>
+          <p className="text-base text-muted-foreground leading-relaxed">
+            A share of what Medialane earns is set aside in one public wallet. Each time it
+            reaches its threshold, it&apos;s airdropped to everyone taking part, split by XP.
+            This runs through July 2027. Read the full mechanic and watch the live wallet at{" "}
+            <a
+              href="https://medialane.org/creators-fund"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-foreground underline underline-offset-2 hover:text-brand-orange transition-colors"
+            >
+              medialane.org/creators-fund
+            </a>
+            .
           </p>
+          <span className="block tabular-nums text-sm text-muted-foreground/70 break-all">0x064c51746dbcb7498cc6e4b8abfcacd60805c0762b0411bb0515c611b5ae8223</span>
         </div>
-
-        <div className="relative pl-2">
-          <div className="absolute left-[23px] top-4 bottom-4 w-px bg-border/50" aria-hidden />
-          <div className="space-y-8">
-            {STEPS.map(({ n, color, title, tag, tagColor, desc }) => (
-              <div key={title} className="relative flex items-start gap-5">
-                <div className={`relative z-10 h-12 w-12 rounded-full ${color} flex items-center justify-center font-black text-lg shrink-0`}>
-                  {n}
-                </div>
-                <div className="flex-1 pt-1.5">
-                  <div className="flex items-center gap-2.5 flex-wrap">
-                    <p className="font-bold text-xl">{title}</p>
-                    <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${tagColor}`}>{tag}</span>
-                  </div>
-                  <p className="text-base text-muted-foreground mt-1 leading-relaxed">{desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="py-14 space-y-8">
-        <div className="max-w-2xl">
-          <h2 className="text-3xl sm:text-4xl font-black">How the money moves</h2>
-          <p className="text-base text-muted-foreground mt-2 leading-relaxed">
-            Simple math: what Medialane earns, you earn. See your exact share on the{" "}
-            <Link href="/rewards" className="text-foreground underline underline-offset-2 hover:text-brand-orange transition-colors">
-              Rewards
-            </Link>{" "}
-            page.
-          </p>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div className="relative rounded-2xl border border-border/40 bg-card overflow-hidden p-6 space-y-2">
-            <div className="absolute inset-x-0 top-0 h-[3px] bg-brand-blue" />
-            <p className="text-4xl font-black text-brand-blue">$1,000</p>
-            <p className="font-bold">= one full distribution</p>
-            <p className="text-base text-muted-foreground leading-relaxed">
-              Every time the fund hits this mark, it goes out to everyone who&apos;s in. $10,000 earned means 10 rounds paid out.
-            </p>
-          </div>
-          <div className="relative rounded-2xl border border-border/40 bg-card overflow-hidden p-6 space-y-2">
-            <div className="absolute inset-x-0 top-0 h-[3px] bg-brand-purple" />
-            <p className="text-4xl font-black text-brand-purple">Your XP</p>
-            <p className="font-bold">= your cut of every round</p>
-            <p className="text-base text-muted-foreground leading-relaxed">
-              The more you create, trade, and show up, the bigger your slice — every single round.
-            </p>
-          </div>
-        </div>
-        <p className="text-base text-muted-foreground leading-relaxed">
-          Runs through July 2027 — every dollar earned during that window comes back to you. Don&apos;t take our word for it —{" "}
-          <a
-            href="https://medialane.org/creators-fund"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-foreground underline underline-offset-2 hover:text-brand-orange transition-colors"
-          >
-            watch the fund live
-          </a>
-          .
-          <span className="block tabular-nums text-sm text-muted-foreground/70 mt-1 break-all">0x064c51746dbcb7498cc6e4b8abfcacd60805c0762b0411bb0515c611b5ae8223</span>
-        </p>
       </section>
 
       <section className="py-14 pb-16 space-y-8">
@@ -208,7 +136,7 @@ export default function AirdropPage() {
               <div className="space-y-2.5">
                 {[
                   "Anyone who creates a free Medialane account.",
-                  "No ID, no card, no approval required.",
+                  "Approval-free, open to everyone.",
                 ].map((text) => (
                   <div key={text} className="flex items-start gap-3">
                     <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" />

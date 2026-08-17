@@ -124,8 +124,8 @@ function Hero() {
         Community <span className="bg-gradient-to-r from-brand-rose to-brand-orange bg-clip-text text-transparent">Rewards</span>
       </h1>
       <p className="text-lg text-foreground/70 max-w-xl leading-relaxed font-medium">
-        Every action earns XP. Active members receive allocations from the
-        Creator&apos;s Fund — the more you participate, the more you earn.{" "}
+        Every action earns XP, and active members receive allocations from the
+        Creator&apos;s Fund based on how much they participate.{" "}
         <Link href="/journey" className="text-foreground underline underline-offset-2 hover:text-brand-orange transition-colors">
           See the full system
         </Link>
@@ -281,19 +281,9 @@ function CreatorsFundCard() {
         </h2>
 
         <p className="text-base font-medium text-white/90 leading-relaxed max-w-sm">
-          Every dollar Medialane earns gets shared back with the people building here.
+          A share of what Medialane earns is set aside in one public wallet and airdropped back
+          to the people creating and trading here, split by XP.
         </p>
-
-        <div className="grid grid-cols-2 gap-6 pt-2">
-          <div>
-            <p className="text-3xl font-black leading-none">$1,000</p>
-            <p className="text-sm font-semibold text-white/75 mt-1.5 leading-snug">one full distribution, split by XP</p>
-          </div>
-          <div>
-            <p className="text-3xl font-black leading-none">Your XP</p>
-            <p className="text-sm font-semibold text-white/75 mt-1.5 leading-snug">your cut of every round, forever</p>
-          </div>
-        </div>
 
         <div className="flex flex-wrap items-center gap-4 pt-2">
           <Link
