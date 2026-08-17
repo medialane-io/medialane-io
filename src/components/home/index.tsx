@@ -2,10 +2,9 @@
 
 import { HeroSlider } from "./hero-slider";
 import { AirdropSection } from "./airdrop-section";
-import { CreatorAirdropBanner } from "./creator-airdrop";
+import { RewardsSection } from "./rewards-section";
 import { TrendingCollections } from "./trending-collections";
 import { NewOnMarketplace } from "./new-on-marketplace";
-import { TopCreators } from "./top-creators";
 import { ActivityTicker } from "@/components/shared/activity-ticker";
 
 export function HomePage() {
@@ -21,10 +20,7 @@ export function HomePage() {
       <div className="w-full max-w-screen-2xl mx-auto px-4 sm:px-6 space-y-10 sm:space-y-16 lg:space-y-20 mt-16">
         <TrendingCollections />
         <NewOnMarketplace />
-        <div className="space-y-3 sm:space-y-4">
-          <CreatorAirdropBanner />
-          <TopCreators />
-        </div>
+        <RewardsSection />
         <AirdropSection />
       </div>
     </div>
