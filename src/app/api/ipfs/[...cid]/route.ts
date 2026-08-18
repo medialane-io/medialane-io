@@ -50,7 +50,7 @@ export async function GET(
 
   let upstream: Response;
   try {
-    upstream = await fetch(url, { next: { revalidate: 86400 } });
+    upstream = await fetch(url, { signal: AbortSignal.timeout(18_000), next: { revalidate: 86400 } });
   } catch {
     return NextResponse.json({ error: "Failed to fetch from IPFS" }, { status: 502 });
   }
