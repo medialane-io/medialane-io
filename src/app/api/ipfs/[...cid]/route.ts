@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
 import { readBodyWithCap } from "@/lib/proxy-body";
+import { createRateLimiter, requestIp } from "@/lib/api-route-guard";
 
 export const runtime = "nodejs";
 
@@ -10,27 +11,13 @@ const MAX_BYTES = 25 * 1024 * 1024;
 const MAX_RESIZE_WIDTH = 640;
 const RESIZABLE_TYPES = new Set(["image/jpeg", "image/png", "image/gif", "image/webp", "image/avif"]);
 
-const RATE_LIMIT_WINDOW_MS = 60_000;
-const RATE_LIMIT_MAX = 300;
-const ipCounts = new Map<string, { count: number; resetAt: number }>();
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const entry = ipCounts.get(ip);
-  if (!entry || now >= entry.resetAt) {
-    ipCounts.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
-    return true;
-  }
-  if (entry.count >= RATE_LIMIT_MAX) return false;
-  entry.count += 1;
-  return true;
-}
+const checkRateLimit = createRateLimiter(60_000, 300);
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ cid: string[] }> }
 ) {
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
+  const ip = requestIp(req);
   if (!checkRateLimit(ip)) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }

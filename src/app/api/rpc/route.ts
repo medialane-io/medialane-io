@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PUBLIC_RPC_FALLBACKS, isTransientRpcError } from "@medialane/sdk";
 import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
+import { createRateLimiter, requestIp } from "@/lib/api-route-guard";
 
 const RPC_URLS = Array.from(new Set([
   process.env.ALCHEMY_RPC_URL,
@@ -47,21 +48,7 @@ function isSameOrigin(req: NextRequest): boolean {
   }
 }
 
-const RATE_LIMIT_WINDOW_MS = 60_000;
-const RATE_LIMIT_MAX = 600;
-const ipCounts = new Map<string, { count: number; resetAt: number }>();
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const entry = ipCounts.get(ip);
-  if (!entry || now >= entry.resetAt) {
-    ipCounts.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
-    return true;
-  }
-  if (entry.count >= RATE_LIMIT_MAX) return false;
-  entry.count += 1;
-  return true;
-}
+const checkRateLimit = createRateLimiter(60_000, 600);
 
 function extractMethod(body: unknown): string {
   if (Array.isArray(body)) return "batch";
@@ -113,8 +100,7 @@ export async function POST(req: NextRequest) {
     return rpcError(-32600, "Cross-origin requests are not allowed", 403);
   }
 
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
-  if (!checkRateLimit(ip)) {
+  if (!checkRateLimit(requestIp(req))) {
     return rpcError(-32005, "Too many requests", 429);
   }
 

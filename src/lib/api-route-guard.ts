@@ -17,8 +17,18 @@ export function requestIp(req: NextRequest): string {
 
 export function createRateLimiter(windowMs: number, max: number) {
   const counts = new Map<string, { count: number; resetAt: number }>();
+  let nextSweepAt = Date.now() + windowMs;
+
   return function checkRateLimit(ip: string): boolean {
     const now = Date.now();
+
+    if (now >= nextSweepAt) {
+      for (const [key, entry] of counts) {
+        if (now >= entry.resetAt) counts.delete(key);
+      }
+      nextSweepAt = now + windowMs;
+    }
+
     const entry = counts.get(ip);
     if (!entry || now >= entry.resetAt) {
       counts.set(ip, { count: 1, resetAt: now + windowMs });

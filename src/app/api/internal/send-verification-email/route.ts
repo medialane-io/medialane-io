@@ -43,6 +43,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   if (!to || !code) {
     return NextResponse.json({ error: "Missing to/code" }, { status: 400 });
   }
+  if (!/^\d{6}$/.test(code)) {
+    return NextResponse.json({ error: "code must be a 6-digit number" }, { status: 400 });
+  }
 
   if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
     return NextResponse.json({ error: "SMTP is not configured" }, { status: 500 });
