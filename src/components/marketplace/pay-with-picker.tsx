@@ -1,7 +1,7 @@
 "use client";
 
 import { getTokenBySymbol, SUPPORTED_TOKENS } from "@medialane/sdk";
-import { Loader2, Wallet } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { useErc20Balance } from "@/hooks/use-erc20-balance";
 import { useSwapQuote } from "@/hooks/use-swap-quote";
@@ -55,15 +55,14 @@ function PayWithOption({
 function FundWalletPrompt({ message, onFund }: { message: string; onFund: () => void }) {
   return (
     <div className="space-y-2 rounded-lg border border-amber-500/20 bg-amber-500/5 p-4 text-center">
-      <Wallet className="mx-auto h-5 w-5 text-amber-500" />
-      <p className="text-sm font-medium">{message}</p>
-      <p className="text-xs text-muted-foreground">
-        Add STRK, ETH, USDC, USDT, or WBTC to your Medialane wallet to complete this purchase.
+      <p className="text-base font-semibold">{message}</p>
+      <p className="text-sm text-foreground/80">
+        Add STRK, ETH, USDC, USDT, or WBTC to your Media Wallet to complete this purchase.
       </p>
       <button
         type="button"
         onClick={onFund}
-        className="text-xs font-semibold text-primary hover:underline"
+        className="text-sm font-semibold text-primary hover:underline"
       >
         Fund your wallet
       </button>
@@ -77,10 +76,15 @@ interface PayWithPickerProps {
   walletAddress: string | null;
   selected: string | null;
   onSelect: (symbol: string) => void;
+  onBeforeFund?: () => void;
 }
 
-export function PayWithPicker({ orderCurrency, requiredRaw, walletAddress, selected, onSelect }: PayWithPickerProps) {
+export function PayWithPicker({ orderCurrency, requiredRaw, walletAddress, selected, onSelect, onBeforeFund }: PayWithPickerProps) {
   const { open: openWalletPanel } = useMediaWallet();
+  const openWalletToReceive = () => {
+    onBeforeFund?.();
+    openWalletPanel({ name: "home", autoOpenReceive: true });
+  };
   const alternatives = SUPPORTED_TOKENS.filter((t) => t.listable && t.symbol !== orderCurrency);
 
   const balanceETH = useErc20Balance(getTokenBySymbol("ETH")?.address ?? null, walletAddress);
@@ -130,7 +134,7 @@ export function PayWithPicker({ orderCurrency, requiredRaw, walletAddress, selec
   }
 
   if (held.length === 0) {
-    return <FundWalletPrompt message="Your wallet has no funds" onFund={openWalletPanel} />;
+    return <FundWalletPrompt message="Add funds to complete this purchase" onFund={openWalletToReceive} />;
   }
 
   if (anyStillQuoting) {
@@ -146,7 +150,7 @@ export function PayWithPicker({ orderCurrency, requiredRaw, walletAddress, selec
     return (
       <FundWalletPrompt
         message="You don't have enough of any supported token to complete this purchase"
-        onFund={openWalletPanel}
+        onFund={openWalletToReceive}
       />
     );
   }

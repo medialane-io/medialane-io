@@ -418,6 +418,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
                     walletAddress={walletAddress}
                     selected={paymentSymbol}
                     onSelect={setPaymentSymbol}
+                    onBeforeFund={() => onOpenChange(false)}
                   />
                 )}
 
