@@ -96,6 +96,7 @@ export function CancelOrderDialog({
       resetState();
       resetActionFlow();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- resets dialog state on open; resetState/resetActionFlow aren't stable across renders and would re-fire this every render
   }, [open]);
 
   const isProcessing = status === "processing" || status === "confirming";

@@ -56,6 +56,7 @@ export function TransferCollectionOwnershipDialog({
       setNewOwner("");
       setStep("form");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- resets form state on open; action isn't stable across renders and would re-fire this every render
   }, [open]);
 
   const isSubmitting = action.status === "processing" || action.status === "confirming";

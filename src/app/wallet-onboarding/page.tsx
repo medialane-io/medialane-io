@@ -61,7 +61,7 @@ function WalletOnboardingForm() {
     if (startedRef.current) return;
     startedRef.current = true;
     void runOnboarding();
-
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- startedRef guards this to run exactly once on mount
   }, []);
 
   if (step === "done") {

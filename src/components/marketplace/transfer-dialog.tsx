@@ -115,6 +115,7 @@ export function TransferDialog({
       setPendingAddress(null);
       setStep("form");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- resets dialog state on open; form/resetState aren't stable across renders and would re-fire this every render
   }, [open]);
 
   const onSubmit = (values: FormValues) => {

@@ -134,6 +134,7 @@ export function OfferDialog({
 
   useEffect(() => {
     if (open) { resetState(); form.reset(); resetActionFlow(); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- resets dialog state on open; form/resetState/resetActionFlow aren't stable across renders and would re-fire this every render
   }, [open]);
 
   const confettiFired = useRef(false);

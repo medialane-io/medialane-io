@@ -159,7 +159,7 @@ function SearchResults() {
       }
     });
     return () => { cancelled = true; };
-
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- client.api identity isn't stable across renders; keying on q alone avoids re-searching every render
   }, [q]);
 
   function handleInputChange(value: string) {

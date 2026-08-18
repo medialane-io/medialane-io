@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { MintContent } from "./mint-content";
-import { absoluteUrl } from "@/lib/seo";
-
-const OG_IMAGE = "https://crimson-improved-unicorn-113.mypinata.cloud/ipfs/bafybeiglhfpl3ilyaiulzfjxspolmudih2d3t7lr27imy327fjag2s5zrq";
+import { absoluteUrl, AIRDROP_OG_IMAGE as OG_IMAGE } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Creator's Airdrop — Medialane",

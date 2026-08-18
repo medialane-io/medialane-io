@@ -96,6 +96,7 @@ export default function CreateRemixPage() {
 
   useEffect(() => {
     if (token && !name) setName(`Remix of ${originalName}`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once when token loads; name/originalName are guarded by the !name check above
   }, [token]);
 
   const getCollectionKey = (c: (typeof eligibleCollections)[0]) => c.collectionId ?? c.contractAddress;
@@ -107,6 +108,7 @@ export default function CreateRemixPage() {
       );
       setCollectionKey(getCollectionKey(match ?? eligibleCollections[0]!));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once when the eligible-collections list first populates; collectionKey/contract/getCollectionKey are guarded by the !collectionKey check above
   }, [eligibleCollections.length]);
 
   const handleLicenseChange = (value: string) => {
