@@ -337,6 +337,7 @@ export function useMarketplace() {
         setIsProcessing(false);
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- client.api identity isn't stable across renders; would invalidate this callback every render
     [walletAddress, runIntent]
   );
 
