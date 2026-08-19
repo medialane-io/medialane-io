@@ -1,6 +1,15 @@
 
 import { type NextRequest, NextResponse } from "next/server";
 import { isPathAllowed } from "./allowlist";
+import {
+  SESSION_COOKIE_NAME,
+  SESSION_COOKIE_MAX_AGE_SECONDS,
+  shouldSetSessionCookie,
+  extractAccountToken,
+  stripAccountToken,
+  shouldInjectSessionCookie,
+  injectAccountToken,
+} from "./session-cookie";
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL ?? "http://localhost:3001";
@@ -57,7 +66,16 @@ async function handle(
   fwdHeaders.set("x-api-key", apiKey);
 
   const hasBody = req.method !== "GET" && req.method !== "HEAD";
-  const body = hasBody ? await req.arrayBuffer() : undefined;
+  const injectingCookie = shouldInjectSessionCookie(joinedPath, req.method);
+
+  let body: BodyInit | undefined;
+  if (hasBody && injectingCookie) {
+    const sessionCookie = req.cookies.get(SESSION_COOKIE_NAME)?.value;
+    const bodyText = await req.text();
+    body = sessionCookie ? injectAccountToken(bodyText, sessionCookie) : bodyText;
+  } else if (hasBody) {
+    body = await req.arrayBuffer();
+  }
 
   const res = await fetch(target, {
     method: req.method,
@@ -72,6 +90,28 @@ async function handle(
     const key = k.toLowerCase();
     if (HOP_BY_HOP_HEADERS.has(key) || key === "set-cookie") continue;
     outHeaders.set(k, v);
+  }
+
+  const settingCookie = res.ok && shouldSetSessionCookie(joinedPath, req.method);
+  if (settingCookie) {
+    const bodyText = await res.text();
+    const accountToken = extractAccountToken(bodyText);
+    const outBody = accountToken ? stripAccountToken(bodyText) : bodyText;
+    const response = new NextResponse(outBody, {
+      status: res.status,
+      statusText: res.statusText,
+      headers: outHeaders,
+    });
+    if (accountToken) {
+      response.cookies.set(SESSION_COOKIE_NAME, accountToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        maxAge: SESSION_COOKIE_MAX_AGE_SECONDS,
+      });
+    }
+    return response;
   }
 
   return new NextResponse(res.body, {

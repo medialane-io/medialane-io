@@ -7,12 +7,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-import { Loader2, ShieldCheck, CheckCircle2, AlertCircle } from "lucide-react";
+import { Loader2, ShieldCheck, AlertCircle } from "lucide-react";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { ValuePropCarousel } from "@/components/connect/value-prop-carousel";
 import { friendlyErrorMessage } from "@/lib/friendly-error";
 
-type Step = "email" | "checking-email" | "registering" | "code" | "verifying-code" | "has-wallet";
+type Step = "email" | "checking-email" | "registering" | "code" | "verifying-code";
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
@@ -46,8 +46,7 @@ function ConnectForm() {
     return () => clearTimeout(id);
   }, [resendCooldown]);
 
-  const goToWalletOnboarding = (accountToken: string) => {
-    sessionStorage.setItem("ml_pending_account_token", accountToken);
+  const goToWalletOnboarding = () => {
     router.push(`/wallet-onboarding${redirectTo ? `?redirect_url=${encodeURIComponent(redirectTo)}` : ""}`);
   };
 
@@ -76,8 +75,7 @@ function ConnectForm() {
         body: JSON.stringify({ email }),
       });
       if (!res.ok) throw new Error("register-account failed");
-      const data = await res.json() as { accountToken: string };
-      goToWalletOnboarding(data.accountToken);
+      goToWalletOnboarding();
     } catch {
       setError("Something went wrong. Please try again.");
       setStep("email");
@@ -132,39 +130,12 @@ function ConnectForm() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error((data as { error?: string }).error ?? "Incorrect code");
-      const { accountToken } = data as { accountToken?: string };
-      if (accountToken) {
-
-        goToWalletOnboarding(accountToken);
-      } else {
-
-        setStep("has-wallet");
-      }
+      goToWalletOnboarding();
     } catch (err) {
       setError(friendlyErrorMessage(err, "Incorrect code. Please try again."));
       setStep("code");
     }
   };
-
-  if (step === "has-wallet") {
-    return (
-      <div className="min-h-[80vh] flex items-center justify-center px-4">
-        <Card className="w-full max-w-sm text-center">
-          <CardHeader>
-            <div className="flex justify-center mb-2">
-              <div className="h-12 w-12 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                <CheckCircle2 className="h-6 w-6 text-emerald-500" />
-              </div>
-            </div>
-            <CardTitle>This account already has a wallet</CardTitle>
-            <CardDescription>
-              Open Medialane on the device where you set it up, and it will sign you in automatically with your passkey.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
-    );
-  }
 
   if (step === "code" || step === "verifying-code") {
     return (

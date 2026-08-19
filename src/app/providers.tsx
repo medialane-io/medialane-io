@@ -12,6 +12,7 @@ import { NavCommandMenu, NavBrandButton, ThemeAmbientBackground } from "@mediala
 import { NAV_COMMANDS } from "@/lib/nav-commands";
 import { AccountSyncOnLogin } from "@/components/shared/account-sync-on-login";
 import { UndeployedWalletRedirect } from "@/components/wallet/undeployed-wallet-redirect";
+import { EmailRequiredRedirect } from "@/components/wallet/email-required-redirect";
 import { NavThemeToggle } from "@/components/nav-theme-toggle";
 import { NavConnectButton } from "@/components/nav-connect-button";
 import { HeaderWalletTrigger } from "@/components/nav-wallet-trigger";
@@ -125,6 +126,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
         <AccountSyncOnLogin />
         <UndeployedWalletRedirect />
+        <EmailRequiredRedirect />
         <Shell>{children}</Shell>
         <Toaster
           richColors

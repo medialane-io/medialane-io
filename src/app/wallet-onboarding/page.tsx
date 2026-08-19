@@ -9,6 +9,7 @@ import { Loader2, ShieldCheck, CheckCircle2, AlertCircle } from "lucide-react";
 import { completeWalletDeployment } from "@/lib/wallet/complete-deployment";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { fireConfetti } from "@/lib/confetti";
+import { MedialaneApiError } from "@medialane/sdk";
 
 type Step = "creating-passkey" | "deploying" | "signing-in" | "done" | "error";
 
@@ -38,19 +39,20 @@ function WalletOnboardingForm() {
     try {
       const { siwsToken } = await completeWalletDeployment(setStep);
 
-      const pendingAccountToken = sessionStorage.getItem("ml_pending_account_token");
-      if (pendingAccountToken) sessionStorage.removeItem("ml_pending_account_token");
       await getMedialaneClient().api.upsertMyWallet(siwsToken, {
         walletType: "MEDIAWALLET",
         appSource: "MEDIALANE_IO",
         chain: "STARKNET",
-        ...(pendingAccountToken ? { accountToken: pendingAccountToken } : {}),
       });
 
       fireConfetti();
       setStep("done");
       setTimeout(() => router.push(redirectTo), 1600);
-    } catch {
+    } catch (err) {
+      if (err instanceof MedialaneApiError && err.message === "ACCOUNT_LINK_REQUIRED") {
+        router.push(`/connect?redirect_url=${encodeURIComponent(redirectTo)}`);
+        return;
+      }
 
       setError("Something went wrong setting up your account. Please try again.");
       setStep("error");
