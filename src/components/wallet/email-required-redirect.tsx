@@ -19,7 +19,7 @@ export function EmailRequiredRedirect() {
     if (EXCLUDED_PREFIXES.some((p) => pathname.startsWith(p))) return;
     if (redirectedForPathname.current === pathname) return;
     redirectedForPathname.current = pathname;
-    router.push("/settings?tab=account");
+    router.push(`/connect?redirect_url=${encodeURIComponent(pathname)}`);
   }, [hasWallet, status, pathname, router]);
 
   return null;

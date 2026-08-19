@@ -11,8 +11,11 @@ import { Loader2, ShieldCheck, AlertCircle } from "lucide-react";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { ValuePropCarousel } from "@/components/connect/value-prop-carousel";
 import { friendlyErrorMessage } from "@/lib/friendly-error";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
+import { useEmailVerificationStatus } from "@/hooks/use-email-verification-required";
+import { useSiwsToken } from "@/hooks/use-siws-token";
 
-type Step = "email" | "checking-email" | "registering" | "code" | "verifying-code";
+type Step = "email" | "checking-email" | "registering" | "code" | "verifying-code" | "add-email";
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
@@ -39,6 +42,47 @@ function ConnectForm() {
   const [code, setCode] = useState("");
   const [resendCooldown, setResendCooldown] = useState(0);
   const [resending, setResending] = useState(false);
+
+  const { hasWallet } = useWalletNativeSession();
+  const emailStatus = useEmailVerificationStatus();
+  const { getValidToken, signIn } = useSiwsToken();
+  const [mounted, setMounted] = useState(false);
+  const [addEmailInput, setAddEmailInput] = useState("");
+  const [addEmailStatus, setAddEmailStatus] = useState<"idle" | "saving" | "error">("idle");
+  const [addEmailError, setAddEmailError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Someone already signed in with a wallet only ever reaches /connect because
+  // their account has no email — skip the anonymous register-or-login flow
+  // entirely and go straight to attaching one. If they land here with an
+  // email already on file (e.g. a stale link), there's nothing to do here.
+  useEffect(() => {
+    if (!mounted || !hasWallet || emailStatus === null) return;
+    if (emailStatus.email) {
+      router.replace(redirectTo ?? "/");
+      return;
+    }
+    setStep("add-email");
+  }, [mounted, hasWallet, emailStatus, redirectTo, router]);
+
+  const submitAddEmail = async () => {
+    const value = addEmailInput.trim();
+    if (!value) return;
+    setAddEmailStatus("saving");
+    setAddEmailError(null);
+    try {
+      const token = getValidToken() ?? (await signIn());
+      if (!token) throw new Error("Not authenticated");
+      await getMedialaneClient().api.changeMyEmail(value, token);
+      router.replace(redirectTo ?? "/");
+    } catch (err) {
+      setAddEmailStatus("error");
+      setAddEmailError(friendlyErrorMessage(err, "Couldn't save your email. Please try again."));
+    }
+  };
 
   useEffect(() => {
     if (resendCooldown === 0) return;
@@ -136,6 +180,62 @@ function ConnectForm() {
       setStep("code");
     }
   };
+
+  if (!mounted || (hasWallet && step !== "add-email")) {
+    return null;
+  }
+
+  if (step === "add-email") {
+    return (
+      <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-sm space-y-8">
+          <Card className="w-full">
+            <CardHeader className="text-center">
+              <div className="flex justify-center mb-2">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <ShieldCheck className="h-6 w-6 text-primary" />
+                </div>
+              </div>
+              <CardTitle>Add your email to continue</CardTitle>
+              <CardDescription>
+                Used for account notices and signing back in. You can verify it any time from Settings.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col items-center gap-4">
+              {addEmailError && (
+                <Alert variant="destructive" className="w-full">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{addEmailError}</AlertDescription>
+                </Alert>
+              )}
+              <Input
+                type="email"
+                placeholder="you@example.com"
+                value={addEmailInput}
+                onChange={(e) => setAddEmailInput(e.target.value)}
+                disabled={addEmailStatus === "saving"}
+                className="w-full"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && addEmailInput) void submitAddEmail();
+                }}
+              />
+              <div className="btn-border-animated w-full p-[1px] rounded-lg">
+                <Button
+                  className="w-full gap-2 bg-transparent text-white rounded-[7px] hover:bg-transparent hover:brightness-110 active:scale-[0.98] transition-all"
+                  size="lg"
+                  onClick={() => void submitAddEmail()}
+                  disabled={addEmailStatus === "saving" || !addEmailInput}
+                >
+                  {addEmailStatus === "saving" ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                  Continue
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   if (step === "code" || step === "verifying-code") {
     return (
