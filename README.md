@@ -1,10 +1,10 @@
-<img width="1260" height="640" alt="Medialane — Programmable IP on Starknet" src="https://github.com/user-attachments/assets/a72bca86-bb82-42c4-8f61-9558484df5b9" />
+<img width="1260" height="640" alt="Medialane: Programmable IP on Starknet" src="https://github.com/user-attachments/assets/a72bca86-bb82-42c4-8f61-9558484df5b9" />
 
 # Medialane
 
 **Creator Launchpad + NFT Marketplace for Programmable IP on Starknet**
 
-Medialane is a consumer-grade Web3 application that lets creators mint, license, and trade intellectual property as NFTs — with a self-custody wallet secured by your device passkey (no seed phrase) and immutable licensing embedded directly in IPFS metadata. Built on [Starknet](https://starknet.io) with ZK-powered scalability.
+Medialane is a consumer-grade Web3 application that lets creators mint, license, and trade intellectual property as NFTs, with a self-custody wallet secured by your device passkey and immutable licensing embedded directly in IPFS metadata. Built on [Starknet](https://starknet.io) with ZK-powered scalability.
 
 Live at [medialane.io](https://medialane.io)
 
@@ -16,8 +16,8 @@ Medialane is a platform for the **creative economy on Starknet**. It bridges Web
 
 - **Creators** mint their work (art, music, video, documents, code, patents) as IP NFTs with programmable licensing terms embedded immutably in IPFS metadata
 - **Collectors** browse, buy, and make offers on digital assets in a full-featured NFT marketplace
-- **Licensing** is Berne Convention-compliant — commercial use, derivative rights, attribution, territory, AI policy, and royalty are all encoded as OpenSea-compatible ERC-721 attributes
-- **No seed phrase** — a self-custody Starknet wallet (MediaWallet) is created on first use, sealed by your device passkey (Face ID / Touch ID / Windows Hello)
+- **Licensing** is Berne Convention-compliant: commercial use, derivative rights, attribution, territory, AI policy, and royalty are all encoded as OpenSea-compatible ERC-721 attributes
+- **Self-custody, passkey-secured**: a Starknet wallet (MediaWallet) is created on first use, sealed by your device passkey (Face ID / Touch ID / Windows Hello)
 
 ---
 
@@ -30,34 +30,34 @@ Medialane is a platform for the **creative economy on Starknet**. It bridges Web
 
 ### Coins
 - Discover creator coins and memecoins (`/coins`) with live Ekubo prices and on-chain supply
-- Read-only coin pages — trading happens on the per-chain app (Starknet); io links out to it
+- Read-only coin pages, with trading handled on the per-chain app (Starknet); io links out to it
 - Launch a Creator Coin or claim a memecoin from the launchpad
 
 ### Creator Launchpad
 - Mint digital assets across 12 canonical IP types: Audio, Art, Video, Photography, NFT, Patents, Posts, Publications, Documents, RWA, Software, Custom
-- Dynamic template fields per IP type — collapsed optional panel, smart defaults per category
-- Full programmable licensing form — CC variants, commercial use, derivatives, attribution, territory, AI policy, royalty %
-- Licensing metadata embedded in IPFS as ERC-721 attributes (OpenSea-compatible + Berne Convention compliant)
-- Media tab on asset pages — embedded players for YouTube, Spotify, SoundCloud, TikTok
+- Dynamic template fields per IP type, with a collapsed optional panel and smart defaults per category
+- Full programmable licensing form: CC variants, commercial use, derivatives, attribution, territory, AI policy, royalty %
+- Licensing metadata embedded in IPFS as ERC-721 attributes (OpenSea-compatible and Berne Convention compliant)
+- Media tab on asset pages with embedded players for YouTube, Spotify, SoundCloud, TikTok
 - Creator wallet address embedded in every asset as `{ trait_type: "Creator", value: walletAddress }`
-- Uploads pinned to IPFS through medialane-backend's metered Pinata path — io holds no Pinata credential of its own
+- Uploads pinned to IPFS through medialane-backend's metered Pinata path, billed to the app's own tenant key
 - Create and deploy ERC-721 collections on Starknet
-- Collection metadata JSON uploaded to IPFS at creation time — `baseUri` set onchain so any dApp can resolve collection images permissionlessly
-- **NFT Editions** (`/launchpad/nfteditions`) — mint multi-edition ERC-1155 tokens into your IP Collection 1155 contracts; each edition has its own artwork, supply, and on-chain provenance
-- **IP Tickets** (`/launchpad/tickets`) — deploy a ticket collection and sell redeemable, tradeable ERC-721 tickets for events and access
-- **IP Club** (`/launchpad/club`) — run a membership club backed by a transferable ERC-1155 membership card; a validity window gates membership, not minting or trading
-- **IP Sponsorship** (`/launchpad/sponsorship`) — sell a direct-settlement sponsorship license on an asset you own; sponsors bid, you accept, no escrow
+- Collection metadata JSON uploaded to IPFS at creation time, with `baseUri` set onchain so any dApp can resolve collection images permissionlessly
+- **NFT Editions** (`/launchpad/nfteditions`): mint multi-edition ERC-1155 tokens into your IP Collection 1155 contracts, each with its own artwork, supply, and on-chain provenance
+- **IP Tickets** (`/launchpad/tickets`): deploy a ticket collection and sell redeemable, tradeable ERC-721 tickets for events and access
+- **IP Club** (`/launchpad/club`): run a membership club backed by a transferable ERC-1155 membership card, with a validity window that gates membership
+- **IP Sponsorship** (`/launchpad/sponsorship`): sell a sponsorship license on an asset you own; sponsors bid, you accept, and settlement is direct between the two parties
 
 ### NFT Marketplace
 - Browse, search, and filter all Medialane digital assets
 - Buy NFTs directly or make offers with USDC, USDT, ETH, STRK, or WBTC
-- **Cart dialog** — centered modal with blurred atmospheric backdrop, item thumbnails, individual Buy buttons, and "Buy all N items" batch checkout with a single passkey confirmation
+- **Cart dialog**: centered modal with blurred atmospheric backdrop, item thumbnails, individual Buy buttons, and "Buy all N items" batch checkout with a single passkey confirmation
 - Accept, cancel, and manage listings and offers from the portfolio
-- **Service-specific asset pages** — each asset type gets a tailored experience:
-  - **POP Protocol** — soulbound credential view, claim-only, no secondary market
-  - **Collection Drop** — drop context panel (supply progress bar, mint window, price), secondary market
-  - **NFT Edition (ERC-1155)** — multi-edition stats (total minted, unique owners), holders grid, full marketplace
-  - **Standard (ERC-721)** — full IP detail with license, remix, and marketplace tabs
+- **Service-specific asset pages**, each asset type getting a tailored experience:
+  - **POP Protocol**: soulbound credential view, claim-only
+  - **Collection Drop**: drop context panel (supply progress bar, mint window, price), secondary market
+  - **NFT Edition (ERC-1155)**: multi-edition stats (total minted, unique owners), holders grid, full marketplace
+  - **Standard (ERC-721)**: full IP detail with license, remix, and marketplace tabs
 - Asset pages with Details, License, Listings, Offers, and History tabs
 - Dynamic color theming derived from the asset image (CSS custom properties, WCAG contrast-checked)
 - Atmospheric blurred background on asset pages and all action dialogs for immersive browsing
@@ -78,8 +78,8 @@ Medialane is a platform for the **creative economy on Starknet**. It bridges Web
 - Browse all NFT collections with sort options: Recent (default), Most assets, Top volume, Floor price, A→Z
 - Filter by verified collections only
 - Collection pages with `aspect-video` parallax banner, animated stats, and sticky tabs (Items / Listings / Offers)
-- Collection Items tab detects ownership per-token — owners see List/Cancel/Transfer dialogs directly from the grid
-- Infinite scroll with "Load more" pagination — shows remaining count
+- Collection Items tab detects ownership per-token, so owners see List/Cancel/Transfer dialogs directly from the grid
+- Infinite scroll with "Load more" pagination, showing remaining count
 - Creator profile pages with address-derived color identity and blurred asset banner
 
 ### Creators
@@ -91,25 +91,25 @@ Medialane is a platform for the **creative economy on Starknet**. It bridges Web
 
 ### Remix Licensing
 - Request remix licenses from asset creators with fully configurable terms (license type, commercial use, derivatives, royalty %, proposed fee)
-- Full remix creation page at `/create/remix/[contract]/[tokenId]` — detects owner vs non-owner and adapts the flow:
+- Full remix creation page at `/create/remix/[contract]/[tokenId]`, adapting its flow to owner or non-owner:
   - **Owner (self-remix)**: upload custom artwork, set name/description/IP type/license, mint as a new digital asset, recorded on-chain with parent attribution
   - **Non-owner**: propose license terms + payment amount, creator receives notification and can approve/reject
-- Open-license assets (CC0, CC BY, CC BY-SA, CC BY-NC) auto-approve without creator action
-- Parent attribution embedded in remix metadata as `Parent Contract` + `Parent Token ID` attributes — displayed as a banner on remix asset pages
-- Portfolio Remixes page (`/portfolio/remix-offers`) — incoming requests (creator view with Approve/Reject) and outgoing requests (requester view) with status badges for all 7 states
+- Open-license assets (CC0, CC BY, CC BY-SA, CC BY-NC) auto-approve, letting the creator focus on the ones that need a decision
+- Parent attribution embedded in remix metadata as `Parent Contract` + `Parent Token ID` attributes, displayed as a banner on remix asset pages
+- Portfolio Remixes page (`/portfolio/remix-offers`) with incoming requests (creator view with Approve/Reject) and outgoing requests (requester view), status badges covering all 7 states
 - Remix count badge on portfolio nav link for pending requests
 
 ### Self-Custody Wallet (MediaWallet)
-- One-time setup: a WebAuthn passkey (Face ID / Touch ID / Windows Hello) derives an owner key via the PRF extension, sealed client-side with AES-GCM — the private key never leaves the device unencrypted and Medialane never sees it
-- Wallet is deployed onchain by a backend relayer via Starknet's Universal Deployer Contract, sponsored so setup costs the user nothing — the account is owned by the user from the first block, no interim custody
-- SIWS (Sign-In With Starknet) — a passkey-signed message authenticates the wallet to the Medialane backend, no separate login step
-- Every transaction after setup is signed with the same passkey and paid for by the wallet itself — deposit STRK/ETH to it like any external Starknet wallet (Receive dialog with QR code)
+- One-time setup: a WebAuthn passkey (Face ID / Touch ID / Windows Hello) derives an owner key via the PRF extension, sealed client-side with AES-GCM, staying encrypted on the device at all times
+- Wallet is deployed onchain by a backend relayer via Starknet's Universal Deployer Contract, sponsored so setup costs the user nothing; the account is owned by the user from the first block
+- SIWS (Sign-In With Starknet): a passkey-signed message authenticates the wallet to the Medialane backend as a single combined step
+- Every transaction after setup is signed with the same passkey and paid for by the wallet itself; deposit STRK/ETH to it like any external Starknet wallet, via the Receive dialog's QR code
 
 ### Interoperability
-- ERC-721 standard — compatible with any Starknet wallet, explorer, and marketplace
-- OpenSea metadata standard — name, description, image, external_url, attributes
-- IPFS storage — assets are permanently accessible regardless of Medialane infrastructure
-- Berne Convention compliance — immutable IP protection data embedded in every token
+- ERC-721 standard, compatible with any Starknet wallet, explorer, and marketplace
+- OpenSea metadata standard: name, description, image, external_url, attributes
+- IPFS storage, keeping assets permanently accessible directly from the network
+- Berne Convention compliance, with immutable IP protection data embedded in every token
 
 ---
 
@@ -119,10 +119,10 @@ Medialane is a platform for the **creative economy on Starknet**. It bridges Web
 |---|---|
 | Framework | Next.js 15 (App Router) |
 | UI | Tailwind CSS + shadcn/ui (Radix) + Framer Motion |
-| Wallet | MediaWallet — self-custody, WebAuthn passkey owner key, SIWS auth |
+| Wallet | MediaWallet: self-custody, WebAuthn passkey owner key, SIWS auth |
 | Blockchain | Starknet Mainnet via starknet.js |
-| SDK | `@medialane/sdk` — marketplace + API operations |
-| IPFS | Pinata — direct upload from Next.js API route (no backend hop) |
+| SDK | `@medialane/sdk`, for marketplace + API operations |
+| IPFS | Pinata, uploaded via medialane-backend's metered `/v1/metadata/*` API |
 | State | Zustand (cart) + SWR (server state) |
 | Toasts | Sonner |
 | Animations | Framer Motion + tailwindcss-animate |
@@ -145,7 +145,7 @@ User (device passkey)
                  └─ Starknet Mainnet (onchain)
 ```
 
-Every Pinata write goes through medialane-backend's `/v1/metadata/*` API, metered against the same tenant key as every other write in the app — io holds no Pinata credential of its own.
+Every Pinata write goes through medialane-backend's `/v1/metadata/*` API, metered against the same tenant key as every other write in the app.
 
 ---
 
@@ -176,7 +176,7 @@ Every Medialane NFT stores the following as ERC-721 `attributes` in IPFS:
 }
 ```
 
-This makes licensing terms **immutable**, **machine-readable**, and **interoperable** with any platform that understands the OpenSea standard.
+This keeps licensing terms **immutable** and **machine-readable** by any platform that understands the OpenSea standard.
 
 ---
 
@@ -245,15 +245,12 @@ Notes:
 
 | Variable | Purpose |
 |---|---|
-| `SIWS_SECRET` | SIWS (Sign-In With Starknet) token verification secret — must match medialane-backend |
+| `SIWS_SECRET` | SIWS (Sign-In With Starknet) token verification secret, matching medialane-backend's |
 | `NEXT_PUBLIC_MEDIALANE_BACKEND_URL` | Medialane API base URL |
 | `NEXT_PUBLIC_MEDIALANE_API_KEY` | Medialane API key (from portal) |
 | `NEXT_PUBLIC_STARKNET_RPC_URL` | Starknet RPC endpoint |
-| `NEXT_PUBLIC_MARKETPLACE_721_CONTRACT_MAINNET` | ERC-721 marketplace protocol contract |
-| `NEXT_PUBLIC_MARKETPLACE_1155_CONTRACT_MAINNET` | ERC-1155 marketplace protocol contract |
-| `NEXT_PUBLIC_COLLECTION_721_CONTRACT_MAINNET` | ERC-721 mint protocol contract |
-| `NEXT_PUBLIC_COLLECTION_1155_CONTRACT_MAINNET` | ERC-1155 mint protocol contract |
-| `NEXT_PUBLIC_PINATA_GATEWAY` | Pinata IPFS gateway URL (reads only — uploads go through medialane-backend) |
+
+Marketplace and collection contract addresses are sourced entirely from `@medialane/sdk`.
 
 ### Commands
 
@@ -273,10 +270,10 @@ src/
   app/
     api/pinata/       # Universal digital asset upload (SIWS-gated, proxies to medialane-backend)
     api/rpc/          # Same-origin Starknet RPC proxy (keyed endpoint stays server-side)
-    asset/            # /asset/[contract]/[tokenId] — dispatcher routes to POP/Drop/Edition/Standard page
+    asset/            # /asset/[contract]/[tokenId]: dispatcher routes to POP/Drop/Edition/Standard page
     create/           # /create/asset + /create/collection + /create/remix/[contract]/[tokenId]
-    marketplace/      # /marketplace — browse + filter + search
-    portfolio/        # /portfolio — owned tokens, listings, offers, activity, remix-offers
+    marketplace/      # /marketplace: browse + filter + search
+    portfolio/        # /portfolio: owned tokens, listings, offers, activity, remix-offers
     wallet-onboarding/ # Passkey creation → relayer deploy → SIWS sign-in
     ...
   components/
@@ -308,7 +305,8 @@ src/
 | Repo | Description |
 |---|---|
 | [medialane-backend](https://github.com/medialane-io/medialane-backend) | Starknet indexer + marketplace API (Bun + Hono + Prisma + PostgreSQL) |
-| [@medialane/sdk](https://github.com/medialane-io/sdk) | TypeScript SDK — `npm install @medialane/sdk` |
+| [medialane-starknet](https://github.com/medialane-io/medialane-starknet) | Wallet-sovereign Starknet app: creator launchpad + marketplace |
+| [medialane-sdk](https://github.com/medialane-io/medialane-sdk) | TypeScript SDK (`@medialane/sdk`): `npm install @medialane/sdk` |
 | [medialane-portal](https://github.com/medialane-io/medialane-portal) | Developer portal (API keys, webhooks, usage) |
 
 ---
