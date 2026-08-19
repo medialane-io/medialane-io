@@ -40,9 +40,6 @@ if (!isServer && MEDIALANE_API_KEY) {
   );
 }
 
-export const PINATA_GATEWAY =
-  readStringEnv(process.env.NEXT_PUBLIC_PINATA_GATEWAY, "https://gateway.pinata.cloud");
-
 export const EXPLORER_URL =
   readStringEnv(process.env.NEXT_PUBLIC_EXPLORER_URL, "https://voyager.online");
 

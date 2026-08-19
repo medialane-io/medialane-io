@@ -1,5 +1,7 @@
 
 
+import { APP_URL } from "@/lib/seo";
+
 const BASE = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL ?? "";
 const KEY  = process.env.MEDIALANE_API_KEY ?? "";
 
@@ -21,7 +23,7 @@ async function apiFetch<T>(path: string): Promise<T | null> {
 
 export function ipfsToHttpServer(uri: string | null | undefined): string {
   if (!uri) return "";
-  if (uri.startsWith("ipfs://")) return `https://gateway.pinata.cloud/ipfs/${uri.slice(7)}`;
+  if (uri.startsWith("ipfs://")) return `${APP_URL}/api/ipfs/${uri.slice(7)}`;
   return uri;
 }
 
