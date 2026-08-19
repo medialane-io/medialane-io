@@ -209,6 +209,7 @@ export function AssetPageEdition() {
               walletAddress={walletAddress}
               floorPriceRaw={collection?.floorPrice}
               listingRequiresEmailVerification={listingRequiresEmailVerification}
+              settingsHref="/verify"
               lastSaleRaw={lastSaleRaw}
               renderAuthAction={() => (
                 <div className="btn-border-animated p-[1px] rounded-2xl">

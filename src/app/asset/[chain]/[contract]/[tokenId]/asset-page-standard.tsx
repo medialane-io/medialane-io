@@ -292,6 +292,7 @@ export function AssetPageStandard() {
               floorPriceRaw={collection?.floorPrice}
               lastSaleRaw={lastSaleRaw}
               listingRequiresEmailVerification={listingRequiresEmailVerification}
+              settingsHref="/verify"
               renderAuthAction={() => (
                 <SignedOutAssetActions chain={token.chain} contract={contract} tokenId={tokenId} />
               )}
