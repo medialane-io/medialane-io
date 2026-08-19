@@ -2,10 +2,9 @@ import { type NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
 import { readBodyWithCap } from "@/lib/proxy-body";
 import { createRateLimiter, requestIp } from "@/lib/api-route-guard";
+import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
 
 export const runtime = "nodejs";
-
-const PUBLIC_GATEWAY = "https://gateway.pinata.cloud";
 
 const MAX_BYTES = 25 * 1024 * 1024;
 const MAX_RESIZE_WIDTH = 640;
@@ -33,11 +32,15 @@ export async function GET(
     return NextResponse.json({ error: "Invalid IPFS path" }, { status: 400 });
   }
 
-  const url = `${PUBLIC_GATEWAY}/ipfs/${cidPath}`;
+  const url = `${MEDIALANE_BACKEND_URL.replace(/\/$/, "")}/v1/metadata/image/${cidPath}`;
 
   let upstream: Response;
   try {
-    upstream = await fetch(url, { signal: AbortSignal.timeout(18_000), next: { revalidate: 86400 } });
+    upstream = await fetch(url, {
+      headers: { "x-api-key": MEDIALANE_API_KEY },
+      signal: AbortSignal.timeout(18_000),
+      next: { revalidate: 86400 },
+    });
   } catch {
     return NextResponse.json({ error: "Failed to fetch from IPFS" }, { status: 502 });
   }
