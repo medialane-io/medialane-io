@@ -2,6 +2,7 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { formatDistanceToNow } from "date-fns";
 import { normalizeAddress } from "@medialane/sdk";
+import { ipfsToHttp as sharedIpfsToHttp } from "@medialane/ui";
 import { SUPPORTED_TOKENS } from "./constants";
 
 export function cn(...inputs: ClassValue[]) {
@@ -65,32 +66,16 @@ export function formatDisplayPrice(price: string | number | null | undefined): s
   return currencyPart ? `${formatted} ${currencyPart}` : formatted;
 }
 
-const KNOWN_IPFS_GATEWAY_HOSTS = /(^|\.)(mypinata\.cloud|pinata\.cloud|ipfs\.io|dweb\.link|cloudflare-ipfs\.com|nftstorage\.link|w3s\.link)$/i;
-
-function toApiIpfsPath(cid: string, width?: number): string {
-  return width ? `/api/ipfs/${cid}?w=${width}` : `/api/ipfs/${cid}`;
-}
-
 export function ipfsToHttp(uri: string | null | undefined, width?: number): string {
   if (!uri) return "/placeholder.svg";
-  if (uri.startsWith("ipfs://")) {
-    return toApiIpfsPath(uri.slice(7), width);
+  if (uri.startsWith("data:image/")) return uri;
+
+  const resolved = sharedIpfsToHttp(uri);
+  if (resolved.startsWith("/api/ipfs/")) {
+    return width ? `${resolved}?w=${width}` : resolved;
   }
   if (uri.startsWith("https://") || uri.startsWith("http://")) {
-    try {
-      const parsed = new URL(uri);
-      if (KNOWN_IPFS_GATEWAY_HOSTS.test(parsed.hostname)) {
-        const match = parsed.pathname.match(/\/ipfs\/(.+)$/);
-        if (match) return toApiIpfsPath(match[1], width);
-      }
-    } catch {
-
-    }
     return `/api/img?url=${encodeURIComponent(uri)}`;
-  }
-
-  if (uri.startsWith("data:image/")) {
-    return uri;
   }
 
   return "/placeholder.svg";

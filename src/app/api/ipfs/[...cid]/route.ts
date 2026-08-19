@@ -1,12 +1,16 @@
 import { type NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
+import {
+  isValidIpfsCidPath,
+  resolveSafeImageContentType,
+  MAX_IPFS_GATEWAY_RESPONSE_BYTES,
+} from "@medialane/sdk";
 import { readBodyWithCap } from "@/lib/proxy-body";
 import { createRateLimiter, requestIp } from "@/lib/api-route-guard";
 import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
 
 export const runtime = "nodejs";
 
-const MAX_BYTES = 25 * 1024 * 1024;
 const MAX_RESIZE_WIDTH = 640;
 const RESIZABLE_TYPES = new Set(["image/jpeg", "image/png", "image/gif", "image/webp", "image/avif"]);
 
@@ -24,11 +28,7 @@ export async function GET(
   const { cid: segments } = await params;
   const cidPath = segments.join("/");
 
-  if (!/^(Qm[1-9A-HJ-NP-Za-km-z]{44,}|b[a-z2-7]{58,})(\/[\w.\-/]*)?$/.test(cidPath)) {
-    return NextResponse.json({ error: "Invalid IPFS path" }, { status: 400 });
-  }
-
-  if (cidPath.split("/").includes("..")) {
+  if (!isValidIpfsCidPath(cidPath)) {
     return NextResponse.json({ error: "Invalid IPFS path" }, { status: 400 });
   }
 
@@ -53,15 +53,9 @@ export async function GET(
   }
 
   const upstreamContentType = upstream.headers.get("content-type") ?? "";
-  const SAFE_PREFIXES = [
-    "image/jpeg", "image/png", "image/gif", "image/webp", "image/avif", "image/svg+xml",
-    "video/", "audio/", "model/", "font/", "application/json", "application/octet-stream",
-  ];
-  const contentType = SAFE_PREFIXES.some((p) => upstreamContentType.startsWith(p))
-    ? upstreamContentType
-    : "application/octet-stream";
+  const contentType = resolveSafeImageContentType(upstreamContentType);
 
-  const capped = await readBodyWithCap(upstream, MAX_BYTES);
+  const capped = await readBodyWithCap(upstream, MAX_IPFS_GATEWAY_RESPONSE_BYTES);
   if (!capped.ok) {
     return NextResponse.json({ error: capped.error }, { status: capped.status });
   }
