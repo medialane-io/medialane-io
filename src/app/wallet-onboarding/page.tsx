@@ -39,13 +39,10 @@ function WalletOnboardingForm() {
     try {
       const { siwsToken } = await completeWalletDeployment(setStep);
 
-      const pendingAccountToken = sessionStorage.getItem("ml_pending_account_token");
-      if (pendingAccountToken) sessionStorage.removeItem("ml_pending_account_token");
       await getMedialaneClient().api.upsertMyWallet(siwsToken, {
         walletType: "MEDIAWALLET",
         appSource: "MEDIALANE_IO",
         chain: "STARKNET",
-        ...(pendingAccountToken ? { accountToken: pendingAccountToken } : {}),
       });
 
       fireConfetti();
