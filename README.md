@@ -100,6 +100,7 @@ Medialane is a platform for the **creative economy on Starknet**. It bridges Web
 - Remix count badge on portfolio nav link for pending requests
 
 ### Self-Custody Wallet (MediaWallet)
+- Every account starts with an email at `/connect` — the only thing required to register. A wallet is deployed for that account next, as its own step, never the other way around; a signed-in account with no email is redirected back to `/connect` to add one before it can use anything else
 - One-time setup: a WebAuthn passkey (Face ID / Touch ID / Windows Hello) derives an owner key via the PRF extension, sealed client-side with AES-GCM, staying encrypted on the device at all times
 - Wallet is deployed onchain by a backend relayer via Starknet's Universal Deployer Contract, sponsored so setup costs the user nothing; the account is owned by the user from the first block
 - SIWS (Sign-In With Starknet): a passkey-signed message authenticates the wallet to the Medialane backend as a single combined step
@@ -270,7 +271,9 @@ src/
   app/
     api/pinata/       # Universal digital asset upload (SIWS-gated, proxies to medialane-backend)
     api/rpc/          # Same-origin Starknet RPC proxy (keyed endpoint stays server-side)
+    api/proxy/        # Same-origin proxy for the rest of /v1/* — also sets/reads the account session cookie
     asset/            # /asset/[contract]/[tokenId]: dispatcher routes to POP/Drop/Edition/Standard page
+    connect/          # Email registration/login; also the add-email step for a signed-in account with none
     create/           # /create/asset + /create/collection + /create/remix/[contract]/[tokenId]
     marketplace/      # /marketplace: browse + filter + search
     portfolio/        # /portfolio: owned tokens, listings, offers, activity, remix-offers
