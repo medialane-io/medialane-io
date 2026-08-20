@@ -46,7 +46,7 @@ export function LaunchpadContent() {
   }, [collections]);
 
   return (
-    <div className="relative pb-20 space-y-8 sm:space-y-10">
+    <div className="relative pb-20 space-y-16 sm:space-y-24">
 
       <a
         href="https://starknet.medialane.io/launchpad"
@@ -70,12 +70,9 @@ export function LaunchpadContent() {
         </FadeIn>
       </section>
 
-      <section className="px-4 space-y-5">
+      <section className="px-4 space-y-6">
         <FadeIn>
-          <div className="space-y-1">
-            <p className="section-label">More ways to launch</p>
-            <p className="text-sm text-muted-foreground">Every Launchpad service — NFTs, editions, coins, drops, community tools, and claims.</p>
-          </div>
+          <h2 className="text-3xl sm:text-4xl font-semibold leading-tight">Creator Launchpad Services</h2>
         </FadeIn>
         <FadeIn delay={0.06}>
           <LaunchpadFilterBar
