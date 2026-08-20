@@ -54,7 +54,7 @@ export async function uploadDirectoryToBackend(
   return data.data;
 }
 
-export async function getBackendSignedUrl(kind: "image" | "document" = "image"): Promise<string> {
+export async function getBackendSignedUrl(kind: "image" | "document" | "media" = "image"): Promise<string> {
   const res = await fetch(`${backendUrl("signed-url")}?kind=${kind}`, {
     method: "GET",
     headers: apiKeyHeaders(),
