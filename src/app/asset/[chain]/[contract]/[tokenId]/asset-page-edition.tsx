@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useParams, useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
@@ -115,6 +115,19 @@ export function AssetPageEdition() {
   const myListing = isOwner
     ? activeListings.find((l) => normalizeAddress("STARKNET", l.offerer) === normalizeAddress("STARKNET", walletAddress!))
     : null;
+
+  const autoActionRef = useRef(false);
+  useEffect(() => {
+    if (autoActionRef.current || !token || !isOwner) return;
+    const action = new URLSearchParams(window.location.search).get("action");
+    if (action === "list") {
+      setListOpen(true);
+      autoActionRef.current = true;
+    } else if (action === "transfer") {
+      setTransferOpen(true);
+      autoActionRef.current = true;
+    }
+  }, [token, isOwner, setListOpen, setTransferOpen]);
 
   if (!token) return null;
 

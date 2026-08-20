@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
@@ -132,6 +132,19 @@ export function AssetPageStandard() {
   });
 
   const goToRemix = () => router.push(`/create/remix/${contract}/${tokenId}`);
+
+  const autoActionRef = useRef(false);
+  useEffect(() => {
+    if (autoActionRef.current || isLoading || !token || !isOwner) return;
+    const action = new URLSearchParams(window.location.search).get("action");
+    if (action === "list") {
+      setListOpen(true);
+      autoActionRef.current = true;
+    } else if (action === "transfer") {
+      setTransferOpen(true);
+      autoActionRef.current = true;
+    }
+  }, [isLoading, token, isOwner, setListOpen, setTransferOpen]);
 
   if (isLoading) {
     return (
