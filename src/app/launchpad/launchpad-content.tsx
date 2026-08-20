@@ -58,13 +58,13 @@ export function LaunchpadContent() {
         <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
       </a>
 
-      <section className="px-4 pt-16 sm:pt-20 space-y-5">
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 pt-16 sm:pt-20 space-y-5">
         <FadeIn>
           <h1 className="text-3xl sm:text-4xl font-semibold leading-tight">Launchpad</h1>
         </FadeIn>
       </section>
 
-      <section className="px-4">
+      <section className="max-w-5xl mx-auto px-4 sm:px-6">
         <FadeIn delay={0.06}>
           <PublishFlow />
         </FadeIn>
