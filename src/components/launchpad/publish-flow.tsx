@@ -10,7 +10,7 @@ import { hash } from "starknet";
 import { normalizeAddress, getService } from "@medialane/sdk";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import {
-  ImagePlus, Music, Video, FileText, X, Loader2,
+  ImagePlus, Music, Video, FileText, X, Loader2, Upload,
   Layers, ImagePlus as SingleIcon, ArrowRight, CheckCircle2, ChevronDown, Boxes, Plus, Check,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -486,69 +486,78 @@ export function PublishFlow() {
   const KindIcon = MEDIA_KIND_ICON[mediaKind];
 
   return (
-    <section className="rounded-3xl bg-brand-blue/5 p-6 sm:p-10">
-      <div className="max-w-xl mx-auto space-y-6">
-        <div className="space-y-1.5 text-center">
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Publish your work</h2>
-          <p className="text-sm text-muted-foreground">
-            Drop a photo, song, video, or document. Everything else can wait.
-          </p>
-        </div>
-
-        <div
-          role="button"
-          tabIndex={0}
-          aria-label="Upload media"
-          onClick={() => !mediaUploading && mediaInputRef.current?.click()}
-          onKeyDown={(e) => { if ((e.key === "Enter" || e.key === " ") && !mediaUploading) { e.preventDefault(); mediaInputRef.current?.click(); } }}
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files?.[0]; if (f) handleMediaSelect(f); }}
-          className={cn(
-            "relative flex flex-col items-center justify-center gap-2 rounded-2xl bg-card h-48 sm:h-56 cursor-pointer overflow-hidden transition-colors",
-            mediaPreview ? "" : "hover:bg-card/70"
-          )}
-        >
-          {mediaPreview ? (
-            <>
-              {mediaKind === "image" ? (
-                <Image src={mediaPreview} alt="" fill className="object-cover" unoptimized />
-              ) : (
-                <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                  <KindIcon className="h-8 w-8" />
-                  <p className="text-sm font-medium text-foreground truncate max-w-[80%]">{mediaFile?.name}</p>
-                </div>
-              )}
-              {!mediaUploading && (
-                <button
-                  type="button"
-                  aria-label="Remove file"
-                  onClick={(e) => { e.stopPropagation(); clearMedia(); }}
-                  className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-colors"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
-              {mediaUploading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-background/60">
-                  <Loader2 className="h-6 w-6 animate-spin" />
-                </div>
-              )}
-            </>
-          ) : (
-            <>
-              <ImagePlus className="h-8 w-8 text-muted-foreground" />
-              <p className="text-sm font-medium">Drop a file, or click to upload</p>
-              <p className="text-xs text-muted-foreground">Image, audio, video, or document · max 25 MB</p>
-            </>
-          )}
-          <input ref={mediaInputRef} type="file" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleMediaSelect(f); }} />
-        </div>
-        {mediaPreview && !mediaUploading && !mediaUri && (
-          <p className="text-xs text-destructive text-center -mt-2">Upload failed — remove the file and try again.</p>
+    <section className="rounded-3xl bg-brand-blue/5">
+      <div
+        role="button"
+        tabIndex={0}
+        aria-label="Upload media"
+        onClick={() => !mediaUploading && mediaInputRef.current?.click()}
+        onKeyDown={(e) => { if ((e.key === "Enter" || e.key === " ") && !mediaUploading) { e.preventDefault(); mediaInputRef.current?.click(); } }}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files?.[0]; if (f) handleMediaSelect(f); }}
+        className={cn(
+          "relative flex flex-col items-center justify-center gap-3 cursor-pointer overflow-hidden transition-colors text-center",
+          mediaPreview
+            ? "min-h-[20rem] sm:min-h-[26rem] bg-card rounded-3xl"
+            : "min-h-[22rem] sm:min-h-[28rem] m-2 sm:m-3 rounded-[1.65rem] border-2 border-dashed border-border/60 hover:border-brand-blue/40 hover:bg-brand-blue/[0.06]"
         )}
-
-        {mediaUri && (
+      >
+        {mediaPreview ? (
           <>
+            {mediaKind === "image" ? (
+              <Image src={mediaPreview} alt="" fill className="object-cover" unoptimized />
+            ) : (
+              <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                <KindIcon className="h-8 w-8" />
+                <p className="text-sm font-medium text-foreground truncate max-w-[80%]">{mediaFile?.name}</p>
+              </div>
+            )}
+            {!mediaUploading && (
+              <button
+                type="button"
+                aria-label="Remove file"
+                onClick={(e) => { e.stopPropagation(); clearMedia(); }}
+                className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+            {mediaUploading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-background/60">
+                <Loader2 className="h-6 w-6 animate-spin" />
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            <div className="h-14 w-14 rounded-2xl bg-card flex items-center justify-center">
+              <ImagePlus className="h-6 w-6 text-muted-foreground" />
+            </div>
+            <div className="space-y-1.5 px-6">
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Publish your work</h2>
+              <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                Drop a photo, song, video, or document, or click to upload — image, audio, video, or document, max 25 MB. Everything else can wait.
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-full mt-1 bg-card"
+              onClick={(e) => { e.stopPropagation(); mediaInputRef.current?.click(); }}
+            >
+              <Upload className="h-3.5 w-3.5 mr-1.5" />
+              Browse files
+            </Button>
+          </>
+        )}
+        <input ref={mediaInputRef} type="file" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleMediaSelect(f); }} />
+      </div>
+      {mediaPreview && !mediaUploading && !mediaUri && (
+        <p className="text-xs text-destructive text-center py-3">Upload failed — remove the file and try again.</p>
+      )}
+
+      {mediaUri && (
+        <div className="max-w-xl mx-auto px-6 sm:px-10 pb-6 sm:pb-10 pt-6 space-y-6">
             <Input
               value={name}
               onChange={(e) => form.setValue("name", e.target.value)}
@@ -764,9 +773,8 @@ export function PublishFlow() {
             <p className="text-xs text-center text-muted-foreground">
               {hasWallet ? "Zero platform fees to mint." : "Secure your account to mint."}
             </p>
-          </>
-        )}
-      </div>
+        </div>
+      )}
     </section>
   );
 }
