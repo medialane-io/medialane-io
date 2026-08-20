@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { hash } from "starknet";
-import { normalizeAddress, getService } from "@medialane/sdk";
+import { normalizeAddress, getService, buildAssetMetadata } from "@medialane/sdk";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import {
   ImagePlus, Music, Video, FileText, Loader2, Upload,
@@ -399,18 +399,27 @@ export function PublishFlow() {
     const image = mediaKind === "image" ? mediaUri : featureUri!;
     const animationUrl = mediaKind === "image" ? undefined : mediaUri;
 
-    const metadata: Record<string, unknown> = {
+    const built = buildAssetMetadata({
       name: values.name,
       description: values.description || "",
-      image,
-      external_link: values.external_url || "",
-    };
-    if (animationUrl) metadata.animation_url = animationUrl;
-    templateFieldsRef.current.forEach(({ traitType, value }) => {
-      if (traitType.trim() && value.trim()) {
-        metadata[`tmpl_${traitType.trim()}`] = value.trim();
-      }
+      externalUrl: values.external_url || "",
+      imageUri: image,
+      creator: walletAddress,
+      ipType,
+      licenseType: values.licenseType,
+      commercialUse: values.commercialUse,
+      derivatives: values.derivatives,
+      attribution: values.attribution,
+      geographicScope: values.geographicScope,
+      aiPolicy: values.aiPolicy,
+      royalty: String(values.royalty),
+      templateTraits: templateFieldsRef.current
+        .filter(({ traitType, value }) => traitType.trim() && value.trim())
+        .map(({ traitType, value }) => ({ traitType, value })),
     });
+    const metadata: Record<string, unknown> = { ...built };
+    if (animationUrl) metadata.animation_url = animationUrl;
+
     const siwsToken = await secureToken();
     if (!siwsToken) throw new Error("Secure your account first");
     const tokenUri = await pinLaunchpadMetadata(metadata, siwsToken);
@@ -440,6 +449,12 @@ export function PublishFlow() {
         tokenUri,
         royaltyBps: Math.round(values.royalty * 100),
       });
+      // The mint call's own target is the actual on-chain destination — more reliable
+      // than the collection object's contractAddress for reading the mint event back.
+      if (!intentRes.data.requiresSignature) {
+        const calls = intentRes.data.calls;
+        contractAddress = calls[calls.length - 1]?.contractAddress ?? contractAddress;
+      }
       const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
 
       if (contractAddress) {
