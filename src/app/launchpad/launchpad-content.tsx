@@ -7,7 +7,13 @@ import { Button } from "@/components/ui/button";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { FadeIn } from "@/components/ui/motion-primitives";
 import { getService } from "@medialane/sdk";
-import { LaunchpadGroupedSections, LaunchpadFilterBar, useLaunchpadFilter, type ServiceOverrides } from "@medialane/ui";
+import {
+  LaunchpadGroupedSections,
+  LaunchpadFilterBar,
+  useLaunchpadFilter,
+  type ServiceOverrides,
+} from "@medialane/ui";
+import { PublishFlow } from "@/components/launchpad/publish-flow";
 import { ExternalLink, ArrowRight } from "lucide-react";
 
 const IO_OVERRIDES: ServiceOverrides = {
@@ -56,7 +62,22 @@ export function LaunchpadContent() {
         <FadeIn>
           <h1 className="text-3xl sm:text-4xl font-semibold leading-tight">Launchpad</h1>
         </FadeIn>
-        <FadeIn delay={0.08}>
+      </section>
+
+      <section className="px-4">
+        <FadeIn delay={0.06}>
+          <PublishFlow />
+        </FadeIn>
+      </section>
+
+      <section className="px-4 space-y-5">
+        <FadeIn>
+          <div className="space-y-1">
+            <p className="section-label">More ways to launch</p>
+            <p className="text-sm text-muted-foreground">Every Launchpad service — NFTs, editions, coins, drops, community tools, and claims.</p>
+          </div>
+        </FadeIn>
+        <FadeIn delay={0.06}>
           <LaunchpadFilterBar
             query={filter.query}
             onQueryChange={filter.setQuery}
@@ -65,9 +86,6 @@ export function LaunchpadContent() {
             onToggleGroup={filter.toggleGroup}
           />
         </FadeIn>
-      </section>
-
-      <section className="px-4">
         <LaunchpadGroupedSections
           overrides={overrides}
           query={filter.query}
