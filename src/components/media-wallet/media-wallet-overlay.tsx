@@ -70,7 +70,7 @@ export function MediaWalletOverlay() {
               className={
                 "relative flex w-full max-w-[390px] flex-col overflow-hidden rounded-[32px] " +
                 "aspect-[9/19.5] max-h-[85dvh] " +
-                "border border-border/40 bg-background shadow-2xl"
+                "bg-background"
               }
               onClick={(e) => e.stopPropagation()}
             >
