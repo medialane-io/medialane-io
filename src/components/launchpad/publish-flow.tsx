@@ -10,8 +10,9 @@ import { hash } from "starknet";
 import { normalizeAddress, getService } from "@medialane/sdk";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import {
-  ImagePlus, FileText, X, Loader2, Upload,
+  ImagePlus, Music, Video, FileText, Loader2, Upload,
   Layers, ImagePlus as SingleIcon, ArrowRight, CheckCircle2, ChevronDown, Boxes, Plus, Check,
+  ShieldCheck,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,6 +24,7 @@ import {
   Collapsible, CollapsibleContent, CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { MedialaneCollectionCard } from "@medialane/ui";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSiwsToken } from "@/hooks/use-siws-token";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
@@ -34,6 +36,7 @@ import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { uploadDocumentToIpfs } from "@/lib/upload-document";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
+import { withSiwsAuth } from "@/lib/pinata-fetch";
 import { starknetProvider } from "@/lib/starknet";
 import { suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
 import { cn, ipfsToHttp } from "@/lib/utils";
@@ -47,11 +50,15 @@ import type { ApiCollection } from "@medialane/sdk";
 
 const COLLECTION_DEPLOYED_SELECTOR = hash.getSelectorFromName("CollectionDeployed");
 
-type MediaKind = "image" | "document";
+type MediaKind = "image" | "audio" | "video" | "document";
 
-const IMAGE_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/gif", "image/svg+xml", "image/webp"]);
-const DOCUMENT_MIME_TYPES = new Set([
+const MEDIA_ROUTE_MIME_TYPES = new Set([
+  "image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml", "image/avif",
+  "video/mp4", "video/webm", "video/ogg",
+  "audio/mpeg", "audio/ogg", "audio/wav", "audio/webm", "audio/flac",
   "application/pdf",
+]);
+const DOCUMENT_SIGNED_URL_MIME_TYPES = new Set([
   "application/msword",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   "application/vnd.oasis.opendocument.text",
@@ -59,24 +66,27 @@ const DOCUMENT_MIME_TYPES = new Set([
   "text/plain",
   "text/markdown",
 ]);
-const MEDIA_MAX_BYTES: Record<MediaKind, number> = {
-  image: 10 * 1024 * 1024,
-  document: 20 * 1024 * 1024,
-};
+const MEDIA_MAX_BYTES = 10 * 1024 * 1024;
 
 function detectMediaKind(mime: string): MediaKind | null {
-  if (IMAGE_MIME_TYPES.has(mime)) return "image";
-  if (DOCUMENT_MIME_TYPES.has(mime)) return "document";
+  if (mime.startsWith("image/")) return MEDIA_ROUTE_MIME_TYPES.has(mime) ? "image" : null;
+  if (mime.startsWith("video/")) return MEDIA_ROUTE_MIME_TYPES.has(mime) ? "video" : null;
+  if (mime.startsWith("audio/")) return MEDIA_ROUTE_MIME_TYPES.has(mime) ? "audio" : null;
+  if (mime === "application/pdf" || DOCUMENT_SIGNED_URL_MIME_TYPES.has(mime)) return "document";
   return null;
 }
 
 const IP_TYPE_BY_KIND: Record<MediaKind, IPType> = {
   image: "NFT",
+  audio: "Audio",
+  video: "Video",
   document: "Documents",
 };
 
 const MEDIA_KIND_ICON: Record<MediaKind, typeof ImagePlus> = {
   image: ImagePlus,
+  audio: Music,
+  video: Video,
   document: FileText,
 };
 
@@ -272,12 +282,14 @@ export function PublishFlow() {
     const kind = detectMediaKind(file.type);
     if (!kind) {
       toast.error("Unsupported file type", {
-        description: "Publish an image (JPG, PNG, GIF, SVG, WebP) or document (PDF, DOC, DOCX, ODT, RTF, TXT, MD) for now — audio and video support is coming soon.",
+        description: "Publish an image, audio, video (JPG/PNG/GIF/SVG/WebP, MP3/WAV/OGG/FLAC, MP4/WebM), or document (PDF, DOC, DOCX, ODT, RTF, TXT, MD).",
       });
       return;
     }
-    if (file.size > MEDIA_MAX_BYTES[kind]) {
-      toast.error("File too large", { description: `Maximum size is ${MEDIA_MAX_BYTES[kind] / (1024 * 1024)} MB for ${kind}s.` });
+    const viaMediaRoute = MEDIA_ROUTE_MIME_TYPES.has(file.type);
+    const maxBytes = viaMediaRoute ? MEDIA_MAX_BYTES : 20 * 1024 * 1024;
+    if (file.size > maxBytes) {
+      toast.error("File too large", { description: `Maximum size is ${maxBytes / (1024 * 1024)} MB.` });
       return;
     }
     setMediaFile(file);
@@ -292,8 +304,17 @@ export function PublishFlow() {
     try {
       const token = await secureToken();
       if (!token) throw new Error("Secure your account first");
-      const uri = kind === "image" ? await uploadImageToIpfs(file, token) : await uploadDocumentToIpfs(file, token);
-      setMediaUri(uri);
+      if (viaMediaRoute) {
+        const fd = new FormData();
+        fd.append("file", file, file.name);
+        const res = await fetch("/api/pinata/media", withSiwsAuth(token, { method: "POST", body: fd }));
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.mediaUri) throw new Error(data.error ?? "Upload failed");
+        setMediaUri(data.mediaUri);
+      } else {
+        const uri = await uploadDocumentToIpfs(file, token);
+        setMediaUri(uri);
+      }
     } catch (err) {
       toast.error("Upload failed", { description: err instanceof Error ? err.message : undefined });
     } finally {
@@ -500,154 +521,172 @@ export function PublishFlow() {
   }
 
   const KindIcon = MEDIA_KIND_ICON[mediaKind];
+  const collectionLabel = mediaUri
+    ? (collectionMode === "new" ? (newCollectionName || "New collection") : "IP Asset")
+    : undefined;
 
-  return (
-    <section className="rounded-3xl bg-brand-blue/5">
-      <div
+  if (!mediaFile) {
+    return (
+      <section
         role="button"
         tabIndex={0}
         aria-label="Upload media"
-        onClick={() => !mediaUploading && mediaInputRef.current?.click()}
-        onKeyDown={(e) => { if ((e.key === "Enter" || e.key === " ") && !mediaUploading) { e.preventDefault(); mediaInputRef.current?.click(); } }}
+        onClick={() => mediaInputRef.current?.click()}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); mediaInputRef.current?.click(); } }}
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files?.[0]; if (f) handleMediaSelect(f); }}
-        className={cn(
-          "relative flex flex-col items-center justify-center gap-3 cursor-pointer overflow-hidden transition-colors text-center",
-          mediaPreview
-            ? "min-h-[20rem] sm:min-h-[26rem] bg-card rounded-3xl"
-            : "min-h-[22rem] sm:min-h-[28rem] m-2 sm:m-3 rounded-[1.65rem] border-2 border-dashed border-border/60 hover:border-brand-blue/40 hover:bg-brand-blue/[0.06]"
-        )}
+        className="relative flex flex-col items-center justify-center gap-3 cursor-pointer overflow-hidden transition-colors text-center rounded-3xl bg-brand-blue/5 min-h-[22rem] sm:min-h-[28rem] p-2 sm:p-3"
       >
-        {mediaPreview ? (
-          <>
-            {mediaKind === "image" ? (
-              <Image src={mediaPreview} alt="" fill className="object-cover" unoptimized />
-            ) : (
-              <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                <KindIcon className="h-8 w-8" />
-                <p className="text-sm font-medium text-foreground truncate max-w-[80%]">{mediaFile?.name}</p>
-              </div>
-            )}
-            {!mediaUploading && (
-              <button
-                type="button"
-                aria-label="Remove file"
-                onClick={(e) => { e.stopPropagation(); clearMedia(); }}
-                className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-colors"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-            {mediaUploading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-background/60">
-                <Loader2 className="h-6 w-6 animate-spin" />
-              </div>
-            )}
-          </>
-        ) : (
-          <>
-            <div className="h-14 w-14 rounded-2xl bg-card flex items-center justify-center">
-              <ImagePlus className="h-6 w-6 text-muted-foreground" />
+        <div className="flex flex-col items-center justify-center gap-3 flex-1 w-full m-2 sm:m-3 rounded-[1.65rem] border-2 border-dashed border-border/60 hover:border-brand-blue/40 hover:bg-brand-blue/[0.06] transition-colors">
+          <div className="h-14 w-14 rounded-2xl bg-card flex items-center justify-center">
+            <ImagePlus className="h-6 w-6 text-muted-foreground" />
+          </div>
+          <div className="space-y-1.5 px-6">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Publish your work</h2>
+            <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+              Drop a photo or document, or click to upload — JPG, PNG, GIF, SVG, WebP, or PDF/DOC/RTF/TXT. Everything else can wait.
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            className="rounded-full mt-1 bg-card"
+            onClick={(e) => { e.stopPropagation(); mediaInputRef.current?.click(); }}
+          >
+            <Upload className="h-3.5 w-3.5 mr-1.5" />
+            Browse files
+          </Button>
+        </div>
+        <input ref={mediaInputRef} type="file" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleMediaSelect(f); }} />
+      </section>
+    );
+  }
+
+  return (
+    <section className="space-y-6">
+      <div className="flex items-center gap-4 rounded-xl border border-border p-3">
+        <div className="relative h-14 w-14 rounded-lg bg-muted overflow-hidden shrink-0">
+          {mediaKind === "image" && mediaPreview ? (
+            <Image src={mediaPreview} alt="" fill className="object-cover" unoptimized />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <KindIcon className="h-6 w-6 text-muted-foreground" />
             </div>
-            <div className="space-y-1.5 px-6">
-              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Publish your work</h2>
-              <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                Drop a photo or document, or click to upload — JPG, PNG, GIF, SVG, WebP, or PDF/DOC/RTF/TXT. Everything else can wait.
-              </p>
+          )}
+          {mediaUploading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background/70">
+              <Loader2 className="h-4 w-4 animate-spin" />
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              className="rounded-full mt-1 bg-card"
-              onClick={(e) => { e.stopPropagation(); mediaInputRef.current?.click(); }}
-            >
-              <Upload className="h-3.5 w-3.5 mr-1.5" />
-              Browse files
-            </Button>
-          </>
-        )}
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold truncate">{mediaFile.name}</p>
+          <p className="text-xs text-muted-foreground">
+            {mediaUploading ? "Uploading…" : mediaUri ? "Uploaded" : "Upload failed"}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => mediaInputRef.current?.click()}
+          className="text-xs font-semibold text-brand-blue hover:underline shrink-0"
+        >
+          Change
+        </button>
         <input ref={mediaInputRef} type="file" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleMediaSelect(f); }} />
       </div>
-      {mediaPreview && !mediaUploading && !mediaUri && (
-        <p className="text-xs text-destructive text-center py-3">Upload failed — remove the file and try again.</p>
-      )}
 
       {mediaUri && (
-        <div className="max-w-xl mx-auto px-6 sm:px-10 pb-6 sm:pb-10 pt-6 space-y-6">
-            <Input
-              value={name}
-              onChange={(e) => form.setValue("name", e.target.value)}
-              placeholder="Name your work"
-              className="h-12 text-base font-medium"
-            />
-            <Textarea
-              value={form.watch("description")}
-              onChange={(e) => form.setValue("description", e.target.value)}
-              placeholder="Describe your work (optional)"
-              rows={2}
-            />
-            <Input
-              value={form.watch("external_url")}
-              onChange={(e) => form.setValue("external_url", e.target.value)}
-              placeholder="https://yourwebsite.com (optional)"
-            />
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8 items-start">
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Name *</label>
+              <Input
+                value={name}
+                onChange={(e) => form.setValue("name", e.target.value)}
+                placeholder="My Creative Work"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Description</label>
+              <Textarea
+                value={form.watch("description")}
+                onChange={(e) => form.setValue("description", e.target.value)}
+                placeholder="Describe your work, its story, and any context for buyers…"
+                rows={3}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">External link <span className="text-muted-foreground font-normal">(optional)</span></label>
+              <Input
+                value={form.watch("external_url")}
+                onChange={(e) => form.setValue("external_url", e.target.value)}
+                placeholder="https://yourwebsite.com"
+              />
+            </div>
 
             {mediaKind !== "image" && (
               <div className="space-y-2">
-                <p className="text-sm font-medium">Feature image *</p>
-                <div
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => !featureUploading && featureInputRef.current?.click()}
-                  onKeyDown={(e) => { if ((e.key === "Enter" || e.key === " ") && !featureUploading) { e.preventDefault(); featureInputRef.current?.click(); } }}
-                  className="relative h-24 w-24 rounded-xl bg-card flex items-center justify-center overflow-hidden cursor-pointer hover:bg-card/70 transition-colors"
-                >
-                  {featurePreview ? (
-                    <Image src={featurePreview} alt="" fill className="object-cover" unoptimized />
-                  ) : (
-                    <ImagePlus className="h-6 w-6 text-muted-foreground" />
-                  )}
-                  {featureUploading && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-background/60">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    </div>
-                  )}
-                  <input ref={featureInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFeatureSelect(f); }} />
+                <label className="text-sm font-medium">Feature image *</label>
+                <div className="flex items-center gap-4">
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => !featureUploading && featureInputRef.current?.click()}
+                    onKeyDown={(e) => { if ((e.key === "Enter" || e.key === " ") && !featureUploading) { e.preventDefault(); featureInputRef.current?.click(); } }}
+                    className="relative h-20 w-20 rounded-xl border-2 border-dashed border-border bg-muted flex items-center justify-center overflow-hidden shrink-0 cursor-pointer hover:border-primary/50 transition-colors"
+                  >
+                    {featurePreview ? (
+                      <Image src={featurePreview} alt="" fill className="object-cover" unoptimized />
+                    ) : (
+                      <ImagePlus className="h-6 w-6 text-muted-foreground" />
+                    )}
+                    {featureUploading && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-background/70">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      </div>
+                    )}
+                    <input ref={featureInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFeatureSelect(f); }} />
+                  </div>
+                  <p className="text-xs text-muted-foreground">Cover art shown wherever the work is previewed. JPG, PNG, GIF, SVG or WebP.</p>
                 </div>
-                <p className="text-xs text-muted-foreground">Cover art shown wherever the work is previewed.</p>
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setAssetType("single")}
-                className={cn("flex items-start gap-3 rounded-2xl p-4 text-left transition-all",
-                  assetType === "single" ? "bg-brand-blue text-white" : "bg-card hover:bg-card/70")}
-              >
-                <SingleIcon className={cn("h-5 w-5 shrink-0 mt-0.5", assetType === "single" ? "text-white" : "text-muted-foreground")} />
-                <span>
-                  <span className="block text-sm font-semibold">One copy</span>
-                  <span className={cn("block text-xs mt-0.5", assetType === "single" ? "text-white/80" : "text-muted-foreground")}>Minted once</span>
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setAssetType("editions")}
-                className={cn("flex items-start gap-3 rounded-2xl p-4 text-left transition-all",
-                  assetType === "editions" ? "bg-brand-blue text-white" : "bg-card hover:bg-card/70")}
-              >
-                <Layers className={cn("h-5 w-5 shrink-0 mt-0.5", assetType === "editions" ? "text-white" : "text-muted-foreground")} />
-                <span>
-                  <span className="block text-sm font-semibold">Numbered copies</span>
-                  <span className={cn("block text-xs mt-0.5", assetType === "editions" ? "text-white/80" : "text-muted-foreground")}>Several editions</span>
-                </span>
-              </button>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Type</label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setAssetType("single")}
+                  className={cn("flex items-start gap-3 rounded-xl border p-4 text-left transition-colors",
+                    assetType === "single" ? "border-brand-blue bg-brand-blue/5" : "border-border hover:bg-muted/40")}
+                >
+                  <SingleIcon className={cn("h-5 w-5 shrink-0 mt-0.5", assetType === "single" ? "text-brand-blue" : "text-muted-foreground")} />
+                  <span>
+                    <span className="block text-sm font-semibold">One copy</span>
+                    <span className="block text-xs mt-0.5 text-muted-foreground">Minted once</span>
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAssetType("editions")}
+                  className={cn("flex items-start gap-3 rounded-xl border p-4 text-left transition-colors",
+                    assetType === "editions" ? "border-brand-blue bg-brand-blue/5" : "border-border hover:bg-muted/40")}
+                >
+                  <Layers className={cn("h-5 w-5 shrink-0 mt-0.5", assetType === "editions" ? "text-brand-blue" : "text-muted-foreground")} />
+                  <span>
+                    <span className="block text-sm font-semibold">Numbered copies</span>
+                    <span className="block text-xs mt-0.5 text-muted-foreground">Several editions</span>
+                  </span>
+                </button>
+              </div>
             </div>
 
             {assetType === "editions" && (
-              <div className="space-y-1.5">
-                <p className="text-sm font-medium">Number of copies</p>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Number of copies</label>
                 <Input
                   type="number"
                   min={1}
@@ -659,23 +698,29 @@ export function PublishFlow() {
             )}
 
             <div className="space-y-2">
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setCollectionMode("existing")}
-                  className={cn("flex-1 h-9 rounded-lg text-sm font-medium transition-colors",
-                    collectionMode === "existing" ? "bg-foreground text-background" : "bg-card hover:bg-card/70")}
-                >
-                  Existing collection
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCollectionMode("new")}
-                  className={cn("flex-1 h-9 rounded-lg text-sm font-medium transition-colors",
-                    collectionMode === "new" ? "bg-foreground text-background" : "bg-card hover:bg-card/70")}
-                >
-                  <Plus className="h-3.5 w-3.5 inline mr-1" />New collection
-                </button>
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium flex items-center gap-1.5">
+                  <Boxes className="h-4 w-4" />
+                  Collection *
+                </label>
+                <div className="flex rounded-lg border border-border overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setCollectionMode("existing")}
+                    className={cn("px-3 h-7 text-xs font-medium transition-colors",
+                      collectionMode === "existing" ? "bg-primary text-primary-foreground" : "bg-background hover:bg-muted text-muted-foreground")}
+                  >
+                    Existing
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCollectionMode("new")}
+                    className={cn("px-3 h-7 text-xs font-medium border-l border-border transition-colors flex items-center gap-1",
+                      collectionMode === "new" ? "bg-primary text-primary-foreground" : "bg-background hover:bg-muted text-muted-foreground")}
+                  >
+                    <Plus className="h-3 w-3" />New
+                  </button>
+                </div>
               </div>
 
               {collectionMode === "existing" ? (
@@ -701,76 +746,98 @@ export function PublishFlow() {
             </div>
 
             <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
-              <CollapsibleTrigger asChild>
-                <button type="button" className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
-                  <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", advancedOpen && "rotate-180")} />
-                  Licensing terms
-                </button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="space-y-3 pt-3">
-                <Select value={form.watch("licenseType")} onValueChange={handleLicenseChange}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {LICENSE_TYPES.map((l) => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <div className="space-y-1.5">
-                  <p className="text-xs font-medium text-muted-foreground">Commercial use</p>
-                  <ToggleGroup value={form.watch("commercialUse")} options={["Yes", "No"]} onChange={(v) => form.setValue("commercialUse", v as "Yes" | "No")} />
-                </div>
-                <div className="space-y-1.5">
-                  <p className="text-xs font-medium text-muted-foreground">Derivatives</p>
-                  <ToggleGroup value={form.watch("derivatives")} options={DERIVATIVES_OPTIONS} onChange={(v) => form.setValue("derivatives", v as FormValues["derivatives"])} />
-                </div>
-                <div className="space-y-1.5">
-                  <p className="text-xs font-medium text-muted-foreground">Territory</p>
-                  <Select value={form.watch("geographicScope")} onValueChange={(v) => form.setValue("geographicScope", v)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {GEOGRAPHIC_SCOPES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <p className="text-xs font-medium text-muted-foreground">AI &amp; data mining</p>
-                  <ToggleGroup value={form.watch("aiPolicy")} options={AI_POLICIES} onChange={(v) => form.setValue("aiPolicy", v as FormValues["aiPolicy"])} />
-                </div>
-                <div className="space-y-1.5">
-                  <p className="text-xs font-medium text-muted-foreground">Royalty % (0–50)</p>
-                  <Input
-                    type="number" min={0} max={50} step={0.5}
-                    value={form.watch("royalty")}
-                    onChange={(e) => form.setValue("royalty", parseFloat(e.target.value) || 0)}
-                    className="max-w-[120px]"
-                  />
-                </div>
-              </CollapsibleContent>
+              <div className="rounded-xl border border-border overflow-hidden">
+                <CollapsibleTrigger asChild>
+                  <button type="button" className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-muted/30 transition-colors">
+                    <span className="flex items-center gap-2">
+                      <ShieldCheck className="h-4 w-4 text-primary" />
+                      <span className="text-sm font-semibold">Licensing Terms</span>
+                      <span className="text-xs text-muted-foreground font-normal">Optional · Berne Convention</span>
+                    </span>
+                    <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", advancedOpen && "rotate-180")} />
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="px-4 pb-4 space-y-4 border-t border-border/60 pt-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground">License</label>
+                      <Select value={form.watch("licenseType")} onValueChange={handleLicenseChange}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {LICENSE_TYPES.map((l) => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground">Commercial use</label>
+                      <ToggleGroup value={form.watch("commercialUse")} options={["Yes", "No"]} onChange={(v) => form.setValue("commercialUse", v as "Yes" | "No")} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground">Derivatives</label>
+                      <ToggleGroup value={form.watch("derivatives")} options={DERIVATIVES_OPTIONS} onChange={(v) => form.setValue("derivatives", v as FormValues["derivatives"])} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground">Territory</label>
+                      <Select value={form.watch("geographicScope")} onValueChange={(v) => form.setValue("geographicScope", v)}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {GEOGRAPHIC_SCOPES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground">AI &amp; data mining</label>
+                      <ToggleGroup value={form.watch("aiPolicy")} options={AI_POLICIES} onChange={(v) => form.setValue("aiPolicy", v as FormValues["aiPolicy"])} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground">Royalty % (0–50)</label>
+                      <Input
+                        type="number" min={0} max={50} step={0.5}
+                        value={form.watch("royalty")}
+                        onChange={(e) => form.setValue("royalty", parseFloat(e.target.value) || 0)}
+                        className="max-w-[120px]"
+                      />
+                    </div>
+                  </div>
+                </CollapsibleContent>
+              </div>
             </Collapsible>
 
             <Collapsible open={ipTypeOpen} onOpenChange={setIpTypeOpen}>
-              <CollapsibleTrigger asChild>
-                <button type="button" className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
-                  <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", ipTypeOpen && "rotate-180")} />
-                  IP type &amp; metadata
-                </button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="space-y-3 pt-3">
-                <Select value={ipType} onValueChange={(v) => setIpType(v as IPType)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {IP_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <IPTypeFields
-                  ipType={ipType}
-                  onChange={(fields) => { templateFieldsRef.current = fields; }}
-                  uploadDocument={async (file) => {
-                    const token = await secureToken();
-                    if (!token) throw new Error("Secure your account first");
-                    return uploadDocumentToIpfs(file, token);
-                  }}
-                />
-              </CollapsibleContent>
+              <div className="rounded-xl border border-border overflow-hidden">
+                <CollapsibleTrigger asChild>
+                  <button type="button" className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-muted/30 transition-colors">
+                    <span className="flex items-center gap-2">
+                      <Layers className="h-4 w-4 text-primary" />
+                      <span className="text-sm font-semibold">IP Type &amp; Metadata</span>
+                      <span className="text-xs text-muted-foreground font-normal">Optional</span>
+                    </span>
+                    <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", ipTypeOpen && "rotate-180")} />
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="px-4 pb-4 space-y-4 border-t border-border/60 pt-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground">IP Type</label>
+                      <Select value={ipType} onValueChange={(v) => setIpType(v as IPType)}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {IP_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <IPTypeFields
+                      ipType={ipType}
+                      onChange={(fields) => { templateFieldsRef.current = fields; }}
+                      uploadDocument={async (file) => {
+                        const token = await secureToken();
+                        if (!token) throw new Error("Secure your account first");
+                        return uploadDocumentToIpfs(file, token);
+                      }}
+                    />
+                  </div>
+                </CollapsibleContent>
+              </div>
             </Collapsible>
 
             {action.status === "error" && action.error && <p className="text-xs text-destructive">{action.error}</p>}
@@ -780,15 +847,25 @@ export function PublishFlow() {
               disabled={!ready || busy || !hasWallet}
               onClick={form.handleSubmit(onSubmit)}
               className={cn(
-                "flex items-center justify-center gap-1.5 w-full h-12 rounded-xl text-base font-semibold text-white transition-all",
-                ready && !busy && hasWallet ? "bg-brand-blue hover:brightness-110 active:scale-[0.98]" : "bg-brand-blue/40 cursor-not-allowed"
+                "w-full h-12 text-base font-semibold text-white rounded-xl flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] bg-brand-blue",
+                (!ready || busy || !hasWallet) && "opacity-40 pointer-events-none"
               )}
             >
-              {busy ? <><Loader2 className="h-4 w-4 animate-spin" />Publishing…</> : <>Mint<ArrowRight className="h-4 w-4" /></>}
+              {busy ? <><Loader2 className="h-4 w-4 animate-spin" />Minting…</> : assetType === "single" ? "Mint NFT" : "Mint Editions"}
             </button>
             <p className="text-xs text-center text-muted-foreground">
               {hasWallet ? "Zero platform fees to mint." : "Secure your account to mint."}
             </p>
+          </div>
+
+          <div className="lg:sticky lg:top-20">
+            <MedialaneCollectionCard
+              image={mediaKind === "image" ? mediaPreview : featurePreview}
+              name={name}
+              collection={collectionLabel}
+              creator={walletAddress ? `${walletAddress.slice(0, 6)}…${walletAddress.slice(-4)}` : undefined}
+            />
+          </div>
         </div>
       )}
     </section>
