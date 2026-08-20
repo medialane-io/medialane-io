@@ -58,19 +58,19 @@ export function LaunchpadContent() {
         <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
       </a>
 
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 pt-16 sm:pt-20 space-y-5">
+      <section className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20 space-y-5">
         <FadeIn>
           <h1 className="text-3xl sm:text-4xl font-semibold leading-tight">Launchpad</h1>
         </FadeIn>
       </section>
 
-      <section className="max-w-5xl mx-auto px-4 sm:px-6">
+      <section className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
         <FadeIn delay={0.06}>
           <PublishFlow />
         </FadeIn>
       </section>
 
-      <section className="px-4 space-y-6">
+      <section className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         <FadeIn>
           <h2 className="text-3xl sm:text-4xl font-semibold leading-tight">Creator Launchpad Services</h2>
         </FadeIn>
@@ -91,7 +91,7 @@ export function LaunchpadContent() {
         />
       </section>
 
-      <section className="px-4">
+      <section className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
         <FadeIn>
           <div className="rounded-2xl border border-border/40 p-5 bg-gradient-to-r from-brand-blue/10 to-brand-purple/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
@@ -111,7 +111,7 @@ export function LaunchpadContent() {
       </section>
 
       {hasWallet && (
-        <section className="px-4">
+        <section className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           <FadeIn>
             <div className="rounded-2xl border border-border/40 p-5 bg-gradient-to-r from-brand-navy/10 to-brand-purple/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
