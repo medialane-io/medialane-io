@@ -59,9 +59,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
     });
     await transporter.sendMail({
-      from: process.env.CONTACT_FROM_EMAIL || process.env.SMTP_USER,
+      from: { name: "Medialane.io", address: process.env.CONTACT_FROM_EMAIL || process.env.SMTP_USER! },
       to,
-      subject: "Your Medialane verification code",
+      subject: "Your verification code",
       html: buildVerificationCodeEmailHtml(code),
     });
     return NextResponse.json({ ok: true });
