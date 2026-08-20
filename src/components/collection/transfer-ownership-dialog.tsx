@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { IPCollectionABI } from "@medialane/sdk/starknet";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
-import { MarketplaceConfirmStep } from "@/components/marketplace/marketplace-dialog-primitives";
+import { MarketplaceConfirmStep } from "@medialane/ui";
 import { TransactionDialogStates } from "@/components/marketplace/transaction-dialog-states";
 import { STARKNET_COLLECTION_721_CONTRACT } from "@/lib/constants";
 import { starknetProvider } from "@/lib/starknet";

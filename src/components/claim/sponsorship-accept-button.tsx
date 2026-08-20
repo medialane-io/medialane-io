@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { MarketplaceErrorState, MarketplaceSuccessState } from "@/components/marketplace/marketplace-dialog-primitives";
+import { MarketplaceErrorState, MarketplaceSuccessState } from "@medialane/ui";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";

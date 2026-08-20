@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/compone
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { useWalletMarketplaceActionFlow } from "@/hooks/use-wallet-marketplace-action-flow";
-import { MarketplaceConfirmStep } from "@/components/marketplace/marketplace-dialog-primitives";
+import { MarketplaceConfirmStep } from "@medialane/ui";
 import { TransactionDialogStates } from "@/components/marketplace/transaction-dialog-states";
 import { resolveTokenImage, formatDisplayPrice } from "@/lib/utils";
 import type { ApiOrder } from "@medialane/sdk";

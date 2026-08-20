@@ -5,7 +5,7 @@ import Image from "next/image";
 import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TxStatus } from "@/components/transaction/tx-status";
-import { MarketplaceErrorState } from "@/components/marketplace/marketplace-dialog-primitives";
+import { MarketplaceErrorState } from "@medialane/ui";
 import { EXPLORER_URL } from "@/lib/constants";
 import { ipfsToHttp } from "@/lib/utils";
 import type { WalletWriteStatus } from "@/hooks/use-wallet-write-action";

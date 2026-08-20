@@ -7,7 +7,7 @@ import {
   MarketplaceProcessingState,
   MarketplaceSuccessState,
   MarketplaceErrorState,
-} from "@/components/marketplace/marketplace-dialog-primitives";
+} from "@medialane/ui";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, HandCoins, Tag, X } from "lucide-react";
 import { EXPLORER_URL } from "@/lib/constants";
