@@ -311,6 +311,7 @@ export default function SettingsContent() {
   });
   const [emailStatus, setEmailStatus] = useState<{ email: string | null; verified: boolean } | null>(null);
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [emailDialogSkipInitialSend, setEmailDialogSkipInitialSend] = useState(false);
   const [emailEditOpen, setEmailEditOpen] = useState(false);
   const [emailInput, setEmailInput] = useState("");
   const [emailChangeStatus, setEmailChangeStatus] = useState<"idle" | "saving" | "error">("idle");
@@ -444,6 +445,7 @@ export default function SettingsContent() {
       setEmailEditOpen(false);
       setEmailInput("");
       setEmailChangeStatus("idle");
+      setEmailDialogSkipInitialSend(true);
       setEmailDialogOpen(true);
     } catch (err) {
       setEmailChangeStatus("error");
@@ -839,7 +841,7 @@ export default function SettingsContent() {
                   )}
                   <div className="flex items-center gap-2">
                     {emailStatus?.email && !emailStatus.verified && (
-                      <Button onClick={() => setEmailDialogOpen(true)} variant="outline" size="sm">
+                      <Button onClick={() => { setEmailDialogSkipInitialSend(false); setEmailDialogOpen(true); }} variant="outline" size="sm">
                         Verify email
                       </Button>
                     )}
@@ -914,6 +916,7 @@ export default function SettingsContent() {
           onOpenChange={setEmailDialogOpen}
           email={emailStatus.email}
           onVerified={handleEmailVerified}
+          skipInitialSend={emailDialogSkipInitialSend}
         />
       )}
 

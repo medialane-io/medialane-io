@@ -24,9 +24,10 @@ interface EmailVerifyDialogProps {
   onOpenChange: (open: boolean) => void;
   email: string;
   onVerified: (emailVerificationToken: string) => Promise<void> | void;
+  skipInitialSend?: boolean;
 }
 
-export function EmailVerifyDialog({ open, onOpenChange, email, onVerified }: EmailVerifyDialogProps) {
+export function EmailVerifyDialog({ open, onOpenChange, email, onVerified, skipInitialSend }: EmailVerifyDialogProps) {
   const [step, setStep] = useState<Step>("sending");
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -53,10 +54,16 @@ export function EmailVerifyDialog({ open, onOpenChange, email, onVerified }: Ema
   };
 
   useEffect(() => {
-    if (open) {
-      setCode("");
-      void sendCode();
+    if (!open) return;
+    setCode("");
+    if (skipInitialSend) {
+      setError(null);
+      setStep("code");
+      setCooldown(RESEND_COOLDOWN_S);
+      setTimeout(() => inputRef.current?.focus(), 50);
+      return;
     }
+    void sendCode();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- sends a code once on open; sendCode isn't stable across renders and would re-fire this every render
   }, [open]);
 
