@@ -21,7 +21,7 @@
   "dependencies": {
     "@avnu/avnu-sdk": "^4.2.0",
     "@hookform/resolvers": "^3.10.0",
-    "@medialane/sdk": "0.85.11",
+    "@medialane/sdk": "0.85.12",
     "@medialane/ui": "0.126.6",
     "@next/third-parties": "^16.2.6",
     "@radix-ui/react-dialog": "^1.1.15",
