@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -77,6 +78,7 @@ function ConnectForm() {
       const token = getValidToken() ?? (await signIn());
       if (!token) throw new Error("Not authenticated");
       await getMedialaneClient().api.changeMyEmail(value, token);
+      toast.success("Email added to your account");
       router.replace(redirectTo ?? "/");
     } catch (err) {
       setAddEmailStatus("error");
