@@ -10,7 +10,8 @@ export async function POST(req: NextRequest) {
   }
 
   const body = (await req.json().catch(() => ({}))) as { kind?: string };
-  const kind: "image" | "document" = body.kind === "document" ? "document" : "image";
+  const kind: "image" | "document" | "media" =
+    body.kind === "document" ? "document" : body.kind === "media" ? "media" : "image";
 
   try {
     const url = await getBackendSignedUrl(kind);
