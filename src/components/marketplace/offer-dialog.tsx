@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 import { useSWRConfig } from "swr";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,7 +27,7 @@ import {
   MarketplaceDialogHero,
   CurrencyPicker,
   DurationPicker,
-} from "@/components/marketplace/marketplace-dialog-primitives";
+} from "@medialane/ui";
 import { EXPLORER_URL, DURATION_OPTIONS } from "@/lib/constants";
 import { resolveTokenImage } from "@/lib/utils";
 import { getListableTokens } from "@medialane/sdk";
@@ -66,6 +67,7 @@ export function OfferDialog({
   tokenImage: tokenImageRaw,
   tokenStandard,
 }: OfferDialogProps) {
+  const pathname = usePathname();
   const tokenImage = resolveTokenImage(tokenImageRaw);
   const { tokenStandard: resolvedStandard } = useResolvedTokenStandard(assetContract, tokenStandard);
   const is1155 = resolvedStandard === "ERC1155";
@@ -210,6 +212,7 @@ export function OfferDialog({
             <MarketplaceSignInGate
               title="Secure your account to make an offer"
               description="You need an account to place offers."
+              href={`/connect?redirect_url=${encodeURIComponent(pathname)}`}
             />
 
           ) : (

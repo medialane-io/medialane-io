@@ -36,7 +36,7 @@ import {
   MarketplaceConfirmStep,
   MarketplaceDialogHero,
   MarketplaceErrorState,
-} from "@/components/marketplace/marketplace-dialog-primitives";
+} from "@medialane/ui";
 import { EXPLORER_URL } from "@/lib/constants";
 import { resolveTokenImage } from "@/lib/utils";
 

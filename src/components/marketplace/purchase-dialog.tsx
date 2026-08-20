@@ -20,14 +20,14 @@ import { useWalletMarketplaceActionFlow } from "@/hooks/use-wallet-marketplace-a
 import {
   MarketplaceErrorState,
   MarketplaceTxLink,
-} from "@/components/marketplace/marketplace-dialog-primitives";
+  isStableCurrency,
+} from "@medialane/ui";
 import { EXPLORER_URL } from "@/lib/constants";
 import type { ApiOrder } from "@medialane/sdk";
 import { formatDisplayPrice, ipfsToHttp } from "@/lib/utils";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { useUsdPrices } from "@/hooks/use-usd-prices";
 import { usdValueFor } from "@/lib/wallet-format";
-import { isStableCurrency } from "@medialane/ui";
 import { useErc20Balance } from "@/hooks/use-erc20-balance";
 import { getTokenBySymbol } from "@medialane/sdk";
 import { buildSwapCalls } from "@/lib/wallet/swap-calls";

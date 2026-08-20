@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { MarketplaceErrorState, MarketplaceSuccessState } from "@/components/marketplace/marketplace-dialog-primitives";
+import { MarketplaceErrorState, MarketplaceSuccessState } from "@medialane/ui";
 import { EXPLORER_URL } from "@/lib/constants";
 import { useDropMintStatus, type DropConditions } from "@/hooks/use-drops";
 import { getListableTokens, normalizeAddress } from "@medialane/sdk";

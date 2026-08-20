@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { MarketplaceErrorState, MarketplaceSuccessState } from "@/components/marketplace/marketplace-dialog-primitives";
+import { MarketplaceErrorState, MarketplaceSuccessState } from "@medialane/ui";
 import { usePopClaimStatus } from "@/hooks/use-pop";
 import { rewardToast } from "@/lib/reward-toast";
 import { EXPLORER_URL } from "@/lib/constants";
