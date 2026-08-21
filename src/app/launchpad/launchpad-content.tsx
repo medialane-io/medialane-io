@@ -48,13 +48,10 @@ export function LaunchpadContent() {
   return (
     <div className="relative pb-20 space-y-16 sm:space-y-24">
 
-      <section className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-14 sm:pt-16 space-y-5">
+      <section className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-14 sm:pt-16 space-y-6">
         <FadeIn>
           <h1 className="text-3xl sm:text-4xl font-semibold leading-tight">Launchpad</h1>
         </FadeIn>
-      </section>
-
-      <section className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
         <FadeIn delay={0.06}>
           <PublishFlow />
         </FadeIn>
