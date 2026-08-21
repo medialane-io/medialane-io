@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { assetHref } from "@/lib/routes";
 import { useCreatorByUsername } from "@/hooks/use-username-claims";
 import { useTokensByOwner } from "@/hooks/use-tokens";
@@ -12,7 +11,7 @@ import { useActivitiesByAddress } from "@/hooks/use-activities";
 import { CreatorScoreInline } from "@/components/rewards/creator-score-inline";
 import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listing-card";
 import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
-import { CollectionCard, CollectionCardSkeleton } from "@medialane/ui";
+import { CollectionCard, CollectionCardSkeleton, CollectionHeroBanner } from "@medialane/ui";
 import { CreatorAnalytics } from "@/components/creator/creator-analytics";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -126,7 +125,7 @@ export default function CreatorUsernamePageClient({ username }: Props) {
   const { creator, isLoading, error } = useCreatorByUsername(username);
   const walletAddress = creator?.walletAddress ? normalizeAddress("STARKNET", creator.walletAddress) : null;
 
-  const { tokens: bannerTokens } = useTokensByOwner(walletAddress, 1, 1);
+  const { tokens: bannerTokens, meta: bannerMeta } = useTokensByOwner(walletAddress, 1, 1);
   const { tokens, isLoading: tokensLoading } = useTokensByOwner(activeTab === "assets" ? walletAddress : null);
   const { collections, isLoading: colsLoading } = useCollectionsByOwner(walletAddress);
   const { orders, isLoading: ordersLoading } = useUserOrders(activeTab === "listings" ? walletAddress : null);
@@ -153,12 +152,8 @@ export default function CreatorUsernamePageClient({ username }: Props) {
   if (isLoading) {
     return (
       <div className="pb-20 min-h-screen">
-        <Skeleton className="w-full h-[32vw] min-h-[180px] max-h-[320px] rounded-none" />
+        <CollectionHeroBanner bannerUrl={null} loading name="" stats={[]} />
         <div className="px-6 pt-5 space-y-4">
-          <div className="space-y-2">
-            <Skeleton className="h-7 w-48" />
-            <Skeleton className="h-4 w-24" />
-          </div>
           <div className="flex gap-2 border-b border-border pb-3">
             {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-8 w-20 rounded-full" />)}
           </div>
@@ -185,37 +180,42 @@ export default function CreatorUsernamePageClient({ username }: Props) {
     );
   }
 
-  return (
-    <div className="pt-14 pb-20 min-h-screen overflow-x-hidden">
+  const showBio = Boolean(creator.bio);
+  const showSocials = Boolean(creator.websiteUrl || creator.twitterUrl || creator.discordUrl || creator.telegramUrl);
 
-      {heroImage && (
-        <div className="relative w-full h-[32vw] min-h-[180px] max-h-[320px] overflow-hidden bg-muted">
-          <Image src={heroImage} alt="" aria-hidden fill className="object-cover" />
+  return (
+    <div className="pb-20 min-h-screen overflow-x-hidden">
+
+      <CollectionHeroBanner
+        bannerUrl={heroImage}
+        name={displayName}
+        eyebrowSlot={<CreatorScoreInline address={walletAddress} size="sm" />}
+        stats={[
+          { label: "Assets", display: bannerMeta?.total != null ? String(bannerMeta.total) : "—" },
+          { label: "Collections", display: !colsLoading ? String(collections.length) : "—" },
+        ]}
+      />
+
+      {(showUsername || showBio || showSocials) && (
+        <div className="px-6 pt-5 pb-1 space-y-2">
+          {showUsername && (
+            <p className="text-sm text-muted-foreground">{creator.username}</p>
+          )}
+          {showBio && (
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-xl line-clamp-2">
+              {creator.bio}
+            </p>
+          )}
+          {showSocials && (
+            <div className="flex items-center gap-3 pt-1">
+              {creator.websiteUrl && <a href={creator.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors"><Globe className="h-4 w-4" /></a>}
+              {creator.twitterUrl && <a href={creator.twitterUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors"><Twitter className="h-4 w-4" /></a>}
+              {creator.discordUrl && <a href={creator.discordUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors"><MessageCircle className="h-4 w-4" /></a>}
+              {creator.telegramUrl && <a href={creator.telegramUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors"><Send className="h-4 w-4" /></a>}
+            </div>
+          )}
         </div>
       )}
-
-      <div className="px-6 pt-5 pb-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <h1 className="text-2xl font-bold leading-tight">{displayName}</h1>
-          <CreatorScoreInline address={walletAddress} size="sm" />
-        </div>
-        {showUsername && (
-          <p className="text-sm text-muted-foreground mt-0.5">{creator.username}</p>
-        )}
-        {creator.bio && (
-          <p className="text-sm text-muted-foreground leading-relaxed max-w-xl line-clamp-2 mt-2 mb-1">
-            {creator.bio}
-          </p>
-        )}
-        {(creator.websiteUrl || creator.twitterUrl || creator.discordUrl || creator.telegramUrl) && (
-          <div className="flex items-center gap-3 mt-3">
-            {creator.websiteUrl && <a href={creator.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors"><Globe className="h-4 w-4" /></a>}
-            {creator.twitterUrl && <a href={creator.twitterUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors"><Twitter className="h-4 w-4" /></a>}
-            {creator.discordUrl && <a href={creator.discordUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors"><MessageCircle className="h-4 w-4" /></a>}
-            {creator.telegramUrl && <a href={creator.telegramUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors"><Send className="h-4 w-4" /></a>}
-          </div>
-        )}
-      </div>
 
       <div className="sticky top-0 z-20 px-6 bg-background/95 backdrop-blur-sm border-b border-border mt-4">
         <div className="flex items-center gap-0.5 overflow-x-auto scrollbar-none -mb-px">
