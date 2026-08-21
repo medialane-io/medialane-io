@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { assetHref } from "@/lib/routes";
 import { useCreatorByUsername } from "@/hooks/use-username-claims";
 import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
@@ -11,101 +10,23 @@ import { useActivitiesByAddress } from "@/hooks/use-activities";
 import { CreatorScoreInline } from "@/components/rewards/creator-score-inline";
 import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listing-card";
 import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
-import { CollectionCard, CollectionCardSkeleton, CollectionHeroBanner } from "@medialane/ui";
+import { CollectionCard, CollectionCardSkeleton, CollectionHeroBanner, TabEmptyState } from "@medialane/ui";
 import { CreatorAnalytics } from "@/components/creator/creator-analytics";
+import { ActivityRow } from "@/components/creator/activity-row";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ipfsToHttp, timeAgo, formatDisplayPrice } from "@/lib/utils";
+import { ipfsToHttp } from "@/lib/utils";
 import { useUsdPrices } from "@/hooks/use-usd-prices";
 import { usdValueFor } from "@/lib/wallet-format";
 import { normalizeAddress } from "@medialane/sdk";
 import {
   Globe, Twitter, MessageCircle, Send,
-  ShoppingBag, BarChart2, Activity, ArrowRightLeft, Tag, Handshake,
-  TrendingUp, Sparkles, LayoutGrid, Image as ImageIcon,
+  ShoppingBag, BarChart2, Activity, LayoutGrid, Image as ImageIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { ApiActivity } from "@medialane/sdk";
 
 interface Props {
   username: string;
-}
-
-const ACTIVITY_META: Record<string, { label: string; textColor: string; bg: string }> = {
-  mint:      { label: "Minted",    textColor: "text-yellow-400",  bg: "bg-yellow-500/8 border-yellow-500/15" },
-  listing:   { label: "Listed",    textColor: "text-violet-400",  bg: "bg-violet-500/8 border-violet-500/15" },
-  sale:      { label: "Sold",      textColor: "text-emerald-400", bg: "bg-emerald-500/8 border-emerald-500/15" },
-  offer:     { label: "Offer",     textColor: "text-amber-400",   bg: "bg-amber-500/8 border-amber-500/15" },
-  transfer:  { label: "Transfer",  textColor: "text-blue-400",    bg: "bg-blue-500/8 border-blue-500/15" },
-  cancelled: { label: "Cancelled", textColor: "text-muted-foreground", bg: "bg-muted/30 border-border" },
-};
-
-const ACTIVITY_ICONS: Record<string, React.ElementType> = {
-  mint:      Sparkles,
-  listing:   Tag,
-  sale:      Handshake,
-  offer:     TrendingUp,
-  transfer:  ArrowRightLeft,
-  cancelled: ArrowRightLeft,
-};
-
-function ActivityRow({ event, isLast }: { event: ApiActivity; isLast: boolean }) {
-  const meta = ACTIVITY_META[event.type] ?? ACTIVITY_META.transfer;
-  const Icon = ACTIVITY_ICONS[event.type] ?? ArrowRightLeft;
-  const tokenId = event.nftTokenId ?? event.tokenId;
-  const contract = event.nftContract ?? event.contractAddress;
-
-  return (
-    <div className="flex gap-4 group">
-      <div className="flex flex-col items-center shrink-0 w-9">
-        <div className={cn("h-9 w-9 rounded-xl border flex items-center justify-center shrink-0", meta.bg)}>
-          <Icon className={cn("h-3.5 w-3.5", meta.textColor)} />
-        </div>
-        {!isLast && <div className="flex-1 w-px bg-border/50 mt-1.5 min-h-4" />}
-      </div>
-      <div className="flex-1 pb-5 min-w-0 pt-1">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className={cn("text-[11px] font-bold", meta.textColor)}>{meta.label}</span>
-              {contract && tokenId ? (
-                <Link href={assetHref("STARKNET", contract, tokenId)} className="text-xs text-muted-foreground tabular-nums hover:text-foreground transition-colors">
-                  Token #{tokenId}
-                </Link>
-              ) : (
-                <span className="text-xs text-muted-foreground tabular-nums">Token #{tokenId ?? "—"}</span>
-              )}
-            </div>
-            {contract && (
-              <p className="text-[11px] text-muted-foreground/60 tabular-nums mt-0.5 truncate">
-                {contract.slice(0, 10)}…{contract.slice(-6)}
-              </p>
-            )}
-          </div>
-          <div className="text-right shrink-0">
-            {event.price?.formatted && (
-              <p className="text-sm font-semibold price-value leading-none">{formatDisplayPrice(event.price.formatted)}</p>
-            )}
-            <p className="text-[10px] text-muted-foreground mt-1">{timeAgo(event.timestamp)}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function EmptyState({ icon: Icon, heading, body }: { icon: React.ElementType; heading: string; body: string }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
-      <div className="h-14 w-14 rounded-2xl border border-border/60 bg-muted/40 flex items-center justify-center">
-        <Icon className="h-6 w-6 text-muted-foreground/60" />
-      </div>
-      <div className="space-y-1.5">
-        <p className="text-sm font-semibold">{heading}</p>
-        <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">{body}</p>
-      </div>
-    </div>
-  );
 }
 
 const TABS = [
@@ -256,7 +177,7 @@ export default function CreatorUsernamePageClient({ username }: Props) {
               {Array.from({ length: 8 }).map((_, i) => <TokenCardSkeleton key={i} />)}
             </div>
           ) : tokens.length === 0 ? (
-            <EmptyState icon={ImageIcon} heading="No assets yet" body="This creator hasn't minted any digital assets on Medialane yet." />
+            <TabEmptyState icon={ImageIcon} heading="No assets yet" body="This creator hasn't minted any digital assets on Medialane yet." />
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {tokens.map((t) => {
@@ -279,7 +200,7 @@ export default function CreatorUsernamePageClient({ username }: Props) {
               {Array.from({ length: 6 }).map((_, i) => <CollectionCardSkeleton key={i} />)}
             </div>
           ) : collections.length === 0 ? (
-            <EmptyState icon={LayoutGrid} heading="No collections yet" body="This creator hasn't deployed any collections on Medialane yet." />
+            <TabEmptyState icon={LayoutGrid} heading="No collections yet" body="This creator hasn't deployed any collections on Medialane yet." />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {collections.map((col) => (
@@ -295,7 +216,7 @@ export default function CreatorUsernamePageClient({ username }: Props) {
               {Array.from({ length: 4 }).map((_, i) => <ListingCardSkeleton key={i} />)}
             </div>
           ) : activeListings.length === 0 ? (
-            <EmptyState icon={ShoppingBag} heading="No active listings" body="This creator has no digital assets listed for sale right now." />
+            <TabEmptyState icon={ShoppingBag} heading="No active listings" body="This creator has no digital assets listed for sale right now." />
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {activeListings.map((o) => <ListingCard key={o.orderHash} order={o} />)}
@@ -328,7 +249,7 @@ export default function CreatorUsernamePageClient({ username }: Props) {
                 ))}
               </div>
             ) : activities.length === 0 ? (
-              <EmptyState icon={Activity} heading="No activity yet" body="On-chain events for this creator will appear here as they happen." />
+              <TabEmptyState icon={Activity} heading="No activity yet" body="On-chain events for this creator will appear here as they happen." />
             ) : (
               <div>
                 {activities.map((a, i) => (
