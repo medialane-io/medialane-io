@@ -310,6 +310,7 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
               name={form.watch("name")}
               collection={collection.symbol || "Tickets"}
               creator={address ? `${address.slice(0, 6)}…${address.slice(-4)}` : undefined}
+              creatorHref={address ? `/account/${address}` : undefined}
             />
             <CreateTicketAside />
           </>

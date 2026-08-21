@@ -573,6 +573,7 @@ export function SingleEditionsContent() {
               name={form.watch("name")}
               collection={collections.find((c) => c.collectionId === form.watch("collectionId"))?.name || "IP Asset"}
               creator={walletAddress ? `${walletAddress.slice(0, 6)}…${walletAddress.slice(-4)}` : undefined}
+              creatorHref={walletAddress ? `/account/${walletAddress}` : undefined}
             />
             <CreateAssetAside />
           </>

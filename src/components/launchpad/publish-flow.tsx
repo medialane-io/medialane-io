@@ -940,6 +940,7 @@ export function PublishFlow() {
               name={name}
               collection={collectionLabel}
               creator={walletAddress ? `${walletAddress.slice(0, 6)}…${walletAddress.slice(-4)}` : undefined}
+              creatorHref={walletAddress ? `/account/${walletAddress}` : undefined}
             />
           </div>
         </div>

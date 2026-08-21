@@ -272,6 +272,7 @@ export default function LaunchpadCreateCollectionPage() {
               name={form.watch("name") || "My Creative Works"}
               collection={form.watch("symbol") || "Collection"}
               creator={walletAddress ? `${walletAddress.slice(0, 6)}…${walletAddress.slice(-4)}` : undefined}
+              creatorHref={walletAddress ? `/account/${walletAddress}` : undefined}
             />
             <CreateCollectionAside />
           </>

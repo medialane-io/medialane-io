@@ -179,6 +179,7 @@ export default function CreateTicketCollectionPage() {
               name={form.watch("name")}
               collection={form.watch("symbol") || "Tickets"}
               creator={walletAddress ? `${walletAddress.slice(0, 6)}…${walletAddress.slice(-4)}` : undefined}
+              creatorHref={walletAddress ? `/account/${walletAddress}` : undefined}
             />
             <CreateTicketAside />
           </>

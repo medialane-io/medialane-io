@@ -226,6 +226,7 @@ export default function CreateIP1155CollectionPage() {
               name={form.watch("name")}
               collection={form.watch("symbol") || "Editions"}
               creator={walletAddress ? `${walletAddress.slice(0, 6)}…${walletAddress.slice(-4)}` : undefined}
+              creatorHref={walletAddress ? `/account/${walletAddress}` : undefined}
             />
             <CreateEditionsAside />
           </>
