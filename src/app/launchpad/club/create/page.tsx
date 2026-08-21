@@ -179,6 +179,7 @@ export default function CreateClubPage() {
               name={form.watch("name")}
               collection={form.watch("symbol") || "Club"}
               creator={walletAddress ? `${walletAddress.slice(0, 6)}…${walletAddress.slice(-4)}` : undefined}
+              creatorHref={walletAddress ? `/account/${walletAddress}` : undefined}
             />
             <CreateClubAside />
           </>

@@ -317,6 +317,7 @@ export default function CreateDropPage() {
               name={form.watch("name")}
               collection={form.watch("symbol") || "Drop"}
               creator={walletAddress ? `${walletAddress.slice(0, 6)}…${walletAddress.slice(-4)}` : undefined}
+              creatorHref={walletAddress ? `/account/${walletAddress}` : undefined}
             />
             <CreateDropAside />
           </>

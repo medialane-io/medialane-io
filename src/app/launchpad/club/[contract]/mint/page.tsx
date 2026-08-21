@@ -299,6 +299,7 @@ export default function CreateMembershipPage({ params }: { params: Promise<{ con
               name={form.watch("name")}
               collection={collection.symbol || "Club"}
               creator={address ? `${address.slice(0, 6)}…${address.slice(-4)}` : undefined}
+              creatorHref={address ? `/account/${address}` : undefined}
             />
             <CreateClubAside />
           </>
