@@ -48,17 +48,7 @@ export function LaunchpadContent() {
   return (
     <div className="relative pb-20 space-y-16 sm:space-y-24">
 
-      <a
-        href="https://starknet.medialane.io/launchpad"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="absolute top-3 right-4 sm:right-6 lg:right-8 z-20 flex items-center gap-2 h-11 px-4 rounded-full bg-background/10 backdrop-blur-xl text-sm font-semibold hover:bg-background/20 active:scale-[0.98] transition-all"
-      >
-        Starknet dapp
-        <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
-      </a>
-
-      <section className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20 space-y-5">
+      <section className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-14 sm:pt-16 space-y-5">
         <FadeIn>
           <h1 className="text-3xl sm:text-4xl font-semibold leading-tight">Launchpad</h1>
         </FadeIn>
