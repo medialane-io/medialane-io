@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowDown, ArrowUp, ArrowUpRight, ExternalLink } from "lucide-react";
-import { coinKind, formatCoinPrice } from "@medialane/ui";
+import { coinKind, formatCoinPrice, CoinGuarantees } from "@medialane/ui";
+import { MAX_TEAM_ALLOCATION_PERCENT } from "@medialane/sdk/starknet";
+import { useCoinGuarantees } from "@/hooks/use-coin-guarantees";
 import { useCoinPrice } from "@/hooks/use-coin-price";
 import { useCoinSupply } from "@/hooks/use-coin-supply";
 import { tradeHref, useCoin } from "@/lib/coin-adapters";
@@ -25,7 +27,7 @@ function formatCompact(n: number): string {
 export function CoinExploreClient({ address }: { address: string }) {
   const router = useRouter();
   const { coin, isLoading } = useCoin(address);
-  const { price, isLoading: priceLoading } = useCoinPrice(address);
+  const { price, status, isLoading: priceLoading } = useCoinPrice(address);
   const { supply } = useCoinSupply(address, coin?.decimals ?? 18);
   const { hasWallet } = useWalletNativeSession();
   const { open: openWalletPanel } = useMediaWallet();
@@ -40,6 +42,10 @@ export function CoinExploreClient({ address }: { address: string }) {
   const priceUsd = price && quoteUsdRate != null ? price.quotePerCoin * quoteUsdRate : null;
   const marketCapUsd = marketCap != null && quoteUsdRate != null ? marketCap * quoteUsdRate : null;
 
+  const kind = coinKind(coin?.service);
+  const isCreatorCoin = !!coin && kind === "creator";
+  const { guarantees, isLoading: guaranteesLoading } = useCoinGuarantees(address, isCreatorCoin);
+
   useEffect(() => {
     if (!isLoading && !coin) router.replace(collectionHref("STARKNET", address));
   }, [isLoading, coin, address, router]);
@@ -49,7 +55,6 @@ export function CoinExploreClient({ address }: { address: string }) {
   const isStarknet = (coin?.chain ?? "STARKNET").toString().toUpperCase() === "STARKNET";
   const name = coin?.name ?? "Creator Coin";
   const symbol = coin?.symbol ?? "COIN";
-  const kind = coinKind(coin?.service);
   const logoUri = coin?.image;
   const logo = logoUri ? ipfsToHttp(logoUri) : null;
   const initials = symbol.trim().slice(0, 2).toUpperCase();
@@ -115,16 +120,32 @@ export function CoinExploreClient({ address }: { address: string }) {
                 <span className="text-sm text-muted-foreground/70">≈ {fmtUsd(priceUsd)}</span>
               )}
             </div>
+          ) : status === "pre-launch" ? (
+            <p className="text-sm text-muted-foreground">Not trading yet. Liquidity has not been launched for this coin.</p>
           ) : (
-            <p className="text-sm text-muted-foreground">Not trading yet — no market price available.</p>
+            <p className="text-sm text-muted-foreground">Price unavailable right now.</p>
           )}
-          <p className="mt-2 text-[11px] text-muted-foreground/70">Live market price · updates every 30s</p>
+          {price && <p className="mt-2 text-[11px] text-muted-foreground/70">Live market price · updates every 30s</p>}
         </Panel>
 
         {stats.length > 0 && (
           <div className={cn("grid gap-3", stats.length === 1 ? "grid-cols-1" : stats.length === 2 ? "grid-cols-2" : "grid-cols-3")}>
             {stats.map((s) => <StatCell key={s.label} label={s.label} value={s.value} />)}
           </div>
+        )}
+
+        {isCreatorCoin && (
+          <Panel className="p-5">
+            <CoinGuarantees
+              data={guarantees}
+              isLoading={guaranteesLoading}
+              decimals={coin?.decimals ?? 18}
+              maxTeamAllocationPercent={MAX_TEAM_ALLOCATION_PERCENT}
+              contractUrl={`${EXPLORER_URL}/contract/${address}`}
+              liquidityUrl={`${EXPLORER_URL}/contract/${address}`}
+              blockUrl={guarantees?.launchedAtBlock != null ? `${EXPLORER_URL}/block/${guarantees.launchedAtBlock}` : undefined}
+            />
+          </Panel>
         )}
 
         {coin && isStarknet && price?.quoteSymbol && (
