@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowDown, ArrowUp, ArrowUpRight, ExternalLink } from "lucide-react";
-import { coinKind, formatCoinPrice, CoinGuarantees } from "@medialane/ui";
+import { coinKind, coinKindLabel, formatCoinPrice, CoinGuarantees } from "@medialane/ui";
 import { MAX_TEAM_ALLOCATION_PERCENT } from "@medialane/sdk/starknet";
 import { useCoinGuarantees } from "@/hooks/use-coin-guarantees";
 import { useCoinPrice } from "@/hooks/use-coin-price";
@@ -43,8 +43,7 @@ export function CoinExploreClient({ address }: { address: string }) {
   const marketCapUsd = marketCap != null && quoteUsdRate != null ? marketCap * quoteUsdRate : null;
 
   const kind = coinKind(coin?.service);
-  const isCreatorCoin = !!coin && kind === "creator";
-  const { guarantees, isLoading: guaranteesLoading } = useCoinGuarantees(address, isCreatorCoin);
+  const { guarantees, isLoading: guaranteesLoading } = useCoinGuarantees(address, !!coin);
 
   useEffect(() => {
     if (!isLoading && !coin) router.replace(collectionHref("STARKNET", address));
@@ -103,7 +102,7 @@ export function CoinExploreClient({ address }: { address: string }) {
             <h1 className="truncate text-3xl sm:text-4xl font-bold leading-tight">{name}</h1>
             <div className="mt-1 flex items-center gap-2 flex-wrap">
               <span className="rounded-full border border-border/60 bg-muted/60 px-2.5 py-0.5 text-xs">{symbol}</span>
-              <span className="text-xs text-muted-foreground">{kind === "creator" ? "Creator Coin" : "Memecoin"}</span>
+              <span className="text-xs text-muted-foreground">{coinKindLabel(kind)}</span>
             </div>
           </div>
         </div>
@@ -134,7 +133,7 @@ export function CoinExploreClient({ address }: { address: string }) {
           </div>
         )}
 
-        {isCreatorCoin && (
+        {(guarantees || guaranteesLoading) && (
           <Panel className="p-5">
             <CoinGuarantees
               data={guarantees}

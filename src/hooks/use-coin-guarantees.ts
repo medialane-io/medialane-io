@@ -5,7 +5,7 @@ import { getCreatorCoinGuarantees, type CreatorCoinGuarantees } from "@medialane
 import { starknetProvider } from "@/lib/starknet";
 
 export function useCoinGuarantees(coinAddress?: string | null, enabled = true) {
-  const { data, error, isLoading } = useSWR<CreatorCoinGuarantees>(
+  const { data, error, isLoading } = useSWR<CreatorCoinGuarantees | null>(
     coinAddress && enabled ? `coin-guarantees-${coinAddress}` : null,
     () => getCreatorCoinGuarantees(coinAddress as string, starknetProvider),
     { revalidateOnFocus: false, shouldRetryOnError: false }
