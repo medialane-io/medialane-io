@@ -19,7 +19,7 @@ import { IP_TEMPLATES, EMBED_PLATFORM_META, SOCIAL_PLATFORM_META } from "@/lib/i
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ApiActivity } from "@medialane/sdk";
 import { getService, normalizeAddress } from "@medialane/sdk";
-import { resolveRemixPolicy, getDerivativesTerm } from "@/lib/remix-policy";
+import { resolveRemixPolicy, getDerivativesTerm } from "@medialane/sdk";
 import { useComments } from "@/hooks/use-comments";
 import { useUsdPrices } from "@/hooks/use-usd-prices";
 import { usdValueFor } from "@/lib/wallet-format";

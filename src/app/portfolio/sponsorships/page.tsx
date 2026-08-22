@@ -11,7 +11,7 @@ import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { executeIntent, confirmIntentBestEffort } from "@/lib/wallet/intent-tx";
 import { buildFeeCall } from "@medialane/sdk/starknet";
-import { ioFeeConfig } from "@/lib/fee";
+import { feeConfig } from "@/lib/fee";
 import type { Call } from "starknet";
 import {
   useSponsorshipProposals, useSponsorshipOffers, useSponsorshipBids, useSponsorshipLicenses,
@@ -38,7 +38,7 @@ function OfferBidsRow({ offer }: { offer: SponsorshipOffer }) {
 
       const feeCall = buildFeeCall(
         { surface: "sponsorship", token: offer.paymentToken, grossAmount: BigInt(amount) },
-        ioFeeConfig,
+        feeConfig,
       );
       if (feeCall) {
         calls.push({ contractAddress: feeCall.contractAddress, entrypoint: feeCall.entrypoint, calldata: feeCall.calldata as string[] });
@@ -95,7 +95,7 @@ function ReceivedProposalsSection({ walletAddress }: { walletAddress: string }) 
       if (decision === "accept") {
         const feeCall = buildFeeCall(
           { surface: "sponsorship", token: paymentToken, grossAmount: BigInt(amount) },
-          ioFeeConfig,
+          feeConfig,
         );
         if (feeCall) {
           calls.push({ contractAddress: feeCall.contractAddress, entrypoint: feeCall.entrypoint, calldata: feeCall.calldata as string[] });

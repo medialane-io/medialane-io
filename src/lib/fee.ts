@@ -1,15 +1,10 @@
-import { resolveFeeConfig } from "@medialane/sdk";
-import { buildFeeCall } from "@medialane/sdk/starknet";
+import { resolveAppFeeConfig } from "@medialane/sdk";
 
-export const ioFeeConfig = resolveFeeConfig({
-  enabled: process.env.NEXT_PUBLIC_FEE_ENABLED !== "false",
-  fundAddress: process.env.NEXT_PUBLIC_FEE_FUND_ADDRESS || undefined,
-  marketplaceBps: process.env.NEXT_PUBLIC_FEE_MARKETPLACE_BPS
-    ? Number(process.env.NEXT_PUBLIC_FEE_MARKETPLACE_BPS)
-    : 100,
-  launchpadBps: process.env.NEXT_PUBLIC_FEE_LAUNCHPAD_BPS
-    ? Number(process.env.NEXT_PUBLIC_FEE_LAUNCHPAD_BPS)
-    : 100,
+export { buildFeeCall } from "@medialane/sdk/starknet";
+
+export const feeConfig = resolveAppFeeConfig({
+  NEXT_PUBLIC_FEE_ENABLED: process.env.NEXT_PUBLIC_FEE_ENABLED,
+  NEXT_PUBLIC_FEE_FUND_ADDRESS: process.env.NEXT_PUBLIC_FEE_FUND_ADDRESS,
+  NEXT_PUBLIC_FEE_MARKETPLACE_BPS: process.env.NEXT_PUBLIC_FEE_MARKETPLACE_BPS,
+  NEXT_PUBLIC_FEE_LAUNCHPAD_BPS: process.env.NEXT_PUBLIC_FEE_LAUNCHPAD_BPS,
 });
-
-export { buildFeeCall };

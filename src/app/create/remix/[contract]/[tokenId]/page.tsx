@@ -31,7 +31,7 @@ import { readAssignedEditionId } from "@/lib/erc1155-edition";
 import { getService, normalizeAddress } from "@medialane/sdk";
 import { IP_TYPES, LICENSE_TYPES } from "@/types/ip";
 import { ipfsToHttp, checkIsOwner } from "@/lib/utils";
-import { resolveRemixPolicy, getDerivativesTerm } from "@/lib/remix-policy";
+import { resolveRemixPolicy, getDerivativesTerm } from "@medialane/sdk";
 import { ToggleGroup, Section } from "@/components/create/create-form-primitives";
 import { INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
 import { cn } from "@/lib/utils";

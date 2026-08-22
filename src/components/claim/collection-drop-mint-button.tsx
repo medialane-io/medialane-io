@@ -10,7 +10,7 @@ import { EXPLORER_URL } from "@/lib/constants";
 import { useDropMintStatus, type DropConditions } from "@/hooks/use-drops";
 import { getListableTokens, normalizeAddress } from "@medialane/sdk";
 import { buildFeeCall, type StarknetVenueSigner } from "@medialane/sdk/starknet";
-import { ioFeeConfig } from "@/lib/fee";
+import { feeConfig } from "@/lib/fee";
 import { rewardToast } from "@/lib/reward-toast";
 
 interface CollectionDropMintButtonProps {
@@ -97,7 +97,7 @@ export function CollectionDropMintButton({
     if (isPaid && conditions && conditions.paymentToken !== "0x0") {
       const feeCall = buildFeeCall(
         { surface: "launchpad", token: conditions.paymentToken, grossAmount: price },
-        ioFeeConfig,
+        feeConfig,
       );
       if (feeCall) {
         calls.push({

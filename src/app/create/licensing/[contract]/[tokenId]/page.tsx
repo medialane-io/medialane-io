@@ -12,7 +12,7 @@ import { useSiwsToken } from "@/hooks/use-siws-token";
 import { submitRemixOffer } from "@/hooks/use-remix-offers";
 import { getListableTokens, getTokenBySymbol, getService } from "@medialane/sdk";
 import { LICENSE_TYPES } from "@/types/ip";
-import { resolveRemixPolicy, getDerivativesTerm } from "@/lib/remix-policy";
+import { resolveRemixPolicy, getDerivativesTerm } from "@medialane/sdk";
 import { ipfsToHttp, checkIsOwner } from "@/lib/utils";
 import { ToggleGroup, Section } from "@/components/create/create-form-primitives";
 import { Button } from "@/components/ui/button";

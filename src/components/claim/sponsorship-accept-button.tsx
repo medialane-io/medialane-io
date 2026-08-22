@@ -10,7 +10,7 @@ import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { confirmIntentBestEffort } from "@/lib/wallet/intent-tx";
 import { buildFeeCall } from "@medialane/sdk/starknet";
-import { ioFeeConfig } from "@/lib/fee";
+import { feeConfig } from "@/lib/fee";
 import { EXPLORER_URL } from "@/lib/constants";
 import type { Call } from "starknet";
 
@@ -43,7 +43,7 @@ export function SponsorshipAcceptButton({ offerId, sponsor, paymentToken, amount
 
       const feeCall = buildFeeCall(
         { surface: "sponsorship", token: paymentToken, grossAmount: BigInt(amount) },
-        ioFeeConfig,
+        feeConfig,
       );
       if (feeCall) {
         calls.push({

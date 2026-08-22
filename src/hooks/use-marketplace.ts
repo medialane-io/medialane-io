@@ -8,7 +8,7 @@ import { SUPPORTED_TOKENS, INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants
 import { isErc1155Standard } from "@/lib/protocol/token-standard";
 import { QUERY_PREFIX } from "@/lib/query-keys";
 import { buildFeeCall } from "@medialane/sdk/starknet";
-import { ioFeeConfig } from "@/lib/fee";
+import { feeConfig } from "@/lib/fee";
 import type { Call, TypedData } from "starknet";
 import type { ApiIntentCreated } from "@medialane/sdk";
 import { friendlyErrorMessage } from "@/lib/friendly-error";
@@ -256,7 +256,7 @@ export function useMarketplace() {
         if (input.feeToken && input.feeGrossAmount != null) {
           const feeCall = buildFeeCall(
             { surface: "marketplace", token: input.feeToken, grossAmount: input.feeGrossAmount },
-            ioFeeConfig,
+            feeConfig,
           );
           if (feeCall) {
             extraCalls.push({

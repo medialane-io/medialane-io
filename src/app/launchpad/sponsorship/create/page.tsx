@@ -10,7 +10,7 @@ import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { executeIntent, confirmIntentBestEffort } from "@/lib/wallet/intent-tx";
 import { buildFeeCall } from "@medialane/sdk/starknet";
-import { ioFeeConfig } from "@/lib/fee";
+import { feeConfig } from "@/lib/fee";
 import { useTokensByOwner } from "@/hooks/use-tokens";
 import { AssetPicker, AssetSearchPicker, LicenseTermsBuilder, EMPTY_SPONSORSHIP_TERMS, toLicenseMetadata, toDurationDays, type OwnedAsset, type SponsorshipTerms } from "@medialane/ui";
 import { apiFetch } from "@/lib/api-fetch";
@@ -72,7 +72,7 @@ function PendingProposalsPanel({ nftContract }: { nftContract: string }) {
       if (decision === "accept") {
         const feeCall = buildFeeCall(
           { surface: "sponsorship", token: paymentToken, grossAmount: BigInt(amount) },
-          ioFeeConfig,
+          feeConfig,
         );
         if (feeCall) {
           calls.push({
