@@ -27,7 +27,7 @@ function formatCompact(n: number): string {
 export function CoinExploreClient({ address }: { address: string }) {
   const router = useRouter();
   const { coin, isLoading } = useCoin(address);
-  const { price, status, isLoading: priceLoading } = useCoinPrice(address);
+  const { price, status, isLoading: priceLoading } = useCoinPrice(coin ?? { contractAddress: address });
   const { supply } = useCoinSupply(address, coin?.decimals ?? 18);
   const { hasWallet } = useWalletNativeSession();
   const { open: openWalletPanel } = useMediaWallet();
