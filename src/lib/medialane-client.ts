@@ -13,19 +13,9 @@ import {
 
 let _client: MedialaneClient | null = null;
 
-function isHttpUrl(value: string): boolean {
-  try {
-    const { protocol } = new URL(value);
-    return protocol === "http:" || protocol === "https:";
-  } catch {
-    return false;
-  }
-}
-
 export function medialaneConfig() {
-  const serverRpcUrl = RPC_MAIN_URL || RPC_FALLBACK_URL;
   const rpcUrl = typeof window === "undefined"
-    ? (isHttpUrl(serverRpcUrl) ? serverRpcUrl : PUBLIC_RPC_FALLBACKS[0])
+    ? (RPC_MAIN_URL || RPC_FALLBACK_URL)
     : PUBLIC_RPC_FALLBACKS[0];
   return {
     backendUrl: MEDIALANE_BACKEND_URL,
