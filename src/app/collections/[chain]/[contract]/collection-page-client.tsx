@@ -412,7 +412,7 @@ export default function CollectionPageClient() {
                       {sortOrders(activeListings, listingsSort).map((o) => {
                         const isOwner = !!walletAddress && !!o.offerer &&
                           normalizeAddress("STARKNET", o.offerer) === normalizeAddress("STARKNET", walletAddress);
-                        return <ListingCard key={o.orderHash} order={o} isOwner={isOwner} onBuy={isOwner ? undefined : handleBuy} />;
+                        return <ListingCard key={o.orderHash} order={o} onBuy={isOwner ? undefined : handleBuy} />;
                       })}
                     </div>
                   </div>
@@ -443,7 +443,7 @@ export default function CollectionPageClient() {
                     {sortOrders(activeBids, offersSort).map((o) => {
                       const isOwner = !!walletAddress && !!o.offerer &&
                         normalizeAddress("STARKNET", o.offerer) === normalizeAddress("STARKNET", walletAddress);
-                      return <ListingCard key={o.orderHash} order={o} isOwner={isOwner} />;
+                      return <ListingCard key={o.orderHash} order={o} />;
                     })}
                   </div>
                 )}

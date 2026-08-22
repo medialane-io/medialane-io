@@ -112,7 +112,7 @@ export function ListingsGrid({ sort = "recent", currency, orderType = "", minPri
             const isOwner = !!walletAddress && !!order.offerer &&
               normalizeAddress("STARKNET", order.offerer) === normalizeAddress("STARKNET", walletAddress);
             return (
-              <ListingCard key={order.orderHash} order={order} onBuy={isOwner ? undefined : handleBuy} isOwner={isOwner} />
+              <ListingCard key={order.orderHash} order={order} onBuy={isOwner ? undefined : handleBuy} />
             );
           })}
           {isLoadingMore &&
