@@ -18,7 +18,7 @@ export function CoinsMount({ heading = true }: { heading?: boolean }) {
             </div>
             <h1 className="text-3xl">Creator coins & memecoins</h1>
           </div>
-          <GradientButton className="shrink-0" onClick={() => router.push("/launchpad/coin/create")}>
+          <GradientButton wrapperClassName="w-auto shrink-0" onClick={() => router.push("/launchpad/coin/create")}>
             Launch a coin
           </GradientButton>
         </div>
