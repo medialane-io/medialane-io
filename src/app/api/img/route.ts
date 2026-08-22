@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { lookup } from "node:dns/promises";
 import { readBodyWithCap } from "@/lib/proxy-body";
+import { createRateLimiter, requestIp } from "@/lib/api-route-guard";
 
 const ALLOWED_CONTENT_TYPES = new Set([
   "image/jpeg",
@@ -17,6 +18,8 @@ const ALLOWED_CONTENT_TYPES = new Set([
 const MAX_REDIRECTS = 5;
 
 const MAX_BYTES = 15 * 1024 * 1024;
+
+const checkRateLimit = createRateLimiter(60_000, 300);
 
 function isPrivateHost(hostname: string): boolean {
   const h = hostname.toLowerCase().replace(/^\[|\]$/g, "");
@@ -133,6 +136,10 @@ async function safeFetch(url: URL, hopsLeft: number): Promise<Response> {
 }
 
 export async function GET(req: NextRequest) {
+  if (!checkRateLimit(requestIp(req))) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   const raw = req.nextUrl.searchParams.get("url");
 
   if (!raw) {
