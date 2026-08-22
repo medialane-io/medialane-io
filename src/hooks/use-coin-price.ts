@@ -1,14 +1,15 @@
 "use client";
 
 import useSWR from "swr";
-import { getCreatorCoinPrice, type CreatorCoinPrice } from "@medialane/sdk/starknet";
+import { getCreatorCoinMarket, type CreatorCoinMarket } from "@medialane/sdk/starknet";
+import type { CoinMarketStatus } from "@medialane/ui";
 import { starknetProvider } from "@/lib/starknet";
 
 export function useCoinPrice(coinAddress?: string | null) {
-  const { data, error, isLoading, mutate } = useSWR<CreatorCoinPrice | null>(
-    coinAddress ? `coin-price-${coinAddress}` : null,
+  const { data, error, isLoading, mutate } = useSWR<CreatorCoinMarket>(
+    coinAddress ? `coin-market-${coinAddress}` : null,
 
-    () => getCreatorCoinPrice(coinAddress as string, starknetProvider),
+    () => getCreatorCoinMarket(coinAddress as string, starknetProvider),
     {
       revalidateOnFocus: false,
       refreshInterval: 30_000,
@@ -16,10 +17,23 @@ export function useCoinPrice(coinAddress?: string | null) {
 
       onError: (err) => {
         if (process.env.NODE_ENV !== "production") {
-          console.warn(`[coin-price] read failed for ${coinAddress}:`, err);
+          console.warn(`[coin-market] read failed for ${coinAddress}:`, err);
         }
       },
     }
   );
-  return { price: data ?? null, isLoading, error, mutate };
+
+  const status: CoinMarketStatus = data?.status === "live"
+    ? "live"
+    : data?.status === "pre-launch"
+      ? "pre-launch"
+      : "unavailable";
+
+  return {
+    price: data?.status === "live" ? data.price : null,
+    status,
+    isLoading,
+    error,
+    mutate,
+  };
 }

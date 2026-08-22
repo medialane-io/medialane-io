@@ -25,7 +25,7 @@ function formatCompact(n: number): string {
 export function CoinExploreClient({ address }: { address: string }) {
   const router = useRouter();
   const { coin, isLoading } = useCoin(address);
-  const { price, isLoading: priceLoading } = useCoinPrice(address);
+  const { price, status, isLoading: priceLoading } = useCoinPrice(address);
   const { supply } = useCoinSupply(address, coin?.decimals ?? 18);
   const { hasWallet } = useWalletNativeSession();
   const { open: openWalletPanel } = useMediaWallet();
@@ -115,10 +115,12 @@ export function CoinExploreClient({ address }: { address: string }) {
                 <span className="text-sm text-muted-foreground/70">≈ {fmtUsd(priceUsd)}</span>
               )}
             </div>
+          ) : status === "pre-launch" ? (
+            <p className="text-sm text-muted-foreground">Not trading yet. Liquidity has not been launched for this coin.</p>
           ) : (
-            <p className="text-sm text-muted-foreground">Not trading yet — no market price available.</p>
+            <p className="text-sm text-muted-foreground">Price unavailable right now.</p>
           )}
-          <p className="mt-2 text-[11px] text-muted-foreground/70">Live market price · updates every 30s</p>
+          {price && <p className="mt-2 text-[11px] text-muted-foreground/70">Live market price · updates every 30s</p>}
         </Panel>
 
         {stats.length > 0 && (
