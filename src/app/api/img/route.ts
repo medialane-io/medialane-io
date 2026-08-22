@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { lookup } from "node:dns/promises";
 import { readBodyWithCap } from "@/lib/proxy-body";
-import { createRateLimiter, requestIp } from "@/lib/api-route-guard";
+import { createRateLimiter, requestIp } from "@medialane/sdk";
 
 const ALLOWED_CONTENT_TYPES = new Set([
   "image/jpeg",

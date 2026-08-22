@@ -29,19 +29,4 @@ export function readStringEnv(value: string | undefined, fallback = ""): string 
   return value || fallback;
 }
 
-export function isHttpUrl(value: string | undefined): value is string {
-  if (!value) return false;
-  try {
-    const { protocol } = new URL(value);
-    return protocol === "http:" || protocol === "https:";
-  } catch {
-    return false;
-  }
-}
 
-export function readUrlEnv(...candidates: (string | undefined)[]): string {
-  for (const candidate of candidates) {
-    if (isHttpUrl(candidate)) return candidate;
-  }
-  return "";
-}

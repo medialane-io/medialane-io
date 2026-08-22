@@ -19,9 +19,9 @@ export const STRK_TOKEN = tokenAddress("STRK");
 export const ETH_TOKEN = tokenAddress("ETH");
 export const USDC_TOKEN = tokenAddress("USDC");
 
-export async function isDeployed(address: string, rpc?: string): Promise<boolean> {
+export async function isDeployed(address: string): Promise<boolean> {
   try {
-    await walletProvider(rpc).getClassHashAt(norm(address));
+    await walletProvider().getClassHashAt(norm(address));
     return true;
   } catch {
     return false;

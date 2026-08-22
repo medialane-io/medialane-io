@@ -22,16 +22,16 @@ export {
   buildCancelEscapeCall,
 } from "@medialane/sdk/starknet";
 
-export async function getGuardians(address: string, rpc?: string): Promise<GuardianInfo[]> {
-  return sdkGetGuardians(walletProvider(rpc), address);
+export async function getGuardians(address: string): Promise<GuardianInfo[]> {
+  return sdkGetGuardians(walletProvider(), address);
 }
 
-export async function getEscape(address: string, rpc?: string): Promise<EscapeInfo> {
-  return sdkGetEscape(walletProvider(rpc), address);
+export async function getEscape(address: string): Promise<EscapeInfo> {
+  return sdkGetEscape(walletProvider(), address);
 }
 
-export async function getEscapeSecurityPeriod(address: string, rpc?: string): Promise<number> {
-  return sdkGetEscapeSecurityPeriod(walletProvider(rpc), address);
+export async function getEscapeSecurityPeriod(address: string): Promise<number> {
+  return sdkGetEscapeSecurityPeriod(walletProvider(), address);
 }
 
 export async function setFirstGuardian(sealed: SealedOwner, guardianPubkey: string) {

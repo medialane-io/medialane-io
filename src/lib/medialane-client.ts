@@ -1,22 +1,18 @@
 import { MedialaneClient } from "@medialane/sdk/starknet";
-import { PUBLIC_RPC_FALLBACKS } from "@medialane/sdk";
 import {
   MEDIALANE_BACKEND_URL,
   MEDIALANE_API_KEY,
-  RPC_MAIN_URL,
-  RPC_FALLBACK_URL,
   STARKNET_MARKETPLACE_721_CONTRACT,
   STARKNET_MARKETPLACE_1155_CONTRACT,
   STARKNET_COLLECTION_721_CONTRACT,
   STARKNET_COLLECTION_1155_CONTRACT,
 } from "./constants";
+import { RPC_PRIMARY_URL } from "./starknet";
 
 let _client: MedialaneClient | null = null;
 
 export function medialaneConfig() {
-  const rpcUrl = typeof window === "undefined"
-    ? (RPC_MAIN_URL || RPC_FALLBACK_URL)
-    : PUBLIC_RPC_FALLBACKS[0];
+  const rpcUrl = RPC_PRIMARY_URL;
   return {
     backendUrl: MEDIALANE_BACKEND_URL,
     apiKey: MEDIALANE_API_KEY || undefined,

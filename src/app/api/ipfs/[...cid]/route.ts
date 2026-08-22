@@ -1,12 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
-import {
-  isValidIpfsCidPath,
-  resolveSafeImageContentType,
-  MAX_IPFS_GATEWAY_RESPONSE_BYTES,
-} from "@medialane/sdk";
+import { isValidIpfsCidPath, resolveSafeImageContentType, MAX_IPFS_GATEWAY_RESPONSE_BYTES, createRateLimiter, requestIp } from "@medialane/sdk";
 import { readBodyWithCap } from "@/lib/proxy-body";
-import { createRateLimiter, requestIp } from "@/lib/api-route-guard";
 import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
 
 export const runtime = "nodejs";

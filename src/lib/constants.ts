@@ -1,4 +1,4 @@
-import { readOptionalAddressEnv, readStringEnv, readUrlEnv, isHttpUrl } from "./env";
+import { readOptionalAddressEnv, readStringEnv } from "./env";
 
 export {
   SUPPORTED_TOKENS,
@@ -13,21 +13,8 @@ export {
   STARKNET_IP_CLUB_FACTORY_CONTRACT,
   STARKNET_IP_SPONSORSHIP_CONTRACT,
 } from "@medialane/sdk";
-import { PUBLIC_RPC_FALLBACKS } from "@medialane/sdk";
 
-export const STARKNET_RPC_URL =
-  readStringEnv(process.env.NEXT_PUBLIC_STARKNET_RPC_URL);
 
-export const RPC_MAIN_URL = readUrlEnv(
-  process.env.ALCHEMY_RPC_URL,
-  process.env.STARKNET_RPC_URL_SERVER,
-);
-export const RPC_FALLBACK_URL =
-  readStringEnv(process.env.STARKNET_RPC_FALLBACK_URL, "https://rpc.starknet.lava.build");
-
-export const RPC_URLS: string[] = Array.from(
-  new Set([RPC_MAIN_URL, RPC_FALLBACK_URL, ...PUBLIC_RPC_FALLBACKS].filter(isHttpUrl)),
-);
 
 const isServer = typeof window === "undefined";
 

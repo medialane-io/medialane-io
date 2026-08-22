@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { paymaster } from "@/lib/wallet/paymaster-server";
 import { billPaymasterCall } from "@/lib/wallet/paymaster-billing";
-import { createRateLimiter, isSameOrigin, requestIp } from "@/lib/api-route-guard";
+import { createRateLimiter, isSameOrigin, requestIp } from "@medialane/sdk";
 
 export const runtime = "nodejs";
 

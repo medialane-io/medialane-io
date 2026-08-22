@@ -1,11 +1,12 @@
 import { RpcProvider } from "starknet";
-import { createFailoverFetch } from "@medialane/sdk";
-import { STARKNET_RPC_URL } from "./constants";
+import { MEDIALANE_BACKEND_URL } from "./constants";
 
-const PRIMARY = process.env.NEXT_PUBLIC_STARKNET_PROVIDER_URL || STARKNET_RPC_URL || "/api/rpc";
+export const RPC_PRIMARY_URL =
+  typeof window === "undefined"
+    ? `${MEDIALANE_BACKEND_URL.replace(/\/$/, "")}/v1/rpc`
+    : "/api/rpc";
 
 export const starknetProvider = new RpcProvider({
-  nodeUrl: PRIMARY,
+  nodeUrl: RPC_PRIMARY_URL,
   blockIdentifier: "latest",
-  baseFetch: createFailoverFetch([PRIMARY]),
 });
