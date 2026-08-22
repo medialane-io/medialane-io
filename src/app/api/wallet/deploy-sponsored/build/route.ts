@@ -1,67 +1,16 @@
-import { type NextRequest, NextResponse } from "next/server";
-import { CallData, uint256, type PreparedDeployAndInvokeTransaction } from "starknet";
-import { getTokenBySymbol, createRateLimiter, isSameOrigin, requestIp } from "@medialane/sdk";
-import { MEDIAWALLET_CLASS_HASH, ownerConstructorCalldata } from "@/lib/wallet/account";
-import { paymaster } from "@/lib/wallet/paymaster-server";
-import { billPaymasterCall } from "@/lib/wallet/paymaster-billing";
+import { NextRequest } from "next/server";
+import { createBackendProxyHandler, createRateLimiter } from "@medialane/sdk";
+import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
 
 export const runtime = "nodejs";
 
-const checkRateLimit = createRateLimiter(60_000, 30);
+const handler = createBackendProxyHandler({
+  path: "/v1/paymaster/deploy/build",
+  backendUrl: MEDIALANE_BACKEND_URL,
+  apiKey: MEDIALANE_API_KEY,
+  checkRateLimit: createRateLimiter(60_000, 30),
+});
 
 export async function POST(req: NextRequest) {
-  if (!isSameOrigin(req)) {
-    return NextResponse.json({ error: "Cross-origin requests are not allowed" }, { status: 403 });
-  }
-  if (!checkRateLimit(requestIp(req))) {
-    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
-  }
-
-  const body = (await req.json().catch(() => null)) as
-    | { ownerPubkey?: string; ownerAddress?: string; salt?: string }
-    | null;
-  if (!body?.ownerPubkey || !body.ownerAddress) {
-    return NextResponse.json({ error: "ownerPubkey and ownerAddress are required" }, { status: 400 });
-  }
-  const salt = body.salt ?? "0x0";
-
-  const strk = getTokenBySymbol("STRK");
-  if (!strk) return NextResponse.json({ error: "STRK token not found in registry" }, { status: 500 });
-
-  if (!(await billPaymasterCall("deploy/build"))) {
-    return NextResponse.json({ error: "Insufficient credits or billing unavailable" }, { status: 402 });
-  }
-
-  try {
-    const prepared = (await paymaster().buildTransaction(
-      {
-        type: "deploy_and_invoke",
-        deployment: {
-          address: body.ownerAddress,
-          class_hash: MEDIAWALLET_CLASS_HASH,
-          salt,
-          calldata: ownerConstructorCalldata(body.ownerPubkey),
-          version: 1,
-        },
-        invoke: {
-          userAddress: body.ownerAddress,
-          calls: [
-            {
-              contractAddress: strk.address,
-              entrypoint: "transfer",
-              calldata: CallData.compile([body.ownerAddress, uint256.bnToUint256(0)]),
-            },
-          ],
-        },
-      },
-      { version: "0x1", feeMode: { mode: "sponsored" } },
-    )) as PreparedDeployAndInvokeTransaction;
-
-    return NextResponse.json({ typedData: prepared.typed_data, deployment: prepared.deployment });
-  } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Failed to build sponsored deploy transaction" },
-      { status: 502 },
-    );
-  }
+  return handler(req);
 }
