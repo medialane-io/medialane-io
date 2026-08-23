@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Coins, ExternalLink, TrendingUp, ArrowRight, Lock, Sparkles, ImagePlus, X, Loader2 } from "lucide-react";
+import { Coins, ExternalLink, TrendingUp, ArrowRight, ImagePlus, X, Loader2 } from "lucide-react";
 import { getTokenBySymbol, formatAmount, SUPPORTED_TOKENS } from "@medialane/sdk";
 import {
   validateCoinName as validateName,
@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ClaimBackButton } from "@/components/claim/claim-back-button";
-import { ServiceFormShell, ActionButton, CurrencyIcon, CurrencyAmount } from "@medialane/ui";
+import { ServiceFormShell, GradientButton, CurrencyIcon, CurrencyAmount } from "@medialane/ui";
 import { CreateCoinAside } from "@/components/claim/create-coin-aside";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import {
@@ -169,7 +169,7 @@ export default function CoinCreatePage() {
     return (
       <LaunchpadSignedOutState
         icon={TrendingUp}
-        iconClassName="text-brand-rose"
+        iconClassName="text-brand-orange"
         title="Launch a Creator Coin"
         description="Secure your account to design and launch your own coin with permanently-locked liquidity, in a few clicks."
       />
@@ -180,9 +180,9 @@ export default function CoinCreatePage() {
     return (
       <LaunchpadSuccessState
         icon={Coins}
-        accentClassName="bg-brand-rose/10"
-        iconClassName="text-brand-rose"
-        actionClassName="bg-brand-rose hover:bg-brand-rose/90"
+        accentClassName="bg-brand-orange/10"
+        iconClassName="text-brand-orange"
+        actionClassName="bg-brand-orange hover:bg-brand-orange/90"
         title={`${name} is live`}
         description="Deployed and launched with permanently-locked liquidity. Trading starts on the dapp right away."
         backHref="/launchpad"
@@ -202,11 +202,11 @@ export default function CoinCreatePage() {
           )}
           {profileStatus === "failed" && (
             <p className="text-xs text-muted-foreground text-center">
-              Couldn&apos;t save the image &amp; description right now — add them anytime from your collection settings.
+              Couldn&apos;t save the image &amp; description right now. Add them anytime from your collection settings.
             </p>
           )}
           <p className="tabular-nums text-xs text-muted-foreground break-all text-center">{coinAddress}</p>
-          <Button asChild className="w-full bg-brand-rose hover:bg-brand-rose/90">
+          <Button asChild className="w-full bg-brand-orange hover:bg-brand-orange/90">
             <a href={`${DAPP_COLLECTIONS_BASE}/${coinAddress}`} target="_blank" rel="noopener noreferrer">
               View &amp; trade your coin <ExternalLink className="h-3.5 w-3.5 ml-1.5" />
             </a>
@@ -244,7 +244,7 @@ export default function CoinCreatePage() {
       <ServiceFormShell
         icon={<Coins className="h-4 w-4 text-white" />}
         title="Design your Creator Coin"
-        subtitle="Give it a face, set the numbers, and launch with liquidity locked forever."
+        subtitle="A few steps to design and launch your coin."
         backSlot={<ClaimBackButton />}
         aside={
           <>
@@ -258,7 +258,6 @@ export default function CoinCreatePage() {
           <section className="space-y-4">
             <div>
               <h3 className="text-lg font-bold">Give it a face</h3>
-              <p className="text-sm text-muted-foreground">This is how your coin shows up across Medialane.</p>
             </div>
 
               <div className="space-y-1.5">
@@ -334,7 +333,6 @@ export default function CoinCreatePage() {
           <section className="space-y-4">
             <div>
               <h3 className="text-lg font-bold">Set the numbers</h3>
-              <p className="text-sm text-muted-foreground">You set the price and pair — supply and price together set the market cap.</p>
             </div>
               <div className="space-y-1.5">
                 <Label htmlFor="supply">Total supply</Label>
@@ -346,7 +344,7 @@ export default function CoinCreatePage() {
                       onClick={() => setSupply(p.value)}
                       className={cn(
                         "rounded-full border px-3 py-1 text-xs font-medium",
-                        supply === p.value ? "border-brand-rose/50 bg-brand-rose/10 text-brand-rose" : "border-border text-muted-foreground",
+                        supply === p.value ? "border-brand-orange/50 bg-brand-orange/10 text-brand-orange" : "border-border text-muted-foreground",
                       )}
                     >
                       {p.label}
@@ -371,7 +369,7 @@ export default function CoinCreatePage() {
                       onClick={() => setQuote(q)}
                       className={cn(
                         "inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-1.5 text-sm font-medium",
-                        quote === q ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground",
+                        quote === q ? "border-brand-maeve bg-brand-maeve/10 text-brand-maeve" : "border-border text-muted-foreground",
                       )}
                     >
                       <CurrencyIcon symbol={q} size={16} />
@@ -411,12 +409,9 @@ export default function CoinCreatePage() {
                 <input
                   id="alloc" type="range" min={1} max={10} step={1}
                   value={teamPct} onChange={(e) => setTeamPct(Number(e.target.value))}
-                  className="w-full accent-[hsl(var(--brand-rose))]"
+                  className="w-full accent-[hsl(var(--brand-orange))]"
                 />
-                <p className="text-xs text-muted-foreground">
-                  Bought back from the pool at your own price — this funds your coin&apos;s
-                  starting liquidity, so it&apos;s never skipped.
-                </p>
+                <p className="text-xs text-muted-foreground">Bought back from the pool at your own price.</p>
                 {preview && (
                   <p className={cn("text-sm font-semibold", insufficient ? "text-destructive" : "text-foreground")}>
                     <CurrencyAmount amount={preview.buybackHuman} symbol={quote} iconSize={14} /> required
@@ -424,7 +419,7 @@ export default function CoinCreatePage() {
                 )}
                 {insufficient && (
                   <p className="text-xs text-destructive">
-                    Your wallet doesn&apos;t have enough {quote}. Lower the allocation, lower the price, or add funds.
+                    Your wallet doesn&apos;t have enough {quote}. Add funds, or adjust the numbers above.
                   </p>
                 )}
               </div>
@@ -434,30 +429,14 @@ export default function CoinCreatePage() {
           <div className="h-px bg-border/60" />
 
           <section className="space-y-4">
-              <ul className="space-y-2.5 text-sm">
-                <li className="flex items-start gap-2">
-                  <Lock className="h-4 w-4 mt-0.5 text-emerald-500 shrink-0" />
-                  <span><span className="font-semibold">Liquidity locked forever.</span> Nobody can pull it — not even us.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Sparkles className="h-4 w-4 mt-0.5 text-emerald-500 shrink-0" />
-                  <span><span className="font-semibold">One confirmation.</span> Sign once with your passkey to launch.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <TrendingUp className="h-4 w-4 mt-0.5 text-emerald-500 shrink-0" />
-                  <span><span className="font-semibold">Tradable immediately.</span> Your coin opens on the market the moment it launches.</span>
-                </li>
-              </ul>
-
-              <ActionButton
-                tone="rose"
+              <GradientButton
                 big
                 onClick={handleLaunchClick}
                 disabled={!canLaunch || action.status !== "idle"}
-                className={`w-full ${!canLaunch || action.status !== "idle" ? "opacity-40 pointer-events-none" : ""}`}
+                className={!canLaunch || action.status !== "idle" ? "opacity-40 pointer-events-none" : ""}
               >
                 {action.status !== "idle" ? <><Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> Launching…</> : <>Launch your coin <ArrowRight className="h-4 w-4 ml-1.5" /></>}
-              </ActionButton>
+              </GradientButton>
               <p className="text-xs text-muted-foreground text-center">
                 <Link href="/launchpad/memecoin" className="underline active:text-foreground">
                   Already launched a coin? Claim it instead.
