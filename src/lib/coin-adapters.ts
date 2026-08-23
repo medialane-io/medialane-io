@@ -26,7 +26,7 @@ export function useCoinsAdapter({ filter, sort }: { filter: CoinFilter; sort: Co
     { revalidateOnFocus: false }
   );
 
-  return { collections: data?.data ?? [], isLoading };
+  return { collections: data?.data ?? [], isLoading, counts: data?.meta?.counts };
 }
 
 export function useCoin(address: string | null) {
