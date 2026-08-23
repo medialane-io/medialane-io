@@ -12,7 +12,7 @@ export function ClaimMemecoinAside() {
       steps={[
         "Paste your coin's contract address",
         "We check on-chain that you own it",
-        "After a quick review, it goes live",
+        "Ownership confirmed, your coin goes live",
       ]}
       trustLead="Non-custodial."
       trust="Medialane never takes custody of your coin — claiming just links it to your account."
