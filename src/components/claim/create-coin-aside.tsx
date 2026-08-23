@@ -1,17 +1,24 @@
-import { Lock } from "lucide-react";
+import { Lock, Sparkles, TrendingUp } from "lucide-react";
 import { ClaimRail } from "@/components/claim/claim-rail";
 
 export function CreateCoinAside() {
   return (
     <ClaimRail
-      steps={[
-        "Design your coin — name, image and story",
-        "Set the economics — supply, price and your share",
-        "Launch — liquidity locked forever",
+      included={[
+        { icon: Sparkles, title: "One confirmation", desc: "Sign once with your passkey to launch." },
+        { icon: TrendingUp, title: "Tradable immediately", desc: "Your coin opens on the market the moment it launches." },
       ]}
+      includedAccentClass="bg-brand-orange/10 text-brand-orange"
+      steps={[
+        "Design your coin's face and story",
+        "Set your coin's economics",
+        "Launch your coin",
+      ]}
+      stepAccentClass="bg-brand-maeve/10 text-brand-maeve"
       trustIcon={Lock}
+      trustAccentClass="text-brand-orange"
       trustLead="Locked forever."
-      trust="Liquidity is locked permanently — nobody can pull it, not even Medialane. It's a standard coin, fully yours."
+      trust="Liquidity locks permanently at launch."
     />
   );
 }
