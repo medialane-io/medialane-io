@@ -23,7 +23,11 @@ test("deployWalletSponsored calls build then execute and returns the tx hash", a
     calls.push({ url, body });
     if (url === "/api/wallet/deploy-sponsored/build") {
       return new Response(
-        JSON.stringify({ typedData: FAKE_TYPED_DATA, deployment: { fake: "deployment" } }),
+        JSON.stringify({
+          typedData: FAKE_TYPED_DATA,
+          deployment: { fake: "deployment" },
+          calls: [{ contractAddress: "0x1", entrypoint: "transfer", calldata: [] }],
+        }),
         { status: 200 },
       );
     }
@@ -34,6 +38,7 @@ test("deployWalletSponsored calls build then execute and returns the tx hash", a
       expect(body.signature[0]).toMatch(/^0x[0-9a-f]+$/i);
       expect(body.signature[1]).toMatch(/^0x[0-9a-f]+$/i);
       expect(body.deployment).toEqual({ fake: "deployment" });
+      expect(body.calls).toEqual([{ contractAddress: "0x1", entrypoint: "transfer", calldata: [] }]);
       return new Response(JSON.stringify({ transactionHash: "0xtxhash" }), { status: 200 });
     }
     throw new Error(`Unexpected fetch to ${url}`);

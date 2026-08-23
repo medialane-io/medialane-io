@@ -13,7 +13,11 @@ export async function deployWalletSponsored(
     body: JSON.stringify({ ownerPubkey, ownerAddress, salt }),
   });
   if (!buildRes.ok) throw new Error(`Sponsored deploy build failed (${buildRes.status})`);
-  const { typedData, deployment } = (await buildRes.json()) as { typedData: object; deployment: object };
+  const { typedData, deployment, calls } = (await buildRes.json()) as {
+    typedData: object;
+    deployment: object;
+    calls: object[];
+  };
 
   const account = new Account({
     provider: walletProvider(),
@@ -28,7 +32,7 @@ export async function deployWalletSponsored(
   const executeRes = await fetch("/api/wallet/deploy-sponsored/execute", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ownerAddress, typedData, signature, deployment }),
+    body: JSON.stringify({ ownerAddress, typedData, signature, deployment, calls }),
   });
   if (!executeRes.ok) throw new Error(`Sponsored deploy execute failed (${executeRes.status})`);
   const { transactionHash } = (await executeRes.json()) as { transactionHash: string };
