@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ClaimBackButton } from "@/components/claim/claim-back-button";
-import { ServiceFormShell, ActionButton } from "@medialane/ui";
+import { ServiceFormShell, ActionButton, CurrencyIcon, CurrencyAmount } from "@medialane/ui";
 import { CreateCoinAside } from "@/components/claim/create-coin-aside";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import {
@@ -121,6 +121,7 @@ export default function CoinCreatePage() {
     description,
     imageUrl: imagePreview,
     supplyHuman: economicsValid && supply ? Number(supply) : null,
+    price: priceErr ? SUGGESTED_DEFAULT_PRICE : priceNum,
     quoteSymbol: quote,
     teamPct,
   };
@@ -358,16 +359,10 @@ export default function CoinCreatePage() {
                   placeholder="1000000"
                 />
                 {supplyErr && <p className="text-xs text-destructive">{supplyErr}</p>}
-                {preview && (
-                  <p className="text-xs text-muted-foreground">
-                    Your coin starts at a <span className="font-semibold text-foreground">{preview.fdv.toLocaleString()} {quote}</span> market cap
-                    (supply × price sets the cap).
-                  </p>
-                )}
               </div>
 
               <div className="space-y-1.5">
-                <Label>Quote token</Label>
+                <Label>Pair</Label>
                 <div className="flex gap-2 flex-wrap">
                   {QUOTE_OPTIONS.map((q) => (
                     <button
@@ -375,30 +370,41 @@ export default function CoinCreatePage() {
                       type="button"
                       onClick={() => setQuote(q)}
                       className={cn(
-                        "rounded-lg border px-4 py-1.5 text-sm font-medium",
+                        "inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-1.5 text-sm font-medium",
                         quote === q ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground",
                       )}
                     >
+                      <CurrencyIcon symbol={q} size={16} />
                       {q}
                     </button>
                   ))}
                 </div>
-                <p className="text-xs text-muted-foreground">The currency your coin trades against.</p>
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="price">Launch price ({quote} per coin)</Label>
-                <Input
-                  id="price" inputMode="decimal" value={price}
-                  onChange={(e) => setPrice(e.target.value.replace(/[^0-9.]/g, ""))}
-                  placeholder={String(SUGGESTED_DEFAULT_PRICE)}
-                />
+                <Label htmlFor="price">Price ({quote} per coin)</Label>
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2">
+                    <CurrencyIcon symbol={quote} size={16} />
+                  </span>
+                  <Input
+                    id="price" inputMode="decimal" value={price}
+                    onChange={(e) => setPrice(e.target.value.replace(/[^0-9.]/g, ""))}
+                    placeholder={String(SUGGESTED_DEFAULT_PRICE)}
+                    className="pl-9"
+                  />
+                </div>
                 {priceErr && price && <p className="text-xs text-destructive">{priceErr}</p>}
-                <p className="text-xs text-muted-foreground">
-                  Set this to what you can afford to fund — a lower price means a smaller
-                  amount required to buy your allocation, and a smaller starting market cap.
-                </p>
               </div>
+
+              {preview && (
+                <div className="rounded-xl bg-muted/50 dark:bg-muted/30 p-4">
+                  <p className="text-2xs uppercase tracking-wide text-muted-foreground">Starting market cap</p>
+                  <p className="text-2xl font-bold tabular-nums text-brand-maeve">
+                    <CurrencyAmount amount={preview.fdv.toLocaleString()} symbol={quote} iconSize={18} />
+                  </p>
+                </div>
+              )}
 
               <div className="space-y-1.5">
                 <Label htmlFor="alloc">Your allocation: {teamPct}%</Label>
@@ -408,15 +414,17 @@ export default function CoinCreatePage() {
                   className="w-full accent-[hsl(var(--brand-rose))]"
                 />
                 <p className="text-xs text-muted-foreground">
-                  You buy this allocation back from the pool at your own launch price — that
-                  purchase is what gives your coin its starting liquidity, so it isn&apos;t
-                  optional.
-                  {preview ? <> Right now that&apos;s <span className="font-semibold text-foreground">{preview.buybackHuman} {quote}</span>.</> : null}
+                  Bought back from the pool at your own price — this funds your coin&apos;s
+                  starting liquidity, so it&apos;s never skipped.
                 </p>
+                {preview && (
+                  <p className={cn("text-sm font-semibold", insufficient ? "text-destructive" : "text-foreground")}>
+                    <CurrencyAmount amount={preview.buybackHuman} symbol={quote} iconSize={14} /> required
+                  </p>
+                )}
                 {insufficient && (
                   <p className="text-xs text-destructive">
-                    Your wallet has less than {preview?.buybackHuman} {quote}. Lower the
-                    allocation, lower the price, or add funds.
+                    Your wallet doesn&apos;t have enough {quote}. Lower the allocation, lower the price, or add funds.
                   </p>
                 )}
               </div>
