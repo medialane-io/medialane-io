@@ -282,7 +282,6 @@ export default function CoinCreatePage() {
                   </button>
                   <div className="space-y-1 text-xs text-muted-foreground">
                     <p>JPG, PNG, GIF, SVG or WebP · max 10 MB</p>
-                    <p>This becomes your coin&apos;s face across Medialane.</p>
                     {imagePreview && (
                       <button type="button" onClick={clearImage} className="inline-flex items-center gap-1 text-muted-foreground active:text-foreground">
                         <X className="h-3 w-3" /> Remove
@@ -323,7 +322,6 @@ export default function CoinCreatePage() {
                   placeholder="Tell your community what this coin is about…"
                   rows={3}
                 />
-                <p className="text-xs text-muted-foreground">Shown on your coin&apos;s page. You can edit it anytime.</p>
               </div>
 
           </section>
@@ -343,19 +341,26 @@ export default function CoinCreatePage() {
                       type="button"
                       onClick={() => setSupply(p.value)}
                       className={cn(
-                        "rounded-full border px-3 py-1 text-xs font-medium",
-                        supply === p.value ? "border-brand-orange/50 bg-brand-orange/10 text-brand-orange" : "border-border text-muted-foreground",
+                        "rounded-lg border px-3.5 py-1.5 text-sm font-medium",
+                        supply === p.value ? "border-brand-orange bg-brand-orange/10 text-brand-orange" : "border-border text-muted-foreground",
                       )}
                     >
                       {p.label}
                     </button>
                   ))}
                 </div>
-                <Input
-                  id="supply" inputMode="numeric" value={supply}
-                  onChange={(e) => setSupply(e.target.value.replace(/[^\d]/g, ""))}
-                  placeholder="1000000"
-                />
+                <div className="relative">
+                  <Input
+                    id="supply" inputMode="numeric"
+                    value={supply ? Number(supply).toLocaleString() : ""}
+                    onChange={(e) => setSupply(e.target.value.replace(/[^\d]/g, ""))}
+                    placeholder="1,000,000"
+                    className="pr-16 text-lg font-semibold tabular-nums"
+                  />
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-muted-foreground">
+                    coins
+                  </span>
+                </div>
                 {supplyErr && <p className="text-xs text-destructive">{supplyErr}</p>}
               </div>
 
@@ -411,7 +416,6 @@ export default function CoinCreatePage() {
                   value={teamPct} onChange={(e) => setTeamPct(Number(e.target.value))}
                   className="w-full accent-[hsl(var(--brand-orange))]"
                 />
-                <p className="text-xs text-muted-foreground">Bought back from the pool at your own price.</p>
                 {preview && (
                   <p className={cn("text-sm font-semibold", insufficient ? "text-destructive" : "text-foreground")}>
                     <CurrencyAmount amount={preview.buybackHuman} symbol={quote} iconSize={14} /> required
