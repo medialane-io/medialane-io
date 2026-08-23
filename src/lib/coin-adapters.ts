@@ -5,7 +5,7 @@ import type { ApiCoin, ApiResponse } from "@medialane/sdk";
 import { coinServiceIds, type CoinFilter, type CoinSort, type CoinCollectionLike } from "@medialane/ui";
 import { MEDIALANE_BACKEND_URL } from "@/lib/constants";
 import { coinHref as buildCoinHref } from "@/lib/routes";
-import { useCoinPrice } from "@/hooks/use-coin-price";
+import { useCoinPrice, usePriceMap } from "@/hooks/use-coin-price";
 
 const TRADE_APP: Record<string, string> = { STARKNET: "https://starknet.medialane.io" };
 const tradeAppFor = (chain?: string | null) => TRADE_APP[(chain ?? "STARKNET").toString().toUpperCase()] ?? TRADE_APP.STARKNET;
@@ -14,10 +14,13 @@ export function useCoinPriceAdapter(collection: CoinCollectionLike) {
   return useCoinPrice(collection);
 }
 
+export const usePriceMapAdapter = usePriceMap;
+
 export function useCoinsAdapter({ filter, sort }: { filter: CoinFilter; sort: CoinSort }) {
   const service = filter === "all" ? "" : coinServiceIds(filter)[0] ?? "";
   const params = new URLSearchParams({ limit: "24" });
   if (service) params.set("service", service);
+  if (sort) params.set("sort", sort);
   const url = `${MEDIALANE_BACKEND_URL}/v1/coins?${params.toString()}`;
 
   const { data, isLoading } = useSWR<ApiResponse<ApiCoin[]>>(

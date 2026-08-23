@@ -23,6 +23,17 @@ function useAllCoinPrices() {
   return { prices: data ?? null, isLoading };
 }
 
+export function usePriceMap() {
+  const { prices, isLoading } = useAllCoinPrices();
+  const map: Record<string, number | null> = {};
+  if (prices) {
+    for (const [address, entry] of Object.entries(prices)) {
+      map[address] = entry?.usdc ?? null;
+    }
+  }
+  return { prices: map, isLoading };
+}
+
 export function useCoinPrice(coin: CoinCollectionLike): {
   price: CoinPriceLike | null;
   status: CoinMarketStatus;
