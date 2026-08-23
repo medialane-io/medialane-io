@@ -23,7 +23,7 @@ export async function executeSponsored(
   const executeRes = await fetch("/api/wallet/sponsored-invoke/execute", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userAddress, typedData, signature }),
+    body: JSON.stringify({ userAddress, typedData, signature, calls }),
   });
   if (!executeRes.ok) throw new Error(`Sponsored invoke execute failed (${executeRes.status})`);
   const { transactionHash } = (await executeRes.json()) as { transactionHash: string };

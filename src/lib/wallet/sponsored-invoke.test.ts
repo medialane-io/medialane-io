@@ -42,6 +42,7 @@ test("executeSponsored calls build then execute and returns the tx hash", async 
       expect(body.userAddress).toBe(FAKE_SEALED.address);
       expect(body.signature).toEqual(["0xr", "0xs"]);
       expect(body.typedData).toEqual(FAKE_TYPED_DATA);
+      expect(Array.isArray(body.calls)).toBe(true);
       return new Response(JSON.stringify({ transactionHash: "0xtxhash" }), { status: 200 });
     }
     throw new Error(`Unexpected fetch to ${url}`);
