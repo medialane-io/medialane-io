@@ -23,7 +23,7 @@ export default function MemecoinClaimPage() {
       subtitle="Already launched a coin on Starknet? Add it so people can discover and trade it."
       aside={<ClaimMemecoinAside />}
     >
-      <ClaimCollectionPanel helperText="Paste your coin's Starknet contract address — our team gives it a quick review before it goes live." />
+      <ClaimCollectionPanel kind="coin" helperText="Paste your coin's Starknet contract address. If your wallet owns the contract it goes live immediately." />
     </ClaimRouteShell>
   );
 }

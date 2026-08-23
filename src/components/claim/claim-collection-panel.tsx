@@ -17,9 +17,12 @@ type Step = "input" | "verifying" | "success" | "manual" | "pending";
 const isValidAddress = (a: string) => /^0x[0-9a-fA-F]{40,64}$/.test(a.trim());
 
 const DEFAULT_HELPER_TEXT =
-  "Paste the Starknet contract address you own — an NFT collection or a coin. Coins are reviewed by our team before they go live.";
+  "Paste the Starknet contract address you own, an NFT collection or a coin.";
 
-export function ClaimCollectionPanel({ helperText }: { helperText?: React.ReactNode } = {}) {
+export function ClaimCollectionPanel({
+  helperText,
+  kind = "collection",
+}: { helperText?: React.ReactNode; kind?: "collection" | "coin" } = {}) {
   const { address: walletAddress } = useWalletNativeSession();
   const { getValidToken, signIn } = useSiwsToken();
   const [contractAddress, setContractAddress] = useState("");
@@ -41,16 +44,18 @@ export function ClaimCollectionPanel({ helperText }: { helperText?: React.ReactN
     try {
       const token = getValidToken() ?? (await signIn());
       if (!token) throw new Error("Not authenticated");
-      const result = await getMedialaneClient().api.claimCollection(
-        contractAddress.trim(),
-        walletAddress,
-        token
-      );
+      const api = getMedialaneClient().api;
+      const result =
+        kind === "coin"
+          ? await api.claimCoin(contractAddress.trim(), token)
+          : await api.claimCollection(contractAddress.trim(), walletAddress, token);
+
       if (result.verified) {
-        setClaimedCollection(result.collection ?? { contractAddress: contractAddress.trim() });
+        const claimed = kind === "coin" ? (result as { coin?: { contractAddress: string; name?: string | null } }).coin : (result as { collection?: { contractAddress: string; name?: string | null } }).collection;
+        setClaimedCollection(claimed ?? { contractAddress: contractAddress.trim() });
         setStep("success");
       } else {
-        setVerifyError(result.reason ?? "Could not verify onchain ownership");
+        setVerifyError(("reason" in result && result.reason) || "Could not verify onchain ownership");
         setStep("manual");
       }
     } catch {
