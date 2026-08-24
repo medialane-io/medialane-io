@@ -13,7 +13,7 @@ import {
   useLaunchpadFilter,
   type ServiceOverrides,
 } from "@medialane/ui";
-import { PublishFlow } from "@/components/launchpad/publish-flow";
+import { FastMint } from "@/components/launchpad/fast-mint";
 
 export function LaunchpadContent() {
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
@@ -36,7 +36,7 @@ export function LaunchpadContent() {
           <h1 className="text-3xl sm:text-4xl font-semibold leading-tight">Creator Launchpad</h1>
         </FadeIn>
         <FadeIn delay={0.06}>
-          <PublishFlow />
+          <FastMint />
         </FadeIn>
       </section>
 

@@ -12,7 +12,7 @@ import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import {
   ImagePlus, Music, Video, FileText, Loader2, Upload,
   Layers, ImagePlus as SingleIcon, CheckCircle2, ChevronDown, Boxes, Plus, Check,
-  ShieldCheck, Tag, ArrowRightLeft, GitBranch, Eye,
+  ShieldCheck, Tag, ArrowRightLeft, GitBranch, Eye, X,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,7 +24,7 @@ import {
   Collapsible, CollapsibleContent, CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { MedialaneCollectionCard } from "@medialane/ui";
+import { MedialaneCollectionCard, ActionDialog } from "@medialane/ui";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSiwsToken } from "@/hooks/use-siws-token";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
@@ -227,7 +227,17 @@ const schema = z.object({
 });
 type FormValues = z.infer<typeof schema>;
 
-export function PublishFlow() {
+export interface FastMintProps {
+
+  presentation?: "inline" | "dialog";
+  open?: boolean;
+  onClose?: () => void;
+
+  mediaKindLock?: MediaKind;
+  onMinted?: (asset: { contract: string; tokenId: string; image: string | null }) => void;
+}
+
+export function FastMint({ presentation = "inline", open = true, onClose, mediaKindLock, onMinted }: FastMintProps = {}) {
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
   const { getValidToken, signIn } = useSiwsToken();
   const action = useWalletWriteAction();
@@ -306,6 +316,10 @@ export function PublishFlow() {
       toast.error("Unsupported file type", {
         description: "Publish an image, audio, video (JPG/PNG/GIF/SVG/WebP, MP3/WAV/OGG/FLAC, MP4/WebM), or document (PDF, DOC, DOCX, ODT, RTF, TXT, MD).",
       });
+      return;
+    }
+    if (mediaKindLock && kind !== mediaKindLock) {
+      toast.error("Unsupported file type", { description: `Please upload a${mediaKindLock === "image" ? "n" : ""} ${mediaKindLock}.` });
       return;
     }
     const viaMediaRoute = MEDIA_ROUTE_MIME_TYPES.has(file.type);
@@ -459,7 +473,10 @@ export function PublishFlow() {
 
       if (contractAddress) {
         const tokenId = await readMintedTokenId(result.txHash, contractAddress);
-        if (tokenId) setMintedAsset({ contract: contractAddress, tokenId });
+        if (tokenId) {
+          setMintedAsset({ contract: contractAddress, tokenId });
+          onMinted?.({ contract: contractAddress, tokenId, image });
+        }
       }
       rewardToast("mint_asset");
       invalidatePortfolioCache(walletAddress);
@@ -505,7 +522,10 @@ export function PublishFlow() {
     const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
 
     const tokenId = await readMintedTokenId(result.txHash, collectionContract);
-    if (tokenId) setMintedAsset({ contract: collectionContract, tokenId });
+    if (tokenId) {
+      setMintedAsset({ contract: collectionContract, tokenId });
+      onMinted?.({ contract: collectionContract, tokenId, image });
+    }
     rewardToast("mint_asset");
     invalidatePortfolioCache(walletAddress);
     return result;
@@ -540,9 +560,28 @@ export function PublishFlow() {
       : (selectedExistingCollection?.name || "IP Asset"))
     : undefined;
 
-  if (action.status === "success") {
+  const wrap = (node: React.ReactNode) => {
+    if (presentation !== "dialog") return node;
     return (
-      <section className="rounded-2xl border border-border p-6 sm:p-8">
+      <ActionDialog open={open} onClose={onClose ?? (() => {})} width={640}>
+        <div className="relative p-6 sm:p-8">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="absolute top-4 right-4 h-8 w-8 rounded-full hover:bg-muted flex items-center justify-center text-muted-foreground"
+          >
+            <X className="h-4 w-4" />
+          </button>
+          {node}
+        </div>
+      </ActionDialog>
+    );
+  };
+
+  if (action.status === "success") {
+    return wrap(
+      <section className={cn(presentation === "dialog" ? "" : "rounded-2xl border border-border p-6 sm:p-8")}>
         <div className="grid grid-cols-1 sm:grid-cols-[220px_1fr] gap-6 items-start">
           <MedialaneCollectionCard
             image={mediaKind === "image" ? mediaPreview : featurePreview}
@@ -603,7 +642,7 @@ export function PublishFlow() {
   }
 
   if (!mediaFile) {
-    return (
+    return wrap(
       <section
         role="button"
         tabIndex={0}
@@ -612,15 +651,20 @@ export function PublishFlow() {
         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); mediaInputRef.current?.click(); } }}
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files?.[0]; if (f) handleMediaSelect(f); }}
-        className="relative flex flex-col items-center justify-center gap-4 cursor-pointer transition-colors text-center rounded-3xl border-[3px] border-dashed border-brand-blue/40 hover:border-brand-blue/70 hover:bg-brand-blue/[0.04] min-h-[20rem] sm:min-h-[24rem] p-6"
+        className={cn(
+          "relative flex flex-col items-center justify-center gap-4 cursor-pointer transition-colors text-center rounded-3xl border-[3px] border-dashed border-brand-blue/40 hover:border-brand-blue/70 hover:bg-brand-blue/[0.04] p-6",
+          presentation === "dialog" ? "min-h-[16rem] sm:min-h-[18rem]" : "min-h-[20rem] sm:min-h-[24rem]"
+        )}
       >
         <div className="h-14 w-14 rounded-2xl bg-muted flex items-center justify-center">
           <ImagePlus className="h-6 w-6 text-muted-foreground" />
         </div>
         <div className="space-y-1.5 px-6">
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Drop or upload your media</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
+            {mediaKindLock ? `Drop or upload an ${mediaKindLock}` : "Drop or upload your media"}
+          </h2>
           <p className="text-base text-muted-foreground max-w-sm mx-auto">
-            Protect your creation and start earning from it worldwide.
+            {mediaKindLock === "image" ? "It becomes your avatar and app theme." : "Protect your creation and start earning from it worldwide."}
           </p>
         </div>
         <Button
@@ -632,13 +676,21 @@ export function PublishFlow() {
           <Upload className="h-3.5 w-3.5 mr-1.5" />
           Browse files
         </Button>
-        <p className="text-2xs text-muted-foreground/70">Images, audio, video, and PDFs up to 100 MB; other documents up to 20 MB</p>
-        <input ref={mediaInputRef} type="file" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleMediaSelect(f); }} />
+        <p className="text-2xs text-muted-foreground/70">
+          {mediaKindLock === "image" ? "JPG, PNG, GIF, WebP, or SVG up to 100 MB" : "Images, audio, video, and PDFs up to 100 MB; other documents up to 20 MB"}
+        </p>
+        <input
+          ref={mediaInputRef}
+          type="file"
+          accept={mediaKindLock === "image" ? "image/*" : undefined}
+          className="hidden"
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) handleMediaSelect(f); }}
+        />
       </section>
     );
   }
 
-  return (
+  return wrap(
     <section className="space-y-6">
       <div className="flex items-center gap-4 rounded-xl border border-border p-3">
         <div className="relative h-14 w-14 rounded-lg bg-muted overflow-hidden shrink-0">

@@ -14,6 +14,7 @@ import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { useRewards } from "@/hooks/use-rewards";
 import { useMediaWallet } from "@/components/media-wallet/media-wallet-overlay";
 import { AssetPicker, AddressDisplay, ServiceFormShell, LevelBadge, type OwnedAsset } from "@medialane/ui";
+import { FastMint } from "@/components/launchpad/fast-mint";
 import { EXPLORER_URL } from "@/lib/constants";
 import { CreatorScoreInline } from "@/components/rewards/creator-score-inline";
 import { getMedialaneClient } from "@/lib/medialane-client";
@@ -319,6 +320,7 @@ export default function SettingsContent() {
   const [generatingWallet, setGeneratingWallet] = useState(false);
   const [generateWalletError, setGenerateWalletError] = useState<string | null>(null);
   const [resumeDialogOpen, setResumeDialogOpen] = useState(false);
+  const [fastMintOpen, setFastMintOpen] = useState(false);
 
   const [oldWalletToken, setOldWalletToken] = useState<string | null>(null);
 
@@ -738,15 +740,8 @@ export default function SettingsContent() {
                 isLoading={assetsLoading}
                 selected={ownedAssets.find((a) => a.image === form.avatarImage) ?? null}
                 onSelect={(asset) => setForm((f) => ({ ...f, avatarImage: asset.image ?? "" }))}
-                emptyStateHref="/launchpad/single-editions"
-                emptyStateLabel="Mint one"
+                onMintClick={() => setFastMintOpen(true)}
               />
-              <Link
-                href="/launchpad/single-editions"
-                className="inline-block text-xs font-medium text-foreground underline underline-offset-2"
-              >
-                Mint a new NFT to use as your theme
-              </Link>
             </div>
           </div>
         </div>
@@ -920,6 +915,17 @@ export default function SettingsContent() {
           skipInitialSend={emailDialogSkipInitialSend}
         />
       )}
+
+      <FastMint
+        presentation="dialog"
+        open={fastMintOpen}
+        onClose={() => setFastMintOpen(false)}
+        mediaKindLock="image"
+        onMinted={(asset) => {
+          setForm((f) => ({ ...f, avatarImage: asset.image ?? "" }));
+          setFastMintOpen(false);
+        }}
+      />
 
       <WalletDeploymentDialog
         open={resumeDialogOpen}
