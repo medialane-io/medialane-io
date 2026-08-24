@@ -101,7 +101,7 @@ export function MediaWalletHome({
       {address && (
         <div className="flex flex-col items-center gap-4">
           <MediaWalletHeader address={address} onNavigate={onClose} />
-          {!(isDeployed === true && !funded) && (
+          {(funded || isDeployed === false) && (
             <span className="font-[family-name:var(--font-display)] text-5xl font-extrabold tracking-tight tabular-nums">
               {hideBalances ? "••••" : usdPrices === null ? "…" : fmtUsd(totalUsd)}
             </span>
@@ -115,6 +115,15 @@ export function MediaWalletHome({
           <QuickAction label="Receive" action="offer" onClick={() => setPanel(panel === "receive" ? null : "receive")} icon={<ArrowDown />} />
           <QuickAction label="Launch" action="remix" onClick={goLaunch} icon={<RocketIcon />} />
           <QuickAction label="Activity" action="submit" onClick={() => onNavigate({ name: "activity" })} icon={<ActivityIcon />} />
+        </div>
+      ) : isDeployed === null ? (
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col items-center gap-3 py-2">
+            <div className="h-3 w-16 animate-pulse rounded bg-foreground/[0.06]" />
+            <div className="h-11 w-32 animate-pulse rounded bg-foreground/[0.06]" />
+            <div className="h-[48px] w-40 animate-pulse rounded-[13px] bg-foreground/[0.06]" />
+          </div>
+          <div className="h-[148px] animate-pulse rounded-[20px] bg-foreground/[0.04]" />
         </div>
       ) : (
         isDeployed === true && (
