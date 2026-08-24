@@ -2,6 +2,8 @@ import { typedData as starknetTypedData, type Call, type TypedData } from "stark
 import { signWith, signWithPrivateKey, type SealedOwner } from "./passkey";
 import { throwOnErrorResponse } from "@/lib/fetch-error";
 
+export class SponsorUnavailableError extends Error {}
+
 export async function executeSponsored(
   sealed: SealedOwner,
   calls: Call[],
@@ -13,7 +15,10 @@ export async function executeSponsored(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userAddress, calls }),
   });
-  if (!buildRes.ok) await throwOnErrorResponse(buildRes, "We couldn't prepare this transaction. Please try again.");
+  if (!buildRes.ok) {
+    const body = (await buildRes.json().catch(() => null)) as { error?: string } | null;
+    throw new SponsorUnavailableError(body?.error || "We couldn't prepare this transaction. Please try again.");
+  }
   const { typedData } = (await buildRes.json()) as { typedData: TypedData };
 
   const msgHash = starknetTypedData.getMessageHash(typedData, userAddress);

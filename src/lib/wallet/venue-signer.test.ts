@@ -67,3 +67,64 @@ test("signTypedData followed by execute only prompts the passkey once", async ()
 
   lockVenueSigner(FAKE_SEALED.address);
 });
+
+test("execute falls back to a self-funded transaction when the sponsor is unavailable before broadcasting", async () => {
+  mock.module("./passkey", () => ({
+    unlockOwnerKey: async () => "0xprivkey",
+    signWithPrivateKey: () => ["0xr", "0xs"] as [string, string],
+  }));
+  class SponsorUnavailableError extends Error {}
+  mock.module("./sponsored-invoke", () => ({
+    SponsorUnavailableError,
+    executeSponsored: async () => {
+      throw new SponsorUnavailableError("AVNU unavailable");
+    },
+  }));
+  let selfFundedCalls = 0;
+  mock.module("./self-funded", () => ({
+    executeSelfFunded: async () => {
+      selfFundedCalls++;
+      return { transactionHash: "0xselffunded" };
+    },
+  }));
+
+  const { starknetVenueSigner, lockVenueSigner } = await import("./venue-signer");
+  const signer = starknetVenueSigner(FAKE_SEALED);
+  const result = await signer.execute([{ contractAddress: "0x1", entrypoint: "foo", calldata: [] }]);
+
+  expect(selfFundedCalls).toBe(1);
+  expect(result.txHash).toBe("0xselffunded");
+
+  lockVenueSigner(FAKE_SEALED.address);
+});
+
+test("execute does not fall back when the sponsored call may already have broadcast", async () => {
+  mock.module("./passkey", () => ({
+    unlockOwnerKey: async () => "0xprivkey",
+    signWithPrivateKey: () => ["0xr", "0xs"] as [string, string],
+  }));
+  class SponsorUnavailableError extends Error {}
+  mock.module("./sponsored-invoke", () => ({
+    SponsorUnavailableError,
+    executeSponsored: async () => {
+      throw new Error("We couldn't submit this transaction. Please try again.");
+    },
+  }));
+  let selfFundedCalls = 0;
+  mock.module("./self-funded", () => ({
+    executeSelfFunded: async () => {
+      selfFundedCalls++;
+      return { transactionHash: "0xselffunded" };
+    },
+  }));
+
+  const { starknetVenueSigner, lockVenueSigner } = await import("./venue-signer");
+  const signer = starknetVenueSigner(FAKE_SEALED);
+
+  await expect(
+    signer.execute([{ contractAddress: "0x1", entrypoint: "foo", calldata: [] }]),
+  ).rejects.toThrow("We couldn't submit this transaction. Please try again.");
+  expect(selfFundedCalls).toBe(0);
+
+  lockVenueSigner(FAKE_SEALED.address);
+});

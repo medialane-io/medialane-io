@@ -9,7 +9,7 @@ import { useCreatorProfile } from "@/hooks/use-profiles";
 import { resolveTokenImage } from "@/lib/utils";
 
 export function HeaderWalletTrigger() {
-  const { address, hasWallet, isDeployed } = useWalletNativeSession();
+  const { address, hasWallet } = useWalletNativeSession();
   const { open } = useMediaWallet();
   const router = useRouter();
   const { profile } = useCreatorProfile(address ?? undefined);
@@ -18,8 +18,6 @@ export function HeaderWalletTrigger() {
   const handleClick = () => {
     if (!hasWallet) {
       router.push("/connect");
-    } else if (isDeployed === false) {
-      router.push("/wallet-onboarding");
     } else {
       open();
     }

@@ -1,7 +1,8 @@
 import { typedData as starknetTypedData, type Call, type TypedData } from "starknet";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { signWithPrivateKey, unlockOwnerKey, type SealedOwner } from "./passkey";
-import { executeSponsored } from "./sponsored-invoke";
+import { executeSponsored, SponsorUnavailableError } from "./sponsored-invoke";
+import { executeSelfFunded } from "./self-funded";
 
 /**
  * Keyed by wallet address rather than held in the signer instance's own
@@ -57,7 +58,13 @@ export function starknetVenueSigner(sealed: SealedOwner): StarknetVenueSigner {
     },
     execute: async (calls: Call[]) => {
       const priv = await unlockOnce(sealed);
-      const result = await executeSponsored(sealed, calls, sealed.address, priv);
+      let result;
+      try {
+        result = await executeSponsored(sealed, calls, sealed.address, priv);
+      } catch (err) {
+        if (!(err instanceof SponsorUnavailableError)) throw err;
+        result = await executeSelfFunded(sealed.address, priv, calls);
+      }
       return { txHash: result.transactionHash };
     },
   };

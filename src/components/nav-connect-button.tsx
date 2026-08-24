@@ -7,7 +7,7 @@ import { useMediaWallet } from "@/components/media-wallet/media-wallet-overlay";
 import { UserShieldIcon } from "@/components/icons/user-shield-icon";
 
 export function NavConnectButton() {
-  const { hasWallet, isDeployed } = useWalletNativeSession();
+  const { hasWallet } = useWalletNativeSession();
   const { close: closeMenu } = useNavCommandMenu();
   const { open: openWalletPanel } = useMediaWallet();
 
@@ -22,24 +22,6 @@ export function NavConnectButton() {
           >
             <UserShieldIcon className="h-3 w-3" />
             Connect
-          </Link>
-        </div>
-        <Kbd />
-      </span>
-    );
-  }
-
-  if (isDeployed === false) {
-    return (
-      <span className="flex shrink-0 items-center gap-2 text-[10px] text-muted-foreground/50">
-        <div className="btn-border-animated rounded-lg p-[1px]">
-          <Link
-            href="/wallet-onboarding"
-            onClick={closeMenu}
-            className="flex items-center gap-1.5 rounded-[7px] bg-transparent px-2.5 py-1 text-[11px] font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98]"
-          >
-            <UserShieldIcon className="h-3 w-3" />
-            Finish setup
           </Link>
         </div>
         <Kbd />
