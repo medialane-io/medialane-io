@@ -332,13 +332,6 @@ export default function SettingsContent() {
     })();
   }, [walletAddress, getValidToken, signIn]);
 
-  useEffect(() => {
-    if (searchParams.get("verify") !== "1") return;
-    if (emailStatus?.email && !emailStatus.verified) {
-      setEmailDialogSkipInitialSend(false);
-      setEmailDialogOpen(true);
-    }
-  }, [searchParams, emailStatus]);
 
   useEffect(() => {
     if (profile) setForm({
