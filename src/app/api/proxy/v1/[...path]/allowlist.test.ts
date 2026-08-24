@@ -25,8 +25,41 @@ test("PATCH /v1/intents/:id/signature and /confirm are allowed for any intent id
   expect(isPathAllowed("PATCH", "intents/abc-123/confirm")).toBe(true);
 });
 
-test("GET /v1/intents/:id is allowed (GET /v1/* is allow-all)", () => {
+test("GET /v1/intents/:id is allowed", () => {
   expect(isPathAllowed("GET", "intents/abc-123")).toBe(true);
+});
+
+test("GET /v1/portal/* and /v1/business/provisioning are rejected (internal/admin data)", () => {
+  expect(isPathAllowed("GET", "portal/me")).toBe(false);
+  expect(isPathAllowed("GET", "portal/keys")).toBe(false);
+  expect(isPathAllowed("GET", "portal/usage")).toBe(false);
+  expect(isPathAllowed("GET", "portal/webhooks")).toBe(false);
+  expect(isPathAllowed("GET", "business/provisioning")).toBe(false);
+});
+
+test("known public GET reads used by the io app are allowed", () => {
+  expect(isPathAllowed("GET", "orders")).toBe(true);
+  expect(isPathAllowed("GET", "orders/token/0xabc/1")).toBe(true);
+  expect(isPathAllowed("GET", "orders/user/0xabc")).toBe(true);
+  expect(isPathAllowed("GET", "tokens/owned/0xabc")).toBe(true);
+  expect(isPathAllowed("GET", "tokens/0xabc/1")).toBe(true);
+  expect(isPathAllowed("GET", "tokens/0xabc/1/history")).toBe(true);
+  expect(isPathAllowed("GET", "collections/0xabc")).toBe(true);
+  expect(isPathAllowed("GET", "collections/0xabc/tokens")).toBe(true);
+  expect(isPathAllowed("GET", "activities/0xabc")).toBe(true);
+  expect(isPathAllowed("GET", "search")).toBe(true);
+  expect(isPathAllowed("GET", "creators/0xabc/profile")).toBe(true);
+  expect(isPathAllowed("GET", "creators/by-username/alice")).toBe(true);
+  expect(isPathAllowed("GET", "collection-slug-claims/check/alice")).toBe(true);
+  expect(isPathAllowed("GET", "users/me")).toBe(true);
+  expect(isPathAllowed("GET", "auth/email/exists")).toBe(true);
+  expect(isPathAllowed("GET", "pop/eligibility/0xabc/0xdef")).toBe(true);
+  expect(isPathAllowed("GET", "coins")).toBe(true);
+  expect(isPathAllowed("GET", "coins/prices")).toBe(true);
+  expect(isPathAllowed("GET", "coins/0xabc")).toBe(true);
+  expect(isPathAllowed("GET", "drop/mint-status/0xabc/0xdef")).toBe(true);
+  expect(isPathAllowed("GET", "rewards/0xabc")).toBe(true);
+  expect(isPathAllowed("GET", "rewards/config")).toBe(true);
 });
 
 test("POST /v1/intents/<type> with extra path segments (other than /hydrate) is rejected", () => {
