@@ -1,5 +1,6 @@
 import { Account, stark } from "starknet";
 import { walletProvider } from "./provider";
+import { throwOnErrorResponse } from "./fetch-error";
 
 export async function deployWalletSponsored(
   ownerAddress: string,
@@ -12,7 +13,7 @@ export async function deployWalletSponsored(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ownerPubkey, ownerAddress, salt }),
   });
-  if (!buildRes.ok) throw new Error(`Sponsored deploy build failed (${buildRes.status})`);
+  if (!buildRes.ok) await throwOnErrorResponse(buildRes, "We couldn't prepare your wallet deployment. Please try again.");
   const { typedData, deployment, calls } = (await buildRes.json()) as {
     typedData: object;
     deployment: object;
@@ -34,7 +35,7 @@ export async function deployWalletSponsored(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ownerAddress, typedData, signature, deployment, calls }),
   });
-  if (!executeRes.ok) throw new Error(`Sponsored deploy execute failed (${executeRes.status})`);
+  if (!executeRes.ok) await throwOnErrorResponse(executeRes, "We couldn't complete your wallet deployment. Please try again.");
   const { transactionHash } = (await executeRes.json()) as { transactionHash: string };
   return { transactionHash };
 }
