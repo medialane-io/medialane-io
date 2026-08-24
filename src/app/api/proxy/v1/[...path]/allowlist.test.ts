@@ -37,6 +37,32 @@ test("GET /v1/portal/* and /v1/business/provisioning are rejected (internal/admi
   expect(isPathAllowed("GET", "business/provisioning")).toBe(false);
 });
 
+test("GET reads discovered from @medialane/ui and app hooks are allowed", () => {
+  expect(isPathAllowed("GET", "orders/received/0xabc")).toBe(true);
+  expect(isPathAllowed("GET", "tokens")).toBe(true);
+  expect(isPathAllowed("GET", "collections/0xabc/gated-content")).toBe(true);
+  expect(isPathAllowed("GET", "collection-slug-claims/me")).toBe(true);
+  expect(isPathAllowed("GET", "drop/0xabc/info")).toBe(true);
+  expect(isPathAllowed("GET", "drop/0xabc/state")).toBe(true);
+  expect(isPathAllowed("GET", "club/0xabc/1")).toBe(true);
+  expect(isPathAllowed("GET", "club/0xabc/1/member/0xdef")).toBe(true);
+  expect(isPathAllowed("GET", "tickets/0xabc/1")).toBe(true);
+  expect(isPathAllowed("GET", "tickets/0xabc/count")).toBe(true);
+  expect(isPathAllowed("GET", "ipnft/0xabc/1")).toBe(true);
+  expect(isPathAllowed("GET", "username-claims/me")).toBe(true);
+  expect(isPathAllowed("GET", "username-claims/check/alice")).toBe(true);
+  expect(isPathAllowed("GET", "stats")).toBe(true);
+  expect(isPathAllowed("GET", "prices")).toBe(true);
+  expect(isPathAllowed("GET", "remix-offers")).toBe(true);
+  expect(isPathAllowed("GET", "remix-offers/abc-123")).toBe(true);
+  expect(isPathAllowed("GET", "sponsorship/offers")).toBe(true);
+  expect(isPathAllowed("GET", "sponsorship/offers/abc")).toBe(true);
+  expect(isPathAllowed("GET", "sponsorship/offers/abc/bids")).toBe(true);
+  expect(isPathAllowed("GET", "sponsorship/proposals")).toBe(true);
+  expect(isPathAllowed("GET", "sponsorship/proposals/abc")).toBe(true);
+  expect(isPathAllowed("GET", "sponsorship/licenses")).toBe(true);
+});
+
 test("known public GET reads used by the io app are allowed", () => {
   expect(isPathAllowed("GET", "orders")).toBe(true);
   expect(isPathAllowed("GET", "orders/token/0xabc/1")).toBe(true);
