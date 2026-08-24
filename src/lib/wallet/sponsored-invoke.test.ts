@@ -55,14 +55,14 @@ test("executeSponsored calls build then execute and returns the tx hash", async 
   expect(calls[1].url).toBe("/api/wallet/sponsored-invoke/execute");
 });
 
-test("executeSponsored throws when the build step fails", async () => {
+test("executeSponsored surfaces the backend's own error message when the build step fails", async () => {
   globalThis.fetch = mock(async () => new Response(JSON.stringify({ error: "boom" }), { status: 502 })) as never;
   await expect(
     executeSponsored(FAKE_SEALED, [{ contractAddress: "0x1", entrypoint: "foo", calldata: [] }]),
-  ).rejects.toThrow("Sponsored invoke build failed");
+  ).rejects.toThrow("boom");
 });
 
-test("executeSponsored throws when the execute step fails", async () => {
+test("executeSponsored surfaces the backend's own error message when the execute step fails", async () => {
   globalThis.fetch = mock(async (url: string) => {
     if (url === "/api/wallet/sponsored-invoke/build") {
       return new Response(JSON.stringify({ typedData: FAKE_TYPED_DATA }), { status: 200 });
@@ -71,5 +71,12 @@ test("executeSponsored throws when the execute step fails", async () => {
   }) as never;
   await expect(
     executeSponsored(FAKE_SEALED, [{ contractAddress: "0x1", entrypoint: "foo", calldata: [] }]),
-  ).rejects.toThrow("Sponsored invoke execute failed");
+  ).rejects.toThrow("boom");
+});
+
+test("executeSponsored falls back to a friendly message when the response has no error field", async () => {
+  globalThis.fetch = mock(async () => new Response("not json", { status: 502 })) as never;
+  await expect(
+    executeSponsored(FAKE_SEALED, [{ contractAddress: "0x1", entrypoint: "foo", calldata: [] }]),
+  ).rejects.toThrow("We couldn't prepare this transaction");
 });

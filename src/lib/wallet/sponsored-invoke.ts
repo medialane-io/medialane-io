@@ -1,5 +1,6 @@
 import { typedData as starknetTypedData, type Call, type TypedData } from "starknet";
 import { signWith, signWithPrivateKey, type SealedOwner } from "./passkey";
+import { throwOnErrorResponse } from "./fetch-error";
 
 export async function executeSponsored(
   sealed: SealedOwner,
@@ -12,7 +13,7 @@ export async function executeSponsored(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userAddress, calls }),
   });
-  if (!buildRes.ok) throw new Error(`Sponsored invoke build failed (${buildRes.status})`);
+  if (!buildRes.ok) await throwOnErrorResponse(buildRes, "We couldn't prepare this transaction. Please try again.");
   const { typedData } = (await buildRes.json()) as { typedData: TypedData };
 
   const msgHash = starknetTypedData.getMessageHash(typedData, userAddress);
@@ -25,7 +26,7 @@ export async function executeSponsored(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userAddress, typedData, signature, calls }),
   });
-  if (!executeRes.ok) throw new Error(`Sponsored invoke execute failed (${executeRes.status})`);
+  if (!executeRes.ok) await throwOnErrorResponse(executeRes, "We couldn't submit this transaction. Please try again.");
   const { transactionHash } = (await executeRes.json()) as { transactionHash: string };
   return { transactionHash };
 }
