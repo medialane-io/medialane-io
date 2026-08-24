@@ -2,16 +2,15 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, ShieldCheck, CheckCircle2, AlertCircle } from "lucide-react";
+import { Loader2, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { completeWalletDeployment } from "@/lib/wallet/complete-deployment";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { fireConfetti } from "@/lib/confetti";
 import { MedialaneApiError } from "@medialane/sdk";
 
-type Step = "creating-passkey" | "deploying" | "signing-in" | "done" | "error";
+type Step = "creating-passkey" | "deploying" | "signing-in" | "done";
 
 function safeRelative(path: string | null | undefined, fallback: string): string {
   if (!path || !path.startsWith("/") || path.startsWith("//")) return fallback;
@@ -31,11 +30,9 @@ function WalletOnboardingForm() {
   const searchParams = useSearchParams();
   const redirectTo = safeRelative(searchParams.get("redirect_url"), "/airdrop");
   const [step, setStep] = useState<Step | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const startedRef = useRef(false);
 
   const runOnboarding = async () => {
-    setError(null);
     try {
       const { siwsToken } = await completeWalletDeployment(setStep);
 
@@ -54,8 +51,8 @@ function WalletOnboardingForm() {
         return;
       }
 
-      setError("Something went wrong setting up your account. Please try again.");
-      setStep("error");
+      toast.error("We couldn't finish setting up your account. You can pick up where you left off from your wallet.");
+      router.push(redirectTo);
     }
   };
 
@@ -84,8 +81,6 @@ function WalletOnboardingForm() {
     );
   }
 
-  const isWorking = step === null || step === "creating-passkey" || step === "deploying" || step === "signing-in";
-
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4">
       <Card className="w-full max-w-sm">
@@ -99,31 +94,12 @@ function WalletOnboardingForm() {
           <CardDescription>Use your passkey, Face ID, or Touch ID to create your unique access.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-4">
-          {error && (
-            <Alert variant="destructive" className="w-full">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          {isWorking && (
-            <div className="flex w-full items-center justify-center gap-2 py-2.5 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              {(step === null || step === "creating-passkey") && "Creating passkey…"}
-              {step === "deploying" && "Setting up your wallet…"}
-              {step === "signing-in" && "Signing in…"}
-            </div>
-          )}
-          {step === "error" && (
-            <div className="btn-border-animated w-full p-[1px] rounded-lg">
-              <Button
-                className="w-full gap-2 bg-transparent text-white rounded-[7px] hover:bg-transparent hover:brightness-110 active:scale-[0.98] transition-all"
-                size="lg"
-                onClick={runOnboarding}
-              >
-                Try again
-              </Button>
-            </div>
-          )}
+          <div className="flex w-full items-center justify-center gap-2 py-2.5 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            {(step === null || step === "creating-passkey") && "Creating passkey…"}
+            {step === "deploying" && "Setting up your wallet…"}
+            {step === "signing-in" && "Signing in…"}
+          </div>
         </CardContent>
       </Card>
     </div>

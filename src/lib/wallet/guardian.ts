@@ -1,5 +1,6 @@
-import type { SealedOwner } from "./passkey";
-import { executeSponsored } from "./sponsored-invoke";
+import { unlockOwnerKey, type SealedOwner } from "./passkey";
+import { executeSponsored, SponsorUnavailableError } from "./sponsored-invoke";
+import { executeSelfFunded } from "./self-funded";
 import { walletProvider } from "./provider";
 import { norm } from "./account-ops";
 import {
@@ -34,10 +35,22 @@ export async function getEscapeSecurityPeriod(address: string): Promise<number> 
   return sdkGetEscapeSecurityPeriod(walletProvider(), address);
 }
 
+async function executeGuardianAction(sealed: SealedOwner, calls: Parameters<typeof executeSponsored>[1], userAddress: string) {
+  const priv = await unlockOwnerKey(sealed);
+  try {
+    return await executeSponsored(sealed, calls, userAddress, priv);
+  } catch (err) {
+    if (!(err instanceof SponsorUnavailableError)) throw err;
+    return await executeSelfFunded(userAddress, priv, calls);
+  }
+}
+
 export async function setFirstGuardian(sealed: SealedOwner, guardianPubkey: string) {
-  const { transactionHash } = await executeSponsored(sealed, [
-    buildSetFirstGuardianCall(sealed.address, guardianPubkey),
-  ]);
+  const { transactionHash } = await executeGuardianAction(
+    sealed,
+    [buildSetFirstGuardianCall(sealed.address, guardianPubkey)],
+    sealed.address,
+  );
   return transactionHash;
 }
 
@@ -46,7 +59,7 @@ export async function triggerEscapeOwner(
   targetAddress: string,
   newOwnerPubkey: string,
 ) {
-  const { transactionHash } = await executeSponsored(
+  const { transactionHash } = await executeGuardianAction(
     guardianSealed,
     [buildTriggerEscapeOwnerCall(targetAddress, newOwnerPubkey)],
     norm(targetAddress),
@@ -55,7 +68,7 @@ export async function triggerEscapeOwner(
 }
 
 export async function completeEscapeOwner(guardianSealed: SealedOwner, targetAddress: string) {
-  const { transactionHash } = await executeSponsored(
+  const { transactionHash } = await executeGuardianAction(
     guardianSealed,
     [buildCompleteEscapeOwnerCall(targetAddress)],
     norm(targetAddress),
@@ -64,6 +77,10 @@ export async function completeEscapeOwner(guardianSealed: SealedOwner, targetAdd
 }
 
 export async function cancelEscape(sealed: SealedOwner) {
-  const { transactionHash } = await executeSponsored(sealed, [buildCancelEscapeCall(sealed.address)]);
+  const { transactionHash } = await executeGuardianAction(
+    sealed,
+    [buildCancelEscapeCall(sealed.address)],
+    sealed.address,
+  );
   return transactionHash;
 }

@@ -3,6 +3,7 @@ import { requestSiwsToken } from "@medialane/sdk/starknet";
 import { createOwnerKey, signWithPrivateKey, unlockOwnerKey, type SealedOwner } from "./passkey";
 import { loadSealedOwner, saveSealedOwner, notifyWalletChange } from "./store";
 import { deployWalletSponsored } from "./deploy-relay";
+import { deploySelf } from "./self-funded";
 
 export type DeploymentStep = "creating-passkey" | "deploying" | "signing-in";
 
@@ -31,7 +32,11 @@ export async function completeWalletDeployment(
 
   onStep("deploying");
 
-  await deployWalletSponsored(sealed.address, sealed.ownerPubKey, privateKey);
+  try {
+    await deployWalletSponsored(sealed.address, sealed.ownerPubKey, privateKey);
+  } catch {
+    await deploySelf(sealed.address, sealed.ownerPubKey, privateKey);
+  }
 
   onStep("signing-in");
   const siwsToken = await requestSiwsToken({
