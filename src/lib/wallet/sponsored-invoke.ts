@@ -1,6 +1,6 @@
 import { typedData as starknetTypedData, type Call, type TypedData } from "starknet";
 import { signWith, signWithPrivateKey, type SealedOwner } from "./passkey";
-import { throwOnErrorResponse } from "./fetch-error";
+import { throwOnErrorResponse } from "@/lib/fetch-error";
 
 export async function executeSponsored(
   sealed: SealedOwner,

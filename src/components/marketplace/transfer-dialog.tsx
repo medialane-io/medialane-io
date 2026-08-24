@@ -138,13 +138,17 @@ export function TransferDialog({
     if (!pendingAddress) return;
 
     setStep("processing");
-    const hash = await transferToken({
-      contractAddress,
-      tokenId,
-      toAddress: pendingAddress,
-      tokenStandard: resolvedStandard,
-    });
-    setStep(hash ? "success" : "confirm");
+    try {
+      await transferToken({
+        contractAddress,
+        tokenId,
+        toAddress: pendingAddress,
+        tokenStandard: resolvedStandard,
+      });
+      setStep("success");
+    } catch {
+      setStep("confirm");
+    }
   };
 
   const displayName = tokenName || `Token #${tokenId}`;

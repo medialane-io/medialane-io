@@ -1,6 +1,6 @@
 import { Account, stark } from "starknet";
 import { walletProvider } from "./provider";
-import { throwOnErrorResponse } from "./fetch-error";
+import { throwOnErrorResponse } from "@/lib/fetch-error";
 
 export async function deployWalletSponsored(
   ownerAddress: string,
