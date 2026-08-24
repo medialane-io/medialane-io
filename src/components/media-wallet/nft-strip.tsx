@@ -8,9 +8,11 @@ import type { NftItem } from "./nft-items";
 export function NftStrip({
   items,
   isLoading,
+  onNavigate,
 }: {
   items: NftItem[];
   isLoading: boolean;
+  onNavigate?: () => void;
 }) {
   if (isLoading) {
     return (
@@ -39,6 +41,7 @@ export function NftStrip({
             key={item.key}
             href={item.href}
             title={item.name}
+            onClick={onNavigate}
             className="group relative aspect-square overflow-hidden rounded-xl bg-foreground/[0.06] transition-opacity hover:opacity-90"
           >
             {resolved ? (

@@ -216,7 +216,7 @@ export function MediaWalletHome({
         <section>
           <SectionHeader title="NFTs" />
           <div className="mt-2">
-            <NftStrip items={nftItems} isLoading={loadingNfts} />
+            <NftStrip items={nftItems} isLoading={loadingNfts} onNavigate={onClose} />
           </div>
         </section>
       )}

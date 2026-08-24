@@ -27,6 +27,15 @@ test("renders an image tile per item, named via title/alt for accessibility", ()
   expect(container.querySelector('[data-testid="asset-image"]')?.getAttribute("data-alt")).toBe("Test Asset");
 });
 
+test("calls onNavigate when an item is clicked, so the wallet panel closes", () => {
+  let called = false;
+  const { getByTitle } = render(
+    <NftStrip items={[ITEM]} isLoading={false} onNavigate={() => { called = true; }} />
+  );
+  getByTitle("Test Asset").click();
+  expect(called).toBe(true);
+});
+
 test("falls back to a generic icon when the item has no image", () => {
   const { getByTitle, container } = render(
     <NftStrip items={[{ ...ITEM, image: null }]} isLoading={false} />
