@@ -116,13 +116,21 @@ export function MediaWalletHome({
         </div>
       ) : (
         isDeployed === true && (
-          <button
-            onClick={() => setPanel(panel === "receive" ? null : "receive")}
-            className="h-[54px] w-full rounded-[13px] text-[15px] font-semibold text-white transition-transform active:scale-[0.99]"
-            style={{ background: "linear-gradient(115deg,#3b7bff,#5b4ce6)" }}
-          >
-            Fund your account
-          </button>
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={() => setPanel(panel === "receive" ? null : "receive")}
+              className="h-[54px] w-full rounded-[13px] text-[15px] font-semibold text-white transition-transform active:scale-[0.99]"
+              style={{ background: "linear-gradient(115deg,#3b7bff,#5b4ce6)" }}
+            >
+              Fund your wallet
+            </button>
+            <button
+              onClick={goLaunch}
+              className="h-[54px] w-full rounded-[13px] bg-foreground/[0.06] text-[15px] font-semibold text-foreground transition-transform hover:bg-foreground/[0.09] active:scale-[0.99]"
+            >
+              Start creating
+            </button>
+          </div>
         )
       )}
 
@@ -182,12 +190,14 @@ export function MediaWalletHome({
         </section>
       )}
 
-      <section>
-        <SectionHeader title="NFTs" />
-        <div className="mt-2">
-          <NftStrip items={nftItems} isLoading={loadingNfts} />
-        </div>
-      </section>
+      {(nftItems.length > 0 || loadingNfts) && (
+        <section>
+          <SectionHeader title="NFTs" />
+          <div className="mt-2">
+            <NftStrip items={nftItems} isLoading={loadingNfts} />
+          </div>
+        </section>
+      )}
 
       {activated && (
         <SuccessDialog
