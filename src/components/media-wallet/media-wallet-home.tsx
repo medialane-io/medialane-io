@@ -101,9 +101,11 @@ export function MediaWalletHome({
       {address && (
         <div className="flex flex-col items-center gap-4">
           <MediaWalletHeader address={address} onNavigate={onClose} />
-          <span className="font-[family-name:var(--font-display)] text-5xl font-extrabold tracking-tight tabular-nums">
-            {hideBalances ? "••••" : usdPrices === null ? "…" : fmtUsd(totalUsd)}
-          </span>
+          {!(isDeployed === true && !funded) && (
+            <span className="font-[family-name:var(--font-display)] text-5xl font-extrabold tracking-tight tabular-nums">
+              {hideBalances ? "••••" : usdPrices === null ? "…" : fmtUsd(totalUsd)}
+            </span>
+          )}
         </div>
       )}
 
@@ -116,19 +118,29 @@ export function MediaWalletHome({
         </div>
       ) : (
         isDeployed === true && (
-          <div className="flex flex-col gap-2">
-            <button
-              onClick={() => setPanel(panel === "receive" ? null : "receive")}
-              className="h-[54px] w-full rounded-[13px] text-[15px] font-semibold text-white transition-transform active:scale-[0.99]"
-              style={{ background: "linear-gradient(115deg,#3b7bff,#5b4ce6)" }}
-            >
-              Fund your wallet
-            </button>
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col items-center gap-3 rounded-[20px] bg-foreground/[0.04] px-6 py-7">
+              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Balance</span>
+              <span className="font-[family-name:var(--font-display)] text-5xl font-extrabold tracking-tight tabular-nums">
+                {hideBalances ? "••••" : usdPrices === null ? "…" : fmtUsd(totalUsd)}
+              </span>
+              <button
+                onClick={() => setPanel(panel === "receive" ? null : "receive")}
+                className="h-[54px] w-full rounded-[13px] text-[15px] font-semibold text-white transition-transform active:scale-[0.99]"
+                style={{ background: "linear-gradient(115deg,#3b7bff,#5b4ce6)" }}
+              >
+                Fund your account
+              </button>
+            </div>
             <button
               onClick={goLaunch}
-              className="h-[54px] w-full rounded-[13px] bg-foreground/[0.06] text-[15px] font-semibold text-foreground transition-transform hover:bg-foreground/[0.09] active:scale-[0.99]"
+              className="flex flex-col items-center gap-2 rounded-[20px] border-2 border-dashed border-border px-6 py-8 text-center transition-colors hover:border-primary/50 active:scale-[0.99]"
             >
-              Start creating
+              <div className="grid h-11 w-11 place-items-center rounded-full bg-foreground/[0.06]">
+                <RocketIcon />
+              </div>
+              <span className="text-[15px] font-semibold text-foreground">Creator Launchpad</span>
+              <span className="text-xs text-muted-foreground">Protect and monetize your work</span>
             </button>
           </div>
         )
@@ -140,14 +152,15 @@ export function MediaWalletHome({
         <Link
           href="/settings?tab=account"
           onClick={onClose}
-          className="flex items-center gap-3 rounded-2xl bg-brand-orange/10 px-4 py-3 transition-colors hover:bg-brand-orange/15"
+          className="flex items-center gap-3 rounded-2xl px-4 py-3 transition-opacity hover:opacity-90"
+          style={{ background: "linear-gradient(115deg, hsl(var(--brand-orange) / 0.12), hsl(var(--brand-maeve, 327 64% 67%) / 0.12))" }}
         >
           <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand-orange/15">
             <MailIcon />
           </div>
           <div className="min-w-0 flex-1">
             <div className="text-sm font-semibold">Verify your email</div>
-            <div className="text-xs text-muted-foreground">Required to claim a username or list assets for sale</div>
+            <div className="text-xs text-muted-foreground">Validate to access all the platform features</div>
           </div>
         </Link>
       )}
