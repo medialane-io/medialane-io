@@ -76,6 +76,7 @@ test("known public GET reads used by the io app are allowed", () => {
   expect(isPathAllowed("GET", "search")).toBe(true);
   expect(isPathAllowed("GET", "creators/0xabc/profile")).toBe(true);
   expect(isPathAllowed("GET", "creators/by-username/alice")).toBe(true);
+  expect(isPathAllowed("GET", "creators/0xabc/hidden")).toBe(true);
   expect(isPathAllowed("GET", "collection-slug-claims/check/alice")).toBe(true);
   expect(isPathAllowed("GET", "users/me")).toBe(true);
   expect(isPathAllowed("GET", "auth/email/exists")).toBe(true);
