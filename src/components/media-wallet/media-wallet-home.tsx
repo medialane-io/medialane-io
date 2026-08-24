@@ -119,14 +119,14 @@ export function MediaWalletHome({
       ) : (
         isDeployed === true && (
           <div className="flex flex-col gap-3">
-            <div className="flex flex-col items-center gap-3 rounded-[20px] bg-foreground/[0.04] px-6 py-7">
+            <div className="flex flex-col items-center gap-3 py-2">
               <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Balance</span>
               <span className="font-[family-name:var(--font-display)] text-5xl font-extrabold tracking-tight tabular-nums">
                 {hideBalances ? "••••" : usdPrices === null ? "…" : fmtUsd(totalUsd)}
               </span>
               <button
                 onClick={() => setPanel(panel === "receive" ? null : "receive")}
-                className="h-[54px] w-full rounded-[13px] text-[15px] font-semibold text-white transition-transform active:scale-[0.99]"
+                className="h-[48px] rounded-[13px] px-8 text-[15px] font-semibold text-white transition-transform active:scale-[0.99]"
                 style={{ background: "linear-gradient(115deg,#3b7bff,#5b4ce6)" }}
               >
                 Fund your account
@@ -226,7 +226,7 @@ export function MediaWalletHome({
         rel="noopener noreferrer"
         className="mt-auto text-center text-xs text-muted-foreground/60 transition-colors hover:text-muted-foreground"
       >
-        Connect another wallet
+        Use another Starknet wallet
       </a>
     </main>
   );
