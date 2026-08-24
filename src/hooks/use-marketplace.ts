@@ -239,7 +239,7 @@ export function useMarketplace() {
       } catch (err: unknown) {
         const msg = toFriendlyError(err, "Failed to create listing");
         setError(msg);
-
+        throw err;
       } finally {
         setIsProcessing(false);
       }
@@ -278,7 +278,7 @@ export function useMarketplace() {
       } catch (err: unknown) {
         const msg = toFriendlyError(err, "Purchase failed");
         setError(msg);
-
+        throw err;
       } finally {
         setIsProcessing(false);
       }
@@ -307,7 +307,7 @@ export function useMarketplace() {
       } catch (err: unknown) {
         const msg = toFriendlyError(err, "Failed to submit offer");
         setError(msg);
-
+        throw err;
       } finally {
         setIsProcessing(false);
       }
@@ -332,7 +332,7 @@ export function useMarketplace() {
       } catch (err: unknown) {
         const msg = toFriendlyError(err, "Counter-offer failed");
         setError(msg);
-
+        throw err;
       } finally {
         setIsProcessing(false);
       }
@@ -359,6 +359,7 @@ export function useMarketplace() {
 
         invalidate();
         setTimeout(() => invalidate(), INDEXER_REVALIDATION_DELAY_MS);
+        throw err;
       } finally {
         setIsProcessing(false);
       }
