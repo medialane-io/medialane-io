@@ -1,7 +1,14 @@
-import { test, expect } from "bun:test";
-import { confirmIntentBestEffort, executeIntent, executeIntents } from "./intent-tx";
+import { test, expect, mock } from "bun:test";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import type { ApiIntentCreated } from "@medialane/sdk";
+
+let receiptImpl: (txHash: string) => Promise<unknown> = async () => ({ execution_status: "SUCCEEDED" });
+
+mock.module("@/lib/starknet", () => ({
+  starknetProvider: { getTransactionReceipt: (txHash: string) => receiptImpl(txHash) },
+}));
+
+const { confirmIntentBestEffort, executeIntent, executeIntents, assertTransactionSucceeded } = await import("./intent-tx");
 
 function fakeSigner(overrides: Partial<StarknetVenueSigner> = {}): StarknetVenueSigner {
   return {
@@ -89,4 +96,38 @@ test("executeIntents throws if any intent requires a signature", async () => {
   await expect(executeIntents(fakeSigner(), fakeClient(), [PREBUILT, SIGNED])).rejects.toThrow(
     "Expected prebuilt intents (requiresSignature=false)",
   );
+});
+
+// Regression coverage: executeIntent/executeIntents used to return success
+// as soon as the wallet handed back a txHash, with no check that the
+// transaction actually succeeded onchain — a reverted mint looked identical
+// to a successful one.
+test("executeIntent throws when the submitted transaction reverted onchain", async () => {
+  receiptImpl = async () => ({ execution_status: "REVERTED" });
+  await expect(executeIntent(fakeSigner(), fakeClient(), PREBUILT)).rejects.toThrow("reverted onchain");
+  receiptImpl = async () => ({ execution_status: "SUCCEEDED" });
+});
+
+test("executeIntents throws when the bundled transaction reverted onchain", async () => {
+  receiptImpl = async () => ({ execution_status: "REVERTED" });
+  await expect(executeIntents(fakeSigner(), fakeClient(), [PREBUILT])).rejects.toThrow("reverted onchain");
+  receiptImpl = async () => ({ execution_status: "SUCCEEDED" });
+});
+
+test("assertTransactionSucceeded retries past a not-yet-indexed receipt and then succeeds", async () => {
+  let calls = 0;
+  receiptImpl = async () => {
+    calls += 1;
+    if (calls < 3) throw new Error("Transaction hash not found");
+    return { execution_status: "SUCCEEDED" };
+  };
+  await expect(assertTransactionSucceeded("0xtx", [0, 0, 0, 0])).resolves.toBeUndefined();
+  expect(calls).toBe(3);
+  receiptImpl = async () => ({ execution_status: "SUCCEEDED" });
+});
+
+test("assertTransactionSucceeded times out with a distinguishable error if the receipt never resolves", async () => {
+  receiptImpl = async () => { throw new Error("Transaction hash not found"); };
+  await expect(assertTransactionSucceeded("0xtx", [0, 0])).rejects.toThrow("Verification timed out");
+  receiptImpl = async () => ({ execution_status: "SUCCEEDED" });
 });

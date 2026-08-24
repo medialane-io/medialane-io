@@ -96,6 +96,7 @@ export function useTransfer() {
       } catch (err: unknown) {
         const msg = friendlyErrorMessage(err, "Transfer failed");
         setError(msg);
+        throw err;
       } finally {
         if (walletAddress) lockVenueSigner(walletAddress);
         setIsProcessing(false);
