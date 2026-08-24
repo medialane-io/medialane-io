@@ -3,7 +3,7 @@ import { GlobalRegistrator } from "@happy-dom/global-registrator";
 if (!GlobalRegistrator.isRegistered) GlobalRegistrator.register({ url: "http://localhost:3000" });
 
 mock.module("next/image", () => ({
-  default: ({ src }: { src?: string }) => <div data-testid="asset-image" data-src={src} />,
+  default: ({ src, alt }: { src?: string; alt?: string }) => <div data-testid="asset-image" data-src={src} data-alt={alt} />,
 }));
 
 const { cleanup, render } = await import("@testing-library/react");
@@ -21,17 +21,17 @@ const ITEM: NftItem = {
   fallbackId: "1",
 };
 
-test("renders one row per item, with name and ipType", () => {
-  const { getByText } = render(<NftStrip items={[ITEM]} isLoading={false} />);
-  expect(getByText("Test Asset")).toBeTruthy();
-  expect(getByText("Art")).toBeTruthy();
+test("renders an image tile per item, named via title/alt for accessibility", () => {
+  const { container, getByTitle } = render(<NftStrip items={[ITEM]} isLoading={false} />);
+  expect(getByTitle("Test Asset")).toBeTruthy();
+  expect(container.querySelector('[data-testid="asset-image"]')?.getAttribute("data-alt")).toBe("Test Asset");
 });
 
 test("falls back to a generic icon when the item has no image", () => {
-  const { getByText, container } = render(
+  const { getByTitle, container } = render(
     <NftStrip items={[{ ...ITEM, image: null }]} isLoading={false} />
   );
-  expect(getByText("Test Asset")).toBeTruthy();
+  expect(getByTitle("Test Asset")).toBeTruthy();
   expect(container.querySelector("svg")).toBeTruthy();
   expect(container.querySelector('[data-testid="asset-image"]')).toBeNull();
 });
