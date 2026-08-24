@@ -14,9 +14,9 @@ export function NftStrip({
 }) {
   if (isLoading) {
     return (
-      <div data-testid="nft-strip-skeleton" className="flex flex-col gap-2">
+      <div data-testid="nft-strip-skeleton" className="grid grid-cols-2 gap-2.5">
         {Array.from({ length: 2 }).map((_, i) => (
-          <div key={i} className="h-[68px] animate-pulse rounded-2xl bg-foreground/[0.06]" />
+          <div key={i} className="aspect-square animate-pulse rounded-2xl bg-foreground/[0.06]" />
         ))}
       </div>
     );
@@ -31,23 +31,31 @@ export function NftStrip({
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="grid grid-cols-2 gap-2.5">
       {items.map((item) => {
         const resolved = resolveTokenImage(item.image);
         return (
           <Link
             key={item.key}
             href={item.href}
-            className="flex items-center gap-3 rounded-2xl bg-card/40 px-4 py-3 backdrop-blur-sm transition-colors hover:bg-card/60"
+            className="group overflow-hidden rounded-2xl bg-card/40 backdrop-blur-sm transition-colors hover:bg-card/60"
           >
-            <div className="relative grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-foreground/[0.06]">
+            <div className="relative aspect-square w-full overflow-hidden bg-foreground/[0.06]">
               {resolved ? (
-                <Image src={resolved} alt="" fill unoptimized className="object-cover" />
+                <Image
+                  src={resolved}
+                  alt=""
+                  fill
+                  unoptimized
+                  className="object-cover transition-transform duration-200 group-hover:scale-[1.03]"
+                />
               ) : (
-                <AssetFallbackIcon />
+                <div className="grid h-full w-full place-items-center">
+                  <AssetFallbackIcon />
+                </div>
               )}
             </div>
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 px-2.5 py-2">
               <div className="truncate text-sm font-semibold">{item.name}</div>
               <div className="truncate text-xs text-muted-foreground">{item.ipType ?? "Asset"}</div>
             </div>
