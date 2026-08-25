@@ -205,6 +205,27 @@ function ProfileLivePreview({
   );
 }
 
+function AccountSection({
+  icon: Icon, iconColor = "text-primary", iconBg = "bg-primary/10", title, description, children,
+}: {
+  icon: React.ElementType; iconColor?: string; iconBg?: string; title: string; description: string; children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-2xl border border-border/60 bg-card p-5 sm:p-6 space-y-5">
+      <div className="flex items-start gap-3">
+        <div className={cn("h-10 w-10 shrink-0 rounded-full flex items-center justify-center", iconBg)}>
+          <Icon className={cn("h-5 w-5", iconColor)} />
+        </div>
+        <div>
+          <h3 className="text-base font-bold text-foreground">{title}</h3>
+          <p className="text-sm text-muted-foreground mt-0.5">{description}</p>
+        </div>
+      </div>
+      <div className="space-y-4">{children}</div>
+    </div>
+  );
+}
+
 function SnapshotStat({ icon: Icon, value, label }: { icon: React.ElementType; value: number; label: string }) {
   return (
     <div className="flex-1 min-w-0 text-center">
@@ -783,23 +804,23 @@ export default function SettingsContent() {
         </div>
         </TabsContent>
 
-        <TabsContent value="account" className="space-y-8 mt-0">
+        <TabsContent value="account" className="space-y-6 mt-0">
 
-          <p className="text-sm text-muted-foreground">
-            Your login, your wallet, and how to get back in if something goes wrong.
-          </p>
+          <div>
+            <h2 className="text-lg font-bold text-foreground">Login &amp; wallet</h2>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              How you sign in, where your assets live, and how to get back in if something
+              goes wrong.
+            </p>
+          </div>
 
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-                <Mail className="h-4 w-4" />
-                Email
-              </h3>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Used for account notices and signing back in.
-              </p>
-            </div>
-            <div className="border-t border-border pt-4 space-y-3">
+          <AccountSection
+            icon={Mail}
+            iconColor="text-blue-600 dark:text-blue-400"
+            iconBg="bg-blue-500/10"
+            title="Email"
+            description="Used for account notices and signing back in."
+          >
               {emailEditOpen ? (
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -860,22 +881,15 @@ export default function SettingsContent() {
                   </div>
                 </div>
               )}
-            </div>
-          </div>
+          </AccountSection>
 
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-                <Wallet className="h-4 w-4" />
-                Wallet
-              </h3>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Only you control this wallet. Medialane sponsors your transactions but never
-                holds your keys or can recover this wallet for you — that&apos;s what the
-                guardian below is for.
-              </p>
-            </div>
-            <div className="border-t border-border pt-4 space-y-4">
+          <AccountSection
+            icon={Wallet}
+            iconColor="text-violet-600 dark:text-violet-400"
+            iconBg="bg-violet-500/10"
+            title="Wallet"
+            description="Only you control this wallet — Medialane sponsors your transactions but never holds your keys."
+          >
               {walletAddress && (
                 <>
                   <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -917,8 +931,7 @@ export default function SettingsContent() {
                   </div>
                 </>
               )}
-            </div>
-            <div className="border-t border-border pt-4 space-y-3">
+
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription className="text-xs leading-relaxed">
@@ -934,8 +947,7 @@ export default function SettingsContent() {
                 {generatingWallet ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
                 Generate a new wallet
               </Button>
-            </div>
-          </div>
+          </AccountSection>
 
           {walletAddress && <GuardianRecoverySection walletAddress={walletAddress} />}
         </TabsContent>
