@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Shield, ShieldAlert, Loader2 } from "lucide-react";
+import { Shield, ShieldAlert, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -50,17 +50,20 @@ export function GuardianRecoverySection({ walletAddress }: { walletAddress: stri
   const sealed = loadSealedOwner();
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-          <Shield className="h-4 w-4" />
-          Security &amp; Recovery
-        </h3>
-        <p className="text-xs text-muted-foreground mt-0.5">
-          A guardian can help you recover this wallet if you lose this device.
-        </p>
+    <div className="rounded-2xl border border-border/60 bg-card p-5 sm:p-6 space-y-5">
+      <div className="flex items-start gap-3">
+        <div className="h-10 w-10 shrink-0 rounded-full bg-emerald-500/10 flex items-center justify-center">
+          <Shield className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+        </div>
+        <div>
+          <h3 className="text-base font-bold text-foreground">Security &amp; Recovery</h3>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            A guardian can help you get back into this wallet if you ever lose this device.
+          </p>
+        </div>
       </div>
-      <div className="border-t border-border pt-4 space-y-3">
+
+      <div className="space-y-3">
         {inProgress && (
           <Alert variant="destructive">
             <ShieldAlert className="h-4 w-4" />
@@ -85,15 +88,17 @@ export function GuardianRecoverySection({ walletAddress }: { walletAddress: stri
           </Alert>
         )}
 
-        <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-border/60 p-4 flex-wrap">
           <div>
-            <p className="text-sm text-foreground">Guardian recovery</p>
+            <p className="text-sm font-medium text-foreground">Guardian recovery</p>
             {status === null ? (
-              <p className="text-xs text-muted-foreground">Checking…</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Checking…</p>
             ) : status.kind === "none" ? (
-              <p className="text-xs text-muted-foreground">Not set up.</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Not set up — add one from another device you trust.
+              </p>
             ) : (
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 Active: {status.guardian.type} guardian {short(status.guardian.storedValue)}
               </p>
             )}
@@ -110,8 +115,17 @@ export function GuardianRecoverySection({ walletAddress }: { walletAddress: stri
           )}
         </div>
 
-        <Link href="/recover" className="block text-xs font-medium text-primary hover:underline">
-          Lost this device, or acting as someone&apos;s guardian? Recover a wallet →
+        <Link
+          href="/recover"
+          className="flex items-center justify-between gap-3 rounded-xl border border-border/60 p-4 transition-colors hover:bg-foreground/[0.03]"
+        >
+          <div>
+            <p className="text-sm font-medium text-foreground">Recover a wallet</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Lost this device, or acting as someone&apos;s guardian?
+            </p>
+          </div>
+          <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
         </Link>
       </div>
 
