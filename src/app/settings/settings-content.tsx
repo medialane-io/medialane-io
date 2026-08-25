@@ -29,10 +29,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   AtSign, CheckCircle2, Clock, XCircle, Loader2, Settings as SettingsIcon,
   Globe, Twitter, MessageCircle, Send, ArrowUpRight, Gem, Tag, LayoutGrid, Trophy, Wallet,
-  Mail, User, ShieldCheck, ShieldAlert,
+  Mail, User, ShieldCheck, ShieldAlert, AlertTriangle,
 } from "lucide-react";
 import { cn, resolveTokenImage } from "@/lib/utils";
 import { friendlyErrorMessage } from "@/lib/friendly-error";
@@ -468,6 +470,12 @@ export default function SettingsContent() {
   }
 
   async function handleGenerateNewWallet() {
+    const confirmed = window.confirm(
+      "This permanently replaces your wallet. Every asset, listing, and transaction history " +
+      "in this wallet stays behind and none of it moves to the new one. This cannot be undone.\n\n" +
+      "Continue and generate a new wallet?",
+    );
+    if (!confirmed) return;
     setGeneratingWallet(true);
     setGenerateWalletError(null);
 
@@ -777,6 +785,10 @@ export default function SettingsContent() {
 
         <TabsContent value="account" className="space-y-8 mt-0">
 
+          <p className="text-sm text-muted-foreground">
+            Your login, your wallet, and how to get back in if something goes wrong.
+          </p>
+
           <div className="space-y-4">
             <div>
               <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
@@ -857,22 +869,35 @@ export default function SettingsContent() {
                 <Wallet className="h-4 w-4" />
                 Wallet
               </h3>
-              <p className="text-xs text-muted-foreground mt-0.5">Your self-custody Starknet wallet</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Only you control this wallet. Medialane sponsors your transactions but never
+                holds your keys or can recover this wallet for you — that&apos;s what the
+                guardian below is for.
+              </p>
             </div>
             <div className="border-t border-border pt-4 space-y-4">
               {walletAddress && (
                 <>
                   <div className="flex items-center justify-between gap-3 flex-wrap">
                     <AddressDisplay address={walletAddress} chars={6} showCopy />
-                    {isDeployed === false ? (
-                      <Badge variant="outline" className="border-yellow-500/40 text-yellow-700 dark:text-yellow-400 bg-yellow-500/10 text-[10px] gap-1">
-                        <ShieldAlert className="h-3 w-3" /> Deploying
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="border-emerald-500/40 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 text-[10px] gap-1">
-                        <ShieldCheck className="h-3 w-3" /> Deployed
-                      </Badge>
-                    )}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        {isDeployed === false ? (
+                          <Badge variant="outline" className="border-yellow-500/40 text-yellow-700 dark:text-yellow-400 bg-yellow-500/10 text-[10px] gap-1 cursor-default">
+                            <ShieldAlert className="h-3 w-3" /> Deploying
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="border-emerald-500/40 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 text-[10px] gap-1 cursor-default">
+                            <ShieldCheck className="h-3 w-3" /> Deployed
+                          </Badge>
+                        )}
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-[220px] text-xs">
+                        {isDeployed === false
+                          ? "Your wallet address is reserved. It finishes setting up onchain automatically with your first transaction."
+                          : "Your wallet is live onchain and ready to use."}
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
 
                   <div className="flex items-center gap-4 flex-wrap">
@@ -893,12 +918,19 @@ export default function SettingsContent() {
                 </>
               )}
             </div>
-            <div className="border-t border-border pt-4 space-y-2">
-              <p className="text-xs text-muted-foreground">
-                If this account&apos;s wallet isn&apos;t one you set up yourself, you can create a new one.
-              </p>
+            <div className="border-t border-border pt-4 space-y-3">
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="text-xs leading-relaxed">
+                  <span className="font-semibold">This permanently replaces your wallet.</span>{" "}
+                  Every asset, listing, and transaction history in this wallet stays behind —
+                  none of it moves to the new one, and this cannot be undone. Only do this if
+                  you didn&apos;t set this wallet up yourself, or you&apos;ve already moved your
+                  assets out and confirmed the transfer onchain.
+                </AlertDescription>
+              </Alert>
               {generateWalletError && <p className="text-sm text-destructive">{generateWalletError}</p>}
-              <Button onClick={handleGenerateNewWallet} disabled={generatingWallet} variant="outline" size="sm">
+              <Button onClick={handleGenerateNewWallet} disabled={generatingWallet} variant="destructive" size="sm">
                 {generatingWallet ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
                 Generate a new wallet
               </Button>
