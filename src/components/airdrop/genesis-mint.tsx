@@ -104,16 +104,25 @@ export function GenesisMint() {
       setMintStatusMsg("Confirming participation…");
       const calldata = [walletAddress, ...serializeByteArray(tokenUri)];
 
-      const result = await signer.execute([
+      return signer.execute([
         { contractAddress: MINT_CONTRACT, entrypoint: "mint_item", calldata },
       ] as Call[]);
-
-      setMintStep("success");
-      setCompletedTxHash(result.txHash);
-      if (storageKey) localStorage.setItem(storageKey, result.txHash);
-      return result;
     });
   }, [walletAddress, storageKey, action, getValidToken, signIn]);
+
+  // Only declare success — and persist it to localStorage — once the shared
+  // hook has actually verified the transaction onchain (action.status
+  // becomes "success" after that check, not right after execute() returns).
+  // Setting these inside the run() callback would mark a mint "done" before
+  // verification runs; if it later reverted and the user reloaded in that
+  // window, the page would trust the stale localStorage record forever.
+  useEffect(() => {
+    if (action.status === "success" && action.txHash) {
+      setMintStep("success");
+      setCompletedTxHash(action.txHash);
+      if (storageKey) localStorage.setItem(storageKey, action.txHash);
+    }
+  }, [action.status, action.txHash, storageKey]);
 
   useEffect(() => {
     if (action.status === "error") {

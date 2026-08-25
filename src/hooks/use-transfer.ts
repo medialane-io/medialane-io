@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { useSWRConfig } from "swr";
 import { useWalletNativeSession } from "./use-wallet-native-session";
 import { lockVenueSigner } from "@/lib/wallet/venue-signer";
+import { assertTransactionSucceeded } from "@/lib/wallet/intent-tx";
 import { INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
 import { QUERY_PREFIX } from "@/lib/query-keys";
 import type { Call } from "starknet";
@@ -29,7 +30,7 @@ export function encodeTokenId(tokenId: string): [string, string] {
   return [low, high];
 }
 
-export function useTransfer() {
+export function useTransfer(verify: (txHash: string) => Promise<void> = assertTransactionSucceeded) {
   const { address: walletAddress, hasWallet, signer } = useWalletNativeSession();
   const { mutate } = useSWRConfig();
 
@@ -87,6 +88,7 @@ export function useTransfer() {
             };
 
         const result = await signer.execute([call]);
+        await verify(result.txHash);
         setHash(result.txHash);
 
         invalidate();
@@ -102,7 +104,7 @@ export function useTransfer() {
         setIsProcessing(false);
       }
     },
-    [walletAddress, signer, invalidate]
+    [walletAddress, signer, invalidate, verify]
   );
 
   return {

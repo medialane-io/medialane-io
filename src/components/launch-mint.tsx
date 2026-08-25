@@ -133,16 +133,24 @@ export function LaunchMint() {
       setMintStatusMsg("Submitting transaction…");
       const calldata = [recipientAddress, ...serializeByteArray(tokenUri)];
 
-      const result = await signer.execute([
+      return signer.execute([
         { contractAddress: LAUNCH_MINT_CONTRACT, entrypoint: "mint_item", calldata },
       ] as Call[]);
-
-      setMintStep("success");
-      setCompletedTxHash(result.txHash);
-      if (recipientAddress) localStorage.setItem(`ml_genesis_${recipientAddress}`, result.txHash);
-      return result;
     });
   }, [recipientAddress, action, getValidToken, signIn]);
+
+  // Only declare success — and persist it to localStorage — once the shared
+  // hook has actually verified the transaction onchain. Setting these
+  // inside the run() callback would mark a mint "done" before verification
+  // runs; if it later reverted and the user reloaded in that window, the
+  // page would trust the stale localStorage record forever.
+  useEffect(() => {
+    if (action.status === "success" && action.txHash) {
+      setMintStep("success");
+      setCompletedTxHash(action.txHash);
+      if (recipientAddress) localStorage.setItem(`ml_genesis_${recipientAddress}`, action.txHash);
+    }
+  }, [action.status, action.txHash, recipientAddress]);
 
   useEffect(() => {
     if (action.status === "error") {

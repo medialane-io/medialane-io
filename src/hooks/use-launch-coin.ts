@@ -15,6 +15,7 @@ import {
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { starknetProvider } from "@/lib/starknet";
+import { assertTransactionSucceeded } from "@/lib/wallet/intent-tx";
 import { friendlyErrorMessage } from "@/lib/friendly-error";
 
 const API_BASE = "/api/proxy";
@@ -30,7 +31,14 @@ export interface LaunchCoinInput {
 
 export type LaunchStatus = "idle" | "deploying" | "launching" | "indexing" | "done" | "error";
 
-export function useLaunchCoin() {
+export interface UseLaunchCoinDeps {
+  verify?: (txHash: string) => Promise<void>;
+  getReceipt?: (txHash: string) => Promise<CreatorCoinReceiptLike>;
+}
+
+export function useLaunchCoin(deps: UseLaunchCoinDeps = {}) {
+  const verify = deps.verify ?? assertTransactionSucceeded;
+  const getReceipt = deps.getReceipt ?? ((txHash: string) => starknetProvider.getTransactionReceipt(txHash) as Promise<CreatorCoinReceiptLike>);
   const client = useMedialaneClient();
   const [status, setStatus] = useState<LaunchStatus>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -66,7 +74,7 @@ export function useLaunchCoin() {
         for (let attempt = 0; attempt < 4 && !receipt; attempt++) {
           try {
             if (attempt > 0) await new Promise((r) => setTimeout(r, 2500));
-            receipt = (await starknetProvider.getTransactionReceipt(created.txHash)) as CreatorCoinReceiptLike;
+            receipt = await getReceipt(created.txHash);
           } catch {  }
         }
         if (!receipt) {
@@ -89,6 +97,9 @@ export function useLaunchCoin() {
         });
         if (launchIntent.data.requiresSignature) throw new Error("Expected a prebuilt launch-coin intent");
         const launched = await signer.execute(launchIntent.data.calls as Call[]);
+        // This step moves real funds into the Ekubo pool (quoteFundAmount) —
+        // a returned txHash only means "submitted," not "happened."
+        await verify(launched.txHash);
 
         setStatus("indexing");
         await fetch(`${API_BASE}/v1/coins/sync`, {
@@ -106,7 +117,7 @@ export function useLaunchCoin() {
         throw e;
       }
     },
-    [client]
+    [client, verify, getReceipt]
   );
 
   return { launch, status, error };
