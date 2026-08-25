@@ -1,7 +1,8 @@
 import { typedData as starknetTypedData, type Call, type TypedData } from "starknet";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { signWithPrivateKey, unlockOwnerKey, type SealedOwner } from "./passkey";
-import { executeSponsored, SponsorUnavailableError } from "./sponsored-invoke";
+import { executeSponsored, SponsoredCallRejectedError, type TypedDataSigner } from "./sponsored-executor";
+import { requestSelfFundConsent } from "./self-fund-consent";
 import { executeSelfFunded } from "./self-funded";
 
 /**
@@ -58,14 +59,25 @@ export function starknetVenueSigner(sealed: SealedOwner): StarknetVenueSigner {
     },
     execute: async (calls: Call[]) => {
       const priv = await unlockOnce(sealed);
-      let result;
-      try {
-        result = await executeSponsored(sealed, calls, sealed.address, priv);
-      } catch (err) {
-        if (!(err instanceof SponsorUnavailableError)) throw err;
-        result = await executeSelfFunded(sealed.address, priv, calls);
+      const signer: TypedDataSigner = {
+        address: sealed.address,
+        signTypedData: async (typedData) => {
+          const msgHash = starknetTypedData.getMessageHash(typedData, sealed.address);
+          return signWithPrivateKey(priv, msgHash);
+        },
+      };
+
+      const result = await executeSponsored(signer, calls);
+      if (result.status === "sponsored") {
+        return { txHash: result.transactionHash };
       }
-      return { txHash: result.transactionHash };
+
+      const consented = await requestSelfFundConsent();
+      if (!consented) {
+        throw new SponsoredCallRejectedError(result.reason);
+      }
+      const selfFunded = await executeSelfFunded(sealed.address, priv, calls);
+      return { txHash: selfFunded.transactionHash };
     },
   };
 }
