@@ -21,6 +21,7 @@ import { getMedialaneClient } from "@/lib/medialane-client";
 import { completeWalletDeployment } from "@/lib/wallet/complete-deployment";
 import { WalletDeploymentDialog } from "@/components/wallet/wallet-deployment-dialog";
 import { EmailVerifyDialog } from "@/components/settings/email-verify-dialog";
+import { GuardianRecoverySection } from "@/components/settings/guardian-recovery-section";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -903,6 +904,8 @@ export default function SettingsContent() {
               </Button>
             </div>
           </div>
+
+          {walletAddress && <GuardianRecoverySection walletAddress={walletAddress} />}
         </TabsContent>
       </Tabs>
 
