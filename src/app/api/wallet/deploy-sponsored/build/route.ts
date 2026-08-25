@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { createBackendProxyHandler, createRateLimiter } from "@medialane/sdk";
 import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
+import { SESSION_COOKIE_NAME } from "@/app/api/proxy/v1/[...path]/session-cookie";
 
 export const runtime = "nodejs";
 
@@ -9,6 +10,7 @@ const handler = createBackendProxyHandler({
   backendUrl: MEDIALANE_BACKEND_URL,
   apiKey: MEDIALANE_API_KEY,
   checkRateLimit: createRateLimiter(60_000, 30),
+  forwardCookie: { name: SESSION_COOKIE_NAME, header: "x-account-session" },
 });
 
 export async function POST(req: NextRequest) {
