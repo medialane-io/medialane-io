@@ -1,5 +1,7 @@
-import { unlockOwnerKey, type SealedOwner } from "./passkey";
-import { executeSponsored, SponsorUnavailableError } from "./sponsored-invoke";
+import { typedData as starknetTypedData, type Call } from "starknet";
+import { unlockOwnerKey, signWithPrivateKey, type SealedOwner } from "./passkey";
+import { executeSponsored, SponsoredCallRejectedError, type TypedDataSigner } from "./sponsored-executor";
+import { requestSelfFundConsent } from "./self-fund-consent";
 import { executeSelfFunded } from "./self-funded";
 import { walletProvider } from "./provider";
 import { norm } from "./account-ops";
@@ -35,14 +37,26 @@ export async function getEscapeSecurityPeriod(address: string): Promise<number> 
   return sdkGetEscapeSecurityPeriod(walletProvider(), address);
 }
 
-async function executeGuardianAction(sealed: SealedOwner, calls: Parameters<typeof executeSponsored>[1], userAddress: string) {
+async function executeGuardianAction(sealed: SealedOwner, calls: Call[], userAddress: string) {
   const priv = await unlockOwnerKey(sealed);
-  try {
-    return await executeSponsored(sealed, calls, userAddress, priv);
-  } catch (err) {
-    if (!(err instanceof SponsorUnavailableError)) throw err;
-    return await executeSelfFunded(userAddress, priv, calls);
+  const signer: TypedDataSigner = {
+    address: userAddress,
+    signTypedData: async (typedData) => {
+      const msgHash = starknetTypedData.getMessageHash(typedData, userAddress);
+      return signWithPrivateKey(priv, msgHash);
+    },
+  };
+
+  const result = await executeSponsored(signer, calls);
+  if (result.status === "sponsored") {
+    return { transactionHash: result.transactionHash };
   }
+
+  const consented = await requestSelfFundConsent();
+  if (!consented) {
+    throw new SponsoredCallRejectedError(result.reason);
+  }
+  return executeSelfFunded(userAddress, priv, calls);
 }
 
 export async function setFirstGuardian(sealed: SealedOwner, guardianPubkey: string) {

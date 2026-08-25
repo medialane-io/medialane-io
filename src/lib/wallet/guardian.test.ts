@@ -1,17 +1,23 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test, mock } from "bun:test";
 import {
   buildSetFirstGuardianCall,
   buildTriggerEscapeOwnerCall,
   buildCompleteEscapeOwnerCall,
   buildCancelEscapeCall,
 } from "@medialane/sdk/starknet";
+import type { SealedOwner } from "./passkey";
+
+const FAKE_SEALED: SealedOwner = {
+  credentialId: "cred1", ownerPubKey: "0xabc", address: "0xdeadbeef", iv: "iv1", ciphertext: "ct1",
+};
 
 // The calldata-encoding behavior itself is covered upstream by
 // @medialane/sdk's own guardian.test.ts — this file only proves io's
 // migration wired the SDK module in correctly, without re-mocking
-// "./sponsored-invoke" (that's sponsored-invoke.test.ts's job; mock.module
-// on a shared module leaks across test files in the same bun test run and
-// broke that file's own tests when tried here).
+// "@medialane/sdk/starknet" directly (mock.module on a shared module leaks
+// across test files in the same bun test run and broke that file's own
+// tests when tried here). "./sponsored-executor" and "./self-fund-consent"
+// are small, io-local modules — safe to mock the same way venue-signer.test.ts does.
 describe("io guardian module", () => {
   test("re-exports the SDK's guardian calldata builders unchanged", async () => {
     const guardian = await import("./guardian");
@@ -30,5 +36,57 @@ describe("io guardian module", () => {
     expect(typeof guardian.getGuardians).toBe("function");
     expect(typeof guardian.getEscape).toBe("function");
     expect(typeof guardian.getEscapeSecurityPeriod).toBe("function");
+  });
+
+  test("setFirstGuardian self-funds when sponsorship is unavailable and the user consents", async () => {
+    mock.module("./passkey", () => ({
+      unlockOwnerKey: async () => "0xprivkey",
+      signWithPrivateKey: () => ["0xr", "0xs"] as [string, string],
+    }));
+    mock.module("./sponsored-executor", () => ({
+      executeSponsored: async () => ({ status: "unavailable", reason: "no credits" }),
+      SponsoredCallRejectedError: class extends Error {},
+    }));
+    mock.module("./self-fund-consent", () => ({
+      requestSelfFundConsent: async () => true,
+    }));
+    let selfFundedCalls = 0;
+    mock.module("./self-funded", () => ({
+      executeSelfFunded: async () => {
+        selfFundedCalls++;
+        return { transactionHash: "0xselffunded" };
+      },
+    }));
+
+    const { setFirstGuardian } = await import("./guardian");
+    const txHash = await setFirstGuardian(FAKE_SEALED, "0xabc");
+
+    expect(selfFundedCalls).toBe(1);
+    expect(txHash).toBe("0xselffunded");
+  });
+
+  test("setFirstGuardian throws without self-funding when the user declines", async () => {
+    mock.module("./passkey", () => ({
+      unlockOwnerKey: async () => "0xprivkey",
+      signWithPrivateKey: () => ["0xr", "0xs"] as [string, string],
+    }));
+    mock.module("./sponsored-executor", () => ({
+      executeSponsored: async () => ({ status: "unavailable", reason: "no credits" }),
+      SponsoredCallRejectedError: class extends Error {},
+    }));
+    mock.module("./self-fund-consent", () => ({
+      requestSelfFundConsent: async () => false,
+    }));
+    let selfFundedCalls = 0;
+    mock.module("./self-funded", () => ({
+      executeSelfFunded: async () => {
+        selfFundedCalls++;
+        return { transactionHash: "0xselffunded" };
+      },
+    }));
+
+    const { setFirstGuardian } = await import("./guardian");
+    await expect(setFirstGuardian(FAKE_SEALED, "0xabc")).rejects.toThrow("no credits");
+    expect(selfFundedCalls).toBe(0);
   });
 });
