@@ -1,4 +1,4 @@
-import { describe, expect, test, mock } from "bun:test";
+import { describe, expect, test, mock, afterEach } from "bun:test";
 import {
   buildSetFirstGuardianCall,
   buildTriggerEscapeOwnerCall,
@@ -6,18 +6,25 @@ import {
   buildCancelEscapeCall,
 } from "@medialane/sdk/starknet";
 import type { SealedOwner } from "./passkey";
+import { registerSelfFundConsentHandler } from "./self-fund-consent";
 
 const FAKE_SEALED: SealedOwner = {
   credentialId: "cred1", ownerPubKey: "0xabc", address: "0xdeadbeef", iv: "iv1", ciphertext: "ct1",
 };
+
+afterEach(() => registerSelfFundConsentHandler(null));
 
 // The calldata-encoding behavior itself is covered upstream by
 // @medialane/sdk's own guardian.test.ts — this file only proves io's
 // migration wired the SDK module in correctly, without re-mocking
 // "@medialane/sdk/starknet" directly (mock.module on a shared module leaks
 // across test files in the same bun test run and broke that file's own
-// tests when tried here). "./sponsored-executor" and "./self-fund-consent"
-// are small, io-local modules — safe to mock the same way venue-signer.test.ts does.
+// tests when tried here). "./sponsored-executor" is a small, io-local
+// module only imported by venue-signer.ts/guardian.ts — safe to mock.
+// "./self-fund-consent" is used FOR REAL (registerSelfFundConsentHandler
+// directly, not mock.module) since it's a tiny pure primitive shared by
+// multiple test files — mock.module-ing it here would replace the module
+// for every other file in the same bun test run too, same hazard as above.
 describe("io guardian module", () => {
   test("re-exports the SDK's guardian calldata builders unchanged", async () => {
     const guardian = await import("./guardian");
@@ -47,9 +54,7 @@ describe("io guardian module", () => {
       executeSponsored: async () => ({ status: "unavailable", reason: "no credits" }),
       SponsoredCallRejectedError: class extends Error {},
     }));
-    mock.module("./self-fund-consent", () => ({
-      requestSelfFundConsent: async () => true,
-    }));
+    registerSelfFundConsentHandler(async () => true);
     let selfFundedCalls = 0;
     mock.module("./self-funded", () => ({
       executeSelfFunded: async () => {
@@ -74,9 +79,7 @@ describe("io guardian module", () => {
       executeSponsored: async () => ({ status: "unavailable", reason: "no credits" }),
       SponsoredCallRejectedError: class extends Error {},
     }));
-    mock.module("./self-fund-consent", () => ({
-      requestSelfFundConsent: async () => false,
-    }));
+    registerSelfFundConsentHandler(async () => false);
     let selfFundedCalls = 0;
     mock.module("./self-funded", () => ({
       executeSelfFunded: async () => {

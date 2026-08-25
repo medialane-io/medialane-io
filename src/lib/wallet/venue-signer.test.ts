@@ -1,9 +1,12 @@
-import { test, expect, mock } from "bun:test";
+import { test, expect, mock, afterEach } from "bun:test";
 import type { SealedOwner } from "./passkey";
+import { registerSelfFundConsentHandler } from "./self-fund-consent";
 
 const FAKE_SEALED: SealedOwner = {
   credentialId: "cred1", ownerPubKey: "0xabc", address: "0xdeadbeef", iv: "iv1", ciphertext: "ct1",
 };
+
+afterEach(() => registerSelfFundConsentHandler(null));
 
 test("starknetVenueSigner exposes the wallet's address", async () => {
   const { starknetVenueSigner } = await import("./venue-signer");
@@ -77,9 +80,7 @@ test("execute self-funds when sponsorship is unavailable and the user consents",
     executeSponsored: async () => ({ status: "unavailable", reason: "no credits" }),
     SponsoredCallRejectedError: class extends Error {},
   }));
-  mock.module("./self-fund-consent", () => ({
-    requestSelfFundConsent: async () => true,
-  }));
+  registerSelfFundConsentHandler(async () => true);
   let selfFundedCalls = 0;
   mock.module("./self-funded", () => ({
     executeSelfFunded: async () => {
@@ -96,6 +97,7 @@ test("execute self-funds when sponsorship is unavailable and the user consents",
   expect(result.txHash).toBe("0xselffunded");
 
   lockVenueSigner(FAKE_SEALED.address);
+  registerSelfFundConsentHandler(null);
 });
 
 test("execute throws without self-funding when sponsorship is unavailable and the user declines", async () => {
@@ -107,9 +109,7 @@ test("execute throws without self-funding when sponsorship is unavailable and th
     executeSponsored: async () => ({ status: "unavailable", reason: "no credits" }),
     SponsoredCallRejectedError: class extends Error {},
   }));
-  mock.module("./self-fund-consent", () => ({
-    requestSelfFundConsent: async () => false,
-  }));
+  registerSelfFundConsentHandler(async () => false);
   let selfFundedCalls = 0;
   mock.module("./self-funded", () => ({
     executeSelfFunded: async () => {
@@ -127,6 +127,7 @@ test("execute throws without self-funding when sponsorship is unavailable and th
   expect(selfFundedCalls).toBe(0);
 
   lockVenueSigner(FAKE_SEALED.address);
+  registerSelfFundConsentHandler(null);
 });
 
 test("execute does not offer self-fund when the sponsored call itself is rejected (not just unavailable)", async () => {
@@ -142,12 +143,10 @@ test("execute does not offer self-fund when the sponsored call itself is rejecte
     SponsoredCallRejectedError,
   }));
   let consentCalls = 0;
-  mock.module("./self-fund-consent", () => ({
-    requestSelfFundConsent: async () => {
-      consentCalls++;
-      return true;
-    },
-  }));
+  registerSelfFundConsentHandler(async () => {
+    consentCalls++;
+    return true;
+  });
   let selfFundedCalls = 0;
   mock.module("./self-funded", () => ({
     executeSelfFunded: async () => {
@@ -166,4 +165,5 @@ test("execute does not offer self-fund when the sponsored call itself is rejecte
   expect(selfFundedCalls).toBe(0);
 
   lockVenueSigner(FAKE_SEALED.address);
+  registerSelfFundConsentHandler(null);
 });
