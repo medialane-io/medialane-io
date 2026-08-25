@@ -17,6 +17,7 @@ import { NavThemeToggle } from "@/components/nav-theme-toggle";
 import { NavConnectButton } from "@/components/nav-connect-button";
 import { HeaderWalletTrigger } from "@/components/nav-wallet-trigger";
 import { MediaWalletOverlay } from "@/components/media-wallet/media-wallet-overlay";
+import { SelfFundConsentDialog } from "@/components/wallet/self-fund-consent-dialog";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useCreatorProfile } from "@/hooks/use-profiles";
 import { WalletNotDeployedError } from "@/hooks/use-siws-token";
@@ -128,6 +129,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <UndeployedWalletRedirect />
         <EmailRequiredRedirect />
         <Shell>{children}</Shell>
+        <SelfFundConsentDialog />
         <Toaster
           richColors
           position="bottom-center"

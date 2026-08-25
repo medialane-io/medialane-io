@@ -1,9 +1,12 @@
-import { test, expect, mock } from "bun:test";
+import { test, expect, mock, afterEach } from "bun:test";
 import type { SealedOwner } from "./passkey";
+import { registerSelfFundConsentHandler } from "./self-fund-consent";
 
 const FAKE_SEALED: SealedOwner = {
   credentialId: "cred1", ownerPubKey: "0xabc", address: "0xdeadbeef", iv: "iv1", ciphertext: "ct1",
 };
+
+afterEach(() => registerSelfFundConsentHandler(null));
 
 test("starknetVenueSigner exposes the wallet's address", async () => {
   const { starknetVenueSigner } = await import("./venue-signer");
@@ -20,8 +23,8 @@ test("signTypedData followed by execute only prompts the passkey once", async ()
     },
     signWithPrivateKey: () => ["0xr", "0xs"] as [string, string],
   }));
-  mock.module("./sponsored-invoke", () => ({
-    executeSponsored: async () => ({ transactionHash: "0xtxhash" }),
+  mock.module("./sponsored-executor", () => ({
+    executeSponsored: async () => ({ status: "sponsored", transactionHash: "0xtxhash" }),
   }));
 
   const { starknetVenueSigner } = await import("./venue-signer");
@@ -68,18 +71,16 @@ test("signTypedData followed by execute only prompts the passkey once", async ()
   lockVenueSigner(FAKE_SEALED.address);
 });
 
-test("execute falls back to a self-funded transaction when the sponsor is unavailable before broadcasting", async () => {
+test("execute self-funds when sponsorship is unavailable and the user consents", async () => {
   mock.module("./passkey", () => ({
     unlockOwnerKey: async () => "0xprivkey",
     signWithPrivateKey: () => ["0xr", "0xs"] as [string, string],
   }));
-  class SponsorUnavailableError extends Error {}
-  mock.module("./sponsored-invoke", () => ({
-    SponsorUnavailableError,
-    executeSponsored: async () => {
-      throw new SponsorUnavailableError("AVNU unavailable");
-    },
+  mock.module("./sponsored-executor", () => ({
+    executeSponsored: async () => ({ status: "unavailable", reason: "no credits" }),
+    SponsoredCallRejectedError: class extends Error {},
   }));
+  registerSelfFundConsentHandler(async () => true);
   let selfFundedCalls = 0;
   mock.module("./self-funded", () => ({
     executeSelfFunded: async () => {
@@ -96,20 +97,56 @@ test("execute falls back to a self-funded transaction when the sponsor is unavai
   expect(result.txHash).toBe("0xselffunded");
 
   lockVenueSigner(FAKE_SEALED.address);
+  registerSelfFundConsentHandler(null);
 });
 
-test("execute does not fall back when the sponsored call may already have broadcast", async () => {
+test("execute throws without self-funding when sponsorship is unavailable and the user declines", async () => {
   mock.module("./passkey", () => ({
     unlockOwnerKey: async () => "0xprivkey",
     signWithPrivateKey: () => ["0xr", "0xs"] as [string, string],
   }));
-  class SponsorUnavailableError extends Error {}
-  mock.module("./sponsored-invoke", () => ({
-    SponsorUnavailableError,
-    executeSponsored: async () => {
-      throw new Error("We couldn't submit this transaction. Please try again.");
+  mock.module("./sponsored-executor", () => ({
+    executeSponsored: async () => ({ status: "unavailable", reason: "no credits" }),
+    SponsoredCallRejectedError: class extends Error {},
+  }));
+  registerSelfFundConsentHandler(async () => false);
+  let selfFundedCalls = 0;
+  mock.module("./self-funded", () => ({
+    executeSelfFunded: async () => {
+      selfFundedCalls++;
+      return { transactionHash: "0xselffunded" };
     },
   }));
+
+  const { starknetVenueSigner, lockVenueSigner } = await import("./venue-signer");
+  const signer = starknetVenueSigner(FAKE_SEALED);
+
+  await expect(
+    signer.execute([{ contractAddress: "0x1", entrypoint: "foo", calldata: [] }]),
+  ).rejects.toThrow("no credits");
+  expect(selfFundedCalls).toBe(0);
+
+  lockVenueSigner(FAKE_SEALED.address);
+  registerSelfFundConsentHandler(null);
+});
+
+test("execute does not offer self-fund when the sponsored call itself is rejected (not just unavailable)", async () => {
+  mock.module("./passkey", () => ({
+    unlockOwnerKey: async () => "0xprivkey",
+    signWithPrivateKey: () => ["0xr", "0xs"] as [string, string],
+  }));
+  class SponsoredCallRejectedError extends Error {}
+  mock.module("./sponsored-executor", () => ({
+    executeSponsored: async () => {
+      throw new SponsoredCallRejectedError("We couldn't submit this transaction. Please try again.");
+    },
+    SponsoredCallRejectedError,
+  }));
+  let consentCalls = 0;
+  registerSelfFundConsentHandler(async () => {
+    consentCalls++;
+    return true;
+  });
   let selfFundedCalls = 0;
   mock.module("./self-funded", () => ({
     executeSelfFunded: async () => {
@@ -124,7 +161,9 @@ test("execute does not fall back when the sponsored call may already have broadc
   await expect(
     signer.execute([{ contractAddress: "0x1", entrypoint: "foo", calldata: [] }]),
   ).rejects.toThrow("We couldn't submit this transaction. Please try again.");
+  expect(consentCalls).toBe(0);
   expect(selfFundedCalls).toBe(0);
 
   lockVenueSigner(FAKE_SEALED.address);
+  registerSelfFundConsentHandler(null);
 });
