@@ -20,6 +20,7 @@ const ALLOWED_ROUTES: Record<string, RegExp[]> = {
     /^collections\/[^/]+$/,
     /^collections\/[^/]+\/tokens$/,
     /^collections\/[^/]+\/gated-content$/,
+    /^collections\/[^/]+\/profile$/,
     /^activities$/,
     /^activities\/[^/]+$/,
     /^search$/,
