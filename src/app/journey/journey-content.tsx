@@ -63,7 +63,8 @@ function HowXpWorksSection() {
         <h2 className="text-2xl font-black tracking-tight">How XP works</h2>
         <p className="text-base text-foreground/60 mt-1.5 font-medium leading-relaxed">
           Every action earns real XP, automatically — no buying points, no gaming the system.
-          Some early actions and loyalty count extra.
+          Some early actions and loyalty count extra. Scores and badges are
+          recalculated weekly.
         </p>
       </div>
       {isLoading || !config ? (
