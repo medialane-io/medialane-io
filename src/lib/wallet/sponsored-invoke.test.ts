@@ -86,3 +86,39 @@ test("executeSponsored falls back to a friendly message when the response has no
     executeSponsored(FAKE_SEALED, [{ contractAddress: "0x1", entrypoint: "foo", calldata: [] }]),
   ).rejects.toThrow("We couldn't prepare this transaction");
 });
+
+// paymaster.ts runs body validation, the account rate limit, the entrypoint
+// allowlist, and the contract-address allowlist entirely before it ever
+// calls AVNU's executeTransaction — a rejection at any of those stages is
+// guaranteed nothing was broadcast, so it's safe to retry self-funded. AVNU
+// misconfiguration (503, e.g. no API key) is the same: defaultClient() throws
+// before .executeTransaction() is ever reached.
+for (const status of [400, 429, 503]) {
+  test(`executeSponsored treats a ${status} from the execute step as sponsor-unavailable — nothing could have broadcast yet`, async () => {
+    globalThis.fetch = mock(async (url: string) => {
+      if (url === "/api/wallet/sponsored-invoke/build") {
+        return new Response(JSON.stringify({ typedData: FAKE_TYPED_DATA }), { status: 200 });
+      }
+      return new Response(JSON.stringify({ error: "boom" }), { status });
+    }) as never;
+    await expect(
+      executeSponsored(FAKE_SEALED, [{ contractAddress: "0x1", entrypoint: "foo", calldata: [] }]),
+    ).rejects.toBeInstanceOf(SponsorUnavailableError);
+  });
+}
+
+// A 422 means AVNU itself simulated the transaction and rejected it (account
+// not deployed yet, or the call would revert) — self-funded would hit the
+// exact same on-chain outcome, so retrying would just waste the user's real
+// gas on a call that's going to fail regardless of who pays for it.
+test("executeSponsored does NOT retry on a 422 — the call itself is the problem, not the sponsor", async () => {
+  globalThis.fetch = mock(async (url: string) => {
+    if (url === "/api/wallet/sponsored-invoke/build") {
+      return new Response(JSON.stringify({ typedData: FAKE_TYPED_DATA }), { status: 200 });
+    }
+    return new Response(JSON.stringify({ error: "boom" }), { status: 422 });
+  }) as never;
+  await expect(
+    executeSponsored(FAKE_SEALED, [{ contractAddress: "0x1", entrypoint: "foo", calldata: [] }]),
+  ).rejects.not.toBeInstanceOf(SponsorUnavailableError);
+});
