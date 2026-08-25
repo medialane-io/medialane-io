@@ -72,7 +72,7 @@ export function starknetVenueSigner(sealed: SealedOwner): StarknetVenueSigner {
         return { txHash: result.transactionHash };
       }
 
-      const consented = await requestSelfFundConsent();
+      const consented = await requestSelfFundConsent(sealed.address, calls);
       if (!consented) {
         throw new SponsoredCallRejectedError(result.reason);
       }

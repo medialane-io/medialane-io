@@ -2,19 +2,26 @@
 
 import { useEffect, useState } from "react";
 import { ActionDialog } from "@medialane/ui";
-import { registerSelfFundConsentHandler } from "@/lib/wallet/self-fund-consent";
+import { registerSelfFundConsentHandler, type SelfFundFeeEstimate } from "@/lib/wallet/self-fund-consent";
+import { fmt } from "@/lib/wallet-format";
 
 interface PendingRequest {
   resolve: (consented: boolean) => void;
+  feeEstimate: SelfFundFeeEstimate | null | "loading";
 }
 
 export function SelfFundConsentDialog() {
   const [pending, setPending] = useState<PendingRequest | null>(null);
 
   useEffect(() => {
-    registerSelfFundConsentHandler(
-      () => new Promise<boolean>((resolve) => setPending({ resolve })),
-    );
+    registerSelfFundConsentHandler((feeEstimatePromise) => {
+      return new Promise<boolean>((resolve) => {
+        setPending({ resolve, feeEstimate: "loading" });
+        void feeEstimatePromise.then((feeEstimate) => {
+          setPending((current) => (current ? { ...current, feeEstimate } : current));
+        });
+      });
+    });
     return () => registerSelfFundConsentHandler(null);
   }, []);
 
@@ -23,14 +30,22 @@ export function SelfFundConsentDialog() {
     setPending(null);
   };
 
+  const feeLabel =
+    pending?.feeEstimate === "loading" || pending?.feeEstimate == null
+      ? null
+      : `${fmt(pending.feeEstimate.feeRaw, 18, 6)} ${pending.feeEstimate.unit === "FRI" ? "STRK" : "ETH"}`;
+
   return (
-    <ActionDialog open={pending !== null} onClose={() => respond(false)} width={420}>
+    <ActionDialog open={pending !== null} onClose={() => respond(false)} width={420} shadow={false}>
       <div className="p-6 space-y-4">
-        <h2 className="text-lg font-semibold">Pay gas from your wallet?</h2>
+        <h2 className="text-lg font-semibold">Pay this transaction</h2>
         <p className="text-sm text-muted-foreground">
-          Sponsored gas isn&apos;t available right now. You can cover this
-          transaction&apos;s network fee from your own wallet balance instead.
+          This transaction will cover onchain fees with funds from your account.
         </p>
+        <div className="rounded-lg bg-muted px-4 py-3 flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">Estimated cost</span>
+          <span className="text-sm font-semibold">{feeLabel ?? "Estimating…"}</span>
+        </div>
         <div className="flex justify-end gap-2">
           <button
             type="button"

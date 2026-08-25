@@ -52,7 +52,7 @@ async function executeGuardianAction(sealed: SealedOwner, calls: Call[], userAdd
     return { transactionHash: result.transactionHash };
   }
 
-  const consented = await requestSelfFundConsent();
+  const consented = await requestSelfFundConsent(userAddress, calls);
   if (!consented) {
     throw new SponsoredCallRejectedError(result.reason);
   }

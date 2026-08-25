@@ -6,6 +6,18 @@ function accountFor(address: string, privateKeyHex: string): Account {
   return new Account({ provider: walletProvider(), address, signer: privateKeyHex, cairoVersion: "1" });
 }
 
+export async function estimateSelfFundedFee(
+  address: string,
+  calls: Call[],
+): Promise<{ feeRaw: bigint; unit: string }> {
+  // A dummy signer is enough here: fee estimation doesn't validate the
+  // signature, only the call structure and account state (same pattern as
+  // media-wallet-send.tsx's estimateSendFee).
+  const account = new Account({ provider: walletProvider(), address, signer: "0x1", cairoVersion: "1" });
+  const est = await account.estimateInvokeFee(calls);
+  return { feeRaw: est.overall_fee, unit: est.unit };
+}
+
 export async function deploySelf(
   address: string,
   ownerPubKey: string,
