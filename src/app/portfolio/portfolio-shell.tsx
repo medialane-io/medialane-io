@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Wallet } from "lucide-react";
+import { LogIn } from "lucide-react";
 import { useUserOrders } from "@/hooks/use-orders";
 import { markOffersAsSeen } from "@/hooks/use-unread-offers";
 import { useRemixOffers } from "@/hooks/use-remix-offers";
@@ -52,10 +52,10 @@ export function PortfolioShell({ children }: { children: React.ReactNode }) {
   if (!hasWallet) {
     return (
       <div className="px-4 sm:px-6 lg:px-8 py-24 text-center space-y-4">
-        <Wallet className="h-12 w-12 mx-auto text-muted-foreground" />
-        <h1 className="text-2xl font-bold">Secure your account</h1>
+        <LogIn className="h-12 w-12 mx-auto text-muted-foreground" />
+        <h1 className="text-2xl font-bold">Connect</h1>
         <p className="text-muted-foreground max-w-sm mx-auto">
-          Secure your account to unlock your portfolio and start trading.
+          Sign in to view your onchain portfolio.
         </p>
         <div className="btn-border-animated inline-block p-[1px] rounded-lg">
           <Button
