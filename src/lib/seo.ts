@@ -32,7 +32,7 @@ export function truncateDescription(value: string, max = 160): string {
 // Shared OG card for the /mint and /br/mint airdrop campaigns — same image,
 // two locales.
 export const AIRDROP_OG_IMAGE =
-  "https://crimson-improved-unicorn-113.mypinata.cloud/ipfs/bafybeiglhfpl3ilyaiulzfjxspolmudih2d3t7lr27imy327fjag2s5zrq";
+  "https://gateway.pinata.cloud/ipfs/bafybeiglhfpl3ilyaiulzfjxspolmudih2d3t7lr27imy327fjag2s5zrq";
 
 export function socialImage(imageUrl?: string | null, alt = "Medialane") {
   const url = imageUrl || absoluteUrl("/og-image.jpg");
