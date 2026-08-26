@@ -653,7 +653,7 @@ export function FastMint({ presentation = "inline", open = true, onClose, mediaK
       <section
         role="button"
         tabIndex={0}
-        aria-label={hasWallet ? "Upload media" : "Secure your account to upload media"}
+        aria-label={hasWallet ? "Upload media" : "Sign in to upload media"}
         onClick={openMediaPicker}
         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openMediaPicker(); } }}
         onDragOver={(e) => e.preventDefault()}
@@ -674,8 +674,8 @@ export function FastMint({ presentation = "inline", open = true, onClose, mediaK
           </h2>
           <p className="text-base text-muted-foreground max-w-sm mx-auto">
             {hasWallet
-              ? (mediaKindLock === "image" ? "It becomes your avatar and app theme." : "Protect your creation and start earning from it worldwide.")
-              : "Secure your account to protect your creation and start earning from it worldwide."}
+              ? (mediaKindLock === "image" ? "It becomes your avatar and app theme." : "Protect your creation and make it available worldwide.")
+              : "Sign in to upload your work and mint it as an NFT."}
           </p>
         </div>
         <Button
@@ -692,7 +692,7 @@ export function FastMint({ presentation = "inline", open = true, onClose, mediaK
           ) : (
             <>
               <LogIn className="h-3.5 w-3.5 mr-1.5" />
-              Secure your account
+              Sign in
             </>
           )}
         </Button>
@@ -1002,7 +1002,7 @@ export function FastMint({ presentation = "inline", open = true, onClose, mediaK
               {busy ? <><Loader2 className="h-4 w-4 animate-spin" />Minting…</> : assetType === "single" ? "Mint NFT" : "Mint Editions"}
             </button>
             <p className="text-xs text-center text-muted-foreground">
-              {hasWallet ? "Zero platform fees to mint." : "Secure your account to mint."}
+              {hasWallet ? "Zero platform fees to mint." : "Sign in to mint."}
             </p>
           </div>
 
