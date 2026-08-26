@@ -75,7 +75,7 @@ export function GenesisMint() {
         { contractAddress: BR_MINT_CONTRACT, entrypoint: "mint_item", calldata },
       ] as Call[]);
     });
-  }, [walletAddress, storageKey, action, getValidToken, signIn]);
+  }, [walletAddress, action, getValidToken, signIn]);
 
   // Only declare success — and persist it to localStorage — once the shared
   // hook has actually verified the transaction onchain (action.status

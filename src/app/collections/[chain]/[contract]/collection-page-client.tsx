@@ -440,11 +440,9 @@ export default function CollectionPageClient() {
                   />
                 ) : (
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
-                    {sortOrders(activeBids, offersSort).map((o) => {
-                      const isOwner = !!walletAddress && !!o.offerer &&
-                        normalizeAddress("STARKNET", o.offerer) === normalizeAddress("STARKNET", walletAddress);
-                      return <ListingCard key={o.orderHash} order={o} />;
-                    })}
+                    {sortOrders(activeBids, offersSort).map((o) => (
+                      <ListingCard key={o.orderHash} order={o} />
+                    ))}
                   </div>
                 )}
               </TabsContent>

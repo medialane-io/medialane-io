@@ -38,7 +38,7 @@ export interface UseLaunchCoinDeps {
 
 export function useLaunchCoin(deps: UseLaunchCoinDeps = {}) {
   const verify = deps.verify ?? assertTransactionSucceeded;
-  const getReceipt = deps.getReceipt ?? ((txHash: string) => starknetProvider.getTransactionReceipt(txHash) as Promise<CreatorCoinReceiptLike>);
+  const getReceipt = deps.getReceipt;
   const client = useMedialaneClient();
   const [status, setStatus] = useState<LaunchStatus>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -74,7 +74,9 @@ export function useLaunchCoin(deps: UseLaunchCoinDeps = {}) {
         for (let attempt = 0; attempt < 4 && !receipt; attempt++) {
           try {
             if (attempt > 0) await new Promise((r) => setTimeout(r, 2500));
-            receipt = await getReceipt(created.txHash);
+            receipt = getReceipt
+              ? await getReceipt(created.txHash)
+              : ((await starknetProvider.getTransactionReceipt(created.txHash)) as CreatorCoinReceiptLike);
           } catch {  }
         }
         if (!receipt) {

@@ -21,8 +21,8 @@ export function stripAccountToken(bodyText: string): string {
   try {
     const data = JSON.parse(bodyText) as Record<string, unknown>;
     if (!("accountToken" in data)) return bodyText;
-    const { accountToken: _drop, ...rest } = data;
-    return JSON.stringify(rest);
+    delete data.accountToken;
+    return JSON.stringify(data);
   } catch {
     return bodyText;
   }
