@@ -1,4 +1,4 @@
-import { readOptionalAddressEnv, readStringEnv } from "./env";
+import { readStringEnv } from "./env";
 
 export {
   SUPPORTED_TOKENS,
@@ -12,6 +12,9 @@ export {
   STARKNET_IP_TICKETS_FACTORY_CONTRACT,
   STARKNET_IP_CLUB_FACTORY_CONTRACT,
   STARKNET_IP_SPONSORSHIP_CONTRACT,
+  STARKNET_GENESIS_MINT_LAUNCH_CONTRACT as LAUNCH_MINT_CONTRACT,
+  STARKNET_GENESIS_MINT_BR_CONTRACT as BR_MINT_CONTRACT,
+  STARKNET_GENESIS_MINT_GLOBAL_CONTRACT as MINT_CONTRACT,
 } from "@medialane/sdk";
 
 
@@ -37,23 +40,11 @@ if (!isServer && MEDIALANE_API_KEY) {
 export const EXPLORER_URL =
   readStringEnv(process.env.NEXT_PUBLIC_EXPLORER_URL, "https://voyager.online");
 
-export const MINT_CONTRACT =
-  readOptionalAddressEnv(process.env.NEXT_PUBLIC_MINT_CONTRACT, "NEXT_PUBLIC_MINT_CONTRACT");
-
-export const LAUNCH_MINT_CONTRACT =
-  readOptionalAddressEnv(
-    process.env.NEXT_PUBLIC_LAUNCH_MINT_CONTRACT,
-    "NEXT_PUBLIC_LAUNCH_MINT_CONTRACT"
-  );
-
 export const GENESIS_NFT_URI =
   readStringEnv(process.env.NEXT_PUBLIC_GENESIS_NFT_URI);
 
 export const GENESIS_NFT_IMAGE_URL =
   readStringEnv(process.env.NEXT_PUBLIC_GENESIS_NFT_IMAGE_URL);
-
-export const BR_MINT_CONTRACT =
-  readOptionalAddressEnv(process.env.NEXT_PUBLIC_BR_MINT_CONTRACT, "NEXT_PUBLIC_BR_MINT_CONTRACT");
 
 export const BR_NFT_URI =
   readStringEnv(process.env.NEXT_PUBLIC_BR_NFT_URI);
