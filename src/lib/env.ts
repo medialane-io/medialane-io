@@ -17,14 +17,6 @@ export function readAddressEnv(
   return chosen;
 }
 
-export function readOptionalAddressEnv(value: string | undefined, name: string): HexAddress | "" {
-  if (!value) return "";
-  if (!isHexAddress(value)) {
-    throw new Error(`Invalid ${name}: expected a Starknet hex address starting with 0x`);
-  }
-  return value;
-}
-
 export function readStringEnv(value: string | undefined, fallback = ""): string {
   return value || fallback;
 }
