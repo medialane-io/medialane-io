@@ -3,19 +3,14 @@
 import useSWR from "swr";
 import { apiFetch } from "@/lib/api-fetch";
 import type { ApiCollection, ApiMeta } from "@medialane/sdk";
+import { getDropStatus, type DropConditions, type DropStatus } from "@medialane/ui";
+
+export { getDropStatus };
+export type { DropConditions, DropStatus };
 
 export interface DropMintStatus {
   mintedByWallet: number;
   totalMinted: number;
-}
-
-export interface DropConditions {
-  maxSupply: string;
-  price: string;
-  paymentToken: string;
-  startTime: number;
-  endTime: number;
-  maxPerWallet: string;
 }
 
 export interface ApiDropInfo {
@@ -27,18 +22,6 @@ export interface ApiDropInfo {
   owner: string | null;
   totalMinted: number;
   conditions: DropConditions | null;
-}
-
-export type DropStatus = "upcoming" | "live" | "ended" | "sold_out";
-
-export function getDropStatus(conditions: DropConditions | null, totalMinted: number): DropStatus {
-  if (!conditions) return "live";
-  const now = Math.floor(Date.now() / 1000);
-  const max = parseInt(conditions.maxSupply, 10);
-  if (max > 0 && totalMinted >= max) return "sold_out";
-  if (now < conditions.startTime) return "upcoming";
-  if (now > conditions.endTime) return "ended";
-  return "live";
 }
 
 export function useDropCollections() {
