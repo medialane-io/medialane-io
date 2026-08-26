@@ -2,7 +2,7 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { formatDistanceToNow } from "date-fns";
 import { normalizeAddress } from "@medialane/sdk";
-import { ipfsToHttp as sharedIpfsToHttp } from "@medialane/ui";
+import { ipfsToHttp as sharedIpfsToHttp, PINATA_PUBLIC_GATEWAY } from "@medialane/ui";
 import { SUPPORTED_TOKENS } from "./constants";
 
 export function cn(...inputs: ClassValue[]) {
@@ -70,12 +70,8 @@ export function ipfsToHttp(uri: string | null | undefined): string {
   if (!uri) return "/placeholder.svg";
   if (uri.startsWith("data:image/")) return uri;
 
-  // sharedIpfsToHttp resolves ipfs:// URIs and known IPFS gateway hosts
-  // directly to Pinata's public gateway (no proxy, no token — the content
-  // is public by CID). For anything else (an arbitrary external host) it
-  // returns the URI unchanged, which we route through /api/img instead.
   const resolved = sharedIpfsToHttp(uri);
-  if (resolved && resolved !== uri) return resolved;
+  if (resolved.startsWith(PINATA_PUBLIC_GATEWAY)) return resolved;
 
   if (uri.startsWith("https://") || uri.startsWith("http://")) {
     return `/api/img?url=${encodeURIComponent(uri)}`;
