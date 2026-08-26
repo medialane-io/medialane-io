@@ -668,14 +668,10 @@ export function FastMint({ presentation = "inline", open = true, onClose, mediaK
         </div>
         <div className="space-y-1.5 px-6">
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            {hasWallet
-              ? (mediaKindLock ? `Drop or upload an ${mediaKindLock}` : "Drop or upload your media")
-              : "Drop or upload your media"}
+            {mediaKindLock ? `Drop or upload an ${mediaKindLock}` : "Drop or upload your media"}
           </h2>
           <p className="text-base text-muted-foreground max-w-sm mx-auto">
-            {hasWallet
-              ? (mediaKindLock === "image" ? "It becomes your avatar and app theme." : "Protect your creation and make it available worldwide.")
-              : "Sign in to upload your work and mint it as an NFT."}
+            {mediaKindLock === "image" ? "It becomes your avatar and app theme." : "Protect your creation and monetize it worldwide."}
           </p>
         </div>
         <Button
@@ -1002,7 +998,7 @@ export function FastMint({ presentation = "inline", open = true, onClose, mediaK
               {busy ? <><Loader2 className="h-4 w-4 animate-spin" />Minting…</> : assetType === "single" ? "Mint NFT" : "Mint Editions"}
             </button>
             <p className="text-xs text-center text-muted-foreground">
-              {hasWallet ? "Zero platform fees to mint." : "Sign in to mint."}
+              Zero platform fees to mint.
             </p>
           </div>
 
