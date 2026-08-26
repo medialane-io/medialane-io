@@ -363,7 +363,9 @@ export default function CollectionSettingsPage({ params }: Props) {
         telegramUrl: form.telegramUrl || null,
         gatedContentTitle: form.gatedEnabled ? (form.gatedContentTitle || null) : null,
         gatedContentUrl: form.gatedEnabled ? (form.gatedContentUrl || null) : null,
-        gatedContentType: form.gatedEnabled ? (form.gatedContentType || null) : null,
+        gatedContentType: form.gatedEnabled
+          ? ((form.gatedContentType || null) as "VIDEO" | "STREAM" | "AUDIO" | "DOCUMENT" | "LINK" | null)
+          : null,
       };
       await getMedialaneClient().api.updateCollectionProfile(contract, payload, token);
       await mutate();
