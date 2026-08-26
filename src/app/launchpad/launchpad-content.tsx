@@ -8,7 +8,6 @@ import { getService } from "@medialane/sdk";
 import {
   LaunchpadGroupedSections,
   LaunchpadFilterBar,
-  LaunchpadCtaBanner,
   LAUNCHPAD_ROUTE_OVERRIDES,
   useLaunchpadFilter,
   type ServiceOverrides,
@@ -16,7 +15,7 @@ import {
 import { FastMint } from "@/components/launchpad/fast-mint";
 
 export function LaunchpadContent() {
-  const { hasWallet, address: walletAddress } = useWalletNativeSession();
+  const { address: walletAddress } = useWalletNativeSession();
   const filter = useLaunchpadFilter();
   const { collections } = useCollectionsByOwner(walletAddress ?? null);
 
@@ -60,34 +59,6 @@ export function LaunchpadContent() {
           onClearFilters={filter.clear}
         />
       </section>
-
-      <section className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-        <FadeIn>
-          <LaunchpadCtaBanner
-            eyebrow="Web3 version"
-            title="Prefer connecting your own wallet?"
-            description="Every launchpad service is also available on the full web3 dapp, with Ready, Braavos, and other Starknet wallets."
-            href="https://starknet.medialane.io/launchpad"
-            ctaLabel="Open the dapp"
-            external
-          />
-        </FadeIn>
-      </section>
-
-      {hasWallet && (
-        <section className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-          <FadeIn>
-            <LaunchpadCtaBanner
-              eyebrow="Manage"
-              title="Your portfolio"
-              description="Assets, listings, offers, and activity."
-              href="/portfolio"
-              ctaLabel="View portfolio"
-              tone="manage"
-            />
-          </FadeIn>
-        </section>
-      )}
 
     </div>
   );
