@@ -66,14 +66,17 @@ export function formatDisplayPrice(price: string | number | null | undefined): s
   return currencyPart ? `${formatted} ${currencyPart}` : formatted;
 }
 
-export function ipfsToHttp(uri: string | null | undefined, width?: number): string {
+export function ipfsToHttp(uri: string | null | undefined): string {
   if (!uri) return "/placeholder.svg";
   if (uri.startsWith("data:image/")) return uri;
 
+  // sharedIpfsToHttp resolves ipfs:// URIs and known IPFS gateway hosts
+  // directly to Pinata's public gateway (no proxy, no token — the content
+  // is public by CID). For anything else (an arbitrary external host) it
+  // returns the URI unchanged, which we route through /api/img instead.
   const resolved = sharedIpfsToHttp(uri);
-  if (resolved.startsWith("/api/ipfs/")) {
-    return width ? `${resolved}?w=${width}` : resolved;
-  }
+  if (resolved && resolved !== uri) return resolved;
+
   if (uri.startsWith("https://") || uri.startsWith("http://")) {
     return `/api/img?url=${encodeURIComponent(uri)}`;
   }

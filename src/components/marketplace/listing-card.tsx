@@ -35,7 +35,7 @@ export function ListingCard({ order, onBuy, compact = false }: ListingCardProps)
   const usdPrices = useUsdPrices();
   const usdValue = usdValueFor(order.price?.formatted, order.price?.currency, usdPrices);
 
-  const imageUrl = order.token?.image ? ipfsToHttp(order.token.image, 640) : null;
+  const imageUrl = order.token?.image ? ipfsToHttp(order.token.image) : null;
 
   const overflowMenu = (
     <DropdownMenu>

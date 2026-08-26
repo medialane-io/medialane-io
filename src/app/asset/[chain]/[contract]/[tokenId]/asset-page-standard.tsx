@@ -329,12 +329,12 @@ export function AssetPageStandard() {
             <div className="pt-5 border-t border-border/40 space-y-5">
               <AssetCollectionBar
                 collectionName={collection?.name ?? contract.slice(0, 8) + "…"}
-                collectionImage={collection?.image ? ipfsToHttp(collection.image, 96) : null}
+                collectionImage={collection?.image ? ipfsToHttp(collection.image) : null}
                 collectionHref={collectionHref("STARKNET", contract)}
                 currentTokenId={tokenId}
                 siblingTokens={collectionTokens.map((t) => ({
                   tokenId: t.tokenId,
-                  image: t.metadata?.image ? ipfsToHttp(t.metadata.image, 96) : null,
+                  image: t.metadata?.image ? ipfsToHttp(t.metadata.image) : null,
                 }))}
                 onNavigate={(id) => router.push(assetHref("STARKNET", contract, id))}
               />
