@@ -118,6 +118,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
                 : null;
             if (status === 401 || status === 403) return;
 
+            // A missing resource is a state the page renders (pending indexing,
+            // empty view), never something to interrupt the user with. Toasting
+            // it turned a freshly minted asset — which the chain had already
+            // accepted — into a red "Token not found" error.
+            if (status === 404) return;
+
             if (err instanceof WalletNotDeployedError) return;
 
             toast.error(toFriendlyToastMessage(err));
