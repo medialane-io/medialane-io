@@ -58,8 +58,9 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
-    // All external images are proxied server-side through /api/ipfs and /api/img,
-    // so Vercel's /_next/image optimizer is not needed and hits quota on free plan.
+    // External images come straight from the public IPFS gateway or through
+    // /api/img, so Vercel's /_next/image optimizer is not needed and would hit
+    // the free-plan quota.
     unoptimized: true,
     remotePatterns: [
       {
