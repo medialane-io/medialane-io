@@ -54,7 +54,7 @@ export function AssetPageStandard() {
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
   const listingRequiresEmailVerification = useEmailVerificationRequired();
   const { collection } = useCollection(contract);
-  const { token, isLoading } = useToken(contract, tokenId);
+  const { token, isLoading, isIndexing } = useToken(contract, tokenId);
   const { listings, mutate: mutateListings } = useTokenListings(contract, tokenId);
   const { history } = useTokenHistory(contract, tokenId);
 
@@ -191,11 +191,24 @@ export function AssetPageStandard() {
     );
   }
 
+  if (!token && isIndexing) {
+    return (
+      <PageContainer className="py-24 text-center">
+        <p className="text-2xl font-bold">Preparing this asset</p>
+        <p className="text-muted-foreground mt-2">
+          It is live onchain and will appear here in a moment.
+        </p>
+      </PageContainer>
+    );
+  }
+
   if (!token) {
     return (
       <PageContainer className="py-24 text-center">
         <p className="text-2xl font-bold">Asset not found</p>
-        <p className="text-muted-foreground mt-2">This token hasn&apos;t been indexed yet.</p>
+        <p className="text-muted-foreground mt-2">
+          Check the collection address and token ID.
+        </p>
       </PageContainer>
     );
   }

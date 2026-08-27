@@ -1,6 +1,6 @@
 
 
-import { APP_URL } from "@/lib/seo";
+import { ipfsToHttp as sharedIpfsToHttp } from "@medialane/ui";
 
 const BASE = process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL ?? "";
 const KEY  = process.env.MEDIALANE_API_KEY ?? "";
@@ -21,10 +21,13 @@ async function apiFetch<T>(path: string): Promise<T | null> {
   }
 }
 
+// Feeds og:image and twitter:image, so the result has to be an absolute URL a
+// crawler can fetch without our app in the path. It previously pointed at
+// /api/ipfs, a route that was deleted — every social preview resolved to a 404.
+// The public gateway is already what the browser-side resolver uses.
 export function ipfsToHttpServer(uri: string | null | undefined): string {
   if (!uri) return "";
-  if (uri.startsWith("ipfs://")) return `${APP_URL}/api/ipfs/${uri.slice(7)}`;
-  return uri;
+  return sharedIpfsToHttp(uri) || "";
 }
 
 export async function fetchTokenMeta(contract: string, tokenId: string) {
