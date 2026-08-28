@@ -1,9 +1,12 @@
 import { formatAmount } from "@medialane/sdk";
+import { ipfsToHttp } from "@/lib/utils";
 import { EXPLORER_URL } from "@/lib/constants";
 import type { UsdPrices } from "@/hooks/use-usd-prices";
 
-export const gateway = (u: string | null): string | null =>
-  !u ? null : u.startsWith("ipfs://") ? `https://ipfs.io/ipfs/${u.slice(7)}` : u;
+// Resolves through the shared helper rather than naming a gateway here: a
+// hardcoded host bypasses the platform's gateway choice and is exactly what the
+// paid-upstreams guard exists to catch.
+export const gateway = (u: string | null): string | null => (u ? ipfsToHttp(u) : null);
 
 export const short = (a?: string | null): string =>
   a && a.length > 12 ? `${a.slice(0, 6)}…${a.slice(-4)}` : a ?? "";
