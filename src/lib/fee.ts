@@ -1,7 +1,5 @@
 import { resolveAppFeeConfig } from "@medialane/sdk";
 
-export { buildFeeCall } from "@medialane/sdk/starknet";
-
 export const feeConfig = resolveAppFeeConfig({
   NEXT_PUBLIC_FEE_ENABLED: process.env.NEXT_PUBLIC_FEE_ENABLED,
   NEXT_PUBLIC_FEE_FUND_ADDRESS: process.env.NEXT_PUBLIC_FEE_FUND_ADDRESS,

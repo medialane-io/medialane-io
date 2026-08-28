@@ -50,14 +50,6 @@ export async function submitRemixOffer(
   return res.data;
 }
 
-export async function submitAutoRemixOffer(
-  body: { originalContract: string; originalTokenId: string },
-  token: string
-): Promise<RemixOffer> {
-  const res = await apiFetch<{ data: RemixOffer }>(`/v1/remix-offers/auto`, { method: "POST", body, bearer: token });
-  return res.data;
-}
-
 export async function registerRemix(
   body: {
     originalContract: string;
@@ -82,15 +74,5 @@ export async function confirmRemixOffer(
   token: string
 ): Promise<RemixOffer> {
   const res = await apiFetch<{ data: RemixOffer }>(`/v1/remix-offers/${id}/confirm`, { method: "POST", body, bearer: token });
-  return res.data;
-}
-
-export async function rejectRemixOffer(id: string, token: string): Promise<RemixOffer> {
-  const res = await apiFetch<{ data: RemixOffer }>(`/v1/remix-offers/${id}/reject`, { method: "POST", body: {}, bearer: token });
-  return res.data;
-}
-
-export async function extendRemixOffer(id: string, days: number, token: string): Promise<RemixOffer> {
-  const res = await apiFetch<{ data: RemixOffer }>(`/v1/remix-offers/${id}/extend`, { method: "POST", body: { days }, bearer: token });
   return res.data;
 }

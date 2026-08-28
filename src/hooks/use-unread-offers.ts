@@ -28,23 +28,3 @@ export function markOffersAsSeen(hashes: string[]) {
   } catch {  }
 }
 
-export function useUnreadOffers(address: string | null | undefined) {
-  const { orders } = useUserOrders(address ?? null);
-  const [unreadCount, setUnreadCount] = useState(0);
-
-  useEffect(() => {
-    if (!address || orders.length === 0) { setUnreadCount(0); return; }
-
-    const receivedOffers = orders.filter(
-      (o) =>
-        o.status === "ACTIVE" &&
-        o.offer.itemType === "ERC20" &&
-        normalizeAddress("STARKNET", o.offerer) !== normalizeAddress("STARKNET", address)
-    );
-    const seen = getSeenOffers();
-    const unseen = receivedOffers.filter((o) => !seen.has(o.orderHash));
-    setUnreadCount(unseen.length);
-  }, [orders, address]);
-
-  return unreadCount;
-}

@@ -11,7 +11,7 @@ import { RPC_PRIMARY_URL } from "./starknet";
 
 let _client: MedialaneClient | null = null;
 
-export function medialaneConfig() {
+function medialaneConfig() {
   const rpcUrl = RPC_PRIMARY_URL;
   return {
     backendUrl: MEDIALANE_BACKEND_URL,

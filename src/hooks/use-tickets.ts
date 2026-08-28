@@ -71,16 +71,6 @@ export async function predictNextTicketId(contract: string): Promise<number> {
   return (await readTicketCount(contract)) + 1;
 }
 
-export function useTicketList(contract: string | null) {
-  const { data, error, isLoading, mutate } = useSWR<TicketListItem[]>(
-    contract ? `ticket-list-${contract}` : null,
-    () => readTicketList(contract!),
-    { revalidateOnFocus: false, dedupingInterval: 15_000 }
-  );
-
-  return { tickets: data ?? [], isLoading, error, mutate };
-}
-
 export function useTicketOnchain(contract: string | null, tokenId: string | null) {
   const { data, error, isLoading } = useSWR<TicketOnchain>(
     contract && tokenId ? `ticket-onchain-${contract}-${tokenId}` : null,

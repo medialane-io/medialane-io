@@ -4,7 +4,7 @@ export function isErc1155Standard(standard: string | null | undefined): standard
   return standard === "ERC1155";
 }
 
-export function isKnownTokenStandard(
+function isKnownTokenStandard(
   standard: string | null | undefined
 ): standard is Exclude<TokenStandard, "UNKNOWN"> {
   return standard === "ERC721" || standard === "ERC1155";
