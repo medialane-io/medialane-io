@@ -2,7 +2,7 @@ import { getTokenByAddress } from "@medialane/sdk";
 import type { ApiWalletActivity } from "@medialane/sdk";
 import { fmt, short } from "@/lib/wallet-format";
 
-export function tokenAmount(tokenAddress: string | null, amount: string | null): string | null {
+function tokenAmount(tokenAddress: string | null, amount: string | null): string | null {
   if (!amount) return null;
   const token = tokenAddress ? getTokenByAddress(tokenAddress) : undefined;
   if (!token) return amount;

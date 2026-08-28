@@ -21,7 +21,7 @@ export interface ServiceConfig {
   hasDetailAction: boolean;
 }
 
-export const SERVICE_REGISTRY: Record<string, ServiceConfig> = {
+const SERVICE_REGISTRY: Record<string, ServiceConfig> = {
   "pop-protocol": {
     serviceId: "pop-protocol",
     name: "POP Protocol",

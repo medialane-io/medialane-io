@@ -34,7 +34,7 @@ export function truncateDescription(value: string, max = 160): string {
 export const AIRDROP_OG_IMAGE =
   "https://gateway.pinata.cloud/ipfs/bafybeiglhfpl3ilyaiulzfjxspolmudih2d3t7lr27imy327fjag2s5zrq";
 
-export function socialImage(imageUrl?: string | null, alt = "Medialane") {
+function socialImage(imageUrl?: string | null, alt = "Medialane") {
   const url = imageUrl || absoluteUrl("/og-image.jpg");
   return { url, width: 1200, height: 630, alt };
 }

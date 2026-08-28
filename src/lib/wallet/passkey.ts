@@ -28,7 +28,7 @@ const b64 = (buf: ArrayBuffer | Uint8Array): string =>
 const PRF_SALT = enc("medialane://io/owner-key/v1");
 const HKDF_INFO = enc("medialane-io-owner-key");
 
-export class PasskeyCancelledError extends Error {
+class PasskeyCancelledError extends Error {
   constructor() {
     super("Passkey confirmation was cancelled.");
     this.name = "PasskeyCancelledError";
@@ -163,16 +163,3 @@ export async function unlockOwnerKey(sealed: SealedOwner): Promise<string> {
   return unsealPrivateKey(aes, unb64(sealed.iv), unb64(sealed.ciphertext));
 }
 
-export async function signWith(sealed: SealedOwner, msgHash: string): Promise<[string, string]> {
-  const priv = await unlockOwnerKey(sealed);
-  return signWithPrivateKey(priv, msgHash);
-}
-
-export async function passkeySupported(): Promise<boolean> {
-  if (typeof window === "undefined" || !window.PublicKeyCredential) return false;
-  try {
-    return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-  } catch {
-    return false;
-  }
-}

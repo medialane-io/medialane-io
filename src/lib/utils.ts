@@ -9,41 +9,12 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function shortenAddress(address: string, chars = 4): string {
-  if (!address || address.length < 10) return address || "";
-  return `${address.slice(0, chars + 2)}...${address.slice(-chars)}`;
-}
-
-export function getCurrency(tokenAddress: string) {
-  if (!tokenAddress) return { symbol: "TOKEN", decimals: 18 };
-  const norm = normalizeAddress("STARKNET", tokenAddress).toLowerCase();
-  for (const token of SUPPORTED_TOKENS) {
-    if (normalizeAddress("STARKNET", token.address).toLowerCase() === norm) {
-      return { symbol: token.symbol, decimals: token.decimals };
-    }
-  }
-  return { symbol: "TOKEN", decimals: 18 };
-}
-
 function adaptiveDecimals(num: number): number {
   if (num === 0 || num >= 1) return 2;
   if (num >= 0.01) return 4;
 
   const leadingZeros = Math.floor(-Math.log10(Math.abs(num)));
   return leadingZeros + 2;
-}
-
-export function formatPrice(amount: string, decimals: number): string {
-  if (!amount) return "0";
-  try {
-    const val = BigInt(amount);
-    const num = Number(val) / Math.pow(10, decimals);
-    return num.toLocaleString(undefined, {
-      maximumFractionDigits: adaptiveDecimals(num),
-    });
-  } catch {
-    return "0";
-  }
 }
 
 export function formatDisplayPrice(price: string | number | null | undefined): string {

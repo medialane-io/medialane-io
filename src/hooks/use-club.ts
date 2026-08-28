@@ -86,16 +86,6 @@ export async function predictNextMembershipId(contract: string): Promise<number>
   return count + 1;
 }
 
-export function useMembershipList(contract: string | null) {
-  const { data, error, isLoading, mutate } = useSWR<MembershipListItem[]>(
-    contract ? `membership-list-${contract}` : null,
-    () => readMembershipList(contract!),
-    { revalidateOnFocus: false, dedupingInterval: 15_000 }
-  );
-
-  return { memberships: data ?? [], isLoading, error, mutate };
-}
-
 export function useMembershipOnchain(contract: string | null, tokenId: string | null) {
   const { data, error, isLoading } = useSWR<MembershipOnchain>(
     contract && tokenId ? `membership-onchain-${contract}-${tokenId}` : null,

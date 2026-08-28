@@ -93,19 +93,6 @@ export function useSponsorshipOffers(params?: { nftContract?: string; author?: s
   return { offers: data?.data ?? [], meta: data?.meta, isLoading, error, mutate };
 }
 
-export function useSponsorshipOffer(offerId: string | null) {
-  const { data, error, isLoading, mutate } = useSWR<SponsorshipOffer>(
-    offerId ? `sponsorship-offer-${offerId}` : null,
-    async () => {
-      const json = await apiFetch<{ data: SponsorshipOffer }>(`/v1/sponsorship/offers/${offerId}`);
-      return json.data;
-    },
-    { revalidateOnFocus: false }
-  );
-
-  return { offer: data ?? null, isLoading, error, mutate };
-}
-
 export function useSponsorshipBids(offerId: string | null) {
   const { data, error, isLoading, mutate } = useSWR<SponsorshipBid[]>(
     offerId ? `sponsorship-bids-${offerId}` : null,
@@ -135,19 +122,6 @@ export function useSponsorshipProposals(params?: { nftContract?: string; propose
   );
 
   return { proposals: data?.data ?? [], meta: data?.meta, isLoading, error, mutate };
-}
-
-export function useSponsorshipProposal(proposalId: string | null) {
-  const { data, error, isLoading, mutate } = useSWR<SponsorshipProposal>(
-    proposalId ? `sponsorship-proposal-${proposalId}` : null,
-    async () => {
-      const json = await apiFetch<{ data: SponsorshipProposal }>(`/v1/sponsorship/proposals/${proposalId}`);
-      return json.data;
-    },
-    { revalidateOnFocus: false }
-  );
-
-  return { proposal: data ?? null, isLoading, error, mutate };
 }
 
 export function usePendingProposalsForAsset(nftContract: string | null) {
