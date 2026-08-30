@@ -3,7 +3,6 @@ import { twMerge } from "tailwind-merge";
 import { formatDistanceToNow } from "date-fns";
 import { normalizeAddress } from "@medialane/sdk";
 import { ipfsToHttp as sharedIpfsToHttp, PINATA_PUBLIC_GATEWAY } from "@medialane/ui";
-import { SUPPORTED_TOKENS } from "./constants";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

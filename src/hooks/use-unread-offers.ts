@@ -1,9 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { normalizeAddress } from "@medialane/sdk";
-import { useUserOrders } from "./use-orders";
-
 const STORAGE_KEY = "medialane-seen-offers";
 
 export function getSeenOffers(): Set<string> {

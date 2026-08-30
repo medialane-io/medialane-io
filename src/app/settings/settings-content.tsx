@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import Image from "next/image";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSiwsToken } from "@/hooks/use-siws-token";
 import { useCreatorProfile } from "@/hooks/use-profiles";
@@ -11,15 +10,14 @@ import { useMyUsernameClaim, submitUsernameClaim, checkUsernameAvailability } fr
 import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useUserOrders } from "@/hooks/use-orders";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
-import { useRewards } from "@/hooks/use-rewards";
 import { useMediaWallet } from "@/components/media-wallet/media-wallet-overlay";
-import { AssetPicker, AddressDisplay, ServiceFormShell, LevelBadge, type OwnedAsset } from "@medialane/ui";
+import { AssetPicker, AddressDisplay, ServiceFormShell, type OwnedAsset } from "@medialane/ui";
 import { FastMint } from "@/components/launchpad/fast-mint";
 import { EXPLORER_URL } from "@/lib/constants";
-import { CreatorScoreInline } from "@/components/rewards/creator-score-inline";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { completeWalletDeployment } from "@/lib/wallet/complete-deployment";
 import { WalletDeploymentDialog } from "@/components/wallet/wallet-deployment-dialog";
+import { ExportKeySection } from "@/components/wallet/export-key-section";
 import { EmailVerifyDialog } from "@/components/settings/email-verify-dialog";
 import { GuardianRecoverySection } from "@/components/settings/guardian-recovery-section";
 import { Button } from "@/components/ui/button";
@@ -32,275 +30,25 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
-  AtSign, CheckCircle2, Clock, XCircle, Loader2, Settings as SettingsIcon,
-  Globe, Twitter, MessageCircle, Send, ArrowUpRight, Gem, Tag, LayoutGrid, Trophy, Wallet,
-  Mail, User, ShieldCheck, ShieldAlert, AlertTriangle,
+  AtSign, CheckCircle2, Clock, XCircle, Loader2, Settings as SettingsIcon, ArrowUpRight, Wallet, Mail, User, ShieldCheck, ShieldAlert, AlertTriangle,
 } from "lucide-react";
 import { cn, resolveTokenImage } from "@/lib/utils";
 import { friendlyErrorMessage } from "@/lib/friendly-error";
+import type { CheckState, ProfileForm } from "@/components/settings/types";
+import { AccountSection } from "@/components/settings/account-section";
+import { PortfolioSnapshot, RewardsSnapshot } from "@/components/settings/snapshots";
+import { UsernameClaimInput, ClaimError } from "@/components/settings/username-claim-input";
+import { ProfileLivePreview } from "@/components/settings/profile-live-preview";
 
-type CheckState = "idle" | "checking" | "available" | "taken";
 
-const EMAIL_GATE_ERROR = "Verify your email to claim a username.";
 
-function ClaimError({ error, onVerifyEmail }: { error: string; onVerifyEmail: () => void }) {
-  if (error === EMAIL_GATE_ERROR) {
-    return (
-      <p className="text-sm text-destructive mt-2">
-        {error}{" "}
-        <button type="button" onClick={onVerifyEmail} className="underline font-medium hover:text-foreground">
-          Verify email
-        </button>
-      </p>
-    );
-  }
-  return <p className="text-sm text-destructive mt-2">{error}</p>;
-}
 
-type ProfileForm = {
-  displayName: string;
-  bio: string;
-  avatarImage: string;
-  websiteUrl: string;
-  twitterUrl: string;
-  discordUrl: string;
-  telegramUrl: string;
-};
 
-function UsernameClaimInput({
-  value, onChange, onCheck, onSubmit, checkState, checkReason, loading, disabled,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  onCheck: () => void;
-  onSubmit: () => void;
-  checkState: CheckState;
-  checkReason?: string;
-  loading: boolean;
-  disabled: boolean;
-}) {
-  const isAvailable = checkState === "available";
-  const isChecking = checkState === "checking";
 
-  return (
-    <div className="space-y-2">
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <AtSign className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
-          <Input
-            className="pl-7 tabular-nums"
-            placeholder="yourname"
-            value={value}
-            onChange={(e) => onChange(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))}
-            maxLength={20}
-            disabled={loading || isChecking}
-            onKeyDown={(e) => e.key === "Enter" && !loading && !isChecking && (isAvailable ? onSubmit() : onCheck())}
-          />
-        </div>
-        {isAvailable ? (
-          <Button
-            onClick={onSubmit}
-            disabled={loading || disabled}
-            className="bg-green-600 hover:bg-green-700 text-white shrink-0"
-          >
-            {loading ? <><Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />Submitting…</> : `Claim @${value}`}
-          </Button>
-        ) : (
-          <Button
-            onClick={onCheck}
-            disabled={isChecking || disabled || value.length < 3}
-            variant="outline"
-            className="shrink-0"
-          >
-            {isChecking ? <><Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />Checking…</> : "Check"}
-          </Button>
-        )}
-      </div>
-      {checkState === "taken" && (
-        <p className="text-xs text-destructive">{checkReason ?? "That username is not available."}</p>
-      )}
-      {checkState === "available" && (
-        <p className="text-xs text-green-600 dark:text-green-500 font-medium">@{value} is available!</p>
-      )}
-    </div>
-  );
-}
 
-function ProfileLivePreview({
-  form, approvedUsername, walletAddress, fallbackImage,
-}: {
-  form: ProfileForm;
-  approvedUsername?: string | null;
-  walletAddress?: string | null;
 
-  fallbackImage?: string | null;
-}) {
-  const displayName = form.displayName || "Your name";
-  const heroUrl = resolveTokenImage(form.avatarImage) || fallbackImage || null;
 
-  return (
-    <div className="rounded-[24px] border border-border/60 bg-card overflow-hidden">
 
-      <div className="px-2.5 pt-2.5">
-        <div className="relative aspect-square w-full overflow-hidden rounded-[16px] bg-muted ring-1 ring-black/10 dark:ring-white/10">
-          {heroUrl && <Image src={heroUrl} alt="" fill unoptimized className="object-cover" />}
-          {walletAddress && (
-            <div className="absolute bottom-2 right-2">
-              <CreatorScoreInline address={walletAddress} />
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="px-5 pt-3 pb-5 space-y-3">
-        <div className="min-w-0">
-          <p className="truncate text-[18px] font-bold leading-snug text-foreground">{displayName}</p>
-          {approvedUsername ? (
-            <p className="text-[11px] tabular-nums text-muted-foreground">@{approvedUsername}</p>
-          ) : (
-            <p className="text-[11px] text-muted-foreground/60">No username yet</p>
-          )}
-        </div>
-
-        {form.bio && (
-          <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">{form.bio}</p>
-        )}
-
-        {(form.websiteUrl || form.twitterUrl || form.discordUrl || form.telegramUrl) && (
-          <div className="flex items-center gap-2">
-            {form.websiteUrl && (
-              <span className="h-7 w-7 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
-                <Globe className="h-3.5 w-3.5" />
-              </span>
-            )}
-            {form.twitterUrl && (
-              <span className="h-7 w-7 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
-                <Twitter className="h-3.5 w-3.5" />
-              </span>
-            )}
-            {form.discordUrl && (
-              <span className="h-7 w-7 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
-                <MessageCircle className="h-3.5 w-3.5" />
-              </span>
-            )}
-            {form.telegramUrl && (
-              <span className="h-7 w-7 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
-                <Send className="h-3.5 w-3.5" />
-              </span>
-            )}
-          </div>
-        )}
-
-        {approvedUsername && (
-          <Link
-            href={`/creator/${approvedUsername}`}
-            className="inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline"
-          >
-            View profile
-            <ArrowUpRight className="h-3 w-3" />
-          </Link>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function AccountSection({
-  icon: Icon, iconColor = "text-primary", iconBg = "bg-primary/10", title, description, children,
-}: {
-  icon: React.ElementType; iconColor?: string; iconBg?: string; title: string; description: string; children: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-2xl border border-border/60 bg-card p-5 sm:p-6 space-y-5">
-      <div className="flex items-start gap-3">
-        <div className={cn("h-10 w-10 shrink-0 rounded-full flex items-center justify-center", iconBg)}>
-          <Icon className={cn("h-5 w-5", iconColor)} />
-        </div>
-        <div>
-          <h3 className="text-base font-bold text-foreground">{title}</h3>
-          <p className="text-sm text-muted-foreground mt-0.5">{description}</p>
-        </div>
-      </div>
-      <div className="space-y-4">{children}</div>
-    </div>
-  );
-}
-
-function SnapshotStat({ icon: Icon, value, label }: { icon: React.ElementType; value: number; label: string }) {
-  return (
-    <div className="flex-1 min-w-0 text-center">
-      <div className="flex items-center justify-center gap-1 text-muted-foreground/70">
-        <Icon className="h-3 w-3" />
-      </div>
-      <p className="mt-1 text-lg font-bold tabular-nums text-foreground">{value}</p>
-      <p className="text-[10.5px] text-muted-foreground">{label}</p>
-    </div>
-  );
-}
-
-function PortfolioSnapshot({ assets, listings, collections }: { assets: number; listings: number; collections: number }) {
-  return (
-    <div className="rounded-2xl border border-border/60 bg-card p-5 space-y-4">
-      <div>
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Portfolio</p>
-        <p className="mt-0.5 text-xs text-muted-foreground/70">What you own on Medialane</p>
-      </div>
-      <div className="flex items-center border-t border-border/60 pt-4">
-        <SnapshotStat icon={Gem} value={assets} label="Assets" />
-        <SnapshotStat icon={Tag} value={listings} label="Listed" />
-        <SnapshotStat icon={LayoutGrid} value={collections} label="Collections" />
-      </div>
-      <Link
-        href="/portfolio"
-        className="flex items-center justify-center gap-1 text-xs font-medium text-primary hover:underline"
-      >
-        View portfolio
-        <ArrowUpRight className="h-3 w-3" />
-      </Link>
-    </div>
-  );
-}
-
-function RewardsSnapshot({ address }: { address?: string | null }) {
-  const { data: rewards } = useRewards(address);
-  if (!rewards) return null;
-
-  return (
-    <div className="rounded-2xl border border-border/60 bg-card p-5 space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Rewards</p>
-          <p className="mt-0.5 text-xs text-muted-foreground/70">Your creator journey</p>
-        </div>
-        <Trophy className="h-4 w-4 text-muted-foreground/50" />
-      </div>
-      <div className="border-t border-border/60 pt-4 space-y-2">
-        <div className="flex items-center justify-between">
-          <LevelBadge level={rewards.currentLevel} name={rewards.currentLevelName} badgeColor={rewards.badgeColor} />
-          <span className="text-xs tabular-nums text-muted-foreground">{rewards.totalXp.toLocaleString()} XP</span>
-        </div>
-        <div className="h-2 rounded-full bg-muted-foreground/15 overflow-hidden">
-          <div
-            className="h-full rounded-full"
-            style={{ width: `${rewards.progressPct}%`, backgroundColor: rewards.badgeColor }}
-          />
-        </div>
-        {rewards.nextLevel && (
-          <p className="text-[10.5px] text-muted-foreground">
-            {rewards.nextLevel.xpRequired - rewards.totalXp} XP to Lv.{rewards.nextLevel.level} {rewards.nextLevel.name}
-          </p>
-        )}
-      </div>
-      <Link
-        href="/rewards"
-        className="flex items-center justify-center gap-1 text-xs font-medium text-primary hover:underline"
-      >
-        View rewards
-        <ArrowUpRight className="h-3 w-3" />
-      </Link>
-    </div>
-  );
-}
 
 export default function SettingsContent() {
   const searchParams = useSearchParams();
@@ -931,6 +679,8 @@ export default function SettingsContent() {
                   </div>
                 </>
               )}
+
+              {walletAddress && <ExportKeySection />}
 
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />

@@ -12,6 +12,7 @@ import { Loader2, ShieldCheck, AlertCircle } from "lucide-react";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { ValuePropCarousel } from "@/components/connect/value-prop-carousel";
 import { friendlyErrorMessage } from "@/lib/friendly-error";
+import { safeRelativePath } from "@/lib/safe-redirect";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useEmailVerificationStatus } from "@/hooks/use-email-verification-required";
 import { useSiwsToken } from "@/hooks/use-siws-token";
@@ -19,11 +20,6 @@ import { useSiwsToken } from "@/hooks/use-siws-token";
 type Step = "email" | "checking-email" | "registering" | "code" | "verifying-code" | "add-email";
 
 const RESEND_COOLDOWN_SECONDS = 60;
-
-function safeRelative(path: string | null | undefined): string | null {
-  if (!path || !path.startsWith("/") || path.startsWith("//")) return null;
-  return path;
-}
 
 export default function ConnectPage() {
   return (
@@ -36,7 +32,7 @@ export default function ConnectPage() {
 function ConnectForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = safeRelative(searchParams.get("redirect_url"));
+  const redirectTo = safeRelativePath(searchParams.get("redirect_url"));
   const [step, setStep] = useState<Step>("email");
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
@@ -120,6 +116,10 @@ function ConnectForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
+      if (res.status === 409) {
+        await requestLoginCode();
+        return;
+      }
       if (!res.ok) throw new Error("register-account failed");
       goToWalletOnboarding();
     } catch {

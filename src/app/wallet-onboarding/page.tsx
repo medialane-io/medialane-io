@@ -9,13 +9,9 @@ import { completeWalletDeployment } from "@/lib/wallet/complete-deployment";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { fireConfetti } from "@/lib/confetti";
 import { MedialaneApiError } from "@medialane/sdk";
+import { safeRelativePath } from "@/lib/safe-redirect";
 
 type Step = "creating-passkey" | "deploying" | "signing-in" | "done";
-
-function safeRelative(path: string | null | undefined, fallback: string): string {
-  if (!path || !path.startsWith("/") || path.startsWith("//")) return fallback;
-  return path;
-}
 
 export default function WalletOnboardingPage() {
   return (
@@ -28,7 +24,7 @@ export default function WalletOnboardingPage() {
 function WalletOnboardingForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = safeRelative(searchParams.get("redirect_url"), "/airdrop");
+  const redirectTo = safeRelativePath(searchParams.get("redirect_url")) ?? "/airdrop";
   const [step, setStep] = useState<Step | null>(null);
   const startedRef = useRef(false);
 

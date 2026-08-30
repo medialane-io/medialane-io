@@ -2,18 +2,12 @@
 
 import {
   useOrders as useOrdersBase,
-  useOrder as useOrderBase,
   useTokenListings as useTokenListingsBase,
   useUserOrders as useUserOrdersBase,
   useCounterOffers as useCounterOffersBase,
-  useReceivedOffers as useReceivedOffersBase,
-  useCollectionFloorListings as useCollectionFloorListingsBase,
 } from "@medialane/ui";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
 import type { ApiOrdersQuery } from "@medialane/sdk";
-
-const apiConfig = { baseUrl: MEDIALANE_BACKEND_URL, apiKey: MEDIALANE_API_KEY };
 
 export function useOrders(query: ApiOrdersQuery = {}) {
   return useOrdersBase(getMedialaneClient, query);

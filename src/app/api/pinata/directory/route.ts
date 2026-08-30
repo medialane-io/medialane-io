@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { buildAssetMetadata, type BuildAssetMetadataInput } from "@/lib/asset-metadata";
 import { getSiwsWallet } from "@/lib/siws-server";
+import { limiterFor } from "@/lib/rate-limit-policy";
 import { uploadDirectoryToBackend } from "@/lib/backend-metadata";
 
 export const runtime = "nodejs";
@@ -11,6 +12,9 @@ type DropItemFields = Omit<BuildAssetMetadataInput, "creator" | "registrationDat
 export async function POST(req: NextRequest) {
   const creator = getSiwsWallet(req.headers.get("authorization"));
   if (!creator) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!limiterFor("metadata:upload-directory")(creator)) {
+    return NextResponse.json({ error: "Too many uploads" }, { status: 429 });
+  }
 
   const body = (await req.json().catch(() => null)) as {
     items?: DropItemFields[];

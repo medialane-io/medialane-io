@@ -23,6 +23,12 @@ function buildVerificationCodeEmailHtml(code: string): string {
   `;
 }
 
+const SINGLE_EMAIL = /^[^\s@,;<>"]+@[^\s@,;<>"]+\.[^\s@,;<>"]+$/;
+
+function isSingleEmailAddress(value: string): boolean {
+  return value.length <= 254 && SINGLE_EMAIL.test(value);
+}
+
 export async function POST(req: NextRequest): Promise<NextResponse> {
   const relaySecret = process.env.MAIL_RELAY_SECRET;
   if (!relaySecret) {
@@ -38,10 +44,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   const body = await req.json().catch(() => ({}) as Record<string, unknown>);
-  const to = typeof body.to === "string" ? body.to : null;
+  const to = typeof body.to === "string" ? body.to.trim() : null;
   const code = typeof body.code === "string" ? body.code : null;
   if (!to || !code) {
     return NextResponse.json({ error: "Missing to/code" }, { status: 400 });
+  }
+  if (!isSingleEmailAddress(to)) {
+    return NextResponse.json({ error: "to must be a single email address" }, { status: 400 });
   }
   if (!/^\d{6}$/.test(code)) {
     return NextResponse.json({ error: "code must be a 6-digit number" }, { status: 400 });
@@ -68,6 +77,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("[mail-relay] send failed", { message });
-    return NextResponse.json({ error: "Send failed", detail: message }, { status: 502 });
+    return NextResponse.json({ error: "Send failed" }, { status: 502 });
   }
 }

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { uploadFileToBackend, uploadJsonToBackend } from "@/lib/backend-metadata";
+import { limiterFor } from "@/lib/rate-limit-policy";
+import { trustedClientIp } from "@/lib/client-ip";
 
 const DEFAULT_NAME = "Medialane Genesis";
 const DEFAULT_DESCRIPTION = "This commemorative token marks the official launch of Medialane on Starknet.";
@@ -22,6 +24,10 @@ export async function POST(req: NextRequest) {
 
   if (!isAuthorized) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!limiterFor("metadata:upload-file")(trustedClientIp(req))) {
+    return NextResponse.json({ error: "Too many uploads" }, { status: 429 });
   }
 
   try {

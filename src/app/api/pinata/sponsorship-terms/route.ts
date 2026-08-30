@@ -2,11 +2,16 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getSiwsWallet } from "@/lib/siws-server";
+import { limiterFor } from "@/lib/rate-limit-policy";
 import { uploadJsonToBackend } from "@/lib/backend-metadata";
 
 export async function POST(req: NextRequest) {
-  if (!getSiwsWallet(req.headers.get("authorization"))) {
+  const creator = getSiwsWallet(req.headers.get("authorization"));
+  if (!creator) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!limiterFor("metadata:upload-json")(creator)) {
+    return NextResponse.json({ error: "Too many uploads" }, { status: 429 });
   }
 
   const body = await req.json().catch(() => null);

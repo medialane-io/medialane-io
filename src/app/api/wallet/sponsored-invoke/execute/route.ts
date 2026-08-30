@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
-import { createBackendProxyHandler, createRateLimiter } from "@medialane/sdk";
+import { limiterFor } from "@/lib/rate-limit-policy";
+import { createBackendProxyHandler } from "@medialane/sdk";
 import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
 import { SESSION_COOKIE_NAME } from "@/app/api/proxy/v1/[...path]/session-cookie";
 
@@ -9,7 +10,7 @@ const handler = createBackendProxyHandler({
   path: "/v1/paymaster/invoke/execute",
   backendUrl: MEDIALANE_BACKEND_URL,
   apiKey: MEDIALANE_API_KEY,
-  checkRateLimit: createRateLimiter(60_000, 30),
+  checkRateLimit: limiterFor("wallet:invoke-execute"),
   forwardCookie: { name: SESSION_COOKIE_NAME, header: "x-account-session" },
 });
 
