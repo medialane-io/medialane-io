@@ -11,18 +11,16 @@ import { useCollection, useNearbyCollectionTokens } from "@/hooks/use-collection
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageContainer, AssetCollectionBar, AssetUtilityIcons, AssetMarketplacePanel, AssetMediaColumn, isLivingRenderCollection } from "@medialane/ui";
 import type { Chain } from "@medialane/sdk";
-import { ipfsToHttp, checkIsOwner } from "@/lib/utils";
+import { ipfsToHttp } from "@/lib/utils";
 import { FloatingCommentsButton } from "@/components/asset/floating-comments-button";
 import { LICENSE_TRAIT_TYPES } from "@/types/ip";
 import type { IPType } from "@/types/ip";
 import { IP_TEMPLATES, EMBED_PLATFORM_META, SOCIAL_PLATFORM_META } from "@/lib/ip-templates";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ApiActivity } from "@medialane/sdk";
-import { getService, normalizeAddress } from "@medialane/sdk";
+import { getService } from "@medialane/sdk";
 import { resolveRemixPolicy, getDerivativesTerm } from "@medialane/sdk";
 import { useComments } from "@/hooks/use-comments";
-import { useUsdPrices } from "@/hooks/use-usd-prices";
-import { usdValueFor } from "@/lib/wallet-format";
 import { EXPLORER_URL } from "@/lib/constants";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useEmailVerificationRequired } from "@/hooks/use-email-verification-required";
@@ -46,6 +44,7 @@ import { AssetLightbox } from "@/components/asset/asset-lightbox";
 import { ReportDialog } from "@/components/report-dialog";
 import { HelpIcon } from "@/components/ui/help-icon";
 import { useOrderActions } from "./use-order-actions";
+import { useAssetMarketState } from "@/hooks/use-asset-market-state";
 import { useAcceptOffer } from "@/hooks/use-accept-offer";
 
 export function AssetPageStandard() {
@@ -59,14 +58,23 @@ export function AssetPageStandard() {
   const { history } = useTokenHistory(contract, tokenId);
 
   const {
+    activeListings,
+    activeBids,
+    cheapest,
+    cheapestUsd,
+    lastSaleRaw,
+    isOwner,
+    isERC1155,
+    myListing,
+  } = useAssetMarketState({ token, collection, listings, history, walletAddress });
+
+  const {
     isProcessing,
     cancelStep, cancelError,
     handleCancelClick,
     resetCancelStep,
   } = useOrderActions({ mutateListings });
-  const acceptOffer = useAcceptOffer({ mutateListings, activeListings: listings.filter(
-    (l) => l.status === "ACTIVE" && (l.offer.itemType === "ERC721" || l.offer.itemType === "ERC1155")
-  ) });
+  const acceptOffer = useAcceptOffer({ mutateListings, activeListings });
 
   const shouldReduce = useReducedMotion();
 
@@ -97,33 +105,6 @@ export function AssetPageStandard() {
     ipNftAddress: contract,
     tokenId: tokenId ? (() => { try { return BigInt(tokenId); } catch { return undefined; } })() : undefined,
   });
-
-  const activeListings = listings.filter(
-    (l) => l.status === "ACTIVE" && (l.offer.itemType === "ERC721" || l.offer.itemType === "ERC1155")
-  );
-
-  const activeBids = listings.filter(
-    (l) => l.status === "ACTIVE" && l.offer.itemType === "ERC20"
-  );
-
-  const cheapest = [...activeListings].sort((a, b) =>
-    BigInt(a.consideration.startAmount) < BigInt(b.consideration.startAmount) ? -1 : 1
-  )[0];
-
-  const usdPrices = useUsdPrices();
-  const cheapestUsd = usdValueFor(cheapest?.price?.formatted, cheapest?.price?.currency, usdPrices);
-
-  const lastSale = (history as ApiActivity[])
-    .filter((h) => h.type === "sale" && h.price?.formatted)
-    .reduce<ApiActivity | null>((latest, h) => (!latest || h.timestamp > latest.timestamp ? h : latest), null);
-  const lastSaleRaw = lastSale?.price ? `${lastSale.price.formatted} ${lastSale.price.currency ?? ""}`.trim() : null;
-
-  const isOwner = checkIsOwner(token, walletAddress);
-  const isERC1155 = (token?.standard ?? collection?.standard) === "ERC1155";
-
-  const myListing = isOwner
-    ? activeListings.find((l) => normalizeAddress("STARKNET", l.offerer) === normalizeAddress("STARKNET", walletAddress!))
-    : null;
 
   const remixPolicy = resolveRemixPolicy({
     parentNoDerivatives: getDerivativesTerm(token?.metadata?.attributes) === "Not Allowed",
