@@ -1,6 +1,7 @@
 
 import { type NextRequest, NextResponse } from "next/server";
-import { createRateLimiter, isSameOrigin, requestIp } from "@medialane/sdk";
+import { createRateLimiter, isSameOrigin } from "@medialane/sdk";
+import { TRUSTED_APP_IP_HEADER, isSpoofableForwardingHeader, trustedClientIp } from "@/lib/client-ip";
 import { hasTraversalSegment, isPathAllowed } from "./allowlist";
 import {
   SESSION_COOKIE_NAME,
@@ -48,7 +49,8 @@ async function handle(
     );
   }
 
-  if (!checkRateLimit(requestIp(req))) {
+  const callerIp = trustedClientIp(req);
+  if (!checkRateLimit(callerIp)) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
 
@@ -79,15 +81,18 @@ async function handle(
     );
   }
 
-  const target = `${BACKEND_URL.replace(/\/$/, "")}/v1/${joinedPath}${req.nextUrl.search}`;
+  const safePath = path.map((segment) => encodeURIComponent(segment)).join("/");
+  const target = `${BACKEND_URL.replace(/\/$/, "")}/v1/${safePath}${req.nextUrl.search}`;
 
   const fwdHeaders = new Headers();
   for (const [k, v] of req.headers.entries()) {
     const key = k.toLowerCase();
     if (HOP_BY_HOP_HEADERS.has(key) || key === "x-api-key") continue;
+    if (isSpoofableForwardingHeader(key)) continue;
     fwdHeaders.set(k, v);
   }
   fwdHeaders.set("x-api-key", apiKey);
+  fwdHeaders.set(TRUSTED_APP_IP_HEADER, callerIp);
 
   const hasBody = req.method !== "GET" && req.method !== "HEAD";
   const injectingCookie = shouldInjectSessionCookie(joinedPath, req.method);

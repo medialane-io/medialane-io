@@ -48,20 +48,6 @@ export interface TicketListItem extends TicketOnchain {
   id: string;
 }
 
-async function readTicketCountBilled(contract: string): Promise<number> {
-  const { data } = await apiFetch<{ data: { count: number } }>(`/v1/tickets/${contract}/count`);
-  return data.count;
-}
-
-async function readTicketList(contract: string): Promise<TicketListItem[]> {
-  const count = await readTicketCountBilled(contract);
-  const tickets: TicketListItem[] = [];
-  for (let id = 1; id <= count; id++) {
-    tickets.push({ id: String(id), ...(await readTicket(contract, String(id))) });
-  }
-  return tickets;
-}
-
 async function readTicketCount(contract: string): Promise<number> {
   const col = new Contract({ abi: IPTicketCollectionABI as unknown as Abi, address: contract, providerOrAccount: starknetProvider });
   return Number(await col.call("ticket_count", []));

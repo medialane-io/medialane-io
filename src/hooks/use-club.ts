@@ -50,19 +50,6 @@ export interface MembershipListItem extends MembershipOnchain {
 
 const MEMBERSHIP_PROBE_CAP = 64;
 
-async function readMembershipList(contract: string): Promise<MembershipListItem[]> {
-  const memberships: MembershipListItem[] = [];
-  for (let id = 1; id <= MEMBERSHIP_PROBE_CAP; id++) {
-    try {
-      const m = await readMembership(contract, String(id));
-      memberships.push({ id: String(id), ...m });
-    } catch {
-      break;
-    }
-  }
-  return memberships;
-}
-
 async function countMembershipsOnchain(contract: string): Promise<number> {
   const col = new Contract({ abi: IPClubCollectionABI as unknown as Abi, address: contract, providerOrAccount: starknetProvider });
   let count = 0;

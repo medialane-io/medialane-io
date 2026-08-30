@@ -1,11 +1,36 @@
 import type { NextConfig } from "next";
 
+const BACKEND_ORIGIN =
+  process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL ?? "https://api.medialane.io";
+
+const enforcedCsp = [
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'self'",
+  "form-action 'self'",
+].join("; ");
+
+const reportOnlyCsp = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https:",
+  "media-src 'self' data: blob: https:",
+  "font-src 'self' data:",
+  `connect-src 'self' ${BACKEND_ORIGIN} https://www.google-analytics.com https://region1.google-analytics.com`,
+  "worker-src 'self' blob:",
+  "frame-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'self'",
+  "form-action 'self'",
+].join("; ");
+
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
-  // X-XSS-Protection removed — deprecated in all modern browsers and actively
-  // harmful in some older IE versions. CSP is the correct replacement but requires
-  // mapping all third-party domains first — deferred until domains are confirmed.
+  { key: "Content-Security-Policy", value: enforcedCsp },
+  { key: "Content-Security-Policy-Report-Only", value: reportOnlyCsp },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
   {

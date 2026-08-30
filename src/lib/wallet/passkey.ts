@@ -1,4 +1,4 @@
-import { deriveAesKey, generateStarkKeyPair, sealPrivateKey, unsealPrivateKey, signWithPrivateKey } from "@medialane/sdk/starknet";
+import { deriveAesKey, generateStarkKeyPair, sealPrivateKey, unsealPrivateKey } from "@medialane/sdk/starknet";
 import { computeWalletAddress } from "./account";
 
 export { signWithPrivateKey } from "@medialane/sdk/starknet";
