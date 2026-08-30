@@ -7,11 +7,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { assetHref, collectionHref } from "@/lib/routes";
 import { useToken, useTokenHistory } from "@/hooks/use-tokens";
+import { useAssetMarketState } from "@/hooks/use-asset-market-state";
 import { useTokenListings } from "@/hooks/use-orders";
 import { useCollection, useNearbyCollectionTokens } from "@/hooks/use-collections";
 import { Button } from "@/components/ui/button";
 import { PageContainer, AssetCollectionBar, AssetUtilityIcons, AssetMarketplacePanel, AssetHeaderBlock, AssetMediaColumn, buildEditionStats } from "@medialane/ui";
-import { ipfsToHttp, checkIsOwner } from "@/lib/utils";
+import { ipfsToHttp } from "@/lib/utils";
 import {
   Layers,
   ShoppingCart,
@@ -21,11 +22,8 @@ import { LICENSE_TRAIT_TYPES } from "@/types/ip";
 import type { IPType } from "@/types/ip";
 import { IP_TEMPLATES, EMBED_PLATFORM_META, SOCIAL_PLATFORM_META } from "@/lib/ip-templates";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { normalizeAddress } from "@medialane/sdk";
 import type { ApiActivity } from "@medialane/sdk";
 import { useComments } from "@/hooks/use-comments";
-import { useUsdPrices } from "@/hooks/use-usd-prices";
-import { usdValueFor } from "@/lib/wallet-format";
 import { EXPLORER_URL } from "@/lib/constants";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useEmailVerificationRequired } from "@/hooks/use-email-verification-required";
@@ -58,14 +56,25 @@ export function AssetPageEdition() {
   const { history } = useTokenHistory(contract, tokenId);
   const { tokens: collectionTokens } = useNearbyCollectionTokens(contract, tokenId);
   const {
+    activeListings,
+    activeBids,
+    cheapest,
+    cheapestUsd,
+    lastSaleRaw,
+    isOwner,
+    holders,
+    quantityOwned,
+    myListing,
+  } = useAssetMarketState({ token, collection, listings, history, walletAddress });
+
+
+  const {
     isProcessing,
     cancelStep, cancelError,
     handleCancelClick,
     resetCancelStep,
   } = useOrderActions({ mutateListings, tokenStandard: "ERC1155" });
-  const acceptOffer = useAcceptOffer({ mutateListings, tokenStandard: "ERC1155", activeListings: listings.filter(
-    (l) => l.status === "ACTIVE" && (l.offer.itemType === "ERC721" || l.offer.itemType === "ERC1155")
-  ) });
+  const acceptOffer = useAcceptOffer({ mutateListings, tokenStandard: "ERC1155", activeListings });
   const shouldReduce = useReducedMotion();
 
   const imageUrl = token?.metadata?.image ? ipfsToHttp(token.metadata.image) : null;
@@ -81,40 +90,6 @@ export function AssetPageEdition() {
     transferOpen,
     setTransferOpen,
   } = useAssetMarketplaceDialogState();
-  const [reportOpen, setReportOpen] = useState(false);
-  const [commentOpen, setCommentOpen] = useState(false);
-
-  const { total: commentTotal } = useComments(contract, tokenId);
-  const { total: remixCount } = useTokenRemixes(contract, tokenId);
-
-  const activeListings = listings.filter(
-    (l) => l.status === "ACTIVE" && (l.offer.itemType === "ERC721" || l.offer.itemType === "ERC1155")
-  );
-  const activeBids = listings.filter(
-    (l) => l.status === "ACTIVE" && l.offer.itemType === "ERC20"
-  );
-
-  const cheapest = [...activeListings].sort((a, b) =>
-    BigInt(a.consideration.startAmount) < BigInt(b.consideration.startAmount) ? -1 : 1
-  )[0];
-
-  const usdPrices = useUsdPrices();
-  const cheapestUsd = usdValueFor(cheapest?.price?.formatted, cheapest?.price?.currency, usdPrices);
-
-  const lastSale = (history as ApiActivity[])
-    .filter((h) => h.type === "sale" && h.price?.formatted)
-    .reduce<ApiActivity | null>((latest, h) => (!latest || h.timestamp > latest.timestamp ? h : latest), null);
-  const lastSaleRaw = lastSale?.price ? `${lastSale.price.formatted} ${lastSale.price.currency ?? ""}`.trim() : null;
-
-  const isOwner = checkIsOwner(token, walletAddress);
-  const holders = token?.balances ?? [];
-  const quantityOwned = walletAddress
-    ? holders.find((h) => normalizeAddress("STARKNET", h.owner) === normalizeAddress("STARKNET", walletAddress))?.amount
-    : undefined;
-
-  const myListing = isOwner
-    ? activeListings.find((l) => normalizeAddress("STARKNET", l.offerer) === normalizeAddress("STARKNET", walletAddress!))
-    : null;
 
   const autoActionRef = useRef(false);
   useEffect(() => {
@@ -128,6 +103,11 @@ export function AssetPageEdition() {
       autoActionRef.current = true;
     }
   }, [token, isOwner, setListOpen, setTransferOpen]);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [commentOpen, setCommentOpen] = useState(false);
+
+  const { total: commentTotal } = useComments(contract, tokenId);
+  const { total: remixCount } = useTokenRemixes(contract, tokenId);
 
   if (!token) return null;
 
