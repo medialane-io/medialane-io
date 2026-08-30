@@ -65,6 +65,7 @@ export function AssetPageEdition() {
     holders,
     quantityOwned,
     myListing,
+    canListMoreEditions,
   } = useAssetMarketState({ token, collection, listings, history, walletAddress });
 
 
@@ -191,6 +192,7 @@ export function AssetPageEdition() {
             </div>
 
             <AssetMarketplacePanel
+              canListMoreEditions={canListMoreEditions}
               cheapest={cheapest}
               usdValue={cheapestUsd}
               isOwner={isOwner}
