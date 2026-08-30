@@ -17,6 +17,8 @@ export interface AssetMarketState {
   holders: NonNullable<ApiToken["balances"]>;
   quantityOwned: string | undefined;
   myListing: ApiOrder | null;
+  quantityListedByMe: bigint;
+  canListMoreEditions: boolean;
 }
 
 export function isSaleableListing(order: ApiOrder): boolean {
@@ -48,6 +50,40 @@ export function latestSale(history: ApiActivity[]): ApiActivity | null {
 export function formatSale(sale: ApiActivity | null): string | null {
   if (!sale?.price) return null;
   return `${sale.price.formatted} ${sale.price.currency ?? ""}`.trim();
+}
+
+/**
+ * Editions the viewer has already put up for sale, across all of their own
+ * active listings for this token.
+ *
+ * Bids are excluded deliberately: a bid's startAmount is an amount of currency,
+ * not a count of editions, so counting one would read a payment of five tokens
+ * as five billion editions.
+ */
+export function listedQuantityBy(listings: ApiOrder[], walletAddress: string | null | undefined): bigint {
+  if (!walletAddress) return 0n;
+  return listings
+    .filter(
+      (l) =>
+        isSaleableListing(l) &&
+        normalizeAddress("STARKNET", l.offerer) === normalizeAddress("STARKNET", walletAddress),
+    )
+    .reduce((total, l) => {
+      try {
+        return total + BigInt(l.offer.startAmount);
+      } catch {
+        return total;
+      }
+    }, 0n);
+}
+
+export function hasUnlistedEditions(owned: string | undefined, listed: bigint): boolean {
+  if (owned === undefined) return true;
+  try {
+    return BigInt(owned) > listed;
+  } catch {
+    return true;
+  }
 }
 
 export function useAssetMarketState({
@@ -89,6 +125,9 @@ export function useAssetMarketState({
         ) ?? null)
       : null;
 
+  const quantityListedByMe = listedQuantityBy(activeListings, walletAddress);
+  const canListMoreEditions = hasUnlistedEditions(quantityOwned, quantityListedByMe);
+
   return {
     activeListings,
     activeBids,
@@ -100,5 +139,7 @@ export function useAssetMarketState({
     holders,
     quantityOwned,
     myListing,
+    quantityListedByMe,
+    canListMoreEditions,
   };
 }

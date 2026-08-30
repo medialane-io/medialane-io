@@ -162,6 +162,7 @@ export function AssetPageMembership() {
     holders,
     quantityOwned,
     myListing,
+    canListMoreEditions,
   } = useAssetMarketState({ token, collection, listings, history, walletAddress });
   const myQuantity = quantityOwned != null ? Number(quantityOwned) : 0;
 
@@ -270,6 +271,7 @@ export function AssetPageMembership() {
             )}
 
             <AssetMarketplacePanel
+              canListMoreEditions={canListMoreEditions}
               cheapest={cheapest}
               usdValue={cheapestUsd}
               isOwner={isOwner}

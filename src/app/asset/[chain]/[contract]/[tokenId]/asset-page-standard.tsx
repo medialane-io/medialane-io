@@ -66,6 +66,7 @@ export function AssetPageStandard() {
     isOwner,
     isERC1155,
     myListing,
+    canListMoreEditions,
   } = useAssetMarketState({ token, collection, listings, history, walletAddress });
 
   const {
@@ -290,6 +291,7 @@ export function AssetPageStandard() {
               isOwner={isOwner}
               isSignedIn={hasWallet}
               isProcessing={isProcessing}
+              canListMoreEditions={canListMoreEditions}
               isERC1155={isERC1155}
               myListing={myListing ?? null}
               activeBids={activeBids}

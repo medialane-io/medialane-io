@@ -128,6 +128,7 @@ export function AssetPageTicket() {
     holders,
     quantityOwned,
     myListing,
+    canListMoreEditions,
   } = useAssetMarketState({ token, collection, listings, history, walletAddress });
 
   const {
@@ -233,6 +234,7 @@ export function AssetPageTicket() {
             {ticket && <TicketPanel ticket={ticket} />}
 
             <AssetMarketplacePanel
+              canListMoreEditions={canListMoreEditions}
               cheapest={cheapest}
               usdValue={cheapestUsd}
               isOwner={isOwner}
