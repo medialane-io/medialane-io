@@ -1,10 +1,11 @@
 import { lookup } from "node:dns/promises";
-import { createImageProxyHandler, createRateLimiter } from "@medialane/sdk";
+import { createImageProxyHandler } from "@medialane/sdk";
+import { limiterFor } from "@/lib/rate-limit-policy";
 
 export const runtime = "nodejs";
 
 const handler = createImageProxyHandler({
-  checkRateLimit: createRateLimiter(60_000, 300),
+  checkRateLimit: limiterFor("proxy:image"),
   // Resolution is injected because the guard is isomorphic and cannot import
   // a Node resolver itself.
   resolveHostname: async (hostname) => {

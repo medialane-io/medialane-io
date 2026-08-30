@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { buildAssetMetadata } from "@/lib/asset-metadata";
 import { getSiwsWallet } from "@/lib/siws-server";
+import { limiterFor } from "@/lib/rate-limit-policy";
 import { uploadFileToBackend, uploadJsonToBackend } from "@/lib/backend-metadata";
 
 const ALLOWED_IMAGE_TYPES = new Set([
@@ -20,6 +21,9 @@ export async function POST(req: NextRequest) {
   const creator = getSiwsWallet(req.headers.get("authorization"));
   if (!creator) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!limiterFor("metadata:upload-file")(creator)) {
+    return NextResponse.json({ error: "Too many uploads" }, { status: 429 });
   }
 
   try {

@@ -1,8 +1,9 @@
 
 import { type NextRequest, NextResponse } from "next/server";
-import { createRateLimiter, isSameOrigin } from "@medialane/sdk";
+import { isSameOrigin } from "@medialane/sdk";
 import { TRUSTED_APP_IP_HEADER, isSpoofableForwardingHeader, trustedClientIp } from "@/lib/client-ip";
 import { hasTraversalSegment, isPathAllowed } from "./allowlist";
+import { limiterFor } from "@/lib/rate-limit-policy";
 import {
   SESSION_COOKIE_NAME,
   SESSION_COOKIE_MAX_AGE_SECONDS,
@@ -36,7 +37,7 @@ const HOP_BY_HOP_HEADERS = new Set([
 // check, and the per-IP rate limit. The rate limit is the only one that holds
 // against a non-browser client — isSameOrigin passes a request with no Origin
 // header at all.
-const checkRateLimit = createRateLimiter(60_000, 600);
+const checkRateLimit = limiterFor("proxy:backend");
 
 async function handle(
   req: NextRequest,
