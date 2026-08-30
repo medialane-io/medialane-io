@@ -2,10 +2,17 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { createOwnerKey, type SealedOwner } from "@/lib/wallet/passkey";
+import {
+  createOwnerKey,
+  sealImportedOwnerKey,
+  walletAddressForPrivateKey,
+  InvalidStarkPrivateKeyError,
+  type SealedOwner,
+} from "@/lib/wallet/passkey";
 import { saveSealedOwner, loadSealedOwner } from "@/lib/wallet/store";
 import { isValidStarknetAddress } from "@/lib/wallet/account-ops";
 import {
@@ -18,7 +25,7 @@ import {
 import { describeRecoveryAction } from "@/lib/wallet/guardian-status";
 import { friendlyErrorMessage } from "@/lib/friendly-error";
 
-type Mode = "choose" | "lost" | "guardian";
+type Mode = "choose" | "key" | "lost" | "guardian";
 
 export default function RecoverPage() {
   const [mode, setMode] = useState<Mode>("choose");
@@ -32,6 +39,15 @@ export default function RecoverPage() {
 
       {mode === "choose" && (
         <div className="flex flex-col gap-3">
+          <button
+            onClick={() => setMode("key")}
+            className="rounded-2xl border border-border bg-card p-4 text-left transition-transform active:scale-[0.98]"
+          >
+            <p className="text-sm font-semibold">I have my recovery key</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Restore your wallet on this device with the key you saved.
+            </p>
+          </button>
           <button
             onClick={() => setMode("lost")}
             className="rounded-2xl border border-border bg-card p-4 text-left transition-transform active:scale-[0.98]"
@@ -53,9 +69,75 @@ export default function RecoverPage() {
         </div>
       )}
 
+      {mode === "key" && <RecoveryKeyFlow onBack={() => setMode("choose")} />}
       {mode === "lost" && <LostWalletFlow onBack={() => setMode("choose")} />}
       {mode === "guardian" && <GuardianFlow onBack={() => setMode("choose")} />}
     </main>
+  );
+}
+
+function RecoveryKeyFlow({ onBack }: { onBack: () => void }) {
+  const router = useRouter();
+  const [keyInput, setKeyInput] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const preview = (() => {
+    const trimmed = keyInput.trim();
+    if (!trimmed) return null;
+    try {
+      return walletAddressForPrivateKey(trimmed);
+    } catch {
+      return null;
+    }
+  })();
+
+  const restore = async () => {
+    setBusy(true);
+    setErr(null);
+    try {
+      const sealed = await sealImportedOwnerKey(keyInput);
+      saveSealedOwner(sealed);
+      router.push("/portfolio");
+    } catch (e) {
+      if (e instanceof InvalidStarkPrivateKeyError) {
+        setErr("That does not look like a recovery key. Check you copied all of it.");
+      } else {
+        setErr(friendlyErrorMessage(e, "Could not restore your wallet. Please try again."));
+      }
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-4">
+      <button onClick={onBack} className="self-start text-xs text-muted-foreground hover:text-foreground">
+        ← Choose another way
+      </button>
+      <p className="text-sm text-muted-foreground leading-relaxed">
+        Paste the recovery key you saved from Settings. This device will ask for a new passkey and
+        lock the key behind it.
+      </p>
+      <Input
+        value={keyInput}
+        onChange={(e) => setKeyInput(e.target.value)}
+        placeholder="0x..."
+        autoComplete="off"
+        spellCheck={false}
+        className="font-mono text-xs"
+      />
+      {preview && (
+        <p className="text-xs text-muted-foreground">
+          This key restores wallet{" "}
+          <span className="font-mono text-foreground break-all">{preview}</span>
+        </p>
+      )}
+      {err && <p className="text-sm text-destructive">{err}</p>}
+      <Button onClick={restore} disabled={busy || !preview}>
+        {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        Restore my wallet
+      </Button>
+    </div>
   );
 }
 

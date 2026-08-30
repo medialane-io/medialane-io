@@ -20,6 +20,7 @@ import { CreatorScoreInline } from "@/components/rewards/creator-score-inline";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { completeWalletDeployment } from "@/lib/wallet/complete-deployment";
 import { WalletDeploymentDialog } from "@/components/wallet/wallet-deployment-dialog";
+import { ExportKeySection } from "@/components/wallet/export-key-section";
 import { EmailVerifyDialog } from "@/components/settings/email-verify-dialog";
 import { GuardianRecoverySection } from "@/components/settings/guardian-recovery-section";
 import { Button } from "@/components/ui/button";
@@ -931,6 +932,8 @@ export default function SettingsContent() {
                   </div>
                 </>
               )}
+
+              {walletAddress && <ExportKeySection />}
 
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />

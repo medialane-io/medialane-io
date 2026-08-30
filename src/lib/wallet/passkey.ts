@@ -1,7 +1,15 @@
-import { deriveAesKey, generateStarkKeyPair, sealPrivateKey, unsealPrivateKey } from "@medialane/sdk/starknet";
+import {
+  deriveAesKey,
+  generateStarkKeyPair,
+  starkKeyPairFromPrivateKey,
+  InvalidStarkPrivateKeyError,
+  sealPrivateKey,
+  unsealPrivateKey,
+} from "@medialane/sdk/starknet";
 import { computeWalletAddress } from "./account";
 
 export { signWithPrivateKey } from "@medialane/sdk/starknet";
+export { InvalidStarkPrivateKeyError };
 
 const RP_NAME = "Medialane";
 
@@ -161,5 +169,39 @@ export async function unlockOwnerKey(sealed: SealedOwner): Promise<string> {
   const secret = await prfSecret(sealed.credentialId);
   const aes = await deriveAesKey(secret, HKDF_INFO);
   return unsealPrivateKey(aes, unb64(sealed.iv), unb64(sealed.ciphertext));
+}
+
+export function walletAddressForPrivateKey(privateKeyInput: string): string {
+  const { publicKeyHex } = starkKeyPairFromPrivateKey(privateKeyInput);
+  return computeWalletAddress(publicKeyHex, 0);
+}
+
+export async function sealImportedOwnerKey(privateKeyInput: string): Promise<SealedOwner> {
+  assertBrowser();
+  const { privateKeyHex, publicKeyHex } = starkKeyPairFromPrivateKey(privateKeyInput);
+
+  const reg = await registerPasskey();
+  let secret: Uint8Array<ArrayBuffer>;
+  if (reg.prfFirst) {
+    secret = new Uint8Array(reg.prfFirst);
+  } else {
+    try {
+      secret = await prfSecret(reg.credentialId);
+    } catch {
+      throw new Error(prfUnsupportedMessage());
+    }
+  }
+
+  const aes = await deriveAesKey(secret, HKDF_INFO);
+  const iv = rand(12);
+  const ciphertext = await sealPrivateKey(aes, iv, privateKeyHex);
+
+  return {
+    credentialId: reg.credentialId,
+    ownerPubKey: publicKeyHex,
+    address: computeWalletAddress(publicKeyHex, 0),
+    iv: b64(iv),
+    ciphertext: b64(ciphertext),
+  };
 }
 
