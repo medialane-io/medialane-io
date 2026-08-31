@@ -4,6 +4,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { fetchCreatorProfile, ipfsToHttpServer } from "@/lib/api-server";
 import { absoluteUrl, canonical, truncateDescription, buildSocialMetadata, buildBreadcrumbJsonLd } from "@/lib/seo";
 import CreatorUsernamePageClient from "./creator-username-client";
+import { profileIdentity } from "@medialane/ui";
 
 export const revalidate = 60;
 
@@ -19,8 +20,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const profile = await fetchCreatorProfile(address);
-  const name = profile?.displayName ?? profile?.username ?? `@${address}`;
-  const bio = profile?.bio ?? `Creator profile for ${name} on Medialane.`;
+  const { identity: name } = profileIdentity({
+    username: profile?.username ?? address,
+    name: profile?.name,
+    walletAddress: profile?.walletAddress,
+  });
+  const bio = profile?.bio ?? `Profile for ${name} on Medialane.`;
   const description = truncateDescription(bio);
   const path = `/creator/${address}`;
   const imageUrl = profile?.avatarImage ? ipfsToHttpServer(profile.avatarImage) : undefined;
@@ -43,8 +48,12 @@ export default async function CreatorPage({ params }: Props) {
   }
 
   const profile = await fetchCreatorProfile(address);
-  const name = profile?.displayName ?? profile?.username ?? `@${address}`;
-  const bio = profile?.bio ?? `Creator profile for ${name} on Medialane.`;
+  const { identity: name } = profileIdentity({
+    username: profile?.username ?? address,
+    name: profile?.name,
+    walletAddress: profile?.walletAddress,
+  });
+  const bio = profile?.bio ?? `Profile for ${name} on Medialane.`;
   const path = `/creator/${address}`;
   const image = ipfsToHttpServer(profile?.avatarImage || "");
   const sameAs = [profile?.websiteUrl, profile?.twitterUrl].filter(Boolean);

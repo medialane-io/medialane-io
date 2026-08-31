@@ -6,6 +6,7 @@ import { ArrowUpRight, Globe, MessageCircle, Send, Twitter } from "lucide-react"
 import { CreatorScoreInline } from "@/components/rewards/creator-score-inline";
 import { resolveTokenImage } from "@/lib/utils";
 import type { ProfileForm } from "./types";
+import { profileIdentity } from "@medialane/ui";
 
 export function ProfileLivePreview({
   form, approvedUsername, walletAddress, fallbackImage,
@@ -16,7 +17,11 @@ export function ProfileLivePreview({
 
   fallbackImage?: string | null;
 }) {
-  const displayName = form.displayName || "Your name";
+  const { identity, name } = profileIdentity({
+    username: approvedUsername,
+    name: form.name,
+    walletAddress,
+  });
   const heroUrl = resolveTokenImage(form.avatarImage) || fallbackImage || null;
 
   return (
@@ -35,11 +40,11 @@ export function ProfileLivePreview({
 
       <div className="px-5 pt-3 pb-5 space-y-3">
         <div className="min-w-0">
-          <p className="truncate text-[18px] font-bold leading-snug text-foreground">{displayName}</p>
-          {approvedUsername ? (
-            <p className="text-[11px] tabular-nums text-muted-foreground">@{approvedUsername}</p>
+          <p className="truncate text-[18px] font-bold leading-snug text-foreground">{identity}</p>
+          {name ? (
+            <p className="truncate text-[11px] text-muted-foreground">{name}</p>
           ) : (
-            <p className="text-[11px] text-muted-foreground/60">No username yet</p>
+            <p className="text-[11px] text-muted-foreground/60">Add a name</p>
           )}
         </div>
 

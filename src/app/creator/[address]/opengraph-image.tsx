@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og";
 import { fetchCreatorProfile, ipfsToHttpServer } from "@/lib/api-server";
+import { profileIdentity } from "@medialane/ui";
 
 export const runtime = "edge";
 export const alt = "Medialane Creator";
@@ -16,7 +17,11 @@ export default async function Image({
   const isWallet = address.startsWith("0x") || address.startsWith("0X");
   const profile = isWallet ? null : await fetchCreatorProfile(address);
 
-  const displayName = profile?.displayName ?? profile?.username ?? `@${address}`;
+  const { identity } = profileIdentity({
+    username: profile?.username ?? (isWallet ? null : address),
+    name: profile?.name,
+    walletAddress: isWallet ? address : profile?.walletAddress,
+  });
   const bio = profile?.bio ?? "";
   const avatarUrl = ipfsToHttpServer(profile?.avatarImage ?? "");
 
@@ -105,7 +110,7 @@ export default async function Image({
 
                 <img
                   src={avatarUrl}
-                  alt={displayName}
+                  alt={identity}
                   width={120}
                   height={120}
                   style={{ objectFit: "cover", width: "100%", height: "100%" }}
@@ -125,7 +130,7 @@ export default async function Image({
                 }}
               >
                 <span style={{ color: "white", fontSize: 44, fontWeight: 800 }}>
-                  {displayName.charAt(0).toUpperCase()}
+                  {identity.charAt(0).toUpperCase()}
                 </span>
               </div>
             )}
@@ -134,13 +139,13 @@ export default async function Image({
               <div
                 style={{
                   color: "white",
-                  fontSize: displayName.length > 24 ? 44 : 56,
+                  fontSize: identity.length > 24 ? 44 : 56,
                   fontWeight: 800,
                   lineHeight: 1.1,
                   letterSpacing: "-0.5px",
                 }}
               >
-                {displayName.length > 32 ? `${displayName.slice(0, 32)}…` : displayName}
+                {identity.length > 32 ? `${identity.slice(0, 32)}…` : identity}
               </div>
               {bio && (
                 <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 20, lineHeight: 1.4 }}>

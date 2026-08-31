@@ -69,7 +69,7 @@ export default function SettingsContent() {
   const [checkState, setCheckState] = useState<CheckState>("idle");
   const [checkReason, setCheckReason] = useState<string | undefined>();
   const [form, setForm] = useState<ProfileForm>({
-    displayName: "", bio: "", avatarImage: "",
+    name: "", bio: "", avatarImage: "",
     websiteUrl: "", twitterUrl: "", discordUrl: "", telegramUrl: "",
   });
   const [emailStatus, setEmailStatus] = useState<{ email: string | null; verified: boolean } | null>(null);
@@ -98,7 +98,7 @@ export default function SettingsContent() {
 
   useEffect(() => {
     if (profile) setForm({
-      displayName: profile.displayName ?? "",
+      name: profile.name ?? "",
       bio: profile.bio ?? "",
       avatarImage: profile.avatarImage ?? "",
       websiteUrl: profile.websiteUrl ?? "",
@@ -163,7 +163,7 @@ export default function SettingsContent() {
       if (!token) throw new Error("Not authenticated");
 
       const payload = {
-        displayName: form.displayName || null,
+        name: form.name || null,
         bio: form.bio || null,
         avatarImage: form.avatarImage || null,
         websiteUrl: form.websiteUrl || null,
@@ -365,7 +365,7 @@ export default function SettingsContent() {
           <div>
             <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
               <AtSign className="h-4 w-4" />
-              Creator Username
+              Username
             </h3>
             <p className="text-xs text-muted-foreground mt-0.5">
               Claim a unique handle for your shareable profile URL.
@@ -474,10 +474,10 @@ export default function SettingsContent() {
         <div className="space-y-4">
           <div>
             <h3 className="text-sm font-semibold text-foreground">Identity</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">Your public creator profile</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Your public profile</p>
           </div>
           <div className="border-t border-border pt-4 space-y-4">
-            {field("displayName", "Display name", "Your name or handle")}
+            {field("name", "Name", "Your name")}
             <div className="space-y-1.5">
               <Label htmlFor="bio">Bio</Label>
               <Textarea
@@ -494,7 +494,7 @@ export default function SettingsContent() {
         <div className="space-y-4">
           <div>
             <h3 className="text-sm font-semibold text-foreground">Media</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">Images for your creator profile</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Images for your profile</p>
           </div>
           <div className="border-t border-border pt-4 space-y-4">
             <div className="space-y-1.5">

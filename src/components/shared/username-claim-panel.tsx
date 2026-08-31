@@ -114,7 +114,7 @@ export function UsernameClaimPanel({ bare = false }: { bare?: boolean } = {}) {
         {!bare && (
           <div className="flex items-center gap-2">
             <AtSign className="h-4 w-4 text-primary" />
-            <p className="font-semibold">Creator Username</p>
+            <p className="font-semibold">Username</p>
           </div>
         )}
         <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -141,7 +141,7 @@ export function UsernameClaimPanel({ bare = false }: { bare?: boolean } = {}) {
         {!bare && (
           <div className="flex items-center gap-2">
             <AtSign className="h-4 w-4 text-primary" />
-            <p className="font-semibold">Creator Username</p>
+            <p className="font-semibold">Username</p>
           </div>
         )}
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -163,7 +163,7 @@ export function UsernameClaimPanel({ bare = false }: { bare?: boolean } = {}) {
       {!bare && (
         <div className="flex items-center gap-2">
           <AtSign className="h-4 w-4 text-primary" />
-          <p className="font-semibold">Claim Your Creator Username</p>
+          <p className="font-semibold">Claim Your Username</p>
         </div>
       )}
 

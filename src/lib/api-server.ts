@@ -50,7 +50,7 @@ export async function fetchCreatorProfile(username: string) {
   return apiFetch<{
     walletAddress?: string;
     username?: string;
-    displayName?: string;
+    name?: string;
     bio?: string;
     avatarImage?: string;
     websiteUrl?: string | null;
