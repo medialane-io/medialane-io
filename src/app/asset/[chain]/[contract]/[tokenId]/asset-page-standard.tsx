@@ -1,36 +1,24 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
-import { useParams, useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import Image from "next/image";
 import { assetHref, collectionHref } from "@/lib/routes";
-import { useToken, useTokenHistory } from "@/hooks/use-tokens";
-import { useTokenListings } from "@/hooks/use-orders";
-import { useCollection, useNearbyCollectionTokens } from "@/hooks/use-collections";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageContainer, AssetCollectionBar, AssetUtilityIcons, AssetMarketplacePanel, AssetMediaColumn, isLivingRenderCollection } from "@medialane/ui";
 import type { Chain } from "@medialane/sdk";
 import { ipfsToHttp } from "@/lib/utils";
 import { FloatingCommentsButton } from "@/components/asset/floating-comments-button";
-import { LICENSE_TRAIT_TYPES } from "@/types/ip";
-import type { IPType } from "@/types/ip";
-import { IP_TEMPLATES, EMBED_PLATFORM_META, SOCIAL_PLATFORM_META } from "@/lib/ip-templates";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ApiActivity } from "@medialane/sdk";
 import { getService } from "@medialane/sdk";
 import { resolveRemixPolicy, getDerivativesTerm } from "@medialane/sdk";
-import { useComments } from "@/hooks/use-comments";
 import { EXPLORER_URL } from "@/lib/constants";
-import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useEmailVerificationRequired } from "@/hooks/use-email-verification-required";
-import { useTokenRemixes } from "@/hooks/use-remix-offers";
 import { AssetMarketsTab } from "./asset-markets-tab";
 import { AssetProvenanceTab } from "./asset-provenance-tab";
 import { useFullTokenData } from "@/hooks/use-full-token-data";
 import {
   AssetMarketplaceDialogs,
-  useAssetMarketplaceDialogState,
 } from "./asset-marketplace-dialogs";
 import {
   AssetCommentsDialog,
@@ -43,65 +31,27 @@ import { SignedOutAssetActions } from "@/components/asset/signed-out-asset-actio
 import { AssetLightbox } from "@/components/asset/asset-lightbox";
 import { ReportDialog } from "@/components/report-dialog";
 import { HelpIcon } from "@/components/ui/help-icon";
-import { useOrderActions } from "./use-order-actions";
-import { useAssetMarketState } from "@/hooks/use-asset-market-state";
-import { useAcceptOffer } from "@/hooks/use-accept-offer";
 import { ASSET_ACCENTS } from "./accents";
+import { useAssetPage } from "./use-asset-page";
 
 export function AssetPageStandard() {
-  const { contract, tokenId } = useParams<{ contract: string; tokenId: string }>();
-  const router = useRouter();
-  const { hasWallet, address: walletAddress } = useWalletNativeSession();
-  const listingRequiresEmailVerification = useEmailVerificationRequired();
-  const { collection } = useCollection(contract);
-  const { token, isLoading, isIndexing } = useToken(contract, tokenId);
-  const { listings, mutate: mutateListings } = useTokenListings(contract, tokenId);
-  const { history } = useTokenHistory(contract, tokenId);
-
   const {
-    activeListings,
-    activeBids,
-    cheapest,
-    cheapestUsd,
-    lastSaleRaw,
-    isOwner,
-    isERC1155,
-    myListing,
-    canListMoreEditions,
-  } = useAssetMarketState({ token, collection, listings, history, walletAddress });
-
-  const {
-    isProcessing,
-    cancelStep, cancelError,
-    handleCancelClick,
-    resetCancelStep,
-  } = useOrderActions({ mutateListings });
-  const acceptOffer = useAcceptOffer({ mutateListings, activeListings });
-
-  const shouldReduce = useReducedMotion();
-
-  const imageUrl = token?.metadata?.image ? ipfsToHttp(token.metadata.image) : null;
-
-  const [imgError, setImgError] = useState(false);
-  const {
-    purchaseOrder,
-    setPurchaseOrder,
-    listOpen,
-    setListOpen,
-    offerOpen,
-    setOfferOpen,
-    transferOpen,
-    setTransferOpen,
-  } = useAssetMarketplaceDialogState();
-  const [reportOpen, setReportOpen] = useState(false);
-  const [commentOpen, setCommentOpen] = useState(false);
-
-  const { total: commentTotal } = useComments(contract, tokenId);
-  const { total: remixCount } = useTokenRemixes(contract, tokenId);
+    contract, tokenId, router, shouldReduce,
+    hasWallet, walletAddress, listingRequiresEmailVerification,
+    collection, token, isLoading, isIndexing, mutateListings, history, collectionTokens,
+    commentTotal, remixCount,
+    activeListings, activeBids, cheapest, cheapestUsd, lastSaleRaw,
+    isOwner, isERC1155, myListing, canListMoreEditions,
+    isProcessing, cancelStep, cancelError, handleCancelClick, resetCancelStep, acceptOffer,
+    purchaseOrder, setPurchaseOrder, listOpen, setListOpen,
+    offerOpen, setOfferOpen, transferOpen, setTransferOpen,
+    reportOpen, setReportOpen, commentOpen, setCommentOpen, imgError, setImgError,
+    imageUrl, image, name, description, attributes, hasTemplateData, isDisplayAttr,
+  } = useAssetPage({ namePrefix: "Token" });
 
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
-  const { tokens: collectionTokens } = useNearbyCollectionTokens(contract, tokenId);
+  const live = token ? isLivingRenderCollection(token.chain as Chain, token.contractAddress) : false;
 
   const { data: fullTokenData } = useFullTokenData({
     ipNftAddress: contract,
@@ -196,32 +146,6 @@ export function AssetPageStandard() {
     );
   }
 
-  const name = token.metadata?.name || `Token #${token.tokenId}`;
-  const image = token.metadata?.image ? ipfsToHttp(token.metadata.image) : null;
-  const live = isLivingRenderCollection(token.chain as Chain, token.contractAddress);
-  const description = token.metadata?.description;
-  const attributes = Array.isArray(token.metadata?.attributes)
-    ? (token.metadata.attributes as { trait_type?: string; value?: string }[])
-    : [];
-
-  const activeTemplate = IP_TEMPLATES[
-    (attributes.find((a) => a.trait_type?.toLowerCase() === "ip type")?.value ?? "") as IPType
-  ];
-
-  const activeTemplateEmbedSocialKeys = activeTemplate
-    ? [
-        ...(activeTemplate.embeds ?? []).map((p) => EMBED_PLATFORM_META[p].traitKey),
-        ...(activeTemplate.socials ?? []).map((p) => SOCIAL_PLATFORM_META[p].traitKey),
-          ...(activeTemplate.docUpload ? [activeTemplate.docUpload.traitType] : []),
-      ]
-    : [];
-  const activeTemplateKeys = new Set<string>(["IP Type", ...activeTemplateEmbedSocialKeys]);
-  const hasTemplateData = activeTemplateEmbedSocialKeys.some((k) =>
-    attributes.some((a) => a.trait_type === k && a.value)
-  );
-
-  const isDisplayAttr = (a: { trait_type?: string }): boolean =>
-    !LICENSE_TRAIT_TYPES.has(a.trait_type ?? "") && !activeTemplateKeys.has(a.trait_type ?? "");
 
   const parentContract = attributes.find((a) => a.trait_type === "Parent Contract")?.value ?? null;
   const parentTokenId = attributes.find((a) => a.trait_type === "Parent Token ID")?.value ?? null;
