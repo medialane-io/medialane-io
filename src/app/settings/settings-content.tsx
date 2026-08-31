@@ -40,16 +40,6 @@ import { PortfolioSnapshot, RewardsSnapshot } from "@/components/settings/snapsh
 import { UsernameClaimInput, ClaimError } from "@/components/settings/username-claim-input";
 import { ProfileLivePreview } from "@/components/settings/profile-live-preview";
 
-
-
-
-
-
-
-
-
-
-
 export default function SettingsContent() {
   const searchParams = useSearchParams();
   const defaultTab = searchParams.get("tab") === "account" ? "account" : "profile";
@@ -105,7 +95,6 @@ export default function SettingsContent() {
       if (result) setEmailStatus({ email: result.email ?? null, verified: result.emailVerified ?? false });
     })();
   }, [walletAddress, getValidToken, signIn]);
-
 
   useEffect(() => {
     if (profile) setForm({

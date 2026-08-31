@@ -68,7 +68,6 @@ export function AssetPageEdition() {
     canListMoreEditions,
   } = useAssetMarketState({ token, collection, listings, history, walletAddress });
 
-
   const {
     isProcessing,
     cancelStep, cancelError,

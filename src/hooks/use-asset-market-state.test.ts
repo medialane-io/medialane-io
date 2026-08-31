@@ -13,7 +13,6 @@ function order(over: Partial<ApiOrder> & { amount: string }): ApiOrder {
 }
 
 test("cheapest compares numerically, not as strings", () => {
-  // "1000000000000000000" < "9" lexicographically, which is the trap here.
   const listings = [order({ amount: "9" }), order({ amount: "1000000000000000000" })];
   expect(cheapestOf(listings)?.consideration.startAmount).toBe("9");
 });
@@ -112,7 +111,6 @@ test("listed quantity sums only my own listings", () => {
 });
 
 test("a bid is never counted as editions, however large its amount", () => {
-  // 5e18 is five tokens of payment, not five billion editions.
   expect(listedQuantityBy([bid(ME, "5000000000000000000")], ME)).toBe(0n);
 });
 

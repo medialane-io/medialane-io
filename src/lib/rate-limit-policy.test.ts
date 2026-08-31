@@ -45,9 +45,6 @@ test("every policy entry is actually wired to a route", () => {
   expect(unused).toEqual([]);
 });
 
-// Spending happens through the shared API key, which routes reach either
-// directly or via a helper that holds it. Matching only the direct reference
-// missed every /api/pinata upload, so the helper modules are named here too.
 const PAID_UPSTREAM_MARKERS = [
   "MEDIALANE_API_KEY",
   "createBackendProxyHandler",
