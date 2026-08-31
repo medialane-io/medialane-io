@@ -54,26 +54,6 @@ export const RATE_LIMIT_POLICY = {
     max: 60,
     protects: "AVNU swap transaction builds",
   },
-  "metadata:upload-file": {
-    windowMs: MINUTE,
-    max: 20,
-    protects: "Pinned IPFS storage of files up to 10 MB, billed per upload",
-  },
-  "metadata:upload-json": {
-    windowMs: MINUTE,
-    max: 60,
-    protects: "Pinned IPFS storage of metadata documents, billed per upload",
-  },
-  "metadata:upload-directory": {
-    windowMs: MINUTE,
-    max: 10,
-    protects: "Pinned IPFS storage of a whole directory in one call",
-  },
-  "metadata:signed-url": {
-    windowMs: MINUTE,
-    max: 30,
-    protects: "Direct-to-Pinata upload URLs, which bypass this app once issued",
-  },
 } as const satisfies Record<string, RateLimitRule>;
 
 export type RateLimitName = keyof typeof RATE_LIMIT_POLICY;
