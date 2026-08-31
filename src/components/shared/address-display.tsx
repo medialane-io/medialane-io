@@ -1,2 +1,2 @@
-export { AddressDisplay } from "@medialane/ui";
+export { AddressDisplay } from "@medialane/ui/address-display";
 export type { AddressDisplayProps } from "@medialane/ui";

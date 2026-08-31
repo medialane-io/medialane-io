@@ -1,1 +1,1 @@
-export { CreationRecord } from "@medialane/ui";
+export { CreationRecord } from "@medialane/ui/creation-record";

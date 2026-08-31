@@ -1,1 +1,1 @@
-export { BRAND } from "@medialane/ui";
+export { BRAND } from "@medialane/ui/data/brand";

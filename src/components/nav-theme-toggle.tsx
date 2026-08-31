@@ -1,1 +1,1 @@
-export { NavThemeToggle } from "@medialane/ui";
+export { NavThemeToggle } from "@medialane/ui/nav-theme-toggle";

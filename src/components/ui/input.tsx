@@ -1,1 +1,1 @@
-export { Input } from "@medialane/ui";
+export { Input } from "@medialane/ui/input";

@@ -1,1 +1,1 @@
-export { JsonLd } from "@medialane/ui";
+export { JsonLd } from "@medialane/ui/json-ld";
