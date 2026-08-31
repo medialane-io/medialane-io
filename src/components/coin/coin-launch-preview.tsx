@@ -1,3 +1,3 @@
 
 
-export { CoinLaunchPreview, type CoinPreviewData } from "@medialane/ui";
+export { CoinLaunchPreview, type CoinPreviewData } from "@medialane/ui/coin-launch-preview";

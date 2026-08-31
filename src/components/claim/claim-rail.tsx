@@ -1,3 +1,3 @@
 
 
-export { ClaimRail, type ClaimRailProps } from "@medialane/ui";
+export { ClaimRail, type ClaimRailProps } from "@medialane/ui/claim-rail";

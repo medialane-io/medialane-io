@@ -1,1 +1,1 @@
-export { Alert, AlertTitle, AlertDescription } from "@medialane/ui";
+export { Alert, AlertTitle, AlertDescription } from "@medialane/ui/alert";

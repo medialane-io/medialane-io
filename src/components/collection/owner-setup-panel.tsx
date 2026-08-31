@@ -1,1 +1,1 @@
-export { OwnerSetupPanel } from "@medialane/ui";
+export { OwnerSetupPanel } from "@medialane/ui/owner-setup-panel";

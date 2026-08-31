@@ -1,1 +1,1 @@
-export { HelpIcon } from "@medialane/ui";
+export { HelpIcon } from "@medialane/ui/help-icon";

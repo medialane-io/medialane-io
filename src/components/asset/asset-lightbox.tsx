@@ -1,1 +1,1 @@
-export { AssetLightbox } from "@medialane/ui";
+export { AssetLightbox } from "@medialane/ui/asset-lightbox";

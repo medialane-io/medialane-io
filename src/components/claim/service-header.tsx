@@ -1,3 +1,3 @@
 
 
-export { ServiceHeader, type ServiceHeaderProps } from "@medialane/ui";
+export { ServiceHeader, type ServiceHeaderProps } from "@medialane/ui/service-header";

@@ -1,1 +1,1 @@
-export { Popover, PopoverTrigger, PopoverContent, PopoverAnchor } from "@medialane/ui";
+export { Popover, PopoverTrigger, PopoverContent, PopoverAnchor } from "@medialane/ui/popover";

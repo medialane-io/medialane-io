@@ -1,1 +1,1 @@
-export { AssetOverviewContent } from "@medialane/ui";
+export { AssetOverviewContent } from "@medialane/ui/asset-overview-content";

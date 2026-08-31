@@ -1,1 +1,1 @@
-export { Skeleton } from "@medialane/ui";
+export { Skeleton } from "@medialane/ui/skeleton";

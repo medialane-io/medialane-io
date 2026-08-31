@@ -1,1 +1,1 @@
-export { Tabs, TabsList, TabsTrigger, TabsContent } from "@medialane/ui";
+export { Tabs, TabsList, TabsTrigger, TabsContent } from "@medialane/ui/tabs";

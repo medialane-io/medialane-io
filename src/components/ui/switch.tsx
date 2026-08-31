@@ -1,1 +1,1 @@
-export { Switch } from "@medialane/ui";
+export { Switch } from "@medialane/ui/switch";

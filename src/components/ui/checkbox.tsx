@@ -1,1 +1,1 @@
-export { Checkbox } from "@medialane/ui";
+export { Checkbox } from "@medialane/ui/checkbox";
