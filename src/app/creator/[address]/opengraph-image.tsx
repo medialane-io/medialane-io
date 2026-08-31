@@ -19,7 +19,7 @@ export default async function Image({
 
   const { identity } = profileIdentity({
     username: profile?.username ?? (isWallet ? null : address),
-    displayName: profile?.displayName,
+    name: profile?.name,
     walletAddress: isWallet ? address : profile?.walletAddress,
   });
   const bio = profile?.bio ?? "";

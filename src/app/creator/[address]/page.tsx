@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const profile = await fetchCreatorProfile(address);
   const { identity: name } = profileIdentity({
     username: profile?.username ?? address,
-    displayName: profile?.displayName,
+    name: profile?.name,
     walletAddress: profile?.walletAddress,
   });
   const bio = profile?.bio ?? `Profile for ${name} on Medialane.`;
@@ -50,7 +50,7 @@ export default async function CreatorPage({ params }: Props) {
   const profile = await fetchCreatorProfile(address);
   const { identity: name } = profileIdentity({
     username: profile?.username ?? address,
-    displayName: profile?.displayName,
+    name: profile?.name,
     walletAddress: profile?.walletAddress,
   });
   const bio = profile?.bio ?? `Profile for ${name} on Medialane.`;

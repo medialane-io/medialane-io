@@ -20,8 +20,6 @@ test("searching for settings offers account settings and nothing else", () => {
 });
 
 test("a coincidental letter subsequence is not a result", () => {
-  // "settings" appears letter-by-letter inside "sell ... trade ... listings",
-  // which is why Marketplace once ranked above the page actually named Settings.
   const marketplace = items.find((i) => i.label === "Marketplace")!;
   const value = [marketplace.label, ...(marketplace.keywords ?? [])].join(" ");
   expect(relevanceFilter(value, "settings")).toBe(0);

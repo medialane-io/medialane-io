@@ -19,7 +19,7 @@ function CreatorCard({ creator }: { creator: ApiCreatorProfile }) {
   const imageUrl = rawSrc ? ipfsToHttp(rawSrc) : null;
   const { identity, name } = profileIdentity({
     username: creator.username,
-    displayName: creator.displayName,
+    name: creator.name,
     walletAddress: creator.walletAddress,
   });
 

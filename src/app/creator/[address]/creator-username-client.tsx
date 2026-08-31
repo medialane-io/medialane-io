@@ -62,7 +62,7 @@ export default function CreatorUsernamePageClient({ username }: Props) {
 
   const { identity, name: profileName } = profileIdentity({
     username: creator?.username ?? username,
-    displayName: creator?.displayName,
+    name: creator?.name,
     walletAddress,
   });
 

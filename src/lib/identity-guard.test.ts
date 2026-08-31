@@ -14,25 +14,11 @@ function sourceFiles(dir: string, acc: string[] = []): string[] {
   return acc;
 }
 
-// A name is free text the account typed: no length limit, no charset rule, no
-// uniqueness, no review. Falling back to it makes it an identifier. A profile
-// that set its name to "medialane" rendered as that across the whole site.
-const NAME_AS_IDENTITY = /\bdisplayName\s*(\|\||\?\?)/;
+const NAME_AS_IDENTITY = /\b(profile|creator|account|user)s?\??\.(name|displayName)\s*(\|\||\?\?)\s*[A-Za-z_$]/;
 
-// Legitimate uses of the same word: the shared helper's own inputs, form state
-// bound to the settings field, and unrelated entities that have a display name.
-const ALLOWED = [
-  "profile-live-preview",
-  "settings-content",
-  "settings/types",
-  "portfolio/collections",
-  "coin-page-client",
-  "identity-guard.test",
-  "wallet/passkey",
-  "components/ui/",
-];
+const ALLOWED = ["identity-guard.test"];
 
-test("no surface falls back to a profile name as the account identity", () => {
+test("a profile name is never the fallback for an account identity", () => {
   const offenders = sourceFiles("src")
     .filter((f) => !ALLOWED.some((a) => f.includes(a)))
     .flatMap((file) =>

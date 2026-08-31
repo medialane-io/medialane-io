@@ -103,7 +103,7 @@ function CreatorCard({ creator }: { creator: ApiSearchCreatorResult }) {
   const avatarUrl = creator.avatarImage ? ipfsToHttp(creator.avatarImage) : null;
   const { identity, name } = profileIdentity({
     username: creator.username,
-    displayName: creator.displayName,
+    name: creator.name,
     walletAddress: creator.walletAddress,
   });
   return (

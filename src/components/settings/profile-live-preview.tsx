@@ -19,7 +19,7 @@ export function ProfileLivePreview({
 }) {
   const { identity, name } = profileIdentity({
     username: approvedUsername,
-    displayName: form.displayName,
+    name: form.name,
     walletAddress,
   });
   const heroUrl = resolveTokenImage(form.avatarImage) || fallbackImage || null;
