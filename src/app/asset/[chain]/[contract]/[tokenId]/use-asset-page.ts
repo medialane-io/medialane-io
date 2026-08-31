@@ -45,10 +45,11 @@ export function useAssetPage({ tokenStandard, namePrefix }: UseAssetPageOptions)
   const market = useAssetMarketState({ token, collection, listings, history, walletAddress });
 
   const resolvedStandard = tokenStandard ?? token?.standard ?? collection?.standard ?? "UNKNOWN";
-  const orderActions = useOrderActions({ mutateListings, tokenStandard: resolvedStandard });
+
+  const orderActions = useOrderActions({ mutateListings, tokenStandard });
   const acceptOffer = useAcceptOffer({
     mutateListings,
-    tokenStandard: resolvedStandard,
+    tokenStandard,
     activeListings: market.activeListings,
   });
 
