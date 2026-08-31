@@ -46,6 +46,7 @@ import { HelpIcon } from "@/components/ui/help-icon";
 import { useOrderActions } from "./use-order-actions";
 import { useAssetMarketState } from "@/hooks/use-asset-market-state";
 import { useAcceptOffer } from "@/hooks/use-accept-offer";
+import { ASSET_ACCENTS } from "./accents";
 
 export function AssetPageStandard() {
   const { contract, tokenId } = useParams<{ contract: string; tokenId: string }>();
@@ -406,10 +407,7 @@ export function AssetPageStandard() {
         name={name}
         imageUrl={imageUrl}
         commentTotal={commentTotal}
-        accentBorderClassName="border-brand-blue/20"
-        accentHeaderStyle="linear-gradient(135deg, hsl(var(--brand-blue) / 0.10), hsl(var(--brand-purple) / 0.08))"
-        accentAvatarStyle="linear-gradient(135deg, hsl(var(--brand-blue) / 0.3), hsl(var(--brand-purple) / 0.3))"
-        accentCountStyle={{ background: "hsl(var(--brand-blue))" }}
+              {...ASSET_ACCENTS.standard}
       />
 
       <AssetMarketplaceDialogs

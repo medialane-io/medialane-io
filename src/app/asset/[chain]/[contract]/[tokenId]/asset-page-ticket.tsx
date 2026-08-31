@@ -35,6 +35,7 @@ import { AssetProvenanceTab } from "./asset-provenance-tab";
 import { AssetCommentsDialog, AssetOwnersPanel } from "./asset-side-panels";
 import { AssetOverviewContent } from "./asset-overview-content";
 import { AssetMarketplaceDialogs, useAssetMarketplaceDialogState } from "./asset-marketplace-dialogs";
+import { ASSET_ACCENTS } from "./accents";
 
 type TicketStatus = "upcoming" | "valid" | "ended";
 
@@ -341,11 +342,7 @@ export function AssetPageTicket() {
         name={name}
         imageUrl={imageUrl}
         commentTotal={commentTotal}
-        accentBorderClassName="border-teal-500/20"
-        accentHeaderStyle="linear-gradient(135deg, hsl(173 80% 40% / 0.10), hsl(var(--brand-blue) / 0.08))"
-        accentAvatarStyle="linear-gradient(135deg, hsl(173 80% 40% / 0.3), hsl(var(--brand-blue) / 0.3))"
-        accentLabelClassName="text-teal-500"
-        accentCountStyle={{ background: "rgb(13 148 136)" }}
+              {...ASSET_ACCENTS.ticket}
       />
 
       <AssetMarketplaceDialogs

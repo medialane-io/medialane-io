@@ -35,6 +35,7 @@ import { AssetProvenanceTab } from "./asset-provenance-tab";
 import { AssetCommentsDialog, AssetOwnersPanel } from "./asset-side-panels";
 import { AssetOverviewContent } from "./asset-overview-content";
 import { AssetMarketplaceDialogs, useAssetMarketplaceDialogState } from "./asset-marketplace-dialogs";
+import { ASSET_ACCENTS } from "./accents";
 
 type MembershipStatus = "upcoming" | "active" | "ended" | "lifetime";
 
@@ -378,11 +379,7 @@ export function AssetPageMembership() {
         name={name}
         imageUrl={imageUrl}
         commentTotal={commentTotal}
-        accentBorderClassName="border-brand-purple/20"
-        accentHeaderStyle="linear-gradient(135deg, hsl(var(--brand-purple) / 0.10), hsl(var(--brand-blue) / 0.08))"
-        accentAvatarStyle="linear-gradient(135deg, hsl(var(--brand-purple) / 0.3), hsl(var(--brand-blue) / 0.3))"
-        accentLabelClassName="text-brand-purple"
-        accentCountStyle={{ background: "hsl(var(--brand-purple))" }}
+              {...ASSET_ACCENTS.membership}
       />
 
       <AssetMarketplaceDialogs

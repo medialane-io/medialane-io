@@ -43,6 +43,7 @@ import {
   AssetMarketplaceDialogs,
   useAssetMarketplaceDialogState,
 } from "./asset-marketplace-dialogs";
+import { ASSET_ACCENTS } from "./accents";
 
 export function AssetPageEdition() {
   const { contract, tokenId } = useParams<{ contract: string; tokenId: string }>();
@@ -298,11 +299,7 @@ export function AssetPageEdition() {
         name={name}
         imageUrl={imageUrl}
         commentTotal={commentTotal}
-        accentBorderClassName="border-brand-purple/20"
-        accentHeaderStyle="linear-gradient(135deg, hsl(var(--brand-purple) / 0.10), hsl(var(--brand-blue) / 0.08))"
-        accentAvatarStyle="linear-gradient(135deg, hsl(266 80% 60% / 0.3), hsl(var(--brand-blue) / 0.3))"
-        accentLabelClassName="text-brand-purple"
-        accentCountStyle={{ background: "rgb(139 92 246)" }}
+              {...ASSET_ACCENTS.edition}
       />
 
       <AssetMarketplaceDialogs
