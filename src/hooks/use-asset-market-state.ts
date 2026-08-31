@@ -52,14 +52,6 @@ export function formatSale(sale: ApiActivity | null): string | null {
   return `${sale.price.formatted} ${sale.price.currency ?? ""}`.trim();
 }
 
-/**
- * Editions the viewer has already put up for sale, across all of their own
- * active listings for this token.
- *
- * Bids are excluded deliberately: a bid's startAmount is an amount of currency,
- * not a count of editions, so counting one would read a payment of five tokens
- * as five billion editions.
- */
 export function listedQuantityBy(listings: ApiOrder[], walletAddress: string | null | undefined): bigint {
   if (!walletAddress) return 0n;
   return listings
