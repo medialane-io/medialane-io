@@ -24,6 +24,7 @@ import {
   ShoppingBag, BarChart2, Activity, LayoutGrid, Image as ImageIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { profileIdentity } from "@medialane/ui";
 
 interface Props {
   username: string;
@@ -59,9 +60,13 @@ export default function CreatorUsernamePageClient({ username }: Props) {
     || null;
   const heroImage = heroRaw ? ipfsToHttp(heroRaw) : null;
 
-  const displayName = creator?.displayName || creator?.username || username;
+  const { identity, name: profileName } = profileIdentity({
+    username: creator?.username ?? username,
+    displayName: creator?.displayName,
+    walletAddress,
+  });
 
-  const showUsername = creator?.displayName && creator?.username && creator.displayName !== creator.username;
+  const showName = Boolean(profileName);
 
   const tabBadge: Partial<Record<TabId, number>> = {
     ...(activeTab === "assets"      && !tokensLoading      && { assets:      tokens.length }),
@@ -109,7 +114,7 @@ export default function CreatorUsernamePageClient({ username }: Props) {
 
       <CollectionHeroBanner
         bannerUrl={heroImage}
-        name={displayName}
+        name={identity}
         eyebrowSlot={<CreatorScoreInline address={walletAddress} size="sm" />}
         stats={[
           { label: "Assets", display: bannerMeta?.total != null ? String(bannerMeta.total) : "—" },
@@ -117,10 +122,10 @@ export default function CreatorUsernamePageClient({ username }: Props) {
         ]}
       />
 
-      {(showUsername || showBio || showSocials) && (
+      {(showName || showBio || showSocials) && (
         <div className="px-6 pt-5 pb-1 space-y-2">
-          {showUsername && (
-            <p className="text-sm text-muted-foreground">{creator.username}</p>
+          {showName && (
+            <p className="text-sm text-muted-foreground">{profileName}</p>
           )}
           {showBio && (
             <p className="text-sm text-muted-foreground leading-relaxed max-w-xl line-clamp-2">

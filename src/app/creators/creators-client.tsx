@@ -12,11 +12,16 @@ import { ipfsToHttp } from "@/lib/utils";
 import { BRAND } from "@/lib/brand";
 import { Search, Users, Palette, X } from "lucide-react";
 import type { ApiCreatorProfile } from "@medialane/sdk";
+import { profileIdentity } from "@medialane/ui";
 
 function CreatorCard({ creator }: { creator: ApiCreatorProfile }) {
   const rawSrc = creator.avatarImage || creator.collectionImage || null;
   const imageUrl = rawSrc ? ipfsToHttp(rawSrc) : null;
-  const displayName = creator.displayName || creator.username || "";
+  const { identity, name } = profileIdentity({
+    username: creator.username,
+    displayName: creator.displayName,
+    walletAddress: creator.walletAddress,
+  });
 
   return (
     <Link
@@ -27,7 +32,8 @@ function CreatorCard({ creator }: { creator: ApiCreatorProfile }) {
         <Image src={imageUrl} alt="" aria-hidden fill className="object-cover" />
       )}
       <div className="absolute bottom-0 inset-x-0 px-4 py-4">
-        <p className="font-bold text-2xl text-white truncate">{displayName}</p>
+        <p className="font-bold text-2xl text-white truncate">{identity}</p>
+        {name && <p className="text-sm text-white/70 truncate">{name}</p>}
       </div>
     </Link>
   );
