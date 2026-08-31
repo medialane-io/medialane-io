@@ -1,15 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
-import { useParams, useRouter, usePathname } from "next/navigation";
+import { useEffect, useRef } from "react";
+
+import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { assetHref, collectionHref } from "@/lib/routes";
-import { useToken, useTokenHistory } from "@/hooks/use-tokens";
-import { useAssetMarketState } from "@/hooks/use-asset-market-state";
-import { useTokenListings } from "@/hooks/use-orders";
-import { useCollection, useNearbyCollectionTokens } from "@/hooks/use-collections";
 import { Button } from "@/components/ui/button";
 import { PageContainer, AssetCollectionBar, AssetUtilityIcons, AssetMarketplacePanel, AssetHeaderBlock, AssetMediaColumn, buildEditionStats } from "@medialane/ui";
 import { ipfsToHttp } from "@/lib/utils";
@@ -18,18 +14,9 @@ import {
   ShoppingCart,
 } from "lucide-react";
 import { FloatingCommentsButton } from "@/components/asset/floating-comments-button";
-import { LICENSE_TRAIT_TYPES } from "@/types/ip";
-import type { IPType } from "@/types/ip";
-import { IP_TEMPLATES, EMBED_PLATFORM_META, SOCIAL_PLATFORM_META } from "@/lib/ip-templates";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ApiActivity } from "@medialane/sdk";
-import { useComments } from "@/hooks/use-comments";
 import { EXPLORER_URL } from "@/lib/constants";
-import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useEmailVerificationRequired } from "@/hooks/use-email-verification-required";
-import { useOrderActions } from "./use-order-actions";
-import { useAcceptOffer } from "@/hooks/use-accept-offer";
-import { useTokenRemixes } from "@/hooks/use-remix-offers";
 import { HelpIcon } from "@/components/ui/help-icon";
 import { ReportDialog } from "@/components/report-dialog";
 import { AssetMarketsTab } from "./asset-markets-tab";
@@ -41,56 +28,27 @@ import {
 import { AssetOverviewContent } from "./asset-overview-content";
 import {
   AssetMarketplaceDialogs,
-  useAssetMarketplaceDialogState,
 } from "./asset-marketplace-dialogs";
 import { ASSET_ACCENTS } from "./accents";
+import { useAssetPage } from "./use-asset-page";
 
 export function AssetPageEdition() {
-  const { contract, tokenId } = useParams<{ contract: string; tokenId: string }>();
-  const router = useRouter();
-  const pathname = usePathname();
-  const { hasWallet, address: walletAddress } = useWalletNativeSession();
-  const listingRequiresEmailVerification = useEmailVerificationRequired();
-  const { collection } = useCollection(contract);
-  const { token } = useToken(contract, tokenId);
-  const { listings, mutate: mutateListings } = useTokenListings(contract, tokenId);
-  const { history } = useTokenHistory(contract, tokenId);
-  const { tokens: collectionTokens } = useNearbyCollectionTokens(contract, tokenId);
   const {
-    activeListings,
-    activeBids,
-    cheapest,
-    cheapestUsd,
-    lastSaleRaw,
-    isOwner,
-    holders,
-    quantityOwned,
-    myListing,
-    canListMoreEditions,
-  } = useAssetMarketState({ token, collection, listings, history, walletAddress });
+    contract, tokenId, pathname, router, shouldReduce,
+    hasWallet, walletAddress, listingRequiresEmailVerification,
+    collection, token, mutateListings, history, collectionTokens,
+    commentTotal, remixCount,
+    activeListings, activeBids, cheapest, cheapestUsd, lastSaleRaw,
+    isOwner, holders, quantityOwned, myListing, canListMoreEditions, isERC1155,
+    isProcessing, cancelStep, cancelError, handleCancelClick, resetCancelStep, acceptOffer,
+    purchaseOrder, setPurchaseOrder, listOpen, setListOpen,
+    offerOpen, setOfferOpen, transferOpen, setTransferOpen,
+    reportOpen, setReportOpen, commentOpen, setCommentOpen, imgError, setImgError,
+    imageUrl, image, name, description, attributes, hasTemplateData, isDisplayAttr, isIndexing,
+  } = useAssetPage({ tokenStandard: "ERC1155", namePrefix: "Edition" });
 
-  const {
-    isProcessing,
-    cancelStep, cancelError,
-    handleCancelClick,
-    resetCancelStep,
-  } = useOrderActions({ mutateListings, tokenStandard: "ERC1155" });
-  const acceptOffer = useAcceptOffer({ mutateListings, tokenStandard: "ERC1155", activeListings });
-  const shouldReduce = useReducedMotion();
-
-  const imageUrl = token?.metadata?.image ? ipfsToHttp(token.metadata.image) : null;
-
-  const [imgError, setImgError] = useState(false);
-  const {
-    purchaseOrder,
-    setPurchaseOrder,
-    listOpen,
-    setListOpen,
-    offerOpen,
-    setOfferOpen,
-    transferOpen,
-    setTransferOpen,
-  } = useAssetMarketplaceDialogState();
+  const totalEditions = collection?.totalSupply ?? 0;
+  const uniqueOwners = holders.length;
 
   const autoActionRef = useRef(false);
   useEffect(() => {
@@ -104,41 +62,10 @@ export function AssetPageEdition() {
       autoActionRef.current = true;
     }
   }, [token, isOwner, setListOpen, setTransferOpen]);
-  const [reportOpen, setReportOpen] = useState(false);
-  const [commentOpen, setCommentOpen] = useState(false);
 
-  const { total: commentTotal } = useComments(contract, tokenId);
-  const { total: remixCount } = useTokenRemixes(contract, tokenId);
 
   if (!token) return null;
 
-  const name = token.metadata?.name || `Edition #${token.tokenId}`;
-  const image = token.metadata?.image ? ipfsToHttp(token.metadata.image) : null;
-  const description = token.metadata?.description;
-  const attributes = Array.isArray(token.metadata?.attributes)
-    ? (token.metadata.attributes as { trait_type?: string; value?: string }[])
-    : [];
-
-  const totalEditions = collection?.totalSupply ?? 0;
-  const uniqueOwners = holders.length;
-
-  const activeTemplate = IP_TEMPLATES[
-    (attributes.find((a) => a.trait_type?.toLowerCase() === "ip type")?.value ?? "") as IPType
-  ];
-  const activeTemplateEmbedSocialKeys = activeTemplate
-    ? [
-        ...(activeTemplate.embeds ?? []).map((p) => EMBED_PLATFORM_META[p].traitKey),
-        ...(activeTemplate.socials ?? []).map((p) => SOCIAL_PLATFORM_META[p].traitKey),
-          ...(activeTemplate.docUpload ? [activeTemplate.docUpload.traitType] : []),
-      ]
-    : [];
-  const activeTemplateKeys = new Set<string>(["IP Type", ...activeTemplateEmbedSocialKeys]);
-  const hasTemplateData = activeTemplateEmbedSocialKeys.some((k) =>
-    attributes.some((a) => a.trait_type === k && a.value)
-  );
-
-  const isDisplayAttr = (a: { trait_type?: string }): boolean =>
-    !LICENSE_TRAIT_TYPES.has(a.trait_type ?? "") && !activeTemplateKeys.has(a.trait_type ?? "");
 
   return (
     <div className="relative z-0 min-h-screen">
