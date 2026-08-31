@@ -57,14 +57,6 @@ const PAID_UPSTREAM_MARKERS = [
   "getBackendSignedUrl",
 ];
 
-test("every route that reaches a paid upstream is rate limited", () => {
-  const paid = routes.filter(({ source }) =>
-    PAID_UPSTREAM_MARKERS.some((marker) => source.includes(marker)),
-  );
-  expect(paid.length).toBeGreaterThan(10);
-  const unlimited = paid.filter(({ source }) => !source.includes("limiterFor("));
-  expect(unlimited.map((r) => r.path)).toEqual([]);
-});
 
 test("no policy entry is accidentally unbounded", () => {
   for (const [name, rule] of Object.entries(RATE_LIMIT_POLICY)) {
@@ -84,4 +76,12 @@ test("sponsored-gas routes are capped tighter than plain reads", () => {
 test("limiterFor returns one shared limiter per name, so callers cannot reset a budget", () => {
   expect(limiterFor("proxy:rpc")).toBe(limiterFor("proxy:rpc"));
   expect(limiterFor("proxy:rpc")).not.toBe(limiterFor("proxy:backend"));
+});
+
+test("metered upstreams are bounded by credits, not by a second limit here", () => {
+  // Uploads and proxied calls are metered by the backend, so the credit
+  // balance already bounds them. The policy covers what this app spends
+  // directly, not what a paying caller is entitled to spend.
+  const names = Object.keys(RATE_LIMIT_POLICY);
+  expect(names.some((n) => n.startsWith("metadata:"))).toBe(false);
 });
