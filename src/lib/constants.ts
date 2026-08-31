@@ -32,6 +32,13 @@ if (!isServer && MEDIALANE_API_KEY) {
   );
 }
 
+export const IPFS_GATEWAY = (() => {
+  const configured = process.env.NEXT_PUBLIC_PINATA_GATEWAY?.trim();
+  if (!configured) return null;
+  const withScheme = configured.startsWith("http") ? configured : `https://${configured}`;
+  return withScheme.endsWith("/") ? `${withScheme}ipfs/` : `${withScheme}/ipfs/`;
+})();
+
 export const EXPLORER_URL =
   readStringEnv(process.env.NEXT_PUBLIC_EXPLORER_URL, "https://voyager.online");
 
