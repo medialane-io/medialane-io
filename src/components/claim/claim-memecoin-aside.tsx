@@ -6,7 +6,7 @@ export function ClaimMemecoinAside() {
     <ClaimRail
       included={[
         { icon: Coins, title: "Listed on the Coins page", desc: "Where people discover and trade coins on Medialane." },
-        { icon: UserCircle, title: "On your creator profile", desc: "It appears alongside the rest of your work." },
+        { icon: UserCircle, title: "On your profile", desc: "It appears alongside the rest of your work." },
         { icon: TrendingUp, title: "Discoverable & tradable", desc: "Anyone can find your coin and trade it." },
       ]}
       steps={[

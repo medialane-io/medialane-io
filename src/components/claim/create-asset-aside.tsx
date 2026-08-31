@@ -7,7 +7,7 @@ export function CreateAssetAside() {
       included={[
         { icon: Gem, title: "A unique piece", desc: "Mint your work as a one-of-a-kind asset." },
         { icon: Scale, title: "Licensing you control", desc: "Set exactly how others can use it." },
-        { icon: LayoutGrid, title: "On your profile", desc: "It shows up on your creator profile and collection." },
+        { icon: LayoutGrid, title: "On your profile", desc: "It shows up on your profile and collection." },
       ]}
       steps={[
         "Upload your work and add details",
