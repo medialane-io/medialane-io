@@ -12,6 +12,12 @@ export { signWithPrivateKey } from "@medialane/sdk/starknet";
 export { InvalidStarkPrivateKeyError };
 
 const RP_NAME = "Medialane";
+const CANONICAL_RP_ID = "www.medialane.io";
+
+function relyingPartyId(): string {
+  const host = location.hostname;
+  return host === "medialane.io" || host.endsWith(".medialane.io") ? CANONICAL_RP_ID : host;
+}
 
 const enc = (s: string): Uint8Array<ArrayBuffer> => {
   const src = new TextEncoder().encode(s);
@@ -72,7 +78,7 @@ async function registerPasskey(): Promise<Registration> {
     cred = (await navigator.credentials.create({
       publicKey: {
         challenge: rand(32),
-        rp: { name: RP_NAME, id: location.hostname },
+        rp: { name: RP_NAME, id: relyingPartyId() },
         user: { id: rand(16), name: "creator@medialane", displayName: "Medialane Creator" },
         pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }],
         authenticatorSelection: {
@@ -110,7 +116,7 @@ async function prfSecret(credentialId: string): Promise<Uint8Array<ArrayBuffer>>
     assertion = (await navigator.credentials.get({
       publicKey: {
         challenge: rand(32),
-        rpId: location.hostname,
+        rpId: relyingPartyId(),
         allowCredentials: [{ type: "public-key", id: unb64(credentialId) }],
         userVerification: "required",
         extensions: { prf: { eval: { first: PRF_SALT } } } as AuthenticationExtensionsClientInputs,
