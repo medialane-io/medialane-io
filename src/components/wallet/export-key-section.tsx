@@ -55,8 +55,9 @@ export function ExportKeySection() {
       <div>
         <p className="text-sm font-semibold">Recovery key</p>
         <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-          Save this somewhere private, such as a password manager. It restores your wallet on a new
-          phone or browser, and it is the only thing that will.
+          Save this somewhere private, such as a password manager. It restores your account if you
+          lose access to every device you use. To start using a new phone or browser, approve it
+          from a device you already have.
         </p>
       </div>
 
