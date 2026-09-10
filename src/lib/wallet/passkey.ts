@@ -42,7 +42,7 @@ const b64 = (buf: ArrayBuffer | Uint8Array): string =>
 const PRF_SALT = enc("medialane://io/owner-key/v1");
 const HKDF_INFO = enc("medialane-io-owner-key");
 
-class PasskeyCancelledError extends Error {
+export class PasskeyCancelledError extends Error {
   constructor() {
     super("Passkey confirmation was cancelled.");
     this.name = "PasskeyCancelledError";

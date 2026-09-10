@@ -54,3 +54,14 @@ export function parsePairingPayload(encoded: string): PairingPayload {
     label: sanitiseLabel(data.label),
   };
 }
+
+export function parseAccountAddress(input: string): string {
+  const trimmed = typeof input === "string" ? input.trim() : "";
+  if (!/^0x[0-9a-fA-F]{50,64}$/.test(trimmed)) {
+    throw new InvalidPairingPayloadError("That does not look like an account address.");
+  }
+  if (BigInt(trimmed) === 0n) {
+    throw new InvalidPairingPayloadError("That does not look like an account address.");
+  }
+  return trimmed;
+}

@@ -62,3 +62,9 @@ export async function addDevice(sealed: SealedOwner, devicePubkey: string): Prom
 export async function removeDevice(sealed: SealedOwner, ownerGuid: string): Promise<string> {
   return executeOwnerAction(sealed, [buildRemoveOwnerByGuidCall(sealed.address, ownerGuid)]);
 }
+
+export async function isOwnerOf(accountAddress: string, devicePubkey: string): Promise<boolean> {
+  const owners = await getOwners(accountAddress);
+  const guid = BigInt(computeOwnerGuid(devicePubkey));
+  return owners.some((o) => BigInt(o.guid) === guid);
+}
