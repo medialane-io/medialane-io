@@ -35,7 +35,6 @@
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 221 83% 53%;
 
-    /* Medialane brand tokens — additive alongside shadcn defaults */
     --brand-blue: 220 100% 62%;
     --brand-navy: 229 51% 8%;
     --brand-rose: 341 89% 67%;
@@ -74,7 +73,6 @@
     --sidebar-border: 224 20% 12%;
     --sidebar-ring: 271 60% 65%;
 
-    /* Medialane brand tokens */
     --brand-blue: 220 100% 62%;
     --brand-navy: 229 51% 8%;
     --brand-rose: 341 89% 67%;
@@ -85,9 +83,7 @@
 
 @layer base {
   * { @apply border-border; }
-  /* Prevent horizontal scroll at the document level. overflow-x:clip is
-     stronger than hidden: it clips without creating a scroll container,
-     so position:sticky children still work correctly. */
+
   html, body { overflow-x: clip; max-width: 100%; }
   body {
     @apply bg-background text-foreground;
@@ -96,14 +92,12 @@
   h1, h2, h3, h4 { @apply tracking-tight; }
 }
 
-/* Scrollbars */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 4px; }
 .scrollbar-none { scrollbar-width: none; }
 .scrollbar-none::-webkit-scrollbar { display: none; }
 
-/* Glass */
 .glass {
   background: rgba(10, 14, 30, 0.60);
   backdrop-filter: blur(16px);
@@ -117,7 +111,6 @@
   border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
-/* Typography gradients */
 .gradient-text {
   background: linear-gradient(135deg, #8a5cf6 0%, #5b4ce6 40%, #3b7bff 100%);
   -webkit-background-clip: text;
@@ -143,14 +136,12 @@
   background-clip: text;
 }
 
-/* Price */
 .price-value {
   color: hsl(var(--price));
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
-/* Section label */
 .section-label {
   font-size: 0.625rem;
   font-weight: 700;
@@ -159,7 +150,6 @@
   color: hsl(var(--muted-foreground));
 }
 
-/* Pill badge */
 .pill-badge {
   display: inline-flex;
   align-items: center;
@@ -175,7 +165,6 @@
   color: hsl(var(--primary));
 }
 
-/* Card base — no hover, press handled by Framer Motion */
 .card-base {
   border-radius: calc(var(--radius) * 1.25);
   border: 1px solid hsl(var(--border));
@@ -184,7 +173,6 @@
   will-change: transform;
 }
 
-/* Bento cell */
 .bento-cell {
   border-radius: calc(var(--radius) * 1.25);
   border: 1px solid hsl(var(--border));
@@ -193,7 +181,6 @@
   position: relative;
 }
 
-/* Background grid */
 .bg-grid {
   background-image:
     linear-gradient(hsl(var(--border) / 0.4) 1px, transparent 1px),
@@ -201,11 +188,9 @@
   background-size: 48px 48px;
 }
 
-/* Snap scroll */
 .snap-x-mandatory { scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
 .snap-start { scroll-snap-align: start; }
 
-/* Animations */
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-10px); }
@@ -262,7 +247,7 @@
 .value-prop-track[data-paused="true"] {
   animation-play-state: paused;
 }
-/* Fades the carousel's edges instead of hard-clipping cards mid-shape. */
+
 .value-prop-fade {
   mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
   -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
@@ -277,7 +262,6 @@
   transform-origin: center center;
 }
 
-/* Hide browser number input spinners — price inputs use custom currency suffix */
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
@@ -294,7 +278,6 @@ input[type="number"] {
   display: none;
 }
 
-/* Animated gradient border for marketplace action buttons */
 @keyframes border-flow {
   0%, 100% { background-position: 0% 50%; }
   50%       { background-position: 100% 50%; }
@@ -304,7 +287,7 @@ input[type="number"] {
   background-size: 300% 300%;
   animation: border-flow 5s ease infinite;
 }
-/* Wrapper that adds a 2px animated gradient border around a .card-base card */
+
 .card-exclusive-wrapper {
   padding: 2px;
   border-radius: calc(var(--radius) * 1.25 + 2px);
