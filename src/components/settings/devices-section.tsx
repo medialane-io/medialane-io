@@ -5,13 +5,11 @@ import { Loader2, Monitor, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getOwners, describeDevices, canRemoveDevice, removeDevice, type DeviceEntry } from "@/lib/wallet/devices";
-import { loadSealedOwner } from "@/lib/wallet/store";
+import { loadSealedOwner, clearSealedOwner, notifyWalletChange } from "@/lib/wallet/store";
 import { friendlyErrorMessage } from "@/lib/friendly-error";
 import { DeviceApprovalDialog } from "./device-approval-dialog";
 
 const short = (v: string) => `${v.slice(0, 10)}…${v.slice(-6)}`;
-
-const REMOVAL_ENABLED = false;
 
 export function DevicesSection({ walletAddress }: { walletAddress: string }) {
   const [devices, setDevices] = useState<DeviceEntry[] | null>(null);
@@ -34,10 +32,23 @@ export function DevicesSection({ walletAddress }: { walletAddress: string }) {
   const handleRemove = async (device: DeviceEntry) => {
     const sealed = loadSealedOwner();
     if (!sealed || !devices) return;
+
+    const confirmed = window.confirm(
+      device.isThisDevice
+        ? "Remove this device? You will be signed out here and will need another device to get back in."
+        : "Remove this device? It will no longer be able to sign for your account. Adding it back needs a device you still have.",
+    );
+    if (!confirmed) return;
+
     setBusyGuid(device.guid);
     setError(null);
     try {
       await removeDevice(sealed, device.guid);
+      if (device.isThisDevice) {
+        clearSealedOwner();
+        notifyWalletChange();
+        return;
+      }
       refresh();
     } catch (e) {
       setError(friendlyErrorMessage(e));
@@ -79,20 +90,14 @@ export function DevicesSection({ walletAddress }: { walletAddress: string }) {
                 </span>
                 {device.isThisDevice ? <Badge variant="secondary">This device</Badge> : null}
               </div>
-              {REMOVAL_ENABLED ? (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  disabled={!canRemoveDevice(devices, device.guid) || busyGuid !== null}
-                  onClick={() => handleRemove(device)}
-                >
-                  {busyGuid === device.guid ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    "Remove"
-                  )}
-                </Button>
-              ) : null}
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={!canRemoveDevice(devices, device.guid) || busyGuid !== null}
+                onClick={() => handleRemove(device)}
+              >
+                {busyGuid === device.guid ? <Loader2 className="h-4 w-4 animate-spin" /> : "Remove"}
+              </Button>
             </li>
           ))}
         </ul>
