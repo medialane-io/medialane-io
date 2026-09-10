@@ -24,6 +24,7 @@ import {
 } from "@/lib/wallet/guardian";
 import { describeRecoveryAction } from "@/lib/wallet/guardian-status";
 import { friendlyErrorMessage } from "@/lib/friendly-error";
+import { isOwnerOf } from "@/lib/wallet/devices";
 
 type Mode = "choose" | "key" | "lost" | "guardian";
 
@@ -97,6 +98,14 @@ function RecoveryKeyFlow({ onBack }: { onBack: () => void }) {
     setErr(null);
     try {
       const sealed = await sealImportedOwnerKey(keyInput);
+      const owned = await isOwnerOf(sealed.address, sealed.ownerPubKey).catch(() => false);
+      if (!owned) {
+        setErr(
+          "No Medialane account is controlled by that key. Check you copied the whole key, and that you exported it from the device you signed up on.",
+        );
+        setBusy(false);
+        return;
+      }
       saveSealedOwner(sealed);
       router.push("/portfolio");
     } catch (e) {

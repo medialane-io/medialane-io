@@ -5,6 +5,7 @@ import { KeyRound, Copy, Check, EyeOff, Loader2, ShieldAlert } from "lucide-reac
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { loadSealedOwner } from "@/lib/wallet/store";
+import { isRecoveryKeyForWallet } from "@/lib/wallet/recovery-key";
 import { unlockOwnerKey } from "@/lib/wallet/passkey";
 import { friendlyErrorMessage } from "@/lib/friendly-error";
 
@@ -21,6 +22,12 @@ export function ExportKeySection() {
       const sealed = loadSealedOwner();
       if (!sealed) {
         setError("This browser has no wallet key stored.");
+        return;
+      }
+      if (!isRecoveryKeyForWallet(sealed)) {
+        setError(
+          "This device was approved from another one, so its key cannot restore your account on its own. Export from the device you first signed up on.",
+        );
         return;
       }
       setPrivateKey(await unlockOwnerKey(sealed));
