@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Check, Copy, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,14 @@ import { friendlyErrorMessage } from "@/lib/friendly-error";
 type Step = "start" | "creating" | "share" | "checking";
 
 export default function LinkDevicePage() {
+  return (
+    <Suspense fallback={null}>
+      <LinkDeviceForm />
+    </Suspense>
+  );
+}
+
+function LinkDeviceForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect_url");
