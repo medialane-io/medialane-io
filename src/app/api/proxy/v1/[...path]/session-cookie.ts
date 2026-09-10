@@ -29,7 +29,7 @@ export function stripAccountToken(bodyText: string): string {
 }
 
 export function shouldInjectSessionCookie(path: string, method: string): boolean {
-  return method === "POST" && path === "users/me";
+  return method === "POST" && (path === "users/me" || path === "users/me/wallet");
 }
 
 export function injectAccountToken(bodyText: string, accountToken: string): string {

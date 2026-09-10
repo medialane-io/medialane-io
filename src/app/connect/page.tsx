@@ -12,6 +12,7 @@ import { Loader2, ShieldCheck, AlertCircle } from "lucide-react";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { ValuePropCarousel } from "@/components/connect/value-prop-carousel";
 import { friendlyErrorMessage } from "@/lib/friendly-error";
+import { adoptAccountWallet } from "@/lib/wallet/account-wallet";
 import { safeRelativePath } from "@/lib/safe-redirect";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useEmailVerificationStatus } from "@/hooks/use-email-verification-required";
@@ -87,10 +88,6 @@ function ConnectForm() {
 
   const goToWalletOnboarding = () => {
     router.push(`/wallet-onboarding${redirectTo ? `?redirect_url=${encodeURIComponent(redirectTo)}` : ""}`);
-  };
-
-  const goToLinkDevice = () => {
-    router.push(`/link-device${redirectTo ? `?redirect_url=${encodeURIComponent(redirectTo)}` : ""}`);
   };
 
   const continueWithEmail = async () => {
@@ -180,7 +177,8 @@ function ConnectForm() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error((data as { error?: string }).error ?? "Incorrect code");
       if (accountExistedRef.current) {
-        goToLinkDevice();
+        const linked = await adoptAccountWallet();
+        router.push(linked ? redirectTo || "/" : "/wallet-onboarding");
         return;
       }
       goToWalletOnboarding();

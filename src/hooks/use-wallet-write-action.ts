@@ -6,6 +6,7 @@ import { useWalletNativeSession } from "./use-wallet-native-session";
 import { lockVenueSigner } from "@/lib/wallet/venue-signer";
 import { assertTransactionSucceeded } from "@/lib/wallet/intent-tx";
 import { friendlyErrorMessage } from "@/lib/friendly-error";
+import { loadAccountAddress } from "@/lib/wallet/account-wallet";
 
 export type WalletWriteStatus = "idle" | "processing" | "confirming" | "success" | "error";
 
@@ -16,12 +17,21 @@ export function useWalletWriteAction(
   const [status, setStatus] = useState<WalletWriteStatus>("idle");
   const [txHash, setTxHash] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [needsDeviceApproval, setNeedsDeviceApproval] = useState(false);
 
   const run = useCallback(
     async (execute: (signer: StarknetVenueSigner) => Promise<{ txHash: string } | void>) => {
-      if (!hasWallet || !signer) return;
+      if (!hasWallet || !signer) {
+        if (loadAccountAddress()) {
+          setNeedsDeviceApproval(true);
+          setError("This device needs to be approved before it can sign for your account.");
+          setStatus("error");
+        }
+        return;
+      }
       setStatus("processing");
       setError(null);
+      setNeedsDeviceApproval(false);
       try {
         const result = await execute(signer);
         if (result?.txHash) setTxHash(result.txHash);
@@ -43,6 +53,7 @@ export function useWalletWriteAction(
     setStatus("idle");
     setTxHash(null);
     setError(null);
+    setNeedsDeviceApproval(false);
   }, []);
 
   return {
@@ -52,5 +63,6 @@ export function useWalletWriteAction(
     run,
     reset,
     walletNotReady: !hasWallet,
+    needsDeviceApproval,
   };
 }
