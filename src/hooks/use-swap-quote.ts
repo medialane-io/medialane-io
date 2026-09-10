@@ -22,9 +22,6 @@ function tokenBody(token: SwapToken, side: "sell" | "buy") {
     : { [`${side}TokenAddress`]: token.address };
 }
 
-/** Which side of the trade the given raw amount fixes — AVNU only quotes one
- * side at a time. "buy" (exact output) is what checkout needs; "sell" (exact
- * input) is the natural mode for a "how much am I paying" trade widget. */
 export type SwapAmountMode = "sell" | "buy";
 
 async function fetchQuote(

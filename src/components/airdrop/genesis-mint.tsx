@@ -110,12 +110,6 @@ export function GenesisMint() {
     });
   }, [walletAddress, action, getValidToken, signIn]);
 
-  // Only declare success — and persist it to localStorage — once the shared
-  // hook has actually verified the transaction onchain (action.status
-  // becomes "success" after that check, not right after execute() returns).
-  // Setting these inside the run() callback would mark a mint "done" before
-  // verification runs; if it later reverted and the user reloaded in that
-  // window, the page would trust the stale localStorage record forever.
   useEffect(() => {
     if (action.status === "success" && action.txHash) {
       setMintStep("success");

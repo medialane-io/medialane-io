@@ -3,10 +3,6 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { isPathAllowed } from "./allowlist";
 
-// Guards against the exact regression this repo shipped once already: a
-// method's allowlist silently reverting to a wildcard. Probed indirectly
-// (isPathAllowed exposes no pattern accessor) via two paths that must never
-// be publicly reachable regardless of method.
 test("no method in the allowlist is a catch-all pattern", () => {
   for (const method of ["GET", "POST", "PATCH", "DELETE"]) {
     expect(isPathAllowed(method, "portal/me")).toBe(false);
@@ -14,37 +10,18 @@ test("no method in the allowlist is a catch-all pattern", () => {
   }
 });
 
-// Traces every real /v1/... call site this app (and the shared packages it
-// pulls in) can reach through the public proxy, and asserts each one is
-// covered by some method in the allowlist. This is what would have caught
-// both misses in this file's history — do not delete without replacing.
-//
-// Scope: string/template literals containing a literal /v1/ or /api/proxy/v1/
-// path segment, found under src/hooks, src/components, src/app (excluding
-// src/app/api, which are server-only routes never reached through this proxy)
-// and @medialane/ui's dist (small and fully hook-scoped, so low false-positive
-// risk). @medialane/sdk's client.ts is intentionally NOT scanned wholesale —
-// it also defines /v1/portal/* and /v1/business/provisioning, which this app
-// must never allowlist, so a blanket scan there would tell us to reintroduce
-// the exact hole this file exists to close. SDK-mediated calls (anything
-// behind `.api.someMethod(...)`) are out of scope for this scanner; audit
-// medialane-sdk's client.ts by hand when it changes.
 const REPO_ROOT = process.cwd();
 const APP_ROOTS = ["src/hooks", "src/components", "src/app"];
 const EXCLUDED_DIRS = [join(REPO_ROOT, "src/app/api")];
 const EXCLUDED_FILES = new Set([
-  // Server-only: calls MEDIALANE_BACKEND_URL directly for SSR metadata,
-  // never through /api/proxy.
+
   join(REPO_ROOT, "src/lib/api-server.ts"),
   join(REPO_ROOT, "src/lib/backend-metadata.ts"),
-  // Server component: redirects by slug using env vars directly, never
-  // through /api/proxy.
+
   join(REPO_ROOT, "src/app/collection/[slug]/page.tsx"),
 ]);
 const UI_DIST_DIR = join(REPO_ROOT, "node_modules/@medialane/ui/dist");
 
-// Backend routes intentionally handled by their own dedicated route.ts files
-// (server-authenticated, never through the generic [...path] proxy).
 const NOT_PROXIED_PREFIXES = ["rpc", "paymaster/", "swap/"];
 
 function walk(dir: string, out: string[] = []): string[] {
@@ -64,9 +41,6 @@ function walk(dir: string, out: string[] = []): string[] {
   return out;
 }
 
-// A hand-rolled scanner rather than a single regex: a `${...}` interpolation
-// can contain arbitrary expression characters (e.g. `${encodeURIComponent(x)}`),
-// which a flat character class can't safely bound.
 function extractPaths(source: string): string[] {
   const found: string[] = [];
   const START = /\/(?:api\/proxy\/)?v1\//g;

@@ -57,7 +57,6 @@ const PAID_UPSTREAM_MARKERS = [
   "getBackendSignedUrl",
 ];
 
-
 test("no policy entry is accidentally unbounded", () => {
   for (const [name, rule] of Object.entries(RATE_LIMIT_POLICY)) {
     expect(rule.max, name).toBeGreaterThan(0);
@@ -79,9 +78,7 @@ test("limiterFor returns one shared limiter per name, so callers cannot reset a 
 });
 
 test("metered upstreams are bounded by credits, not by a second limit here", () => {
-  // Uploads and proxied calls are metered by the backend, so the credit
-  // balance already bounds them. The policy covers what this app spends
-  // directly, not what a paying caller is entitled to spend.
+
   const names = Object.keys(RATE_LIMIT_POLICY);
   expect(names.some((n) => n.startsWith("metadata:"))).toBe(false);
 });

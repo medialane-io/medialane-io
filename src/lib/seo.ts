@@ -29,8 +29,6 @@ export function truncateDescription(value: string, max = 160): string {
   return `${value.slice(0, Math.max(0, max - 1)).trimEnd()}…`;
 }
 
-// Shared OG card for the /mint and /br/mint airdrop campaigns — same image,
-// two locales.
 export const AIRDROP_OG_IMAGE =
   "https://gateway.pinata.cloud/ipfs/bafybeiglhfpl3ilyaiulzfjxspolmudih2d3t7lr27imy327fjag2s5zrq";
 

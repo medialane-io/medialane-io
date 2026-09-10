@@ -614,7 +614,6 @@ export function SingleEditionsContent() {
               >
                 {imagePreview ? (
 
-                  // eslint-disable-next-line @next/next/no-img-element -- intrinsic-sized upload preview (object-contain, no fixed box), not a next/image fill candidate
                   <img src={imagePreview} alt="Preview" className="mx-auto max-h-48 rounded-lg object-contain" />
                 ) : (
                   <div className="flex flex-col items-center gap-2 text-muted-foreground">

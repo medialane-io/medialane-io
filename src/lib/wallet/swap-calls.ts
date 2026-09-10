@@ -18,9 +18,7 @@ interface BuildSwapCallsParams {
   buy: SwapToken;
   takerAddress: string;
   amountRaw: string;
-  /** Which side amountRaw fixes. Defaults to "buy" (exact output) — what
-   * checkout needs to pay an exact price. Pass "sell" for a trade widget
-   * quoting off "amount the user is paying". */
+
   amountMode?: SwapAmountMode;
 }
 

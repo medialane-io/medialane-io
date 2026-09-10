@@ -99,8 +99,7 @@ export function useLaunchCoin(deps: UseLaunchCoinDeps = {}) {
         });
         if (launchIntent.data.requiresSignature) throw new Error("Expected a prebuilt launch-coin intent");
         const launched = await signer.execute(launchIntent.data.calls as Call[]);
-        // This step moves real funds into the Ekubo pool (quoteFundAmount) —
-        // a returned txHash only means "submitted," not "happened."
+
         await verify(launched.txHash);
 
         setStatus("indexing");
