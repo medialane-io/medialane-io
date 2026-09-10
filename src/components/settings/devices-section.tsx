@@ -11,6 +11,8 @@ import { DeviceApprovalDialog } from "./device-approval-dialog";
 
 const short = (v: string) => `${v.slice(0, 10)}…${v.slice(-6)}`;
 
+const REMOVAL_ENABLED = false;
+
 export function DevicesSection({ walletAddress }: { walletAddress: string }) {
   const [devices, setDevices] = useState<DeviceEntry[] | null>(null);
   const [addOpen, setAddOpen] = useState(false);
@@ -77,18 +79,20 @@ export function DevicesSection({ walletAddress }: { walletAddress: string }) {
                 </span>
                 {device.isThisDevice ? <Badge variant="secondary">This device</Badge> : null}
               </div>
-              <Button
-                size="sm"
-                variant="ghost"
-                disabled={!canRemoveDevice(devices, device.guid) || busyGuid !== null}
-                onClick={() => handleRemove(device)}
-              >
-                {busyGuid === device.guid ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  "Remove"
-                )}
-              </Button>
+              {REMOVAL_ENABLED ? (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={!canRemoveDevice(devices, device.guid) || busyGuid !== null}
+                  onClick={() => handleRemove(device)}
+                >
+                  {busyGuid === device.guid ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    "Remove"
+                  )}
+                </Button>
+              ) : null}
             </li>
           ))}
         </ul>
