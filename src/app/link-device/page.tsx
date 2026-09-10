@@ -69,14 +69,6 @@ export default function LinkDevicePage() {
     }
   };
 
-  const startFresh = () => {
-    const confirmed = window.confirm(
-      "Create a new wallet on this device?\n\nIf you already have a wallet on another device, this makes a second, separate one — your existing assets will not appear here. Only continue if you have never set one up.",
-    );
-    if (!confirmed) return;
-    router.replace(`/wallet-onboarding${redirectTo ? `?redirect_url=${encodeURIComponent(redirectTo)}` : ""}`);
-  };
-
   const copy = async () => {
     await navigator.clipboard.writeText(code);
     setCopied(true);
@@ -130,9 +122,6 @@ export default function LinkDevicePage() {
               {error ? <p className="text-sm text-destructive">{error}</p> : null}
               <Button className="w-full" onClick={start} disabled={step === "creating"}>
                 {step === "creating" ? <Loader2 className="h-4 w-4 animate-spin" /> : "Add this device"}
-              </Button>
-              <Button variant="ghost" className="w-full" onClick={startFresh} disabled={step === "creating"}>
-                I have never set up a wallet
               </Button>
             </>
           )}
