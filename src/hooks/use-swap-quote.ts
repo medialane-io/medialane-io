@@ -10,8 +10,6 @@ export interface SwapQuoteSummary {
   buyAmount: string;
 }
 
-/** A swap-route token: either a catalogue symbol (STRK, ETH, …) or an
- * arbitrary contract address (a creator coin/memecoin). */
 export type SwapToken = string | { address: string };
 
 function tokenKey(token: SwapToken): string {

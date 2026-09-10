@@ -14,17 +14,6 @@ const FAKE_SEALED: SealedOwner = {
 
 afterEach(() => registerSelfFundConsentHandler(null));
 
-// The calldata-encoding behavior itself is covered upstream by
-// @medialane/sdk's own guardian.test.ts — this file only proves io's
-// migration wired the SDK module in correctly, without re-mocking
-// "@medialane/sdk/starknet" directly (mock.module on a shared module leaks
-// across test files in the same bun test run and broke that file's own
-// tests when tried here). "./sponsored-executor" is a small, io-local
-// module only imported by venue-signer.ts/guardian.ts — safe to mock.
-// "./self-fund-consent" is used FOR REAL (registerSelfFundConsentHandler
-// directly, not mock.module) since it's a tiny pure primitive shared by
-// multiple test files — mock.module-ing it here would replace the module
-// for every other file in the same bun test run too, same hazard as above.
 describe("io guardian module", () => {
   test("re-exports the SDK's guardian calldata builders unchanged", async () => {
     const guardian = await import("./guardian");

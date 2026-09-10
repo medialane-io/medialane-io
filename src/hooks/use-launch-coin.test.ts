@@ -34,9 +34,6 @@ function fakeSigner(execute: () => Promise<{ txHash: string }>) {
 
 const VERIFY_OK = async () => {};
 
-// A receipt shape parseCreatorCoinCreated (the real, unmocked SDK function)
-// will actually accept — build it from the real selector it looks for
-// rather than guessing the event shape.
 function fakeReceipt(): CreatorCoinReceiptLike {
   const selector = hash.getSelectorFromName("CreatorCoinCreated");
   return {

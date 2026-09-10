@@ -25,8 +25,7 @@ export async function completeWalletDeployment(
     privateKey = created.privateKeyHex;
     saveSealedOwner(sealed);
   } else {
-    // Resuming an existing (undeployed) wallet: one passkey unlock here, reused
-    // below for the SIWS sign-in too, so the user isn't prompted twice.
+    
     privateKey = await unlockOwnerKey(sealed);
   }
 

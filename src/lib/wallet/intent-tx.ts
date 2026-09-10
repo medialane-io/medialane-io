@@ -11,9 +11,6 @@ export async function confirmIntentBestEffort(
   await client.api.confirmIntent(intentId, txHash).catch(() => {});
 }
 
-// Same retry cadence as the backend's own tx verifier (utils/txVerifier.ts
-// RETRY_DELAYS_MS) so client and server converge on the same notion of
-// "how long is normal to wait for Starknet finality."
 const RECEIPT_RETRY_DELAYS_MS = [0, 3000, 5000, 7000, 10000];
 
 interface ReceiptStatusShape {
@@ -22,11 +19,6 @@ interface ReceiptStatusShape {
   status?: string;
 }
 
-// executeIntent/executeIntents used to return as soon as the wallet handed
-// back a txHash — success as reported to the caller, and therefore to the
-// UI, meant "submitted," not "actually happened." A reverted transaction
-// looked identical to a successful one. This makes success mean what it
-// says: the transaction is confirmed and did not revert.
 export async function assertTransactionSucceeded(
   txHash: string,
   retryDelaysMs: readonly number[] = RECEIPT_RETRY_DELAYS_MS,
@@ -43,7 +35,7 @@ export async function assertTransactionSucceeded(
       if (status) return;
     } catch (err) {
       if (err instanceof Error && err.message.includes("reverted onchain")) throw err;
-      // Receipt not indexed yet (or a transient RPC hiccup) — keep retrying.
+      
     }
   }
   throw new Error("Verification timed out. Check your account for the transaction status.");

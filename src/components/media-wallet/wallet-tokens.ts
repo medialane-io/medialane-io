@@ -1,7 +1,5 @@
 import { getTokenBySymbol } from "@medialane/sdk";
 
-/** STRK/ETH/USDC/WBTC for the pinned dashboard, or any coin/memecoin symbol
- * when a WalletToken is built ad-hoc from a coin's own contract address. */
 export type WalletTokenSymbol = string;
 
 export interface WalletToken {

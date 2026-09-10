@@ -22,8 +22,6 @@ export function MediaWalletHeader({ address, onNavigate }: { address: string; on
   const [copied, setCopied] = useState(false);
   const avatarUrl = resolveTokenImage(profile?.avatarImage);
 
-  // Only reads an already-cached SIWS token — never triggers a sign-in
-  // prompt just from opening the wallet panel.
   const { data: wallet } = useSWR(
     ["media-wallet-header-email", address],
     async () => {

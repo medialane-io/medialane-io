@@ -18,9 +18,6 @@ mock.module("./use-wallet-native-session", () => ({
 }));
 const { useTransfer } = await import("./use-transfer");
 
-// The default `verify` param (assertTransactionSucceeded) hits real RPC —
-// tests pass their own fake instead of mocking the shared ./intent-tx
-// module (used by many other pages, has its own dedicated test file).
 const VERIFY_OK = async () => {};
 
 test("transferToken succeeds when the transaction is verified onchain", async () => {

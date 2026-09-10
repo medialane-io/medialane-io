@@ -27,8 +27,7 @@ mock.module("./use-medialane-client", () => ({
       }),
       submitIntentSignature: async () => ({ data: { calls: [{ contractAddress: "0x1", entrypoint: "approve", calldata: [] }] } }),
       confirmIntent: async () => ({}),
-      // Every poll finds the intent still FAILED — the exact real-world shape
-      // of a listing that was signed and submitted but never confirmed.
+      
       getIntent: async () => ({ data: { status: "FAILED" } }),
     },
   }),
@@ -54,11 +53,6 @@ test("createListing rejects instead of silently resolving when the intent never 
     }
   });
 
-  // The regression this guards: createListing used to catch this failure
-  // internally and resolve to undefined, which made the wallet-action state
-  // machine (useWalletWriteAction.run) unconditionally report "success" —
-  // false-positive success UI (including confetti) for a listing that was
-  // never actually confirmed onchain.
   expect(thrown).toBeInstanceOf(Error);
   expect(result.current.error).toBeTruthy();
 });

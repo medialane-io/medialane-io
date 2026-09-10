@@ -33,11 +33,6 @@ export function useWalletNativeSession(): WalletNativeSession {
     return onWalletChange(sync);
   }, []);
 
-  // Stable across renders (only recreated when the wallet itself changes) so
-  // callbacks derived from `signer` elsewhere (e.g. useMarketplace's
-  // createListing/fulfillOrder) don't get a new identity every render. Key
-  // lifetime is bounded per-action, not per-signer-instance — see
-  // lockVenueSigner in venue-signer.ts.
   const signer = useMemo(() => (sealed ? starknetVenueSigner(sealed) : null), [sealed]);
 
   return {

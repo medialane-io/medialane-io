@@ -19,12 +19,6 @@ mock.module("./use-wallet-native-session", () => ({
 
 const { useWalletWriteAction } = await import("./use-wallet-write-action");
 
-// The default `verify` param (assertTransactionSucceeded) hits real RPC —
-// every test here passes its own fake instead of mocking the shared
-// ./intent-tx module (which has its own dedicated test file and is used by
-// many other pages; mock.module on a shared module leaks across test files
-// in the same bun test run, per the same lesson already documented in
-// guardian.test.ts).
 const VERIFY_OK = async () => {};
 
 test("run executes successfully and reaches success status", async () => {

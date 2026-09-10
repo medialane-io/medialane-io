@@ -6,8 +6,7 @@ export const runtime = "nodejs";
 
 const handler = createImageProxyHandler({
   checkRateLimit: limiterFor("proxy:image"),
-  // Resolution is injected because the guard is isomorphic and cannot import
-  // a Node resolver itself.
+  
   resolveHostname: async (hostname) => {
     const records = await lookup(hostname, { all: true, verbatim: true });
     return records.map((record) => record.address);

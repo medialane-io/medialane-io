@@ -52,10 +52,6 @@ function ConnectForm() {
     setMounted(true);
   }, []);
 
-  // Someone already signed in with a wallet only ever reaches /connect because
-  // their account has no email — skip the anonymous register-or-login flow
-  // entirely and go straight to attaching one. If they land here with an
-  // email already on file (e.g. a stale link), there's nothing to do here.
   useEffect(() => {
     if (!mounted || !hasWallet || emailStatus === null) return;
     if (emailStatus.email) {

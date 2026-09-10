@@ -64,7 +64,7 @@ export function EmailVerifyDialog({ open, onOpenChange, email, onVerified, skipI
       return;
     }
     void sendCode();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- sends a code once on open; sendCode isn't stable across renders and would re-fire this every render
+    
   }, [open]);
 
   useEffect(() => {

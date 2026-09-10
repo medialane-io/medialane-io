@@ -1,4 +1,3 @@
-
 import { type NextRequest, NextResponse } from "next/server";
 import { isSameOrigin } from "@medialane/sdk";
 import { TRUSTED_APP_IP_HEADER, isSpoofableForwardingHeader, trustedClientIp } from "@/lib/client-ip";
@@ -31,12 +30,6 @@ const HOP_BY_HOP_HEADERS = new Set([
   "accept-encoding",
 ]);
 
-// Every proxied request injects the first-party MEDIALANE_API_KEY (metered
-// credits), so this must not be an open proxy. Three guards bound credit-drain
-// abuse: the per-method path allowlist in ./allowlist.ts, the same-origin
-// check, and the per-IP rate limit. The rate limit is the only one that holds
-// against a non-browser client — isSameOrigin passes a request with no Origin
-// header at all.
 const checkRateLimit = limiterFor("proxy:backend");
 
 async function handle(

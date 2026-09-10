@@ -1,10 +1,5 @@
-
 const ALLOWED_ROUTES: Record<string, RegExp[]> = {
 
-  // Explicit allowlist — every path here is a public/self-scoped read the io
-  // app actually calls through @medialane/sdk's MedialaneClient. Anything not
-  // listed (e.g. /v1/portal/*, /v1/business/provisioning) is internal/admin
-  // data and must stay unreachable from this public proxy.
   GET: [
     /^orders$/,
     /^orders\/[^/]+$/,

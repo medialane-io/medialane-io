@@ -11,8 +11,6 @@ export interface EmailVerificationStatus {
   requiresEmailVerification: boolean;
 }
 
-// Only reads an already-cached SIWS token — never triggers a sign-in prompt
-// just from rendering a page that happens to check this.
 export function useEmailVerificationStatus(): EmailVerificationStatus | null {
   const { address } = useWalletNativeSession();
   const { getValidToken } = useSiwsToken();

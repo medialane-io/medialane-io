@@ -46,7 +46,7 @@ export default function VerifyEmailContent() {
         setStep("add-email");
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once per wallet, resolves current email/verification state
+    
   }, [walletAddress]);
 
   async function sendCode(forEmail: string) {

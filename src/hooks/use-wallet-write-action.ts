@@ -26,13 +26,7 @@ export function useWalletWriteAction(
         const result = await execute(signer);
         if (result?.txHash) setTxHash(result.txHash);
         setStatus("confirming");
-        // A returned txHash only means "submitted," not "happened" — a
-        // reverted transaction looks identical to a successful one until
-        // this check. executeIntent/executeIntents (intent-tx.ts) already
-        // verify internally before returning, so this is a no-op for those
-        // callers; it's load-bearing for callers that call signer.execute()
-        // directly (transfers, sends, swaps, comments) and previously had
-        // no verification at all.
+        
         if (result?.txHash) await verify(result.txHash);
         setStatus("success");
       } catch (err) {

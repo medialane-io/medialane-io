@@ -12,9 +12,7 @@ test("the app holds no direct dependency on a paid upstream SDK", () => {
 });
 
 test("no app source reaches a paid upstream or an RPC node directly", async () => {
-  // Sourced from the SDK so that adding an upstream protects every app at once.
-  // Each repo keeping its own list is how one of them ended up without the
-  // guard entirely.
+  
   const banned = PAID_UPSTREAM_MARKERS;
   const glob = new Bun.Glob("**/*.{ts,tsx}");
   const offenders: string[] = [];

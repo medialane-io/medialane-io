@@ -8,12 +8,6 @@ import { queryKeys } from "@/lib/query-keys";
 
 const EMPTY_TOKENS: ApiToken[] = [];
 
-// The backend reads through to the chain on a miss, so a 404 here normally
-// means the token really does not exist. It can still appear transiently when
-// that chain read times out or the RPC is unavailable, in which case the token
-// may well exist and the answer will change on its own. So a 404 is shown as a
-// pending state and retried briefly, rather than reported as a missing asset —
-// the case that turned a successful mint into "Token not found".
 const INDEXING_POLL_MS = 10_000;
 const INDEXING_WINDOW_MS = 60_000;
 
@@ -32,8 +26,7 @@ export function useToken(contract: string | null, tokenId: string | null) {
     () => client.api.getToken(contract!, tokenId!),
     {
       revalidateOnFocus: false,
-      // A 404 here is expected while indexing, so it must not reach the global
-      // onError toast — the page renders the pending state instead.
+      
       shouldRetryOnError: false,
       refreshInterval: (latest) =>
         latest?.data || Date.now() - startedAt > INDEXING_WINDOW_MS ? 0 : INDEXING_POLL_MS,
@@ -46,8 +39,7 @@ export function useToken(contract: string | null, tokenId: string | null) {
   return {
     token,
     isLoading,
-    // True while the chain has accepted the token but the projection has not
-    // caught up. Callers should show progress, not a missing-asset message.
+    
     isIndexing: !token && isNotIndexedYet(error) && withinWindow,
     error: isNotIndexedYet(error) ? undefined : error,
     mutate,

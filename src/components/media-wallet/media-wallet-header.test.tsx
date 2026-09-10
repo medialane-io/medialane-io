@@ -2,13 +2,8 @@ import { afterEach, expect, test, mock } from "bun:test";
 import { GlobalRegistrator } from "@happy-dom/global-registrator";
 if (!GlobalRegistrator.isRegistered) GlobalRegistrator.register({ url: "http://localhost:3000" });
 
-// next/image triggers happy-dom's real network image loading in a DOM test
-// environment, which hangs — render a plain <img> instead, same convention
-// any next/image consumer test in this repo should follow.
 mock.module("next/image", () => ({
-  // A real <img src> makes happy-dom attempt to actually load the resource
-  // over the network and hang the test — a data-only stand-in avoids that
-  // while still letting assertions on surrounding text run.
+  
   default: ({ src }: { src?: string }) => <div data-testid="avatar-image" data-src={src} />,
 }));
 

@@ -98,10 +98,6 @@ test("executeIntents throws if any intent requires a signature", async () => {
   );
 });
 
-// Regression coverage: executeIntent/executeIntents used to return success
-// as soon as the wallet handed back a txHash, with no check that the
-// transaction actually succeeded onchain — a reverted mint looked identical
-// to a successful one.
 test("executeIntent throws when the submitted transaction reverted onchain", async () => {
   receiptImpl = async () => ({ execution_status: "REVERTED" });
   await expect(executeIntent(fakeSigner(), fakeClient(), PREBUILT)).rejects.toThrow("reverted onchain");

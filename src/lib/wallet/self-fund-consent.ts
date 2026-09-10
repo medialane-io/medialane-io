@@ -6,11 +6,6 @@ export interface SelfFundFeeEstimate {
   unit: string;
 }
 
-// Imperative, framework-agnostic entry point — the same pattern this app
-// already uses for sonner's toast(): a plain function any module can call,
-// backed by whichever UI component is currently mounted. Lets non-React
-// modules (venue-signer.ts, guardian.ts) request a user decision without
-// depending on React themselves.
 type Handler = (feeEstimate: Promise<SelfFundFeeEstimate | null>) => Promise<boolean>;
 let currentHandler: Handler | null = null;
 

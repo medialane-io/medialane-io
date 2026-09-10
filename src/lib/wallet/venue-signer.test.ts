@@ -48,8 +48,6 @@ test("signTypedData followed by execute only prompts the passkey once", async ()
 
   expect(unlockCalls).toBe(1);
 
-  // A stable, memoized `signer` instance must not keep unlocking forever —
-  // lockVenueSigner bounds the cached key's lifetime to one action.
   const { lockVenueSigner } = await import("./venue-signer");
   lockVenueSigner(FAKE_SEALED.address);
   await signer.signTypedData({
