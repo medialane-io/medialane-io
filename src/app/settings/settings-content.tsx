@@ -20,6 +20,7 @@ import { WalletDeploymentDialog } from "@/components/wallet/wallet-deployment-di
 import { ExportKeySection } from "@/components/wallet/export-key-section";
 import { EmailVerifyDialog } from "@/components/settings/email-verify-dialog";
 import { GuardianRecoverySection } from "@/components/settings/guardian-recovery-section";
+import { DevicesSection } from "@/components/settings/devices-section";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -688,6 +689,7 @@ export default function SettingsContent() {
               </Button>
           </AccountSection>
 
+          {walletAddress && <DevicesSection walletAddress={walletAddress} />}
           {walletAddress && <GuardianRecoverySection walletAddress={walletAddress} />}
         </TabsContent>
       </Tabs>

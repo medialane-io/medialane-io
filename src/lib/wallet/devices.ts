@@ -2,7 +2,7 @@ import { typedData as starknetTypedData, type Call } from "starknet";
 import {
   computeOwnerGuid,
   buildAddOwnerCall,
-  buildRemoveOwnerCall,
+  buildRemoveOwnerByGuidCall,
   getOwners as sdkGetOwners,
   type GuardianInfo,
 } from "@medialane/sdk/starknet";
@@ -59,6 +59,6 @@ export async function addDevice(sealed: SealedOwner, devicePubkey: string): Prom
   return executeOwnerAction(sealed, [buildAddOwnerCall(sealed.address, devicePubkey)]);
 }
 
-export async function removeDevice(sealed: SealedOwner, devicePubkey: string): Promise<string> {
-  return executeOwnerAction(sealed, [buildRemoveOwnerCall(sealed.address, devicePubkey)]);
+export async function removeDevice(sealed: SealedOwner, ownerGuid: string): Promise<string> {
+  return executeOwnerAction(sealed, [buildRemoveOwnerByGuidCall(sealed.address, ownerGuid)]);
 }
