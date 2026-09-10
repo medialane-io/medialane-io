@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Check, Copy, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,8 @@ type Step = "start" | "creating" | "share" | "checking";
 
 export default function LinkDevicePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect_url");
   const [step, setStep] = useState<Step>("start");
   const [pending, setPending] = useState<SealedOwner | null>(null);
   const [code, setCode] = useState("");
@@ -60,11 +62,19 @@ export default function LinkDevicePage() {
       }
       saveSealedOwner({ ...pending, address: account });
       notifyWalletChange();
-      router.replace("/");
+      router.replace(redirectTo ?? "/");
     } catch (e) {
       setError(friendlyErrorMessage(e, "Could not confirm this device."));
       setStep("share");
     }
+  };
+
+  const startFresh = () => {
+    const confirmed = window.confirm(
+      "Create a new wallet on this device?\n\nIf you already have a wallet on another device, this makes a second, separate one — your existing assets will not appear here. Only continue if you have never set one up.",
+    );
+    if (!confirmed) return;
+    router.replace(`/wallet-onboarding${redirectTo ? `?redirect_url=${encodeURIComponent(redirectTo)}` : ""}`);
   };
 
   const copy = async () => {
@@ -120,6 +130,9 @@ export default function LinkDevicePage() {
               {error ? <p className="text-sm text-destructive">{error}</p> : null}
               <Button className="w-full" onClick={start} disabled={step === "creating"}>
                 {step === "creating" ? <Loader2 className="h-4 w-4 animate-spin" /> : "Add this device"}
+              </Button>
+              <Button variant="ghost" className="w-full" onClick={startFresh} disabled={step === "creating"}>
+                I have never set up a wallet
               </Button>
             </>
           )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,7 @@ function ConnectForm() {
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
+  const accountExistedRef = useRef(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [resending, setResending] = useState(false);
 
@@ -88,11 +89,16 @@ function ConnectForm() {
     router.push(`/wallet-onboarding${redirectTo ? `?redirect_url=${encodeURIComponent(redirectTo)}` : ""}`);
   };
 
+  const goToLinkDevice = () => {
+    router.push(`/link-device${redirectTo ? `?redirect_url=${encodeURIComponent(redirectTo)}` : ""}`);
+  };
+
   const continueWithEmail = async () => {
     setError(null);
     setStep("checking-email");
     try {
       const exists = await getMedialaneClient().api.checkEmailExists(email);
+      accountExistedRef.current = exists;
       if (exists) {
         await requestLoginCode();
       } else {
@@ -113,6 +119,7 @@ function ConnectForm() {
         body: JSON.stringify({ email }),
       });
       if (res.status === 409) {
+        accountExistedRef.current = true;
         await requestLoginCode();
         return;
       }
@@ -172,6 +179,10 @@ function ConnectForm() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error((data as { error?: string }).error ?? "Incorrect code");
+      if (accountExistedRef.current) {
+        goToLinkDevice();
+        return;
+      }
       goToWalletOnboarding();
     } catch (err) {
       setError(friendlyErrorMessage(err, "Incorrect code. Please try again."));
