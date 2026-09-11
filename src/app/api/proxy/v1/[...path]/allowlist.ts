@@ -77,6 +77,7 @@ const ALLOWED_ROUTES: Record<string, RegExp[]> = {
     /^users\/(me|register)$/,
     /^users\/me\/(generate-wallet|email|wallet)$/,
     /^username-claims$/,
+    /^metadata\/(upload|upload-file|upload-directory)$/,
   ],
   PATCH: [
     /^intents\/[^/]+\/(confirm|signature)$/,

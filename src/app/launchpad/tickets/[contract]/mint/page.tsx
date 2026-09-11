@@ -142,7 +142,7 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
     try {
       const token = getValidToken() ?? (await signIn());
       if (!token) throw new Error("Secure your account first");
-      const uri = await uploadImageToIpfs(file, token);
+      const uri = await uploadImageToIpfs(file);
       setImageUri(uri);
       toast.success("Image uploaded");
     } catch (err) {

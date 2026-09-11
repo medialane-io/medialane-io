@@ -78,7 +78,7 @@ export function useLaunchpadImageUpload({
       if (!token) throw new Error("Secure your account first");
 
       const uri = await Promise.race([
-        uploadImageToIpfs(file, token),
+        uploadImageToIpfs(file),
         new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error("the image service is slow right now — please try again")), 60_000),
         ),

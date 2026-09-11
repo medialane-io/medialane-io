@@ -107,7 +107,7 @@ export function NftEditionsMintForm({
   const uploadDocument = async (file: File) => {
     const token = getValidToken() ?? (await signIn());
     if (!token) throw new Error("Secure your account first");
-    return uploadDocumentToIpfs(file, token);
+    return uploadDocumentToIpfs(file);
   };
 
   const handleLicenseChange = (value: string) => {

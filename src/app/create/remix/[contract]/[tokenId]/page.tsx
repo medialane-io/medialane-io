@@ -194,7 +194,7 @@ export default function CreateRemixPage() {
 
       if (imageFile) {
 
-        const imageUri = await uploadImageToIpfs(imageFile, authToken);
+        const imageUri = await uploadImageToIpfs(imageFile);
         const formData = new FormData();
         formData.set("imageUri", imageUri);
         formData.set("name", metadata.name);

@@ -296,7 +296,7 @@ export function SingleEditionsContent() {
   const uploadDocument = async (file: File) => {
     const token = getValidToken() ?? (await signIn());
     if (!token) throw new Error("Secure your account first");
-    return uploadDocumentToIpfs(file, token);
+    return uploadDocumentToIpfs(file);
   };
 
   const [status, setStatus] = useState<MintTxStatus>("idle");
@@ -436,7 +436,7 @@ export function SingleEditionsContent() {
       formData.set("royalty", String(pendingValues.royalty));
       if (imageFile) {
 
-        formData.set("imageUri", await uploadImageToIpfs(imageFile, siwsToken));
+        formData.set("imageUri", await uploadImageToIpfs(imageFile));
       }
 
       metadataFieldsRef.current.forEach(({ traitType, value }) => {

@@ -43,7 +43,7 @@ export async function buildDropSet(
 
   const fields = [];
   for (const item of items) {
-    const imageUri = await uploadImageToIpfs(item.imageFile, siwsToken);
+    const imageUri = await uploadImageToIpfs(item.imageFile);
     fields.push({
       name: item.name,
       description: item.description ?? "",
