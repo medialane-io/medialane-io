@@ -1,7 +1,7 @@
 "use client";
 
 import { uploadImageToIpfs } from "@/lib/upload-image";
-import { withSiwsAuth } from "@/lib/pinata-fetch";
+import { buildAssetMetadata } from "@medialane/sdk";
 
 export interface SharedLicense {
   ipType: string;
@@ -37,7 +37,7 @@ export async function buildDropSet(
   items: DropItemInput[],
   license: SharedLicense,
   collection: CollectionCover,
-  siwsToken: string
+  creator: string
 ): Promise<BuiltSet> {
   if (items.length === 0) throw new Error("Add at least one item");
 
@@ -60,15 +60,31 @@ export async function buildDropSet(
     });
   }
 
-  const res = await fetch("/api/pinata/directory", withSiwsAuth(siwsToken, {
+  const registrationDate = new Date().toISOString().split("T")[0];
+  const files: { name: string; content: unknown }[] = fields.map((item, i) => ({
+    name: String(i + 1),
+    content: buildAssetMetadata({ ...item, creator, registrationDate }),
+  }));
+  files.push({
+    name: "collection.json",
+    content: {
+      name: collection.name ?? "",
+      description: collection.description ?? "",
+      image: collection.image ?? null,
+    },
+  });
+
+  const res = await fetch("/api/proxy/v1/metadata/upload-directory", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ items: fields, collection }),
-  }));
-  if (!res.ok) {
-    const err = (await res.json().catch(() => null)) as { error?: string } | null;
-    throw new Error(err?.error ?? "Directory pin failed");
+    body: JSON.stringify({ files }),
+  });
+  const json = (await res.json().catch(() => ({}))) as {
+    data?: { baseUri?: string };
+    error?: string;
+  };
+  if (!res.ok || !json.data?.baseUri) {
+    throw new Error(json.error ?? "Directory pin failed");
   }
-  const json = (await res.json()) as { baseUri: string };
-  return { baseUri: json.baseUri, count: items.length };
+  return { baseUri: json.data.baseUri, count: items.length };
 }

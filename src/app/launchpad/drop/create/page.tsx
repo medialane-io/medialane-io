@@ -221,7 +221,7 @@ export default function CreateDropPage() {
           templateTraits: metadataFieldsRef.current,
         },
         { name: pendingValues.name, description: pendingValues.descriptionTemplate, image: imageUri },
-        siwsToken
+        walletAddress
       );
       baseUri = built.baseUri;
       maxSupply = BigInt(built.count);
