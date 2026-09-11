@@ -28,8 +28,7 @@ import { useCollection } from "@/hooks/use-collections";
 import { useCollectionProfile } from "@/hooks/use-profiles";
 import { predictNextTicketId } from "@/hooks/use-tickets";
 import { uploadImageToIpfs } from "@/lib/upload-image";
-import { withSiwsAuth } from "@/lib/pinata-fetch";
-import { useSiwsToken } from "@/hooks/use-siws-token";
+import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
 import { rewardToast } from "@/lib/reward-toast";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { executeIntents } from "@/lib/wallet/intent-tx";
@@ -95,7 +94,6 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
   const { contract: rawContract } = use(params);
   const contract = normalizeAddress("STARKNET", rawContract);
   const { hasWallet, address } = useWalletNativeSession();
-  const { getValidToken, signIn } = useSiwsToken();
   const { collection, isLoading } = useCollection(contract);
   const { profile, isLoading: profileLoading } = useCollectionProfile(contract);
   const action = useWalletWriteAction();
@@ -140,8 +138,6 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
     setImageUri(null);
     setImageUploading(true);
     try {
-      const token = getValidToken() ?? (await signIn());
-      if (!token) throw new Error("Secure your account first");
       const uri = await uploadImageToIpfs(file);
       setImageUri(uri);
       toast.success("Image uploaded");
@@ -171,30 +167,28 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
 
   const handleUnlocked = async (values: FormValues, signer: StarknetVenueSigner) => {
     if (!address) throw new Error("Account not ready. Please refresh and try again.");
-    const siwsToken = getValidToken() ?? (await signIn());
-    if (!siwsToken) throw new Error("Secure your account first");
-    const metadataForm = new FormData();
-    metadataForm.set("name", values.name);
-    metadataForm.set("description", values.description ?? "");
-    metadataForm.set("imageUri", imageUri!);
-    if (values.external_url) metadataForm.set("external_url", values.external_url);
-    metadataForm.set("ipType", "NFT");
-    metadataForm.set("licenseType", values.licenseType);
-    metadataForm.set("commercialUse", values.commercialUse);
-    metadataForm.set("derivatives", values.derivatives);
-    metadataForm.set("attribution", values.attribution);
-    metadataForm.set("geographicScope", values.geographicScope);
-    metadataForm.set("aiPolicy", values.aiPolicy);
-    metadataForm.set("royalty", String(values.royalty));
-    metadataForm.append("tmpl_Type", "IP Ticket");
-    metadataForm.append("tmpl_Token Standard", "ERC-1155");
-    metadataForm.append("tmpl_Max Supply", values.maxSupply);
-    metadataForm.append("tmpl_Collection Contract", contract);
-
-    const uploadRes = await fetch("/api/pinata", withSiwsAuth(siwsToken, { method: "POST", body: metadataForm }));
-    const uploadData = await uploadRes.json();
-    if (!uploadRes.ok || uploadData.error || !uploadData.uri) throw new Error(uploadData.error ?? "Metadata upload failed");
-    const metadataUri: string = uploadData.uri;
+    const pinned = await pinAssetMetadata({
+      name: values.name,
+      description: values.description ?? "",
+      imageUri: imageUri!,
+      externalUrl: values.external_url,
+      ipType: "NFT",
+      licenseType: values.licenseType,
+      commercialUse: values.commercialUse,
+      derivatives: values.derivatives,
+      attribution: values.attribution,
+      geographicScope: values.geographicScope,
+      aiPolicy: values.aiPolicy,
+      royalty: String(values.royalty),
+      creator: address,
+      templateTraits: [
+        { traitType: "Type", value: "IP Ticket" },
+        { traitType: "Token Standard", value: "ERC-1155" },
+        { traitType: "Max Supply", value: values.maxSupply },
+        { traitType: "Collection Contract", value: contract },
+      ],
+    });
+    const metadataUri: string = pinned.uri;
 
     const startTime = dateToUnixTimestamp(values.startDate);
     const endTime = dateToUnixTimestamp(values.endDate);

@@ -19,8 +19,7 @@ import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { normalizeAddress } from "@medialane/sdk";
 import { readAssignedEditionId } from "@/lib/erc1155-edition";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
-import { withSiwsAuth } from "@/lib/pinata-fetch";
-import { useSiwsToken } from "@/hooks/use-siws-token";
+import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { executeIntent } from "@/lib/wallet/intent-tx";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
@@ -42,7 +41,6 @@ export default function MintIP1155Page() {
   const collectionAddress = normalizeAddress("STARKNET", rawContract ?? "");
 
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
-  const { getValidToken, signIn } = useSiwsToken();
   const action = useWalletWriteAction();
   const client = useMedialaneClient();
 
@@ -131,44 +129,23 @@ export default function MintIP1155Page() {
   const handleUnlocked = async (values: NftEditionsMintFormValues, signer: StarknetVenueSigner) => {
     if (!walletAddress || !imageUri) throw new Error("Account not ready. Please refresh and try again.");
 
-    const siwsToken = getValidToken() ?? (await signIn());
-    if (!siwsToken) throw new Error("Secure your account first");
 
-    const metadataForm = new FormData();
-    metadataForm.set("name", values.name);
-    metadataForm.set("description", values.description ?? "");
-    metadataForm.set("imageUri", imageUri);
-    if (values.external_url) metadataForm.set("external_url", values.external_url);
-    metadataForm.set("ipType", values.ipType);
-    metadataForm.set("licenseType", values.licenseType);
-    metadataForm.set("commercialUse", values.commercialUse);
-    metadataForm.set("derivatives", values.derivatives);
-    metadataForm.set("attribution", values.attribution);
-    metadataForm.set("geographicScope", values.geographicScope);
-    metadataForm.set("aiPolicy", values.aiPolicy);
-    metadataForm.set("royalty", String(values.royalty));
-
-    const seenTraits = new Set<string>();
-    const appendTrait = (traitType: string, value: string) => {
-      const cleanTrait = traitType.trim();
-      const cleanValue = value.trim();
-      const key = cleanTrait.toLowerCase();
-      if (!cleanTrait || !cleanValue || seenTraits.has(key)) return;
-      seenTraits.add(key);
-      metadataForm.append(`tmpl_${cleanTrait}`, cleanValue);
-    };
-
-    metadataFieldsRef.current.forEach(({ traitType, value }) => appendTrait(traitType, value));
-    appendTrait("Token Standard", "ERC-1155");
-    appendTrait("Editions", values.value);
-    appendTrait("Collection Contract", collectionAddress);
-
-    const uploadRes = await fetch("/api/pinata", withSiwsAuth(siwsToken, { method: "POST", body: metadataForm }));
-    const uploadData = await uploadRes.json();
-    if (!uploadRes.ok || uploadData.error || !uploadData.uri) {
-      throw new Error(uploadData.error ?? "Metadata upload failed");
-    }
-    const tokenUri: string = uploadData.uri;
+    const pinned = await pinAssetMetadata({
+      name: values.name,
+      description: values.description ?? "",
+      imageUri: imageUri,
+      externalUrl: values.external_url,
+      ipType: values.ipType,
+      licenseType: values.licenseType,
+      commercialUse: values.commercialUse,
+      derivatives: values.derivatives,
+      attribution: values.attribution,
+      geographicScope: values.geographicScope,
+      aiPolicy: values.aiPolicy,
+      royalty: String(values.royalty),
+      creator: walletAddress,
+    });
+    const tokenUri: string = pinned.uri;
 
     const intentRes = await client.api.createMintIntent({
       owner: walletAddress,
