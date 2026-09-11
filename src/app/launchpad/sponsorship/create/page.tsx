@@ -165,7 +165,7 @@ export default function CreateSponsorshipOfferPage() {
     void action.run(async (signer) => {
       const siwsToken = getValidToken() ?? (await signIn());
       if (!siwsToken) throw new Error("Secure your account first");
-      const licenseTermsUri = await pinSponsorshipTerms(toLicenseMetadata(terms), siwsToken);
+      const licenseTermsUri = await pinSponsorshipTerms(toLicenseMetadata(terms));
 
       const amount = BigInt(Math.round(Number(terms.amount) * 10 ** token.decimals));
       const duration = durationDays * 86400;

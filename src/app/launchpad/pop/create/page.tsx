@@ -114,7 +114,7 @@ export default function CreatePOPPage() {
     if (imageUri) metadata.image = imageUri;
     const siwsToken = getValidToken() ?? (await signIn());
     if (!siwsToken) throw new Error("Secure your account first");
-    const baseUri = await pinLaunchpadMetadata(metadata, siwsToken);
+    const baseUri = await pinLaunchpadMetadata(metadata);
 
     const claimEndTimestamp = Math.floor(
       new Date(`${pendingValues.claimEndDate}T${pendingValues.claimEndTime}:00`).getTime() / 1000

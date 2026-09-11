@@ -90,7 +90,7 @@ export default function CreateTicketCollectionPage() {
         name: values.name,
         description: values.description || "",
         image: imageUri,
-      }, siwsToken);
+      });
     }
 
     const intentRes = await client.api.createCollectionIntent({

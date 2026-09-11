@@ -120,7 +120,7 @@ export default function CreateIP1155CollectionPage() {
         description: pendingValues.description || "",
         image: imageUri,
         external_link: pendingValues.external_link || "",
-      }, siwsToken);
+      });
     }
 
       const intentRes = await client.api.createCollectionIntent({
