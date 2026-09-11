@@ -4,8 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
-import { useSiwsToken } from "@/hooks/use-siws-token";
-import { withSiwsAuth } from "@/lib/pinata-fetch";
+import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
 import { serializeByteArray } from "@/lib/cairo-calldata";
 import {
   Sparkles,
@@ -25,7 +24,6 @@ type MintStep = "ready" | "minting" | "success" | "error";
 export function GenesisMint() {
   const { hasWallet, address: walletAddress, isDeployed } = useWalletNativeSession();
   const action = useWalletWriteAction();
-  const { getValidToken, signIn } = useSiwsToken();
 
   const [mintStep, setMintStep] = useState<MintStep>("ready");
   const [mintError, setMintError] = useState<string | null>(null);
@@ -56,16 +54,13 @@ export function GenesisMint() {
         : "";
       if (!tokenUri) {
         setMintStatusMsg("Registrando participação…");
-        const form = new FormData();
-        form.append("name", "Lançamento Medialane no Brasil");
-        form.append("description", "Registre-se e participe do airdrop de prêmios.");
-        form.append("external_url", "https://medialane.io/br/mint");
-        const siwsToken = getValidToken() ?? (await signIn());
-        if (!siwsToken) throw new Error("Conta não encontrada. Tente novamente.");
-        const res = await fetch("/api/pinata", withSiwsAuth(siwsToken, { method: "POST", body: form }));
-        const data = await res.json();
-        if (data.error) throw new Error("Falha ao registrar. Tente novamente.");
-        tokenUri = data.uri;
+        const pinned = await pinAssetMetadata({
+          name: "Lançamento Medialane no Brasil",
+          description: "Registre-se e participe do airdrop de prêmios.",
+          externalUrl: "https://medialane.io/br/mint",
+          creator: walletAddress,
+        });
+        tokenUri = pinned.uri;
       }
 
       setMintStatusMsg("Confirmando participação…");
@@ -75,7 +70,7 @@ export function GenesisMint() {
         { contractAddress: BR_MINT_CONTRACT, entrypoint: "mint_item", calldata },
       ] as Call[]);
     });
-  }, [walletAddress, action, getValidToken, signIn]);
+  }, [walletAddress, action]);
 
   useEffect(() => {
     if (action.status === "success" && action.txHash) {

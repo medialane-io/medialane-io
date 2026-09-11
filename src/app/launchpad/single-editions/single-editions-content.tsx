@@ -1,7 +1,7 @@
 "use client";
 
 import { uploadImageToIpfs } from "@/lib/upload-image";
-import { withSiwsAuth } from "@/lib/pinata-fetch";
+import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
 import { rewardToast } from "@/lib/reward-toast";
 import { useState, useRef, useEffect, useCallback } from "react";
 import NextImage from "next/image";
@@ -421,34 +421,23 @@ export function SingleEditionsContent() {
         collectionName: selectedCollection?.name ?? selectedCollection?.symbol ?? null,
       });
 
-      const formData = new FormData();
-      formData.set("name", pendingValues.name);
-      formData.set("description", pendingValues.description ?? "");
-      if (pendingValues.external_url) formData.set("external_url", pendingValues.external_url);
-      formData.set("creator", walletAddress);
-      formData.set("ipType", pendingValues.ipType);
-      formData.set("licenseType", pendingValues.licenseType);
-      formData.set("commercialUse", pendingValues.commercialUse);
-      formData.set("derivatives", pendingValues.derivatives);
-      formData.set("attribution", pendingValues.attribution);
-      formData.set("geographicScope", pendingValues.geographicScope);
-      formData.set("aiPolicy", pendingValues.aiPolicy);
-      formData.set("royalty", String(pendingValues.royalty));
-      if (imageFile) {
-
-        formData.set("imageUri", await uploadImageToIpfs(imageFile));
-      }
-
-      metadataFieldsRef.current.forEach(({ traitType, value }) => {
-        if (traitType && value) formData.append(`tmpl_${traitType}`, value);
+      const pinned = await pinAssetMetadata({
+        name: pendingValues.name,
+        description: pendingValues.description ?? "",
+        externalUrl: pendingValues.external_url,
+        creator: walletAddress,
+        ipType: pendingValues.ipType,
+        licenseType: pendingValues.licenseType,
+        commercialUse: pendingValues.commercialUse,
+        derivatives: pendingValues.derivatives,
+        attribution: pendingValues.attribution,
+        geographicScope: pendingValues.geographicScope,
+        aiPolicy: pendingValues.aiPolicy,
+        royalty: String(pendingValues.royalty),
+        imageFile,
+        templateTraits: metadataFieldsRef.current.filter((f) => f.traitType && f.value),
       });
-
-      const uploadRes = await fetch("/api/pinata", withSiwsAuth(siwsToken, { method: "POST", body: formData }));
-      const uploadData = await uploadRes.json();
-      if (!uploadRes.ok || uploadData.error) {
-        throw new Error(uploadData.error ?? "Image upload failed");
-      }
-      const tokenUri: string = uploadData.uri;
+      const tokenUri: string = pinned.uri;
       if (!tokenUri) throw new Error("Image upload failed — please try again");
       updateMintDebug({ step: "metadata_uploaded", tokenUri });
 
