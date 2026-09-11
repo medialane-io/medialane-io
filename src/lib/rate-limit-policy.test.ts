@@ -45,18 +45,6 @@ test("every policy entry is actually wired to a route", () => {
   expect(unused).toEqual([]);
 });
 
-const PAID_UPSTREAM_MARKERS = [
-  "MEDIALANE_API_KEY",
-  "createBackendProxyHandler",
-  "createRpcProxyHandler",
-  "createImageProxyHandler",
-  "@/lib/backend-metadata",
-  "uploadFileToBackend",
-  "uploadJsonToBackend",
-  "uploadDirectoryToBackend",
-  "getBackendSignedUrl",
-];
-
 test("no policy entry is accidentally unbounded", () => {
   for (const [name, rule] of Object.entries(RATE_LIMIT_POLICY)) {
     expect(rule.max, name).toBeGreaterThan(0);
