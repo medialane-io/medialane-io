@@ -4,8 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
-import { useSiwsToken } from "@/hooks/use-siws-token";
-import { withSiwsAuth } from "@/lib/pinata-fetch";
+import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
 import { serializeByteArray } from "@/lib/cairo-calldata";
 import {
   Sparkles,
@@ -83,7 +82,6 @@ type MintStep = "ready" | "minting" | "success" | "error";
 export function LaunchMint() {
   const { hasWallet, address: recipientAddress, isDeployed } = useWalletNativeSession();
   const action = useWalletWriteAction();
-  const { getValidToken, signIn } = useSiwsToken();
 
   const [mintStep, setMintStep] = useState<MintStep>("ready");
   const [mintError, setMintError] = useState<string | null>(null);
@@ -115,19 +113,13 @@ export function LaunchMint() {
         : "";
       if (!tokenUri) {
         setMintStatusMsg("Uploading NFT metadata…");
-        const form = new FormData();
-        form.append("name", "Medialane Genesis");
-        form.append(
-          "description",
-          "Claim your exclusive Genesis NFT."
-        );
-        form.append("external_url", "https://medialane.io");
-        const siwsToken = getValidToken() ?? (await signIn());
-        if (!siwsToken) throw new Error("Account not ready. Please refresh and try again.");
-        const res = await fetch("/api/pinata", withSiwsAuth(siwsToken, { method: "POST", body: form }));
-        const data = await res.json();
-        if (data.error) throw new Error("Metadata upload failed: " + data.error);
-        tokenUri = data.uri;
+        const pinned = await pinAssetMetadata({
+          name: "Medialane Genesis",
+          description: "Claim your exclusive Genesis NFT.",
+          externalUrl: "https://medialane.io",
+          creator: recipientAddress,
+        });
+        tokenUri = pinned.uri;
       }
 
       setMintStatusMsg("Submitting transaction…");
@@ -137,7 +129,7 @@ export function LaunchMint() {
         { contractAddress: LAUNCH_MINT_CONTRACT, entrypoint: "mint_item", calldata },
       ] as Call[]);
     });
-  }, [recipientAddress, action, getValidToken, signIn]);
+  }, [recipientAddress, action]);
 
   useEffect(() => {
     if (action.status === "success" && action.txHash) {

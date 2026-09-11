@@ -6,8 +6,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
-import { useSiwsToken } from "@/hooks/use-siws-token";
-import { withSiwsAuth } from "@/lib/pinata-fetch";
+import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
 import { serializeByteArray } from "@/lib/cairo-calldata";
 import {
   Sparkles,
@@ -58,7 +57,6 @@ export function GenesisMint() {
   const { hasWallet, address: walletAddress, isDeployed } = useWalletNativeSession();
   const pathname = usePathname();
   const action = useWalletWriteAction();
-  const { getValidToken, signIn } = useSiwsToken();
 
   const [mintStep, setMintStep] = useState<MintStep>("ready");
   const [mintError, setMintError] = useState<string | null>(null);
@@ -89,16 +87,13 @@ export function GenesisMint() {
         : "";
       if (!tokenUri) {
         setMintStatusMsg("Registering your participation…");
-        const form = new FormData();
-        form.append("name", "Medialane Launch Airdrop");
-        form.append("description", "Early participant in the Medialane airdrop campaign.");
-        form.append("external_url", "https://medialane.io/mint");
-        const siwsToken = getValidToken() ?? (await signIn());
-        if (!siwsToken) throw new Error("Account not found. Please try again.");
-        const res = await fetch("/api/pinata", withSiwsAuth(siwsToken, { method: "POST", body: form }));
-        const data = await res.json();
-        if (data.error) throw new Error("Failed to register. Please try again.");
-        tokenUri = data.uri;
+        const pinned = await pinAssetMetadata({
+          name: "Medialane Launch Airdrop",
+          description: "Early participant in the Medialane airdrop campaign.",
+          externalUrl: "https://medialane.io/mint",
+          creator: walletAddress,
+        });
+        tokenUri = pinned.uri;
       }
 
       setMintStatusMsg("Confirming participation…");
@@ -108,7 +103,7 @@ export function GenesisMint() {
         { contractAddress: MINT_CONTRACT, entrypoint: "mint_item", calldata },
       ] as Call[]);
     });
-  }, [walletAddress, action, getValidToken, signIn]);
+  }, [walletAddress, action]);
 
   useEffect(() => {
     if (action.status === "success" && action.txHash) {
