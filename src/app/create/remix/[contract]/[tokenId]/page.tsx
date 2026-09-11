@@ -1,7 +1,8 @@
 "use client";
 
 import { uploadImageToIpfs } from "@/lib/upload-image";
-import { withSiwsAuth } from "@/lib/pinata-fetch";
+import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
+import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { useState, useRef, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
@@ -195,34 +196,27 @@ export default function CreateRemixPage() {
       if (imageFile) {
 
         const imageUri = await uploadImageToIpfs(imageFile);
-        const formData = new FormData();
-        formData.set("imageUri", imageUri);
-        formData.set("name", metadata.name);
-        formData.set("description", metadata.description);
-        formData.set("creator", walletAddress);
-        formData.set("ipType", ipType);
-        formData.set("licenseType", licenseType);
-        formData.set("commercialUse", commercial ? "Yes" : "No");
-        formData.set("derivatives", derivatives ? "Allowed" : "Not Allowed");
-        formData.set("attribution", "Required");
-        formData.set("geographicScope", "Worldwide");
-        formData.set("aiPolicy", "Not Allowed");
-        formData.set("royalty", royalty || "0");
-        formData.append("tmpl_Parent Contract", contract);
-        formData.append("tmpl_Parent Token ID", tokenId);
-        const uploadRes = await fetch("/api/pinata", withSiwsAuth(authToken, { method: "POST", body: formData }));
-        const uploadData = await uploadRes.json();
-        if (!uploadRes.ok || !uploadData.uri) throw new Error(uploadData.error ?? "Upload failed");
-        tokenUri = uploadData.uri;
+        const pinned = await pinAssetMetadata({
+          imageUri,
+          name: metadata.name,
+          description: metadata.description,
+          creator: walletAddress,
+          ipType,
+          licenseType,
+          commercialUse: commercial ? "Yes" : "No",
+          derivatives: derivatives ? "Allowed" : "Not Allowed",
+          attribution: "Required",
+          geographicScope: "Worldwide",
+          aiPolicy: "Not Allowed",
+          royalty: royalty || "0",
+          templateTraits: [
+            { traitType: "Parent Contract", value: contract },
+            { traitType: "Parent Token ID", value: tokenId },
+          ],
+        });
+        tokenUri = pinned.uri;
       } else {
-        const pinRes = await fetch("/api/pinata/json", withSiwsAuth(authToken, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(metadata),
-        }));
-        const pinData = await pinRes.json();
-        if (!pinRes.ok || !pinData.uri) throw new Error(pinData.error ?? "Metadata upload failed");
-        tokenUri = pinData.uri;
+        tokenUri = await pinLaunchpadMetadata(metadata as unknown as Record<string, unknown>);
       }
 
       setMintStep("processing");

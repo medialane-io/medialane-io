@@ -1,7 +1,7 @@
 "use client";
 
 import { uploadImageToIpfs } from "@/lib/upload-image";
-import { withSiwsAuth } from "@/lib/pinata-fetch";
+import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { rewardToast } from "@/lib/reward-toast";
 import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -188,21 +188,12 @@ export default function LaunchpadCreateCollectionPage() {
 
     let baseUri: string | undefined;
     if (imageUri) {
-      const metaRes = await fetch("/api/pinata/json", withSiwsAuth(siwsToken, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: values.name,
-          description: values.description || "",
-          image: imageUri,
-          external_link: values.external_link || "https://medialane.io",
-        }),
-      }));
-      const metaData = await metaRes.json().catch(() => ({}));
-      if (!metaRes.ok || !metaData.uri) {
-        throw new Error("Couldn't save your collection details. Please try again.");
-      }
-      baseUri = metaData.uri;
+      baseUri = await pinLaunchpadMetadata({
+        name: values.name,
+        description: values.description || "",
+        image: imageUri,
+        external_link: values.external_link || "https://medialane.io",
+      });
     }
 
     const intentRes = await client.api.createCollectionIntent({

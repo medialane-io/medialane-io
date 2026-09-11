@@ -14,7 +14,7 @@ import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { confirmRemixOffer } from "@/hooks/use-remix-offers";
 import { useSiwsToken } from "@/hooks/use-siws-token";
-import { withSiwsAuth } from "@/lib/pinata-fetch";
+import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { readAssignedEditionId } from "@/lib/erc1155-edition";
 import { executeIntent } from "@/lib/wallet/intent-tx";
 import { useMarketplace } from "@/hooks/use-marketplace";
@@ -129,13 +129,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
           { trait_type: "Creator", value: walletAddress },
         ],
       };
-      const pinRes = await fetch("/api/pinata/json", withSiwsAuth(authToken, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(metadata),
-      }));
-      const pinData = await pinRes.json().catch(() => ({}));
-      if (!pinRes.ok || !pinData.uri) throw new Error(pinData.error ?? "Metadata upload failed");
+      const pinnedUri = await pinLaunchpadMetadata(metadata as unknown as Record<string, unknown>);
 
       let remixTokenId: string;
 
@@ -145,7 +139,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
           owner: walletAddress,
           recipient: walletAddress,
           collectionContract: selectedCollection.contractAddress,
-          tokenUri: pinData.uri,
+          tokenUri: pinnedUri,
           value: "1",
         });
         const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
@@ -156,7 +150,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
           owner: walletAddress,
           collectionId: effectiveCollectionId!,
           recipient: walletAddress,
-          tokenUri: pinData.uri,
+          tokenUri: pinnedUri,
           royaltyBps: 0,
         });
         const mintIntent = intentRes.data;
