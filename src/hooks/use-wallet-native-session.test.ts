@@ -40,3 +40,14 @@ test("returns the stored wallet's address and a signer once one exists", async (
   await waitFor(() => expect(result.current.isDeployed).toBe(false));
   clearSealedOwner();
 });
+
+test("a wallet with no sealed key is a wallet, since its key comes from the passkey", async () => {
+  saveSealedOwner({ credentialId: "cred2", ownerPubKey: "0xabc", address: "0xfeedface" });
+  const { result } = renderHook(() => useWalletNativeSession());
+  expect(result.current.address).toBe("0xfeedface");
+  expect(result.current.hasWallet).toBe(true);
+  expect(result.current.signer?.address).toBe("0xfeedface");
+
+  await waitFor(() => expect(result.current.isDeployed).toBe(false));
+  clearSealedOwner();
+});
