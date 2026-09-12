@@ -12,7 +12,7 @@ import { Loader2, ShieldCheck, AlertCircle } from "lucide-react";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { ValuePropCarousel } from "@/components/connect/value-prop-carousel";
 import { friendlyErrorMessage } from "@/lib/friendly-error";
-import { adoptAccountWallet } from "@/lib/wallet/account-wallet";
+import { adoptAccountWallet, saveAccountEmail } from "@/lib/wallet/account-wallet";
 import { safeRelativePath } from "@/lib/safe-redirect";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useEmailVerificationStatus } from "@/hooks/use-email-verification-required";
@@ -72,6 +72,7 @@ function ConnectForm() {
       const token = getValidToken() ?? (await signIn());
       if (!token) throw new Error("Not authenticated");
       await getMedialaneClient().api.changeMyEmail(value, token);
+      saveAccountEmail(value);
       toast.success("Email added to your account");
       router.replace(redirectTo ?? "/");
     } catch (err) {
@@ -121,6 +122,7 @@ function ConnectForm() {
         return;
       }
       if (!res.ok) throw new Error("register-account failed");
+      saveAccountEmail(email);
       goToWalletOnboarding();
     } catch {
       setError("Something went wrong. Please try again.");
@@ -176,6 +178,7 @@ function ConnectForm() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error((data as { error?: string }).error ?? "Incorrect code");
+      saveAccountEmail(email);
       if (accountExistedRef.current) {
         const linked = await adoptAccountWallet();
         router.push(linked ? redirectTo || "/" : "/wallet-onboarding");
