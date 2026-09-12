@@ -32,9 +32,9 @@ import { ActionButton, MedialaneCollectionCard } from "@medialane/ui";
 import { CreateCollectionAside } from "@/components/claim/create-collection-aside";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
-import { MEDIALANE_BACKEND_URL, MEDIALANE_API_KEY } from "@/lib/constants";
 import { Layers, Loader2, ImagePlus, X } from "lucide-react";
 import { friendlyErrorMessage } from "@/lib/friendly-error";
+import { syncTransaction } from "@medialane/ui";
 
 const schema = z.object({
   name: z.string().min(1, "Name required").max(100),
@@ -54,35 +54,6 @@ const schema = z.object({
 });
 
 type FormValues = z.infer<typeof schema>;
-
-async function syncCollectionFromTx(txHash: string) {
-  const maxAttempts = 5;
-  let lastStatus = 0;
-  let lastPayload: unknown = null;
-
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    const syncRes = await fetch(`${MEDIALANE_BACKEND_URL}/v1/collections/sync-tx`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...(MEDIALANE_API_KEY ? { "x-api-key": MEDIALANE_API_KEY } : {}) },
-      body: JSON.stringify({ txHash }),
-    });
-    const payload = await syncRes.json().catch(() => ({}));
-    lastStatus = syncRes.status;
-    lastPayload = payload;
-    if (syncRes.ok && Number(payload?.data?.synced ?? 0) > 0) return payload;
-    if (attempt === maxAttempts) {
-      console.warn("[Medialane collection sync]", { txHash, status: syncRes.status, payload });
-      break;
-    }
-    await new Promise((resolve) => setTimeout(resolve, attempt * 1500));
-  }
-
-  throw new Error(
-    `Collection transaction confirmed, but indexing did not confirm the CollectionCreated event yet. Tx: ${txHash}. Sync status: ${lastStatus || "unknown"}. ${
-      typeof lastPayload === "object" && lastPayload && "error" in lastPayload ? String(lastPayload.error) : "Please refresh or retry shortly."
-    }`
-  );
-}
 
 export default function LaunchpadCreateCollectionPage() {
   const { address: walletAddress } = useWalletNativeSession();
@@ -210,7 +181,7 @@ export default function LaunchpadCreateCollectionPage() {
     if (!result.txHash) {
       throw new Error("Collection transaction completed without a transaction hash. Please refresh and check your account activity.");
     }
-    await syncCollectionFromTx(result.txHash);
+    await syncTransaction(result.txHash);
     invalidatePortfolioCache(walletAddress);
     rewardToast("create_collection");
     return result;

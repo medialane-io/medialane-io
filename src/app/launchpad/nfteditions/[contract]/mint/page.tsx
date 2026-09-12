@@ -23,7 +23,7 @@ import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { executeIntent } from "@/lib/wallet/intent-tx";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
-import { MedialaneCollectionCard } from "@medialane/ui";
+import { MedialaneCollectionCard, syncTransaction } from "@medialane/ui";
 import { MintEditionAside } from "@/components/claim/mint-edition-aside";
 import { rewardToast } from "@/lib/reward-toast";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
@@ -158,6 +158,7 @@ export default function MintIP1155Page() {
     });
 
     const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
+    if (result.txHash) void syncTransaction(result.txHash);
 
     setMintedTokenId(await readAssignedEditionId(result.txHash, collectionAddress));
     if (walletAddress) invalidatePortfolioCache(walletAddress);

@@ -12,7 +12,7 @@ import { executeIntent, confirmIntentBestEffort } from "@/lib/wallet/intent-tx";
 import { buildFeeCall } from "@medialane/sdk/starknet";
 import { feeConfig } from "@/lib/fee";
 import { useTokensByOwner } from "@/hooks/use-tokens";
-import { AssetPicker, AssetSearchPicker, LicenseTermsBuilder, EMPTY_SPONSORSHIP_TERMS, toLicenseMetadata, toDurationDays, type OwnedAsset, type SponsorshipTerms } from "@medialane/ui";
+import { AssetPicker, AssetSearchPicker, LicenseTermsBuilder, EMPTY_SPONSORSHIP_TERMS, toLicenseMetadata, toDurationDays, type OwnedAsset, type SponsorshipTerms, syncTransaction } from "@medialane/ui";
 import { apiFetch } from "@/lib/api-fetch";
 import { getTokenBySymbol, SUPPORTED_TOKENS } from "@medialane/sdk";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
@@ -184,6 +184,7 @@ export default function CreateSponsorshipOfferPage() {
           });
 
       const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
+      if (result.txHash) void syncTransaction(result.txHash);
       if (mode === "offer") rewardToast("create_sponsorship_offer");
       return result;
     });

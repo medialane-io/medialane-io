@@ -25,7 +25,7 @@ import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { collectionHref } from "@/lib/routes";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
-import { MedialaneCollectionCard } from "@medialane/ui";
+import { MedialaneCollectionCard, syncTransaction } from "@medialane/ui";
 import { CreateTicketAside } from "@/components/claim/create-ticket-aside";
 import { rewardToast } from "@/lib/reward-toast";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
@@ -101,6 +101,7 @@ export default function CreateTicketCollectionPage() {
       service: "ip-tickets",
     });
     const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
+    if (result.txHash) void syncTransaction(result.txHash);
     rewardToast("create_ticket_collection");
 
     let addr: string | null = null;

@@ -24,7 +24,7 @@ import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { useSiwsToken } from "@/hooks/use-siws-token";
 import { suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
-import { MedialaneCollectionCard } from "@medialane/ui";
+import { MedialaneCollectionCard, syncTransaction } from "@medialane/ui";
 import { CreateEditionsAside } from "@/components/claim/create-editions-aside";
 import { rewardToast } from "@/lib/reward-toast";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
@@ -131,6 +131,7 @@ export default function CreateIP1155CollectionPage() {
         service: "mip-erc1155",
       });
       const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
+      if (result.txHash) void syncTransaction(result.txHash);
       rewardToast("create_collection");
 
       let addr: string | null = null;

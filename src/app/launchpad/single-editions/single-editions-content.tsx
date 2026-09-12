@@ -41,7 +41,7 @@ import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { MintProgressDialog } from "@/components/marketplace/mint-progress-dialog";
 import type { MintTxStatus } from "@/types/mint-tx-status";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
-import { MedialaneCollectionCard } from "@medialane/ui";
+import { MedialaneCollectionCard, syncTransaction } from "@medialane/ui";
 import { CreateAssetAside } from "@/components/claim/create-asset-aside";
 import type { MintStep } from "@/components/marketplace/mint-progress-dialog";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
@@ -469,6 +469,7 @@ export function SingleEditionsContent() {
       setStatus("submitting");
       const result = await signer.execute(intentData.calls as Call[]);
       setTxHash(result.txHash);
+      if (result.txHash) void syncTransaction(result.txHash);
       setStatus("confirming");
       updateMintDebug({ step: "tx_executed", txHash: result.txHash });
 
