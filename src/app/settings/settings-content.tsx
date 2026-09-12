@@ -40,6 +40,7 @@ import { AccountSection } from "@/components/settings/account-section";
 import { PortfolioSnapshot, RewardsSnapshot } from "@/components/settings/snapshots";
 import { UsernameClaimInput, ClaimError } from "@/components/settings/username-claim-input";
 import { ProfileLivePreview } from "@/components/settings/profile-live-preview";
+import { saveAccountEmail } from "@/lib/wallet/account-wallet";
 
 export default function SettingsContent() {
   const searchParams = useSearchParams();
@@ -206,6 +207,7 @@ export default function SettingsContent() {
       const token = getValidToken() ?? (await signIn());
       if (!token) throw new Error("Not authenticated");
       const result = await getMedialaneClient().api.changeMyEmail(email, token);
+      saveAccountEmail(email);
       setEmailStatus({ email: result.email, verified: result.emailVerified });
       setEmailEditOpen(false);
       setEmailInput("");
