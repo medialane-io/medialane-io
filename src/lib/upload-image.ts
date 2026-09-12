@@ -1,7 +1,7 @@
 "use client";
 
-import { uploadToSignedUrl } from "@/lib/signed-upload";
+import { uploadFileToIpfs } from "@medialane/ui";
 
 export async function uploadImageToIpfs(file: File): Promise<string> {
-  return uploadToSignedUrl(file, "image", "Image upload to IPFS failed");
+  return (await uploadFileToIpfs(file, "image")).uri;
 }

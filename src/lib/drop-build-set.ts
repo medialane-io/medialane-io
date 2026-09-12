@@ -2,6 +2,7 @@
 
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { buildAssetMetadata } from "@medialane/sdk";
+import { uploadDirectoryToIpfs } from "@medialane/ui";
 
 export interface SharedLicense {
   ipType: string;
@@ -74,17 +75,6 @@ export async function buildDropSet(
     },
   });
 
-  const res = await fetch("/api/proxy/v1/metadata/upload-directory", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ files }),
-  });
-  const json = (await res.json().catch(() => ({}))) as {
-    data?: { baseUri?: string };
-    error?: string;
-  };
-  if (!res.ok || !json.data?.baseUri) {
-    throw new Error(json.error ?? "Directory pin failed");
-  }
-  return { baseUri: json.data.baseUri, count: items.length };
+  const { baseUri } = await uploadDirectoryToIpfs(files);
+  return { baseUri, count: items.length };
 }
