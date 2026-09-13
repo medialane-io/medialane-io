@@ -46,6 +46,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const body = await req.json().catch(() => ({}) as Record<string, unknown>);
   const to = typeof body.to === "string" ? body.to.trim() : null;
   const code = typeof body.code === "string" ? body.code : null;
+  const fromName = typeof body.fromName === "string" && body.fromName.trim() ? body.fromName.trim() : "Medialane.io";
   if (!to || !code) {
     return NextResponse.json({ error: "Missing to/code" }, { status: 400 });
   }
@@ -68,7 +69,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
     });
     await transporter.sendMail({
-      from: { name: "Medialane.io", address: process.env.CONTACT_FROM_EMAIL || process.env.SMTP_USER! },
+      from: { name: fromName, address: process.env.CONTACT_FROM_EMAIL || process.env.SMTP_USER! },
       to,
       subject: "Your verification code",
       html: buildVerificationCodeEmailHtml(code),
