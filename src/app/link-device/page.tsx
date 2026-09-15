@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { createOwnerKey, PasskeyCancelledError, type SealedOwner } from "@/lib/wallet/passkey";
 import { saveSealedOwner, notifyWalletChange } from "@/lib/wallet/store";
-import { encodePairingPayload, parseAccountAddress } from "@/lib/wallet/pairing";
+import { encodePairingPayload, parseAccountAddress } from "@medialane/sdk/starknet";
 import { isOwnerOf } from "@/lib/wallet/devices";
 import { friendlyErrorMessage } from "@/lib/friendly-error";
 
