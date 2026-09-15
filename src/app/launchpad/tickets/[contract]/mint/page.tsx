@@ -36,7 +36,7 @@ import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { cn } from "@/lib/utils";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
-import { MedialaneCollectionCard } from "@medialane/ui";
+import { MedialaneCollectionCard, syncTransaction } from "@medialane/ui";
 import { CreateTicketAside } from "@/components/claim/create-ticket-aside";
 import { collectionHref } from "@/lib/routes";
 import { LICENSE_TYPES, GEOGRAPHIC_SCOPES, AI_POLICIES, DERIVATIVES_OPTIONS } from "@/types/ip";
@@ -216,6 +216,7 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
     });
 
     const mintResult = await executeIntents(signer, client, [tierRes.data, mintRes.data]);
+    await syncTransaction(mintResult.txHash);
 
     rewardToast("launch_launchpad");
     return mintResult;

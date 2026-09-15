@@ -31,6 +31,7 @@ import {
 } from "./asset-marketplace-dialogs";
 import { ASSET_ACCENTS } from "./accents";
 import { useAssetPage } from "./use-asset-page";
+import { AssetUnavailable } from "./asset-unavailable";
 
 export function AssetPageEdition() {
   const {
@@ -64,7 +65,7 @@ export function AssetPageEdition() {
   }, [token, isOwner, setListOpen, setTransferOpen]);
 
 
-  if (!token) return null;
+  if (!token) return <AssetUnavailable isIndexing={isIndexing} />;
 
 
   return (

@@ -22,6 +22,7 @@ import { AssetOverviewContent } from "./asset-overview-content";
 import { AssetMarketplaceDialogs } from "./asset-marketplace-dialogs";
 import { ASSET_ACCENTS } from "./accents";
 import { useAssetPage } from "./use-asset-page";
+import { AssetUnavailable } from "./asset-unavailable";
 
 type TicketStatus = "upcoming" | "valid" | "ended";
 
@@ -105,12 +106,12 @@ export function AssetPageTicket() {
     purchaseOrder, setPurchaseOrder, listOpen, setListOpen,
     offerOpen, setOfferOpen, transferOpen, setTransferOpen,
     reportOpen, setReportOpen, commentOpen, setCommentOpen, imgError, setImgError,
-    imageUrl, image, name, description, attributes, hasTemplateData, isDisplayAttr,
+    imageUrl, image, name, description, attributes, hasTemplateData, isDisplayAttr, isIndexing,
   } = useAssetPage({ tokenStandard: "ERC1155", namePrefix: "Ticket" });
 
   const { ticket } = useTicketOnchain(contract, tokenId);
 
-  if (!token) return null;
+  if (!token) return <AssetUnavailable isIndexing={isIndexing} />;
 
 
   return (
