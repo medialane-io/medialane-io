@@ -17,23 +17,20 @@ import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { WalletTransactionDialog } from "@/components/transaction/wallet-transaction-dialog";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSiwsToken } from "@/hooks/use-siws-token";
-import { normalizeAddress } from "@medialane/sdk";
-import { hash } from "starknet";
+
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { starknetProvider } from "@/lib/starknet";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { collectionHref } from "@/lib/routes";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
-import { MedialaneCollectionCard, syncTransaction } from "@medialane/ui";
+import { MedialaneCollectionCard } from "@medialane/ui";
 import { CreateTicketAside } from "@/components/claim/create-ticket-aside";
 import { rewardToast } from "@/lib/reward-toast";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
-import { executeIntent } from "@/lib/wallet/intent-tx";
-
-const COLLECTION_DEPLOYED_SELECTOR = hash.getSelectorFromName("CollectionDeployed");
+import { executeIntent, deployedCollectionFromReceipt } from "@medialane/sdk/starknet";
 
 const schema = z.object({
   name: z.string().min(1, "Name required").max(100),
@@ -100,27 +97,10 @@ export default function CreateTicketCollectionPage() {
       baseUri,
       service: "ip-tickets",
     });
-    const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
-    if (result.txHash) void syncTransaction(result.txHash);
+    const result = await executeIntent(starknetProvider, signer, client, intentRes.data, { confirm: false });
     rewardToast("create_ticket_collection");
 
-    let addr: string | null = null;
-    try {
-      type ReceiptEvent = { keys?: string[] };
-      type ReceiptShape = { events?: ReceiptEvent[] };
-      let receipt: ReceiptShape | null = null;
-      for (let attempt = 0; attempt < 2 && !receipt; attempt++) {
-        try {
-          if (attempt > 0) await new Promise((r) => setTimeout(r, 2000));
-          const raw: unknown = await starknetProvider.getTransactionReceipt(result.txHash);
-          receipt = raw as ReceiptShape;
-        } catch {  }
-      }
-      const deployEvent = (receipt?.events ?? []).find((e) =>
-        e.keys?.[0] && BigInt(e.keys[0]) === BigInt(COLLECTION_DEPLOYED_SELECTOR)
-      );
-      if (deployEvent?.keys?.[1]) addr = normalizeAddress("STARKNET", deployEvent.keys[1]);
-    } catch {  }
+    const addr = deployedCollectionFromReceipt(result.receipt, "ip-tickets");
 
     if (walletAddress) invalidatePortfolioCache(walletAddress);
     setDeployedAddress(addr);

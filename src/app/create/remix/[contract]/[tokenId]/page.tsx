@@ -28,7 +28,6 @@ import {
   Collapsible, CollapsibleContent, CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { registerRemix } from "@/hooks/use-remix-offers";
-import { readAssignedEditionId } from "@/lib/erc1155-edition";
 import { getService, normalizeAddress } from "@medialane/sdk";
 import { IP_TYPES, LICENSE_TYPES } from "@/types/ip";
 import { ipfsToHttp, checkIsOwner } from "@/lib/utils";
@@ -44,6 +43,8 @@ import { toast } from "sonner";
 import type { Call } from "starknet";
 import type { MintTxStatus } from "@/types/mint-tx-status";
 import { friendlyErrorMessage } from "@/lib/friendly-error";
+import { mintedTokenIdFromReceipt, assertTransactionSucceeded } from "@medialane/sdk/starknet";
+import { starknetProvider } from "@/lib/starknet";
 
 export default function CreateRemixPage() {
   const { contract, tokenId } = useParams<{ contract: string; tokenId: string }>();
@@ -238,7 +239,9 @@ export default function CreateRemixPage() {
         const result = await signer.execute(intentRes.data.calls as Call[]);
         setTxStatus("confirmed");
         txHash = result.txHash ?? "";
-        remixTokenId = await readAssignedEditionId(txHash, selectedCollection.contractAddress);
+        const editionId = mintedTokenIdFromReceipt(await assertTransactionSucceeded(starknetProvider, txHash), selectedCollection.contractAddress);
+        if (!editionId) throw new Error("Minted, but could not read the assigned token id from the receipt");
+        remixTokenId = editionId;
       } else {
 
         const intentRes = await client.api.createMintIntent({

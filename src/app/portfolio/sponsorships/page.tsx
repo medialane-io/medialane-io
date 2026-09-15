@@ -9,7 +9,8 @@ import { AddressDisplay } from "@/components/shared/address-display";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
-import { executeIntent, confirmIntentBestEffort } from "@/lib/wallet/intent-tx";
+import { executeIntent } from "@medialane/sdk/starknet";
+import { starknetProvider } from "@/lib/starknet";
 import { buildFeeCall } from "@medialane/sdk/starknet";
 import { feeConfig } from "@/lib/fee";
 import type { Call } from "starknet";
@@ -44,8 +45,7 @@ function OfferBidsRow({ offer }: { offer: SponsorshipOffer }) {
         calls.push({ contractAddress: feeCall.contractAddress, entrypoint: feeCall.entrypoint, calldata: feeCall.calldata as string[] });
       }
 
-      const { txHash } = await signer.execute(calls);
-      await confirmIntentBestEffort(client, intent.id, txHash);
+      const { txHash } = await executeIntent(starknetProvider, signer, client, { ...intent, calls: calls as typeof intent.calls });
       await mutate();
       return { txHash };
     });
@@ -102,8 +102,7 @@ function ReceivedProposalsSection({ walletAddress }: { walletAddress: string }) 
         }
       }
 
-      const { txHash } = await signer.execute(calls);
-      await confirmIntentBestEffort(client, intent.id, txHash);
+      const { txHash } = await executeIntent(starknetProvider, signer, client, { ...intent, calls: calls as typeof intent.calls });
       await mutate();
       return { txHash };
     });
@@ -149,7 +148,7 @@ function SentProposalsSection({ walletAddress }: { walletAddress: string }) {
     setActiveId(proposalId);
     void action.run(async (signer) => {
       const intentRes = await client.api.withdrawSponsorshipProposalIntent({ proposer: walletAddress, proposalId });
-      const result = await executeIntent(signer, client, intentRes.data);
+      const result = await executeIntent(starknetProvider, signer, client, intentRes.data);
       await mutate();
       return result;
     });
