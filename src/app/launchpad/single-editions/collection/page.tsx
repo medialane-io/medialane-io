@@ -25,7 +25,8 @@ import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { WalletTransactionDialog } from "@/components/transaction/wallet-transaction-dialog";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSiwsToken } from "@/hooks/use-siws-token";
-import { executeIntent } from "@/lib/wallet/intent-tx";
+import { executeIntent } from "@medialane/sdk/starknet";
+import { starknetProvider } from "@/lib/starknet";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { ActionButton, MedialaneCollectionCard } from "@medialane/ui";
@@ -34,7 +35,6 @@ import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { Layers, Loader2, ImagePlus, X } from "lucide-react";
 import { friendlyErrorMessage } from "@/lib/friendly-error";
-import { syncTransaction } from "@medialane/ui";
 
 const schema = z.object({
   name: z.string().min(1, "Name required").max(100),
@@ -176,12 +176,11 @@ export default function LaunchpadCreateCollectionPage() {
       baseUri,
     });
 
-    const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
+    const result = await executeIntent(starknetProvider, signer, client, intentRes.data, { confirm: false });
 
     if (!result.txHash) {
       throw new Error("Collection transaction completed without a transaction hash. Please refresh and check your account activity.");
     }
-    await syncTransaction(result.txHash);
     invalidatePortfolioCache(walletAddress);
     rewardToast("create_collection");
     return result;

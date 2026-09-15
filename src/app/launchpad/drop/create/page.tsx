@@ -10,9 +10,10 @@ import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { toast } from "sonner";
 import { getListableTokens } from "@medialane/sdk";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
+import { starknetProvider } from "@/lib/starknet";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
-import { executeIntent } from "@/lib/wallet/intent-tx";
-import { DropCreateForm, DropPreviewCard, dropCreateSchema, type PaymentTokenOption, type DropCreateFormValues, type DraftItem, syncTransaction } from "@medialane/ui";
+import { executeIntent } from "@medialane/sdk/starknet";
+import { DropCreateForm, DropPreviewCard, dropCreateSchema, type PaymentTokenOption, type DropCreateFormValues, type DraftItem } from "@medialane/ui";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { getDefaultDropSchedule, suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
 import { buildDropSet } from "@/lib/drop-build-set";
@@ -253,8 +254,7 @@ export default function CreateDropPage() {
       maxSupply: maxSupply.toString(),
       conditions,
     });
-    const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
-    if (result.txHash) void syncTransaction(result.txHash);
+    const result = await executeIntent(starknetProvider, signer, client, intentRes.data, { confirm: false });
     rewardToast("launch_launchpad");
 
     if (whitelist.length > 0) {

@@ -4,11 +4,14 @@ import { useState, useCallback } from "react";
 import { useSWRConfig } from "swr";
 import { useWalletNativeSession } from "./use-wallet-native-session";
 import { lockVenueSigner } from "@/lib/wallet/venue-signer";
-import { assertTransactionSucceeded } from "@/lib/wallet/intent-tx";
+import { assertTransactionSucceeded } from "@medialane/sdk/starknet";
+import { starknetProvider } from "@/lib/starknet";
 import { INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
 import { QUERY_PREFIX } from "@/lib/query-keys";
 import type { Call } from "starknet";
 import { friendlyErrorMessage } from "@/lib/friendly-error";
+
+const verifyOnStarknet = (txHash: string) => assertTransactionSucceeded(starknetProvider, txHash);
 
 export interface TransferInput {
   contractAddress: string;
@@ -30,7 +33,7 @@ export function encodeTokenId(tokenId: string): [string, string] {
   return [low, high];
 }
 
-export function useTransfer(verify: (txHash: string) => Promise<void> = assertTransactionSucceeded) {
+export function useTransfer(verify: (txHash: string) => Promise<void> = verifyOnStarknet) {
   const { address: walletAddress, hasWallet, signer } = useWalletNativeSession();
   const { mutate } = useSWRConfig();
 

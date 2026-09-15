@@ -30,12 +30,13 @@ import { uploadImageToIpfs } from "@/lib/upload-image";
 import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
 import { rewardToast } from "@/lib/reward-toast";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
-import { executeIntents } from "@/lib/wallet/intent-tx";
+import { executeIntents } from "@medialane/sdk/starknet";
+import { starknetProvider } from "@/lib/starknet";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { cn } from "@/lib/utils";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
-import { MedialaneCollectionCard, syncTransaction } from "@medialane/ui";
+import { MedialaneCollectionCard } from "@medialane/ui";
 import { CreateClubAside } from "@/components/claim/create-club-aside";
 import { collectionHref } from "@/lib/routes";
 import { LICENSE_TYPES, GEOGRAPHIC_SCOPES, AI_POLICIES, DERIVATIVES_OPTIONS } from "@/types/ip";
@@ -204,8 +205,7 @@ export default function CreateMembershipPage({ params }: { params: Promise<{ con
       amount: values.maxSupply,
     });
 
-    const mintResult = await executeIntents(signer, client, [tierRes.data, mintRes.data]);
-    await syncTransaction(mintResult.txHash);
+    const mintResult = await executeIntents(starknetProvider, signer, client, [tierRes.data, mintRes.data]);
 
     rewardToast("launch_launchpad");
     return mintResult;

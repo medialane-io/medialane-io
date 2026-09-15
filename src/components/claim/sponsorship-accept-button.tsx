@@ -8,7 +8,8 @@ import { MarketplaceErrorState, MarketplaceSuccessState } from "@medialane/ui";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
-import { confirmIntentBestEffort } from "@/lib/wallet/intent-tx";
+import { executeIntent } from "@medialane/sdk/starknet";
+import { starknetProvider } from "@/lib/starknet";
 import { buildFeeCall } from "@medialane/sdk/starknet";
 import { feeConfig } from "@/lib/fee";
 import { EXPLORER_URL } from "@/lib/constants";
@@ -53,8 +54,7 @@ export function SponsorshipAcceptButton({ offerId, sponsor, paymentToken, amount
         });
       }
 
-      const { txHash } = await signer.execute(calls);
-      await confirmIntentBestEffort(client, intent.id, txHash);
+      const { txHash } = await executeIntent(starknetProvider, signer, client, { ...intent, calls: calls as typeof intent.calls });
       onAccepted?.();
       return { txHash };
     });

@@ -15,8 +15,10 @@ import {
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { starknetProvider } from "@/lib/starknet";
-import { assertTransactionSucceeded } from "@/lib/wallet/intent-tx";
+import { assertTransactionSucceeded } from "@medialane/sdk/starknet";
 import { friendlyErrorMessage } from "@/lib/friendly-error";
+
+const verifyOnStarknet = (txHash: string) => assertTransactionSucceeded(starknetProvider, txHash);
 
 const API_BASE = "/api/proxy";
 
@@ -37,7 +39,7 @@ export interface UseLaunchCoinDeps {
 }
 
 export function useLaunchCoin(deps: UseLaunchCoinDeps = {}) {
-  const verify = deps.verify ?? assertTransactionSucceeded;
+  const verify = deps.verify ?? verifyOnStarknet;
   const getReceipt = deps.getReceipt;
   const client = useMedialaneClient();
   const [status, setStatus] = useState<LaunchStatus>("idle");

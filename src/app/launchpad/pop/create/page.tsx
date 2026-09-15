@@ -12,7 +12,8 @@ import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { type PopEventType } from "@/lib/launchpad-contracts";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
-import { executeIntent } from "@/lib/wallet/intent-tx";
+import { executeIntent } from "@medialane/sdk/starknet";
+import { starknetProvider } from "@/lib/starknet";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
@@ -22,7 +23,7 @@ import { PopCreateForm } from "../pop-create-form";
 import { popCreateSchema, type PopCreateFormValues } from "../pop-create-schema";
 import { LaunchpadSuccessState, LaunchpadErrorState, LaunchpadProcessingState } from "@/components/launchpad/launchpad-success-state";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
-import { MedialaneCollectionCard, syncTransaction } from "@medialane/ui";
+import { MedialaneCollectionCard } from "@medialane/ui";
 import { rewardToast } from "@/lib/reward-toast";
 import { CreatePopAside } from "@/components/claim/create-pop-aside";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
@@ -130,8 +131,7 @@ export default function CreatePOPPage() {
       eventType,
     });
 
-    const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
-    if (result.txHash) void syncTransaction(result.txHash);
+    const result = await executeIntent(starknetProvider, signer, client, intentRes.data, { confirm: false });
     rewardToast("launch_launchpad");
     return result;
   };

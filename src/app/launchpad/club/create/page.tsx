@@ -25,13 +25,13 @@ import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { collectionHref } from "@/lib/routes";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
-import { MedialaneCollectionCard, syncTransaction } from "@medialane/ui";
+import { MedialaneCollectionCard } from "@medialane/ui";
 import { CreateClubAside } from "@/components/claim/create-club-aside";
 import { rewardToast } from "@/lib/reward-toast";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
-import { executeIntent } from "@/lib/wallet/intent-tx";
+import { executeIntent } from "@medialane/sdk/starknet";
 
 const CLUB_DEPLOYED_SELECTOR = hash.getSelectorFromName("ClubDeployed");
 
@@ -100,8 +100,7 @@ export default function CreateClubPage() {
       baseUri,
       service: "ip-club",
     });
-    const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
-    if (result.txHash) void syncTransaction(result.txHash);
+    const result = await executeIntent(starknetProvider, signer, client, intentRes.data, { confirm: false });
     rewardToast("create_club");
 
     let addr: string | null = null;

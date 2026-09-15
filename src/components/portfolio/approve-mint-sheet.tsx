@@ -16,7 +16,8 @@ import { confirmRemixOffer } from "@/hooks/use-remix-offers";
 import { useSiwsToken } from "@/hooks/use-siws-token";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { readAssignedEditionId } from "@/lib/erc1155-edition";
-import { executeIntent } from "@/lib/wallet/intent-tx";
+import { executeIntent } from "@medialane/sdk/starknet";
+import { starknetProvider } from "@/lib/starknet";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { formatDisplayPrice } from "@/lib/utils";
 import { AlertCircle, Check, GitBranch, Loader2 } from "lucide-react";
@@ -142,7 +143,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
           tokenUri: pinnedUri,
           value: "1",
         });
-        const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
+        const result = await executeIntent(starknetProvider, signer, client, intentRes.data, { confirm: false });
         remixTokenId = await readAssignedEditionId(result.txHash ?? "", selectedCollection.contractAddress);
       } else {
 

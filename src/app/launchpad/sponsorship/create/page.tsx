@@ -8,11 +8,12 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
-import { executeIntent, confirmIntentBestEffort } from "@/lib/wallet/intent-tx";
+import { executeIntent } from "@medialane/sdk/starknet";
+import { starknetProvider } from "@/lib/starknet";
 import { buildFeeCall } from "@medialane/sdk/starknet";
 import { feeConfig } from "@/lib/fee";
 import { useTokensByOwner } from "@/hooks/use-tokens";
-import { AssetPicker, AssetSearchPicker, LicenseTermsBuilder, EMPTY_SPONSORSHIP_TERMS, toLicenseMetadata, toDurationDays, type OwnedAsset, type SponsorshipTerms, syncTransaction } from "@medialane/ui";
+import { AssetPicker, AssetSearchPicker, LicenseTermsBuilder, EMPTY_SPONSORSHIP_TERMS, toLicenseMetadata, toDurationDays, type OwnedAsset, type SponsorshipTerms } from "@medialane/ui";
 import { apiFetch } from "@/lib/api-fetch";
 import { getTokenBySymbol, SUPPORTED_TOKENS } from "@medialane/sdk";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
@@ -83,8 +84,7 @@ function PendingProposalsPanel({ nftContract }: { nftContract: string }) {
         }
       }
 
-      const { txHash } = await signer.execute(calls);
-      await confirmIntentBestEffort(client, intent.id, txHash);
+      const { txHash } = await executeIntent(starknetProvider, signer, client, { ...intent, calls: calls as typeof intent.calls });
       await mutate();
       return { txHash };
     });
@@ -183,8 +183,7 @@ export default function CreateSponsorshipOfferPage() {
             transferable: terms.transferable, royaltyBps,
           });
 
-      const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
-      if (result.txHash) void syncTransaction(result.txHash);
+      const result = await executeIntent(starknetProvider, signer, client, intentRes.data, { confirm: false });
       if (mode === "offer") rewardToast("create_sponsorship_offer");
       return result;
     });

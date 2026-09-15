@@ -11,7 +11,8 @@ import { rewardToast } from "@/lib/reward-toast";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
-import { executeIntent } from "@/lib/wallet/intent-tx";
+import { executeIntent } from "@medialane/sdk/starknet";
+import { starknetProvider } from "@/lib/starknet";
 import { EXPLORER_URL } from "@/lib/constants";
 import { getListableTokens, normalizeAddress } from "@medialane/sdk";
 
@@ -50,7 +51,7 @@ export function SponsorshipBidButton({ offerId, minAmount, paymentToken, onBidPl
         amount: amountBigInt.toString(),
         paymentToken,
       });
-      const result = await executeIntent(signer, client, intentRes.data);
+      const result = await executeIntent(starknetProvider, signer, client, intentRes.data);
       onBidPlaced?.();
       rewardToast("place_sponsorship_bid");
       return result;
