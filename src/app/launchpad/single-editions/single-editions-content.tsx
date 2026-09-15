@@ -469,7 +469,7 @@ export function SingleEditionsContent() {
       setStatus("submitting");
       const result = await signer.execute(intentData.calls as Call[]);
       setTxHash(result.txHash);
-      if (result.txHash) void syncTransaction(result.txHash);
+      if (result.txHash) await syncTransaction(result.txHash);
       setStatus("confirming");
       updateMintDebug({ step: "tx_executed", txHash: result.txHash });
 

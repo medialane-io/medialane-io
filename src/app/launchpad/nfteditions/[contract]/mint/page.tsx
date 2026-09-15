@@ -158,7 +158,7 @@ export default function MintIP1155Page() {
     });
 
     const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
-    if (result.txHash) void syncTransaction(result.txHash);
+    if (result.txHash) await syncTransaction(result.txHash);
 
     setMintedTokenId(await readAssignedEditionId(result.txHash, collectionAddress));
     if (walletAddress) invalidatePortfolioCache(walletAddress);

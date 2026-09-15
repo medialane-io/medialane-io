@@ -33,6 +33,7 @@ import { ReportDialog } from "@/components/report-dialog";
 import { HelpIcon } from "@/components/ui/help-icon";
 import { ASSET_ACCENTS } from "./accents";
 import { useAssetPage } from "./use-asset-page";
+import { AssetUnavailable } from "./asset-unavailable";
 
 export function AssetPageStandard() {
   const {
@@ -124,27 +125,7 @@ export function AssetPageStandard() {
     );
   }
 
-  if (!token && isIndexing) {
-    return (
-      <PageContainer className="py-24 text-center">
-        <p className="text-2xl font-bold">Preparing this asset</p>
-        <p className="text-muted-foreground mt-2">
-          It is live onchain and will appear here in a moment.
-        </p>
-      </PageContainer>
-    );
-  }
-
-  if (!token) {
-    return (
-      <PageContainer className="py-24 text-center">
-        <p className="text-2xl font-bold">Asset not found</p>
-        <p className="text-muted-foreground mt-2">
-          Check the collection address and token ID.
-        </p>
-      </PageContainer>
-    );
-  }
+  if (!token) return <AssetUnavailable isIndexing={isIndexing} />;
 
 
   const parentContract = attributes.find((a) => a.trait_type === "Parent Contract")?.value ?? null;

@@ -22,6 +22,7 @@ import { AssetOverviewContent } from "./asset-overview-content";
 import { AssetMarketplaceDialogs } from "./asset-marketplace-dialogs";
 import { ASSET_ACCENTS } from "./accents";
 import { useAssetPage } from "./use-asset-page";
+import { AssetUnavailable } from "./asset-unavailable";
 
 type MembershipStatus = "upcoming" | "active" | "ended" | "lifetime";
 
@@ -145,7 +146,7 @@ export function AssetPageMembership() {
   const { isMember } = useIsMemberOf(contract, tokenId, walletAddress ?? null);
   const myQuantity = quantityOwned != null ? Number(quantityOwned) : 0;
 
-  if (!token) return null;
+  if (!token) return <AssetUnavailable isIndexing={isIndexing} />;
 
 
   return (
