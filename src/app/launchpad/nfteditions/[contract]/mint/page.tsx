@@ -18,11 +18,10 @@ import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { starknetProvider } from "@/lib/starknet";
 import { normalizeAddress } from "@medialane/sdk";
-import { readAssignedEditionId } from "@/lib/erc1155-edition";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
-import { executeIntent } from "@medialane/sdk/starknet";
+import { executeIntent, mintedTokenIdFromReceipt } from "@medialane/sdk/starknet";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { MedialaneCollectionCard } from "@medialane/ui";
 import { MintEditionAside } from "@/components/claim/mint-edition-aside";
@@ -160,7 +159,9 @@ export default function MintIP1155Page() {
 
     const result = await executeIntent(starknetProvider, signer, client, intentRes.data, { confirm: false });
 
-    setMintedTokenId(await readAssignedEditionId(result.txHash, collectionAddress));
+    const editionId = mintedTokenIdFromReceipt(result.receipt, collectionAddress);
+    if (!editionId) throw new Error("Minted, but could not read the assigned token id from the receipt");
+    setMintedTokenId(editionId);
     if (walletAddress) invalidatePortfolioCache(walletAddress);
     rewardToast("mint_asset");
     return result;

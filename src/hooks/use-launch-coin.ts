@@ -18,7 +18,9 @@ import { starknetProvider } from "@/lib/starknet";
 import { assertTransactionSucceeded } from "@medialane/sdk/starknet";
 import { friendlyErrorMessage } from "@/lib/friendly-error";
 
-const verifyOnStarknet = (txHash: string) => assertTransactionSucceeded(starknetProvider, txHash);
+const verifyOnStarknet = async (txHash: string): Promise<void> => {
+  await assertTransactionSucceeded(starknetProvider, txHash);
+};
 
 const API_BASE = "/api/proxy";
 

@@ -13,12 +13,10 @@ import Link from "next/link";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { WalletTransactionDialog } from "@/components/transaction/wallet-transaction-dialog";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { normalizeAddress } from "@medialane/sdk";
-import { hash } from "starknet";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { starknetProvider } from "@/lib/starknet";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
-import { executeIntent } from "@medialane/sdk/starknet";
+import { executeIntent, deployedCollectionFromReceipt } from "@medialane/sdk/starknet";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { useSiwsToken } from "@/hooks/use-siws-token";
@@ -36,8 +34,6 @@ import {
 
 const API_BASE = "/api/proxy";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
-
-const COLLECTION_DEPLOYED_SELECTOR = hash.getSelectorFromName("CollectionDeployed");
 
 export default function CreateIP1155CollectionPage() {
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
@@ -133,25 +129,7 @@ export default function CreateIP1155CollectionPage() {
       const result = await executeIntent(starknetProvider, signer, client, intentRes.data, { confirm: false });
       rewardToast("create_collection");
 
-      let addr: string | null = null;
-      try {
-
-        type ReceiptEvent = { keys?: string[]; data?: string[] };
-        type ReceiptShape = { events?: ReceiptEvent[] };
-        let receipt: ReceiptShape | null = null;
-        for (let attempt = 0; attempt < 2 && !receipt; attempt++) {
-          try {
-            if (attempt > 0) await new Promise((r) => setTimeout(r, 2000));
-            const raw: unknown = await starknetProvider.getTransactionReceipt(result.txHash);
-            receipt = raw as ReceiptShape;
-          } catch {  }
-        }
-        const events: ReceiptEvent[] = receipt?.events ?? [];
-        const deployEvent = events.find((e) =>
-          e.keys?.[0] && BigInt(e.keys[0]) === BigInt(COLLECTION_DEPLOYED_SELECTOR)
-        );
-        if (deployEvent?.keys?.[1]) addr = normalizeAddress("STARKNET", deployEvent.keys[1]);
-      } catch {  }
+      const addr = deployedCollectionFromReceipt(result.receipt, "mip-erc1155");
 
       if (addr) {
         try {

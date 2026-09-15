@@ -11,7 +11,9 @@ import { QUERY_PREFIX } from "@/lib/query-keys";
 import type { Call } from "starknet";
 import { friendlyErrorMessage } from "@/lib/friendly-error";
 
-const verifyOnStarknet = (txHash: string) => assertTransactionSucceeded(starknetProvider, txHash);
+const verifyOnStarknet = async (txHash: string): Promise<void> => {
+  await assertTransactionSucceeded(starknetProvider, txHash);
+};
 
 export interface TransferInput {
   contractAddress: string;

@@ -12,7 +12,7 @@ import { getListableTokens } from "@medialane/sdk";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { starknetProvider } from "@/lib/starknet";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
-import { executeIntent } from "@medialane/sdk/starknet";
+import { executeIntent, deployedCollectionFromReceipt } from "@medialane/sdk/starknet";
 import { DropCreateForm, DropPreviewCard, dropCreateSchema, type PaymentTokenOption, type DropCreateFormValues, type DraftItem } from "@medialane/ui";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { getDefaultDropSchedule, suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
@@ -175,20 +175,6 @@ export default function CreateDropPage() {
     setAutoSymbol("");
   };
 
-  const pollForDropAddress = async (ownerAddress: string): Promise<string | null> => {
-    const headers = { "Content-Type": "application/json" };
-    for (let attempt = 0; attempt < 12; attempt++) {
-      await new Promise((r) => setTimeout(r, 3000));
-      try {
-        const res = await fetch(`${API_BASE}/v1/collections?service=drop-collection&owner=${ownerAddress}&sort=recent&limit=1`, { headers });
-        const json = await res.json();
-        const latest = json?.data?.[0];
-        if (latest?.contractAddress) return latest.contractAddress as string;
-      } catch {  }
-    }
-    return null;
-  };
-
   const onSubmit = (values: DropCreateFormValues) => {
     if (items.length === 0) { toast.error("Add at least one item"); return; }
     setPendingValues(values);
@@ -258,7 +244,7 @@ export default function CreateDropPage() {
     rewardToast("launch_launchpad");
 
     if (whitelist.length > 0) {
-      const dropAddress = await pollForDropAddress(walletAddress);
+      const dropAddress = deployedCollectionFromReceipt(result.receipt, "drop-collection");
       if (dropAddress) {
         try {
           await signer.execute([
@@ -270,7 +256,7 @@ export default function CreateDropPage() {
     }
 
     if (pendingValues.gatedEnabled) {
-      const dropAddress = await pollForDropAddress(walletAddress);
+      const dropAddress = deployedCollectionFromReceipt(result.receipt, "drop-collection");
       if (dropAddress) {
         try {
           await client.api.updateCollectionProfile(dropAddress, {
