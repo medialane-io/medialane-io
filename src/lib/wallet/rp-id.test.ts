@@ -1,8 +1,5 @@
 import { test, expect } from "bun:test";
-
-const CANONICAL_RP_ID = "www.medialane.io";
-const relyingPartyId = (host: string) =>
-  host === "medialane.io" || host.endsWith(".medialane.io") ? CANONICAL_RP_ID : host;
+import { relyingPartyId } from "./client";
 
 test("the canonical host keeps the value every existing passkey was registered with", () => {
   expect(relyingPartyId("www.medialane.io")).toBe("www.medialane.io");
