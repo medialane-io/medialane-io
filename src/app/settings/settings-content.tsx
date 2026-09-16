@@ -11,13 +11,12 @@ import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useUserOrders } from "@/hooks/use-orders";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { useMediaWallet } from "@/components/media-wallet/media-wallet-overlay";
-import { AssetPicker, AddressDisplay, ServiceFormShell, type OwnedAsset } from "@medialane/ui";
+import { AssetPicker, AddressDisplay, ServiceFormShell, type OwnedAsset, ExportKeySection } from "@medialane/ui";
 import { FastMint } from "@/components/launchpad/fast-mint";
 import { EXPLORER_URL } from "@/lib/constants";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { completeWalletDeployment } from "@/lib/wallet/complete-deployment";
 import { WalletDeploymentDialog } from "@/components/wallet/wallet-deployment-dialog";
-import { ExportKeySection } from "@/components/wallet/export-key-section";
 import { EmailVerifyDialog } from "@/components/settings/email-verify-dialog";
 import { GuardianRecoverySection } from "@/components/settings/guardian-recovery-section";
 import { DevicesSection } from "@/components/settings/devices-section";
@@ -41,6 +40,9 @@ import { PortfolioSnapshot, RewardsSnapshot } from "@/components/settings/snapsh
 import { UsernameClaimInput, ClaimError } from "@/components/settings/username-claim-input";
 import { ProfileLivePreview } from "@/components/settings/profile-live-preview";
 import { saveAccountEmail } from "@/lib/wallet/account-wallet";
+import { loadSealedOwner } from "@/lib/wallet/store";
+import { unlockOwnerKey } from "@/lib/wallet/passkey";
+import { isRecoveryKeyForWallet } from "@medialane/sdk/starknet";
 
 export default function SettingsContent() {
   const searchParams = useSearchParams();
@@ -672,7 +674,7 @@ export default function SettingsContent() {
                 </>
               )}
 
-              {walletAddress && <ExportKeySection />}
+              {walletAddress && <ExportKeySection loadSealed={loadSealedOwner} unlock={unlockOwnerKey} isRecoveryKey={isRecoveryKeyForWallet} describeError={friendlyErrorMessage} />}
 
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
