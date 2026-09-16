@@ -5,11 +5,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, ShieldCheck, CheckCircle2 } from "lucide-react";
-import { completeWalletDeployment } from "@/lib/wallet/complete-deployment";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { fireConfetti } from "@/lib/confetti";
 import { MedialaneApiError } from "@medialane/sdk";
 import { safeRelativePath } from "@/lib/safe-redirect";
+import { mediaWallet } from "@/lib/wallet/client";
 
 type Step = "creating-passkey" | "deploying" | "signing-in" | "done";
 
@@ -30,7 +30,7 @@ function WalletOnboardingForm() {
 
   const runOnboarding = async () => {
     try {
-      const { siwsToken } = await completeWalletDeployment(setStep);
+      const { siwsToken } = await mediaWallet.completeDeployment(setStep);
 
       await getMedialaneClient().api.upsertMyWallet(siwsToken, {
         walletType: "MEDIAWALLET",
