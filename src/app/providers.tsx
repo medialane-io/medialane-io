@@ -8,7 +8,7 @@ import { SWRConfig } from "swr";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { usePathname } from "next/navigation";
 import { GoogleAnalytics } from "@next/third-parties/google";
-import { NavCommandMenu, NavBrandButton, ThemeAmbientBackground } from "@medialane/ui";
+import { NavCommandMenu, NavBrandButton, ThemeAmbientBackground, SelfFundConsentDialog } from "@medialane/ui";
 import { NAV_COMMANDS } from "@/lib/nav-commands";
 import { AccountSyncOnLogin } from "@/components/shared/account-sync-on-login";
 import { UndeployedWalletRedirect } from "@/components/wallet/undeployed-wallet-redirect";
@@ -17,11 +17,11 @@ import { NavThemeToggle } from "@/components/nav-theme-toggle";
 import { NavConnectButton } from "@/components/nav-connect-button";
 import { HeaderWalletTrigger } from "@/components/nav-wallet-trigger";
 import { MediaWalletOverlay } from "@/components/media-wallet/media-wallet-overlay";
-import { SelfFundConsentDialog } from "@/components/wallet/self-fund-consent-dialog";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useCreatorProfile } from "@/hooks/use-profiles";
 import { WalletNotDeployedError } from "@/hooks/use-siws-token";
 import { resolveTokenImage } from "@/lib/utils";
+import { walletConsent } from "@/lib/wallet/client";
 
 const GA_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID;
 
@@ -131,7 +131,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <UndeployedWalletRedirect />
         <EmailRequiredRedirect />
         <Shell>{children}</Shell>
-        <SelfFundConsentDialog />
+        <SelfFundConsentDialog consent={walletConsent} />
         <Toaster
           richColors
           position="bottom-center"
