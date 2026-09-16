@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Loader2, ShieldCheck, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { mediaWallet } from "@/lib/wallet/client";
+import { type DeploymentStep, type DeploymentResult } from "@medialane/sdk/starknet";
 import {
   Dialog,
   DialogContent,
@@ -11,7 +13,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { completeWalletDeployment, type DeploymentStep, type CompleteWalletDeploymentResult } from "@/lib/wallet/complete-deployment";
 
 const STEP_LABEL: Record<DeploymentStep, string> = {
   "creating-passkey": "Creating passkey…",
@@ -22,7 +23,7 @@ const STEP_LABEL: Record<DeploymentStep, string> = {
 interface WalletDeploymentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onComplete: (result: CompleteWalletDeploymentResult) => void | Promise<void>;
+  onComplete: (result: DeploymentResult) => void | Promise<void>;
 }
 
 export function WalletDeploymentDialog({ open, onOpenChange, onComplete }: WalletDeploymentDialogProps) {
@@ -32,7 +33,7 @@ export function WalletDeploymentDialog({ open, onOpenChange, onComplete }: Walle
   const run = async () => {
     setError(null);
     try {
-      const result = await completeWalletDeployment(setStep);
+      const result = await mediaWallet.completeDeployment(setStep);
       await onComplete(result);
       onOpenChange(false);
     } catch {

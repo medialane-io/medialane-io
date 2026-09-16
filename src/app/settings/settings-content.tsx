@@ -15,7 +15,6 @@ import { AssetPicker, AddressDisplay, ServiceFormShell, type OwnedAsset, ExportK
 import { FastMint } from "@/components/launchpad/fast-mint";
 import { EXPLORER_URL } from "@/lib/constants";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import { completeWalletDeployment } from "@/lib/wallet/complete-deployment";
 import { WalletDeploymentDialog } from "@/components/wallet/wallet-deployment-dialog";
 import { EmailVerifyDialog } from "@/components/settings/email-verify-dialog";
 import { GuardianRecoverySection } from "@/components/settings/guardian-recovery-section";
@@ -43,6 +42,7 @@ import { saveAccountEmail } from "@/lib/wallet/account-wallet";
 import { loadSealedOwner } from "@/lib/wallet/store";
 import { unlockOwnerKey } from "@/lib/wallet/passkey";
 import { isRecoveryKeyForWallet } from "@medialane/sdk/starknet";
+import { mediaWallet } from "@/lib/wallet/client";
 
 export default function SettingsContent() {
   const searchParams = useSearchParams();
@@ -254,7 +254,7 @@ export default function SettingsContent() {
     setOldWalletToken(authToken);
 
     try {
-      const { siwsToken: newWalletSiwsToken } = await completeWalletDeployment(() => {}, { forceNew: true });
+      const { siwsToken: newWalletSiwsToken } = await mediaWallet.completeDeployment(() => {}, { forceNew: true });
       await attachNewWallet(newWalletSiwsToken, authToken);
     } catch {
 
