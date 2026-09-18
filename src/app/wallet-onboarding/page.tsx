@@ -4,6 +4,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Loader2, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { fireConfetti } from "@/lib/confetti";
@@ -26,9 +27,11 @@ function WalletOnboardingForm() {
   const searchParams = useSearchParams();
   const redirectTo = safeRelativePath(searchParams.get("redirect_url")) ?? "/airdrop";
   const [step, setStep] = useState<Step | null>(null);
+  const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const startedRef = useRef(false);
 
   const runOnboarding = async () => {
+    setErrorDetail(null);
     try {
       const { siwsToken } = await mediaWallet.completeDeployment(setStep);
 
@@ -47,8 +50,10 @@ function WalletOnboardingForm() {
         return;
       }
 
-      toast.error("We couldn't finish setting up your account. You can pick up where you left off from your wallet.");
-      router.push(redirectTo);
+      const message = err instanceof Error ? err.message : "Something went wrong.";
+      toast.error(`We couldn't finish setting up your account: ${message}`);
+      setErrorDetail(message);
+      setStep(null);
     }
   };
 
@@ -90,12 +95,21 @@ function WalletOnboardingForm() {
           <CardDescription>Use your passkey, Face ID, or Touch ID to create your unique access.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-4">
-          <div className="flex w-full items-center justify-center gap-2 py-2.5 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            {(step === null || step === "creating-passkey") && "Creating passkey…"}
-            {step === "deploying" && "Setting up your wallet…"}
-            {step === "signing-in" && "Signing in…"}
-          </div>
+          {errorDetail ? (
+            <>
+              <p className="text-center text-sm text-destructive">{errorDetail}</p>
+              <Button onClick={() => void runOnboarding()} className="w-full">
+                Try again
+              </Button>
+            </>
+          ) : (
+            <div className="flex w-full items-center justify-center gap-2 py-2.5 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              {(step === null || step === "creating-passkey") && "Creating passkey…"}
+              {step === "deploying" && "Setting up your wallet…"}
+              {step === "signing-in" && "Signing in…"}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
