@@ -2,9 +2,11 @@
 
 import { useState, useCallback } from "react";
 import { useSWRConfig } from "swr";
+import { syncTransactionBestEffort } from "@medialane/sdk/starknet";
+import { getMedialaneClient } from "@/lib/medialane-client";
 import { useWalletNativeSession } from "./use-wallet-native-session";
 import { useMedialaneClient } from "./use-medialane-client";
-import { SUPPORTED_TOKENS, INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
+import { SUPPORTED_TOKENS } from "@/lib/constants";
 import { isErc1155Standard } from "@/lib/protocol/token-standard";
 import { QUERY_PREFIX } from "@/lib/query-keys";
 import { buildFeeCall } from "@medialane/sdk/starknet";
@@ -210,9 +212,8 @@ export function useMarketplace() {
         );
       }
 
+      await syncTransactionBestEffort(getMedialaneClient(), result.txHash);
       invalidate();
-
-      setTimeout(() => invalidate(), INDEXER_REVALIDATION_DELAY_MS);
       return result.txHash;
     },
     [walletAddress, signer, client, invalidate, pollIntentUntilTerminal]
@@ -358,7 +359,6 @@ export function useMarketplace() {
         setError(msg);
 
         invalidate();
-        setTimeout(() => invalidate(), INDEXER_REVALIDATION_DELAY_MS);
         throw err;
       } finally {
         setIsProcessing(false);

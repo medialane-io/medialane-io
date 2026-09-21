@@ -57,7 +57,6 @@ export const MINT_NFT_URI =
 export const MINT_NFT_IMAGE_URL =
   readStringEnv(process.env.NEXT_PUBLIC_MINT_NFT_IMAGE_URL);
 
-export const INDEXER_REVALIDATION_DELAY_MS = 10_000;
 
 export const DURATION_OPTIONS = [
   { label: "1 Day", seconds: 86400 },

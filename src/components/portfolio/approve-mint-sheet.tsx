@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { getService } from "@medialane/sdk";
+import { syncTransactionBestEffort } from "@medialane/sdk/starknet";
 import { assetHref } from "@/lib/routes";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -22,7 +23,6 @@ import { formatDisplayPrice } from "@/lib/utils";
 import { AlertCircle, Check, GitBranch, Loader2 } from "lucide-react";
 import type { RemixOffer } from "@/types/remix-offers";
 import type { Call } from "starknet";
-import { INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
 import { friendlyErrorMessage } from "@/lib/friendly-error";
 
 interface Props {
@@ -161,23 +161,16 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
         const mintCalls = mintIntent.calls as unknown as Call[];
         if (!mintCalls?.length) throw new Error("No mint calls returned");
 
-        await signer.execute(mintCalls);
+        const mintResult = await signer.execute(mintCalls);
+        await syncTransactionBestEffort(client, mintResult.txHash);
 
-        let polledTokenId: string | undefined;
-        const mintDeadline = Date.now() + 10_000;
-        while (Date.now() < mintDeadline) {
-          await new Promise((r) => setTimeout(r, 2000));
-          try {
-            const tokensRes = await client.api.getTokensByOwner(walletAddress, 1, 5);
-            const newest = tokensRes.data?.find((t) => t.contractAddress === selectedCollection.contractAddress);
-            if (newest) { polledTokenId = newest.tokenId; break; }
-          } catch {  }
-        }
-        if (!polledTokenId) throw new Error("Could not determine remix token ID");
-        remixTokenId = polledTokenId;
+        const tokensRes = await client.api.getTokensByOwner(walletAddress, 1, 5);
+        const minted = tokensRes.data?.find((t) => t.contractAddress === selectedCollection.contractAddress);
+        if (!minted) throw new Error("Could not determine remix token ID");
+        remixTokenId = minted.tokenId;
       }
 
-      await createListing({
+      const listingTxHash = await createListing({
         assetContract: selectedCollection.contractAddress,
         tokenId: remixTokenId,
         price: offer.price?.raw ?? "0",
@@ -186,6 +179,8 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
         tokenStandard: standard === "ERC1155" ? "ERC1155" : undefined,
         amount: standard === "ERC1155" ? "1" : undefined,
       });
+
+      if (listingTxHash) await syncTransactionBestEffort(client, listingTxHash);
 
       let orderHash: string | undefined;
       const listingDeadline = Date.now() + 15_000;
@@ -217,7 +212,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
 
       setNewAssetLink(assetHref("STARKNET", selectedCollection.contractAddress, remixTokenId));
       setDone(true);
-      setTimeout(() => onSuccess?.(), INDEXER_REVALIDATION_DELAY_MS);
+      onSuccess?.();
     } catch (err: unknown) {
       setApproveError(friendlyErrorMessage(err, "Approval failed"));
     } finally {
