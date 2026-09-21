@@ -81,7 +81,6 @@ export function AssetMarketplaceDialogs({
 
   const handleSuccess = useCallback(() => {
     mutateListings();
-    setTimeout(mutateListings, 8000);
   }, [mutateListings]);
 
   return (
