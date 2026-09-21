@@ -20,9 +20,10 @@ mock.module("./use-wallet-native-session", () => ({
 const { useWalletWriteAction } = await import("./use-wallet-write-action");
 
 const VERIFY_OK = async () => {};
+const READ_OK = async () => {};
 
 test("run executes successfully and reaches success status", async () => {
-  const { result } = renderHook(() => useWalletWriteAction(VERIFY_OK));
+  const { result } = renderHook(() => useWalletWriteAction(VERIFY_OK, READ_OK));
   expect(result.current.status).toBe("idle");
 
   await act(async () => {
@@ -35,7 +36,7 @@ test("run executes successfully and reaches success status", async () => {
 });
 
 test("run surfaces a thrown error and reaches error status", async () => {
-  const { result } = renderHook(() => useWalletWriteAction(VERIFY_OK));
+  const { result } = renderHook(() => useWalletWriteAction(VERIFY_OK, READ_OK));
 
   await act(async () => {
     await result.current.run(async () => { throw new Error("execution reverted"); });
@@ -49,7 +50,7 @@ test("run verifies the transaction actually succeeded onchain before reporting s
   const verifyReverted = async (txHash: string) => {
     throw new Error(`Transaction ${txHash} was submitted but reverted onchain. Please check your balance and try again.`);
   };
-  const { result } = renderHook(() => useWalletWriteAction(verifyReverted));
+  const { result } = renderHook(() => useWalletWriteAction(verifyReverted, READ_OK));
 
   await act(async () => {
     await result.current.run(async (signer) => signer.execute([]));
@@ -60,7 +61,7 @@ test("run verifies the transaction actually succeeded onchain before reporting s
 });
 
 test("reset returns to idle", async () => {
-  const { result } = renderHook(() => useWalletWriteAction(VERIFY_OK));
+  const { result } = renderHook(() => useWalletWriteAction(VERIFY_OK, READ_OK));
   await act(async () => {
     await result.current.run(async (signer) => signer.execute([]));
   });

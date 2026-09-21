@@ -108,10 +108,13 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
 
     setText("");
     if (composeRef.current) composeRef.current.style.height = "auto";
-    setTimeout(() => mutate(), 30_000);
     rewardToast("comment");
     return result;
   };
+
+  useEffect(() => {
+    if (action.status === "success") mutate();
+  }, [action.status, mutate]);
 
   const handleStartConversation = () => {
     if (hasWallet) composeRef.current?.focus();
