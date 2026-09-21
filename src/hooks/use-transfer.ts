@@ -4,15 +4,19 @@ import { useState, useCallback } from "react";
 import { useSWRConfig } from "swr";
 import { useWalletNativeSession } from "./use-wallet-native-session";
 import { lockVenueSigner } from "@/lib/wallet/venue-signer";
-import { assertTransactionSucceeded } from "@medialane/sdk/starknet";
+import { assertTransactionSucceeded, syncTransactionBestEffort } from "@medialane/sdk/starknet";
 import { starknetProvider } from "@/lib/starknet";
-import { INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
+import { getMedialaneClient } from "@/lib/medialane-client";
 import { QUERY_PREFIX } from "@/lib/query-keys";
 import type { Call } from "starknet";
 import { friendlyErrorMessage } from "@/lib/friendly-error";
 
 const verifyOnStarknet = async (txHash: string): Promise<void> => {
   await assertTransactionSucceeded(starknetProvider, txHash);
+};
+
+const readIntoMedialane = async (txHash: string): Promise<void> => {
+  await syncTransactionBestEffort(getMedialaneClient(), txHash);
 };
 
 export interface TransferInput {
@@ -35,7 +39,10 @@ export function encodeTokenId(tokenId: string): [string, string] {
   return [low, high];
 }
 
-export function useTransfer(verify: (txHash: string) => Promise<void> = verifyOnStarknet) {
+export function useTransfer(
+  verify: (txHash: string) => Promise<void> = verifyOnStarknet,
+  waitUntilRead: (txHash: string) => Promise<void> = readIntoMedialane,
+) {
   const { address: walletAddress, hasWallet, signer } = useWalletNativeSession();
   const { mutate } = useSWRConfig();
 
@@ -96,9 +103,8 @@ export function useTransfer(verify: (txHash: string) => Promise<void> = verifyOn
         await verify(result.txHash);
         setHash(result.txHash);
 
+        await waitUntilRead(result.txHash);
         invalidate();
-
-        setTimeout(() => invalidate(), INDEXER_REVALIDATION_DELAY_MS);
         return result.txHash;
       } catch (err: unknown) {
         const msg = friendlyErrorMessage(err, "Transfer failed");
@@ -109,7 +115,7 @@ export function useTransfer(verify: (txHash: string) => Promise<void> = verifyOn
         setIsProcessing(false);
       }
     },
-    [walletAddress, signer, invalidate, verify]
+    [walletAddress, signer, invalidate, verify, waitUntilRead]
   );
 
   return {

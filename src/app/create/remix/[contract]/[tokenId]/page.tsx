@@ -33,7 +33,6 @@ import { IP_TYPES, LICENSE_TYPES } from "@/types/ip";
 import { ipfsToHttp, checkIsOwner } from "@/lib/utils";
 import { resolveRemixPolicy, getDerivativesTerm } from "@medialane/sdk";
 import { ToggleGroup, Section } from "@/components/create/create-form-primitives";
-import { INDEXER_REVALIDATION_DELAY_MS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import {
   GitBranch, ChevronDown, ChevronLeft, ImagePlus, Upload,
@@ -43,7 +42,7 @@ import { toast } from "sonner";
 import type { Call } from "starknet";
 import type { MintTxStatus } from "@/types/mint-tx-status";
 import { friendlyErrorMessage } from "@/lib/friendly-error";
-import { mintedTokenIdFromReceipt, assertTransactionSucceeded } from "@medialane/sdk/starknet";
+import { mintedTokenIdFromReceipt, assertTransactionSucceeded, syncTransactionBestEffort } from "@medialane/sdk/starknet";
 import { starknetProvider } from "@/lib/starknet";
 
 export default function CreateRemixPage() {
@@ -262,20 +261,14 @@ export default function CreateRemixPage() {
         setTxStatus("confirmed");
         txHash = result.txHash ?? "";
 
-        let polledTokenId: string | undefined;
-        const deadline = Date.now() + 10_000;
-        while (Date.now() < deadline) {
-          await new Promise((r) => setTimeout(r, 2000));
-          try {
-            const res = await client.api.getTokensByOwner(walletAddress, 1, 5);
-            const newest = res.data?.find(
-              (t) => normalizeAddress("STARKNET", t.contractAddress) === normalizeAddress("STARKNET", selectedCollection.contractAddress)
-            );
-            if (newest) { polledTokenId = newest.tokenId; break; }
-          } catch {  }
-        }
-        if (!polledTokenId) throw new Error("Could not determine remix token ID — check portfolio shortly");
-        remixTokenId = polledTokenId;
+        await syncTransactionBestEffort(client, txHash);
+
+        const owned = await client.api.getTokensByOwner(walletAddress, 1, 5);
+        const minted = owned.data?.find(
+          (t) => normalizeAddress("STARKNET", t.contractAddress) === normalizeAddress("STARKNET", selectedCollection.contractAddress)
+        );
+        if (!minted) throw new Error("Could not determine remix token ID — check portfolio shortly");
+        remixTokenId = minted.tokenId;
       }
 
       await registerRemix(
@@ -293,9 +286,7 @@ export default function CreateRemixPage() {
       );
 
       setMintStep("success");
-      setTimeout(() => {
-        router.push(assetHref("STARKNET", selectedCollection.contractAddress, remixTokenId));
-      }, INDEXER_REVALIDATION_DELAY_MS);
+      router.push(assetHref("STARKNET", selectedCollection.contractAddress, remixTokenId));
     } catch (err: unknown) {
       setMintError(friendlyErrorMessage(err));
       setMintStep("error");

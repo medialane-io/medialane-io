@@ -18,10 +18,11 @@ mock.module("./use-wallet-native-session", () => ({
 }));
 const { useTransfer } = await import("./use-transfer");
 
+const READ_OK = async () => {};
 const VERIFY_OK = async () => {};
 
 test("transferToken succeeds when the transaction is verified onchain", async () => {
-  const { result } = renderHook(() => useTransfer(VERIFY_OK));
+  const { result } = renderHook(() => useTransfer(VERIFY_OK, READ_OK));
 
   let txHash: string | undefined;
   await act(async () => {
