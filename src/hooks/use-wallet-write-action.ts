@@ -5,7 +5,8 @@ import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { starknetProvider } from "@/lib/starknet";
 import { useWalletNativeSession } from "./use-wallet-native-session";
 import { lockVenueSigner } from "@/lib/wallet/venue-signer";
-import { assertTransactionSucceeded } from "@medialane/sdk/starknet";
+import { assertTransactionSucceeded, syncTransactionBestEffort } from "@medialane/sdk/starknet";
+import { getMedialaneClient } from "@/lib/medialane-client";
 import { friendlyErrorMessage } from "@/lib/friendly-error";
 import { loadAccountAddress } from "@/lib/wallet/account-wallet";
 
@@ -13,10 +14,15 @@ const verifyOnStarknet = async (txHash: string): Promise<void> => {
   await assertTransactionSucceeded(starknetProvider, txHash);
 };
 
+const readIntoMedialane = async (txHash: string): Promise<void> => {
+  await syncTransactionBestEffort(getMedialaneClient(), txHash);
+};
+
 export type WalletWriteStatus = "idle" | "processing" | "confirming" | "success" | "error";
 
 export function useWalletWriteAction(
   verify: (txHash: string) => Promise<void> = verifyOnStarknet,
+  waitUntilRead: (txHash: string) => Promise<void> = readIntoMedialane,
 ) {
   const { hasWallet, signer } = useWalletNativeSession();
   const [status, setStatus] = useState<WalletWriteStatus>("idle");
@@ -42,7 +48,10 @@ export function useWalletWriteAction(
         if (result?.txHash) setTxHash(result.txHash);
         setStatus("confirming");
         
-        if (result?.txHash) await verify(result.txHash);
+        if (result?.txHash) {
+          await verify(result.txHash);
+          await waitUntilRead(result.txHash);
+        }
         setStatus("success");
       } catch (err) {
         setError(friendlyErrorMessage(err));
@@ -51,7 +60,7 @@ export function useWalletWriteAction(
         lockVenueSigner(signer.address);
       }
     },
-    [hasWallet, signer, verify],
+    [hasWallet, signer, verify, waitUntilRead],
   );
 
   const reset = useCallback(() => {

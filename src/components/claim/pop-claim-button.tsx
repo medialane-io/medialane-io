@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Loader2, CheckCircle2, Ban, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { useEffect } from "react";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { MarketplaceErrorState, MarketplaceSuccessState } from "@medialane/ui";
@@ -33,11 +34,14 @@ export function PopClaimButton({ collectionAddress }: PopClaimButtonProps) {
       const result = await signer.execute([
         { contractAddress: collectionAddress, entrypoint: "claim", calldata: [] },
       ]);
-      mutate();
       rewardToast("claim_pop");
       return result;
     });
   };
+
+  useEffect(() => {
+    if (action.status === "success") mutate();
+  }, [action.status, mutate]);
 
   if (isLoading) {
     return (
