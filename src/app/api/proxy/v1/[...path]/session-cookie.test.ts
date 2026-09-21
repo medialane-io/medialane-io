@@ -75,3 +75,15 @@ test("injectAccountToken handles an empty or malformed body by starting fresh", 
   expect(JSON.parse(injectAccountToken("", "tok"))).toEqual({ accountToken: "tok" });
   expect(JSON.parse(injectAccountToken("not json", "tok"))).toEqual({ accountToken: "tok" });
 });
+
+test("a wallet sign-in establishes the session, the same as an email code", () => {
+  expect(shouldSetSessionCookie("auth/siws/verify", "POST")).toBe(true);
+  expect(shouldSetSessionCookie("auth/email/verify-code", "POST")).toBe(true);
+  expect(shouldSetSessionCookie("auth/email/register-account", "POST")).toBe(true);
+});
+
+test("nothing else sets it", () => {
+  expect(shouldSetSessionCookie("auth/siws/nonce", "POST")).toBe(false);
+  expect(shouldSetSessionCookie("auth/siws/verify", "GET")).toBe(false);
+  expect(shouldSetSessionCookie("tokens", "POST")).toBe(false);
+});
