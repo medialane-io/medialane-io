@@ -3,6 +3,8 @@
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { useSWRConfig } from "swr";
+import { syncTransactionBestEffort } from "@medialane/sdk/starknet";
+import { getMedialaneClient } from "@/lib/medialane-client";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -134,11 +136,20 @@ export function ListingDialog({
       confettiFired.current = true;
       fireConfetti();
       rewardToast("list_asset");
-      mutate((key) => typeof key === "string" && key.includes("/v1/orders"), undefined, { revalidate: true });
-      mutate((key) => typeof key === "string" && key.includes("/v1/tokens/"), undefined, { revalidate: true });
+
+      const showTheListing = () => {
+        mutate((key) => typeof key === "string" && key.includes("/v1/orders"), undefined, { revalidate: true });
+        mutate((key) => typeof key === "string" && key.includes("/v1/tokens/"), undefined, { revalidate: true });
+      };
+
+      if (txHash) {
+        syncTransactionBestEffort(getMedialaneClient(), txHash).finally(showTheListing);
+      } else {
+        showTheListing();
+      }
     }
     if (!isSuccess) confettiFired.current = false;
-  }, [isSuccess, mutate]);
+  }, [isSuccess, mutate, txHash]);
 
   const name = tokenName || `Token #${tokenId}`;
   const shieldFooter = (
