@@ -42,8 +42,7 @@ export function walletStepLabel(step: OnboardingStep): string {
   return "Creating passkey…";
 }
 
-const BRAVE_UNSUPPORTED = "Brave can't create passkeys yet. Please try another browser.";
-const BROWSER_UNSUPPORTED = "This browser couldn't create a passkey. Please try another browser.";
+const BROWSER_UNSUPPORTED = "Browser not supported. Please try another browser.";
 const GENERIC_FAILURE = "We couldn't finish setting up your account. Please try again.";
 
 export interface WalletFailureNotice {
@@ -53,7 +52,6 @@ export interface WalletFailureNotice {
 
 export function describeWalletFailure(err: unknown): WalletFailureNotice {
   const raw = err instanceof Error ? err.message : "";
-  if (/brave/i.test(raw)) return { message: BRAVE_UNSUPPORTED, canRetry: false };
   if (/PRF/.test(raw)) return { message: BROWSER_UNSUPPORTED, canRetry: false };
   return { message: GENERIC_FAILURE, canRetry: true };
 }

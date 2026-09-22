@@ -6,7 +6,7 @@ describe("what someone is told when the wallet cannot be made", () => {
     const notice = describeWalletFailure(
       new Error("Brave doesn't currently support the WebAuthn PRF extension. Medialane needs it to seal your key."),
     );
-    expect(notice.message).toBe("Brave can't create passkeys yet. Please try another browser.");
+    expect(notice.message).toBe("Browser not supported. Please try another browser.");
   });
 
   test("an unsupported browser is not offered a retry that cannot work", () => {
@@ -17,7 +17,7 @@ describe("what someone is told when the wallet cannot be made", () => {
   test("a browser that simply returned no secret gets the same advice", () => {
     const notice = describeWalletFailure(new Error("This browser didn't return a passkey PRF secret."));
     expect(notice.canRetry).toBe(false);
-    expect(notice.message).toContain("another browser");
+    expect(notice.message).toBe("Browser not supported. Please try another browser.");
   });
 
   test("any other failure is short and may be retried", () => {
@@ -34,6 +34,7 @@ describe("what someone is told when the wallet cannot be made", () => {
     for (const err of [new Error("WebAuthn PRF extension"), new Error("brave"), new Error("nope")]) {
       expect(describeWalletFailure(err).message).not.toContain("Safari");
       expect(describeWalletFailure(err).message).not.toContain("Chrome");
+      expect(describeWalletFailure(err).message).not.toContain("Brave");
     }
   });
 
