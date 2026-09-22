@@ -42,8 +42,8 @@ export function walletStepLabel(step: OnboardingStep): string {
   return "Creating passkey…";
 }
 
-const BRAVE_UNSUPPORTED = "Brave can't create passkeys yet. Open medialane.io in Safari or Chrome to join.";
-const BROWSER_UNSUPPORTED = "This browser can't create passkeys yet. Open medialane.io in Safari or Chrome to join.";
+const BRAVE_UNSUPPORTED = "Brave can't create passkeys yet. Please try another browser.";
+const BROWSER_UNSUPPORTED = "This browser couldn't create a passkey. Please try another browser.";
 const GENERIC_FAILURE = "We couldn't finish setting up your account. Please try again.";
 
 export interface WalletFailureNotice {
@@ -51,19 +51,11 @@ export interface WalletFailureNotice {
   canRetry: boolean;
 }
 
-export function passkeysUnavailableMessage(): string {
-  return BRAVE_UNSUPPORTED;
-}
-
 export function describeWalletFailure(err: unknown): WalletFailureNotice {
   const raw = err instanceof Error ? err.message : "";
   if (/brave/i.test(raw)) return { message: BRAVE_UNSUPPORTED, canRetry: false };
   if (/PRF/.test(raw)) return { message: BROWSER_UNSUPPORTED, canRetry: false };
   return { message: GENERIC_FAILURE, canRetry: true };
-}
-
-export function browserLacksPasskeys(): boolean {
-  return typeof navigator !== "undefined" && "brave" in navigator;
 }
 
 export interface OnboardingFlowProps {
@@ -89,12 +81,8 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
   const emailStatus = useEmailVerificationStatus();
   const { getValidToken, signIn } = useSiwsToken();
   const [mounted, setMounted] = useState(false);
-  const [unsupported, setUnsupported] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-    setUnsupported(browserLacksPasskeys());
-  }, []);
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     if (resendCooldown === 0) return;
@@ -384,15 +372,6 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
   }
 
   const busy = step === "checking-email" || step === "registering";
-
-  if (unsupported) {
-    return (
-      <Alert variant="destructive" className="w-full">
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>{passkeysUnavailableMessage()}</AlertDescription>
-      </Alert>
-    );
-  }
 
   return (
     <div className="w-full space-y-3">
