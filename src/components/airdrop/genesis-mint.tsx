@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { OnboardingFlow } from "@/components/connect/onboarding-flow";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
@@ -15,7 +15,6 @@ import {
   Loader2,
   RefreshCw,
   XCircle,
-  Wallet,
   ImageIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -55,7 +54,6 @@ type MintStep = "ready" | "minting" | "success" | "error";
 
 export function GenesisMint() {
   const { hasWallet, address: walletAddress, isDeployed } = useWalletNativeSession();
-  const pathname = usePathname();
   const action = useWalletWriteAction();
 
   const [mintStep, setMintStep] = useState<MintStep>("ready");
@@ -138,11 +136,11 @@ export function GenesisMint() {
 
   if (!hasWallet || isDeployed === null) {
     return (
-      <div className="flex items-center gap-3 py-2">
-        <Wallet className="h-5 w-5 text-muted-foreground" />
-        <Link href={`/connect?redirect_url=${encodeURIComponent(pathname)}`} className="text-sm text-primary hover:underline">
-          Connect your account to join, it takes 10 seconds.
-        </Link>
+      <div className="w-full max-w-sm space-y-2.5">
+        <OnboardingFlow />
+        <p className="text-xs text-muted-foreground">
+          Takes about 10 seconds. No card and no wallet needed.
+        </p>
       </div>
     );
   }
