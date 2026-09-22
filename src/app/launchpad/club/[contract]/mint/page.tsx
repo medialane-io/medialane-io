@@ -86,6 +86,7 @@ const schema = z.object({
   aiPolicy: z.enum(["Allowed", "Not Allowed", "Training Only"]),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
+  imageUri: z.string().min(1, "Add a membership image."),
 });
 type FormValues = z.infer<typeof schema>;
 
@@ -103,7 +104,6 @@ export default function CreateMembershipPage({ params }: { params: Promise<{ con
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageUri, setImageUri] = useState<string | null>(null);
-  const [imageError, setImageError] = useState<string | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
   const previewRef = useRef<string | null>(null);
   useEffect(() => () => { if (previewRef.current) URL.revokeObjectURL(previewRef.current); }, []);
@@ -111,7 +111,7 @@ export default function CreateMembershipPage({ params }: { params: Promise<{ con
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      name: "", description: "", external_url: "",
+      name: "", imageUri: "", description: "", external_url: "",
       maxSupply: "100", royalty: 2.5, licenseType: "CC BY-SA", commercialUse: "Yes",
       derivatives: "Share-Alike", attribution: "Required", geographicScope: "Worldwide", aiPolicy: "Not Allowed",
     },
@@ -120,8 +120,8 @@ export default function CreateMembershipPage({ params }: { params: Promise<{ con
   const isOwner = !!address && !!collection?.owner && normalizeAddress("STARKNET", address) === normalizeAddress("STARKNET", collection.owner);
 
   const handleImageSelect = async (file: File) => {
-    if (file.size > 10 * 1024 * 1024) { setImageError("That image is over 10 MB. Please choose a smaller one."); return; }
-    setImageError(null);
+    if (file.size > 10 * 1024 * 1024) { form.setError("imageUri", { message: "That image is over 10 MB. Please choose a smaller one." }); return; }
+    form.clearErrors("imageUri");
     if (previewRef.current) URL.revokeObjectURL(previewRef.current);
     const url = URL.createObjectURL(file);
     previewRef.current = url;
@@ -131,17 +131,18 @@ export default function CreateMembershipPage({ params }: { params: Promise<{ con
     try {
       const uri = await uploadImageToIpfs(file);
       setImageUri(uri);
+      form.setValue("imageUri", uri, { shouldValidate: true });
     } catch (err) {
       if (previewRef.current) { URL.revokeObjectURL(previewRef.current); previewRef.current = null; }
       setImagePreview(null);
       console.error("image upload failed", err);
-      setImageError(friendlyErrorMessage(err, "That image could not be uploaded. Please try again."));
+      form.setError("imageUri", { message: friendlyErrorMessage(err, "That image could not be uploaded. Please try again.") });
     } finally {
       setImageUploading(false);
     }
   };
 
-  const handleImageClear = () => { setImagePreview(null); setImageUri(null); };
+  const handleImageClear = () => { setImagePreview(null); setImageUri(null); form.setValue("imageUri", "", { shouldValidate: true }); };
 
   const handleReset = () => {
     action.reset();
@@ -151,7 +152,6 @@ export default function CreateMembershipPage({ params }: { params: Promise<{ con
   };
 
   const onSubmit = (values: FormValues) => {
-    if (!imageUri) { setImageError('Add a membership image before continuing.'); return; }
     setMintedTierId(null);
     void action.run((signer) => handleUnlocked(values, signer));
   };
@@ -330,7 +330,9 @@ export default function CreateMembershipPage({ params }: { params: Promise<{ con
               </div>
             </div>
 
-            {imageError && <p role="alert" className="text-sm text-destructive">{imageError}</p>}
+            {form.formState.errors.imageUri && (
+              <p role="alert" className="text-sm text-destructive">{form.formState.errors.imageUri.message}</p>
+            )}
 
             <FormField control={form.control} name="name" render={({ field }) => (
               <FormItem>

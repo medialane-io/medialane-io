@@ -3,7 +3,7 @@
 import { Loader2, CheckCircle2, Ban, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { MarketplaceErrorState, MarketplaceSuccessState } from "@medialane/ui";
@@ -23,14 +23,8 @@ export function PopClaimButton({ collectionAddress }: PopClaimButtonProps) {
   );
   const action = useWalletWriteAction();
   const busy = action.status === "processing" || action.status === "confirming";
-  const [gateError, setGateError] = useState<string | null>(null);
 
   const handleClaim = () => {
-    if (!hasWallet) {
-      setGateError("Secure your account first to claim your credential.");
-      return;
-    }
-    setGateError(null);
     void action.run(async (signer) => {
       const result = await signer.execute([
         { contractAddress: collectionAddress, entrypoint: "claim", calldata: [] },
@@ -77,7 +71,7 @@ export function PopClaimButton({ collectionAddress }: PopClaimButtonProps) {
         size="sm"
         className="w-full gap-1.5"
         onClick={handleClaim}
-        disabled={busy}
+        disabled={busy || !hasWallet}
       >
         {busy ? (
           <><Loader2 className="h-3.5 w-3.5 animate-spin" />Claiming…</>
@@ -85,7 +79,9 @@ export function PopClaimButton({ collectionAddress }: PopClaimButtonProps) {
           <><Award className="h-3.5 w-3.5" />Claim credential</>
         )}
       </Button>
-      {gateError && <p role="alert" className="mt-1.5 text-xs text-destructive">{gateError}</p>}
+      {!hasWallet && (
+        <p className="mt-1.5 text-xs text-muted-foreground">Secure your account first to claim your credential.</p>
+      )}
 
       <Dialog open={action.status === "success" || action.status === "error"} onOpenChange={(open) => { if (!open) action.reset(); }}>
         <DialogContent className="max-w-[calc(100%-6px)] sm:max-w-md p-0 overflow-hidden gap-0 rounded-2xl">

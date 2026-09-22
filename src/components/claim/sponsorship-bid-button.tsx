@@ -28,22 +28,13 @@ export function SponsorshipBidButton({ offerId, minAmount, paymentToken, onBidPl
   const action = useWalletWriteAction();
   const busy = action.status === "processing" || action.status === "confirming";
   const [amount, setAmount] = useState("");
-  const [bidError, setBidError] = useState<string | null>(null);
 
   const knownToken = getListableTokens().find((t) => normalizeAddress("STARKNET", t.address) === normalizeAddress("STARKNET", paymentToken));
   const decimals = knownToken?.decimals ?? 18;
   const minAmountDisplay = `${Number((BigInt(minAmount) * 10000n) / BigInt(10 ** decimals)) / 10000} ${knownToken?.symbol ?? "tokens"}`;
 
   const handleBid = () => {
-    if (!hasWallet || !walletAddress) {
-      setBidError("Secure your account first to place a bid.");
-      return;
-    }
-    if (!amount || Number(amount) <= 0) {
-      setBidError("Enter a bid amount.");
-      return;
-    }
-    setBidError(null);
+    if (!hasWallet || !walletAddress) return;
     void action.run(async (signer) => {
       const amountBigInt = BigInt(Math.round(Number(amount) * 10 ** decimals));
       const intentRes = await client.api.placeSponsorshipBidIntent({
@@ -63,12 +54,14 @@ export function SponsorshipBidButton({ offerId, minAmount, paymentToken, onBidPl
     <>
       <div className="flex gap-2">
         <Input type="number" min={0} step="0.01" placeholder={`Min ${minAmountDisplay}`} value={amount} onChange={(e) => setAmount(e.target.value)} />
-        <Button size="sm" className="bg-brand-rose hover:brightness-110 text-white gap-1.5" onClick={handleBid} disabled={busy}>
+        <Button size="sm" className="bg-brand-rose hover:brightness-110 text-white gap-1.5" onClick={handleBid} disabled={busy || !hasWallet || !walletAddress || !amount || Number(amount) <= 0}>
           {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Handshake className="h-3.5 w-3.5" />}
           Bid
         </Button>
       </div>
-      {bidError && <p role="alert" className="text-xs text-destructive">{bidError}</p>}
+      {!hasWallet && (
+        <p className="text-xs text-muted-foreground">Secure your account first to place a bid.</p>
+      )}
 
       <Dialog open={action.status === "success" || action.status === "error"} onOpenChange={(open) => { if (!open) action.reset(); }}>
         <DialogContent className="max-w-[calc(100%-6px)] sm:max-w-md p-0 overflow-hidden gap-0 rounded-2xl">

@@ -32,7 +32,6 @@ const API_BASE = "/api/proxy";
 const PAYMENT_TOKENS = getListableTokens().map((t) => ({ symbol: t.symbol, address: t.address }));
 
 export default function CreateDropPage() {
-  const [formError, setFormError] = useState<string | null>(null);
   const [gatedWarning, setGatedWarning] = useState<string | null>(null);
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
   const { getValidToken, signIn } = useSiwsToken();
@@ -177,8 +176,8 @@ export default function CreateDropPage() {
   };
 
   const onSubmit = (values: DropCreateFormValues) => {
-    if (items.length === 0) { setFormError("Add at least one item before launching."); return; }
-    setFormError(null);
+    if (items.length === 0) { form.setError("root", { message: "Add at least one item before launching." }); return; }
+    form.clearErrors("root");
     setPendingValues(values);
     void action.run((signer) => handleUnlocked(values, signer));
   };
@@ -349,7 +348,9 @@ export default function CreateDropPage() {
       >
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-            {formError && <p role="alert" className="text-sm text-destructive">{formError}</p>}
+            {form.formState.errors.root && (
+              <p role="alert" className="text-sm text-destructive">{form.formState.errors.root.message}</p>
+            )}
             <DropCreateForm
               form={form}
               imagePreview={imagePreview}
