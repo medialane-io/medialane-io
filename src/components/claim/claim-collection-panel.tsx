@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
 type Step = "input" | "verifying" | "success" | "manual" | "pending";
@@ -29,6 +28,7 @@ export function ClaimCollectionPanel({
   const [email, setEmail] = useState("");
   const [notes, setNotes] = useState("");
   const [step, setStep] = useState<Step>("input");
+  const [panelError, setPanelError] = useState<string | null>(null);
   const [verifyError, setVerifyError] = useState("");
   const [claimedCollection, setClaimedCollection] = useState<{
     contractAddress: string;
@@ -37,9 +37,10 @@ export function ClaimCollectionPanel({
 
   async function handleAutoClaim() {
     if (!contractAddress.trim() || !walletAddress) {
-      toast.error("Secure your account first");
+      setPanelError("Secure your account first, then try again.");
       return;
     }
+    setPanelError(null);
     setStep("verifying");
     try {
       const token = getValidToken() ?? (await signIn());
@@ -65,7 +66,8 @@ export function ClaimCollectionPanel({
   }
 
   async function handleManualRequest() {
-    if (!email.trim()) { toast.error("Email is required"); return; }
+    if (!email.trim()) { setPanelError("Add your email so we can reply."); return; }
+    setPanelError(null);
     try {
       await getMedialaneClient().api.requestCollectionClaim({
         contractAddress: contractAddress.trim(),
@@ -74,8 +76,9 @@ export function ClaimCollectionPanel({
         notes: notes.trim() || undefined,
       });
       setStep("pending");
-    } catch {
-      toast.error("Failed to submit request");
+    } catch (err) {
+      console.error("collection claim request failed", err);
+      setPanelError("We couldn't send your request. Please try again.");
     }
   }
 
@@ -141,6 +144,7 @@ export function ClaimCollectionPanel({
               <p className="text-xs text-muted-foreground">{helperText ?? DEFAULT_HELPER_TEXT}</p>
             )}
           </div>
+          {panelError && <p role="alert" className="text-sm text-destructive">{panelError}</p>}
           <Button
             onClick={handleAutoClaim}
             disabled={step === "verifying" || !isValidAddress(contractAddress)}
@@ -183,6 +187,7 @@ export function ClaimCollectionPanel({
                 placeholder="e.g. I deployed this contract on Starknet mainnet…"
               />
             </div>
+            {panelError && <p role="alert" className="text-sm text-destructive">{panelError}</p>}
             <div className="flex gap-3">
               <Button onClick={handleManualRequest} className="flex-1">Submit Request</Button>
               <Button variant="outline" onClick={() => setStep("input")}>Back</Button>

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { toast } from "sonner";
 import { Loader2, Handshake } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +28,7 @@ export function SponsorshipBidButton({ offerId, minAmount, paymentToken, onBidPl
   const action = useWalletWriteAction();
   const busy = action.status === "processing" || action.status === "confirming";
   const [amount, setAmount] = useState("");
+  const [bidError, setBidError] = useState<string | null>(null);
 
   const knownToken = getListableTokens().find((t) => normalizeAddress("STARKNET", t.address) === normalizeAddress("STARKNET", paymentToken));
   const decimals = knownToken?.decimals ?? 18;
@@ -36,13 +36,14 @@ export function SponsorshipBidButton({ offerId, minAmount, paymentToken, onBidPl
 
   const handleBid = () => {
     if (!hasWallet || !walletAddress) {
-      toast.error("Secure your account to place a bid");
+      setBidError("Secure your account first to place a bid.");
       return;
     }
     if (!amount || Number(amount) <= 0) {
-      toast.error("Enter a bid amount");
+      setBidError("Enter a bid amount.");
       return;
     }
+    setBidError(null);
     void action.run(async (signer) => {
       const amountBigInt = BigInt(Math.round(Number(amount) * 10 ** decimals));
       const intentRes = await client.api.placeSponsorshipBidIntent({
@@ -67,6 +68,7 @@ export function SponsorshipBidButton({ offerId, minAmount, paymentToken, onBidPl
           Bid
         </Button>
       </div>
+      {bidError && <p role="alert" className="text-xs text-destructive">{bidError}</p>}
 
       <Dialog open={action.status === "success" || action.status === "error"} onOpenChange={(open) => { if (!open) action.reset(); }}>
         <DialogContent className="max-w-[calc(100%-6px)] sm:max-w-md p-0 overflow-hidden gap-0 rounded-2xl">

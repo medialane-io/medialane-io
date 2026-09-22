@@ -7,7 +7,6 @@ import { Package, CheckCircle2 } from "lucide-react";
 import { Form } from "@/components/ui/form";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { toast } from "sonner";
 import { getListableTokens } from "@medialane/sdk";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { starknetProvider } from "@/lib/starknet";
@@ -33,6 +32,8 @@ const API_BASE = "/api/proxy";
 const PAYMENT_TOKENS = getListableTokens().map((t) => ({ symbol: t.symbol, address: t.address }));
 
 export default function CreateDropPage() {
+  const [formError, setFormError] = useState<string | null>(null);
+  const [gatedWarning, setGatedWarning] = useState<string | null>(null);
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
   const { getValidToken, signIn } = useSiwsToken();
   const action = useWalletWriteAction();
@@ -176,7 +177,8 @@ export default function CreateDropPage() {
   };
 
   const onSubmit = (values: DropCreateFormValues) => {
-    if (items.length === 0) { toast.error("Add at least one item"); return; }
+    if (items.length === 0) { setFormError("Add at least one item before launching."); return; }
+    setFormError(null);
     setPendingValues(values);
     void action.run((signer) => handleUnlocked(values, signer));
   };
@@ -264,8 +266,9 @@ export default function CreateDropPage() {
             gatedContentUrl: pendingValues.gatedContentUrl || null,
             gatedContentType: (pendingValues.gatedContentType || null) as "VIDEO" | "STREAM" | "AUDIO" | "DOCUMENT" | "LINK" | null,
           }, siwsToken);
-        } catch {
-          toast.error("Drop launched, but exclusive content couldn't be saved — set it up from Manage.");
+        } catch (err) {
+          console.error("gated content save failed", err);
+          setGatedWarning("Your drop launched, but the exclusive content wasn't saved. You can add it from Manage.");
         }
       }
     }
@@ -290,7 +293,7 @@ export default function CreateDropPage() {
         iconClassName="text-brand-orange"
         actionClassName="bg-brand-orange hover:brightness-110 text-white"
         title="Drop launched"
-        description="Your Collection Drop is live onchain. It will appear in the launchpad within a minute once indexed."
+        description={gatedWarning ?? "Your Collection Drop is live onchain. It will appear in the launchpad within a minute once indexed."}
         backHref="/launchpad/drop"
         backLabel="Back to Drops"
         actionLabel="Launch another"
@@ -346,6 +349,7 @@ export default function CreateDropPage() {
       >
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+            {formError && <p role="alert" className="text-sm text-destructive">{formError}</p>}
             <DropCreateForm
               form={form}
               imagePreview={imagePreview}

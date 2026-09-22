@@ -1,7 +1,7 @@
 "use client";
 
 import { ThemeProvider } from "next-themes";
-import { Toaster, toast } from "sonner";
+import { Toaster } from "sonner";
 import Link from "next/link";
 import { MedialaneLogo } from "@/components/brand/medialane-logo";
 import { SWRConfig } from "swr";
@@ -24,17 +24,6 @@ import { resolveTokenImage } from "@/lib/utils";
 import { walletConsent } from "@/lib/wallet/client";
 
 const GA_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID;
-
-const TECHNICAL_ERROR_RE =
-  /\bRPC:|starknet_|-3\d{4}\b|\bunauthorized\b|execution error|\bfelt\b|\bcalldata\b|entry_point|0x[0-9a-f]{6}|[{}]/i;
-
-function toFriendlyToastMessage(err: unknown): string {
-  const FALLBACK = "Something went wrong. Please try again in a moment.";
-  if (!(err instanceof Error) || !err.message) return FALLBACK;
-  const msg = err.message.trim();
-  if (msg.length > 140 || TECHNICAL_ERROR_RE.test(msg)) return FALLBACK;
-  return msg;
-}
 
 function StandaloneShell({ children }: { children: React.ReactNode }) {
   return (
@@ -122,7 +111,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
             if (err instanceof WalletNotDeployedError) return;
 
-            toast.error(toFriendlyToastMessage(err));
+            console.error("request failed", err);
           },
         }}
       >

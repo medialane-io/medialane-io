@@ -1,6 +1,6 @@
 "use client";
 
-import { toast } from "sonner";
+import { useState } from "react";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -30,10 +30,11 @@ export function SponsorshipAcceptButton({ offerId, sponsor, paymentToken, amount
   const client = useMedialaneClient();
   const action = useWalletWriteAction();
   const busy = action.status === "processing" || action.status === "confirming";
+  const [gateError, setGateError] = useState<string | null>(null);
 
   const handleAccept = () => {
     if (!hasWallet || !walletAddress) {
-      toast.error("Secure your account to accept this bid");
+      setGateError("Secure your account first to accept this bid.");
       return;
     }
     void action.run(async (signer) => {
@@ -66,6 +67,7 @@ export function SponsorshipAcceptButton({ offerId, sponsor, paymentToken, amount
         {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
         Accept
       </Button>
+      {gateError && <p role="alert" className="text-xs text-destructive">{gateError}</p>}
 
       <Dialog open={action.status === "success" || action.status === "error"} onOpenChange={(open) => { if (!open) action.reset(); }}>
         <DialogContent className="max-w-[calc(100%-6px)] sm:max-w-md p-0 overflow-hidden gap-0 rounded-2xl">

@@ -25,7 +25,6 @@ import { pinSponsorshipTerms } from "@/lib/launchpad-metadata";
 import { useSiwsToken } from "@/hooks/use-siws-token";
 import { resolveTokenImage } from "@/lib/utils";
 import { usePendingProposalsForAsset } from "@/hooks/use-sponsorship";
-import { toast } from "sonner";
 import type { Call } from "starknet";
 
 const LISTABLE_TOKENS = SUPPORTED_TOKENS.filter((t) => t.listable);
@@ -116,6 +115,7 @@ function PendingProposalsPanel({ nftContract }: { nftContract: string }) {
 type Mode = "offer" | "propose";
 
 export default function CreateSponsorshipOfferPage() {
+  const [formError, setFormError] = useState<string | null>(null);
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
   const { getValidToken, signIn } = useSiwsToken();
   const client = useMedialaneClient();
@@ -151,16 +151,17 @@ export default function CreateSponsorshipOfferPage() {
   const tokenId = mode === "offer" ? selectedAsset?.tokenId : proposeAsset?.tokenId;
 
   const onSubmit = () => {
-    if (!walletAddress) { toast.error("Account not ready. Please refresh and try again."); return; }
+    setFormError(null);
+    if (!walletAddress) { setFormError("Your account isn't ready yet. Refresh the page and try again."); return; }
     if (!nftContract || !tokenId) {
-      toast.error(mode === "offer" ? "Choose which asset you're offering" : "Search for the asset you want to sponsor and pick it");
+      setFormError(mode === "offer" ? "Choose which asset you're offering." : "Search for the asset you want to sponsor, then pick it.");
       return;
     }
-    if (!terms.amount || Number(terms.amount) <= 0) { toast.error("Add an amount before continuing"); return; }
+    if (!terms.amount || Number(terms.amount) <= 0) { setFormError("Add an amount before continuing."); return; }
     const token = getTokenBySymbol(terms.paymentTokenSymbol);
-    if (!token) { toast.error("Pick a currency"); return; }
+    if (!token) { setFormError("Pick a currency."); return; }
     const durationDays = toDurationDays(terms);
-    if (!durationDays) { toast.error("How long should the license last?"); return; }
+    if (!durationDays) { setFormError("Choose how long the license should last."); return; }
 
     void action.run(async (signer) => {
       const siwsToken = getValidToken() ?? (await signIn());
@@ -260,6 +261,10 @@ export default function CreateSponsorshipOfferPage() {
                 disabled={busy}
               />
             </div>
+
+            {formError && (
+              <p role="alert" className="text-sm text-destructive">{formError}</p>
+            )}
 
             <div className="btn-border-animated p-[1px] rounded-2xl">
               <button
