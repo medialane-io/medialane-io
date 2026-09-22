@@ -8,7 +8,7 @@ import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { MarketplaceErrorState, MarketplaceSuccessState } from "@medialane/ui";
 import { usePopClaimStatus } from "@/hooks/use-pop";
-import { rewardToast } from "@/lib/reward-toast";
+import { RewardEarned } from "@/lib/reward-earned";
 import { EXPLORER_URL } from "@/lib/constants";
 
 interface PopClaimButtonProps {
@@ -29,7 +29,6 @@ export function PopClaimButton({ collectionAddress }: PopClaimButtonProps) {
       const result = await signer.execute([
         { contractAddress: collectionAddress, entrypoint: "claim", calldata: [] },
       ]);
-      rewardToast("claim_pop");
       return result;
     });
   };
@@ -98,6 +97,7 @@ export function PopClaimButton({ collectionAddress }: PopClaimButtonProps) {
               description="Your proof of participation is now on-chain."
               txHash={action.txHash}
               explorerUrl={EXPLORER_URL}
+              footer={<RewardEarned actionType="claim_pop" />}
               onDone={action.reset}
             />
           ) : action.status === "error" ? (

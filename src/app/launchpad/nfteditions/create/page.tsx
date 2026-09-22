@@ -24,7 +24,7 @@ import { suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { MedialaneCollectionCard } from "@medialane/ui";
 import { CreateEditionsAside } from "@/components/claim/create-editions-aside";
-import { rewardToast } from "@/lib/reward-toast";
+import { RewardEarned } from "@/lib/reward-earned";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { NftEditionsCreateForm } from "../nfteditions-create-form";
 import {
@@ -127,7 +127,6 @@ export default function CreateIP1155CollectionPage() {
         service: "mip-erc1155",
       });
       const result = await executeIntent(starknetProvider, signer, client, intentRes.data, { confirm: false });
-      rewardToast("create_collection");
 
       const addr = deployedCollectionFromReceipt(result.receipt, "mip-erc1155");
 
@@ -191,6 +190,7 @@ export default function CreateIP1155CollectionPage() {
             </Button>
           )}
         </div>
+        <RewardEarned actionType="create_collection" />
       </WalletTransactionDialog>
 
       <ClaimRouteShell

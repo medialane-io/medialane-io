@@ -24,7 +24,7 @@ import { popCreateSchema, type PopCreateFormValues } from "../pop-create-schema"
 import { LaunchpadSuccessState, LaunchpadErrorState, LaunchpadProcessingState } from "@/components/launchpad/launchpad-success-state";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { MedialaneCollectionCard } from "@medialane/ui";
-import { rewardToast } from "@/lib/reward-toast";
+import { RewardEarned } from "@/lib/reward-earned";
 import { CreatePopAside } from "@/components/claim/create-pop-aside";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 
@@ -132,7 +132,6 @@ export default function CreatePOPPage() {
     });
 
     const result = await executeIntent(starknetProvider, signer, client, intentRes.data, { confirm: false });
-    rewardToast("launch_launchpad");
     return result;
   };
 
@@ -164,7 +163,9 @@ export default function CreatePOPPage() {
         backLabel="Back to POP launchpad"
         actionLabel="Create another"
         onAction={handleCreateAnother}
-      />
+      >
+        <RewardEarned actionType="launch_launchpad" />
+      </LaunchpadSuccessState>
     );
   }
 

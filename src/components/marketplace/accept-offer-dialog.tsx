@@ -1,6 +1,7 @@
 "use client";
 
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { RewardEarned } from "@/lib/reward-earned";
 import {
   MarketplaceDialogHero,
   MarketplaceConfirmStep,
@@ -141,6 +142,7 @@ export function AcceptOfferDialog({ hook, tokenName, tokenImage, onCancelListing
             }
             txHash={txHash}
             explorerUrl={EXPLORER_URL}
+            footer={<RewardEarned actionType="offer_accepted_seller" />}
             onDone={dismiss}
           />
         ) : status === "error" ? (

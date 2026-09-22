@@ -2,7 +2,7 @@
 
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
-import { rewardToast } from "@/lib/reward-toast";
+import { RewardEarned } from "@/lib/reward-earned";
 import { useState, useRef, useEffect, useCallback } from "react";
 import NextImage from "next/image";
 import { getService } from "@medialane/sdk";
@@ -487,7 +487,6 @@ export function SingleEditionsContent() {
 
       setStatus("confirmed");
       setMintStep("success");
-      rewardToast("mint_asset");
       invalidatePortfolioCache(walletAddress);
     } catch (err: unknown) {
       const message = friendlyErrorMessage(err);
@@ -551,6 +550,7 @@ export function SingleEditionsContent() {
         txHash={txHash}
         error={mintError}
         onMintAnother={handleMintAnother}
+        successFooter={<RewardEarned actionType="mint_asset" />}
       />
 
       <ClaimRouteShell

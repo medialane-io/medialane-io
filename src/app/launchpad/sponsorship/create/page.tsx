@@ -17,7 +17,7 @@ import { AssetPicker, AssetSearchPicker, LicenseTermsBuilder, EMPTY_SPONSORSHIP_
 import { apiFetch } from "@/lib/api-fetch";
 import { getTokenBySymbol, SUPPORTED_TOKENS } from "@medialane/sdk";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
-import { rewardToast } from "@/lib/reward-toast";
+import { RewardEarned } from "@/lib/reward-earned";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { Handshake as HandshakeAsideIcon, ShieldCheck, Coins, Gift } from "lucide-react";
 import { ClaimRail } from "@/components/claim/claim-rail";
@@ -185,7 +185,6 @@ export default function CreateSponsorshipOfferPage() {
           });
 
       const result = await executeIntent(starknetProvider, signer, client, intentRes.data, { confirm: false });
-      if (mode === "offer") rewardToast("create_sponsorship_offer");
       return result;
     });
   };
@@ -306,6 +305,7 @@ export default function CreateSponsorshipOfferPage() {
                     : "The asset's owner can now accept or decline your proposal."}
                 </DialogDescription>
               </div>
+              {mode === "offer" && <RewardEarned actionType="create_sponsorship_offer" />}
               <div className="flex flex-col sm:flex-row gap-2">
                 <Button asChild variant="outline" className="flex-1">
                   <Link href="/launchpad/sponsorship">Back to Sponsorship launchpad</Link>

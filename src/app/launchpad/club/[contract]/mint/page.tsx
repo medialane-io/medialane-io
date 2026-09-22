@@ -27,7 +27,7 @@ import { useCollection } from "@/hooks/use-collections";
 import { predictNextMembershipId } from "@/hooks/use-club";
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
-import { rewardToast } from "@/lib/reward-toast";
+import { RewardEarned } from "@/lib/reward-earned";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { executeIntents } from "@medialane/sdk/starknet";
 import { starknetProvider } from "@/lib/starknet";
@@ -207,8 +207,6 @@ export default function CreateMembershipPage({ params }: { params: Promise<{ con
     });
 
     const mintResult = await executeIntents(starknetProvider, signer, client, [tierRes.data, mintRes.data]);
-
-    rewardToast("launch_launchpad");
     return mintResult;
   };
 
@@ -282,6 +280,7 @@ export default function CreateMembershipPage({ params }: { params: Promise<{ con
             </Button>
           )}
         </div>
+        <RewardEarned actionType="launch_launchpad" />
       </WalletTransactionDialog>
 
       <ClaimRouteShell

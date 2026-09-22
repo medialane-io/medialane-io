@@ -22,7 +22,7 @@ import { uploadDocumentToIpfs } from "@/lib/upload-document";
 import type { MetadataField } from "@/components/create/ip-type-fields";
 import { LaunchpadSuccessState, LaunchpadErrorState, LaunchpadProcessingState } from "@/components/launchpad/launchpad-success-state";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
-import { rewardToast } from "@/lib/reward-toast";
+import { RewardEarned } from "@/lib/reward-earned";
 import { CreateDropAside } from "@/components/claim/create-drop-aside";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { friendlyErrorMessage } from "@/lib/friendly-error";
@@ -242,7 +242,6 @@ export default function CreateDropPage() {
       conditions,
     });
     const result = await executeIntent(starknetProvider, signer, client, intentRes.data, { confirm: false });
-    rewardToast("launch_launchpad");
 
     if (whitelist.length > 0) {
       const dropAddress = deployedCollectionFromReceipt(result.receipt, "drop-collection");
@@ -297,7 +296,9 @@ export default function CreateDropPage() {
         backLabel="Back to Drops"
         actionLabel="Launch another"
         onAction={handleLaunchAnother}
-      />
+      >
+        <RewardEarned actionType="launch_launchpad" />
+      </LaunchpadSuccessState>
     );
   }
 

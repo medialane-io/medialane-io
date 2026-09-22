@@ -28,7 +28,7 @@ import { useCollectionProfile } from "@/hooks/use-profiles";
 import { predictNextTicketId } from "@/hooks/use-tickets";
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
-import { rewardToast } from "@/lib/reward-toast";
+import { RewardEarned } from "@/lib/reward-earned";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { executeIntents } from "@medialane/sdk/starknet";
 import { starknetProvider } from "@/lib/starknet";
@@ -218,8 +218,6 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
     });
 
     const mintResult = await executeIntents(starknetProvider, signer, client, [tierRes.data, mintRes.data]);
-
-    rewardToast("launch_launchpad");
     return mintResult;
   };
 
@@ -293,6 +291,7 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
             </Button>
           )}
         </div>
+        <RewardEarned actionType="launch_launchpad" />
       </WalletTransactionDialog>
 
       <ClaimRouteShell

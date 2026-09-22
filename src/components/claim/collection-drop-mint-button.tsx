@@ -12,7 +12,7 @@ import { useDropMintStatus, type DropConditions } from "@/hooks/use-drops";
 import { getListableTokens, normalizeAddress } from "@medialane/sdk";
 import { buildFeeCall, type StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { feeConfig } from "@/lib/fee";
-import { rewardToast } from "@/lib/reward-toast";
+import { RewardEarned } from "@/lib/reward-earned";
 
 interface CollectionDropMintButtonProps {
   collectionAddress: string;
@@ -110,7 +110,6 @@ export function CollectionDropMintButton({
     }
 
     const result = await signer.execute(calls);
-    rewardToast("claim_drop");
     return result;
   };
 
@@ -181,6 +180,7 @@ export function CollectionDropMintButton({
               description="Your drop token is now on-chain."
               txHash={action.txHash}
               explorerUrl={EXPLORER_URL}
+              footer={<RewardEarned actionType="claim_drop" />}
               onDone={action.reset}
             />
           ) : action.status === "error" ? (

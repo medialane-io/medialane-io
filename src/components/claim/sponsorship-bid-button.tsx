@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { MarketplaceErrorState, MarketplaceSuccessState } from "@medialane/ui";
-import { rewardToast } from "@/lib/reward-toast";
+import { RewardEarned } from "@/lib/reward-earned";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
@@ -45,7 +45,6 @@ export function SponsorshipBidButton({ offerId, minAmount, paymentToken, onBidPl
       });
       const result = await executeIntent(starknetProvider, signer, client, intentRes.data);
       onBidPlaced?.();
-      rewardToast("place_sponsorship_bid");
       return result;
     });
   };
@@ -68,7 +67,7 @@ export function SponsorshipBidButton({ offerId, minAmount, paymentToken, onBidPl
           <DialogTitle className="sr-only">{action.status === "success" ? "Bid placed" : "Bid failed"}</DialogTitle>
           <DialogDescription className="sr-only">Review the result of your sponsorship bid transaction.</DialogDescription>
           {action.status === "success" ? (
-            <MarketplaceSuccessState name="Bid" title="Bid placed!" description="Your sponsorship bid is now on-chain." txHash={action.txHash} explorerUrl={EXPLORER_URL} onDone={action.reset} />
+            <MarketplaceSuccessState name="Bid" title="Bid placed!" description="Your sponsorship bid is now on-chain." txHash={action.txHash} explorerUrl={EXPLORER_URL} footer={<RewardEarned actionType="place_sponsorship_bid" />} onDone={action.reset} />
           ) : action.status === "error" ? (
             <MarketplaceErrorState name="Bid" title="Bid failed" description="Placing your bid could not be completed." error={action.error ?? undefined} txHash={action.txHash} explorerUrl={EXPLORER_URL} onDone={action.reset} />
           ) : null}

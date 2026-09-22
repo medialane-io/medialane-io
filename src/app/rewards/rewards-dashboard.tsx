@@ -10,7 +10,7 @@ import type { ApiRewardsBadge } from "@medialane/sdk";
 import {
   LevelBadge,
   LevelUpCelebration,
-  BadgeUnlockToastContent,
+  BadgeUnlocked,
   useRewardsCelebrations,
 } from "@medialane/ui";
 import {
@@ -368,7 +368,7 @@ export function RewardsDashboard() {
       {unlockedBadges.length > 0 && (
         <div className="space-y-3">
           {unlockedBadges.map((badge) => (
-            <BadgeUnlockToastContent key={badge.key} badge={badge} />
+            <BadgeUnlocked key={badge.key} badge={badge} />
           ))}
         </div>
       )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import Image from "next/image";
 import { fireConfetti } from "@/lib/confetti";
 import {
@@ -38,6 +38,7 @@ interface MintProgressDialogProps {
   explorerAssetHref?: string | null;
   listingStep?: ListingStep;
   listingError?: string | null;
+  successFooter?: ReactNode;
 }
 
 const MINT_STEPS = [
@@ -73,6 +74,7 @@ export function MintProgressDialog({
   explorerAssetHref,
   listingStep = "idle",
   listingError,
+  successFooter,
 }: MintProgressDialogProps) {
   const router = useRouter();
   const confettiFired = useRef(false);
@@ -366,6 +368,7 @@ export function MintProgressDialog({
                 View portfolio
               </Button>
             </div>
+            {successFooter}
           </div>
         )}
 
