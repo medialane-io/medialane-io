@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
@@ -43,6 +42,30 @@ export function walletStepLabel(step: OnboardingStep): string {
   return "Creating passkey…";
 }
 
+const BRAVE_UNSUPPORTED = "Brave can't create passkeys yet. Open medialane.io in Safari or Chrome to join.";
+const BROWSER_UNSUPPORTED = "This browser can't create passkeys yet. Open medialane.io in Safari or Chrome to join.";
+const GENERIC_FAILURE = "We couldn't finish setting up your account. Please try again.";
+
+export interface WalletFailureNotice {
+  message: string;
+  canRetry: boolean;
+}
+
+export function passkeysUnavailableMessage(): string {
+  return BRAVE_UNSUPPORTED;
+}
+
+export function describeWalletFailure(err: unknown): WalletFailureNotice {
+  const raw = err instanceof Error ? err.message : "";
+  if (/brave/i.test(raw)) return { message: BRAVE_UNSUPPORTED, canRetry: false };
+  if (/PRF/.test(raw)) return { message: BROWSER_UNSUPPORTED, canRetry: false };
+  return { message: GENERIC_FAILURE, canRetry: true };
+}
+
+export function browserLacksPasskeys(): boolean {
+  return typeof navigator !== "undefined" && "brave" in navigator;
+}
+
 export interface OnboardingFlowProps {
   start?: "email" | "wallet";
   onDone?: () => void;
@@ -56,6 +79,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
   const [code, setCode] = useState("");
   const [resendCooldown, setResendCooldown] = useState(0);
   const [resending, setResending] = useState(false);
+  const [canRetry, setCanRetry] = useState(true);
   const [addEmailInput, setAddEmailInput] = useState("");
   const [addEmailSaving, setAddEmailSaving] = useState(false);
   const accountExistedRef = useRef(false);
@@ -65,8 +89,12 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
   const emailStatus = useEmailVerificationStatus();
   const { getValidToken, signIn } = useSiwsToken();
   const [mounted, setMounted] = useState(false);
+  const [unsupported, setUnsupported] = useState(false);
 
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    setMounted(true);
+    setUnsupported(browserLacksPasskeys());
+  }, []);
 
   useEffect(() => {
     if (resendCooldown === 0) return;
@@ -81,6 +109,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
 
   const runWalletSetup = useCallback(async () => {
     setError(null);
+    setCanRetry(true);
     setStep("creating-passkey");
     try {
       const { siwsToken } = await mediaWallet.completeDeployment((s) => setStep(s as OnboardingStep));
@@ -96,9 +125,10 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
         setStep("email");
         return;
       }
-      const message = err instanceof Error ? err.message : "Something went wrong.";
-      toast.error(`We couldn't finish setting up your account: ${message}`);
-      setError(message);
+      console.error("wallet setup failed", err);
+      const notice = describeWalletFailure(err);
+      setError(notice.message);
+      setCanRetry(notice.canRetry);
       setStep("creating-passkey");
     }
   }, [finish]);
@@ -224,7 +254,6 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
       if (!token) throw new Error("Not authenticated");
       await getMedialaneClient().api.changeMyEmail(value, token);
       saveAccountEmail(value);
-      toast.success("Email added to your account");
       finish();
     } catch (err) {
       setError(friendlyErrorMessage(err, "Couldn't save your email. Please try again."));
@@ -254,18 +283,22 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
       <div className="w-full space-y-3">
         {errorBanner}
         {error ? (
-          <Button onClick={() => void runWalletSetup()} size="lg" className="w-full">
-            Try again
-          </Button>
+          canRetry ? (
+            <Button onClick={() => void runWalletSetup()} size="lg" className="w-full">
+              Try again
+            </Button>
+          ) : null
         ) : (
           <div className="flex w-full items-center gap-2 py-2.5 text-sm text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" />
             {walletStepLabel(step)}
           </div>
         )}
-        <p className="text-xs text-muted-foreground">
-          Use your passkey, Face ID or Touch ID to secure your account.
-        </p>
+        {error ? null : (
+          <p className="text-xs text-muted-foreground">
+            Use your passkey, Face ID or Touch ID to secure your account.
+          </p>
+        )}
       </div>
     );
   }
@@ -351,6 +384,15 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
   }
 
   const busy = step === "checking-email" || step === "registering";
+
+  if (unsupported) {
+    return (
+      <Alert variant="destructive" className="w-full">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>{passkeysUnavailableMessage()}</AlertDescription>
+      </Alert>
+    );
+  }
 
   return (
     <div className="w-full space-y-3">
