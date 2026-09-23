@@ -18,7 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { LevelBadge } from "@medialane/ui";
 import { useRewardsBatch } from "@/hooks/use-rewards";
-import { rewardToast } from "@/lib/reward-toast";
+import { RewardEarned } from "@/lib/reward-earned";
 import { STARKNET_NFTCOMMENTS_CONTRACT, EXPLORER_URL } from "@/lib/constants";
 import { MessageCircle, Loader2, Send, CheckCircle, X, ExternalLink, Flag, Zap } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -108,7 +108,6 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
 
     setText("");
     if (composeRef.current) composeRef.current.style.height = "auto";
-    rewardToast("comment");
     return result;
   };
 
@@ -378,6 +377,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
                 <p className="text-sm text-center text-muted-foreground">
                   Your comment is onchain and will appear here once indexed (~30s).
                 </p>
+                <RewardEarned actionType="comment" />
                 {action.txHash && (
                   <a
                     href={`${EXPLORER_URL}/tx/${action.txHash}`}

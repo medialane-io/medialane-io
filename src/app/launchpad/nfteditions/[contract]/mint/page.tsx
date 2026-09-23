@@ -25,7 +25,7 @@ import { executeIntent, mintedTokenIdFromReceipt } from "@medialane/sdk/starknet
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { MedialaneCollectionCard } from "@medialane/ui";
 import { MintEditionAside } from "@/components/claim/mint-edition-aside";
-import { rewardToast } from "@/lib/reward-toast";
+import { RewardEarned } from "@/lib/reward-earned";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 import { EXPLORER_URL } from "@/lib/constants";
@@ -163,7 +163,6 @@ export default function MintIP1155Page() {
     if (!editionId) throw new Error("Minted, but could not read the assigned token id from the receipt");
     setMintedTokenId(editionId);
     if (walletAddress) invalidatePortfolioCache(walletAddress);
-    rewardToast("mint_asset");
     return result;
   };
 
@@ -308,6 +307,7 @@ export default function MintIP1155Page() {
             View on explorer
           </a>
         )}
+        <RewardEarned actionType="mint_asset" />
       </WalletTransactionDialog>
     </>
   );

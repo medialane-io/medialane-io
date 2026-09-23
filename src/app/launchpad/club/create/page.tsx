@@ -26,7 +26,7 @@ import { collectionHref } from "@/lib/routes";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { MedialaneCollectionCard } from "@medialane/ui";
 import { CreateClubAside } from "@/components/claim/create-club-aside";
-import { rewardToast } from "@/lib/reward-toast";
+import { RewardEarned } from "@/lib/reward-earned";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
@@ -98,7 +98,6 @@ export default function CreateClubPage() {
       service: "ip-club",
     });
     const result = await executeIntent(starknetProvider, signer, client, intentRes.data, { confirm: false });
-    rewardToast("create_club");
 
     const addr = deployedCollectionFromReceipt(result.receipt, "ip-club");
 
@@ -147,6 +146,7 @@ export default function CreateClubPage() {
             </Button>
           )}
         </div>
+        <RewardEarned actionType="create_club" />
       </WalletTransactionDialog>
 
       <ClaimRouteShell

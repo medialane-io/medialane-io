@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
 import Link from "next/link";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useWallet } from "@/hooks/use-wallet";
@@ -12,7 +10,7 @@ import type { ApiRewardsBadge } from "@medialane/sdk";
 import {
   LevelBadge,
   LevelUpCelebration,
-  BadgeUnlockToastContent,
+  BadgeUnlocked,
   useRewardsCelebrations,
 } from "@medialane/ui";
 import {
@@ -361,16 +359,20 @@ export function RewardsDashboard() {
   const { data: rewards } = useRewards(address);
   const { leveledUpTo, newBadgeKeys, dismiss } = useRewardsCelebrations(address, rewards ?? null);
 
-  useEffect(() => {
-    if (newBadgeKeys.length === 0 || !rewards) return;
-    for (const key of newBadgeKeys) {
-      const badge = rewards.badges.find((b) => b.key === key);
-      if (badge) toast(<BadgeUnlockToastContent badge={badge} />, { duration: 4500 });
-    }
-  }, [newBadgeKeys, rewards]);
+  const unlockedBadges = rewards
+    ? newBadgeKeys.map((key) => rewards.badges.find((b) => b.key === key)).filter((b) => b !== undefined)
+    : [];
 
   return (
     <div className="space-y-14">
+      {unlockedBadges.length > 0 && (
+        <div className="space-y-3">
+          {unlockedBadges.map((badge) => (
+            <BadgeUnlocked key={badge.key} badge={badge} />
+          ))}
+        </div>
+      )}
+
       {leveledUpTo !== null && rewards && (
         <LevelUpCelebration
           level={leveledUpTo}

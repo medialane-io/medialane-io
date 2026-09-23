@@ -10,7 +10,7 @@ import {
   CheckCircle2, ShieldCheck,
 } from "lucide-react";
 import { fireConfetti } from "@/lib/confetti";
-import { rewardToast } from "@/lib/reward-toast";
+import { RewardEarned } from "@/lib/reward-earned";
 import { assetHref as buildAssetHref } from "@/lib/routes";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -234,7 +234,6 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
     setSuccessTxHash(hash ?? null);
     setStep("success");
     fireConfetti();
-    rewardToast("buy_asset");
   };
 
   const {
@@ -323,13 +322,16 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
           </DialogDescription>
 
           {step === "success" ? (
-            <SuccessScreen
-              order={order}
-              quantity={quantity}
-              txHash={successTxHash ?? txHash}
-              onClose={() => { onOpenChange(false); onSuccess?.(); }}
-              onViewPortfolio={() => { onOpenChange(false); router.push("/portfolio/assets"); }}
-            />
+            <>
+              <SuccessScreen
+                order={order}
+                quantity={quantity}
+                txHash={successTxHash ?? txHash}
+                onClose={() => { onOpenChange(false); onSuccess?.(); }}
+                onViewPortfolio={() => { onOpenChange(false); router.push("/portfolio/assets"); }}
+              />
+              <div className="px-6 pb-6"><RewardEarned actionType="buy_asset" /></div>
+            </>
 
           ) : isTerminalError ? (
             <MarketplaceErrorState

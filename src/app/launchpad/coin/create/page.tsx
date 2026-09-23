@@ -21,6 +21,7 @@ import { ClaimBackButton } from "@/components/claim/claim-back-button";
 import { ServiceFormShell, GradientButton, CurrencyIcon, CurrencyAmount } from "@medialane/ui";
 import { CreateCoinAside } from "@/components/claim/create-coin-aside";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
+import { RewardEarned } from "@/lib/reward-earned";
 import {
   LaunchpadSuccessState,
   LaunchpadProcessingState,
@@ -212,6 +213,7 @@ export default function CoinCreatePage() {
             </a>
           </Button>
         </div>
+        <RewardEarned actionType="launch_coin" />
       </LaunchpadSuccessState>
     );
   }

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
 import { Mail, ShieldCheck, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -86,7 +85,6 @@ export function EmailVerifyDialog({ open, onOpenChange, email, onVerified, skipI
       if (!res.ok) throw new Error((data as { error?: string }).error ?? "Incorrect code. Please try again.");
       await onVerified((data as { token: string }).token);
       setStep("success");
-      toast.success("Email verified");
       setTimeout(() => onOpenChange(false), 1200);
     } catch (err) {
       setError(friendlyErrorMessage(err, "Incorrect code. Please try again."));

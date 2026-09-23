@@ -17,7 +17,7 @@ import { AssetPicker, AssetSearchPicker, LicenseTermsBuilder, EMPTY_SPONSORSHIP_
 import { apiFetch } from "@/lib/api-fetch";
 import { getTokenBySymbol, SUPPORTED_TOKENS } from "@medialane/sdk";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
-import { rewardToast } from "@/lib/reward-toast";
+import { RewardEarned } from "@/lib/reward-earned";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { Handshake as HandshakeAsideIcon, ShieldCheck, Coins, Gift } from "lucide-react";
 import { ClaimRail } from "@/components/claim/claim-rail";
@@ -25,7 +25,6 @@ import { pinSponsorshipTerms } from "@/lib/launchpad-metadata";
 import { useSiwsToken } from "@/hooks/use-siws-token";
 import { resolveTokenImage } from "@/lib/utils";
 import { usePendingProposalsForAsset } from "@/hooks/use-sponsorship";
-import { toast } from "sonner";
 import type { Call } from "starknet";
 
 const LISTABLE_TOKENS = SUPPORTED_TOKENS.filter((t) => t.listable);
@@ -116,6 +115,7 @@ function PendingProposalsPanel({ nftContract }: { nftContract: string }) {
 type Mode = "offer" | "propose";
 
 export default function CreateSponsorshipOfferPage() {
+  const [formError, setFormError] = useState<string | null>(null);
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
   const { getValidToken, signIn } = useSiwsToken();
   const client = useMedialaneClient();
@@ -151,16 +151,17 @@ export default function CreateSponsorshipOfferPage() {
   const tokenId = mode === "offer" ? selectedAsset?.tokenId : proposeAsset?.tokenId;
 
   const onSubmit = () => {
-    if (!walletAddress) { toast.error("Account not ready. Please refresh and try again."); return; }
+    setFormError(null);
+    if (!walletAddress) { setFormError("Your account isn't ready yet. Refresh the page and try again."); return; }
     if (!nftContract || !tokenId) {
-      toast.error(mode === "offer" ? "Choose which asset you're offering" : "Search for the asset you want to sponsor and pick it");
+      setFormError(mode === "offer" ? "Choose which asset you're offering." : "Search for the asset you want to sponsor, then pick it.");
       return;
     }
-    if (!terms.amount || Number(terms.amount) <= 0) { toast.error("Add an amount before continuing"); return; }
+    if (!terms.amount || Number(terms.amount) <= 0) { setFormError("Add an amount before continuing."); return; }
     const token = getTokenBySymbol(terms.paymentTokenSymbol);
-    if (!token) { toast.error("Pick a currency"); return; }
+    if (!token) { setFormError("Pick a currency."); return; }
     const durationDays = toDurationDays(terms);
-    if (!durationDays) { toast.error("How long should the license last?"); return; }
+    if (!durationDays) { setFormError("Choose how long the license should last."); return; }
 
     void action.run(async (signer) => {
       const siwsToken = getValidToken() ?? (await signIn());
@@ -184,7 +185,6 @@ export default function CreateSponsorshipOfferPage() {
           });
 
       const result = await executeIntent(starknetProvider, signer, client, intentRes.data, { confirm: false });
-      if (mode === "offer") rewardToast("create_sponsorship_offer");
       return result;
     });
   };
@@ -261,6 +261,10 @@ export default function CreateSponsorshipOfferPage() {
               />
             </div>
 
+            {formError && (
+              <p role="alert" className="text-sm text-destructive">{formError}</p>
+            )}
+
             <div className="btn-border-animated p-[1px] rounded-2xl">
               <button
                 type="button"
@@ -301,6 +305,7 @@ export default function CreateSponsorshipOfferPage() {
                     : "The asset's owner can now accept or decline your proposal."}
                 </DialogDescription>
               </div>
+              {mode === "offer" && <RewardEarned actionType="create_sponsorship_offer" />}
               <div className="flex flex-col sm:flex-row gap-2">
                 <Button asChild variant="outline" className="flex-1">
                   <Link href="/launchpad/sponsorship">Back to Sponsorship launchpad</Link>

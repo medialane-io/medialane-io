@@ -9,7 +9,6 @@ if (!GlobalRegistrator.isRegistered) GlobalRegistrator.register();
 
 const FACTORY = getStarknetCoordinates("STARKNET").creatorCoinFactory!;
 
-mock.module("@/lib/reward-toast", () => ({ rewardToast: () => {} }));
 
 function fakeClient(overrides: Record<string, unknown> = {}) {
   return {

@@ -2,7 +2,7 @@
 
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
-import { rewardToast } from "@/lib/reward-toast";
+import { RewardEarned } from "@/lib/reward-earned";
 import { useState, useRef, useEffect, useCallback } from "react";
 import NextImage from "next/image";
 import { getService } from "@medialane/sdk";
@@ -72,7 +72,6 @@ import {
   Layers,
   Check,
 } from "lucide-react";
-import { toast } from "sonner";
 import Link from "next/link";
 import type { Call } from "starknet";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
@@ -488,7 +487,6 @@ export function SingleEditionsContent() {
 
       setStatus("confirmed");
       setMintStep("success");
-      rewardToast("mint_asset");
       invalidatePortfolioCache(walletAddress);
     } catch (err: unknown) {
       const message = friendlyErrorMessage(err);
@@ -552,6 +550,7 @@ export function SingleEditionsContent() {
         txHash={txHash}
         error={mintError}
         onMintAnother={handleMintAnother}
+        successFooter={<RewardEarned actionType="mint_asset" />}
       />
 
       <ClaimRouteShell
@@ -623,15 +622,16 @@ export function SingleEditionsContent() {
                     if (!file) return;
                     const ALLOWED = ["image/jpeg", "image/png", "image/gif", "image/svg+xml", "image/webp"];
                     if (file.size > 10 * 1024 * 1024) {
-                      toast.error("File too large", { description: "Maximum file size is 10 MB." });
+                      form.setError("image", { message: "That image is over 10 MB. Please choose a smaller one." });
                       e.target.value = "";
                       return;
                     }
                     if (!ALLOWED.includes(file.type)) {
-                      toast.error("Unsupported format", { description: "Please upload a JPG, PNG, GIF, SVG, or WebP image." });
+                      form.setError("image", { message: "Please choose a JPG, PNG, GIF, SVG or WebP image." });
                       e.target.value = "";
                       return;
                     }
+                    form.clearErrors("image");
                     setImageFile(file);
                     form.setValue("image", file);
                     if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);

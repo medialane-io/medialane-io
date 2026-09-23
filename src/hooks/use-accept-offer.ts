@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useWalletMarketplaceActionFlow } from "@/hooks/use-wallet-marketplace-action-flow";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { useTokenBalance, hasSufficientBalance } from "@/hooks/use-erc20-balance";
-import { rewardToast } from "@/lib/reward-toast";
 import type { ApiOrder } from "@medialane/sdk";
 
 interface UseAcceptOfferOptions {
@@ -43,7 +42,6 @@ export function useAcceptOffer({ mutateListings, tokenStandard, activeListings =
         tokenStandard: tokenStandard ?? nftStandard,
       });
       if (!hash) throw new Error("Transaction failed — check your portfolio");
-      rewardToast("offer_accepted_seller");
       mutateListings();
     },
   });

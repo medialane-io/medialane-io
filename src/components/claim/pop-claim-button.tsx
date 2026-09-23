@@ -1,6 +1,5 @@
 "use client";
 
-import { toast } from "sonner";
 import { Loader2, CheckCircle2, Ban, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -9,7 +8,7 @@ import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { MarketplaceErrorState, MarketplaceSuccessState } from "@medialane/ui";
 import { usePopClaimStatus } from "@/hooks/use-pop";
-import { rewardToast } from "@/lib/reward-toast";
+import { RewardEarned } from "@/lib/reward-earned";
 import { EXPLORER_URL } from "@/lib/constants";
 
 interface PopClaimButtonProps {
@@ -26,15 +25,10 @@ export function PopClaimButton({ collectionAddress }: PopClaimButtonProps) {
   const busy = action.status === "processing" || action.status === "confirming";
 
   const handleClaim = () => {
-    if (!hasWallet) {
-      toast.error("Secure your account to claim your credential");
-      return;
-    }
     void action.run(async (signer) => {
       const result = await signer.execute([
         { contractAddress: collectionAddress, entrypoint: "claim", calldata: [] },
       ]);
-      rewardToast("claim_pop");
       return result;
     });
   };
@@ -76,7 +70,7 @@ export function PopClaimButton({ collectionAddress }: PopClaimButtonProps) {
         size="sm"
         className="w-full gap-1.5"
         onClick={handleClaim}
-        disabled={busy}
+        disabled={busy || !hasWallet}
       >
         {busy ? (
           <><Loader2 className="h-3.5 w-3.5 animate-spin" />Claiming…</>
@@ -84,6 +78,9 @@ export function PopClaimButton({ collectionAddress }: PopClaimButtonProps) {
           <><Award className="h-3.5 w-3.5" />Claim credential</>
         )}
       </Button>
+      {!hasWallet && (
+        <p className="mt-1.5 text-xs text-muted-foreground">Secure your account first to claim your credential.</p>
+      )}
 
       <Dialog open={action.status === "success" || action.status === "error"} onOpenChange={(open) => { if (!open) action.reset(); }}>
         <DialogContent className="max-w-[calc(100%-6px)] sm:max-w-md p-0 overflow-hidden gap-0 rounded-2xl">
@@ -100,6 +97,7 @@ export function PopClaimButton({ collectionAddress }: PopClaimButtonProps) {
               description="Your proof of participation is now on-chain."
               txHash={action.txHash}
               explorerUrl={EXPLORER_URL}
+              footer={<RewardEarned actionType="claim_pop" />}
               onDone={action.reset}
             />
           ) : action.status === "error" ? (

@@ -2,7 +2,7 @@
 
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
-import { rewardToast } from "@/lib/reward-toast";
+import { RewardEarned } from "@/lib/reward-earned";
 import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -182,7 +182,6 @@ export default function LaunchpadCreateCollectionPage() {
       throw new Error("Collection transaction completed without a transaction hash. Please refresh and check your account activity.");
     }
     invalidatePortfolioCache(walletAddress);
-    rewardToast("create_collection");
     return result;
   };
 
@@ -219,6 +218,7 @@ export default function LaunchpadCreateCollectionPage() {
             <Link href="/launchpad/single-editions">Mint an asset</Link>
           </Button>
         </div>
+        <RewardEarned actionType="create_collection" />
       </WalletTransactionDialog>
 
       <ClaimRouteShell

@@ -9,7 +9,6 @@ import Link from "next/link";
 import {
   Ticket, Loader2, ImagePlus, X, ShieldCheck, ChevronDown, AlertCircle,
 } from "lucide-react";
-import { toast } from "sonner";
 import { normalizeAddress } from "@medialane/sdk";
 
 import { Button } from "@/components/ui/button";
@@ -29,7 +28,7 @@ import { useCollectionProfile } from "@/hooks/use-profiles";
 import { predictNextTicketId } from "@/hooks/use-tickets";
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
-import { rewardToast } from "@/lib/reward-toast";
+import { RewardEarned } from "@/lib/reward-earned";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { executeIntents } from "@medialane/sdk/starknet";
 import { starknetProvider } from "@/lib/starknet";
@@ -88,6 +87,7 @@ const schema = z.object({
   aiPolicy: z.enum(["Allowed", "Not Allowed", "Training Only"]),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
+  imageUri: z.string().min(1, "Add a ticket image."),
 });
 type FormValues = z.infer<typeof schema>;
 
@@ -113,7 +113,7 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      name: "", description: "", external_url: "",
+      name: "", imageUri: "", description: "", external_url: "",
       maxSupply: "100", royalty: 2.5, licenseType: "CC BY-SA", commercialUse: "Yes",
       derivatives: "Share-Alike", attribution: "Required", geographicScope: "Worldwide", aiPolicy: "Not Allowed",
     },
@@ -131,7 +131,8 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
   const isOwner = !!address && !!collection?.owner && normalizeAddress("STARKNET", address) === normalizeAddress("STARKNET", collection.owner);
 
   const handleImageSelect = async (file: File) => {
-    if (file.size > 10 * 1024 * 1024) { toast.error("Max 10 MB"); return; }
+    if (file.size > 10 * 1024 * 1024) { form.setError("imageUri", { message: "That image is over 10 MB. Please choose a smaller one." }); return; }
+    form.clearErrors("imageUri");
     if (previewRef.current) URL.revokeObjectURL(previewRef.current);
     const url = URL.createObjectURL(file);
     previewRef.current = url;
@@ -141,17 +142,18 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
     try {
       const uri = await uploadImageToIpfs(file);
       setImageUri(uri);
-      toast.success("Image uploaded");
+      form.setValue("imageUri", uri, { shouldValidate: true });
     } catch (err) {
       if (previewRef.current) { URL.revokeObjectURL(previewRef.current); previewRef.current = null; }
       setImagePreview(null);
-      toast.error("Image upload failed", { description: friendlyErrorMessage(err) });
+      console.error("image upload failed", err);
+      form.setError("imageUri", { message: friendlyErrorMessage(err, "That image could not be uploaded. Please try again.") });
     } finally {
       setImageUploading(false);
     }
   };
 
-  const handleImageClear = () => { setImagePreview(null); setImageUri(null); };
+  const handleImageClear = () => { setImagePreview(null); setImageUri(null); form.setValue("imageUri", "", { shouldValidate: true }); };
 
   const handleReset = () => {
     action.reset();
@@ -161,7 +163,6 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
   };
 
   const onSubmit = (values: FormValues) => {
-    if (!imageUri) { toast.error("Upload a ticket image first"); return; }
     setMintedTicketId(null);
     void action.run((signer) => handleUnlocked(values, signer));
   };
@@ -217,8 +218,6 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
     });
 
     const mintResult = await executeIntents(starknetProvider, signer, client, [tierRes.data, mintRes.data]);
-
-    rewardToast("launch_launchpad");
     return mintResult;
   };
 
@@ -292,6 +291,7 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
             </Button>
           )}
         </div>
+        <RewardEarned actionType="launch_launchpad" />
       </WalletTransactionDialog>
 
       <ClaimRouteShell
@@ -339,6 +339,10 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
                 </div>
               </div>
             </div>
+
+            {form.formState.errors.imageUri && (
+              <p role="alert" className="text-sm text-destructive">{form.formState.errors.imageUri.message}</p>
+            )}
 
             <FormField control={form.control} name="name" render={({ field }) => (
               <FormItem>

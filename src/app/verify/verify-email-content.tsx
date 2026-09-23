@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { Mail, ShieldCheck, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSiwsToken } from "@/hooks/use-siws-token";
@@ -107,7 +106,6 @@ export default function VerifyEmailContent() {
       if (!token) throw new Error("Not authenticated");
       await getMedialaneClient().api.upsertMyWallet(token, { emailVerificationToken: (data as { token: string }).token });
       setStep("verified");
-      toast.success("Email verified");
     } catch (err) {
       setError(friendlyErrorMessage(err, "Incorrect code. Please try again."));
       setCode("");

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { rewardToast } from "@/lib/reward-toast";
 import type { Call } from "starknet";
 import { getTokenBySymbol, normalizeAddress } from "@medialane/sdk";
 import {
@@ -114,7 +113,6 @@ export function useLaunchCoin(deps: UseLaunchCoinDeps = {}) {
         }).catch(() => {  });
 
         setStatus("done");
-        rewardToast("launch_coin");
         return { coinAddress, txHash: launched.txHash };
       } catch (e) {
         setStatus("error");
