@@ -1,4 +1,4 @@
-import { GENERIC, UserFacingError } from "@medialane/ui";
+import { UserFacingError } from "@medialane/ui";
 import { test, expect, mock } from "bun:test";
 import { GlobalRegistrator } from "@happy-dom/global-registrator";
 import { renderHook, waitFor, act } from "@testing-library/react";
@@ -44,7 +44,7 @@ test("run reaches error status without showing raw chain text", async () => {
   });
 
   await waitFor(() => expect(result.current.status).toBe("error"));
-  expect(result.current.error).toBe(GENERIC);
+  expect(result.current.error).toBe("We couldn't complete that transaction. Please try again.");
   expect(result.current.error).not.toContain("execution reverted");
 });
 

@@ -100,7 +100,7 @@ export function MediaWalletSend({
     setConfirmOpen(true);
     estimateSendFee(address, currency.address, to.trim(), amountRaw)
       .then((f) => setFee({ raw: f.feeRaw, unit: f.unit }))
-      .catch((e) => setFeeError(describeError(e).message));
+      .catch((e) => setFeeError(describeError(e, "We couldn't estimate the network fee. Please try again.").message));
   };
 
   const send = async () => {

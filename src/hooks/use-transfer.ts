@@ -76,15 +76,15 @@ export function useTransfer(
       try {
         if (!walletAddress || !signer) throw new UserFacingError("Account not ready. Please wait a moment.");
         if (!isValidStarknetAddress(input.toAddress)) {
-          throw new Error("Invalid recipient address.");
+          throw new UserFacingError("Invalid recipient address.");
         }
         if (!isValidStarknetAddress(input.contractAddress)) {
-          throw new Error("Invalid token contract address.");
+          throw new UserFacingError("Invalid token contract address.");
         }
         const [tokenIdLow, tokenIdHigh] = encodeTokenId(input.tokenId);
 
         if (!input.tokenStandard) {
-          throw new Error("Token standard could not be determined. Please try again or contact support.");
+          throw new UserFacingError("Token standard could not be determined. Please try again or contact support.");
         }
         const isERC1155 = input.tokenStandard === "ERC1155";
         const call: Call = isERC1155

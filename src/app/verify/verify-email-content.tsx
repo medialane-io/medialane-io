@@ -102,7 +102,7 @@ export default function VerifyEmailContent() {
         body: JSON.stringify({ email, code: codeToVerify }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error((data as { error?: string }).error ?? "Incorrect code. Please try again.");
+      if (!res.ok) throw new UserFacingError((data as { error?: string }).error ?? "Incorrect code. Please try again.");
       const token = getValidToken() ?? (await signIn());
       if (!token) throw new Error("Not authenticated");
       await getMedialaneClient().api.upsertMyWallet(token, { emailVerificationToken: (data as { token: string }).token });

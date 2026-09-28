@@ -58,14 +58,14 @@ export function FastMint({ presentation = "inline", open = true, onClose, mediaK
             try {
               return await signer.execute(calls);
             } catch (err) {
-              throw new Error(describeError(err).message);
+              throw new Error(describeError(err, "We couldn't complete that mint. Please try again.").message);
             }
           },
           signTypedData: async (data) => {
             try {
               return await signer.signTypedData(data);
             } catch (err) {
-              throw new Error(describeError(err).message);
+              throw new Error(describeError(err, "We couldn't complete that mint. Please try again.").message);
             }
           },
         };

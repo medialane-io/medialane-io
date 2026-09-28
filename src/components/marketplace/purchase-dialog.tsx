@@ -1,5 +1,6 @@
 "use client";
 
+import { UserFacingError } from "@medialane/ui";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -262,7 +263,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
           });
           swapCalls = built.calls;
         } catch {
-          throw new Error("Price moved before the swap could be prepared — please try again.");
+          throw new UserFacingError("Price moved before the swap could be prepared — please try again.");
         }
       }
 

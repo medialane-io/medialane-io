@@ -1,5 +1,6 @@
 "use client";
 
+import { UserFacingError } from "@medialane/ui";
 import { useState } from "react";
 import { useWalletMarketplaceActionFlow } from "@/hooks/use-wallet-marketplace-action-flow";
 import { useMarketplace } from "@/hooks/use-marketplace";
@@ -41,7 +42,7 @@ export function useAcceptOffer({ mutateListings, tokenStandard, activeListings =
         orderHash: order.orderHash,
         tokenStandard: tokenStandard ?? nftStandard,
       });
-      if (!hash) throw new Error("Transaction failed — check your portfolio");
+      if (!hash) throw new UserFacingError("Transaction failed — check your portfolio");
       mutateListings();
     },
   });

@@ -1,5 +1,6 @@
 "use client";
 
+import { UserFacingError } from "@medialane/ui";
 import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
@@ -44,8 +45,8 @@ export function GenesisMint() {
     setMintStatusMsg("Preparando seu registro…");
 
     await action.run(async (signer) => {
-      if (!walletAddress) throw new Error("Conta não encontrada. Tente novamente.");
-      if (!BR_MINT_CONTRACT) throw new Error("Distribuição não iniciada ainda.");
+      if (!walletAddress) throw new UserFacingError("Conta não encontrada. Tente novamente.");
+      if (!BR_MINT_CONTRACT) throw new UserFacingError("Distribuição não iniciada ainda.");
 
       let tokenUri = BR_NFT_URI
         ? BR_NFT_URI.startsWith("ipfs://") || BR_NFT_URI.startsWith("ar://")

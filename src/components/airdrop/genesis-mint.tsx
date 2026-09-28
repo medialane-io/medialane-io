@@ -1,5 +1,6 @@
 "use client";
 
+import { UserFacingError } from "@medialane/ui";
 import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -75,8 +76,8 @@ export function GenesisMint() {
     setMintStatusMsg("Preparing your record…");
 
     await action.run(async (signer) => {
-      if (!walletAddress) throw new Error("Account not found. Please try again.");
-      if (!MINT_CONTRACT) throw new Error("Airdrop has not started yet.");
+      if (!walletAddress) throw new UserFacingError("Account not found. Please try again.");
+      if (!MINT_CONTRACT) throw new UserFacingError("Airdrop has not started yet.");
 
       let tokenUri = MINT_NFT_URI
         ? MINT_NFT_URI.startsWith("ipfs://") || MINT_NFT_URI.startsWith("ar://")

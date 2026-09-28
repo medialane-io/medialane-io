@@ -42,7 +42,7 @@ export function AddGuardianDialog({ open, onOpenChange, sealed, onAdded }: AddGu
       setPubkey("");
       onAdded();
     } catch (e) {
-      setError(describeError(e).message);
+      setError(describeError(e, "We couldn't add that guardian. Please try again.").message);
     } finally {
       setBusy(false);
     }

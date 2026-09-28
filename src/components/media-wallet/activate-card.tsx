@@ -17,7 +17,7 @@ export function ActivateCard({ onActivated }: { onActivated: (txHash?: string) =
       await mediaWallet.completeDeployment(() => {});
       onActivated();
     } catch (e) {
-      setError(describeError(e).message);
+      setError(describeError(e, "We couldn't activate your account. Please try again.").message);
     } finally {
       setBusy(false);
     }

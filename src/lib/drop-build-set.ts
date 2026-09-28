@@ -1,5 +1,6 @@
 "use client";
 
+import { UserFacingError } from "@medialane/ui";
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { buildAssetMetadata } from "@medialane/sdk";
 import { uploadDirectoryToIpfs } from "@medialane/ui";
@@ -40,7 +41,7 @@ export async function buildDropSet(
   collection: CollectionCover,
   creator: string
 ): Promise<BuiltSet> {
-  if (items.length === 0) throw new Error("Add at least one item");
+  if (items.length === 0) throw new UserFacingError("Add at least one item");
 
   const fields = [];
   for (const item of items) {

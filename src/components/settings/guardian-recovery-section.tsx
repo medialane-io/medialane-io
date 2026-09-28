@@ -37,7 +37,7 @@ export function GuardianRecoverySection({ walletAddress }: { walletAddress: stri
       await cancelEscape(sealed);
       refresh();
     } catch (e) {
-      setCancelError(describeError(e).message);
+      setCancelError(describeError(e, "We couldn't cancel recovery. Please try again.").message);
     } finally {
       setCancelBusy(false);
     }

@@ -1,5 +1,6 @@
 "use client";
 
+import { UserFacingError } from "@medialane/ui";
 import { describeError } from "@medialane/ui";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -197,7 +198,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
         body: JSON.stringify({ email }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error((data as { error?: string }).error ?? "Couldn't resend the code. Please try again.");
+      if (!res.ok) throw new UserFacingError((data as { error?: string }).error ?? "Couldn't resend the code. Please try again.");
       setResendCooldown(RESEND_COOLDOWN_SECONDS);
     } catch (err) {
       setError(describeError(err, "Couldn't resend the code. Please try again.").message);
@@ -217,7 +218,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
         body: JSON.stringify({ email, code: codeToVerify }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error((data as { error?: string }).error ?? "Incorrect code");
+      if (!res.ok) throw new UserFacingError((data as { error?: string }).error ?? "Incorrect code");
       saveAccountEmail(email);
       if (accountExistedRef.current && (await adoptAccountWallet())) {
         finish();

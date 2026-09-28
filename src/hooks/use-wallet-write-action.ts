@@ -54,7 +54,7 @@ export function useWalletWriteAction(
         }
         setStatus("success");
       } catch (err) {
-        setError(describeError(err).message);
+        setError(describeError(err, "We couldn't complete that transaction. Please try again.").message);
         setStatus("error");
       } finally {
         lockVenueSigner(signer.address);

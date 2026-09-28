@@ -83,7 +83,7 @@ export function EmailVerifyDialog({ open, onOpenChange, email, onVerified, skipI
         body: JSON.stringify({ email, code }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error((data as { error?: string }).error ?? "Incorrect code. Please try again.");
+      if (!res.ok) throw new UserFacingError((data as { error?: string }).error ?? "Incorrect code. Please try again.");
       await onVerified((data as { token: string }).token);
       setStep("success");
       setTimeout(() => onOpenChange(false), 1200);

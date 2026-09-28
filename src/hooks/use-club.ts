@@ -1,5 +1,6 @@
 "use client";
 
+import { UserFacingError } from "@medialane/ui";
 import useSWR from "swr";
 import { Contract, cairo, type Abi } from "starknet";
 import { IPClubCollectionABI } from "@medialane/sdk/starknet";
@@ -68,7 +69,7 @@ export async function predictNextMembershipId(contract: string): Promise<number>
   const count = await countMembershipsOnchain(contract);
   if (count >= MEMBERSHIP_PROBE_CAP) {
 
-    throw new Error("This club has reached the maximum number of membership tiers supported by the app.");
+    throw new UserFacingError("This club has reached the maximum number of membership tiers supported by the app.");
   }
   return count + 1;
 }

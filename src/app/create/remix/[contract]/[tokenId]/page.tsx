@@ -158,7 +158,7 @@ export default function CreateRemixPage() {
     if (err) { setFormError(err); return; }
     setFormError(null);
     void handleUnlocked().catch((e) => {
-      setMintError(describeError(e).message);
+      setMintError(describeError(e, "We couldn't create that remix. Please try again.").message);
       setMintStep("error");
       setTxStatus("error");
     });
@@ -271,7 +271,7 @@ export default function CreateRemixPage() {
         const minted = owned.data?.find(
           (t) => normalizeAddress("STARKNET", t.contractAddress) === normalizeAddress("STARKNET", selectedCollection.contractAddress)
         );
-        if (!minted) throw new Error("Could not determine remix token ID — check portfolio shortly");
+        if (!minted) throw new UserFacingError("Could not determine remix token ID — check portfolio shortly");
         remixTokenId = minted.tokenId;
       }
 
@@ -292,7 +292,7 @@ export default function CreateRemixPage() {
       setMintStep("success");
       router.push(assetHref("STARKNET", selectedCollection.contractAddress, remixTokenId));
     } catch (err: unknown) {
-      setMintError(describeError(err).message);
+      setMintError(describeError(err, "We couldn't create that remix. Please try again.").message);
       setMintStep("error");
       setTxStatus("error");
     }

@@ -397,7 +397,7 @@ export function SingleEditionsContent() {
     if (!walletAddress || !signer) return;
     setPendingValues(values);
     void handleUnlocked(values, signer).catch((err) => {
-      setMintError(describeError(err).message);
+      setMintError(describeError(err, "We couldn't create that edition. Please try again.").message);
       setMintStep("error");
     });
   };
@@ -489,7 +489,7 @@ export function SingleEditionsContent() {
       setMintStep("success");
       invalidatePortfolioCache(walletAddress);
     } catch (err: unknown) {
-      const message = describeError(err).message;
+      const message = describeError(err, "We couldn't create that edition. Please try again.").message;
 
       const rawError =
         err instanceof Error && err.cause instanceof Error ? err.cause.message : undefined;

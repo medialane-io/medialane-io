@@ -42,7 +42,7 @@ export function DeviceApprovalDialog({
     try {
       setPending(parsePairingPayload(raw.trim()));
     } catch (e) {
-      setError(describeError(e).message);
+      setError(describeError(e, "That device code isn't valid. Check it and try again.").message);
     }
   };
 
@@ -57,7 +57,7 @@ export function DeviceApprovalDialog({
       onOpenChange(false);
       onApproved();
     } catch (e) {
-      setError(describeError(e).message);
+      setError(describeError(e, "We couldn't approve that device. Please try again.").message);
     } finally {
       setBusy(false);
     }
