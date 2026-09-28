@@ -1,5 +1,7 @@
 "use client";
 
+import { UserFacingError } from "@medialane/ui";
+import { describeError } from "@medialane/ui";
 import { useState, useCallback } from "react";
 import { useSWRConfig } from "swr";
 import { syncTransactionBestEffort } from "@medialane/sdk/starknet";
@@ -13,7 +15,6 @@ import { buildFeeCall } from "@medialane/sdk/starknet";
 import { feeConfig } from "@/lib/fee";
 import type { Call, TypedData } from "starknet";
 import type { ApiIntentCreated } from "@medialane/sdk";
-import { friendlyWriteError } from "@/lib/friendly-error";
 
 function resolveCurrencyAddress(symbolOrAddress: string): string {
   if (symbolOrAddress.startsWith("0x")) return symbolOrAddress;
@@ -35,7 +36,7 @@ function toApiStandard(standard?: string): "ERC721" | "ERC1155" | undefined {
 }
 
 function toFriendlyError(err: unknown, fallback: string): string {
-  const raw = friendlyWriteError(err, fallback);
+  const raw = describeError(err, fallback).message;
   if (/invalid body|400|bad request/i.test(raw)) {
     return "Something went wrong processing your request. Please try again, or contact Medialane support if the issue persists.";
   }
@@ -176,7 +177,7 @@ export function useMarketplace() {
       intentFn: () => Promise<{ data: ApiIntentCreated }>,
       extra?: { prependCalls?: Call[]; appendCalls?: Call[] },
     ): Promise<string | undefined> => {
-      if (!walletAddress || !signer) throw new Error("Account not ready. Please wait a moment.");
+      if (!walletAddress || !signer) throw new UserFacingError("Account not ready. Please wait a moment.");
 
       const intent = (await intentFn()).data;
       if (!intent?.id) throw new Error("Intent creation failed: no data returned");
@@ -206,7 +207,7 @@ export function useMarketplace() {
       const terminal = await pollIntentUntilTerminal(intent.id);
 
       if (terminal.status === "FAILED") {
-        throw new Error(
+        throw new UserFacingError(
           "Transaction was submitted but the marketplace order could not be confirmed onchain. " +
           "The order may have already been filled or expired — please refresh and try again."
         );

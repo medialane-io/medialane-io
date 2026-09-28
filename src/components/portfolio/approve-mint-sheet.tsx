@@ -1,5 +1,7 @@
 "use client";
 
+import { UserFacingError } from "@medialane/ui";
+import { describeError } from "@medialane/ui";
 import { useState } from "react";
 import { getService } from "@medialane/sdk";
 import { syncTransactionBestEffort } from "@medialane/sdk/starknet";
@@ -23,7 +25,6 @@ import { formatDisplayPrice } from "@/lib/utils";
 import { AlertCircle, Check, GitBranch, Loader2 } from "lucide-react";
 import type { RemixOffer } from "@/types/remix-offers";
 import type { Call } from "starknet";
-import { friendlyWriteError } from "@/lib/friendly-error";
 
 interface Props {
   offer: RemixOffer | null;
@@ -96,7 +97,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
       return;
     }
     void handleUnlocked().catch((err) => {
-      setApproveError(friendlyWriteError(err, "Approval failed"));
+      setApproveError(describeError(err, "Approval failed").message);
       setLoading(false);
     });
   };
@@ -111,7 +112,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
     try {
       let authToken = getValidSiwsToken();
       if (!authToken) authToken = await siwsSignIn();
-      if (!authToken) throw new Error("Secure your account first");
+      if (!authToken) throw new UserFacingError("Secure your account first");
 
       const royaltyStr = offer.royaltyPct != null ? `${offer.royaltyPct}%` : undefined;
       const metadata = {
@@ -214,7 +215,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
       setDone(true);
       onSuccess?.();
     } catch (err: unknown) {
-      setApproveError(friendlyWriteError(err, "Approval failed"));
+      setApproveError(describeError(err, "Approval failed").message);
     } finally {
       setLoading(false);
     }

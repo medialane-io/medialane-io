@@ -1,5 +1,6 @@
 "use client";
 
+import { UserFacingError } from "@medialane/ui";
 import { use, useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -35,11 +36,10 @@ import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { cn } from "@/lib/utils";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
-import { MedialaneCollectionCard } from "@medialane/ui";
+import { MedialaneCollectionCard, describeError } from "@medialane/ui";
 import { CreateClubAside } from "@/components/claim/create-club-aside";
 import { collectionHref } from "@/lib/routes";
 import { LICENSE_TYPES, GEOGRAPHIC_SCOPES, AI_POLICIES, DERIVATIVES_OPTIONS } from "@/types/ip";
-import { friendlyErrorMessage } from "@/lib/friendly-error";
 
 function dateToUnixTimestamp(dateStr: string | undefined): number | undefined {
   if (!dateStr) return undefined;
@@ -136,7 +136,7 @@ export default function CreateMembershipPage({ params }: { params: Promise<{ con
       if (previewRef.current) { URL.revokeObjectURL(previewRef.current); previewRef.current = null; }
       setImagePreview(null);
       console.error("image upload failed", err);
-      form.setError("imageUri", { message: friendlyErrorMessage(err, "That image could not be uploaded. Please try again.") });
+      form.setError("imageUri", { message: describeError(err, "That image could not be uploaded. Please try again.").message });
     } finally {
       setImageUploading(false);
     }
@@ -157,7 +157,7 @@ export default function CreateMembershipPage({ params }: { params: Promise<{ con
   };
 
   const handleUnlocked = async (values: FormValues, signer: StarknetVenueSigner) => {
-    if (!address) throw new Error("Account not ready. Please refresh and try again.");
+    if (!address) throw new UserFacingError("Account not ready. Please refresh and try again.");
     const pinned = await pinAssetMetadata({
       name: values.name,
       description: values.description ?? "",

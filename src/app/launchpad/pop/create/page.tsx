@@ -1,5 +1,6 @@
 "use client";
 
+import { UserFacingError } from "@medialane/ui";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -103,7 +104,7 @@ export default function CreatePOPPage() {
     pendingValues: PopCreateFormValues,
     signer: StarknetVenueSigner,
   ) => {
-    if (!walletAddress) throw new Error("Account not ready. Please refresh and try again.");
+    if (!walletAddress) throw new UserFacingError("Account not ready. Please refresh and try again.");
 
     const metadata: Record<string, unknown> = {
       name: pendingValues.name,
@@ -114,7 +115,7 @@ export default function CreatePOPPage() {
     };
     if (imageUri) metadata.image = imageUri;
     const siwsToken = getValidToken() ?? (await signIn());
-    if (!siwsToken) throw new Error("Secure your account first");
+    if (!siwsToken) throw new UserFacingError("Secure your account first");
     const baseUri = await pinLaunchpadMetadata(metadata);
 
     const claimEndTimestamp = Math.floor(

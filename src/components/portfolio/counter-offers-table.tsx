@@ -1,5 +1,6 @@
 "use client";
 
+import { UserFacingError } from "@medialane/ui";
 import { useState } from "react";
 import { useUserOrders, useCounterOffers } from "@/hooks/use-orders";
 import { assetHref } from "@/lib/routes";
@@ -136,7 +137,7 @@ export function CounterOffersTable({ address }: { address: string }) {
     if (!hash) {
       mutate();
 
-      throw new Error(
+      throw new UserFacingError(
         "We couldn't complete the counter-offer accept. The transaction may have been rejected or the order may have expired. Please refresh and try again."
       );
     }

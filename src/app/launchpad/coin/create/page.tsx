@@ -1,5 +1,6 @@
 "use client";
 
+import { UserFacingError } from "@medialane/ui";
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -132,7 +133,7 @@ export default function CoinCreatePage() {
     setProfileStatus("saving");
     try {
       const token = getValidToken() ?? (await signIn());
-      if (!token) throw new Error("Secure your account first");
+      if (!token) throw new UserFacingError("Secure your account first");
       await client.api.updateCollectionProfile(
         contractAddress,
         { ...(imageUri ? { image: imageUri } : {}), ...(description ? { description } : {}) },
@@ -145,7 +146,7 @@ export default function CoinCreatePage() {
   };
 
   const runLaunch = async (signer: StarknetVenueSigner) => {
-    if (!walletAddress) throw new Error("Account not ready. Please refresh and try again.");
+    if (!walletAddress) throw new UserFacingError("Account not ready. Please refresh and try again.");
     const input: LaunchCoinInput = { name, symbol, supplyHuman: supply, quoteSymbol: quote, price: priceNum, teamPct };
     const result = await launch(input, signer, walletAddress);
     setCoinAddress(result.coinAddress);

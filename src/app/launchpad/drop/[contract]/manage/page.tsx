@@ -1,5 +1,6 @@
 "use client";
 
+import { describeError } from "@medialane/ui";
 import { use, useState } from "react";
 import Link from "next/link";
 import { normalizeAddress } from "@medialane/sdk";
@@ -17,7 +18,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { cn } from "@/lib/utils";
 import { parseAddresses, batchAllowlistCalldata } from "../../drop-allowlist";
 import type { Call } from "starknet";
-import { friendlyWriteError } from "@/lib/friendly-error";
 
 function AllowlistToggle({
   enabled,
@@ -191,7 +191,7 @@ export default function DropManagePage({
       setTxResult({ type: "success", message: successMsg });
       mutateDropState();
     } catch (err) {
-      setTxResult({ type: "error", message: friendlyWriteError(err, "Transaction failed") });
+      setTxResult({ type: "error", message: describeError(err, "Transaction failed").message });
     } finally {
       setIsSubmitting(false);
     }

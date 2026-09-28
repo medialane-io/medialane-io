@@ -1,5 +1,6 @@
 "use client";
 
+import { describeError } from "@medialane/ui";
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
@@ -23,7 +24,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronLeft, ChevronDown, Shield, DollarSign, Percent, HandCoins, Loader2, Check } from "lucide-react";
-import { friendlyErrorMessage } from "@/lib/friendly-error";
 
 const TOKENS = getListableTokens();
 
@@ -99,7 +99,7 @@ export default function CreateLicensingPage() {
       setStep("success");
     } catch (err: unknown) {
       setStep("error");
-      setError(friendlyErrorMessage(err, "Failed to send license request"));
+      setError(describeError(err, "Failed to send license request").message);
     } finally {
       setLoading(false);
     }

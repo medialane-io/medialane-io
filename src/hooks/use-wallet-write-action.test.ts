@@ -1,3 +1,4 @@
+import { GENERIC, UserFacingError } from "@medialane/ui";
 import { test, expect, mock } from "bun:test";
 import { GlobalRegistrator } from "@happy-dom/global-registrator";
 import { renderHook, waitFor, act } from "@testing-library/react";
@@ -35,7 +36,7 @@ test("run executes successfully and reaches success status", async () => {
   expect(result.current.error).toBeNull();
 });
 
-test("run surfaces a thrown error and reaches error status", async () => {
+test("run reaches error status without showing raw chain text", async () => {
   const { result } = renderHook(() => useWalletWriteAction(VERIFY_OK, READ_OK));
 
   await act(async () => {
@@ -43,12 +44,13 @@ test("run surfaces a thrown error and reaches error status", async () => {
   });
 
   await waitFor(() => expect(result.current.status).toBe("error"));
-  expect(result.current.error).toBe("execution reverted");
+  expect(result.current.error).toBe(GENERIC);
+  expect(result.current.error).not.toContain("execution reverted");
 });
 
 test("run verifies the transaction actually succeeded onchain before reporting success — a returned txHash alone is not success", async () => {
   const verifyReverted = async (txHash: string) => {
-    throw new Error(`Transaction ${txHash} was submitted but reverted onchain. Please check your balance and try again.`);
+    throw new UserFacingError(`Transaction ${txHash} was submitted but reverted onchain. Please check your balance and try again.`);
   };
   const { result } = renderHook(() => useWalletWriteAction(verifyReverted, READ_OK));
 

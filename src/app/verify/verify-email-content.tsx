@@ -1,5 +1,7 @@
 "use client";
 
+import { UserFacingError } from "@medialane/ui";
+import { describeError } from "@medialane/ui";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Mail, ShieldCheck, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
@@ -11,7 +13,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { friendlyErrorMessage } from "@/lib/friendly-error";
 import { saveAccountEmail } from "@/lib/wallet/account-wallet";
 
 const RESEND_COOLDOWN_S = 30;
@@ -58,11 +59,11 @@ export default function VerifyEmailContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: forEmail }),
       });
-      if (!res.ok) throw new Error("Couldn't send the code. Please try again.");
+      if (!res.ok) throw new UserFacingError("Couldn't send the code. Please try again.");
       setStep("code");
       setCooldown(RESEND_COOLDOWN_S);
     } catch (err) {
-      setError(friendlyErrorMessage(err, "Couldn't send the code. Please try again."));
+      setError(describeError(err, "Couldn't send the code. Please try again.").message);
       setStep("code");
     }
   }
@@ -85,7 +86,7 @@ export default function VerifyEmailContent() {
       setEmail(result.email);
       void sendCode(result.email);
     } catch (err) {
-      setError(friendlyErrorMessage(err, "Failed to save email"));
+      setError(describeError(err, "Failed to save email").message);
     }
   }
 
@@ -107,7 +108,7 @@ export default function VerifyEmailContent() {
       await getMedialaneClient().api.upsertMyWallet(token, { emailVerificationToken: (data as { token: string }).token });
       setStep("verified");
     } catch (err) {
-      setError(friendlyErrorMessage(err, "Incorrect code. Please try again."));
+      setError(describeError(err, "Incorrect code. Please try again.").message);
       setCode("");
       setStep("code");
     }

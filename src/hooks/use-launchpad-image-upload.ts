@@ -1,5 +1,6 @@
 "use client";
 
+import { UserFacingError } from "@medialane/ui";
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { useSiwsToken } from "@/hooks/use-siws-token";
 import { useEffect, useRef, useState } from "react";
@@ -75,7 +76,7 @@ export function useLaunchpadImageUpload({
 
     try {
       const token = getValidToken() ?? (await signIn());
-      if (!token) throw new Error("Secure your account first");
+      if (!token) throw new UserFacingError("Secure your account first");
 
       const uri = await Promise.race([
         uploadImageToIpfs(file),

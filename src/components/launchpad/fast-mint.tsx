@@ -1,14 +1,14 @@
 "use client";
 
+import { UserFacingError } from "@medialane/ui";
 import { useRouter, usePathname } from "next/navigation";
-import { FastMint as SharedFastMint, type FastMintProps as SharedFastMintProps, type FastMintSigner } from "@medialane/ui";
+import { FastMint as SharedFastMint, describeError, type FastMintProps as SharedFastMintProps, type FastMintSigner } from "@medialane/ui";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSiwsToken } from "@/hooks/use-siws-token";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { RewardEarned } from "@/lib/reward-earned";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
-import { friendlyWriteError } from "@/lib/friendly-error";
 import { starknetProvider } from "@/lib/starknet";
 
 export interface FastMintProps {
@@ -51,21 +51,21 @@ export function FastMint({ presentation = "inline", open = true, onClose, mediaK
       onRequireWallet={() => router.push(`/connect?redirect_url=${encodeURIComponent(pathname)}`)}
       getUploadToken={secureToken}
       getSigner={(): FastMintSigner => {
-        if (!signer) throw new Error("Account not ready. Please refresh and try again.");
+        if (!signer) throw new UserFacingError("Account not ready. Please refresh and try again.");
         return {
           address: signer.address,
           execute: async (calls) => {
             try {
               return await signer.execute(calls);
             } catch (err) {
-              throw new Error(friendlyWriteError(err));
+              throw new Error(describeError(err).message);
             }
           },
           signTypedData: async (data) => {
             try {
               return await signer.signTypedData(data);
             } catch (err) {
-              throw new Error(friendlyWriteError(err));
+              throw new Error(describeError(err).message);
             }
           },
         };

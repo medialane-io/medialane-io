@@ -1,5 +1,6 @@
 "use client";
 
+import { UserFacingError } from "@medialane/ui";
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { RewardEarned } from "@/lib/reward-earned";
@@ -29,12 +30,11 @@ import { executeIntent } from "@medialane/sdk/starknet";
 import { starknetProvider } from "@/lib/starknet";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
-import { ActionButton, MedialaneCollectionCard } from "@medialane/ui";
+import { ActionButton, MedialaneCollectionCard, describeError } from "@medialane/ui";
 import { CreateCollectionAside } from "@/components/claim/create-collection-aside";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { Layers, Loader2, ImagePlus, X } from "lucide-react";
-import { friendlyErrorMessage } from "@/lib/friendly-error";
 
 const schema = z.object({
   name: z.string().min(1, "Name required").max(100),
@@ -114,7 +114,7 @@ export default function LaunchpadCreateCollectionPage() {
     setImageUploading(true);
     try {
       const token = getValidToken() ?? (await signIn());
-      if (!token) throw new Error("Secure your account first");
+      if (!token) throw new UserFacingError("Secure your account first");
 
       const uri = await Promise.race([
         uploadImageToIpfs(file),
@@ -125,7 +125,7 @@ export default function LaunchpadCreateCollectionPage() {
       setImageUri(uri);
       setImageUploadSuccess("Image uploaded to IPFS");
     } catch (err: unknown) {
-      const msg = friendlyErrorMessage(err, "Upload failed");
+      const msg = describeError(err, "Upload failed").message;
       setImageUploadError(`Image upload failed: ${msg}`);
       setImageUri(null);
     } finally {
@@ -152,10 +152,10 @@ export default function LaunchpadCreateCollectionPage() {
   };
 
   const runCreate = async (values: FormValues, signer: StarknetVenueSigner) => {
-    if (!walletAddress) throw new Error("Account not ready. Please refresh and try again.");
+    if (!walletAddress) throw new UserFacingError("Account not ready. Please refresh and try again.");
 
     const siwsToken = getValidToken() ?? (await signIn());
-    if (!siwsToken) throw new Error("Secure your account first");
+    if (!siwsToken) throw new UserFacingError("Secure your account first");
 
     let baseUri: string | undefined;
     if (imageUri) {
@@ -179,7 +179,7 @@ export default function LaunchpadCreateCollectionPage() {
     const result = await executeIntent(starknetProvider, signer, client, intentRes.data, { confirm: false });
 
     if (!result.txHash) {
-      throw new Error("Collection transaction completed without a transaction hash. Please refresh and check your account activity.");
+      throw new UserFacingError("Collection transaction completed without a transaction hash. Please refresh and check your account activity.");
     }
     invalidatePortfolioCache(walletAddress);
     return result;

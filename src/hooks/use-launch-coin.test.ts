@@ -1,3 +1,4 @@
+import { UserFacingError } from "@medialane/ui";
 import { test, expect, mock } from "bun:test";
 import { GlobalRegistrator } from "@happy-dom/global-registrator";
 import { renderHook, waitFor, act } from "@testing-library/react";
@@ -63,7 +64,7 @@ test("launch succeeds when both transactions are verified onchain", async () => 
 
 test("launch does not report done when the launch (fund-moving) transaction reverted onchain", async () => {
   const verifyReverted = async (txHash: string) => {
-    throw new Error(`Transaction ${txHash} was submitted but reverted onchain. Please check your balance and try again.`);
+    throw new UserFacingError(`Transaction ${txHash} was submitted but reverted onchain. Please check your balance and try again.`);
   };
   const { result } = renderHook(() => useLaunchCoin({ verify: verifyReverted, getReceipt: GET_RECEIPT_OK }));
 

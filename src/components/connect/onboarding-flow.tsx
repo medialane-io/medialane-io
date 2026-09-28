@@ -1,5 +1,6 @@
 "use client";
 
+import { describeError } from "@medialane/ui";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -7,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import { friendlyErrorMessage } from "@/lib/friendly-error";
 import { adoptAccountWallet, saveAccountEmail } from "@/lib/wallet/account-wallet";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useEmailVerificationStatus } from "@/hooks/use-email-verification-required";
@@ -200,7 +200,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
       if (!res.ok) throw new Error((data as { error?: string }).error ?? "Couldn't resend the code. Please try again.");
       setResendCooldown(RESEND_COOLDOWN_SECONDS);
     } catch (err) {
-      setError(friendlyErrorMessage(err, "Couldn't resend the code. Please try again."));
+      setError(describeError(err, "Couldn't resend the code. Please try again.").message);
     } finally {
       setResending(false);
     }
@@ -225,7 +225,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
       }
       await runWalletSetup();
     } catch (err) {
-      setError(friendlyErrorMessage(err, "Incorrect code. Please try again."));
+      setError(describeError(err, "Incorrect code. Please try again.").message);
       setStep("code");
     }
   };
@@ -242,7 +242,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
       saveAccountEmail(value);
       finish();
     } catch (err) {
-      setError(friendlyErrorMessage(err, "Couldn't save your email. Please try again."));
+      setError(describeError(err, "Couldn't save your email. Please try again.").message);
     } finally {
       setAddEmailSaving(false);
     }

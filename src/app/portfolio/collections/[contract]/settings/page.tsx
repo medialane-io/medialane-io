@@ -1,5 +1,6 @@
 "use client";
 
+import { describeError } from "@medialane/ui";
 import { use, useState, useEffect, useRef } from "react";
 import { normalizeAddress } from "@medialane/sdk";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
@@ -22,7 +23,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { friendlyErrorMessage } from "@/lib/friendly-error";
 
 interface Props { params: Promise<{ contract: string }> }
 
@@ -142,7 +142,7 @@ function CollectionSlugClaimSection({
       setPendingSlug(claim.slug);
       setSubmitState("done");
     } catch (err: unknown) {
-      const msg = friendlyErrorMessage(err, "Failed to submit claim.");
+      const msg = describeError(err, "Failed to submit claim.").message;
       setSubmitError(msg);
       setSubmitState("error");
     }
@@ -373,7 +373,7 @@ export default function CollectionSettingsPage({ params }: Props) {
       setTimeout(() => setSaveStatus("idle"), 3000);
     } catch (e) {
       setSaveStatus("error");
-      setSaveError(friendlyErrorMessage(e, "Failed to save changes"));
+      setSaveError(describeError(e, "Failed to save changes").message);
     } finally {
       setSaving(false);
     }

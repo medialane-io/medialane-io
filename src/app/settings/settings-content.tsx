@@ -1,5 +1,6 @@
 "use client";
 
+import { UserFacingError } from "@medialane/ui";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -11,7 +12,7 @@ import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useUserOrders } from "@/hooks/use-orders";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { useMediaWallet } from "@/components/media-wallet/media-wallet-overlay";
-import { AssetPicker, AddressDisplay, ServiceFormShell, type OwnedAsset, ExportKeySection } from "@medialane/ui";
+import { AddressDisplay, AssetPicker, ExportKeySection, ServiceFormShell, describeError, type OwnedAsset } from "@medialane/ui";
 import { FastMint } from "@/components/launchpad/fast-mint";
 import { EXPLORER_URL } from "@/lib/constants";
 import { getMedialaneClient } from "@/lib/medialane-client";
@@ -32,7 +33,6 @@ import {
   AtSign, CheckCircle2, Clock, XCircle, Loader2, Settings as SettingsIcon, ArrowUpRight, Wallet, Mail, User, ShieldCheck, ShieldAlert, AlertTriangle,
 } from "lucide-react";
 import { cn, resolveTokenImage } from "@/lib/utils";
-import { friendlyErrorMessage } from "@/lib/friendly-error";
 import type { CheckState, ProfileForm } from "@/components/settings/types";
 import { AccountSection } from "@/components/settings/account-section";
 import { PortfolioSnapshot, RewardsSnapshot } from "@/components/settings/snapshots";
@@ -187,7 +187,7 @@ export default function SettingsContent() {
       setTimeout(() => setSaveStatus("idle"), 3000);
     } catch (e: unknown) {
       setSaveStatus("error");
-      setSaveError(friendlyErrorMessage(e, "Failed to save changes"));
+      setSaveError(describeError(e, "Failed to save changes").message);
     } finally {
       setSaving(false);
     }
@@ -218,7 +218,7 @@ export default function SettingsContent() {
       setEmailDialogOpen(true);
     } catch (err) {
       setEmailChangeStatus("error");
-      setEmailChangeError(friendlyErrorMessage(err, "Failed to update email"));
+      setEmailChangeError(describeError(err, "Failed to update email").message);
     }
   }
 
@@ -228,7 +228,7 @@ export default function SettingsContent() {
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
       body: JSON.stringify({ newWalletSiwsToken }),
     });
-    if (!res.ok) throw new Error("Failed to switch to the new wallet");
+    if (!res.ok) throw new UserFacingError("Failed to switch to the new wallet");
     window.location.reload();
   }
 
@@ -674,7 +674,7 @@ export default function SettingsContent() {
                 </>
               )}
 
-              {walletAddress && <ExportKeySection loadSealed={loadSealedOwner} unlock={unlockOwnerKey} isRecoveryKey={isRecoveryKeyForWallet} describeError={friendlyErrorMessage} />}
+              {walletAddress && <ExportKeySection loadSealed={loadSealedOwner} unlock={unlockOwnerKey} isRecoveryKey={isRecoveryKeyForWallet} describeError={(err, fallback) => describeError(err, fallback).message} />}
 
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />

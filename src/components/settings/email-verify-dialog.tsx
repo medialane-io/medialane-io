@@ -1,5 +1,7 @@
 "use client";
 
+import { UserFacingError } from "@medialane/ui";
+import { describeError } from "@medialane/ui";
 import { useEffect, useRef, useState } from "react";
 import { Mail, ShieldCheck, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,7 +14,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { friendlyErrorMessage } from "@/lib/friendly-error";
 
 type Step = "sending" | "code" | "verifying" | "success" | "error";
 
@@ -42,12 +43,12 @@ export function EmailVerifyDialog({ open, onOpenChange, email, onVerified, skipI
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
-      if (!res.ok) throw new Error("Couldn't send the code. Please try again.");
+      if (!res.ok) throw new UserFacingError("Couldn't send the code. Please try again.");
       setStep("code");
       setCooldown(RESEND_COOLDOWN_S);
       setTimeout(() => inputRef.current?.focus(), 50);
     } catch (err) {
-      setError(friendlyErrorMessage(err, "Couldn't send the code. Please try again."));
+      setError(describeError(err, "Couldn't send the code. Please try again.").message);
       setStep("error");
     }
   };
@@ -87,7 +88,7 @@ export function EmailVerifyDialog({ open, onOpenChange, email, onVerified, skipI
       setStep("success");
       setTimeout(() => onOpenChange(false), 1200);
     } catch (err) {
-      setError(friendlyErrorMessage(err, "Incorrect code. Please try again."));
+      setError(describeError(err, "Incorrect code. Please try again.").message);
       setCode("");
       setStep("code");
       setTimeout(() => inputRef.current?.focus(), 50);

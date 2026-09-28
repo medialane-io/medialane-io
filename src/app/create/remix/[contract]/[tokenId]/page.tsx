@@ -1,5 +1,7 @@
 "use client";
 
+import { UserFacingError } from "@medialane/ui";
+import { describeError } from "@medialane/ui";
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
@@ -40,7 +42,6 @@ import {
 } from "lucide-react";
 import type { Call } from "starknet";
 import type { MintTxStatus } from "@/types/mint-tx-status";
-import { friendlyWriteError } from "@/lib/friendly-error";
 import { mintedTokenIdFromReceipt, assertTransactionSucceeded, syncTransactionBestEffort } from "@medialane/sdk/starknet";
 import { starknetProvider } from "@/lib/starknet";
 
@@ -157,7 +158,7 @@ export default function CreateRemixPage() {
     if (err) { setFormError(err); return; }
     setFormError(null);
     void handleUnlocked().catch((e) => {
-      setMintError(friendlyWriteError(e));
+      setMintError(describeError(e).message);
       setMintStep("error");
       setTxStatus("error");
     });
@@ -192,7 +193,7 @@ export default function CreateRemixPage() {
       };
 
       const authToken = getValidToken() ?? (await signIn());
-      if (!authToken) throw new Error("Secure your account first");
+      if (!authToken) throw new UserFacingError("Secure your account first");
 
       let tokenUri: string;
 
@@ -291,7 +292,7 @@ export default function CreateRemixPage() {
       setMintStep("success");
       router.push(assetHref("STARKNET", selectedCollection.contractAddress, remixTokenId));
     } catch (err: unknown) {
-      setMintError(friendlyWriteError(err));
+      setMintError(describeError(err).message);
       setMintStep("error");
       setTxStatus("error");
     }

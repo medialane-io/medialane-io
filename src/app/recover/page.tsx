@@ -1,5 +1,6 @@
 "use client";
 
+import { describeError } from "@medialane/ui";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -23,7 +24,6 @@ import {
   type EscapeInfo,
 } from "@/lib/wallet/guardian";
 import { describeRecoveryAction } from "@medialane/sdk/starknet";
-import { friendlyErrorMessage } from "@/lib/friendly-error";
 import { isOwnerOf } from "@/lib/wallet/devices";
 
 type Mode = "choose" | "key" | "lost" | "guardian";
@@ -121,7 +121,7 @@ function RecoveryKeyFlow({ onBack }: { onBack: () => void }) {
       if (e instanceof InvalidStarkPrivateKeyError) {
         setErr("That does not look like a recovery key. Check you copied all of it.");
       } else {
-        setErr(friendlyErrorMessage(e, "Could not restore your wallet. Please try again."));
+        setErr(describeError(e, "Could not restore your wallet. Please try again.").message);
       }
       setBusy(false);
     }
@@ -179,7 +179,7 @@ function LostWalletFlow({ onBack }: { onBack: () => void }) {
       saveSealedOwner(forLostWallet);
       setNewPubkey(sealed.ownerPubKey);
     } catch (e) {
-      setErr(friendlyErrorMessage(e));
+      setErr(describeError(e).message);
     } finally {
       setBusy(false);
     }
@@ -256,7 +256,7 @@ function GuardianFlow({ onBack }: { onBack: () => void }) {
       setEscape(e);
       setPeriodDays(Math.round(period / 86400));
     } catch (e) {
-      setErr(friendlyErrorMessage(e));
+      setErr(describeError(e).message);
     }
   };
 
@@ -272,7 +272,7 @@ function GuardianFlow({ onBack }: { onBack: () => void }) {
       await triggerEscapeOwner(sealed, targetAddress.trim(), newOwnerPubkey.trim());
       await checkStatus();
     } catch (e) {
-      setErr(friendlyErrorMessage(e));
+      setErr(describeError(e).message);
     } finally {
       setBusy(null);
     }
@@ -286,7 +286,7 @@ function GuardianFlow({ onBack }: { onBack: () => void }) {
       await completeEscapeOwner(sealed, targetAddress.trim());
       await checkStatus();
     } catch (e) {
-      setErr(friendlyErrorMessage(e));
+      setErr(describeError(e).message);
     } finally {
       setBusy(null);
     }

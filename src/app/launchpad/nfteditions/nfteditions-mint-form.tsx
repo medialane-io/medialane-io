@@ -1,5 +1,6 @@
 "use client";
 
+import { UserFacingError } from "@medialane/ui";
 import { useState } from "react";
 import type { RefObject } from "react";
 import type { UseFormReturn } from "react-hook-form";
@@ -106,7 +107,7 @@ export function NftEditionsMintForm({
 
   const uploadDocument = async (file: File) => {
     const token = getValidToken() ?? (await signIn());
-    if (!token) throw new Error("Secure your account first");
+    if (!token) throw new UserFacingError("Secure your account first");
     return uploadDocumentToIpfs(file);
   };
 

@@ -1,4 +1,5 @@
 
+import { UserFacingError } from "@medialane/ui";
 import { MEDIALANE_API_KEY, MEDIALANE_BACKEND_URL } from "@/lib/constants";
 
 export type MintDebugSnapshot = {
@@ -178,5 +179,5 @@ export async function pollMintIntentUntilTerminal(
     }
   }
 
-  throw new Error("Mint verification timed out. Check the transaction status and refresh the collection.");
+  throw new UserFacingError("Mint verification timed out. Check the transaction status and refresh the collection.");
 }

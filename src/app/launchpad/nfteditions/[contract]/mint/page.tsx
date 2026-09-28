@@ -1,5 +1,6 @@
 "use client";
 
+import { UserFacingError } from "@medialane/ui";
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
@@ -127,7 +128,7 @@ export default function MintIP1155Page() {
   };
 
   const handleUnlocked = async (values: NftEditionsMintFormValues, signer: StarknetVenueSigner) => {
-    if (!walletAddress || !imageUri) throw new Error("Account not ready. Please refresh and try again.");
+    if (!walletAddress || !imageUri) throw new UserFacingError("Account not ready. Please refresh and try again.");
 
 
     const pinned = await pinAssetMetadata({

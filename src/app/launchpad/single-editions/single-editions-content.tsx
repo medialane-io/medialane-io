@@ -1,5 +1,6 @@
 "use client";
 
+import { UserFacingError } from "@medialane/ui";
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
 import { RewardEarned } from "@/lib/reward-earned";
@@ -41,7 +42,7 @@ import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { MintProgressDialog } from "@/components/marketplace/mint-progress-dialog";
 import type { MintTxStatus } from "@/types/mint-tx-status";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
-import { MedialaneCollectionCard } from "@medialane/ui";
+import { MedialaneCollectionCard, describeError } from "@medialane/ui";
 import { CreateAssetAside } from "@/components/claim/create-asset-aside";
 import type { MintStep } from "@/components/marketplace/mint-progress-dialog";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
@@ -75,7 +76,6 @@ import {
 import Link from "next/link";
 import type { Call } from "starknet";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
-import { friendlyWriteError } from "@/lib/friendly-error";
 import { syncTransactionBestEffort } from "@medialane/sdk/starknet";
 import { getMedialaneClient } from "@/lib/medialane-client";
 
@@ -296,7 +296,7 @@ export function SingleEditionsContent() {
 
   const uploadDocument = async (file: File) => {
     const token = getValidToken() ?? (await signIn());
-    if (!token) throw new Error("Secure your account first");
+    if (!token) throw new UserFacingError("Secure your account first");
     return uploadDocumentToIpfs(file);
   };
 
@@ -397,7 +397,7 @@ export function SingleEditionsContent() {
     if (!walletAddress || !signer) return;
     setPendingValues(values);
     void handleUnlocked(values, signer).catch((err) => {
-      setMintError(friendlyWriteError(err));
+      setMintError(describeError(err).message);
       setMintStep("error");
     });
   };
@@ -412,7 +412,7 @@ export function SingleEditionsContent() {
 
     try {
       const siwsToken = getValidToken() ?? (await signIn());
-      if (!siwsToken) throw new Error("Secure your account first");
+      if (!siwsToken) throw new UserFacingError("Secure your account first");
       const selectedCollection = collections.find((c) => c.collectionId === pendingValues.collectionId);
       updateMintDebug({
         step: "uploading",
@@ -439,7 +439,7 @@ export function SingleEditionsContent() {
         templateTraits: metadataFieldsRef.current.filter((f) => f.traitType && f.value),
       });
       const tokenUri: string = pinned.uri;
-      if (!tokenUri) throw new Error("Image upload failed — please try again");
+      if (!tokenUri) throw new UserFacingError("Image upload failed — please try again");
       updateMintDebug({ step: "metadata_uploaded", tokenUri });
 
       setMintStep("processing");
@@ -489,7 +489,7 @@ export function SingleEditionsContent() {
       setMintStep("success");
       invalidatePortfolioCache(walletAddress);
     } catch (err: unknown) {
-      const message = friendlyWriteError(err);
+      const message = describeError(err).message;
 
       const rawError =
         err instanceof Error && err.cause instanceof Error ? err.cause.message : undefined;

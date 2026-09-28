@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ActionButton } from "@medialane/ui";
-import { friendlyWriteError } from "@/lib/friendly-error";
+import { ActionButton, describeError } from "@medialane/ui";
 import { mediaWallet } from "@/lib/wallet/client";
 
 const BRAND_GRADIENT = "linear-gradient(115deg,#3b7bff,#8a5cf6,#f6608f,#fb8b46,#3b7bff)";
@@ -18,7 +17,7 @@ export function ActivateCard({ onActivated }: { onActivated: (txHash?: string) =
       await mediaWallet.completeDeployment(() => {});
       onActivated();
     } catch (e) {
-      setError(friendlyWriteError(e));
+      setError(describeError(e).message);
     } finally {
       setBusy(false);
     }

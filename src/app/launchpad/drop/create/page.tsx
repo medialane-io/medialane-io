@@ -1,5 +1,6 @@
 "use client";
 
+import { UserFacingError } from "@medialane/ui";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,7 +13,7 @@ import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { starknetProvider } from "@/lib/starknet";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { executeIntent, deployedCollectionFromReceipt } from "@medialane/sdk/starknet";
-import { DropCreateForm, DropPreviewCard, dropCreateSchema, type PaymentTokenOption, type DropCreateFormValues, type DraftItem } from "@medialane/ui";
+import { DropCreateForm, DropPreviewCard, describeError, dropCreateSchema, type DraftItem, type DropCreateFormValues, type PaymentTokenOption } from "@medialane/ui";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { getDefaultDropSchedule, suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
 import { buildDropSet } from "@/lib/drop-build-set";
@@ -25,7 +26,6 @@ import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { RewardEarned } from "@/lib/reward-earned";
 import { CreateDropAside } from "@/components/claim/create-drop-aside";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
-import { friendlyErrorMessage } from "@/lib/friendly-error";
 
 const API_BASE = "/api/proxy";
 
@@ -69,7 +69,7 @@ export default function CreateDropPage() {
 
   const uploadDocument = async (file: File) => {
     const token = getValidToken() ?? (await signIn());
-    if (!token) throw new Error("Secure your account first");
+    if (!token) throw new UserFacingError("Secure your account first");
     return uploadDocumentToIpfs(file);
   };
 
@@ -183,10 +183,10 @@ export default function CreateDropPage() {
   };
 
   const handleUnlocked = async (pendingValues: DropCreateFormValues, signer: StarknetVenueSigner) => {
-    if (!walletAddress) throw new Error("Account not ready. Please refresh and try again.");
+    if (!walletAddress) throw new UserFacingError("Account not ready. Please refresh and try again.");
 
     const siwsToken = getValidToken() ?? (await signIn());
-    if (!siwsToken) throw new Error("Secure your account first");
+    if (!siwsToken) throw new UserFacingError("Secure your account first");
 
     let baseUri = "";
     let maxSupply = 0n;
@@ -214,7 +214,7 @@ export default function CreateDropPage() {
       baseUri = built.baseUri;
       maxSupply = BigInt(built.count);
     } catch (err) {
-      throw new Error(friendlyErrorMessage(err, "Failed to prepare drop metadata"));
+      throw new Error(describeError(err, "Failed to prepare drop metadata").message);
     }
 
     const toTs = (d: string, t: string) => Math.floor(new Date(`${d}T${t}:00`).getTime() / 1000);

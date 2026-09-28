@@ -1,5 +1,6 @@
 "use client";
 
+import { describeError } from "@medialane/ui";
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Check, Copy, Loader2 } from "lucide-react";
@@ -10,7 +11,6 @@ import { createOwnerKey, PasskeyCancelledError, type SealedOwner } from "@/lib/w
 import { saveSealedOwner, notifyWalletChange } from "@/lib/wallet/store";
 import { encodePairingPayload, parseAccountAddress } from "@medialane/sdk/starknet";
 import { isOwnerOf } from "@/lib/wallet/devices";
-import { friendlyErrorMessage } from "@/lib/friendly-error";
 
 type Step = "start" | "creating" | "share" | "checking";
 
@@ -50,7 +50,7 @@ function LinkDeviceForm() {
       setError(
         e instanceof PasskeyCancelledError
           ? "Confirmation cancelled."
-          : friendlyErrorMessage(e, "Could not set up this device."),
+          : describeError(e, "Could not set up this device.").message,
       );
       setStep("start");
     }
@@ -72,7 +72,7 @@ function LinkDeviceForm() {
       notifyWalletChange();
       router.replace(redirectTo ?? "/");
     } catch (e) {
-      setError(friendlyErrorMessage(e, "Could not confirm this device."));
+      setError(describeError(e, "Could not confirm this device.").message);
       setStep("share");
     }
   };

@@ -1,5 +1,6 @@
 "use client";
 
+import { UserFacingError } from "@medialane/ui";
 import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
@@ -103,7 +104,7 @@ export function LaunchMint() {
     setMintStatusMsg("Preparing your NFT…");
 
     await action.run(async (signer) => {
-      if (!recipientAddress) throw new Error("Account not ready. Please refresh and try again.");
+      if (!recipientAddress) throw new UserFacingError("Account not ready. Please refresh and try again.");
       if (!LAUNCH_MINT_CONTRACT) throw new Error("Mint contract not configured.");
 
       let tokenUri = GENESIS_NFT_URI

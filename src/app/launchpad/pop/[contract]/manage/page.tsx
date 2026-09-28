@@ -1,5 +1,6 @@
 "use client";
 
+import { describeError } from "@medialane/ui";
 import { use, useState } from "react";
 import Link from "next/link";
 import { normalizeAddress } from "@medialane/sdk";
@@ -14,7 +15,6 @@ import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useCollection } from "@/hooks/use-collections";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import type { Call } from "starknet";
-import { friendlyWriteError } from "@/lib/friendly-error";
 
 function parseAddresses(raw: string): string[] {
   return raw
@@ -149,7 +149,7 @@ export default function PopManagePage({
       await signer.execute(calls);
       setTxResult({ type: "success", message: successMsg });
     } catch (err) {
-      setTxResult({ type: "error", message: friendlyWriteError(err, "Transaction failed") });
+      setTxResult({ type: "error", message: describeError(err, "Transaction failed").message });
     } finally {
       setIsSubmitting(false);
     }

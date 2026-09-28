@@ -1,5 +1,7 @@
 "use client";
 
+import { UserFacingError } from "@medialane/ui";
+import { describeError } from "@medialane/ui";
 import { useState, useCallback } from "react";
 import { useSWRConfig } from "swr";
 import { useWalletNativeSession } from "./use-wallet-native-session";
@@ -9,7 +11,6 @@ import { starknetProvider } from "@/lib/starknet";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { QUERY_PREFIX } from "@/lib/query-keys";
 import type { Call } from "starknet";
-import { friendlyWriteError } from "@/lib/friendly-error";
 
 const verifyOnStarknet = async (txHash: string): Promise<void> => {
   await assertTransactionSucceeded(starknetProvider, txHash);
@@ -73,7 +74,7 @@ export function useTransfer(
       setError(null);
 
       try {
-        if (!walletAddress || !signer) throw new Error("Account not ready. Please wait a moment.");
+        if (!walletAddress || !signer) throw new UserFacingError("Account not ready. Please wait a moment.");
         if (!isValidStarknetAddress(input.toAddress)) {
           throw new Error("Invalid recipient address.");
         }
@@ -107,7 +108,7 @@ export function useTransfer(
         invalidate();
         return result.txHash;
       } catch (err: unknown) {
-        const msg = friendlyWriteError(err, "Transfer failed");
+        const msg = describeError(err, "Transfer failed").message;
         setError(msg);
         throw err;
       } finally {
