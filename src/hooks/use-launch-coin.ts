@@ -15,7 +15,7 @@ import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { starknetProvider } from "@/lib/starknet";
 import { assertTransactionSucceeded } from "@medialane/sdk/starknet";
-import { friendlyErrorMessage } from "@/lib/friendly-error";
+import { friendlyWriteError } from "@/lib/friendly-error";
 
 const verifyOnStarknet = async (txHash: string): Promise<void> => {
   await assertTransactionSucceeded(starknetProvider, txHash);
@@ -116,7 +116,7 @@ export function useLaunchCoin(deps: UseLaunchCoinDeps = {}) {
         return { coinAddress, txHash: launched.txHash };
       } catch (e) {
         setStatus("error");
-        setError(friendlyErrorMessage(e, "Launch failed"));
+        setError(friendlyWriteError(e, "Launch failed"));
         throw e;
       }
     },

@@ -75,7 +75,7 @@ import {
 import Link from "next/link";
 import type { Call } from "starknet";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
-import { friendlyErrorMessage } from "@/lib/friendly-error";
+import { friendlyWriteError } from "@/lib/friendly-error";
 import { syncTransactionBestEffort } from "@medialane/sdk/starknet";
 import { getMedialaneClient } from "@/lib/medialane-client";
 
@@ -397,7 +397,7 @@ export function SingleEditionsContent() {
     if (!walletAddress || !signer) return;
     setPendingValues(values);
     void handleUnlocked(values, signer).catch((err) => {
-      setMintError(friendlyErrorMessage(err));
+      setMintError(friendlyWriteError(err));
       setMintStep("error");
     });
   };
@@ -489,7 +489,7 @@ export function SingleEditionsContent() {
       setMintStep("success");
       invalidatePortfolioCache(walletAddress);
     } catch (err: unknown) {
-      const message = friendlyErrorMessage(err);
+      const message = friendlyWriteError(err);
 
       const rawError =
         err instanceof Error && err.cause instanceof Error ? err.cause.message : undefined;

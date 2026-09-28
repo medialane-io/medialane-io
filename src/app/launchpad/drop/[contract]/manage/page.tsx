@@ -17,7 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { cn } from "@/lib/utils";
 import { parseAddresses, batchAllowlistCalldata } from "../../drop-allowlist";
 import type { Call } from "starknet";
-import { friendlyErrorMessage } from "@/lib/friendly-error";
+import { friendlyWriteError } from "@/lib/friendly-error";
 
 function AllowlistToggle({
   enabled,
@@ -191,7 +191,7 @@ export default function DropManagePage({
       setTxResult({ type: "success", message: successMsg });
       mutateDropState();
     } catch (err) {
-      setTxResult({ type: "error", message: friendlyErrorMessage(err, "Transaction failed") });
+      setTxResult({ type: "error", message: friendlyWriteError(err, "Transaction failed") });
     } finally {
       setIsSubmitting(false);
     }

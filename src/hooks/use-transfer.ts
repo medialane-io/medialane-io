@@ -9,7 +9,7 @@ import { starknetProvider } from "@/lib/starknet";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { QUERY_PREFIX } from "@/lib/query-keys";
 import type { Call } from "starknet";
-import { friendlyErrorMessage } from "@/lib/friendly-error";
+import { friendlyWriteError } from "@/lib/friendly-error";
 
 const verifyOnStarknet = async (txHash: string): Promise<void> => {
   await assertTransactionSucceeded(starknetProvider, txHash);
@@ -107,7 +107,7 @@ export function useTransfer(
         invalidate();
         return result.txHash;
       } catch (err: unknown) {
-        const msg = friendlyErrorMessage(err, "Transfer failed");
+        const msg = friendlyWriteError(err, "Transfer failed");
         setError(msg);
         throw err;
       } finally {

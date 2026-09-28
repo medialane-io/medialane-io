@@ -8,7 +8,7 @@ import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { RewardEarned } from "@/lib/reward-earned";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
-import { friendlyErrorMessage } from "@/lib/friendly-error";
+import { friendlyWriteError } from "@/lib/friendly-error";
 import { starknetProvider } from "@/lib/starknet";
 
 export interface FastMintProps {
@@ -58,14 +58,14 @@ export function FastMint({ presentation = "inline", open = true, onClose, mediaK
             try {
               return await signer.execute(calls);
             } catch (err) {
-              throw new Error(friendlyErrorMessage(err));
+              throw new Error(friendlyWriteError(err));
             }
           },
           signTypedData: async (data) => {
             try {
               return await signer.signTypedData(data);
             } catch (err) {
-              throw new Error(friendlyErrorMessage(err));
+              throw new Error(friendlyWriteError(err));
             }
           },
         };

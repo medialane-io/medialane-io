@@ -23,7 +23,7 @@ import { formatDisplayPrice } from "@/lib/utils";
 import { AlertCircle, Check, GitBranch, Loader2 } from "lucide-react";
 import type { RemixOffer } from "@/types/remix-offers";
 import type { Call } from "starknet";
-import { friendlyErrorMessage } from "@/lib/friendly-error";
+import { friendlyWriteError } from "@/lib/friendly-error";
 
 interface Props {
   offer: RemixOffer | null;
@@ -96,7 +96,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
       return;
     }
     void handleUnlocked().catch((err) => {
-      setApproveError(friendlyErrorMessage(err, "Approval failed"));
+      setApproveError(friendlyWriteError(err, "Approval failed"));
       setLoading(false);
     });
   };
@@ -214,7 +214,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
       setDone(true);
       onSuccess?.();
     } catch (err: unknown) {
-      setApproveError(friendlyErrorMessage(err, "Approval failed"));
+      setApproveError(friendlyWriteError(err, "Approval failed"));
     } finally {
       setLoading(false);
     }

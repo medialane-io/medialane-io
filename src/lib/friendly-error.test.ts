@@ -1,5 +1,5 @@
 import { test, expect } from "bun:test";
-import { friendlyErrorMessage } from "./friendly-error";
+import { friendlyErrorMessage, friendlyWriteError } from "./friendly-error";
 
 test("passes through a genuinely user-facing message unchanged", () => {
   expect(friendlyErrorMessage(new Error("Incorrect code"))).toBe("Incorrect code");
@@ -41,4 +41,23 @@ test("uses the provided fallback text", () => {
   expect(friendlyErrorMessage(err, "Couldn't save your email. Please try again.")).toBe(
     "Couldn't save your email. Please try again.",
   );
+});
+
+test("friendlyWriteError turns a bare wallet failure into settled copy", () => {
+  expect(friendlyWriteError(new Error("execute failed"), "Purchase failed")).toBe(
+    "Request not completed. Nothing was submitted.",
+  );
+  expect(friendlyWriteError(new Error("User rejected request"), "Purchase failed")).toBe(
+    "Request not completed. Nothing was submitted.",
+  );
+});
+
+test("friendlyWriteError still passes backend-authored copy through", () => {
+  expect(friendlyWriteError(new Error("You're already at your listing limit for this collection")))
+    .toBe("You're already at your listing limit for this collection");
+});
+
+test("friendlyWriteError keeps the caller fallback for technical noise", () => {
+  const err = new Error("MEDIALANE_API_KEY is not configured on the server");
+  expect(friendlyWriteError(err, "Transfer failed")).toBe("Transfer failed");
 });

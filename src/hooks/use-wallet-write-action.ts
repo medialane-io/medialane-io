@@ -7,7 +7,7 @@ import { useWalletNativeSession } from "./use-wallet-native-session";
 import { lockVenueSigner } from "@/lib/wallet/venue-signer";
 import { assertTransactionSucceeded, syncTransactionBestEffort } from "@medialane/sdk/starknet";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import { friendlyErrorMessage } from "@/lib/friendly-error";
+import { friendlyWriteError } from "@/lib/friendly-error";
 import { loadAccountAddress } from "@/lib/wallet/account-wallet";
 
 const verifyOnStarknet = async (txHash: string): Promise<void> => {
@@ -54,7 +54,7 @@ export function useWalletWriteAction(
         }
         setStatus("success");
       } catch (err) {
-        setError(friendlyErrorMessage(err));
+        setError(friendlyWriteError(err));
         setStatus("error");
       } finally {
         lockVenueSigner(signer.address);

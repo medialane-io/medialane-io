@@ -8,7 +8,7 @@ import {
   requestSiwsToken,
   type SiwsSigner,
 } from "@/lib/siws-client";
-import { friendlyErrorMessage } from "@/lib/friendly-error";
+import { friendlyWriteError } from "@/lib/friendly-error";
 
 export class WalletNotDeployedError extends Error {
   constructor() {
@@ -39,7 +39,7 @@ export function useSiwsToken() {
       setToken(newToken);
       return newToken;
     } catch (err) {
-      const message = friendlyErrorMessage(err, "Account sign-in failed");
+      const message = friendlyWriteError(err, "Account sign-in failed");
       setError(message);
       throw err instanceof Error ? err : new Error(message);
     } finally {

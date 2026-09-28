@@ -40,7 +40,7 @@ import {
 } from "lucide-react";
 import type { Call } from "starknet";
 import type { MintTxStatus } from "@/types/mint-tx-status";
-import { friendlyErrorMessage } from "@/lib/friendly-error";
+import { friendlyWriteError } from "@/lib/friendly-error";
 import { mintedTokenIdFromReceipt, assertTransactionSucceeded, syncTransactionBestEffort } from "@medialane/sdk/starknet";
 import { starknetProvider } from "@/lib/starknet";
 
@@ -157,7 +157,7 @@ export default function CreateRemixPage() {
     if (err) { setFormError(err); return; }
     setFormError(null);
     void handleUnlocked().catch((e) => {
-      setMintError(friendlyErrorMessage(e));
+      setMintError(friendlyWriteError(e));
       setMintStep("error");
       setTxStatus("error");
     });
@@ -291,7 +291,7 @@ export default function CreateRemixPage() {
       setMintStep("success");
       router.push(assetHref("STARKNET", selectedCollection.contractAddress, remixTokenId));
     } catch (err: unknown) {
-      setMintError(friendlyErrorMessage(err));
+      setMintError(friendlyWriteError(err));
       setMintStep("error");
       setTxStatus("error");
     }
