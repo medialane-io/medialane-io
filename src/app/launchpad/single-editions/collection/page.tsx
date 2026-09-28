@@ -1,5 +1,6 @@
 "use client";
 
+import { requireAccount, requireSession } from "@/lib/account-gate";
 import { UserFacingError } from "@medialane/ui";
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
@@ -114,7 +115,7 @@ export default function LaunchpadCreateCollectionPage() {
     setImageUploading(true);
     try {
       const token = getValidToken() ?? (await signIn());
-      if (!token) throw new UserFacingError("Secure your account first");
+      requireSession(token);
 
       const uri = await Promise.race([
         uploadImageToIpfs(file),
@@ -152,10 +153,10 @@ export default function LaunchpadCreateCollectionPage() {
   };
 
   const runCreate = async (values: FormValues, signer: StarknetVenueSigner) => {
-    if (!walletAddress) throw new UserFacingError("Account not ready. Please refresh and try again.");
+    requireAccount(walletAddress);
 
     const siwsToken = getValidToken() ?? (await signIn());
-    if (!siwsToken) throw new UserFacingError("Secure your account first");
+    requireSession(siwsToken);
 
     let baseUri: string | undefined;
     if (imageUri) {

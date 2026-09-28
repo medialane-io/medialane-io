@@ -1,6 +1,6 @@
 "use client";
 
-import { UserFacingError } from "@medialane/ui";
+import { requireSession } from "@/lib/account-gate";
 import { describeError } from "@medialane/ui";
 import { useState } from "react";
 import { getService } from "@medialane/sdk";
@@ -112,7 +112,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
     try {
       let authToken = getValidSiwsToken();
       if (!authToken) authToken = await siwsSignIn();
-      if (!authToken) throw new UserFacingError("Secure your account first");
+      requireSession(authToken);
 
       const royaltyStr = offer.royaltyPct != null ? `${offer.royaltyPct}%` : undefined;
       const metadata = {

@@ -1,6 +1,6 @@
 "use client";
 
-import { UserFacingError } from "@medialane/ui";
+import { requireSession } from "@/lib/account-gate";
 import { useState } from "react";
 import Link from "next/link";
 import { Handshake, CheckCircle2, Loader2, X, AlertCircle } from "lucide-react";
@@ -166,7 +166,7 @@ export default function CreateSponsorshipOfferPage() {
 
     void action.run(async (signer) => {
       const siwsToken = getValidToken() ?? (await signIn());
-      if (!siwsToken) throw new UserFacingError("Secure your account first");
+      requireSession(siwsToken);
       const licenseTermsUri = await pinSponsorshipTerms(toLicenseMetadata(terms));
 
       const amount = BigInt(Math.round(Number(terms.amount) * 10 ** token.decimals));

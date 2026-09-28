@@ -1,5 +1,6 @@
 "use client";
 
+import { requireSession } from "@/lib/account-gate";
 import { UserFacingError } from "@medialane/ui";
 import { describeError } from "@medialane/ui";
 import { uploadImageToIpfs } from "@/lib/upload-image";
@@ -193,7 +194,7 @@ export default function CreateRemixPage() {
       };
 
       const authToken = getValidToken() ?? (await signIn());
-      if (!authToken) throw new UserFacingError("Secure your account first");
+      requireSession(authToken);
 
       let tokenUri: string;
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { UserFacingError } from "@medialane/ui";
+import { requireAccount } from "@/lib/account-gate";
 import { useRouter, usePathname } from "next/navigation";
 import { FastMint as SharedFastMint, describeError, type FastMintProps as SharedFastMintProps, type FastMintSigner } from "@medialane/ui";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
@@ -51,7 +51,7 @@ export function FastMint({ presentation = "inline", open = true, onClose, mediaK
       onRequireWallet={() => router.push(`/connect?redirect_url=${encodeURIComponent(pathname)}`)}
       getUploadToken={secureToken}
       getSigner={(): FastMintSigner => {
-        if (!signer) throw new UserFacingError("Account not ready. Please refresh and try again.");
+        requireAccount(signer);
         return {
           address: signer.address,
           execute: async (calls) => {

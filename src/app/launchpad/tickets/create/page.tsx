@@ -1,6 +1,6 @@
 "use client";
 
-import { UserFacingError } from "@medialane/ui";
+import { requireAccount, requireSession } from "@/lib/account-gate";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -77,13 +77,13 @@ export default function CreateTicketCollectionPage() {
   };
 
   const handleUnlocked = async (values: FormValues, signer: StarknetVenueSigner) => {
-    if (!walletAddress) throw new UserFacingError("Account not ready. Please refresh and try again.");
+    requireAccount(walletAddress);
     setDeployedAddress(null);
 
     let baseUri = "";
     if (imageUri) {
       const siwsToken = getValidToken() ?? (await signIn());
-      if (!siwsToken) throw new UserFacingError("Secure your account first");
+      requireSession(siwsToken);
       baseUri = await pinLaunchpadMetadata({
         name: values.name,
         description: values.description || "",

@@ -1,6 +1,6 @@
 "use client";
 
-import { UserFacingError } from "@medialane/ui";
+import { requireAccount } from "@/lib/account-gate";
 import { use, useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -157,7 +157,7 @@ export default function CreateMembershipPage({ params }: { params: Promise<{ con
   };
 
   const handleUnlocked = async (values: FormValues, signer: StarknetVenueSigner) => {
-    if (!address) throw new UserFacingError("Account not ready. Please refresh and try again.");
+    requireAccount(address);
     const pinned = await pinAssetMetadata({
       name: values.name,
       description: values.description ?? "",

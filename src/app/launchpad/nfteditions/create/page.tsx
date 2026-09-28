@@ -1,6 +1,6 @@
 "use client";
 
-import { UserFacingError } from "@medialane/ui";
+import { requireAccount, requireSession } from "@/lib/account-gate";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
@@ -105,13 +105,13 @@ export default function CreateIP1155CollectionPage() {
   };
 
   const handleUnlocked = async (pendingValues: NftEditionsCreateFormValues, signer: StarknetVenueSigner) => {
-    if (!walletAddress) throw new UserFacingError("Account not ready. Please refresh and try again.");
+    requireAccount(walletAddress);
     setDeployedAddress(null);
 
     let collectionMetaUri: string | undefined;
     if (imageUri) {
       const siwsToken = getValidToken() ?? (await signIn());
-      if (!siwsToken) throw new UserFacingError("Secure your account first");
+      requireSession(siwsToken);
       collectionMetaUri = await pinLaunchpadMetadata({
         name: pendingValues.name,
         description: pendingValues.description || "",

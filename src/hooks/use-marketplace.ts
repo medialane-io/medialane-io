@@ -1,5 +1,6 @@
 "use client";
 
+import { ACCOUNT_STILL_LOADING } from "@/lib/account-gate";
 import { UserFacingError } from "@medialane/ui";
 import { describeError } from "@medialane/ui";
 import { useState, useCallback } from "react";
@@ -177,7 +178,7 @@ export function useMarketplace() {
       intentFn: () => Promise<{ data: ApiIntentCreated }>,
       extra?: { prependCalls?: Call[]; appendCalls?: Call[] },
     ): Promise<string | undefined> => {
-      if (!walletAddress || !signer) throw new UserFacingError("Account not ready. Please wait a moment.");
+      if (!walletAddress || !signer) throw new UserFacingError(ACCOUNT_STILL_LOADING);
 
       const intent = (await intentFn()).data;
       if (!intent?.id) throw new Error("Intent creation failed: no data returned");

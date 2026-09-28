@@ -1,5 +1,6 @@
 "use client";
 
+import { ACCOUNT_STILL_LOADING } from "@/lib/account-gate";
 import { UserFacingError } from "@medialane/ui";
 import { describeError } from "@medialane/ui";
 import { useState, useCallback } from "react";
@@ -74,7 +75,7 @@ export function useTransfer(
       setError(null);
 
       try {
-        if (!walletAddress || !signer) throw new UserFacingError("Account not ready. Please wait a moment.");
+        if (!walletAddress || !signer) throw new UserFacingError(ACCOUNT_STILL_LOADING);
         if (!isValidStarknetAddress(input.toAddress)) {
           throw new UserFacingError("Invalid recipient address.");
         }

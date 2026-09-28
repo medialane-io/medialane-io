@@ -1,6 +1,6 @@
 "use client";
 
-import { UserFacingError } from "@medialane/ui";
+import { requireAccount, requireSession } from "@/lib/account-gate";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -69,7 +69,7 @@ export default function CreateDropPage() {
 
   const uploadDocument = async (file: File) => {
     const token = getValidToken() ?? (await signIn());
-    if (!token) throw new UserFacingError("Secure your account first");
+    requireSession(token);
     return uploadDocumentToIpfs(file);
   };
 
@@ -183,10 +183,10 @@ export default function CreateDropPage() {
   };
 
   const handleUnlocked = async (pendingValues: DropCreateFormValues, signer: StarknetVenueSigner) => {
-    if (!walletAddress) throw new UserFacingError("Account not ready. Please refresh and try again.");
+    requireAccount(walletAddress);
 
     const siwsToken = getValidToken() ?? (await signIn());
-    if (!siwsToken) throw new UserFacingError("Secure your account first");
+    requireSession(siwsToken);
 
     let baseUri = "";
     let maxSupply = 0n;

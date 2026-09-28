@@ -1,5 +1,6 @@
 "use client";
 
+import { requireSession } from "@/lib/account-gate";
 import { UserFacingError } from "@medialane/ui";
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
@@ -296,7 +297,7 @@ export function SingleEditionsContent() {
 
   const uploadDocument = async (file: File) => {
     const token = getValidToken() ?? (await signIn());
-    if (!token) throw new UserFacingError("Secure your account first");
+    requireSession(token);
     return uploadDocumentToIpfs(file);
   };
 
@@ -412,7 +413,7 @@ export function SingleEditionsContent() {
 
     try {
       const siwsToken = getValidToken() ?? (await signIn());
-      if (!siwsToken) throw new UserFacingError("Secure your account first");
+      requireSession(siwsToken);
       const selectedCollection = collections.find((c) => c.collectionId === pendingValues.collectionId);
       updateMintDebug({
         step: "uploading",
