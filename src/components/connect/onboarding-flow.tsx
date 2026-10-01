@@ -15,7 +15,7 @@ import { useSiwsToken } from "@/hooks/use-siws-token";
 import { fireConfetti } from "@/lib/confetti";
 import { MedialaneApiError } from "@medialane/sdk";
 import { mediaWallet } from "@/lib/wallet/client";
-import { claimWaitingWallets } from "@/lib/wallet/claim";
+import { setupWalletKey } from "@/lib/wallet/key-setup";
 
 export type OnboardingStep =
   | "email"
@@ -75,6 +75,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
   const [addEmailSaving, setAddEmailSaving] = useState(false);
   const accountExistedRef = useRef(false);
   const walletStartedRef = useRef(false);
+  const keySetupAddressRef = useRef<string | null>(null);
 
   const { hasWallet } = useWalletNativeSession();
   const emailStatus = useEmailVerificationStatus();
@@ -118,6 +119,32 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
       setStep("creating-passkey");
     }
   }, [finish]);
+
+  const runKeySetup = useCallback(
+    async (walletAddress: string) => {
+      keySetupAddressRef.current = walletAddress;
+      setError(null);
+      setCanRetry(true);
+      setStep("creating-passkey");
+      try {
+        await setupWalletKey(walletAddress);
+        keySetupAddressRef.current = null;
+        fireConfetti();
+        finish();
+      } catch (err) {
+        console.error("wallet key setup failed", err);
+        const notice = describeWalletFailure(err);
+        setError(notice.message);
+        setCanRetry(notice.canRetry);
+      }
+    },
+    [finish],
+  );
+
+  const retryWallet = () => {
+    const address = keySetupAddressRef.current;
+    void (address ? runKeySetup(address) : runWalletSetup());
+  };
 
   useEffect(() => {
     if (start !== "wallet" || !autoStartWallet || walletStartedRef.current) return;
@@ -170,9 +197,9 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
     setError(null);
     setStep("checking-email");
     try {
-      const { exists, walletWaiting } = await getMedialaneClient().api.checkEmail(email);
+      const { exists } = await getMedialaneClient().api.checkEmail(email);
       accountExistedRef.current = exists;
-      if (exists || walletWaiting) await requestLoginCode();
+      if (exists) await requestLoginCode();
       else await registerNewAccount();
     } catch {
       setError("Something went wrong. Please try again.");
@@ -199,16 +226,14 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
     setError(null);
     setStep("verifying-code");
     try {
-      const data = await getMedialaneClient().api.verifyEmailCode(email, codeToVerify);
+      await getMedialaneClient().api.verifyEmailCode(email, codeToVerify);
       saveAccountEmail(email);
-      if (data.waitingWallets.length > 0) {
-        setStep("creating-passkey");
-        await claimWaitingWallets(data.waitingWallets);
-        fireConfetti();
-        finish();
+      const wallet = accountExistedRef.current ? await adoptAccountWallet() : null;
+      if (wallet?.needsKeySetup) {
+        await runKeySetup(wallet.walletAddress);
         return;
       }
-      if (accountExistedRef.current && (await adoptAccountWallet())) {
+      if (wallet) {
         finish();
         return;
       }
@@ -259,7 +284,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
         {errorBanner}
         {error ? (
           canRetry ? (
-            <Button onClick={() => void runWalletSetup()} size="lg" className="w-full">
+            <Button onClick={retryWallet} size="lg" className="w-full">
               Try again
             </Button>
           ) : null

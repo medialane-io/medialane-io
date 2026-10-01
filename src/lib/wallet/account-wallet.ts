@@ -35,13 +35,11 @@ export function saveAccountEmail(email: string): void {
   if (value) localStorage.setItem(ACCOUNT_EMAIL_KEY, value);
 }
 
-export async function fetchAccountWalletAddress(): Promise<string | null> {
-  return getMedialaneClient().api.getSessionWallet().catch(() => null);
-}
+export type SessionWallet = { walletAddress: string; needsKeySetup: boolean };
 
-export async function adoptAccountWallet(): Promise<boolean> {
-  const address = await fetchAccountWalletAddress();
-  if (!address) return false;
-  saveAccountAddress(address);
-  return true;
+/** Takes the session account's wallet as this device's account; `null` when it has none. */
+export async function adoptAccountWallet(): Promise<SessionWallet | null> {
+  const wallet = await getMedialaneClient().api.getSessionWallet().catch(() => null);
+  if (wallet) saveAccountAddress(wallet.walletAddress);
+  return wallet;
 }

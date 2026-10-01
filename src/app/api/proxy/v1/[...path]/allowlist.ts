@@ -75,7 +75,7 @@ const ALLOWED_ROUTES: Record<string, RegExp[]> = {
     /^remix-offers(\/(auto|self\/confirm|[^/]+\/(confirm|reject|extend)))?$/,
     /^reports$/,
     /^users\/(me|register)$/,
-    /^users\/me\/(generate-wallet|email|wallet|claim-wallet)$/,
+    /^users\/me\/(generate-wallet|email|wallet|wallet\/key)$/,
     /^username-claims$/,
     /^metadata\/(upload|upload-file|upload-directory)$/,
     /^tx\/sync$/,

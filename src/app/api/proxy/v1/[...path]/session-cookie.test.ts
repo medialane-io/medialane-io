@@ -88,6 +88,6 @@ test("nothing else sets it", () => {
   expect(shouldSetSessionCookie("tokens", "POST")).toBe(false);
 });
 
-test("injects the session into a wallet claim", () => {
-  expect(shouldInjectSessionCookie("users/me/claim-wallet", "POST")).toBe(true);
+test("injects the session into the wallet key setup", () => {
+  expect(shouldInjectSessionCookie("users/me/wallet/key", "POST")).toBe(true);
 });
