@@ -20,8 +20,8 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
-    "@medialane/sdk": "0.142.0",
-    "@medialane/ui": "0.171.0",
+    "@medialane/sdk": "0.144.0",
+    "@medialane/ui": "0.172.0",
     "@next/third-parties": "^16.2.6",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-slot": "^1.2.4",
