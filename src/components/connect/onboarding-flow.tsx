@@ -8,14 +8,16 @@ import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import { adoptAccountWallet, saveAccountEmail } from "@/lib/wallet/account-wallet";
+import { saveAccountAddress, saveAccountEmail } from "@/lib/wallet/account-wallet";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useEmailVerificationStatus } from "@/hooks/use-email-verification-required";
 import { useSiwsToken } from "@/hooks/use-siws-token";
 import { fireConfetti } from "@/lib/confetti";
 import { MedialaneApiError } from "@medialane/sdk";
 import { mediaWallet } from "@/lib/wallet/client";
-import { setupWalletKey } from "@/lib/wallet/key-setup";
+import { adoptSessionWallet, setupSessionWalletKey } from "@medialane/sdk/starknet";
+import { createOwnerKey } from "@/lib/wallet/passkey";
+import { saveSealedOwner, notifyWalletChange } from "@/lib/wallet/store";
 
 export type OnboardingStep =
   | "email"
@@ -127,7 +129,13 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
       setCanRetry(true);
       setStep("creating-passkey");
       try {
-        await setupWalletKey(walletAddress);
+        await setupSessionWalletKey(getMedialaneClient().api, walletAddress, {
+          createOwnerKey,
+          saveOwner: (sealed) => {
+            saveSealedOwner(sealed);
+            notifyWalletChange();
+          },
+        });
         keySetupAddressRef.current = null;
         fireConfetti();
         finish();
@@ -228,7 +236,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
     try {
       await getMedialaneClient().api.verifyEmailCode(email, codeToVerify);
       saveAccountEmail(email);
-      const wallet = accountExistedRef.current ? await adoptAccountWallet() : null;
+      const wallet = accountExistedRef.current ? await adoptSessionWallet(getMedialaneClient().api, saveAccountAddress) : null;
       if (wallet?.needsKeySetup) {
         await runKeySetup(wallet.walletAddress);
         return;
@@ -239,7 +247,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
       }
       await runWalletSetup();
     } catch (err) {
-      setError(describeError(err, "Incorrect code. Please try again.").message);
+      setError(describeError(err, "Something went wrong. Please try again.").message);
       setStep("code");
     }
   };
