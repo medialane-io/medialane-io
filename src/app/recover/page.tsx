@@ -10,8 +10,6 @@ import { Input } from "@/components/ui/input";
 import {
   createOwnerKey,
   sealImportedOwnerKey,
-  walletAddressForPrivateKey,
-  InvalidStarkPrivateKeyError,
   type SealedOwner,
 } from "@/lib/wallet/passkey";
 import { saveSealedOwner, loadSealedOwner } from "@/lib/wallet/store";
@@ -24,7 +22,7 @@ import {
   GUARDIAN_RECOVERY_AVAILABLE,
   type EscapeInfo,
 } from "@/lib/wallet/guardian";
-import { describeRecoveryAction } from "@medialane/sdk/starknet";
+import { describeRecoveryAction, parseRecoveryKey, InvalidRecoveryKeyError } from "@medialane/sdk/starknet";
 import { isOwnerOf } from "@/lib/wallet/devices";
 
 type Mode = "choose" | "key" | "lost" | "guardian";
@@ -99,7 +97,7 @@ function RecoveryKeyFlow({ onBack }: { onBack: () => void }) {
     const trimmed = keyInput.trim();
     if (!trimmed) return null;
     try {
-      return walletAddressForPrivateKey(trimmed);
+      return parseRecoveryKey(trimmed);
     } catch {
       return null;
     }
@@ -109,11 +107,11 @@ function RecoveryKeyFlow({ onBack }: { onBack: () => void }) {
     setBusy(true);
     setErr(null);
     try {
-      const sealed = await sealImportedOwnerKey(keyInput);
+      const sealed = await sealImportedOwnerKey(parseRecoveryKey(keyInput));
       const owned = await isOwnerOf(sealed.address, sealed.ownerPubKey).catch(() => false);
       if (!owned) {
         setErr(
-          "No Medialane account is controlled by that key. Check you copied the whole key, and that you exported it from the device you signed up on.",
+          "That key does not control this wallet. Check you copied the whole recovery key.",
         );
         setBusy(false);
         return;
@@ -121,7 +119,7 @@ function RecoveryKeyFlow({ onBack }: { onBack: () => void }) {
       saveSealedOwner(sealed);
       router.push("/portfolio");
     } catch (e) {
-      if (e instanceof InvalidStarkPrivateKeyError) {
+      if (e instanceof InvalidRecoveryKeyError) {
         setErr("That does not look like a recovery key. Check you copied all of it.");
       } else {
         setErr(describeError(e, "Could not restore your wallet. Please try again.").message);
@@ -142,7 +140,7 @@ function RecoveryKeyFlow({ onBack }: { onBack: () => void }) {
       <Input
         value={keyInput}
         onChange={(e) => setKeyInput(e.target.value)}
-        placeholder="0x..."
+        placeholder="medialane-recovery:v1:…"
         autoComplete="off"
         spellCheck={false}
         className="font-mono text-xs"
@@ -150,7 +148,7 @@ function RecoveryKeyFlow({ onBack }: { onBack: () => void }) {
       {preview && (
         <p className="text-xs text-muted-foreground">
           This key restores wallet{" "}
-          <span className="font-mono text-foreground break-all">{preview}</span>
+          <span className="font-mono text-foreground break-all">{preview.walletAddress}</span>
         </p>
       )}
       {err && <p className="text-sm text-destructive">{err}</p>}

@@ -41,7 +41,6 @@ import { ProfileLivePreview } from "@/components/settings/profile-live-preview";
 import { saveAccountEmail } from "@/lib/wallet/account-wallet";
 import { loadSealedOwner } from "@/lib/wallet/store";
 import { unlockOwnerKey } from "@/lib/wallet/passkey";
-import { isRecoveryKeyForWallet } from "@medialane/sdk/starknet";
 import { mediaWallet } from "@/lib/wallet/client";
 
 export default function SettingsContent() {
@@ -670,7 +669,7 @@ export default function SettingsContent() {
                 </>
               )}
 
-              {walletAddress && <ExportKeySection loadSealed={loadSealedOwner} unlock={unlockOwnerKey} isRecoveryKey={isRecoveryKeyForWallet} describeError={(err, fallback) => describeError(err, fallback).message} />}
+              {walletAddress && <ExportKeySection loadSealed={loadSealedOwner} unlock={unlockOwnerKey} describeError={(err, fallback) => describeError(err, fallback).message} />}
 
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
