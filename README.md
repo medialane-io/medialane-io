@@ -40,7 +40,7 @@ Medialane is a platform for the **creative economy on Starknet**. It bridges Web
 - Licensing metadata embedded in IPFS as ERC-721 attributes (OpenSea-compatible and Berne Convention compliant)
 - Media tab on asset pages with embedded players for YouTube, Spotify, SoundCloud, TikTok
 - Creator wallet address embedded in every asset as `{ trait_type: "Creator", value: walletAddress }`
-- Uploads pinned to IPFS through medialane-backend's metered Pinata path, billed to the app's own tenant key
+- Uploads pinned to IPFS through medialane-backend's metered Pinata path, billed to the app's own API key
 - Create and deploy ERC-721 collections on Starknet
 - Collection metadata JSON uploaded to IPFS at creation time, with `baseUri` set onchain so any dApp can resolve collection images permissionlessly
 - **NFT Editions** (`/launchpad/nfteditions`): mint multi-edition ERC-1155 tokens into your IP Collection 1155 contracts, each with its own artwork, supply, and on-chain provenance
@@ -146,7 +146,7 @@ User (device passkey)
                  └─ Starknet Mainnet (onchain)
 ```
 
-Every Pinata write goes through medialane-backend's `/v1/metadata/*` API, metered against the same tenant key as every other write in the app.
+Every Pinata write goes through medialane-backend's `/v1/metadata/*` API, metered against the same API key as every other write in the app.
 
 ---
 
@@ -310,7 +310,7 @@ src/
 | [medialane-backend](https://github.com/medialane-io/medialane-backend) | Starknet indexer + marketplace API (Bun + Hono + Prisma + PostgreSQL) |
 | [medialane-starknet](https://github.com/medialane-io/medialane-starknet) | Wallet-sovereign Starknet app: creator launchpad + marketplace |
 | [medialane-sdk](https://github.com/medialane-io/medialane-sdk) | TypeScript SDK (`@medialane/sdk`): `npm install @medialane/sdk` |
-| [medialane-portal](https://github.com/medialane-io/medialane-portal) | Developer portal (API keys, webhooks, usage) |
+| [medialane-portal](https://github.com/medialane-io/medialane-portal) | Developer portal (API keys, credits, usage) |
 
 ---
 
