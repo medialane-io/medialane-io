@@ -8,6 +8,7 @@ import {
   STARKNET_COLLECTION_1155_CONTRACT,
 } from "./constants";
 import { RPC_PRIMARY_URL } from "./starknet";
+import { APP_SOURCE } from "./app-source";
 
 let _client: MedialaneClient | null = null;
 
@@ -16,6 +17,7 @@ function medialaneConfig() {
   return {
     backendUrl: MEDIALANE_BACKEND_URL,
     apiKey: MEDIALANE_API_KEY || undefined,
+    appSource: APP_SOURCE,
     rpcUrl,
     marketplaceContract: STARKNET_MARKETPLACE_721_CONTRACT,
     marketplace1155Contract: STARKNET_MARKETPLACE_1155_CONTRACT,
