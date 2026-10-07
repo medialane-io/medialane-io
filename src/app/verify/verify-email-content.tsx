@@ -33,7 +33,7 @@ export default function VerifyEmailContent() {
       const token = getValidToken() ?? (await signIn());
       if (!token) return;
       const result = await getMedialaneClient().api.getMyWallet(token);
-      if (result?.email && result.emailVerified) {
+      if (result?.email && !result.emailDeadline) {
         setEmail(result.email);
         setStep("verified");
       } else if (result?.email) {

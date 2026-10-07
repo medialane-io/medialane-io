@@ -6,7 +6,6 @@ export interface RenderedEmail {
 
 export type TemplateRequest =
   | { template: "verification-code"; data: { code: string } }
-  | { template: "welcome"; data: { walletAddress: string; confirm: { token: string; deadline: Date } | null } }
   | { template: "verification-reminder"; data: { confirmToken: string; deadline: Date } }
   | { template: "guardian-set"; data: { walletAddress: string } }
   | { template: "guardian-escape-triggered"; data: { walletAddress: string; readyAt: Date } }
@@ -35,15 +34,6 @@ export function parseTemplateRequest(body: unknown): TemplateRequest | null {
     case "verification-code": {
       const code = matching(data.code, CODE);
       return code ? { template: "verification-code", data: { code } } : null;
-    }
-    case "welcome": {
-      const walletAddress = matching(data.walletAddress, ADDRESS);
-      if (!walletAddress) return null;
-      if (data.confirm === null) return { template: "welcome", data: { walletAddress, confirm: null } };
-      const confirm = record(data.confirm);
-      const token = matching(confirm?.token, TOKEN);
-      const deadline = date(confirm?.deadline);
-      return token && deadline ? { template: "welcome", data: { walletAddress, confirm: { token, deadline } } } : null;
     }
     case "verification-reminder": {
       const confirmToken = matching(data.confirmToken, TOKEN);
@@ -113,15 +103,6 @@ const shortAddress = (address: string): string => `${address.slice(0, 6)}…${ad
 const button = (url: string): string =>
   `<a href="${escapeHtml(url)}" style="display:inline-block;background:#111827;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:12px 24px;border-radius:10px;">Confirm my email</a>`;
 
-const HIGHLIGHTS = [
-  "Your creations are protected in 181 countries under the Berne Convention.",
-  "Minting collections, NFTs and other digital assets is free.",
-  "You hold your own keys. Medialane is only the interface, so your assets stay yours.",
-  "Our contracts are immutable and battle-tested.",
-  "We build around the CROPS philosophy, anchored in the Integrity Web axioms.",
-  "Take part in our airdrop campaign.",
-];
-
 function verificationCode(code: string): RenderedEmail {
   const html = `
     <div style="max-width:480px;margin:0 auto;padding:32px 16px;font-family:${FONT};">
@@ -146,58 +127,6 @@ function verificationCode(code: string): RenderedEmail {
     "If you didn't request this, you can safely ignore this email.",
   ].join("\n");
   return { subject: "Your verification code", html, text };
-}
-
-function welcome(data: { walletAddress: string; confirm: { token: string; deadline: Date } | null }, appUrl: string): RenderedEmail {
-  const settingsUrl = `${appUrl}/settings/recovery`;
-  const confirmUrl = data.confirm ? `${appUrl}/confirm-email#token=${data.confirm.token}` : null;
-  const closing = data.confirm
-    ? `If you don't confirm by ${formatDate(data.confirm.deadline)}, your account will be closed and this email address will be released.`
-    : "";
-
-  const text = [
-    "Welcome to Medialane.",
-    "",
-    "Medialane is where creators protect, mint and share their work.",
-    "",
-    ...(confirmUrl ? [`Confirm your email: ${confirmUrl}`, closing, ""] : []),
-    "Your Medialane wallet address (yours to save and share):",
-    data.walletAddress,
-    "",
-    ...HIGHLIGHTS.map((line) => `- ${line}`),
-    "",
-    `Secure your account: add a second device or a guardian in Settings > Security & Recovery: ${settingsUrl}`,
-    "",
-    IGNORE_FOOTER,
-  ].join("\n");
-
-  const confirmBlock = confirmUrl
-    ? `<div style="background:#f6f7f9;border-radius:16px;padding:24px;text-align:center;">
-        ${button(confirmUrl)}
-        <p style="margin:16px 0 0;font-size:13px;color:#6b7280;">${escapeHtml(closing)}</p>
-      </div>`
-    : "";
-
-  const html = layout(
-    `
-      <h1 style="margin:0 0 8px;font-size:22px;">Welcome to Medialane</h1>
-      <p style="margin:0 0 24px;font-size:15px;color:#4b5563;">Where creators protect, mint and share their work.</p>
-      ${confirmBlock}
-      <p style="margin:28px 0 6px;font-size:14px;font-weight:600;">Your Medialane wallet address</p>
-      <p style="margin:0 0 4px;font-size:13px;color:#6b7280;">Yours to save and share.</p>
-      <p style="margin:0;padding:12px;background:#f6f7f9;border-radius:10px;font-family:ui-monospace,Menlo,monospace;font-size:12px;word-break:break-all;">${escapeHtml(data.walletAddress)}</p>
-      <ul style="margin:28px 0 0;padding-left:20px;font-size:14px;line-height:1.6;">
-        ${HIGHLIGHTS.map((line) => `<li>${escapeHtml(line)}</li>`).join("\n        ")}
-      </ul>
-      <p style="margin:28px 0 0;font-size:14px;line-height:1.6;">
-        <strong>Secure your account.</strong> Add a second device or a guardian in
-        <a href="${escapeHtml(settingsUrl)}" style="color:#111827;">Settings &rsaquo; Security &amp; Recovery</a>.
-      </p>
-    `,
-    IGNORE_FOOTER,
-  );
-
-  return { subject: data.confirm ? "Welcome to Medialane — confirm your email" : "Welcome to Medialane", html, text };
 }
 
 function reminder(data: { confirmToken: string; deadline: Date }, appUrl: string): RenderedEmail {
@@ -254,8 +183,6 @@ export function renderTemplate(request: TemplateRequest, appUrl: string): Render
   switch (request.template) {
     case "verification-code":
       return verificationCode(request.data.code);
-    case "welcome":
-      return welcome(request.data, appUrl);
     case "verification-reminder":
       return reminder(request.data, appUrl);
     case "guardian-set":

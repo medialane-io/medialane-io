@@ -13,8 +13,6 @@ const links = (html: string) => [...html.matchAll(/href="([^"]+)"/g)].map((m) =>
 describe("what the relay accepts", () => {
   test("every template with its exact fields", () => {
     expect(parse("verification-code", { code: "482913" })).not.toBeNull();
-    expect(parse("welcome", { walletAddress: ADDRESS, confirm: null })).not.toBeNull();
-    expect(parse("welcome", { walletAddress: ADDRESS, confirm: { token: TOKEN, deadline: DEADLINE } })).not.toBeNull();
     expect(parse("verification-reminder", { confirmToken: TOKEN, deadline: DEADLINE })).not.toBeNull();
     expect(parse("guardian-set", { walletAddress: ADDRESS })).not.toBeNull();
     expect(parse("guardian-escape-triggered", { walletAddress: ADDRESS, readyAt: DEADLINE })).not.toBeNull();
@@ -64,36 +62,6 @@ describe("the emails", () => {
     expect(text).toContain("If you didn't request this");
   });
 
-  test("welcome, unconfirmed: confirm link built from the token, address, date; html and text", () => {
-    const { subject, html, text } = render({ template: "welcome", data: { walletAddress: ADDRESS, confirm: { token: TOKEN, deadline: new Date(DEADLINE) } } });
-    expect(subject).toBe("Welcome to Medialane — confirm your email");
-    const url = `${APP}/confirm-email#token=${TOKEN}`;
-    for (const body of [html, text]) {
-      expect(body).toContain(ADDRESS);
-      expect(body).toContain("10 October 2026");
-    }
-    expect(text).toContain(url);
-    expect(links(html)).toEqual([url, `${APP}/settings/recovery`]);
-    expect(text.toLowerCase()).toContain("closed");
-  });
-
-  test("welcome, confirmed: plain, no confirm and no deadline", () => {
-    const { subject, html, text } = render({ template: "welcome", data: { walletAddress: ADDRESS, confirm: null } });
-    expect(subject).toBe("Welcome to Medialane");
-    for (const body of [html, text]) {
-      expect(body).toContain(ADDRESS);
-      expect(body.toLowerCase()).not.toContain("confirm");
-    }
-    expect(links(html)).toEqual([`${APP}/settings/recovery`]);
-    expect(`${html}${text}`.toLowerCase()).not.toContain("starknet");
-  });
-
-  test("welcome ends with the footer", () => {
-    const { html } = render({ template: "welcome", data: { walletAddress: ADDRESS, confirm: null } });
-    expect(html).toContain("If you didn't sign up, you can ignore this email.");
-    expect(html).toContain("Medialane will never ask you for your recovery key");
-  });
-
   test("reminder: names the date, says what happens, links only to confirm", () => {
     const { subject, html, text } = render({ template: "verification-reminder", data: { confirmToken: TOKEN, deadline: new Date(DEADLINE) } });
     expect(subject).toBe("Confirm your email by 10 October to keep your Medialane account");
@@ -121,7 +89,6 @@ describe("the emails", () => {
 
   test("the only links an email can contain point at the app", () => {
     const all: TemplateRequest[] = [
-      { template: "welcome", data: { walletAddress: ADDRESS, confirm: { token: TOKEN, deadline: new Date(DEADLINE) } } },
       { template: "verification-reminder", data: { confirmToken: TOKEN, deadline: new Date(DEADLINE) } },
       { template: "guardian-set", data: { walletAddress: ADDRESS } },
     ];
