@@ -90,8 +90,8 @@ function LinkDeviceForm() {
         <CardHeader>
           <CardTitle>Use this account here</CardTitle>
           <CardDescription>
-            Your wallet stays on the device that created it. Approve this one from a device where you
-            are already signed in, and it will sign for itself from then on.
+            Approve this browser from a device you already use with Medialane, and you&apos;ll be signed in
+            here too.
           </CardDescription>
         </CardHeader>
 

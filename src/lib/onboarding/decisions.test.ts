@@ -25,19 +25,38 @@ describe("after registering", () => {
 
 describe("after the login code is verified", () => {
   test("a new account has no wallet yet: create it (a new io user)", () => {
-    expect(afterCodeVerified(null)).toEqual({ type: "wallet-setup" });
+    expect(afterCodeVerified(null, null)).toEqual({ type: "wallet-setup" });
   });
 
   test("an account that exists but never got a wallet: create it (the retry after a failed first try)", () => {
-    expect(afterCodeVerified(null)).toEqual({ type: "wallet-setup" });
+    expect(afterCodeVerified(null, null)).toEqual({ type: "wallet-setup" });
   });
 
-  test("a returning user whose wallet already has their key is finished (a returning io user)", () => {
-    expect(afterCodeVerified({ walletAddress: WALLET, needsKeySetup: false })).toEqual({ type: "finish" });
+  test("a returning user whose wallet already has their key on this browser is finished (a returning io user)", () => {
+    expect(afterCodeVerified({ walletAddress: WALLET, needsKeySetup: false }, WALLET)).toEqual({ type: "finish" });
+  });
+
+  test("the same wallet written differently on this browser still counts as this browser's key", () => {
+    const padded = "0x" + WALLET.slice(2).toUpperCase();
+    expect(afterCodeVerified({ walletAddress: WALLET, needsKeySetup: false }, padded)).toEqual({ type: "finish" });
+  });
+
+  test("a returning user on a browser without their key is sent to link this device (a new browser)", () => {
+    expect(afterCodeVerified({ walletAddress: WALLET, needsKeySetup: false }, null)).toEqual({
+      type: "link-device",
+      walletAddress: WALLET,
+    });
+  });
+
+  test("a browser holding a key for a different wallet is also sent to link this device", () => {
+    expect(afterCodeVerified({ walletAddress: WALLET, needsKeySetup: false }, "0x1234")).toEqual({
+      type: "link-device",
+      walletAddress: WALLET,
+    });
   });
 
   test("a wallet that still has the platform's provisioning key needs the user's own key first (a provisioned user)", () => {
-    expect(afterCodeVerified({ walletAddress: WALLET, needsKeySetup: true })).toEqual({
+    expect(afterCodeVerified({ walletAddress: WALLET, needsKeySetup: true }, null)).toEqual({
       type: "key-setup",
       walletAddress: WALLET,
     });
