@@ -5,6 +5,7 @@ export type OnboardingStep =
   | "code"
   | "verifying-code"
   | "add-email"
+  | "link-device"
   | "creating-passkey"
   | "deploying"
   | "signing-in"
@@ -33,6 +34,7 @@ export type FlowEvent =
   | { type: "key-setup-finished" }
   | { type: "link-required" }
   | { type: "needs-email" }
+  | { type: "device-not-linked" }
   | { type: "add-email-submitted" }
   | { type: "add-email-failed"; message: string }
   | { type: "finished" };
@@ -75,6 +77,8 @@ export function flowReducer(state: FlowState, event: FlowEvent): FlowState {
       return { ...state, step: "email" };
     case "needs-email":
       return { ...state, step: "add-email" };
+    case "device-not-linked":
+      return { ...state, step: "link-device", error: null };
     case "add-email-submitted":
       return { ...state, error: null };
     case "add-email-failed":

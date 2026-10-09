@@ -2,6 +2,7 @@
 
 import { EmailCodeEntry, RESEND_COOLDOWN_SECONDS, describeError, describeWalletFailure, detectPasskeySupport, isPasskeyCancelled } from "@medialane/ui";
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
@@ -186,7 +187,11 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
     try {
       saveAccountEmail(email);
       const wallet = flow.accountExisted ? await adoptSessionWallet(getMedialaneClient().api, saveAccountAddress) : null;
-      const next = afterCodeVerified(wallet);
+      const next = afterCodeVerified(wallet, loadSealedOwner()?.address ?? null);
+      if (next.type === "link-device") {
+        dispatch({ type: "device-not-linked" });
+        return;
+      }
       if (next.type === "key-setup") {
         await runKeySetup(next.walletAddress);
         return;
@@ -243,6 +248,12 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
       <div className="w-full space-y-3">
         {errorBanner}
         {error ? (
+          <p className="text-xs text-muted-foreground">
+            Your account is saved. You can finish your wallet later by signing in with your email, here or on another
+            device.
+          </p>
+        ) : null}
+        {error ? (
           canRetry ? (
             <Button onClick={retryWallet} size="lg" className="w-full">
               Try again
@@ -259,6 +270,26 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
             Use your passkey, Face ID or Touch ID to secure your account.
           </p>
         )}
+      </div>
+    );
+  }
+
+  if (step === "link-device") {
+    return (
+      <div className="w-full space-y-3">
+        <Alert className="w-full">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Your email is verified, but your wallet is secured by a passkey on another device. To use it in this
+            browser, approve this browser from a device where you&apos;re already signed in.
+          </AlertDescription>
+        </Alert>
+        <Button asChild size="lg" className="w-full">
+          <Link href="/link-device">Link this browser</Link>
+        </Button>
+        <Button asChild variant="ghost" size="sm" className="w-full">
+          <Link href="/recover">No other device? Recover your wallet</Link>
+        </Button>
       </div>
     );
   }

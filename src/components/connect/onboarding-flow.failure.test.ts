@@ -2,22 +2,23 @@ import { describe, expect, test } from "bun:test";
 import { describeWalletFailure } from "./onboarding-flow.js";
 
 describe("what someone is told when the wallet cannot be made", () => {
-  test("an unsupported browser is named, briefly, with what to do", () => {
-    const notice = describeWalletFailure(
-      new Error("Brave doesn't currently support the WebAuthn PRF extension. Medialane needs it to seal your key."),
-    );
-    expect(notice.message).toBe("Browser not supported. Please try another browser.");
+  const unsupported = (reason: string) => Object.assign(new Error("unsupported"), { name: "PasskeyUnsupportedError", reason });
+
+  test("a passkey that can't protect a wallet suggests saving it elsewhere, and may be retried", () => {
+    const notice = describeWalletFailure(unsupported("no-prf"));
+    expect(notice.kind).toBe("unsupported-passkey");
+    expect(notice.canRetry).toBe(true);
+    expect(notice.message).toBe("This passkey can't protect a wallet. Try again and save it on your phone or in your password manager.");
   });
 
-  test("an unsupported browser is not offered a retry that cannot work", () => {
-    const notice = describeWalletFailure(new Error("... WebAuthn PRF extension ..."));
+  test("no passkeys at all is not offered a retry that cannot work", () => {
+    const notice = describeWalletFailure(unsupported("no-webauthn"));
+    expect(notice.kind).toBe("no-passkeys");
     expect(notice.canRetry).toBe(false);
   });
 
-  test("a browser that simply returned no secret gets the same advice", () => {
-    const notice = describeWalletFailure(new Error("This browser didn't return a passkey PRF secret."));
-    expect(notice.canRetry).toBe(false);
-    expect(notice.message).toBe("Browser not supported. Please try another browser.");
+  test("error text that merely mentions PRF is not treated as unsupported", () => {
+    expect(describeWalletFailure(new Error("This browser didn't return a passkey PRF secret.")).kind).toBe("unknown");
   });
 
   test("any other failure is short and may be retried", () => {
@@ -31,7 +32,7 @@ describe("what someone is told when the wallet cannot be made", () => {
   });
 
   test("the message never names a browser we have not verified", () => {
-    for (const err of [new Error("WebAuthn PRF extension"), new Error("brave"), new Error("nope")]) {
+    for (const err of [unsupported("no-prf"), unsupported("no-webauthn"), new Error("brave"), new Error("nope")]) {
       expect(describeWalletFailure(err).message).not.toContain("Safari");
       expect(describeWalletFailure(err).message).not.toContain("Chrome");
       expect(describeWalletFailure(err).message).not.toContain("Brave");
@@ -39,7 +40,7 @@ describe("what someone is told when the wallet cannot be made", () => {
   });
 
   test("the message never mentions the extension by name", () => {
-    for (const err of [new Error("WebAuthn PRF extension"), new Error("nope")]) {
+    for (const err of [unsupported("no-prf"), unsupported("no-webauthn"), new Error("nope")]) {
       expect(describeWalletFailure(err).message).not.toContain("PRF");
       expect(describeWalletFailure(err).message).not.toContain("WebAuthn");
     }
