@@ -41,6 +41,10 @@ describe("claim state", () => {
     expect(popClaimState({ hasClaimed: false, proof: null, root, wallet: "0x111" })).toBe("no-link");
   });
 
+  test("with no published list, claims are closed rather than blamed on the wallet", () => {
+    expect(popClaimState({ hasClaimed: false, proof, root: "0x0", wallet: "0x111" })).toBe("closed");
+  });
+
   test("a link opened by another wallet is refused before any transaction", () => {
     expect(popClaimState({ hasClaimed: false, proof, root, wallet: "0x999" })).toBe("wrong-wallet");
   });

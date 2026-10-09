@@ -56,8 +56,9 @@ function AllowlistSection({
         )}
       </div>
       <p className="text-xs text-muted-foreground">
-        Paste every participant&apos;s wallet address. Publishing replaces the previous list. The list stays in
-        this browser — download the claim links and send each participant theirs.
+        Paste every participant&apos;s wallet address. Publishing replaces the previous list and every link
+        sent before it — send the new links to everyone who hasn&apos;t claimed yet. The list stays in this
+        browser: download the claim links and send each participant theirs.
       </p>
       <Textarea
         placeholder={"Paste Starknet addresses, one per line:\n0x04a...\n0x06b..."}

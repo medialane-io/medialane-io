@@ -67,6 +67,12 @@ export function PopClaimButton({ collectionAddress }: PopClaimButtonProps) {
     );
   }
 
+  if (hasWallet && state === "closed") {
+    return (
+      <p className="text-sm text-muted-foreground">Claims for this credential are closed.</p>
+    );
+  }
+
   if (hasWallet && state === "no-link") {
     return (
       <p className="text-sm text-muted-foreground">
@@ -79,7 +85,7 @@ export function PopClaimButton({ collectionAddress }: PopClaimButtonProps) {
     return (
       <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
         <Ban className="h-3.5 w-3.5 shrink-0" />
-        This claim link is for a different wallet.
+        This claim link doesn&apos;t match this wallet, or the organizer has since published a new list.
       </div>
     );
   }
