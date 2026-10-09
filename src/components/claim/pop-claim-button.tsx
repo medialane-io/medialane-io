@@ -4,9 +4,9 @@ import { Loader2, CheckCircle2, Ban, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { useEffect, useState } from "react";
-import { decodePopClaimFragment } from "@medialane/sdk/starknet";
+import { popCalls, popClaimInfo, popClaimState, type PopClaimInfo } from "@medialane/sdk/starknet";
 import { starknetProvider } from "@/lib/starknet";
-import { popClaimState } from "@/lib/pop-claim";
+import { claimProofFor } from "@/lib/pop-proof-storage";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { MarketplaceErrorState, MarketplaceSuccessState } from "@medialane/ui";
@@ -22,26 +22,34 @@ export function PopClaimButton({ collectionAddress }: PopClaimButtonProps) {
   const { address: walletAddress, hasWallet } = useWalletNativeSession();
   const { hasClaimed, mutate } = usePopClaimStatus(collectionAddress, walletAddress ?? null);
   const [proof, setProof] = useState<string[] | null>(null);
-  const [root, setRoot] = useState<string | null>(null);
+  const [info, setInfo] = useState<PopClaimInfo | null>(null);
   const action = useWalletWriteAction();
   const busy = action.status === "processing" || action.status === "confirming";
 
   useEffect(() => {
-    setProof(decodePopClaimFragment(window.location.hash));
-    starknetProvider
-      .callContract({ contractAddress: collectionAddress, entrypoint: "allowlist_root", calldata: [] })
-      .then(([value]) => setRoot(value ?? null))
-      .catch(() => setRoot(null));
+    let storage: Storage | null = null;
+    try {
+      storage = window.sessionStorage;
+    } catch {
+      storage = null;
+    }
+    setProof(claimProofFor(storage, collectionAddress, window.location.hash));
+    popClaimInfo(starknetProvider, collectionAddress)
+      .then(setInfo)
+      .catch(() => setInfo(null));
   }, [collectionAddress]);
 
-  const state = popClaimState({ hasClaimed, proof, root, wallet: walletAddress ?? null });
+  const state = popClaimState({
+    hasClaimed,
+    proof,
+    wallet: walletAddress ?? null,
+    info: info && { ...info, now: Math.floor(Date.now() / 1000) },
+  });
 
   const handleClaim = () => {
     if (!proof) return;
     void action.run((signer) =>
-      signer.execute([
-        { contractAddress: collectionAddress, entrypoint: "claim", calldata: [String(proof.length), ...proof] },
-      ]),
+      signer.execute([popCalls.claim(collectionAddress, proof)]),
     );
   };
 
@@ -70,6 +78,12 @@ export function PopClaimButton({ collectionAddress }: PopClaimButtonProps) {
   if (hasWallet && state === "closed") {
     return (
       <p className="text-sm text-muted-foreground">Claims for this credential are closed.</p>
+    );
+  }
+
+  if (hasWallet && state === "ended") {
+    return (
+      <p className="text-sm text-muted-foreground">The claim window for this credential has ended.</p>
     );
   }
 

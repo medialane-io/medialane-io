@@ -14,6 +14,8 @@ import { PageContainer } from "@medialane/ui";
 import { ipfsToHttp } from "@/lib/utils";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { PopClaimButton } from "@/components/claim/pop-claim-button";
+import { PopBurnButton } from "@/components/claim/pop-burn-button";
+import { normalizeAddress } from "@medialane/sdk";
 import { ShareButton } from "@/components/shared/share-button";
 import { ReportDialog } from "@/components/report-dialog";
 import { EXPLORER_URL } from "@/lib/constants";
@@ -25,6 +27,10 @@ export function AssetPagePop() {
   const { collection } = useCollection(contract);
   const { hasClaimed } = usePopClaimStatus(contract, walletAddress ?? null);
   const shouldReduce = useReducedMotion();
+  const holdsThisToken =
+    !!walletAddress &&
+    !!token?.owner &&
+    normalizeAddress("STARKNET", token.owner) === normalizeAddress("STARKNET", walletAddress);
 
   const imageUrl = token?.metadata?.image ? ipfsToHttp(token.metadata.image) : null;
   const [imgError, setImgError] = useState(false);
@@ -113,12 +119,13 @@ export function AssetPagePop() {
                     <CheckCircle2 className="h-5 w-5 shrink-0" />
                     You hold this credential
                   </div>
-                  <p className="text-xs text-muted-foreground">Permanently in your wallet</p>
+                  <p className="text-xs text-muted-foreground">In your wallet</p>
+                  {holdsThisToken && <PopBurnButton collectionAddress={contract} tokenId={tokenId} />}
                 </div>
               ) : (
                 <div className="space-y-3">
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    This is an on-chain proof of participation. Once claimed, it lives permanently in your wallet and cannot be transferred or sold.
+                    This is an on-chain proof of participation. Once claimed, it stays in your wallet and cannot be transferred or sold.
                   </p>
                   <PopClaimButton collectionAddress={contract} />
                 </div>
