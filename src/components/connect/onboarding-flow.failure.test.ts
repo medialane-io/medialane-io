@@ -8,7 +8,7 @@ describe("what someone is told when the wallet cannot be made", () => {
     const notice = describeWalletFailure(unsupported("no-prf"));
     expect(notice.kind).toBe("unsupported-passkey");
     expect(notice.canRetry).toBe(true);
-    expect(notice.message).toBe("This passkey can't protect a wallet. Try again and save it on your phone or in your password manager.");
+    expect(notice.message).toBe("Let's save your passkey in another place. Try again and choose your phone or password manager.");
   });
 
   test("no passkeys at all is not offered a retry that cannot work", () => {

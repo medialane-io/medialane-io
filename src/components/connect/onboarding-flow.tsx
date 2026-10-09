@@ -249,7 +249,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
         {errorBanner}
         {error ? (
           <p className="text-xs text-muted-foreground">
-            Your account is saved. You can finish your wallet later by signing in with your email, here or on another
+            Your account is saved. You can finish setting up anytime by signing in with your email, here or on another
             device.
           </p>
         ) : null}
@@ -280,15 +280,14 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
         <Alert className="w-full">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Your email is verified, but your wallet is secured by a passkey on another device. To use it in this
-            browser, approve this browser from a device where you&apos;re already signed in.
+            Your email is confirmed. Approve this browser from the device you used to sign up, and you&apos;re in.
           </AlertDescription>
         </Alert>
         <Button asChild size="lg" className="w-full">
-          <Link href="/link-device">Link this browser</Link>
+          <Link href="/link-device">Approve this browser</Link>
         </Button>
         <Button asChild variant="ghost" size="sm" className="w-full">
-          <Link href="/recover">No other device? Recover your wallet</Link>
+          <Link href="/recover">Lost your device? Recover your account</Link>
         </Button>
       </div>
     );

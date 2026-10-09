@@ -134,9 +134,9 @@ describe("an address that already has an account", () => {
     adoptSessionWallet.mockImplementation(async () => ({ walletAddress: WALLET, needsKeySetup: false }));
     await enterEmail("new-browser@example.com");
     await enterCode();
-    await waitFor(() => expect(screen.getByText(/secured by a passkey on another device/)).toBeTruthy());
+    await waitFor(() => expect(screen.getByText(/Approve this browser from the device you used to sign up/)).toBeTruthy());
     expect(done).toEqual([]);
-    expect(screen.getByRole("link", { name: /Link this browser/ }).getAttribute("href")).toBe("/link-device");
+    expect(screen.getByRole("link", { name: /Approve this browser/ }).getAttribute("href")).toBe("/link-device");
     expect(screen.getByRole("link", { name: /recover/i }).getAttribute("href")).toBe("/recover");
     expect(completeDeployment).not.toHaveBeenCalled();
     expect(claimSessionWallet).not.toHaveBeenCalled();
