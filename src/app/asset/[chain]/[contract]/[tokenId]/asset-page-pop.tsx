@@ -23,7 +23,7 @@ export function AssetPagePop() {
   const { address: walletAddress } = useWalletNativeSession();
   const { token } = useToken(contract, tokenId);
   const { collection } = useCollection(contract);
-  const { claimStatus } = usePopClaimStatus(contract, walletAddress ?? null);
+  const { hasClaimed } = usePopClaimStatus(contract, walletAddress ?? null);
   const shouldReduce = useReducedMotion();
 
   const imageUrl = token?.metadata?.image ? ipfsToHttp(token.metadata.image) : null;
@@ -107,17 +107,13 @@ export function AssetPagePop() {
             </div>
 
             <div className="rounded-2xl border border-border p-5 space-y-4">
-              {claimStatus?.hasClaimed ? (
+              {hasClaimed ? (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 text-emerald-500 font-semibold">
                     <CheckCircle2 className="h-5 w-5 shrink-0" />
                     You hold this credential
                   </div>
-                  {claimStatus.tokenId && (
-                    <p className="text-xs text-muted-foreground">
-                      Credential #{claimStatus.tokenId} · permanently in your wallet
-                    </p>
-                  )}
+                  <p className="text-xs text-muted-foreground">Permanently in your wallet</p>
                 </div>
               ) : (
                 <div className="space-y-3">
