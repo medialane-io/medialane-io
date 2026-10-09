@@ -31,7 +31,8 @@ const real = {
 mock.module("@/lib/medialane-client", () => ({ getMedialaneClient: () => ({ api }) }));
 mock.module("@/lib/wallet/client", () => ({ ...real.client, mediaWallet: { ...real.client.mediaWallet, completeDeployment } }));
 mock.module("@medialane/sdk/starknet", () => ({ ...real.starknet, adoptSessionWallet, claimSessionWallet }));
-mock.module("@/lib/wallet/store", () => ({ ...real.store, loadSealedOwner: () => null, saveSealedOwner: () => {}, notifyWalletChange: () => {} }));
+let localOwner: { address: string } | null = null;
+mock.module("@/lib/wallet/store", () => ({ ...real.store, loadSealedOwner: () => localOwner, saveSealedOwner: () => {}, notifyWalletChange: () => {} }));
 mock.module("@/lib/wallet/passkey", () => ({ ...real.passkey, createOwnerKey: async () => ({}) }));
 mock.module("@/lib/wallet/devices", () => ({ ...real.devices, removeDevice: async () => {} }));
 mock.module("@/lib/confetti", () => ({ ...real.confetti, fireConfetti: () => {} }));
@@ -51,6 +52,7 @@ beforeEach(() => {
   adoptSessionWallet.mockClear();
   claimSessionWallet.mockClear();
   localStorage.clear();
+  localOwner = null;
   api.checkEmail.mockImplementation(async () => ({ exists: false }));
   api.registerEmailAccount.mockImplementation(async () => ({}));
   api.verifyEmailCode.mockImplementation(async () => ({}));
@@ -117,11 +119,25 @@ describe("an address that already has an account", () => {
   });
 
   test("a returning user whose wallet is ready signs in and finishes with no new wallet and no celebration", async () => {
+    localOwner = { address: WALLET };
     api.checkEmail.mockImplementation(async () => ({ exists: true }));
     adoptSessionWallet.mockImplementation(async () => ({ walletAddress: WALLET, needsKeySetup: false }));
     await enterEmail("back@example.com");
     await enterCode();
     await waitFor(() => expect(done).toEqual([{ celebrated: false }]));
+    expect(completeDeployment).not.toHaveBeenCalled();
+    expect(claimSessionWallet).not.toHaveBeenCalled();
+  });
+
+  test("a returning user on a browser without their key is told why and offered to link this device, not sent home signed out", async () => {
+    api.checkEmail.mockImplementation(async () => ({ exists: true }));
+    adoptSessionWallet.mockImplementation(async () => ({ walletAddress: WALLET, needsKeySetup: false }));
+    await enterEmail("new-browser@example.com");
+    await enterCode();
+    await waitFor(() => expect(screen.getByText(/secured by a passkey on another device/)).toBeTruthy());
+    expect(done).toEqual([]);
+    expect(screen.getByRole("link", { name: /Link this browser/ }).getAttribute("href")).toBe("/link-device");
+    expect(screen.getByRole("link", { name: /recover/i }).getAttribute("href")).toBe("/recover");
     expect(completeDeployment).not.toHaveBeenCalled();
     expect(claimSessionWallet).not.toHaveBeenCalled();
   });
@@ -163,5 +179,20 @@ describe("when the passkey step fails", () => {
     await waitFor(() => expect(done).toEqual([{ celebrated: true }]));
     expect(completeDeployment).toHaveBeenCalledTimes(2);
     expect(api.registerEmailAccount).toHaveBeenCalledTimes(1);
+  });
+
+  test("a passkey that can't protect a wallet keeps the new account, says so, and retries only the wallet", async () => {
+    const unsupported = Object.assign(new Error("unsupported"), { name: "PasskeyUnsupportedError", reason: "no-prf" });
+    completeDeployment.mockImplementationOnce(async () => {
+      throw unsupported;
+    });
+    await enterEmail("no-prf@example.com");
+    await waitFor(() => expect(screen.getByText(/Your account is saved/)).toBeTruthy());
+    expect(api.registerEmailAccount).toHaveBeenCalledTimes(1);
+    expect(done).toEqual([]);
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    await waitFor(() => expect(done).toEqual([{ celebrated: true }]));
+    expect(api.registerEmailAccount).toHaveBeenCalledTimes(1);
+    expect(completeDeployment).toHaveBeenCalledTimes(2);
   });
 });
