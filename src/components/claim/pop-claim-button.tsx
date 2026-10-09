@@ -3,7 +3,10 @@
 import { Loader2, CheckCircle2, Ban, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { decodePopClaimFragment } from "@medialane/sdk/starknet";
+import { starknetProvider } from "@/lib/starknet";
+import { popClaimState } from "@/lib/pop-claim";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { MarketplaceErrorState, MarketplaceSuccessState } from "@medialane/ui";
@@ -17,49 +20,66 @@ interface PopClaimButtonProps {
 
 export function PopClaimButton({ collectionAddress }: PopClaimButtonProps) {
   const { address: walletAddress, hasWallet } = useWalletNativeSession();
-  const { claimStatus, isLoading, mutate } = usePopClaimStatus(
-    collectionAddress,
-    walletAddress ?? null
-  );
+  const { hasClaimed, mutate } = usePopClaimStatus(collectionAddress, walletAddress ?? null);
+  const [proof, setProof] = useState<string[] | null>(null);
+  const [root, setRoot] = useState<string | null>(null);
   const action = useWalletWriteAction();
   const busy = action.status === "processing" || action.status === "confirming";
 
+  useEffect(() => {
+    setProof(decodePopClaimFragment(window.location.hash));
+    starknetProvider
+      .callContract({ contractAddress: collectionAddress, entrypoint: "allowlist_root", calldata: [] })
+      .then(([value]) => setRoot(value ?? null))
+      .catch(() => setRoot(null));
+  }, [collectionAddress]);
+
+  const state = popClaimState({ hasClaimed, proof, root, wallet: walletAddress ?? null });
+
   const handleClaim = () => {
-    void action.run(async (signer) => {
-      const result = await signer.execute([
-        { contractAddress: collectionAddress, entrypoint: "claim", calldata: [] },
-      ]);
-      return result;
-    });
+    if (!proof) return;
+    void action.run((signer) =>
+      signer.execute([
+        { contractAddress: collectionAddress, entrypoint: "claim", calldata: [String(proof.length), ...proof] },
+      ]),
+    );
   };
 
   useEffect(() => {
     if (action.status === "success") mutate();
   }, [action.status, mutate]);
 
-  if (isLoading) {
+  if (hasWallet && state === "loading") {
     return (
       <Button variant="outline" size="sm" disabled className="w-full">
         <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
-        Checking eligibility…
+        Checking…
       </Button>
     );
   }
 
-  if (claimStatus?.hasClaimed) {
+  if (state === "claimed") {
     return (
       <div className="flex items-center gap-1.5 text-sm text-green-500 font-medium">
         <CheckCircle2 className="h-4 w-4 shrink-0" />
-        Claimed{claimStatus.tokenId ? ` · #${claimStatus.tokenId}` : ""}
+        Claimed
       </div>
     );
   }
 
-  if (claimStatus && !claimStatus.isEligible) {
+  if (hasWallet && state === "no-link") {
+    return (
+      <p className="text-sm text-muted-foreground">
+        Open the claim link you received to claim this credential.
+      </p>
+    );
+  }
+
+  if (hasWallet && state === "wrong-wallet") {
     return (
       <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
         <Ban className="h-3.5 w-3.5 shrink-0" />
-        Not eligible
+        This claim link is for a different wallet.
       </div>
     );
   }
@@ -70,7 +90,7 @@ export function PopClaimButton({ collectionAddress }: PopClaimButtonProps) {
         size="sm"
         className="w-full gap-1.5"
         onClick={handleClaim}
-        disabled={busy || !hasWallet}
+        disabled={busy || !hasWallet || state !== "ready"}
       >
         {busy ? (
           <><Loader2 className="h-3.5 w-3.5 animate-spin" />Claiming…</>

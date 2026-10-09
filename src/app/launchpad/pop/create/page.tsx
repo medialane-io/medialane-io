@@ -129,7 +129,6 @@ export default function CreatePOPPage() {
       baseUri,
       service: "pop-protocol",
       claimEndTimestamp,
-      eventType,
     });
 
     const result = await executeIntent(starknetProvider, signer, client, intentRes.data, { confirm: false });
