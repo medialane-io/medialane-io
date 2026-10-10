@@ -5,8 +5,6 @@ import {
   shouldSetSessionCookie,
   extractAccountToken,
   stripAccountToken,
-  shouldInjectSessionCookie,
-  injectAccountToken,
 } from "./session-cookie";
 
 test("SESSION_COOKIE_NAME and SESSION_COOKIE_MAX_AGE_SECONDS are the expected constants", () => {
@@ -49,32 +47,9 @@ test("stripAccountToken is a no-op when there's no accountToken field, or the bo
   expect(stripAccountToken("not json")).toBe("not json");
 });
 
-test("shouldInjectSessionCookie is true only for a users/me POST", () => {
-  expect(shouldInjectSessionCookie("users/me", "POST")).toBe(true);
-  expect(shouldInjectSessionCookie("users/me", "GET")).toBe(false);
-  expect(shouldInjectSessionCookie("users/register", "POST")).toBe(false);
-});
 
-test("injectAccountToken sets accountToken on an existing JSON body without disturbing other fields", () => {
-  const body = JSON.stringify({ walletType: "MEDIAWALLET", chain: "STARKNET" });
-  const injected = JSON.parse(injectAccountToken(body, "account_session_abc.def"));
-  expect(injected).toEqual({
-    walletType: "MEDIAWALLET",
-    chain: "STARKNET",
-    accountToken: "account_session_abc.def",
-  });
-});
 
-test("injectAccountToken overwrites a client-supplied accountToken rather than trusting it", () => {
-  const body = JSON.stringify({ accountToken: "client_supplied_forged_value" });
-  const injected = JSON.parse(injectAccountToken(body, "account_session_real.value"));
-  expect(injected.accountToken).toBe("account_session_real.value");
-});
 
-test("injectAccountToken handles an empty or malformed body by starting fresh", () => {
-  expect(JSON.parse(injectAccountToken("", "tok"))).toEqual({ accountToken: "tok" });
-  expect(JSON.parse(injectAccountToken("not json", "tok"))).toEqual({ accountToken: "tok" });
-});
 
 test("a wallet sign-in establishes the session, the same as an email code", () => {
   expect(shouldSetSessionCookie("auth/siws/verify", "POST")).toBe(true);
@@ -86,8 +61,4 @@ test("nothing else sets it", () => {
   expect(shouldSetSessionCookie("auth/siws/nonce", "POST")).toBe(false);
   expect(shouldSetSessionCookie("auth/siws/verify", "GET")).toBe(false);
   expect(shouldSetSessionCookie("tokens", "POST")).toBe(false);
-});
-
-test("injects the session into the wallet key setup", () => {
-  expect(shouldInjectSessionCookie("users/me/wallet/key", "POST")).toBe(true);
 });

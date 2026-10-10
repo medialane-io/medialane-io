@@ -7,8 +7,6 @@ import {
   shouldSetSessionCookie,
   extractAccountToken,
   stripAccountToken,
-  shouldInjectSessionCookie,
-  injectAccountToken,
 } from "./session-cookie";
 
 const BACKEND_URL =
@@ -81,15 +79,7 @@ async function handle(
   if (sessionCookie) fwdHeaders.set("x-account-session", sessionCookie);
 
   const hasBody = req.method !== "GET" && req.method !== "HEAD";
-  const injectingCookie = shouldInjectSessionCookie(joinedPath, req.method);
-
-  let body: BodyInit | undefined;
-  if (hasBody && injectingCookie) {
-    const bodyText = await req.text();
-    body = sessionCookie ? injectAccountToken(bodyText, sessionCookie) : bodyText;
-  } else if (hasBody) {
-    body = await req.arrayBuffer();
-  }
+  const body: BodyInit | undefined = hasBody ? await req.arrayBuffer() : undefined;
 
   const res = await fetch(target, {
     method: req.method,
