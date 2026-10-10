@@ -1,6 +1,6 @@
 "use client";
 
-import { requireSession } from "@/lib/account-gate";
+import { requireSignedIn } from "@/lib/account-gate";
 import { useState } from "react";
 import Link from "next/link";
 import { Handshake, CheckCircle2, Loader2, X, AlertCircle } from "lucide-react";
@@ -22,7 +22,7 @@ import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed
 import { Handshake as HandshakeAsideIcon, ShieldCheck, Coins, Gift } from "lucide-react";
 import { ClaimRail } from "@/components/claim/claim-rail";
 import { pinSponsorshipTerms } from "@/lib/launchpad-metadata";
-import { useSiwsToken } from "@/hooks/use-siws-token";
+import { useSession } from "@/hooks/use-session";
 import { resolveTokenImage } from "@/lib/utils";
 import { usePendingProposalsForAsset } from "@/hooks/use-sponsorship";
 import type { Call } from "starknet";
@@ -117,7 +117,7 @@ type Mode = "offer" | "propose";
 export default function CreateSponsorshipOfferPage() {
   const [formError, setFormError] = useState<string | null>(null);
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
-  const { getValidToken, signIn } = useSiwsToken();
+  const { session } = useSession();
   const client = useMedialaneClient();
   const action = useWalletWriteAction();
   const busy = action.status === "processing" || action.status === "confirming";
@@ -162,8 +162,7 @@ export default function CreateSponsorshipOfferPage() {
     if (!durationDays) { setFormError("Choose how long the license should last."); return; }
 
     void action.run(async (signer) => {
-      const siwsToken = getValidToken() ?? (await signIn());
-      requireSession(siwsToken);
+      requireSignedIn(session);
       const licenseTermsUri = await pinSponsorshipTerms(toLicenseMetadata(terms));
 
       const amount = BigInt(Math.round(Number(terms.amount) * 10 ** token.decimals));

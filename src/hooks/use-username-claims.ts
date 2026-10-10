@@ -2,7 +2,8 @@
 
 import useSWR from "swr";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useSiwsToken } from "@/hooks/use-siws-token";
+import { useSession } from "@/hooks/use-session";
+import { requireSignedIn } from "@/lib/account-gate";
 import type { ApiCreatorProfile, ApiUsernameClaim } from "@medialane/sdk";
 import { getMedialaneClient } from "@/lib/medialane-client";
 
@@ -11,14 +12,13 @@ export type { ApiCreatorProfile as CreatorByUsername };
 
 export function useMyUsernameClaim() {
   const { hasWallet } = useWalletNativeSession();
-  const { getValidToken, signIn } = useSiwsToken();
+  const { session } = useSession();
 
   const { data, error, isLoading, mutate } = useSWR(
     hasWallet ? "username-claim-me" : null,
     async () => {
-      const token = getValidToken() ?? (await signIn());
-      if (!token) throw new Error("Wallet sign-in is required");
-      return getMedialaneClient().api.getMyUsernameClaim(token);
+      requireSignedIn(session);
+      return getMedialaneClient().api.getMyUsernameClaim();
     },
     { revalidateOnFocus: false, shouldRetryOnError: false }
   );
@@ -32,11 +32,10 @@ export function checkUsernameAvailability(username: string): Promise<{ available
 
 export async function submitUsernameClaim(
   username: string,
-  token: string,
   notifyEmail?: string
 ): Promise<{ claim?: ApiUsernameClaim; error?: string }> {
   try {
-    return { claim: await getMedialaneClient().api.submitUsernameClaim(username, token, notifyEmail) };
+    return { claim: await getMedialaneClient().api.submitUsernameClaim(username, notifyEmail) };
   } catch (err) {
     return { error: err instanceof Error ? err.message : "Failed to submit claim" };
   }

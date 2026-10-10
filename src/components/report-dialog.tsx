@@ -15,7 +15,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useSiwsToken } from "@/hooks/use-siws-token";
+import { useSession } from "@/hooks/use-session";
 import { MedialaneApiError } from "@medialane/sdk";
 import { getMedialaneClient } from "@/lib/medialane-client";
 
@@ -43,7 +43,7 @@ interface ReportDialogProps {
 
 export function ReportDialog({ target, open, onOpenChange }: ReportDialogProps) {
   const { hasWallet } = useWalletNativeSession();
-  const { getValidToken, signIn } = useSiwsToken();
+  const { session } = useSession();
   const router = useRouter();
   const pathname = usePathname();
   const [categories, setCategories] = useState<string[]>([]);
@@ -78,8 +78,7 @@ export function ReportDialog({ target, open, onOpenChange }: ReportDialogProps) 
     setSubmitError(null);
 
     try {
-      const token = getValidToken() ?? (await signIn());
-      if (!token) {
+      if (!session) {
         setSubmitStep("error");
         setSubmitError("Please secure your account to submit a report.");
         return;
@@ -94,7 +93,6 @@ export function ReportDialog({ target, open, onOpenChange }: ReportDialogProps) 
           ...(target.type === "CREATOR" ? { targetAddress: target.address } : {}),
           ...(target.type === "COMMENT" ? { targetId: target.commentId } : {}),
         },
-        token,
       );
 
       setSubmitStep("success");

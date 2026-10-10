@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Mail, ShieldCheck, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useSiwsToken } from "@/hooks/use-siws-token";
+import { useSession } from "@/hooks/use-session";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,7 +19,7 @@ type Step = "loading" | "add-email" | "code" | "verified";
 export default function VerifyEmailContent() {
   const router = useRouter();
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
-  const { getValidToken, signIn } = useSiwsToken();
+  const { session } = useSession();
 
   const [step, setStep] = useState<Step>("loading");
   const [email, setEmail] = useState<string | null>(null);
@@ -30,9 +30,7 @@ export default function VerifyEmailContent() {
   useEffect(() => {
     if (!walletAddress) return;
     (async () => {
-      const token = getValidToken() ?? (await signIn());
-      if (!token) return;
-      const result = await getMedialaneClient().api.getMyWallet(token);
+      const result = session;
       if (result?.email && !result.emailDeadline) {
         setEmail(result.email);
         setStep("verified");
@@ -52,9 +50,7 @@ export default function VerifyEmailContent() {
     if (!value) return;
     setError(null);
     try {
-      const token = getValidToken() ?? (await signIn());
-      if (!token) throw new Error("Not authenticated");
-      const result = await getMedialaneClient().api.changeMyEmail(value, token);
+      const result = await getMedialaneClient().api.changeMyEmail(value);
       saveAccountEmail(value);
       setEmail(result.email);
       setStep("code");

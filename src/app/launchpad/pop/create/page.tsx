@@ -1,6 +1,6 @@
 "use client";
 
-import { requireAccount, requireSession } from "@/lib/account-gate";
+import { requireAccount, requireSignedIn } from "@/lib/account-gate";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,7 +18,7 @@ import { starknetProvider } from "@/lib/starknet";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
-import { useSiwsToken } from "@/hooks/use-siws-token";
+import { useSession } from "@/hooks/use-session";
 import { getDefaultClaimWindow, suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
 import { PopCreateForm } from "../pop-create-form";
 import { popCreateSchema, type PopCreateFormValues } from "../pop-create-schema";
@@ -31,7 +31,7 @@ import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed
 
 export default function CreatePOPPage() {
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
-  const { getValidToken, signIn } = useSiwsToken();
+  const { session } = useSession();
   const action = useWalletWriteAction();
   const client = useMedialaneClient();
   const busy = action.status === "processing" || action.status === "confirming";
@@ -114,8 +114,7 @@ export default function CreatePOPPage() {
       ],
     };
     if (imageUri) metadata.image = imageUri;
-    const siwsToken = getValidToken() ?? (await signIn());
-    requireSession(siwsToken);
+    requireSignedIn(session);
     const baseUri = await pinLaunchpadMetadata(metadata);
 
     const claimEndTimestamp = Math.floor(

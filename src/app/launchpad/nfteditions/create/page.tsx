@@ -1,6 +1,6 @@
 "use client";
 
-import { requireAccount, requireSession } from "@/lib/account-gate";
+import { requireAccount, requireSignedIn } from "@/lib/account-gate";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
@@ -20,7 +20,7 @@ import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { executeIntent, deployedCollectionFromReceipt } from "@medialane/sdk/starknet";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
-import { useSiwsToken } from "@/hooks/use-siws-token";
+import { useSession } from "@/hooks/use-session";
 import { suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { MedialaneCollectionCard } from "@medialane/ui";
@@ -37,7 +37,7 @@ import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 
 export default function CreateIP1155CollectionPage() {
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
-  const { getValidToken, signIn } = useSiwsToken();
+  const { session } = useSession();
 
   const action = useWalletWriteAction();
   const client = useMedialaneClient();
@@ -109,8 +109,7 @@ export default function CreateIP1155CollectionPage() {
 
     let collectionMetaUri: string | undefined;
     if (imageUri) {
-      const siwsToken = getValidToken() ?? (await signIn());
-      requireSession(siwsToken);
+      requireSignedIn(session);
       collectionMetaUri = await pinLaunchpadMetadata({
         name: pendingValues.name,
         description: pendingValues.description || "",

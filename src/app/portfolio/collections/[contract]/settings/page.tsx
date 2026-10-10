@@ -4,7 +4,8 @@ import { describeError } from "@medialane/ui";
 import { use, useState, useEffect, useRef } from "react";
 import { normalizeAddress } from "@medialane/sdk";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useSiwsToken } from "@/hooks/use-siws-token";
+import { useSession } from "@/hooks/use-session";
+import { requireSignedIn } from "@/lib/account-gate";
 import { useCollection } from "@/hooks/use-collections";
 import { useCollectionProfile } from "@/hooks/use-profiles";
 import { collectionHref } from "@/lib/routes";
@@ -90,7 +91,7 @@ function CollectionSlugClaimSection({
   contract: string;
   profile: { slug?: string | null } | null;
 }) {
-  const { getValidToken, signIn } = useSiwsToken();
+  const { session } = useSession();
   const [slugInput, setSlugInput] = useState("");
   const [checkState, setCheckState] = useState<"idle" | "checking" | "available" | "taken" | "invalid">("idle");
   const [checkReason, setCheckReason] = useState<string | null>(null);
@@ -104,16 +105,15 @@ function CollectionSlugClaimSection({
     loadedRef.current = true;
     (async () => {
       try {
-        const token = getValidToken() ?? (await signIn());
-        if (!token) return;
-        const { claims } = await getMedialaneClient().api.getMyCollectionSlugClaims(token);
+        requireSignedIn(session);
+        const { claims } = await getMedialaneClient().api.getMyCollectionSlugClaims();
         const match = claims.find(
           (c) => normalizeAddress("STARKNET", c.contractAddress) === normalizeAddress("STARKNET", contract) && c.status === "PENDING"
         );
         if (match) setPendingSlug(match.slug);
       } catch {}
     })();
-  }, [contract, getValidToken, signIn]);
+  }, [contract, session]);
 
   const handleCheck = async () => {
     const slug = slugInput.toLowerCase().trim();
@@ -136,9 +136,8 @@ function CollectionSlugClaimSection({
     setSubmitState("submitting");
     setSubmitError(null);
     try {
-      const token = getValidToken() ?? (await signIn());
-      if (!token) throw new Error("Not authenticated");
-      const { claim } = await getMedialaneClient().api.submitCollectionSlugClaim(contract, slug, token);
+      requireSignedIn(session);
+      const { claim } = await getMedialaneClient().api.submitCollectionSlugClaim(contract, slug);
       setPendingSlug(claim.slug);
       setSubmitState("done");
     } catch (err: unknown) {
@@ -279,7 +278,7 @@ function CollectionSlugClaimSection({
 export default function CollectionSettingsPage({ params }: Props) {
   const { contract } = use(params);
   const { address: walletAddress } = useWalletNativeSession();
-  const { getValidToken, signIn } = useSiwsToken();
+  const { session } = useSession();
   const { collection, isLoading: collectionLoading } = useCollection(contract);
   const { profile, isLoading: profileLoading, mutate } = useCollectionProfile(contract);
   const [saving, setSaving] = useState(false);
@@ -350,8 +349,7 @@ export default function CollectionSettingsPage({ params }: Props) {
     setSaving(true);
     setSaveError(null);
     try {
-      const token = getValidToken() ?? (await signIn());
-      if (!token) throw new Error("Not authenticated");
+      requireSignedIn(session);
       const payload = {
         displayName: form.displayName || null,
         description: form.description || null,
@@ -367,7 +365,7 @@ export default function CollectionSettingsPage({ params }: Props) {
           ? ((form.gatedContentType || null) as "VIDEO" | "STREAM" | "AUDIO" | "DOCUMENT" | "LINK" | null)
           : null,
       };
-      await getMedialaneClient().api.updateCollectionProfile(contract, payload, token);
+      await getMedialaneClient().api.updateCollectionProfile(contract, payload);
       await mutate();
       setSaveStatus("saved");
       setTimeout(() => setSaveStatus("idle"), 3000);

@@ -10,9 +10,8 @@ import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { saveAccountAddress, saveAccountEmail } from "@/lib/wallet/account-wallet";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useEmailVerificationStatus } from "@/hooks/use-email-verification-required";
 import { useEmailCode } from "@/hooks/use-email-code";
-import { useSiwsToken } from "@/hooks/use-siws-token";
+import { refreshSession } from "@/hooks/use-session";
 import { fireConfetti } from "@/lib/confetti";
 import { MedialaneApiError } from "@medialane/sdk";
 import { mediaWallet } from "@/lib/wallet/client";
@@ -20,7 +19,7 @@ import { adoptSessionWallet, claimSessionWallet } from "@medialane/sdk/starknet"
 import { createOwnerKey } from "@/lib/wallet/passkey";
 import { removeDevice } from "@/lib/wallet/devices";
 import { loadSealedOwner, saveSealedOwner, notifyWalletChange } from "@/lib/wallet/store";
-import { afterCodeVerified, afterEmailCheck, afterRegister } from "@/lib/onboarding/decisions";
+import { afterCodeVerified, afterEmailCheck, afterRegister, isEmailAddress } from "@/lib/onboarding/decisions";
 import { flowReducer, initialFlow, retryTarget, type OnboardingStep } from "@/lib/onboarding/flow";
 
 export type { OnboardingStep };
@@ -49,14 +48,10 @@ export interface OnboardingFlowProps {
 export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true }: OnboardingFlowProps) {
   const [flow, dispatch] = useReducer(flowReducer, start, initialFlow);
   const [email, setEmail] = useState("");
-  const [addEmailInput, setAddEmailInput] = useState("");
-  const [addEmailSaving, setAddEmailSaving] = useState(false);
   const emailCode = useEmailCode(email);
   const walletStartedRef = useRef(false);
 
   const { hasWallet } = useWalletNativeSession();
-  const emailStatus = useEmailVerificationStatus();
-  const { getValidToken, signIn } = useSiwsToken();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
@@ -85,6 +80,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
         walletType: "MEDIAWALLET",
         chain: "STARKNET",
       });
+      await refreshSession();
       finish(true);
     } catch (err) {
       if (err instanceof MedialaneApiError && err.message === "ACCOUNT_LINK_REQUIRED") {
@@ -110,6 +106,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
           removeOwner: removeDevice,
         });
         dispatch({ type: "key-setup-finished" });
+        await refreshSession();
         finish(true);
       } catch (err) {
         console.error("wallet key setup failed", err);
@@ -131,13 +128,8 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
   }, [start, autoStartWallet, runWalletSetup]);
 
   useEffect(() => {
-    if (!mounted || !hasWallet || emailStatus === null) return;
-    if (emailStatus.email) {
-      finish();
-      return;
-    }
-    dispatch({ type: "needs-email" });
-  }, [mounted, hasWallet, emailStatus, finish]);
+    if (mounted && hasWallet) finish();
+  }, [mounted, hasWallet, finish]);
 
   const requestLoginCode = async () => {
     if (await emailCode.send(email)) dispatch({ type: "code-sent" });
@@ -160,6 +152,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
         return;
       }
       saveAccountEmail(email);
+      await refreshSession();
       await runWalletSetup();
     } catch {
       dispatch({ type: "email-step-failed", message: "Something went wrong. Please try again." });
@@ -167,6 +160,10 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
   };
 
   const continueWithEmail = async () => {
+    if (!isEmailAddress(email)) {
+      dispatch({ type: "email-step-failed", message: "Please enter your full email address, like name@example.com." });
+      return;
+    }
     dispatch({ type: "email-submitted" });
     try {
       const { exists } = await getMedialaneClient().api.checkEmail(email);
@@ -186,6 +183,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
     }
     try {
       saveAccountEmail(email);
+      await refreshSession();
       const wallet = flow.accountExisted ? await adoptSessionWallet(getMedialaneClient().api, saveAccountAddress) : null;
       const next = afterCodeVerified(wallet, loadSealedOwner()?.address ?? null);
       if (next.type === "link-device") {
@@ -204,24 +202,6 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
     } catch (err) {
       emailCode.fail(describeError(err, "Something went wrong. Please try again.").message);
       dispatch({ type: "code-failed", message: null });
-    }
-  };
-
-  const submitAddEmail = async () => {
-    const value = addEmailInput.trim();
-    if (!value) return;
-    setAddEmailSaving(true);
-    dispatch({ type: "add-email-submitted" });
-    try {
-      const token = getValidToken() ?? (await signIn());
-      if (!token) throw new Error("Not authenticated");
-      await getMedialaneClient().api.changeMyEmail(value, token);
-      saveAccountEmail(value);
-      finish();
-    } catch (err) {
-      dispatch({ type: "add-email-failed", message: describeError(err, "Couldn't save your email. Please try again.").message });
-    } finally {
-      setAddEmailSaving(false);
     }
   };
 
@@ -289,37 +269,6 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
         <Button asChild variant="ghost" size="sm" className="w-full">
           <Link href="/recover">Lost your device? Recover your account</Link>
         </Button>
-      </div>
-    );
-  }
-
-  if (step === "add-email") {
-    return (
-      <div className="w-full space-y-3">
-        {errorBanner}
-        <Input
-          type="email"
-          placeholder="you@example.com"
-          value={addEmailInput}
-          onChange={(e) => setAddEmailInput(e.target.value)}
-          disabled={addEmailSaving}
-          className="w-full h-12"
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && addEmailInput) void submitAddEmail();
-          }}
-        />
-        <Button
-          size="lg"
-          className="w-full gap-2"
-          onClick={() => void submitAddEmail()}
-          disabled={addEmailSaving || !addEmailInput}
-        >
-          {addEmailSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-          Continue
-        </Button>
-        <p className="text-xs text-muted-foreground">
-          Used for account notices and signing back in.
-        </p>
       </div>
     );
   }

@@ -1,6 +1,6 @@
 "use client";
 
-import { requireSession } from "@/lib/account-gate";
+import { requireSignedIn } from "@/lib/account-gate";
 import { UserFacingError } from "@medialane/ui";
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
@@ -38,7 +38,7 @@ import { CollapsibleSection } from "@/components/ui/collapsible-section";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useSiwsToken } from "@/hooks/use-siws-token";
+import { useSession } from "@/hooks/use-session";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { MintProgressDialog } from "@/components/marketplace/mint-progress-dialog";
 import type { MintTxStatus } from "@/types/mint-tx-status";
@@ -293,11 +293,10 @@ function CollectionPicker({
 
 export function SingleEditionsContent() {
   const { hasWallet, address: walletAddress, signer } = useWalletNativeSession();
-  const { getValidToken, signIn } = useSiwsToken();
+  const { session } = useSession();
 
   const uploadDocument = async (file: File) => {
-    const token = getValidToken() ?? (await signIn());
-    requireSession(token);
+    requireSignedIn(session);
     return uploadDocumentToIpfs(file);
   };
 
@@ -412,8 +411,7 @@ export function SingleEditionsContent() {
     setMintStep("uploading");
 
     try {
-      const siwsToken = getValidToken() ?? (await signIn());
-      requireSession(siwsToken);
+      requireSignedIn(session);
       const selectedCollection = collections.find((c) => c.collectionId === pendingValues.collectionId);
       updateMintDebug({
         step: "uploading",

@@ -1,6 +1,6 @@
 "use client";
 
-import { requireAccount, requireSession } from "@/lib/account-gate";
+import { requireAccount, requireSignedIn } from "@/lib/account-gate";
 import { UserFacingError } from "@medialane/ui";
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
@@ -26,7 +26,7 @@ import Link from "next/link";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { WalletTransactionDialog } from "@/components/transaction/wallet-transaction-dialog";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useSiwsToken } from "@/hooks/use-siws-token";
+import { useSession } from "@/hooks/use-session";
 import { executeIntent } from "@medialane/sdk/starknet";
 import { starknetProvider } from "@/lib/starknet";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
@@ -58,7 +58,7 @@ type FormValues = z.infer<typeof schema>;
 
 export default function LaunchpadCreateCollectionPage() {
   const { address: walletAddress } = useWalletNativeSession();
-  const { getValidToken, signIn } = useSiwsToken();
+  const { session } = useSession();
   const client = useMedialaneClient();
 
   const action = useWalletWriteAction();
@@ -114,8 +114,7 @@ export default function LaunchpadCreateCollectionPage() {
     setImageUri(null);
     setImageUploading(true);
     try {
-      const token = getValidToken() ?? (await signIn());
-      requireSession(token);
+      requireSignedIn(session);
 
       const uri = await Promise.race([
         uploadImageToIpfs(file),
@@ -155,8 +154,7 @@ export default function LaunchpadCreateCollectionPage() {
   const runCreate = async (values: FormValues, signer: StarknetVenueSigner) => {
     requireAccount(walletAddress);
 
-    const siwsToken = getValidToken() ?? (await signIn());
-    requireSession(siwsToken);
+    requireSignedIn(session);
 
     let baseUri: string | undefined;
     if (imageUri) {

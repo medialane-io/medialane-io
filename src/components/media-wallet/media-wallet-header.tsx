@@ -3,13 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import useSWR from "swr";
 import { LevelBadge } from "@medialane/ui";
 import { useCreatorProfile } from "@/hooks/use-profiles";
 import { useMyUsernameClaim } from "@/hooks/use-username-claims";
-import { useSiwsToken } from "@/hooks/use-siws-token";
+import { useSession } from "@/hooks/use-session";
 import { useRewards } from "@/hooks/use-rewards";
-import { getMedialaneClient } from "@/lib/medialane-client";
 import { resolveTokenImage } from "@/lib/utils";
 import { short } from "@/lib/wallet-format";
 import { CopyIcon } from "./copy-icon";
@@ -17,20 +15,12 @@ import { CopyIcon } from "./copy-icon";
 export function MediaWalletHeader({ address, onNavigate }: { address: string; onNavigate: () => void }) {
   const { profile } = useCreatorProfile(address);
   const { username } = useMyUsernameClaim();
-  const { getValidToken } = useSiwsToken();
+  const { session } = useSession();
   const { data: rewards } = useRewards(address);
   const [copied, setCopied] = useState(false);
   const avatarUrl = resolveTokenImage(profile?.avatarImage);
 
-  const { data: wallet } = useSWR(
-    ["media-wallet-header-email", address],
-    async () => {
-      const token = getValidToken();
-      if (!token) return null;
-      return getMedialaneClient().api.getMyWallet(token);
-    },
-    { revalidateOnFocus: false, shouldRetryOnError: false }
-  );
+  const wallet = session;
 
   const copy = () => {
     navigator.clipboard?.writeText(address).catch(() => {});

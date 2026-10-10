@@ -1,8 +1,8 @@
 "use client";
 
-import { requireSession } from "@/lib/account-gate";
+import { requireSignedIn } from "@/lib/account-gate";
 import { uploadImageToIpfs } from "@/lib/upload-image";
-import { useSiwsToken } from "@/hooks/use-siws-token";
+import { useSession } from "@/hooks/use-session";
 import { useEffect, useRef, useState } from "react";
 
 interface UseLaunchpadImageUploadOptions {
@@ -30,7 +30,7 @@ export function useLaunchpadImageUpload({
   const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const previewUrlRef = useRef<string | null>(null);
-  const { getValidToken, signIn } = useSiwsToken();
+  const { session } = useSession();
 
   useEffect(() => {
     return () => {
@@ -75,8 +75,7 @@ export function useLaunchpadImageUpload({
     setImageUploading(true);
 
     try {
-      const token = getValidToken() ?? (await signIn());
-      requireSession(token);
+      requireSignedIn(session);
 
       const uri = await Promise.race([
         uploadImageToIpfs(file),

@@ -11,7 +11,7 @@ import { AccountSection } from "@/components/settings/account-section";
 import { SettingsGate, SettingsPage } from "@/components/settings/settings-page";
 import { WalletDeploymentDialog } from "@/components/wallet/wallet-deployment-dialog";
 import { useMediaWallet } from "@/components/media-wallet/media-wallet-overlay";
-import { useSiwsToken } from "@/hooks/use-siws-token";
+import { useSession } from "@/hooks/use-session";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { EXPLORER_URL } from "@/lib/constants";
 import { getMedialaneClient } from "@/lib/medialane-client";
@@ -22,15 +22,13 @@ import { loadSealedOwner } from "@/lib/wallet/store";
 export default function WalletSettingsPage() {
   const { address, isDeployed } = useWalletNativeSession();
   const { open: openWalletPanel } = useMediaWallet();
-  const { getValidToken, signIn } = useSiwsToken();
+  const { session } = useSession();
   const [generating, setGenerating] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
   const [resumeOpen, setResumeOpen] = useState(false);
-  const [oldWalletToken, setOldWalletToken] = useState<string | null>(null);
-
-  async function attachNewWallet(newWalletSiwsToken: string, authToken: string) {
+  async function attachNewWallet(newWalletSiwsToken: string) {
     try {
-      await getMedialaneClient().api.generateWallet(newWalletSiwsToken, authToken);
+      await getMedialaneClient().api.generateWallet(newWalletSiwsToken);
     } catch {
       throw new UserFacingError("Failed to switch to the new wallet");
     }
@@ -47,20 +45,15 @@ export default function WalletSettingsPage() {
     setGenerating(true);
     setGenerateError(null);
 
-    let authToken: string | null = null;
-    try {
-      authToken = getValidToken() ?? (await signIn());
-      if (!authToken) throw new Error("Not authenticated");
-    } catch {
+    if (!session) {
       setGenerateError("Something went wrong. Please try again.");
       setGenerating(false);
       return;
     }
-    setOldWalletToken(authToken);
 
     try {
       const { siwsToken } = await mediaWallet.completeDeployment(() => {}, { forceNew: true });
-      await attachNewWallet(siwsToken, authToken);
+      await attachNewWallet(siwsToken);
     } catch {
       setResumeOpen(true);
     } finally {
@@ -146,8 +139,7 @@ export default function WalletSettingsPage() {
           open={resumeOpen}
           onOpenChange={setResumeOpen}
           onComplete={async ({ siwsToken }) => {
-            if (!oldWalletToken) return;
-            await attachNewWallet(siwsToken, oldWalletToken);
+            await attachNewWallet(siwsToken);
           }}
         />
       </SettingsPage>

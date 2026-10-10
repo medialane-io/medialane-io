@@ -1,6 +1,6 @@
 "use client";
 
-import { requireSession } from "@/lib/account-gate";
+import { requireSignedIn } from "@/lib/account-gate";
 import { UserFacingError } from "@medialane/ui";
 import { describeError } from "@medialane/ui";
 import { uploadImageToIpfs } from "@/lib/upload-image";
@@ -13,7 +13,7 @@ import Link from "next/link";
 import { assetHref } from "@/lib/routes";
 import { useToken } from "@/hooks/use-tokens";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useSiwsToken } from "@/hooks/use-siws-token";
+import { useSession } from "@/hooks/use-session";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { useCollectionsByOwner, useCollection } from "@/hooks/use-collections";
 import { MintProgressDialog } from "@/components/marketplace/mint-progress-dialog";
@@ -50,7 +50,7 @@ export default function CreateRemixPage() {
   const { contract, tokenId } = useParams<{ contract: string; tokenId: string }>();
   const router = useRouter();
   const { address: walletAddress, signer } = useWalletNativeSession();
-  const { getValidToken, signIn } = useSiwsToken();
+  const { session } = useSession();
   const [txStatus, setTxStatus] = useState<MintTxStatus>("idle");
   const client = useMedialaneClient();
   const { token, isLoading: tokenLoading } = useToken(contract, tokenId);
@@ -193,8 +193,7 @@ export default function CreateRemixPage() {
         ],
       };
 
-      const authToken = getValidToken() ?? (await signIn());
-      requireSession(authToken);
+      requireSignedIn(session);
 
       let tokenUri: string;
 
@@ -286,9 +285,7 @@ export default function CreateRemixPage() {
           licenseType,
           commercial,
           derivatives,
-        },
-        authToken
-      );
+        });
 
       setMintStep("success");
       router.push(assetHref("STARKNET", selectedCollection.contractAddress, remixTokenId));

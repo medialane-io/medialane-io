@@ -1,6 +1,6 @@
 "use client";
 
-import { requireSession } from "@/lib/account-gate";
+import { requireSignedIn } from "@/lib/account-gate";
 import { useState } from "react";
 import type { RefObject } from "react";
 import type { UseFormReturn } from "react-hook-form";
@@ -33,7 +33,7 @@ import {
 import { FadeIn } from "@/components/ui/motion-primitives";
 import { IPTypeFields, type MetadataField } from "@/components/create/ip-type-fields";
 import { uploadDocumentToIpfs } from "@/lib/upload-document";
-import { useSiwsToken } from "@/hooks/use-siws-token";
+import { useSession } from "@/hooks/use-session";
 import { cn } from "@/lib/utils";
 import {
   AI_POLICIES,
@@ -103,11 +103,10 @@ export function NftEditionsMintForm({
   const [licensingOpen, setLicensingOpen] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [ipTypeOpen, setIpTypeOpen] = useState(false);
-  const { getValidToken, signIn } = useSiwsToken();
+  const { session } = useSession();
 
   const uploadDocument = async (file: File) => {
-    const token = getValidToken() ?? (await signIn());
-    requireSession(token);
+    requireSignedIn(session);
     return uploadDocumentToIpfs(file);
   };
 

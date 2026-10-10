@@ -9,7 +9,6 @@ import { usePathname } from "next/navigation";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { NavCommandMenu, NavBrandButton, ThemeAmbientBackground, SelfFundConsentDialog } from "@medialane/ui";
 import { NAV_COMMANDS } from "@/lib/nav-commands";
-import { AccountSyncOnLogin } from "@/components/shared/account-sync-on-login";
 import { OnboardingGate } from "@/components/wallet/onboarding-gate";
 import { NavThemeToggle } from "@/components/nav-theme-toggle";
 import { NavConnectButton } from "@/components/nav-connect-button";
@@ -17,7 +16,6 @@ import { HeaderWalletTrigger } from "@/components/nav-wallet-trigger";
 import { MediaWalletOverlay } from "@/components/media-wallet/media-wallet-overlay";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useCreatorProfile } from "@/hooks/use-profiles";
-import { WalletNotDeployedError } from "@/hooks/use-siws-token";
 import { resolveTokenImage } from "@/lib/utils";
 import { walletConsent } from "@/lib/wallet/client";
 
@@ -103,18 +101,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
               err && typeof err === "object" && "status" in err && typeof (err as { status: unknown }).status === "number"
                 ? (err as { status: number }).status
                 : null;
-            if (status === 401 || status === 403) return;
-
             if (status === 404) return;
-
-            if (err instanceof WalletNotDeployedError) return;
 
             console.error("request failed", err);
           },
         }}
       >
         {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
-        <AccountSyncOnLogin />
         <OnboardingGate />
         <Shell>{children}</Shell>
         <SelfFundConsentDialog consent={walletConsent} />

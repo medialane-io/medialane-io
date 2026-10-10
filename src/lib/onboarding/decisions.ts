@@ -1,4 +1,5 @@
 import { normalizeWalletAddress } from "@medialane/sdk/starknet";
+import { z } from "zod";
 
 export type AfterEmailCheck = "send-code" | "register";
 export type AfterRegister = "wallet-setup" | "send-code";
@@ -7,6 +8,8 @@ export type AfterCode =
   | { type: "wallet-setup" }
   | { type: "key-setup"; walletAddress: string }
   | { type: "link-device"; walletAddress: string };
+
+export const isEmailAddress = (value: string): boolean => z.string().email().safeParse(value).success;
 
 export const afterEmailCheck = (exists: boolean): AfterEmailCheck => (exists ? "send-code" : "register");
 

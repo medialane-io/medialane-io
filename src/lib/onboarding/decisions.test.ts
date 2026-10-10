@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { afterCodeVerified, afterEmailCheck, afterRegister } from "./decisions";
+import { afterCodeVerified, afterEmailCheck, afterRegister, isEmailAddress } from "./decisions";
 
 const WALLET = "0x01575d29b83d7828cd1d833ef785083b809adeb187b6ac14aab21db568f2bf02";
 
@@ -60,5 +60,17 @@ describe("after the login code is verified", () => {
       type: "key-setup",
       walletAddress: WALLET,
     });
+  });
+});
+
+describe("the email field", () => {
+  test("accepts a full address", () => {
+    expect(isEmailAddress("name@example.com")).toBe(true);
+  });
+
+  test("refuses text that is not an address", () => {
+    expect(isEmailAddress("bfjsdbkfjs")).toBe(false);
+    expect(isEmailAddress("name@")).toBe(false);
+    expect(isEmailAddress("")).toBe(false);
   });
 });

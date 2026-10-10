@@ -1,6 +1,6 @@
 "use client";
 
-import { requireSession } from "@/lib/account-gate";
+import { requireSignedIn } from "@/lib/account-gate";
 import { describeError } from "@medialane/ui";
 import { useState } from "react";
 import { getService } from "@medialane/sdk";
@@ -16,7 +16,7 @@ import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { confirmRemixOffer } from "@/hooks/use-remix-offers";
-import { useSiwsToken } from "@/hooks/use-siws-token";
+import { useSession } from "@/hooks/use-session";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { executeIntent, mintedTokenIdFromReceipt } from "@medialane/sdk/starknet";
 import { starknetProvider } from "@/lib/starknet";
@@ -35,7 +35,7 @@ interface Props {
 
 export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props) {
   const { address: walletAddress, signer } = useWalletNativeSession();
-  const { getValidToken: getValidSiwsToken, signIn: siwsSignIn } = useSiwsToken();
+  const { session } = useSession();
   const { createListing } = useMarketplace();
   const client = useMedialaneClient();
 
@@ -110,9 +110,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
     const standard = selectedCollection.standard ?? "ERC721";
 
     try {
-      let authToken = getValidSiwsToken();
-      if (!authToken) authToken = await siwsSignIn();
-      requireSession(authToken);
+      requireSignedIn(session);
 
       const royaltyStr = offer.royaltyPct != null ? `${offer.royaltyPct}%` : undefined;
       const metadata = {
@@ -207,9 +205,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
           remixTokenId,
           approvedCollection: selectedCollection.contractAddress,
           orderHash,
-        },
-        authToken
-      );
+        });
 
       setNewAssetLink(assetHref("STARKNET", selectedCollection.contractAddress, remixTokenId));
       setDone(true);

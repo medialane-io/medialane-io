@@ -23,8 +23,7 @@ const real = {
   devices: await import("@/lib/wallet/devices"),
   confetti: await import("@/lib/confetti"),
   session: await import("@/hooks/use-wallet-native-session"),
-  emailStatus: await import("@/hooks/use-email-verification-required"),
-  siws: await import("@/hooks/use-siws-token"),
+  sessionHook: await import("@/hooks/use-session"),
   starknet: await import("@medialane/sdk/starknet"),
 };
 
@@ -37,8 +36,7 @@ mock.module("@/lib/wallet/passkey", () => ({ ...real.passkey, createOwnerKey: as
 mock.module("@/lib/wallet/devices", () => ({ ...real.devices, removeDevice: async () => {} }));
 mock.module("@/lib/confetti", () => ({ ...real.confetti, fireConfetti: () => {} }));
 mock.module("@/hooks/use-wallet-native-session", () => ({ ...real.session, useWalletNativeSession: () => ({ hasWallet: false }) }));
-mock.module("@/hooks/use-email-verification-required", () => ({ ...real.emailStatus, useEmailVerificationStatus: () => null }));
-mock.module("@/hooks/use-siws-token", () => ({ ...real.siws, useSiwsToken: () => ({ getValidToken: () => null, signIn: async () => null }) }));
+mock.module("@/hooks/use-session", () => ({ ...real.sessionHook, useSession: () => ({ session: null, isLoading: false }), refreshSession: async () => undefined }));
 
 const { OnboardingFlow } = await import("./onboarding-flow");
 
@@ -86,6 +84,14 @@ describe("a new io user", () => {
     expect(completeDeployment).toHaveBeenCalledTimes(1);
     expect(api.upsertMyWallet).toHaveBeenCalledTimes(1);
     expect(loadAccountEmail()).toBe("new@example.com");
+  });
+});
+
+describe("an address that is not an email", () => {
+  test("gets a clear message and nothing is sent", async () => {
+    await enterEmail("bfjsdbkfjs");
+    await waitFor(() => expect(screen.getByText("Please enter your full email address, like name@example.com.")).toBeTruthy());
+    expect(api.checkEmail).not.toHaveBeenCalled();
   });
 });
 
