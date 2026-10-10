@@ -29,18 +29,3 @@ export function stripAccountToken(bodyText: string): string {
     return bodyText;
   }
 }
-
-export function shouldInjectSessionCookie(path: string, method: string): boolean {
-  return method === "POST" && (path === "users/me" || path === "users/me/wallet" || path === "users/me/wallet/key");
-}
-
-export function injectAccountToken(bodyText: string, accountToken: string): string {
-  let data: Record<string, unknown>;
-  try {
-    data = JSON.parse(bodyText || "{}") as Record<string, unknown>;
-  } catch {
-    data = {};
-  }
-  data.accountToken = accountToken;
-  return JSON.stringify(data);
-}
