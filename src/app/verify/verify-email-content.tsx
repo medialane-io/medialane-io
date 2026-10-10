@@ -12,7 +12,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { useEmailCode } from "@/hooks/use-email-code";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { saveAccountEmail } from "@/lib/wallet/account-wallet";
 
 type Step = "loading" | "add-email" | "code" | "verified";
 
@@ -51,7 +50,6 @@ export default function VerifyEmailContent() {
     setError(null);
     try {
       const result = await getMedialaneClient().api.changeMyEmail(value);
-      saveAccountEmail(value);
       setEmail(result.email);
       setStep("code");
       void emailCode.send(result.email);

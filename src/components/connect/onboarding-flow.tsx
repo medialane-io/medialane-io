@@ -8,14 +8,13 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import { saveAccountAddress, saveAccountEmail } from "@/lib/wallet/account-wallet";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useEmailCode } from "@/hooks/use-email-code";
-import { refreshSession } from "@/hooks/use-session";
+import { refreshSession, useSession } from "@/hooks/use-session";
 import { fireConfetti } from "@/lib/confetti";
 import { MedialaneApiError } from "@medialane/sdk";
 import { mediaWallet } from "@/lib/wallet/client";
-import { adoptSessionWallet, claimSessionWallet } from "@medialane/sdk/starknet";
+import { claimSessionWallet } from "@medialane/sdk/starknet";
 import { createOwnerKey } from "@/lib/wallet/passkey";
 import { removeDevice } from "@/lib/wallet/devices";
 import { loadSealedOwner, saveSealedOwner, notifyWalletChange } from "@/lib/wallet/store";
@@ -52,6 +51,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
   const walletStartedRef = useRef(false);
 
   const { hasWallet } = useWalletNativeSession();
+  const { session, isLoading: sessionLoading } = useSession();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
@@ -122,10 +122,10 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
   };
 
   useEffect(() => {
-    if (start !== "wallet" || !autoStartWallet || walletStartedRef.current) return;
+    if (!autoStartWallet || walletStartedRef.current || sessionLoading) return;
     walletStartedRef.current = true;
-    void runWalletSetup();
-  }, [start, autoStartWallet, runWalletSetup]);
+    if (start === "wallet" || (session && !session.walletAddress)) void runWalletSetup();
+  }, [start, autoStartWallet, sessionLoading, session, runWalletSetup]);
 
   useEffect(() => {
     if (mounted && hasWallet) finish();
@@ -151,7 +151,6 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
         await requestLoginCode();
         return;
       }
-      saveAccountEmail(email);
       await refreshSession();
       await runWalletSetup();
     } catch {
@@ -182,9 +181,8 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
       return;
     }
     try {
-      saveAccountEmail(email);
       await refreshSession();
-      const wallet = flow.accountExisted ? await adoptSessionWallet(getMedialaneClient().api, saveAccountAddress) : null;
+      const wallet = flow.accountExisted ? await getMedialaneClient().api.getSessionWallet() : null;
       const next = afterCodeVerified(wallet, loadSealedOwner()?.address ?? null);
       if (next.type === "link-device") {
         dispatch({ type: "device-not-linked" });
