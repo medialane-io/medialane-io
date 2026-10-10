@@ -3,7 +3,8 @@
 import { describeError } from "@medialane/ui";
 import { useCallback, useEffect, useState } from "react";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useSiwsToken } from "@/hooks/use-siws-token";
+import { useSession } from "@/hooks/use-session";
+import { requireSignedIn } from "@/lib/account-gate";
 import { useCreatorProfile } from "@/hooks/use-profiles";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { emptyProfileForm, invalidUrlFields, profileFormFrom, profilePayload } from "@/lib/settings/profile";
@@ -11,7 +12,7 @@ import type { ProfileForm } from "@/components/settings/types";
 
 export function useProfileForm() {
   const { address } = useWalletNativeSession();
-  const { getValidToken, signIn } = useSiwsToken();
+  const { session } = useSession();
   const { profile, isLoading, mutate } = useCreatorProfile(address ?? undefined);
   const [form, setForm] = useState<ProfileForm>(emptyProfileForm);
   const [saving, setSaving] = useState(false);
@@ -34,9 +35,8 @@ export function useProfileForm() {
     setSaving(true);
     setSaveError(null);
     try {
-      const token = getValidToken() ?? (await signIn());
-      if (!token) throw new Error("Not authenticated");
-      const result = (await getMedialaneClient().api.updateCreatorProfile(address, profilePayload(form), token)) as
+      requireSignedIn(session);
+      const result = (await getMedialaneClient().api.updateCreatorProfile(address, profilePayload(form))) as
         | { walletAddress: string }
         | { error?: string };
       if (!("walletAddress" in result) || !result.walletAddress) {
@@ -51,7 +51,7 @@ export function useProfileForm() {
     } finally {
       setSaving(false);
     }
-  }, [address, form, getValidToken, signIn, mutate]);
+  }, [address, form, session, mutate]);
 
   return { address, profile, isLoading, form, setField, saving, saveStatus, saveError, save };
 }

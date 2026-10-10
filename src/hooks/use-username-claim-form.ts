@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useSiwsToken } from "@/hooks/use-siws-token";
+import { useSession } from "@/hooks/use-session";
+import { requireSignedIn } from "@/lib/account-gate";
 import { useMyUsernameClaim, submitUsernameClaim, checkUsernameAvailability } from "@/hooks/use-username-claims";
 import type { CheckState } from "@/components/settings/types";
 
 export function useUsernameClaimForm() {
   const { address } = useWalletNativeSession();
-  const { getValidToken, signIn } = useSiwsToken();
+  const { session } = useSession();
   const { username: approvedUsername, claim, mutate: mutateClaim } = useMyUsernameClaim();
   const [input, setInput] = useState("");
   const [claiming, setClaiming] = useState(false);
@@ -43,9 +44,8 @@ export function useUsernameClaimForm() {
     if (!input.trim()) return;
     setClaiming(true);
     try {
-      const token = getValidToken() ?? (await signIn());
-      if (!token) throw new Error("Not authenticated");
-      const result = await submitUsernameClaim(input.trim().toLowerCase(), token);
+      requireSignedIn(session);
+      const result = await submitUsernameClaim(input.trim().toLowerCase());
       if (result.error) {
         setClaimStatus("error");
         setClaimError(result.error);

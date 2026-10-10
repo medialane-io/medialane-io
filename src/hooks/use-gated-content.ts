@@ -3,7 +3,8 @@
 import useSWR from "swr";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useSiwsToken } from "@/hooks/use-siws-token";
+import { useSession } from "@/hooks/use-session";
+import { requireSignedIn } from "@/lib/account-gate";
 
 export interface GatedContent {
   title: string | null;
@@ -20,14 +21,13 @@ export type GatedContentState =
 
 export function useGatedContent(contract: string | undefined): GatedContentState {
   const { hasWallet } = useWalletNativeSession();
-  const { getValidToken, signIn } = useSiwsToken();
+  const { session } = useSession();
 
   const { data, error, isLoading } = useSWR<GatedContent | "not_holder">(
     contract && hasWallet ? ["gated-content", contract] : null,
     async () => {
-      const token = getValidToken() ?? (await signIn());
-      if (!token) throw new Error("Wallet sign-in is required");
-      return (await getMedialaneClient().api.getGatedContent(contract!, token)) ?? "not_holder";
+      requireSignedIn(session);
+      return (await getMedialaneClient().api.getGatedContent(contract!)) ?? "not_holder";
     },
     { shouldRetryOnError: false, revalidateOnFocus: false }
   );

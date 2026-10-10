@@ -6,14 +6,13 @@ const SIGNED_UP: OnboardingGateState = {
   hasWallet: true,
   isDeployed: true,
   isDeploying: false,
-  emailStatus: { email: "a@b.co", emailVerified: true },
 };
 
 const gate = (overrides: Partial<OnboardingGateState>) => resolveOnboardingRedirect({ ...SIGNED_UP, ...overrides });
 
 describe("someone with no wallet", () => {
   test("is left alone", () => {
-    expect(gate({ hasWallet: false, isDeployed: false, emailStatus: null })).toBeNull();
+    expect(gate({ hasWallet: false, isDeployed: false })).toBeNull();
   });
 });
 
@@ -22,8 +21,8 @@ describe("a finished account", () => {
     expect(gate({})).toBeNull();
   });
 
-  test("is left alone while we still don't know whether it is deployed or has an email", () => {
-    expect(gate({ isDeployed: null, emailStatus: null })).toBeNull();
+  test("is left alone while we still don't know whether it is deployed", () => {
+    expect(gate({ isDeployed: null })).toBeNull();
   });
 });
 
@@ -42,27 +41,4 @@ describe("a wallet that never finished deploying", () => {
     }
   });
 
-  test("goes first, before the email is asked for", () => {
-    expect(gate({ isDeployed: false, emailStatus: { email: null, emailVerified: false } })).toContain(
-      "/wallet-onboarding",
-    );
-  });
-});
-
-describe("an account with no email", () => {
-  const noEmail = { email: null, emailVerified: false };
-
-  test("is sent to add one, and brought back to the page it was on", () => {
-    expect(gate({ emailStatus: noEmail })).toBe("/connect?redirect_url=%2Fportfolio");
-  });
-
-  test("is not sent away from the pages where the email is handled", () => {
-    for (const pathname of ["/connect", "/wallet-onboarding", "/settings"]) {
-      expect(gate({ pathname, emailStatus: noEmail })).toBeNull();
-    }
-  });
-
-  test("an email that is added but not yet verified is enough to move on", () => {
-    expect(gate({ emailStatus: { email: "a@b.co", emailVerified: false } })).toBeNull();
-  });
 });

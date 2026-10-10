@@ -4,7 +4,7 @@ import { requireAccount } from "@/lib/account-gate";
 import { useRouter, usePathname } from "next/navigation";
 import { FastMint as SharedFastMint, describeError, type FastMintProps as SharedFastMintProps, type FastMintSigner } from "@medialane/ui";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useSiwsToken } from "@/hooks/use-siws-token";
+import { useSession } from "@/hooks/use-session";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { RewardEarned } from "@/lib/reward-earned";
@@ -24,11 +24,11 @@ export function FastMint({ presentation = "inline", open = true, onClose, mediaK
   const { hasWallet, address: walletAddress, signer } = useWalletNativeSession();
   const router = useRouter();
   const pathname = usePathname();
-  const { getValidToken, signIn } = useSiwsToken();
+  const { session } = useSession();
   const client = useMedialaneClient();
   const { collections, mutate } = useCollectionsByOwner(walletAddress ?? null);
 
-  const secureToken = async () => getValidToken() ?? (await signIn());
+  const secureToken = async () => session?.accountId ?? null;
 
   return (
     <SharedFastMint

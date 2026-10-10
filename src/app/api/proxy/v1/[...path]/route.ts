@@ -72,18 +72,19 @@ async function handle(
   const fwdHeaders = new Headers();
   for (const [k, v] of req.headers.entries()) {
     const key = k.toLowerCase();
-    if (HOP_BY_HOP_HEADERS.has(key) || key === "x-api-key" || key === "x-app-id") continue;
+    if (HOP_BY_HOP_HEADERS.has(key) || key === "x-api-key" || key === "x-app-id" || key === "x-account-session") continue;
     fwdHeaders.set(k, v);
   }
   fwdHeaders.set("x-api-key", apiKey);
   fwdHeaders.set("x-app-id", "MEDIALANE_IO");
+  const sessionCookie = req.cookies.get(SESSION_COOKIE_NAME)?.value;
+  if (sessionCookie) fwdHeaders.set("x-account-session", sessionCookie);
 
   const hasBody = req.method !== "GET" && req.method !== "HEAD";
   const injectingCookie = shouldInjectSessionCookie(joinedPath, req.method);
 
   let body: BodyInit | undefined;
   if (hasBody && injectingCookie) {
-    const sessionCookie = req.cookies.get(SESSION_COOKIE_NAME)?.value;
     const bodyText = await req.text();
     body = sessionCookie ? injectAccountToken(bodyText, sessionCookie) : bodyText;
   } else if (hasBody) {

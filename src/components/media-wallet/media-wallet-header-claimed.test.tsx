@@ -15,8 +15,9 @@ mock.module("@/hooks/use-username-claims", () => ({
 mock.module("@/hooks/use-rewards", () => ({
   useRewards: () => ({ data: undefined, isLoading: false }),
 }));
-mock.module("@/hooks/use-siws-token", () => ({
-  useSiwsToken: () => ({ getValidToken: () => null, signIn: async () => null }),
+mock.module("@/hooks/use-session", () => ({
+  useSession: () => ({ session: null, isLoading: false }),
+  refreshSession: async () => undefined,
 }));
 
 const { cleanup, render } = await import("@testing-library/react");

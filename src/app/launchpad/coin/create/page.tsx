@@ -1,6 +1,6 @@
 "use client";
 
-import { requireAccount, requireSession } from "@/lib/account-gate";
+import { requireAccount, requireSignedIn } from "@/lib/account-gate";
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -31,7 +31,7 @@ import {
 import { CoinLaunchPreview, type CoinPreviewData } from "@/components/coin/coin-launch-preview";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
-import { useSiwsToken } from "@/hooks/use-siws-token";
+import { useSession } from "@/hooks/use-session";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { useTokenBalance } from "@/hooks/use-erc20-balance";
 import { useLaunchCoin, type LaunchCoinInput } from "@/hooks/use-launch-coin";
@@ -57,7 +57,7 @@ export default function CoinCreatePage() {
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
   const { launch, status, error } = useLaunchCoin();
   const action = useWalletWriteAction();
-  const { getValidToken, signIn } = useSiwsToken();
+  const { session } = useSession();
   const client = useMedialaneClient();
 
   const [name, setName] = useState("");
@@ -132,13 +132,10 @@ export default function CoinCreatePage() {
     if (!imageUri && !description) return;
     setProfileStatus("saving");
     try {
-      const token = getValidToken() ?? (await signIn());
-      requireSession(token);
+      requireSignedIn(session);
       await client.api.updateCollectionProfile(
         contractAddress,
-        { ...(imageUri ? { image: imageUri } : {}), ...(description ? { description } : {}) },
-        token
-      );
+        { ...(imageUri ? { image: imageUri } : {}), ...(description ? { description } : {}) });
       setProfileStatus("saved");
     } catch {
       setProfileStatus("failed");

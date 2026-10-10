@@ -1,6 +1,6 @@
 "use client";
 
-import { requireAccount, requireSession } from "@/lib/account-gate";
+import { requireAccount, requireSignedIn } from "@/lib/account-gate";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,7 +17,7 @@ import {
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { WalletTransactionDialog } from "@/components/transaction/wallet-transaction-dialog";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useSiwsToken } from "@/hooks/use-siws-token";
+import { useSession } from "@/hooks/use-session";
 
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { starknetProvider } from "@/lib/starknet";
@@ -46,7 +46,7 @@ type FormValues = z.infer<typeof schema>;
 
 export default function CreateClubPage() {
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
-  const { getValidToken, signIn } = useSiwsToken();
+  const { session } = useSession();
   const action = useWalletWriteAction();
   const client = useMedialaneClient();
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
@@ -82,8 +82,7 @@ export default function CreateClubPage() {
 
     let baseUri = "";
     if (imageUri) {
-      const siwsToken = getValidToken() ?? (await signIn());
-      requireSession(siwsToken);
+      requireSignedIn(session);
       baseUri = await pinLaunchpadMetadata({
         name: values.name,
         description: values.description || "",

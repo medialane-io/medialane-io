@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useSiwsToken } from "@/hooks/use-siws-token";
+import { useSession } from "@/hooks/use-session";
+import { requireSignedIn } from "@/lib/account-gate";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +24,7 @@ export function ClaimCollectionPanel({
   kind = "collection",
 }: { helperText?: React.ReactNode; kind?: "collection" | "coin" } = {}) {
   const { address: walletAddress } = useWalletNativeSession();
-  const { getValidToken, signIn } = useSiwsToken();
+  const { session } = useSession();
   const [contractAddress, setContractAddress] = useState("");
   const [email, setEmail] = useState("");
   const [notes, setNotes] = useState("");
@@ -43,13 +44,12 @@ export function ClaimCollectionPanel({
     setPanelError(null);
     setStep("verifying");
     try {
-      const token = getValidToken() ?? (await signIn());
-      if (!token) throw new Error("Not authenticated");
+      requireSignedIn(session);
       const api = getMedialaneClient().api;
       const result =
         kind === "coin"
-          ? await api.claimCoin(contractAddress.trim(), token)
-          : await api.claimCollection(contractAddress.trim(), walletAddress, token);
+          ? await api.claimCoin(contractAddress.trim())
+          : await api.claimCollection(contractAddress.trim(), walletAddress);
 
       if (result.verified) {
         const claimed = kind === "coin" ? (result as { coin?: { contractAddress: string; name?: string | null } }).coin : (result as { collection?: { contractAddress: string; name?: string | null } }).collection;

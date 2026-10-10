@@ -5,7 +5,6 @@ const pushed: string[] = [];
 let pathname = "/portfolio";
 let deploying = false;
 let session = { hasWallet: true, isDeployed: false as boolean | null };
-let emailStatus: { email: string | null; emailVerified: boolean } | null = { email: "a@b.co", emailVerified: true };
 
 mock.module("next/navigation", () => ({
   useRouter: () => ({ push: (to: string) => pushed.push(to) }),
@@ -13,11 +12,9 @@ mock.module("next/navigation", () => ({
 }));
 const real = {
   session: await import("@/hooks/use-wallet-native-session"),
-  email: await import("@/hooks/use-email-verification-required"),
   client: await import("@/lib/wallet/client"),
 };
 mock.module("@/hooks/use-wallet-native-session", () => ({ ...real.session, useWalletNativeSession: () => session }));
-mock.module("@/hooks/use-email-verification-required", () => ({ ...real.email, useEmailVerificationStatus: () => emailStatus }));
 mock.module("@/lib/wallet/client", () => ({ ...real.client, mediaWallet: { ...real.client.mediaWallet, isDeploying: () => deploying } }));
 
 const { OnboardingGate } = await import("./onboarding-gate");
@@ -27,7 +24,6 @@ beforeEach(() => {
   pathname = "/portfolio";
   deploying = false;
   session = { hasWallet: true, isDeployed: false };
-  emailStatus = { email: "a@b.co", emailVerified: true };
 });
 afterEach(cleanup);
 
@@ -52,12 +48,6 @@ describe("the onboarding gate", () => {
     expect(pushed).toEqual([]);
   });
 
-  test("sends an account with no email to add one", () => {
-    session = { hasWallet: true, isDeployed: true };
-    emailStatus = { email: null, emailVerified: false };
-    render(<OnboardingGate />);
-    expect(pushed).toEqual(["/connect?redirect_url=%2Fportfolio"]);
-  });
 
   test("does nothing for a finished account or for someone signed out", () => {
     session = { hasWallet: true, isDeployed: true };

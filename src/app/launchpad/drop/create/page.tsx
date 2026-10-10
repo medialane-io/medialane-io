@@ -1,6 +1,6 @@
 "use client";
 
-import { requireAccount, requireSession } from "@/lib/account-gate";
+import { requireAccount, requireSignedIn } from "@/lib/account-gate";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,7 +17,7 @@ import { DropCreateForm, DropPreviewCard, describeError, dropCreateSchema, type 
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { getDefaultDropSchedule, suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
 import { buildDropSet } from "@/lib/drop-build-set";
-import { useSiwsToken } from "@/hooks/use-siws-token";
+import { useSession } from "@/hooks/use-session";
 import { parseAddresses, batchAllowlistCalldata } from "../drop-allowlist";
 import { uploadDocumentToIpfs } from "@/lib/upload-document";
 import type { MetadataField } from "@/components/create/ip-type-fields";
@@ -33,7 +33,7 @@ const PAYMENT_TOKENS = getListableTokens().map((t) => ({ symbol: t.symbol, addre
 export default function CreateDropPage() {
   const [gatedWarning, setGatedWarning] = useState<string | null>(null);
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
-  const { getValidToken, signIn } = useSiwsToken();
+  const { session } = useSession();
   const action = useWalletWriteAction();
   const client = useMedialaneClient();
   const busy = action.status === "processing" || action.status === "confirming";
@@ -67,8 +67,7 @@ export default function CreateDropPage() {
   });
 
   const uploadDocument = async (file: File) => {
-    const token = getValidToken() ?? (await signIn());
-    requireSession(token);
+    requireSignedIn(session);
     return uploadDocumentToIpfs(file);
   };
 
@@ -184,8 +183,7 @@ export default function CreateDropPage() {
   const handleUnlocked = async (pendingValues: DropCreateFormValues, signer: StarknetVenueSigner) => {
     requireAccount(walletAddress);
 
-    const siwsToken = getValidToken() ?? (await signIn());
-    requireSession(siwsToken);
+    requireSignedIn(session);
 
     let baseUri = "";
     let maxSupply = 0n;
@@ -262,7 +260,7 @@ export default function CreateDropPage() {
             gatedContentTitle: pendingValues.gatedContentTitle || null,
             gatedContentUrl: pendingValues.gatedContentUrl || null,
             gatedContentType: (pendingValues.gatedContentType || null) as "VIDEO" | "STREAM" | "AUDIO" | "DOCUMENT" | "LINK" | null,
-          }, siwsToken);
+          });
         } catch (err) {
           console.error("gated content save failed", err);
           setGatedWarning("Your drop launched, but the exclusive content wasn't saved. You can add it from Manage.");

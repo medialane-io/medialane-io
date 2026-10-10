@@ -8,6 +8,6 @@ export function requireAccount<T>(value: T | null | undefined): asserts value is
   if (!value) throw new UserFacingError(ACCOUNT_NOT_READY);
 }
 
-export function requireSession(token: string | null | undefined): asserts token is string {
-  if (!token) throw new UserFacingError(SESSION_REQUIRED);
+export function requireSignedIn<T>(session: T | null | undefined): asserts session is T {
+  if (!session) throw new UserFacingError(SESSION_REQUIRED);
 }

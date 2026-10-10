@@ -9,7 +9,7 @@ import { assetHref } from "@/lib/routes";
 import { useToken } from "@/hooks/use-tokens";
 import { useCollection } from "@/hooks/use-collections";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useSiwsToken } from "@/hooks/use-siws-token";
+import { useSession } from "@/hooks/use-session";
 import { submitRemixOffer } from "@/hooks/use-remix-offers";
 import { getListableTokens, getTokenBySymbol, getService } from "@medialane/sdk";
 import { LICENSE_TYPES } from "@/types/ip";
@@ -31,7 +31,7 @@ export default function CreateLicensingPage() {
   const { contract, tokenId } = useParams<{ contract: string; tokenId: string }>();
   const router = useRouter();
   const { address: walletAddress } = useWalletNativeSession();
-  const { getValidToken, signIn } = useSiwsToken();
+  const { session } = useSession();
   const { token, isLoading: tokenLoading } = useToken(contract, tokenId);
   const { collection: parentCollection } = useCollection(contract);
 
@@ -74,8 +74,7 @@ export default function CreateLicensingPage() {
       setError("Enter a valid license fee");
       return;
     }
-    const authToken = getValidToken() ?? (await signIn());
-    if (!authToken) { setError("Account sign-in required"); return; }
+    if (!session) { setError("Account sign-in required"); return; }
     setLoading(true);
     setError(null);
     try {
@@ -94,7 +93,6 @@ export default function CreateLicensingPage() {
           royaltyPct: royalty ? parseInt(royalty) : undefined,
           message: message.trim() || undefined,
         },
-        authToken,
       );
       setStep("success");
     } catch (err: unknown) {
