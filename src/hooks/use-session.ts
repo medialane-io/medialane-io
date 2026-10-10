@@ -2,14 +2,17 @@
 
 import useSWR, { mutate } from "swr";
 import type { ApiSession } from "@medialane/sdk";
-import { getMedialaneClient } from "@/lib/medialane-client";
 
-const SESSION_KEY = "account-session";
+const SESSION_KEY = "/api/session";
+
+async function fetchSession(): Promise<ApiSession | null> {
+  const res = await fetch(SESSION_KEY, { cache: "no-store" });
+  if (!res.ok) throw new Error("Session check failed");
+  return (await res.json()) as ApiSession | null;
+}
 
 export function useSession(): { session: ApiSession | null; isLoading: boolean } {
-  const { data, isLoading } = useSWR(SESSION_KEY, () => getMedialaneClient().api.getSession(), {
-    shouldRetryOnError: false,
-  });
+  const { data, isLoading } = useSWR(SESSION_KEY, fetchSession, { shouldRetryOnError: false });
   return { session: data ?? null, isLoading: data === undefined && isLoading };
 }
 
