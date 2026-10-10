@@ -3,7 +3,6 @@
 import { useCallback } from "react";
 import { useSession, refreshSession } from "@/hooks/use-session";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import { saveAccountEmail } from "@/lib/wallet/account-wallet";
 
 export interface AccountEmail {
   email: string | null;
@@ -21,7 +20,6 @@ export function useAccountEmail() {
 
   const changeEmail = useCallback(async (email: string) => {
     await getMedialaneClient().api.changeMyEmail(email);
-    saveAccountEmail(email);
     await refreshSession();
   }, []);
 

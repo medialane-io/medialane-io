@@ -18,6 +18,12 @@ mock.module("./use-wallet-native-session", () => ({
   }),
 }));
 
+let sessionWallet: string | null = null;
+mock.module("@/hooks/use-session", () => ({
+  useSession: () => ({ session: sessionWallet ? { walletAddress: sessionWallet } : null, isLoading: false }),
+  refreshSession: async () => undefined,
+}));
+
 const { useWalletWriteAction } = await import("./use-wallet-write-action");
 
 const VERIFY_OK = async () => {};
@@ -86,4 +92,18 @@ test("walletNotReady is true and run is a no-op when there's no wallet", async (
     await result.current.run(async (signer) => signer.execute([]));
   });
   expect(result.current.status).toBe("idle");
+});
+
+test("a signed-in account whose key is not on this device is asked to approve the device", async () => {
+  sessionWallet = "0x0123";
+  mock.module("./use-wallet-native-session", () => ({
+    useWalletNativeSession: () => ({ address: null, hasWallet: false, isDeployed: null, signer: null }),
+  }));
+  const { useWalletWriteAction: useOtherDevice } = await import("./use-wallet-write-action?other-device");
+  const { result } = renderHook(() => useOtherDevice(VERIFY_OK));
+  await act(async () => {
+    await result.current.run(async (signer) => signer.execute([]));
+  });
+  expect(result.current.needsDeviceApproval).toBe(true);
+  sessionWallet = null;
 });
