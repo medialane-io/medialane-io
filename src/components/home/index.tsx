@@ -18,8 +18,8 @@ export function HomePage() {
       </div>
 
       <div className="w-full max-w-screen-2xl mx-auto px-4 sm:px-6 space-y-10 sm:space-y-16 lg:space-y-20 mt-16">
-        <TrendingCollections />
         <NewOnMarketplace />
+        <TrendingCollections />
         <RewardsSection />
         <AirdropSection />
       </div>
