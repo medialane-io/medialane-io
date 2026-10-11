@@ -466,7 +466,7 @@ export function SingleEditionsContent() {
       });
 
       setStatus("submitting");
-      const result = await signer.execute(intentData.calls as Call[]);
+      const result = await signer.execute(intentData.calls as Call[], { intentIds: intentData.id ? [intentData.id] : undefined });
       setTxHash(result.txHash);
       if (result.txHash) await syncTransactionBestEffort(getMedialaneClient(), result.txHash);
       setStatus("confirming");

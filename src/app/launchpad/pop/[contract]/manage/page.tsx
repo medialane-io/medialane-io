@@ -14,10 +14,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useCollection } from "@/hooks/use-collections";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import type { Call } from "starknet";
+import type { ApiIntentCreated } from "@medialane/sdk";
+import { getMedialaneClient } from "@/lib/medialane-client";
+import { runIntentCalls } from "@/lib/wallet/run-intent-calls";
 import {
   buildPopAllowlist,
-  popCalls,
   popClaimLinks,
   popClaimLinksCsv,
   type PopClaimLink,
@@ -170,11 +171,11 @@ export default function PopManagePage({
     collection?.owner &&
     normalizeAddress("STARKNET", walletAddress) === normalizeAddress("STARKNET", collection.owner);
 
-  const execute = async (calls: Call[], successMsg: string): Promise<boolean> => {
+  const execute = async (create: () => Promise<{ data: ApiIntentCreated }>, successMsg: string): Promise<boolean> => {
     if (!hasWallet || !signer) return false;
     setIsSubmitting(true);
     try {
-      await signer.execute(calls);
+      await runIntentCalls(signer, create);
       setTxResult({ type: "success", message: successMsg });
       return true;
     } catch (err) {
@@ -187,7 +188,7 @@ export default function PopManagePage({
 
   const handleIssue = (recipient: string) => {
     void execute(
-      [popCalls.issue(contract, recipient)],
+      () => getMedialaneClient().api.createPopManageIntent({ owner: signer!.address, collection: contract, action: "issue", recipient }),
       "Credential issued",
     );
   };
@@ -196,7 +197,7 @@ export default function PopManagePage({
     const list = buildPopAllowlist(addresses);
     const count = Object.keys(list.proofs).length;
     void execute(
-      [popCalls.setAllowlistRoot(contract, list.root)],
+      () => getMedialaneClient().api.createPopManageIntent({ owner: signer!.address, collection: contract, action: "set_allowlist_root", root: list.root }),
       `Published ${count} participant${count !== 1 ? "s" : ""}`,
     ).then((ok) => {
       if (ok) setLinks(popClaimLinks(window.location.origin, contract, list));

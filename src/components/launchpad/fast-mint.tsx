@@ -54,9 +54,9 @@ export function FastMint({ presentation = "inline", open = true, onClose, mediaK
         requireAccount(signer);
         return {
           address: signer.address,
-          execute: async (calls) => {
+          execute: async (calls, opts?: { intentIds?: string[] }) => {
             try {
-              return await signer.execute(calls);
+              return await signer.execute(calls, opts);
             } catch (err) {
               throw new Error(describeError(err, "We couldn't complete that mint. Please try again.").message);
             }

@@ -5,7 +5,6 @@ import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
-import { genesisMintCall } from "@/lib/genesis-mint-call";
 import {
   Sparkles,
   Zap,
@@ -22,6 +21,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { EXPLORER_URL, MINT_CONTRACT } from "@/lib/constants";
 import { LaunchCountdown } from "./launch-countdown";
+import { getMedialaneClient } from "@/lib/medialane-client";
+import { runIntentCalls } from "@/lib/wallet/run-intent-calls";
 
 function GenesisNftCard({ minted = false }: { minted?: boolean }) {
   return (
@@ -102,7 +103,7 @@ export function LaunchMint() {
       if (!MINT_CONTRACT) throw new Error("Mint contract not configured.");
 
       setMintStatusMsg("Submitting transaction…");
-      return signer.execute([genesisMintCall(recipientAddress)]);
+      return runIntentCalls(signer, () => getMedialaneClient().api.createGenesisMintIntent({ owner: signer.address, recipient: recipientAddress! }));
     });
   }, [recipientAddress, action]);
 

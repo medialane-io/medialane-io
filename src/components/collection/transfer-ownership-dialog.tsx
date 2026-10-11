@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { UserRoundCog } from "lucide-react";
-import { Contract, cairo, type Abi, type Call } from "starknet";
 import {
   Dialog,
   DialogContent,
@@ -12,14 +11,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { IPCollectionABI } from "@medialane/sdk/starknet";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { MarketplaceConfirmStep } from "@medialane/ui";
 import { TransactionDialogStates } from "@/components/marketplace/transaction-dialog-states";
-import { STARKNET_COLLECTION_721_CONTRACT } from "@/lib/constants";
-import { starknetProvider } from "@/lib/starknet";
 import { normalizeAddress } from "@medialane/sdk";
+import { getMedialaneClient } from "@/lib/medialane-client";
+import { runIntentCalls } from "@/lib/wallet/run-intent-calls";
 
 interface TransferOwnershipDialogProps {
 
@@ -71,25 +69,9 @@ export function TransferCollectionOwnershipDialog({
 
   const handleConfirmTransfer = () => {
     void action.run(async (signer) => {
-      const contract = new Contract({
-        abi: IPCollectionABI as unknown as Abi,
-        address: STARKNET_COLLECTION_721_CONTRACT,
-        providerOrAccount: starknetProvider,
-      });
-      const call = contract.populate("transfer_collection_ownership", [
-        cairo.uint256(BigInt(collectionId)),
-        trimmed,
-      ]);
-      const calldata = Array.isArray(call.calldata)
-        ? (call.calldata as unknown as string[]).map(String)
-        : [];
-      return signer.execute([
-        {
-          contractAddress: STARKNET_COLLECTION_721_CONTRACT,
-          entrypoint: "transfer_collection_ownership",
-          calldata,
-        },
-      ] as Call[]);
+      return runIntentCalls(signer, () =>
+        getMedialaneClient().api.createTransferCollectionOwnershipIntent({ owner: signer.address, collectionId: String(collectionId), newOwner: trimmed }),
+      );
     });
   };
 

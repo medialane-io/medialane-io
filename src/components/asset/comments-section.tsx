@@ -4,10 +4,8 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
-import { CallData } from "starknet";
 import { normalizeAddress } from "@medialane/sdk";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
-import { encodeTokenId } from "@/hooks/use-transfer";
 import { useComments } from "@/hooks/use-comments";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
@@ -24,24 +22,10 @@ import { MessageCircle, Loader2, Send, CheckCircle, X, ExternalLink, Flag, Zap }
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ReportDialog, type ReportTarget } from "@/components/report-dialog";
 import { cn } from "@/lib/utils";
+import { getMedialaneClient } from "@/lib/medialane-client";
+import { runIntentCalls } from "@/lib/wallet/run-intent-calls";
 
 const MAX_LEN = 1000;
-
-function byteArrayFromUtf8(str: string): { data: string[]; pending_word: string; pending_word_len: number } {
-  const bytes = new TextEncoder().encode(str);
-  const data: string[] = [];
-  let i = 0;
-  while (i + 31 <= bytes.length) {
-    let value = 0n;
-    for (let j = 0; j < 31; j++) value = (value << 8n) | BigInt(bytes[i + j]);
-    data.push("0x" + value.toString(16));
-    i += 31;
-  }
-  const remaining = bytes.slice(i);
-  let pendingWord = 0n;
-  for (const byte of remaining) pendingWord = (pendingWord << 8n) | BigInt(byte);
-  return { data, pending_word: "0x" + pendingWord.toString(16), pending_word_len: remaining.length };
-}
 
 interface CommentsSectionProps {
   contract: string;
@@ -98,13 +82,9 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
   };
 
   const handleUnlocked = async (signer: StarknetVenueSigner) => {
-    const encoded = byteArrayFromUtf8(text.trim());
-    const [tokenIdLow, tokenIdHigh] = encodeTokenId(tokenId);
-    const calldata = CallData.compile([contract, { low: tokenIdLow, high: tokenIdHigh }, encoded]);
-
-    const result = await signer.execute([
-      { contractAddress: STARKNET_NFTCOMMENTS_CONTRACT, entrypoint: "add_comment", calldata },
-    ]);
+    const result = await runIntentCalls(signer, () =>
+      getMedialaneClient().api.createCommentIntent({ author: signer.address, nftContract: contract, tokenId, text: text.trim() }),
+    );
 
     setText("");
     if (composeRef.current) composeRef.current.style.height = "auto";

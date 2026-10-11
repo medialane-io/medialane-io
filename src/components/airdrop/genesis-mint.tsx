@@ -7,7 +7,6 @@ import Image from "next/image";
 import { OnboardingFlow } from "@/components/connect/onboarding-flow";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
-import { genesisMintCall } from "@/lib/genesis-mint-call";
 import {
   Sparkles,
   ExternalLink,
@@ -20,6 +19,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { GradientButton } from "@medialane/ui";
 import { EXPLORER_URL, MINT_CONTRACT } from "@/lib/constants";
+import { getMedialaneClient } from "@/lib/medialane-client";
+import { runIntentCalls } from "@/lib/wallet/run-intent-calls";
 
 export function AirdropEventCard() {
   const [errored, setErrored] = useState(false);
@@ -78,7 +79,7 @@ export function GenesisMint() {
       if (!MINT_CONTRACT) throw new UserFacingError("Airdrop has not started yet.");
 
       setMintStatusMsg("Confirming participation…");
-      return signer.execute([genesisMintCall(walletAddress)]);
+      return runIntentCalls(signer, () => getMedialaneClient().api.createGenesisMintIntent({ owner: signer.address, recipient: walletAddress }));
     });
   }, [walletAddress, action]);
 
