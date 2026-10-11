@@ -5,6 +5,8 @@ import { renderHook, waitFor, act } from "@testing-library/react";
 
 if (!GlobalRegistrator.isRegistered) GlobalRegistrator.register();
 
+const executed: Array<{ calls: unknown; opts?: unknown }> = [];
+
 const FAKE_SEALED = {
   credentialId: "cred1", ownerPubKey: "0xabc", address: "0xdeadbeef", iv: "iv1", ciphertext: "ct1",
 };
@@ -14,16 +16,29 @@ mock.module("./use-wallet-native-session", () => ({
     address: FAKE_SEALED.address,
     hasWallet: true,
     isDeployed: true,
-    signer: { address: FAKE_SEALED.address, signTypedData: async () => ["0xr", "0xs"], execute: async () => ({ txHash: "0xtx" }) },
+    signer: {
+      address: FAKE_SEALED.address,
+      signTypedData: async () => ["0xr", "0xs"],
+      execute: async (calls: unknown, opts?: unknown) => {
+        executed.push({ calls, opts });
+        return { txHash: "0xtx" };
+      },
+    },
   }),
 }));
 const { useTransfer } = await import("./use-transfer");
 
 const READ_OK = async () => {};
 const VERIFY_OK = async () => {};
+const INTENT_CALLS = [{ contractAddress: "0x1", entrypoint: "transfer_from", calldata: ["0xdeadbeef", "0x2", "1", "0"] }];
+const created: unknown[] = [];
+const CREATE_OK = async (params: unknown) => {
+  created.push(params);
+  return { id: "nft-intent", calls: INTENT_CALLS };
+};
 
 test("transferToken succeeds when the transaction is verified onchain", async () => {
-  const { result } = renderHook(() => useTransfer(VERIFY_OK, READ_OK));
+  const { result } = renderHook(() => useTransfer(VERIFY_OK, READ_OK, CREATE_OK));
 
   let txHash: string | undefined;
   await act(async () => {
@@ -40,7 +55,7 @@ test("transferToken surfaces an error and does not report success when the trans
   const verifyReverted = async (txHash: string) => {
     throw new UserFacingError(`Transaction ${txHash} was submitted but reverted onchain. Please check your balance and try again.`);
   };
-  const { result } = renderHook(() => useTransfer(verifyReverted));
+  const { result } = renderHook(() => useTransfer(verifyReverted, READ_OK, CREATE_OK));
 
   let caught: unknown;
   await act(async () => {
@@ -56,4 +71,24 @@ test("transferToken surfaces an error and does not report success when the trans
   expect(caught).toBeInstanceOf(Error);
   expect((caught as Error).message).toContain("reverted onchain");
   await waitFor(() => expect(result.current.error).toContain("reverted onchain"));
+});
+
+test("transferToken runs the backend's transfer intent with its id", async () => {
+  executed.length = 0;
+  created.length = 0;
+  const { result } = renderHook(() => useTransfer(VERIFY_OK, READ_OK, CREATE_OK));
+  await act(async () => {
+    await result.current.transferToken({ contractAddress: "0x1", tokenId: "1", toAddress: "0x2", tokenStandard: "ERC1155" });
+  });
+  expect(created).toEqual([{ owner: "0xdeadbeef", contractAddress: "0x1", tokenId: "1", recipient: "0x2", tokenStandard: "ERC1155" }]);
+  expect(executed).toEqual([{ calls: INTENT_CALLS, opts: { intentIds: ["nft-intent"] } }]);
+});
+
+test("a token of unknown standard is transferred as ERC-721, as before", async () => {
+  created.length = 0;
+  const { result } = renderHook(() => useTransfer(VERIFY_OK, READ_OK, CREATE_OK));
+  await act(async () => {
+    await result.current.transferToken({ contractAddress: "0x1", tokenId: "1", toAddress: "0x2", tokenStandard: "UNKNOWN" });
+  });
+  expect((created[0] as { tokenStandard: string }).tokenStandard).toBe("ERC721");
 });

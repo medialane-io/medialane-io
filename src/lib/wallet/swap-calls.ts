@@ -1,19 +1,8 @@
 import type { Call } from "starknet";
+import { getTokenBySymbol, type ApiClient } from "@medialane/sdk";
 import type { SwapAmountMode, SwapToken } from "@/hooks/use-swap-quote";
 
-export interface BuiltSwap {
-  calls: Call[];
-  chainId: string;
-  quote: { quoteId: string; sellAmount: string; buyAmount: string; sellTokenAddress: string; buyTokenAddress: string };
-}
-
-function tokenBody(token: SwapToken, side: "sell" | "buy") {
-  return typeof token === "string"
-    ? { [`${side}Symbol`]: token }
-    : { [`${side}TokenAddress`]: token.address };
-}
-
-interface BuildSwapCallsParams {
+interface CreateSwapIntentParams {
   sell: SwapToken;
   buy: SwapToken;
   takerAddress: string;
@@ -22,21 +11,24 @@ interface BuildSwapCallsParams {
   amountMode?: SwapAmountMode;
 }
 
-export async function buildSwapCalls(params: BuildSwapCallsParams): Promise<BuiltSwap> {
+function tokenAddress(token: SwapToken): string {
+  if (typeof token !== "string") return token.address;
+  const known = getTokenBySymbol(token);
+  if (!known) throw new Error(`Unsupported currency: ${token}`);
+  return known.address;
+}
+
+export async function createSwapIntent(
+  api: Pick<ApiClient, "createSwapIntent">,
+  params: CreateSwapIntentParams,
+): Promise<{ id: string; calls: Call[] }> {
   const amountMode = params.amountMode ?? "buy";
-  const res = await fetch("/api/wallet/swap/build", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      ...tokenBody(params.sell, "sell"),
-      ...tokenBody(params.buy, "buy"),
-      [`${amountMode}AmountRaw`]: params.amountRaw,
-      takerAddress: params.takerAddress,
-    }),
+  const created = await api.createSwapIntent({
+    taker: params.takerAddress,
+    sellTokenAddress: tokenAddress(params.sell),
+    buyTokenAddress: tokenAddress(params.buy),
+    [`${amountMode}AmountRaw`]: params.amountRaw,
   });
-  if (!res.ok) {
-    const body = await res.json().catch(() => null);
-    throw new Error(body?.error ?? "Failed to prepare swap");
-  }
-  return res.json();
+  const intent = created.data as { id: string; calls: Call[] };
+  return { id: intent.id, calls: intent.calls };
 }

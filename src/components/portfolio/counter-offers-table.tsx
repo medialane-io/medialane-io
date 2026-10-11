@@ -131,8 +131,6 @@ export function CounterOffersTable({ address }: { address: string }) {
     const hash = await fulfillOrder({
       orderHash: counter.orderHash,
       tokenStandard: counter.consideration.itemType,
-      feeToken: counter.consideration.token ?? "",
-      feeGrossAmount: BigInt(counter.consideration.startAmount ?? "0"),
     });
     if (!hash) {
       mutate();

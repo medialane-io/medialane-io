@@ -31,7 +31,8 @@ import { useUsdPrices } from "@/hooks/use-usd-prices";
 import { usdValueFor } from "@/lib/wallet-format";
 import { useErc20Balance } from "@/hooks/use-erc20-balance";
 import { getTokenBySymbol } from "@medialane/sdk";
-import { buildSwapCalls } from "@/lib/wallet/swap-calls";
+import { createSwapIntent } from "@/lib/wallet/swap-calls";
+import { getMedialaneClient } from "@/lib/medialane-client";
 import { PayWithPicker } from "@/components/marketplace/pay-with-picker";
 
 interface PurchaseDialogProps {
@@ -249,19 +250,18 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
       setStep("processing");
       const qty = is1155 ? String(values.quantity) : undefined;
 
-      const feeQuantity = is1155 ? BigInt(values.quantity || 1) : 1n;
-      const feeGrossAmount = BigInt(order.consideration.startAmount ?? "0") * feeQuantity;
+      const quantity = is1155 ? BigInt(values.quantity || 1) : 1n;
+      const grossAmount = BigInt(order.consideration.startAmount ?? "0") * quantity;
 
-      let swapCalls: import("starknet").Call[] | undefined;
+      let swap: Awaited<ReturnType<typeof createSwapIntent>> | undefined;
       if (values.paymentSymbol && order.price?.currency && walletAddress) {
         try {
-          const built = await buildSwapCalls({
+          swap = await createSwapIntent(getMedialaneClient().api, {
             sell: values.paymentSymbol,
             buy: order.price.currency,
-            amountRaw: feeGrossAmount.toString(),
+            amountRaw: grossAmount.toString(),
             takerAddress: walletAddress,
           });
-          swapCalls = built.calls;
         } catch {
           throw new UserFacingError("Price moved before the swap could be prepared — please try again.");
         }
@@ -271,9 +271,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
         orderHash: order.orderHash,
         tokenStandard: order.offer.itemType,
         quantity: qty,
-        feeToken: order.consideration.token ?? "",
-        feeGrossAmount,
-        swapCalls,
+        swap,
       });
 
       if (hash) {

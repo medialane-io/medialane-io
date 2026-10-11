@@ -12,6 +12,7 @@ import { starknetProvider } from "@/lib/starknet";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { QUERY_PREFIX } from "@/lib/query-keys";
 import type { Call } from "starknet";
+import type { CreateTransferNftIntentParams } from "@medialane/sdk";
 
 const verifyOnStarknet = async (txHash: string): Promise<void> => {
   await assertTransactionSucceeded(starknetProvider, txHash);
@@ -20,6 +21,11 @@ const verifyOnStarknet = async (txHash: string): Promise<void> => {
 const readIntoMedialane = async (txHash: string): Promise<void> => {
   await syncTransactionBestEffort(getMedialaneClient(), txHash);
 };
+
+type TransferIntentCreator = (params: CreateTransferNftIntentParams) => Promise<{ id: string; calls: Call[] }>;
+
+const createTransferIntent: TransferIntentCreator = async (params) =>
+  (await getMedialaneClient().api.createTransferNftIntent(params)).data as { id: string; calls: Call[] };
 
 export interface TransferInput {
   contractAddress: string;
@@ -44,6 +50,7 @@ export function encodeTokenId(tokenId: string): [string, string] {
 export function useTransfer(
   verify: (txHash: string) => Promise<void> = verifyOnStarknet,
   waitUntilRead: (txHash: string) => Promise<void> = readIntoMedialane,
+  createIntent: TransferIntentCreator = createTransferIntent,
 ) {
   const { address: walletAddress, hasWallet, signer } = useWalletNativeSession();
   const { mutate } = useSWRConfig();
@@ -82,26 +89,17 @@ export function useTransfer(
         if (!isValidStarknetAddress(input.contractAddress)) {
           throw new UserFacingError("Invalid token contract address.");
         }
-        const [tokenIdLow, tokenIdHigh] = encodeTokenId(input.tokenId);
-
         if (!input.tokenStandard) {
           throw new UserFacingError("Token standard could not be determined. Please try again or contact support.");
         }
-        const isERC1155 = input.tokenStandard === "ERC1155";
-        const call: Call = isERC1155
-          ? {
-              contractAddress: input.contractAddress,
-              entrypoint: "safe_transfer_from",
-
-              calldata: [walletAddress, input.toAddress, tokenIdLow, tokenIdHigh, "1", "0", "0"],
-            }
-          : {
-              contractAddress: input.contractAddress,
-              entrypoint: "transfer_from",
-              calldata: [walletAddress, input.toAddress, tokenIdLow, tokenIdHigh],
-            };
-
-        const result = await signer.execute([call]);
+        const intent = await createIntent({
+          owner: walletAddress,
+          contractAddress: input.contractAddress,
+          tokenId: input.tokenId,
+          recipient: input.toAddress,
+          tokenStandard: input.tokenStandard === "ERC1155" ? "ERC1155" : "ERC721",
+        });
+        const result = await signer.execute(intent.calls, { intentIds: [intent.id] });
         await verify(result.txHash);
         setHash(result.txHash);
 
@@ -117,7 +115,7 @@ export function useTransfer(
         setIsProcessing(false);
       }
     },
-    [walletAddress, signer, invalidate, verify, waitUntilRead]
+    [walletAddress, signer, invalidate, verify, waitUntilRead, createIntent]
   );
 
   return {
