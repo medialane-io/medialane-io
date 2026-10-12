@@ -5,7 +5,7 @@ import { Loader2 } from "lucide-react";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { useErc20Balance } from "@/hooks/use-erc20-balance";
 import { useSwapQuote } from "@/hooks/use-swap-quote";
-import { useMediaWallet } from "@/components/media-wallet/media-wallet-overlay";
+import { useMediaWallet } from "@medialane/ui";
 import { fmt } from "@/lib/wallet-format";
 import { cn } from "@/lib/utils";
 

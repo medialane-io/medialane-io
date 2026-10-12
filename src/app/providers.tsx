@@ -13,7 +13,7 @@ import { OnboardingGate } from "@/components/wallet/onboarding-gate";
 import { NavThemeToggle } from "@/components/nav-theme-toggle";
 import { NavConnectButton } from "@/components/nav-connect-button";
 import { HeaderWalletTrigger } from "@/components/nav-wallet-trigger";
-import { MediaWalletOverlay } from "@/components/media-wallet/media-wallet-overlay";
+import { MediaWalletApp } from "@/components/media-wallet-app";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useCreatorProfile } from "@/hooks/use-profiles";
 import { resolveTokenImage } from "@/lib/utils";
@@ -47,7 +47,7 @@ function MainShell({ children }: { children: React.ReactNode }) {
         showKeyboardHints={false}
         brandSlot={<NavConnectButton />}
       />
-      <MediaWalletOverlay />
+      <MediaWalletApp />
       <div className="relative min-h-screen flex flex-col bg-background">
         <ThemeAmbientBackground imageUrl={themeImageUrl} />
         <div className="fixed top-4 left-4 sm:left-6 lg:left-8 z-50">

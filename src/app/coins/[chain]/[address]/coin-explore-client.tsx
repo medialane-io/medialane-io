@@ -13,7 +13,7 @@ import { useCoinSupply } from "@/hooks/use-coin-supply";
 import { tradeHref, useCoin } from "@/lib/coin-adapters";
 import { CoinSwapWidget } from "@/components/coin/coin-swap-widget";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useMediaWallet } from "@/components/media-wallet/media-wallet-overlay";
+import { useMediaWallet } from "@medialane/ui";
 import { useUsdPrices, usdPriceFor } from "@/hooks/use-usd-prices";
 import { fmtUsd } from "@/lib/wallet-format";
 import { collectionHref } from "@/lib/routes";
