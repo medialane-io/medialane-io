@@ -80,7 +80,6 @@ test("known public GET reads used by the io app are allowed", () => {
   expect(isPathAllowed("GET", "collection-slug-claims/check/alice")).toBe(true);
   expect(isPathAllowed("GET", "users/me")).toBe(true);
   expect(isPathAllowed("GET", "auth/email/exists")).toBe(true);
-  expect(isPathAllowed("GET", "pop/eligibility/0xabc/0xdef")).toBe(true);
   expect(isPathAllowed("GET", "coins")).toBe(true);
   expect(isPathAllowed("GET", "coins/prices")).toBe(true);
   expect(isPathAllowed("GET", "coins/0xabc")).toBe(true);

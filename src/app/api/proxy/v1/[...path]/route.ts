@@ -1,132 +1,18 @@
-import { type NextRequest, NextResponse } from "next/server";
-import { isSameOrigin } from "@medialane/sdk";
-import { hasTraversalSegment, isPathAllowed } from "./allowlist";
-import {
-  SESSION_COOKIE_NAME,
-  SESSION_COOKIE_MAX_AGE_SECONDS,
-  shouldSetSessionCookie,
-  extractAccountToken,
-  stripAccountToken,
-} from "./session-cookie";
+import { createAppGateway } from "@medialane/sdk";
+import { ALLOW } from "./allowlist";
 
-const BACKEND_URL =
-  process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL ?? "http://localhost:3001";
+const gateway = createAppGateway({
+  appId: "MEDIALANE_IO",
+  backendUrl: process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL ?? "http://localhost:3001",
+  apiKey: process.env.MEDIALANE_API_KEY,
+  allow: ALLOW,
+});
 
-const HOP_BY_HOP_HEADERS = new Set([
-  "connection",
-  "keep-alive",
-  "proxy-authenticate",
-  "proxy-authorization",
-  "te",
-  "trailers",
-  "transfer-encoding",
-  "upgrade",
-  "host",
-  "content-length",
-  "accept-encoding",
-]);
-
-async function handle(
-  req: NextRequest,
-  ctx: { params: Promise<{ path: string[] }> },
-): Promise<NextResponse> {
-  if (!isSameOrigin(req)) {
-    return NextResponse.json(
-      { error: "Cross-origin requests are not allowed" },
-      { status: 403 },
-    );
-  }
-
-  const apiKey = process.env.MEDIALANE_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json(
-      { error: "MEDIALANE_API_KEY is not configured on the server" },
-      { status: 500 },
-    );
-  }
-
-  const { path } = await ctx.params;
-  const joinedPath = path.join("/");
-
-  if (hasTraversalSegment(joinedPath)) {
-    return NextResponse.json({ error: "Invalid path" }, { status: 400 });
-  }
-
-  if (!isPathAllowed(req.method, joinedPath)) {
-
-    console.warn("[/api/proxy] blocked by allowlist", {
-      method: req.method,
-      path: joinedPath,
-    });
-    return NextResponse.json(
-      { error: `Path not allowed through io proxy: ${req.method} /v1/${joinedPath}` },
-      { status: 403 },
-    );
-  }
-
-  const safePath = path.map((segment) => encodeURIComponent(segment)).join("/");
-  const target = `${BACKEND_URL.replace(/\/$/, "")}/v1/${safePath}${req.nextUrl.search}`;
-
-  const fwdHeaders = new Headers();
-  for (const [k, v] of req.headers.entries()) {
-    const key = k.toLowerCase();
-    if (HOP_BY_HOP_HEADERS.has(key) || key === "x-api-key" || key === "x-app-id" || key === "x-account-session") continue;
-    fwdHeaders.set(k, v);
-  }
-  fwdHeaders.set("x-api-key", apiKey);
-  fwdHeaders.set("x-app-id", "MEDIALANE_IO");
-  const sessionCookie = req.cookies.get(SESSION_COOKIE_NAME)?.value;
-  if (sessionCookie) fwdHeaders.set("x-account-session", sessionCookie);
-
-  const hasBody = req.method !== "GET" && req.method !== "HEAD";
-  const body: BodyInit | undefined = hasBody ? await req.arrayBuffer() : undefined;
-
-  const res = await fetch(target, {
-    method: req.method,
-    headers: fwdHeaders,
-    body,
-    cache: "no-store",
-    redirect: "manual",
-  });
-
-  const outHeaders = new Headers();
-  for (const [k, v] of res.headers.entries()) {
-    const key = k.toLowerCase();
-    if (HOP_BY_HOP_HEADERS.has(key) || key === "set-cookie") continue;
-    outHeaders.set(k, v);
-  }
-
-  const settingCookie = res.ok && shouldSetSessionCookie(joinedPath, req.method);
-  if (settingCookie) {
-    const bodyText = await res.text();
-    const accountToken = extractAccountToken(bodyText);
-    const outBody = accountToken ? stripAccountToken(bodyText) : bodyText;
-    const response = new NextResponse(outBody, {
-      status: res.status,
-      statusText: res.statusText,
-      headers: outHeaders,
-    });
-    if (accountToken) {
-      response.cookies.set(SESSION_COOKIE_NAME, accountToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        path: "/",
-        maxAge: SESSION_COOKIE_MAX_AGE_SECONDS,
-      });
-    }
-    return response;
-  }
-
-  return new NextResponse(res.body, {
-    status: res.status,
-    statusText: res.statusText,
-    headers: outHeaders,
-  });
+async function handle(req: Request, ctx: { params: Promise<{ path: string[] }> }): Promise<Response> {
+  return gateway(req, (await ctx.params).path);
 }
 
 export const GET = handle;
 export const POST = handle;
-export const PUT = handle;
 export const PATCH = handle;
 export const DELETE = handle;
