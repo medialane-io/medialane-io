@@ -9,7 +9,7 @@ const VISITOR_CALLS: Array<[string, string]> = [
   ["GET", `tokens/owned/${A}`], ["GET", "orders"], ["GET", `orders/token/${A}/1`], ["GET", "activities"], ["GET", `activities/${A}`],
   ["GET", "search"], ["GET", "creators"], ["GET", `creators/${A}/profile`], ["GET", "creators/by-username/ana"],
   ["GET", "coins"], ["GET", `coins/${A}`], ["GET", `coins/${A}/guarantees`], ["GET", "coins/prices"],
-  ["GET", "drops"], ["GET", `drops/${A}`], ["GET", `pop/${A}/claim-info`], ["GET", `ipnft/${A}/1`],
+  ["GET", "drops"], ["GET", `drops/${A}`], ["GET", `drops/${A}/state`], ["GET", `pop/${A}/claim-info`], ["GET", `ipnft/${A}/1`],
   ["GET", "rewards/config"], ["GET", "stats"], ["GET", "prices"], ["GET", "sponsorship/offers"],
   ["GET", "auth/email/exists"], ["POST", "auth/email/register-account"], ["POST", "auth/email/request-code"],
   ["POST", "auth/email/verify-code"], ["POST", "auth/email/confirm"],
