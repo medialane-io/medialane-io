@@ -2,7 +2,9 @@
 
 import { getServiceConfig } from "@/lib/service-registry";
 import { PopClaimButton } from "@/components/claim/pop-claim-button";
-import { CollectionDropMintButton } from "@/components/claim/collection-drop-mint-button";
+import Link from "next/link";
+import { dropHref } from "@medialane/sdk";
+import { Button } from "@/components/ui/button";
 
 interface CollectionServiceActionProps {
   service: string | null | undefined;
@@ -18,7 +20,11 @@ export function CollectionServiceAction({ service, contractAddress }: Collection
   }
 
   if (service === "drop-collection") {
-    return <CollectionDropMintButton collectionAddress={contractAddress} />;
+    return (
+      <Button asChild className="w-full">
+        <Link href={dropHref(contractAddress)}>Mint from this drop</Link>
+      </Button>
+    );
   }
 
   return null;

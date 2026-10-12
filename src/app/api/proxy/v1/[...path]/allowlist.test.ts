@@ -42,8 +42,8 @@ test("GET reads discovered from @medialane/ui and app hooks are allowed", () => 
   expect(isPathAllowed("GET", "tokens")).toBe(true);
   expect(isPathAllowed("GET", "collections/0xabc/gated-content")).toBe(true);
   expect(isPathAllowed("GET", "collection-slug-claims/me")).toBe(true);
-  expect(isPathAllowed("GET", "drop/0xabc/info")).toBe(true);
-  expect(isPathAllowed("GET", "drop/0xabc/state")).toBe(true);
+  expect(isPathAllowed("GET", "drops/0xabc")).toBe(true);
+  expect(isPathAllowed("GET", "drops/0xabc/mints")).toBe(true);
   expect(isPathAllowed("GET", "club/0xabc/1")).toBe(true);
   expect(isPathAllowed("GET", "club/0xabc/1/member/0xdef")).toBe(true);
   expect(isPathAllowed("GET", "tickets/0xabc/1")).toBe(true);
@@ -84,7 +84,7 @@ test("known public GET reads used by the io app are allowed", () => {
   expect(isPathAllowed("GET", "coins")).toBe(true);
   expect(isPathAllowed("GET", "coins/prices")).toBe(true);
   expect(isPathAllowed("GET", "coins/0xabc")).toBe(true);
-  expect(isPathAllowed("GET", "drop/mint-status/0xabc/0xdef")).toBe(true);
+  expect(isPathAllowed("GET", "drops")).toBe(true);
   expect(isPathAllowed("GET", "rewards/0xabc")).toBe(true);
   expect(isPathAllowed("GET", "rewards/config")).toBe(true);
 });
@@ -128,4 +128,12 @@ test("POST /v1/users/me/email is allowed", () => {
 
 test("allows setting up the wallet key", () => {
   expect(isPathAllowed("POST", "users/me/wallet/key")).toBe(true);
+});
+
+test("drop routes", () => {
+  expect(isPathAllowed("GET", "drops")).toBe(true);
+  expect(isPathAllowed("GET", "drops/0xd409")).toBe(true);
+  expect(isPathAllowed("GET", "drops/0xd409/mints")).toBe(true);
+  expect(isPathAllowed("GET", "drop/0xd409/info")).toBe(false);
+  expect(isPathAllowed("POST", "drop/conditions")).toBe(false);
 });

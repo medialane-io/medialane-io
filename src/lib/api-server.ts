@@ -27,7 +27,7 @@ export const fetchTokenMeta = cached("token-meta", async (contract: string, toke
 export const fetchCollectionMeta = cached("collection-meta", async (contract: string) =>
   (await api().getCollection(contract)).data);
 
-export const fetchDropMeta = cached("drop-meta", (contract: string) => api().getDropInfo(contract));
+export const fetchDropMeta = cached("drop-meta", (contract: string) => api().getDrop(contract));
 
 export const fetchCoinMeta = cached("coin-meta", async (contract: string) => (await api().getCoin(contract)).data);
 

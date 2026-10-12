@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { assetHref, collectionHref } from "@/lib/routes";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PageContainer, AssetCollectionBar, AssetUtilityIcons, AssetMarketplacePanel, AssetMediaColumn, isLivingRenderCollection } from "@medialane/ui";
+import { PageContainer, AssetCollectionBar, AssetUtilityIcons, AssetMarketplacePanel, AssetMediaColumn, isLivingRenderCollection, DropTokenLink } from "@medialane/ui";
 import type { Chain } from "@medialane/sdk";
 import { ipfsToHttp } from "@/lib/utils";
 import { FloatingCommentsButton } from "@/components/asset/floating-comments-button";
@@ -227,6 +227,7 @@ export function AssetPageStandard() {
             ) : null}
 
             <div className="pt-5 border-t border-border/40 space-y-5">
+              {collection?.service === "drop-collection" && <DropTokenLink contract={contract} name={collection?.name ?? null} />}
               <AssetCollectionBar
                 collectionName={collection?.name ?? contract.slice(0, 8) + "…"}
                 collectionImage={collection?.image ? ipfsToHttp(collection.image) : null}
