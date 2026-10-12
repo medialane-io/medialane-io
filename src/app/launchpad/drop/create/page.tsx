@@ -1,7 +1,6 @@
 "use client";
 
 import { DropCreate, PageContainer } from "@medialane/ui";
-import { feeConfig } from "@/lib/fee";
 import { useDropApp } from "@/components/launchpad/use-drop-app";
 
 export default function CreateDropPage() {
@@ -9,7 +8,7 @@ export default function CreateDropPage() {
   return (
     <PageContainer className="pt-10 pb-24 space-y-6">
       <h1 className="text-2xl font-semibold">Create a drop</h1>
-      <DropCreate {...app} feeConfig={feeConfig} />
+      <DropCreate {...app} />
     </PageContainer>
   );
 }

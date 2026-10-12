@@ -9,7 +9,7 @@ import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion-primitives";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { ServiceHeader } from "@/components/claim/service-header";
+import { ServiceHeader } from "@medialane/ui";
 import { ClaimBackButton } from "@/components/claim/claim-back-button";
 import { ipfsToHttp } from "@/lib/utils";
 import {

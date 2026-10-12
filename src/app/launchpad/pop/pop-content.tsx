@@ -7,7 +7,7 @@ import { Award, Users, Plus, LayoutList, Zap, ShieldCheck } from "lucide-react";
 import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion-primitives";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { ServiceHeader } from "@/components/claim/service-header";
+import { ServiceHeader } from "@medialane/ui";
 import { ClaimBackButton } from "@/components/claim/claim-back-button";
 import { PopClaimButton } from "@/components/claim/pop-claim-button";
 import { usePopCollections } from "@/hooks/use-pop";

@@ -6,7 +6,7 @@ import { normalizeAddress } from "@medialane/sdk";
 import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion-primitives";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { ServiceHeader } from "@/components/claim/service-header";
+import { ServiceHeader } from "@medialane/ui";
 import { ClaimBackButton } from "@/components/claim/claim-back-button";
 import { SponsorshipBidButton } from "@/components/claim/sponsorship-bid-button";
 import { SponsorshipAcceptButton } from "@/components/claim/sponsorship-accept-button";

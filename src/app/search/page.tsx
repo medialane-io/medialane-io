@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { MotionCard } from "@/components/ui/motion-primitives";
 import { ipfsToHttp } from "@/lib/utils";
-import { Search, Layers, ImageIcon, Users, AtSign, X, ArrowUpRight } from "lucide-react";
+import { Search, Layers, ImageIcon, Users, X, ArrowUpRight } from "lucide-react";
 import type { ApiSearchResult, ApiSearchCreatorResult } from "@medialane/sdk";
 import { PageContainer } from "@medialane/ui";
 import { profileIdentity } from "@medialane/ui";
