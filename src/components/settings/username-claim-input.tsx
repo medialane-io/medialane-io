@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { CheckState } from "./types";
 
-export const EMAIL_GATE_ERROR = "Verify your email to claim a username.";
+const EMAIL_GATE_ERROR = "Verify your email to claim a username.";
 
 export function ClaimError({ error, onVerifyEmail }: { error: string; onVerifyEmail: () => void }) {
   if (error === EMAIL_GATE_ERROR) {

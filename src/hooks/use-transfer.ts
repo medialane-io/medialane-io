@@ -40,13 +40,6 @@ function isValidStarknetAddress(addr: string): boolean {
   return stripped.length > 0;
 }
 
-export function encodeTokenId(tokenId: string): [string, string] {
-  const id = BigInt(tokenId);
-  const low = (id & BigInt("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")).toString();
-  const high = (id >> BigInt(128)).toString();
-  return [low, high];
-}
-
 export function useTransfer(
   verify: (txHash: string) => Promise<void> = verifyOnStarknet,
   waitUntilRead: (txHash: string) => Promise<void> = readIntoMedialane,
