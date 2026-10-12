@@ -1,14 +1,11 @@
 "use client";
 
 import useSWR from "swr";
+import type { ApiSession, ApiSwapQuote } from "@medialane/sdk";
+import { getMedialaneClient } from "@/lib/medialane-client";
+import { useSession } from "@/hooks/use-session";
 
-export interface SwapQuoteSummary {
-  quoteId: string;
-  sellTokenAddress: string;
-  sellAmount: string;
-  buyTokenAddress: string;
-  buyAmount: string;
-}
+export type SwapQuoteSummary = ApiSwapQuote;
 
 export type SwapToken = string | { address: string };
 
@@ -24,29 +21,32 @@ function tokenBody(token: SwapToken, side: "sell" | "buy") {
 
 export type SwapAmountMode = "sell" | "buy";
 
-async function fetchQuote(
+function fetchQuote(
   sell: SwapToken,
   buy: SwapToken,
   amountRaw: string,
   amountMode: SwapAmountMode,
   takerAddress: string | null
 ): Promise<SwapQuoteSummary> {
-  const res = await fetch("/api/wallet/swap/quote", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      ...tokenBody(sell, "sell"),
-      ...tokenBody(buy, "buy"),
-      [`${amountMode}AmountRaw`]: amountRaw,
-      takerAddress: takerAddress ?? undefined,
-    }),
+  return getMedialaneClient().api.getSwapQuote({
+    ...tokenBody(sell, "sell"),
+    ...tokenBody(buy, "buy"),
+    [`${amountMode}AmountRaw`]: amountRaw,
+    takerAddress: takerAddress ?? undefined,
   });
-  if (!res.ok) {
-    const body = await res.json().catch(() => null);
-    throw new Error(body?.error ?? "Failed to fetch swap quote");
-  }
-  const { quote } = (await res.json()) as { quote: SwapQuoteSummary };
-  return quote;
+}
+
+export function swapQuoteKey(
+  session: ApiSession | null,
+  sell: SwapToken | null,
+  buy: SwapToken | null,
+  amountRaw: string | null,
+  amountMode: SwapAmountMode,
+  takerAddress: string | null
+) {
+  return session && sell && buy && amountRaw
+    ? (["swap-quote", tokenKey(sell), tokenKey(buy), amountRaw, amountMode, takerAddress] as const)
+    : null;
 }
 
 export function useSwapQuote(
@@ -56,11 +56,9 @@ export function useSwapQuote(
   takerAddress: string | null,
   amountMode: SwapAmountMode = "buy"
 ) {
-  const key = sell && buy && amountRaw
-    ? (["swap-quote", tokenKey(sell), tokenKey(buy), amountRaw, amountMode, takerAddress] as const)
-    : null;
+  const { session } = useSession();
   const { data, error, isLoading } = useSWR(
-    key,
+    swapQuoteKey(session, sell, buy, amountRaw, amountMode, takerAddress),
     () => fetchQuote(sell!, buy!, amountRaw!, amountMode, takerAddress),
     {
       refreshInterval: 20_000,

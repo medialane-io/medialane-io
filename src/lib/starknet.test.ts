@@ -6,7 +6,7 @@ const BACKEND = "https://api.medialane.io";
 
 test("the browser branch is absolute, because the SDK schema rejects a relative rpcUrl", () => {
   const url = resolveRpcUrl("https://app.test", BACKEND);
-  expect(url).toBe("https://app.test/api/rpc");
+  expect(url).toBe("https://app.test/api/proxy/v1/rpc");
   expect(() => new URL(url)).not.toThrow();
 });
 
@@ -36,6 +36,6 @@ test("the SDK schema accepts what the browser branch produces", () => {
 
 test("the SDK schema rejects a relative rpcUrl, which is what broke production", () => {
   expect(() =>
-    resolveConfig({ rpcUrl: "/api/rpc", backendUrl: BACKEND, chain: "STARKNET" }),
+    resolveConfig({ rpcUrl: "/api/proxy/v1/rpc", backendUrl: BACKEND, chain: "STARKNET" }),
   ).toThrow();
 });

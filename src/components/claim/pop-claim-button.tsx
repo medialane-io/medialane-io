@@ -4,8 +4,7 @@ import { Loader2, CheckCircle2, Ban, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { useEffect, useState } from "react";
-import { popClaimInfo, popClaimState, type PopClaimInfo } from "@medialane/sdk/starknet";
-import { starknetProvider } from "@/lib/starknet";
+import { popClaimState, type PopClaimInfo } from "@medialane/sdk/starknet";
 import { claimProofFor } from "@medialane/ui";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
@@ -36,7 +35,7 @@ export function PopClaimButton({ collectionAddress }: PopClaimButtonProps) {
       storage = null;
     }
     setProof(claimProofFor(storage, collectionAddress, window.location.hash));
-    popClaimInfo(starknetProvider, collectionAddress)
+    getMedialaneClient().api.getPopClaimInfo(collectionAddress)
       .then(setInfo)
       .catch(() => setInfo(null));
   }, [collectionAddress]);

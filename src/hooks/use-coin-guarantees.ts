@@ -1,13 +1,13 @@
 "use client";
 
 import useSWR from "swr";
-import { getCreatorCoinGuarantees, type CreatorCoinGuarantees } from "@medialane/sdk/starknet";
-import { starknetProvider } from "@/lib/starknet";
+import type { CreatorCoinGuarantees } from "@medialane/sdk/starknet";
+import { getMedialaneClient } from "@/lib/medialane-client";
 
 export function useCoinGuarantees(coinAddress?: string | null, enabled = true) {
   const { data, error, isLoading } = useSWR<CreatorCoinGuarantees | null>(
     coinAddress && enabled ? `coin-guarantees-${coinAddress}` : null,
-    () => getCreatorCoinGuarantees(coinAddress as string, starknetProvider),
+    () => getMedialaneClient().api.getCoinGuarantees(coinAddress as string),
     { revalidateOnFocus: false, shouldRetryOnError: false }
   );
 

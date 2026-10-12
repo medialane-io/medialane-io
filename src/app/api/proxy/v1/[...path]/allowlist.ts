@@ -1,4 +1,4 @@
-const ALLOWED_ROUTES: Record<string, RegExp[]> = {
+export const ALLOW: Record<string, RegExp[]> = {
 
   GET: [
     /^orders$/,
@@ -30,7 +30,6 @@ const ALLOWED_ROUTES: Record<string, RegExp[]> = {
     /^collection-slug-claims\/me$/,
     /^users\/me$/,
     /^auth\/email\/exists$/,
-    /^pop\/eligibility\/[^/]+(\/[^/]+)?$/,
     /^coins$/,
     /^coins\/prices$/,
     /^coins\/claims$/,
@@ -48,6 +47,8 @@ const ALLOWED_ROUTES: Record<string, RegExp[]> = {
     /^tickets\/[^/]+\/[^/]+$/,
     /^tickets\/[^/]+\/count$/,
     /^ipnft\/[^/]+\/[^/]+$/,
+    /^coins\/[^/]+\/guarantees$/,
+    /^pop\/[^/]+\/claim-info$/,
     /^username-claims\/me$/,
     /^username-claims\/check\/[^/]+$/,
     /^stats$/,
@@ -79,6 +80,9 @@ const ALLOWED_ROUTES: Record<string, RegExp[]> = {
     /^username-claims$/,
     /^metadata\/(upload|upload-file|upload-directory)$/,
     /^tx\/sync$/,
+    /^rpc$/,
+    /^swap\/quote$/,
+    /^paymaster\/(invoke|deploy)\/(build|execute)$/,
   ],
   PATCH: [
     /^intents\/[^/]+\/(confirm|signature)$/,
@@ -89,11 +93,5 @@ const ALLOWED_ROUTES: Record<string, RegExp[]> = {
 };
 
 export function isPathAllowed(method: string, path: string): boolean {
-  const patterns = ALLOWED_ROUTES[method.toUpperCase()];
-  if (!patterns) return false;
-  return patterns.some((re) => re.test(path));
-}
-
-export function hasTraversalSegment(joinedPath: string): boolean {
-  return joinedPath.split("/").some((piece) => piece === "." || piece === "..");
+  return (ALLOW[method.toUpperCase()] ?? []).some((re) => re.test(path));
 }
