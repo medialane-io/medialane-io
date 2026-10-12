@@ -10,7 +10,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { AccountSection } from "@/components/settings/account-section";
 import { SettingsGate, SettingsPage } from "@/components/settings/settings-page";
 import { WalletDeploymentDialog } from "@/components/wallet/wallet-deployment-dialog";
-import { useMediaWallet } from "@/components/media-wallet/media-wallet-overlay";
+import { useMediaWallet } from "@medialane/ui";
 import { useSession } from "@/hooks/use-session";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { EXPLORER_URL } from "@/lib/constants";
