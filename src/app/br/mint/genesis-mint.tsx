@@ -5,7 +5,6 @@ import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
-import { genesisMintCall } from "@/lib/genesis-mint-call";
 import {
   Sparkles,
   ExternalLink,
@@ -17,6 +16,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EXPLORER_URL, MINT_CONTRACT } from "@/lib/constants";
+import { getMedialaneClient } from "@/lib/medialane-client";
+import { runIntentCalls } from "@/lib/wallet/run-intent-calls";
 
 type MintStep = "ready" | "minting" | "success" | "error";
 
@@ -47,7 +48,7 @@ export function GenesisMint() {
       if (!MINT_CONTRACT) throw new UserFacingError("Distribuição não iniciada ainda.");
 
       setMintStatusMsg("Confirmando participação…");
-      return signer.execute([genesisMintCall(walletAddress)]);
+      return runIntentCalls(signer, () => getMedialaneClient().api.createGenesisMintIntent({ owner: signer.address, recipient: walletAddress }));
     });
   }, [walletAddress, action]);
 

@@ -9,7 +9,8 @@ import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useErc20Balance, useTokenBalance } from "@/hooks/use-erc20-balance";
 import { useSwapQuote } from "@/hooks/use-swap-quote";
-import { buildSwapCalls } from "@/lib/wallet/swap-calls";
+import { createSwapIntent } from "@/lib/wallet/swap-calls";
+import { getMedialaneClient } from "@/lib/medialane-client";
 import { cn } from "@/lib/utils";
 
 interface CoinSwapWidgetProps {
@@ -71,14 +72,14 @@ export function CoinSwapWidget({
   const submit = () => {
     if (!ready || !address) return;
     void action.run(async (signer) => {
-      const built = await buildSwapCalls({
+      const intent = await createSwapIntent(getMedialaneClient().api, {
         sell: sellToken,
         buy: buyToken,
         amountRaw: quote!.sellAmount,
         amountMode: "sell",
         takerAddress: address,
       });
-      const result = await signer.execute(built.calls);
+      const result = await signer.execute(intent.calls, { intentIds: [intent.id] });
       setAmount("");
       return result;
     });

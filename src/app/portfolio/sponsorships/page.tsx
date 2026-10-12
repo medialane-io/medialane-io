@@ -11,9 +11,6 @@ import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { executeIntent } from "@medialane/sdk/starknet";
 import { starknetProvider } from "@/lib/starknet";
-import { buildFeeCall } from "@medialane/sdk/starknet";
-import { feeConfig } from "@/lib/fee";
-import type { Call } from "starknet";
 import {
   useSponsorshipProposals, useSponsorshipOffers, useSponsorshipBids, useSponsorshipLicenses,
   type SponsorshipOffer,
@@ -28,24 +25,14 @@ function OfferBidsRow({ offer }: { offer: SponsorshipOffer }) {
   const busy = action.status === "processing" || action.status === "confirming";
   const [activeSponsor, setActiveSponsor] = useState<string | null>(null);
 
-  const acceptBid = (sponsor: string, amount: string) => {
+  const acceptBid = (sponsor: string) => {
     if (!walletAddress) return;
     setActiveSponsor(sponsor);
     void action.run(async (signer) => {
       const intentRes = await client.api.acceptSponsorshipBidIntent({ author: walletAddress, offerId: offer.offerId, sponsor });
       const intent = intentRes.data;
       if (intent.requiresSignature) throw new Error("Unexpected signature requirement on sponsorship accept");
-      const calls: Call[] = [...(intent.calls as Call[])];
-
-      const feeCall = buildFeeCall(
-        { surface: "sponsorship", token: offer.paymentToken, grossAmount: BigInt(amount) },
-        feeConfig,
-      );
-      if (feeCall) {
-        calls.push({ contractAddress: feeCall.contractAddress, entrypoint: feeCall.entrypoint, calldata: feeCall.calldata as string[] });
-      }
-
-      const { txHash } = await executeIntent(starknetProvider, signer, client, { ...intent, calls: calls as typeof intent.calls });
+      const { txHash } = await executeIntent(starknetProvider, signer, client, intent);
       await mutate();
       return { txHash };
     });
@@ -65,7 +52,7 @@ function OfferBidsRow({ offer }: { offer: SponsorshipOffer }) {
             size="sm"
             className="bg-brand-rose hover:brightness-110 text-white h-7 px-2.5"
             disabled={busy}
-            onClick={() => acceptBid(bid.sponsor, bid.amount)}
+            onClick={() => acceptBid(bid.sponsor)}
           >
             {busy && activeSponsor === bid.sponsor ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
           </Button>
@@ -82,7 +69,7 @@ function ReceivedProposalsSection({ walletAddress }: { walletAddress: string }) 
   const busy = action.status === "processing" || action.status === "confirming";
   const [activeId, setActiveId] = useState<string | null>(null);
 
-  const respond = (proposalId: string, decision: "accept" | "reject", paymentToken: string, amount: string) => {
+  const respond = (proposalId: string, decision: "accept" | "reject") => {
     setActiveId(proposalId);
     void action.run(async (signer) => {
       const intentRes = decision === "accept"
@@ -90,19 +77,7 @@ function ReceivedProposalsSection({ walletAddress }: { walletAddress: string }) 
         : await client.api.rejectSponsorshipProposalIntent({ owner: walletAddress, proposalId });
       const intent = intentRes.data;
       if (intent.requiresSignature) throw new Error("Unexpected signature requirement on sponsorship response");
-      const calls: Call[] = [...(intent.calls as Call[])];
-
-      if (decision === "accept") {
-        const feeCall = buildFeeCall(
-          { surface: "sponsorship", token: paymentToken, grossAmount: BigInt(amount) },
-          feeConfig,
-        );
-        if (feeCall) {
-          calls.push({ contractAddress: feeCall.contractAddress, entrypoint: feeCall.entrypoint, calldata: feeCall.calldata as string[] });
-        }
-      }
-
-      const { txHash } = await executeIntent(starknetProvider, signer, client, { ...intent, calls: calls as typeof intent.calls });
+      const { txHash } = await executeIntent(starknetProvider, signer, client, intent);
       await mutate();
       return { txHash };
     });
@@ -124,10 +99,10 @@ function ReceivedProposalsSection({ walletAddress }: { walletAddress: string }) 
             </p>
           </div>
           <div className="flex gap-1.5 shrink-0">
-            <Button size="sm" variant="outline" disabled={busy} onClick={() => respond(p.proposalId, "reject", p.paymentToken, p.amount)}>
+            <Button size="sm" variant="outline" disabled={busy} onClick={() => respond(p.proposalId, "reject")}>
               {busy && activeId === p.proposalId ? <Loader2 className="h-3 w-3 animate-spin" /> : <X className="h-3 w-3" />}
             </Button>
-            <Button size="sm" className="bg-brand-rose hover:brightness-110 text-white" disabled={busy} onClick={() => respond(p.proposalId, "accept", p.paymentToken, p.amount)}>
+            <Button size="sm" className="bg-brand-rose hover:brightness-110 text-white" disabled={busy} onClick={() => respond(p.proposalId, "accept")}>
               {busy && activeId === p.proposalId ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
             </Button>
           </div>

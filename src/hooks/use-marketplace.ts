@@ -12,8 +12,6 @@ import { useMedialaneClient } from "./use-medialane-client";
 import { SUPPORTED_TOKENS } from "@/lib/constants";
 import { isErc1155Standard } from "@/lib/protocol/token-standard";
 import { QUERY_PREFIX } from "@/lib/query-keys";
-import { buildFeeCall } from "@medialane/sdk/starknet";
-import { feeConfig } from "@/lib/fee";
 import type { Call, TypedData } from "starknet";
 import type { ApiIntentCreated } from "@medialane/sdk";
 
@@ -91,10 +89,7 @@ export interface FulfillOrderInput {
 
   quantity?: string;
 
-  feeToken?: string;
-  feeGrossAmount?: bigint;
-
-  swapCalls?: Call[];
+  swap?: { id: string; calls: Call[] };
 
   considerationToken?: string;
   considerationAmount?: string;
@@ -176,7 +171,7 @@ export function useMarketplace() {
   const runIntent = useCallback(
     async (
       intentFn: () => Promise<{ data: ApiIntentCreated }>,
-      extra?: { prependCalls?: Call[]; appendCalls?: Call[] },
+      before?: { id: string; calls: Call[] },
     ): Promise<string | undefined> => {
       if (!walletAddress || !signer) throw new UserFacingError(ACCOUNT_STILL_LOADING);
 
@@ -195,10 +190,10 @@ export function useMarketplace() {
       }
       if (!calls?.length) throw new Error("No calls returned from intent");
 
-      if (extra?.prependCalls?.length) calls = [...extra.prependCalls, ...calls];
-      if (extra?.appendCalls?.length) calls = [...calls, ...extra.appendCalls];
+      const intentIds = before ? [before.id, intent.id] : [intent.id];
+      if (before) calls = [...before.calls, ...calls];
 
-      const result = await signer.execute(calls);
+      const result = await signer.execute(calls, { intentIds });
       setHash(result.txHash);
 
       const normalizedHash = "0x" + result.txHash.replace(/^0x/, "").padStart(64, "0");
@@ -255,20 +250,6 @@ export function useMarketplace() {
       setIsProcessing(true);
       setError(null);
       try {
-        const extraCalls: Call[] = [];
-        if (input.feeToken && input.feeGrossAmount != null) {
-          const feeCall = buildFeeCall(
-            { surface: "marketplace", token: input.feeToken, grossAmount: input.feeGrossAmount },
-            feeConfig,
-          );
-          if (feeCall) {
-            extraCalls.push({
-              contractAddress: feeCall.contractAddress,
-              entrypoint: feeCall.entrypoint,
-              calldata: feeCall.calldata as string[],
-            });
-          }
-        }
         return await runIntent(
           () => client.api.createFulfillIntent({
             fulfiller: walletAddress!,
@@ -276,7 +257,7 @@ export function useMarketplace() {
             tokenStandard: toApiStandard(input.tokenStandard),
             quantity: input.quantity,
           }),
-          { prependCalls: input.swapCalls, appendCalls: extraCalls },
+          input.swap,
         );
       } catch (err: unknown) {
         const msg = toFriendlyError(err, "Purchase failed");

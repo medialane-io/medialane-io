@@ -11,8 +11,6 @@ import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { executeIntent } from "@medialane/sdk/starknet";
 import { starknetProvider } from "@/lib/starknet";
-import { buildFeeCall } from "@medialane/sdk/starknet";
-import { feeConfig } from "@/lib/fee";
 import { useTokensByOwner } from "@/hooks/use-tokens";
 import { AssetPicker, AssetSearchPicker, LicenseTermsBuilder, EMPTY_SPONSORSHIP_TERMS, toLicenseMetadata, toDurationDays, type OwnedAsset, type SponsorshipTerms } from "@medialane/ui";
 import { getTokenBySymbol, SUPPORTED_TOKENS } from "@medialane/sdk";
@@ -25,7 +23,6 @@ import { pinSponsorshipTerms } from "@/lib/launchpad-metadata";
 import { useSession } from "@/hooks/use-session";
 import { resolveTokenImage } from "@/lib/utils";
 import { usePendingProposalsForAsset } from "@/hooks/use-sponsorship";
-import type { Call } from "starknet";
 
 const LISTABLE_TOKENS = SUPPORTED_TOKENS.filter((t) => t.listable);
 const TOKEN_SYMBOLS = LISTABLE_TOKENS.map((t) => t.symbol);
@@ -58,7 +55,7 @@ function PendingProposalsPanel({ nftContract }: { nftContract: string }) {
   const busy = action.status === "processing" || action.status === "confirming";
   const [activeId, setActiveId] = useState<string | null>(null);
 
-  const respond = (proposalId: string, decision: "accept" | "reject", paymentToken: string, amount: string) => {
+  const respond = (proposalId: string, decision: "accept" | "reject") => {
     if (!walletAddress) return;
     setActiveId(proposalId);
     void action.run(async (signer) => {
@@ -67,23 +64,7 @@ function PendingProposalsPanel({ nftContract }: { nftContract: string }) {
         : await client.api.rejectSponsorshipProposalIntent({ owner: walletAddress, proposalId });
       const intent = intentRes.data;
       if (intent.requiresSignature) throw new Error("Unexpected signature requirement on sponsorship response");
-      const calls: Call[] = [...(intent.calls as Call[])];
-
-      if (decision === "accept") {
-        const feeCall = buildFeeCall(
-          { surface: "sponsorship", token: paymentToken, grossAmount: BigInt(amount) },
-          feeConfig,
-        );
-        if (feeCall) {
-          calls.push({
-            contractAddress: feeCall.contractAddress,
-            entrypoint: feeCall.entrypoint,
-            calldata: feeCall.calldata as string[],
-          });
-        }
-      }
-
-      const { txHash } = await executeIntent(starknetProvider, signer, client, { ...intent, calls: calls as typeof intent.calls });
+      const { txHash } = await executeIntent(starknetProvider, signer, client, intent);
       await mutate();
       return { txHash };
     });
@@ -99,10 +80,10 @@ function PendingProposalsPanel({ nftContract }: { nftContract: string }) {
         <div key={p.id} className="flex items-center justify-between gap-2 text-xs">
           <span className="truncate text-muted-foreground">{p.proposer} — {p.amount}</span>
           <div className="flex gap-1.5 shrink-0">
-            <Button size="sm" variant="outline" disabled={busy} onClick={() => respond(p.proposalId, "reject", p.paymentToken, p.amount)}>
+            <Button size="sm" variant="outline" disabled={busy} onClick={() => respond(p.proposalId, "reject")}>
               {busy && activeId === p.proposalId ? <Loader2 className="h-3 w-3 animate-spin" /> : <X className="h-3 w-3" />}
             </Button>
-            <Button size="sm" className="bg-brand-rose hover:brightness-110 text-white" disabled={busy} onClick={() => respond(p.proposalId, "accept", p.paymentToken, p.amount)}>
+            <Button size="sm" className="bg-brand-rose hover:brightness-110 text-white" disabled={busy} onClick={() => respond(p.proposalId, "accept")}>
               {busy && activeId === p.proposalId ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
             </Button>
           </div>

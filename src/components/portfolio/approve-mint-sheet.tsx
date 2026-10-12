@@ -160,7 +160,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
         const mintCalls = mintIntent.calls as unknown as Call[];
         if (!mintCalls?.length) throw new Error("No mint calls returned");
 
-        const mintResult = await signer.execute(mintCalls);
+        const mintResult = await signer.execute(mintCalls, { intentIds: [mintIntent.id] });
         await syncTransactionBestEffort(client, mintResult.txHash);
 
         const tokensRes = await client.api.getTokensByOwner(walletAddress, 1, 5);

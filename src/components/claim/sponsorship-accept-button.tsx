@@ -9,22 +9,15 @@ import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { executeIntent } from "@medialane/sdk/starknet";
 import { starknetProvider } from "@/lib/starknet";
-import { buildFeeCall } from "@medialane/sdk/starknet";
-import { feeConfig } from "@/lib/fee";
 import { EXPLORER_URL } from "@/lib/constants";
-import type { Call } from "starknet";
 
 interface SponsorshipAcceptButtonProps {
   offerId: string;
   sponsor: string;
-
-  paymentToken: string;
-
-  amount: string;
   onAccepted?: () => void;
 }
 
-export function SponsorshipAcceptButton({ offerId, sponsor, paymentToken, amount, onAccepted }: SponsorshipAcceptButtonProps) {
+export function SponsorshipAcceptButton({ offerId, sponsor, onAccepted }: SponsorshipAcceptButtonProps) {
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
   const client = useMedialaneClient();
   const action = useWalletWriteAction();
@@ -36,21 +29,7 @@ export function SponsorshipAcceptButton({ offerId, sponsor, paymentToken, amount
       const intentRes = await client.api.acceptSponsorshipBidIntent({ author: walletAddress, offerId, sponsor });
       const intent = intentRes.data;
       if (intent.requiresSignature) throw new Error("Unexpected signature requirement on sponsorship accept");
-      const calls: Call[] = [...(intent.calls as Call[])];
-
-      const feeCall = buildFeeCall(
-        { surface: "sponsorship", token: paymentToken, grossAmount: BigInt(amount) },
-        feeConfig,
-      );
-      if (feeCall) {
-        calls.push({
-          contractAddress: feeCall.contractAddress,
-          entrypoint: feeCall.entrypoint,
-          calldata: feeCall.calldata as string[],
-        });
-      }
-
-      const { txHash } = await executeIntent(starknetProvider, signer, client, { ...intent, calls: calls as typeof intent.calls });
+      const { txHash } = await executeIntent(starknetProvider, signer, client, intent);
       onAccepted?.();
       return { txHash };
     });

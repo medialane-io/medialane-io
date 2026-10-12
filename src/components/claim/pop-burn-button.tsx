@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { Loader2, Trash2 } from "lucide-react";
-import { popCalls } from "@medialane/sdk/starknet";
 import { Button } from "@/components/ui/button";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
+import { getMedialaneClient } from "@/lib/medialane-client";
+import { runIntentCalls } from "@/lib/wallet/run-intent-calls";
 
 interface PopBurnButtonProps {
   collectionAddress: string;
@@ -52,7 +53,7 @@ export function PopBurnButton({ collectionAddress, tokenId, onBurned }: PopBurnB
           size="sm"
           className="flex-1"
           disabled={busy}
-          onClick={() => void action.run((signer) => signer.execute([popCalls.burn(collectionAddress, tokenId)]))}
+          onClick={() => void action.run((signer) => runIntentCalls(signer, () => getMedialaneClient().api.createPopBurnIntent({ owner: signer.address, collection: collectionAddress, tokenId: String(tokenId) })))}
         >
           {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Remove"}
         </Button>

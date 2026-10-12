@@ -239,7 +239,7 @@ export default function CreateRemixPage() {
         });
         if (intentRes.data.requiresSignature) throw new Error("Unexpected signed mint intent");
         setTxStatus("submitting");
-        const result = await signer.execute(intentRes.data.calls as Call[]);
+        const result = await signer.execute(intentRes.data.calls as Call[], { intentIds: [intentRes.data.id] });
         setTxStatus("confirmed");
         txHash = result.txHash ?? "";
         const editionId = mintedTokenIdFromReceipt(await assertTransactionSucceeded(starknetProvider, txHash), selectedCollection.contractAddress);
@@ -261,7 +261,7 @@ export default function CreateRemixPage() {
         if (!calls?.length) throw new Error("No calls returned from mint intent");
 
         setTxStatus("submitting");
-        const result = await signer.execute(calls);
+        const result = await signer.execute(calls, { intentIds: [mintIntent.id] });
         setTxStatus("confirmed");
         txHash = result.txHash ?? "";
 

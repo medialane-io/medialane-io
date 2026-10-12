@@ -70,7 +70,7 @@ export function useLaunchCoin(deps: UseLaunchCoinDeps = {}) {
           initialSupply: supplyRaw.toString(),
         });
         if (createIntent.data.requiresSignature) throw new Error("Expected a prebuilt create-coin intent");
-        const created = await signer.execute(createIntent.data.calls as Call[]);
+        const created = await signer.execute(createIntent.data.calls as Call[], { intentIds: [createIntent.data.id] });
 
         let receipt: CreatorCoinReceiptLike | null = null;
         for (let attempt = 0; attempt < 4 && !receipt; attempt++) {
@@ -100,7 +100,7 @@ export function useLaunchCoin(deps: UseLaunchCoinDeps = {}) {
           quoteFundAmount: buybackRaw.toString(),
         });
         if (launchIntent.data.requiresSignature) throw new Error("Expected a prebuilt launch-coin intent");
-        const launched = await signer.execute(launchIntent.data.calls as Call[]);
+        const launched = await signer.execute(launchIntent.data.calls as Call[], { intentIds: [launchIntent.data.id] });
 
         await verify(launched.txHash);
 
