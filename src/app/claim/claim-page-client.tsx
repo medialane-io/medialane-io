@@ -2,7 +2,7 @@
 
 import { LAUNCHPAD_ROUTE_OVERRIDES, LAUNCHPAD_SERVICE_DEFINITIONS, LaunchpadServiceCard } from "@medialane/ui";
 import { FadeIn } from "@/components/ui/motion-primitives";
-import { AIRDROP_CLAIM, claimDefinitions, claimOverrides } from "@/lib/claims";
+import { claimDefinitions, claimOverrides } from "@/lib/claims";
 
 const CARDS = claimDefinitions(LAUNCHPAD_SERVICE_DEFINITIONS);
 const OVERRIDES = claimOverrides(LAUNCHPAD_ROUTE_OVERRIDES);

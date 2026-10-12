@@ -134,6 +134,7 @@ test("drop routes", () => {
   expect(isPathAllowed("GET", "drops")).toBe(true);
   expect(isPathAllowed("GET", "drops/0xd409")).toBe(true);
   expect(isPathAllowed("GET", "drops/0xd409/mints")).toBe(true);
+  expect(isPathAllowed("GET", "drops/fee")).toBe(true);
   expect(isPathAllowed("GET", "drop/0xd409/info")).toBe(false);
   expect(isPathAllowed("POST", "drop/conditions")).toBe(false);
 });

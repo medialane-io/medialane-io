@@ -40,7 +40,7 @@ export function AssetPageEdition() {
     collection, token, mutateListings, history, collectionTokens,
     commentTotal, remixCount,
     activeListings, activeBids, cheapest, cheapestUsd, lastSaleRaw,
-    isOwner, holders, quantityOwned, myListing, canListMoreEditions, isERC1155,
+    isOwner, holders, quantityOwned, myListing, canListMoreEditions,
     isProcessing, cancelStep, cancelError, handleCancelClick, resetCancelStep, acceptOffer,
     purchaseOrder, setPurchaseOrder, listOpen, setListOpen,
     offerOpen, setOfferOpen, transferOpen, setTransferOpen,

@@ -2,7 +2,6 @@
 
 import { requireSignedIn } from "@/lib/account-gate";
 import { UserFacingError } from "@medialane/ui";
-import { uploadImageToIpfs } from "@/lib/upload-image";
 import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
 import { RewardEarned } from "@/lib/reward-earned";
 import { useState, useRef, useEffect, useCallback } from "react";
