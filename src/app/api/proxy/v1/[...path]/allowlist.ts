@@ -37,6 +37,7 @@ export const ALLOW: Record<string, RegExp[]> = {
     /^drops$/,
     /^drops\/[^/]+$/,
     /^drops\/[^/]+\/mints$/,
+    /^drops\/[^/]+\/state$/,
     /^rewards$/,
     /^rewards\/config$/,
     /^rewards\/batch$/,
