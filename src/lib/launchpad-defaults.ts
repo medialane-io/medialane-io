@@ -1,3 +1,3 @@
 "use client";
 
-export { getDefaultDropSchedule, getDefaultClaimWindow, suggestLaunchpadSymbol } from "@medialane/ui/utils/launchpad-defaults";
+export { getDefaultClaimWindow, suggestLaunchpadSymbol } from "@medialane/ui/utils/launchpad-defaults";
