@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { mediaWallet } from "@/lib/wallet/client";
 import { describeWalletFailure, detectPasskeySupport, isPasskeyCancelled } from "@medialane/ui";
-import { type DeploymentStep, type DeploymentResult } from "@medialane/sdk/starknet";
+import { type DeploymentStep } from "@medialane/sdk/starknet";
 import {
   Dialog,
   DialogContent,
@@ -18,13 +18,12 @@ import {
 const STEP_LABEL: Record<DeploymentStep, string> = {
   "creating-passkey": "Creating passkey…",
   deploying: "Setting up your wallet…",
-  "signing-in": "Signing in…",
 };
 
 interface WalletDeploymentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onComplete: (result: DeploymentResult) => void | Promise<void>;
+  onComplete: () => void | Promise<void>;
 }
 
 export function WalletDeploymentDialog({ open, onOpenChange, onComplete }: WalletDeploymentDialogProps) {
@@ -34,8 +33,8 @@ export function WalletDeploymentDialog({ open, onOpenChange, onComplete }: Walle
   const run = async () => {
     setError(null);
     try {
-      const result = await mediaWallet.completeDeployment(setStep);
-      await onComplete(result);
+      await mediaWallet.completeDeployment(setStep);
+      await onComplete();
       onOpenChange(false);
     } catch (err) {
       setError(describeWalletFailure(err, isPasskeyCancelled(err) ? await detectPasskeySupport() : "unknown").message);

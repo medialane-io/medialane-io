@@ -1,6 +1,6 @@
 "use client";
 
-import { AddressDisplay, ExportKeySection, UserFacingError, describeError } from "@medialane/ui";
+import { AddressDisplay, ExportKeySection, describeError } from "@medialane/ui";
 import { useState } from "react";
 import { AlertTriangle, ArrowUpRight, Loader2, ShieldAlert, ShieldCheck, Wallet } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -14,7 +14,6 @@ import { useMediaWallet } from "@medialane/ui";
 import { useSession } from "@/hooks/use-session";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { EXPLORER_URL } from "@/lib/constants";
-import { getMedialaneClient } from "@/lib/medialane-client";
 import { mediaWallet } from "@/lib/wallet/client";
 import { unlockOwnerKey } from "@/lib/wallet/passkey";
 import { loadSealedOwner } from "@/lib/wallet/store";
@@ -26,14 +25,6 @@ export default function WalletSettingsPage() {
   const [generating, setGenerating] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
   const [resumeOpen, setResumeOpen] = useState(false);
-  async function attachNewWallet(newWalletSiwsToken: string) {
-    try {
-      await getMedialaneClient().api.generateWallet(newWalletSiwsToken);
-    } catch {
-      throw new UserFacingError("Failed to switch to the new wallet");
-    }
-    window.location.reload();
-  }
 
   async function handleGenerate() {
     const confirmed = window.confirm(
@@ -52,8 +43,8 @@ export default function WalletSettingsPage() {
     }
 
     try {
-      const { siwsToken } = await mediaWallet.completeDeployment(() => {}, { forceNew: true });
-      await attachNewWallet(siwsToken);
+      await mediaWallet.completeDeployment(() => {}, { forceNew: true });
+      window.location.reload();
     } catch {
       setResumeOpen(true);
     } finally {
@@ -138,9 +129,7 @@ export default function WalletSettingsPage() {
         <WalletDeploymentDialog
           open={resumeOpen}
           onOpenChange={setResumeOpen}
-          onComplete={async ({ siwsToken }) => {
-            await attachNewWallet(siwsToken);
-          }}
+          onComplete={() => window.location.reload()}
         />
       </SettingsPage>
     </SettingsGate>
