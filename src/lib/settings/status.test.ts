@@ -26,11 +26,6 @@ describe("the headline", () => {
     expect(h).toEqual({ tone: "warn", text: "Confirm your email by 10 October to keep your account", href: "/settings/email" });
   });
 
-  test("asks to add an email when there is none", () => {
-    const h = accountStatus({ ...working, email: { email: null, verified: false } }).headline;
-    expect(h).toEqual({ tone: "warn", text: "Add your email to keep your account", href: "/settings/email" });
-  });
-
   test("says the wallet is still setting up, as a calm notice", () => {
     expect(accountStatus({ ...working, walletDeployed: false }).headline).toEqual({
       tone: "muted",
@@ -57,7 +52,6 @@ describe("the lines", () => {
   test("sign-in shows the email and whether it is confirmed", () => {
     expect(line(working, "signin")).toMatchObject({ value: "a@b.co", note: { text: "Confirmed", tone: "ok" } });
     expect(line({ ...working, email: { email: "a@b.co", verified: false } }, "signin").note).toEqual({ text: "Not confirmed", tone: "warn" });
-    expect(line({ ...working, email: { email: null, verified: false } }, "signin")).toMatchObject({ value: "No email yet" });
   });
 
   test("wallet shows a short address and its state", () => {

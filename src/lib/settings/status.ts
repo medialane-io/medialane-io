@@ -2,7 +2,7 @@ import { formatDeadline, type RowTone } from "./rows";
 
 export interface StatusInput {
   address: string | null;
-  email: { email: string | null; verified: boolean; deadline?: string | null } | null;
+  email: { email: string; verified: boolean; deadline?: string | null } | null;
   walletDeployed: boolean | null;
   devices: number | null;
   guardians: number | null;
@@ -27,7 +27,6 @@ const shortAddress = (a: string): string => `${a.slice(0, 6)}…${a.slice(-4)}`;
 function headline(input: StatusInput): StatusHeadline | null {
   const { email, walletDeployed } = input;
   if (email === null || walletDeployed === null) return null;
-  if (!email.email) return { tone: "warn", text: "Add your email to keep your account", href: "/settings/email" };
   if (!email.verified) {
     const when = email.deadline ? ` by ${formatDeadline(email.deadline, "long")}` : "";
     return { tone: "warn", text: `Confirm your email${when} to keep your account`, href: "/settings/email" };
@@ -42,7 +41,7 @@ export function accountStatus(input: StatusInput): { headline: StatusHeadline | 
   const signin: StatusLine = {
     id: "signin",
     label: "Sign-in",
-    value: email === null ? null : (email.email ?? "No email yet"),
+    value: email === null ? null : email.email,
     note: email?.email ? (email.verified ? { text: "Confirmed", tone: "ok" } : { text: "Not confirmed", tone: "warn" }) : undefined,
   };
 

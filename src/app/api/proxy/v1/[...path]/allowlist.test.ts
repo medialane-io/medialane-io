@@ -137,3 +137,9 @@ test("drop routes", () => {
   expect(isPathAllowed("GET", "drop/0xd409/info")).toBe(false);
   expect(isPathAllowed("POST", "drop/conditions")).toBe(false);
 });
+
+test("wallet sign-in is not reachable through io's gateway; io signs in by email", () => {
+  expect(isPathAllowed("POST", "auth/siws/nonce")).toBe(false);
+  expect(isPathAllowed("POST", "auth/siws/verify")).toBe(false);
+  expect(isPathAllowed("POST", "auth/email/verify-code")).toBe(true);
+});
