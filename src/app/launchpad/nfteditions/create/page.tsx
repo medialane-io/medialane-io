@@ -20,6 +20,7 @@ import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { executeIntent, deployedCollectionFromReceipt } from "@medialane/sdk/starknet";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
+import { buildCollectionMetadata } from "@medialane/sdk";
 import { useSession } from "@/hooks/use-session";
 import { suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
@@ -69,12 +70,6 @@ export default function CreateIP1155CollectionPage() {
   const collectionName = form.watch("name");
 
   useEffect(() => {
-    if (walletAddress && !form.getValues("external_link")) {
-      form.setValue("external_link", `https://medialane.io/account/${walletAddress}`);
-    }
-  }, [walletAddress, form]);
-
-  useEffect(() => {
     const suggestedSymbol = suggestLaunchpadSymbol(collectionName);
     if (!suggestedSymbol) return;
 
@@ -107,22 +102,22 @@ export default function CreateIP1155CollectionPage() {
     requireAccount(walletAddress);
     setDeployedAddress(null);
 
-    let collectionMetaUri: string | undefined;
-    if (imageUri) {
-      requireSignedIn(session);
-      collectionMetaUri = await pinLaunchpadMetadata({
+    requireSignedIn(session);
+    const collectionMetaUri = await pinLaunchpadMetadata(
+      buildCollectionMetadata({
         name: pendingValues.name,
-        description: pendingValues.description || "",
+        description: pendingValues.description,
         image: imageUri,
-        external_link: pendingValues.external_link || "",
-      });
-    }
+        externalLink: pendingValues.external_link,
+        owner: walletAddress,
+      }),
+    );
 
       const intentRes = await client.api.createCollectionIntent({
         owner: walletAddress,
         name: pendingValues.name,
         symbol: pendingValues.symbol,
-        baseUri: collectionMetaUri ?? "",
+        baseUri: collectionMetaUri,
         service: "mip-erc1155",
       });
       const result = await executeIntent(starknetProvider, signer, client, intentRes.data, { confirm: false });

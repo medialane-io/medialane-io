@@ -154,7 +154,7 @@ export function NftEditionsCreateForm({
         <FormItem>
           <FormLabel>External link <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
           <FormControl><Input placeholder="https://yourwebsite.com" {...field} /></FormControl>
-          <FormDescription>Your website, portfolio, or social profile — saved with your collection so it travels with it.</FormDescription>
+          <FormDescription>Your website, portfolio, or social profile. Defaults to your Medialane account page.</FormDescription>
           <FormMessage />
         </FormItem>
       )} />

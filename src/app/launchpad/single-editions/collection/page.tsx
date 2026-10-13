@@ -4,6 +4,7 @@ import { requireAccount, requireSignedIn } from "@/lib/account-gate";
 import { UserFacingError } from "@medialane/ui";
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
+import { buildCollectionMetadata } from "@medialane/sdk";
 import { RewardEarned } from "@/lib/reward-earned";
 import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -86,12 +87,6 @@ export default function LaunchpadCreateCollectionPage() {
     defaultValues: { name: "", symbol: "", description: "", external_link: "" },
   });
 
-  useEffect(() => {
-    if (walletAddress && !form.getValues("external_link")) {
-      form.setValue("external_link", `https://medialane.io/account/${walletAddress}`);
-    }
-  }, [walletAddress, form]);
-
   const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/svg+xml", "image/webp"];
 
   const handleImageSelect = async (file: File) => {
@@ -156,22 +151,20 @@ export default function LaunchpadCreateCollectionPage() {
 
     requireSignedIn(session);
 
-    let baseUri: string | undefined;
-    if (imageUri) {
-      baseUri = await pinLaunchpadMetadata({
+    const baseUri = await pinLaunchpadMetadata(
+      buildCollectionMetadata({
         name: values.name,
-        description: values.description || "",
+        description: values.description,
         image: imageUri,
-        external_link: values.external_link || "https://medialane.io",
-      });
-    }
+        externalLink: values.external_link,
+        owner: walletAddress,
+      }),
+    );
 
     const intentRes = await client.api.createCollectionIntent({
       owner: walletAddress,
       name: values.name,
       symbol: values.symbol,
-      description: values.description || undefined,
-      image: imageUri || undefined,
       baseUri,
     });
 
@@ -376,7 +369,7 @@ export default function LaunchpadCreateCollectionPage() {
                     <Input placeholder="https://yourwebsite.com" {...field} />
                   </FormControl>
                   <FormDescription>
-                    Your website, portfolio, or social profile — saved with your collection so it travels with it.
+                    Your website, portfolio, or social profile. Defaults to your Medialane account page.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
