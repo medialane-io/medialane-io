@@ -68,7 +68,6 @@ export const ALLOW: Record<string, RegExp[]> = {
   POST: [
     /^intents\/[a-z-]+$/,
     /^intents\/[^/]+\/hydrate$/,
-    /^auth\/siws\/(nonce|verify)$/,
     /^auth\/email\/(request-code|verify-code|register-account|confirm)$/,
     /^collections\/(register|sync-tx|claim)$/,
     /^collections\/claim\/request$/,

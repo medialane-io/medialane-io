@@ -85,7 +85,7 @@ export default function EmailSettingsPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {status?.email ? (
+              {status ? (
                 <>
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="min-w-0 truncate text-sm text-foreground">{status.email}</span>
@@ -99,15 +99,15 @@ export default function EmailSettingsPage() {
                       </Badge>
                     )}
                   </div>
-                  {status?.email && !status.verified && status.deadline ? (
+                  {!status.verified && status.deadline ? (
                     <p className="text-sm text-muted-foreground">Please confirm by {formatDeadline(status.deadline, "long")}.</p>
                   ) : null}
                 </>
               ) : (
-                <p className="text-sm text-muted-foreground">{status ? "No email on this account yet." : "Loading…"}</p>
+                <p className="text-sm text-muted-foreground">Loading…</p>
               )}
               <div className="flex flex-wrap gap-2">
-                {status?.email && !status.verified ? (
+                {status && !status.verified ? (
                   <Button
                     variant="outline"
                     onClick={() => {
@@ -125,14 +125,14 @@ export default function EmailSettingsPage() {
                     setInput(status?.email ?? "");
                   }}
                 >
-                  {status?.email ? "Change email" : "Add email"}
+                  Change email
                 </Button>
               </div>
             </div>
           )}
         </AccountSection>
 
-        {status?.email ? (
+        {status ? (
           <EmailVerifyDialog
             open={dialogOpen}
             onOpenChange={setDialogOpen}

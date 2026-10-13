@@ -6,8 +6,7 @@ describe("the email row", () => {
     expect(emailRow(null)).toBeNull();
   });
 
-  test("warns when there is no email or it is not confirmed yet", () => {
-    expect(emailRow({ email: null, verified: false })).toEqual({ value: "Not set", tone: "warn" });
+  test("warns when the email is not confirmed yet", () => {
     expect(emailRow({ email: "a@b.co", verified: false })).toEqual({ value: "Not confirmed", tone: "warn" });
   });
 

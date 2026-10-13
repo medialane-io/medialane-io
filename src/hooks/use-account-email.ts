@@ -5,14 +5,14 @@ import { useSession, refreshSession } from "@/hooks/use-session";
 import { getMedialaneClient } from "@/lib/medialane-client";
 
 export interface AccountEmail {
-  email: string | null;
+  email: string;
   verified: boolean;
   deadline: string | null;
 }
 
 export function useAccountEmail() {
   const { session } = useSession();
-  const status: AccountEmail | null = session
+  const status: AccountEmail | null = session?.email
     ? { email: session.email, verified: !session.emailDeadline, deadline: session.emailDeadline }
     : null;
 
