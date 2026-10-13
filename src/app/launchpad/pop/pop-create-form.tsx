@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   FormControl,
   FormDescription,
@@ -213,6 +214,39 @@ export function PopCreateForm({
                 />
               </FormControl>
               <FormDescription>Short ticker shown in wallets. We suggest one from the event name.</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </FadeIn>
+
+      <FadeIn delay={0.15}>
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
+              <FormControl>
+                <Textarea placeholder="What this credential recognizes" rows={3} {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </FadeIn>
+
+      <FadeIn delay={0.155}>
+        <FormField
+          control={form.control}
+          name="external_link"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>External link <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
+              <FormControl>
+                <Input placeholder="https://yourwebsite.com" {...field} />
+              </FormControl>
+              <FormDescription>Your website, portfolio, or social profile. Defaults to your Medialane account page.</FormDescription>
               <FormMessage />
             </FormItem>
           )}

@@ -15,6 +15,14 @@ export const popCreateSchema = z
       .min(1, "Symbol required")
       .max(10)
       .regex(/^[A-Z0-9]+$/, "Uppercase letters and numbers only"),
+    description: z.string().max(500).optional(),
+    external_link: z
+      .string()
+      .max(500)
+      .refine((v) => !v || v.startsWith("http://") || v.startsWith("https://"), {
+        message: "Must start with http:// or https://",
+      })
+      .optional(),
     claimEndDate: z.string().min(1, "Claim end date required"),
     claimEndTime: z.string().default("23:59"),
   })

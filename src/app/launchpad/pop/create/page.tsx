@@ -18,6 +18,7 @@ import { starknetProvider } from "@/lib/starknet";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
+import { buildCollectionMetadata } from "@medialane/sdk";
 import { useSession } from "@/hooks/use-session";
 import { getDefaultClaimWindow, suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
 import { PopCreateForm } from "../pop-create-form";
@@ -56,7 +57,7 @@ export default function CreatePOPPage() {
 
   const form = useForm<PopCreateFormValues>({
     resolver: zodResolver(popCreateSchema),
-    defaultValues: { name: "", symbol: "", claimEndDate: "", claimEndTime: "23:59" },
+    defaultValues: { name: "", symbol: "", description: "", external_link: "", claimEndDate: "", claimEndTime: "23:59" },
   });
   const eventName = form.watch("name");
 
@@ -106,14 +107,19 @@ export default function CreatePOPPage() {
   ) => {
     requireAccount(walletAddress);
 
-    const metadata: Record<string, unknown> = {
-      name: pendingValues.name,
+    const metadata = {
+      ...buildCollectionMetadata({
+        name: pendingValues.name,
+        description: pendingValues.description,
+        image: imageUri,
+        externalLink: pendingValues.external_link,
+        owner: walletAddress,
+      }),
       attributes: [
         { trait_type: "Visibility", value: isPublic ? "Public" : "Private" },
         { trait_type: "Event Type", value: eventType },
       ],
     };
-    if (imageUri) metadata.image = imageUri;
     requireSignedIn(session);
     const baseUri = await pinLaunchpadMetadata(metadata);
 
