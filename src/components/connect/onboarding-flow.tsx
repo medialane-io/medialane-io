@@ -24,7 +24,7 @@ import { flowReducer, initialFlow, retryTarget, type OnboardingStep } from "@/li
 export type { OnboardingStep };
 export { RESEND_COOLDOWN_SECONDS };
 
-const WALLET_STEPS: OnboardingStep[] = ["creating-passkey", "deploying", "signing-in"];
+const WALLET_STEPS: OnboardingStep[] = ["creating-passkey", "deploying"];
 
 export function isWalletStep(step: OnboardingStep): boolean {
   return WALLET_STEPS.includes(step);
@@ -32,7 +32,6 @@ export function isWalletStep(step: OnboardingStep): boolean {
 
 export function walletStepLabel(step: OnboardingStep): string {
   if (step === "deploying") return "Setting up your wallet…";
-  if (step === "signing-in") return "Signing in…";
   return "Creating passkey…";
 }
 
@@ -73,20 +72,10 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
   const runWalletSetup = useCallback(async () => {
     dispatch({ type: "wallet-setup-started" });
     try {
-      const { siwsToken } = await mediaWallet.completeDeployment((s) =>
-        dispatch({ type: "wallet-progress", step: s as "creating-passkey" | "deploying" | "signing-in" }),
-      );
-      await getMedialaneClient().api.upsertMyWallet(siwsToken, {
-        walletType: "MEDIAWALLET",
-        chain: "STARKNET",
-      });
+      await mediaWallet.completeDeployment((step) => dispatch({ type: "wallet-progress", step }));
       await refreshSession();
       finish(true);
     } catch (err) {
-      if (err instanceof MedialaneApiError && err.message === "ACCOUNT_LINK_REQUIRED") {
-        dispatch({ type: "link-required" });
-        return;
-      }
       console.error("wallet setup failed", err);
       await failWallet(err);
     }

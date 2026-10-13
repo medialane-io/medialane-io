@@ -7,7 +7,6 @@ export type OnboardingStep =
   | "link-device"
   | "creating-passkey"
   | "deploying"
-  | "signing-in"
   | "done";
 
 export interface FlowState {
@@ -28,10 +27,9 @@ export type FlowEvent =
   | { type: "code-failed"; message: string | null }
   | { type: "wallet-setup-started" }
   | { type: "key-setup-started"; address: string }
-  | { type: "wallet-progress"; step: "creating-passkey" | "deploying" | "signing-in" }
+  | { type: "wallet-progress"; step: "creating-passkey" | "deploying" }
   | { type: "wallet-failed"; message: string; canRetry: boolean }
   | { type: "key-setup-finished" }
-  | { type: "link-required" }
   | { type: "device-not-linked" }
   | { type: "finished" };
 
@@ -69,8 +67,6 @@ export function flowReducer(state: FlowState, event: FlowEvent): FlowState {
       return { ...state, step: "creating-passkey", error: event.message, canRetry: event.canRetry };
     case "key-setup-finished":
       return { ...state, keySetupAddress: null };
-    case "link-required":
-      return { ...state, step: "email" };
     case "device-not-linked":
       return { ...state, step: "link-device", error: null };
     case "finished":

@@ -12,7 +12,7 @@ const api = {
   upsertMyWallet: mock(async (..._args: unknown[]) => ({})),
   getSessionWallet: (...args: unknown[]) => getSessionWallet(...args),
 };
-const completeDeployment = mock(async (_onStep: (s: string) => void) => ({ siwsToken: "siws" }));
+const completeDeployment = mock(async (_onStep: (s: string) => void) => ({ sealed: {} }));
 const getSessionWallet = mock(async (..._args: unknown[]): Promise<{ walletAddress: string; needsKeySetup: boolean } | null> => null);
 const claimSessionWallet = mock(async (..._args: unknown[]) => undefined);
 
@@ -56,7 +56,7 @@ beforeEach(() => {
   api.checkEmail.mockImplementation(async () => ({ exists: false }));
   api.registerEmailAccount.mockImplementation(async () => ({}));
   api.verifyEmailCode.mockImplementation(async () => ({}));
-  completeDeployment.mockImplementation(async () => ({ siwsToken: "siws" }));
+  completeDeployment.mockImplementation(async () => ({ sealed: {} }));
   getSessionWallet.mockImplementation(async () => null);
 });
 afterEach(cleanup);
@@ -77,14 +77,14 @@ async function enterCode(code = "123456") {
 }
 
 describe("a new io user", () => {
-  test("registers, makes a wallet, links it, and finishes with a celebration", async () => {
+  test("registers, makes a wallet, and finishes with a celebration without a separate link call", async () => {
     await enterEmail("new@example.com");
     await waitFor(() => expect(done).toEqual([{ celebrated: true }]));
     expect(api.checkEmail).toHaveBeenCalledWith("new@example.com");
     expect(api.registerEmailAccount).toHaveBeenCalledWith("new@example.com");
     expect(api.requestEmailCode).not.toHaveBeenCalled();
     expect(completeDeployment).toHaveBeenCalledTimes(1);
-    expect(api.upsertMyWallet).toHaveBeenCalledTimes(1);
+    expect(api.upsertMyWallet).not.toHaveBeenCalled();
   });
 });
 
