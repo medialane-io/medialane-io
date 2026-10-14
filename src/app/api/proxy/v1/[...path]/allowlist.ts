@@ -75,7 +75,6 @@ export const ALLOW: Record<string, RegExp[]> = {
     /^coins\/sync$/,
     /^remix-offers(\/(auto|self\/confirm|[^/]+\/(confirm|reject|extend)))?$/,
     /^reports$/,
-    /^users\/(me|register)$/,
     /^users\/me\/(generate-wallet|email|wallet|wallet\/key)$/,
     /^username-claims$/,
     /^metadata\/(upload|upload-file|upload-directory)$/,
