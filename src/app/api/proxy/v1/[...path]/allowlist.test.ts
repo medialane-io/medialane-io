@@ -143,3 +143,8 @@ test("wallet sign-in is not reachable through io's gateway; io signs in by email
   expect(isPathAllowed("POST", "auth/siws/verify")).toBe(false);
   expect(isPathAllowed("POST", "auth/email/verify-code")).toBe(true);
 });
+
+test("POST users/register and users/me are not forwarded", () => {
+  expect(isPathAllowed("POST", "users/register")).toBe(false);
+  expect(isPathAllowed("POST", "users/me")).toBe(false);
+});
