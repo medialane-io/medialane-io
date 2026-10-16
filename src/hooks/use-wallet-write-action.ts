@@ -3,7 +3,6 @@
 import { describeError } from "@medialane/ui";
 import { useCallback, useState } from "react";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
-import { starknetProvider } from "@/lib/starknet";
 import { useWalletNativeSession } from "./use-wallet-native-session";
 import { lockVenueSigner } from "@/lib/wallet/venue-signer";
 import { assertTransactionSucceeded, syncTransactionBestEffort } from "@medialane/sdk/starknet";
@@ -11,7 +10,7 @@ import { getMedialaneClient } from "@/lib/medialane-client";
 import { useSession } from "@/hooks/use-session";
 
 const verifyOnStarknet = async (txHash: string): Promise<void> => {
-  await assertTransactionSucceeded(starknetProvider, txHash);
+  await assertTransactionSucceeded(getMedialaneClient().provider, txHash);
 };
 
 const readIntoMedialane = async (txHash: string): Promise<void> => {

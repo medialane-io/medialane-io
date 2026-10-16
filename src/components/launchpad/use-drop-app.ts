@@ -5,7 +5,6 @@ import { describeError, type DropAppProps } from "@medialane/ui";
 import { requireAccount } from "@/lib/account-gate";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import { starknetProvider } from "@/lib/starknet";
 
 /** io's wallet and client for the shared drop screens. */
 export function useDropApp(): DropAppProps {
@@ -14,7 +13,6 @@ export function useDropApp(): DropAppProps {
   const pathname = usePathname();
   return {
     getClient: getMedialaneClient,
-    provider: starknetProvider,
     walletAddress: address ?? null,
     onRequireWallet: () => router.push(`/connect?redirect_url=${encodeURIComponent(pathname)}`),
     getSigner: () => {

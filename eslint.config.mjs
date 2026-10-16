@@ -33,6 +33,11 @@ const eslintConfig = [
               message:
                 "Messages belong beside what they describe: validation in the zod schema so FormMessage renders it, action outcomes on the action's own state, background failures in console.error.",
             },
+            {
+              name: "starknet",
+              importNames: ["RpcProvider"],
+              message: "Read the chain through getMedialaneClient().provider.",
+            },
           ],
         },
       ],

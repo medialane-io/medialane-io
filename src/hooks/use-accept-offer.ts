@@ -4,8 +4,9 @@ import { UserFacingError } from "@medialane/ui";
 import { useState } from "react";
 import { useWalletMarketplaceActionFlow } from "@/hooks/use-wallet-marketplace-action-flow";
 import { useMarketplace } from "@/hooks/use-marketplace";
-import { useTokenBalance, hasSufficientBalance } from "@/hooks/use-erc20-balance";
+import { useTokenBalance, hasSufficientBalance } from "@medialane/ui/utils/media-wallet/use-erc20-balance";
 import type { ApiOrder } from "@medialane/sdk";
+import { getMedialaneClient } from "@/lib/medialane-client";
 
 interface UseAcceptOfferOptions {
   mutateListings: () => void;
@@ -23,7 +24,7 @@ export function useAcceptOffer({ mutateListings, tokenStandard, activeListings =
   const [warningOpen, setWarningOpen] = useState(false);
   const [pendingOrder, setPendingOrder] = useState<ApiOrder | null>(null);
 
-  const { rawBalance, decimals } = useTokenBalance(
+  const { rawBalance, decimals } = useTokenBalance(getMedialaneClient,
     selectedOrder?.price.currency ?? null,
     selectedOrder?.offerer ?? null
   );

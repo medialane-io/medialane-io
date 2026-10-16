@@ -9,7 +9,6 @@ import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { RewardEarned } from "@/lib/reward-earned";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
-import { starknetProvider } from "@/lib/starknet";
 
 export interface FastMintProps {
   presentation?: "inline" | "dialog";
@@ -71,7 +70,6 @@ export function FastMint({ presentation = "inline", open = true, onClose, mediaK
         };
       }}
       client={client}
-      provider={starknetProvider}
     />
   );
 }

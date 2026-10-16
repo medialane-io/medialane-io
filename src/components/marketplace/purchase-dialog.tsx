@@ -29,7 +29,7 @@ import { formatDisplayPrice, ipfsToHttp } from "@/lib/utils";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
 import { useUsdPrices } from "@/hooks/use-usd-prices";
 import { usdValueFor } from "@/lib/wallet-format";
-import { useErc20Balance } from "@/hooks/use-erc20-balance";
+import { useErc20Balance } from "@medialane/ui/utils/media-wallet/use-erc20-balance";
 import { getTokenBySymbol } from "@medialane/sdk";
 import { createSwapIntent } from "@/lib/wallet/swap-calls";
 import { getMedialaneClient } from "@/lib/medialane-client";
@@ -225,7 +225,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
 
   const requiredRaw = BigInt(order.consideration.startAmount ?? "0") * BigInt(is1155 ? quantity : 1);
   const orderCurrencyToken = order.price?.currency ? getTokenBySymbol(order.price.currency) : undefined;
-  const { rawBalance: orderCurrencyBalance, isLoading: balanceLoading } = useErc20Balance(
+  const { rawBalance: orderCurrencyBalance, isLoading: balanceLoading } = useErc20Balance(getMedialaneClient,
     orderCurrencyToken?.address ?? null,
     walletAddress
   );

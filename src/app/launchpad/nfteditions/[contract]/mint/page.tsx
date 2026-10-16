@@ -18,7 +18,6 @@ import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { WalletTransactionDialog } from "@/components/transaction/wallet-transaction-dialog";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
-import { starknetProvider } from "@/lib/starknet";
 import { normalizeAddress } from "@medialane/sdk";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
@@ -159,7 +158,7 @@ export default function MintIP1155Page() {
       royaltyBps: 0,
     });
 
-    const result = await executeIntent(starknetProvider, signer, client, intentRes.data, { confirm: false });
+    const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
 
     const editionId = mintedTokenIdFromReceipt(result.receipt, collectionAddress);
     if (!editionId) throw new Error("Minted, but could not read the assigned token id from the receipt");

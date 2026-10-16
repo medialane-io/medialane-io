@@ -14,7 +14,6 @@ import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { type PopEventType } from "@/lib/launchpad-contracts";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { executeIntent } from "@medialane/sdk/starknet";
-import { starknetProvider } from "@/lib/starknet";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
@@ -136,7 +135,7 @@ export default function CreatePOPPage() {
       claimEndTimestamp,
     });
 
-    const result = await executeIntent(starknetProvider, signer, client, intentRes.data, { confirm: false });
+    const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
     return result;
   };
 

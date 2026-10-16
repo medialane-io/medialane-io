@@ -29,7 +29,6 @@ import { WalletTransactionDialog } from "@/components/transaction/wallet-transac
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSession } from "@/hooks/use-session";
 import { executeIntent } from "@medialane/sdk/starknet";
-import { starknetProvider } from "@/lib/starknet";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { ActionButton, MedialaneCollectionCard, describeError } from "@medialane/ui";
@@ -168,7 +167,7 @@ export default function LaunchpadCreateCollectionPage() {
       baseUri,
     });
 
-    const result = await executeIntent(starknetProvider, signer, client, intentRes.data, { confirm: false });
+    const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
 
     if (!result.txHash) {
       throw new UserFacingError("Collection transaction completed without a transaction hash. Please refresh and check your account activity.");

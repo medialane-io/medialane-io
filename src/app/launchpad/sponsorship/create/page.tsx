@@ -10,7 +10,6 @@ import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { executeIntent } from "@medialane/sdk/starknet";
-import { starknetProvider } from "@/lib/starknet";
 import { useTokensByOwner } from "@/hooks/use-tokens";
 import { AssetPicker, AssetSearchPicker, LicenseTermsBuilder, EMPTY_SPONSORSHIP_TERMS, toLicenseMetadata, toDurationDays, type OwnedAsset, type SponsorshipTerms } from "@medialane/ui";
 import { getTokenBySymbol, SUPPORTED_TOKENS } from "@medialane/sdk";
@@ -64,7 +63,7 @@ function PendingProposalsPanel({ nftContract }: { nftContract: string }) {
         : await client.api.rejectSponsorshipProposalIntent({ owner: walletAddress, proposalId });
       const intent = intentRes.data;
       if (intent.requiresSignature) throw new Error("Unexpected signature requirement on sponsorship response");
-      const { txHash } = await executeIntent(starknetProvider, signer, client, intent);
+      const { txHash } = await executeIntent(signer, client, intent);
       await mutate();
       return { txHash };
     });
@@ -162,7 +161,7 @@ export default function CreateSponsorshipOfferPage() {
             transferable: terms.transferable, royaltyBps,
           });
 
-      const result = await executeIntent(starknetProvider, signer, client, intentRes.data, { confirm: false });
+      const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
       return result;
     });
   };

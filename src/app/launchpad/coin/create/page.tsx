@@ -33,12 +33,13 @@ import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useSession } from "@/hooks/use-session";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
-import { useTokenBalance } from "@/hooks/use-erc20-balance";
+import { useTokenBalance } from "@medialane/ui/utils/media-wallet/use-erc20-balance";
 import { useLaunchCoin, type LaunchCoinInput } from "@/hooks/use-launch-coin";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
 import { cn } from "@/lib/utils";
+import { getMedialaneClient } from "@/lib/medialane-client";
 
 const QUOTE_OPTIONS = SUPPORTED_TOKENS.map((t) => t.symbol);
 type Quote = (typeof QUOTE_OPTIONS)[number];
@@ -81,7 +82,7 @@ export default function CoinCreatePage() {
   });
 
   const quoteToken = getTokenBySymbol(quote)!;
-  const { rawBalance } = useTokenBalance(quote, walletAddress ?? null);
+  const { rawBalance } = useTokenBalance(getMedialaneClient, quote, walletAddress ?? null);
 
   const priceNum = Number(price);
   const nameErr = name ? validateName(name) : null;

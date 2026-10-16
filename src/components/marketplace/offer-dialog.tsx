@@ -32,10 +32,11 @@ import { EXPLORER_URL, DURATION_OPTIONS } from "@/lib/constants";
 import { resolveTokenImage } from "@/lib/utils";
 import { getListableTokens } from "@medialane/sdk";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useTokenBalance, hasSufficientBalance } from "@/hooks/use-erc20-balance";
+import { useTokenBalance, hasSufficientBalance } from "@medialane/ui/utils/media-wallet/use-erc20-balance";
 import { marketplacePriceField, marketplaceCurrencyField, marketplaceDurationField } from "@/lib/marketplace-schemas";
 import { useUsdPrices } from "@/hooks/use-usd-prices";
 import { usdValueFor } from "@/lib/wallet-format";
+import { getMedialaneClient } from "@/lib/medialane-client";
 
 const CURRENCIES = getListableTokens().map((t) => t.symbol);
 
@@ -107,7 +108,7 @@ export function OfferDialog({
   const watchedCurrency = form.watch("currency");
   const watchedPrice = form.watch("price");
   const watchedQty = form.watch("quantity");
-  const { rawBalance, decimals } = useTokenBalance(
+  const { rawBalance, decimals } = useTokenBalance(getMedialaneClient,
     open ? watchedCurrency : null,
     open ? walletAddress : null
   );
