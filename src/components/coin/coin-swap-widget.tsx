@@ -7,7 +7,7 @@ import { getTokenBySymbol, parseAmount, formatAmount } from "@medialane/sdk";
 import { GradientButton } from "@medialane/ui";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
-import { useErc20Balance, useTokenBalance } from "@/hooks/use-erc20-balance";
+import { useErc20Balance, useTokenBalance } from "@medialane/ui/utils/media-wallet/use-erc20-balance";
 import { useSwapQuote } from "@/hooks/use-swap-quote";
 import { createSwapIntent } from "@/lib/wallet/swap-calls";
 import { getMedialaneClient } from "@/lib/medialane-client";
@@ -41,8 +41,8 @@ export function CoinSwapWidget({
   const sellToken = side === "buy" ? quoteSymbol : { address: coinAddress };
   const buyToken = side === "buy" ? { address: coinAddress } : quoteSymbol;
 
-  const { rawBalance: quoteBalance } = useTokenBalance(quoteSymbol, address);
-  const { rawBalance: coinBalance } = useErc20Balance(coinAddress, address);
+  const { rawBalance: quoteBalance } = useTokenBalance(getMedialaneClient, quoteSymbol, address);
+  const { rawBalance: coinBalance } = useErc20Balance(getMedialaneClient, coinAddress, address);
   const payBalance = side === "buy" ? quoteBalance : coinBalance;
 
   let payAmountRaw: bigint | null = null;

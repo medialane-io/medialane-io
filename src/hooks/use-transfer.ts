@@ -8,14 +8,13 @@ import { useSWRConfig } from "swr";
 import { useWalletNativeSession } from "./use-wallet-native-session";
 import { lockVenueSigner } from "@/lib/wallet/venue-signer";
 import { assertTransactionSucceeded, syncTransactionBestEffort } from "@medialane/sdk/starknet";
-import { starknetProvider } from "@/lib/starknet";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { QUERY_PREFIX } from "@/lib/query-keys";
 import type { Call } from "starknet";
 import type { CreateTransferNftIntentParams } from "@medialane/sdk";
 
 const verifyOnStarknet = async (txHash: string): Promise<void> => {
-  await assertTransactionSucceeded(starknetProvider, txHash);
+  await assertTransactionSucceeded(getMedialaneClient().provider, txHash);
 };
 
 const readIntoMedialane = async (txHash: string): Promise<void> => {

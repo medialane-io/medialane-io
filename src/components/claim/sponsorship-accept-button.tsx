@@ -8,7 +8,6 @@ import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { executeIntent } from "@medialane/sdk/starknet";
-import { starknetProvider } from "@/lib/starknet";
 import { EXPLORER_URL } from "@/lib/constants";
 
 interface SponsorshipAcceptButtonProps {
@@ -29,7 +28,7 @@ export function SponsorshipAcceptButton({ offerId, sponsor, onAccepted }: Sponso
       const intentRes = await client.api.acceptSponsorshipBidIntent({ author: walletAddress, offerId, sponsor });
       const intent = intentRes.data;
       if (intent.requiresSignature) throw new Error("Unexpected signature requirement on sponsorship accept");
-      const { txHash } = await executeIntent(starknetProvider, signer, client, intent);
+      const { txHash } = await executeIntent(signer, client, intent);
       onAccepted?.();
       return { txHash };
     });

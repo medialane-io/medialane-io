@@ -3,11 +3,12 @@
 import { getTokenBySymbol, SUPPORTED_TOKENS } from "@medialane/sdk";
 import { Loader2 } from "lucide-react";
 import { CurrencyIcon } from "@/components/shared/currency-icon";
-import { useErc20Balance } from "@/hooks/use-erc20-balance";
+import { useErc20Balance } from "@medialane/ui/utils/media-wallet/use-erc20-balance";
 import { useSwapQuote } from "@/hooks/use-swap-quote";
 import { useMediaWallet } from "@medialane/ui";
 import { fmt } from "@/lib/wallet-format";
 import { cn } from "@/lib/utils";
+import { getMedialaneClient } from "@/lib/medialane-client";
 
 function PayWithOption({
   symbol, decimals, rawBalance, sellAmount, isLoading, insufficient, selected, onSelect,
@@ -87,11 +88,11 @@ export function PayWithPicker({ orderCurrency, requiredRaw, walletAddress, selec
   };
   const alternatives = SUPPORTED_TOKENS.filter((t) => t.listable && t.symbol !== orderCurrency);
 
-  const balanceETH = useErc20Balance(getTokenBySymbol("ETH")?.address ?? null, walletAddress);
-  const balanceSTRK = useErc20Balance(getTokenBySymbol("STRK")?.address ?? null, walletAddress);
-  const balanceUSDC = useErc20Balance(getTokenBySymbol("USDC")?.address ?? null, walletAddress);
-  const balanceUSDT = useErc20Balance(getTokenBySymbol("USDT")?.address ?? null, walletAddress);
-  const balanceWBTC = useErc20Balance(getTokenBySymbol("WBTC")?.address ?? null, walletAddress);
+  const balanceETH = useErc20Balance(getMedialaneClient, getTokenBySymbol("ETH")?.address ?? null, walletAddress);
+  const balanceSTRK = useErc20Balance(getMedialaneClient, getTokenBySymbol("STRK")?.address ?? null, walletAddress);
+  const balanceUSDC = useErc20Balance(getMedialaneClient, getTokenBySymbol("USDC")?.address ?? null, walletAddress);
+  const balanceUSDT = useErc20Balance(getMedialaneClient, getTokenBySymbol("USDT")?.address ?? null, walletAddress);
+  const balanceWBTC = useErc20Balance(getMedialaneClient, getTokenBySymbol("WBTC")?.address ?? null, walletAddress);
   const balances: Record<string, ReturnType<typeof useErc20Balance>> = {
     ETH: balanceETH, STRK: balanceSTRK, USDC: balanceUSDC, USDT: balanceUSDT, WBTC: balanceWBTC,
   };

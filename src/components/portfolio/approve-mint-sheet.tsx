@@ -19,7 +19,6 @@ import { confirmRemixOffer } from "@/hooks/use-remix-offers";
 import { useSession } from "@/hooks/use-session";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { executeIntent, mintedTokenIdFromReceipt } from "@medialane/sdk/starknet";
-import { starknetProvider } from "@/lib/starknet";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { formatDisplayPrice } from "@/lib/utils";
 import { AlertCircle, Check, GitBranch, Loader2 } from "lucide-react";
@@ -141,7 +140,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
           tokenUri: pinnedUri,
           value: "1",
         });
-        const result = await executeIntent(starknetProvider, signer, client, intentRes.data, { confirm: false });
+        const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
         const editionId = mintedTokenIdFromReceipt(result.receipt, selectedCollection.contractAddress);
         if (!editionId) throw new Error("Minted, but could not read the assigned token id from the receipt");
         remixTokenId = editionId;

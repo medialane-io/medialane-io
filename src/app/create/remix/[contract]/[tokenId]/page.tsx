@@ -44,7 +44,7 @@ import {
 import type { Call } from "starknet";
 import type { MintTxStatus } from "@/types/mint-tx-status";
 import { mintedTokenIdFromReceipt, assertTransactionSucceeded, syncTransactionBestEffort } from "@medialane/sdk/starknet";
-import { starknetProvider } from "@/lib/starknet";
+import { getMedialaneClient } from "@/lib/medialane-client";
 
 export default function CreateRemixPage() {
   const { contract, tokenId } = useParams<{ contract: string; tokenId: string }>();
@@ -242,7 +242,7 @@ export default function CreateRemixPage() {
         const result = await signer.execute(intentRes.data.calls as Call[], { intentIds: [intentRes.data.id] });
         setTxStatus("confirmed");
         txHash = result.txHash ?? "";
-        const editionId = mintedTokenIdFromReceipt(await assertTransactionSucceeded(starknetProvider, txHash), selectedCollection.contractAddress);
+        const editionId = mintedTokenIdFromReceipt(await assertTransactionSucceeded(getMedialaneClient().provider, txHash), selectedCollection.contractAddress);
         if (!editionId) throw new Error("Minted, but could not read the assigned token id from the receipt");
         remixTokenId = editionId;
       } else {

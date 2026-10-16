@@ -32,7 +32,6 @@ import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
 import { RewardEarned } from "@/lib/reward-earned";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { executeIntents } from "@medialane/sdk/starknet";
-import { starknetProvider } from "@/lib/starknet";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { cn } from "@/lib/utils";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
@@ -217,7 +216,7 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
       amount: values.maxSupply,
     });
 
-    const mintResult = await executeIntents(starknetProvider, signer, client, [tierRes.data, mintRes.data]);
+    const mintResult = await executeIntents(signer, client, [tierRes.data, mintRes.data]);
     return mintResult;
   };
 

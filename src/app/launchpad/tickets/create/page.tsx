@@ -20,7 +20,6 @@ import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSession } from "@/hooks/use-session";
 
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
-import { starknetProvider } from "@/lib/starknet";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { buildCollectionMetadata } from "@medialane/sdk";
@@ -106,7 +105,7 @@ export default function CreateTicketCollectionPage() {
       baseUri,
       service: "ip-tickets",
     });
-    const result = await executeIntent(starknetProvider, signer, client, intentRes.data, { confirm: false });
+    const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
 
     const addr = deployedCollectionFromReceipt(result.receipt, "ip-tickets");
 

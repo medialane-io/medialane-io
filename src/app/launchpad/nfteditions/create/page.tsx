@@ -15,7 +15,6 @@ import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { WalletTransactionDialog } from "@/components/transaction/wallet-transaction-dialog";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
-import { starknetProvider } from "@/lib/starknet";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { executeIntent, deployedCollectionFromReceipt } from "@medialane/sdk/starknet";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
@@ -120,7 +119,7 @@ export default function CreateIP1155CollectionPage() {
         baseUri: collectionMetaUri,
         service: "mip-erc1155",
       });
-      const result = await executeIntent(starknetProvider, signer, client, intentRes.data, { confirm: false });
+      const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
 
       const addr = deployedCollectionFromReceipt(result.receipt, "mip-erc1155");
 

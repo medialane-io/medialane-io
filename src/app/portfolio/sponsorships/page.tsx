@@ -10,7 +10,6 @@ import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { executeIntent } from "@medialane/sdk/starknet";
-import { starknetProvider } from "@/lib/starknet";
 import {
   useSponsorshipProposals, useSponsorshipOffers, useSponsorshipBids, useSponsorshipLicenses,
   type SponsorshipOffer,
@@ -32,7 +31,7 @@ function OfferBidsRow({ offer }: { offer: SponsorshipOffer }) {
       const intentRes = await client.api.acceptSponsorshipBidIntent({ author: walletAddress, offerId: offer.offerId, sponsor });
       const intent = intentRes.data;
       if (intent.requiresSignature) throw new Error("Unexpected signature requirement on sponsorship accept");
-      const { txHash } = await executeIntent(starknetProvider, signer, client, intent);
+      const { txHash } = await executeIntent(signer, client, intent);
       await mutate();
       return { txHash };
     });
@@ -77,7 +76,7 @@ function ReceivedProposalsSection({ walletAddress }: { walletAddress: string }) 
         : await client.api.rejectSponsorshipProposalIntent({ owner: walletAddress, proposalId });
       const intent = intentRes.data;
       if (intent.requiresSignature) throw new Error("Unexpected signature requirement on sponsorship response");
-      const { txHash } = await executeIntent(starknetProvider, signer, client, intent);
+      const { txHash } = await executeIntent(signer, client, intent);
       await mutate();
       return { txHash };
     });
@@ -123,7 +122,7 @@ function SentProposalsSection({ walletAddress }: { walletAddress: string }) {
     setActiveId(proposalId);
     void action.run(async (signer) => {
       const intentRes = await client.api.withdrawSponsorshipProposalIntent({ proposer: walletAddress, proposalId });
-      const result = await executeIntent(starknetProvider, signer, client, intentRes.data);
+      const result = await executeIntent(signer, client, intentRes.data);
       await mutate();
       return result;
     });

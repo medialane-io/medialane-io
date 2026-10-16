@@ -14,11 +14,11 @@ import {
 } from "@medialane/sdk/starknet";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
-import { starknetProvider } from "@/lib/starknet";
 import { assertTransactionSucceeded } from "@medialane/sdk/starknet";
+import { getMedialaneClient } from "@/lib/medialane-client";
 
 const verifyOnStarknet = async (txHash: string): Promise<void> => {
-  await assertTransactionSucceeded(starknetProvider, txHash);
+  await assertTransactionSucceeded(getMedialaneClient().provider, txHash);
 };
 
 
@@ -78,7 +78,7 @@ export function useLaunchCoin(deps: UseLaunchCoinDeps = {}) {
             if (attempt > 0) await new Promise((r) => setTimeout(r, 2500));
             receipt = getReceipt
               ? await getReceipt(created.txHash)
-              : ((await starknetProvider.getTransactionReceipt(created.txHash)) as CreatorCoinReceiptLike);
+              : ((await getMedialaneClient().provider.getTransactionReceipt(created.txHash)) as CreatorCoinReceiptLike);
           } catch {  }
         }
         if (!receipt) {
