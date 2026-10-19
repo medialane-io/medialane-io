@@ -1,7 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { formatDistanceToNow } from "date-fns";
-import { normalizeAddress } from "@medialane/sdk";
 import { toDisplayUrl, toDisplayUrlOrNull, PINATA_PUBLIC_GATEWAY } from "@medialane/ui";
 import { IPFS_GATEWAY } from "./constants";
 
@@ -58,23 +57,6 @@ export function timeAgo(dateStr: string): string {
   const days = Math.floor(hours / 24);
   if (days < 30) return `${days}d ago`;
   return new Date(dateStr).toLocaleDateString();
-}
-
-export function checkIsOwner(
-  token: { owner?: string | null; balances?: Array<{ owner: string; amount: string }> | null } | null | undefined,
-  walletAddress: string | null | undefined,
-  walletBalance?: string | null
-): boolean {
-  if (!token || !walletAddress) return false;
-  const normalizedWallet = normalizeAddress("STARKNET", walletAddress);
-  if (token.balances != null && token.balances.length > 0) {
-    if (walletBalance != null) return BigInt(walletBalance) > 0n;
-    return token.balances.some(
-      (b) => normalizeAddress("STARKNET", b.owner) === normalizedWallet && BigInt(b.amount) > 0n
-    );
-  }
-  if (!token.owner) return false;
-  return normalizeAddress("STARKNET", token.owner) === normalizedWallet;
 }
 
 export function formatExpiry(endTime: string | bigint): { label: string; urgent: boolean; expired: boolean } {

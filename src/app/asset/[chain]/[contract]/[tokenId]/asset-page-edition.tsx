@@ -7,7 +7,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { assetHref, collectionHref } from "@/lib/routes";
 import { Button } from "@/components/ui/button";
-import { PageContainer, AssetCollectionBar, AssetUtilityIcons, AssetMarketplacePanel, AssetHeaderBlock, AssetMediaColumn, buildEditionStats } from "@medialane/ui";
+import { PageContainer, AssetCollectionBar, AssetUtilityIcons, AssetMarketplacePanel, AssetHeaderBlock, AssetMediaColumn, buildEditionStats, AssetOwnersPanel, AssetProvenanceTab, AssetUnavailable, ASSET_ACCENTS } from "@medialane/ui";
 import { ipfsToHttp } from "@/lib/utils";
 import {
   Layers,
@@ -20,18 +20,12 @@ import { EXPLORER_URL } from "@/lib/constants";
 import { HelpIcon } from "@/components/ui/help-icon";
 import { ReportDialog } from "@/components/report-dialog";
 import { AssetMarketsTab } from "./asset-markets-tab";
-import { AssetProvenanceTab } from "./asset-provenance-tab";
-import {
-  AssetCommentsDialog,
-  AssetOwnersPanel,
-} from "./asset-side-panels";
+import { AssetCommentsDialog } from "./asset-side-panels";
 import { AssetOverviewContent } from "./asset-overview-content";
 import {
   AssetMarketplaceDialogs,
 } from "./asset-marketplace-dialogs";
-import { ASSET_ACCENTS } from "./accents";
 import { useAssetPage } from "./use-asset-page";
-import { AssetUnavailable } from "./asset-unavailable";
 
 export function AssetPageEdition() {
   const {

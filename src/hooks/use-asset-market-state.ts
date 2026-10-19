@@ -2,9 +2,9 @@
 
 import { normalizeAddress } from "@medialane/sdk";
 import type { ApiActivity, ApiOrder, ApiToken, ApiCollection } from "@medialane/sdk";
-import { checkIsOwner } from "@/lib/utils";
 import { useUsdPrices } from "@/hooks/use-usd-prices";
 import { usdValueFor } from "@/lib/wallet-format";
+import { checkIsOwner } from "@medialane/ui";
 
 export interface AssetMarketState {
   activeListings: ApiOrder[];
