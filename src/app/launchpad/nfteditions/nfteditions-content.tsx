@@ -26,7 +26,7 @@ function CollectionRow({ col }: { col: ApiCollection }) {
   return (
     <div className="group bento-cell overflow-hidden flex flex-col sm:flex-row items-stretch">
 
-      <div className="relative w-full sm:w-32 aspect-square sm:aspect-auto shrink-0 overflow-hidden bg-muted">
+      <div className="relative w-full sm:w-32 aspect-square shrink-0 overflow-hidden bg-muted sm:self-start sm:m-5 sm:mr-0 sm:rounded-xl">
         {showImage ? (
           <Image
             src={imageUrl}
@@ -108,7 +108,7 @@ function CollectionRow({ col }: { col: ApiCollection }) {
 function CollectionRowSkeleton() {
   return (
     <div className="bento-cell overflow-hidden flex flex-col sm:flex-row">
-      <Skeleton className="w-full sm:w-32 aspect-square sm:aspect-auto rounded-none" />
+      <Skeleton className="w-full sm:w-32 aspect-square shrink-0 rounded-none sm:self-start sm:m-5 sm:mr-0 sm:rounded-xl" />
       <div className="flex flex-col gap-3 p-5 flex-1">
         <Skeleton className="h-5 w-48" />
         <Skeleton className="h-3 w-24" />

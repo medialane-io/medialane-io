@@ -66,7 +66,7 @@ export function TicketsContent() {
         ) : isLoading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="aspect-[4/5] rounded-2xl" />
+              <Skeleton key={i} className="aspect-square rounded-2xl" />
             ))}
           </div>
         ) : collections.length === 0 ? (

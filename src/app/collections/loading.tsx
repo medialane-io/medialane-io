@@ -8,21 +8,13 @@ export default function CollectionsLoading() {
         <Skeleton className="h-9 w-56" />
         <Skeleton className="h-4 w-80" />
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {Array.from({ length: 9 }).map((_, i) => (
-          <div key={i} className="rounded-xl border border-border bg-card overflow-hidden">
-            <Skeleton className="aspect-[16/7] w-full" />
-            <div className="p-4 space-y-3">
-              <div className="space-y-1.5">
-                <Skeleton className="h-4 w-2/3" />
-                <Skeleton className="h-3 w-1/3" />
-              </div>
-              <Skeleton className="h-8 w-full" />
-              <div className="grid grid-cols-3 gap-2">
-                <Skeleton className="h-10 rounded-lg" />
-                <Skeleton className="h-10 rounded-lg" />
-                <Skeleton className="h-10 rounded-lg" />
-              </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div key={i} className="relative rounded-xl border border-border overflow-hidden">
+            <Skeleton className="aspect-square w-full rounded-none" />
+            <div className="absolute bottom-3 left-3 right-3 space-y-1.5">
+              <Skeleton className="h-4 w-2/3 bg-muted-foreground/20" />
+              <Skeleton className="h-3 w-1/3 bg-muted-foreground/20" />
             </div>
           </div>
         ))}
