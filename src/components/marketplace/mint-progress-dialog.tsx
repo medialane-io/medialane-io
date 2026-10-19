@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Image from "next/image";
 import { fireConfetti } from "@/lib/confetti";
 import {
@@ -39,6 +39,7 @@ interface MintProgressDialogProps {
   listingStep?: ListingStep;
   listingError?: string | null;
   successFooter?: ReactNode;
+  debug?: unknown;
 }
 
 const MINT_STEPS = [
@@ -75,6 +76,7 @@ export function MintProgressDialog({
   listingStep = "idle",
   listingError,
   successFooter,
+  debug,
 }: MintProgressDialogProps) {
   const router = useRouter();
   const confettiFired = useRef(false);
@@ -384,9 +386,33 @@ export function MintProgressDialog({
             <Button variant="outline" className="w-full" onClick={onMintAnother}>
               Try again
             </Button>
+            {debug != null && <ErrorDetails debug={debug} />}
           </div>
         )}
       </DialogContent>
     </Dialog>
+  );
+}
+
+function ErrorDetails({ debug }: { debug: unknown }) {
+  const [copied, setCopied] = useState(false);
+  const text = JSON.stringify(debug, null, 2);
+  return (
+    <details className="w-full text-left">
+      <summary className="cursor-pointer text-xs text-muted-foreground">Technical details</summary>
+      <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap break-all rounded-lg bg-muted p-3 text-[11px] text-muted-foreground">
+        {text}
+      </pre>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="mt-1 w-full"
+        onClick={() => {
+          void navigator.clipboard?.writeText(text).then(() => setCopied(true), () => setCopied(false));
+        }}
+      >
+        {copied ? "Copied" : "Copy details"}
+      </Button>
+    </details>
   );
 }

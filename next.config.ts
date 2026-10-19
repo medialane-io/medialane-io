@@ -17,7 +17,7 @@ const reportOnlyCsp = [
   "img-src 'self' data: blob: https:",
   "media-src 'self' data: blob: https:",
   "font-src 'self' data:",
-  `connect-src 'self' ${BACKEND_ORIGIN} https://www.google-analytics.com https://region1.google-analytics.com`,
+  `connect-src 'self' ${BACKEND_ORIGIN} https://uploads.pinata.cloud https://www.google-analytics.com https://region1.google-analytics.com`,
   "worker-src 'self' blob:",
   "frame-src 'self'",
   "base-uri 'self'",
