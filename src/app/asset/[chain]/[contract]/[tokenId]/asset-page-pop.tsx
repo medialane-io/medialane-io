@@ -76,13 +76,10 @@ export function AssetPagePop() {
             className="space-y-6"
           >
             <div className="space-y-2">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-500">
-                  <Award className="h-3 w-3" />
-                  POP
-                </span>
-                <span className="text-xs text-muted-foreground">Yours forever · Verified on Starknet</span>
-              </div>
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-500">
+                <Award className="h-3 w-3" />
+                POP
+              </span>
               <div className="flex items-start justify-between gap-3">
                 <AssetHeaderBlock
                   name={name}
