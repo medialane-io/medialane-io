@@ -5,7 +5,7 @@ import { Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import { runIntentCalls } from "@/lib/wallet/run-intent-calls";
+import { runIntentCalls } from "@medialane/ui";
 
 interface PopBurnButtonProps {
   collectionAddress: string;

@@ -20,6 +20,8 @@ import { useCreatorProfile } from "@/hooks/use-profiles";
 import { resolveTokenImage } from "@/lib/utils";
 import { walletConsent } from "@/lib/wallet/client";
 import { sendUploadDiagnostics } from "@/lib/upload-diagnostics";
+import { MedialaneAppProvider } from "@medialane/ui";
+import { useAppAdapter } from "@/lib/use-app-adapter";
 
 const GA_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID;
 
@@ -80,6 +82,10 @@ function MainShell({ children }: { children: React.ReactNode }) {
   );
 }
 
+function AppAdapter({ children }: { children: React.ReactNode }) {
+  return <MedialaneAppProvider value={useAppAdapter()}>{children}</MedialaneAppProvider>;
+}
+
 function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   if (
@@ -116,7 +122,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
       >
         {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
         <OnboardingGate />
-        <Shell>{children}</Shell>
+        <AppAdapter>
+          <Shell>{children}</Shell>
+        </AppAdapter>
         <SelfFundConsentDialog consent={walletConsent} />
       </SWRConfig>
       </TooltipProvider>

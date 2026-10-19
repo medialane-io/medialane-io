@@ -1,13 +1,12 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
-import { describeError, type DropAppProps } from "@medialane/ui";
+import { describeError, type MedialaneApp } from "@medialane/ui";
 import { requireAccount } from "@/lib/account-gate";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { getMedialaneClient } from "@/lib/medialane-client";
 
-/** io's wallet and client for the shared drop screens. */
-export function useDropApp(): DropAppProps {
+export function useAppAdapter(): MedialaneApp {
   const { address, signer } = useWalletNativeSession();
   const router = useRouter();
   const pathname = usePathname();
