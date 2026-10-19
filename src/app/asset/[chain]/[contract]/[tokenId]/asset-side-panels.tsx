@@ -15,6 +15,7 @@ interface HolderLike {
 
 interface AssetOwnersPanelProps {
   balances: HolderLike[];
+  total?: number;
   ownerLabel?: string;
   maxVisible?: number;
   showAmount?: boolean;
@@ -22,13 +23,14 @@ interface AssetOwnersPanelProps {
 
 export function AssetOwnersPanel({
   balances,
+  total = balances.length,
   ownerLabel,
   maxVisible = 5,
   showAmount = true,
 }: AssetOwnersPanelProps) {
   if (balances.length === 0) return null;
 
-  const label = ownerLabel ?? (balances.length === 1 ? "Owner" : `${balances.length} owners`);
+  const label = ownerLabel ?? (total === 1 ? "Owner" : `${total} owners`);
 
   return (
     <div className="rounded-xl border border-border px-4 py-3 space-y-2">
@@ -54,9 +56,9 @@ export function AssetOwnersPanel({
             ) : null}
           </div>
         ))}
-        {balances.length > maxVisible ? (
+        {total > maxVisible ? (
           <p className="text-xs text-muted-foreground/60">
-            +{balances.length - maxVisible} more holders
+            +{total - maxVisible} more holders
           </p>
         ) : null}
       </div>

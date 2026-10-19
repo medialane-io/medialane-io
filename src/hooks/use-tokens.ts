@@ -4,7 +4,7 @@ import { useState } from "react";
 import useSWR from "swr";
 import { useMedialaneClient } from "./use-medialane-client";
 import type { ApiToken } from "@medialane/sdk";
-import { queryKeys } from "@/lib/query-keys";
+import { queryKeys, QUERY_PREFIX } from "@/lib/query-keys";
 
 const EMPTY_TOKENS: ApiToken[] = [];
 
@@ -44,6 +44,18 @@ export function useToken(contract: string | null, tokenId: string | null) {
     error: isNotIndexedYet(error) ? undefined : error,
     mutate,
   };
+}
+
+export function useTokenBalance(contract: string | null, tokenId: string | null, owner: string | null | undefined) {
+  const client = useMedialaneClient();
+
+  const { data, mutate } = useSWR(
+    contract && tokenId && owner ? `${QUERY_PREFIX.token}-balance-${contract}-${tokenId}-${owner}` : null,
+    () => client.api.getTokenBalance(contract!, tokenId!, owner!),
+    { revalidateOnFocus: false }
+  );
+
+  return { amount: data?.data.amount ?? null, mutate };
 }
 
 export function useTokensByOwner(address: string | null, page = 1, limit = 20) {

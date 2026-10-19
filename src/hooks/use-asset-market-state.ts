@@ -84,12 +84,14 @@ export function useAssetMarketState({
   listings,
   history,
   walletAddress,
+  walletBalance,
 }: {
   token: ApiToken | null | undefined;
   collection: ApiCollection | null | undefined;
   listings: ApiOrder[];
   history: ApiActivity[];
   walletAddress: string | null | undefined;
+  walletBalance: string | null;
 }): AssetMarketState {
   const activeListings = listings.filter(isSaleableListing);
   const activeBids = listings.filter(isBid);
@@ -100,15 +102,11 @@ export function useAssetMarketState({
 
   const lastSaleRaw = formatSale(latestSale(history));
 
-  const isOwner = checkIsOwner(token, walletAddress);
+  const isOwner = checkIsOwner(token, walletAddress, walletBalance);
   const isERC1155 = (token?.standard ?? collection?.standard) === "ERC1155";
 
   const holders = token?.balances ?? [];
-  const quantityOwned = walletAddress
-    ? holders.find(
-        (h) => normalizeAddress("STARKNET", h.owner) === normalizeAddress("STARKNET", walletAddress),
-      )?.amount
-    : undefined;
+  const quantityOwned = walletBalance != null && BigInt(walletBalance) > 0n ? walletBalance : undefined;
 
   const myListing =
     isOwner && walletAddress

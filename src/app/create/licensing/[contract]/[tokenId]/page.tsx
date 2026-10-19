@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { assetHref } from "@/lib/routes";
-import { useToken } from "@/hooks/use-tokens";
+import { useToken, useTokenBalance } from "@/hooks/use-tokens";
 import { useCollection } from "@/hooks/use-collections";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSession } from "@/hooks/use-session";
@@ -35,7 +35,8 @@ export default function CreateLicensingPage() {
   const { token, isLoading: tokenLoading } = useToken(contract, tokenId);
   const { collection: parentCollection } = useCollection(contract);
 
-  const viewerIsOwner = checkIsOwner(token, walletAddress);
+  const { amount: walletBalance } = useTokenBalance(contract, tokenId, walletAddress);
+  const viewerIsOwner = checkIsOwner(token, walletAddress, walletBalance);
   const originalName = token?.metadata?.name ?? `Token #${tokenId}`;
   const originalImage = token?.metadata?.image ? ipfsToHttp(token.metadata.image) : null;
   const originalAttributes = Array.isArray(token?.metadata?.attributes)

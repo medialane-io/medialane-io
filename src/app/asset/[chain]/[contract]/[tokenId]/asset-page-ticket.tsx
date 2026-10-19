@@ -197,7 +197,7 @@ export function AssetPageTicket() {
               onOpenOffer={() => setOfferOpen(true)}
             />
 
-            <AssetOwnersPanel balances={holders} maxVisible={8} />
+            <AssetOwnersPanel balances={holders} total={token.holderCount} maxVisible={8} />
 
             <AssetCollectionBar
               collectionName={collection?.name ?? contract.slice(0, 8) + "…"}

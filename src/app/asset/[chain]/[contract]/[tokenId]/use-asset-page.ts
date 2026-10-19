@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useReducedMotion } from "framer-motion";
 import type { ApiActivity } from "@medialane/sdk";
-import { useToken, useTokenHistory } from "@/hooks/use-tokens";
+import { useToken, useTokenBalance, useTokenHistory } from "@/hooks/use-tokens";
 import { useCollection, useNearbyCollectionTokens } from "@/hooks/use-collections";
 import { useTokenRemixes } from "@/hooks/use-remix-offers";
 import { useTokenListings } from "@/hooks/use-orders";
@@ -40,7 +40,8 @@ export function useAssetPage({ tokenStandard, namePrefix }: UseAssetPageOptions)
   const { total: commentTotal } = useComments(contract, tokenId);
   const { total: remixCount } = useTokenRemixes(contract, tokenId);
 
-  const market = useAssetMarketState({ token, collection, listings, history, walletAddress });
+  const { amount: walletBalance } = useTokenBalance(contract, tokenId, walletAddress);
+  const market = useAssetMarketState({ token, collection, listings, history, walletAddress, walletBalance });
 
   const resolvedStandard = tokenStandard ?? token?.standard ?? collection?.standard ?? "UNKNOWN";
 
