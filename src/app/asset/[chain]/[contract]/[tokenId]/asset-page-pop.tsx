@@ -85,7 +85,6 @@ export function AssetPagePop() {
                   name={name}
                   description={description}
                   ipType={token.metadata?.ipType}
-                  ownerAddress={token.balances?.[0]?.owner ?? token.owner ?? null}
                 />
                 <AssetUtilityIcons
                   contractExplorerHref={`${EXPLORER_URL}/contract/${token.contractAddress}`}
