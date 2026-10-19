@@ -27,7 +27,7 @@ function PopCollectionCard({ collection }: { collection: ApiCollection }) {
   return (
     <div className="bento-cell overflow-hidden flex flex-col">
 
-      <div className="relative aspect-video w-full overflow-hidden bg-muted shrink-0">
+      <div className="relative aspect-square w-full overflow-hidden bg-muted shrink-0">
         {showImage ? (
           <Image
             src={imageUrl}
@@ -79,7 +79,7 @@ function PopCollectionCard({ collection }: { collection: ApiCollection }) {
 function PopCollectionCardSkeleton() {
   return (
     <div className="bento-cell overflow-hidden">
-      <Skeleton className="aspect-video w-full" />
+      <Skeleton className="aspect-square w-full" />
       <div className="p-4 space-y-3">
         <Skeleton className="h-4 w-2/3" />
         <Skeleton className="h-3 w-full" />
