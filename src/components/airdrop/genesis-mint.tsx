@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { GradientButton } from "@medialane/ui";
 import { EXPLORER_URL, MINT_CONTRACT } from "@/lib/constants";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import { runIntentCalls } from "@/lib/wallet/run-intent-calls";
+import { runIntentCalls } from "@medialane/ui";
 
 export function AirdropEventCard() {
   const [errored, setErrored] = useState(false);

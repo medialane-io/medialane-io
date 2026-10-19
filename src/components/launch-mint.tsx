@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button";
 import { EXPLORER_URL, MINT_CONTRACT } from "@/lib/constants";
 import { LaunchCountdown } from "./launch-countdown";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import { runIntentCalls } from "@/lib/wallet/run-intent-calls";
+import { runIntentCalls } from "@medialane/ui";
 
 function GenesisNftCard({ minted = false }: { minted?: boolean }) {
   return (

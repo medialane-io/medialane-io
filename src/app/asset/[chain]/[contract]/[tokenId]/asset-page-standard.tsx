@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { assetHref, collectionHref } from "@/lib/routes";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PageContainer, AssetCollectionBar, AssetUtilityIcons, AssetMarketplacePanel, AssetMediaColumn, isLivingRenderCollection, DropTokenLink } from "@medialane/ui";
+import { PageContainer, AssetCollectionBar, AssetUtilityIcons, AssetMarketplacePanel, AssetMediaColumn, isLivingRenderCollection, DropTokenLink, AssetOwnersPanel, AssetProvenanceTab, AssetUnavailable, ASSET_ACCENTS } from "@medialane/ui";
 import type { Chain } from "@medialane/sdk";
 import { ipfsToHttp } from "@/lib/utils";
 import { FloatingCommentsButton } from "@/components/asset/floating-comments-button";
@@ -15,15 +15,11 @@ import { getService } from "@medialane/sdk";
 import { resolveRemixPolicy, getDerivativesTerm } from "@medialane/sdk";
 import { EXPLORER_URL } from "@/lib/constants";
 import { AssetMarketsTab } from "./asset-markets-tab";
-import { AssetProvenanceTab } from "./asset-provenance-tab";
 import { useFullTokenData } from "@/hooks/use-full-token-data";
 import {
   AssetMarketplaceDialogs,
 } from "./asset-marketplace-dialogs";
-import {
-  AssetCommentsDialog,
-  AssetOwnersPanel,
-} from "./asset-side-panels";
+import { AssetCommentsDialog } from "./asset-side-panels";
 import { AssetOverviewContent } from "./asset-overview-content";
 import { AssetHeaderBlock } from "@/components/asset/asset-header-block";
 import { OpenInDappCallout } from "@/components/asset/open-in-dapp-callout";
@@ -31,9 +27,7 @@ import { SignedOutAssetActions } from "@/components/asset/signed-out-asset-actio
 import { AssetLightbox } from "@/components/asset/asset-lightbox";
 import { ReportDialog } from "@/components/report-dialog";
 import { HelpIcon } from "@/components/ui/help-icon";
-import { ASSET_ACCENTS } from "./accents";
 import { useAssetPage } from "./use-asset-page";
-import { AssetUnavailable } from "./asset-unavailable";
 
 export function AssetPageStandard() {
   const {

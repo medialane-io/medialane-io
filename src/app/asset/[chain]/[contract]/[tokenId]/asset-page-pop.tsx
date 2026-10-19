@@ -5,7 +5,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { Award } from "lucide-react";
 import type { ApiActivity } from "@medialane/sdk";
-import { PageContainer, AssetCollectionBar, AssetUtilityIcons, AssetMediaColumn } from "@medialane/ui";
+import { PageContainer, AssetCollectionBar, AssetUtilityIcons, AssetMediaColumn, AssetProvenanceTab, AssetUnavailable, ASSET_ACCENTS } from "@medialane/ui";
 import { assetHref, collectionHref } from "@/lib/routes";
 import { ipfsToHttp } from "@/lib/utils";
 import { EXPLORER_URL } from "@/lib/constants";
@@ -15,12 +15,9 @@ import { AssetHeaderBlock } from "@/components/asset/asset-header-block";
 import { AssetLightbox } from "@/components/asset/asset-lightbox";
 import { PopBurnButton } from "@/components/claim/pop-burn-button";
 import { ReportDialog } from "@/components/report-dialog";
-import { AssetProvenanceTab } from "./asset-provenance-tab";
 import { AssetCommentsDialog } from "./asset-side-panels";
 import { AssetOverviewContent } from "./asset-overview-content";
-import { ASSET_ACCENTS } from "./accents";
 import { useAssetPage } from "./use-asset-page";
-import { AssetUnavailable } from "./asset-unavailable";
 
 export function AssetPagePop() {
   const {

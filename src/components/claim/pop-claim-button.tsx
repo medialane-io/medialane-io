@@ -13,7 +13,7 @@ import { usePopClaimStatus } from "@/hooks/use-pop";
 import { RewardEarned } from "@/lib/reward-earned";
 import { EXPLORER_URL } from "@/lib/constants";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import { runIntentCalls } from "@/lib/wallet/run-intent-calls";
+import { runIntentCalls } from "@medialane/ui";
 
 interface PopClaimButtonProps {
   collectionAddress: string;

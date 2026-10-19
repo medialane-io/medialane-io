@@ -1,6 +1,6 @@
 "use client";
 
-import { describeError } from "@medialane/ui";
+import { describeError, checkIsOwner } from "@medialane/ui";
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
@@ -14,7 +14,7 @@ import { submitRemixOffer } from "@/hooks/use-remix-offers";
 import { getListableTokens, getTokenBySymbol, getService } from "@medialane/sdk";
 import { LICENSE_TYPES } from "@/types/ip";
 import { resolveRemixPolicy, getDerivativesTerm } from "@medialane/sdk";
-import { ipfsToHttp, checkIsOwner } from "@/lib/utils";
+import { ipfsToHttp } from "@/lib/utils";
 import { ToggleGroup, Section } from "@/components/create/create-form-primitives";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

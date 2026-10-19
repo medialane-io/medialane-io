@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { assetHref, collectionHref } from "@/lib/routes";
 import { Button } from "@/components/ui/button";
-import { PageContainer, AssetCollectionBar, AssetUtilityIcons, AssetMarketplacePanel, AssetHeaderBlock, AssetMediaColumn } from "@medialane/ui";
+import { PageContainer, AssetCollectionBar, AssetUtilityIcons, AssetMarketplacePanel, AssetHeaderBlock, AssetMediaColumn, AssetOwnersPanel, AssetProvenanceTab, AssetUnavailable, ASSET_ACCENTS } from "@medialane/ui";
 import { ipfsToHttp, cn } from "@/lib/utils";
 import { Users, ShoppingCart, CheckCircle2, Clock, CalendarX2, Infinity as InfinityIcon } from "lucide-react";
 import { FloatingCommentsButton } from "@/components/asset/floating-comments-button";
@@ -16,13 +16,10 @@ import { useMembershipOnchain, useIsMemberOf, type MembershipOnchain } from "@/h
 import { HelpIcon } from "@/components/ui/help-icon";
 import { ReportDialog } from "@/components/report-dialog";
 import { AssetMarketsTab } from "./asset-markets-tab";
-import { AssetProvenanceTab } from "./asset-provenance-tab";
-import { AssetCommentsDialog, AssetOwnersPanel } from "./asset-side-panels";
+import { AssetCommentsDialog } from "./asset-side-panels";
 import { AssetOverviewContent } from "./asset-overview-content";
 import { AssetMarketplaceDialogs } from "./asset-marketplace-dialogs";
-import { ASSET_ACCENTS } from "./accents";
 import { useAssetPage } from "./use-asset-page";
-import { AssetUnavailable } from "./asset-unavailable";
 
 type MembershipStatus = "upcoming" | "active" | "ended" | "lifetime";
 

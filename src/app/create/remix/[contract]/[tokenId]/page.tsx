@@ -1,7 +1,7 @@
 "use client";
 
 import { requireSignedIn } from "@/lib/account-gate";
-import { UserFacingError } from "@medialane/ui";
+import { UserFacingError, checkIsOwner } from "@medialane/ui";
 import { describeError } from "@medialane/ui";
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
@@ -33,7 +33,7 @@ import {
 import { registerRemix } from "@/hooks/use-remix-offers";
 import { getService, normalizeAddress } from "@medialane/sdk";
 import { IP_TYPES, LICENSE_TYPES } from "@/types/ip";
-import { ipfsToHttp, checkIsOwner } from "@/lib/utils";
+import { ipfsToHttp } from "@/lib/utils";
 import { resolveRemixPolicy, getDerivativesTerm } from "@medialane/sdk";
 import { ToggleGroup, Section } from "@/components/create/create-form-primitives";
 import { cn } from "@/lib/utils";

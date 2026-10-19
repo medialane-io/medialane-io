@@ -17,7 +17,7 @@ import { MarketplaceConfirmStep } from "@medialane/ui";
 import { TransactionDialogStates } from "@/components/marketplace/transaction-dialog-states";
 import { normalizeAddress } from "@medialane/sdk";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import { runIntentCalls } from "@/lib/wallet/run-intent-calls";
+import { runIntentCalls } from "@medialane/ui";
 
 interface TransferOwnershipDialogProps {
 
