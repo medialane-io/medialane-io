@@ -53,6 +53,7 @@ import {
   confirmMintIntentWithDebug,
   pollMintIntentUntilTerminal,
   rawErrorOf,
+  uploadDiagnosticsOf,
   type MintDebugSnapshot,
 } from "./mint-intent-actions";
 import {
@@ -491,7 +492,7 @@ export function SingleEditionsContent() {
     } catch (err: unknown) {
       const message = describeError(err, "We couldn't create that edition. Please try again.").message;
 
-      updateMintDebug({ step: "error", error: message, rawError: rawErrorOf(err), txHash, txStatus: status });
+      updateMintDebug({ step: "error", error: message, rawError: rawErrorOf(err), uploadDiagnostics: uploadDiagnosticsOf(err), txHash, txStatus: status });
       setStatus("error");
       setMintError(message);
       setMintStep("error");

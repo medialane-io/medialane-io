@@ -7,7 +7,8 @@ import { SWRConfig } from "swr";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { usePathname } from "next/navigation";
 import { GoogleAnalytics } from "@next/third-parties/google";
-import { NavCommandMenu, NavBrandButton, ThemeAmbientBackground, SelfFundConsentDialog } from "@medialane/ui";
+import { useEffect } from "react";
+import { NavCommandMenu, NavBrandButton, ThemeAmbientBackground, SelfFundConsentDialog, setUploadDiagnosticsReporter } from "@medialane/ui";
 import { NAV_COMMANDS } from "@/lib/nav-commands";
 import { OnboardingGate } from "@/components/wallet/onboarding-gate";
 import { NavThemeToggle } from "@/components/nav-theme-toggle";
@@ -18,6 +19,7 @@ import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useCreatorProfile } from "@/hooks/use-profiles";
 import { resolveTokenImage } from "@/lib/utils";
 import { walletConsent } from "@/lib/wallet/client";
+import { sendUploadDiagnostics } from "@/lib/upload-diagnostics";
 
 const GA_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID;
 
@@ -90,6 +92,11 @@ function Shell({ children }: { children: React.ReactNode }) {
 }
 
 export function Providers({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    setUploadDiagnosticsReporter(sendUploadDiagnostics);
+    return () => setUploadDiagnosticsReporter(null);
+  }, []);
+
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
       <TooltipProvider delayDuration={300}>
