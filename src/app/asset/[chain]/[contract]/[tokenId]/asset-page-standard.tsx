@@ -223,7 +223,7 @@ export function AssetPageStandard() {
             {hasWallet && <OpenInDappCallout chain={token.chain} contract={contract} tokenId={tokenId} />}
 
             {isERC1155 && token.balances && token.balances.length > 0 ? (
-              <AssetOwnersPanel balances={token.balances} maxVisible={5} />
+              <AssetOwnersPanel balances={token.balances} total={token.holderCount} maxVisible={5} />
             ) : null}
 
             <div className="pt-5 border-t border-border/40 space-y-5">

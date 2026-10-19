@@ -48,8 +48,8 @@ export function AssetPageEdition() {
     imageUrl, image, name, description, attributes, hasTemplateData, isDisplayAttr, isIndexing,
   } = useAssetPage({ tokenStandard: "ERC1155", namePrefix: "Edition" });
 
-  const totalEditions = collection?.totalSupply ?? 0;
-  const uniqueOwners = holders.length;
+  const totalEditions = Number(token?.supply ?? 0);
+  const uniqueOwners = token?.holderCount ?? holders.length;
 
   const autoActionRef = useRef(false);
   useEffect(() => {
@@ -151,7 +151,7 @@ export function AssetPageEdition() {
               onOpenOffer={() => setOfferOpen(true)}
             />
 
-            <AssetOwnersPanel balances={holders} maxVisible={8} />
+            <AssetOwnersPanel balances={holders} total={token.holderCount} maxVisible={8} />
 
             <AssetCollectionBar
               collectionName={collection?.name ?? contract.slice(0, 8) + "…"}
