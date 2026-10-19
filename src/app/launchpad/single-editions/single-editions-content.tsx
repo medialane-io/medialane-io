@@ -52,6 +52,7 @@ import {
   createMintIntentWithDebug,
   confirmMintIntentWithDebug,
   pollMintIntentUntilTerminal,
+  rawErrorOf,
   type MintDebugSnapshot,
 } from "./mint-intent-actions";
 import {
@@ -315,7 +316,7 @@ export function SingleEditionsContent() {
   const [ipTypeOpen, setIpTypeOpen] = useState(false);
   const [mintStep, setMintStep] = useState<MintStep>("idle");
   const [mintError, setMintError] = useState<string | null>(null);
-  const [, setMintDebug] = useState<MintDebugSnapshot | null>(null);
+  const [mintDebug, setMintDebug] = useState<MintDebugSnapshot | null>(null);
   const mintDebugRef = useRef<MintDebugSnapshot | null>(null);
 
   const metadataFieldsRef = useRef<MetadataField[]>([]);
@@ -336,6 +337,7 @@ export function SingleEditionsContent() {
     const next: MintDebugSnapshot = {
       ...(mintDebugRef.current ?? { operation: "mint_erc721" as const, step: "idle", updatedAt: new Date().toISOString() }),
       ...patch,
+      ...(patch.step === "error" ? { failedAt: mintDebugRef.current?.step } : {}),
       updatedAt: new Date().toISOString(),
     };
     mintDebugRef.current = next;
@@ -489,9 +491,7 @@ export function SingleEditionsContent() {
     } catch (err: unknown) {
       const message = describeError(err, "We couldn't create that edition. Please try again.").message;
 
-      const rawError =
-        err instanceof Error && err.cause instanceof Error ? err.cause.message : undefined;
-      updateMintDebug({ step: "error", error: message, rawError, txHash, txStatus: status });
+      updateMintDebug({ step: "error", error: message, rawError: rawErrorOf(err), txHash, txStatus: status });
       setStatus("error");
       setMintError(message);
       setMintStep("error");
@@ -549,6 +549,7 @@ export function SingleEditionsContent() {
         error={mintError}
         onMintAnother={handleMintAnother}
         successFooter={<RewardEarned actionType="mint_asset" />}
+        debug={mintDebug}
       />
 
       <ClaimRouteShell

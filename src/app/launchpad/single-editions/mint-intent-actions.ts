@@ -23,9 +23,21 @@ export type MintDebugSnapshot = {
   intentStatus?: string;
   terminalIntent?: Record<string, unknown>;
   error?: string;
-
+  failedAt?: string;
   rawError?: string;
 };
+
+export function rawErrorOf(err: unknown): string {
+  const parts: string[] = [];
+  if (err instanceof MedialaneApiError) parts.push(`HTTP ${err.status}`);
+  if (err instanceof Error) {
+    parts.push(`${err.name}: ${err.message}`);
+    if (err.cause instanceof Error) parts.push(`cause ${err.cause.name}: ${err.cause.message}`);
+  } else {
+    parts.push(String(err));
+  }
+  return parts.join(" | ").slice(0, 2000);
+}
 
 export type UpdateDebug = (patch: Partial<MintDebugSnapshot>) => MintDebugSnapshot;
 
