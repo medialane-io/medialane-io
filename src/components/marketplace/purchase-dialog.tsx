@@ -58,14 +58,16 @@ function TokenHero({ order, quantity }: { order: ApiOrder; quantity: number }) {
 
   return (
     <div>
-      <div className="relative h-32 w-full bg-muted overflow-hidden shrink-0">
-        {image ? (
-          <Image src={image} alt={name} fill className="object-cover" />
-        ) : (
-          <div className="h-full w-full bg-gradient-to-br from-primary/20 via-brand-purple/10 to-transparent flex items-center justify-center text-4xl font-bold text-muted-foreground/30">
-            #{order.nftTokenId}
-          </div>
-        )}
+      <div className="flex justify-center pt-6 shrink-0">
+        <div className="relative h-32 w-32 rounded-2xl overflow-hidden border border-border bg-muted">
+          {image ? (
+            <Image src={image} alt={name} fill sizes="128px" className="object-cover" />
+          ) : (
+            <div className="h-full w-full bg-gradient-to-br from-primary/20 via-brand-purple/10 to-transparent flex items-center justify-center text-2xl font-bold text-muted-foreground/30">
+              #{order.nftTokenId}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="flex items-center justify-between px-5 pt-4 pb-1">
@@ -144,25 +146,26 @@ function SuccessScreen({
   return (
     <div className="flex flex-col">
 
-      <div className="relative h-56 w-full bg-muted overflow-hidden shrink-0">
-        {image ? (
-          <Image src={image} alt={name ?? ""} fill className="object-cover" />
-        ) : (
-          <div className="h-full w-full bg-gradient-to-br from-primary/20 via-brand-purple/10 to-emerald-500/10 flex items-center justify-center">
-            <CheckCircle2 className="h-16 w-16 text-emerald-500/40" />
-          </div>
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
-        <div className="absolute bottom-4 left-4 right-4 flex items-end gap-3">
-          <div className="h-9 w-9 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg border-2 border-white/20 shrink-0">
-            <CheckCircle2 className="h-5 w-5 text-white" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-white font-black text-xl leading-tight">{headline}</p>
-            {name && (
-              <p className="text-white/75 text-sm font-medium truncate mt-0.5">{name}</p>
+      <div className="flex flex-col items-center gap-4 px-5 pt-8 shrink-0">
+        <div className="relative">
+          <div className="relative h-32 w-32 rounded-2xl overflow-hidden border border-border bg-muted">
+            {image ? (
+              <Image src={image} alt={name ?? ""} fill sizes="128px" className="object-cover" />
+            ) : (
+              <div className="h-full w-full bg-gradient-to-br from-primary/20 via-brand-purple/10 to-emerald-500/10 flex items-center justify-center">
+                <CheckCircle2 className="h-12 w-12 text-emerald-500/40" />
+              </div>
             )}
           </div>
+          <div className="absolute -bottom-2 -right-2 h-9 w-9 rounded-full bg-emerald-500 flex items-center justify-center border-2 border-background">
+            <CheckCircle2 className="h-5 w-5 text-white" />
+          </div>
+        </div>
+        <div className="text-center min-w-0 max-w-full">
+          <p className="font-black text-xl leading-tight">{headline}</p>
+          {name && (
+            <p className="text-muted-foreground text-sm font-medium truncate mt-0.5">{name}</p>
+          )}
         </div>
       </div>
 

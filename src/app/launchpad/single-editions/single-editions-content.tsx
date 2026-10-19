@@ -604,7 +604,7 @@ export function SingleEditionsContent() {
               >
                 {imagePreview ? (
 
-                  <img src={imagePreview} alt="Preview" className="mx-auto max-h-48 rounded-lg object-contain" />
+                  <img src={imagePreview} alt="Preview" className="mx-auto h-48 w-48 rounded-lg object-cover" />
                 ) : (
                   <div className="flex flex-col items-center gap-2 text-muted-foreground">
                     <Upload className="h-8 w-8" />
