@@ -32,12 +32,14 @@ function TokenHero({ order, variant, tokenName, tokenImage }: { order: ApiOrder;
 
   return (
     <div>
-      <div className="relative h-32 w-full bg-muted overflow-hidden">
-        {image ? (
-          <Image src={image} alt={name ?? "Asset"} fill className="object-cover" />
-        ) : (
-          <div className="h-full w-full bg-gradient-to-br from-destructive/20 via-brand-rose/10 to-transparent" />
-        )}
+      <div className="flex justify-center pt-6">
+        <div className="relative h-32 w-32 rounded-2xl overflow-hidden border border-border bg-muted">
+          {image ? (
+            <Image src={image} alt={name ?? "Asset"} fill sizes="128px" className="object-cover" />
+          ) : (
+            <div className="h-full w-full bg-gradient-to-br from-destructive/20 via-brand-rose/10 to-transparent" />
+          )}
+        </div>
       </div>
       <div className="flex items-end justify-between px-6 pt-3 pb-1">
         <div className="min-w-0">

@@ -381,7 +381,7 @@ export default function CreateRemixPage() {
                   onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageChange(f); }}
                 />
                 {imagePreview ? (
-                  <div className="relative aspect-video w-full">
+                  <div className="relative aspect-square w-full">
                     <Image src={imagePreview} alt="Remix preview" fill className="object-cover" />
                     <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <p className="text-white text-sm font-medium flex items-center gap-2">
@@ -390,7 +390,7 @@ export default function CreateRemixPage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="aspect-video flex flex-col items-center justify-center gap-3 text-muted-foreground p-8">
+                  <div className="aspect-square flex flex-col items-center justify-center gap-3 text-muted-foreground p-8">
                     {originalImage && (
                       <div className="relative h-20 w-20 rounded-xl overflow-hidden opacity-40 mb-1 ring-2 ring-border">
                         <Image src={originalImage} alt="" fill className="object-cover" />
