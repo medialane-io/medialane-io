@@ -1,5 +1,5 @@
 
-import { UserFacingError } from "@medialane/ui";
+import { UserFacingError, type UploadDiagnostics } from "@medialane/ui";
 import { MedialaneApiError } from "@medialane/sdk";
 import { getMedialaneClient } from "@/lib/medialane-client";
 
@@ -25,6 +25,7 @@ export type MintDebugSnapshot = {
   error?: string;
   failedAt?: string;
   rawError?: string;
+  uploadDiagnostics?: UploadDiagnostics;
 };
 
 export function rawErrorOf(err: unknown): string {
@@ -37,6 +38,11 @@ export function rawErrorOf(err: unknown): string {
     parts.push(String(err));
   }
   return parts.join(" | ").slice(0, 2000);
+}
+
+export function uploadDiagnosticsOf(err: unknown): UploadDiagnostics | undefined {
+  if (!(err instanceof Error) || !("diagnostics" in err)) return undefined;
+  return (err as Error & { diagnostics: UploadDiagnostics }).diagnostics;
 }
 
 export type UpdateDebug = (patch: Partial<MintDebugSnapshot>) => MintDebugSnapshot;
