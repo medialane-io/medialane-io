@@ -19,7 +19,7 @@ export function useAppAdapter(): MedialaneApp {
     connectDescription: "Buy, offer, and collect instantly.",
     companion: {
       title: "Trade with your Starknet wallet",
-      description: "Interact with this asset on the Starknet dapp.",
+      description: "Interact with this asset on our permissionless dapp.",
       icon: Wallet,
       origin: "https://starknet.medialane.io",
     },
