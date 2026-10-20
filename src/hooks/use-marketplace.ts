@@ -1,13 +1,12 @@
 "use client";
 
 import { ACCOUNT_STILL_LOADING } from "@/lib/account-gate";
-import { UserFacingError, describeError } from "@medialane/ui";
+import { UserFacingError, describeError, useMedialaneClient } from "@medialane/ui";
 import { useState, useCallback } from "react";
 import { useSWRConfig } from "swr";
 import { syncTransactionBestEffort } from "@medialane/sdk/starknet";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { useWalletNativeSession } from "./use-wallet-native-session";
-import { useMedialaneClient } from "./use-medialane-client";
 import { SUPPORTED_TOKENS } from "@/lib/constants";
 import { isErc1155Standard } from "@/lib/protocol/token-standard";
 import { QUERY_PREFIX } from "@medialane/ui/utils/query-keys";

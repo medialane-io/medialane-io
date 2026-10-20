@@ -1,7 +1,7 @@
 "use client";
 
 import { requireSignedIn } from "@/lib/account-gate";
-import { UserFacingError, checkIsOwner, describeError, useToken, useTokenBalance, useCollectionsByOwner, useCollection } from "@medialane/ui";
+import { UserFacingError, checkIsOwner, describeError, useToken, useTokenBalance, useCollectionsByOwner, useCollection, useMedialaneClient } from "@medialane/ui";
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
@@ -12,7 +12,6 @@ import Link from "next/link";
 import { assetHref } from "@/lib/routes";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSession } from "@/hooks/use-session";
-import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { MintProgressDialog } from "@/components/marketplace/mint-progress-dialog";
 import type { MintStep } from "@/components/marketplace/mint-progress-dialog";
 import { Button } from "@medialane/ui/button";

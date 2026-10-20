@@ -23,12 +23,11 @@ import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { buildCollectionMetadata } from "@medialane/sdk";
 import { collectionHref } from "@/lib/routes";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
-import { MedialaneCollectionCard } from "@medialane/ui";
+import { MedialaneCollectionCard, useMedialaneClient } from "@medialane/ui";
 import { CreateClubAside } from "@/components/claim/create-club-aside";
 import { RewardEarned } from "@/lib/reward-earned";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
-import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { executeIntent, deployedCollectionFromReceipt } from "@medialane/sdk/starknet";
 
 const schema = z.object({

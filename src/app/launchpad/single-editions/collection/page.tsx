@@ -1,7 +1,7 @@
 "use client";
 
 import { requireAccount, requireSignedIn } from "@/lib/account-gate";
-import { UserFacingError, ActionButton, MedialaneCollectionCard, describeError } from "@medialane/ui";
+import { UserFacingError, ActionButton, MedialaneCollectionCard, describeError, useMedialaneClient } from "@medialane/ui";
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { buildCollectionMetadata } from "@medialane/sdk";
@@ -25,7 +25,6 @@ import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { CreateCollectionAside } from "@/components/claim/create-collection-aside";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
-import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { Layers, Loader2, ImagePlus, X } from "lucide-react";
 
 const schema = z.object({

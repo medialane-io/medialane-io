@@ -2,11 +2,10 @@
 
 import { requireAccount } from "@/lib/account-gate";
 import { useRouter, usePathname } from "next/navigation";
-import { FastMint as SharedFastMint, describeError, type FastMintProps as SharedFastMintProps, type FastMintSigner, useCollectionsByOwner } from "@medialane/ui";
+import { FastMint as SharedFastMint, describeError, type FastMintProps as SharedFastMintProps, type FastMintSigner, useCollectionsByOwner, useMedialaneClient } from "@medialane/ui";
 
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSession } from "@/hooks/use-session";
-import { useMedialaneClient } from "@/hooks/use-medialane-client";
 
 import { RewardEarned } from "@/lib/reward-earned";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";

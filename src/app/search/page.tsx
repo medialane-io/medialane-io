@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { assetHref, collectionHref } from "@/lib/routes";
-import { useMedialaneClient } from "@/hooks/use-medialane-client";
+import { useMedialaneClient, PageContainer, profileIdentity } from "@medialane/ui";
 import { Skeleton } from "@medialane/ui/skeleton";
 import { Input } from "@medialane/ui/input";
 import { Button } from "@medialane/ui/button";
@@ -13,7 +13,6 @@ import { MotionCard } from "@medialane/ui/motion-primitives";
 import { ipfsToHttp } from "@/lib/utils";
 import { Search, Layers, ImageIcon, Users, X, ArrowUpRight } from "lucide-react";
 import type { ApiSearchResult, ApiSearchCreatorResult } from "@medialane/sdk";
-import { PageContainer, profileIdentity } from "@medialane/ui";
 
 function TokenCard({ token }: { token: NonNullable<ApiSearchResult["tokens"]>[number] }) {
   const [imgError, setImgError] = useState(false);

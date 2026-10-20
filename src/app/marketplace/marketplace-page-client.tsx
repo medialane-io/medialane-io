@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { assetHref, collectionHref } from "@/lib/routes";
 import { ListingsGrid } from "@/components/marketplace/listings-grid";
-import { useMedialaneClient } from "@/hooks/use-medialane-client";
+import { useMedialaneClient, usePlatformStats, PageContainer, StatPillRow } from "@medialane/ui";
 import { Input } from "@medialane/ui/input";
 import { Button } from "@medialane/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@medialane/ui/dialog";
@@ -17,7 +17,6 @@ import { getTokenBySymbol, parseAmount, SUPPORTED_TOKENS } from "@medialane/sdk"
 import { ipfsToHttp, cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { usePlatformStats, PageContainer, StatPillRow } from "@medialane/ui";
 import { IP_TYPES } from "@medialane/ui/data/ip";
 import { HelpIcon } from "@medialane/ui/help-icon";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { requireSignedIn } from "@/lib/account-gate";
-import { describeError, useCollectionsByOwner } from "@medialane/ui";
+import { describeError, useCollectionsByOwner, useMedialaneClient } from "@medialane/ui";
 
 import { useState } from "react";
 import { getService } from "@medialane/sdk";
@@ -13,7 +13,6 @@ import { Input } from "@medialane/ui/input";
 import { Label } from "@medialane/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@medialane/ui/select";
 import { Alert, AlertDescription } from "@medialane/ui/alert";
-import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 
 import { confirmRemixOffer } from "@/hooks/use-remix-offers";

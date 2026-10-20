@@ -1,7 +1,7 @@
 "use client";
 
 import { ACCOUNT_NOT_READY } from "@/lib/account-gate";
-import { UserFacingError, MedialaneCollectionCard } from "@medialane/ui";
+import { UserFacingError, MedialaneCollectionCard, useMedialaneClient } from "@medialane/ui";
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
@@ -19,7 +19,6 @@ import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { normalizeAddress } from "@medialane/sdk";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
-import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { executeIntent, mintedTokenIdFromReceipt } from "@medialane/sdk/starknet";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { MintEditionAside } from "@/components/claim/mint-edition-aside";
