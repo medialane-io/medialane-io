@@ -1,13 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Link from "next/link";
 import Image from "next/image";
 import { assetHref, collectionHref } from "@/lib/routes";
-import { Button } from "@/components/ui/button";
 import { PageContainer, AssetCollectionBar, AssetUtilityIcons, AssetMarketplacePanel, AssetHeaderBlock, AssetMediaColumn, AssetOwnersPanel, AssetProvenanceTab, AssetUnavailable, ASSET_ACCENTS } from "@medialane/ui";
 import { ipfsToHttp, cn } from "@/lib/utils";
-import { Ticket, ShoppingCart, CheckCircle2, Clock, CalendarX2 } from "lucide-react";
+import { Ticket, CheckCircle2, Clock, CalendarX2 } from "lucide-react";
 import { FloatingCommentsButton } from "@/components/asset/floating-comments-button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ApiActivity } from "@medialane/sdk";
@@ -93,7 +91,7 @@ function TicketPanel({ ticket }: { ticket: TicketOnchain }) {
 
 export function AssetPageTicket() {
   const {
-    contract, tokenId, pathname, router, shouldReduce,
+    contract, tokenId, router, shouldReduce,
     hasWallet, walletAddress,
     collection, token, mutateListings, history, collectionTokens,
     commentTotal, remixCount,
@@ -175,16 +173,7 @@ export function AssetPageTicket() {
               walletAddress={walletAddress}
               floorPriceRaw={collection?.floorPrice}
               lastSaleRaw={lastSaleRaw}
-              renderAuthAction={() => (
-                <div className="btn-border-animated p-[1px] rounded-2xl">
-                  <Button asChild className="w-full h-12 text-base bg-transparent text-white rounded-[15px] flex items-center justify-center gap-2">
-                    <Link href={`/connect?redirect_url=${encodeURIComponent(pathname)}`}>
-                      <ShoppingCart className="h-5 w-5 mr-2" />
-                      Set up account
-                    </Link>
-                  </Button>
-                </div>
-              )}
+              asset={token}
               renderHelp={(content) => <HelpIcon content={content} side="top" />}
               onCancelClick={handleCancelClick}
               onAcceptBid={acceptOffer.handleAcceptClick}
