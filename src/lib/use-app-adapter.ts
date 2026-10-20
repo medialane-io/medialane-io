@@ -15,8 +15,8 @@ export function useAppAdapter(): MedialaneApp {
     getClient: getMedialaneClient,
     walletAddress: address ?? null,
     onRequireWallet: () => router.push(`/connect?redirect_url=${encodeURIComponent(pathname)}`),
-    connectLabel: "Set up account",
-    connectDescription: "Buy, offer, and collect instantly — no seed phrase needed.",
+    connectLabel: "Connect with email",
+    connectDescription: "Buy, offer, and collect instantly.",
     companion: {
       title: "Trade with your Starknet wallet",
       description: "Interact with this asset on the Starknet dapp.",

@@ -6,14 +6,12 @@ import { useParams } from "next/navigation";
 import { useCollection, useCollectionTokens } from "@/hooks/use-collections";
 import { useOrders } from "@/hooks/use-orders";
 import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listing-card";
-import { AssetCard, AssetCardSkeleton, LoadMoreSentinel, isLivingRenderCollection, HiddenContentBanner, CollectionHeroBanner, ClubOwnerActions, OrderSortControl, sortOrders, ExpandableText, type OrderSort } from "@medialane/ui";
+import { AssetCard, AssetCardSkeleton, LoadMoreSentinel, isLivingRenderCollection, HiddenContentBanner, CollectionHeader, ClubOwnerActions, OrderSortControl, sortOrders, type OrderSort } from "@medialane/ui";
 import { assetHref } from "@/lib/routes";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AddressDisplay } from "@/components/shared/address-display";
-import { Loader2, Flag, Inbox, Lock, Unlock, Play, FileText, Link2, Sparkles, Settings, ShoppingBag, Music, Radio, UserRoundCog } from "lucide-react";
+import { Loader2, Inbox, Lock, Unlock, Play, FileText, Link2, Sparkles, Settings, ShoppingBag, Music, Radio, UserRoundCog } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ReportDialog } from "@/components/report-dialog";
-import { ShareButton } from "@/components/shared/share-button";
 import { CollectionFilters } from "@/components/collection/collection-filters";
 import { GatedContentHero } from "@/components/collection/gated-content-hero";
 import { OwnerSetupPanel } from "@/components/collection/owner-setup-panel";
@@ -21,8 +19,6 @@ import { TransferCollectionOwnershipDialog } from "@/components/collection/trans
 import { CollectionActivityTab } from "@/components/collection/collection-activity-tab";
 import { MakeOfferPicker } from "@/components/collection/make-offer-picker";
 import { CollectionTraitsTab } from "@/components/collection/collection-traits-tab";
-import { CreatorChip } from "@/components/collection/creator-chip";
-import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import { useUsdPrices } from "@/hooks/use-usd-prices";
 import { usdValueFor } from "@/lib/wallet-format";
 import { useCollectionProfile } from "@/hooks/use-profiles";
@@ -35,23 +31,6 @@ import { getService, normalizeAddress } from "@medialane/sdk";
 import type { ApiToken, ApiOrder, Chain, CollectionTokensSort } from "@medialane/sdk";
 
 const PAGE_SIZE = 24;
-
-function parsePriceDisplay(raw: string | null | undefined): { numStr: string; symbol: string | null } {
-  if (!raw) return { numStr: "—", symbol: null };
-  const parts = raw.trim().split(" ");
-  const sym = parts.length > 1 ? parts[parts.length - 1] : null;
-  const numericPart = sym ? parts.slice(0, -1).join(" ") : raw;
-  const num = Number(numericPart);
-  if (isNaN(num)) return { numStr: "—", symbol: sym };
-
-  if (num > 1e12) return { numStr: "—", symbol: null };
-
-  const formatted = formatDisplayPrice(numericPart);
-  if (!formatted || formatted === "—") return { numStr: "—", symbol: sym };
-
-  const clean = formatted.replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "");
-  return { numStr: clean || "—", symbol: sym };
-}
 
 function CollectionItems({ contract, activeListings }: { contract: string; activeListings: ApiOrder[] }) {
   const [page, setPage] = useState(1);
@@ -207,39 +186,18 @@ export default function CollectionPageClient() {
     limit: 100,
   });
 
-  const bannerUrl = collection?.image ? ipfsToHttp(collection.image) : null;
 
   const activeListings = orders.filter((o) => o.status === "ACTIVE" && (o.offer.itemType === "ERC721" || o.offer.itemType === "ERC1155"));
   const activeBids = orders.filter((o) => o.status === "ACTIVE" && o.offer.itemType === "ERC20");
-
-  const floorParsed = parsePriceDisplay(collection?.floorPrice);
-  const volumeParsed = parsePriceDisplay(collection?.totalVolume);
-
-  const stats = [
-    { label: "Items",   display: collection?.totalSupply != null ? String(collection.totalSupply) : "—", symbol: null },
-    { label: "Holders", display: collection?.holderCount  != null ? String(collection.holderCount)  : "—", symbol: null },
-    { label: "Floor",   display: floorParsed.numStr,  symbol: floorParsed.symbol },
-    { label: "Volume",  display: volumeParsed.numStr, symbol: volumeParsed.symbol },
-  ].filter((s) => s.label !== "Volume" || s.display !== "—");
 
   return (
     <div className="relative z-0 min-h-screen">
       {(collection as { isHidden?: boolean } | null | undefined)?.isHidden && <HiddenContentBanner />}
 
-      <CollectionHeroBanner
-        bannerUrl={bannerUrl}
-        loading={colLoading}
-        standard={collection?.standard}
-        symbol={collection?.symbol}
-        name={collection?.name ?? "Unnamed Collection"}
-        stats={stats}
-      />
-
-      {!colLoading && collection && (
-        <div className="px-4 sm:px-6 pt-4 pb-2 space-y-3">
-
-          {walletAddress && collection.owner && normalizeAddress("STARKNET", collection.owner) === normalizeAddress("STARKNET", walletAddress) && (
-            <div className="flex items-center justify-end gap-2">
+      <div className="px-4 sm:px-6 pt-20 pb-6">
+        <CollectionHeader collection={collection} loading={colLoading} onReportClick={() => setReportOpen(true)}>
+          {collection && walletAddress && collection.owner && normalizeAddress("STARKNET", collection.owner) === normalizeAddress("STARKNET", walletAddress) && (
+            <div className="flex flex-wrap items-center gap-2">
               {getService(collection.service)?.id === "ip-tickets" && (
                 <TicketOwnerActions
                   contractAddress={collection.contractAddress}
@@ -270,51 +228,25 @@ export default function CollectionPageClient() {
               </Link>
             </div>
           )}
+          {collection && (
+            <CollectionServiceAction
+              service={collection.service}
+              contractAddress={collection.contractAddress}
+            />
+          )}
+        </CollectionHeader>
+      </div>
 
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:gap-6">
-            <div className="flex-1 min-w-0 lg:max-w-2xl">
-              {collection.description && <ExpandableText text={collection.description} />}
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 shrink-0">
-              <AddressDisplay
-                address={collection.contractAddress ?? ""}
-                chars={6}
-                className="text-xs text-muted-foreground"
-              />
-              {collection.owner && <CreatorChip address={collection.owner} />}
-              <ShareButton
-                title={collection.name ?? "Collection"}
-                variant="ghost"
-                size="icon"
-                className="min-h-0 min-w-0 h-auto w-auto p-0 hover:bg-transparent text-muted-foreground/40 hover:text-muted-foreground"
-              />
-              <button
-                onClick={() => setReportOpen(true)}
-                title="Report this collection"
-                aria-label="Report this collection"
-                className="text-muted-foreground/40 hover:text-muted-foreground transition-colors"
-              >
-                <Flag className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </div>
-
-          <CollectionServiceAction
-            service={collection.service}
-            contractAddress={collection.contractAddress}
-          />
-
-          <ReportDialog
-            target={{
-              type: "COLLECTION",
-              contract: collection.contractAddress,
-              name: collection.name ?? undefined,
-            }}
-            open={reportOpen}
-            onOpenChange={setReportOpen}
-          />
-        </div>
+      {collection && (
+        <ReportDialog
+          target={{
+            type: "COLLECTION",
+            contract: collection.contractAddress,
+            name: collection.name ?? undefined,
+          }}
+          open={reportOpen}
+          onOpenChange={setReportOpen}
+        />
       )}
 
       {!colLoading && collection && profile && (
