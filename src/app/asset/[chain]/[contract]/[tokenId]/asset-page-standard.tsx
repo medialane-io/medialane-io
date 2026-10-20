@@ -22,8 +22,6 @@ import {
 import { AssetCommentsDialog } from "./asset-side-panels";
 import { AssetOverviewContent } from "./asset-overview-content";
 import { AssetHeaderBlock } from "@/components/asset/asset-header-block";
-import { OpenInDappCallout } from "@/components/asset/open-in-dapp-callout";
-import { SignedOutAssetActions } from "@/components/asset/signed-out-asset-actions";
 import { AssetLightbox } from "@/components/asset/asset-lightbox";
 import { ReportDialog } from "@/components/report-dialog";
 import { HelpIcon } from "@/components/ui/help-icon";
@@ -199,9 +197,7 @@ export function AssetPageStandard() {
               showDealOption={remixPolicy.showDealOption}
               floorPriceRaw={collection?.floorPrice}
               lastSaleRaw={lastSaleRaw}
-              renderAuthAction={() => (
-                <SignedOutAssetActions chain={token.chain} contract={contract} tokenId={tokenId} />
-              )}
+              asset={token}
               renderHelp={(content) => <HelpIcon content={content} side="top" />}
               onCancelClick={handleCancelClick}
               onAcceptBid={acceptOffer.handleAcceptClick}
@@ -212,8 +208,6 @@ export function AssetPageStandard() {
               onOpenRemix={goToRemix}
 
             />
-
-            {hasWallet && <OpenInDappCallout chain={token.chain} contract={contract} tokenId={tokenId} />}
 
             {isERC1155 && token.balances && token.balances.length > 0 ? (
               <AssetOwnersPanel balances={token.balances} total={token.holderCount} maxVisible={5} />

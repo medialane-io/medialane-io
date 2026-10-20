@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
+import { Wallet } from "lucide-react";
 import { describeError, type MedialaneApp } from "@medialane/ui";
 import { requireAccount } from "@/lib/account-gate";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
@@ -14,6 +15,14 @@ export function useAppAdapter(): MedialaneApp {
     getClient: getMedialaneClient,
     walletAddress: address ?? null,
     onRequireWallet: () => router.push(`/connect?redirect_url=${encodeURIComponent(pathname)}`),
+    connectLabel: "Set up account",
+    connectDescription: "Buy, offer, and collect instantly — no seed phrase needed.",
+    companion: {
+      title: "Trade with your Starknet wallet",
+      description: "Interact with this asset on the Starknet dapp.",
+      icon: Wallet,
+      origin: "https://starknet.medialane.io",
+    },
     getSigner: () => {
       requireAccount(signer);
       return {

@@ -14,8 +14,6 @@ import type { ApiActivity } from "@medialane/sdk";
 import { EXPLORER_URL } from "@/lib/constants";
 import { HelpIcon } from "@/components/ui/help-icon";
 import { ReportDialog } from "@/components/report-dialog";
-import { OpenInDappCallout } from "@/components/asset/open-in-dapp-callout";
-import { SignedOutAssetActions } from "@/components/asset/signed-out-asset-actions";
 import { AssetMarketsTab } from "./asset-markets-tab";
 import { AssetCommentsDialog } from "./asset-side-panels";
 import { AssetOverviewContent } from "./asset-overview-content";
@@ -123,9 +121,7 @@ export function AssetPageEdition() {
               walletAddress={walletAddress}
               floorPriceRaw={collection?.floorPrice}
               lastSaleRaw={lastSaleRaw}
-              renderAuthAction={() => (
-                <SignedOutAssetActions chain={token.chain} contract={contract} tokenId={tokenId} />
-              )}
+              asset={token}
               renderHelp={(content) => <HelpIcon content={content} side="top" />}
               onCancelClick={handleCancelClick}
               onAcceptBid={acceptOffer.handleAcceptClick}
@@ -134,8 +130,6 @@ export function AssetPageEdition() {
               onOpenPurchase={setPurchaseOrder}
               onOpenOffer={() => setOfferOpen(true)}
             />
-
-            {hasWallet && <OpenInDappCallout chain={token.chain} contract={contract} tokenId={tokenId} />}
 
             <AssetOwnersPanel balances={holders} total={token.holderCount} maxVisible={8} />
 
