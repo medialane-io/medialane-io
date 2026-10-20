@@ -13,7 +13,7 @@ interface OpenInDappCalloutProps {
 
 export function OpenInDappCallout({ chain, contract, tokenId }: OpenInDappCalloutProps) {
   const label = chainLabel(chain);
-  const url = `https://${chain.toLowerCase()}.medialane.io/asset/${contract}/${tokenId}`;
+  const url = `https://${chain.toLowerCase()}.medialane.io/asset/${chain.toLowerCase()}/${contract}/${tokenId}`;
 
   return (
     <a
