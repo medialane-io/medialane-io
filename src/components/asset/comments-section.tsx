@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
 import { normalizeAddress } from "@medialane/sdk";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
-import { useComments } from "@/hooks/use-comments";
+import { useComments, LevelBadge, runIntentCalls, useRewardsBatch } from "@medialane/ui";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@medialane/ui/dialog";
@@ -14,7 +14,6 @@ import { Skeleton } from "@medialane/ui/skeleton";
 import { Button } from "@medialane/ui/button";
 import { Textarea } from "@medialane/ui/textarea";
 import { AddressDisplay } from "@medialane/ui/address-display";
-import { LevelBadge, runIntentCalls, useRewardsBatch } from "@medialane/ui";
 
 
 import { RewardEarned } from "@/lib/reward-earned";
