@@ -1,7 +1,7 @@
 "use client";
 
 import { requireSignedIn } from "@/lib/account-gate";
-import { UserFacingError } from "@medialane/ui";
+import { UserFacingError, CollapsibleSection, MedialaneCollectionCard, describeError } from "@medialane/ui";
 import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
 import { RewardEarned } from "@/lib/reward-earned";
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -11,38 +11,19 @@ import type { ApiCollection } from "@medialane/sdk";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { CollapsibleSection } from "@/components/ui/collapsible-section";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Input } from "@medialane/ui/input";
+import { Textarea } from "@medialane/ui/textarea";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@medialane/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@medialane/ui/select";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@medialane/ui/collapsible";
+import { Skeleton } from "@medialane/ui/skeleton";
+import { Popover, PopoverContent, PopoverTrigger } from "@medialane/ui/popover";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSession } from "@/hooks/use-session";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { MintProgressDialog } from "@/components/marketplace/mint-progress-dialog";
 import type { MintTxStatus } from "@/types/mint-tx-status";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
-import { MedialaneCollectionCard, describeError } from "@medialane/ui";
 import { CreateAssetAside } from "@/components/claim/create-asset-aside";
 import type { MintStep } from "@/components/marketplace/mint-progress-dialog";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
@@ -56,14 +37,9 @@ import {
   uploadDiagnosticsOf,
   type MintDebugSnapshot,
 } from "./mint-intent-actions";
-import {
-  IP_TYPES,
-  LICENSE_TYPES,
-  AI_POLICIES,
-  DERIVATIVES_OPTIONS,
-  type IPType,
-} from "@/types/ip";
-import { IPTypeFields, type MetadataField } from "@/components/create/ip-type-fields";
+import { IP_TYPES, LICENSE_TYPES, AI_POLICIES, DERIVATIVES_OPTIONS } from "@medialane/ui/data/ip";
+import type { IPType, MetadataField } from "@medialane/ui";
+import { IPTypeFields } from "@medialane/ui/ip-type-fields";
 import { uploadDocumentToIpfs } from "@/lib/upload-document";
 import {
   Upload,

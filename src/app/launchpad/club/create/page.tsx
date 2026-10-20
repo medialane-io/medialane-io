@@ -8,12 +8,10 @@ import * as z from "zod";
 import Link from "next/link";
 import Image from "next/image";
 import { Users, ImagePlus, Loader2, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage,
-} from "@/components/ui/form";
+import { Button } from "@medialane/ui/button";
+import { Input } from "@medialane/ui/input";
+import { Textarea } from "@medialane/ui/textarea";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@medialane/ui/form";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { WalletTransactionDialog } from "@/components/transaction/wallet-transaction-dialog";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";

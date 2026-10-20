@@ -2,7 +2,7 @@
 
 import { getTokenBySymbol, SUPPORTED_TOKENS } from "@medialane/sdk";
 import { Loader2 } from "lucide-react";
-import { CurrencyIcon } from "@/components/shared/currency-icon";
+import { CurrencyIcon } from "@medialane/ui/currency-icon";
 import { useErc20Balance } from "@medialane/ui/utils/media-wallet/use-erc20-balance";
 import { useSwapQuote } from "@/hooks/use-swap-quote";
 import { useMediaWallet } from "@medialane/ui";

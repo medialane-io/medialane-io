@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@medialane/ui/button";
 
 export function CopyLinkButton({ url, label = "Copy link" }: { url: string; label?: string }) {
   const [copied, setCopied] = useState(false);

@@ -9,13 +9,13 @@ import { PageContainer, AssetCollectionBar, AssetUtilityIcons, AssetHeaderBlock,
 import { assetHref, collectionHref } from "@/lib/routes";
 import { ipfsToHttp } from "@/lib/utils";
 import { EXPLORER_URL } from "@/lib/constants";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@medialane/ui/tabs";
 import { FloatingCommentsButton } from "@/components/asset/floating-comments-button";
-import { AssetLightbox } from "@/components/asset/asset-lightbox";
+import { AssetLightbox } from "@medialane/ui/asset-lightbox";
 import { PopBurnButton } from "@/components/claim/pop-burn-button";
 import { ReportDialog } from "@/components/report-dialog";
 import { AssetCommentsDialog } from "./asset-side-panels";
-import { AssetOverviewContent } from "./asset-overview-content";
+import { AssetOverviewContent } from "@medialane/ui/asset-overview-content";
 import { useAssetPage } from "./use-asset-page";
 
 export function AssetPagePop() {

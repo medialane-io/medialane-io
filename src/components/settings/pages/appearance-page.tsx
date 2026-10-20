@@ -3,8 +3,8 @@
 import { AssetPicker, type OwnedAsset } from "@medialane/ui";
 import { useState } from "react";
 import { CheckCircle2, ImageIcon, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@medialane/ui/button";
+import { Skeleton } from "@medialane/ui/skeleton";
 import { FastMint } from "@/components/launchpad/fast-mint";
 import { ProfileLivePreview } from "@/components/settings/profile-live-preview";
 import { SettingsGate, SettingsPage, SettingsSection } from "@/components/settings/settings-page";

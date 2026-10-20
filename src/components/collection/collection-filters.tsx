@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { SlidersHorizontal } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Badge } from "@medialane/ui/badge";
+import { Dialog, DialogContent, DialogTitle } from "@medialane/ui/dialog";
 import {
   useCollectionFilters, CollectionFiltersTrigger, CollectionFiltersBody,
 } from "@medialane/ui";

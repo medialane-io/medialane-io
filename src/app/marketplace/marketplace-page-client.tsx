@@ -6,20 +6,20 @@ import Image from "next/image";
 import { assetHref, collectionHref } from "@/lib/routes";
 import { ListingsGrid } from "@/components/marketplace/listings-grid";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@medialane/ui/input";
+import { Button } from "@medialane/ui/button";
+import { Dialog, DialogContent, DialogTitle } from "@medialane/ui/dialog";
 import { Search, X, SlidersHorizontal } from "lucide-react";
 import { ActivityTicker } from "@/components/shared/activity-ticker";
-import { CurrencyIcon } from "@/components/shared/currency-icon";
+import { CurrencyIcon } from "@medialane/ui/currency-icon";
 import type { ApiSearchResult } from "@medialane/sdk";
 import { getTokenBySymbol, parseAmount, SUPPORTED_TOKENS } from "@medialane/sdk";
 import { ipfsToHttp, cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { usePlatformStats } from "@/hooks/use-stats";
-import { IP_TYPES } from "@/types/ip";
-import { HelpIcon } from "@/components/ui/help-icon";
+import { IP_TYPES } from "@medialane/ui/data/ip";
+import { HelpIcon } from "@medialane/ui/help-icon";
 import { PageContainer, StatPillRow } from "@medialane/ui";
 
 const SORT_OPTIONS = [

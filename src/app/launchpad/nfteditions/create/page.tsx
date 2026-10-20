@@ -6,10 +6,8 @@ import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Layers } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Form,
-} from "@/components/ui/form";
+import { Button } from "@medialane/ui/button";
+import { Form } from "@medialane/ui/form";
 import Link from "next/link";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { WalletTransactionDialog } from "@/components/transaction/wallet-transaction-dialog";
@@ -21,7 +19,7 @@ import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { buildCollectionMetadata } from "@medialane/sdk";
 import { useSession } from "@/hooks/use-session";
-import { suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
+import { suggestLaunchpadSymbol } from "@medialane/ui/utils/launchpad-defaults";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { MedialaneCollectionCard } from "@medialane/ui";
 import { CreateEditionsAside } from "@/components/claim/create-editions-aside";

@@ -6,29 +6,16 @@ import { usdValueFor } from "@/lib/wallet-format";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { CheckCircle2, AlertCircle, ArrowLeftRight, ExternalLink, Loader2, Wallet } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@medialane/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@medialane/ui/form";
+import { Button } from "@medialane/ui/button";
+import { Input } from "@medialane/ui/input";
+import { Textarea } from "@medialane/ui/textarea";
+import { Alert, AlertDescription } from "@medialane/ui/alert";
+import { Badge } from "@medialane/ui/badge";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { useWalletMarketplaceActionFlow } from "@/hooks/use-wallet-marketplace-action-flow";
-import { CurrencyIcon } from "@/components/shared/currency-icon";
+import { CurrencyIcon } from "@medialane/ui/currency-icon";
 import { EXPLORER_URL, DURATION_OPTIONS } from "@/lib/constants";
 import { marketplacePriceField, counterOfferDurationField } from "@/lib/marketplace-schemas";
 

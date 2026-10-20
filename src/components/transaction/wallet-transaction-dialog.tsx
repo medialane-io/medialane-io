@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, type ReactNode } from "react";
 import { fireConfetti } from "@/lib/confetti";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle } from "@medialane/ui/dialog";
+import { Button } from "@medialane/ui/button";
 import { EXPLORER_URL } from "@/lib/constants";
 import { Loader2, CheckCircle2, XCircle, ExternalLink, Sparkles } from "lucide-react";
 import type { useWalletWriteAction, WalletWriteStatus } from "@/hooks/use-wallet-write-action";

@@ -4,7 +4,7 @@ import { Suspense, type ElementType } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Wallet } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@medialane/ui/button";
 
 interface LaunchpadSignedOutStateProps {
   icon: ElementType;

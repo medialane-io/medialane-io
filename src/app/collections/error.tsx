@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@medialane/ui/button";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 
 export default function CollectionsError({

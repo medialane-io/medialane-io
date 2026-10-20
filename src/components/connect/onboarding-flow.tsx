@@ -3,9 +3,9 @@
 import { EmailCodeEntry, RESEND_COOLDOWN_SECONDS, describeError, describeWalletFailure, detectPasskeySupport, isPasskeyCancelled } from "@medialane/ui";
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Input } from "@/components/ui/input";
+import { Button } from "@medialane/ui/button";
+import { Alert, AlertDescription } from "@medialane/ui/alert";
+import { Input } from "@medialane/ui/input";
 import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";

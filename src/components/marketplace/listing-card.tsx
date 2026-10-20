@@ -9,14 +9,8 @@ import {
 import { ipfsToHttp } from "@/lib/utils";
 import { usdValueFor } from "@/lib/wallet-format";
 import { useUsdPrices } from "@/hooks/use-usd-prices";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@medialane/ui/dropdown-menu";
+import { Button } from "@medialane/ui/button";
 import { MoreHorizontal, ExternalLink, Layers, Flag } from "lucide-react";
 import { ReportDialog } from "@/components/report-dialog";
 import type { ApiOrder } from "@medialane/sdk";

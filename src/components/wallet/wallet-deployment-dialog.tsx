@@ -2,18 +2,12 @@
 
 import { useState } from "react";
 import { Loader2, ShieldCheck, AlertCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@medialane/ui/button";
+import { Alert, AlertDescription } from "@medialane/ui/alert";
 import { mediaWallet } from "@/lib/wallet/client";
 import { describeWalletFailure, detectPasskeySupport, isPasskeyCancelled } from "@medialane/ui";
 import { type DeploymentStep } from "@medialane/sdk/starknet";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@medialane/ui/dialog";
 
 const STEP_LABEL: Record<DeploymentStep, string> = {
   "creating-passkey": "Creating passkey…",

@@ -1,15 +1,14 @@
 "use client";
 
 import { ACCOUNT_STILL_LOADING } from "@/lib/account-gate";
-import { UserFacingError } from "@medialane/ui";
-import { describeError } from "@medialane/ui";
+import { UserFacingError, describeError } from "@medialane/ui";
 import { useState, useCallback } from "react";
 import { useSWRConfig } from "swr";
 import { useWalletNativeSession } from "./use-wallet-native-session";
 import { lockVenueSigner } from "@/lib/wallet/venue-signer";
 import { assertTransactionSucceeded, syncTransactionBestEffort } from "@medialane/sdk/starknet";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import { QUERY_PREFIX } from "@/lib/query-keys";
+import { QUERY_PREFIX } from "@medialane/ui/utils/query-keys";
 import type { Call } from "starknet";
 import type { CreateTransferNftIntentParams } from "@medialane/sdk";
 

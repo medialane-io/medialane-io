@@ -3,12 +3,8 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Image from "next/image";
 import { fireConfetti } from "@/lib/confetti";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle } from "@medialane/ui/dialog";
+import { Button } from "@medialane/ui/button";
 import { EXPLORER_URL } from "@/lib/constants";
 import {
   Loader2,

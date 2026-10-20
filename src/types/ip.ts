@@ -1,3 +1,0 @@
-
-export { IP_TYPES, LICENSE_TYPES, GEOGRAPHIC_SCOPES, AI_POLICIES, DERIVATIVES_OPTIONS, LICENSE_TRAIT_TYPES } from "@medialane/ui/data/ip";
-export type { IPType, LicenseType } from "@medialane/ui";

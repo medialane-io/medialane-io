@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@medialane/ui/button";
 import { LogIn } from "lucide-react";
 import { useUserOrders } from "@/hooks/use-orders";
 import { markOffersAsSeen } from "@/hooks/use-unread-offers";

@@ -1,5 +1,5 @@
 import { PageContainer } from "@medialane/ui";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "@medialane/ui/skeleton";
 
 export default function AssetLoading() {
   return (

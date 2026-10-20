@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Sparkles, ArrowRight } from "lucide-react";
 import { LevelJourneyList, BadgeCatalog } from "@medialane/ui";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "@medialane/ui/skeleton";
 import { useRewardsConfig } from "@/hooks/use-rewards";
 
 const EXAMPLE_ACTION_TYPES = [

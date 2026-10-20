@@ -8,7 +8,7 @@ import { useRewardsBatch } from "@/hooks/use-rewards";
 import { useWallet } from "@/hooks/use-wallet";
 import { ActivityRow } from "@/components/shared/activity-row";
 import { LeaderboardPanel } from "@/components/rewards/leaderboard-panel";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "@medialane/ui/skeleton";
 import { timeAgo, cn } from "@/lib/utils";
 
 const FEED_LIMIT = 8;

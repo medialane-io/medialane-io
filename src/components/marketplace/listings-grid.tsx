@@ -6,7 +6,7 @@ import { useOrders } from "@/hooks/use-orders";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { ListingCard, ListingCardSkeleton } from "./listing-card";
 import { PurchaseDialog } from "./purchase-dialog";
-import { Button } from "@/components/ui/button";
+import { Button } from "@medialane/ui/button";
 import { LoadMoreSentinel } from "@medialane/ui";
 import { normalizeAddress } from "@medialane/sdk";
 import type { ApiOrder, SortOrder } from "@medialane/sdk";

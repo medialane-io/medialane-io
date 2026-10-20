@@ -1,5 +1,5 @@
 import { Award, Ticket, LayoutGrid, Gift } from "lucide-react";
-import { ClaimRail } from "@/components/claim/claim-rail";
+import { ClaimRail } from "@medialane/ui/claim-rail";
 
 export function CreatePopAside() {
   return (

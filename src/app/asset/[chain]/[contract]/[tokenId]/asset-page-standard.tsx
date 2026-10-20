@@ -4,24 +4,24 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { assetHref, collectionHref } from "@/lib/routes";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "@medialane/ui/skeleton";
 import { PageContainer, AssetCollectionBar, AssetUtilityIcons, AssetMarketplacePanel, AssetMediaColumn, AssetHeaderBlock, AssetOwnerRow, isLivingRenderCollection, DropTokenLink, AssetOwnersPanel, AssetProvenanceTab, AssetUnavailable, ASSET_ACCENTS } from "@medialane/ui";
 import type { Chain } from "@medialane/sdk";
 import { ipfsToHttp } from "@/lib/utils";
 import { FloatingCommentsButton } from "@/components/asset/floating-comments-button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@medialane/ui/tabs";
 import type { ApiActivity } from "@medialane/sdk";
 import { getService } from "@medialane/sdk";
 import { resolveRemixPolicy, getDerivativesTerm } from "@medialane/sdk";
 import { EXPLORER_URL } from "@/lib/constants";
-import { AssetMarketsTab } from "./asset-markets-tab";
+import { AssetMarketsTab } from "@medialane/ui/asset-markets-tab";
 import { useFullTokenData } from "@/hooks/use-full-token-data";
 import {
   AssetMarketplaceDialogs,
 } from "./asset-marketplace-dialogs";
 import { AssetCommentsDialog } from "./asset-side-panels";
-import { AssetOverviewContent } from "./asset-overview-content";
-import { AssetLightbox } from "@/components/asset/asset-lightbox";
+import { AssetOverviewContent } from "@medialane/ui/asset-overview-content";
+import { AssetLightbox } from "@medialane/ui/asset-lightbox";
 import { ReportDialog } from "@/components/report-dialog";
 import { useAssetPage } from "./use-asset-page";
 

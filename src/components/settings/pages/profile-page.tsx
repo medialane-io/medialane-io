@@ -1,11 +1,11 @@
 "use client";
 
 import { AtSign, CheckCircle2, Loader2, User } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@medialane/ui/button";
+import { Input } from "@medialane/ui/input";
+import { Label } from "@medialane/ui/label";
+import { Skeleton } from "@medialane/ui/skeleton";
+import { Textarea } from "@medialane/ui/textarea";
 import { ProfileLivePreview } from "@/components/settings/profile-live-preview";
 import { SettingsGate, SettingsPage, SettingsSection } from "@/components/settings/settings-page";
 import { UsernameClaimSection } from "@/components/settings/username-claim-section";

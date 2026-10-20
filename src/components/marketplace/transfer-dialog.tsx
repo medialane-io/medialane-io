@@ -13,23 +13,11 @@ import {
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@medialane/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@medialane/ui/form";
+import { Button } from "@medialane/ui/button";
+import { Input } from "@medialane/ui/input";
+import { Alert, AlertDescription } from "@medialane/ui/alert";
 import { useTransfer } from "@/hooks/use-transfer";
 import { useResolvedTokenStandard } from "@/hooks/use-resolved-token-standard";
 import {

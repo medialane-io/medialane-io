@@ -2,22 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { UserRoundCog } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@medialane/ui/dialog";
+import { Button } from "@medialane/ui/button";
+import { Input } from "@medialane/ui/input";
+import { Label } from "@medialane/ui/label";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
-import { MarketplaceConfirmStep } from "@medialane/ui";
+import { MarketplaceConfirmStep, runIntentCalls } from "@medialane/ui";
 import { TransactionDialogStates } from "@/components/marketplace/transaction-dialog-states";
 import { normalizeAddress } from "@medialane/sdk";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import { runIntentCalls } from "@medialane/ui";
 
 interface TransferOwnershipDialogProps {
 

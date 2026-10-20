@@ -9,12 +9,12 @@ import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { useComments } from "@/hooks/use-comments";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { AddressDisplay } from "@/components/shared/address-display";
-import { LevelBadge } from "@medialane/ui";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@medialane/ui/dialog";
+import { Skeleton } from "@medialane/ui/skeleton";
+import { Button } from "@medialane/ui/button";
+import { Textarea } from "@medialane/ui/textarea";
+import { AddressDisplay } from "@medialane/ui/address-display";
+import { LevelBadge, runIntentCalls } from "@medialane/ui";
 import { useRewardsBatch } from "@/hooks/use-rewards";
 import { RewardEarned } from "@/lib/reward-earned";
 import { STARKNET_NFTCOMMENTS_CONTRACT, EXPLORER_URL } from "@/lib/constants";
@@ -23,7 +23,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { ReportDialog, type ReportTarget } from "@/components/report-dialog";
 import { cn } from "@/lib/utils";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import { runIntentCalls } from "@medialane/ui";
 
 const MAX_LEN = 1000;
 

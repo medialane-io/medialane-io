@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import { useToken } from "@/hooks/use-tokens";
 import { useCollection } from "@/hooks/use-collections";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "@medialane/ui/skeleton";
 import { AssetPageStandard } from "./asset-page-standard";
 import { AssetPagePop } from "./asset-page-pop";
 import { AssetPageEdition } from "./asset-page-edition";

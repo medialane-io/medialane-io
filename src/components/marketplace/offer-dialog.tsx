@@ -7,15 +7,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { AlertCircle, AlertTriangle, HandCoins, Layers, ShieldCheck } from "lucide-react";
-import { CurrencyIcon } from "@/components/shared/currency-icon";
+import { CurrencyIcon } from "@medialane/ui/currency-icon";
 import { fireConfetti } from "@/lib/confetti";
 import { RewardEarned } from "@/lib/reward-earned";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import {
-  Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@medialane/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@medialane/ui/form";
+import { Input } from "@medialane/ui/input";
+import { Alert, AlertDescription } from "@medialane/ui/alert";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { useWalletMarketplaceActionFlow } from "@/hooks/use-wallet-marketplace-action-flow";
 import { useResolvedTokenStandard } from "@/hooks/use-resolved-token-standard";

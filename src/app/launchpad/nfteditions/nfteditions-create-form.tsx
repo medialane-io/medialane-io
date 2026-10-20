@@ -4,17 +4,10 @@ import type { RefObject } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import Image from "next/image";
 import { ImagePlus, Layers, Loader2, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Button } from "@medialane/ui/button";
+import { Input } from "@medialane/ui/input";
+import { Textarea } from "@medialane/ui/textarea";
+import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@medialane/ui/form";
 import type { NftEditionsCreateFormValues } from "./nfteditions-create-schema";
 
 interface NftEditionsCreateFormProps {

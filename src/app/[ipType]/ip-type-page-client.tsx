@@ -3,15 +3,13 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { SlidersHorizontal, Search, X as XIcon } from "lucide-react";
-import { LoadMoreSentinel, PageContainer } from "@medialane/ui";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { LoadMoreSentinel, PageContainer, IP_TYPE_MAP, IP_TYPE_CONFIG, AssetCard, AssetCardSkeleton } from "@medialane/ui";
+import { Button } from "@medialane/ui/button";
+import { Badge } from "@medialane/ui/badge";
+import { Input } from "@medialane/ui/input";
+import { Dialog, DialogContent, DialogTitle } from "@medialane/ui/dialog";
 import { useTokensByIpType } from "@/hooks/use-tokens-by-ip-type";
-import { IP_TYPE_MAP, IP_TYPE_CONFIG } from "@medialane/ui";
 import { cn } from "@/lib/utils";
-import { AssetCard, AssetCardSkeleton } from "@medialane/ui";
 import { assetHref } from "@/lib/routes";
 import type { ApiToken, Chain } from "@medialane/sdk";
 

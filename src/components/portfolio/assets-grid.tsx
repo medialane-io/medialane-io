@@ -6,7 +6,7 @@ import { TokenCard } from "@/components/shared/token-card";
 import { ListingDialog } from "@/components/marketplace/listing-dialog";
 import { TransferDialog } from "@/components/marketplace/transfer-dialog";
 import { CancelOrderDialog } from "@/components/marketplace/cancel-order-dialog";
-import { EmptyOrError } from "@/components/ui/empty-or-error";
+import { EmptyOrError } from "@medialane/ui/empty-or-error";
 import { LoadMoreSentinel } from "@medialane/ui";
 import { useUsdPrices } from "@/hooks/use-usd-prices";
 import { usdValueFor } from "@/lib/wallet-format";

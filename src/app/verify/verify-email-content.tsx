@@ -7,11 +7,11 @@ import { Mail, ShieldCheck, CheckCircle2, AlertCircle, Loader2 } from "lucide-re
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSession } from "@/hooks/use-session";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Button } from "@medialane/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@medialane/ui/card";
+import { Input } from "@medialane/ui/input";
 import { useEmailCode } from "@/hooks/use-email-code";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@medialane/ui/alert";
 
 type Step = "loading" | "add-email" | "code" | "verified";
 

@@ -13,9 +13,9 @@ import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useAcceptOffer } from "@/hooks/use-accept-offer";
 import { useAssetMarketState } from "@/hooks/use-asset-market-state";
 import { ipfsToHttp, resolveTokenImage } from "@/lib/utils";
-import { IP_TEMPLATES, EMBED_PLATFORM_META, SOCIAL_PLATFORM_META } from "@/lib/ip-templates";
-import { LICENSE_TRAIT_TYPES } from "@/types/ip";
-import type { IPType } from "@/types/ip";
+import { IP_TEMPLATES, EMBED_PLATFORM_META, SOCIAL_PLATFORM_META } from "@medialane/ui/data/ip-templates";
+import { LICENSE_TRAIT_TYPES } from "@medialane/ui/data/ip";
+import type { IPType } from "@medialane/ui";
 import { useOrderActions } from "./use-order-actions";
 import { useAssetMarketplaceDialogState } from "./asset-marketplace-dialogs";
 

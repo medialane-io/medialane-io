@@ -8,7 +8,7 @@ import {
   Award,
   CheckCircle2,
 } from "lucide-react";
-import { Form } from "@/components/ui/form";
+import { Form } from "@medialane/ui/form";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { type PopEventType } from "@/lib/launchpad-contracts";
@@ -19,7 +19,7 @@ import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { buildCollectionMetadata } from "@medialane/sdk";
 import { useSession } from "@/hooks/use-session";
-import { getDefaultClaimWindow, suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
+import { getDefaultClaimWindow, suggestLaunchpadSymbol } from "@medialane/ui/utils/launchpad-defaults";
 import { PopCreateForm } from "../pop-create-form";
 import { popCreateSchema, type PopCreateFormValues } from "../pop-create-schema";
 import { LaunchpadSuccessState, LaunchpadErrorState, LaunchpadProcessingState } from "@/components/launchpad/launchpad-success-state";

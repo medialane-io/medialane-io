@@ -4,7 +4,7 @@ import { getServiceConfig } from "@/lib/service-registry";
 import { PopClaimButton } from "@/components/claim/pop-claim-button";
 import Link from "next/link";
 import { dropHref } from "@medialane/sdk";
-import { Button } from "@/components/ui/button";
+import { Button } from "@medialane/ui/button";
 
 interface CollectionServiceActionProps {
   service: string | null | undefined;

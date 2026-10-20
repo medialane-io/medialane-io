@@ -13,12 +13,12 @@ import { ListingDialog } from "@/components/marketplace/listing-dialog";
 import { normalizeAddress } from "@medialane/sdk";
 import type { ApiToken } from "@medialane/sdk";
 import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
-import { AddressDisplay } from "@/components/shared/address-display";
+import { AddressDisplay } from "@medialane/ui/address-display";
 import { CreatorScoreInline } from "@/components/rewards/creator-score-inline";
 import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listing-card";
 import { CollectionCard, CollectionCardSkeleton, HiddenContentBanner, TabEmptyState } from "@medialane/ui";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@medialane/ui/button";
+import { Skeleton } from "@medialane/ui/skeleton";
 import { useUsdPrices } from "@/hooks/use-usd-prices";
 import { usdValueFor } from "@/lib/wallet-format";
 import {
@@ -30,7 +30,7 @@ import {
   Flag,
 } from "lucide-react";
 import { ReportDialog } from "@/components/report-dialog";
-import { ShareButton } from "@/components/shared/share-button";
+import { ShareButton } from "@medialane/ui/share-button";
 import { ActivityRow } from "@/components/creator/activity-row";
 import { cn } from "@/lib/utils";
 

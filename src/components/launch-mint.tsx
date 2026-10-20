@@ -18,7 +18,7 @@ import {
   Droplets,
   ArrowRight,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@medialane/ui/button";
 import { EXPLORER_URL, MINT_CONTRACT } from "@/lib/constants";
 import { LaunchCountdown } from "./launch-countdown";
 import { getMedialaneClient } from "@/lib/medialane-client";

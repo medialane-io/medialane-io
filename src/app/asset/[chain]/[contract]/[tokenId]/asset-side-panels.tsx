@@ -3,7 +3,7 @@
 import type { CSSProperties } from "react";
 import Image from "next/image";
 import { CommentsSection } from "@/components/asset/comments-section";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@medialane/ui/dialog";
 
 interface AssetCommentsDialogProps {
   open: boolean;

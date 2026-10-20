@@ -4,8 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
-import { Button } from "@/components/ui/button";
-import { EmptyOrError } from "@/components/ui/empty-or-error";
+import { Button } from "@medialane/ui/button";
+import { EmptyOrError } from "@medialane/ui/empty-or-error";
 import { ipfsToHttp } from "@/lib/utils";
 import { CheckCircle2, ImageIcon, Plus, ArrowRight } from "lucide-react";
 

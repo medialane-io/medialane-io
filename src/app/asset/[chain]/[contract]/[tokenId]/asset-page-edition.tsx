@@ -9,13 +9,13 @@ import { PageContainer, AssetCollectionBar, AssetUtilityIcons, AssetMarketplaceP
 import { ipfsToHttp } from "@/lib/utils";
 import { Layers } from "lucide-react";
 import { FloatingCommentsButton } from "@/components/asset/floating-comments-button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@medialane/ui/tabs";
 import type { ApiActivity } from "@medialane/sdk";
 import { EXPLORER_URL } from "@/lib/constants";
 import { ReportDialog } from "@/components/report-dialog";
-import { AssetMarketsTab } from "./asset-markets-tab";
+import { AssetMarketsTab } from "@medialane/ui/asset-markets-tab";
 import { AssetCommentsDialog } from "./asset-side-panels";
-import { AssetOverviewContent } from "./asset-overview-content";
+import { AssetOverviewContent } from "@medialane/ui/asset-overview-content";
 import {
   AssetMarketplaceDialogs,
 } from "./asset-marketplace-dialogs";

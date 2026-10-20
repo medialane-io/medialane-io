@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
-import { FadeIn } from "@/components/ui/motion-primitives";
+import { FadeIn } from "@medialane/ui/motion-primitives";
 import { getService } from "@medialane/sdk";
 import {
   LaunchpadGroupedSections,

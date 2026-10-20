@@ -3,7 +3,7 @@
 import type { ElementType, ReactNode } from "react";
 import Link from "next/link";
 import { AlertCircle, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@medialane/ui/button";
 
 interface LaunchpadSuccessStateProps {
   icon: ElementType;

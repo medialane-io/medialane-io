@@ -1,22 +1,21 @@
 "use client";
 
-import { describeError } from "@medialane/ui";
+import { describeError, runIntentCalls } from "@medialane/ui";
 import { use, useState } from "react";
 import Link from "next/link";
 import { normalizeAddress } from "@medialane/sdk";
 import {
   ArrowLeft, Users, Award, Loader2, CheckCircle2, AlertCircle, Download, Send,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { FadeIn } from "@/components/ui/motion-primitives";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@medialane/ui/button";
+import { Textarea } from "@medialane/ui/textarea";
+import { FadeIn } from "@medialane/ui/motion-primitives";
+import { Skeleton } from "@medialane/ui/skeleton";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useCollection } from "@/hooks/use-collections";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@medialane/ui/dialog";
 import type { ApiIntentCreated } from "@medialane/sdk";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import { runIntentCalls } from "@medialane/ui";
 import {
   buildPopAllowlist,
   popClaimLinks,

@@ -3,9 +3,9 @@
 import { useState } from "react";
 import Image from "next/image";
 import { Gavel, Search } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Button } from "@medialane/ui/button";
+import { Input } from "@medialane/ui/input";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@medialane/ui/sheet";
 import { useCollectionTokens } from "@/hooks/use-collections";
 import { OfferDialog } from "@/components/marketplace/offer-dialog";
 import { resolveTokenImage } from "@/lib/utils";

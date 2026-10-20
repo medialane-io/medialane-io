@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
 import { LeaderboardTable } from "@medialane/ui";
-import { Skeleton } from "@/components/ui/skeleton";
-import { AddressDisplay } from "@/components/shared/address-display";
+import { Skeleton } from "@medialane/ui/skeleton";
+import { AddressDisplay } from "@medialane/ui/address-display";
 import { useLeaderboard } from "@/hooks/use-rewards";
 import { cn } from "@/lib/utils";
 

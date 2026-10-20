@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@medialane/ui/button";
+import { Skeleton } from "@medialane/ui/skeleton";
 import { useWallet } from "@/hooks/use-wallet";
 import { useRewards, useRewardsConfig, useRewardsEvents } from "@/hooks/use-rewards";
 import { LeaderboardPanel } from "@/components/rewards/leaderboard-panel";

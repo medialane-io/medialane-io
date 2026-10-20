@@ -3,8 +3,8 @@
 import { useEffect } from "react";
 import Image from "next/image";
 import { ShieldCheck } from "lucide-react";
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { CurrencyIcon } from "@/components/shared/currency-icon";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@medialane/ui/dialog";
+import { CurrencyIcon } from "@medialane/ui/currency-icon";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { useWalletMarketplaceActionFlow } from "@/hooks/use-wallet-marketplace-action-flow";
 import { MarketplaceConfirmStep } from "@medialane/ui";
