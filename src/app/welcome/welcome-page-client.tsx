@@ -56,7 +56,7 @@ const HIGHLIGHTS = [
   {
     icon: Zap,
     label: "Self-custody account",
-    description: "Secured by your device passkey — no seed phrase to write down or lose.",
+    description: "Secured by your device passkey.",
   },
   {
     icon: Shield,
