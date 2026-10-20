@@ -76,18 +76,18 @@ export function AssetPagePop() {
                 <Award className="h-3 w-3" />
                 POP
               </span>
-              <div className="flex items-start justify-between gap-3">
-                <AssetHeaderBlock
-                  name={name}
-                  description={description}
-                  ipType={token.metadata?.ipType}
-                />
-                <AssetUtilityIcons
-                  contractExplorerHref={`${EXPLORER_URL}/contract/${token.contractAddress}`}
-                  shareTitle={name}
-                  onReportClick={() => setReportOpen(true)}
-                />
-              </div>
+              <AssetHeaderBlock
+                name={name}
+                description={description}
+                ipType={token.metadata?.ipType}
+                utilities={(
+                  <AssetUtilityIcons
+                    contractExplorerHref={`${EXPLORER_URL}/contract/${token.contractAddress}`}
+                    shareTitle={name}
+                    onReportClick={() => setReportOpen(true)}
+                  />
+                )}
+              />
             </div>
 
             {isOwner && <PopBurnButton collectionAddress={contract} tokenId={tokenId} />}

@@ -165,20 +165,20 @@ export function AssetPageStandard() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="space-y-6"
           >
-            <div className="flex items-start justify-between gap-3">
-              <AssetHeaderBlock
-                name={name}
-                description={description}
-                ipType={token.metadata?.ipType}
-                parentContract={parentContract}
-                parentTokenId={parentTokenId}
-              />
-              <AssetUtilityIcons
-                contractExplorerHref={`${EXPLORER_URL}/contract/${token.contractAddress}`}
-                shareTitle={name ?? `Token #${token?.tokenId}`}
-                onReportClick={() => setReportOpen(true)}
-              />
-            </div>
+            <AssetHeaderBlock
+              name={name}
+              description={description}
+              ipType={token.metadata?.ipType}
+              parentContract={parentContract}
+              parentTokenId={parentTokenId}
+              utilities={(
+                <AssetUtilityIcons
+                  contractExplorerHref={`${EXPLORER_URL}/contract/${token.contractAddress}`}
+                  shareTitle={name ?? `Token #${token?.tokenId}`}
+                  onReportClick={() => setReportOpen(true)}
+                />
+              )}
+            />
 
             <AssetMarketplacePanel
               cheapest={cheapest}
