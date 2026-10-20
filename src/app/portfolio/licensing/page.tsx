@@ -66,7 +66,7 @@ export default function PortfolioLicensingPage() {
                       href={assetHref("STARKNET", offer.originalContract, offer.originalTokenId)}
                       className="text-sm font-medium hover:text-primary transition-colors truncate"
                     >
-                      Token #{offer.originalTokenId}
+                      View asset
                     </Link>
                   </div>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -127,7 +127,7 @@ export default function PortfolioLicensingPage() {
                       href={assetHref("STARKNET", offer.originalContract, offer.originalTokenId)}
                       className="text-sm font-medium hover:text-primary transition-colors truncate"
                     >
-                      Token #{offer.originalTokenId}
+                      View asset
                     </Link>
                   </div>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">

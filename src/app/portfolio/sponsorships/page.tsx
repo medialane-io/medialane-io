@@ -42,7 +42,7 @@ function OfferBidsRow({ offer }: { offer: SponsorshipOffer }) {
   return (
     <div className="space-y-1.5 rounded-lg bg-muted/30 p-3">
       <p className="text-xs font-semibold text-muted-foreground">
-        Bids on <Link href={assetHref("STARKNET", offer.nftContract, offer.tokenId)} className="underline underline-offset-2">Token #{offer.tokenId}</Link>
+        Bids on <Link href={assetHref("STARKNET", offer.nftContract, offer.tokenId)} className="underline underline-offset-2">View asset</Link>
       </p>
       {bids.map((bid) => (
         <div key={bid.id} className="flex items-center justify-between gap-2 text-xs">
@@ -91,7 +91,7 @@ function ReceivedProposalsSection({ walletAddress }: { walletAddress: string }) 
         <div key={p.id} className="bento-cell p-4 flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="text-sm font-semibold">
-              <Link href={assetHref("STARKNET", p.nftContract, p.tokenId)} className="hover:underline">Token #{p.tokenId}</Link>
+              <Link href={assetHref("STARKNET", p.nftContract, p.tokenId)} className="hover:underline">View asset</Link>
             </p>
             <p className="text-xs text-muted-foreground">
               <AddressDisplay address={p.proposer} chars={4} showCopy={false} /> proposed {p.amount}
@@ -137,7 +137,7 @@ function SentProposalsSection({ walletAddress }: { walletAddress: string }) {
         <div key={p.id} className="bento-cell p-4 flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="text-sm font-semibold">
-              <Link href={assetHref("STARKNET", p.nftContract, p.tokenId)} className="hover:underline">Token #{p.tokenId}</Link>
+              <Link href={assetHref("STARKNET", p.nftContract, p.tokenId)} className="hover:underline">View asset</Link>
             </p>
             <p className="text-xs text-muted-foreground">You proposed {p.amount}</p>
           </div>
@@ -189,7 +189,7 @@ export default function PortfolioSponsorshipsPage() {
             {held.map((l) => (
               <div key={l.id} className="bento-cell p-4">
                 <p className="text-sm font-semibold">
-                  <Link href={assetHref("STARKNET", l.assetContract, l.assetTokenId)} className="hover:underline">License on Token #{l.assetTokenId}</Link>
+                  <Link href={assetHref("STARKNET", l.assetContract, l.assetTokenId)} className="hover:underline">License on this asset</Link>
                 </p>
                 <p className="text-xs text-muted-foreground">from <AddressDisplay address={l.author} chars={4} showCopy={false} /></p>
               </div>
@@ -207,7 +207,7 @@ export default function PortfolioSponsorshipsPage() {
             {issued.map((l) => (
               <div key={l.id} className="bento-cell p-4">
                 <p className="text-sm font-semibold">
-                  <Link href={assetHref("STARKNET", l.assetContract, l.assetTokenId)} className="hover:underline">License on Token #{l.assetTokenId}</Link>
+                  <Link href={assetHref("STARKNET", l.assetContract, l.assetTokenId)} className="hover:underline">License on this asset</Link>
                 </p>
                 <p className="text-xs text-muted-foreground">held by <AddressDisplay address={l.currentHolder ?? l.recipient} chars={4} showCopy={false} /></p>
               </div>

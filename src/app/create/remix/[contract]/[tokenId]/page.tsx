@@ -566,12 +566,8 @@ export default function CreateRemixPage() {
 
             <div className="rounded-xl border border-border overflow-hidden bg-card">
               <div className="relative aspect-square w-full bg-muted">
-                {originalImage ? (
+                {originalImage && (
                   <Image src={originalImage} alt={originalName} fill className="object-cover" />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-4xl tabular-nums text-muted-foreground">#{tokenId}</span>
-                  </div>
                 )}
                 <div className="absolute top-2 left-2">
                   <Badge variant="secondary" className="text-[10px] gap-1">
