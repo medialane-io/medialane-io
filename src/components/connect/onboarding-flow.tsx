@@ -11,7 +11,7 @@ import { getMedialaneClient } from "@/lib/medialane-client";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useEmailCode } from "@/hooks/use-email-code";
 import { refreshSession, useSession } from "@/hooks/use-session";
-import { fireConfetti } from "@/lib/confetti";
+import { fireConfetti } from "@medialane/ui/utils/media-wallet/confetti";
 import { MedialaneApiError } from "@medialane/sdk";
 import { mediaWallet } from "@/lib/wallet/client";
 import { claimSessionWallet } from "@medialane/sdk/starknet";

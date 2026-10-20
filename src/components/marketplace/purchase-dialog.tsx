@@ -10,7 +10,7 @@ import {
   ShoppingCart, RefreshCw, Zap, Minus, Plus,
   CheckCircle2, ShieldCheck,
 } from "lucide-react";
-import { fireConfetti } from "@/lib/confetti";
+import { fireConfetti } from "@medialane/ui/utils/media-wallet/confetti";
 import { RewardEarned } from "@/lib/reward-earned";
 import { assetHref as buildAssetHref } from "@/lib/routes";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@medialane/ui/dialog";

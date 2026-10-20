@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Image from "next/image";
-import { fireConfetti } from "@/lib/confetti";
+import { fireConfetti } from "@medialane/ui/utils/media-wallet/confetti";
 import { Dialog, DialogContent, DialogTitle } from "@medialane/ui/dialog";
 import { Button } from "@medialane/ui/button";
 import { EXPLORER_URL } from "@/lib/constants";

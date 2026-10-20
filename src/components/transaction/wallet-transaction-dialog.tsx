@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
-import { fireConfetti } from "@/lib/confetti";
+import { fireConfetti } from "@medialane/ui/utils/media-wallet/confetti";
 import { Dialog, DialogContent, DialogTitle } from "@medialane/ui/dialog";
 import { Button } from "@medialane/ui/button";
 import { EXPLORER_URL } from "@/lib/constants";
