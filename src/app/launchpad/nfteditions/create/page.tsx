@@ -31,6 +31,7 @@ import {
 } from "../nfteditions-create-schema";
 
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
+import { profileHref } from "@/lib/routes";
 
 export default function CreateIP1155CollectionPage() {
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
@@ -183,7 +184,7 @@ export default function CreateIP1155CollectionPage() {
               name={form.watch("name")}
               collection={form.watch("symbol") || "Editions"}
               creator={walletAddress ? `${walletAddress.slice(0, 6)}…${walletAddress.slice(-4)}` : undefined}
-              creatorHref={walletAddress ? `/account/${walletAddress}` : undefined}
+              creatorHref={walletAddress ? profileHref({ address: walletAddress }) : undefined}
             />
             <CreateEditionsAside />
           </>

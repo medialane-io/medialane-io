@@ -13,6 +13,7 @@ import { MotionCard } from "@medialane/ui/motion-primitives";
 import { ipfsToHttp } from "@/lib/utils";
 import { Search, Layers, ImageIcon, Users, X, ArrowUpRight } from "lucide-react";
 import type { ApiSearchResult, ApiSearchCreatorResult } from "@medialane/sdk";
+import { profileHref } from "@/lib/routes";
 
 function TokenCard({ token }: { token: NonNullable<ApiSearchResult["tokens"]>[number] }) {
   const [imgError, setImgError] = useState(false);
@@ -105,7 +106,7 @@ function CreatorCard({ creator }: { creator: ApiSearchCreatorResult }) {
   });
   return (
     <Link
-      href={`/creator/${creator.username}`}
+      href={profileHref({ username: creator.username, address: creator.walletAddress })}
       className="card-base flex items-center gap-3 p-3 hover:border-primary/30 hover:bg-muted/30 transition-all"
     >
       <div className="relative h-9 w-9 rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 flex items-center justify-center shrink-0 overflow-hidden">

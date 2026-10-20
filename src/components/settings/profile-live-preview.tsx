@@ -7,6 +7,7 @@ import { CreatorScoreInline, profileIdentity } from "@medialane/ui";
 
 import { resolveTokenImage } from "@/lib/utils";
 import type { ProfileForm } from "./types";
+import { profileHref } from "@/lib/routes";
 
 export function ProfileLivePreview({
   form, approvedUsername, walletAddress, fallbackImage,
@@ -79,7 +80,7 @@ export function ProfileLivePreview({
 
         {approvedUsername && (
           <Link
-            href={`/creator/${approvedUsername}`}
+            href={profileHref({ username: approvedUsername })}
             className="inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline"
           >
             View profile

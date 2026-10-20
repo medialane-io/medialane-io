@@ -17,6 +17,7 @@ import { fmtUsd } from "@/lib/wallet-format";
 import { collectionHref } from "@/lib/routes";
 import { ipfsToHttp, cn } from "@/lib/utils";
 import { EXPLORER_URL } from "@/lib/constants";
+import { profileHref } from "@/lib/routes";
 
 function formatCompact(n: number): string {
   return new Intl.NumberFormat(undefined, { notation: "compact", maximumFractionDigits: 2 }).format(n);
@@ -193,7 +194,7 @@ export function CoinExploreClient({ address }: { address: string }) {
           <span>{address.slice(0, 6)}…{address.slice(-4)}</span>
           <a href={`${EXPLORER_URL}/contract/${address}`} target="_blank" rel="noopener noreferrer" className="hover:text-foreground"><ExternalLink className="h-3.5 w-3.5" /></a>
           {coin?.creator && (
-            <Link href={`/creator/${coin.creator}`} className="hover:text-foreground">by {coin.creator.slice(0, 6)}…{coin.creator.slice(-4)}</Link>
+            <Link href={profileHref({ address: coin.creator })} className="hover:text-foreground">by {coin.creator.slice(0, 6)}…{coin.creator.slice(-4)}</Link>
           )}
         </div>
       </div>

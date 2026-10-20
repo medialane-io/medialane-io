@@ -35,6 +35,7 @@ import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { CreateTicketAside } from "@/components/claim/create-ticket-aside";
 import { collectionHref } from "@/lib/routes";
 import { LICENSE_TYPES, GEOGRAPHIC_SCOPES, AI_POLICIES, DERIVATIVES_OPTIONS } from "@medialane/ui/data/ip";
+import { profileHref } from "@/lib/routes";
 
 function dateToUnixTimestamp(dateStr: string | undefined): number | undefined {
   if (!dateStr) return undefined;
@@ -299,7 +300,7 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
               name={form.watch("name")}
               collection={collection.symbol || "Tickets"}
               creator={address ? `${address.slice(0, 6)}…${address.slice(-4)}` : undefined}
-              creatorHref={address ? `/account/${address}` : undefined}
+              creatorHref={address ? profileHref({ address }) : undefined}
             />
             <CreateTicketAside />
           </>

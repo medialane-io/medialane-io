@@ -12,6 +12,7 @@ import { ipfsToHttp } from "@/lib/utils";
 import { BRAND } from "@medialane/ui/data/brand";
 import { Search, Users, Palette, X } from "lucide-react";
 import type { ApiCreatorProfile } from "@medialane/sdk";
+import { profileHref } from "@/lib/routes";
 
 function CreatorCard({ creator }: { creator: ApiCreatorProfile }) {
   const rawSrc = creator.avatarImage || creator.collectionImage || null;
@@ -24,7 +25,7 @@ function CreatorCard({ creator }: { creator: ApiCreatorProfile }) {
 
   return (
     <Link
-      href={`/creator/${creator.username}`}
+      href={profileHref({ username: creator.username, address: creator.walletAddress })}
       className="block relative aspect-square overflow-hidden rounded-2xl bg-muted active:scale-[0.97] transition-transform duration-150 select-none"
     >
       {imageUrl && (

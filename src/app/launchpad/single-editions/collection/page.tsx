@@ -26,6 +26,7 @@ import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { CreateCollectionAside } from "@/components/claim/create-collection-aside";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 import { Layers, Loader2, ImagePlus, X } from "lucide-react";
+import { profileHref } from "@/lib/routes";
 
 const schema = z.object({
   name: z.string().min(1, "Name required").max(100),
@@ -214,7 +215,7 @@ export default function LaunchpadCreateCollectionPage() {
               name={form.watch("name") || "My Creative Works"}
               collection={form.watch("symbol") || "Collection"}
               creator={walletAddress ? `${walletAddress.slice(0, 6)}…${walletAddress.slice(-4)}` : undefined}
-              creatorHref={walletAddress ? `/account/${walletAddress}` : undefined}
+              creatorHref={walletAddress ? profileHref({ address: walletAddress }) : undefined}
             />
             <CreateCollectionAside />
           </>

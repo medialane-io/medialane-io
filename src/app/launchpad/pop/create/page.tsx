@@ -27,6 +27,7 @@ import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { RewardEarned } from "@/lib/reward-earned";
 import { CreatePopAside } from "@/components/claim/create-pop-aside";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
+import { profileHref } from "@/lib/routes";
 
 export default function CreatePOPPage() {
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
@@ -196,7 +197,7 @@ export default function CreatePOPPage() {
               name={form.watch("name")}
               collection={form.watch("symbol") || "POP Event"}
               creator={walletAddress ? `${walletAddress.slice(0, 6)}…${walletAddress.slice(-4)}` : undefined}
-              creatorHref={walletAddress ? `/account/${walletAddress}` : undefined}
+              creatorHref={walletAddress ? profileHref({ address: walletAddress }) : undefined}
             />
             <CreatePopAside />
           </>
