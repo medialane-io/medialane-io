@@ -137,11 +137,11 @@ export default function PortfolioLicensingPage() {
                     <span>{timeAgo(offer.createdAt)}</span>
                   </div>
                 </div>
-                {offer.status === "COMPLETED" && offer.remixContract && offer.remixTokenId && (
+                {(offer.status === "APPROVED" || offer.status === "COMPLETED") && offer.remixContract && offer.remixTokenId && (
                   <Button size="sm" variant="outline" asChild>
                     <Link href={assetHref("STARKNET", offer.remixContract, offer.remixTokenId)}>
                       <GitBranch className="h-3.5 w-3.5 mr-1" />
-                      Buy remix
+                      {offer.status === "APPROVED" ? "Buy remix" : "View remix"}
                     </Link>
                   </Button>
                 )}
