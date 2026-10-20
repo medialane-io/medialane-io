@@ -167,7 +167,7 @@ export function LaunchMint() {
                     </span>
                   </h2>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    One quick step before minting — secure your self-custody account with a passkey. No seed phrases to write down.
+                    One quick step before minting: secure your self-custody account with a passkey.
                   </p>
                 </div>
 

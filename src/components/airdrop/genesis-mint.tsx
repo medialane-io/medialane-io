@@ -117,7 +117,7 @@ export function GenesisMint() {
       <div className="w-full max-w-sm space-y-2.5">
         <OnboardingFlow />
         <p className="text-xs text-muted-foreground">
-          Takes about 10 seconds. No card and no wallet needed.
+          Takes about 10 seconds.
         </p>
       </div>
     );

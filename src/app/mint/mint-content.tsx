@@ -73,7 +73,7 @@ export function MintContent() {
                 </h1>
 
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
-                  {["Free to join", "No card needed", "Instant"].map((t) => (
+                  {["Free to join", "Instant"].map((t) => (
                     <div key={t} className="flex items-center gap-1.5 text-xs text-muted-foreground/80">
                       <CheckCircle2 className="h-3 w-3 text-emerald-500/70" />
                       {t}
@@ -103,7 +103,7 @@ export function MintContent() {
                 <h2 className="text-2xl sm:text-3xl font-black">Creator Fund</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   {[
-                    { icon: FileCheck, color: "text-blue-400",   bg: "bg-blue-500/10",   title: "Join for free",      desc: "Sign up in seconds — no card, no approval needed." },
+                    { icon: FileCheck, color: "text-blue-400",   bg: "bg-blue-500/10",   title: "Join for free",      desc: "Sign up in seconds." },
                     { icon: Coins,     color: "text-yellow-500", bg: "bg-yellow-500/10", title: "Creator fund",       desc: "Fund distributions for all participants." },
                     { icon: Users,     color: "text-purple-400", bg: "bg-purple-500/10", title: "Boost your chances", desc: "Create, share, and collect!" },
                   ].map(({ icon: Icon, color, bg, title, desc }) => (

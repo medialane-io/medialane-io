@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     template: "%s | Medialane",
   },
   description:
-    "Launch, collect, and monetize your creative works. No seed phrases — just a passkey.",
+    "Launch, collect, and monetize your creative works with a passkey.",
   keywords: ["NFT", "IP", "Launchpad", "Starknet", "Creator", "Marketplace"],
   authors: [{ name: "Medialane" }],
   icons: {
