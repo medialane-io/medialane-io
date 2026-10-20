@@ -15,7 +15,7 @@ import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useUsdPrices, usdPriceFor } from "@/hooks/use-usd-prices";
 import { fmtUsd } from "@/lib/wallet-format";
 import { collectionHref } from "@/lib/routes";
-import { ipfsToHttp, cn } from "@/lib/utils";
+import { resolveImage, cn } from "@/lib/utils";
 import { EXPLORER_URL } from "@/lib/constants";
 import { profileHref } from "@/lib/routes";
 
@@ -54,7 +54,7 @@ export function CoinExploreClient({ address }: { address: string }) {
   const name = coin?.name ?? "Creator Coin";
   const symbol = coin?.symbol ?? "COIN";
   const logoUri = coin?.image;
-  const logo = logoUri ? ipfsToHttp(logoUri) : null;
+  const logo = resolveImage(logoUri);
   const initials = symbol.trim().slice(0, 2).toUpperCase();
 
   const stats: { label: string; value: string }[] = [];

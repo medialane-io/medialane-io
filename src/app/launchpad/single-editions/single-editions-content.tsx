@@ -27,7 +27,7 @@ import { CreateAssetAside } from "@/components/claim/create-asset-aside";
 import type { MintStep } from "@/components/marketplace/mint-progress-dialog";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
-import { cn, ipfsToHttp } from "@/lib/utils";
+import { cn, resolveImage } from "@/lib/utils";
 import {
   createMintIntentWithDebug,
   confirmMintIntentWithDebug,
@@ -123,7 +123,7 @@ function collectionWorks(col: ApiCollection) {
 }
 
 function CollectionThumb({ image, size }: { image: string | null | undefined; size: "sm" | "md" }) {
-  const imageUrl = image ? ipfsToHttp(image) : null;
+  const imageUrl = resolveImage(image);
   return (
     <div
       className={cn(

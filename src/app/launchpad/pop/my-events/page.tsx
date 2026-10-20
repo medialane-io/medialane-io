@@ -7,12 +7,12 @@ import { Button } from "@medialane/ui/button";
 import { Skeleton } from "@medialane/ui/skeleton";
 import { FadeIn, Stagger, StaggerItem } from "@medialane/ui/motion-primitives";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { ipfsToHttp } from "@/lib/utils";
+import { resolveImage } from "@/lib/utils";
 import type { ApiCollection } from "@medialane/sdk";
 import { useMyEvents } from "@/hooks/use-pop";
 
 function MyEventCard({ collection }: { collection: ApiCollection }) {
-  const imageUrl = collection.image ? ipfsToHttp(collection.image) : null;
+  const imageUrl = resolveImage(collection.image);
   const initial = (collection.name ?? "E").charAt(0).toUpperCase();
 
   return (

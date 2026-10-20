@@ -9,7 +9,7 @@ import { useMarketplace } from "@/hooks/use-marketplace";
 import { useWalletMarketplaceActionFlow } from "@/hooks/use-wallet-marketplace-action-flow";
 import { MarketplaceConfirmStep } from "@medialane/ui";
 import { TransactionDialogStates } from "@/components/marketplace/transaction-dialog-states";
-import { resolveTokenImage, formatDisplayPrice } from "@/lib/utils";
+import { resolveImage, formatDisplayPrice } from "@/lib/utils";
 import type { ApiOrder } from "@medialane/sdk";
 
 interface CancelOrderDialogProps {
@@ -27,7 +27,7 @@ interface CancelOrderDialogProps {
 
 function TokenHero({ order, variant, tokenName, tokenImage }: { order: ApiOrder; variant: "listing" | "offer"; tokenName?: string | null; tokenImage?: string | null }) {
   const rawImage = order.token?.image ?? tokenImage ?? null;
-  const image = resolveTokenImage(rawImage);
+  const image = resolveImage(rawImage);
   const name = order.token?.name ?? tokenName ?? null;
 
   return (
@@ -140,7 +140,7 @@ export function CancelOrderDialog({
           errorTitle={`${resolvedVariant === "listing" ? "Listing" : "Offer"} cancellation failed`}
           errorDescription={`The transaction was submitted, but this ${resolvedVariant} could not be cancelled.`}
           errorAssetName={resolvedName}
-          errorAssetImage={resolveTokenImage(order?.token?.image ?? tokenImage)}
+          errorAssetImage={resolveImage(order?.token?.image ?? tokenImage)}
           onRetry={handleConfirmCancel}
           onDone={() => { onOpenChange(false); onSuccess?.(); }}
         >

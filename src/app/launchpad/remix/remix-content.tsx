@@ -8,7 +8,7 @@ import { ClaimBackButton } from "@/components/claim/claim-back-button";
 import { FadeIn, Stagger, StaggerItem } from "@medialane/ui/motion-primitives";
 import { Skeleton } from "@medialane/ui/skeleton";
 import { Button } from "@medialane/ui/button";
-import { resolveTokenImage } from "@/lib/utils";
+import { resolveImage } from "@/lib/utils";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import type { ApiToken } from "@medialane/sdk";
 import { GitBranch, ImageIcon, Inbox } from "lucide-react";
@@ -41,7 +41,7 @@ function useRemixableTokens() {
 
 function RemixableCard({ token }: { token: ApiToken }) {
   const [imgError, setImgError] = useState(false);
-  const imageUrl = resolveTokenImage(token.metadata?.image);
+  const imageUrl = resolveImage(token.metadata?.image);
   const showImage = imageUrl && !imgError;
   const name = token.metadata?.name ?? `#${token.tokenId}`;
 

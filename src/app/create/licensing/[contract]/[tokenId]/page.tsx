@@ -12,7 +12,7 @@ import { submitRemixOffer } from "@/hooks/use-remix-offers";
 import { getListableTokens, getTokenBySymbol, getService } from "@medialane/sdk";
 import { LICENSE_TYPES } from "@medialane/ui/data/ip";
 import { resolveRemixPolicy, getDerivativesTerm } from "@medialane/sdk";
-import { ipfsToHttp } from "@/lib/utils";
+import { resolveImage } from "@/lib/utils";
 import { ToggleGroup, Section } from "@medialane/ui/create-form-primitives";
 import { Button } from "@medialane/ui/button";
 import { Input } from "@medialane/ui/input";
@@ -36,7 +36,7 @@ export default function CreateLicensingPage() {
   const { amount: walletBalance } = useTokenBalance(contract, tokenId, walletAddress);
   const viewerIsOwner = checkIsOwner(token, walletAddress, walletBalance);
   const originalName = token?.metadata?.name ?? `Token #${tokenId}`;
-  const originalImage = token?.metadata?.image ? ipfsToHttp(token.metadata.image) : null;
+  const originalImage = resolveImage(token?.metadata?.image);
   const originalAttributes = Array.isArray(token?.metadata?.attributes)
     ? (token!.metadata!.attributes as { trait_type?: string; value?: string }[])
     : [];

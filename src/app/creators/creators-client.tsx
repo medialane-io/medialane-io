@@ -8,7 +8,7 @@ import { Input } from "@medialane/ui/input";
 import { Button } from "@medialane/ui/button";
 import { Skeleton } from "@medialane/ui/skeleton";
 import { FadeIn, Stagger, StaggerItem } from "@medialane/ui/motion-primitives";
-import { ipfsToHttp } from "@/lib/utils";
+import { resolveImage } from "@/lib/utils";
 import { BRAND } from "@medialane/ui/data/brand";
 import { Search, Users, Palette, X } from "lucide-react";
 import type { ApiCreatorProfile } from "@medialane/sdk";
@@ -16,7 +16,7 @@ import { profileHref } from "@/lib/routes";
 
 function CreatorCard({ creator }: { creator: ApiCreatorProfile }) {
   const rawSrc = creator.avatarImage || creator.collectionImage || null;
-  const imageUrl = rawSrc ? ipfsToHttp(rawSrc) : null;
+  const imageUrl = resolveImage(rawSrc);
   const { identity, name } = profileIdentity({
     username: creator.username,
     name: creator.name,

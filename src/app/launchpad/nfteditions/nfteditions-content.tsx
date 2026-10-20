@@ -10,7 +10,7 @@ import { FadeIn, Stagger, StaggerItem } from "@medialane/ui/motion-primitives";
 import { Skeleton } from "@medialane/ui/skeleton";
 import { Button } from "@medialane/ui/button";
 import { ClaimBackButton } from "@/components/claim/claim-back-button";
-import { ipfsToHttp } from "@/lib/utils";
+import { resolveImage } from "@/lib/utils";
 import {
   Layers, Sparkles, Plus, ArrowRight, Package,
   ExternalLink, Inbox,
@@ -19,7 +19,7 @@ import type { ApiCollection } from "@medialane/sdk";
 
 function CollectionRow({ col }: { col: ApiCollection }) {
   const [imgError, setImgError] = useState(false);
-  const imageUrl = col.image ? ipfsToHttp(col.image) : null;
+  const imageUrl = resolveImage(col.image);
   const showImage = imageUrl && !imgError;
 
   return (

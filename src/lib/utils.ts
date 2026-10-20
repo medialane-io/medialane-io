@@ -1,7 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { formatDistanceToNow } from "date-fns";
-import { toDisplayUrl, toDisplayUrlOrNull, PINATA_PUBLIC_GATEWAY } from "@medialane/ui";
+import { createImageResolver, PINATA_PUBLIC_GATEWAY } from "@medialane/ui";
 import { IPFS_GATEWAY } from "./constants";
 
 export function cn(...inputs: ClassValue[]) {
@@ -36,15 +36,7 @@ export function formatDisplayPrice(price: string | number | null | undefined): s
   return currencyPart ? `${formatted} ${currencyPart}` : formatted;
 }
 
-const displayOptions = { gateway: IPFS_GATEWAY ?? PINATA_PUBLIC_GATEWAY };
-
-export function ipfsToHttp(uri: string | null | undefined): string {
-  return toDisplayUrl(uri, displayOptions);
-}
-
-export function resolveTokenImage(raw: string | null | undefined): string | null {
-  return toDisplayUrlOrNull(raw, displayOptions);
-}
+export const resolveImage = createImageResolver({ gateway: IPFS_GATEWAY ?? PINATA_PUBLIC_GATEWAY, proxyPath: "/api/img" });
 
 export function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();

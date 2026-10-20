@@ -10,14 +10,14 @@ import { Skeleton } from "@medialane/ui/skeleton";
 import { Input } from "@medialane/ui/input";
 import { Button } from "@medialane/ui/button";
 import { MotionCard } from "@medialane/ui/motion-primitives";
-import { ipfsToHttp } from "@/lib/utils";
+import { resolveImage } from "@/lib/utils";
 import { Search, Layers, ImageIcon, Users, X, ArrowUpRight } from "lucide-react";
 import type { ApiSearchResult, ApiSearchCreatorResult } from "@medialane/sdk";
 import { profileHref } from "@/lib/routes";
 
 function TokenCard({ token }: { token: NonNullable<ApiSearchResult["tokens"]>[number] }) {
   const [imgError, setImgError] = useState(false);
-  const image = token.image ? ipfsToHttp(token.image) : null;
+  const image = resolveImage(token.image);
   const name = token.name ?? `Token #${token.tokenId}`;
   const href = assetHref("STARKNET", token.contractAddress, token.tokenId);
 
@@ -64,7 +64,7 @@ function TokenCard({ token }: { token: NonNullable<ApiSearchResult["tokens"]>[nu
 
 function CollectionCard({ col }: { col: NonNullable<ApiSearchResult["collections"]>[number] }) {
   const [imgError, setImgError] = useState(false);
-  const imageUrl = col.image ? ipfsToHttp(col.image) : null;
+  const imageUrl = resolveImage(col.image);
   const showImage = imageUrl && !imgError;
   const initial = (col.name ?? "?").charAt(0).toUpperCase();
 
@@ -98,7 +98,7 @@ function CollectionCard({ col }: { col: NonNullable<ApiSearchResult["collections
 }
 
 function CreatorCard({ creator }: { creator: ApiSearchCreatorResult }) {
-  const avatarUrl = creator.avatarImage ? ipfsToHttp(creator.avatarImage) : null;
+  const avatarUrl = resolveImage(creator.avatarImage);
   const { identity, name } = profileIdentity({
     username: creator.username,
     name: creator.name,

@@ -2,7 +2,7 @@
 
 import { ListingCard as PackageListingCard, ListingCardMenu, ListingCardSkeleton } from "@medialane/ui";
 import type { ApiOrder } from "@medialane/sdk";
-import { ipfsToHttp } from "@/lib/utils";
+import { resolveImage } from "@/lib/utils";
 import { usdValueFor } from "@/lib/wallet-format";
 import { useUsdPrices } from "@/hooks/use-usd-prices";
 
@@ -22,7 +22,7 @@ export function ListingCard({ order, onBuy, compact = false }: ListingCardProps)
       onBuy={onBuy}
       compact={compact}
       overflowMenu={<ListingCardMenu order={order} />}
-      imageUrl={order.token?.image ? ipfsToHttp(order.token.image) : null}
+      imageUrl={resolveImage(order.token?.image)}
       usdValue={usdValueFor(order.price?.formatted, order.price?.currency, usdPrices)}
     />
   );

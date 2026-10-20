@@ -25,7 +25,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@medialane/
 import { registerRemix } from "@/hooks/use-remix-offers";
 import { getService, normalizeAddress } from "@medialane/sdk";
 import { IP_TYPES, LICENSE_TYPES } from "@medialane/ui/data/ip";
-import { ipfsToHttp } from "@/lib/utils";
+import { resolveImage } from "@/lib/utils";
 import { resolveRemixPolicy, getDerivativesTerm } from "@medialane/sdk";
 import { ToggleGroup, Section } from "@medialane/ui/create-form-primitives";
 import { cn } from "@/lib/utils";
@@ -60,7 +60,7 @@ export default function CreateRemixPage() {
   const viewerIsOwner = checkIsOwner(token, walletAddress, walletBalance);
 
   const originalName = token?.metadata?.name ?? `Token #${tokenId}`;
-  const originalImage = token?.metadata?.image ? ipfsToHttp(token.metadata.image) : null;
+  const originalImage = resolveImage(token?.metadata?.image);
   const originalAttributes = Array.isArray(token?.metadata?.attributes)
     ? (token!.metadata!.attributes as { trait_type?: string; value?: string }[])
     : [];

@@ -10,7 +10,7 @@ import { useMyUsernameClaim } from "@/hooks/use-username-claims";
 
 import { useSession } from "@/hooks/use-session";
 import { mediaWallet } from "@/lib/wallet/client";
-import { resolveTokenImage } from "@/lib/utils";
+import { resolveImage } from "@/lib/utils";
 import { EXPLORER_URL } from "@/lib/constants";
 import { emailBannerText } from "@/lib/settings/rows";
 
@@ -26,7 +26,7 @@ function useHeaderIdentity(address: string): MediaWalletHeaderIdentity {
   const { username } = useMyUsernameClaim();
   const { data: rewards } = useRewards(address);
   return {
-    avatarUrl: resolveTokenImage(profile?.avatarImage),
+    avatarUrl: resolveImage(profile?.avatarImage),
     headline: username ? `@${username}` : undefined,
     badge: rewards ? (
       <LevelBadge
@@ -44,7 +44,7 @@ export function MediaWalletApp() {
   return (
     <MediaWalletOverlay
       wallet={mediaWallet}
-      resolveImage={resolveTokenImage}
+      resolveImage={resolveImage}
       explorerUrl={EXPLORER_URL}
       emailBanner={EMAIL_BANNER}
       externalWallet={EXTERNAL_WALLET}

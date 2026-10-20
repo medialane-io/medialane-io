@@ -10,7 +10,7 @@ import { Button } from "@medialane/ui/button";
 import { ServiceHeader, usePopCollections } from "@medialane/ui";
 import { ClaimBackButton } from "@/components/claim/claim-back-button";
 import { PopClaimButton } from "@/components/claim/pop-claim-button";
-import { ipfsToHttp } from "@/lib/utils";
+import { resolveImage } from "@/lib/utils";
 import type { ApiCollection } from "@medialane/sdk";
 
 type CollectionWithAttributes = ApiCollection & {
@@ -19,7 +19,7 @@ type CollectionWithAttributes = ApiCollection & {
 
 function PopCollectionCard({ collection }: { collection: ApiCollection }) {
   const [imgError, setImgError] = useState(false);
-  const imageUrl = collection.image ? ipfsToHttp(collection.image) : null;
+  const imageUrl = resolveImage(collection.image);
   const showImage = imageUrl && !imgError;
   const initial = (collection.name ?? "P").charAt(0).toUpperCase();
 

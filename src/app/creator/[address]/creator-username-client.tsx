@@ -11,7 +11,7 @@ import { CreatorAnalytics } from "@/components/creator/creator-analytics";
 import { ActivityTimelineRow } from "@medialane/ui";
 import { Button } from "@medialane/ui/button";
 import { Skeleton } from "@medialane/ui/skeleton";
-import { ipfsToHttp } from "@/lib/utils";
+import { resolveImage } from "@/lib/utils";
 import { useUsdPrices } from "@/hooks/use-usd-prices";
 import { usdValueFor } from "@/lib/wallet-format";
 import { normalizeAddress } from "@medialane/sdk";
@@ -52,7 +52,7 @@ export default function CreatorUsernamePageClient({ username }: Props) {
   const heroRaw = creator?.avatarImage
     || bannerTokens[0]?.metadata?.image
     || null;
-  const heroImage = heroRaw ? ipfsToHttp(heroRaw) : null;
+  const heroImage = resolveImage(heroRaw);
 
 
   const tabBadge: Partial<Record<TabId, number>> = {

@@ -11,7 +11,7 @@ import { SettingsGate, SettingsPage, SettingsSection } from "@/components/settin
 import { useProfileForm } from "@/hooks/use-profile-form";
 import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useMyUsernameClaim } from "@/hooks/use-username-claims";
-import { resolveTokenImage } from "@/lib/utils";
+import { resolveImage } from "@/lib/utils";
 
 export default function AppearanceSettingsPage() {
   const { address, isLoading, form, setField, saving, saveStatus, saveError, save } = useProfileForm();
@@ -23,7 +23,7 @@ export default function AppearanceSettingsPage() {
     contractAddress: t.contractAddress,
     tokenId: t.tokenId,
     name: t.metadata?.name ?? `Token #${t.tokenId}`,
-    image: resolveTokenImage(t.metadata?.image),
+    image: resolveImage(t.metadata?.image),
   }));
 
   return (

@@ -14,7 +14,7 @@ import { ActivityTicker } from "@/components/shared/activity-ticker";
 import { CurrencyIcon } from "@medialane/ui/currency-icon";
 import type { ApiSearchResult } from "@medialane/sdk";
 import { getTokenBySymbol, parseAmount, SUPPORTED_TOKENS } from "@medialane/sdk";
-import { ipfsToHttp, cn } from "@/lib/utils";
+import { resolveImage, cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { IP_TYPES } from "@medialane/ui/data/ip";
@@ -96,21 +96,24 @@ function SearchBar() {
               <div className="px-3 py-1.5 text-[10px] font-semibold text-muted-foreground bg-muted/30">
                 Tokens
               </div>
-              {results.tokens!.map((t) => (
-                <Link
-                  key={`${t.contractAddress}-${t.tokenId}`}
-                  href={assetHref("STARKNET", t.contractAddress, t.tokenId)}
-                  className="flex items-center gap-3 px-3 py-2.5 hover:bg-muted/50 transition-colors"
-                >
-                  <div className="relative h-8 w-8 rounded-lg bg-muted shrink-0 overflow-hidden">
-                    {t.image && <Image src={ipfsToHttp(t.image)} alt="" fill className="object-cover" unoptimized />}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium truncate">{t.name ?? `Token #${t.tokenId}`}</p>
-                    <p className="text-xs text-muted-foreground tabular-nums truncate">{t.contractAddress.slice(0, 14)}…</p>
-                  </div>
-                </Link>
-              ))}
+              {results.tokens!.map((t) => {
+                const img = resolveImage(t.image);
+                return (
+                  <Link
+                    key={`${t.contractAddress}-${t.tokenId}`}
+                    href={assetHref("STARKNET", t.contractAddress, t.tokenId)}
+                    className="flex items-center gap-3 px-3 py-2.5 hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="relative h-8 w-8 rounded-lg bg-muted shrink-0 overflow-hidden">
+                      {img && <Image src={img} alt="" fill className="object-cover" unoptimized />}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium truncate">{t.name ?? `Token #${t.tokenId}`}</p>
+                      <p className="text-xs text-muted-foreground tabular-nums truncate">{t.contractAddress.slice(0, 14)}…</p>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           )}
           {(results.collections?.length ?? 0) > 0 && (
@@ -119,7 +122,7 @@ function SearchBar() {
                 Collections
               </div>
               {results.collections!.map((c) => {
-                const imgUrl = c.image ? ipfsToHttp(c.image) : null;
+                const imgUrl = resolveImage(c.image);
                 return (
                   <Link
                     key={c.contractAddress}
