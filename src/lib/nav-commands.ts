@@ -1,7 +1,7 @@
 import type { NavCommandGroup } from "@medialane/ui";
 import {
   Home, Telescope, Store, LayoutGrid, Users, Activity, Trophy, Gift,
-  Briefcase, Search, Music, Palette, Film, Camera, Gem,
+  Briefcase, Music, Palette, Film, Camera, Gem,
   Plus, Layers, Repeat2, Ticket, Zap, BookOpen, FileText,
   ShieldCheck, Settings, List, Tag, ScrollText, Coins,
   FolderInput, AtSign, Link2, Handshake,
@@ -28,7 +28,6 @@ export const NAV_COMMANDS: NavCommandGroup[] = [
       { id: "rewards",     label: "Rewards",      icon: Trophy,     href: "/rewards",     keywords: ["xp", "points", "scoreboard", "leaderboard", "badges", "rank"] },
       { id: "airdrop",     label: "Airdrop",      icon: Gift,       href: "/airdrop",     keywords: ["claim", "free", "drop", "genesis"] },
       { id: "claims",      label: "Claims",       icon: FolderInput, href: "/claim",      keywords: ["username", "reserve", "import", "collection name", "memecoin"] },
-      { id: "search",      label: "Search",       icon: Search,     href: "/search",      keywords: ["find", "lookup", "query"] },
       { id: "settings",    label: "Account Settings", icon: Settings, href: "/settings",  keywords: ["profile", "username", "preferences", "account"] },
     ],
   },

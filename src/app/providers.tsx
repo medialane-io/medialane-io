@@ -48,6 +48,7 @@ function MainShell({ children }: { children: React.ReactNode }) {
         footerSlot={<NavThemeToggle />}
         showKeyboardHints={false}
         brandSlot={<NavConnectButton />}
+        search
       />
       <MediaWalletApp />
       <div className="relative min-h-screen flex flex-col bg-background">
