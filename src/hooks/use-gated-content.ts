@@ -1,23 +1,12 @@
 "use client";
 
 import useSWR from "swr";
+import type { GatedContent, GatedContentState } from "@medialane/ui";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSession } from "@/hooks/use-session";
 import { requireSignedIn } from "@/lib/account-gate";
 
-export interface GatedContent {
-  title: string | null;
-  url: string;
-  type: string | null;
-}
-
-export type GatedContentState =
-  | { status: "not_signed_in" }
-  | { status: "loading" }
-  | { status: "not_holder" }
-  | { status: "unlocked"; content: GatedContent }
-  | { status: "error" };
 
 export function useGatedContent(contract: string | undefined): GatedContentState {
   const { hasWallet } = useWalletNativeSession();
@@ -32,7 +21,7 @@ export function useGatedContent(contract: string | undefined): GatedContentState
     { shouldRetryOnError: false, revalidateOnFocus: false }
   );
 
-  if (!hasWallet) return { status: "not_signed_in" };
+  if (!hasWallet) return { status: "signed_out" };
   if (isLoading) return { status: "loading" };
   if (error) return { status: "error" };
   if (data === "not_holder" || data === undefined) return { status: "not_holder" };
