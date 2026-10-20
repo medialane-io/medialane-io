@@ -17,10 +17,9 @@ import { getTokenBySymbol, parseAmount, SUPPORTED_TOKENS } from "@medialane/sdk"
 import { ipfsToHttp, cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { usePlatformStats } from "@/hooks/use-stats";
+import { usePlatformStats, PageContainer, StatPillRow } from "@medialane/ui";
 import { IP_TYPES } from "@medialane/ui/data/ip";
 import { HelpIcon } from "@medialane/ui/help-icon";
-import { PageContainer, StatPillRow } from "@medialane/ui";
 
 const SORT_OPTIONS = [
   { label: "Recent", value: "recent" },

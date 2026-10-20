@@ -3,7 +3,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useCollectionsByOwner } from "@/hooks/use-collections";
+import { useCollectionsByOwner } from "@medialane/ui";
+
 import { Button } from "@medialane/ui/button";
 import { EmptyOrError } from "@medialane/ui/empty-or-error";
 import { ipfsToHttp } from "@/lib/utils";

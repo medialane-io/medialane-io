@@ -4,19 +4,12 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { Button } from "@medialane/ui/button";
 import { LogIn } from "lucide-react";
-import { useUserOrders } from "@/hooks/use-orders";
+import { useUserOrders, useRewards, PortfolioHeader, PortfolioChipFilter, derivePortfolioCounts, type PortfolioChipFilterOption } from "@medialane/ui";
 import { markOffersAsSeen } from "@/hooks/use-unread-offers";
 import { useRemixOffers } from "@/hooks/use-remix-offers";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import Link from "next/link";
-import { useRewards } from "@/hooks/use-rewards";
 import { useMySponsorshipDealCounts } from "@/hooks/use-sponsorship";
-import {
-  PortfolioHeader,
-  PortfolioChipFilter,
-  derivePortfolioCounts,
-  type PortfolioChipFilterOption,
-} from "@medialane/ui";
 
 const PORTFOLIO_SECTIONS: { key: string; label: string; href: string }[] = [
   { key: "assets",      label: "Assets",               href: "/portfolio/assets" },

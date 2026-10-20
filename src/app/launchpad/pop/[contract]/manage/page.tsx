@@ -1,6 +1,6 @@
 "use client";
 
-import { describeError, runIntentCalls } from "@medialane/ui";
+import { describeError, runIntentCalls, useCollection } from "@medialane/ui";
 import { use, useState } from "react";
 import Link from "next/link";
 import { normalizeAddress } from "@medialane/sdk";
@@ -12,7 +12,6 @@ import { Textarea } from "@medialane/ui/textarea";
 import { FadeIn } from "@medialane/ui/motion-primitives";
 import { Skeleton } from "@medialane/ui/skeleton";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useCollection } from "@/hooks/use-collections";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@medialane/ui/dialog";
 import type { ApiIntentCreated } from "@medialane/sdk";
 import { getMedialaneClient } from "@/lib/medialane-client";

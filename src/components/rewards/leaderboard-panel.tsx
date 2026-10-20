@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
-import { LeaderboardTable } from "@medialane/ui";
+import { LeaderboardTable, useLeaderboard } from "@medialane/ui";
+
 import { Skeleton } from "@medialane/ui/skeleton";
 import { AddressDisplay } from "@medialane/ui/address-display";
-import { useLeaderboard } from "@/hooks/use-rewards";
+
 import { cn } from "@/lib/utils";
 
 export interface LeaderboardPanelProps {

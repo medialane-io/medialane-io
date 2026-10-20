@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Activity, ArrowRight, RefreshCw, Sparkles, Zap, Palette, ShoppingBag, MessageSquare } from "lucide-react";
-import { useActivities } from "@/hooks/use-activities";
-import { useRewardsBatch } from "@/hooks/use-rewards";
+import { useActivities, useRewardsBatch } from "@medialane/ui";
+
+
 import { useWallet } from "@/hooks/use-wallet";
 import { ActivityRow } from "@/components/shared/activity-row";
 import { LeaderboardPanel } from "@/components/rewards/leaderboard-panel";

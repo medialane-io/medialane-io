@@ -6,7 +6,8 @@ import { Gavel, Search } from "lucide-react";
 import { Button } from "@medialane/ui/button";
 import { Input } from "@medialane/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@medialane/ui/sheet";
-import { useCollectionTokens } from "@/hooks/use-collections";
+import { useCollectionTokens } from "@medialane/ui";
+
 import { OfferDialog } from "@/components/marketplace/offer-dialog";
 import { resolveTokenImage } from "@/lib/utils";
 import type { ApiToken } from "@medialane/sdk";

@@ -1,7 +1,7 @@
 "use client";
 
-import { DiscoverCollectionsStrip } from "@medialane/ui";
-import { useCollections } from "@/hooks/use-collections";
+import { DiscoverCollectionsStrip, useCollections } from "@medialane/ui";
+
 
 export function CollectionsStrip() {
   const { collections, isLoading } = useCollections(1, 10, undefined, "recent");

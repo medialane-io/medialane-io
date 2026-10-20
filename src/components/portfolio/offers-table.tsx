@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useUserOrders } from "@/hooks/use-orders";
+import { useUserOrders } from "@medialane/ui";
+
 import { assetHref } from "@/lib/routes";
 import { Button } from "@medialane/ui/button";
 import { EmptyOrError } from "@medialane/ui/empty-or-error";

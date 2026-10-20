@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useCollections, type CollectionSort } from "@/hooks/use-collections";
-import { usePlatformStats } from "@/hooks/use-stats";
-import { CollectionCard, CollectionCardSkeleton, LoadMoreSentinel, PageContainer } from "@medialane/ui";
+import type { CollectionSort } from "@medialane/ui";
+import { useCollections, usePlatformStats, CollectionCard, CollectionCardSkeleton, LoadMoreSentinel, PageContainer } from "@medialane/ui";
 import { Button } from "@medialane/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@medialane/ui/dialog";
 import { Layers, BadgeCheck, Eye, SlidersHorizontal, Award, Sparkles } from "lucide-react";

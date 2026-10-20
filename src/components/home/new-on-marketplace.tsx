@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { Tag } from "lucide-react";
-import { useOrders } from "@/hooks/use-orders";
-import { AssetCard, AssetCardSkeleton, ScrollSection } from "@medialane/ui";
+import { useOrders, AssetCard, AssetCardSkeleton, ScrollSection } from "@medialane/ui";
+
+
 import { assetHref } from "@/lib/routes";
 import type { Chain } from "@medialane/sdk";
 

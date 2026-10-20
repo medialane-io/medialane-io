@@ -1,8 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useToken } from "@/hooks/use-tokens";
-import { useCollection } from "@/hooks/use-collections";
+import { useToken, useCollection, PageContainer } from "@medialane/ui";
 import { Skeleton } from "@medialane/ui/skeleton";
 import { AssetPageStandard } from "./asset-page-standard";
 import { AssetPagePop } from "./asset-page-pop";
@@ -10,7 +9,6 @@ import { AssetPageEdition } from "./asset-page-edition";
 import { AssetPageTicket } from "./asset-page-ticket";
 import { AssetPageMembership } from "./asset-page-membership";
 import { getService } from "@medialane/sdk";
-import { PageContainer } from "@medialane/ui";
 
 function detectAssetType(
   service: string | null | undefined,

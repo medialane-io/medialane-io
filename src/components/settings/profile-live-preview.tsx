@@ -3,10 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, Globe, MessageCircle, Send, Twitter } from "lucide-react";
-import { CreatorScoreInline } from "@/components/rewards/creator-score-inline";
+import { CreatorScoreInline, profileIdentity } from "@medialane/ui";
+
 import { resolveTokenImage } from "@/lib/utils";
 import type { ProfileForm } from "./types";
-import { profileIdentity } from "@medialane/ui";
 
 export function ProfileLivePreview({
   form, approvedUsername, walletAddress, fallbackImage,

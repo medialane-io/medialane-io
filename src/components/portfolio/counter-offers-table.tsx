@@ -1,8 +1,9 @@
 "use client";
 
-import { UserFacingError } from "@medialane/ui";
+import { UserFacingError, useUserOrders, useCounterOffers } from "@medialane/ui";
+
 import { useState } from "react";
-import { useUserOrders, useCounterOffers } from "@/hooks/use-orders";
+
 import { assetHref } from "@/lib/routes";
 import { Button } from "@medialane/ui/button";
 import { Badge } from "@medialane/ui/badge";

@@ -2,10 +2,9 @@
 
 import useSWR from "swr";
 import type { ApiCoin, ApiResponse } from "@medialane/sdk";
-import { coinServiceIds, type CoinFilter, type CoinSort, type CoinCollectionLike } from "@medialane/ui";
+import { coinServiceIds, type CoinFilter, type CoinSort, type CoinCollectionLike, useCoinPrice, usePriceMap } from "@medialane/ui";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { coinHref as buildCoinHref } from "@/lib/routes";
-import { useCoinPrice, usePriceMap } from "@/hooks/use-coin-price";
 
 const TRADE_APP: Record<string, string> = { STARKNET: "https://starknet.medialane.io" };
 const tradeAppFor = (chain?: string | null) => TRADE_APP[(chain ?? "STARKNET").toString().toUpperCase()] ?? TRADE_APP.STARKNET;

@@ -1,13 +1,11 @@
 "use client";
 
-import { describeError, checkIsOwner } from "@medialane/ui";
+import { describeError, checkIsOwner, useToken, useTokenBalance, useCollection } from "@medialane/ui";
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { assetHref } from "@/lib/routes";
-import { useToken, useTokenBalance } from "@/hooks/use-tokens";
-import { useCollection } from "@/hooks/use-collections";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSession } from "@/hooks/use-session";
 import { submitRemixOffer } from "@/hooks/use-remix-offers";

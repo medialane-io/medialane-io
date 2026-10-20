@@ -5,10 +5,11 @@ import { Button } from "@medialane/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@medialane/ui/dialog";
 import { useEffect, useState } from "react";
 import { popClaimState, type PopClaimInfo } from "@medialane/sdk/starknet";
-import { claimProofFor, MarketplaceErrorState, MarketplaceSuccessState, runIntentCalls } from "@medialane/ui";
+import { claimProofFor, MarketplaceErrorState, MarketplaceSuccessState, runIntentCalls, usePopClaimStatus } from "@medialane/ui";
+
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { usePopClaimStatus } from "@/hooks/use-pop";
+
 import { RewardEarned } from "@/lib/reward-earned";
 import { EXPLORER_URL } from "@/lib/constants";
 import { getMedialaneClient } from "@/lib/medialane-client";

@@ -1,13 +1,11 @@
 "use client";
 
-import { describeError } from "@medialane/ui";
+import { describeError, useCollection, useCollectionProfile } from "@medialane/ui";
 import { use, useState, useEffect, useRef } from "react";
 import { normalizeAddress } from "@medialane/sdk";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSession } from "@/hooks/use-session";
 import { requireSignedIn } from "@/lib/account-gate";
-import { useCollection } from "@/hooks/use-collections";
-import { useCollectionProfile } from "@/hooks/use-profiles";
 import { collectionHref } from "@/lib/routes";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { Button } from "@medialane/ui/button";

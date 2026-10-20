@@ -1,8 +1,8 @@
 "use client";
 
 import { TrendingUp } from "lucide-react";
-import { useCollections } from "@/hooks/use-collections";
-import { CollectionCard, CollectionCardSkeleton, ScrollSection } from "@medialane/ui";
+import { useCollections, CollectionCard, CollectionCardSkeleton, ScrollSection } from "@medialane/ui";
+
 
 export function TrendingCollections() {
   const { collections, isLoading } = useCollections(1, 10, undefined, "recent");

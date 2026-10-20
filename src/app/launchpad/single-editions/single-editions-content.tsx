@@ -1,7 +1,7 @@
 "use client";
 
 import { requireSignedIn } from "@/lib/account-gate";
-import { UserFacingError, CollapsibleSection, MedialaneCollectionCard, describeError } from "@medialane/ui";
+import { UserFacingError, CollapsibleSection, MedialaneCollectionCard, describeError, useCollectionsByOwner } from "@medialane/ui";
 import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
 import { RewardEarned } from "@/lib/reward-earned";
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -20,7 +20,6 @@ import { Skeleton } from "@medialane/ui/skeleton";
 import { Popover, PopoverContent, PopoverTrigger } from "@medialane/ui/popover";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSession } from "@/hooks/use-session";
-import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { MintProgressDialog } from "@/components/marketplace/mint-progress-dialog";
 import type { MintTxStatus } from "@/types/mint-tx-status";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";

@@ -14,8 +14,9 @@ import { Skeleton } from "@medialane/ui/skeleton";
 import { Button } from "@medialane/ui/button";
 import { Textarea } from "@medialane/ui/textarea";
 import { AddressDisplay } from "@medialane/ui/address-display";
-import { LevelBadge, runIntentCalls } from "@medialane/ui";
-import { useRewardsBatch } from "@/hooks/use-rewards";
+import { LevelBadge, runIntentCalls, useRewardsBatch } from "@medialane/ui";
+
+
 import { RewardEarned } from "@/lib/reward-earned";
 import { STARKNET_NFTCOMMENTS_CONTRACT, EXPLORER_URL } from "@/lib/constants";
 import { MessageCircle, Loader2, Send, CheckCircle, X, ExternalLink, Flag, Zap } from "lucide-react";

@@ -3,8 +3,8 @@
 import type React from "react";
 import Link from "next/link";
 import { ArrowUpRight, Gem, LayoutGrid, Tag, Trophy } from "lucide-react";
-import { LevelBadge } from "@medialane/ui";
-import { useRewards } from "@/hooks/use-rewards";
+import { LevelBadge, useRewards } from "@medialane/ui";
+
 
 function SnapshotStat({ icon: Icon, value, label }: { icon: React.ElementType; value: number; label: string }) {
   return (

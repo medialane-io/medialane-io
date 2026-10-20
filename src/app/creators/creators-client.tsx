@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useCreators } from "@/hooks/use-creators";
+import { useCreators, profileIdentity } from "@medialane/ui";
 import { Input } from "@medialane/ui/input";
 import { Button } from "@medialane/ui/button";
 import { Skeleton } from "@medialane/ui/skeleton";
@@ -12,7 +12,6 @@ import { ipfsToHttp } from "@/lib/utils";
 import { BRAND } from "@medialane/ui/data/brand";
 import { Search, Users, Palette, X } from "lucide-react";
 import type { ApiCreatorProfile } from "@medialane/sdk";
-import { profileIdentity } from "@medialane/ui";
 
 function CreatorCard({ creator }: { creator: ApiCreatorProfile }) {
   const rawSrc = creator.avatarImage || creator.collectionImage || null;

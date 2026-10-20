@@ -1,7 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { usePlatformStats } from "@/hooks/use-stats";
+import { usePlatformStats } from "@medialane/ui";
+
 import { KineticWords, EASE_OUT } from "@medialane/ui/motion-primitives";
 import { ActivityTicker } from "@/components/shared/activity-ticker";
 

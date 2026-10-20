@@ -1,7 +1,8 @@
 "use client";
 
-import { HeroSlider as UiHeroSlider } from "@medialane/ui";
-import { useCollections } from "@/hooks/use-collections";
+import { HeroSlider as UiHeroSlider, useCollections } from "@medialane/ui";
+
+
 import type { ApiCollection } from "@medialane/sdk";
 import { collectionHref } from "@/lib/routes";
 
