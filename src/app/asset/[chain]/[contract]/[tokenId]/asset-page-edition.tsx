@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { assetHref, collectionHref } from "@/lib/routes";
-import { PageContainer, AssetCollectionBar, AssetUtilityIcons, AssetMarketplacePanel, AssetHeaderBlock, AssetMediaColumn, buildEditionStats, AssetOwnersPanel, AssetProvenanceTab, AssetUnavailable, ASSET_ACCENTS } from "@medialane/ui";
+import { PageContainer, AssetCollectionBar, AssetUtilityIcons, AssetMarketplacePanel, AssetHeaderBlock, AssetMediaColumn, AssetOwnersPanel, AssetProvenanceTab, AssetUnavailable, ASSET_ACCENTS } from "@medialane/ui";
 import { ipfsToHttp } from "@/lib/utils";
 import { Layers } from "lucide-react";
 import { FloatingCommentsButton } from "@/components/asset/floating-comments-button";
@@ -37,8 +37,6 @@ export function AssetPageEdition() {
     imageUrl, image, name, description, attributes, hasTemplateData, isDisplayAttr, isIndexing,
   } = useAssetPage({ tokenStandard: "ERC1155", namePrefix: "Edition" });
 
-  const totalEditions = Number(token?.supply ?? 0);
-  const uniqueOwners = token?.holderCount ?? holders.length;
 
   const autoActionRef = useRef(false);
   useEffect(() => {
@@ -85,7 +83,6 @@ export function AssetPageEdition() {
                 <Layers className="h-24 w-24 text-brand-purple/40" />
               </div>
             )}
-            stats={buildEditionStats(totalEditions, uniqueOwners)}
           />
 
           <motion.div
@@ -99,7 +96,6 @@ export function AssetPageEdition() {
                 name={name}
                 description={description}
                 ipType={token.metadata?.ipType}
-                showMultiEditionBadge={true}
               />
               <AssetUtilityIcons
                 contractExplorerHref={`${EXPLORER_URL}/contract/${contract}`}
@@ -131,7 +127,7 @@ export function AssetPageEdition() {
               onOpenOffer={() => setOfferOpen(true)}
             />
 
-            <AssetOwnersPanel balances={holders} total={token.holderCount} maxVisible={8} />
+            <AssetOwnersPanel balances={holders} total={token.holderCount} editions={Number(token.supply ?? 0)} />
 
             <AssetCollectionBar
               collectionName={collection?.name ?? contract.slice(0, 8) + "…"}

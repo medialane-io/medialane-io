@@ -170,7 +170,6 @@ export function AssetPageStandard() {
                 name={name}
                 description={description}
                 ipType={token.metadata?.ipType}
-                showMultiEditionBadge={Boolean(isERC1155)}
                 parentContract={parentContract}
                 parentTokenId={parentTokenId}
                 ownerAddress={!isERC1155 ? (token.balances?.[0]?.owner ?? token.owner ?? null) : null}
@@ -210,7 +209,7 @@ export function AssetPageStandard() {
             />
 
             {isERC1155 && token.balances && token.balances.length > 0 ? (
-              <AssetOwnersPanel balances={token.balances} total={token.holderCount} maxVisible={5} />
+              <AssetOwnersPanel balances={token.balances} total={token.holderCount} editions={Number(token.supply ?? 0)} />
             ) : null}
 
             <div className="pt-5 border-t border-border/40 space-y-5">

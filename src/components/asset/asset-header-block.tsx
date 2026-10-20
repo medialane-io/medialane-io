@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { Layers } from "lucide-react";
 import { AddressDisplay } from "@/components/shared/address-display";
 import { IpTypeBadge } from "@/components/shared/ip-type-badge";
 import { ParentAttributionBanner } from "@/components/asset/remixes-tab";
@@ -10,7 +9,6 @@ interface AssetHeaderBlockProps {
   name: string;
   description?: string | null;
   ipType?: string | null;
-  showMultiEditionBadge?: boolean;
   parentContract?: string | null;
   parentTokenId?: string | null;
   ownerAddress?: string | null;
@@ -20,22 +18,15 @@ export function AssetHeaderBlock({
   name,
   description,
   ipType,
-  showMultiEditionBadge = false,
   parentContract,
   parentTokenId,
   ownerAddress,
 }: AssetHeaderBlockProps) {
   return (
     <div className="min-w-0 flex-1">
-      {ipType || showMultiEditionBadge ? (
+      {ipType ? (
         <div className="flex items-center gap-2 flex-wrap mb-2">
-          {ipType ? <IpTypeBadge ipType={ipType} size="md" /> : null}
-          {showMultiEditionBadge ? (
-            <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-brand-purple/30 bg-brand-purple/10 text-brand-purple">
-              <Layers className="h-3 w-3" />
-              Multi-edition
-            </span>
-          ) : null}
+          <IpTypeBadge ipType={ipType} size="md" />
         </div>
       ) : null}
 
