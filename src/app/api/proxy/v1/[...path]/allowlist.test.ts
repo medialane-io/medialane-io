@@ -149,8 +149,7 @@ test("POST users/register and users/me are not forwarded", () => {
   expect(isPathAllowed("POST", "users/me")).toBe(false);
 });
 
-test("a token's owners and one owner's balance are readable", () => {
-  expect(isPathAllowed("GET", "tokens/0xabc/1/owners")).toBe(true);
+test("one owner's balance of a token is readable", () => {
   expect(isPathAllowed("GET", "tokens/0xabc/1/balances/0xdef")).toBe(true);
   expect(isPathAllowed("GET", "tokens/0xabc/1/balances")).toBe(false);
 });

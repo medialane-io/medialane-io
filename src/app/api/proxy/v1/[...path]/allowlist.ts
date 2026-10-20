@@ -10,7 +10,7 @@ export const ALLOW: Record<string, RegExp[]> = {
     /^tokens$/,
     /^tokens\/owned\/[^/]+$/,
     /^tokens\/[^/]+\/[^/]+$/,
-    /^tokens\/[^/]+\/[^/]+\/(history|comments|remixes|owners)$/,
+    /^tokens\/[^/]+\/[^/]+\/(history|comments|remixes)$/,
     /^tokens\/[^/]+\/[^/]+\/balances\/[^/]+$/,
     /^collections$/,
     /^collections\/[^/]+$/,
