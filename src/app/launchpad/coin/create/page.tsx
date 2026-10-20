@@ -39,7 +39,6 @@ import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
 import { cn } from "@/lib/utils";
-import { getMedialaneClient } from "@/lib/medialane-client";
 
 const QUOTE_OPTIONS = SUPPORTED_TOKENS.map((t) => t.symbol);
 type Quote = (typeof QUOTE_OPTIONS)[number];
@@ -82,7 +81,7 @@ export default function CoinCreatePage() {
   });
 
   const quoteToken = getTokenBySymbol(quote)!;
-  const { rawBalance } = useTokenBalance(getMedialaneClient, quote, walletAddress ?? null);
+  const { rawBalance } = useTokenBalance(quote, walletAddress ?? null);
 
   const priceNum = Number(price);
   const nameErr = name ? validateName(name) : null;

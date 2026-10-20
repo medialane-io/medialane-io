@@ -24,7 +24,7 @@ export function useRemixOffers(role: "creator" | "requester", status?: string) {
 }
 
 export function useTokenRemixes(contract: string | null, tokenId: string | null) {
-  return useTokenRemixesBase(getMedialaneClient, contract, tokenId);
+  return useTokenRemixesBase(contract, tokenId);
 }
 
 export async function submitRemixOffer(body: CreateRemixOfferParams): Promise<ApiRemixOffer> {

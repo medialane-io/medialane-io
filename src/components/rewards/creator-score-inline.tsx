@@ -1,7 +1,6 @@
 "use client";
 
 import { CreatorScoreInline as CreatorScoreInlineBase } from "@medialane/ui";
-import { getMedialaneClient } from "@/lib/medialane-client";
 
 interface CreatorScoreInlineProps {
   address: string | null | undefined;
@@ -12,5 +11,5 @@ interface CreatorScoreInlineProps {
 }
 
 export function CreatorScoreInline(props: CreatorScoreInlineProps) {
-  return <CreatorScoreInlineBase getClient={getMedialaneClient} {...props} />;
+  return <CreatorScoreInlineBase {...props} />;
 }

@@ -36,7 +36,6 @@ import { useTokenBalance, hasSufficientBalance } from "@medialane/ui/utils/media
 import { marketplacePriceField, marketplaceCurrencyField, marketplaceDurationField } from "@/lib/marketplace-schemas";
 import { useUsdPrices } from "@/hooks/use-usd-prices";
 import { usdValueFor } from "@/lib/wallet-format";
-import { getMedialaneClient } from "@/lib/medialane-client";
 
 const CURRENCIES = getListableTokens().map((t) => t.symbol);
 
@@ -108,8 +107,7 @@ export function OfferDialog({
   const watchedCurrency = form.watch("currency");
   const watchedPrice = form.watch("price");
   const watchedQty = form.watch("quantity");
-  const { rawBalance, decimals } = useTokenBalance(getMedialaneClient,
-    open ? watchedCurrency : null,
+  const { rawBalance, decimals } = useTokenBalance(open ? watchedCurrency : null,
     open ? walletAddress : null
   );
   const totalRequired = (() => {

@@ -227,8 +227,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
 
   const requiredRaw = BigInt(order.consideration.startAmount ?? "0") * BigInt(is1155 ? quantity : 1);
   const orderCurrencyToken = order.price?.currency ? getTokenBySymbol(order.price.currency) : undefined;
-  const { rawBalance: orderCurrencyBalance, isLoading: balanceLoading } = useErc20Balance(getMedialaneClient,
-    orderCurrencyToken?.address ?? null,
+  const { rawBalance: orderCurrencyBalance, isLoading: balanceLoading } = useErc20Balance(orderCurrencyToken?.address ?? null,
     walletAddress
   );
 

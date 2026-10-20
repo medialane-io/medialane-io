@@ -8,7 +8,6 @@ import { useCreatorProfile } from "@/hooks/use-profiles";
 import { useMyUsernameClaim } from "@/hooks/use-username-claims";
 import { useRewards } from "@/hooks/use-rewards";
 import { useSession } from "@/hooks/use-session";
-import { getMedialaneClient } from "@/lib/medialane-client";
 import { mediaWallet } from "@/lib/wallet/client";
 import { resolveTokenImage } from "@/lib/utils";
 import { EXPLORER_URL } from "@/lib/constants";
@@ -43,7 +42,6 @@ function useHeaderIdentity(address: string): MediaWalletHeaderIdentity {
 export function MediaWalletApp() {
   return (
     <MediaWalletOverlay
-      getClient={getMedialaneClient}
       wallet={mediaWallet}
       resolveImage={resolveTokenImage}
       explorerUrl={EXPLORER_URL}

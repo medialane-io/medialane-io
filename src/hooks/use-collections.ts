@@ -8,7 +8,6 @@ import {
   useNearbyCollectionTokens as useNearbyCollectionTokensBase,
   type CollectionSort,
 } from "@medialane/ui";
-import { getMedialaneClient } from "@/lib/medialane-client";
 import type { ApiCollection, CollectionTokensSort } from "@medialane/sdk";
 
 export type { CollectionSort };
@@ -23,15 +22,15 @@ export function useCollections(
   standard?: string,
   fallback?: ApiCollection[]
 ) {
-  return useCollectionsBase(getMedialaneClient, page, limit, isFeatured, sort, hideEmpty, service, standard, fallback);
+  return useCollectionsBase(page, limit, isFeatured, sort, hideEmpty, service, standard, fallback);
 }
 
 export function useCollection(contract: string | null) {
-  return useCollectionBase(getMedialaneClient, contract);
+  return useCollectionBase(contract);
 }
 
 export function useCollectionsByOwner(owner: string | null) {
-  return useCollectionsByOwnerBase(getMedialaneClient, owner);
+  return useCollectionsByOwnerBase(owner);
 }
 
 export function useCollectionTokens(
@@ -40,7 +39,7 @@ export function useCollectionTokens(
   limit = 24,
   sort: CollectionTokensSort = "recent"
 ) {
-  return useCollectionTokensBase(getMedialaneClient, contract, page, limit, sort);
+  return useCollectionTokensBase(contract, page, limit, sort);
 }
 
 export function useNearbyCollectionTokens(
@@ -49,5 +48,5 @@ export function useNearbyCollectionTokens(
   count = 4,
   poolSize = 60
 ) {
-  return useNearbyCollectionTokensBase(getMedialaneClient, contract, currentTokenId, count, poolSize);
+  return useNearbyCollectionTokensBase(contract, currentTokenId, count, poolSize);
 }

@@ -11,7 +11,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ApiActivity } from "@medialane/sdk";
 import { EXPLORER_URL } from "@/lib/constants";
 import { useMembershipOnchain, useIsMemberOf, type MembershipOnchain } from "@/hooks/use-club";
-import { HelpIcon } from "@/components/ui/help-icon";
 import { ReportDialog } from "@/components/report-dialog";
 import { AssetMarketsTab } from "./asset-markets-tab";
 import { AssetCommentsDialog } from "./asset-side-panels";
@@ -125,7 +124,7 @@ function MembershipPanel({
 export function AssetPageMembership() {
   const {
     contract, tokenId, router, shouldReduce,
-    hasWallet, walletAddress,
+    walletAddress,
     collection, token, mutateListings, history, collectionTokens,
     commentTotal, remixCount,
     activeListings, activeBids, cheapest, cheapestUsd, lastSaleRaw,
@@ -202,16 +201,13 @@ export function AssetPageMembership() {
               cheapest={cheapest}
               usdValue={cheapestUsd}
               isOwner={isOwner}
-              isSignedIn={hasWallet}
               isProcessing={isProcessing}
               isERC1155
               myListing={myListing ?? null}
               activeBids={activeBids}
-              walletAddress={walletAddress}
               floorPriceRaw={collection?.floorPrice}
               lastSaleRaw={lastSaleRaw}
               asset={token}
-              renderHelp={(content) => <HelpIcon content={content} side="top" />}
               onCancelClick={handleCancelClick}
               onAcceptBid={acceptOffer.handleAcceptClick}
               onOpenListing={() => setListOpen(true)}

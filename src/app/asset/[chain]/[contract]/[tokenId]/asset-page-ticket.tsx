@@ -11,7 +11,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ApiActivity } from "@medialane/sdk";
 import { EXPLORER_URL } from "@/lib/constants";
 import { useTicketOnchain, type TicketOnchain } from "@/hooks/use-tickets";
-import { HelpIcon } from "@/components/ui/help-icon";
 import { ReportDialog } from "@/components/report-dialog";
 import { AssetMarketsTab } from "./asset-markets-tab";
 import { AssetCommentsDialog } from "./asset-side-panels";
@@ -92,7 +91,7 @@ function TicketPanel({ ticket }: { ticket: TicketOnchain }) {
 export function AssetPageTicket() {
   const {
     contract, tokenId, router, shouldReduce,
-    hasWallet, walletAddress,
+    walletAddress,
     collection, token, mutateListings, history, collectionTokens,
     commentTotal, remixCount,
     activeListings, activeBids, cheapest, cheapestUsd, lastSaleRaw,
@@ -165,16 +164,13 @@ export function AssetPageTicket() {
               cheapest={cheapest}
               usdValue={cheapestUsd}
               isOwner={isOwner}
-              isSignedIn={hasWallet}
               isProcessing={isProcessing}
               isERC1155
               myListing={myListing ?? null}
               activeBids={activeBids}
-              walletAddress={walletAddress}
               floorPriceRaw={collection?.floorPrice}
               lastSaleRaw={lastSaleRaw}
               asset={token}
-              renderHelp={(content) => <HelpIcon content={content} side="top" />}
               onCancelClick={handleCancelClick}
               onAcceptBid={acceptOffer.handleAcceptClick}
               onOpenListing={() => setListOpen(true)}

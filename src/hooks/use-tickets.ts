@@ -6,6 +6,6 @@ import { getMedialaneClient } from "@/lib/medialane-client";
 export type { TierOnchain as TicketOnchain, TierListItem as TicketListItem } from "@medialane/ui";
 
 export const predictNextTicketId = (contract: string) => ui.predictNextTicketId(getMedialaneClient().api, contract);
-export const useMyTicketCollections = (owner: string | null) => ui.useMyTicketCollections(getMedialaneClient, owner);
+export const useMyTicketCollections = (owner: string | null) => ui.useMyTicketCollections(owner);
 export const useTicketOnchain = (contract: string | null, tokenId: string | null) =>
-  ui.useTicketOnchain(getMedialaneClient, contract, tokenId);
+  ui.useTicketOnchain(contract, tokenId);

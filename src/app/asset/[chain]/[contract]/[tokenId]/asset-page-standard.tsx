@@ -23,13 +23,12 @@ import { AssetCommentsDialog } from "./asset-side-panels";
 import { AssetOverviewContent } from "./asset-overview-content";
 import { AssetLightbox } from "@/components/asset/asset-lightbox";
 import { ReportDialog } from "@/components/report-dialog";
-import { HelpIcon } from "@/components/ui/help-icon";
 import { useAssetPage } from "./use-asset-page";
 
 export function AssetPageStandard() {
   const {
     contract, tokenId, router, shouldReduce,
-    hasWallet, walletAddress,
+    walletAddress,
     collection, token, isLoading, isIndexing, mutateListings, history, collectionTokens,
     commentTotal, remixCount,
     activeListings, activeBids, cheapest, cheapestUsd, lastSaleRaw,
@@ -184,19 +183,16 @@ export function AssetPageStandard() {
               cheapest={cheapest}
               usdValue={cheapestUsd}
               isOwner={isOwner}
-              isSignedIn={hasWallet}
               isProcessing={isProcessing}
               canListMoreEditions={canListMoreEditions}
               isERC1155={isERC1155}
               myListing={myListing ?? null}
               activeBids={activeBids}
-              walletAddress={walletAddress}
               remixEnabled={remixPolicy.canRemixDirect}
               showDealOption={remixPolicy.showDealOption}
               floorPriceRaw={collection?.floorPrice}
               lastSaleRaw={lastSaleRaw}
               asset={token}
-              renderHelp={(content) => <HelpIcon content={content} side="top" />}
               onCancelClick={handleCancelClick}
               onAcceptBid={acceptOffer.handleAcceptClick}
               onOpenListing={() => setListOpen(true)}

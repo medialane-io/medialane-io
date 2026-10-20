@@ -6,7 +6,6 @@ import { useWalletMarketplaceActionFlow } from "@/hooks/use-wallet-marketplace-a
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { useTokenBalance, hasSufficientBalance } from "@medialane/ui/utils/media-wallet/use-erc20-balance";
 import type { ApiOrder } from "@medialane/sdk";
-import { getMedialaneClient } from "@/lib/medialane-client";
 
 interface UseAcceptOfferOptions {
   mutateListings: () => void;
@@ -24,8 +23,7 @@ export function useAcceptOffer({ mutateListings, tokenStandard, activeListings =
   const [warningOpen, setWarningOpen] = useState(false);
   const [pendingOrder, setPendingOrder] = useState<ApiOrder | null>(null);
 
-  const { rawBalance, decimals } = useTokenBalance(getMedialaneClient,
-    selectedOrder?.price.currency ?? null,
+  const { rawBalance, decimals } = useTokenBalance(selectedOrder?.price.currency ?? null,
     selectedOrder?.offerer ?? null
   );
   const buyerHasFunds = selectedOrder

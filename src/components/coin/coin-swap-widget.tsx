@@ -41,8 +41,8 @@ export function CoinSwapWidget({
   const sellToken = side === "buy" ? quoteSymbol : { address: coinAddress };
   const buyToken = side === "buy" ? { address: coinAddress } : quoteSymbol;
 
-  const { rawBalance: quoteBalance } = useTokenBalance(getMedialaneClient, quoteSymbol, address);
-  const { rawBalance: coinBalance } = useErc20Balance(getMedialaneClient, coinAddress, address);
+  const { rawBalance: quoteBalance } = useTokenBalance(quoteSymbol, address);
+  const { rawBalance: coinBalance } = useErc20Balance(coinAddress, address);
   const payBalance = side === "buy" ? quoteBalance : coinBalance;
 
   let payAmountRaw: bigint | null = null;

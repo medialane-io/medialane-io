@@ -6,8 +6,8 @@ import { getMedialaneClient } from "@/lib/medialane-client";
 export type { TierOnchain as MembershipOnchain, TierListItem as MembershipListItem } from "@medialane/ui";
 
 export const predictNextMembershipId = (contract: string) => ui.predictNextMembershipId(getMedialaneClient().api, contract);
-export const useMyClubCollections = (owner: string | null) => ui.useMyClubCollections(getMedialaneClient, owner);
+export const useMyClubCollections = (owner: string | null) => ui.useMyClubCollections(owner);
 export const useMembershipOnchain = (contract: string | null, tokenId: string | null) =>
-  ui.useMembershipOnchain(getMedialaneClient, contract, tokenId);
+  ui.useMembershipOnchain(contract, tokenId);
 export const useIsMemberOf = (contract: string | null, tokenId: string | null, wallet: string | null) =>
-  ui.useIsMemberOf(getMedialaneClient, contract, tokenId, wallet);
+  ui.useIsMemberOf(contract, tokenId, wallet);
