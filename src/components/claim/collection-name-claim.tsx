@@ -7,7 +7,7 @@ import { useCollectionsByOwner } from "@medialane/ui";
 
 import { Button } from "@medialane/ui/button";
 import { EmptyOrError } from "@medialane/ui/empty-or-error";
-import { ipfsToHttp } from "@/lib/utils";
+import { resolveImage } from "@/lib/utils";
 import { CheckCircle2, ImageIcon, Plus, ArrowRight } from "lucide-react";
 
 export function CollectionNameClaim() {
@@ -28,7 +28,7 @@ export function CollectionNameClaim() {
 
       {collections.map((c) => {
         const slug = c.profile?.slug;
-        const img = c.image ? ipfsToHttp(c.image) : null;
+        const img = resolveImage(c.image);
         const settingsHref = `/portfolio/collections/${c.contractAddress}/settings`;
         return (
           <div

@@ -5,8 +5,9 @@ import Link from "next/link";
 import { ArrowUpRight, Globe, MessageCircle, Send, Twitter } from "lucide-react";
 import { CreatorScoreInline, profileIdentity } from "@medialane/ui";
 
-import { resolveTokenImage } from "@/lib/utils";
+import { resolveImage } from "@/lib/utils";
 import type { ProfileForm } from "./types";
+import { profileHref } from "@/lib/routes";
 
 export function ProfileLivePreview({
   form, approvedUsername, walletAddress, fallbackImage,
@@ -22,7 +23,7 @@ export function ProfileLivePreview({
     name: form.name,
     walletAddress,
   });
-  const heroUrl = resolveTokenImage(form.avatarImage) || fallbackImage || null;
+  const heroUrl = resolveImage(form.avatarImage) || fallbackImage || null;
 
   return (
     <div className="rounded-[24px] border border-border/60 bg-card overflow-hidden">
@@ -79,7 +80,7 @@ export function ProfileLivePreview({
 
         {approvedUsername && (
           <Link
-            href={`/creator/${approvedUsername}`}
+            href={profileHref({ username: approvedUsername })}
             className="inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline"
           >
             View profile

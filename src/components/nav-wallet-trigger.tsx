@@ -7,14 +7,14 @@ import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 
 import { UserShieldIcon } from "@/components/icons/user-shield-icon";
 
-import { resolveTokenImage } from "@/lib/utils";
+import { resolveImage } from "@/lib/utils";
 
 export function HeaderWalletTrigger() {
   const { address, hasWallet } = useWalletNativeSession();
   const { open } = useMediaWallet();
   const router = useRouter();
   const { profile } = useCreatorProfile(address ?? undefined);
-  const avatarUrl = resolveTokenImage(profile?.avatarImage);
+  const avatarUrl = resolveImage(profile?.avatarImage);
 
   const handleClick = () => {
     if (!hasWallet) {

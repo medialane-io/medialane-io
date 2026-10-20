@@ -16,7 +16,7 @@ import { NavConnectButton } from "@/components/nav-connect-button";
 import { HeaderWalletTrigger } from "@/components/nav-wallet-trigger";
 import { MediaWalletApp } from "@/components/media-wallet-app";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { resolveTokenImage } from "@/lib/utils";
+import { resolveImage } from "@/lib/utils";
 import { walletConsent } from "@/lib/wallet/client";
 import { sendUploadDiagnostics } from "@/lib/upload-diagnostics";
 import { useAppAdapter } from "@/lib/use-app-adapter";
@@ -39,7 +39,7 @@ function MainShell({ children }: { children: React.ReactNode }) {
     pathname.startsWith("/creator/");
   const { address: walletAddress } = useWalletNativeSession();
   const { profile } = useCreatorProfile(walletAddress ?? undefined);
-  const themeImageUrl = suppressAmbient ? null : resolveTokenImage(profile?.avatarImage);
+  const themeImageUrl = suppressAmbient ? null : resolveImage(profile?.avatarImage);
 
   return (
     <>
@@ -48,6 +48,7 @@ function MainShell({ children }: { children: React.ReactNode }) {
         footerSlot={<NavThemeToggle />}
         showKeyboardHints={false}
         brandSlot={<NavConnectButton />}
+        search
       />
       <MediaWalletApp />
       <div className="relative min-h-screen flex flex-col bg-background">

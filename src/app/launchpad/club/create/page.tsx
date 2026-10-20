@@ -29,6 +29,7 @@ import { RewardEarned } from "@/lib/reward-earned";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 import { executeIntent, deployedCollectionFromReceipt } from "@medialane/sdk/starknet";
+import { profileHref } from "@/lib/routes";
 
 const schema = z.object({
   name: z.string().min(1, "Name required").max(100),
@@ -165,7 +166,7 @@ export default function CreateClubPage() {
               name={form.watch("name")}
               collection={form.watch("symbol") || "Club"}
               creator={walletAddress ? `${walletAddress.slice(0, 6)}…${walletAddress.slice(-4)}` : undefined}
-              creatorHref={walletAddress ? `/account/${walletAddress}` : undefined}
+              creatorHref={walletAddress ? profileHref({ address: walletAddress }) : undefined}
             />
             <CreateClubAside />
           </>

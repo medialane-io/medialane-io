@@ -6,6 +6,7 @@ import { Badge } from "@medialane/ui/badge";
 import { CopyLinkButton } from "@/components/settings/copy-link-button";
 import { ClaimError, UsernameClaimInput } from "@/components/settings/username-claim-input";
 import { useUsernameClaimForm } from "@/hooks/use-username-claim-form";
+import { profileHref } from "@/lib/routes";
 
 export function UsernameClaimSection() {
   const router = useRouter();
@@ -42,7 +43,7 @@ export function UsernameClaimSection() {
             <p className="text-sm font-medium text-foreground">Username active</p>
             <p className="mt-0.5 break-words text-sm text-muted-foreground">
               Your profile is live at{" "}
-              <a href={`/creator/${approvedUsername}`} className="font-medium tabular-nums text-primary hover:underline">
+              <a href={profileHref({ username: approvedUsername })} className="font-medium tabular-nums text-primary hover:underline">
                 medialane.io/creator/{approvedUsername}
               </a>
             </p>

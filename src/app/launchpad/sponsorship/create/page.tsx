@@ -19,7 +19,7 @@ import { Handshake as HandshakeAsideIcon, ShieldCheck, Coins, Gift } from "lucid
 import { ClaimRail } from "@medialane/ui/claim-rail";
 import { pinSponsorshipTerms } from "@/lib/launchpad-metadata";
 import { useSession } from "@/hooks/use-session";
-import { resolveTokenImage } from "@/lib/utils";
+import { resolveImage } from "@/lib/utils";
 import { usePendingProposalsForAsset } from "@/hooks/use-sponsorship";
 
 const LISTABLE_TOKENS = SUPPORTED_TOKENS.filter((t) => t.listable);
@@ -111,7 +111,7 @@ export default function CreateSponsorshipOfferPage() {
     contractAddress: t.contractAddress,
     tokenId: t.tokenId,
     name: t.metadata?.name ?? `Token #${t.tokenId}`,
-    image: resolveTokenImage(t.metadata?.image),
+    image: resolveImage(t.metadata?.image),
   }));
 
   const searchAssets = async (query: string): Promise<OwnedAsset[]> => {
@@ -120,7 +120,7 @@ export default function CreateSponsorshipOfferPage() {
       contractAddress: t.contractAddress,
       tokenId: t.tokenId,
       name: t.name ?? `Token #${t.tokenId}`,
-      image: t.image ? resolveTokenImage(t.image) : null,
+      image: resolveImage(t.image),
     }));
   };
 

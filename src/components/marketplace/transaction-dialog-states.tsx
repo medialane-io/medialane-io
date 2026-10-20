@@ -7,7 +7,7 @@ import { Button } from "@medialane/ui/button";
 import { TxStatus } from "@/components/transaction/tx-status";
 import { MarketplaceErrorState } from "@medialane/ui";
 import { EXPLORER_URL } from "@/lib/constants";
-import { ipfsToHttp } from "@/lib/utils";
+import { resolveImage } from "@/lib/utils";
 import type { WalletWriteStatus } from "@/hooks/use-wallet-write-action";
 
 interface TransactionDialogStatesProps {
@@ -53,6 +53,7 @@ export function TransactionDialogStates({
   onDone,
   children,
 }: TransactionDialogStatesProps) {
+  const successSrc = resolveImage(successImage);
   const isSuccess = status === "success" && !error;
   const isTerminalError = !isSubmitting && !!error && !!txHash;
 
@@ -62,10 +63,10 @@ export function TransactionDialogStates({
         <div className="h-16 w-16 rounded-full bg-emerald-500/15 flex items-center justify-center">
           <CheckCircle2 className="h-9 w-9 text-emerald-500" />
         </div>
-        {successImage && (
+        {successSrc && (
           <div className="relative h-24 w-24 rounded-2xl overflow-hidden border border-border shadow-md">
             <Image
-              src={ipfsToHttp(successImage)}
+              src={successSrc}
               alt={successImageAlt ?? "Asset"}
               fill
               className="object-cover"

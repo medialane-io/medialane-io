@@ -23,6 +23,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { ReportDialog, type ReportTarget } from "@/components/report-dialog";
 import { cn } from "@/lib/utils";
 import { getMedialaneClient } from "@/lib/medialane-client";
+import { profileHref } from "@/lib/routes";
 
 const MAX_LEN = 1000;
 
@@ -153,7 +154,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
                   className={`group flex gap-2.5 ${own ? "flex-row-reverse" : "flex-row"}`}
                 >
 
-                  <Link href={`/creator/${comment.author}`} className="shrink-0 mt-0.5">
+                  <Link href={profileHref({ address: comment.author })} className="shrink-0 mt-0.5">
                     <div
                       className="h-9 w-9 rounded-full flex items-center justify-center text-[11px] font-bold text-white select-none ring-2 ring-background hover:ring-primary/40 transition-all"
                       style={{ background: avatarBg }}
@@ -166,7 +167,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
 
                     <div className={`flex items-center gap-2 px-1 ${own ? "flex-row-reverse" : "flex-row"}`}>
                       <Link
-                        href={`/creator/${comment.author}`}
+                        href={profileHref({ address: comment.author })}
                         className="text-xs font-semibold text-foreground hover:underline underline-offset-2"
                       >
                         {own ? "You" : <AddressDisplay address={comment.author} chars={5} showCopy={false} />}

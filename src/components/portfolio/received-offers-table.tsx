@@ -8,7 +8,7 @@ import { EmptyOrError } from "@medialane/ui/empty-or-error";
 import { useAcceptOffer } from "@/hooks/use-accept-offer";
 import { assetHref } from "@/lib/routes";
 import { AcceptOfferDialog } from "@/components/marketplace/accept-offer-dialog";
-import { ipfsToHttp, formatDisplayPrice, formatExpiry, cn } from "@/lib/utils";
+import { resolveImage, formatDisplayPrice, formatExpiry, cn } from "@/lib/utils";
 import { ExternalLink, Inbox } from "lucide-react";
 import { EXPLORER_URL, SUPPORTED_TOKENS } from "@/lib/constants";
 import { getSeenOffers } from "@/hooks/use-unread-offers";
@@ -35,7 +35,7 @@ function ReceivedOfferRow({
   isNew: boolean;
 }) {
   const name = order.token?.name || `#${order.nftTokenId}`;
-  const image = order.token?.image ? ipfsToHttp(order.token.image) : null;
+  const image = resolveImage(order.token?.image);
   const expiry = formatExpiry(order.endTime);
   const isProcessing =
     (acceptHook.status === "processing" || acceptHook.status === "confirming") &&

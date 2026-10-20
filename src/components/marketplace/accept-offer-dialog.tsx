@@ -12,7 +12,7 @@ import {
 import { Alert, AlertDescription } from "@medialane/ui/alert";
 import { AlertTriangle, HandCoins, Tag, X } from "lucide-react";
 import { EXPLORER_URL } from "@/lib/constants";
-import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
+import { resolveImage, formatDisplayPrice } from "@/lib/utils";
 import type { AcceptOfferHook } from "@/hooks/use-accept-offer";
 import type { ApiOrder } from "@medialane/sdk";
 
@@ -45,7 +45,7 @@ export function AcceptOfferDialog({ hook, tokenName, tokenImage, onCancelListing
   const name =
     selectedOrder?.token?.name ?? tokenName ?? `Token #${selectedOrder?.nftTokenId ?? ""}`;
   const rawImage = selectedOrder?.token?.image ?? tokenImage ?? null;
-  const image = rawImage ? ipfsToHttp(rawImage) : null;
+  const image = resolveImage(rawImage);
 
   const priceLabel = selectedOrder
     ? `${formatDisplayPrice(selectedOrder.price.formatted)} ${selectedOrder.price.currency}`

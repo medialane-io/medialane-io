@@ -7,6 +7,7 @@ import { requireAccount } from "@/lib/account-gate";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { ReportDialog } from "@/components/report-dialog";
+import { resolveImage } from "@/lib/utils";
 
 export function useAppAdapter(): MedialaneApp {
   const { address, signer } = useWalletNativeSession();
@@ -25,6 +26,7 @@ export function useAppAdapter(): MedialaneApp {
       origin: "https://starknet.medialane.io",
     },
     ReportDialog,
+    resolveImage,
     getSigner: () => {
       requireAccount(signer);
       return {

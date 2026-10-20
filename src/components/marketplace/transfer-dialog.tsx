@@ -26,7 +26,7 @@ import {
   MarketplaceErrorState,
 } from "@medialane/ui";
 import { EXPLORER_URL } from "@/lib/constants";
-import { resolveTokenImage } from "@/lib/utils";
+import { resolveImage } from "@/lib/utils";
 
 const schema = z.object({
   toAddress: z
@@ -65,7 +65,7 @@ export function TransferDialog({
   hasActiveListing = false,
   tokenStandard,
 }: TransferDialogProps) {
-  const tokenImage = resolveTokenImage(tokenImageRaw);
+  const tokenImage = resolveImage(tokenImageRaw);
   const {
     transferToken,
     walletAddress,

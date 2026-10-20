@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import { ReportDialog } from "@/components/report-dialog";
 import { ShareButton } from "@medialane/ui/share-button";
-import { ActivityRow } from "@/components/creator/activity-row";
+import { ActivityTimelineRow } from "@medialane/ui";
 import { cn } from "@/lib/utils";
 
 const TABS = [
@@ -258,7 +258,7 @@ export default function CreatorPageClient() {
               ) : (
                 <div>
                   {activities.map((a, i) => (
-                    <ActivityRow
+                    <ActivityTimelineRow
                       key={i}
                       event={a}
                       isLast={i === activities.length - 1}

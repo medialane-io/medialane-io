@@ -11,7 +11,7 @@ import { EmptyOrError } from "@medialane/ui/empty-or-error";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@medialane/ui/dialog";
 import { useMarketplace } from "@/hooks/use-marketplace";
-import { ipfsToHttp, formatDisplayPrice, formatExpiry, cn } from "@/lib/utils";
+import { resolveImage, formatDisplayPrice, formatExpiry, cn } from "@/lib/utils";
 import { AlertCircle, ArrowLeftRight, CheckCircle2, ExternalLink, Inbox, Loader2, Sparkles } from "lucide-react";
 import { EXPLORER_URL } from "@/lib/constants";
 import Image from "next/image";
@@ -33,7 +33,7 @@ function CounterOfferFetcher({
   if (!counter) return null;
 
   const name = counter.token?.name || `#${counter.nftTokenId}`;
-  const image = counter.token?.image ? ipfsToHttp(counter.token.image) : null;
+  const image = resolveImage(counter.token?.image);
   const expiry = formatExpiry(counter.endTime);
   const isExpiredOrFilled = counter.status !== "ACTIVE" || expiry.expired;
 
@@ -154,7 +154,7 @@ export function CounterOffersTable({ address }: { address: string }) {
   const counterDisplayName =
     selectedCounter?.token?.name || `#${selectedCounter?.nftTokenId ?? ""}`;
   const counterImage = selectedCounter?.token?.image
-    ? ipfsToHttp(selectedCounter.token.image)
+    ? resolveImage(selectedCounter.token.image)
     : null;
 
   return (

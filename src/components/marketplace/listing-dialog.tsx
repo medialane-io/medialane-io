@@ -27,7 +27,7 @@ import {
   DurationPicker,
 } from "@medialane/ui";
 import { EXPLORER_URL, DURATION_OPTIONS } from "@/lib/constants";
-import { resolveTokenImage } from "@/lib/utils";
+import { resolveImage } from "@/lib/utils";
 import { getListableTokens } from "@medialane/sdk";
 import { marketplacePriceField, marketplaceCurrencyField, marketplaceDurationField } from "@/lib/marketplace-schemas";
 
@@ -66,7 +66,7 @@ export function ListingDialog({
   onSuccess,
 }: ListingDialogProps) {
   const pathname = usePathname();
-  const tokenImage = resolveTokenImage(tokenImageRaw);
+  const tokenImage = resolveImage(tokenImageRaw);
   const { tokenStandard: resolvedStandard, isResolving } = useResolvedTokenStandard(assetContract, tokenStandard);
   const is1155 = resolvedStandard === "ERC1155";
   const { mutate } = useSWRConfig();

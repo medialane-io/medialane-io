@@ -27,7 +27,7 @@ import { CreateAssetAside } from "@/components/claim/create-asset-aside";
 import type { MintStep } from "@/components/marketplace/mint-progress-dialog";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
-import { cn, ipfsToHttp } from "@/lib/utils";
+import { cn, resolveImage } from "@/lib/utils";
 import {
   createMintIntentWithDebug,
   confirmMintIntentWithDebug,
@@ -55,6 +55,7 @@ import type { Call } from "starknet";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { syncTransactionBestEffort } from "@medialane/sdk/starknet";
 import { getMedialaneClient } from "@/lib/medialane-client";
+import { profileHref } from "@/lib/routes";
 
 const schema = z.object({
   collectionId: z.string().min(1, "Select a collection"),
@@ -122,7 +123,7 @@ function collectionWorks(col: ApiCollection) {
 }
 
 function CollectionThumb({ image, size }: { image: string | null | undefined; size: "sm" | "md" }) {
-  const imageUrl = image ? ipfsToHttp(image) : null;
+  const imageUrl = resolveImage(image);
   return (
     <div
       className={cn(
@@ -539,7 +540,7 @@ export function SingleEditionsContent() {
               name={form.watch("name")}
               collection={collections.find((c) => c.collectionId === form.watch("collectionId"))?.name || "IP Asset"}
               creator={walletAddress ? `${walletAddress.slice(0, 6)}…${walletAddress.slice(-4)}` : undefined}
-              creatorHref={walletAddress ? `/account/${walletAddress}` : undefined}
+              creatorHref={walletAddress ? profileHref({ address: walletAddress }) : undefined}
             />
             <CreateAssetAside />
           </>

@@ -32,6 +32,7 @@ import {
   nftEditionsMintSchema,
   type NftEditionsMintFormValues,
 } from "../../nfteditions-mint-schema";
+import { profileHref } from "@/lib/routes";
 
 export default function MintIP1155Page() {
   const { contract: rawContract } = useParams<{ contract: string }>();
@@ -233,7 +234,7 @@ export default function MintIP1155Page() {
               collection="Edition"
               serial={Number(form.watch("value")) > 1 ? `${form.watch("value")} editions` : undefined}
               creator={walletAddress ? `${walletAddress.slice(0, 6)}…${walletAddress.slice(-4)}` : undefined}
-              creatorHref={walletAddress ? `/account/${walletAddress}` : undefined}
+              creatorHref={walletAddress ? profileHref({ address: walletAddress }) : undefined}
             />
             <MintEditionAside />
           </>

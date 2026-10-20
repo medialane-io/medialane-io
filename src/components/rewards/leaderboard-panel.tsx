@@ -8,6 +8,7 @@ import { Skeleton } from "@medialane/ui/skeleton";
 import { AddressDisplay } from "@medialane/ui/address-display";
 
 import { cn } from "@/lib/utils";
+import { profileHref } from "@/lib/routes";
 
 export interface LeaderboardPanelProps {
   myAddress?: string | null;
@@ -53,7 +54,7 @@ export function LeaderboardPanel({
           entries={rows}
           highlightAddress={myAddress}
           renderAddress={(address) => (
-            <Link href={`/account/${address}`} className="hover:text-foreground transition-colors">
+            <Link href={profileHref({ address })} className="hover:text-foreground transition-colors">
               <AddressDisplay address={address} chars={4} showCopy={false} className="text-base font-bold" />
             </Link>
           )}
