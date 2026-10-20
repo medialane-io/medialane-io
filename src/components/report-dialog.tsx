@@ -3,17 +3,11 @@
 import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { AlertCircle, CheckCircle, Flag, Loader2 } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@medialane/ui/dialog";
+import { Button } from "@medialane/ui/button";
+import { Checkbox } from "@medialane/ui/checkbox";
+import { Textarea } from "@medialane/ui/textarea";
+import { Label } from "@medialane/ui/label";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSession } from "@/hooks/use-session";
 import { MedialaneApiError } from "@medialane/sdk";

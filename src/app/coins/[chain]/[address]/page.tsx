@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { chainFromSlug } from "@/lib/routes";
 import { fetchCoinMeta, ipfsToHttpServer } from "@/lib/api-server";
 import { canonical, buildSocialMetadata, buildBreadcrumbJsonLd, buildProductJsonLd } from "@/lib/seo";
-import { JsonLd } from "@/components/seo/json-ld";
+import { JsonLd } from "@medialane/ui/json-ld";
 import { CoinExploreClient } from "./coin-explore-client";
 
 export const revalidate = 60;

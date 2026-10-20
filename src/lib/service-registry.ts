@@ -1,5 +1,5 @@
 import { Award, Package, Ticket } from "lucide-react";
-import { BRAND } from "@/lib/brand";
+import { BRAND } from "@medialane/ui/data/brand";
 
 export interface ServiceConfig {
 

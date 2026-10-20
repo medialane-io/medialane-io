@@ -4,13 +4,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { Award, Users, Plus, LayoutList, Zap, ShieldCheck } from "lucide-react";
-import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion-primitives";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import { ServiceHeader } from "@medialane/ui";
+import { FadeIn, Stagger, StaggerItem } from "@medialane/ui/motion-primitives";
+import { Skeleton } from "@medialane/ui/skeleton";
+import { Button } from "@medialane/ui/button";
+import { ServiceHeader, usePopCollections } from "@medialane/ui";
 import { ClaimBackButton } from "@/components/claim/claim-back-button";
 import { PopClaimButton } from "@/components/claim/pop-claim-button";
-import { usePopCollections } from "@/hooks/use-pop";
 import { ipfsToHttp } from "@/lib/utils";
 import type { ApiCollection } from "@medialane/sdk";
 

@@ -21,7 +21,7 @@ const real = {
   store: await import("@/lib/wallet/store"),
   passkey: await import("@/lib/wallet/passkey"),
   devices: await import("@/lib/wallet/devices"),
-  confetti: await import("@/lib/confetti"),
+  confetti: await import("@medialane/ui/utils/media-wallet/confetti"),
   session: await import("@/hooks/use-wallet-native-session"),
   sessionHook: await import("@/hooks/use-session"),
   starknet: await import("@medialane/sdk/starknet"),
@@ -34,7 +34,7 @@ let localOwner: { address: string } | null = null;
 mock.module("@/lib/wallet/store", () => ({ ...real.store, loadSealedOwner: () => localOwner, saveSealedOwner: () => {}, notifyWalletChange: () => {} }));
 mock.module("@/lib/wallet/passkey", () => ({ ...real.passkey, createOwnerKey: async () => ({}) }));
 mock.module("@/lib/wallet/devices", () => ({ ...real.devices, removeDevice: async () => {} }));
-mock.module("@/lib/confetti", () => ({ ...real.confetti, fireConfetti: () => {} }));
+mock.module("@medialane/ui/utils/media-wallet/confetti", () => ({ ...real.confetti, fireConfetti: () => {} }));
 mock.module("@/hooks/use-wallet-native-session", () => ({ ...real.session, useWalletNativeSession: () => ({ hasWallet: false }) }));
 let session: { email: string; walletAddress: string | null } | null = null;
 mock.module("@/hooks/use-session", () => ({ ...real.sessionHook, useSession: () => ({ session, isLoading: false }), refreshSession: async () => undefined }));

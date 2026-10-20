@@ -25,7 +25,9 @@ mock.module("./use-wallet-native-session", () => ({
   }),
 }));
 
-mock.module("./use-medialane-client", () => ({
+const realUi = await import("@medialane/ui");
+mock.module("@medialane/ui", () => ({
+  ...realUi,
   useMedialaneClient: () => ({
     api: {
       createListingIntent: async () => ({

@@ -3,9 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Award, Plus, Settings } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion-primitives";
+import { Button } from "@medialane/ui/button";
+import { Skeleton } from "@medialane/ui/skeleton";
+import { FadeIn, Stagger, StaggerItem } from "@medialane/ui/motion-primitives";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { ipfsToHttp } from "@/lib/utils";
 import type { ApiCollection } from "@medialane/sdk";

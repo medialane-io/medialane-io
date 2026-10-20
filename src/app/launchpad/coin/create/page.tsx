@@ -14,12 +14,12 @@ import {
   teamCoinsRaw, buybackQuoteRaw, fdvHuman,
   SUGGESTED_DEFAULT_PRICE, validatePrice,
 } from "@medialane/sdk/starknet";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@medialane/ui/button";
+import { Input } from "@medialane/ui/input";
+import { Label } from "@medialane/ui/label";
+import { Textarea } from "@medialane/ui/textarea";
 import { ClaimBackButton } from "@/components/claim/claim-back-button";
-import { ServiceFormShell, GradientButton, CurrencyIcon, CurrencyAmount } from "@medialane/ui";
+import { ServiceFormShell, GradientButton, CurrencyIcon, CurrencyAmount, useMedialaneClient } from "@medialane/ui";
 import { CreateCoinAside } from "@/components/claim/create-coin-aside";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { RewardEarned } from "@/lib/reward-earned";
@@ -28,7 +28,7 @@ import {
   LaunchpadProcessingState,
   LaunchpadErrorState,
 } from "@/components/launchpad/launchpad-success-state";
-import { CoinLaunchPreview, type CoinPreviewData } from "@/components/coin/coin-launch-preview";
+import { CoinLaunchPreview, type CoinPreviewData } from "@medialane/ui/coin-launch-preview";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useSession } from "@/hooks/use-session";
@@ -36,10 +36,8 @@ import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { useTokenBalance } from "@medialane/ui/utils/media-wallet/use-erc20-balance";
 import { useLaunchCoin, type LaunchCoinInput } from "@/hooks/use-launch-coin";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
-import { useMedialaneClient } from "@/hooks/use-medialane-client";
-import { suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
+import { suggestLaunchpadSymbol } from "@medialane/ui/utils/launchpad-defaults";
 import { cn } from "@/lib/utils";
-import { getMedialaneClient } from "@/lib/medialane-client";
 
 const QUOTE_OPTIONS = SUPPORTED_TOKENS.map((t) => t.symbol);
 type Quote = (typeof QUOTE_OPTIONS)[number];
@@ -82,7 +80,7 @@ export default function CoinCreatePage() {
   });
 
   const quoteToken = getTokenBySymbol(quote)!;
-  const { rawBalance } = useTokenBalance(getMedialaneClient, quote, walletAddress ?? null);
+  const { rawBalance } = useTokenBalance(quote, walletAddress ?? null);
 
   const priceNum = Number(price);
   const nameErr = name ? validateName(name) : null;

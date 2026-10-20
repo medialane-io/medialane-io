@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { Users, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion-primitives";
+import { Button } from "@medialane/ui/button";
+import { Skeleton } from "@medialane/ui/skeleton";
+import { FadeIn, Stagger, StaggerItem } from "@medialane/ui/motion-primitives";
 import { ClaimBackButton } from "@/components/claim/claim-back-button";
 import { CollectionCard, ServiceHeader } from "@medialane/ui";
 import { collectionHref } from "@/lib/routes";

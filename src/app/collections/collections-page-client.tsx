@@ -1,16 +1,14 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useCollections, type CollectionSort } from "@/hooks/use-collections";
-import { usePlatformStats } from "@/hooks/use-stats";
-import { CollectionCard, CollectionCardSkeleton, LoadMoreSentinel } from "@medialane/ui";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import type { CollectionSort } from "@medialane/ui";
+import { useCollections, usePlatformStats, CollectionCard, CollectionCardSkeleton, LoadMoreSentinel, PageContainer } from "@medialane/ui";
+import { Button } from "@medialane/ui/button";
+import { Dialog, DialogContent, DialogTitle } from "@medialane/ui/dialog";
 import { Layers, BadgeCheck, Eye, SlidersHorizontal, Award, Sparkles } from "lucide-react";
-import { HelpIcon } from "@/components/ui/help-icon";
+import { HelpIcon } from "@medialane/ui/help-icon";
 import { cn } from "@/lib/utils";
 import type { ApiCollection } from "@medialane/sdk";
-import { PageContainer } from "@medialane/ui";
 
 const PAGE_SIZE = 18;
 

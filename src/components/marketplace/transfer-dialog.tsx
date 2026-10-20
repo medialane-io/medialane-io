@@ -13,23 +13,11 @@ import {
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@medialane/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@medialane/ui/form";
+import { Button } from "@medialane/ui/button";
+import { Input } from "@medialane/ui/input";
+import { Alert, AlertDescription } from "@medialane/ui/alert";
 import { useTransfer } from "@/hooks/use-transfer";
 import { useResolvedTokenStandard } from "@/hooks/use-resolved-token-standard";
 import {
@@ -324,7 +312,7 @@ export function TransferDialog({
                         className="w-full h-11 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-transparent"
                       >
                         <ArrowRightLeft className="h-4 w-4" />
-                        {hasWallet ? "Transfer" : "Set up account & transfer"}
+                        {hasWallet ? "Transfer" : "Connect with email to transfer"}
                       </button>
                     </div>
                     {shieldFooter}

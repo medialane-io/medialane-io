@@ -1,7 +1,7 @@
 "use client";
 
 import { ACCOUNT_NOT_READY } from "@/lib/account-gate";
-import { UserFacingError } from "@medialane/ui";
+import { UserFacingError, MedialaneCollectionCard, useMedialaneClient } from "@medialane/ui";
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
@@ -10,10 +10,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
 import { assetHref } from "@/lib/routes";
-import { Button } from "@/components/ui/button";
-import {
-  Form,
-} from "@/components/ui/form";
+import { Button } from "@medialane/ui/button";
+import { Form } from "@medialane/ui/form";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { WalletTransactionDialog } from "@/components/transaction/wallet-transaction-dialog";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
@@ -21,16 +19,14 @@ import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { normalizeAddress } from "@medialane/sdk";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
-import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { executeIntent, mintedTokenIdFromReceipt } from "@medialane/sdk/starknet";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
-import { MedialaneCollectionCard } from "@medialane/ui";
 import { MintEditionAside } from "@/components/claim/mint-edition-aside";
 import { RewardEarned } from "@/lib/reward-earned";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 import { EXPLORER_URL } from "@/lib/constants";
-import type { MetadataField } from "@/components/create/ip-type-fields";
+import type { MetadataField } from "@medialane/ui";
 import { NftEditionsMintForm } from "../../nfteditions-mint-form";
 import {
   nftEditionsMintSchema,

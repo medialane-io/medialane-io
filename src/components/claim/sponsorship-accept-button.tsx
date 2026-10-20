@@ -1,12 +1,11 @@
 "use client";
 
 import { Loader2, CheckCircle2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { MarketplaceErrorState, MarketplaceSuccessState } from "@medialane/ui";
+import { Button } from "@medialane/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@medialane/ui/dialog";
+import { MarketplaceErrorState, MarketplaceSuccessState, useMedialaneClient } from "@medialane/ui";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
-import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { executeIntent } from "@medialane/sdk/starknet";
 import { EXPLORER_URL } from "@/lib/constants";
 

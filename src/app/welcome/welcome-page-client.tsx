@@ -7,9 +7,9 @@ import {
   CheckCircle2, Sparkles, ExternalLink, ShoppingBag,
   Pencil, Package, Award, ArrowRight, X, Zap, Shield, Globe,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@medialane/ui/button";
 import { LaunchMint } from "@/components/launch-mint";
-import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion-primitives";
+import { FadeIn, Stagger, StaggerItem } from "@medialane/ui/motion-primitives";
 import { EXPLORER_URL } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 

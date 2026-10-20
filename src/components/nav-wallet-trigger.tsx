@@ -1,11 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { NavWalletTrigger as SharedNavWalletTrigger } from "@medialane/ui";
+import { NavWalletTrigger as SharedNavWalletTrigger, useMediaWallet, useCreatorProfile } from "@medialane/ui";
+
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useMediaWallet } from "@medialane/ui";
+
 import { UserShieldIcon } from "@/components/icons/user-shield-icon";
-import { useCreatorProfile } from "@/hooks/use-profiles";
+
 import { resolveTokenImage } from "@/lib/utils";
 
 export function HeaderWalletTrigger() {

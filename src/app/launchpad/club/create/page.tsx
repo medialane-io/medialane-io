@@ -8,12 +8,10 @@ import * as z from "zod";
 import Link from "next/link";
 import Image from "next/image";
 import { Users, ImagePlus, Loader2, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage,
-} from "@/components/ui/form";
+import { Button } from "@medialane/ui/button";
+import { Input } from "@medialane/ui/input";
+import { Textarea } from "@medialane/ui/textarea";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@medialane/ui/form";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { WalletTransactionDialog } from "@/components/transaction/wallet-transaction-dialog";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
@@ -25,12 +23,11 @@ import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { buildCollectionMetadata } from "@medialane/sdk";
 import { collectionHref } from "@/lib/routes";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
-import { MedialaneCollectionCard } from "@medialane/ui";
+import { MedialaneCollectionCard, useMedialaneClient } from "@medialane/ui";
 import { CreateClubAside } from "@/components/claim/create-club-aside";
 import { RewardEarned } from "@/lib/reward-earned";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
-import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { executeIntent, deployedCollectionFromReceipt } from "@medialane/sdk/starknet";
 
 const schema = z.object({

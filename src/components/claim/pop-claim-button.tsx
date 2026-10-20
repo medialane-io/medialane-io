@@ -1,19 +1,18 @@
 "use client";
 
 import { Loader2, Award } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@medialane/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@medialane/ui/dialog";
 import { useEffect, useState } from "react";
 import { popClaimState, type PopClaimInfo } from "@medialane/sdk/starknet";
-import { claimProofFor } from "@medialane/ui";
+import { claimProofFor, MarketplaceErrorState, MarketplaceSuccessState, runIntentCalls, usePopClaimStatus } from "@medialane/ui";
+
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { MarketplaceErrorState, MarketplaceSuccessState } from "@medialane/ui";
-import { usePopClaimStatus } from "@/hooks/use-pop";
+
 import { RewardEarned } from "@/lib/reward-earned";
 import { EXPLORER_URL } from "@/lib/constants";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import { runIntentCalls } from "@medialane/ui";
 
 interface PopClaimButtonProps {
   collectionAddress: string;

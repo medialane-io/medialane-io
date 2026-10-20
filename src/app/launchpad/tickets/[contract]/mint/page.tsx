@@ -12,34 +12,29 @@ import {
 } from "lucide-react";
 import { normalizeAddress } from "@medialane/sdk";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage,
-} from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@medialane/ui/button";
+import { Input } from "@medialane/ui/input";
+import { Textarea } from "@medialane/ui/textarea";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@medialane/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@medialane/ui/select";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@medialane/ui/collapsible";
+import { Skeleton } from "@medialane/ui/skeleton";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { WalletTransactionDialog } from "@/components/transaction/wallet-transaction-dialog";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useCollection } from "@/hooks/use-collections";
-import { useCollectionProfile } from "@/hooks/use-profiles";
+import { useCollection, useCollectionProfile, MedialaneCollectionCard, describeError, useMedialaneClient } from "@medialane/ui";
 import { predictNextTicketId } from "@/hooks/use-tickets";
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
 import { RewardEarned } from "@/lib/reward-earned";
-import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { executeIntents } from "@medialane/sdk/starknet";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { cn } from "@/lib/utils";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
-import { MedialaneCollectionCard, describeError } from "@medialane/ui";
 import { CreateTicketAside } from "@/components/claim/create-ticket-aside";
 import { collectionHref } from "@/lib/routes";
-import { LICENSE_TYPES, GEOGRAPHIC_SCOPES, AI_POLICIES, DERIVATIVES_OPTIONS } from "@/types/ip";
+import { LICENSE_TYPES, GEOGRAPHIC_SCOPES, AI_POLICIES, DERIVATIVES_OPTIONS } from "@medialane/ui/data/ip";
 
 function dateToUnixTimestamp(dateStr: string | undefined): number | undefined {
   if (!dateStr) return undefined;

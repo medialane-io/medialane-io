@@ -7,8 +7,10 @@ import { PurchaseDialog } from "@/components/marketplace/purchase-dialog";
 import { TransferDialog } from "@/components/marketplace/transfer-dialog";
 import { AcceptOfferDialog } from "@/components/marketplace/accept-offer-dialog";
 import type { ApiOrder } from "@medialane/sdk";
-import type { AcceptOfferHook } from "@/hooks/use-accept-offer";
+import { useAcceptOffer, type AcceptOfferHook } from "@/hooks/use-accept-offer";
+import type { AssetMarketActions, AssetMarketContext } from "@medialane/ui";
 import { CancelListingDialog } from "./cancel-listing-dialog";
+import { useOrderActions } from "./use-order-actions";
 
 type TokenStandard = "ERC721" | "ERC1155" | "UNKNOWN";
 type CancelStep = "idle" | "processing" | "success" | "error";
@@ -146,4 +148,39 @@ export function AssetMarketplaceDialogs({
       />
     </>
   );
+}
+
+export function useAssetMarketActions(context: AssetMarketContext): AssetMarketActions {
+  const state = useAssetMarketplaceDialogState();
+  const tokenStandard = context.tokenStandard === "UNKNOWN" ? undefined : context.tokenStandard;
+  const orders = useOrderActions({ mutateListings: context.mutateListings, tokenStandard });
+  const acceptOffer = useAcceptOffer({ mutateListings: context.mutateListings, tokenStandard, activeListings: context.activeListings });
+
+  return {
+    isProcessing: orders.isProcessing,
+    buy: state.setPurchaseOrder,
+    list: () => state.setListOpen(true),
+    offer: () => state.setOfferOpen(true),
+    transfer: () => state.setTransferOpen(true),
+    cancel: orders.handleCancelClick,
+    acceptBid: acceptOffer.handleAcceptClick,
+    dialogs: (
+      <AssetMarketplaceDialogs
+        contract={context.contract}
+        tokenId={context.tokenId}
+        tokenName={context.tokenName}
+        tokenImage={context.tokenImage}
+        tokenStandard={context.tokenStandard}
+        quantityOwned={context.quantityOwned != null ? Number(context.quantityOwned) : undefined}
+        hasActiveListing={context.activeListings.length > 0}
+        mutateListings={context.mutateListings}
+        {...state}
+        cancelStep={orders.cancelStep}
+        cancelError={orders.cancelError}
+        resetCancelStep={orders.resetCancelStep}
+        acceptOfferHook={acceptOffer}
+        onCancelListing={orders.handleCancelClick}
+      />
+    ),
+  };
 }

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Button } from "@medialane/ui/button";
 import { Search, Home, Store } from "lucide-react";
 
 export default function NotFound() {

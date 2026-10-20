@@ -1,6 +1,7 @@
 "use client";
 
-import { useCollection } from "@/hooks/use-collections";
+import { useCollection } from "@medialane/ui";
+
 import { resolveTokenStandard, type TokenStandard } from "@/lib/protocol/token-standard";
 
 export function useResolvedTokenStandard(

@@ -1,8 +1,8 @@
 "use client";
 
 import { AtSign, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button } from "@medialane/ui/button";
+import { Input } from "@medialane/ui/input";
 import type { CheckState } from "./types";
 
 const EMAIL_GATE_ERROR = "Verify your email to claim a username.";

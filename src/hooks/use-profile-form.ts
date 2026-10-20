@@ -1,11 +1,12 @@
 "use client";
 
-import { describeError } from "@medialane/ui";
+import { describeError, useCreatorProfile } from "@medialane/ui";
+
 import { useCallback, useEffect, useState } from "react";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSession } from "@/hooks/use-session";
 import { requireSignedIn } from "@/lib/account-gate";
-import { useCreatorProfile } from "@/hooks/use-profiles";
+
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { emptyProfileForm, invalidUrlFields, profileFormFrom, profilePayload } from "@/lib/settings/profile";
 import type { ProfileForm } from "@/components/settings/types";

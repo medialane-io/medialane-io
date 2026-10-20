@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "@medialane/ui/skeleton";
 import { cn } from "@/lib/utils";
 import type { RowTone } from "@/lib/settings/rows";
 import { accountStatus, type StatusInput } from "@/lib/settings/status";

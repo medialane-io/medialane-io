@@ -1,53 +1,18 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useToken } from "@/hooks/use-tokens";
-import { useCollection } from "@/hooks/use-collections";
-import { Skeleton } from "@/components/ui/skeleton";
-import { AssetPageStandard } from "./asset-page-standard";
-import { AssetPagePop } from "./asset-page-pop";
-import { AssetPageEdition } from "./asset-page-edition";
-import { AssetPageTicket } from "./asset-page-ticket";
-import { AssetPageMembership } from "./asset-page-membership";
-import { getService } from "@medialane/sdk";
-import { PageContainer } from "@medialane/ui";
+import { AssetPage, type AssetPageSlots } from "@medialane/ui";
+import { CommentsSection } from "@/components/asset/comments-section";
+import { PopBurnButton } from "@/components/claim/pop-burn-button";
+import { useAssetMarketActions } from "./asset-marketplace-dialogs";
 
-function detectAssetType(
-  service: string | null | undefined,
-  standard: string | undefined
-): string {
-  return (
-    getService(service)?.uiVariant ??
-    (standard === "ERC1155" ? "edition" : "standard")
-  );
-}
+const SLOTS: AssetPageSlots = {
+  useMarketActions: useAssetMarketActions,
+  Comments: CommentsSection,
+  PopBurn: PopBurnButton,
+};
 
 export default function AssetPageClient() {
   const { contract, tokenId } = useParams<{ contract: string; tokenId: string }>();
-  const { token, isLoading: tokenLoading } = useToken(contract, tokenId);
-  const { collection, isLoading: collectionLoading } = useCollection(contract);
-
-  if (tokenLoading || collectionLoading) {
-    return (
-      <PageContainer className="pt-20 pb-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-10 gap-8">
-          <Skeleton className="aspect-[4/3] w-full rounded-2xl" />
-          <div className="space-y-4">
-            <Skeleton className="h-8 w-3/4" />
-            <Skeleton className="h-4 w-1/2" />
-            <Skeleton className="h-32 w-full" />
-            <Skeleton className="h-12 w-full" />
-          </div>
-        </div>
-      </PageContainer>
-    );
-  }
-
-  const assetType = detectAssetType(collection?.service, collection?.standard ?? token?.standard);
-
-  if (assetType === "pop") return <AssetPagePop />;
-  if (assetType === "ticket") return <AssetPageTicket />;
-  if (assetType === "club") return <AssetPageMembership />;
-  if (assetType === "edition") return <AssetPageEdition />;
-  return <AssetPageStandard />;
+  return <AssetPage contract={contract} tokenId={tokenId} slots={SLOTS} />;
 }

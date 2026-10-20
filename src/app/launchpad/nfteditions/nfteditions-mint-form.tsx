@@ -6,42 +6,20 @@ import type { RefObject } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import Image from "next/image";
 import { ChevronDown, ImagePlus, Layers, Loader2, ShieldCheck, Sparkles, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { CollapsibleSection } from "@/components/ui/collapsible-section";
-import {
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { FadeIn } from "@/components/ui/motion-primitives";
-import { IPTypeFields, type MetadataField } from "@/components/create/ip-type-fields";
+import { Button } from "@medialane/ui/button";
+import { Input } from "@medialane/ui/input";
+import { Textarea } from "@medialane/ui/textarea";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@medialane/ui/collapsible";
+import { CollapsibleSection } from "@medialane/ui";
+import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@medialane/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@medialane/ui/select";
+import { FadeIn } from "@medialane/ui/motion-primitives";
+import { IPTypeFields } from "@medialane/ui/ip-type-fields";
+import type { MetadataField, IPType } from "@medialane/ui";
 import { uploadDocumentToIpfs } from "@/lib/upload-document";
 import { useSession } from "@/hooks/use-session";
 import { cn } from "@/lib/utils";
-import {
-  AI_POLICIES,
-  DERIVATIVES_OPTIONS,
-  IP_TYPES,
-  LICENSE_TYPES,
-  type IPType,
-} from "@/types/ip";
+import { AI_POLICIES, DERIVATIVES_OPTIONS, IP_TYPES, LICENSE_TYPES } from "@medialane/ui/data/ip";
 import type { NftEditionsMintFormValues } from "./nfteditions-mint-schema";
 
 interface NftEditionsMintFormProps {

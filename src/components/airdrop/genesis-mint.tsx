@@ -1,6 +1,6 @@
 "use client";
 
-import { UserFacingError } from "@medialane/ui";
+import { UserFacingError, GradientButton, runIntentCalls } from "@medialane/ui";
 import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -16,11 +16,9 @@ import {
   XCircle,
   ImageIcon,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { GradientButton } from "@medialane/ui";
+import { Button } from "@medialane/ui/button";
 import { EXPLORER_URL, MINT_CONTRACT } from "@/lib/constants";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import { runIntentCalls } from "@medialane/ui";
 
 export function AirdropEventCard() {
   const [errored, setErrored] = useState(false);

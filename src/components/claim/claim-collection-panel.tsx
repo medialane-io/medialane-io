@@ -6,10 +6,10 @@ import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSession } from "@/hooks/use-session";
 import { requireSignedIn } from "@/lib/account-gate";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@medialane/ui/button";
+import { Input } from "@medialane/ui/input";
+import { Label } from "@medialane/ui/label";
+import { Textarea } from "@medialane/ui/textarea";
 import { Loader2 } from "lucide-react";
 
 type Step = "input" | "verifying" | "success" | "manual" | "pending";

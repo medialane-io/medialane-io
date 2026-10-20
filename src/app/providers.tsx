@@ -2,25 +2,23 @@
 
 import { ThemeProvider } from "next-themes";
 import Link from "next/link";
-import { MedialaneLogo } from "@/components/brand/medialane-logo";
+import { MedialaneLogoFull as MedialaneLogo } from "@medialane/ui/brand-logo";
 import { SWRConfig } from "swr";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { usePathname } from "next/navigation";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { useEffect } from "react";
-import { NavCommandMenu, NavBrandButton, ThemeAmbientBackground, SelfFundConsentDialog, setUploadDiagnosticsReporter } from "@medialane/ui";
+import { NavCommandMenu, NavBrandButton, ThemeAmbientBackground, SelfFundConsentDialog, setUploadDiagnosticsReporter, MedialaneAppProvider, useCreatorProfile } from "@medialane/ui";
 import { NAV_COMMANDS } from "@/lib/nav-commands";
 import { OnboardingGate } from "@/components/wallet/onboarding-gate";
-import { NavThemeToggle } from "@/components/nav-theme-toggle";
+import { NavThemeToggle } from "@medialane/ui/nav-theme-toggle";
 import { NavConnectButton } from "@/components/nav-connect-button";
 import { HeaderWalletTrigger } from "@/components/nav-wallet-trigger";
 import { MediaWalletApp } from "@/components/media-wallet-app";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useCreatorProfile } from "@/hooks/use-profiles";
 import { resolveTokenImage } from "@/lib/utils";
 import { walletConsent } from "@/lib/wallet/client";
 import { sendUploadDiagnostics } from "@/lib/upload-diagnostics";
-import { MedialaneAppProvider } from "@medialane/ui";
 import { useAppAdapter } from "@/lib/use-app-adapter";
 
 const GA_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID;

@@ -3,12 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { CheckCircle2, Handshake, Loader2, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { AddressDisplay } from "@/components/shared/address-display";
+import { Button } from "@medialane/ui/button";
+import { Skeleton } from "@medialane/ui/skeleton";
+import { AddressDisplay } from "@medialane/ui/address-display";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
-import { useMedialaneClient } from "@/hooks/use-medialane-client";
+import { useMedialaneClient } from "@medialane/ui";
 import { executeIntent } from "@medialane/sdk/starknet";
 import {
   useSponsorshipProposals, useSponsorshipOffers, useSponsorshipBids, useSponsorshipLicenses,

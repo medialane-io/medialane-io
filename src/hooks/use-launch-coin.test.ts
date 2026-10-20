@@ -22,7 +22,9 @@ function fakeClient(overrides: Record<string, unknown> = {}) {
   };
 }
 
-mock.module("@/hooks/use-medialane-client", () => ({
+const realUi = await import("@medialane/ui");
+mock.module("@medialane/ui", () => ({
+  ...realUi,
   useMedialaneClient: () => fakeClient(),
 }));
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2, CheckCircle2, XCircle, ExternalLink } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@medialane/ui/button";
 import { EXPLORER_URL } from "@/lib/constants";
 import type { WalletWriteStatus } from "@/hooks/use-wallet-write-action";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import * as z from "zod";
-import { AI_POLICIES, DERIVATIVES_OPTIONS, IP_TYPES } from "@/types/ip";
+import { AI_POLICIES, DERIVATIVES_OPTIONS, IP_TYPES } from "@medialane/ui/data/ip";
 
 export const nftEditionsMintSchema = z.object({
   value: z

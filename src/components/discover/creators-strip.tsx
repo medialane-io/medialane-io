@@ -1,7 +1,8 @@
 "use client";
 
-import { DiscoverCreatorsStrip } from "@medialane/ui";
-import { useCreators } from "@/hooks/use-creators";
+import { DiscoverCreatorsStrip, useCreators } from "@medialane/ui";
+
+
 import type { ApiCreatorProfile } from "@medialane/sdk";
 
 export function CreatorsStrip() {

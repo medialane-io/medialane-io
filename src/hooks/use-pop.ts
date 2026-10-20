@@ -1,13 +1,5 @@
 "use client";
 
-import {
-  usePopCollections as usePopCollectionsBase,
-  useMyPopEvents,
-  usePopClaimStatus as usePopClaimStatusBase,
-} from "@medialane/ui";
-import { getMedialaneClient } from "@/lib/medialane-client";
+import { useMyPopEvents } from "@medialane/ui";
 
-export const usePopCollections = () => usePopCollectionsBase(getMedialaneClient);
-export const useMyEvents = (owner: string | null) => useMyPopEvents(getMedialaneClient, owner);
-export const usePopClaimStatus = (collection: string | null, wallet: string | null) =>
-  usePopClaimStatusBase(getMedialaneClient, collection, wallet);
+export const useMyEvents = (owner: string | null) => useMyPopEvents(owner);

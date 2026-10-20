@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { Handshake, ShieldCheck, Coins, Plus } from "lucide-react";
 import { normalizeAddress } from "@medialane/sdk";
-import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion-primitives";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
+import { FadeIn, Stagger, StaggerItem } from "@medialane/ui/motion-primitives";
+import { Skeleton } from "@medialane/ui/skeleton";
+import { Button } from "@medialane/ui/button";
 import { ServiceHeader } from "@medialane/ui";
 import { ClaimBackButton } from "@/components/claim/claim-back-button";
 import { SponsorshipBidButton } from "@/components/claim/sponsorship-bid-button";

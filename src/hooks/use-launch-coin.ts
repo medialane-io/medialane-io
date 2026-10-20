@@ -1,6 +1,6 @@
 "use client";
 
-import { describeError } from "@medialane/ui";
+import { describeError, useMedialaneClient } from "@medialane/ui";
 import { useState, useCallback } from "react";
 import type { Call } from "starknet";
 import { getTokenBySymbol, normalizeAddress } from "@medialane/sdk";
@@ -13,7 +13,6 @@ import {
   type CreatorCoinReceiptLike,
 } from "@medialane/sdk/starknet";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
-import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { assertTransactionSucceeded } from "@medialane/sdk/starknet";
 import { getMedialaneClient } from "@/lib/medialane-client";
 

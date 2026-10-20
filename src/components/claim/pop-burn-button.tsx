@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Loader2, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@medialane/ui/button";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { runIntentCalls } from "@medialane/ui";

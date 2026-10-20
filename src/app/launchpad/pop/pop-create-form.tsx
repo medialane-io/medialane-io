@@ -16,18 +16,11 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { FadeIn } from "@/components/ui/motion-primitives";
+import { Button } from "@medialane/ui/button";
+import { Input } from "@medialane/ui/input";
+import { Textarea } from "@medialane/ui/textarea";
+import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@medialane/ui/form";
+import { FadeIn } from "@medialane/ui/motion-primitives";
 import { cn } from "@/lib/utils";
 import type { PopEventType } from "@/lib/launchpad-contracts";
 import type { PopCreateFormValues } from "./pop-create-schema";

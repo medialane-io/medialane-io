@@ -6,6 +6,7 @@ import { describeError, type MedialaneApp } from "@medialane/ui";
 import { requireAccount } from "@/lib/account-gate";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { getMedialaneClient } from "@/lib/medialane-client";
+import { ReportDialog } from "@/components/report-dialog";
 
 export function useAppAdapter(): MedialaneApp {
   const { address, signer } = useWalletNativeSession();
@@ -15,14 +16,15 @@ export function useAppAdapter(): MedialaneApp {
     getClient: getMedialaneClient,
     walletAddress: address ?? null,
     onRequireWallet: () => router.push(`/connect?redirect_url=${encodeURIComponent(pathname)}`),
-    connectLabel: "Set up account",
-    connectDescription: "Buy, offer, and collect instantly — no seed phrase needed.",
+    connectLabel: "Connect with email",
+    connectDescription: "Buy, offer, and collect instantly.",
     companion: {
       title: "Trade with your Starknet wallet",
-      description: "Interact with this asset on the Starknet dapp.",
+      description: "Interact with this asset on our permissionless dapp.",
       icon: Wallet,
       origin: "https://starknet.medialane.io",
     },
+    ReportDialog,
     getSigner: () => {
       requireAccount(signer);
       return {

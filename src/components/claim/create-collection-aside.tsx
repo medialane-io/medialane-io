@@ -1,5 +1,5 @@
 import { Layers, LayoutGrid, Plus, Gift } from "lucide-react";
-import { ClaimRail } from "@/components/claim/claim-rail";
+import { ClaimRail } from "@medialane/ui/claim-rail";
 
 export function CreateCollectionAside() {
   return (

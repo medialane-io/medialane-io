@@ -6,24 +6,21 @@ import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Layers } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Form,
-} from "@/components/ui/form";
+import { Button } from "@medialane/ui/button";
+import { Form } from "@medialane/ui/form";
 import Link from "next/link";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { WalletTransactionDialog } from "@/components/transaction/wallet-transaction-dialog";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
-import { useMedialaneClient } from "@/hooks/use-medialane-client";
+import { useMedialaneClient, MedialaneCollectionCard } from "@medialane/ui";
 import { executeIntent, deployedCollectionFromReceipt } from "@medialane/sdk/starknet";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { buildCollectionMetadata } from "@medialane/sdk";
 import { useSession } from "@/hooks/use-session";
-import { suggestLaunchpadSymbol } from "@/lib/launchpad-defaults";
+import { suggestLaunchpadSymbol } from "@medialane/ui/utils/launchpad-defaults";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
-import { MedialaneCollectionCard } from "@medialane/ui";
 import { CreateEditionsAside } from "@/components/claim/create-editions-aside";
 import { RewardEarned } from "@/lib/reward-earned";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";

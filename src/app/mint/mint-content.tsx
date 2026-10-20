@@ -17,7 +17,7 @@ import {
   XCircle,
   ChevronDown,
 } from "lucide-react";
-import { MedialaneLogo } from "@/components/brand/medialane-logo";
+import { MedialaneLogoFull as MedialaneLogo } from "@medialane/ui/brand-logo";
 import { GenesisMint } from "@/components/airdrop/genesis-mint";
 
 function EventCard() {

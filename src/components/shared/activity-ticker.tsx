@@ -1,7 +1,8 @@
 "use client";
 
-import { ActivityTicker as UiActivityTicker } from "@medialane/ui";
-import { useOrders } from "@/hooks/use-orders";
+import { ActivityTicker as UiActivityTicker, useOrders } from "@medialane/ui";
+
+
 import { assetHref } from "@/lib/routes";
 
 interface ActivityTickerProps {

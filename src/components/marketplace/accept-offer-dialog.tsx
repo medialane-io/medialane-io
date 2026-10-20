@@ -1,6 +1,6 @@
 "use client";
 
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@medialane/ui/dialog";
 import { RewardEarned } from "@/lib/reward-earned";
 import {
   MarketplaceDialogHero,
@@ -9,7 +9,7 @@ import {
   MarketplaceSuccessState,
   MarketplaceErrorState,
 } from "@medialane/ui";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@medialane/ui/alert";
 import { AlertTriangle, HandCoins, Tag, X } from "lucide-react";
 import { EXPLORER_URL } from "@/lib/constants";
 import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";

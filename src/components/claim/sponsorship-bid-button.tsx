@@ -2,14 +2,13 @@
 
 import { useState } from "react";
 import { Loader2, Handshake } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { MarketplaceErrorState, MarketplaceSuccessState } from "@medialane/ui";
+import { Button } from "@medialane/ui/button";
+import { Input } from "@medialane/ui/input";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@medialane/ui/dialog";
+import { MarketplaceErrorState, MarketplaceSuccessState, useMedialaneClient } from "@medialane/ui";
 import { RewardEarned } from "@/lib/reward-earned";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
-import { useMedialaneClient } from "@/hooks/use-medialane-client";
 import { executeIntent } from "@medialane/sdk/starknet";
 import { EXPLORER_URL } from "@/lib/constants";
 import { getListableTokens, normalizeAddress } from "@medialane/sdk";

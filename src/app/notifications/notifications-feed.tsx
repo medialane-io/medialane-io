@@ -4,11 +4,11 @@ import { useState } from "react";
 import Link from "next/link";
 import { Bell, CheckCheck, Inbox, Filter } from "lucide-react";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useNotifications } from "@/hooks/use-notifications";
+import { useNotifications } from "@medialane/ui";
 import { NotificationRow } from "@/components/shared/notification-row";
-import { Button } from "@/components/ui/button";
+import { Button } from "@medialane/ui/button";
 import { cn } from "@/lib/utils";
-import type { Notification, NotificationType } from "@/types/notification";
+import type { Notification, NotificationType } from "@medialane/ui";
 
 const FILTERS: { label: string; value: NotificationType | "" }[] = [
   { label: "All",           value: ""               },
@@ -106,7 +106,7 @@ export function NotificationsFeed() {
               asChild
               className="bg-transparent text-white rounded-[7px] hover:bg-transparent hover:brightness-110 active:scale-[0.98] transition-all"
             >
-              <Link href="/connect?redirect_url=/notifications">Set up account</Link>
+              <Link href="/connect?redirect_url=/notifications">Connect with email</Link>
             </Button>
           </div>
         </div>

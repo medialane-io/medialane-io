@@ -1,7 +1,6 @@
 "use client";
 
 import * as ui from "@medialane/ui";
-import { getMedialaneClient } from "@/lib/medialane-client";
 
 export type {
   ApiSponsorshipOffer as SponsorshipOffer,
@@ -10,15 +9,15 @@ export type {
   ApiSponsorshipLicense as SponsorshipLicense,
 } from "@medialane/sdk";
 
-type OffersQuery = Parameters<typeof ui.useSponsorshipOffers>[1];
-type ProposalsQuery = Parameters<typeof ui.useSponsorshipProposals>[1];
-type LicensesQuery = Parameters<typeof ui.useSponsorshipLicenses>[1];
+type OffersQuery = Parameters<typeof ui.useSponsorshipOffers>[0];
+type ProposalsQuery = Parameters<typeof ui.useSponsorshipProposals>[0];
+type LicensesQuery = Parameters<typeof ui.useSponsorshipLicenses>[0];
 
-export const useSponsorshipOffers = (params?: OffersQuery) => ui.useSponsorshipOffers(getMedialaneClient, params);
-export const useSponsorshipBids = (offerId: string | null) => ui.useSponsorshipBids(getMedialaneClient, offerId);
-export const useSponsorshipProposals = (params?: ProposalsQuery) => ui.useSponsorshipProposals(getMedialaneClient, params);
+export const useSponsorshipOffers = (params?: OffersQuery) => ui.useSponsorshipOffers(params);
+export const useSponsorshipBids = (offerId: string | null) => ui.useSponsorshipBids(offerId);
+export const useSponsorshipProposals = (params?: ProposalsQuery) => ui.useSponsorshipProposals(params);
 export const usePendingProposalsForAsset = (nftContract: string | null) =>
-  ui.usePendingProposalsForAsset(getMedialaneClient, nftContract);
-export const useSponsorshipLicenses = (params?: LicensesQuery) => ui.useSponsorshipLicenses(getMedialaneClient, params);
+  ui.usePendingProposalsForAsset(nftContract);
+export const useSponsorshipLicenses = (params?: LicensesQuery) => ui.useSponsorshipLicenses(params);
 export const useMySponsorshipDealCounts = (walletAddress: string | null) =>
-  ui.useMySponsorshipDealCounts(getMedialaneClient, walletAddress);
+  ui.useMySponsorshipDealCounts(walletAddress);

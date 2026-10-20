@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, Loader2, MailWarning } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@medialane/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@medialane/ui/card";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { confirmEmailOutcome, readConfirmToken } from "@/lib/confirm-email";
 

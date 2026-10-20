@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { CheckCircle2, Clock, XCircle } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@medialane/ui/badge";
 import { CopyLinkButton } from "@/components/settings/copy-link-button";
 import { ClaimError, UsernameClaimInput } from "@/components/settings/username-claim-input";
 import { useUsernameClaimForm } from "@/hooks/use-username-claim-form";

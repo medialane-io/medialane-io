@@ -5,9 +5,10 @@ import { AccountStatus } from "@/components/settings/account-status";
 import { PortfolioSnapshot, RewardsSnapshot } from "@/components/settings/snapshots";
 import { SettingsGate, SettingsGroup, SettingsPage, SettingsRow } from "@/components/settings/settings-page";
 import { useAccountEmail } from "@/hooks/use-account-email";
-import { useCollectionsByOwner } from "@/hooks/use-collections";
+import { useCollectionsByOwner, useUserOrders } from "@medialane/ui";
+
 import { useTokensByOwner } from "@/hooks/use-tokens";
-import { useUserOrders } from "@/hooks/use-orders";
+
 import { useSecurityStatus } from "@/hooks/use-security-status";
 import { useMyUsernameClaim } from "@/hooks/use-username-claims";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";

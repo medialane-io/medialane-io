@@ -1,8 +1,7 @@
 "use client";
 
 import { requireSignedIn } from "@/lib/account-gate";
-import { UserFacingError, checkIsOwner } from "@medialane/ui";
-import { describeError } from "@medialane/ui";
+import { UserFacingError, checkIsOwner, describeError, useToken, useTokenBalance, useCollectionsByOwner, useCollection, useMedialaneClient } from "@medialane/ui";
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
@@ -11,31 +10,24 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { assetHref } from "@/lib/routes";
-import { useToken, useTokenBalance } from "@/hooks/use-tokens";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSession } from "@/hooks/use-session";
-import { useMedialaneClient } from "@/hooks/use-medialane-client";
-import { useCollectionsByOwner, useCollection } from "@/hooks/use-collections";
 import { MintProgressDialog } from "@/components/marketplace/mint-progress-dialog";
 import type { MintStep } from "@/components/marketplace/mint-progress-dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import {
-  Collapsible, CollapsibleContent, CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { Button } from "@medialane/ui/button";
+import { Input } from "@medialane/ui/input";
+import { Textarea } from "@medialane/ui/textarea";
+import { Label } from "@medialane/ui/label";
+import { Skeleton } from "@medialane/ui/skeleton";
+import { Badge } from "@medialane/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@medialane/ui/select";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@medialane/ui/collapsible";
 import { registerRemix } from "@/hooks/use-remix-offers";
 import { getService, normalizeAddress } from "@medialane/sdk";
-import { IP_TYPES, LICENSE_TYPES } from "@/types/ip";
+import { IP_TYPES, LICENSE_TYPES } from "@medialane/ui/data/ip";
 import { ipfsToHttp } from "@/lib/utils";
 import { resolveRemixPolicy, getDerivativesTerm } from "@medialane/sdk";
-import { ToggleGroup, Section } from "@/components/create/create-form-primitives";
+import { ToggleGroup, Section } from "@medialane/ui/create-form-primitives";
 import { cn } from "@/lib/utils";
 import {
   GitBranch, ChevronDown, ChevronLeft, ImagePlus, Upload,

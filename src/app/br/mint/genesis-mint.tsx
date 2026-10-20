@@ -1,6 +1,6 @@
 "use client";
 
-import { UserFacingError } from "@medialane/ui";
+import { UserFacingError, runIntentCalls } from "@medialane/ui";
 import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
@@ -14,10 +14,9 @@ import {
   XCircle,
   Wallet,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@medialane/ui/button";
 import { EXPLORER_URL, MINT_CONTRACT } from "@/lib/constants";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import { runIntentCalls } from "@medialane/ui";
 
 type MintStep = "ready" | "minting" | "success" | "error";
 

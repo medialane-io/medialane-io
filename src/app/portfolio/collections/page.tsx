@@ -2,10 +2,9 @@
 
 import Link from "next/link";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useCollectionsByOwner } from "@/hooks/use-collections";
-import { Button } from "@/components/ui/button";
-import { EmptyOrError } from "@/components/ui/empty-or-error";
-import { CollectionCard } from "@medialane/ui";
+import { useCollectionsByOwner, CollectionCard } from "@medialane/ui";
+import { Button } from "@medialane/ui/button";
+import { EmptyOrError } from "@medialane/ui/empty-or-error";
 import { ClaimCollectionPanel } from "@/components/claim/claim-collection-panel";
 import { Layers, Plus, Download } from "lucide-react";
 

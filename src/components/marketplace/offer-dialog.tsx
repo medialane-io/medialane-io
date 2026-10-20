@@ -7,15 +7,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { AlertCircle, AlertTriangle, HandCoins, Layers, ShieldCheck } from "lucide-react";
-import { CurrencyIcon } from "@/components/shared/currency-icon";
-import { fireConfetti } from "@/lib/confetti";
+import { CurrencyIcon } from "@medialane/ui/currency-icon";
+import { fireConfetti } from "@medialane/ui/utils/media-wallet/confetti";
 import { RewardEarned } from "@/lib/reward-earned";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import {
-  Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@medialane/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@medialane/ui/form";
+import { Input } from "@medialane/ui/input";
+import { Alert, AlertDescription } from "@medialane/ui/alert";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { useWalletMarketplaceActionFlow } from "@/hooks/use-wallet-marketplace-action-flow";
 import { useResolvedTokenStandard } from "@/hooks/use-resolved-token-standard";
@@ -36,7 +34,6 @@ import { useTokenBalance, hasSufficientBalance } from "@medialane/ui/utils/media
 import { marketplacePriceField, marketplaceCurrencyField, marketplaceDurationField } from "@/lib/marketplace-schemas";
 import { useUsdPrices } from "@/hooks/use-usd-prices";
 import { usdValueFor } from "@/lib/wallet-format";
-import { getMedialaneClient } from "@/lib/medialane-client";
 
 const CURRENCIES = getListableTokens().map((t) => t.symbol);
 
@@ -108,8 +105,7 @@ export function OfferDialog({
   const watchedCurrency = form.watch("currency");
   const watchedPrice = form.watch("price");
   const watchedQty = form.watch("quantity");
-  const { rawBalance, decimals } = useTokenBalance(getMedialaneClient,
-    open ? watchedCurrency : null,
+  const { rawBalance, decimals } = useTokenBalance(open ? watchedCurrency : null,
     open ? walletAddress : null
   );
   const totalRequired = (() => {

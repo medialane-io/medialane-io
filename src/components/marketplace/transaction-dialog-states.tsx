@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
 import { CheckCircle2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@medialane/ui/button";
 import { TxStatus } from "@/components/transaction/tx-status";
 import { MarketplaceErrorState } from "@medialane/ui";
 import { EXPLORER_URL } from "@/lib/constants";

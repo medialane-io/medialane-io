@@ -5,11 +5,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { collectionHref } from "@/lib/routes";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useCollectionsByOwner } from "@/hooks/use-collections";
-import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion-primitives";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import { ServiceHeader } from "@medialane/ui";
+import { useCollectionsByOwner, ServiceHeader } from "@medialane/ui";
+import { FadeIn, Stagger, StaggerItem } from "@medialane/ui/motion-primitives";
+import { Skeleton } from "@medialane/ui/skeleton";
+import { Button } from "@medialane/ui/button";
 import { ClaimBackButton } from "@/components/claim/claim-back-button";
 import { ipfsToHttp } from "@/lib/utils";
 import {

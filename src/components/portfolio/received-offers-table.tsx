@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useUserOrders } from "@/hooks/use-orders";
-import { Button } from "@/components/ui/button";
-import { EmptyOrError } from "@/components/ui/empty-or-error";
+import { useUserOrders } from "@medialane/ui";
+
+import { Button } from "@medialane/ui/button";
+import { EmptyOrError } from "@medialane/ui/empty-or-error";
 import { useAcceptOffer } from "@/hooks/use-accept-offer";
 import { assetHref } from "@/lib/routes";
 import { AcceptOfferDialog } from "@/components/marketplace/accept-offer-dialog";

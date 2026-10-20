@@ -1,6 +1,6 @@
 "use client";
 
-import { UserFacingError } from "@medialane/ui";
+import { UserFacingError, MarketplaceErrorState, MarketplaceTxLink, isStableCurrency } from "@medialane/ui";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -10,23 +10,18 @@ import {
   ShoppingCart, RefreshCw, Zap, Minus, Plus,
   CheckCircle2, ShieldCheck,
 } from "lucide-react";
-import { fireConfetti } from "@/lib/confetti";
+import { fireConfetti } from "@medialane/ui/utils/media-wallet/confetti";
 import { RewardEarned } from "@/lib/reward-earned";
 import { assetHref as buildAssetHref } from "@/lib/routes";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@medialane/ui/dialog";
+import { Button } from "@medialane/ui/button";
+import { Alert, AlertDescription } from "@medialane/ui/alert";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { useWalletMarketplaceActionFlow } from "@/hooks/use-wallet-marketplace-action-flow";
-import {
-  MarketplaceErrorState,
-  MarketplaceTxLink,
-  isStableCurrency,
-} from "@medialane/ui";
 import { EXPLORER_URL } from "@/lib/constants";
 import type { ApiOrder } from "@medialane/sdk";
 import { formatDisplayPrice, ipfsToHttp } from "@/lib/utils";
-import { CurrencyIcon } from "@/components/shared/currency-icon";
+import { CurrencyIcon } from "@medialane/ui/currency-icon";
 import { useUsdPrices } from "@/hooks/use-usd-prices";
 import { usdValueFor } from "@/lib/wallet-format";
 import { useErc20Balance } from "@medialane/ui/utils/media-wallet/use-erc20-balance";
@@ -227,8 +222,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
 
   const requiredRaw = BigInt(order.consideration.startAmount ?? "0") * BigInt(is1155 ? quantity : 1);
   const orderCurrencyToken = order.price?.currency ? getTokenBySymbol(order.price.currency) : undefined;
-  const { rawBalance: orderCurrencyBalance, isLoading: balanceLoading } = useErc20Balance(getMedialaneClient,
-    orderCurrencyToken?.address ?? null,
+  const { rawBalance: orderCurrencyBalance, isLoading: balanceLoading } = useErc20Balance(orderCurrencyToken?.address ?? null,
     walletAddress
   );
 

@@ -1,18 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@medialane/ui/button";
+import { Skeleton } from "@medialane/ui/skeleton";
 import { useWallet } from "@/hooks/use-wallet";
-import { useRewards, useRewardsConfig, useRewardsEvents } from "@/hooks/use-rewards";
+import { useRewards, useRewardsConfig, useRewardsEvents, LevelBadge, LevelUpCelebration, BadgeUnlocked, useRewardsCelebrations } from "@medialane/ui";
 import { LeaderboardPanel } from "@/components/rewards/leaderboard-panel";
 import type { ApiRewardsBadge } from "@medialane/sdk";
-import {
-  LevelBadge,
-  LevelUpCelebration,
-  BadgeUnlocked,
-  useRewardsCelebrations,
-} from "@medialane/ui";
 import {
   Gift,
   ExternalLink,
@@ -147,7 +141,7 @@ function StatusPanel({ address }: { address: string | null | undefined }) {
           asChild
           className="bg-brand-rose hover:bg-brand-rose/90 text-white font-bold rounded-full px-7 w-full"
         >
-          <Link href="/connect?redirect_url=/rewards">Set up account</Link>
+          <Link href="/connect?redirect_url=/rewards">Connect with email</Link>
         </Button>
       </div>
     );

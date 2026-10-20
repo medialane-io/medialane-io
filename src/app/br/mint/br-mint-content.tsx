@@ -16,7 +16,7 @@ import {
   UserCheck,
   ChevronDown,
 } from "lucide-react";
-import { MedialaneLogo } from "@/components/brand/medialane-logo";
+import { MedialaneLogoFull as MedialaneLogo } from "@medialane/ui/brand-logo";
 import { GenesisMint } from "./genesis-mint";
 
 function EventCard() {

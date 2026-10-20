@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { Wallet } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@medialane/ui/button";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { connectHref } from "@/lib/connect-href";
 
