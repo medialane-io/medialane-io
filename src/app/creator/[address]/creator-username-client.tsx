@@ -7,10 +7,9 @@ import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useCollectionsByOwner } from "@/hooks/use-collections";
 import { useUserOrders } from "@/hooks/use-orders";
 import { useActivitiesByAddress } from "@/hooks/use-activities";
-import { CreatorScoreInline } from "@/components/rewards/creator-score-inline";
 import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listing-card";
 import { TokenCard, TokenCardSkeleton } from "@/components/shared/token-card";
-import { CollectionCard, CollectionCardSkeleton, CollectionHeroBanner, TabEmptyState } from "@medialane/ui";
+import { CollectionCard, CollectionCardSkeleton, CreatorHeader, TabEmptyState } from "@medialane/ui";
 import { CreatorAnalytics } from "@/components/creator/creator-analytics";
 import { ActivityRow } from "@/components/creator/activity-row";
 import { Button } from "@/components/ui/button";
@@ -20,11 +19,9 @@ import { useUsdPrices } from "@/hooks/use-usd-prices";
 import { usdValueFor } from "@/lib/wallet-format";
 import { normalizeAddress } from "@medialane/sdk";
 import {
-  Globe, Twitter, MessageCircle, Send,
   ShoppingBag, BarChart2, Activity, LayoutGrid, Image as ImageIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { profileIdentity } from "@medialane/ui";
 
 interface Props {
   username: string;
@@ -60,13 +57,6 @@ export default function CreatorUsernamePageClient({ username }: Props) {
     || null;
   const heroImage = heroRaw ? ipfsToHttp(heroRaw) : null;
 
-  const { identity, name: profileName } = profileIdentity({
-    username: creator?.username ?? username,
-    name: creator?.name,
-    walletAddress,
-  });
-
-  const showName = Boolean(profileName);
 
   const tabBadge: Partial<Record<TabId, number>> = {
     ...(activeTab === "assets"      && !tokensLoading      && { assets:      tokens.length }),
@@ -78,7 +68,9 @@ export default function CreatorUsernamePageClient({ username }: Props) {
   if (isLoading) {
     return (
       <div className="pb-20 min-h-screen">
-        <CollectionHeroBanner bannerUrl={null} loading name="" stats={[]} />
+        <div className="px-6 pt-20 pb-6">
+          <CreatorHeader creator={null} image={null} stats={[]} loading />
+        </div>
         <div className="px-6 pt-5 space-y-4">
           <div className="flex gap-2 border-b border-border pb-3">
             {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-8 w-20 rounded-full" />)}
@@ -106,42 +98,20 @@ export default function CreatorUsernamePageClient({ username }: Props) {
     );
   }
 
-  const showBio = Boolean(creator.bio);
-  const showSocials = Boolean(creator.websiteUrl || creator.twitterUrl || creator.discordUrl || creator.telegramUrl);
 
   return (
     <div className="pb-20 min-h-screen overflow-x-hidden">
 
-      <CollectionHeroBanner
-        bannerUrl={heroImage}
-        name={identity}
-        eyebrowSlot={<CreatorScoreInline address={walletAddress} size="sm" />}
-        stats={[
-          { label: "Assets", display: bannerMeta?.total != null ? String(bannerMeta.total) : "—" },
-          { label: "Collections", display: !colsLoading ? String(collections.length) : "—" },
-        ]}
-      />
-
-      {(showName || showBio || showSocials) && (
-        <div className="px-6 pt-5 pb-1 space-y-2">
-          {showName && (
-            <p className="text-sm text-muted-foreground">{profileName}</p>
-          )}
-          {showBio && (
-            <p className="text-sm text-muted-foreground leading-relaxed max-w-xl line-clamp-2">
-              {creator.bio}
-            </p>
-          )}
-          {showSocials && (
-            <div className="flex items-center gap-3 pt-1">
-              {creator.websiteUrl && <a href={creator.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors"><Globe className="h-4 w-4" /></a>}
-              {creator.twitterUrl && <a href={creator.twitterUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors"><Twitter className="h-4 w-4" /></a>}
-              {creator.discordUrl && <a href={creator.discordUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors"><MessageCircle className="h-4 w-4" /></a>}
-              {creator.telegramUrl && <a href={creator.telegramUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors"><Send className="h-4 w-4" /></a>}
-            </div>
-          )}
-        </div>
-      )}
+      <div className="px-6 pt-20 pb-6">
+        <CreatorHeader
+          creator={creator}
+          image={heroImage}
+          stats={[
+            { label: "Assets", value: bannerMeta?.total ?? null },
+            { label: "Collections", value: colsLoading ? null : collections.length },
+          ]}
+        />
+      </div>
 
       <div className="sticky top-0 z-20 px-6 bg-background/95 backdrop-blur-sm border-b border-border mt-4">
         <div className="flex items-center gap-0.5 overflow-x-auto scrollbar-none -mb-px">
