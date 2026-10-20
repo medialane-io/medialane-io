@@ -312,7 +312,7 @@ export function TransferDialog({
                         className="w-full h-11 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-transparent"
                       >
                         <ArrowRightLeft className="h-4 w-4" />
-                        {hasWallet ? "Transfer" : "Set up account & transfer"}
+                        {hasWallet ? "Transfer" : "Connect with email to transfer"}
                       </button>
                     </div>
                     {shieldFooter}

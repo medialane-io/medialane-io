@@ -141,7 +141,7 @@ function StatusPanel({ address }: { address: string | null | undefined }) {
           asChild
           className="bg-brand-rose hover:bg-brand-rose/90 text-white font-bold rounded-full px-7 w-full"
         >
-          <Link href="/connect?redirect_url=/rewards">Set up account</Link>
+          <Link href="/connect?redirect_url=/rewards">Connect with email</Link>
         </Button>
       </div>
     );

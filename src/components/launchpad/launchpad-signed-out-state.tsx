@@ -47,7 +47,7 @@ function LaunchpadSignedOutStateBody({
         >
           <Link href={`/connect?redirect_url=${encodeURIComponent(redirectTo ?? "")}`}>
             <Wallet className="h-4 w-4 mr-1.5" />
-            Set up account
+            Connect with email
           </Link>
         </Button>
       </div>
