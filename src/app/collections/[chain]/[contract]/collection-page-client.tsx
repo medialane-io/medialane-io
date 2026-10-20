@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCollection, useCollectionTokens } from "@/hooks/use-collections";
 import { useOrders } from "@/hooks/use-orders";
 import { ListingCard, ListingCardSkeleton } from "@/components/marketplace/listing-card";
-import { AssetCard, AssetCardSkeleton, LoadMoreSentinel, isLivingRenderCollection, HiddenContentBanner, CollectionHeroBanner, ClubOwnerActions, OrderSortControl, sortOrders, type OrderSort } from "@medialane/ui";
+import { AssetCard, AssetCardSkeleton, LoadMoreSentinel, isLivingRenderCollection, HiddenContentBanner, CollectionHeroBanner, ClubOwnerActions, OrderSortControl, sortOrders, ExpandableText, type OrderSort } from "@medialane/ui";
 import { assetHref } from "@/lib/routes";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddressDisplay } from "@/components/shared/address-display";
@@ -22,7 +22,7 @@ import { CollectionActivityTab } from "@/components/collection/collection-activi
 import { MakeOfferPicker } from "@/components/collection/make-offer-picker";
 import { CollectionTraitsTab } from "@/components/collection/collection-traits-tab";
 import { CreatorChip } from "@/components/collection/creator-chip";
-import { ipfsToHttp, formatDisplayPrice, cn } from "@/lib/utils";
+import { ipfsToHttp, formatDisplayPrice } from "@/lib/utils";
 import { useUsdPrices } from "@/hooks/use-usd-prices";
 import { usdValueFor } from "@/lib/wallet-format";
 import { useCollectionProfile } from "@/hooks/use-profiles";
@@ -195,10 +195,6 @@ export default function CollectionPageClient() {
   const [buyOrder, setBuyOrder] = useState<ApiOrder | null>(null);
   const [purchaseOpen, setPurchaseOpen] = useState(false);
   const handleBuy = (o: ApiOrder) => { setBuyOrder(o); setPurchaseOpen(true); };
-  const [descExpanded, setDescExpanded] = useState(false);
-  const [descClamped, setDescClamped] = useState(false);
-  const [descOverflows, setDescOverflows] = useState(false);
-  const descRef = useRef<HTMLParagraphElement>(null);
 
   const { address: walletAddress } = useWalletNativeSession();
   const { collection, isLoading: colLoading } = useCollection(contract);
@@ -212,13 +208,6 @@ export default function CollectionPageClient() {
   });
 
   const bannerUrl = collection?.image ? ipfsToHttp(collection.image) : null;
-
-  useEffect(() => {
-    const el = descRef.current;
-    if (!el || !collection?.description) return;
-    setDescOverflows(el.scrollHeight > 80);
-    setDescClamped(true);
-  }, [collection?.description]);
 
   const activeListings = orders.filter((o) => o.status === "ACTIVE" && (o.offer.itemType === "ERC721" || o.offer.itemType === "ERC1155"));
   const activeBids = orders.filter((o) => o.status === "ACTIVE" && o.offer.itemType === "ERC20");
@@ -284,27 +273,7 @@ export default function CollectionPageClient() {
 
           <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:gap-6">
             <div className="flex-1 min-w-0 lg:max-w-2xl">
-              {collection.description && (
-                <>
-                  <p
-                    ref={descRef}
-                    className={cn(
-                      "text-sm text-muted-foreground leading-relaxed",
-                      descClamped && !descExpanded && "line-clamp-3"
-                    )}
-                  >
-                    {collection.description}
-                  </p>
-                  {descOverflows && (
-                    <button
-                      onClick={() => setDescExpanded((e) => !e)}
-                      className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
-                    >
-                      {descExpanded ? "Show less" : "Show more"}
-                    </button>
-                  )}
-                </>
-              )}
+              {collection.description && <ExpandableText text={collection.description} />}
             </div>
 
             <div className="flex flex-wrap items-center gap-2 shrink-0">

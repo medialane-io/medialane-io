@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { assetHref, collectionHref } from "@/lib/routes";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PageContainer, AssetCollectionBar, AssetUtilityIcons, AssetMarketplacePanel, AssetMediaColumn, isLivingRenderCollection, DropTokenLink, AssetOwnersPanel, AssetProvenanceTab, AssetUnavailable, ASSET_ACCENTS } from "@medialane/ui";
+import { PageContainer, AssetCollectionBar, AssetUtilityIcons, AssetMarketplacePanel, AssetMediaColumn, AssetHeaderBlock, AssetOwnerRow, isLivingRenderCollection, DropTokenLink, AssetOwnersPanel, AssetProvenanceTab, AssetUnavailable, ASSET_ACCENTS } from "@medialane/ui";
 import type { Chain } from "@medialane/sdk";
 import { ipfsToHttp } from "@/lib/utils";
 import { FloatingCommentsButton } from "@/components/asset/floating-comments-button";
@@ -21,7 +21,6 @@ import {
 } from "./asset-marketplace-dialogs";
 import { AssetCommentsDialog } from "./asset-side-panels";
 import { AssetOverviewContent } from "./asset-overview-content";
-import { AssetHeaderBlock } from "@/components/asset/asset-header-block";
 import { AssetLightbox } from "@/components/asset/asset-lightbox";
 import { ReportDialog } from "@/components/report-dialog";
 import { HelpIcon } from "@/components/ui/help-icon";
@@ -122,6 +121,7 @@ export function AssetPageStandard() {
 
   const parentContract = attributes.find((a) => a.trait_type === "Parent Contract")?.value ?? null;
   const parentTokenId = attributes.find((a) => a.trait_type === "Parent Token ID")?.value ?? null;
+  const ownerAddress = !isERC1155 ? (token.balances?.[0]?.owner ?? token.owner ?? null) : null;
 
   return (
     <div className="relative z-0 min-h-screen">
@@ -172,7 +172,6 @@ export function AssetPageStandard() {
                 ipType={token.metadata?.ipType}
                 parentContract={parentContract}
                 parentTokenId={parentTokenId}
-                ownerAddress={!isERC1155 ? (token.balances?.[0]?.owner ?? token.owner ?? null) : null}
               />
               <AssetUtilityIcons
                 contractExplorerHref={`${EXPLORER_URL}/contract/${token.contractAddress}`}
@@ -213,6 +212,9 @@ export function AssetPageStandard() {
             ) : null}
 
             <div className="pt-5 border-t border-border/40 space-y-5">
+              {ownerAddress ? (
+                <AssetOwnerRow ownerAddress={ownerAddress} ownerHref={`/creator/${ownerAddress}`} />
+              ) : null}
               {collection?.service === "drop-collection" && <DropTokenLink contract={contract} name={collection?.name ?? null} />}
               <AssetCollectionBar
                 collectionName={collection?.name ?? contract.slice(0, 8) + "…"}
