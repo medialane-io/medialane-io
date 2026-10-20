@@ -156,7 +156,6 @@ export function AssetPageStandard() {
               live={live}
               fallback={(
                 <div className="aspect-square flex items-center justify-center bg-gradient-to-br from-primary/10 to-brand-purple/10">
-                  <span className="text-5xl tabular-nums text-muted-foreground">#{tokenId}</span>
                 </div>
               )}
             />

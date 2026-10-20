@@ -47,7 +47,6 @@ function OfferCard({ offer }: { offer: SponsorshipOffer }) {
         <Handshake className="h-4 w-4 text-brand-rose" />
         <span className="text-[10px] font-bold uppercase tracking-widest text-brand-rose">Sponsorship</span>
       </div>
-      <p className="text-sm font-semibold">Token #{offer.tokenId}</p>
       <p className="text-xs text-muted-foreground truncate">{offer.nftContract}</p>
       <p className="text-xs text-muted-foreground flex items-center gap-1">
         <Coins className="h-3 w-3" />

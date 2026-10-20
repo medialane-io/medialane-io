@@ -64,7 +64,6 @@ function TokenHero({ order, quantity }: { order: ApiOrder; quantity: number }) {
             <Image src={image} alt={name} fill sizes="128px" className="object-cover" />
           ) : (
             <div className="h-full w-full bg-gradient-to-br from-primary/20 via-brand-purple/10 to-transparent flex items-center justify-center text-2xl font-bold text-muted-foreground/30">
-              #{order.nftTokenId}
             </div>
           )}
         </div>
