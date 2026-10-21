@@ -34,8 +34,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       text: email.text,
     });
     return NextResponse.json({ ok: true });
-  } catch (err) {
-    console.error("[mail-relay] send failed", { message: err instanceof Error ? err.message : String(err) });
+  } catch {
+    console.error("[mail-relay] send failed");
     return NextResponse.json({ error: "Send failed" }, { status: 502 });
   }
 }
