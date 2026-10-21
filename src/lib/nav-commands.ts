@@ -43,7 +43,7 @@ export const NAV_COMMANDS = navGroups([
   {
     heading: "Explore",
     items: [
-      "audio", "art", "video", "photography", "nft",
+      "audio", "art", "video", "photography", "publications", "nft",
     ],
   },
   {
