@@ -51,11 +51,3 @@ export function timeAgo(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString();
 }
 
-export function formatExpiry(endTime: string | bigint): { label: string; urgent: boolean; expired: boolean } {
-  const expiry = new Date(Number(endTime) * 1000);
-  const now = new Date();
-  if (expiry < now) return { label: "Expired", urgent: false, expired: true };
-  const urgent = expiry.getTime() - now.getTime() < 86400000;
-  return { label: formatDistanceToNow(expiry, { addSuffix: true }), urgent, expired: false };
-}
-

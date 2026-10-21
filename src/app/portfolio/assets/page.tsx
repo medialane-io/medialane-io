@@ -1,14 +1,9 @@
 "use client";
 
-import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { AssetsGrid } from "@/components/portfolio/assets-grid";
+import { PortfolioAssets, useMedialaneApp } from "@medialane/ui";
+import { useAssetActions } from "@/components/portfolio/portfolio-actions";
 
 export default function PortfolioAssetsPage() {
-  const { address: walletAddress } = useWalletNativeSession();
-
-  return (
-    <div className="space-y-4">
-      <AssetsGrid key={walletAddress ?? "no-wallet"} address={walletAddress ?? null} />
-    </div>
-  );
+  const { walletAddress } = useMedialaneApp();
+  return walletAddress ? <PortfolioAssets key={walletAddress} address={walletAddress} useActions={useAssetActions} /> : null;
 }
