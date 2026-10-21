@@ -1,28 +1,9 @@
 "use client";
 
-import { HeroSlider } from "./hero-slider";
-import { AirdropSection } from "./airdrop-section";
-import { RewardsSection } from "./rewards-section";
-import { TrendingCollections } from "./trending-collections";
-import { NewOnMarketplace } from "./new-on-marketplace";
-import { ActivityTicker } from "@/components/shared/activity-ticker";
+import { HomePage as SharedHomePage } from "@medialane/ui";
+import type { ApiCollection } from "@medialane/sdk";
+import { useMarketActions } from "@/lib/use-market-actions";
 
-export function HomePage() {
-  return (
-    <div className="pb-20">
-
-      <HeroSlider />
-
-      <div className="w-full max-w-screen-2xl mx-auto px-4 sm:px-6 pt-6">
-        <ActivityTicker limit={14} />
-      </div>
-
-      <div className="w-full max-w-screen-2xl mx-auto px-4 sm:px-6 space-y-10 sm:space-y-16 lg:space-y-20 mt-16">
-        <NewOnMarketplace />
-        <TrendingCollections />
-        <RewardsSection />
-        <AirdropSection />
-      </div>
-    </div>
-  );
+export function HomePage({ initialFeatured }: { initialFeatured?: ApiCollection[] }) {
+  return <SharedHomePage useMarketActions={useMarketActions} initialFeatured={initialFeatured} />;
 }
