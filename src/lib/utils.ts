@@ -1,6 +1,5 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { formatDistanceToNow } from "date-fns";
 import { createImageResolver, PINATA_PUBLIC_GATEWAY } from "@medialane/ui";
 import { IPFS_GATEWAY } from "./constants";
 
