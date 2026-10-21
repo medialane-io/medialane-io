@@ -3,20 +3,23 @@
 import { useRouter, usePathname } from "next/navigation";
 import { Wallet } from "lucide-react";
 import { describeError, type MedialaneApp } from "@medialane/ui";
-import { requireAccount } from "@/lib/account-gate";
+import { requireAccount, requireSignedIn } from "@/lib/account-gate";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
+import { useSession } from "@/hooks/use-session";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { ReportDialog } from "@/components/report-dialog";
 import { resolveImage } from "@/lib/utils";
 
 export function useAppAdapter(): MedialaneApp {
   const { address, signer } = useWalletNativeSession();
+  const { session } = useSession();
   const router = useRouter();
   const pathname = usePathname();
   return {
     getClient: getMedialaneClient,
     walletAddress: address ?? null,
     onRequireWallet: () => router.push(`/connect?redirect_url=${encodeURIComponent(pathname)}`),
+    ensureSignedIn: async () => requireSignedIn(session),
     connectLabel: "Connect with email",
     connectDescription: "Buy, offer, and collect instantly.",
     companion: {
