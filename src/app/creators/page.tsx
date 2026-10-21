@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import CreatorsPageClient from "./creators-client";
+import { CreatorsPage as CreatorsPageClient } from "@medialane/ui";
 import { canonical, buildSocialMetadata } from "@/lib/seo";
 
 const title = "Creators";

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { HomePage } from "@/components/home";
 import { canonical, buildSocialMetadata } from "@/lib/seo";
+import { fetchFeaturedCollections } from "@/lib/api-server";
 
 const title = "Medialane — Creator Launchpad + NFT Marketplace";
 const description =
@@ -13,6 +14,9 @@ export const metadata: Metadata = {
   ...buildSocialMetadata({ title, description, imageAlt: "Medialane" }),
 };
 
-export default function Page() {
-  return <HomePage />;
+export const revalidate = 60;
+
+export default async function Page() {
+  const featured = await fetchFeaturedCollections(3);
+  return <HomePage initialFeatured={featured ?? undefined} />;
 }

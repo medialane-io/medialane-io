@@ -3,39 +3,13 @@
 import { useState } from "react";
 import { useParams } from "next/navigation";
 import { UserRoundCog } from "lucide-react";
-import { CollectionPage, type CollectionMarketActions, type CollectionPageSlots } from "@medialane/ui";
+import { CollectionPage, type CollectionPageSlots } from "@medialane/ui";
 import { Button } from "@medialane/ui/button";
-import type { ApiOrder, ApiToken } from "@medialane/sdk";
-import { PurchaseDialog } from "@/components/marketplace/purchase-dialog";
-import { OfferDialog } from "@/components/marketplace/offer-dialog";
 import { CollectionServiceAction } from "@/components/services/collection-service-action";
 import { TransferCollectionOwnershipDialog } from "@/components/collection/transfer-ownership-dialog";
 import { useGatedContent } from "@/hooks/use-gated-content";
+import { useMarketActions } from "@/lib/use-market-actions";
 
-function useCollectionMarketActions(): CollectionMarketActions {
-  const [order, setOrder] = useState<ApiOrder | null>(null);
-  const [token, setToken] = useState<ApiToken | null>(null);
-  return {
-    buy: setOrder,
-    offer: setToken,
-    dialogs: (
-      <>
-        {order ? <PurchaseDialog order={order} open onOpenChange={(open) => { if (!open) setOrder(null); }} /> : null}
-        {token ? (
-          <OfferDialog
-            open
-            onOpenChange={(open) => { if (!open) setToken(null); }}
-            assetContract={token.contractAddress}
-            tokenId={token.tokenId}
-            tokenName={token.metadata?.name ?? undefined}
-            tokenImage={token.metadata?.image ?? undefined}
-            tokenStandard={token.standard ?? undefined}
-          />
-        ) : null}
-      </>
-    ),
-  };
-}
 
 function TransferOwnership({ collectionId, currentOwner, collectionName }: { collectionId: string; currentOwner: string; collectionName: string | null }) {
   const [open, setOpen] = useState(false);
@@ -51,7 +25,7 @@ function TransferOwnership({ collectionId, currentOwner, collectionName }: { col
 }
 
 const SLOTS: CollectionPageSlots = {
-  useMarketActions: useCollectionMarketActions,
+  useMarketActions,
   useGatedContent,
   ServiceAction: CollectionServiceAction,
   TransferOwnership,
