@@ -1,5 +1,7 @@
 import { unstable_cache } from "next/cache";
 import { getMedialaneClient } from "@/lib/medialane-client";
+import { toAbsoluteImageUrl } from "@medialane/ui/utils/ipfs";
+import { absoluteUrl } from "@/lib/seo";
 
 const REVALIDATE_SECONDS = 60;
 const api = () => getMedialaneClient().api;
@@ -19,7 +21,13 @@ function cached<A extends (string | number)[], T>(name: string, read: (...args: 
   );
 }
 
-export { toAbsoluteImageUrl as ipfsToHttpServer } from "@medialane/ui/utils/ipfs";
+const BACKEND_ORIGIN = new URL(process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL ?? "http://localhost:3001").origin;
+
+/** Absolute image URL for page metadata; images served by the backend go through this app's image proxy. */
+export function ipfsToHttpServer(uri: string | null | undefined): string {
+  const url = toAbsoluteImageUrl(uri);
+  return url.startsWith(`${BACKEND_ORIGIN}/`) ? absoluteUrl(`/api/img?url=${encodeURIComponent(url)}`) : url;
+}
 
 export const fetchTokenMeta = cached("token-meta", async (contract: string, tokenId: string) =>
   (await api().getToken(contract, tokenId)).data);
