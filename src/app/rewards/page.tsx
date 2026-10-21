@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Info } from "lucide-react";
 import { PageContainer } from "@medialane/ui";
-import { RewardsDashboard } from "./rewards-dashboard";
+import { RewardsDashboard } from "@medialane/ui";
 import { canonical, buildSocialMetadata } from "@/lib/seo";
 
 const title = "Rewards";

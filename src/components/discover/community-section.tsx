@@ -8,7 +8,7 @@ import { useActivities, useRewardsBatch } from "@medialane/ui";
 
 import { useWallet } from "@/hooks/use-wallet";
 import { ActivityRow } from "@/components/shared/activity-row";
-import { LeaderboardPanel } from "@/components/rewards/leaderboard-panel";
+import { LeaderboardPanel } from "@medialane/ui";
 import { Skeleton } from "@medialane/ui/skeleton";
 import { timeAgo, cn } from "@/lib/utils";
 
