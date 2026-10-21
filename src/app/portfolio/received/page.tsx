@@ -1,9 +1,9 @@
 "use client";
 
-import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { ReceivedOffersTable } from "@/components/portfolio/received-offers-table";
+import { PortfolioOrders, useMedialaneApp } from "@medialane/ui";
+import { useReceivedOfferActions } from "@/components/portfolio/portfolio-actions";
 
 export default function PortfolioReceivedPage() {
-  const { address: walletAddress } = useWalletNativeSession();
-  return <ReceivedOffersTable address={walletAddress!} />;
+  const { walletAddress } = useMedialaneApp();
+  return walletAddress ? <PortfolioOrders view="received" address={walletAddress} useActions={useReceivedOfferActions} /> : null;
 }

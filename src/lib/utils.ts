@@ -1,6 +1,5 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { formatDistanceToNow } from "date-fns";
 import { createImageResolver, PINATA_PUBLIC_GATEWAY } from "@medialane/ui";
 import { IPFS_GATEWAY } from "./constants";
 
@@ -49,13 +48,5 @@ export function timeAgo(dateStr: string): string {
   const days = Math.floor(hours / 24);
   if (days < 30) return `${days}d ago`;
   return new Date(dateStr).toLocaleDateString();
-}
-
-export function formatExpiry(endTime: string | bigint): { label: string; urgent: boolean; expired: boolean } {
-  const expiry = new Date(Number(endTime) * 1000);
-  const now = new Date();
-  if (expiry < now) return { label: "Expired", urgent: false, expired: true };
-  const urgent = expiry.getTime() - now.getTime() < 86400000;
-  return { label: formatDistanceToNow(expiry, { addSuffix: true }), urgent, expired: false };
 }
 
