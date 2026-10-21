@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { IP1155Content } from "./nfteditions-content";
+import { EditionsPage } from "@medialane/ui";
 import { canonical, buildSocialMetadata } from "@/lib/seo";
 
 const title = "Limited Editions | Launchpad";
@@ -13,5 +13,5 @@ export const metadata: Metadata = {
 };
 
 export default function NFTEditionsPage() {
-  return <IP1155Content />;
+  return <EditionsPage />;
 }

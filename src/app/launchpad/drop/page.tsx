@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DropContent } from "./drop-content";
+import { DropsPage } from "@medialane/ui";
 import { canonical, buildSocialMetadata } from "@/lib/seo";
 
 const title = "Collection Drop";
@@ -13,5 +13,5 @@ export const metadata: Metadata = {
 };
 
 export default function DropPage() {
-  return <DropContent />;
+  return <DropsPage />;
 }

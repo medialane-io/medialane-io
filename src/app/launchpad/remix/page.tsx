@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { RemixContent } from "./remix-content";
+import { RemixBrowsePage } from "@medialane/ui";
 import { canonical, buildSocialMetadata } from "@/lib/seo";
 
 const title = "Remix | Launchpad";
@@ -13,5 +13,5 @@ export const metadata: Metadata = {
 };
 
 export default function RemixPage() {
-  return <RemixContent />;
+  return <RemixBrowsePage />;
 }

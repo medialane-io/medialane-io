@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ClubContent } from "./club-content";
+import { ServiceCollectionsPage } from "@medialane/ui";
 import { canonical, buildSocialMetadata } from "@/lib/seo";
 
 const title = "IP Club";
@@ -13,5 +13,5 @@ export const metadata: Metadata = {
 };
 
 export default function ClubPage() {
-  return <ClubContent />;
+  return <ServiceCollectionsPage kind="club" />;
 }
