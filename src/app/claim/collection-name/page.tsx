@@ -3,7 +3,7 @@ import { Link2 } from "lucide-react";
 import { canonical } from "@/lib/seo";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { ClaimGate } from "@/components/claim/claim-gate";
-import { CollectionNameClaim } from "@/components/claim/collection-name-claim";
+import { CollectionNameClaim } from "@medialane/ui";
 import { ClaimCollectionNameAside } from "@/components/claim/claim-collection-name-aside";
 
 export const metadata: Metadata = {
