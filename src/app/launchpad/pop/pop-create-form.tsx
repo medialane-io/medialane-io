@@ -167,7 +167,7 @@ export function PopCreateForm({
                 </button>
               ) : null}
               <p className="text-xs text-muted-foreground">
-                {imageUri ? <span className="text-green-500">✓ Uploaded</span> : "JPG, PNG, SVG or WebP · max 10 MB"}
+                {imageUri ? <span className="text-green-500">✓ Uploaded</span> : "JPG, PNG, SVG or WebP"}
               </p>
             </div>
           </div>

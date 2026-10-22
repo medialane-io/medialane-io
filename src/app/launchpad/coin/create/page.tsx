@@ -280,7 +280,7 @@ export default function CoinCreatePage() {
                     )}
                   </button>
                   <div className="space-y-1 text-xs text-muted-foreground">
-                    <p>JPG, PNG, GIF, SVG or WebP · max 10 MB</p>
+                    <p>JPG, PNG, GIF, SVG or WebP</p>
                     {imagePreview && (
                       <button type="button" onClick={clearImage} className="inline-flex items-center gap-1 text-muted-foreground active:text-foreground">
                         <X className="h-3 w-3" /> Remove

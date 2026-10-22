@@ -164,7 +164,7 @@ export function NftEditionsMintForm({
                 {imageUri ? (
                   <span className="text-brand-purple">✓ Uploaded</span>
                 ) : (
-                  "JPG, PNG, SVG or WebP · max 10 MB"
+                  "JPG, PNG, SVG or WebP"
                 )}
               </p>
               <p className="text-xs text-muted-foreground">This media and metadata are pinned before the first mint is submitted.</p>

@@ -100,7 +100,7 @@ export function NftEditionsCreateForm({
               </button>
             ) : null}
             <p className="text-xs text-muted-foreground">
-              JPG, PNG, GIF, SVG or WebP · max 10 MB
+              JPG, PNG, GIF, SVG or WebP
               {imageUri ? <span className="ml-2 text-emerald-500 font-medium">✓ Uploaded</span> : null}
             </p>
             <p className="text-xs text-muted-foreground">This becomes the cover for your collection.</p>
