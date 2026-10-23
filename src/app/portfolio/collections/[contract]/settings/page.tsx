@@ -104,7 +104,7 @@ function CollectionSlugClaimSection({
     (async () => {
       try {
         requireSignedIn(session);
-        const { claims } = await getMedialaneClient().api.getMyCollectionSlugClaims();
+        const { claims } = await getMedialaneClient().api.collections.mySlugClaims();
         const match = claims.find(
           (c) => normalizeAddress("STARKNET", c.contractAddress) === normalizeAddress("STARKNET", contract) && c.status === "PENDING"
         );
@@ -119,7 +119,7 @@ function CollectionSlugClaimSection({
     setCheckState("checking");
     setCheckReason(null);
     try {
-      const result = await getMedialaneClient().api.checkCollectionSlugAvailability(slug);
+      const result = await getMedialaneClient().api.collections.slugAvailability(slug);
       setCheckState(result.available ? "available" : "taken");
       if (!result.available) setCheckReason(result.reason ?? "That slug is not available.");
     } catch {
@@ -135,7 +135,7 @@ function CollectionSlugClaimSection({
     setSubmitError(null);
     try {
       requireSignedIn(session);
-      const { claim } = await getMedialaneClient().api.submitCollectionSlugClaim(contract, slug);
+      const { claim } = await getMedialaneClient().api.collections.submitSlugClaim(contract, slug);
       setPendingSlug(claim.slug);
       setSubmitState("done");
     } catch (err: unknown) {
@@ -363,7 +363,7 @@ export default function CollectionSettingsPage({ params }: Props) {
           ? ((form.gatedContentType || null) as "VIDEO" | "STREAM" | "AUDIO" | "DOCUMENT" | "LINK" | null)
           : null,
       };
-      await getMedialaneClient().api.updateCollectionProfile(contract, payload);
+      await getMedialaneClient().api.collections.updateProfile(contract, payload);
       await mutate();
       setSaveStatus("saved");
       setTimeout(() => setSaveStatus("idle"), 3000);

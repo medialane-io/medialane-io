@@ -185,7 +185,7 @@ export default function CreateMembershipPage({ params }: { params: Promise<{ con
     const tierId = await predictNextMembershipId(contract);
     setMintedTierId(String(tierId));
 
-    const tierRes = await client.api.createTierIntent({
+    const tierRes = await client.api.intents.create("create-tier", {
       owner: address,
       collection: contract,
       service: "ip-club",
@@ -195,7 +195,7 @@ export default function CreateMembershipPage({ params }: { params: Promise<{ con
       royaltyBps,
       metadataUri,
     });
-    const mintRes = await client.api.createMintIntent({
+    const mintRes = await client.api.intents.create("mint", {
       owner: address,
       recipient: address,
       collectionContract: contract,
@@ -203,7 +203,7 @@ export default function CreateMembershipPage({ params }: { params: Promise<{ con
       amount: values.maxSupply,
     });
 
-    const mintResult = await executeIntents(signer, client, [tierRes.data, mintRes.data]);
+    const mintResult = await executeIntents(signer, client, [tierRes, mintRes]);
     return mintResult;
   };
 

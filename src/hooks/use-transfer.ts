@@ -23,7 +23,7 @@ const readIntoMedialane = async (txHash: string): Promise<void> => {
 type TransferIntentCreator = (params: CreateTransferNftIntentParams) => Promise<{ id: string; calls: Call[] }>;
 
 const createTransferIntent: TransferIntentCreator = async (params) =>
-  (await getMedialaneClient().api.createTransferNftIntent(params)).data as { id: string; calls: Call[] };
+  await getMedialaneClient().api.intents.create("transfer-nft", params) as { id: string; calls: Call[] };
 
 export interface TransferInput {
   contractAddress: string;

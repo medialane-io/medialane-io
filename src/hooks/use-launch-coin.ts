@@ -62,14 +62,14 @@ export function useLaunchCoin(deps: UseLaunchCoinDeps = {}) {
       try {
 
         setStatus("deploying");
-        const createIntent = await client.api.createCoinIntent({
+        const createIntent = await client.api.intents.create("create-coin", {
           owner: ownerAddr,
           name: input.name,
           symbol: input.symbol,
           initialSupply: supplyRaw.toString(),
         });
-        if (createIntent.data.requiresSignature) throw new Error("Expected a prebuilt create-coin intent");
-        const created = await signer.execute(createIntent.data.calls as Call[], { intentIds: [createIntent.data.id] });
+        if (createIntent.requiresSignature) throw new Error("Expected a prebuilt create-coin intent");
+        const created = await signer.execute(createIntent.calls as Call[], { intentIds: [createIntent.id] });
 
         let receipt: CreatorCoinReceiptLike | null = null;
         for (let attempt = 0; attempt < 4 && !receipt; attempt++) {
@@ -88,7 +88,7 @@ export function useLaunchCoin(deps: UseLaunchCoinDeps = {}) {
         const coinAddress = parseCreatorCoinCreated(receipt);
 
         setStatus("launching");
-        const launchIntent = await client.api.launchCoinIntent({
+        const launchIntent = await client.api.intents.create("launch-coin", {
           owner: ownerAddr,
           creatorCoin: coinAddress,
           quoteToken: quote.address,
@@ -98,13 +98,13 @@ export function useLaunchCoin(deps: UseLaunchCoinDeps = {}) {
           transferRestrictionDelay: 0,
           quoteFundAmount: buybackRaw.toString(),
         });
-        if (launchIntent.data.requiresSignature) throw new Error("Expected a prebuilt launch-coin intent");
-        const launched = await signer.execute(launchIntent.data.calls as Call[], { intentIds: [launchIntent.data.id] });
+        if (launchIntent.requiresSignature) throw new Error("Expected a prebuilt launch-coin intent");
+        const launched = await signer.execute(launchIntent.calls as Call[], { intentIds: [launchIntent.id] });
 
         await verify(launched.txHash);
 
         setStatus("indexing");
-        await client.api.syncCoin(coinAddress, ownerAddr).catch(() => {});
+        await client.api.coins.sync(coinAddress, ownerAddr).catch(() => {});
 
         setStatus("done");
         return { coinAddress, txHash: launched.txHash };

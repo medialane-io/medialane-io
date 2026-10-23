@@ -169,7 +169,7 @@ export default function PopManagePage({
     collection?.owner &&
     normalizeAddress("STARKNET", walletAddress) === normalizeAddress("STARKNET", collection.owner);
 
-  const execute = async (create: () => Promise<{ data: ApiIntentCreated }>, successMsg: string): Promise<boolean> => {
+  const execute = async (create: () => Promise<ApiIntentCreated>, successMsg: string): Promise<boolean> => {
     if (!hasWallet || !signer) return false;
     setIsSubmitting(true);
     try {
@@ -186,7 +186,7 @@ export default function PopManagePage({
 
   const handleIssue = (recipient: string) => {
     void execute(
-      () => getMedialaneClient().api.createPopManageIntent({ owner: signer!.address, collection: contract, action: "issue", recipient }),
+      () => getMedialaneClient().api.intents.create("pop-manage", { owner: signer!.address, collection: contract, action: "issue", recipient }),
       "Credential issued",
     );
   };
@@ -195,7 +195,7 @@ export default function PopManagePage({
     const list = buildPopAllowlist(addresses);
     const count = Object.keys(list.proofs).length;
     void execute(
-      () => getMedialaneClient().api.createPopManageIntent({ owner: signer!.address, collection: contract, action: "set_allowlist_root", root: list.root }),
+      () => getMedialaneClient().api.intents.create("pop-manage", { owner: signer!.address, collection: contract, action: "set_allowlist_root", root: list.root }),
       `Published ${count} participant${count !== 1 ? "s" : ""}`,
     ).then((ok) => {
       if (ok) setLinks(popClaimLinks(window.location.origin, contract, list));

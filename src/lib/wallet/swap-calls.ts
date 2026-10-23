@@ -1,5 +1,5 @@
 import type { Call } from "starknet";
-import { getTokenBySymbol, type ApiClient } from "@medialane/sdk";
+import { getTokenBySymbol, type IntentsApi } from "@medialane/sdk";
 import type { SwapAmountMode, SwapToken } from "@/hooks/use-swap-quote";
 
 interface CreateSwapIntentParams {
@@ -19,16 +19,16 @@ function tokenAddress(token: SwapToken): string {
 }
 
 export async function createSwapIntent(
-  api: Pick<ApiClient, "createSwapIntent">,
+  api: { intents: Pick<IntentsApi, "create"> },
   params: CreateSwapIntentParams,
 ): Promise<{ id: string; calls: Call[] }> {
   const amountMode = params.amountMode ?? "buy";
-  const created = await api.createSwapIntent({
+  const created = await api.intents.create("swap", {
     taker: params.takerAddress,
     sellTokenAddress: tokenAddress(params.sell),
     buyTokenAddress: tokenAddress(params.buy),
     [`${amountMode}AmountRaw`]: params.amountRaw,
   });
-  const intent = created.data as { id: string; calls: Call[] };
+  const intent = created as { id: string; calls: Call[] };
   return { id: intent.id, calls: intent.calls };
 }

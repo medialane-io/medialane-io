@@ -7,8 +7,8 @@ export function useCoinSupply(coinAddress?: string | null, decimals = 18) {
   const { data, isLoading } = useSWR<bigint | null>(
     coinAddress ? `coin-supply-${coinAddress}` : null,
     async () => {
-      const res = await getMedialaneClient().api.getCoin(coinAddress as string);
-      return res.data.totalSupply ? BigInt(res.data.totalSupply) : null;
+      const res = await getMedialaneClient().api.coins.get(coinAddress as string);
+      return res.totalSupply ? BigInt(res.totalSupply) : null;
     },
     { revalidateOnFocus: false, shouldRetryOnError: false, onError: () => {} }
   );

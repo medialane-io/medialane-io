@@ -28,7 +28,7 @@ function fetchQuote(
   amountMode: SwapAmountMode,
   takerAddress: string | null
 ): Promise<SwapQuoteSummary> {
-  return getMedialaneClient().api.getSwapQuote({
+  return getMedialaneClient().api.platform.swapQuote({
     ...tokenBody(sell, "sell"),
     ...tokenBody(buy, "buy"),
     [`${amountMode}AmountRaw`]: amountRaw,

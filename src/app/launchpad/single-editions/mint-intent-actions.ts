@@ -66,9 +66,9 @@ export async function createMintIntentWithDebug(
   updateDebug({ step: "intent_request", request: { ...body } });
 
   try {
-    const response = await getMedialaneClient().api.createMintIntent(body);
+    const response = await getMedialaneClient().api.intents.create("mint", body);
     updateDebug({ step: "intent_response", responseStatus: 200, responseJson: response });
-    return response as { data?: { id?: string; calls?: { contractAddress: string; entrypoint?: string; calldata?: unknown[] }[] } };
+    return response as { id?: string; calls?: { contractAddress: string; entrypoint?: string; calldata?: unknown[] }[] };
   } catch (err) {
     updateDebug({ step: "intent_failed", ...failure(err) });
     throw err;
@@ -84,7 +84,7 @@ export async function confirmMintIntentWithDebug(
   updateDebug({ step: "tx_confirm_request", txHash: normalizedHash });
 
   try {
-    const response = await getMedialaneClient().api.confirmIntent(id, normalizedHash);
+    const response = await getMedialaneClient().api.intents.confirm(id, normalizedHash);
     updateDebug({ step: "tx_confirm_sent", responseStatus: 200, responseJson: response, txHash: normalizedHash });
   } catch (err) {
     updateDebug({ step: "tx_confirm_failed", txHash: normalizedHash, ...failure(err) });
@@ -105,7 +105,7 @@ export async function pollMintIntentUntilTerminal(
 
     let intent: Record<string, unknown> | null;
     try {
-      intent = (await getMedialaneClient().api.getIntent(id)).data as unknown as Record<string, unknown>;
+      intent = await getMedialaneClient().api.intents.get(id) as unknown as Record<string, unknown>;
     } catch (err) {
       updateDebug({ step: "intent_poll_failed", ...failure(err) });
       throw err;

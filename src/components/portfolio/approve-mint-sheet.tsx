@@ -133,27 +133,27 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
 
       if (standard === "ERC1155") {
 
-        const intentRes = await client.api.createMintIntent({
+        const intentRes = await client.api.intents.create("mint", {
           owner: walletAddress,
           recipient: walletAddress,
           collectionContract: selectedCollection.contractAddress,
           tokenUri: pinnedUri,
           value: "1",
         });
-        const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
+        const result = await executeIntent(signer, client, intentRes, { confirm: false });
         const editionId = mintedTokenIdFromReceipt(result.receipt, selectedCollection.contractAddress);
         if (!editionId) throw new Error("Minted, but could not read the assigned token id from the receipt");
         remixTokenId = editionId;
       } else {
 
-        const intentRes = await client.api.createMintIntent({
+        const intentRes = await client.api.intents.create("mint", {
           owner: walletAddress,
           collectionId: effectiveCollectionId!,
           recipient: walletAddress,
           tokenUri: pinnedUri,
           royaltyBps: 0,
         });
-        const mintIntent = intentRes.data;
+        const mintIntent = intentRes;
 
         if (mintIntent.requiresSignature) throw new Error("Unexpected signed mint intent");
         const mintCalls = mintIntent.calls as unknown as Call[];
@@ -162,7 +162,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
         const mintResult = await signer.execute(mintCalls, { intentIds: [mintIntent.id] });
         await syncTransactionBestEffort(client, mintResult.txHash);
 
-        const tokensRes = await client.api.getTokensByOwner(walletAddress, 1, 5);
+        const tokensRes = await client.api.tokens.ownedBy(walletAddress, { page: 1, limit: 5 });
         const minted = tokensRes.data?.find((t) => t.contractAddress === selectedCollection.contractAddress);
         if (!minted) throw new Error("Could not determine remix token ID");
         remixTokenId = minted.tokenId;
@@ -185,10 +185,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
       while (Date.now() < listingDeadline) {
         await new Promise((r) => setTimeout(r, 2000));
         try {
-          const ordersRes = await client.api.getActiveOrdersForToken(
-            selectedCollection.contractAddress,
-            remixTokenId
-          );
+          const ordersRes = await client.api.orders.forToken(selectedCollection.contractAddress, remixTokenId);
           const listing = ordersRes.data?.find(
             (o) => o.status === "ACTIVE" && o.offer.itemType === standard
           );

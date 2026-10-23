@@ -113,19 +113,19 @@ export default function CreateIP1155CollectionPage() {
       }),
     );
 
-      const intentRes = await client.api.createCollectionIntent({
+      const intentRes = await client.api.intents.create("create-collection", {
         owner: walletAddress,
         name: pendingValues.name,
         symbol: pendingValues.symbol,
         baseUri: collectionMetaUri,
         service: "mip-erc1155",
       });
-      const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
+      const result = await executeIntent(signer, client, intentRes, { confirm: false });
 
       const addr = deployedCollectionFromReceipt(result.receipt, "mip-erc1155");
 
       if (addr) {
-        await client.api.registerCollection(addr).catch(() => {});
+        await client.api.collections.register(addr).catch(() => {});
       }
 
     if (walletAddress) invalidatePortfolioCache(walletAddress);

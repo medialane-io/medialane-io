@@ -103,7 +103,7 @@ export function LaunchMint() {
       if (!MINT_CONTRACT) throw new Error("Mint contract not configured.");
 
       setMintStatusMsg("Submitting transaction…");
-      return runIntentCalls(signer, () => getMedialaneClient().api.createGenesisMintIntent({ owner: signer.address, recipient: recipientAddress! }));
+      return runIntentCalls(signer, () => getMedialaneClient().api.intents.create("genesis-mint", { owner: signer.address, recipient: recipientAddress! }));
     });
   }, [recipientAddress, action]);
 

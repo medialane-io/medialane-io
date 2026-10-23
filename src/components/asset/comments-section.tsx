@@ -83,7 +83,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
 
   const handleUnlocked = async (signer: StarknetVenueSigner) => {
     const result = await runIntentCalls(signer, () =>
-      getMedialaneClient().api.createCommentIntent({ author: signer.address, nftContract: contract, tokenId, text: text.trim() }),
+      getMedialaneClient().api.intents.create("comment", { author: signer.address, nftContract: contract, tokenId, text: text.trim() }),
     );
 
     setText("");

@@ -37,7 +37,7 @@ export function useProfileForm() {
     setSaveError(null);
     try {
       requireSignedIn(session);
-      const result = (await getMedialaneClient().api.updateCreatorProfile(address, profilePayload(form))) as
+      const result = (await getMedialaneClient().api.creators.updateProfile(address, profilePayload(form))) as
         | { walletAddress: string }
         | { error?: string };
       if (!("walletAddress" in result) || !result.walletAddress) {

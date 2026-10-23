@@ -146,14 +146,14 @@ export default function LaunchpadCreateCollectionPage() {
       }),
     );
 
-    const intentRes = await client.api.createCollectionIntent({
+    const intentRes = await client.api.intents.create("create-collection", {
       owner: walletAddress,
       name: values.name,
       symbol: values.symbol,
       baseUri,
     });
 
-    const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
+    const result = await executeIntent(signer, client, intentRes, { confirm: false });
 
     if (!result.txHash) {
       throw new UserFacingError("Collection transaction completed without a transaction hash. Please refresh and check your account activity.");

@@ -96,14 +96,14 @@ export default function CreateClubPage() {
       }),
     );
 
-    const intentRes = await client.api.createCollectionIntent({
+    const intentRes = await client.api.intents.create("create-collection", {
       owner: walletAddress,
       name: values.name,
       symbol: values.symbol,
       baseUri,
       service: "ip-club",
     });
-    const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
+    const result = await executeIntent(signer, client, intentRes, { confirm: false });
 
     const addr = deployedCollectionFromReceipt(result.receipt, "ip-club");
 

@@ -64,7 +64,7 @@ export function TransferCollectionOwnershipDialog({
   const handleConfirmTransfer = () => {
     void action.run(async (signer) => {
       return runIntentCalls(signer, () =>
-        getMedialaneClient().api.createTransferCollectionOwnershipIntent({ owner: signer.address, collectionId: String(collectionId), newOwner: trimmed }),
+        getMedialaneClient().api.intents.create("transfer-collection-ownership", { owner: signer.address, collectionId: String(collectionId), newOwner: trimmed }),
       );
     });
   };

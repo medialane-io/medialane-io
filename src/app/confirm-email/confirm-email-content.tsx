@@ -26,7 +26,7 @@ export default function ConfirmEmailContent() {
       return;
     }
     window.history.replaceState(null, "", window.location.pathname);
-    void confirmEmailOutcome(() => getMedialaneClient().api.confirmEmail(token)).then(setStep);
+    void confirmEmailOutcome(() => getMedialaneClient().api.account.confirmEmail(token)).then(setStep);
   }, []);
 
   useEffect(() => {

@@ -16,7 +16,7 @@ export function useGatedContent(contract: string | undefined): GatedContentState
     contract && hasWallet ? ["gated-content", contract] : null,
     async () => {
       requireSignedIn(session);
-      return (await getMedialaneClient().api.getGatedContent(contract!)) ?? "not_holder";
+      return (await getMedialaneClient().api.collections.findGatedContent(contract!)) ?? "not_holder";
     },
     { shouldRetryOnError: false, revalidateOnFocus: false }
   );

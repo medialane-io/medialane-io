@@ -19,7 +19,7 @@ export function useCoinsAdapter({ filter, sort }: { filter: CoinFilter; sort: Co
   const service = filter === "all" ? "" : coinServiceIds(filter)[0] ?? "";
   const { data, isLoading } = useSWR<ApiResponse<ApiCoin[]>>(
     `coins-${filter}-${sort}`,
-    () => getMedialaneClient().api.getCoins({ limit: 24, service: service || undefined, sort: sort || undefined }),
+    () => getMedialaneClient().api.coins.list({ limit: 24, service: service || undefined, sort: sort || undefined }),
     { revalidateOnFocus: false }
   );
 
@@ -27,12 +27,12 @@ export function useCoinsAdapter({ filter, sort }: { filter: CoinFilter; sort: Co
 }
 
 export function useCoin(address: string | null) {
-  const { data, isLoading } = useSWR<{ data: ApiCoin }>(
+  const { data, isLoading } = useSWR<ApiCoin>(
     address ? `coin-${address}` : null,
-    () => getMedialaneClient().api.getCoin(address!),
+    () => getMedialaneClient().api.coins.get(address!),
     { revalidateOnFocus: false }
   );
-  return { coin: data?.data ?? null, isLoading };
+  return { coin: data ?? null, isLoading };
 }
 
 export const coinHref = (c: CoinCollectionLike) => buildCoinHref("STARKNET", c.contractAddress);

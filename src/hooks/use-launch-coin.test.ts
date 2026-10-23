@@ -14,9 +14,8 @@ const FACTORY = getStarknetCoordinates("STARKNET").creatorCoinFactory!;
 function fakeClient(overrides: Record<string, unknown> = {}) {
   return {
     api: {
-      createCoinIntent: async () => ({ data: { requiresSignature: false, calls: [{ contractAddress: "0x1", entrypoint: "e", calldata: [] }] } }),
-      launchCoinIntent: async () => ({ data: { requiresSignature: false, calls: [{ contractAddress: "0x1", entrypoint: "e", calldata: [] }] } }),
-      syncCoin: async () => ({ data: {} }),
+      intents: { create: async () => ({ requiresSignature: false, calls: [{ contractAddress: "0x1", entrypoint: "e", calldata: [] }] }), confirm: async () => ({}), syncTransaction: async () => ({ applied: 0, pending: false }) },
+      coins: { sync: async () => ({}) },
       ...overrides,
     },
   };

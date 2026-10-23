@@ -30,14 +30,16 @@ mock.module("@medialane/ui", () => ({
   ...realUi,
   useMedialaneClient: () => ({
     api: {
-      createListingIntent: async () => ({
-        data: { id: "intent1", requiresSignature: true, typedData: { message: {} } },
-      }),
-      submitIntentSignature: async () => ({ data: { calls: [{ contractAddress: "0x1", entrypoint: "approve", calldata: [] }] } }),
-      createFulfillIntent: async () => ({ data: { id: "fulfill1", requiresSignature: false, calls: [FULFILL_CALL] } }),
-      confirmIntent: async () => ({}),
-      
-      getIntent: async () => ({ data: { status: "FAILED" } }),
+      intents: {
+        create: async (kind: string) =>
+          kind === "listing"
+            ? { id: "intent1", requiresSignature: true, typedData: { message: {} } }
+            : { id: "fulfill1", requiresSignature: false, calls: [FULFILL_CALL] },
+        submitSignature: async () => ({ calls: [{ contractAddress: "0x1", entrypoint: "approve", calldata: [] }] }),
+        confirm: async () => ({}),
+        get: async () => ({ status: "FAILED" }),
+        syncTransaction: async () => ({ applied: 0, pending: false }),
+      },
     },
   }),
 }));

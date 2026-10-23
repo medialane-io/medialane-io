@@ -28,8 +28,8 @@ function OfferBidsRow({ offer }: { offer: SponsorshipOffer }) {
     if (!walletAddress) return;
     setActiveSponsor(sponsor);
     void action.run(async (signer) => {
-      const intentRes = await client.api.acceptSponsorshipBidIntent({ author: walletAddress, offerId: offer.offerId, sponsor });
-      const intent = intentRes.data;
+      const intentRes = await client.api.intents.create("sponsorship-bid-accept", { author: walletAddress, offerId: offer.offerId, sponsor });
+      const intent = intentRes;
       if (intent.requiresSignature) throw new Error("Unexpected signature requirement on sponsorship accept");
       const { txHash } = await executeIntent(signer, client, intent);
       await mutate();
@@ -72,9 +72,9 @@ function ReceivedProposalsSection({ walletAddress }: { walletAddress: string }) 
     setActiveId(proposalId);
     void action.run(async (signer) => {
       const intentRes = decision === "accept"
-        ? await client.api.acceptSponsorshipProposalIntent({ owner: walletAddress, proposalId })
-        : await client.api.rejectSponsorshipProposalIntent({ owner: walletAddress, proposalId });
-      const intent = intentRes.data;
+        ? await client.api.intents.create("sponsorship-proposal-accept", { owner: walletAddress, proposalId })
+        : await client.api.intents.create("sponsorship-proposal-reject", { owner: walletAddress, proposalId });
+      const intent = intentRes;
       if (intent.requiresSignature) throw new Error("Unexpected signature requirement on sponsorship response");
       const { txHash } = await executeIntent(signer, client, intent);
       await mutate();
@@ -121,8 +121,8 @@ function SentProposalsSection({ walletAddress }: { walletAddress: string }) {
   const withdraw = (proposalId: string) => {
     setActiveId(proposalId);
     void action.run(async (signer) => {
-      const intentRes = await client.api.withdrawSponsorshipProposalIntent({ proposer: walletAddress, proposalId });
-      const result = await executeIntent(signer, client, intentRes.data);
+      const intentRes = await client.api.intents.create("sponsorship-proposal-withdraw", { proposer: walletAddress, proposalId });
+      const result = await executeIntent(signer, client, intentRes);
       await mutate();
       return result;
     });

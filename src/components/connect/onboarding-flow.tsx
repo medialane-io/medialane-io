@@ -130,7 +130,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
     try {
       let outcome: "created" | "already-exists" = "created";
       try {
-        await getMedialaneClient().api.registerEmailAccount(email);
+        await getMedialaneClient().api.account.registerEmailAccount(email);
       } catch (err) {
         if (err instanceof MedialaneApiError && err.status === 409) outcome = "already-exists";
         else throw err;
@@ -154,7 +154,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
     }
     dispatch({ type: "email-submitted" });
     try {
-      const { exists } = await getMedialaneClient().api.checkEmail(email);
+      const exists = await getMedialaneClient().api.account.emailExists(email);
       dispatch({ type: "account-found", exists });
       if (afterEmailCheck(exists) === "send-code") await requestLoginCode();
       else await registerNewAccount();
@@ -171,7 +171,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
     }
     try {
       await refreshSession();
-      const wallet = flow.accountExisted ? await getMedialaneClient().api.getSessionWallet() : null;
+      const wallet = flow.accountExisted ? await getMedialaneClient().api.account.sessionWallet() : null;
       const next = afterCodeVerified(wallet, loadSealedOwner()?.address ?? null);
       if (next.type === "link-device") {
         dispatch({ type: "device-not-linked" });
