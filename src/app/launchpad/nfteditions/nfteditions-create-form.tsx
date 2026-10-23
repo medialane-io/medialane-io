@@ -1,5 +1,6 @@
 "use client";
 
+import { ExternalLinkField } from "@medialane/ui";
 import type { RefObject } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import Image from "next/image";
@@ -13,6 +14,7 @@ import { acceptFor } from "@medialane/sdk";
 
 interface NftEditionsCreateFormProps {
   form: UseFormReturn<NftEditionsCreateFormValues>;
+  walletAddress: string | null | undefined;
   imageFile: File | null;
   imagePreview: string | null;
   imageUri: string | null;
@@ -24,6 +26,7 @@ interface NftEditionsCreateFormProps {
 }
 
 export function NftEditionsCreateForm({
+  walletAddress,
   form,
   imageFile,
   imagePreview,
@@ -144,14 +147,7 @@ export function NftEditionsCreateForm({
         </FormItem>
       )} />
 
-      <FormField control={form.control} name="external_link" render={({ field }) => (
-        <FormItem>
-          <FormLabel>External link <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
-          <FormControl><Input placeholder="https://yourwebsite.com" {...field} /></FormControl>
-          <FormDescription>Your website, portfolio, or social profile. Defaults to your Medialane account page.</FormDescription>
-          <FormMessage />
-        </FormItem>
-      )} />
+      <ExternalLinkField form={form} address={walletAddress} />
 
       <button
         type="submit"
