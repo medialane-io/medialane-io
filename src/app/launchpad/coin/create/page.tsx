@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Coins, ExternalLink, TrendingUp, ArrowRight, ImagePlus, X, Loader2 } from "lucide-react";
-import { getTokenBySymbol, formatAmount, SUPPORTED_TOKENS } from "@medialane/sdk";
+import { getTokenBySymbol, formatAmount, SUPPORTED_TOKENS, acceptFor } from "@medialane/sdk";
 import {
   validateCoinName as validateName,
   validateCoinSymbol as validateSymbol,
@@ -75,7 +75,6 @@ export default function CoinCreatePage() {
     imagePreview, imageUri, imageUploading, uploadError, uploadSuccess,
     fileInputRef, handleImageSelect, clearImage,
   } = useLaunchpadImageUpload({
-    allowedTypes: ["image/jpeg", "image/png", "image/gif", "image/svg+xml", "image/webp"],
     successMessage: "Image ready",
   });
 
@@ -292,7 +291,7 @@ export default function CoinCreatePage() {
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept="image/jpeg,image/png,image/gif,image/svg+xml,image/webp"
+                    accept={acceptFor("image")}
                     className="hidden"
                     onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleImageSelect(f); }}
                   />

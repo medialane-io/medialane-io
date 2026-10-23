@@ -21,6 +21,7 @@ import { useSession } from "@/hooks/use-session";
 import { cn } from "@/lib/utils";
 import { AI_POLICIES, DERIVATIVES_OPTIONS, IP_TYPES, LICENSE_TYPES } from "@medialane/ui/data/ip";
 import type { NftEditionsMintFormValues } from "./nfteditions-mint-schema";
+import { acceptFor } from "@medialane/sdk";
 
 interface NftEditionsMintFormProps {
   form: UseFormReturn<NftEditionsMintFormValues>;
@@ -128,7 +129,7 @@ export function NftEditionsMintForm({
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept={acceptFor("image")}
                 className="hidden"
                 onChange={(event) => {
                   const file = event.target.files?.[0];

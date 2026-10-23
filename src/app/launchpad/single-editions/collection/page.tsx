@@ -4,7 +4,7 @@ import { requireAccount, requireSignedIn } from "@/lib/account-gate";
 import { UserFacingError, ActionButton, MedialaneCollectionCard, describeError, useMedialaneClient } from "@medialane/ui";
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
-import { buildCollectionMetadata, uploadSizeError } from "@medialane/sdk";
+import { buildCollectionMetadata, uploadError, acceptFor } from "@medialane/sdk";
 import { RewardEarned } from "@/lib/reward-earned";
 import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -77,18 +77,13 @@ export default function LaunchpadCreateCollectionPage() {
     defaultValues: { name: "", symbol: "", description: "", external_link: "" },
   });
 
-  const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/svg+xml", "image/webp"];
 
   const handleImageSelect = async (file: File) => {
     setImageUploadError(null);
     setImageUploadSuccess(null);
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      setImageUploadError("Unsupported format — please upload a JPG, PNG, GIF, SVG, or WebP image.");
-      return;
-    }
-    const sizeError = uploadSizeError(file, "image");
-    if (sizeError) {
-      setImageUploadError(sizeError);
+    const fileError = uploadError(file, "image");
+    if (fileError) {
+      setImageUploadError(fileError);
       return;
     }
     setImageFile(file);
@@ -251,7 +246,7 @@ export default function LaunchpadCreateCollectionPage() {
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept="image/jpeg,image/png,image/gif,image/svg+xml,image/webp"
+                    accept={acceptFor("image")}
                     className="hidden"
                     onChange={(e) => {
                       const file = e.target.files?.[0];

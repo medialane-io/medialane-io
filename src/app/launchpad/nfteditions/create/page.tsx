@@ -53,11 +53,8 @@ export default function CreateIP1155CollectionPage() {
     handleImageSelect,
     clearImage,
   } = useLaunchpadImageUpload({
-    allowedTypes: ["image/jpeg", "image/png", "image/gif", "image/svg+xml", "image/webp"],
     successMessage: "Image uploaded to IPFS",
     failureMessage: "Image upload failed",
-    invalidTypeTitle: "Unsupported format",
-    invalidTypeDescription: "Please upload a JPG, PNG, GIF, SVG, or WebP image.",
   });
 
   const form = useForm<NftEditionsCreateFormValues>({

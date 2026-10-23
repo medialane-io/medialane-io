@@ -20,7 +20,7 @@ import { useSession } from "@/hooks/use-session";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
-import { buildCollectionMetadata } from "@medialane/sdk";
+import { buildCollectionMetadata, acceptFor } from "@medialane/sdk";
 import { collectionHref } from "@/lib/routes";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { MedialaneCollectionCard, useMedialaneClient } from "@medialane/ui";
@@ -206,7 +206,7 @@ export default function CreateClubPage() {
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept="image/jpeg,image/png,image/gif,image/svg+xml,image/webp"
+                    accept={acceptFor("image")}
                     className="hidden"
                     onChange={(e) => {
                       const f = e.target.files?.[0];
