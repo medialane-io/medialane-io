@@ -23,7 +23,7 @@ import { Badge } from "@medialane/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@medialane/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@medialane/ui/collapsible";
 import { registerRemix } from "@/hooks/use-remix-offers";
-import { getService, normalizeAddress, uploadSizeError } from "@medialane/sdk";
+import { getService, normalizeAddress, uploadError, acceptFor } from "@medialane/sdk";
 import { IP_TYPES, LICENSE_TYPES } from "@medialane/ui/data/ip";
 import { resolveImage } from "@/lib/utils";
 import { resolveRemixPolicy, getDerivativesTerm } from "@medialane/sdk";
@@ -121,16 +121,11 @@ export default function CreateRemixPage() {
     return () => { if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current); };
   }, []);
 
-  const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/svg+xml", "image/webp"];
 
   const handleImageChange = (file: File) => {
-    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-      setImageError("Please choose a JPG, PNG, GIF, SVG or WebP image.");
-      return;
-    }
-    const sizeError = uploadSizeError(file, "image");
-    if (sizeError) {
-      setImageError(sizeError);
+    const fileError = uploadError(file, "image");
+    if (fileError) {
+      setImageError(fileError);
       return;
     }
     setImageError(null);
@@ -369,7 +364,7 @@ export default function CreateRemixPage() {
                 <input
                   id="remix-image-input"
                   type="file"
-                  accept="image/*"
+                  accept={acceptFor("image")}
                   className="hidden"
                   onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageChange(f); }}
                 />

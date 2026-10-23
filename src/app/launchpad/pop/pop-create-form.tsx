@@ -24,6 +24,7 @@ import { FadeIn } from "@medialane/ui/motion-primitives";
 import { cn } from "@/lib/utils";
 import type { PopEventType } from "@/lib/launchpad-contracts";
 import type { PopCreateFormValues } from "./pop-create-schema";
+import { acceptFor } from "@medialane/sdk";
 
 const EVENT_TYPES: { value: PopEventType; label: string; icon: ElementType; description: string }[] = [
   { value: "Conference", label: "Conference", icon: Mic2, description: "Talks & panels" },
@@ -132,7 +133,7 @@ export function PopCreateForm({
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept={acceptFor("image")}
                 className="hidden"
                 onChange={(event) => {
                   const file = event.target.files?.[0];

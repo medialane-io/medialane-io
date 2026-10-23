@@ -9,6 +9,7 @@ import { Input } from "@medialane/ui/input";
 import { Textarea } from "@medialane/ui/textarea";
 import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@medialane/ui/form";
 import type { NftEditionsCreateFormValues } from "./nfteditions-create-schema";
+import { acceptFor } from "@medialane/sdk";
 
 interface NftEditionsCreateFormProps {
   form: UseFormReturn<NftEditionsCreateFormValues>;
@@ -67,7 +68,7 @@ export function NftEditionsCreateForm({
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/jpeg,image/png,image/gif,image/svg+xml,image/webp"
+              accept={acceptFor("image")}
               className="hidden"
               onChange={(event) => {
                 const file = event.target.files?.[0];
