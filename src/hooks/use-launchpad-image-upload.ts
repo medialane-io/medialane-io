@@ -1,5 +1,6 @@
 "use client";
 
+import { uploadSizeError } from "@medialane/sdk";
 import { requireSignedIn } from "@/lib/account-gate";
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { useSession } from "@/hooks/use-session";
@@ -7,7 +8,6 @@ import { useEffect, useRef, useState } from "react";
 
 interface UseLaunchpadImageUploadOptions {
   allowedTypes?: string[];
-  maxSizeMb?: number;
   successMessage: string;
   failureMessage?: string;
   invalidTypeTitle?: string;
@@ -16,7 +16,6 @@ interface UseLaunchpadImageUploadOptions {
 
 export function useLaunchpadImageUpload({
   allowedTypes,
-  maxSizeMb = 10,
   successMessage,
   failureMessage = "Image upload failed",
   invalidTypeTitle = "Unsupported format",
@@ -60,8 +59,9 @@ export function useLaunchpadImageUpload({
       return;
     }
 
-    if (file.size > maxSizeMb * 1024 * 1024) {
-      setUploadError(`Image too large — max ${maxSizeMb} MB. Your file is ${(file.size / 1024 / 1024).toFixed(1)} MB.`);
+    const sizeError = uploadSizeError(file, "image");
+    if (sizeError) {
+      setUploadError(sizeError);
       return;
     }
 

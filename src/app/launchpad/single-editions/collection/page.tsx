@@ -4,7 +4,7 @@ import { requireAccount, requireSignedIn } from "@/lib/account-gate";
 import { UserFacingError, ActionButton, MedialaneCollectionCard, describeError, useMedialaneClient } from "@medialane/ui";
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
-import { buildCollectionMetadata } from "@medialane/sdk";
+import { buildCollectionMetadata, uploadSizeError } from "@medialane/sdk";
 import { RewardEarned } from "@/lib/reward-earned";
 import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -80,15 +80,15 @@ export default function LaunchpadCreateCollectionPage() {
   const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/svg+xml", "image/webp"];
 
   const handleImageSelect = async (file: File) => {
-    const MAX_BYTES = 10 * 1024 * 1024;
     setImageUploadError(null);
     setImageUploadSuccess(null);
     if (!ALLOWED_TYPES.includes(file.type)) {
       setImageUploadError("Unsupported format — please upload a JPG, PNG, GIF, SVG, or WebP image.");
       return;
     }
-    if (file.size > MAX_BYTES) {
-      setImageUploadError(`Image too large — max 10 MB. Your file is ${(file.size / 1024 / 1024).toFixed(1)} MB.`);
+    const sizeError = uploadSizeError(file, "image");
+    if (sizeError) {
+      setImageUploadError(sizeError);
       return;
     }
     setImageFile(file);
@@ -283,7 +283,7 @@ export default function LaunchpadCreateCollectionPage() {
                     </button>
                   )}
                   <p className="text-xs text-muted-foreground">
-                    JPG, PNG, GIF, SVG or WebP · max 10 MB
+                    JPG, PNG, GIF, SVG or WebP
                   </p>
                   {imageUploadError && (
                     <p className="text-xs text-destructive mt-1">{imageUploadError}</p>
