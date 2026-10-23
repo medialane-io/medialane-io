@@ -131,9 +131,7 @@ export default function CoinCreatePage() {
     setProfileStatus("saving");
     try {
       requireSignedIn(session);
-      await client.api.updateCollectionProfile(
-        contractAddress,
-        { ...(imageUri ? { image: imageUri } : {}), ...(description ? { description } : {}) });
+      await client.api.collections.updateProfile(contractAddress, { ...(imageUri ? { image: imageUri } : {}), ...(description ? { description } : {}) });
       setProfileStatus("saved");
     } catch {
       setProfileStatus("failed");

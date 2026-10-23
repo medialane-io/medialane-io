@@ -77,7 +77,7 @@ export function GenesisMint() {
       if (!MINT_CONTRACT) throw new UserFacingError("Airdrop has not started yet.");
 
       setMintStatusMsg("Confirming participation…");
-      return runIntentCalls(signer, () => getMedialaneClient().api.createGenesisMintIntent({ owner: signer.address, recipient: walletAddress }));
+      return runIntentCalls(signer, () => getMedialaneClient().api.intents.create("genesis-mint", { owner: signer.address, recipient: walletAddress }));
     });
   }, [walletAddress, action]);
 

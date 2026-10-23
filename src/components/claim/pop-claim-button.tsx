@@ -34,7 +34,7 @@ export function PopClaimButton({ collectionAddress }: PopClaimButtonProps) {
       storage = null;
     }
     setProof(claimProofFor(storage, collectionAddress, window.location.hash));
-    getMedialaneClient().api.getPopClaimInfo(collectionAddress)
+    getMedialaneClient().api.chainReads.popClaimInfo(collectionAddress)
       .then(setInfo)
       .catch(() => setInfo(null));
   }, [collectionAddress]);
@@ -49,7 +49,7 @@ export function PopClaimButton({ collectionAddress }: PopClaimButtonProps) {
   const handleClaim = () => {
     if (!proof) return;
     void action.run((signer) =>
-      runIntentCalls(signer, () => getMedialaneClient().api.createPopClaimIntent({ claimer: signer.address, collection: collectionAddress, proof })),
+      runIntentCalls(signer, () => getMedialaneClient().api.intents.create("pop-claim", { claimer: signer.address, collection: collectionAddress, proof })),
     );
   };
 

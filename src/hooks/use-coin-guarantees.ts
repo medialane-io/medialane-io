@@ -7,7 +7,7 @@ import { getMedialaneClient } from "@/lib/medialane-client";
 export function useCoinGuarantees(coinAddress?: string | null, enabled = true) {
   const { data, error, isLoading } = useSWR<CreatorCoinGuarantees | null>(
     coinAddress && enabled ? `coin-guarantees-${coinAddress}` : null,
-    () => getMedialaneClient().api.getCoinGuarantees(coinAddress as string),
+    () => getMedialaneClient().api.chainReads.coinGuarantees(coinAddress as string),
     { revalidateOnFocus: false, shouldRetryOnError: false }
   );
 

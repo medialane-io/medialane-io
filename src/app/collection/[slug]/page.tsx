@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export default async function CollectionSlugPage({ params }: Props) {
   const { slug } = await params;
 
-  const collection = await getMedialaneClient().api.getCollectionBySlug(slug).catch(() => null);
+  const collection = await getMedialaneClient().api.collections.findBySlug(slug).catch(() => null);
   if (!collection?.contractAddress) notFound();
 
   redirect(collectionHref("STARKNET", collection.contractAddress));

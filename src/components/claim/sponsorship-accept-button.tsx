@@ -24,8 +24,8 @@ export function SponsorshipAcceptButton({ offerId, sponsor, onAccepted }: Sponso
   const handleAccept = () => {
     if (!hasWallet || !walletAddress) return;
     void action.run(async (signer) => {
-      const intentRes = await client.api.acceptSponsorshipBidIntent({ author: walletAddress, offerId, sponsor });
-      const intent = intentRes.data;
+      const intentRes = await client.api.intents.create("sponsorship-bid-accept", { author: walletAddress, offerId, sponsor });
+      const intent = intentRes;
       if (intent.requiresSignature) throw new Error("Unexpected signature requirement on sponsorship accept");
       const { txHash } = await executeIntent(signer, client, intent);
       onAccepted?.();

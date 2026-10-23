@@ -14,7 +14,7 @@ export function useRemixOffers(role: "creator" | "requester", status?: string) {
     key,
     async () => {
       requireSignedIn(session);
-      return getMedialaneClient().api.getRemixOffers({ role, status });
+      return getMedialaneClient().api.remix.list({ role, status });
     },
     { refreshInterval: 30000, revalidateOnFocus: false }
   );
@@ -23,13 +23,13 @@ export function useRemixOffers(role: "creator" | "requester", status?: string) {
 }
 
 export async function submitRemixOffer(body: CreateRemixOfferParams): Promise<ApiRemixOffer> {
-  return (await getMedialaneClient().api.submitRemixOffer(body)).data;
+  return await getMedialaneClient().api.remix.submit(body);
 }
 
 export async function registerRemix(body: ConfirmSelfRemixParams): Promise<ApiRemixOffer> {
-  return (await getMedialaneClient().api.confirmSelfRemix(body)).data;
+  return await getMedialaneClient().api.remix.confirmSelf(body);
 }
 
 export async function confirmRemixOffer(id: string, body: ConfirmRemixOfferParams): Promise<ApiRemixOffer> {
-  return (await getMedialaneClient().api.confirmRemixOffer(id, body)).data;
+  return await getMedialaneClient().api.remix.confirm(id, body);
 }

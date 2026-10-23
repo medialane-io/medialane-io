@@ -53,7 +53,7 @@ export function PopBurnButton({ collectionAddress, tokenId, onBurned }: PopBurnB
           size="sm"
           className="flex-1"
           disabled={busy}
-          onClick={() => void action.run((signer) => runIntentCalls(signer, () => getMedialaneClient().api.createPopBurnIntent({ owner: signer.address, collection: collectionAddress, tokenId: String(tokenId) })))}
+          onClick={() => void action.run((signer) => runIntentCalls(signer, () => getMedialaneClient().api.intents.create("pop-burn", { owner: signer.address, collection: collectionAddress, tokenId: String(tokenId) })))}
         >
           {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Remove"}
         </Button>

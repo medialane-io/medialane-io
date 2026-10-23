@@ -30,16 +30,16 @@ export function ipfsToHttpServer(uri: string | null | undefined): string {
 }
 
 export const fetchTokenMeta = cached("token-meta", async (contract: string, tokenId: string) =>
-  (await api().getToken(contract, tokenId)).data);
+  await api().tokens.get(contract, tokenId));
 
 export const fetchCollectionMeta = cached("collection-meta", async (contract: string) =>
-  (await api().getCollection(contract)).data);
+  await api().collections.get(contract));
 
 export const fetchFeaturedCollections = cached("featured-collections", async (limit: number) =>
-  (await api().listCollections({ page: 1, limit, sort: "recent", isFeatured: true, hideEmpty: true })).data);
+  (await api().collections.list({ page: 1, limit, sort: "recent", isFeatured: true, hideEmpty: true })).data);
 
-export const fetchDropMeta = cached("drop-meta", (contract: string) => api().getDrop(contract));
+export const fetchDropMeta = cached("drop-meta", (contract: string) => api().drops.find(contract));
 
-export const fetchCoinMeta = cached("coin-meta", async (contract: string) => (await api().getCoin(contract)).data);
+export const fetchCoinMeta = cached("coin-meta", async (contract: string) => await api().coins.get(contract));
 
-export const fetchCreatorProfile = cached("creator-profile", (username: string) => api().getCreatorByUsername(username));
+export const fetchCreatorProfile = cached("creator-profile", (username: string) => api().creators.findByUsername(username));

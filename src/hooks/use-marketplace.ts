@@ -152,8 +152,8 @@ export function useMarketplace() {
       const INTERVAL_MS = 3000;
       for (let i = 0; i < MAX_ATTEMPTS; i++) {
         if (i > 0) await new Promise<void>((r) => setTimeout(r, INTERVAL_MS));
-        const res = await client.api.getIntent(id);
-        const intent = res.data as unknown as Record<string, unknown>;
+        const res = await client.api.intents.get(id);
+        const intent = res as unknown as Record<string, unknown>;
         const status = intent.status;
         if (status === "CONFIRMED" || status === "FAILED") {
           return { status, intent };
@@ -168,12 +168,12 @@ export function useMarketplace() {
 
   const runIntent = useCallback(
     async (
-      intentFn: () => Promise<{ data: ApiIntentCreated }>,
+      intentFn: () => Promise<ApiIntentCreated>,
       before?: { id: string; calls: Call[] },
     ): Promise<string | undefined> => {
       if (!walletAddress || !signer) throw new UserFacingError(ACCOUNT_STILL_LOADING);
 
-      const intent = (await intentFn()).data;
+      const intent = await intentFn();
       if (!intent?.id) throw new Error("Intent creation failed: no data returned");
 
       let calls: Call[];
@@ -181,8 +181,8 @@ export function useMarketplace() {
 
         const sanitized = sanitizeTypedData(intent.typedData) as TypedData;
         const sig = await signer.signTypedData(sanitized);
-        const signedRes = await client.api.submitIntentSignature(intent.id, sig);
-        calls = signedRes.data.calls as Call[];
+        const signedRes = await client.api.intents.submitSignature(intent.id, sig);
+        calls = signedRes.calls as Call[];
       } else {
         calls = intent.calls as Call[];
       }
@@ -196,7 +196,7 @@ export function useMarketplace() {
 
       const normalizedHash = "0x" + result.txHash.replace(/^0x/, "").padStart(64, "0");
 
-      await client.api.confirmIntent(intent.id, normalizedHash);
+      await client.api.intents.confirm(intent.id, normalizedHash);
 
       const terminal = await pollIntentUntilTerminal(intent.id);
 
@@ -222,7 +222,7 @@ export function useMarketplace() {
         const endTime = Math.floor(Date.now() / 1000) + input.durationSeconds;
         const is1155 = isErc1155Standard(input.tokenStandard);
         return await runIntent(
-          () => client.api.createListingIntent({
+          () => client.api.intents.create("listing", {
             offerer: walletAddress!,
             nftContract: input.assetContract,
             tokenId: input.tokenId,
@@ -249,7 +249,7 @@ export function useMarketplace() {
       setError(null);
       try {
         return await runIntent(
-          () => client.api.createFulfillIntent({
+          () => client.api.intents.create("fulfill", {
             fulfiller: walletAddress!,
             orderHash: input.orderHash,
             tokenStandard: toApiStandard(input.tokenStandard),
@@ -275,7 +275,7 @@ export function useMarketplace() {
       try {
         const endTime = Math.floor(Date.now() / 1000) + input.durationSeconds;
         return await runIntent(
-          () => client.api.createOfferIntent({
+          () => client.api.intents.create("offer", {
             offerer: walletAddress!,
             nftContract: input.assetContract,
             tokenId: input.tokenId,
@@ -303,7 +303,7 @@ export function useMarketplace() {
       setError(null);
       try {
         return await runIntent(
-          () => client.api.createCounterOfferIntent({
+          () => client.api.intents.create("counter-offer", {
             sellerAddress: walletAddress!,
             originalOrderHash: input.originalOrderHash,
             durationSeconds: input.durationSeconds,
@@ -329,7 +329,7 @@ export function useMarketplace() {
       setError(null);
       try {
         return await runIntent(
-          () => client.api.createCancelIntent({
+          () => client.api.intents.create("cancel", {
             offerer: walletAddress!,
             orderHash: input.orderHash,
             tokenStandard: toApiStandard(input.tokenStandard),

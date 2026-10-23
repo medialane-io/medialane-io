@@ -105,8 +105,8 @@ export default function MintIP1155Page() {
 
   useEffect(() => {
     if (!walletAddress || !collectionAddress) return;
-    client.api.getCollection(collectionAddress)
-      .then(({ data }) => {
+    client.api.collections.get(collectionAddress)
+      .then((data) => {
         const onChainOwner = data.owner ? normalizeAddress("STARKNET", data.owner) : null;
         setOwnerCheck(onChainOwner === normalizeAddress("STARKNET", walletAddress) ? "ok" : "denied");
       })
@@ -145,7 +145,7 @@ export default function MintIP1155Page() {
     });
     const tokenUri: string = pinned.uri;
 
-    const intentRes = await client.api.createMintIntent({
+    const intentRes = await client.api.intents.create("mint", {
       owner: walletAddress,
       recipient: values.recipient,
       collectionContract: collectionAddress,
@@ -155,7 +155,7 @@ export default function MintIP1155Page() {
       royaltyBps: 0,
     });
 
-    const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
+    const result = await executeIntent(signer, client, intentRes, { confirm: false });
 
     const editionId = mintedTokenIdFromReceipt(result.receipt, collectionAddress);
     if (!editionId) throw new Error("Minted, but could not read the assigned token id from the receipt");

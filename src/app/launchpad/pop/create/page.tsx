@@ -126,7 +126,7 @@ export default function CreatePOPPage() {
       new Date(`${pendingValues.claimEndDate}T${pendingValues.claimEndTime}:00`).getTime() / 1000
     );
 
-    const intentRes = await client.api.createCollectionIntent({
+    const intentRes = await client.api.intents.create("create-collection", {
       owner: walletAddress,
       name: pendingValues.name,
       symbol: pendingValues.symbol,
@@ -135,7 +135,7 @@ export default function CreatePOPPage() {
       claimEndTimestamp,
     });
 
-    const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
+    const result = await executeIntent(signer, client, intentRes, { confirm: false });
     return result;
   };
 

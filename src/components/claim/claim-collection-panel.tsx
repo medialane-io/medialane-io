@@ -48,8 +48,8 @@ export function ClaimCollectionPanel({
       const api = getMedialaneClient().api;
       const result =
         kind === "coin"
-          ? await api.claimCoin(contractAddress.trim())
-          : await api.claimCollection(contractAddress.trim(), walletAddress);
+          ? await api.coins.claim(contractAddress.trim())
+          : await api.collections.claim(contractAddress.trim(), walletAddress);
 
       if (result.verified) {
         const claimed = kind === "coin" ? (result as { coin?: { contractAddress: string; name?: string | null } }).coin : (result as { collection?: { contractAddress: string; name?: string | null } }).collection;
@@ -69,7 +69,7 @@ export function ClaimCollectionPanel({
     if (!email.trim()) { setPanelError("Add your email so we can reply."); return; }
     setPanelError(null);
     try {
-      await getMedialaneClient().api.requestCollectionClaim({
+      await getMedialaneClient().api.collections.requestClaim({
         contractAddress: contractAddress.trim(),
         walletAddress: walletAddress ?? undefined,
         email: email.trim(),

@@ -49,7 +49,7 @@ export default function VerifyEmailContent() {
     if (!value) return;
     setError(null);
     try {
-      const result = await getMedialaneClient().api.changeMyEmail(value);
+      const result = await getMedialaneClient().api.account.changeMyEmail(value);
       setEmail(result.email);
       setStep("code");
       void emailCode.send(result.email);

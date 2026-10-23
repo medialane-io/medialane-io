@@ -430,7 +430,7 @@ export function SingleEditionsContent() {
         royaltyBps: Math.round(pendingValues.royalty * 100),
       }, updateMintDebug);
 
-      const intentData = intentRes.data as { id?: string; calls?: { contractAddress: string; [key: string]: unknown }[] } | undefined;
+      const intentData = intentRes as { id?: string; calls?: { contractAddress: string; [key: string]: unknown }[] } | undefined;
       if (!intentData?.calls?.length) {
         throw new Error("Mint intent returned no calls");
       }

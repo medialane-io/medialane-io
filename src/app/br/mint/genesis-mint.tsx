@@ -47,7 +47,7 @@ export function GenesisMint() {
       if (!MINT_CONTRACT) throw new UserFacingError("Distribuição não iniciada ainda.");
 
       setMintStatusMsg("Confirmando participação…");
-      return runIntentCalls(signer, () => getMedialaneClient().api.createGenesisMintIntent({ owner: signer.address, recipient: walletAddress }));
+      return runIntentCalls(signer, () => getMedialaneClient().api.intents.create("genesis-mint", { owner: signer.address, recipient: walletAddress }));
     });
   }, [walletAddress, action]);
 

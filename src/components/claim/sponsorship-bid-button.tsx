@@ -35,13 +35,13 @@ export function SponsorshipBidButton({ offerId, minAmount, paymentToken, onBidPl
     if (!hasWallet || !walletAddress) return;
     void action.run(async (signer) => {
       const amountBigInt = BigInt(Math.round(Number(amount) * 10 ** decimals));
-      const intentRes = await client.api.placeSponsorshipBidIntent({
+      const intentRes = await client.api.intents.create("sponsorship-bid", {
         sponsor: walletAddress,
         offerId,
         amount: amountBigInt.toString(),
         paymentToken,
       });
-      const result = await executeIntent(signer, client, intentRes.data);
+      const result = await executeIntent(signer, client, intentRes);
       onBidPlaced?.();
       return result;
     });

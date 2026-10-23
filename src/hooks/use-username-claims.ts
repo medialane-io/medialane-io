@@ -18,7 +18,7 @@ export function useMyUsernameClaim() {
     hasWallet ? "username-claim-me" : null,
     async () => {
       requireSignedIn(session);
-      return getMedialaneClient().api.getMyUsernameClaim();
+      return getMedialaneClient().api.creators.myUsernameClaim();
     },
     { revalidateOnFocus: false, shouldRetryOnError: false }
   );
@@ -27,7 +27,7 @@ export function useMyUsernameClaim() {
 }
 
 export function checkUsernameAvailability(username: string): Promise<{ available: boolean; reason?: string }> {
-  return getMedialaneClient().api.checkUsernameAvailability(username);
+  return getMedialaneClient().api.creators.usernameAvailability(username);
 }
 
 export async function submitUsernameClaim(
@@ -35,7 +35,7 @@ export async function submitUsernameClaim(
   notifyEmail?: string
 ): Promise<{ claim?: ApiUsernameClaim; error?: string }> {
   try {
-    return { claim: await getMedialaneClient().api.submitUsernameClaim(username, notifyEmail) };
+    return { claim: await getMedialaneClient().api.withBearer(notifyEmail).creators.submitUsernameClaim(username) };
   } catch (err) {
     return { error: err instanceof Error ? err.message : "Failed to submit claim" };
   }

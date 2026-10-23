@@ -58,9 +58,9 @@ function PendingProposalsPanel({ nftContract }: { nftContract: string }) {
     setActiveId(proposalId);
     void action.run(async (signer) => {
       const intentRes = decision === "accept"
-        ? await client.api.acceptSponsorshipProposalIntent({ owner: walletAddress, proposalId })
-        : await client.api.rejectSponsorshipProposalIntent({ owner: walletAddress, proposalId });
-      const intent = intentRes.data;
+        ? await client.api.intents.create("sponsorship-proposal-accept", { owner: walletAddress, proposalId })
+        : await client.api.intents.create("sponsorship-proposal-reject", { owner: walletAddress, proposalId });
+      const intent = intentRes;
       if (intent.requiresSignature) throw new Error("Unexpected signature requirement on sponsorship response");
       const { txHash } = await executeIntent(signer, client, intent);
       await mutate();
@@ -149,18 +149,18 @@ export default function CreateSponsorshipOfferPage() {
       const royaltyBps = Math.round(Number(terms.royaltyPercent || "0") * 100);
 
       const intentRes = mode === "offer"
-        ? await client.api.createSponsorshipOfferIntent({
+        ? await client.api.intents.create("sponsorship-offer", {
             author: walletAddress, nftContract, tokenId, minAmount: amount.toString(),
             duration, paymentToken: token.address, licenseTermsUri,
             transferable: terms.transferable, royaltyBps,
           })
-        : await client.api.createSponsorshipProposalIntent({
+        : await client.api.intents.create("sponsorship-proposal", {
             proposer: walletAddress, nftContract, tokenId, amount: amount.toString(),
             duration, paymentToken: token.address, licenseTermsUri,
             transferable: terms.transferable, royaltyBps,
           });
 
-      const result = await executeIntent(signer, client, intentRes.data, { confirm: false });
+      const result = await executeIntent(signer, client, intentRes, { confirm: false });
       return result;
     });
   };

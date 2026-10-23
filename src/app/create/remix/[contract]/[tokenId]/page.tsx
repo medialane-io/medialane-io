@@ -218,16 +218,16 @@ export default function CreateRemixPage() {
 
       if (standard === "ERC1155") {
 
-        const intentRes = await client.api.createMintIntent({
+        const intentRes = await client.api.intents.create("mint", {
           owner: walletAddress,
           recipient: walletAddress,
           collectionContract: selectedCollection.contractAddress,
           tokenUri,
           value: "1",
         });
-        if (intentRes.data.requiresSignature) throw new Error("Unexpected signed mint intent");
+        if (intentRes.requiresSignature) throw new Error("Unexpected signed mint intent");
         setTxStatus("submitting");
-        const result = await signer.execute(intentRes.data.calls as Call[], { intentIds: [intentRes.data.id] });
+        const result = await signer.execute(intentRes.calls as Call[], { intentIds: [intentRes.id] });
         setTxStatus("confirmed");
         txHash = result.txHash ?? "";
         const editionId = mintedTokenIdFromReceipt(await assertTransactionSucceeded(getMedialaneClient().provider, txHash), selectedCollection.contractAddress);
@@ -235,14 +235,14 @@ export default function CreateRemixPage() {
         remixTokenId = editionId;
       } else {
 
-        const intentRes = await client.api.createMintIntent({
+        const intentRes = await client.api.intents.create("mint", {
           owner: walletAddress,
           collectionId: selectedCollection.collectionId!,
           recipient: walletAddress,
           tokenUri,
           royaltyBps: 0,
         });
-        const mintIntent = intentRes.data;
+        const mintIntent = intentRes;
 
         if (mintIntent.requiresSignature) throw new Error("Unexpected signed mint intent");
         const calls = mintIntent.calls as unknown as Call[];
@@ -255,7 +255,7 @@ export default function CreateRemixPage() {
 
         await syncTransactionBestEffort(client, txHash);
 
-        const owned = await client.api.getTokensByOwner(walletAddress, 1, 5);
+        const owned = await client.api.tokens.ownedBy(walletAddress, { page: 1, limit: 5 });
         const minted = owned.data?.find(
           (t) => normalizeAddress("STARKNET", t.contractAddress) === normalizeAddress("STARKNET", selectedCollection.contractAddress)
         );
