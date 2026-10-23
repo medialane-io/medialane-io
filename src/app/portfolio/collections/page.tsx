@@ -1,12 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useCollectionsByOwner, CollectionCard } from "@medialane/ui";
-import { Button } from "@medialane/ui/button";
+import { useCollectionsByOwner, CollectionCard, NewCollectionMenu, CollectionTypeChoices } from "@medialane/ui";
 import { EmptyOrError } from "@medialane/ui/empty-or-error";
 import { ClaimCollectionPanel } from "@/components/claim/claim-collection-panel";
-import { Layers, Plus, Download } from "lucide-react";
+import { Layers, Download } from "lucide-react";
 
 export default function PortfolioCollectionsPage() {
   const { address: walletAddress } = useWalletNativeSession();
@@ -21,12 +19,7 @@ export default function PortfolioCollectionsPage() {
             <span className="text-sm text-muted-foreground">({collections.length})</span>
           )}
         </div>
-        <Button size="sm" asChild>
-          <Link href="/launchpad/single-editions/collection">
-            <Plus className="h-3.5 w-3.5 mr-1.5" />
-            New collection
-          </Link>
-        </Button>
+        <NewCollectionMenu />
       </div>
 
       <EmptyOrError
@@ -36,7 +29,7 @@ export default function PortfolioCollectionsPage() {
         onRetry={mutate}
         emptyTitle="No collections yet"
         emptyDescription="If you just created a collection, it may take a few seconds to appear."
-        emptyCta={{ label: "Create a collection", href: "/launchpad/single-editions/collection" }}
+        emptyActions={<CollectionTypeChoices />}
         emptyIcon={<Layers className="h-7 w-7 text-muted-foreground" />}
       >
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
