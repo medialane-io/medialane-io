@@ -1,5 +1,6 @@
 "use client";
 
+import { ExternalLinkField } from "@medialane/ui";
 import type { ElementType, RefObject } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import Image from "next/image";
@@ -38,6 +39,7 @@ const EVENT_TYPES: { value: PopEventType; label: string; icon: ElementType; desc
 
 interface PopCreateFormProps {
   form: UseFormReturn<PopCreateFormValues>;
+  walletAddress: string | null | undefined;
   eventType: PopEventType;
   isPublic: boolean;
   imagePreview: string | null;
@@ -53,6 +55,7 @@ interface PopCreateFormProps {
 
 export function PopCreateForm({
   form,
+  walletAddress,
   eventType,
   isPublic,
   imagePreview,
@@ -231,20 +234,7 @@ export function PopCreateForm({
       </FadeIn>
 
       <FadeIn delay={0.155}>
-        <FormField
-          control={form.control}
-          name="external_link"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>External link <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
-              <FormControl>
-                <Input placeholder="https://yourwebsite.com" {...field} />
-              </FormControl>
-              <FormDescription>Your website, portfolio, or social profile. Defaults to your Medialane account page.</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <ExternalLinkField form={form} address={walletAddress} />
       </FadeIn>
 
       <FadeIn delay={0.16}>

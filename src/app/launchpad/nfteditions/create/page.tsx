@@ -197,6 +197,7 @@ export default function CreateIP1155CollectionPage() {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
 
             <NftEditionsCreateForm
+              walletAddress={walletAddress}
               form={form}
               imageFile={imageFile}
               imagePreview={imagePreview}

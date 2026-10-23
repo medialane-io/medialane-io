@@ -23,7 +23,7 @@ import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { buildCollectionMetadata, acceptFor } from "@medialane/sdk";
 import { collectionHref } from "@/lib/routes";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
-import { MedialaneCollectionCard, useMedialaneClient } from "@medialane/ui";
+import { MedialaneCollectionCard, useMedialaneClient, ExternalLinkField } from "@medialane/ui";
 import { CreateClubAside } from "@/components/claim/create-club-aside";
 import { RewardEarned } from "@/lib/reward-earned";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
@@ -268,16 +268,7 @@ export default function CreateClubPage() {
               </FormItem>
             )} />
 
-            <FormField control={form.control} name="external_link" render={({ field }) => (
-              <FormItem>
-                <FormLabel>External link <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
-                <FormControl>
-                  <Input placeholder="https://yourwebsite.com" {...field} />
-                </FormControl>
-                <FormDescription>Your website, portfolio, or social profile. Defaults to your Medialane account page.</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )} />
+            <ExternalLinkField form={form} address={walletAddress} />
 
             <button
               type="submit"

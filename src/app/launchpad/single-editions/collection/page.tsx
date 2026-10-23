@@ -1,7 +1,7 @@
 "use client";
 
 import { requireAccount, requireSignedIn } from "@/lib/account-gate";
-import { UserFacingError, ActionButton, MedialaneCollectionCard, describeError, useMedialaneClient } from "@medialane/ui";
+import { UserFacingError, ActionButton, MedialaneCollectionCard, describeError, useMedialaneClient, ExternalLinkField } from "@medialane/ui";
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { buildCollectionMetadata, uploadError, acceptFor } from "@medialane/sdk";
@@ -76,12 +76,6 @@ export default function LaunchpadCreateCollectionPage() {
     resolver: zodResolver(schema),
     defaultValues: { name: "", symbol: "", description: "", external_link: "" },
   });
-
-  useEffect(() => {
-    if (walletAddress && !form.getValues("external_link")) {
-      form.setValue("external_link", `https://www.medialane.io/account/${walletAddress}`);
-    }
-  }, [walletAddress, form]);
 
 
   const handleImageSelect = async (file: File) => {
@@ -350,22 +344,7 @@ export default function LaunchpadCreateCollectionPage() {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="external_link"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>External link <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
-                  <FormControl>
-                    <Input placeholder="https://yourwebsite.com" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Your website, portfolio, or social profile. Defaults to your Medialane account page.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <ExternalLinkField form={form} address={walletAddress} />
 
             <ActionButton
               type="submit"
