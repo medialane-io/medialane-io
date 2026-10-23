@@ -77,6 +77,12 @@ export default function LaunchpadCreateCollectionPage() {
     defaultValues: { name: "", symbol: "", description: "", external_link: "" },
   });
 
+  useEffect(() => {
+    if (walletAddress && !form.getValues("external_link")) {
+      form.setValue("external_link", `https://www.medialane.io/account/${walletAddress}`);
+    }
+  }, [walletAddress, form]);
+
 
   const handleImageSelect = async (file: File) => {
     setImageUploadError(null);
