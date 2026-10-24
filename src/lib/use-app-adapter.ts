@@ -7,6 +7,7 @@ import { requireAccount, requireSignedIn } from "@/lib/account-gate";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSession } from "@/hooks/use-session";
 import { getMedialaneClient } from "@/lib/medialane-client";
+import { lockVenueSigner } from "@/lib/wallet/venue-signer";
 import { ReportDialog } from "@/components/report-dialog";
 import { resolveImage } from "@/lib/utils";
 
@@ -20,6 +21,9 @@ export function useAppAdapter(): MedialaneApp {
     walletAddress: address ?? null,
     onRequireWallet: () => router.push(`/connect?redirect_url=${encodeURIComponent(pathname)}`),
     ensureSignedIn: async () => requireSignedIn(session),
+    releaseSigner: () => {
+      if (signer) lockVenueSigner(signer.address);
+    },
     connectLabel: "Connect with email",
     connectDescription: "Buy, offer, and collect instantly.",
     companion: {
