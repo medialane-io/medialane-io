@@ -45,7 +45,7 @@ function OfferCard({ offer }: { offer: SponsorshipOffer }) {
     <div className="bento-cell p-4 space-y-3">
       <div className="flex items-center gap-2">
         <Handshake className="h-4 w-4 text-brand-rose" />
-        <span className="text-[10px] font-bold uppercase tracking-widest text-brand-rose">Sponsorship</span>
+        <span className="text-2xs font-bold uppercase tracking-widest text-brand-rose">Sponsorship</span>
       </div>
       <p className="text-xs text-muted-foreground truncate">{offer.nftContract}</p>
       <p className="text-xs text-muted-foreground flex items-center gap-1">

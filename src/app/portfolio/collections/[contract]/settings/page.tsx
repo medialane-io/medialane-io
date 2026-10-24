@@ -155,7 +155,7 @@ function CollectionSlugClaimSection({
           iconClass="text-emerald-500"
           bgClass="bg-emerald-500/15"
           badge={
-            <Badge variant="outline" className="text-[10px] h-4 px-1.5 text-emerald-600 border-emerald-500/30">
+            <Badge variant="outline" className="text-2xs h-4 px-1.5 text-emerald-600 border-emerald-500/30">
               Active
             </Badge>
           }
@@ -180,7 +180,7 @@ function CollectionSlugClaimSection({
           iconClass="text-primary"
           bgClass="bg-primary/15"
           badge={
-            <Badge variant="outline" className="text-[10px] h-4 px-1.5 text-amber-600 border-amber-500/30">
+            <Badge variant="outline" className="text-2xs h-4 px-1.5 text-amber-600 border-amber-500/30">
               Pending review
             </Badge>
           }
@@ -403,12 +403,12 @@ export default function CollectionSettingsPage({ params }: Props) {
           description="Your collection's public name and description. A complete profile builds trust with collectors."
           badge={
             profile?.displayName ? (
-              <Badge variant="outline" className="text-[10px] h-4 px-1.5 gap-1 text-emerald-500 border-emerald-500/30">
+              <Badge variant="outline" className="text-2xs h-4 px-1.5 gap-1 text-emerald-500 border-emerald-500/30">
                 <CheckCircle2 className="h-2.5 w-2.5" />
                 Named
               </Badge>
             ) : (
-              <Badge variant="outline" className="text-[10px] h-4 px-1.5 gap-1 text-amber-500 border-amber-500/30">
+              <Badge variant="outline" className="text-2xs h-4 px-1.5 gap-1 text-amber-500 border-amber-500/30">
                 <Info className="h-2.5 w-2.5" />
                 Add a name
               </Badge>
@@ -432,7 +432,7 @@ export default function CollectionSettingsPage({ params }: Props) {
           <FieldRow>
             <div className="flex items-center justify-between">
               <Label htmlFor="description">Description</Label>
-              <span className={cn("text-[10px] tabular-nums", descLen > DESC_MAX ? "text-destructive" : "text-muted-foreground")}>
+              <span className={cn("text-2xs tabular-nums", descLen > DESC_MAX ? "text-destructive" : "text-muted-foreground")}>
                 {descLen}/{DESC_MAX}
               </span>
             </div>
@@ -491,7 +491,7 @@ export default function CollectionSettingsPage({ params }: Props) {
           bgClass={form.gatedEnabled ? "bg-emerald-500/15" : "bg-muted"}
           badge={
             form.gatedEnabled ? (
-              <Badge variant="outline" className="text-[10px] h-4 px-1.5 gap-1 text-emerald-500 border-emerald-500/30">
+              <Badge variant="outline" className="text-2xs h-4 px-1.5 gap-1 text-emerald-500 border-emerald-500/30">
                 <Unlock className="h-2.5 w-2.5" />
                 Active
               </Badge>
@@ -577,7 +577,7 @@ export default function CollectionSettingsPage({ params }: Props) {
 
               {form.gatedContentTitle && (
                 <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4 space-y-1.5">
-                  <p className="text-[10px] font-semibold text-emerald-500 uppercase tracking-widest">
+                  <p className="text-2xs font-semibold text-emerald-500 uppercase tracking-widest">
                     Preview — what holders see
                   </p>
                   <p className="text-sm font-semibold">{form.gatedContentTitle || "—"}</p>

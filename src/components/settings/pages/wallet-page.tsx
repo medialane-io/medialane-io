@@ -67,11 +67,11 @@ export default function WalletSettingsPage() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     {isDeployed === false ? (
-                      <Badge variant="outline" className="cursor-default gap-1 border-yellow-500/40 bg-yellow-500/10 text-[10px] text-yellow-700 dark:text-yellow-400">
+                      <Badge variant="outline" className="cursor-default gap-1 border-yellow-500/40 bg-yellow-500/10 text-2xs text-yellow-700 dark:text-yellow-400">
                         <ShieldAlert className="h-3 w-3" /> Deploying
                       </Badge>
                     ) : (
-                      <Badge variant="outline" className="cursor-default gap-1 border-emerald-500/40 bg-emerald-500/10 text-[10px] text-emerald-600 dark:text-emerald-400">
+                      <Badge variant="outline" className="cursor-default gap-1 border-emerald-500/40 bg-emerald-500/10 text-2xs text-emerald-600 dark:text-emerald-400">
                         <ShieldCheck className="h-3 w-3" /> Deployed
                       </Badge>
                     )}

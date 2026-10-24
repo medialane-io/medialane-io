@@ -121,13 +121,13 @@ function OnboardingBanner({
                       href={`${EXPLORER_URL}/tx/${step.txHash}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors group mt-0.5"
+                      className="inline-flex items-center gap-1 text-2xs text-muted-foreground hover:text-foreground transition-colors group mt-0.5"
                     >
                       <span className="tabular-nums">{step.txHash.slice(0, 10)}…</span>
                       <ExternalLink className="h-2.5 w-2.5 shrink-0" />
                     </a>
                   ) : step.sub ? (
-                    <p className="text-[11px] text-muted-foreground mt-0.5">{step.sub}</p>
+                    <p className="text-2xs text-muted-foreground mt-0.5">{step.sub}</p>
                   ) : null}
                 </div>
               </div>

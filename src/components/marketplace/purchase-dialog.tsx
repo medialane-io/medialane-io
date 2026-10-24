@@ -69,7 +69,7 @@ function TokenHero({ order, quantity }: { order: ApiOrder; quantity: number }) {
           <p className="font-bold text-lg leading-tight truncate">{name}</p>
           <div className="flex items-center gap-1 mt-1">
             <Zap className="h-3 w-3 text-emerald-500" />
-            <span className="text-[11px] font-medium text-emerald-500">Digital Asset Ownership</span>
+            <span className="text-2xs font-medium text-emerald-500">Digital Asset Ownership</span>
           </div>
         </div>
         {order.price && (() => {
@@ -438,7 +438,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
 
                 <div className="flex items-start justify-center gap-1.5">
                   <ShieldCheck className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
-                  <p className="text-[10px] text-center text-muted-foreground">
+                  <p className="text-2xs text-center text-muted-foreground">
                     All purchases settle atomically onchain — your asset is transferred instantly with the payment. Gas is sponsored by Medialane.
                   </p>
                 </div>

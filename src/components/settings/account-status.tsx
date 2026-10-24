@@ -33,7 +33,7 @@ export function AccountStatus(props: StatusInput) {
   return (
     <div className="space-y-4 rounded-2xl border border-border/60 bg-card p-5">
       <div>
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Account status</p>
+        <p className="text-2xs font-semibold uppercase tracking-wide text-muted-foreground">Account status</p>
         <div className="mt-2">
           {headline?.href ? (
             <Link href={headline.href} className="hover:underline">

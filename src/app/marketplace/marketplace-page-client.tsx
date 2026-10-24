@@ -93,7 +93,7 @@ function SearchBar() {
         <div className="absolute top-full left-0 right-0 mt-1 bg-popover border border-border rounded-xl shadow-lg z-50 overflow-hidden">
           {(results.tokens?.length ?? 0) > 0 && (
             <div>
-              <div className="px-3 py-1.5 text-[10px] font-semibold text-muted-foreground bg-muted/30">
+              <div className="px-3 py-1.5 text-2xs font-semibold text-muted-foreground bg-muted/30">
                 Tokens
               </div>
               {results.tokens!.map((t) => {
@@ -118,7 +118,7 @@ function SearchBar() {
           )}
           {(results.collections?.length ?? 0) > 0 && (
             <div>
-              <div className="px-3 py-1.5 text-[10px] font-semibold text-muted-foreground bg-muted/30">
+              <div className="px-3 py-1.5 text-2xs font-semibold text-muted-foreground bg-muted/30">
                 Collections
               </div>
               {results.collections!.map((c) => {
@@ -263,7 +263,7 @@ export default function MarketplacePageClient() {
             <SlidersHorizontal className="h-3.5 w-3.5" />
             Filters
             {filterCount > 0 && (
-              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-2xs font-bold text-primary-foreground">
                 {filterCount}
               </span>
             )}
@@ -319,7 +319,7 @@ export default function MarketplacePageClient() {
           <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
 
             <div className="space-y-2">
-              <p className="text-[10px] font-semibold text-muted-foreground">Sort</p>
+              <p className="text-2xs font-semibold text-muted-foreground">Sort</p>
               <div className="flex flex-wrap gap-1.5">
                 {SORT_OPTIONS.map((opt) => (
                   <button
@@ -339,7 +339,7 @@ export default function MarketplacePageClient() {
             </div>
 
             <div className="space-y-2">
-              <p className="text-[10px] font-semibold text-muted-foreground">Order type</p>
+              <p className="text-2xs font-semibold text-muted-foreground">Order type</p>
               <div className="flex flex-wrap gap-1.5">
                 {TYPE_OPTIONS.map((opt) => (
                   <button
@@ -359,7 +359,7 @@ export default function MarketplacePageClient() {
             </div>
 
             <div className="space-y-2">
-              <p className="text-[10px] font-semibold text-muted-foreground">Currency</p>
+              <p className="text-2xs font-semibold text-muted-foreground">Currency</p>
               <div className="flex flex-wrap gap-1.5">
                 {CURRENCY_OPTIONS.map((c) => (
                   <button
@@ -380,7 +380,7 @@ export default function MarketplacePageClient() {
             </div>
 
             <div className="space-y-2">
-              <p className="text-[10px] font-semibold text-muted-foreground">Price range</p>
+              <p className="text-2xs font-semibold text-muted-foreground">Price range</p>
               <div className="flex items-center gap-2">
                 <Input
                   placeholder="Min"
@@ -403,7 +403,7 @@ export default function MarketplacePageClient() {
             </div>
 
             <div className="space-y-2 pt-1 border-t border-border/60">
-              <p className="flex items-center gap-1 text-[10px] font-semibold text-muted-foreground">
+              <p className="flex items-center gap-1 text-2xs font-semibold text-muted-foreground">
                 IP Type
                 <HelpIcon content="Filter by intellectual property category — Art, Audio, Video, Software, and more" side="right" />
               </p>

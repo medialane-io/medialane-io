@@ -142,7 +142,7 @@ export function ListingDialog({
   const shieldFooter = (
     <div className="flex items-start justify-center gap-1.5">
       <ShieldCheck className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
-      <p className="text-[10px] text-center text-muted-foreground">
+      <p className="text-2xs text-center text-muted-foreground">
         All listings are fully onchain &amp; permissionless — your asset stays in your wallet until a trade settles. Gas is sponsored by Medialane.
       </p>
     </div>
@@ -214,7 +214,7 @@ export function ListingDialog({
                 tokenId={tokenId}
                 fallbackIcon={<Tag className="h-12 w-12 text-brand-blue/30" />}
                 badge={is1155 ? (
-                  <span className="absolute top-3 left-3 inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full border border-brand-purple/40 bg-brand-purple/20 text-brand-purple backdrop-blur-sm">
+                  <span className="absolute top-3 left-3 inline-flex items-center gap-1 text-2xs font-semibold px-2.5 py-1 rounded-full border border-brand-purple/40 bg-brand-purple/20 text-brand-purple backdrop-blur-sm">
                     <Layers className="h-3 w-3" />
                     Multi-edition
                   </span>
@@ -260,7 +260,7 @@ export function ListingDialog({
                                 </FormControl>
                                 <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
                                   <CurrencyIcon symbol={form.watch("currency")} size={13} />
-                                  <span className="text-[11px] font-bold">{form.watch("currency")}</span>
+                                  <span className="text-2xs font-bold">{form.watch("currency")}</span>
                                 </div>
                               </div>
                               <FormMessage />

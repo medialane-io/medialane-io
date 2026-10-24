@@ -41,7 +41,7 @@ export default function PortfolioLicensingPage() {
           <GitBranch className="h-4 w-4 text-primary" />
           <h2 className="text-sm font-semibold text-muted-foreground">License requests received</h2>
           {pendingIn.length > 0 && (
-            <span className="h-5 min-w-5 rounded-full bg-primary text-[10px] font-bold text-primary-foreground flex items-center justify-center px-1">
+            <span className="h-5 min-w-5 rounded-full bg-primary text-2xs font-bold text-primary-foreground flex items-center justify-center px-1">
               {pendingIn.length}
             </span>
           )}
@@ -173,7 +173,7 @@ function StatusBadge({ status }: { status: RemixOffer["status"] }) {
   };
   const c = config[status];
   return (
-    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${c.className}`}>
+    <span className={`text-2xs px-1.5 py-0.5 rounded-full font-medium ${c.className}`}>
       {c.label}
     </span>
   );

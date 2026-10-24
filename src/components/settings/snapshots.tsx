@@ -22,7 +22,7 @@ export function PortfolioSnapshot({ assets, listings, collections }: { assets: n
   return (
     <div className="rounded-2xl border border-border/60 bg-card p-5 space-y-4">
       <div>
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Portfolio</p>
+        <p className="text-2xs font-semibold uppercase tracking-wide text-muted-foreground">Portfolio</p>
         <p className="mt-0.5 text-xs text-muted-foreground/70">What you own on Medialane</p>
       </div>
       <div className="flex items-center border-t border-border/60 pt-4">
@@ -49,7 +49,7 @@ export function RewardsSnapshot({ address }: { address?: string | null }) {
     <div className="rounded-2xl border border-border/60 bg-card p-5 space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Rewards</p>
+          <p className="text-2xs font-semibold uppercase tracking-wide text-muted-foreground">Rewards</p>
           <p className="mt-0.5 text-xs text-muted-foreground/70">Your creator journey</p>
         </div>
         <Trophy className="h-4 w-4 text-muted-foreground/50" />

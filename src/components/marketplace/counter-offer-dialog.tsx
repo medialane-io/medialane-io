@@ -251,7 +251,7 @@ export function CounterOfferDialog({
                     <ArrowLeftRight className="h-4 w-4 mr-2" />
                     {hasWallet ? "Send counter-offer" : "Connect with email to counter"}
                   </Button>
-                  <p className="text-[10px] text-center text-muted-foreground">
+                  <p className="text-2xs text-center text-muted-foreground">
                     Your offer will be pushed onchain. Transaction sponsored by Medialane.
                   </p>
                 </form>
