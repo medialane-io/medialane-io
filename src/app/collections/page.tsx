@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import CollectionsPageClient from "./collections-page-client";
+import { CollectionsPage } from "@medialane/ui";
 import { canonical, buildSocialMetadata } from "@/lib/seo";
 
 const title = "Collections";
@@ -12,6 +12,6 @@ export const metadata: Metadata = {
   ...buildSocialMetadata({ title, description, imageAlt: "Medialane Collections" }),
 };
 
-export default function CollectionsPage() {
-  return <CollectionsPageClient />;
+export default function CollectionsRoute() {
+  return <CollectionsPage />;
 }
