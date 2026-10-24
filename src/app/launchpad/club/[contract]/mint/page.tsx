@@ -26,6 +26,7 @@ import { useCollection, MedialaneCollectionCard, describeError, useMedialaneClie
 import { predictNextMembershipId } from "@/hooks/use-club";
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
+import { CreationSuccess } from "@medialane/ui";
 import { RewardEarned } from "@/lib/reward-earned";
 import { executeIntents } from "@medialane/sdk/starknet";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
@@ -96,7 +97,6 @@ export default function CreateMembershipPage({ params }: { params: Promise<{ con
 
   const [licensingOpen, setLicensingOpen] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
-  const [mintedTierId, setMintedTierId] = useState<string | null>(null);
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -143,13 +143,11 @@ export default function CreateMembershipPage({ params }: { params: Promise<{ con
 
   const handleReset = () => {
     action.reset();
-    setMintedTierId(null);
     form.reset({ ...form.getValues(), name: "", description: "", maxSupply: "100" });
     handleImageClear();
   };
 
   const onSubmit = (values: FormValues) => {
-    setMintedTierId(null);
     void action.run((signer) => handleUnlocked(values, signer));
   };
 
@@ -183,7 +181,6 @@ export default function CreateMembershipPage({ params }: { params: Promise<{ con
     const royaltyBps = Math.round(values.royalty * 100);
 
     const tierId = await predictNextMembershipId(contract);
-    setMintedTierId(String(tierId));
 
     const tierRes = await client.api.intents.create("create-tier", {
       owner: address,
@@ -255,30 +252,20 @@ export default function CreateMembershipPage({ params }: { params: Promise<{ con
         title="Create membership"
         processingLabel="Creating your membership…"
         firstStepLabel="Upload membership metadata"
-        successTitle="Membership created!"
-      >
-        <p className="text-sm text-muted-foreground text-center">
-          <span className="font-medium text-foreground">{form.getValues("maxSupply")}</span> membership
-          card(s) are in your wallet — list them on the marketplace whenever you&apos;re ready.
-        </p>
-        {imagePreview && (
-          <div className="relative h-24 w-24 rounded-xl overflow-hidden border border-border shadow-md">
-
-            <Image src={imagePreview} alt={form.getValues("name")} fill className="object-cover" />
-          </div>
-        )}
-        <div className="flex flex-col sm:flex-row gap-2 w-full pt-1">
-          <Button variant="outline" className="flex-1" onClick={handleReset}>
-            Create another membership
-          </Button>
-          {mintedTierId && (
-            <Button asChild className="flex-1 bg-brand-purple hover:brightness-110 text-white">
-              <Link href={`${collectionHref("STARKNET", contract)}`}>View collection</Link>
-            </Button>
-          )}
-        </div>
-        <RewardEarned actionType="launch_launchpad" />
-      </WalletTransactionDialog>
+        successTitle="Your membership is ready"
+        successContent={
+          <CreationSuccess
+            name={form.getValues("name")}
+            image={imagePreview}
+            caption="Your membership is ready"
+            primary={{ href: collectionHref("STARKNET", contract), label: "View collection" }}
+            onAgain={handleReset}
+            againLabel="Create another membership"
+          >
+            <RewardEarned actionType="launch_launchpad" />
+          </CreationSuccess>
+        }
+      />
 
       <ClaimRouteShell
         icon={<Users className="h-4 w-4 text-white" />}

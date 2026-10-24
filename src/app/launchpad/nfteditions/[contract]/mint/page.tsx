@@ -3,7 +3,6 @@
 import { ACCOUNT_NOT_READY } from "@/lib/account-gate";
 import { UserFacingError, MedialaneCollectionCard, useMedialaneClient } from "@medialane/ui";
 import { useState, useEffect, useRef, useCallback } from "react";
-import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,10 +21,10 @@ import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
 import { executeIntent, mintedTokenIdFromReceipt } from "@medialane/sdk/starknet";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { MintEditionAside } from "@/components/claim/mint-edition-aside";
+import { CreationSuccess } from "@medialane/ui";
 import { RewardEarned } from "@/lib/reward-earned";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
-import { EXPLORER_URL } from "@/lib/constants";
 import type { MetadataField } from "@medialane/ui";
 import { NftEditionsMintForm } from "../../nfteditions-mint-form";
 import {
@@ -273,40 +272,21 @@ export default function MintIP1155Page() {
         title="Mint an edition"
         processingLabel="Minting your edition…"
         firstStepLabel="Upload metadata"
-        successTitle="Edition minted!"
-      >
-        <p className="text-sm text-muted-foreground text-center">
-          <span className="font-medium text-foreground">{pendingValues?.name || "Your token"}</span> is
-          live onchain.
-        </p>
-        {imagePreview && (
-          <div className="relative h-24 w-24 rounded-xl overflow-hidden border border-border shadow-md">
-
-            <Image src={imagePreview} alt={pendingValues?.name ?? ""} fill className="object-cover" />
-          </div>
-        )}
-        <div className="flex flex-col sm:flex-row gap-2 w-full pt-1">
-          <Button variant="outline" className="flex-1" onClick={handleMintAnother}>
-            Mint another
-          </Button>
-          {mintedTokenId && (
-            <Button asChild className="flex-1 bg-brand-purple hover:brightness-110 text-white">
-              <Link href={assetHref("STARKNET", collectionAddress, mintedTokenId)}>View asset</Link>
-            </Button>
-          )}
-        </div>
-        {mintedTokenId && (
-          <a
-            href={`${EXPLORER_URL}/nft/${collectionAddress}/${mintedTokenId}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+        successTitle="Your edition is live"
+        successContent={
+          <CreationSuccess
+            name={pendingValues?.name || "Your token"}
+            image={imagePreview}
+            caption="Your edition is live"
+            primary={mintedTokenId ? { href: assetHref("STARKNET", collectionAddress, mintedTokenId), label: "View asset" } : { href: "/portfolio/assets", label: "View portfolio" }}
+            secondary={mintedTokenId ? { href: "/portfolio/assets", label: "View portfolio" } : undefined}
+            onAgain={handleMintAnother}
+            againLabel="Mint another"
           >
-            View on explorer
-          </a>
-        )}
-        <RewardEarned actionType="mint_asset" />
-      </WalletTransactionDialog>
+            <RewardEarned actionType="mint_asset" />
+          </CreationSuccess>
+        }
+      />
     </>
   );
 }

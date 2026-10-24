@@ -53,9 +53,9 @@ import {
 import Link from "next/link";
 import type { Call } from "starknet";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
-import { syncTransactionBestEffort } from "@medialane/sdk/starknet";
+import { syncTransactionBestEffort, assertTransactionSucceeded, mintedTokenIdFromReceipt } from "@medialane/sdk/starknet";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import { profileHref } from "@/lib/routes";
+import { assetHref, profileHref } from "@/lib/routes";
 
 const schema = z.object({
   collectionId: z.string().min(1, "Select a collection"),
@@ -279,6 +279,7 @@ export function SingleEditionsContent() {
 
   const [status, setStatus] = useState<MintTxStatus>("idle");
   const [txHash, setTxHash] = useState<string | null>(null);
+  const [mintedHref, setMintedHref] = useState<string | null>(null);
 
   const { collections: allCollections, isLoading: collectionsLoading } = useCollectionsByOwner(walletAddress ?? null);
   const collections = allCollections.filter(
@@ -462,6 +463,10 @@ export function SingleEditionsContent() {
         throw new Error("Mint transaction confirmed, but backend receipt hydration failed.");
       }
 
+      const receipt = await assertTransactionSucceeded(getMedialaneClient().provider, result.txHash).catch(() => null);
+      const mintedTokenId = receipt && selectedCollection ? mintedTokenIdFromReceipt(receipt, selectedCollection.contractAddress) : null;
+      if (selectedCollection && mintedTokenId) setMintedHref(assetHref("STARKNET", selectedCollection.contractAddress, mintedTokenId));
+
       setStatus("confirmed");
       setMintStep("success");
       invalidatePortfolioCache(walletAddress);
@@ -479,6 +484,7 @@ export function SingleEditionsContent() {
     setMintStep("idle");
     setStatus("idle");
     setTxHash(null);
+    setMintedHref(null);
     setMintError(null);
     setMintDebug(null);
     mintDebugRef.current = null;
@@ -522,9 +528,9 @@ export function SingleEditionsContent() {
         txStatus={status}
         assetName={pendingValues?.name ?? ""}
         imagePreview={imagePreview}
-        txHash={txHash}
         error={mintError}
         onMintAnother={handleMintAnother}
+        assetHref={mintedHref}
         successFooter={<RewardEarned actionType="mint_asset" />}
         debug={mintDebug}
       />

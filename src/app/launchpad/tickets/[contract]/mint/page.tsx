@@ -26,6 +26,7 @@ import { useCollection, useCollectionProfile, MedialaneCollectionCard, describeE
 import { predictNextTicketId } from "@/hooks/use-tickets";
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
+import { CreationSuccess } from "@medialane/ui";
 import { RewardEarned } from "@/lib/reward-earned";
 import { executeIntents } from "@medialane/sdk/starknet";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
@@ -97,7 +98,6 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
 
   const [licensingOpen, setLicensingOpen] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
-  const [mintedTicketId, setMintedTicketId] = useState<string | null>(null);
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -153,13 +153,11 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
 
   const handleReset = () => {
     action.reset();
-    setMintedTicketId(null);
     form.reset({ ...form.getValues(), name: "", description: "", maxSupply: "100" });
     handleImageClear();
   };
 
   const onSubmit = (values: FormValues) => {
-    setMintedTicketId(null);
     void action.run((signer) => handleUnlocked(values, signer));
   };
 
@@ -193,7 +191,6 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
     const royaltyBps = Math.round(values.royalty * 100);
 
     const ticketId = await predictNextTicketId(contract);
-    setMintedTicketId(String(ticketId));
 
     const tierRes = await client.api.intents.create("create-tier", {
       owner: address,
@@ -265,30 +262,20 @@ export default function MintTicketPage({ params }: { params: Promise<{ contract:
         title="Mint tickets"
         processingLabel="Minting your tickets…"
         firstStepLabel="Upload ticket metadata"
-        successTitle="Tickets minted!"
-      >
-        <p className="text-sm text-muted-foreground text-center">
-          <span className="font-medium text-foreground">{form.getValues("maxSupply")}</span> ticket(s) are in
-          your wallet — list them on the marketplace whenever you&apos;re ready.
-        </p>
-        {imagePreview && (
-          <div className="relative h-24 w-24 rounded-xl overflow-hidden border border-border shadow-md">
-
-            <Image src={imagePreview} alt={form.getValues("name")} fill className="object-cover" />
-          </div>
-        )}
-        <div className="flex flex-col sm:flex-row gap-2 w-full pt-1">
-          <Button variant="outline" className="flex-1" onClick={handleReset}>
-            Mint another ticket
-          </Button>
-          {mintedTicketId && (
-            <Button asChild className="flex-1 bg-teal-600 hover:bg-teal-700 text-white">
-              <Link href={`${collectionHref("STARKNET", contract)}`}>View collection</Link>
-            </Button>
-          )}
-        </div>
-        <RewardEarned actionType="launch_launchpad" />
-      </WalletTransactionDialog>
+        successTitle="Your tickets are ready"
+        successContent={
+          <CreationSuccess
+            name={form.getValues("name")}
+            image={imagePreview}
+            caption="Your tickets are ready"
+            primary={{ href: collectionHref("STARKNET", contract), label: "View collection" }}
+            onAgain={handleReset}
+            againLabel="Mint another ticket"
+          >
+            <RewardEarned actionType="launch_launchpad" />
+          </CreationSuccess>
+        }
+      />
 
       <ClaimRouteShell
         icon={<Ticket className="h-4 w-4 text-white" />}
