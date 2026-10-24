@@ -1,10 +1,9 @@
 "use client";
 
-import { UserFacingError, runIntentCalls } from "@medialane/ui";
+import { UserFacingError, runIntentCalls, useTransaction } from "@medialane/ui";
 import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import {
   Sparkles,
   ExternalLink,
@@ -22,7 +21,7 @@ type MintStep = "ready" | "minting" | "success" | "error";
 
 export function GenesisMint() {
   const { hasWallet, address: walletAddress, isDeployed } = useWalletNativeSession();
-  const action = useWalletWriteAction();
+  const action = useTransaction();
 
   const [mintStep, setMintStep] = useState<MintStep>("ready");
   const [mintError, setMintError] = useState<string | null>(null);
@@ -47,24 +46,24 @@ export function GenesisMint() {
       if (!MINT_CONTRACT) throw new UserFacingError("Distribuição não iniciada ainda.");
 
       setMintStatusMsg("Confirmando participação…");
-      return runIntentCalls(signer, () => getMedialaneClient().api.intents.create("genesis-mint", { owner: signer.address, recipient: walletAddress }));
+      await runIntentCalls(signer, () => getMedialaneClient().api.intents.create("genesis-mint", { owner: signer.address, recipient: walletAddress }));
     });
   }, [walletAddress, action]);
 
   useEffect(() => {
-    if (action.status === "success" && action.txHash) {
+    if (action.phase === "success" && action.txHash) {
       setMintStep("success");
       setCompletedTxHash(action.txHash);
       if (storageKey) localStorage.setItem(storageKey, action.txHash);
     }
-  }, [action.status, action.txHash, storageKey]);
+  }, [action.phase, action.txHash, storageKey]);
 
   useEffect(() => {
-    if (action.status === "error") {
+    if (action.phase === "error") {
       setMintStep("error");
       setMintError(action.error);
     }
-  }, [action.status, action.error]);
+  }, [action.phase, action.error]);
 
   const handleClaim = useCallback(() => {
     void executeMint();
@@ -128,9 +127,9 @@ export function GenesisMint() {
           </div>
           <div className="space-y-1.5 pl-9">
             {[
-              { label: "Preparando seu registro", done: action.status !== "idle" },
-              { label: "Enviando", done: action.status === "confirming" || action.status === "success" },
-              { label: "Confirmado", done: action.status === "success" },
+              { label: "Preparando seu registro", done: action.phase !== "idle" },
+              { label: "Enviando", done: action.phase === "confirming" || action.phase === "success" },
+              { label: "Confirmado", done: action.phase === "success" },
             ].map(({ label, done }) => (
               <div key={label} className="flex items-center gap-2 text-xs text-muted-foreground">
                 {done ? <CheckCircle2 className="h-3 w-3 text-emerald-500" /> : <div className="h-3 w-3 rounded-full border border-muted-foreground/30" />}

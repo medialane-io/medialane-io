@@ -4,9 +4,8 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Loader2, Wallet } from "lucide-react";
 import { getTokenBySymbol, parseAmount, formatAmount } from "@medialane/sdk";
-import { GradientButton } from "@medialane/ui";
+import { GradientButton, useTransaction } from "@medialane/ui";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useErc20Balance, useTokenBalance } from "@medialane/ui/utils/media-wallet/use-erc20-balance";
 import { useSwapQuote } from "@/hooks/use-swap-quote";
 import { createSwapIntent } from "@/lib/wallet/swap-calls";
@@ -32,7 +31,8 @@ export function CoinSwapWidget({
   const { hasWallet, address } = useWalletNativeSession();
   const [side, setSide] = useState<Side>("buy");
   const [amount, setAmount] = useState("");
-  const action = useWalletWriteAction();
+  const action = useTransaction();
+  const busy = action.phase === "preparing" || action.phase === "submitting" || action.phase === "confirming";
 
   const payDecimals = side === "buy" ? quoteDecimals : coinDecimals;
   const receiveSymbol = side === "buy" ? coinSymbol : quoteSymbol;
@@ -79,9 +79,8 @@ export function CoinSwapWidget({
         amountMode: "sell",
         takerAddress: address,
       });
-      const result = await signer.execute(intent.calls, { intentIds: [intent.id] });
+      await signer.execute(intent.calls, { intentIds: [intent.id] });
       setAmount("");
-      return result;
     });
   };
 
@@ -153,22 +152,22 @@ export function CoinSwapWidget({
       </div>
 
       {action.error && <p className="px-1 text-xs text-destructive">{action.error}</p>}
-      {action.status === "success" && (
+      {action.phase === "success" && (
         <p className="px-1 text-xs text-emerald-500">
           {side === "buy" ? "Bought" : "Sold"} {coinSymbol}. Balances update in a few seconds.
         </p>
       )}
 
       <GradientButton
-        onClick={action.status === "success" ? action.reset : submit}
-        disabled={action.status === "success" ? false : !ready || action.status === "processing" || action.status === "confirming"}
+        onClick={action.phase === "success" ? action.reset : submit}
+        disabled={action.phase === "success" ? false : !ready || busy}
         className="w-full"
       >
-        {action.status === "processing" || action.status === "confirming" ? (
+        {busy ? (
           <span className="flex items-center justify-center gap-2">
             <Loader2 className="h-4 w-4 animate-spin" /> Confirming…
           </span>
-        ) : action.status === "success" ? (
+        ) : action.phase === "success" ? (
           "Trade again"
         ) : (
           `${side === "buy" ? "Buy" : "Sell"} ${coinSymbol}`
