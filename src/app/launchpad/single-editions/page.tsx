@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { SingleEditionsContent } from "./single-editions-content";
+import { SingleEditionMint } from "@medialane/ui";
+import { CreateAssetAside } from "@/components/claim/create-asset-aside";
 import { canonical, buildSocialMetadata } from "@/lib/seo";
 
 const title = "Mint NFT | Launchpad";
@@ -13,5 +14,5 @@ export const metadata: Metadata = {
 };
 
 export default function SingleEditionsPage() {
-  return <SingleEditionsContent />;
+  return <SingleEditionMint aside={<CreateAssetAside />} />;
 }
