@@ -2,13 +2,10 @@
 
 import { requireAccount, requireSignedIn } from "@/lib/account-gate";
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Layers } from "lucide-react";
-import { Button } from "@medialane/ui/button";
 import { Form } from "@medialane/ui/form";
-import Link from "next/link";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { WalletTransactionDialog } from "@/components/transaction/wallet-transaction-dialog";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
@@ -22,6 +19,7 @@ import { useSession } from "@/hooks/use-session";
 import { suggestLaunchpadSymbol } from "@medialane/ui/utils/launchpad-defaults";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { CreateEditionsAside } from "@/components/claim/create-editions-aside";
+import { CreationSuccess } from "@medialane/ui";
 import { RewardEarned } from "@/lib/reward-earned";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { NftEditionsCreateForm } from "../nfteditions-create-form";
@@ -31,7 +29,7 @@ import {
 } from "../nfteditions-create-schema";
 
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
-import { profileHref } from "@/lib/routes";
+import { collectionHref, profileHref } from "@/lib/routes";
 
 export default function CreateIP1155CollectionPage() {
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
@@ -151,30 +149,21 @@ export default function CreateIP1155CollectionPage() {
         title="Deploy ERC-1155 collection"
         processingLabel="Deploying collection…"
         firstStepLabel="Prepare metadata"
-        successTitle="Collection deployed!"
-      >
-        <p className="text-sm text-muted-foreground text-center">
-          <span className="font-medium text-foreground">{pendingValues?.name || "Your collection"}</span> is
-          live onchain. Mint editions into it.
-        </p>
-        {imagePreview && (
-          <div className="relative h-24 w-24 rounded-xl overflow-hidden border border-border shadow-md">
-
-            <Image src={imagePreview} alt={pendingValues?.name ?? ""} fill className="object-cover" />
-          </div>
-        )}
-        <div className="flex flex-col sm:flex-row gap-2 w-full pt-1">
-          <Button variant="outline" className="flex-1" onClick={handleReset}>
-            Deploy another
-          </Button>
-          {deployedAddress && (
-            <Button asChild className="flex-1">
-              <Link href={`/launchpad/nfteditions/${deployedAddress}/mint`}>Mint tokens</Link>
-            </Button>
-          )}
-        </div>
-        <RewardEarned actionType="create_collection" />
-      </WalletTransactionDialog>
+        successTitle="Your collection is live"
+        successContent={
+          <CreationSuccess
+            name={pendingValues?.name || "Your collection"}
+            image={imagePreview}
+            caption="Your collection is live"
+            primary={deployedAddress ? { href: `/launchpad/nfteditions/${deployedAddress}/mint`, label: "Mint tokens" } : undefined}
+            secondary={deployedAddress ? { href: collectionHref("STARKNET", deployedAddress), label: "View collection" } : undefined}
+            onAgain={handleReset}
+            againLabel="Create another"
+          >
+            <RewardEarned actionType="create_collection" />
+          </CreationSuccess>
+        }
+      />
 
       <ClaimRouteShell
         icon={<Layers className="h-4 w-4 text-white" />}

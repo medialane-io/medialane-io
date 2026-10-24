@@ -5,6 +5,7 @@ import { UserFacingError, ActionButton, MedialaneCollectionCard, describeError, 
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { buildCollectionMetadata, uploadError, acceptFor, FIELD_LIMITS } from "@medialane/sdk";
+import { CreationSuccess } from "@medialane/ui";
 import { RewardEarned } from "@/lib/reward-earned";
 import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -15,7 +16,6 @@ import { Button } from "@medialane/ui/button";
 import { Input } from "@medialane/ui/input";
 import { Textarea } from "@medialane/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@medialane/ui/form";
-import Link from "next/link";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { WalletTransactionDialog } from "@/components/transaction/wallet-transaction-dialog";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
@@ -26,7 +26,7 @@ import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { CreateCollectionAside } from "@/components/claim/create-collection-aside";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
 import { Layers, Loader2, ImagePlus, X } from "lucide-react";
-import { profileHref } from "@/lib/routes";
+import { collectionHref, profileHref } from "@/lib/routes";
 
 const schema = z.object({
   name: z.string().min(1, "Name required").max(FIELD_LIMITS.name),
@@ -55,6 +55,7 @@ export default function LaunchpadCreateCollectionPage() {
   const action = useWalletWriteAction();
 
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
+  const [createdHref, setCreatedHref] = useState<string | null>(null);
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -162,7 +163,25 @@ export default function LaunchpadCreateCollectionPage() {
     return result;
   };
 
+  useEffect(() => {
+    if (action.status !== "success" || !walletAddress || !pendingValues) return;
+    let alive = true;
+    client.api.collections
+      .list({ owner: walletAddress, limit: 50 })
+      .then((res) => {
+        const created = (res.data ?? [])
+          .filter((c) => c.name === pendingValues.name)
+          .sort((a, b) => Number(BigInt(b.collectionId ?? 0) - BigInt(a.collectionId ?? 0)))[0];
+        if (alive && created) setCreatedHref(collectionHref("STARKNET", created.contractAddress));
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [action.status, walletAddress, pendingValues, client]);
+
   const handleCreateAnother = () => {
+    setCreatedHref(null);
     action.reset();
     form.reset();
     clearImage();
@@ -175,28 +194,21 @@ export default function LaunchpadCreateCollectionPage() {
         title="Confirm collection creation"
         processingLabel="Deploying collection…"
         firstStepLabel="Create collection intent"
-        successTitle="Collection deployed!"
-      >
-        <p className="text-sm text-muted-foreground text-center">
-          <span className="font-medium text-foreground">{pendingValues?.name || "Your collection"}</span> is
-          live onchain. Start minting assets into it.
-        </p>
-        {imagePreview && (
-          <div className="relative h-24 w-24 rounded-xl overflow-hidden border border-border shadow-md">
-
-            <Image src={imagePreview} alt={pendingValues?.name ?? ""} fill className="object-cover" />
-          </div>
-        )}
-        <div className="flex flex-col sm:flex-row gap-2 w-full pt-1">
-          <Button variant="outline" className="flex-1" onClick={handleCreateAnother}>
-            Create another
-          </Button>
-          <Button asChild className="flex-1">
-            <Link href="/launchpad/single-editions">Mint an asset</Link>
-          </Button>
-        </div>
-        <RewardEarned actionType="create_collection" />
-      </WalletTransactionDialog>
+        successTitle="Your collection is live"
+        successContent={
+          <CreationSuccess
+            name={pendingValues?.name || "Your collection"}
+            image={imagePreview}
+            caption="Your collection is live"
+            primary={{ href: "/launchpad/single-editions", label: "Mint an asset" }}
+            secondary={createdHref ? { href: createdHref, label: "View collection" } : undefined}
+            onAgain={handleCreateAnother}
+            againLabel="Create another"
+          >
+            <RewardEarned actionType="create_collection" />
+          </CreationSuccess>
+        }
+      />
 
       <ClaimRouteShell
         icon={<Layers className="h-4 w-4 text-white" />}

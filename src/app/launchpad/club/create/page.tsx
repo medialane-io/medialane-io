@@ -5,7 +5,6 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import Link from "next/link";
 import Image from "next/image";
 import { Users, ImagePlus, Loader2, X } from "lucide-react";
 import { Button } from "@medialane/ui/button";
@@ -25,6 +24,7 @@ import { collectionHref } from "@/lib/routes";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { MedialaneCollectionCard, useMedialaneClient, ExternalLinkField } from "@medialane/ui";
 import { CreateClubAside } from "@/components/claim/create-club-aside";
+import { CreationSuccess } from "@medialane/ui";
 import { RewardEarned } from "@/lib/reward-earned";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
@@ -130,30 +130,20 @@ export default function CreateClubPage() {
         title="Create club"
         processingLabel="Creating your club…"
         firstStepLabel="Prepare metadata"
-        successTitle="Club created!"
-      >
-        <p className="text-sm text-muted-foreground text-center">
-          <span className="font-medium text-foreground">{pendingValues?.name || "Your club"}</span> is
-          live — create membership tiers from its collection page.
-        </p>
-        {imagePreview && (
-          <div className="relative h-24 w-24 rounded-xl overflow-hidden border border-border shadow-md">
-
-            <Image src={imagePreview} alt={pendingValues?.name ?? ""} fill className="object-cover" />
-          </div>
-        )}
-        <div className="flex flex-col sm:flex-row gap-2 w-full pt-1">
-          <Button variant="outline" className="flex-1" onClick={handleReset}>
-            Create another
-          </Button>
-          {deployedAddress && (
-            <Button asChild className="flex-1 bg-brand-purple hover:brightness-110 text-white">
-              <Link href={collectionHref("STARKNET", deployedAddress)}>Create memberships</Link>
-            </Button>
-          )}
-        </div>
-        <RewardEarned actionType="create_club" />
-      </WalletTransactionDialog>
+        successTitle="Your club is live"
+        successContent={
+          <CreationSuccess
+            name={pendingValues?.name || "Your club"}
+            image={imagePreview}
+            caption="Your club is live"
+            primary={deployedAddress ? { href: collectionHref("STARKNET", deployedAddress), label: "Create memberships" } : undefined}
+            onAgain={handleReset}
+            againLabel="Create another"
+          >
+            <RewardEarned actionType="create_club" />
+          </CreationSuccess>
+        }
+      />
 
       <ClaimRouteShell
         icon={<Users className="h-4 w-4 text-white" />}

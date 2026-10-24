@@ -320,7 +320,6 @@ export default function CreateRemixPage() {
         txStatus={txStatus}
         assetName={name}
         imagePreview={imagePreview ?? originalImage ?? null}
-        txHash={null}
         error={mintError ?? null}
         onMintAnother={() => { setMintStep("idle"); setMintError(null); }}
         listingStep="idle"

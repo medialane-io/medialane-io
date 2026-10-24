@@ -19,6 +19,8 @@ interface WalletTransactionDialogProps {
 
   successTitle?: string;
 
+  successContent?: ReactNode;
+
   children?: ReactNode;
 }
 
@@ -46,6 +48,7 @@ export function WalletTransactionDialog({
   processingLabel = "Processing…",
   firstStepLabel = "Prepare transaction",
   successTitle = "Done!",
+  successContent,
   children,
 }: WalletTransactionDialogProps) {
   const { status, txHash, error, reset } = action;
@@ -114,7 +117,9 @@ export function WalletTransactionDialog({
           </div>
         )}
 
-        {isSuccess && (
+        {isSuccess && successContent}
+
+        {isSuccess && !successContent && (
           <div className="flex flex-col items-center gap-5 py-2">
             <div className="relative">
               <div className="h-16 w-16 rounded-full bg-emerald-500/15 flex items-center justify-center">
