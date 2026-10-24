@@ -41,7 +41,7 @@ function PopCollectionCard({ collection }: { collection: ApiCollection }) {
             <span className="text-7xl font-black text-white/10 select-none">{initial}</span>
           </div>
         )}
-        <span className="absolute top-2 right-2 text-[9px] font-bold uppercase tracking-widest text-white bg-black/50 backdrop-blur-sm rounded-full px-2 py-0.5">
+        <span className="absolute top-2 right-2 text-2xs font-bold uppercase tracking-widest text-white bg-black/50 backdrop-blur-sm rounded-full px-2 py-0.5">
           POP
         </span>
       </div>

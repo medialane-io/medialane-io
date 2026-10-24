@@ -440,7 +440,7 @@ export default function CreateRemixPage() {
                           <span className="flex items-center gap-2">
                             {c.name ?? c.contractAddress.slice(0, 14) + "…"}
                             {c.standard && (
-                              <span className="text-[10px] tabular-nums text-muted-foreground">{c.standard}</span>
+                              <span className="text-2xs tabular-nums text-muted-foreground">{c.standard}</span>
                             )}
                           </span>
                         </SelectItem>
@@ -556,7 +556,7 @@ export default function CreateRemixPage() {
                   <Image src={originalImage} alt={originalName} fill className="object-cover" />
                 )}
                 <div className="absolute top-2 left-2">
-                  <Badge variant="secondary" className="text-[10px] gap-1">
+                  <Badge variant="secondary" className="text-2xs gap-1">
                     <GitBranch className="h-3 w-3" />
                     Original
                   </Badge>
@@ -572,7 +572,7 @@ export default function CreateRemixPage() {
 
                 {(attr("License") || attr("Commercial Use") || attr("Derivatives")) && (
                   <div className="rounded-lg bg-muted/40 p-3 space-y-1.5 text-xs">
-                    <p className="text-[10px] font-semibold text-muted-foreground">Original License</p>
+                    <p className="text-2xs font-semibold text-muted-foreground">Original License</p>
                     {attr("License") && (
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">License</span>

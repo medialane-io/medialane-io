@@ -107,7 +107,7 @@ export function CoinExploreClient({ address }: { address: string }) {
         </div>
 
         <Panel className="p-5">
-          <p className="mb-1.5 text-[11px] uppercase tracking-widest text-muted-foreground">Price</p>
+          <p className="mb-1.5 text-2xs uppercase tracking-widest text-muted-foreground">Price</p>
           {priceLoading ? (
             <div className="h-9 w-40 rounded bg-muted-foreground/20 animate-pulse" />
           ) : price ? (
@@ -123,7 +123,7 @@ export function CoinExploreClient({ address }: { address: string }) {
           ) : (
             <p className="text-sm text-muted-foreground">Price unavailable right now.</p>
           )}
-          {price && <p className="mt-2 text-[11px] text-muted-foreground/70">Live market price · updates every 30s</p>}
+          {price && <p className="mt-2 text-2xs text-muted-foreground/70">Live market price · updates every 30s</p>}
         </Panel>
 
         {stats.length > 0 && (
@@ -214,7 +214,7 @@ function Panel({ className, children }: { className?: string; children: React.Re
 function StatCell({ label, value }: { label: string; value: string | number }) {
   return (
     <Panel className="rounded-xl px-3 py-2.5">
-      <p className="mb-1 text-[10px] uppercase tracking-widest text-muted-foreground">{label}</p>
+      <p className="mb-1 text-2xs uppercase tracking-widest text-muted-foreground">{label}</p>
       <p className="truncate text-base font-bold tabular-nums">{value}</p>
     </Panel>
   );

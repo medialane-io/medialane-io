@@ -366,11 +366,11 @@ function GuardianFlow({ onBack }: { onBack: () => void }) {
 function Field({ label, value, onCopy, copied }: { label: string; value: string; onCopy: () => void; copied: boolean }) {
   return (
     <div className="rounded-2xl bg-foreground/[0.03] p-3">
-      <p className="text-[10px] text-muted-foreground">{label}</p>
+      <p className="text-2xs text-muted-foreground">{label}</p>
       <button onClick={onCopy} className="mt-1 block w-full break-all text-left font-mono text-xs">
         {value}
       </button>
-      <p className="mt-1 text-[10px] text-muted-foreground">{copied ? "Copied ✓" : "Tap to copy"}</p>
+      <p className="mt-1 text-2xs text-muted-foreground">{copied ? "Copied ✓" : "Tap to copy"}</p>
     </div>
   );
 }

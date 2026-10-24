@@ -38,7 +38,7 @@ function GenesisNftCard({ minted = false }: { minted?: boolean }) {
       {minted && (
         <div className="absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-black/60 backdrop-blur-sm px-2.5 py-1 border border-emerald-500/40">
           <CheckCircle2 className="h-3 w-3 text-emerald-400" />
-          <span className="text-[11px] font-semibold text-emerald-400">Minted</span>
+          <span className="text-2xs font-semibold text-emerald-400">Minted</span>
         </div>
       )}
     </div>
@@ -65,7 +65,7 @@ function PerksGrid() {
           </div>
           <div>
             <p className="text-xs font-semibold leading-tight">{label}</p>
-            <p className="text-[11px] text-muted-foreground leading-snug mt-0.5">{sub}</p>
+            <p className="text-2xs text-muted-foreground leading-snug mt-0.5">{sub}</p>
           </div>
         </div>
       ))}

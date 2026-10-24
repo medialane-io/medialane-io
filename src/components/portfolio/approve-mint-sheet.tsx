@@ -288,7 +288,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
                           <span className="flex items-center gap-2">
                             {c.name ?? c.contractAddress.slice(0, 14) + "…"}
                             {c.standard && (
-                              <span className="text-[10px] tabular-nums text-muted-foreground">{c.standard}</span>
+                              <span className="text-2xs tabular-nums text-muted-foreground">{c.standard}</span>
                             )}
                           </span>
                         </SelectItem>
@@ -311,7 +311,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <GitBranch className="h-4 w-4" />}
               Grant license & mint
             </button>
-            <p className="text-[10px] text-center text-muted-foreground">Two onchain operations (mint + listing). Gas is free.</p>
+            <p className="text-2xs text-center text-muted-foreground">Two onchain operations (mint + listing). Gas is free.</p>
           </div>
         )}
 

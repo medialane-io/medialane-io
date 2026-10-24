@@ -149,7 +149,7 @@ export function TransferDialog({
   const shieldFooter = (
     <div className="flex items-start justify-center gap-1.5">
       <ShieldCheck className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
-      <p className="text-[10px] text-center text-muted-foreground">
+      <p className="text-2xs text-center text-muted-foreground">
         Transfer is recorded permanently onchain. Gas is sponsored by Medialane.
       </p>
     </div>

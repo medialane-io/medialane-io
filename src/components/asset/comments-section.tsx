@@ -155,7 +155,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
 
                   <Link href={profileHref({ address: comment.author })} className="shrink-0 mt-0.5">
                     <div
-                      className="h-9 w-9 rounded-full flex items-center justify-center text-[11px] font-bold text-white select-none ring-2 ring-background hover:ring-primary/40 transition-all"
+                      className="h-9 w-9 rounded-full flex items-center justify-center text-2xs font-bold text-white select-none ring-2 ring-background hover:ring-primary/40 transition-all"
                       style={{ background: avatarBg }}
                     >
                       {comment.author.slice(2, 5).toUpperCase()}
@@ -171,7 +171,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
                       >
                         {own ? "You" : <AddressDisplay address={comment.author} chars={5} showCopy={false} />}
                       </Link>
-                      <span className="text-[10px] text-muted-foreground" title={comment.postedAt}>
+                      <span className="text-2xs text-muted-foreground" title={comment.postedAt}>
                         {formatDistanceToNow(new Date(comment.postedAt), { addSuffix: true })}
                       </span>
                     </div>
@@ -206,7 +206,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
                         href={`${EXPLORER_URL}/tx/${comment.txHash}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-1 px-1 text-[10px] font-medium transition-colors"
+                        className="flex items-center gap-1 px-1 text-2xs font-medium transition-colors"
                         style={{ color: "hsl(var(--brand-blue) / 0.55)" }}
                         onMouseEnter={(e) => (e.currentTarget.style.color = "hsl(var(--brand-blue))")}
                         onMouseLeave={(e) => (e.currentTarget.style.color = "hsl(var(--brand-blue) / 0.55)")}
@@ -240,7 +240,7 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
 
             <div className="flex items-center gap-1.5">
               <Zap className="h-3 w-3" style={{ color: "hsl(var(--brand-blue))" }} />
-              <span className="text-[10px] font-semibold" style={{ color: "hsl(var(--brand-blue))" }}>
+              <span className="text-2xs font-semibold" style={{ color: "hsl(var(--brand-blue))" }}>
                 Mint your message onchain
               </span>
             </div>
@@ -270,12 +270,12 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
                 disabled={isProcessing}
               />
               <div className="flex items-center justify-between px-3 pb-2.5">
-                <span className="text-[10px] text-muted-foreground/40 flex items-center gap-1">
+                <span className="text-2xs text-muted-foreground/40 flex items-center gap-1">
                   Enter ↵ to post
                 </span>
                 <div className="flex items-center gap-2">
                   {byteLen > 800 && (
-                    <span className={`text-[10px] ${byteLen > MAX_LEN ? "text-destructive" : "text-muted-foreground"}`}>
+                    <span className={`text-2xs ${byteLen > MAX_LEN ? "text-destructive" : "text-muted-foreground"}`}>
                       {byteLen}/{MAX_LEN}
                     </span>
                   )}

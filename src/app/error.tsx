@@ -37,7 +37,7 @@ export default function GlobalError({
           An unexpected error occurred. Please try again or refresh the page.
         </p>
         {error.digest && (
-          <p className="text-[11px] text-muted-foreground/60 tabular-nums">
+          <p className="text-2xs text-muted-foreground/60 tabular-nums">
             Error ID: {error.digest}
           </p>
         )}

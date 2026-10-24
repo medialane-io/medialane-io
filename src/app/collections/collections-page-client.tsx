@@ -125,7 +125,7 @@ export default function CollectionsPageClient() {
           <SlidersHorizontal className="h-3.5 w-3.5" />
           Filters
           {(activeFilters > 0 || service !== undefined) && (
-            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-2xs font-bold text-primary-foreground">
               {activeFilters + (service !== undefined ? 1 : 0)}
             </span>
           )}
@@ -184,7 +184,7 @@ export default function CollectionsPageClient() {
           <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
 
             <div className="space-y-2">
-              <p className="text-[10px] font-semibold text-muted-foreground">Source</p>
+              <p className="text-2xs font-semibold text-muted-foreground">Source</p>
               <div className="flex flex-wrap gap-1.5">
                 {SERVICE_TABS.map(({ label, value }) => (
                   <button
@@ -205,7 +205,7 @@ export default function CollectionsPageClient() {
             </div>
 
             <div className="space-y-2">
-              <p className="text-[10px] font-semibold text-muted-foreground">Sort</p>
+              <p className="text-2xs font-semibold text-muted-foreground">Sort</p>
               <div className="flex flex-wrap gap-1.5">
                 {SORT_OPTIONS.map((opt) => (
                   <button
@@ -225,7 +225,7 @@ export default function CollectionsPageClient() {
             </div>
 
             <div className="space-y-2">
-              <p className="text-[10px] font-semibold text-muted-foreground">Show</p>
+              <p className="text-2xs font-semibold text-muted-foreground">Show</p>
               <div className="flex flex-col gap-2">
                 <button
                   onClick={() => setFeatured((v) => !v)}

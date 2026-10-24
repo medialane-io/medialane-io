@@ -261,7 +261,7 @@ export function MintContent() {
       </div>
 
       <footer className="border-t border-border/40">
-        <p className="text-[11px] text-center text-muted-foreground/50 px-5 pt-4">
+        <p className="text-2xs text-center text-muted-foreground/50 px-5 pt-4">
           Free to join · No purchase required ·{" "}
           <a href="https://docs.medialane.io/guidelines/campaign-terms" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-muted-foreground/80 transition-colors">
             Campaign terms

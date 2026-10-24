@@ -43,9 +43,9 @@ export function ProfileLivePreview({
         <div className="min-w-0">
           <p className="truncate text-[18px] font-bold leading-snug text-foreground">{identity}</p>
           {name ? (
-            <p className="truncate text-[11px] text-muted-foreground">{name}</p>
+            <p className="truncate text-2xs text-muted-foreground">{name}</p>
           ) : (
-            <p className="text-[11px] text-muted-foreground/60">Add a name</p>
+            <p className="text-2xs text-muted-foreground/60">Add a name</p>
           )}
         </div>
 
@@ -81,7 +81,7 @@ export function ProfileLivePreview({
         {approvedUsername && (
           <Link
             href={profileHref({ username: approvedUsername })}
-            className="inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline"
+            className="inline-flex items-center gap-1 text-2xs font-medium text-primary hover:underline"
           >
             View profile
             <ArrowUpRight className="h-3 w-3" />
