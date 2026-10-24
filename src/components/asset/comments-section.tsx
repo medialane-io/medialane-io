@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
 import { normalizeAddress } from "@medialane/sdk";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
-import { useComments, LevelBadge, runIntentCalls, useRewardsBatch } from "@medialane/ui";
+import { useComments, runIntentCalls } from "@medialane/ui";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@medialane/ui/dialog";
@@ -38,7 +38,6 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
   const pathname = usePathname();
   const { comments, isLoading, mutate } = useComments(contract, tokenId);
 
-  const { data: authorLevels } = useRewardsBatch(comments.map((c) => c.author));
   const action = useWalletWriteAction();
 
   const [text, setText] = useState("");
@@ -172,18 +171,6 @@ export function CommentsSection({ contract, tokenId, className }: CommentsSectio
                       >
                         {own ? "You" : <AddressDisplay address={comment.author} chars={5} showCopy={false} />}
                       </Link>
-                      {!own && (() => {
-                        const level = authorLevels?.get(comment.author);
-                        if (!level || level.totalXp <= 0) return null;
-                        return (
-                          <LevelBadge
-                            level={level.currentLevel}
-                            name={level.currentLevelName}
-                            badgeColor={level.badgeColor}
-                            size="sm"
-                          />
-                        );
-                      })()}
                       <span className="text-[10px] text-muted-foreground" title={comment.postedAt}>
                         {formatDistanceToNow(new Date(comment.postedAt), { addSuffix: true })}
                       </span>
