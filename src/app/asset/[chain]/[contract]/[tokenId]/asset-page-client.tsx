@@ -1,17 +1,10 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { AssetPage, PopBurnButton, type AssetPageSlots } from "@medialane/ui";
-import { CommentsSection } from "@/components/asset/comments-section";
+import { AssetPage } from "@medialane/ui";
 import { useAssetMarketActions } from "./asset-marketplace-dialogs";
-
-const SLOTS: AssetPageSlots = {
-  useMarketActions: useAssetMarketActions,
-  Comments: CommentsSection,
-  PopBurn: PopBurnButton,
-};
 
 export default function AssetPageClient() {
   const { contract, tokenId } = useParams<{ contract: string; tokenId: string }>();
-  return <AssetPage contract={contract} tokenId={tokenId} slots={SLOTS} />;
+  return <AssetPage contract={contract} tokenId={tokenId} useMarketActions={useAssetMarketActions} />;
 }
