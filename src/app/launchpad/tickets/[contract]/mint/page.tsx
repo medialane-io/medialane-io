@@ -10,7 +10,7 @@ import Link from "next/link";
 import {
   Ticket, Loader2, ImagePlus, X, ShieldCheck, ChevronDown, AlertCircle,
 } from "lucide-react";
-import { normalizeAddress, uploadError, acceptFor } from "@medialane/sdk";
+import { normalizeAddress, uploadError, acceptFor, FIELD_LIMITS } from "@medialane/sdk";
 
 import { Button } from "@medialane/ui/button";
 import { Input } from "@medialane/ui/input";
@@ -66,8 +66,8 @@ function ToggleGroup({ value, options, onChange }: { value: string; options: rea
 }
 
 const schema = z.object({
-  name: z.string().min(1, "Ticket name required").max(100),
-  description: z.string().max(1000).optional(),
+  name: z.string().min(1, "Ticket name required").max(FIELD_LIMITS.name),
+  description: z.string().max(FIELD_LIMITS.description).optional(),
   external_url: z.string().max(500)
     .refine((v) => !v || v.startsWith("http://") || v.startsWith("https://"), { message: "Must start with http:// or https://" })
     .optional(),

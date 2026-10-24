@@ -6,7 +6,7 @@ import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
 import { RewardEarned } from "@/lib/reward-earned";
 import { useState, useRef, useEffect, useCallback } from "react";
 import NextImage from "next/image";
-import { getService, uploadError, acceptFor } from "@medialane/sdk";
+import { getService, uploadError, acceptFor, FIELD_LIMITS } from "@medialane/sdk";
 import type { ApiCollection } from "@medialane/sdk";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -59,8 +59,8 @@ import { profileHref } from "@/lib/routes";
 
 const schema = z.object({
   collectionId: z.string().min(1, "Select a collection"),
-  name: z.string().min(1, "Name required").max(100),
-  description: z.string().max(1000).optional(),
+  name: z.string().min(1, "Name required").max(FIELD_LIMITS.name),
+  description: z.string().max(FIELD_LIMITS.description).optional(),
   external_url: z
     .string()
     .max(500)
