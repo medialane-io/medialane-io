@@ -1,9 +1,8 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { AssetPage, type AssetPageSlots } from "@medialane/ui";
+import { AssetPage, PopBurnButton, type AssetPageSlots } from "@medialane/ui";
 import { CommentsSection } from "@/components/asset/comments-section";
-import { PopBurnButton } from "@/components/claim/pop-burn-button";
 import { useAssetMarketActions } from "./asset-marketplace-dialogs";
 
 const SLOTS: AssetPageSlots = {

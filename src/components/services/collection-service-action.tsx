@@ -1,7 +1,7 @@
 "use client";
 
 import { getServiceConfig } from "@/lib/service-registry";
-import { PopClaimButton } from "@/components/claim/pop-claim-button";
+import { PopClaimButton } from "@medialane/ui";
 import Link from "next/link";
 import { dropHref } from "@medialane/sdk";
 import { Button } from "@medialane/ui/button";
