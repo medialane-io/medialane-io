@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { ipType } = await params;
   const config = IP_TYPE_DATA_MAP[ipType];
   if (!config) return {};
-  const title = `${config.label} Assets`;
+  const title = config.label;
   const description = `Browse all ${config.label} digital assets indexed on Medialane — Creator Launchpad + NFT Marketplace.`;
   return {
     title,
@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: `${title} | Medialane`,
       description,
       url: `/${ipType}`,
-      images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: `Medialane ${config.label} Assets` }],
+      images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: `Medialane ${config.label}` }],
     },
     twitter: {
       card: "summary_large_image",
