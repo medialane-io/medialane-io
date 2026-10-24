@@ -1,7 +1,7 @@
 "use client";
 
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@medialane/ui/dialog";
-import { RewardEarned } from "@/lib/reward-earned";
+import { RewardEarned } from "@medialane/ui";
 import {
   MarketplaceDialogHero,
   MarketplaceConfirmStep,

@@ -22,7 +22,7 @@ import { ClaimBackButton } from "@/components/claim/claim-back-button";
 import { ServiceFormShell, GradientButton, CurrencyIcon, CurrencyAmount, useMedialaneClient } from "@medialane/ui";
 import { CreateCoinAside } from "@/components/claim/create-coin-aside";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
-import { RewardEarned } from "@/lib/reward-earned";
+import { RewardEarned } from "@medialane/ui";
 import {
   LaunchpadSuccessState,
   LaunchpadProcessingState,
@@ -35,7 +35,7 @@ import { useSession } from "@/hooks/use-session";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { useTokenBalance } from "@medialane/ui/utils/media-wallet/use-erc20-balance";
 import { useLaunchCoin, type LaunchCoinInput } from "@/hooks/use-launch-coin";
-import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
+import { useLaunchpadImageUpload } from "@medialane/ui";
 import { suggestLaunchpadSymbol } from "@medialane/ui/utils/launchpad-defaults";
 import { cn } from "@/lib/utils";
 

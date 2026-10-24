@@ -11,7 +11,7 @@ import {
   CheckCircle2, ShieldCheck,
 } from "lucide-react";
 import { fireConfetti } from "@medialane/ui/utils/media-wallet/confetti";
-import { RewardEarned } from "@/lib/reward-earned";
+import { RewardEarned } from "@medialane/ui";
 import { assetHref as buildAssetHref } from "@/lib/routes";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@medialane/ui/dialog";
 import { Button } from "@medialane/ui/button";

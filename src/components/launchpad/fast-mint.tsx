@@ -7,8 +7,8 @@ import { FastMint as SharedFastMint, describeError, type FastMintProps as Shared
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSession } from "@/hooks/use-session";
 
-import { RewardEarned } from "@/lib/reward-earned";
-import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
+import { RewardEarned } from "@medialane/ui";
+import { invalidatePortfolioCache } from "@medialane/ui";
 
 export interface FastMintProps {
   presentation?: "inline" | "dialog";

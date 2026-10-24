@@ -6,7 +6,7 @@ import { Button } from "@medialane/ui/button";
 import { Input } from "@medialane/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@medialane/ui/dialog";
 import { MarketplaceErrorState, MarketplaceSuccessState, useMedialaneClient } from "@medialane/ui";
-import { RewardEarned } from "@/lib/reward-earned";
+import { RewardEarned } from "@medialane/ui";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { executeIntent } from "@medialane/sdk/starknet";

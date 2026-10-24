@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { FolderInput, Globe } from "lucide-react";
 import { canonical } from "@/lib/seo";
-import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
+import { ClaimRouteShell } from "@medialane/ui";
 import { ClaimGate } from "@/components/claim/claim-gate";
 import { ClaimCollectionPanel } from "@/components/claim/claim-collection-panel";
 import { ClaimCollectionAside } from "@/components/claim/claim-collection-aside";

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Coins } from "lucide-react";
-import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
+import { ClaimRouteShell } from "@medialane/ui";
 import { ClaimGate } from "@/components/claim/claim-gate";
 import { ClaimCollectionPanel } from "@/components/claim/claim-collection-panel";
 import { ClaimMemecoinAside } from "@/components/claim/claim-memecoin-aside";
