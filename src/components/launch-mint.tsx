@@ -4,7 +4,6 @@ import { requireAccount } from "@/lib/account-gate";
 import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import {
   Sparkles,
   Zap,
@@ -22,7 +21,7 @@ import { Button } from "@medialane/ui/button";
 import { EXPLORER_URL, MINT_CONTRACT } from "@/lib/constants";
 import { LaunchCountdown } from "./launch-countdown";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import { runIntentCalls } from "@medialane/ui";
+import { runIntentCalls, useTransaction } from "@medialane/ui";
 
 function GenesisNftCard({ minted = false }: { minted?: boolean }) {
   return (
@@ -77,7 +76,7 @@ type MintStep = "ready" | "minting" | "success" | "error";
 
 export function LaunchMint() {
   const { hasWallet, address: recipientAddress, isDeployed } = useWalletNativeSession();
-  const action = useWalletWriteAction();
+  const action = useTransaction();
 
   const [mintStep, setMintStep] = useState<MintStep>("ready");
   const [mintError, setMintError] = useState<string | null>(null);
@@ -103,24 +102,24 @@ export function LaunchMint() {
       if (!MINT_CONTRACT) throw new Error("Mint contract not configured.");
 
       setMintStatusMsg("Submitting transaction…");
-      return runIntentCalls(signer, () => getMedialaneClient().api.intents.create("genesis-mint", { owner: signer.address, recipient: recipientAddress! }));
+      await runIntentCalls(signer, () => getMedialaneClient().api.intents.create("genesis-mint", { owner: signer.address, recipient: recipientAddress! }));
     });
   }, [recipientAddress, action]);
 
   useEffect(() => {
-    if (action.status === "success" && action.txHash) {
+    if (action.phase === "success" && action.txHash) {
       setMintStep("success");
       setCompletedTxHash(action.txHash);
       if (recipientAddress) localStorage.setItem(`ml_genesis_${recipientAddress}`, action.txHash);
     }
-  }, [action.status, action.txHash, recipientAddress]);
+  }, [action.phase, action.txHash, recipientAddress]);
 
   useEffect(() => {
-    if (action.status === "error") {
+    if (action.phase === "error") {
       setMintStep("error");
       setMintError(action.error);
     }
-  }, [action.status, action.error]);
+  }, [action.phase, action.error]);
 
   const handleRetry = () => {
     action.reset();
@@ -233,9 +232,9 @@ export function LaunchMint() {
                     </div>
                     <div className="mt-4 space-y-1.5">
                       {[
-                        { label: "Upload metadata", done: action.status !== "idle" },
-                        { label: "Submit transaction", done: action.status === "confirming" || action.status === "success" },
-                        { label: "Confirm onchain", done: action.status === "success" },
+                        { label: "Upload metadata", done: action.phase !== "idle" },
+                        { label: "Submit transaction", done: action.phase === "confirming" || action.phase === "success" },
+                        { label: "Confirm onchain", done: action.phase === "success" },
                       ].map(({ label, done }) => (
                         <div key={label} className="flex items-center gap-2 text-xs text-muted-foreground">
                           {done ? (
