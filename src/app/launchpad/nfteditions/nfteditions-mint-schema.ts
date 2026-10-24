@@ -1,6 +1,7 @@
 "use client";
 
 import * as z from "zod";
+import { FIELD_LIMITS } from "@medialane/sdk";
 import { AI_POLICIES, DERIVATIVES_OPTIONS, IP_TYPES } from "@medialane/ui/data/ip";
 
 export const nftEditionsMintSchema = z.object({
@@ -13,8 +14,8 @@ export const nftEditionsMintSchema = z.object({
     .string()
     .min(1, "Recipient address required")
     .regex(/^0x[0-9a-fA-F]+$/, "Enter a valid Starknet address"),
-  name: z.string().min(1, "Token name required").max(100),
-  description: z.string().max(500).optional(),
+  name: z.string().min(1, "Token name required").max(FIELD_LIMITS.name),
+  description: z.string().max(FIELD_LIMITS.description).optional(),
   external_url: z
     .string()
     .max(500)

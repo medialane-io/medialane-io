@@ -4,7 +4,7 @@ import { requireAccount, requireSignedIn } from "@/lib/account-gate";
 import { UserFacingError, ActionButton, MedialaneCollectionCard, describeError, useMedialaneClient, ExternalLinkField } from "@medialane/ui";
 import { uploadImageToIpfs } from "@/lib/upload-image";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
-import { buildCollectionMetadata, uploadError, acceptFor } from "@medialane/sdk";
+import { buildCollectionMetadata, uploadError, acceptFor, FIELD_LIMITS } from "@medialane/sdk";
 import { RewardEarned } from "@/lib/reward-earned";
 import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -29,13 +29,13 @@ import { Layers, Loader2, ImagePlus, X } from "lucide-react";
 import { profileHref } from "@/lib/routes";
 
 const schema = z.object({
-  name: z.string().min(1, "Name required").max(100),
+  name: z.string().min(1, "Name required").max(FIELD_LIMITS.name),
   symbol: z
     .string()
     .min(1, "Symbol required")
-    .max(10, "Max 10 characters")
+    .max(FIELD_LIMITS.symbol, `Max ${FIELD_LIMITS.symbol} characters`)
     .regex(/^[A-Z0-9]+$/, "Uppercase letters and numbers only"),
-  description: z.string().max(500).optional(),
+  description: z.string().max(FIELD_LIMITS.description).optional(),
   external_link: z
     .string()
     .max(500)

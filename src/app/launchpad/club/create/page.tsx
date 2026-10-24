@@ -20,7 +20,7 @@ import { useSession } from "@/hooks/use-session";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { useLaunchpadImageUpload } from "@/hooks/use-launchpad-image-upload";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
-import { buildCollectionMetadata, acceptFor } from "@medialane/sdk";
+import { buildCollectionMetadata, acceptFor, FIELD_LIMITS } from "@medialane/sdk";
 import { collectionHref } from "@/lib/routes";
 import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
 import { MedialaneCollectionCard, useMedialaneClient, ExternalLinkField } from "@medialane/ui";
@@ -32,13 +32,13 @@ import { executeIntent, deployedCollectionFromReceipt } from "@medialane/sdk/sta
 import { profileHref } from "@/lib/routes";
 
 const schema = z.object({
-  name: z.string().min(1, "Name required").max(100),
+  name: z.string().min(1, "Name required").max(FIELD_LIMITS.name),
   symbol: z
     .string()
     .min(1, "Symbol required")
-    .max(10, "Max 10 characters")
+    .max(FIELD_LIMITS.symbol, `Max ${FIELD_LIMITS.symbol} characters`)
     .regex(/^[A-Z0-9]+$/, "Uppercase letters and numbers only"),
-  description: z.string().max(500).optional(),
+  description: z.string().max(FIELD_LIMITS.description).optional(),
   external_link: z
     .string()
     .max(500)

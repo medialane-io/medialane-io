@@ -1,6 +1,7 @@
 "use client";
 
 import * as z from "zod";
+import { FIELD_LIMITS } from "@medialane/sdk";
 
 function parseDateTime(date: string, time: string): number | null {
   const timestamp = new Date(`${date}T${time}:00`).getTime();
@@ -9,13 +10,13 @@ function parseDateTime(date: string, time: string): number | null {
 
 export const popCreateSchema = z
   .object({
-    name: z.string().min(1, "Event name required").max(100),
+    name: z.string().min(1, "Event name required").max(FIELD_LIMITS.name),
     symbol: z
       .string()
       .min(1, "Symbol required")
-      .max(10)
+      .max(FIELD_LIMITS.symbol)
       .regex(/^[A-Z0-9]+$/, "Uppercase letters and numbers only"),
-    description: z.string().max(500).optional(),
+    description: z.string().max(FIELD_LIMITS.description).optional(),
     external_link: z
       .string()
       .max(500)

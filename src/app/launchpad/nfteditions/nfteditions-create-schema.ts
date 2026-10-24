@@ -1,15 +1,16 @@
 "use client";
 
 import * as z from "zod";
+import { FIELD_LIMITS } from "@medialane/sdk";
 
 export const nftEditionsCreateSchema = z.object({
-  name: z.string().min(1, "Name required").max(100),
+  name: z.string().min(1, "Name required").max(FIELD_LIMITS.name),
   symbol: z
     .string()
     .min(1, "Symbol required")
-    .max(10, "Max 10 characters")
+    .max(FIELD_LIMITS.symbol, `Max ${FIELD_LIMITS.symbol} characters`)
     .regex(/^[A-Z0-9]+$/, "Uppercase letters and numbers only"),
-  description: z.string().max(500).optional(),
+  description: z.string().max(FIELD_LIMITS.description).optional(),
   external_link: z
     .string()
     .max(500)
