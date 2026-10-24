@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { AtSign } from "lucide-react";
 import { canonical } from "@/lib/seo";
-import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
+import { ClaimRouteShell } from "@medialane/ui";
 import { ClaimGate } from "@/components/claim/claim-gate";
 import { UsernameClaimSection } from "@/components/settings/username-claim-section";
 import { ClaimUsernameAside } from "@/components/claim/claim-username-aside";

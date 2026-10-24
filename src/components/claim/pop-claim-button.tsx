@@ -10,7 +10,7 @@ import { claimProofFor, MarketplaceErrorState, MarketplaceSuccessState, runInten
 import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 
-import { RewardEarned } from "@/lib/reward-earned";
+import { RewardEarned } from "@medialane/ui";
 import { EXPLORER_URL } from "@/lib/constants";
 import { getMedialaneClient } from "@/lib/medialane-client";
 

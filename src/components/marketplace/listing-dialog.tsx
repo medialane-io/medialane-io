@@ -9,7 +9,7 @@ import * as z from "zod";
 import { AlertCircle, Tag, Layers, ShieldCheck, Loader2 } from "lucide-react";
 import { CurrencyIcon } from "@medialane/ui/currency-icon";
 import { fireConfetti } from "@medialane/ui/utils/media-wallet/confetti";
-import { RewardEarned } from "@/lib/reward-earned";
+import { RewardEarned } from "@medialane/ui";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@medialane/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@medialane/ui/form";
 import { Input } from "@medialane/ui/input";

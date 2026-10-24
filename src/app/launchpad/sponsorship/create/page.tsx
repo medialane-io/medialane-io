@@ -12,8 +12,8 @@ import { useMedialaneClient, AssetPicker, AssetSearchPicker, LicenseTermsBuilder
 import { executeIntent } from "@medialane/sdk/starknet";
 import { useTokensByOwner } from "@/hooks/use-tokens";
 import { getTokenBySymbol, SUPPORTED_TOKENS } from "@medialane/sdk";
-import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
-import { RewardEarned } from "@/lib/reward-earned";
+import { ClaimRouteShell } from "@medialane/ui";
+import { RewardEarned } from "@medialane/ui";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
 import { Handshake as HandshakeAsideIcon, ShieldCheck, Coins, Gift } from "lucide-react";
 import { ClaimRail } from "@medialane/ui/claim-rail";

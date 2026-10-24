@@ -3,7 +3,7 @@
 import { requireSignedIn } from "@/lib/account-gate";
 import { UserFacingError, CollapsibleSection, MedialaneCollectionCard, describeError, useCollectionsByOwner } from "@medialane/ui";
 import { pinAssetMetadata } from "@/lib/pin-asset-metadata";
-import { RewardEarned } from "@/lib/reward-earned";
+import { RewardEarned } from "@medialane/ui";
 import { useState, useRef, useEffect, useCallback } from "react";
 import NextImage from "next/image";
 import { getService, uploadError, acceptFor, FIELD_LIMITS } from "@medialane/sdk";
@@ -22,11 +22,11 @@ import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSession } from "@/hooks/use-session";
 import { MintProgressDialog } from "@/components/marketplace/mint-progress-dialog";
 import type { MintTxStatus } from "@/types/mint-tx-status";
-import { ClaimRouteShell } from "@/components/claim/claim-route-shell";
+import { ClaimRouteShell } from "@medialane/ui";
 import { CreateAssetAside } from "@/components/claim/create-asset-aside";
 import type { MintStep } from "@/components/marketplace/mint-progress-dialog";
 import { LaunchpadSignedOutState } from "@/components/launchpad/launchpad-signed-out-state";
-import { invalidatePortfolioCache } from "@/lib/portfolio-cache";
+import { invalidatePortfolioCache } from "@medialane/ui";
 import { cn, resolveImage } from "@/lib/utils";
 import {
   createMintIntentWithDebug,
