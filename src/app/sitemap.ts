@@ -1,14 +1,23 @@
 import type { MetadataRoute } from "next";
-import { IP_TYPE_DATA } from "@medialane/ui";
+import { IP_TYPE_DATA, sitemapChunks, sitemapEntries } from "@medialane/ui";
 import { APP_URL } from "@/lib/seo";
-import { assetHref, collectionHref } from "@/lib/routes";
-import { collectSitemapData } from "@medialane/ui";
 import { getMedialaneClient } from "@/lib/medialane-client";
 
 const BASE_URL = APP_URL;
 export const revalidate = 3600;
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+export async function generateSitemaps() {
+  const chunks = await sitemapChunks(getMedialaneClient().api);
+  return [{ id: "pages" }, ...chunks.map(({ kind, index }) => ({ id: `${kind}-${index}` }))];
+}
+
+export default async function sitemap(props: { id: string | Promise<string> }): Promise<MetadataRoute.Sitemap> {
+  const id = await props.id;
+  if (id !== "pages") {
+    const [kind, index] = id.split("-");
+    return sitemapEntries(getMedialaneClient().api, { kind: kind as "tokens" | "collections" | "creators", index: Number(index) }, BASE_URL);
+  }
+
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: BASE_URL, changeFrequency: "daily", priority: 1 },
     { url: `${BASE_URL}/discover`, changeFrequency: "daily", priority: 0.9 },
@@ -36,27 +45,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  const { collections, tokens, creatorUsernames } = await collectSitemapData(getMedialaneClient().api);
-
-  const collectionRoutes: MetadataRoute.Sitemap = collections.map((c) => ({
-    url: `${BASE_URL}${collectionHref("STARKNET", c.contractAddress)}`,
-    changeFrequency: "daily" as const,
-    priority: 0.7,
-    lastModified: c.updatedAt ? new Date(c.updatedAt) : undefined,
-  }));
-
-  const tokenRoutes: MetadataRoute.Sitemap = tokens.map((t) => ({
-    url: `${BASE_URL}${assetHref("STARKNET", t.contractAddress, t.tokenId)}`,
-    changeFrequency: "weekly" as const,
-    priority: 0.5,
-    lastModified: t.updatedAt ? new Date(t.updatedAt) : undefined,
-  }));
-
-  const creatorRoutes: MetadataRoute.Sitemap = creatorUsernames.map((username) => ({
-    url: `${BASE_URL}/creator/${username}`,
-    changeFrequency: "weekly" as const,
-    priority: 0.6,
-  }));
-
-  return [...staticRoutes, ...ipTypeRoutes, ...collectionRoutes, ...tokenRoutes, ...creatorRoutes];
+  return [...staticRoutes, ...ipTypeRoutes];
 }
