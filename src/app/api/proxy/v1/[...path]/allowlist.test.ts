@@ -16,10 +16,6 @@ test("POST /v1/intents/<type> is allowed for a hypothetical future intent type",
   expect(isPathAllowed("POST", "intents/some-future-type")).toBe(true);
 });
 
-test("POST /v1/intents/:id/hydrate is allowed for any intent id", () => {
-  expect(isPathAllowed("POST", "intents/abc-123/hydrate")).toBe(true);
-});
-
 test("PATCH /v1/intents/:id/signature and /confirm are allowed for any intent id", () => {
   expect(isPathAllowed("PATCH", "intents/abc-123/signature")).toBe(true);
   expect(isPathAllowed("PATCH", "intents/abc-123/confirm")).toBe(true);
@@ -88,7 +84,7 @@ test("known public GET reads used by the io app are allowed", () => {
   expect(isPathAllowed("GET", "rewards/config")).toBe(true);
 });
 
-test("POST /v1/intents/<type> with extra path segments (other than /hydrate) is rejected", () => {
+test("POST /v1/intents/<type> with extra path segments is rejected", () => {
   expect(isPathAllowed("POST", "intents/listing/extra")).toBe(false);
 });
 
