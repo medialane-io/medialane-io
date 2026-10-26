@@ -3,6 +3,8 @@ import { parseTemplateRequest, renderTemplate, type RenderedEmail } from "./mail
 const SINGLE_EMAIL = /^[^\s@,;<>"]+@[^\s@,;<>"]+\.[^\s@,;<>"]+$/;
 const FROM_NAME = /^[^\r\n<>@:]{1,40}$/;
 const HMAC_KEY = "mail-relay-auth";
+const SMTP_ERROR_CODE = /^E[A-Z_]{2,20}$/;
+const SMTP_COMMAND = /^[A-Z][A-Z0-9 ]{0,19}$/;
 
 export interface RelayEmail extends RenderedEmail {
   to: string;
@@ -30,4 +32,23 @@ export function parseRelayRequest(body: unknown, appUrl: string): RelayEmail | n
   if (!to || !fromName || !request) return null;
   if (!isSingleEmailAddress(to) || !FROM_NAME.test(fromName)) return null;
   return { to, fromName, ...renderTemplate(request, appUrl) };
+}
+
+export interface SmtpFailure {
+  code?: string;
+  responseCode?: number;
+  command?: string;
+}
+
+// Keeps only nodemailer's fixed error fields; its message and server response can contain addresses.
+export function smtpFailure(err: unknown): SmtpFailure {
+  if (typeof err !== "object" || err === null) return {};
+  const { code, responseCode, command } = err as Record<string, unknown>;
+  const failure: SmtpFailure = {};
+  if (typeof code === "string" && SMTP_ERROR_CODE.test(code)) failure.code = code;
+  if (typeof responseCode === "number" && Number.isInteger(responseCode) && responseCode >= 200 && responseCode < 600) {
+    failure.responseCode = responseCode;
+  }
+  if (typeof command === "string" && SMTP_COMMAND.test(command)) failure.command = command;
+  return failure;
 }

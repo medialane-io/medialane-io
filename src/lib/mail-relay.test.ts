@@ -1,5 +1,5 @@
 import { test, expect, describe } from "bun:test";
-import { isRelayAuthorized, isSingleEmailAddress, parseRelayRequest } from "./mail-relay";
+import { isRelayAuthorized, isSingleEmailAddress, parseRelayRequest, smtpFailure } from "./mail-relay";
 
 test("the right secret is authorized and anything else is not", () => {
   expect(isRelayAuthorized("s3cret", "s3cret")).toBe(true);
@@ -48,5 +48,35 @@ describe("a template request", () => {
     const email = parseRelayRequest({ ...request, html: "<a href='https://evil.example'>x</a>", subject: "Pay now" }, APP);
     expect(email?.html).not.toContain("evil.example");
     expect(email?.subject).toBe("Your verification code");
+  });
+});
+
+describe("an SMTP failure", () => {
+  test("keeps the error code, server response code and command", () => {
+    const err = Object.assign(new Error("Invalid login: 535 5.7.8 Username and Password not accepted"), {
+      code: "EAUTH",
+      responseCode: 535,
+      command: "AUTH PLAIN",
+      response: "535 5.7.8 Username and Password not accepted",
+    });
+    expect(smtpFailure(err)).toEqual({ code: "EAUTH", responseCode: 535, command: "AUTH PLAIN" });
+  });
+
+  test("never keeps the message or the server response, which can carry addresses", () => {
+    const err = Object.assign(new Error('Invalid recipient "a@b.co"'), {
+      code: "EENVELOPE",
+      responseCode: 550,
+      command: "RCPT TO",
+      response: "550 5.1.1 <a@b.co> does not exist",
+    });
+    expect(JSON.stringify(smtpFailure(err))).not.toContain("a@b.co");
+  });
+
+  test("drops fields that are not in the expected shape", () => {
+    expect(smtpFailure({ code: "a@b.co", responseCode: "535", command: "RCPT TO:<a@b.co>" })).toEqual({});
+    expect(smtpFailure({ responseCode: 99 })).toEqual({});
+    expect(smtpFailure(new Error("Connection timeout"))).toEqual({});
+    expect(smtpFailure(null)).toEqual({});
+    expect(smtpFailure("boom")).toEqual({});
   });
 });
