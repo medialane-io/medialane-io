@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
-import { isRelayAuthorized, parseRelayRequest } from "@/lib/mail-relay";
+import { isRelayAuthorized, parseRelayRequest, smtpFailure } from "@/lib/mail-relay";
 import { APP_URL } from "@/lib/seo";
 
 export const runtime = "nodejs";
@@ -34,8 +34,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       text: email.text,
     });
     return NextResponse.json({ ok: true });
-  } catch {
-    console.error("[mail-relay] send failed");
+  } catch (err) {
+    console.error("[mail-relay] send failed", smtpFailure(err));
     return NextResponse.json({ error: "Send failed" }, { status: 502 });
   }
 }
