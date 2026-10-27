@@ -7,7 +7,7 @@ export type AfterCode =
   | { type: "finish" }
   | { type: "wallet-setup" }
   | { type: "key-setup"; walletAddress: string }
-  | { type: "link-device"; walletAddress: string };
+  | { type: "restore-key"; walletAddress: string };
 
 export const isEmailAddress = (value: string): boolean => z.string().email().safeParse(value).success;
 
@@ -25,5 +25,5 @@ export function afterCodeVerified(
   const ownedHere =
     localOwnerAddress !== null &&
     normalizeWalletAddress(localOwnerAddress) === normalizeWalletAddress(wallet.walletAddress);
-  return ownedHere ? { type: "finish" } : { type: "link-device", walletAddress: wallet.walletAddress };
+  return ownedHere ? { type: "finish" } : { type: "restore-key", walletAddress: wallet.walletAddress };
 }
