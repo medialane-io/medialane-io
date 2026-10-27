@@ -2,7 +2,6 @@
 
 import { EmailCodeEntry, RESEND_COOLDOWN_SECONDS, describeError, describeWalletFailure, detectPasskeySupport, isPasskeyCancelled } from "@medialane/ui";
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
-import Link from "next/link";
 import { Button } from "@medialane/ui/button";
 import { Alert, AlertDescription } from "@medialane/ui/alert";
 import { Input } from "@medialane/ui/input";
@@ -17,6 +16,7 @@ import { mediaWallet } from "@/lib/wallet/client";
 import { claimSessionWallet } from "@medialane/sdk/starknet";
 import { createOwnerKey } from "@/lib/wallet/passkey";
 import { removeDevice } from "@/lib/wallet/devices";
+import { RecoveryKeyRestore } from "@/components/wallet/recovery-key-restore";
 import { loadSealedOwner, saveSealedOwner, notifyWalletChange } from "@/lib/wallet/store";
 import { afterCodeVerified, afterEmailCheck, afterRegister, isEmailAddress } from "@/lib/onboarding/decisions";
 import { flowReducer, initialFlow, retryTarget, type OnboardingStep } from "@/lib/onboarding/flow";
@@ -173,8 +173,8 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
       await refreshSession();
       const wallet = flow.accountExisted ? await getMedialaneClient().api.account.sessionWallet() : null;
       const next = afterCodeVerified(wallet, loadSealedOwner()?.address ?? null);
-      if (next.type === "link-device") {
-        dispatch({ type: "device-not-linked" });
+      if (next.type === "restore-key") {
+        dispatch({ type: "key-needed" });
         return;
       }
       if (next.type === "key-setup") {
@@ -241,21 +241,16 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
     );
   }
 
-  if (step === "link-device") {
+  if (step === "restore-key") {
     return (
       <div className="w-full space-y-3">
         <Alert className="w-full">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Your email is confirmed. Approve this browser from the device you used to sign up, and you&apos;re in.
+            Your email is confirmed. Paste your recovery key to open your wallet on this browser.
           </AlertDescription>
         </Alert>
-        <Button asChild size="lg" className="w-full">
-          <Link href="/link-device">Approve this browser</Link>
-        </Button>
-        <Button asChild variant="ghost" size="sm" className="w-full">
-          <Link href="/recover">Lost your device? Recover your account</Link>
-        </Button>
+        <RecoveryKeyRestore onRestored={() => finish()} />
       </div>
     );
   }

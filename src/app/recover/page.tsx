@@ -7,11 +7,7 @@ import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { Button } from "@medialane/ui/button";
 import { Input } from "@medialane/ui/input";
-import {
-  createOwnerKey,
-  sealImportedOwnerKey,
-  type SealedOwner,
-} from "@/lib/wallet/passkey";
+import { createOwnerKey, type SealedOwner } from "@/lib/wallet/passkey";
 import { saveSealedOwner, loadSealedOwner } from "@/lib/wallet/store";
 import { isValidStarknetAddress } from "@/lib/wallet/account-ops";
 import {
@@ -22,8 +18,8 @@ import {
   GUARDIAN_RECOVERY_AVAILABLE,
   type EscapeInfo,
 } from "@/lib/wallet/guardian";
-import { describeRecoveryAction, parseRecoveryKey, InvalidRecoveryKeyError } from "@medialane/sdk/starknet";
-import { isOwnerOf } from "@/lib/wallet/devices";
+import { describeRecoveryAction } from "@medialane/sdk/starknet";
+import { RecoveryKeyRestore } from "@/components/wallet/recovery-key-restore";
 
 type Mode = "choose" | "key" | "lost" | "guardian";
 
@@ -39,15 +35,6 @@ export default function RecoverPage() {
 
       {mode === "choose" && (
         <div className="flex flex-col gap-3">
-          <Link
-            href="/link-device"
-            className="rounded-2xl border border-border bg-card p-4 text-left transition-transform active:scale-[0.98]"
-          >
-            <p className="text-sm font-semibold">I still have another device</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Approve this one from a phone or browser you already use.
-            </p>
-          </Link>
           <button
             onClick={() => setMode("key")}
             className="rounded-2xl border border-border bg-card p-4 text-left transition-transform active:scale-[0.98]"
@@ -89,73 +76,12 @@ export default function RecoverPage() {
 
 function RecoveryKeyFlow({ onBack }: { onBack: () => void }) {
   const router = useRouter();
-  const [keyInput, setKeyInput] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-
-  const preview = (() => {
-    const trimmed = keyInput.trim();
-    if (!trimmed) return null;
-    try {
-      return parseRecoveryKey(trimmed);
-    } catch {
-      return null;
-    }
-  })();
-
-  const restore = async () => {
-    setBusy(true);
-    setErr(null);
-    try {
-      const sealed = await sealImportedOwnerKey(parseRecoveryKey(keyInput));
-      const owned = await isOwnerOf(sealed.address, sealed.ownerPubKey).catch(() => false);
-      if (!owned) {
-        setErr(
-          "That key does not control this wallet. Check you copied the whole recovery key.",
-        );
-        setBusy(false);
-        return;
-      }
-      saveSealedOwner(sealed);
-      router.push("/portfolio");
-    } catch (e) {
-      if (e instanceof InvalidRecoveryKeyError) {
-        setErr("That does not look like a recovery key. Check you copied all of it.");
-      } else {
-        setErr(describeError(e, "Could not restore your wallet. Please try again.").message);
-      }
-      setBusy(false);
-    }
-  };
-
   return (
     <div className="flex flex-col gap-4">
       <button onClick={onBack} className="self-start text-xs text-muted-foreground hover:text-foreground">
         ← Choose another way
       </button>
-      <p className="text-sm text-muted-foreground leading-relaxed">
-        Paste the recovery key you saved from Settings. This device will ask for a new passkey and
-        lock the key behind it.
-      </p>
-      <Input
-        value={keyInput}
-        onChange={(e) => setKeyInput(e.target.value)}
-        placeholder="medialane-recovery:v1:…"
-        autoComplete="off"
-        spellCheck={false}
-        className="font-mono text-xs"
-      />
-      {preview && (
-        <p className="text-xs text-muted-foreground">
-          This key restores wallet{" "}
-          <span className="font-mono text-foreground break-all">{preview.walletAddress}</span>
-        </p>
-      )}
-      {err && <p className="text-sm text-destructive">{err}</p>}
-      <Button onClick={restore} disabled={busy || !preview}>
-        {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        Restore my wallet
-      </Button>
+      <RecoveryKeyRestore onRestored={() => router.push("/portfolio")} />
     </div>
   );
 }

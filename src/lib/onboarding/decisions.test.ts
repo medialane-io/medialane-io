@@ -41,16 +41,16 @@ describe("after the login code is verified", () => {
     expect(afterCodeVerified({ walletAddress: WALLET, needsKeySetup: false }, padded)).toEqual({ type: "finish" });
   });
 
-  test("a returning user on a browser without their key is sent to link this device (a new browser)", () => {
+  test("a returning user on a browser without their key is asked for their recovery key (a new browser)", () => {
     expect(afterCodeVerified({ walletAddress: WALLET, needsKeySetup: false }, null)).toEqual({
-      type: "link-device",
+      type: "restore-key",
       walletAddress: WALLET,
     });
   });
 
-  test("a browser holding a key for a different wallet is also sent to link this device", () => {
+  test("a browser holding a key for a different wallet is also asked for their recovery key", () => {
     expect(afterCodeVerified({ walletAddress: WALLET, needsKeySetup: false }, "0x1234")).toEqual({
-      type: "link-device",
+      type: "restore-key",
       walletAddress: WALLET,
     });
   });
