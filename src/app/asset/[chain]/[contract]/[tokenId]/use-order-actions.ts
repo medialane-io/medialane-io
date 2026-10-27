@@ -36,7 +36,7 @@ export function useOrderActions({ mutateListings, tokenStandard }: UseOrderActio
       mutateListings();
     } catch (err: unknown) {
       setCancelStep("error");
-      setCancelError(describeError(err, "Cancellation failed").message);
+      setCancelError(describeError(err).message);
     }
   };
 

@@ -48,7 +48,7 @@ export function useProfileForm() {
       setTimeout(() => setSaveStatus("idle"), 3000);
     } catch (e: unknown) {
       setSaveStatus("error");
-      setSaveError(describeError(e, "Failed to save changes").message);
+      setSaveError(describeError(e).message);
     } finally {
       setSaving(false);
     }

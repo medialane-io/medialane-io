@@ -50,7 +50,7 @@ test("run reaches error status without showing raw chain text", async () => {
   });
 
   await waitFor(() => expect(result.current.status).toBe("error"));
-  expect(result.current.error).toBe("We couldn't complete that transaction. Please try again.");
+  expect(result.current.error).toMatch(/^Share reference [0-9a-f-]{8} with support\.$/);
   expect(result.current.error).not.toContain("execution reverted");
 });
 

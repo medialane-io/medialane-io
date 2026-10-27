@@ -96,7 +96,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
       return;
     }
     void handleUnlocked().catch((err) => {
-      setApproveError(describeError(err, "Approval failed").message);
+      setApproveError(describeError(err).message);
       setLoading(false);
     });
   };
@@ -207,7 +207,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
       setDone(true);
       onSuccess?.();
     } catch (err: unknown) {
-      setApproveError(describeError(err, "Approval failed").message);
+      setApproveError(describeError(err).message);
     } finally {
       setLoading(false);
     }

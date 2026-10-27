@@ -43,7 +43,7 @@ export function RecoveryKeyRestore({ onRestored }: { onRestored: () => void }) {
       if (e instanceof InvalidRecoveryKeyError) {
         setErr("That does not look like a recovery key. Check you copied all of it.");
       } else {
-        setErr(describeError(e, "Could not restore your wallet. Please try again.").message);
+        setErr(describeError(e).message);
       }
       setBusy(false);
     }

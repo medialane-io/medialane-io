@@ -2,7 +2,7 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import { Wallet } from "lucide-react";
-import { describeError, type MedialaneApp } from "@medialane/ui";
+import type { MedialaneApp } from "@medialane/ui";
 import { requireAccount, requireSignedIn } from "@/lib/account-gate";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSession } from "@/hooks/use-session";
@@ -38,13 +38,7 @@ export function useAppAdapter(): MedialaneApp {
       requireAccount(signer);
       return {
         address: signer.address,
-        execute: async (calls, opts) => {
-          try {
-            return await signer.execute(calls, opts);
-          } catch (err) {
-            throw new Error(describeError(err, "That didn't go through. Please try again.").message);
-          }
-        },
+        execute: (calls, opts) => signer.execute(calls, opts),
         signTypedData: (data) => signer.signTypedData(data),
       };
     },

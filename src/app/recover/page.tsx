@@ -106,7 +106,7 @@ function LostWalletFlow({ onBack }: { onBack: () => void }) {
       saveSealedOwner(forLostWallet);
       setNewPubkey(sealed.ownerPubKey);
     } catch (e) {
-      setErr(describeError(e, "We couldn't create a new key for this wallet. Please try again.").message);
+      setErr(describeError(e).message);
     } finally {
       setBusy(false);
     }
@@ -183,7 +183,7 @@ function GuardianFlow({ onBack }: { onBack: () => void }) {
       setEscape(e);
       setPeriodDays(Math.round(period / 86400));
     } catch (e) {
-      setErr(describeError(e, "We couldn't read this wallet's recovery status. Please try again.").message);
+      setErr(describeError(e).message);
     }
   };
 
@@ -199,7 +199,7 @@ function GuardianFlow({ onBack }: { onBack: () => void }) {
       await triggerEscapeOwner(sealed, targetAddress.trim(), newOwnerPubkey.trim());
       await checkStatus();
     } catch (e) {
-      setErr(describeError(e, "We couldn't start recovery for this wallet. Please try again.").message);
+      setErr(describeError(e).message);
     } finally {
       setBusy(null);
     }
@@ -213,7 +213,7 @@ function GuardianFlow({ onBack }: { onBack: () => void }) {
       await completeEscapeOwner(sealed, targetAddress.trim());
       await checkStatus();
     } catch (e) {
-      setErr(describeError(e, "We couldn't complete recovery for this wallet. Please try again.").message);
+      setErr(describeError(e).message);
     } finally {
       setBusy(null);
     }

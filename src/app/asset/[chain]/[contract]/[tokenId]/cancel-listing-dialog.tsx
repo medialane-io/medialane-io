@@ -51,8 +51,7 @@ export function CancelListingDialog({
             tokenImage={tokenImage}
             name={tokenName}
             title="Cancellation failed"
-            description="Something went wrong while cancelling your listing."
-            error={cancelError}
+            description={cancelError}
             explorerUrl={EXPLORER_URL}
             onDone={onReset}
           />

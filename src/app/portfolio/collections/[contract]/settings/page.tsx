@@ -139,7 +139,7 @@ function CollectionSlugClaimSection({
       setPendingSlug(claim.slug);
       setSubmitState("done");
     } catch (err: unknown) {
-      const msg = describeError(err, "Failed to submit claim.").message;
+      const msg = describeError(err).message;
       setSubmitError(msg);
       setSubmitState("error");
     }
@@ -369,7 +369,7 @@ export default function CollectionSettingsPage({ params }: Props) {
       setTimeout(() => setSaveStatus("idle"), 3000);
     } catch (e) {
       setSaveStatus("error");
-      setSaveError(describeError(e, "Failed to save changes").message);
+      setSaveError(describeError(e).message);
     } finally {
       setSaving(false);
     }

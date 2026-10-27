@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { AlertCircle, CheckCircle, Flag, Loader2 } from "lucide-react";
+import { describeError } from "@medialane/ui";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@medialane/ui/dialog";
 import { Button } from "@medialane/ui/button";
 import { Checkbox } from "@medialane/ui/checkbox";
@@ -95,7 +96,7 @@ export function ReportDialog({ target, open, onOpenChange }: ReportDialogProps) 
       } else if (err instanceof MedialaneApiError && err.status === 429) {
         setSubmitError("Too many reports — please wait before trying again.");
       } else {
-        setSubmitError("Something went wrong. Please try again.");
+        setSubmitError(describeError(err).message);
       }
     }
   };

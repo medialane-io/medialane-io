@@ -2,7 +2,7 @@
 
 import { requireAccount } from "@/lib/account-gate";
 import { useRouter, usePathname } from "next/navigation";
-import { FastMint as SharedFastMint, describeError, type FastMintProps as SharedFastMintProps, type FastMintSigner, useCollectionsByOwner, useMedialaneClient } from "@medialane/ui";
+import { FastMint as SharedFastMint, type FastMintProps as SharedFastMintProps, type FastMintSigner, useCollectionsByOwner, useMedialaneClient } from "@medialane/ui";
 
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSession } from "@/hooks/use-session";
@@ -53,20 +53,8 @@ export function FastMint({ presentation = "inline", open = true, onClose, mediaK
         requireAccount(signer);
         return {
           address: signer.address,
-          execute: async (calls, opts?: { intentIds?: string[] }) => {
-            try {
-              return await signer.execute(calls, opts);
-            } catch (err) {
-              throw new Error(describeError(err, "We couldn't complete that mint. Please try again.").message);
-            }
-          },
-          signTypedData: async (data) => {
-            try {
-              return await signer.signTypedData(data);
-            } catch (err) {
-              throw new Error(describeError(err, "We couldn't complete that mint. Please try again.").message);
-            }
-          },
+          execute: (calls, opts?: { intentIds?: string[] }) => signer.execute(calls, opts),
+          signTypedData: (data) => signer.signTypedData(data),
         };
       }}
       client={client}

@@ -34,7 +34,7 @@ export default function EmailSettingsPage() {
       setDialogOpen(true);
     } catch (err) {
       setChangeStatus("error");
-      setChangeError(describeError(err, "Failed to update email").message);
+      setChangeError(describeError(err).message);
     }
   }
 

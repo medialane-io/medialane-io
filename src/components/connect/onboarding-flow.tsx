@@ -122,7 +122,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
 
   const requestLoginCode = async () => {
     if (await emailCode.send(email)) dispatch({ type: "code-sent" });
-    else dispatch({ type: "email-step-failed", message: "Couldn't send the code. Please try again." });
+    else dispatch({ type: "email-step-failed", message: emailCode.state.error ?? "" });
   };
 
   const registerNewAccount = async () => {
@@ -142,8 +142,8 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
       }
       await refreshSession();
       await runWalletSetup();
-    } catch {
-      dispatch({ type: "email-step-failed", message: "Something went wrong. Please try again." });
+    } catch (err) {
+      dispatch({ type: "email-step-failed", message: describeError(err).message });
     }
   };
 
@@ -158,8 +158,8 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
       dispatch({ type: "account-found", exists });
       if (afterEmailCheck(exists) === "send-code") await requestLoginCode();
       else await registerNewAccount();
-    } catch {
-      dispatch({ type: "email-step-failed", message: "Something went wrong. Please try again." });
+    } catch (err) {
+      dispatch({ type: "email-step-failed", message: describeError(err).message });
     }
   };
 
@@ -187,7 +187,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
       }
       await runWalletSetup();
     } catch (err) {
-      emailCode.fail(describeError(err, "Something went wrong. Please try again.").message);
+      emailCode.fail(describeError(err).message);
       dispatch({ type: "code-failed", message: null });
     }
   };

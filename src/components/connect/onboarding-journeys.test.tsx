@@ -194,11 +194,11 @@ describe("an address that already has an account", () => {
   test("a wrong code shows a message and lets them try again", async () => {
     api.account.emailExists.mockImplementation(async () => true);
     api.account.verifyEmailCode.mockImplementationOnce(async () => {
-      throw new Error("Incorrect code");
+      throw new MedialaneApiError(400, "Incorrect code", undefined, { error: "Incorrect code" });
     });
     await enterEmail("typo@example.com");
     await enterCode("000000");
-    await waitFor(() => expect(screen.getByText(/Incorrect code|Something went wrong/)).toBeTruthy());
+    await waitFor(() => expect(screen.getByText("Incorrect code")).toBeTruthy());
     expect(done).toEqual([]);
     expect(getSessionWallet).not.toHaveBeenCalled();
   });
