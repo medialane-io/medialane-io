@@ -32,14 +32,6 @@ function toApiStandard(standard?: string): "ERC721" | "ERC1155" | undefined {
   return undefined;
 }
 
-function toFriendlyError(err: unknown, fallback: string): string {
-  const raw = describeError(err, fallback).message;
-  if (/invalid body|400|bad request/i.test(raw)) {
-    return "Something went wrong processing your request. Please try again, or contact Medialane support if the issue persists.";
-  }
-  return raw;
-}
-
 function sanitizeTypedData(value: unknown): unknown {
   if (typeof value === "string") {
     const upper = value.toUpperCase();
@@ -233,7 +225,7 @@ export function useMarketplace() {
           }),
         );
       } catch (err: unknown) {
-        const msg = toFriendlyError(err, "Failed to create listing");
+        const msg = describeError(err).message;
         setError(msg);
         throw err;
       } finally {
@@ -258,7 +250,7 @@ export function useMarketplace() {
           input.swap,
         );
       } catch (err: unknown) {
-        const msg = toFriendlyError(err, "Purchase failed");
+        const msg = describeError(err).message;
         setError(msg);
         throw err;
       } finally {
@@ -287,7 +279,7 @@ export function useMarketplace() {
           }),
         );
       } catch (err: unknown) {
-        const msg = toFriendlyError(err, "Failed to submit offer");
+        const msg = describeError(err).message;
         setError(msg);
         throw err;
       } finally {
@@ -312,7 +304,7 @@ export function useMarketplace() {
           }),
         );
       } catch (err: unknown) {
-        const msg = toFriendlyError(err, "Counter-offer failed");
+        const msg = describeError(err).message;
         setError(msg);
         throw err;
       } finally {
@@ -336,7 +328,7 @@ export function useMarketplace() {
           }),
         );
       } catch (err: unknown) {
-        const msg = toFriendlyError(err, "Cancellation failed");
+        const msg = describeError(err).message;
         setError(msg);
 
         invalidate();

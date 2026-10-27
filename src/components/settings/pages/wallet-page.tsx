@@ -1,6 +1,6 @@
 "use client";
 
-import { AddressDisplay, ExportKeySection, describeError, AccountSection, useMediaWallet } from "@medialane/ui";
+import { AddressDisplay, ExportKeySection, AccountSection, useMediaWallet } from "@medialane/ui";
 import { useState } from "react";
 import { AlertTriangle, ArrowUpRight, Loader2, ShieldAlert, ShieldCheck, Wallet } from "lucide-react";
 import { Alert, AlertDescription } from "@medialane/ui/alert";
@@ -35,7 +35,7 @@ export default function WalletSettingsPage() {
     setGenerateError(null);
 
     if (!session) {
-      setGenerateError("Something went wrong. Please try again.");
+      setGenerateError("Sign in to generate a wallet.");
       setGenerating(false);
       return;
     }
@@ -103,7 +103,6 @@ export default function WalletSettingsPage() {
               <ExportKeySection
                 loadSealed={loadSealedOwner}
                 unlock={unlockOwnerKey}
-                describeError={(err, fallback) => describeError(err, fallback).message}
               />
             </>
           ) : null}

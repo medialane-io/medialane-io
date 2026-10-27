@@ -98,7 +98,7 @@ export function useTransfer(
         invalidate();
         return result.txHash;
       } catch (err: unknown) {
-        const msg = describeError(err, "Transfer failed").message;
+        const msg = describeError(err).message;
         setError(msg);
         throw err;
       } finally {

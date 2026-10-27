@@ -54,7 +54,7 @@ export default function VerifyEmailContent() {
       setStep("code");
       void emailCode.send(result.email);
     } catch (err) {
-      setError(describeError(err, "Failed to save email").message);
+      setError(describeError(err).message);
     }
   }
 

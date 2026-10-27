@@ -32,9 +32,9 @@ export default function GlobalError({
         <AlertTriangle className="h-7 w-7 text-destructive" />
       </div>
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold">Something went wrong</h1>
+        <h1 className="text-2xl font-bold">Reload to continue</h1>
         <p className="text-muted-foreground text-sm max-w-xs">
-          An unexpected error occurred. Please try again or refresh the page.
+          This page is ready to reload.
         </p>
         {error.digest && (
           <p className="text-2xs text-muted-foreground/60 tabular-nums">
@@ -44,7 +44,7 @@ export default function GlobalError({
       </div>
       <Button onClick={reset}>
         <RefreshCw className="h-4 w-4 mr-2" />
-        Try again
+        Reload
       </Button>
     </div>
   );

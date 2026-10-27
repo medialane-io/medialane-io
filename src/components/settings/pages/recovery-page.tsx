@@ -1,6 +1,6 @@
 "use client";
 
-import { AccountSection, ExportKeySection, describeError } from "@medialane/ui";
+import { AccountSection, ExportKeySection } from "@medialane/ui";
 import { KeyRound, LifeBuoy } from "lucide-react";
 import { GuardianRecoverySection } from "@/components/settings/guardian-recovery-section";
 import { SettingsGate, SettingsPage } from "@/components/settings/settings-page";
@@ -28,7 +28,6 @@ export default function RecoverySettingsPage() {
             <ExportKeySection
               loadSealed={loadSealedOwner}
               unlock={unlockOwnerKey}
-              describeError={(err, fallback) => describeError(err, fallback).message}
             />
           </AccountSection>
         ) : null}
