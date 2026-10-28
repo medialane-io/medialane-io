@@ -149,3 +149,11 @@ test("one owner's balance of a token is readable", () => {
   expect(isPathAllowed("GET", "tokens/0xabc/1/balances/0xdef")).toBe(true);
   expect(isPathAllowed("GET", "tokens/0xabc/1/balances")).toBe(false);
 });
+
+test("the recovery routes: reading and starting, and finishing, are allowed and nothing beside them", () => {
+  expect(isPathAllowed("GET", "users/me/wallet/recovery")).toBe(true);
+  expect(isPathAllowed("POST", "users/me/wallet/recovery")).toBe(true);
+  expect(isPathAllowed("POST", "users/me/wallet/recovery/complete")).toBe(true);
+  expect(isPathAllowed("POST", "users/me/wallet/recovery/other")).toBe(false);
+  expect(isPathAllowed("DELETE", "users/me/wallet/recovery")).toBe(false);
+});

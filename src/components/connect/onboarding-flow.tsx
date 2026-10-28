@@ -18,6 +18,7 @@ import { claimSessionWallet } from "@medialane/sdk/starknet";
 import { createOwnerKey } from "@/lib/wallet/passkey";
 import { removeDevice } from "@/lib/wallet/devices";
 import { RecoveryKeyRestore } from "@/components/wallet/recovery-key-restore";
+import { EmailRecovery } from "@/components/wallet/email-recovery";
 import { loadSealedOwner, saveSealedOwner, notifyWalletChange } from "@/lib/wallet/store";
 import { afterCodeVerified, afterEmailCheck, afterRegister, isEmailAddress } from "@/lib/onboarding/decisions";
 import { flowReducer, initialFlow, retryTarget, type OnboardingStep } from "@/lib/onboarding/flow";
@@ -251,6 +252,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
             Your email is confirmed. Paste your recovery key to open your wallet on this browser.
           </AlertDescription>
         </Alert>
+        <EmailRecovery onRecovered={() => finish()} />
         <RecoveryKeyRestore onRestored={() => finish()} />
         <div className="flex items-center justify-between">
           <Button asChild variant="ghost" size="sm">
