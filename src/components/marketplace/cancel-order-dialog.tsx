@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@medialan
 import { CurrencyIcon } from "@medialane/ui/currency-icon";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { useWalletMarketplaceActionFlow } from "@/hooks/use-wallet-marketplace-action-flow";
-import { MarketplaceConfirmStep } from "@medialane/ui";
+import { MarketplaceConfirmStep, successMessages } from "@medialane/ui";
 import { TransactionDialogStates } from "@/components/marketplace/transaction-dialog-states";
 import { resolveImage, formatDisplayPrice } from "@/lib/utils";
 import type { ApiOrder } from "@medialane/sdk";
@@ -127,16 +127,9 @@ export function CancelOrderDialog({
           txHash={txHash}
           error={error}
           isSubmitting={isProcessing}
-          successTitle={`${resolvedVariant.charAt(0).toUpperCase()}${resolvedVariant.slice(1)} cancelled`}
-          successBody={
-            <>
-              Your {resolvedVariant} for{" "}
-              <span className="font-medium text-foreground">{resolvedName}</span>{" "}
-              has been removed.
-            </>
-          }
+          success={successMessages.cancelled({ kind: resolvedVariant })}
           successImage={order?.token?.image ?? tokenImage ?? null}
-          successImageAlt={resolvedName}
+          successName={resolvedName}
           errorTitle={`${resolvedVariant === "listing" ? "Listing" : "Offer"} cancellation failed`}
           errorDescription={`The transaction was submitted, but this ${resolvedVariant} could not be cancelled.`}
           errorAssetName={resolvedName}

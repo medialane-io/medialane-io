@@ -5,7 +5,7 @@ import { useUsdPrices } from "@/hooks/use-usd-prices";
 import { usdValueFor } from "@/lib/wallet-format";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { CheckCircle2, AlertCircle, ArrowLeftRight, ExternalLink, Loader2, Wallet } from "lucide-react";
+import { AlertCircle, ArrowLeftRight, Loader2, Wallet } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@medialane/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@medialane/ui/form";
 import { Button } from "@medialane/ui/button";
@@ -13,10 +13,11 @@ import { Input } from "@medialane/ui/input";
 import { Textarea } from "@medialane/ui/textarea";
 import { Alert, AlertDescription } from "@medialane/ui/alert";
 import { Badge } from "@medialane/ui/badge";
+import { TransactionSuccess, successMessages } from "@medialane/ui";
 import { useMarketplace } from "@/hooks/use-marketplace";
 import { useWalletMarketplaceActionFlow } from "@/hooks/use-wallet-marketplace-action-flow";
 import { CurrencyIcon } from "@medialane/ui/currency-icon";
-import { EXPLORER_URL, DURATION_OPTIONS } from "@/lib/constants";
+import { DURATION_OPTIONS } from "@/lib/constants";
 import { marketplacePriceField, counterOfferDurationField } from "@/lib/marketplace-schemas";
 
 function toRawWei(humanAmount: string, decimals: number): string {
@@ -128,22 +129,12 @@ export function CounterOfferDialog({
               </div>
             </div>
           ) : isSuccess ? (
-            <div className="flex flex-col items-center gap-4 py-4">
-              <CheckCircle2 className="h-12 w-12 text-emerald-500" />
-              <p className="font-semibold text-lg">Counter-offer sent!</p>
-              <p className="text-sm text-muted-foreground text-center">
-                Your counter of {pendingValues?.price} {currencySymbol} on{" "}
-                {tokenName || "this token"} is now live as an on-chain listing.
-              </p>
-              {txHash && (
-                <Button variant="outline" size="sm" asChild>
-                  <a href={`${EXPLORER_URL}/tx/${txHash}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
-                    View on Voyager <ExternalLink className="h-3 w-3" />
-                  </a>
-                </Button>
-              )}
-              <Button className="w-full" onClick={() => handleClose(false)}>Done</Button>
-            </div>
+            <TransactionSuccess
+              name={tokenName || "this token"}
+              {...successMessages.countered({ name: tokenName || "this token", price: `${pendingValues?.price} ${currencySymbol}` })}
+              txHash={txHash}
+              actions={[{ label: "Done", onClick: () => handleClose(false) }]}
+            />
           ) : isProcessing ? (
             <div className="flex flex-col items-center gap-4 py-8">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />

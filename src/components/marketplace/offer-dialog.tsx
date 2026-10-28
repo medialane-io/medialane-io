@@ -20,7 +20,8 @@ import { useResolvedTokenStandard } from "@/hooks/use-resolved-token-standard";
 import {
   MarketplaceProcessingState,
   MarketplaceSignInGate,
-  MarketplaceSuccessState,
+  TransactionSuccess,
+  successMessages,
   MarketplaceErrorState,
   MarketplaceDialogHero,
   CurrencyPicker,
@@ -166,24 +167,15 @@ export function OfferDialog({
           </DialogDescription>
 
           {isSuccess ? (
-            <MarketplaceSuccessState
-              tokenImage={tokenImage}
+            <TransactionSuccess
               name={name}
-              title="Offer live!"
-              description={
-                <>
-                  Your offer of{" "}
-                  <span className="font-semibold text-foreground">
-                    {pendingValues?.price} {pendingValues?.currency}
-                  </span>{" "}
-                  on <span className="font-medium text-foreground">{name}</span> is now active.
-                </>
-              }
+              image={tokenImage}
+              {...successMessages.offered({ name, price: `${pendingValues?.price} ${pendingValues?.currency}` })}
               txHash={txHash}
-              explorerUrl={EXPLORER_URL}
-              footer={<RewardEarned actionType="make_offer" />}
-              onDone={() => onOpenChange(false)}
-            />
+              actions={[{ label: "Done", onClick: () => onOpenChange(false) }]}
+            >
+              <RewardEarned actionType="make_offer" />
+            </TransactionSuccess>
 
           ) : isTerminalError ? (
             <MarketplaceErrorState

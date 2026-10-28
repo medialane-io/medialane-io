@@ -20,7 +20,8 @@ import { useResolvedTokenStandard } from "@/hooks/use-resolved-token-standard";
 import {
   MarketplaceProcessingState,
   MarketplaceSignInGate,
-  MarketplaceSuccessState,
+  TransactionSuccess,
+  successMessages,
   MarketplaceErrorState,
   MarketplaceDialogHero,
   CurrencyPicker,
@@ -139,6 +140,7 @@ export function ListingDialog({
   }, [isSuccess, mutate]);
 
   const name = tokenName || `Token #${tokenId}`;
+  const listedPrice = `${pendingValues?.price} ${pendingValues?.currency}${is1155 && pendingValues?.amount && pendingValues.amount !== "1" ? ` × ${pendingValues.amount}` : ""}`;
   const shieldFooter = (
     <div className="flex items-start justify-center gap-1.5">
       <ShieldCheck className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
@@ -158,26 +160,15 @@ export function ListingDialog({
           </DialogDescription>
 
           {isSuccess ? (
-            <MarketplaceSuccessState
-              tokenImage={tokenImage}
+            <TransactionSuccess
               name={name}
-              title="Listing live!"
-              description={
-                <>
-                  <span className="font-medium text-foreground">{name}</span>{" "}
-                  is now available for{" "}
-                  <span className="font-semibold text-foreground">
-                    {pendingValues?.price} {pendingValues?.currency}
-                    {is1155 && pendingValues?.amount && pendingValues.amount !== "1"
-                      ? ` × ${pendingValues.amount}` : ""}
-                  </span>.
-                </>
-              }
+              image={tokenImage}
+              {...successMessages.listed({ name, price: listedPrice })}
               txHash={txHash}
-              explorerUrl={EXPLORER_URL}
-              footer={<RewardEarned actionType="list_asset" />}
-              onDone={() => { onOpenChange(false); onSuccess?.(); }}
-            />
+              actions={[{ label: "Done", onClick: () => { onOpenChange(false); onSuccess?.(); } }]}
+            >
+              <RewardEarned actionType="list_asset" />
+            </TransactionSuccess>
 
           ) : isTerminalError ? (
             <MarketplaceErrorState

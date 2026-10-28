@@ -3,7 +3,8 @@
 import { Dialog, DialogContent } from "@medialane/ui/dialog";
 import {
   MarketplaceProcessingState,
-  MarketplaceSuccessState,
+  TransactionSuccess,
+  successMessages,
   MarketplaceErrorState,
 } from "@medialane/ui";
 import { EXPLORER_URL } from "@/lib/constants";
@@ -37,13 +38,11 @@ export function CancelListingDialog({
           />
         )}
         {cancelStep === "success" && (
-          <MarketplaceSuccessState
-            tokenImage={tokenImage}
+          <TransactionSuccess
             name={tokenName}
-            title="Listing cancelled"
-            description="Your listing has been removed from the marketplace."
-            explorerUrl={EXPLORER_URL}
-            onDone={onReset}
+            image={tokenImage}
+            {...successMessages.cancelled({ kind: "listing" })}
+            actions={[{ label: "Done", onClick: onReset }]}
           />
         )}
         {cancelStep === "error" && (
