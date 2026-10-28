@@ -1,6 +1,6 @@
 "use client";
 
-import { UserFacingError, MarketplaceErrorState, MarketplaceTxLink, isStableCurrency } from "@medialane/ui";
+import { UserFacingError, MarketplaceErrorState, MarketplaceTxLink, isStableCurrency, successMessages } from "@medialane/ui";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -135,7 +135,7 @@ function SuccessScreen({
   const unitPrice = order.price?.formatted ? parseFloat(order.price.formatted) : null;
   const totalPrice = unitPrice !== null ? unitPrice * quantity : null;
 
-  const headline = is1155 && quantity > 1 ? `You own ${quantity} editions!` : "You own it!";
+  const message = successMessages.purchased({ name: name ?? "the asset", quantity: is1155 ? quantity : 1 });
 
   return (
     <div className="flex flex-col">
@@ -156,10 +156,8 @@ function SuccessScreen({
           </div>
         </div>
         <div className="text-center min-w-0 max-w-full">
-          <p className="font-black text-xl leading-tight">{headline}</p>
-          {name && (
-            <p className="text-muted-foreground text-sm font-medium truncate mt-0.5">{name}</p>
-          )}
+          <p className="font-black text-xl leading-tight">{message.title}</p>
+          <p className="text-muted-foreground text-sm mt-0.5 break-words">{message.description}</p>
         </div>
       </div>
 
@@ -353,7 +351,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
                   <MarketplaceTxLink txHash={txHash} explorerUrl={EXPLORER_URL} className="mt-1" />
                 ) : null}
               </div>
-              <p className="text-xs text-muted-foreground">Please wait, do not close this window.</p>
+              <p className="text-xs text-muted-foreground">Keep this window open until it finishes.</p>
             </div>
 
           ) : (

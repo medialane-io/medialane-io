@@ -154,7 +154,7 @@ export function useCounterOfferActions({ refresh }: Context): PortfolioOrderActi
                   <div className="text-center space-y-1">
                     <p className="font-semibold">Confirming on Starknet…</p>
                     <p className="text-xs text-muted-foreground">
-                      Please wait, do not close this window.
+                      Keep this window open until it finishes.
                     </p>
                   </div>
                 </div>

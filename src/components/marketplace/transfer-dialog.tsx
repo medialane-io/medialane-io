@@ -205,7 +205,7 @@ export function TransferDialog({
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <div className="text-center space-y-1">
                 <p className="font-semibold">Confirming on Starknet…</p>
-                <p className="text-sm text-muted-foreground">Please wait, do not close this window.</p>
+                <p className="text-sm text-muted-foreground">Keep this window open until it finishes.</p>
               </div>
             </div>
 
