@@ -21,7 +21,7 @@
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
     "@medialane/sdk": "0.207.0",
-    "@medialane/ui": "0.260.0",
+    "@medialane/ui": "0.261.0",
     "@next/third-parties": "^16.2.6",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-slot": "^1.2.4",
@@ -42,6 +42,7 @@
     "react-dom": "^19.2.6",
     "react-hook-form": "^7.75.0",
     "react-is": "^19.2.6",
+    "react-markdown": "9.0.1",
     "recharts": "^3.8.1",
     "server-only": "^0.0.1",
     "sharp": "0.35.4",
