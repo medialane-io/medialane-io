@@ -7,15 +7,11 @@ import * as z from "zod";
 import {
   AlertCircle,
   ArrowRightLeft,
-  CheckCircle2,
-  ExternalLink,
   Loader2,
   ShieldCheck,
-  Sparkles,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@medialane/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@medialane/ui/form";
-import { Button } from "@medialane/ui/button";
 import { Input } from "@medialane/ui/input";
 import { Alert, AlertDescription } from "@medialane/ui/alert";
 import { useTransfer } from "@/hooks/use-transfer";
@@ -24,6 +20,8 @@ import {
   MarketplaceConfirmStep,
   MarketplaceDialogHero,
   MarketplaceErrorState,
+  TransactionSuccess,
+  successMessages,
 } from "@medialane/ui";
 import { EXPLORER_URL } from "@/lib/constants";
 import { resolveImage } from "@/lib/utils";
@@ -172,42 +170,21 @@ export function TransferDialog({
           />
 
           {step === "success" ? (
-            <div className="flex flex-col items-center gap-5 p-6 py-8">
-              <div className="relative">
-                <div className="h-16 w-16 rounded-full bg-emerald-500/15 flex items-center justify-center">
-                  <CheckCircle2 className="h-9 w-9 text-emerald-500" />
-                </div>
-                <Sparkles className="absolute -top-1 -right-1 h-5 w-5 text-brand-orange" />
-              </div>
-              <div className="text-center space-y-1">
-                <p className="font-bold text-xl">Transfer complete!</p>
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-medium text-foreground">{displayName}</span>{" "}
-                  has been sent to{" "}
-                  <span className="tabular-nums text-foreground">{recipientShort}</span>.
-                </p>
-              </div>
-              {txHash && (
-                <a
-                  href={`${EXPLORER_URL}/tx/${txHash}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <span className="tabular-nums">{txHash.slice(0, 10)}…{txHash.slice(-8)}</span>
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              )}
-              <Button
-                className="w-full h-11"
-                onClick={() => {
-                  handleClose(false);
-                  onSuccess?.();
-                }}
-              >
-                Done
-              </Button>
-            </div>
+            <TransactionSuccess
+              name={displayName}
+              image={tokenImage}
+              {...successMessages.transferred({ name: displayName, to: recipientShort })}
+              txHash={txHash}
+              actions={[
+                {
+                  label: "Done",
+                  onClick: () => {
+                    handleClose(false);
+                    onSuccess?.();
+                  },
+                },
+              ]}
+            />
 
           ) : isTerminalError ? (
             <MarketplaceErrorState

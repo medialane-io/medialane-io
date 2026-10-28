@@ -1,11 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import Image from "next/image";
-import { CheckCircle2 } from "lucide-react";
-import { Button } from "@medialane/ui/button";
 import { TxStatus } from "@/components/transaction/tx-status";
-import { MarketplaceErrorState } from "@medialane/ui";
+import { MarketplaceErrorState, TransactionSuccess, type SuccessMessage } from "@medialane/ui";
 import { EXPLORER_URL } from "@/lib/constants";
 import { resolveImage } from "@/lib/utils";
 import type { WalletWriteStatus } from "@/hooks/use-wallet-write-action";
@@ -16,13 +13,9 @@ interface TransactionDialogStatesProps {
   txHash: string | null;
   error: string | null;
   isSubmitting: boolean;
-  successTitle: string;
-
-  successBody: ReactNode;
-
+  success: SuccessMessage;
   successImage?: string | null;
-
-  successImageAlt?: string;
+  successName: string;
   errorTitle: string;
   errorDescription: string;
 
@@ -41,10 +34,9 @@ export function TransactionDialogStates({
   txHash,
   error,
   isSubmitting,
-  successTitle,
-  successBody,
+  success,
   successImage = null,
-  successImageAlt,
+  successName,
   errorTitle,
   errorDescription,
   errorAssetName,
@@ -59,28 +51,12 @@ export function TransactionDialogStates({
 
   if (isSuccess) {
     return (
-      <div className="flex flex-col items-center gap-5 p-6 py-8">
-        <div className="h-16 w-16 rounded-full bg-emerald-500/15 flex items-center justify-center">
-          <CheckCircle2 className="h-9 w-9 text-emerald-500" />
-        </div>
-        {successSrc && (
-          <div className="relative h-24 w-24 rounded-2xl overflow-hidden border border-border shadow-md">
-            <Image
-              src={successSrc}
-              alt={successImageAlt ?? "Asset"}
-              fill
-              className="object-cover"
-            />
-          </div>
-        )}
-        <div className="text-center space-y-1">
-          <p className="font-bold text-xl">{successTitle}</p>
-          <div className="text-sm text-muted-foreground">{successBody}</div>
-        </div>
-        <Button className="w-full" onClick={onDone}>
-          Done
-        </Button>
-      </div>
+      <TransactionSuccess
+        name={successName}
+        image={successSrc}
+        {...success}
+        actions={[{ label: "Done", onClick: onDone }]}
+      />
     );
   }
 

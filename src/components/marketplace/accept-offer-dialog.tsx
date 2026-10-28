@@ -6,7 +6,8 @@ import {
   MarketplaceDialogHero,
   MarketplaceConfirmStep,
   MarketplaceProcessingState,
-  MarketplaceSuccessState,
+  TransactionSuccess,
+  successMessages,
   MarketplaceErrorState,
 } from "@medialane/ui";
 import { Alert, AlertDescription } from "@medialane/ui/alert";
@@ -129,22 +130,15 @@ export function AcceptOfferDialog({ hook, tokenName, tokenImage, onCancelListing
             imageAlt={name}
           />
         ) : status === "success" ? (
-          <MarketplaceSuccessState
-            tokenImage={image}
+          <TransactionSuccess
             name={name}
-            title="It's sold!"
-            description={
-              <>
-                You accepted an offer of{" "}
-                <span className="font-semibold text-foreground">{priceLabel}</span> for{" "}
-                <span className="font-medium text-foreground">{name}</span>.
-              </>
-            }
+            image={image}
+            {...successMessages.accepted({ name, price: priceLabel })}
             txHash={txHash}
-            explorerUrl={EXPLORER_URL}
-            footer={<RewardEarned actionType="offer_accepted_seller" />}
-            onDone={dismiss}
-          />
+            actions={[{ label: "Done", onClick: dismiss }]}
+          >
+            <RewardEarned actionType="offer_accepted_seller" />
+          </TransactionSuccess>
         ) : status === "error" ? (
           <MarketplaceErrorState
             tokenImage={image}
