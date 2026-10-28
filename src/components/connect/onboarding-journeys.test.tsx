@@ -154,6 +154,20 @@ describe("an address that already has an account", () => {
     expect(claimSessionWallet).not.toHaveBeenCalled();
   });
 
+  test("the recovery key step offers a way to keep browsing and a way back to the email step", async () => {
+    api.account.emailExists.mockImplementation(async () => true);
+    getSessionWallet.mockImplementation(async () => ({ walletAddress: WALLET, needsKeySetup: false }));
+    await enterEmail("new-browser@example.com");
+    await enterCode();
+    await waitFor(() => screen.getByPlaceholderText("medialane-recovery:v1:…"));
+    expect(screen.getByRole("link", { name: "Keep browsing" }).getAttribute("href")).toBe("/");
+    fireEvent.click(screen.getByRole("button", { name: "Use a different email" }));
+    const email = await waitFor(() => screen.getByPlaceholderText("you@example.com") as HTMLInputElement);
+    expect(email.value).toBe("");
+    expect(screen.queryByPlaceholderText("medialane-recovery:v1:…")).toBeNull();
+    expect(done).toEqual([]);
+  });
+
   test("pasting the recovery key on a new browser opens the wallet and finishes", async () => {
     api.account.emailExists.mockImplementation(async () => true);
     getSessionWallet.mockImplementation(async () => ({ walletAddress: WALLET, needsKeySetup: false }));

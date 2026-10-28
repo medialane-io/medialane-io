@@ -56,6 +56,20 @@ describe("an address that already has an account", () => {
   });
 });
 
+describe("someone asked for their recovery key who signed in with the wrong address", () => {
+  test("starting over returns to the email step with nothing carried over", () => {
+    const s = run(
+      fresh,
+      { type: "account-found", exists: true },
+      { type: "code-sent" },
+      { type: "code-submitted" },
+      { type: "key-needed" },
+      { type: "email-restarted" },
+    );
+    expect(s).toEqual({ step: "email", error: null, canRetry: true, accountExisted: false, keySetupAddress: null });
+  });
+});
+
 describe("when the wallet step fails", () => {
   test("it stays on the wallet step with the message and says whether a retry can work", () => {
     const s = run(fresh, { type: "wallet-setup-started" }, { type: "wallet-failed", message: "Closed", canRetry: true });

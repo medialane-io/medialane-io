@@ -2,6 +2,7 @@
 
 import { EmailCodeEntry, RESEND_COOLDOWN_SECONDS, describeError, describeWalletFailure, detectPasskeySupport, isPasskeyCancelled } from "@medialane/ui";
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import Link from "next/link";
 import { Button } from "@medialane/ui/button";
 import { Alert, AlertDescription } from "@medialane/ui/alert";
 import { Input } from "@medialane/ui/input";
@@ -251,6 +252,21 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
           </AlertDescription>
         </Alert>
         <RecoveryKeyRestore onRestored={() => finish()} />
+        <div className="flex items-center justify-between">
+          <Button asChild variant="ghost" size="sm">
+            <Link href="/">Keep browsing</Link>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setEmail("");
+              dispatch({ type: "email-restarted" });
+            }}
+          >
+            Use a different email
+          </Button>
+        </div>
       </div>
     );
   }
