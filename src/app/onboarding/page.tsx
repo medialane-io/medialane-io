@@ -39,7 +39,7 @@ function OnboardingContent() {
             </div>
           </div>
           <CardTitle>Secure your account</CardTitle>
-          <CardDescription>Use your passkey, Face ID, or Touch ID to create your unique access.</CardDescription>
+          <CardDescription>Finish setting up your account.</CardDescription>
         </CardHeader>
         <CardContent>
           <OnboardingFlow start="wallet" onDone={() => setTimeout(() => router.push(redirectTo), 1600)} />
