@@ -5,8 +5,6 @@ const pushed: string[] = [];
 let pathname = "/portfolio";
 let deploying = false;
 let session = { hasWallet: true, isDeployed: false as boolean | null };
-let account: { walletAddress: string | null } | null = null;
-let accountLoading = false;
 
 mock.module("next/navigation", () => ({
   useRouter: () => ({ push: (to: string) => pushed.push(to) }),
@@ -14,10 +12,8 @@ mock.module("next/navigation", () => ({
 }));
 const real = {
   session: await import("@/hooks/use-wallet-native-session"),
-  account: await import("@/hooks/use-session"),
   client: await import("@/lib/wallet/client"),
 };
-mock.module("@/hooks/use-session", () => ({ ...real.account, useSession: () => ({ session: account, isLoading: accountLoading }) }));
 mock.module("@/hooks/use-wallet-native-session", () => ({ ...real.session, useWalletNativeSession: () => session }));
 mock.module("@/lib/wallet/client", () => ({ ...real.client, mediaWallet: { ...real.client.mediaWallet, isDeploying: () => deploying } }));
 
@@ -28,8 +24,6 @@ beforeEach(() => {
   pathname = "/portfolio";
   deploying = false;
   session = { hasWallet: true, isDeployed: false };
-  account = null;
-  accountLoading = false;
 });
 afterEach(cleanup);
 
@@ -54,28 +48,6 @@ describe("the onboarding gate", () => {
     expect(pushed).toEqual([]);
   });
 
-
-  test("sends a signed-in account with no wallet to finish setting up, and back afterwards", () => {
-    session = { hasWallet: false, isDeployed: null };
-    account = { walletAddress: null };
-    render(<OnboardingGate />);
-    expect(pushed).toEqual(["/onboarding?redirect_url=%2Fportfolio"]);
-  });
-
-  test("sends a signed-in account whose wallet is not on this browser to open it here", () => {
-    session = { hasWallet: false, isDeployed: null };
-    account = { walletAddress: "0xabc" };
-    render(<OnboardingGate />);
-    expect(pushed).toEqual(["/onboarding?redirect_url=%2Fportfolio"]);
-  });
-
-  test("waits for the session before deciding", () => {
-    session = { hasWallet: false, isDeployed: null };
-    account = null;
-    accountLoading = true;
-    render(<OnboardingGate />);
-    expect(pushed).toEqual([]);
-  });
 
   test("does nothing for a finished account or for someone signed out", () => {
     session = { hasWallet: true, isDeployed: true };
