@@ -1,54 +1,19 @@
 "use client";
 
 import { AddressDisplay, ExportKeySection, AccountSection, useMediaWallet } from "@medialane/ui";
-import { useState } from "react";
-import { AlertTriangle, ArrowUpRight, Loader2, ShieldAlert, ShieldCheck, Wallet } from "lucide-react";
-import { Alert, AlertDescription } from "@medialane/ui/alert";
+import { ArrowUpRight, ShieldAlert, ShieldCheck, Wallet } from "lucide-react";
 import { Badge } from "@medialane/ui/badge";
 import { Button } from "@medialane/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { SettingsGate, SettingsPage } from "@/components/settings/settings-page";
-import { WalletDeploymentDialog } from "@/components/wallet/wallet-deployment-dialog";
-import { useSession } from "@/hooks/use-session";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { EXPLORER_URL } from "@/lib/constants";
-import { mediaWallet } from "@/lib/wallet/client";
 import { unlockOwnerKey } from "@/lib/wallet/passkey";
 import { loadSealedOwner } from "@/lib/wallet/store";
 
 export default function WalletSettingsPage() {
   const { address, isDeployed } = useWalletNativeSession();
   const { open: openWalletPanel } = useMediaWallet();
-  const { session } = useSession();
-  const [generating, setGenerating] = useState(false);
-  const [generateError, setGenerateError] = useState<string | null>(null);
-  const [resumeOpen, setResumeOpen] = useState(false);
-
-  async function handleGenerate() {
-    const confirmed = window.confirm(
-      "This permanently replaces your wallet. Every asset, listing, and transaction history " +
-        "in this wallet stays behind and none of it moves to the new one. This cannot be undone.\n\n" +
-        "Continue and generate a new wallet?",
-    );
-    if (!confirmed) return;
-    setGenerating(true);
-    setGenerateError(null);
-
-    if (!session) {
-      setGenerateError("Sign in to generate a wallet.");
-      setGenerating(false);
-      return;
-    }
-
-    try {
-      await mediaWallet.completeDeployment(() => {}, { forceNew: true });
-      window.location.reload();
-    } catch {
-      setResumeOpen(true);
-    } finally {
-      setGenerating(false);
-    }
-  }
 
   return (
     <SettingsGate>
@@ -106,28 +71,7 @@ export default function WalletSettingsPage() {
               />
             </>
           ) : null}
-
-          <Alert variant="destructive">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription className="text-xs leading-relaxed">
-              <span className="font-semibold">This permanently replaces your wallet.</span> Every asset, listing, and
-              transaction history in this wallet stays behind — none of it moves to the new one, and this cannot be
-              undone. Only do this if you didn&apos;t set this wallet up yourself, or you&apos;ve already moved your
-              assets out and confirmed the transfer onchain.
-            </AlertDescription>
-          </Alert>
-          {generateError ? <p className="text-sm text-destructive">{generateError}</p> : null}
-          <Button onClick={handleGenerate} disabled={generating} variant="destructive" size="sm">
-            {generating ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
-            Generate a new wallet
-          </Button>
         </AccountSection>
-
-        <WalletDeploymentDialog
-          open={resumeOpen}
-          onOpenChange={setResumeOpen}
-          onComplete={() => window.location.reload()}
-        />
       </SettingsPage>
     </SettingsGate>
   );
