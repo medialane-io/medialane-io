@@ -2,8 +2,8 @@ import { describe, expect, test } from "bun:test";
 import { isWalletStep, walletStepLabel, RESEND_COOLDOWN_SECONDS, type OnboardingStep } from "./onboarding-flow.js";
 
 describe("which steps are wallet setup", () => {
-  test("the two wallet steps are wallet steps", () => {
-    for (const step of ["creating-passkey", "deploying"] as OnboardingStep[]) {
+  test("the three wallet steps are wallet steps", () => {
+    for (const step of ["checking-account", "creating-passkey", "deploying"] as OnboardingStep[]) {
       expect(isWalletStep(step)).toBe(true);
     }
   });
@@ -22,6 +22,7 @@ describe("which steps are wallet setup", () => {
 describe("what the person is told while the wallet is made", () => {
   test("each stage says what is happening", () => {
     expect(walletStepLabel("creating-passkey")).toBe("Creating passkey…");
+    expect(walletStepLabel("checking-account")).toBe("Checking your account…");
     expect(walletStepLabel("deploying")).toBe("Setting up your account…");
   });
 

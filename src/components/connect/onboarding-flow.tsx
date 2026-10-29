@@ -24,13 +24,14 @@ import { flowReducer, initialFlow, retryTarget, type OnboardingStep } from "@/li
 export type { OnboardingStep };
 export { RESEND_COOLDOWN_SECONDS };
 
-const WALLET_STEPS: OnboardingStep[] = ["creating-passkey", "deploying"];
+const WALLET_STEPS: OnboardingStep[] = ["checking-account", "creating-passkey", "deploying"];
 
 export function isWalletStep(step: OnboardingStep): boolean {
   return WALLET_STEPS.includes(step);
 }
 
 export function walletStepLabel(step: OnboardingStep): string {
+  if (step === "checking-account") return "Checking your account…";
   if (step === "deploying") return "Setting up your account…";
   return "Creating passkey…";
 }
@@ -242,7 +243,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
             {walletStepLabel(step)}
           </div>
         )}
-        {error ? null : (
+        {error || step === "checking-account" ? null : (
           <p className="text-xs text-muted-foreground">
             Use your passkey, Face ID or Touch ID to secure your account.
           </p>

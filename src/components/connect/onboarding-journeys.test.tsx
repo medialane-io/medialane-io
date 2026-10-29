@@ -31,7 +31,8 @@ mock.module("@medialane/sdk/starknet", () => ({ ...real.starknet, claimSessionWa
 let localOwner: { address: string } | null = null;
 mock.module("@/lib/wallet/store", () => ({ ...real.store, loadSealedOwner: () => localOwner, saveSealedOwner: () => {}, notifyWalletChange: () => {} }));
 let restoredKeyIsOwner = true;
-mock.module("@/lib/wallet/passkey", () => ({ ...real.passkey, createOwnerKey: async () => ({ privateKeyHex: "0x1", sealed: { credentialId: "c", ownerPubKey: "0x222", address: "0x999", iv: "i", ciphertext: "x" } }), sealImportedOwnerKey: async (key: { walletAddress: string }) => ({ address: key.walletAddress, ownerPubKey: "0x1" }) }));
+let createKeyError: Error | null = null;
+mock.module("@/lib/wallet/passkey", () => ({ ...real.passkey, createOwnerKey: async () => { if (createKeyError) throw createKeyError; return { privateKeyHex: "0x1", sealed: { credentialId: "c", ownerPubKey: "0x222", address: "0x999", iv: "i", ciphertext: "x" } }; }, sealImportedOwnerKey: async (key: { walletAddress: string }) => ({ address: key.walletAddress, ownerPubKey: "0x1" }) }));
 mock.module("@/lib/wallet/devices", () => ({ ...real.devices, removeDevice: async () => {}, isOwnerOf: async () => restoredKeyIsOwner }));
 mock.module("@medialane/ui/utils/media-wallet/confetti", () => ({ ...real.confetti, fireConfetti: () => {} }));
 mock.module("@/hooks/use-wallet-native-session", () => ({ ...real.session, useWalletNativeSession: () => ({ hasWallet: false }) }));
@@ -54,6 +55,7 @@ beforeEach(() => {
   localStorage.clear();
   localOwner = null;
   restoredKeyIsOwner = true;
+  createKeyError = null;
   session = null;
   api.account.emailExists.mockImplementation(async () => false);
   api.account.registerEmailAccount.mockImplementation(async () => ({}));
@@ -300,6 +302,16 @@ describe("recovering by email on a new browser", () => {
     expect(real.client.ownerStore.loadPending()?.address).toBe(WALLET);
     expect(real.client.ownerStore.load()).toBeNull();
     expect(done).toEqual([]);
+  });
+
+  test("a passkey prompt that is closed says so and leaves the button to try again", async () => {
+    getRecovery.mockImplementation(async () => ON);
+    createKeyError = Object.assign(new Error("closed"), { name: "PasskeyCancelledError" });
+    await reachRecoveryStep();
+    fireEvent.click(await waitFor(() => screen.getByRole("button", { name: "Recover with my email" })));
+    await waitFor(() => expect(screen.getByText(/The passkey prompt was closed|Passkeys aren't available/)).toBeTruthy());
+    expect(startRecovery).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Recover with my email" })).toBeTruthy();
   });
 
   test("when the wait is over, one tap opens the wallet and finishes", async () => {

@@ -7,7 +7,7 @@ const fresh = initialFlow("email");
 describe("where the flow starts", () => {
   test("on the email step, or straight on the wallet step when resuming", () => {
     expect(initialFlow("email").step).toBe("email");
-    expect(initialFlow("wallet").step).toBe("creating-passkey");
+    expect(initialFlow("wallet").step).toBe("checking-account");
   });
 
   test("with no error, a retry available, no account known and no key setup pending", () => {

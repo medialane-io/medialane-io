@@ -5,6 +5,7 @@ export type OnboardingStep =
   | "code"
   | "verifying-code"
   | "restore-key"
+  | "checking-account"
   | "creating-passkey"
   | "deploying"
   | "done";
@@ -34,7 +35,7 @@ export type FlowEvent =
   | { type: "finished" };
 
 export const initialFlow = (start: "email" | "wallet"): FlowState => ({
-  step: start === "wallet" ? "creating-passkey" : "email",
+  step: start === "wallet" ? "checking-account" : "email",
   error: null,
   canRetry: true,
   accountExisted: false,
