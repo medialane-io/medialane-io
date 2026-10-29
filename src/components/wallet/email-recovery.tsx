@@ -86,6 +86,12 @@ export function EmailRecovery({
         </p>
       ) : (
         <>
+          {status.state !== "none" ? (
+            <p className="text-sm text-muted-foreground">
+              A recovery is already waiting for this account. Starting again here replaces it, and the wait begins
+              again.
+            </p>
+          ) : null}
           <Button onClick={start} disabled={busy} className="w-full">
             {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Recover with my email

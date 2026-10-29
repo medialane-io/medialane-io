@@ -290,6 +290,7 @@ describe("recovering by email on a new browser", () => {
     await waitFor(() => screen.getByRole("button", { name: "Recover with my email" }));
     expect(screen.queryByPlaceholderText("medialane-recovery:v1:…")).toBeNull();
     expect(screen.queryByText(/turn on recovery/)).toBeNull();
+    expect(screen.queryByText(/already waiting/)).toBeNull();
   });
 
   test("starting it keeps this browser's new key aside, shows the wait, and finishes nothing yet", async () => {
@@ -328,5 +329,6 @@ describe("recovering by email on a new browser", () => {
     getRecovery.mockImplementation(async () => ({ ...ON, state: "waiting", readyAt: 1_900_000_000, newOwnerGuid: real.starknet.computeOwnerGuid("0x777") }));
     await reachRecoveryStep();
     expect(await waitFor(() => screen.getByRole("button", { name: "Recover with my email" }))).toBeTruthy();
+    expect(screen.getByText(/A recovery is already waiting for this account/)).toBeTruthy();
   });
 });
