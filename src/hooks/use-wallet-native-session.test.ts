@@ -5,9 +5,10 @@ import { renderHook, waitFor } from "@testing-library/react";
 if (!GlobalRegistrator.isRegistered) GlobalRegistrator.register();
 
 const realAccountOps = await import("@/lib/wallet/account-ops");
+let deployedCheck: () => Promise<boolean> = async () => false;
 mock.module("@/lib/wallet/account-ops", () => ({
   ...realAccountOps,
-  isDeployed: async () => false,
+  isDeployed: () => deployedCheck(),
 }));
 
 let sessionWallet: string | null = null;
@@ -47,6 +48,19 @@ test("returns the stored wallet's address and a signer when it is the signed-in 
   expect(result.current.signer?.address).toBe("0xdeadbeef");
 
   await waitFor(() => expect(result.current.isDeployed).toBe(false));
+  clearSealedOwner();
+});
+
+test("a deploy check that fails leaves it unknown, not undeployed", async () => {
+  sessionWallet = "0xdeadbeef";
+  saveSealedOwner(FAKE);
+  deployedCheck = async () => {
+    throw new Error("rpc down");
+  };
+  const { result } = renderHook(() => useWalletNativeSession());
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  expect(result.current.isDeployed).toBeNull();
+  deployedCheck = async () => false;
   clearSealedOwner();
 });
 
