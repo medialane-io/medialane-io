@@ -5,9 +5,11 @@ const replaced: string[] = [];
 let search = "";
 let account: { email: string; walletAddress: string | null } | null = null;
 let loading = false;
+let hasKey = false;
 
 const real = {
   navigation: await import("next/navigation"),
+  native: await import("@/hooks/use-wallet-native-session"),
   session: await import("@/hooks/use-session"),
 };
 mock.module("next/navigation", () => ({
@@ -15,6 +17,7 @@ mock.module("next/navigation", () => ({
   useRouter: () => ({ replace: (to: string) => replaced.push(to), push: () => {} }),
   useSearchParams: () => new URLSearchParams(search),
 }));
+mock.module("@/hooks/use-wallet-native-session", () => ({ ...real.native, useWalletNativeSession: () => ({ hasWallet: hasKey, isDeployed: null }) }));
 mock.module("@/hooks/use-session", () => ({ ...real.session, useSession: () => ({ session: account, isLoading: loading }) }));
 
 const { default: OnboardingPage } = await import("./page");
@@ -24,6 +27,7 @@ beforeEach(() => {
   search = "";
   account = null;
   loading = false;
+  hasKey = false;
 });
 afterEach(cleanup);
 
@@ -44,5 +48,12 @@ describe("someone who is not signed in opens /onboarding", () => {
     const { container } = render(<OnboardingPage />);
     expect(replaced).toEqual([]);
     expect(container.textContent).toBe("");
+  });
+
+  test("an account whose wallet is not on this browser is sent to sign in, not shown a recovery screen", () => {
+    account = { email: "a@b.com", walletAddress: "0xabc" };
+    search = "redirect_url=%2Fportfolio";
+    render(<OnboardingPage />);
+    expect(replaced).toEqual(["/connect?redirect_url=%2Fportfolio"]);
   });
 });

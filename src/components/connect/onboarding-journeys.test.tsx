@@ -131,24 +131,16 @@ describe("someone signed in whose wallet is already set up on this browser", () 
   });
 });
 
-describe("someone signed in whose wallet is not on this browser", () => {
-  test("is shown how to open it here and never gets a second wallet", async () => {
+describe("someone with a sign-in cookie whose wallet is not on this browser", () => {
+  test("is asked for their email like anyone else, and nothing is set up", async () => {
     session = { email: "signed-in@example.com", walletAddress: WALLET };
     getSessionWallet.mockImplementation(async () => ({ walletAddress: WALLET, needsKeySetup: false }));
-    render(<OnboardingFlow start="wallet" onDone={onDone} />);
-    await waitFor(() => screen.getByText(/Finish your account setup|turn on recovery/));
+    render(<OnboardingFlow onDone={onDone} />);
+    await waitFor(() => screen.getByPlaceholderText("you@example.com"));
     expect(completeDeployment).not.toHaveBeenCalled();
     expect(claimSessionWallet).not.toHaveBeenCalled();
-    expect(api.account.requestEmailCode).not.toHaveBeenCalled();
+    expect(getSessionWallet).not.toHaveBeenCalled();
     expect(done).toEqual([]);
-  });
-
-  test("a provisioned account that still needs its own key gets it set up instead", async () => {
-    session = { email: "signed-in@example.com", walletAddress: WALLET };
-    getSessionWallet.mockImplementation(async () => ({ walletAddress: WALLET, needsKeySetup: true }));
-    render(<OnboardingFlow start="wallet" onDone={onDone} />);
-    await waitFor(() => expect(claimSessionWallet).toHaveBeenCalledTimes(1));
-    expect(completeDeployment).not.toHaveBeenCalled();
   });
 });
 

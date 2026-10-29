@@ -141,12 +141,8 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
       void runWalletSetup();
       return;
     }
-    if (hasWallet) {
-      if (isDeployed === false) void runWalletSetup();
-      return;
-    }
-    continueSignedIn(true).catch(() => dispatch({ type: "key-needed" }));
-  }, [autoStartWallet, sessionLoading, session, hasWallet, isDeployed, runWalletSetup, continueSignedIn]);
+    if (hasWallet && isDeployed === false) void runWalletSetup();
+  }, [autoStartWallet, sessionLoading, session, hasWallet, isDeployed, runWalletSetup]);
 
   useEffect(() => {
     if (mounted && hasWallet) finish();
