@@ -35,7 +35,8 @@ let createKeyError: Error | null = null;
 mock.module("@/lib/wallet/passkey", () => ({ ...real.passkey, createOwnerKey: async () => { if (createKeyError) throw createKeyError; return { privateKeyHex: "0x1", sealed: { credentialId: "c", ownerPubKey: "0x222", address: "0x999", iv: "i", ciphertext: "x" } }; }, sealImportedOwnerKey: async (key: { walletAddress: string }) => ({ address: key.walletAddress, ownerPubKey: "0x1" }) }));
 mock.module("@/lib/wallet/devices", () => ({ ...real.devices, removeDevice: async () => {}, isOwnerOf: async () => restoredKeyIsOwner }));
 mock.module("@medialane/ui/utils/media-wallet/confetti", () => ({ ...real.confetti, fireConfetti: () => {} }));
-mock.module("@/hooks/use-wallet-native-session", () => ({ ...real.session, useWalletNativeSession: () => ({ hasWallet: false }) }));
+let nativeSession: { hasWallet: boolean; isDeployed: boolean | null } = { hasWallet: false, isDeployed: null };
+mock.module("@/hooks/use-wallet-native-session", () => ({ ...real.session, useWalletNativeSession: () => nativeSession }));
 let session: { email: string; walletAddress: string | null } | null = null;
 mock.module("@/hooks/use-session", () => ({ ...real.sessionHook, useSession: () => ({ session, isLoading: false }), refreshSession: async () => undefined }));
 
@@ -56,6 +57,7 @@ beforeEach(() => {
   localOwner = null;
   restoredKeyIsOwner = true;
   createKeyError = null;
+  nativeSession = { hasWallet: false, isDeployed: null };
   session = null;
   api.account.emailExists.mockImplementation(async () => false);
   api.account.registerEmailAccount.mockImplementation(async () => ({}));
@@ -89,6 +91,34 @@ describe("a new io user", () => {
     expect(api.account.requestEmailCode).not.toHaveBeenCalled();
     expect(completeDeployment).toHaveBeenCalledTimes(1);
     expect(api.account.upsertMyWallet).not.toHaveBeenCalled();
+  });
+});
+
+describe("someone signed in whose wallet is already set up on this browser", () => {
+  const signedInWithKey = (isDeployed: boolean | null) => {
+    session = { email: "signed-in@example.com", walletAddress: WALLET };
+    nativeSession = { hasWallet: true, isDeployed };
+  };
+
+  test("never gets a second wallet, whatever page they open", async () => {
+    signedInWithKey(true);
+    render(<OnboardingFlow start="wallet" onDone={onDone} />);
+    await waitFor(() => expect(done).toEqual([{ celebrated: false }]));
+    expect(completeDeployment).not.toHaveBeenCalled();
+    expect(claimSessionWallet).not.toHaveBeenCalled();
+  });
+
+  test("waits until it is known whether the wallet is finished before doing anything", async () => {
+    signedInWithKey(null);
+    render(<OnboardingFlow start="wallet" onDone={onDone} />);
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(completeDeployment).not.toHaveBeenCalled();
+  });
+
+  test("a wallet that never finished deploying is finished with the key already here", async () => {
+    signedInWithKey(false);
+    render(<OnboardingFlow start="wallet" onDone={onDone} />);
+    await waitFor(() => expect(completeDeployment).toHaveBeenCalledTimes(1));
   });
 });
 
