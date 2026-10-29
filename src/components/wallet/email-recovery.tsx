@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { describeError } from "@medialane/ui";
+import { describeWalletFailure, detectPasskeySupport, isPasskeyCancelled } from "@medialane/ui";
 import { Button } from "@medialane/ui/button";
 import type { WalletRecovery } from "@medialane/sdk";
 import { computeOwnerGuid, finishSessionRecovery, startSessionRecovery } from "@medialane/sdk/starknet";
@@ -56,7 +56,7 @@ export function EmailRecovery({
     try {
       await action();
     } catch (err) {
-      setError(describeError(err).message);
+      setError(describeWalletFailure(err, isPasskeyCancelled(err) ? await detectPasskeySupport() : "unknown").message);
     } finally {
       setBusy(false);
     }
