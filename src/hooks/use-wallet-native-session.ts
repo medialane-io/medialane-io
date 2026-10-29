@@ -39,7 +39,7 @@ export function useWalletNativeSession(): WalletNativeSession {
       setDeployed(null);
       return;
     }
-    checkIsDeployed(sealed.address).then(setDeployed).catch(() => setDeployed(false));
+    checkIsDeployed(sealed.address).then(setDeployed).catch(() => setDeployed(null));
   }, [sealed]);
 
   const signer = useMemo(() => (sealed ? starknetVenueSigner(sealed) : null), [sealed]);

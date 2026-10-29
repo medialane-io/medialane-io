@@ -94,6 +94,15 @@ describe("a new io user", () => {
   });
 });
 
+describe("the onboarding page opened by someone not signed in", () => {
+  test("sets nothing up", async () => {
+    render(<OnboardingFlow start="wallet" onDone={onDone} />);
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(completeDeployment).not.toHaveBeenCalled();
+    expect(claimSessionWallet).not.toHaveBeenCalled();
+  });
+});
+
 describe("someone signed in whose wallet is already set up on this browser", () => {
   const signedInWithKey = (isDeployed: boolean | null) => {
     session = { email: "signed-in@example.com", walletAddress: WALLET };
