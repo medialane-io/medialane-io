@@ -2,7 +2,7 @@
 
 import { AccountSection, ExportKeySection } from "@medialane/ui";
 import { KeyRound, LifeBuoy } from "lucide-react";
-import { GuardianRecoverySection } from "@/components/settings/guardian-recovery-section";
+import { RecoverySection } from "@/components/settings/recovery-section";
 import { SettingsGate, SettingsPage } from "@/components/settings/settings-page";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { unlockOwnerKey } from "@/lib/wallet/passkey";
@@ -31,7 +31,7 @@ export default function RecoverySettingsPage() {
             />
           </AccountSection>
         ) : null}
-        {address ? <GuardianRecoverySection walletAddress={address} /> : null}
+        {address ? <RecoverySection /> : null}
       </SettingsPage>
     </SettingsGate>
   );

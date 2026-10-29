@@ -2,7 +2,6 @@
 
 import { EmailCodeEntry, RESEND_COOLDOWN_SECONDS, describeError, describeWalletFailure, detectPasskeySupport, isPasskeyCancelled } from "@medialane/ui";
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
-import Link from "next/link";
 import { Button } from "@medialane/ui/button";
 import { Alert, AlertDescription } from "@medialane/ui/alert";
 import { Input } from "@medialane/ui/input";
@@ -17,7 +16,7 @@ import { mediaWallet } from "@/lib/wallet/client";
 import { claimSessionWallet } from "@medialane/sdk/starknet";
 import { createOwnerKey } from "@/lib/wallet/passkey";
 import { removeDevice } from "@/lib/wallet/devices";
-import { RecoveryKeyRestore } from "@/components/wallet/recovery-key-restore";
+import { NewBrowserWallet } from "./new-browser-wallet";
 import { loadSealedOwner, saveSealedOwner, notifyWalletChange } from "@/lib/wallet/store";
 import { afterCodeVerified, afterEmailCheck, afterRegister, isEmailAddress } from "@/lib/onboarding/decisions";
 import { flowReducer, initialFlow, retryTarget, type OnboardingStep } from "@/lib/onboarding/flow";
@@ -32,7 +31,7 @@ export function isWalletStep(step: OnboardingStep): boolean {
 }
 
 export function walletStepLabel(step: OnboardingStep): string {
-  if (step === "deploying") return "Setting up your wallet…";
+  if (step === "deploying") return "Setting up your account…";
   return "Creating passkey…";
 }
 
@@ -111,11 +110,36 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
     void (target.type === "key-setup" ? runKeySetup(target.walletAddress) : runWalletSetup());
   };
 
+  const continueSignedIn = useCallback(
+    async (accountExisted: boolean) => {
+      const wallet = accountExisted ? await getMedialaneClient().api.account.sessionWallet() : null;
+      const next = afterCodeVerified(wallet, loadSealedOwner()?.address ?? null);
+      if (next.type === "restore-key") {
+        dispatch({ type: "key-needed" });
+        return;
+      }
+      if (next.type === "key-setup") {
+        await runKeySetup(next.walletAddress);
+        return;
+      }
+      if (next.type === "finish") {
+        finish();
+        return;
+      }
+      await runWalletSetup();
+    },
+    [runKeySetup, runWalletSetup, finish],
+  );
+
   useEffect(() => {
     if (!autoStartWallet || walletStartedRef.current || sessionLoading) return;
     walletStartedRef.current = true;
+    if (session?.walletAddress && !hasWallet) {
+      continueSignedIn(true).catch(() => dispatch({ type: "key-needed" }));
+      return;
+    }
     if (start === "wallet" || (session && !session.walletAddress)) void runWalletSetup();
-  }, [start, autoStartWallet, sessionLoading, session, runWalletSetup]);
+  }, [start, autoStartWallet, sessionLoading, session, hasWallet, runWalletSetup, continueSignedIn]);
 
   useEffect(() => {
     if (mounted && hasWallet) finish();
@@ -172,21 +196,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
     }
     try {
       await refreshSession();
-      const wallet = flow.accountExisted ? await getMedialaneClient().api.account.sessionWallet() : null;
-      const next = afterCodeVerified(wallet, loadSealedOwner()?.address ?? null);
-      if (next.type === "restore-key") {
-        dispatch({ type: "key-needed" });
-        return;
-      }
-      if (next.type === "key-setup") {
-        await runKeySetup(next.walletAddress);
-        return;
-      }
-      if (next.type === "finish") {
-        finish();
-        return;
-      }
-      await runWalletSetup();
+      await continueSignedIn(flow.accountExisted);
     } catch (err) {
       emailCode.fail(describeError(err).message);
       dispatch({ type: "code-failed", message: null });
@@ -217,8 +227,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
         {errorBanner}
         {error ? (
           <p className="text-xs text-muted-foreground">
-            Your account is saved. You can finish setting up anytime by signing in with your email, here or on another
-            device.
+            Your account setup is not complete. Please try again or contact support if the problem persist.
           </p>
         ) : null}
         {error ? (
@@ -243,32 +252,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
   }
 
   if (step === "restore-key") {
-    return (
-      <div className="w-full space-y-3">
-        <Alert className="w-full">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Your email is confirmed. Paste your recovery key to open your wallet on this browser.
-          </AlertDescription>
-        </Alert>
-        <RecoveryKeyRestore onRestored={() => finish()} />
-        <div className="flex items-center justify-between">
-          <Button asChild variant="ghost" size="sm">
-            <Link href="/">Keep browsing</Link>
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setEmail("");
-              dispatch({ type: "email-restarted" });
-            }}
-          >
-            Use a different email
-          </Button>
-        </div>
-      </div>
-    );
+    return <NewBrowserWallet onRecovered={() => finish()} />;
   }
 
   if (step === "code" || step === "verifying-code") {

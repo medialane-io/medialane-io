@@ -32,7 +32,7 @@ export function RecoveryKeyRestore({ onRestored }: { onRestored: () => void }) {
       const sealed = await sealImportedOwnerKey(parseRecoveryKey(keyInput));
       const owned = await isOwnerOf(sealed.address, sealed.ownerPubKey).catch(() => false);
       if (!owned) {
-        setErr("That key does not control this wallet. Check you copied the whole recovery key.");
+        setErr("That key does not open this account. Check you copied the whole recovery key.");
         setBusy(false);
         return;
       }
@@ -65,14 +65,14 @@ export function RecoveryKeyRestore({ onRestored }: { onRestored: () => void }) {
       />
       {preview && (
         <p className="text-xs text-muted-foreground">
-          This key restores wallet{" "}
+          This key restores account{" "}
           <span className="font-mono text-foreground break-all">{preview.walletAddress}</span>
         </p>
       )}
       {err && <p className="text-sm text-destructive">{err}</p>}
       <Button onClick={restore} disabled={busy || !preview}>
         {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        Restore my wallet
+        Restore my account
       </Button>
     </div>
   );

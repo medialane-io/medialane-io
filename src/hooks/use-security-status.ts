@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getOwners } from "@/lib/wallet/devices";
-import { getGuardians } from "@/lib/wallet/guardian";
+import { mediaWallet } from "@/lib/wallet/client";
 
 export function useSecurityStatus(address: string | null) {
   const [devices, setDevices] = useState<number | null>(null);
@@ -14,7 +14,8 @@ export function useSecurityStatus(address: string | null) {
     getOwners(address)
       .then((owners) => !cancelled && setDevices(owners.length))
       .catch(() => {});
-    getGuardians(address)
+    mediaWallet
+      .getGuardians(address)
       .then((list) => !cancelled && setGuardians(list.length))
       .catch(() => {});
     return () => {
