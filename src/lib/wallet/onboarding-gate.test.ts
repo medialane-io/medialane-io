@@ -6,6 +6,7 @@ const SIGNED_UP: OnboardingGateState = {
   hasWallet: true,
   isDeployed: true,
   isDeploying: false,
+  accountWithoutWallet: false,
 };
 
 const gate = (overrides: Partial<OnboardingGateState>) => resolveOnboardingRedirect({ ...SIGNED_UP, ...overrides });
@@ -13,6 +14,24 @@ const gate = (overrides: Partial<OnboardingGateState>) => resolveOnboardingRedir
 describe("someone with no wallet on this browser", () => {
   test("is left alone", () => {
     expect(gate({ hasWallet: false, isDeployed: null })).toBeNull();
+  });
+});
+
+describe("a signed-in account that has no wallet", () => {
+  const NO_WALLET: Partial<OnboardingGateState> = { hasWallet: false, isDeployed: null, accountWithoutWallet: true };
+
+  test("is sent to finish setting up, and brought back to the page it was on", () => {
+    expect(gate(NO_WALLET)).toBe("/onboarding?redirect_url=%2Fportfolio");
+  });
+
+  test("is not sent anywhere while a setup is still running", () => {
+    expect(gate({ ...NO_WALLET, isDeploying: true })).toBeNull();
+  });
+
+  test("is not sent away from the pages that run the setup themselves", () => {
+    for (const pathname of ["/connect", "/onboarding", "/airdrop", "/mint/x", "/br/mint", "/confirm-email"]) {
+      expect(gate({ ...NO_WALLET, pathname })).toBeNull();
+    }
   });
 });
 
