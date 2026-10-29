@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@medi
 import { ShieldCheck } from "lucide-react";
 import { OnboardingFlow } from "@/components/connect/onboarding-flow";
 import { useSession } from "@/hooks/use-session";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { connectHref } from "@/lib/connect-href";
 import { safeRelativePath } from "@/lib/safe-redirect";
 
@@ -21,13 +22,16 @@ function OnboardingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { session, isLoading } = useSession();
+  const { hasWallet } = useWalletNativeSession();
   const redirectTo = safeRelativePath(searchParams.get("redirect_url")) ?? "/airdrop";
 
-  useEffect(() => {
-    if (!isLoading && !session) router.replace(connectHref(redirectTo));
-  }, [isLoading, session, router, redirectTo]);
+  const needsSignIn = !isLoading && (!session || (!!session.walletAddress && !hasWallet));
 
-  if (isLoading || !session) return null;
+  useEffect(() => {
+    if (needsSignIn) router.replace(connectHref(redirectTo));
+  }, [needsSignIn, router, redirectTo]);
+
+  if (isLoading || needsSignIn || !session) return null;
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4">
