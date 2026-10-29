@@ -22,7 +22,7 @@ describe("which steps are wallet setup", () => {
 describe("what the person is told while the wallet is made", () => {
   test("each stage says what is happening", () => {
     expect(walletStepLabel("creating-passkey")).toBe("Creating passkey…");
-    expect(walletStepLabel("deploying")).toBe("Setting up your wallet…");
+    expect(walletStepLabel("deploying")).toBe("Setting up your account…");
   });
 
   test("an unexpected stage still says something rather than nothing", () => {

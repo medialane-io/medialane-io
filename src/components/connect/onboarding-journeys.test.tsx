@@ -90,6 +90,27 @@ describe("a new io user", () => {
   });
 });
 
+describe("someone signed in whose wallet is not on this browser", () => {
+  test("is shown how to open it here and never gets a second wallet", async () => {
+    session = { email: "signed-in@example.com", walletAddress: WALLET };
+    getSessionWallet.mockImplementation(async () => ({ walletAddress: WALLET, needsKeySetup: false }));
+    render(<OnboardingFlow start="wallet" onDone={onDone} />);
+    await waitFor(() => screen.getByText(/Finish your account setup|turn on recovery/));
+    expect(completeDeployment).not.toHaveBeenCalled();
+    expect(claimSessionWallet).not.toHaveBeenCalled();
+    expect(api.account.requestEmailCode).not.toHaveBeenCalled();
+    expect(done).toEqual([]);
+  });
+
+  test("a provisioned account that still needs its own key gets it set up instead", async () => {
+    session = { email: "signed-in@example.com", walletAddress: WALLET };
+    getSessionWallet.mockImplementation(async () => ({ walletAddress: WALLET, needsKeySetup: true }));
+    render(<OnboardingFlow start="wallet" onDone={onDone} />);
+    await waitFor(() => expect(claimSessionWallet).toHaveBeenCalledTimes(1));
+    expect(completeDeployment).not.toHaveBeenCalled();
+  });
+});
+
 describe("someone signed in whose account has no wallet yet", () => {
   test("goes straight to securing the account, with no email or code asked again", async () => {
     session = { email: "signed-in@example.com", walletAddress: null };
@@ -149,30 +170,17 @@ describe("an address that already has an account", () => {
     expect(claimSessionWallet).not.toHaveBeenCalled();
   });
 
-  test("a returning user on a browser without their key is asked for their recovery key, not sent home signed out", async () => {
+  test("a returning user on a browser without their key is told where their wallet is, not sent home signed out", async () => {
     api.account.emailExists.mockImplementation(async () => true);
     getSessionWallet.mockImplementation(async () => ({ walletAddress: WALLET, needsKeySetup: false }));
     await enterEmail("new-browser@example.com");
     await enterCode();
-    await waitFor(() => expect(screen.getByText(/Paste your recovery key to open your wallet on this browser/)).toBeTruthy());
+    await waitFor(() => expect(screen.getByText(/turn on recovery/)).toBeTruthy());
+    await waitFor(() => screen.getByPlaceholderText("medialane-recovery:v1:…"));
     expect(done).toEqual([]);
     expect(screen.getByPlaceholderText("medialane-recovery:v1:…")).toBeTruthy();
     expect(completeDeployment).not.toHaveBeenCalled();
     expect(claimSessionWallet).not.toHaveBeenCalled();
-  });
-
-  test("the recovery key step offers a way to keep browsing and a way back to the email step", async () => {
-    api.account.emailExists.mockImplementation(async () => true);
-    getSessionWallet.mockImplementation(async () => ({ walletAddress: WALLET, needsKeySetup: false }));
-    await enterEmail("new-browser@example.com");
-    await enterCode();
-    await waitFor(() => screen.getByPlaceholderText("medialane-recovery:v1:…"));
-    expect(screen.getByRole("link", { name: "Keep browsing" }).getAttribute("href")).toBe("/");
-    fireEvent.click(screen.getByRole("button", { name: "Use a different email" }));
-    const email = await waitFor(() => screen.getByPlaceholderText("you@example.com") as HTMLInputElement);
-    expect(email.value).toBe("");
-    expect(screen.queryByPlaceholderText("medialane-recovery:v1:…")).toBeNull();
-    expect(done).toEqual([]);
   });
 
   test("pasting the recovery key on a new browser opens the wallet and finishes", async () => {
@@ -183,11 +191,11 @@ describe("an address that already has an account", () => {
     const input = await waitFor(() => screen.getByPlaceholderText("medialane-recovery:v1:…"));
     const { privateKeyHex } = real.starknet.generateStarkKeyPair();
     fireEvent.change(input, { target: { value: real.starknet.encodeRecoveryKey({ walletAddress: WALLET, privateKey: privateKeyHex }) } });
-    fireEvent.click(screen.getByRole("button", { name: /Restore my wallet/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Restore my account/ }));
     await waitFor(() => expect(done).toEqual([{ celebrated: false }]));
   });
 
-  test("a recovery key that does not control the wallet is refused and nothing finishes", async () => {
+  test("a recovery key that does not open the account is refused and nothing finishes", async () => {
     restoredKeyIsOwner = false;
     api.account.emailExists.mockImplementation(async () => true);
     getSessionWallet.mockImplementation(async () => ({ walletAddress: WALLET, needsKeySetup: false }));
@@ -196,8 +204,8 @@ describe("an address that already has an account", () => {
     const input = await waitFor(() => screen.getByPlaceholderText("medialane-recovery:v1:…"));
     const { privateKeyHex } = real.starknet.generateStarkKeyPair();
     fireEvent.change(input, { target: { value: real.starknet.encodeRecoveryKey({ walletAddress: WALLET, privateKey: privateKeyHex }) } });
-    fireEvent.click(screen.getByRole("button", { name: /Restore my wallet/ }));
-    await waitFor(() => expect(screen.getByText(/does not control this wallet/)).toBeTruthy());
+    fireEvent.click(screen.getByRole("button", { name: /Restore my account/ }));
+    await waitFor(() => expect(screen.getByText(/does not open this account/)).toBeTruthy());
     expect(done).toEqual([]);
   });
 
@@ -246,7 +254,7 @@ describe("when the passkey step fails", () => {
       throw unsupported;
     });
     await enterEmail("no-prf@example.com");
-    await waitFor(() => expect(screen.getByText(/Your account is saved/)).toBeTruthy());
+    await waitFor(() => expect(screen.getByText(/Your account setup is not complete/)).toBeTruthy());
     expect(api.account.registerEmailAccount).toHaveBeenCalledTimes(1);
     expect(done).toEqual([]);
     fireEvent.click(screen.getByRole("button", { name: "Try again" }));
@@ -264,13 +272,22 @@ describe("recovering by email on a new browser", () => {
     session = { email: "new-browser@example.com", walletAddress: WALLET };
     await enterEmail("new-browser@example.com");
     await enterCode();
-    await waitFor(() => screen.getByPlaceholderText("medialane-recovery:v1:…"));
+    await waitFor(() => screen.getByText(/Finish your account setup|turn on recovery/));
   };
 
-  test("offers nothing extra when the wallet has not turned recovery on", async () => {
+  test("a wallet that has not turned recovery on is told to do it on its other browser and can paste a key", async () => {
     await reachRecoveryStep();
-    await new Promise((resolve) => setTimeout(resolve, 20));
+    await waitFor(() => screen.getByPlaceholderText("medialane-recovery:v1:…"));
+    expect(screen.getByText(/turn on recovery/)).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Recover with my email" })).toBeNull();
+  });
+
+  test("a wallet that has turned recovery on leads with recovery by email and no key field", async () => {
+    getRecovery.mockImplementation(async () => ON);
+    await reachRecoveryStep();
+    await waitFor(() => screen.getByRole("button", { name: "Recover with my email" }));
+    expect(screen.queryByPlaceholderText("medialane-recovery:v1:…")).toBeNull();
+    expect(screen.queryByText(/turn on recovery/)).toBeNull();
   });
 
   test("starting it keeps this browser's new key aside, shows the wait, and finishes nothing yet", async () => {
@@ -289,7 +306,7 @@ describe("recovering by email on a new browser", () => {
     real.client.ownerStore.savePending({ credentialId: "c", ownerPubKey: "0x222", address: WALLET, iv: "i", ciphertext: "x" });
     getRecovery.mockImplementation(async () => ({ ...ON, state: "ready", readyAt: 1_800_000_000, newOwnerGuid: real.starknet.computeOwnerGuid("0x222") }));
     await reachRecoveryStep();
-    fireEvent.click(await waitFor(() => screen.getByRole("button", { name: "Open my wallet" })));
+    fireEvent.click(await waitFor(() => screen.getByRole("button", { name: "Open my account" })));
     await waitFor(() => expect(done).toEqual([{ celebrated: false }]));
     expect(completeRecovery).toHaveBeenCalledWith({ newOwnerPubkey: "0x222" });
     expect(real.client.ownerStore.loadPending()).toBeNull();

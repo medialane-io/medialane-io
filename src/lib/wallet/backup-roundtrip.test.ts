@@ -1,6 +1,5 @@
 import { test, expect } from "bun:test";
-import { encodeRecoveryKey, generateStarkKeyPair, InvalidRecoveryKeyError, parseRecoveryKey } from "@medialane/sdk/starknet";
-import { computeWalletAddress } from "./account";
+import { computeAccountAddress, encodeRecoveryKey, generateStarkKeyPair, InvalidRecoveryKeyError, parseRecoveryKey } from "@medialane/sdk/starknet";
 
 const WALLET = "0x071c174b93d24b72fc4b25e1d28fce1267e30c4c57fa4b0980a403a97fa84f5f";
 
@@ -17,7 +16,7 @@ test("an exported recovery key restores the wallet it was exported from, with th
 test("a key saved before recovery keys carried the address restores the wallet it created", () => {
   for (let i = 0; i < 25; i++) {
     const { privateKeyHex, publicKeyHex } = generateStarkKeyPair();
-    expect(BigInt(parseRecoveryKey(privateKeyHex).walletAddress)).toBe(BigInt(computeWalletAddress(publicKeyHex, 0)));
+    expect(BigInt(parseRecoveryKey(privateKeyHex).walletAddress)).toBe(BigInt(computeAccountAddress(publicKeyHex, 0)));
   }
 });
 

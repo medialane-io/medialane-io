@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { describeError } from "@medialane/ui";
 import { Button } from "@medialane/ui/button";
@@ -33,18 +33,21 @@ const forThisBrowser = (status: WalletRecovery): boolean => {
   );
 };
 
-export function EmailRecovery({ onRecovered }: { onRecovered: () => void }) {
+export function EmailRecovery({
+  status,
+  onStatus,
+  onRecovered,
+}: {
+  status: WalletRecovery;
+  onStatus: (status: WalletRecovery) => void;
+  onRecovered: () => void;
+}) {
   const { session } = useSession();
-  const [status, setStatus] = useState<WalletRecovery | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    getMedialaneClient().api.account.walletRecovery().then(setStatus).catch(() => setStatus(null));
-  }, []);
-
   const wallet = session?.walletAddress;
-  if (!status?.enabled || !wallet) return null;
+  if (!wallet) return null;
   const mine = forThisBrowser(status);
 
   const run = async (action: () => Promise<void>) => {
@@ -59,7 +62,7 @@ export function EmailRecovery({ onRecovered }: { onRecovered: () => void }) {
     }
   };
 
-  const start = () => run(async () => setStatus(await startSessionRecovery(getMedialaneClient().api, wallet, deps)));
+  const start = () => run(async () => onStatus(await startSessionRecovery(getMedialaneClient().api, wallet, deps)));
   const finish = () =>
     run(async () => {
       await finishSessionRecovery(getMedialaneClient().api, wallet, deps);
@@ -73,12 +76,12 @@ export function EmailRecovery({ onRecovered }: { onRecovered: () => void }) {
           <p className="text-sm text-muted-foreground">Your recovery is ready.</p>
           <Button onClick={finish} disabled={busy} className="w-full">
             {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Open my wallet
+            Open my account
           </Button>
         </>
       ) : mine ? (
         <p className="text-sm text-muted-foreground">
-          Recovery started. Your wallet opens here on {new Date((status.readyAt ?? 0) * 1000).toLocaleString()}. Sign in
+          Recovery started. Your account opens here on {new Date((status.readyAt ?? 0) * 1000).toLocaleString()}. Sign in
           again then to finish.
         </p>
       ) : (
@@ -88,7 +91,7 @@ export function EmailRecovery({ onRecovered }: { onRecovered: () => void }) {
             Recover with my email
           </Button>
           <p className="text-xs text-muted-foreground">
-            Your wallet opens here after a short safety wait, and we email you when it starts.
+            Your account opens here after a short safety wait, and we email you when it starts.
           </p>
         </>
       )}
