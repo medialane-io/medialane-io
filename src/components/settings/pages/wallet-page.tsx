@@ -11,6 +11,7 @@ import { SettingsGate, SettingsPage } from "@/components/settings/settings-page"
 import { WalletDeploymentDialog } from "@/components/wallet/wallet-deployment-dialog";
 import { useSession } from "@/hooks/use-session";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
+import { isAccountRefusal } from "@medialane/sdk/starknet";
 import { EXPLORER_URL } from "@/lib/constants";
 import { mediaWallet } from "@/lib/wallet/client";
 import { unlockOwnerKey } from "@/lib/wallet/passkey";
@@ -41,10 +42,11 @@ export default function WalletSettingsPage() {
     }
 
     try {
-      await mediaWallet.completeDeployment(() => {}, { forceNew: true });
+      await mediaWallet.completeDeployment(() => {}, { replace: true });
       window.location.reload();
-    } catch {
-      setResumeOpen(true);
+    } catch (err) {
+      if (isAccountRefusal(err)) setGenerateError((err as Error).message);
+      else setResumeOpen(true);
     } finally {
       setGenerating(false);
     }
