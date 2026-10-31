@@ -53,13 +53,22 @@ export function NewBrowserWallet({ onRecovered, onStartNew }: { onRecovered: () 
   };
 
   return (
-    <div className="w-full space-y-3">
-      <Button className={OPTION_CLASS} onClick={() => setUsingKey(true)}>
-        I have my recovery key from Medialane
-      </Button>
-      <Button variant="outline" className={OPTION_CLASS} onClick={startNew}>
-        I don&apos;t have the recovery key and want to start a new wallet
-      </Button>
+    <div className="w-full space-y-4">
+      <p className="text-sm text-muted-foreground">
+        Finish to secure your account and set up your self-custodial wallet on this device.
+      </p>
+      <div className="space-y-1.5">
+        <Button className={OPTION_CLASS} onClick={() => setUsingKey(true)}>
+          I have my recovery key from Medialane
+        </Button>
+        <p className="text-xs text-muted-foreground">Brings back your existing wallet and everything in it.</p>
+      </div>
+      <div className="space-y-1.5">
+        <Button variant="outline" className={OPTION_CLASS} onClick={startNew}>
+          I don&apos;t have the recovery key and want to start a new wallet
+        </Button>
+        <p className="text-xs text-muted-foreground">Creates a fresh wallet for this account.</p>
+      </div>
     </div>
   );
 }
