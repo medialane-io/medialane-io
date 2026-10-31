@@ -1,6 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import nodemailer from "nodemailer";
-import { isRelayAuthorized, parseRelayRequest, smtpFailure } from "@/lib/mail-relay";
+import { ZEPTOMAIL_URL, isRelayAuthorized, parseRelayRequest, sendFailure, zeptoMailBody } from "@/lib/mail-relay";
 import { APP_URL } from "@/lib/seo";
 
 export const runtime = "nodejs";
@@ -15,27 +14,23 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const email = parseRelayRequest(await req.json().catch(() => null), APP_URL);
   if (!email) return NextResponse.json({ error: "Invalid email" }, { status: 400 });
 
-  if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    return NextResponse.json({ error: "SMTP is not configured" }, { status: 500 });
+  const token = process.env.ZEPTOMAIL_TOKEN;
+  const fromAddress = process.env.CONTACT_FROM_EMAIL;
+  if (!token || !fromAddress) {
+    return NextResponse.json({ error: "Email sending is not configured" }, { status: 500 });
   }
 
   try {
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT),
-      secure: Number(process.env.SMTP_PORT) === 465,
-      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    const res = await fetch(ZEPTOMAIL_URL, {
+      method: "POST",
+      headers: { Authorization: `Zoho-enczapikey ${token}`, "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(zeptoMailBody(email, fromAddress)),
+      signal: AbortSignal.timeout(15_000),
     });
-    await transporter.sendMail({
-      from: { name: email.fromName, address: process.env.CONTACT_FROM_EMAIL || process.env.SMTP_USER },
-      to: email.to,
-      subject: email.subject,
-      html: email.html,
-      text: email.text,
-    });
-    return NextResponse.json({ ok: true });
+    if (res.ok) return NextResponse.json({ ok: true });
+    console.error("[mail-relay] send failed", sendFailure(res.status, await res.json().catch(() => null)));
   } catch (err) {
-    console.error("[mail-relay] send failed", smtpFailure(err));
-    return NextResponse.json({ error: "Send failed" }, { status: 502 });
+    console.error("[mail-relay] send failed", { status: 0, code: err instanceof Error ? err.name : undefined });
   }
+  return NextResponse.json({ error: "Send failed" }, { status: 502 });
 }

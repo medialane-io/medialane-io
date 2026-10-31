@@ -1,5 +1,5 @@
 import { test, expect, describe } from "bun:test";
-import { isRelayAuthorized, isSingleEmailAddress, parseRelayRequest, smtpFailure } from "./mail-relay";
+import { isRelayAuthorized, isSingleEmailAddress, parseRelayRequest, sendFailure, zeptoMailBody } from "./mail-relay";
 
 test("the right secret is authorized and anything else is not", () => {
   expect(isRelayAuthorized("s3cret", "s3cret")).toBe(true);
@@ -51,32 +51,33 @@ describe("a template request", () => {
   });
 });
 
-describe("an SMTP failure", () => {
-  test("keeps the error code, server response code and command", () => {
-    const err = Object.assign(new Error("Invalid login: 535 5.7.8 Username and Password not accepted"), {
-      code: "EAUTH",
-      responseCode: 535,
-      command: "AUTH PLAIN",
-      response: "535 5.7.8 Username and Password not accepted",
+describe("a ZeptoMail request", () => {
+  test("carries the sender, one recipient and both bodies", () => {
+    const email = { to: "a@b.co", fromName: "Medialane", subject: "Hi", html: "<p>Hi</p>", text: "Hi" };
+    expect(zeptoMailBody(email, "noreply@medialane.io")).toEqual({
+      from: { address: "noreply@medialane.io", name: "Medialane" },
+      to: [{ email_address: { address: "a@b.co" } }],
+      subject: "Hi",
+      htmlbody: "<p>Hi</p>",
+      textbody: "Hi",
     });
-    expect(smtpFailure(err)).toEqual({ code: "EAUTH", responseCode: 535, command: "AUTH PLAIN" });
+  });
+});
+
+describe("a send failure", () => {
+  test("keeps the status and the provider error code", () => {
+    expect(sendFailure(401, { error: { code: "TM_4001", message: "Access Denied" } })).toEqual({ status: 401, code: "TM_4001" });
+    expect(sendFailure(400, { data: { error_code: "TM_3004", message: "Invalid request" } })).toEqual({ status: 400, code: "TM_3004" });
   });
 
-  test("never keeps the message or the server response, which can carry addresses", () => {
-    const err = Object.assign(new Error('Invalid recipient "a@b.co"'), {
-      code: "EENVELOPE",
-      responseCode: 550,
-      command: "RCPT TO",
-      response: "550 5.1.1 <a@b.co> does not exist",
-    });
-    expect(JSON.stringify(smtpFailure(err))).not.toContain("a@b.co");
+  test("never keeps messages or details, which can carry addresses", () => {
+    const body = { error: { code: "TM_3201", message: "Invalid address a@b.co", details: [{ target: "a@b.co" }] } };
+    expect(JSON.stringify(sendFailure(400, body))).not.toContain("a@b.co");
   });
 
-  test("drops fields that are not in the expected shape", () => {
-    expect(smtpFailure({ code: "a@b.co", responseCode: "535", command: "RCPT TO:<a@b.co>" })).toEqual({});
-    expect(smtpFailure({ responseCode: 99 })).toEqual({});
-    expect(smtpFailure(new Error("Connection timeout"))).toEqual({});
-    expect(smtpFailure(null)).toEqual({});
-    expect(smtpFailure("boom")).toEqual({});
+  test("drops a code that is not in the expected shape", () => {
+    expect(sendFailure(500, { error: { code: "a@b.co" } })).toEqual({ status: 500 });
+    expect(sendFailure(500, null)).toEqual({ status: 500 });
+    expect(sendFailure(500, "boom")).toEqual({ status: 500 });
   });
 });

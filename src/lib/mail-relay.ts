@@ -3,8 +3,9 @@ import { parseTemplateRequest, renderTemplate, type RenderedEmail } from "./mail
 const SINGLE_EMAIL = /^[^\s@,;<>"]+@[^\s@,;<>"]+\.[^\s@,;<>"]+$/;
 const FROM_NAME = /^[^\r\n<>@:]{1,40}$/;
 const HMAC_KEY = "mail-relay-auth";
-const SMTP_ERROR_CODE = /^E[A-Z_]{2,20}$/;
-const SMTP_COMMAND = /^[A-Z][A-Z0-9 ]{0,19}$/;
+const PROVIDER_ERROR_CODE = /^[A-Z]{2,5}_\d{3,5}$/;
+
+export const ZEPTOMAIL_URL = "https://cpaas.zoho.com/v1.1/email";
 
 export interface RelayEmail extends RenderedEmail {
   to: string;
@@ -34,21 +35,27 @@ export function parseRelayRequest(body: unknown, appUrl: string): RelayEmail | n
   return { to, fromName, ...renderTemplate(request, appUrl) };
 }
 
-export interface SmtpFailure {
-  code?: string;
-  responseCode?: number;
-  command?: string;
+export function zeptoMailBody(email: RelayEmail, fromAddress: string) {
+  return {
+    from: { address: fromAddress, name: email.fromName },
+    to: [{ email_address: { address: email.to } }],
+    subject: email.subject,
+    htmlbody: email.html,
+    textbody: email.text,
+  };
 }
 
-// Keeps only nodemailer's fixed error fields; its message and server response can contain addresses.
-export function smtpFailure(err: unknown): SmtpFailure {
-  if (typeof err !== "object" || err === null) return {};
-  const { code, responseCode, command } = err as Record<string, unknown>;
-  const failure: SmtpFailure = {};
-  if (typeof code === "string" && SMTP_ERROR_CODE.test(code)) failure.code = code;
-  if (typeof responseCode === "number" && Number.isInteger(responseCode) && responseCode >= 200 && responseCode < 600) {
-    failure.responseCode = responseCode;
-  }
-  if (typeof command === "string" && SMTP_COMMAND.test(command)) failure.command = command;
+export interface SendFailure {
+  status: number;
+  code?: string;
+}
+
+// Keeps only the HTTP status and ZeptoMail's error code; its messages can contain addresses.
+export function sendFailure(status: number, body: unknown): SendFailure {
+  const failure: SendFailure = { status };
+  if (typeof body !== "object" || body === null) return failure;
+  const b = body as { error?: { code?: unknown }; data?: { error_code?: unknown } };
+  const code = b.error?.code ?? b.data?.error_code;
+  if (typeof code === "string" && PROVIDER_ERROR_CODE.test(code)) failure.code = code;
   return failure;
 }
