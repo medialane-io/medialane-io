@@ -1,6 +1,7 @@
 "use client";
 
 import { describeError } from "@medialane/ui";
+import { MedialaneApiError } from "@medialane/sdk";
 import { useCallback, useState } from "react";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 import { useWalletNativeSession } from "./use-wallet-native-session";
@@ -43,6 +44,12 @@ export function useWalletWriteAction(
         }
         setStatus("success");
       } catch (err) {
+        console.error(
+          "wallet action failed",
+          err instanceof MedialaneApiError
+            ? { message: err.message, status: err.status, code: err.serverCode, requestId: err.requestId, details: err.details }
+            : err,
+        );
         setError(describeError(err).message);
         setStatus("error");
       } finally {
