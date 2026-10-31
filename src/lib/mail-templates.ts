@@ -9,7 +9,8 @@ export type TemplateRequest =
   | { template: "verification-reminder"; data: { confirmToken: string; deadline: Date } }
   | { template: "guardian-set"; data: { walletAddress: string } }
   | { template: "guardian-escape-triggered"; data: { walletAddress: string; readyAt: Date } }
-  | { template: "guardian-escape-completed"; data: { walletAddress: string } };
+  | { template: "guardian-escape-completed"; data: { walletAddress: string } }
+  | { template: "account-security"; data: Record<string, never> };
 
 const CODE = /^\d{6}$/;
 const ADDRESS = /^0x[0-9a-fA-F]{1,64}$/;
@@ -50,6 +51,8 @@ export function parseTemplateRequest(body: unknown): TemplateRequest | null {
       const readyAt = date(data.readyAt);
       return walletAddress && readyAt ? { template: "guardian-escape-triggered", data: { walletAddress, readyAt } } : null;
     }
+    case "account-security":
+      return { template: "account-security", data: {} };
     default:
       return null;
   }
@@ -100,8 +103,8 @@ const formatDate = (value: Date): string =>
 
 const shortAddress = (address: string): string => `${address.slice(0, 6)}…${address.slice(-4)}`;
 
-const button = (url: string): string =>
-  `<a href="${escapeHtml(url)}" style="display:inline-block;background:#111827;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:12px 24px;border-radius:10px;">Confirm my email</a>`;
+const button = (url: string, label: string): string =>
+  `<a href="${escapeHtml(url)}" style="display:inline-block;background:#111827;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:12px 24px;border-radius:10px;">${escapeHtml(label)}</a>`;
 
 function verificationCode(code: string): RenderedEmail {
   const html = `
@@ -149,13 +152,51 @@ function reminder(data: { confirmToken: string; deadline: Date }, appUrl: string
       <h1 style="margin:0 0 8px;font-size:22px;">Confirm your email to keep your account</h1>
       <p style="margin:0 0 24px;font-size:15px;color:#4b5563;">Your Medialane account closes on <strong>${escapeHtml(when)}</strong> unless you confirm your email.</p>
       <div style="background:#f6f7f9;border-radius:16px;padding:24px;text-align:center;">
-        ${button(url)}
+        ${button(url, "Confirm my email")}
         <p style="margin:16px 0 0;font-size:13px;color:#6b7280;">${escapeHtml(consequence)}</p>
       </div>`,
     IGNORE_FOOTER,
   );
 
   return { subject: `Confirm your email by ${when.replace(/ \d{4}$/, "")} to keep your Medialane account`, html, text };
+}
+
+const SECURITY_FOOTER = "Medialane will never ask you for your recovery key.";
+
+function accountSecurity(appUrl: string): RenderedEmail {
+  const url = `${appUrl}/settings/recovery`;
+  const keyStep = "Settings → Recovery → Show recovery key. Keep it somewhere private, like a password manager. It opens your account on any browser, right away.";
+  const emailStep = "Get back into your account on a new browser with just your email.";
+
+  const text = [
+    "Your Medialane account is ready. Two ways to make sure you can always get back in:",
+    "",
+    "Save your recovery key",
+    keyStep,
+    "",
+    "Turn on recovery by email",
+    emailStep,
+    "",
+    `Open recovery settings: ${url}`,
+    "",
+    SECURITY_FOOTER,
+  ].join("\n");
+
+  const html = layout(
+    `
+      <h1 style="margin:0 0 8px;font-size:22px;">Secure your account</h1>
+      <p style="margin:0 0 24px;font-size:15px;color:#4b5563;">Your Medialane account is ready. Two ways to make sure you can always get back in:</p>
+      <div style="background:#f6f7f9;border-radius:16px;padding:24px;">
+        <p style="margin:0 0 4px;font-size:15px;font-weight:700;">Save your recovery key</p>
+        <p style="margin:0 0 20px;font-size:14px;color:#4b5563;">${escapeHtml(keyStep)}</p>
+        <p style="margin:0 0 4px;font-size:15px;font-weight:700;">Turn on recovery by email</p>
+        <p style="margin:0 0 24px;font-size:14px;color:#4b5563;">${escapeHtml(emailStep)}</p>
+        <div style="text-align:center;">${button(url, "Open recovery settings")}</div>
+      </div>`,
+    SECURITY_FOOTER,
+  );
+
+  return { subject: "Secure your Medialane account", html, text };
 }
 
 const GUARDIAN_FOOTER =
@@ -185,6 +226,8 @@ export function renderTemplate(request: TemplateRequest, appUrl: string): Render
       return verificationCode(request.data.code);
     case "verification-reminder":
       return reminder(request.data, appUrl);
+    case "account-security":
+      return accountSecurity(appUrl);
     case "guardian-set":
       return guardianAlert(
         "A guardian was added to your Medialane wallet",
