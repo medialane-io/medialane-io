@@ -18,6 +18,7 @@ import { useMarketplace } from "@/hooks/use-marketplace";
 import { useWalletMarketplaceActionFlow } from "@/hooks/use-wallet-marketplace-action-flow";
 import { useResolvedTokenStandard } from "@/hooks/use-resolved-token-standard";
 import {
+  DialogTransactionSuccess,
   MarketplaceProcessingState,
   MarketplaceSignInGate,
   successMessages,
@@ -34,7 +35,6 @@ import { useTokenBalance, hasSufficientBalance } from "@medialane/ui/utils/media
 import { marketplacePriceField, marketplaceCurrencyField, marketplaceDurationField } from "@/lib/marketplace-schemas";
 import { useUsdPrices } from "@/hooks/use-usd-prices";
 import { usdValueFor } from "@/lib/wallet-format";
-import { DialogTransactionSuccess } from "@/components/marketplace/dialog-transaction-success";
 
 const CURRENCIES = getListableTokens().map((t) => t.symbol);
 

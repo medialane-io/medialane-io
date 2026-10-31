@@ -17,6 +17,7 @@ import { Alert, AlertDescription } from "@medialane/ui/alert";
 import { useTransfer } from "@/hooks/use-transfer";
 import { useResolvedTokenStandard } from "@/hooks/use-resolved-token-standard";
 import {
+  DialogTransactionSuccess,
   MarketplaceConfirmStep,
   MarketplaceDialogHero,
   MarketplaceErrorState,
@@ -24,7 +25,6 @@ import {
 } from "@medialane/ui";
 import { EXPLORER_URL } from "@/lib/constants";
 import { resolveImage } from "@/lib/utils";
-import { DialogTransactionSuccess } from "@/components/marketplace/dialog-transaction-success";
 
 const schema = z.object({
   toAddress: z

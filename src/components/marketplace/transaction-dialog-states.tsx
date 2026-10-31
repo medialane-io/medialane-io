@@ -2,11 +2,10 @@
 
 import type { ReactNode } from "react";
 import { TxStatus } from "@/components/transaction/tx-status";
-import { MarketplaceErrorState, type SuccessMessage } from "@medialane/ui";
+import { DialogTransactionSuccess, MarketplaceErrorState, type SuccessMessage } from "@medialane/ui";
 import { EXPLORER_URL } from "@/lib/constants";
 import { resolveImage } from "@/lib/utils";
 import type { WalletWriteStatus } from "@/hooks/use-wallet-write-action";
-import { DialogTransactionSuccess } from "@/components/marketplace/dialog-transaction-success";
 
 interface TransactionDialogStatesProps {
   status: WalletWriteStatus | undefined;

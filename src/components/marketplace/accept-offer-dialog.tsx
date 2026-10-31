@@ -3,6 +3,7 @@
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@medialane/ui/dialog";
 import { RewardEarned } from "@medialane/ui";
 import {
+  DialogTransactionSuccess,
   MarketplaceDialogHero,
   MarketplaceConfirmStep,
   MarketplaceProcessingState,
@@ -15,7 +16,6 @@ import { EXPLORER_URL } from "@/lib/constants";
 import { resolveImage, formatDisplayPrice } from "@/lib/utils";
 import type { AcceptOfferHook } from "@/hooks/use-accept-offer";
 import type { ApiOrder } from "@medialane/sdk";
-import { DialogTransactionSuccess } from "@/components/marketplace/dialog-transaction-success";
 
 interface AcceptOfferDialogProps {
   hook: AcceptOfferHook;

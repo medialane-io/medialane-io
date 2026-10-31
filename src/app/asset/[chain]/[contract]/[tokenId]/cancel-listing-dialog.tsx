@@ -2,12 +2,12 @@
 
 import { Dialog, DialogContent } from "@medialane/ui/dialog";
 import {
+  DialogTransactionSuccess,
   MarketplaceProcessingState,
   successMessages,
   MarketplaceErrorState,
 } from "@medialane/ui";
 import { EXPLORER_URL } from "@/lib/constants";
-import { DialogTransactionSuccess } from "@/components/marketplace/dialog-transaction-success";
 
 interface CancelListingDialogProps {
   cancelStep: "idle" | "processing" | "success" | "error";
