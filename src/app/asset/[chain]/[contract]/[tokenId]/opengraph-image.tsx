@@ -50,7 +50,7 @@ export default async function Image({
               border: "1px solid rgba(155, 114, 255, 0.25)",
               borderRadius: "100px",
               padding: "6px 16px",
-              width: "fit-content",
+              alignSelf: "flex-start",
             }}
           >
             <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#9b72ff" }} />
