@@ -70,10 +70,10 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
     dispatch({ type: "wallet-failed", message: notice.message, canRetry: notice.canRetry });
   }, []);
 
-  const runWalletSetup = useCallback(async () => {
-    dispatch({ type: "wallet-setup-started" });
+  const runWalletSetup = useCallback(async (replace = false) => {
+    dispatch({ type: "wallet-setup-started", replace });
     try {
-      await mediaWallet.completeDeployment((step) => dispatch({ type: "wallet-progress", step }));
+      await mediaWallet.completeDeployment((step) => dispatch({ type: "wallet-progress", step }), { replace });
       await refreshSession();
       finish(true);
     } catch (err) {
@@ -108,7 +108,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
 
   const retryWallet = () => {
     const target = retryTarget(flow);
-    void (target.type === "key-setup" ? runKeySetup(target.walletAddress) : runWalletSetup());
+    void (target.type === "key-setup" ? runKeySetup(target.walletAddress) : runWalletSetup(target.replace));
   };
 
   const continueSignedIn = useCallback(
@@ -255,7 +255,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
   }
 
   if (step === "restore-key") {
-    return <NewBrowserWallet onRecovered={() => finish()} />;
+    return <NewBrowserWallet onRecovered={() => finish()} onStartNew={() => void runWalletSetup(true)} />;
   }
 
   if (step === "code" || step === "verifying-code") {

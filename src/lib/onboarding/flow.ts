@@ -16,6 +16,7 @@ export interface FlowState {
   canRetry: boolean;
   accountExisted: boolean;
   keySetupAddress: string | null;
+  replacing: boolean;
 }
 
 export type FlowEvent =
@@ -26,7 +27,7 @@ export type FlowEvent =
   | { type: "email-step-failed"; message: string }
   | { type: "code-submitted" }
   | { type: "code-failed"; message: string | null }
-  | { type: "wallet-setup-started" }
+  | { type: "wallet-setup-started"; replace?: boolean }
   | { type: "key-setup-started"; address: string }
   | { type: "wallet-progress"; step: "creating-passkey" | "deploying" }
   | { type: "wallet-failed"; message: string; canRetry: boolean }
@@ -40,6 +41,7 @@ export const initialFlow = (start: "email" | "wallet"): FlowState => ({
   canRetry: true,
   accountExisted: false,
   keySetupAddress: null,
+  replacing: false,
 });
 
 export function flowReducer(state: FlowState, event: FlowEvent): FlowState {
@@ -59,7 +61,7 @@ export function flowReducer(state: FlowState, event: FlowEvent): FlowState {
     case "code-failed":
       return { ...state, step: "code", error: event.message };
     case "wallet-setup-started":
-      return { ...state, step: "creating-passkey", error: null, canRetry: true };
+      return { ...state, step: "creating-passkey", error: null, canRetry: true, replacing: event.replace === true };
     case "key-setup-started":
       return { ...state, step: "creating-passkey", error: null, canRetry: true, keySetupAddress: event.address };
     case "wallet-progress":
@@ -77,5 +79,7 @@ export function flowReducer(state: FlowState, event: FlowEvent): FlowState {
 
 export const retryTarget = (
   state: FlowState,
-): { type: "key-setup"; walletAddress: string } | { type: "wallet-setup" } =>
-  state.keySetupAddress ? { type: "key-setup", walletAddress: state.keySetupAddress } : { type: "wallet-setup" };
+): { type: "key-setup"; walletAddress: string } | { type: "wallet-setup"; replace: boolean } =>
+  state.keySetupAddress
+    ? { type: "key-setup", walletAddress: state.keySetupAddress }
+    : { type: "wallet-setup", replace: state.replacing };
