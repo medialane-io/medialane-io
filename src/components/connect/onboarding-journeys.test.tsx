@@ -1,7 +1,9 @@
-import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from "bun:test";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MedialaneApiError } from "@medialane/sdk";
 
+const RECOVERY_KEY_OPTION = "I have my recovery key from Medialane";
+const NEW_WALLET_OPTION = "I don't have the recovery key and want to start a new wallet";
 const WALLET = "0x01575d29b83d7828cd1d833ef785083b809adeb187b6ac14aab21db568f2bf02";
 
 const api = { account: { emailExists: mock(async (_email: string) => false), registerEmailAccount: mock(async (_email: string) => ({})), requestEmailCode: mock(async (_email: string) => ({})), verifyEmailCode: mock(async (_email: string, _code: string) => ({})), upsertMyWallet: mock(async (..._args: unknown[]) => ({})), sessionWallet: (...args: unknown[]) => getSessionWallet(...args), walletRecovery: (...args: unknown[]) => getRecovery(...args), startWalletRecovery: (...args: unknown[]) => startRecovery(...args), completeWalletRecovery: (...args: unknown[]) => completeRecovery(...args) } };
@@ -10,7 +12,7 @@ const RECOVERY_OFF: Recovery = { enabled: false, state: "none", readyAt: null, n
 const getRecovery = mock(async (..._args: unknown[]): Promise<Recovery> => RECOVERY_OFF);
 const startRecovery = mock(async (..._args: unknown[]): Promise<Recovery> => RECOVERY_OFF);
 const completeRecovery = mock(async (..._args: unknown[]): Promise<Recovery> => RECOVERY_OFF);
-const completeDeployment = mock(async (_onStep: (s: string) => void) => ({ sealed: {} }));
+const completeDeployment = mock(async (_onStep: (s: string) => void, _options?: { replace?: boolean }) => ({ sealed: {} }));
 const getSessionWallet = mock(async (..._args: unknown[]): Promise<{ walletAddress: string; needsKeySetup: boolean } | null> => null);
 const claimSessionWallet = mock(async (..._args: unknown[]) => undefined);
 
@@ -208,10 +210,10 @@ describe("an address that already has an account", () => {
     getSessionWallet.mockImplementation(async () => ({ walletAddress: WALLET, needsKeySetup: false }));
     await enterEmail("new-browser@example.com");
     await enterCode();
-    await waitFor(() => expect(screen.getByText(/turn on recovery/)).toBeTruthy());
-    await waitFor(() => screen.getByPlaceholderText("medialane-recovery:v1:…"));
+    await waitFor(() => screen.getByRole("button", { name: RECOVERY_KEY_OPTION }));
+    expect(screen.getByRole("button", { name: NEW_WALLET_OPTION })).toBeTruthy();
+    expect(screen.queryByPlaceholderText("medialane-recovery:v1:…")).toBeNull();
     expect(done).toEqual([]);
-    expect(screen.getByPlaceholderText("medialane-recovery:v1:…")).toBeTruthy();
     expect(completeDeployment).not.toHaveBeenCalled();
     expect(claimSessionWallet).not.toHaveBeenCalled();
   });
@@ -221,6 +223,7 @@ describe("an address that already has an account", () => {
     getSessionWallet.mockImplementation(async () => ({ walletAddress: WALLET, needsKeySetup: false }));
     await enterEmail("new-browser@example.com");
     await enterCode();
+    fireEvent.click(await waitFor(() => screen.getByRole("button", { name: RECOVERY_KEY_OPTION })));
     const input = await waitFor(() => screen.getByPlaceholderText("medialane-recovery:v1:…"));
     const { privateKeyHex } = real.starknet.generateStarkKeyPair();
     fireEvent.change(input, { target: { value: real.starknet.encodeRecoveryKey({ walletAddress: WALLET, privateKey: privateKeyHex }) } });
@@ -234,12 +237,47 @@ describe("an address that already has an account", () => {
     getSessionWallet.mockImplementation(async () => ({ walletAddress: WALLET, needsKeySetup: false }));
     await enterEmail("new-browser@example.com");
     await enterCode();
+    fireEvent.click(await waitFor(() => screen.getByRole("button", { name: RECOVERY_KEY_OPTION })));
     const input = await waitFor(() => screen.getByPlaceholderText("medialane-recovery:v1:…"));
     const { privateKeyHex } = real.starknet.generateStarkKeyPair();
     fireEvent.change(input, { target: { value: real.starknet.encodeRecoveryKey({ walletAddress: WALLET, privateKey: privateKeyHex }) } });
     fireEvent.click(screen.getByRole("button", { name: /Restore my account/ }));
     await waitFor(() => expect(screen.getByText(/does not open this account/)).toBeTruthy());
     expect(done).toEqual([]);
+  });
+
+  test("choosing a new wallet asks first, then replaces the wallet and finishes", async () => {
+    api.account.emailExists.mockImplementation(async () => true);
+    getSessionWallet.mockImplementation(async () => ({ walletAddress: WALLET, needsKeySetup: false }));
+    await enterEmail("new-browser@example.com");
+    await enterCode();
+    const choose = await waitFor(() => screen.getByRole("button", { name: NEW_WALLET_OPTION }));
+    const confirm = spyOn(window, "confirm").mockReturnValue(false);
+    fireEvent.click(choose);
+    expect(completeDeployment).not.toHaveBeenCalled();
+    confirm.mockReturnValue(true);
+    fireEvent.click(choose);
+    await waitFor(() => expect(done).toEqual([{ celebrated: true }]));
+    expect(completeDeployment).toHaveBeenCalledTimes(1);
+    expect(completeDeployment.mock.calls[0]![1]).toEqual({ replace: true });
+    confirm.mockRestore();
+  });
+
+  test("a failed new wallet is retried as a replacement", async () => {
+    api.account.emailExists.mockImplementation(async () => true);
+    getSessionWallet.mockImplementation(async () => ({ walletAddress: WALLET, needsKeySetup: false }));
+    await enterEmail("new-browser@example.com");
+    await enterCode();
+    const choose = await waitFor(() => screen.getByRole("button", { name: NEW_WALLET_OPTION }));
+    const confirm = spyOn(window, "confirm").mockReturnValue(true);
+    completeDeployment.mockImplementationOnce(async () => {
+      throw new Error("deploy failed");
+    });
+    fireEvent.click(choose);
+    fireEvent.click(await waitFor(() => screen.getByRole("button", { name: "Try again" })));
+    await waitFor(() => expect(done).toEqual([{ celebrated: true }]));
+    expect(completeDeployment.mock.calls.map((c) => c[1])).toEqual([{ replace: true }, { replace: true }]);
+    confirm.mockRestore();
   });
 
   test("a provisioned user's first login claims the wallet with their own key and celebrates", async () => {
@@ -305,14 +343,20 @@ describe("recovering by email on a new browser", () => {
     session = { email: "new-browser@example.com", walletAddress: WALLET };
     await enterEmail("new-browser@example.com");
     await enterCode();
-    await waitFor(() => screen.getByText(/Finish your account setup|turn on recovery/));
+    await waitFor(() => {
+      if (!screen.queryByText(/Finish your account setup/)) screen.getByRole("button", { name: RECOVERY_KEY_OPTION });
+    });
   };
 
-  test("a wallet that has not turned recovery on is told to do it on its other browser and can paste a key", async () => {
+  test("a wallet that has not turned recovery on offers a recovery key or a new wallet", async () => {
     await reachRecoveryStep();
-    await waitFor(() => screen.getByPlaceholderText("medialane-recovery:v1:…"));
-    expect(screen.getByText(/turn on recovery/)).toBeTruthy();
+    await waitFor(() => screen.getByRole("button", { name: RECOVERY_KEY_OPTION }));
+    expect(screen.getByRole("button", { name: NEW_WALLET_OPTION })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Recover with my email" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: RECOVERY_KEY_OPTION }));
+    await waitFor(() => screen.getByPlaceholderText("medialane-recovery:v1:…"));
+    fireEvent.click(screen.getByRole("button", { name: "Back" }));
+    await waitFor(() => screen.getByRole("button", { name: NEW_WALLET_OPTION }));
   });
 
   test("a wallet that has turned recovery on leads with recovery by email and no key field", async () => {
@@ -320,7 +364,6 @@ describe("recovering by email on a new browser", () => {
     await reachRecoveryStep();
     await waitFor(() => screen.getByRole("button", { name: "Recover with my email" }));
     expect(screen.queryByPlaceholderText("medialane-recovery:v1:…")).toBeNull();
-    expect(screen.queryByText(/turn on recovery/)).toBeNull();
     expect(screen.queryByText(/already waiting/)).toBeNull();
   });
 

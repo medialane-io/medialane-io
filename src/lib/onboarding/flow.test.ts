@@ -11,7 +11,7 @@ describe("where the flow starts", () => {
   });
 
   test("with no error, a retry available, no account known and no key setup pending", () => {
-    expect(fresh).toEqual({ step: "email", error: null, canRetry: true, accountExisted: false, keySetupAddress: null });
+    expect(fresh).toEqual({ step: "email", error: null, canRetry: true, accountExisted: false, keySetupAddress: null, replacing: false });
   });
 });
 
@@ -69,6 +69,15 @@ describe("when the wallet step fails", () => {
   });
 });
 
+describe("replacing the wallet", () => {
+  test("a new wallet keeps replacing on retry, and an ordinary setup does not", () => {
+    const replacing = run(fresh, { type: "wallet-setup-started", replace: true }, { type: "wallet-failed", message: "x", canRetry: true });
+    expect(retryTarget(replacing)).toEqual({ type: "wallet-setup", replace: true });
+    const ordinary = run(replacing, { type: "wallet-setup-started" }, { type: "wallet-failed", message: "x", canRetry: true });
+    expect(retryTarget(ordinary)).toEqual({ type: "wallet-setup", replace: false });
+  });
+});
+
 describe("a provisioned user's key setup", () => {
   test("remembers which wallet it is for, so a retry targets the same wallet, and forgets it when done", () => {
     let s = run(fresh, { type: "key-setup-started", address: "0xabc" });
@@ -76,10 +85,10 @@ describe("a provisioned user's key setup", () => {
     s = run(s, { type: "wallet-failed", message: "x", canRetry: true });
     expect(retryTarget(s)).toEqual({ type: "key-setup", walletAddress: "0xabc" });
     s = run(s, { type: "key-setup-finished" });
-    expect(retryTarget(s)).toEqual({ type: "wallet-setup" });
+    expect(retryTarget(s)).toEqual({ type: "wallet-setup", replace: false });
   });
 
   test("with no key setup pending a retry makes the wallet", () => {
-    expect(retryTarget(fresh)).toEqual({ type: "wallet-setup" });
+    expect(retryTarget(fresh)).toEqual({ type: "wallet-setup", replace: false });
   });
 });

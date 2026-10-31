@@ -14,6 +14,7 @@ import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { isAccountRefusal } from "@medialane/sdk/starknet";
 import { EXPLORER_URL } from "@/lib/constants";
 import { mediaWallet } from "@/lib/wallet/client";
+import { REPLACE_WALLET_CONFIRM } from "@/lib/wallet/replace-wallet-confirm";
 import { unlockOwnerKey } from "@/lib/wallet/passkey";
 import { loadSealedOwner } from "@/lib/wallet/store";
 
@@ -26,11 +27,7 @@ export default function WalletSettingsPage() {
   const [resumeOpen, setResumeOpen] = useState(false);
 
   async function handleGenerate() {
-    const confirmed = window.confirm(
-      "This permanently replaces your wallet. Every asset, listing, and transaction history " +
-        "in this wallet stays behind and none of it moves to the new one. This cannot be undone.\n\n" +
-        "Continue and generate a new wallet?",
-    );
+    const confirmed = window.confirm(REPLACE_WALLET_CONFIRM);
     if (!confirmed) return;
     setGenerating(true);
     setGenerateError(null);
