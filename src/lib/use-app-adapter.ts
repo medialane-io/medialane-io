@@ -25,7 +25,6 @@ export function useAppAdapter(): MedialaneApp {
       if (signer) lockVenueSigner(signer.address);
     },
     connectLabel: "Connect with email",
-    connectDescription: "Buy, offer, and collect instantly.",
     companion: {
       title: "Trade with your Starknet wallet",
       description: "Interact with this asset on our permissionless dapp.",
