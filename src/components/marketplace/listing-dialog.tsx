@@ -20,7 +20,6 @@ import { useResolvedTokenStandard } from "@/hooks/use-resolved-token-standard";
 import {
   MarketplaceProcessingState,
   MarketplaceSignInGate,
-  TransactionSuccess,
   successMessages,
   MarketplaceErrorState,
   MarketplaceDialogHero,
@@ -31,6 +30,7 @@ import { EXPLORER_URL, DURATION_OPTIONS } from "@/lib/constants";
 import { resolveImage } from "@/lib/utils";
 import { getListableTokens } from "@medialane/sdk";
 import { marketplacePriceField, marketplaceCurrencyField, marketplaceDurationField } from "@/lib/marketplace-schemas";
+import { DialogTransactionSuccess } from "@/components/marketplace/dialog-transaction-success";
 
 const CURRENCIES = getListableTokens().map((t) => t.symbol);
 
@@ -160,7 +160,7 @@ export function ListingDialog({
           </DialogDescription>
 
           {isSuccess ? (
-            <TransactionSuccess
+            <DialogTransactionSuccess
               name={name}
               image={tokenImage}
               {...successMessages.listed({ name, price: listedPrice })}
@@ -168,7 +168,7 @@ export function ListingDialog({
               actions={[{ label: "Done", onClick: () => { onOpenChange(false); onSuccess?.(); } }]}
             >
               <RewardEarned actionType="list_asset" />
-            </TransactionSuccess>
+            </DialogTransactionSuccess>
 
           ) : isTerminalError ? (
             <MarketplaceErrorState

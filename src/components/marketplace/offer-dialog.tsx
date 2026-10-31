@@ -20,7 +20,6 @@ import { useResolvedTokenStandard } from "@/hooks/use-resolved-token-standard";
 import {
   MarketplaceProcessingState,
   MarketplaceSignInGate,
-  TransactionSuccess,
   successMessages,
   MarketplaceErrorState,
   MarketplaceDialogHero,
@@ -35,6 +34,7 @@ import { useTokenBalance, hasSufficientBalance } from "@medialane/ui/utils/media
 import { marketplacePriceField, marketplaceCurrencyField, marketplaceDurationField } from "@/lib/marketplace-schemas";
 import { useUsdPrices } from "@/hooks/use-usd-prices";
 import { usdValueFor } from "@/lib/wallet-format";
+import { DialogTransactionSuccess } from "@/components/marketplace/dialog-transaction-success";
 
 const CURRENCIES = getListableTokens().map((t) => t.symbol);
 
@@ -167,7 +167,7 @@ export function OfferDialog({
           </DialogDescription>
 
           {isSuccess ? (
-            <TransactionSuccess
+            <DialogTransactionSuccess
               name={name}
               image={tokenImage}
               {...successMessages.offered({ name, price: `${pendingValues?.price} ${pendingValues?.currency}` })}
@@ -175,7 +175,7 @@ export function OfferDialog({
               actions={[{ label: "Done", onClick: () => onOpenChange(false) }]}
             >
               <RewardEarned actionType="make_offer" />
-            </TransactionSuccess>
+            </DialogTransactionSuccess>
 
           ) : isTerminalError ? (
             <MarketplaceErrorState

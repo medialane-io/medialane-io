@@ -6,7 +6,6 @@ import {
   MarketplaceDialogHero,
   MarketplaceConfirmStep,
   MarketplaceProcessingState,
-  TransactionSuccess,
   successMessages,
   MarketplaceErrorState,
 } from "@medialane/ui";
@@ -16,6 +15,7 @@ import { EXPLORER_URL } from "@/lib/constants";
 import { resolveImage, formatDisplayPrice } from "@/lib/utils";
 import type { AcceptOfferHook } from "@/hooks/use-accept-offer";
 import type { ApiOrder } from "@medialane/sdk";
+import { DialogTransactionSuccess } from "@/components/marketplace/dialog-transaction-success";
 
 interface AcceptOfferDialogProps {
   hook: AcceptOfferHook;
@@ -130,7 +130,7 @@ export function AcceptOfferDialog({ hook, tokenName, tokenImage, onCancelListing
             imageAlt={name}
           />
         ) : status === "success" ? (
-          <TransactionSuccess
+          <DialogTransactionSuccess
             name={name}
             image={image}
             {...successMessages.accepted({ name, price: priceLabel })}
@@ -138,7 +138,7 @@ export function AcceptOfferDialog({ hook, tokenName, tokenImage, onCancelListing
             actions={[{ label: "Done", onClick: dismiss }]}
           >
             <RewardEarned actionType="offer_accepted_seller" />
-          </TransactionSuccess>
+          </DialogTransactionSuccess>
         ) : status === "error" ? (
           <MarketplaceErrorState
             tokenImage={image}

@@ -2,10 +2,11 @@
 
 import type { ReactNode } from "react";
 import { TxStatus } from "@/components/transaction/tx-status";
-import { MarketplaceErrorState, TransactionSuccess, type SuccessMessage } from "@medialane/ui";
+import { MarketplaceErrorState, type SuccessMessage } from "@medialane/ui";
 import { EXPLORER_URL } from "@/lib/constants";
 import { resolveImage } from "@/lib/utils";
 import type { WalletWriteStatus } from "@/hooks/use-wallet-write-action";
+import { DialogTransactionSuccess } from "@/components/marketplace/dialog-transaction-success";
 
 interface TransactionDialogStatesProps {
   status: WalletWriteStatus | undefined;
@@ -51,7 +52,7 @@ export function TransactionDialogStates({
 
   if (isSuccess) {
     return (
-      <TransactionSuccess
+      <DialogTransactionSuccess
         name={successName}
         image={successSrc}
         {...success}

@@ -20,11 +20,11 @@ import {
   MarketplaceConfirmStep,
   MarketplaceDialogHero,
   MarketplaceErrorState,
-  TransactionSuccess,
   successMessages,
 } from "@medialane/ui";
 import { EXPLORER_URL } from "@/lib/constants";
 import { resolveImage } from "@/lib/utils";
+import { DialogTransactionSuccess } from "@/components/marketplace/dialog-transaction-success";
 
 const schema = z.object({
   toAddress: z
@@ -170,7 +170,7 @@ export function TransferDialog({
           />
 
           {step === "success" ? (
-            <TransactionSuccess
+            <DialogTransactionSuccess
               name={displayName}
               image={tokenImage}
               {...successMessages.transferred({ name: displayName, to: recipientShort })}

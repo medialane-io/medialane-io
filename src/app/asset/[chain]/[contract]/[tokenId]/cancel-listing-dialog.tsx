@@ -3,11 +3,11 @@
 import { Dialog, DialogContent } from "@medialane/ui/dialog";
 import {
   MarketplaceProcessingState,
-  TransactionSuccess,
   successMessages,
   MarketplaceErrorState,
 } from "@medialane/ui";
 import { EXPLORER_URL } from "@/lib/constants";
+import { DialogTransactionSuccess } from "@/components/marketplace/dialog-transaction-success";
 
 interface CancelListingDialogProps {
   cancelStep: "idle" | "processing" | "success" | "error";
@@ -38,7 +38,7 @@ export function CancelListingDialog({
           />
         )}
         {cancelStep === "success" && (
-          <TransactionSuccess
+          <DialogTransactionSuccess
             name={tokenName}
             image={tokenImage}
             {...successMessages.cancelled({ kind: "listing" })}
