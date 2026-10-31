@@ -17,7 +17,6 @@ describe("what the relay accepts", () => {
     expect(parse("guardian-set", { walletAddress: ADDRESS })).not.toBeNull();
     expect(parse("guardian-escape-triggered", { walletAddress: ADDRESS, readyAt: DEADLINE })).not.toBeNull();
     expect(parse("guardian-escape-completed", { walletAddress: ADDRESS })).not.toBeNull();
-    expect(parse("account-security", {})).toEqual({ template: "account-security", data: {} });
   });
 
   test("an unknown template, missing data or a non-object is refused", () => {
@@ -72,19 +71,6 @@ describe("the emails", () => {
     expect(`${html}${text}`.toLowerCase()).not.toContain("starknet");
   });
 
-  test("account security: both ways back in, one link to recovery settings, about the account", () => {
-    const { subject, html, text } = render({ template: "account-security", data: {} });
-    expect(subject).toBe("Secure your Medialane account");
-    for (const body of [html, text]) {
-      expect(body).toContain("Save your recovery key");
-      expect(body).toContain("Turn on recovery by email");
-    }
-    expect(links(html)).toEqual([`${APP}/settings/recovery`]);
-    expect(text).toContain(`${APP}/settings/recovery`);
-    expect(`${html}${text}`.toLowerCase()).not.toContain("wallet");
-    expect(`${html}${text}`.toLowerCase()).not.toContain("starknet");
-  });
-
   test("guardian alerts show a short address, never the full one", () => {
     const cases: TemplateRequest[] = [
       { template: "guardian-set", data: { walletAddress: ADDRESS } },
@@ -105,7 +91,6 @@ describe("the emails", () => {
     const all: TemplateRequest[] = [
       { template: "verification-reminder", data: { confirmToken: TOKEN, deadline: new Date(DEADLINE) } },
       { template: "guardian-set", data: { walletAddress: ADDRESS } },
-      { template: "account-security", data: {} },
     ];
     for (const request of all) for (const link of links(render(request).html)) expect(link!.startsWith(`${APP}/`)).toBe(true);
   });
