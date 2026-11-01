@@ -1,7 +1,6 @@
 "use client";
 
-import { requireAccount } from "@/lib/account-gate";
-import { useState, useCallback, useEffect } from "react";
+import { ACCOUNT_NOT_READY } from "@/lib/account-gate";
 import Image from "next/image";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import {
@@ -20,8 +19,7 @@ import {
 import { Button } from "@medialane/ui/button";
 import { EXPLORER_URL, MINT_CONTRACT } from "@/lib/constants";
 import { LaunchCountdown } from "./launch-countdown";
-import { getMedialaneClient } from "@/lib/medialane-client";
-import { runIntentCalls, useTransaction } from "@medialane/ui";
+import { useGenesisMint } from "@/hooks/use-genesis-mint";
 
 function GenesisNftCard({ minted = false }: { minted?: boolean }) {
   return (
@@ -72,68 +70,22 @@ function PerksGrid() {
   );
 }
 
-type MintStep = "ready" | "minting" | "success" | "error";
+const MESSAGES = {
+  preparing: "Preparing your NFT…",
+  submitting: "Submitting transaction…",
+  noAccount: ACCOUNT_NOT_READY,
+  notStarted: "Mint contract not configured.",
+};
 
 export function LaunchMint() {
   const { hasWallet, address: recipientAddress, isDeployed } = useWalletNativeSession();
-  const action = useTransaction();
+  const { step, error, statusMsg, txHash, phase, start, retry, resetStored } = useGenesisMint({
+    address: recipientAddress ?? null,
+    storageKey: recipientAddress ? `ml_genesis_${recipientAddress}` : null,
+    messages: MESSAGES,
+  });
 
-  const [mintStep, setMintStep] = useState<MintStep>("ready");
-  const [mintError, setMintError] = useState<string | null>(null);
-  const [mintStatusMsg, setMintStatusMsg] = useState("");
-  const [completedTxHash, setCompletedTxHash] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!recipientAddress) return;
-    const stored = localStorage.getItem(`ml_genesis_${recipientAddress}`);
-    if (stored) {
-      setCompletedTxHash(stored);
-      setMintStep("success");
-    }
-  }, [recipientAddress]);
-
-  const handleMint = useCallback(async () => {
-    setMintError(null);
-    setMintStep("minting");
-    setMintStatusMsg("Preparing your NFT…");
-
-    await action.run(async (signer) => {
-      requireAccount(recipientAddress);
-      if (!MINT_CONTRACT) throw new Error("Mint contract not configured.");
-
-      setMintStatusMsg("Submitting transaction…");
-      await runIntentCalls(signer, () => getMedialaneClient().api.intents.create("genesis-mint", { owner: signer.address, recipient: recipientAddress! }));
-    });
-  }, [recipientAddress, action]);
-
-  useEffect(() => {
-    if (action.phase === "success" && action.txHash) {
-      setMintStep("success");
-      setCompletedTxHash(action.txHash);
-      if (recipientAddress) localStorage.setItem(`ml_genesis_${recipientAddress}`, action.txHash);
-    }
-  }, [action.phase, action.txHash, recipientAddress]);
-
-  useEffect(() => {
-    if (action.phase === "error") {
-      setMintStep("error");
-      setMintError(action.error);
-    }
-  }, [action.phase, action.error]);
-
-  const handleRetry = () => {
-    action.reset();
-    setMintError(null);
-    setMintStep("ready");
-  };
-
-  const handleResetMintGate = useCallback(() => {
-    if (recipientAddress) localStorage.removeItem(`ml_genesis_${recipientAddress}`);
-    setCompletedTxHash(null);
-    setMintStep("ready");
-  }, [recipientAddress]);
-
-  const isSuccess = mintStep === "success";
+  const isSuccess = step === "success";
 
   return (
     <div className="relative flex items-center">
@@ -181,7 +133,7 @@ export function LaunchMint() {
             {hasWallet && (
               <div className="space-y-7">
 
-                {mintStep !== "success" && (
+                {step !== "success" && (
                   <div className="space-y-3">
 
                     <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-[1.1]">
@@ -193,7 +145,7 @@ export function LaunchMint() {
                   </div>
                 )}
 
-                {mintStep === "ready" && (
+                {step === "ready" && (
                   <>
                     <div className="space-y-2">
                       <LaunchCountdown />
@@ -203,7 +155,7 @@ export function LaunchMint() {
                       <Button
                         size="lg"
                         className="w-full rounded-xl h-12 text-base font-bold gap-2 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 shadow-lg shadow-primary/25"
-                        onClick={() => void handleMint()}
+                        onClick={start}
                         disabled={!MINT_CONTRACT}
                       >
                         <Sparkles className="h-4 w-4" />
@@ -217,7 +169,7 @@ export function LaunchMint() {
                   </>
                 )}
 
-                {mintStep === "minting" && (
+                {step === "minting" && (
                   <div className="rounded-2xl border border-border/60 bg-card/50 p-6">
                     <div className="flex items-center gap-4">
                       <div className="relative h-12 w-12 shrink-0">
@@ -226,15 +178,15 @@ export function LaunchMint() {
                       <div>
                         <p className="font-semibold">Minting your Genesis NFT…</p>
                         <p className="text-sm text-muted-foreground mt-0.5">
-                          {mintStatusMsg || "Please wait…"}
+                          {statusMsg || "Please wait…"}
                         </p>
                       </div>
                     </div>
                     <div className="mt-4 space-y-1.5">
                       {[
-                        { label: "Upload metadata", done: action.phase !== "idle" },
-                        { label: "Submit transaction", done: action.phase === "confirming" || action.phase === "success" },
-                        { label: "Confirm onchain", done: action.phase === "success" },
+                        { label: "Upload metadata", done: phase !== "idle" },
+                        { label: "Submit transaction", done: phase === "confirming" || phase === "success" },
+                        { label: "Confirm onchain", done: phase === "success" },
                       ].map(({ label, done }) => (
                         <div key={label} className="flex items-center gap-2 text-xs text-muted-foreground">
                           {done ? (
@@ -249,7 +201,7 @@ export function LaunchMint() {
                   </div>
                 )}
 
-                {mintStep === "success" && (
+                {step === "success" && (
                   <div className="space-y-5">
                     <div className="space-y-3">
 
@@ -285,15 +237,15 @@ export function LaunchMint() {
                         </div>
                       </div>
 
-                      {completedTxHash && (
+                      {txHash && (
                         <a
-                          href={`${EXPLORER_URL}/tx/${completedTxHash}`}
+                          href={`${EXPLORER_URL}/tx/${txHash}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors group"
                         >
                           <span className="tabular-nums">
-                            {completedTxHash.slice(0, 12)}…{completedTxHash.slice(-8)}
+                            {txHash.slice(0, 12)}…{txHash.slice(-8)}
                           </span>
                           <ExternalLink className="h-3 w-3 group-hover:text-primary transition-colors" />
                         </a>
@@ -305,28 +257,28 @@ export function LaunchMint() {
                     </div>
                     <button
                       className="text-xs text-muted-foreground underline underline-offset-2"
-                      onClick={handleResetMintGate}
+                      onClick={resetStored}
                     >
                       Didn&apos;t receive your NFT? Try again
                     </button>
                   </div>
                 )}
 
-                {mintStep === "error" && (
+                {step === "error" && (
                   <div className="space-y-4">
                     <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-5 space-y-3">
                       <div className="flex items-start gap-3">
                         <XCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
                         <div>
                           <p className="font-semibold text-sm">Mint failed</p>
-                          {mintError && (
+                          {error && (
                             <p className="text-xs text-muted-foreground mt-1">
-                              {mintError}
+                              {error}
                             </p>
                           )}
                         </div>
                       </div>
-                      <Button size="sm" variant="outline" className="gap-2" onClick={handleRetry}>
+                      <Button size="sm" variant="outline" className="gap-2" onClick={retry}>
                         <RefreshCw className="h-3.5 w-3.5" />
                         Try again
                       </Button>
