@@ -1,13 +1,7 @@
 "use client";
 
-import { describeError, useCollection, useCollectionProfile } from "@medialane/ui";
-import { use, useState, useEffect } from "react";
-import { normalizeAddress } from "@medialane/sdk";
-import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useSession } from "@/hooks/use-session";
-import { requireSignedIn } from "@/lib/account-gate";
+import { use } from "react";
 import { collectionHref } from "@/lib/routes";
-import { getMedialaneClient } from "@/lib/medialane-client";
 import { Button } from "@medialane/ui/button";
 import { Input } from "@medialane/ui/input";
 import { Label } from "@medialane/ui/label";
@@ -24,6 +18,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { SectionCard, SectionHeader, FieldRow, HelperText } from "./settings-ui";
 import { CollectionSlugClaimSection } from "./collection-slug-claim-section";
+import { useCollectionSettings } from "./use-collection-settings";
 
 interface Props { params: Promise<{ contract: string }> }
 
@@ -39,54 +34,10 @@ const CONTENT_TYPES = [
 
 export default function CollectionSettingsPage({ params }: Props) {
   const { contract } = use(params);
-  const { address: walletAddress } = useWalletNativeSession();
-  const { session } = useSession();
-  const { collection, isLoading: collectionLoading } = useCollection(contract);
-  const { profile, isLoading: profileLoading, mutate } = useCollectionProfile(contract);
-  const [saving, setSaving] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saved" | "error">("idle");
-  const [saveError, setSaveError] = useState<string | null>(null);
-
-  const [form, setForm] = useState({
-    displayName: "",
-    description: "",
-    image: "",
-    bannerImage: "",
-    websiteUrl: "",
-    twitterUrl: "",
-    discordUrl: "",
-    telegramUrl: "",
-    gatedEnabled: false,
-    gatedContentTitle: "",
-    gatedContentUrl: "",
-    gatedContentType: "",
-  });
-
-  useEffect(() => {
-    if (profile) {
-      setForm(f => ({
-        ...f,
-        displayName: profile.displayName ?? "",
-        description: profile.description ?? "",
-        image: profile.image ?? "",
-        bannerImage: profile.bannerImage ?? "",
-        websiteUrl: profile.websiteUrl ?? "",
-        twitterUrl: profile.twitterUrl ?? "",
-        discordUrl: profile.discordUrl ?? "",
-        telegramUrl: profile.telegramUrl ?? "",
-        gatedEnabled: profile.hasGatedContent,
-        gatedContentTitle: profile.gatedContentTitle ?? "",
-      }));
-    }
-  }, [profile]);
-
-  const set = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-    setForm(f => ({ ...f, [key]: e.target.value }));
-
-  const isOwner = walletAddress && collection?.owner &&
-    normalizeAddress("STARKNET", walletAddress) === normalizeAddress("STARKNET", collection.owner);
-
-  const isLoading = collectionLoading || profileLoading;
+  const {
+    collection, profile, collectionLoading, isLoading, isOwner,
+    form, set, update, saving, saveStatus, saveError, save,
+  } = useCollectionSettings(contract);
   const descLen = form.description.length;
 
   if (!collectionLoading && collection && !isOwner) {
@@ -105,38 +56,6 @@ export default function CollectionSettingsPage({ params }: Props) {
         </Button>
       </div>
     );
-  }
-
-  async function handleSave() {
-    setSaving(true);
-    setSaveError(null);
-    try {
-      requireSignedIn(session);
-      const payload = {
-        displayName: form.displayName || null,
-        description: form.description || null,
-        image: form.image || null,
-        bannerImage: form.bannerImage || null,
-        websiteUrl: form.websiteUrl || null,
-        twitterUrl: form.twitterUrl || null,
-        discordUrl: form.discordUrl || null,
-        telegramUrl: form.telegramUrl || null,
-        gatedContentTitle: form.gatedEnabled ? (form.gatedContentTitle || null) : null,
-        gatedContentUrl: form.gatedEnabled ? (form.gatedContentUrl || null) : null,
-        gatedContentType: form.gatedEnabled
-          ? ((form.gatedContentType || null) as "VIDEO" | "STREAM" | "AUDIO" | "DOCUMENT" | "LINK" | null)
-          : null,
-      };
-      await getMedialaneClient().api.collections.updateProfile(contract, payload);
-      await mutate();
-      setSaveStatus("saved");
-      setTimeout(() => setSaveStatus("idle"), 3000);
-    } catch (e) {
-      setSaveStatus("error");
-      setSaveError(describeError(e).message);
-    } finally {
-      setSaving(false);
-    }
   }
 
   const selectedContentType = CONTENT_TYPES.find(t => t.value === form.gatedContentType);
@@ -278,7 +197,7 @@ export default function CollectionSettingsPage({ params }: Props) {
             </div>
             <Switch
               checked={form.gatedEnabled}
-              onCheckedChange={(v) => setForm(f => ({ ...f, gatedEnabled: v }))}
+              onCheckedChange={(v) => update({ gatedEnabled: v })}
               disabled={isLoading}
             />
           </div>
@@ -318,7 +237,7 @@ export default function CollectionSettingsPage({ params }: Props) {
                 <Label>Content type</Label>
                 <Select
                   value={form.gatedContentType}
-                  onValueChange={(v) => setForm(f => ({ ...f, gatedContentType: v }))}
+                  onValueChange={(v) => update({ gatedContentType: v })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="What kind of content is this?" />
@@ -409,7 +328,7 @@ export default function CollectionSettingsPage({ params }: Props) {
 
       <div className="flex items-center gap-3 pt-2">
         <Button
-          onClick={handleSave}
+          onClick={save}
           disabled={saving || isLoading || descLen > DESC_MAX}
           className="min-w-[120px]"
         >
