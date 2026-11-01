@@ -1,13 +1,7 @@
 "use client";
 
-import { describeError, useCollection, useCollectionProfile } from "@medialane/ui";
-import { use, useState, useEffect, useRef } from "react";
-import { normalizeAddress } from "@medialane/sdk";
-import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useSession } from "@/hooks/use-session";
-import { requireSignedIn } from "@/lib/account-gate";
+import { use } from "react";
 import { collectionHref } from "@/lib/routes";
-import { getMedialaneClient } from "@/lib/medialane-client";
 import { Button } from "@medialane/ui/button";
 import { Input } from "@medialane/ui/input";
 import { Label } from "@medialane/ui/label";
@@ -18,10 +12,13 @@ import { Badge } from "@medialane/ui/badge";
 import {
   User, Image as ImageIcon, Globe, Twitter, MessageCircle, Send,
   Lock, Unlock, Sparkles, ShieldCheck, CheckCircle2, ExternalLink,
-  Video, Music, Radio, FileText, Link2, Info, Gem,
+  Video, Music, Radio, FileText, Link2, Info,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { SectionCard, SectionHeader, FieldRow, HelperText } from "./settings-ui";
+import { CollectionSlugClaimSection } from "./collection-slug-claim-section";
+import { useCollectionSettings } from "./use-collection-settings";
 
 interface Props { params: Promise<{ contract: string }> }
 
@@ -35,294 +32,12 @@ const CONTENT_TYPES = [
   { value: "LINK",     label: "Link",         icon: Link2,    hint: "Any URL" },
 ];
 
-function SectionCard({ children, className, id }: { children: React.ReactNode; className?: string; id?: string }) {
-  return (
-    <div id={id} className={cn("bg-card border border-border rounded-xl p-5 space-y-4", className)}>
-      {children}
-    </div>
-  );
-}
-
-function SectionHeader({
-  icon: Icon,
-  title,
-  description,
-  badge,
-  iconClass = "text-muted-foreground",
-  bgClass = "bg-muted",
-}: {
-  icon: React.ElementType;
-  title: string;
-  description?: string;
-  badge?: React.ReactNode;
-  iconClass?: string;
-  bgClass?: string;
-}) {
-  return (
-    <div className="flex items-start gap-3 pb-1">
-      <div className={cn("h-8 w-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5", bgClass)}>
-        <Icon className={cn("h-4 w-4", iconClass)} />
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
-          <h3 className="text-sm font-semibold text-foreground">{title}</h3>
-          {badge}
-        </div>
-        {description && <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{description}</p>}
-      </div>
-    </div>
-  );
-}
-
-function FieldRow({ children }: { children: React.ReactNode }) {
-  return <div className="space-y-1.5">{children}</div>;
-}
-
-function HelperText({ children }: { children: React.ReactNode }) {
-  return <p className="text-xs text-muted-foreground leading-relaxed">{children}</p>;
-}
-
-function CollectionSlugClaimSection({
-  contract,
-  profile,
-}: {
-  contract: string;
-  profile: { slug?: string | null } | null;
-}) {
-  const { session } = useSession();
-  const [slugInput, setSlugInput] = useState("");
-  const [checkState, setCheckState] = useState<"idle" | "checking" | "available" | "taken" | "invalid">("idle");
-  const [checkReason, setCheckReason] = useState<string | null>(null);
-  const [submitState, setSubmitState] = useState<"idle" | "submitting" | "done" | "error">("idle");
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [pendingSlug, setPendingSlug] = useState<string | null>(null);
-  const loadedRef = useRef(false);
-
-  useEffect(() => {
-    if (loadedRef.current) return;
-    loadedRef.current = true;
-    (async () => {
-      try {
-        requireSignedIn(session);
-        const { claims } = await getMedialaneClient().api.collections.mySlugClaims();
-        const match = claims.find(
-          (c) => normalizeAddress("STARKNET", c.contractAddress) === normalizeAddress("STARKNET", contract) && c.status === "PENDING"
-        );
-        if (match) setPendingSlug(match.slug);
-      } catch {}
-    })();
-  }, [contract, session]);
-
-  const handleCheck = async () => {
-    const slug = slugInput.toLowerCase().trim();
-    if (!slug) return;
-    setCheckState("checking");
-    setCheckReason(null);
-    try {
-      const result = await getMedialaneClient().api.collections.slugAvailability(slug);
-      setCheckState(result.available ? "available" : "taken");
-      if (!result.available) setCheckReason(result.reason ?? "That slug is not available.");
-    } catch {
-      setCheckState("invalid");
-      setCheckReason("Unable to check availability. Try again.");
-    }
-  };
-
-  const handleSubmit = async () => {
-    const slug = slugInput.toLowerCase().trim();
-    if (!slug || checkState !== "available") return;
-    setSubmitState("submitting");
-    setSubmitError(null);
-    try {
-      requireSignedIn(session);
-      const { claim } = await getMedialaneClient().api.collections.submitSlugClaim(contract, slug);
-      setPendingSlug(claim.slug);
-      setSubmitState("done");
-    } catch (err: unknown) {
-      const msg = describeError(err).message;
-      setSubmitError(msg);
-      setSubmitState("error");
-    }
-  };
-
-  if (profile?.slug) {
-    return (
-      <SectionCard className="border-emerald-500/20 bg-emerald-500/[0.02]">
-        <SectionHeader
-          icon={Gem}
-          title="Collection URL"
-          description={`medialane.io/collection/${profile.slug}`}
-          iconClass="text-emerald-500"
-          bgClass="bg-emerald-500/15"
-          badge={
-            <Badge variant="outline" className="text-2xs h-4 px-1.5 text-emerald-600 border-emerald-500/30">
-              Active
-            </Badge>
-          }
-        />
-        <div className="pt-1 border-t border-border">
-          <p className="text-xs text-muted-foreground">
-            Your collection is accessible at{" "}
-            <span className="tabular-nums text-foreground">medialane.io/collection/{profile.slug}</span>
-          </p>
-        </div>
-      </SectionCard>
-    );
-  }
-
-  if (pendingSlug) {
-    return (
-      <SectionCard className="border-primary/20 bg-primary/[0.02]">
-        <SectionHeader
-          icon={Gem}
-          title="Claim your collection URL"
-          description={`medialane.io/collection/${pendingSlug}`}
-          iconClass="text-primary"
-          bgClass="bg-primary/15"
-          badge={
-            <Badge variant="outline" className="text-2xs h-4 px-1.5 text-amber-600 border-amber-500/30">
-              Pending review
-            </Badge>
-          }
-        />
-        <div className="pt-1 border-t border-border">
-          <p className="text-xs text-muted-foreground">
-            Your claim for{" "}
-            <span className="tabular-nums text-foreground">medialane.io/collection/{pendingSlug}</span> is under
-            review. You&apos;ll be notified once it&apos;s approved.
-          </p>
-        </div>
-      </SectionCard>
-    );
-  }
-
-  return (
-    <SectionCard className="border-primary/20 bg-primary/[0.02]">
-      <SectionHeader
-        icon={Gem}
-        title="Claim your collection URL"
-        description="Reserve a unique URL — medialane.io/collection/your-name"
-        iconClass="text-primary"
-        bgClass="bg-primary/15"
-      />
-      <div className="pt-3 border-t border-border space-y-3">
-        <div className="flex items-center gap-2">
-          <div className="flex-1 flex items-center rounded-lg border border-border bg-muted/40 px-3 py-2">
-            <span className="text-xs text-muted-foreground whitespace-nowrap shrink-0">
-              medialane.io/collection/
-            </span>
-            <input
-              type="text"
-              className="flex-1 bg-transparent text-xs text-foreground outline-none placeholder:text-muted-foreground/50 min-w-0"
-              placeholder="your-name"
-              value={slugInput}
-              onChange={(e) => {
-                setSlugInput(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""));
-                setCheckState("idle");
-              }}
-              onKeyDown={(e) => { if (e.key === "Enter") handleCheck(); }}
-              maxLength={20}
-            />
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleCheck}
-            disabled={!slugInput.trim() || checkState === "checking"}
-            className="shrink-0"
-          >
-            {checkState === "checking" ? "Checking…" : "Check"}
-          </Button>
-        </div>
-
-        {checkState === "available" && (
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-xs text-emerald-600 font-medium truncate">
-              ✓ Available — <span className="tabular-nums">medialane.io/collection/{slugInput}</span>
-            </p>
-            <Button size="sm" onClick={handleSubmit} disabled={submitState === "submitting"} className="shrink-0">
-              {submitState === "submitting" ? "Claiming…" : "Claim this URL"}
-            </Button>
-          </div>
-        )}
-
-        {(checkState === "taken" || checkState === "invalid") && (
-          <p className="text-xs text-destructive">{checkReason ?? "That slug is not available."}</p>
-        )}
-
-        {submitState === "error" && (
-          <p className="text-xs text-destructive">
-            {submitError}
-            {submitError === "Verify your email to claim a collection." && (
-              <>
-                {" "}
-                <Link href="/settings/email" className="underline font-medium hover:text-foreground">
-                  Verify email
-                </Link>
-              </>
-            )}
-          </p>
-        )}
-
-        <p className="text-xs text-muted-foreground">
-          3–20 characters, lowercase letters, numbers, underscores or hyphens. Claims are reviewed before
-          going live.
-        </p>
-      </div>
-    </SectionCard>
-  );
-}
-
 export default function CollectionSettingsPage({ params }: Props) {
   const { contract } = use(params);
-  const { address: walletAddress } = useWalletNativeSession();
-  const { session } = useSession();
-  const { collection, isLoading: collectionLoading } = useCollection(contract);
-  const { profile, isLoading: profileLoading, mutate } = useCollectionProfile(contract);
-  const [saving, setSaving] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saved" | "error">("idle");
-  const [saveError, setSaveError] = useState<string | null>(null);
-
-  const [form, setForm] = useState({
-    displayName: "",
-    description: "",
-    image: "",
-    bannerImage: "",
-    websiteUrl: "",
-    twitterUrl: "",
-    discordUrl: "",
-    telegramUrl: "",
-    gatedEnabled: false,
-    gatedContentTitle: "",
-    gatedContentUrl: "",
-    gatedContentType: "",
-  });
-
-  useEffect(() => {
-    if (profile) {
-      setForm(f => ({
-        ...f,
-        displayName: profile.displayName ?? "",
-        description: profile.description ?? "",
-        image: profile.image ?? "",
-        bannerImage: profile.bannerImage ?? "",
-        websiteUrl: profile.websiteUrl ?? "",
-        twitterUrl: profile.twitterUrl ?? "",
-        discordUrl: profile.discordUrl ?? "",
-        telegramUrl: profile.telegramUrl ?? "",
-        gatedEnabled: profile.hasGatedContent,
-        gatedContentTitle: profile.gatedContentTitle ?? "",
-      }));
-    }
-  }, [profile]);
-
-  const set = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-    setForm(f => ({ ...f, [key]: e.target.value }));
-
-  const isOwner = walletAddress && collection?.owner &&
-    normalizeAddress("STARKNET", walletAddress) === normalizeAddress("STARKNET", collection.owner);
-
-  const isLoading = collectionLoading || profileLoading;
+  const {
+    collection, profile, collectionLoading, isLoading, isOwner,
+    form, set, update, saving, saveStatus, saveError, save,
+  } = useCollectionSettings(contract);
   const descLen = form.description.length;
 
   if (!collectionLoading && collection && !isOwner) {
@@ -341,38 +56,6 @@ export default function CollectionSettingsPage({ params }: Props) {
         </Button>
       </div>
     );
-  }
-
-  async function handleSave() {
-    setSaving(true);
-    setSaveError(null);
-    try {
-      requireSignedIn(session);
-      const payload = {
-        displayName: form.displayName || null,
-        description: form.description || null,
-        image: form.image || null,
-        bannerImage: form.bannerImage || null,
-        websiteUrl: form.websiteUrl || null,
-        twitterUrl: form.twitterUrl || null,
-        discordUrl: form.discordUrl || null,
-        telegramUrl: form.telegramUrl || null,
-        gatedContentTitle: form.gatedEnabled ? (form.gatedContentTitle || null) : null,
-        gatedContentUrl: form.gatedEnabled ? (form.gatedContentUrl || null) : null,
-        gatedContentType: form.gatedEnabled
-          ? ((form.gatedContentType || null) as "VIDEO" | "STREAM" | "AUDIO" | "DOCUMENT" | "LINK" | null)
-          : null,
-      };
-      await getMedialaneClient().api.collections.updateProfile(contract, payload);
-      await mutate();
-      setSaveStatus("saved");
-      setTimeout(() => setSaveStatus("idle"), 3000);
-    } catch (e) {
-      setSaveStatus("error");
-      setSaveError(describeError(e).message);
-    } finally {
-      setSaving(false);
-    }
   }
 
   const selectedContentType = CONTENT_TYPES.find(t => t.value === form.gatedContentType);
@@ -514,7 +197,7 @@ export default function CollectionSettingsPage({ params }: Props) {
             </div>
             <Switch
               checked={form.gatedEnabled}
-              onCheckedChange={(v) => setForm(f => ({ ...f, gatedEnabled: v }))}
+              onCheckedChange={(v) => update({ gatedEnabled: v })}
               disabled={isLoading}
             />
           </div>
@@ -554,7 +237,7 @@ export default function CollectionSettingsPage({ params }: Props) {
                 <Label>Content type</Label>
                 <Select
                   value={form.gatedContentType}
-                  onValueChange={(v) => setForm(f => ({ ...f, gatedContentType: v }))}
+                  onValueChange={(v) => update({ gatedContentType: v })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="What kind of content is this?" />
@@ -645,7 +328,7 @@ export default function CollectionSettingsPage({ params }: Props) {
 
       <div className="flex items-center gap-3 pt-2">
         <Button
-          onClick={handleSave}
+          onClick={save}
           disabled={saving || isLoading || descLen > DESC_MAX}
           className="min-w-[120px]"
         >
