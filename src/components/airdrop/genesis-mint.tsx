@@ -1,7 +1,7 @@
 "use client";
 
-import { UserFacingError, GradientButton, runIntentCalls, useTransaction } from "@medialane/ui";
-import { useState, useCallback, useEffect } from "react";
+import { GradientButton } from "@medialane/ui";
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { OnboardingFlow } from "@/components/connect/onboarding-flow";
@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { Button } from "@medialane/ui/button";
 import { EXPLORER_URL, MINT_CONTRACT } from "@/lib/constants";
-import { getMedialaneClient } from "@/lib/medialane-client";
+import { useGenesisMint } from "@/hooks/use-genesis-mint";
 
 export function AirdropEventCard() {
   const [errored, setErrored] = useState(false);
@@ -47,69 +47,20 @@ export function AirdropEventCard() {
   );
 }
 
-type MintStep = "ready" | "minting" | "success" | "error";
+const MESSAGES = {
+  preparing: "Preparing your record…",
+  submitting: "Confirming participation…",
+  noAccount: "Account not found. Please try again.",
+  notStarted: "Airdrop has not started yet.",
+};
 
 export function GenesisMint() {
   const { hasWallet, address: walletAddress, isDeployed } = useWalletNativeSession();
-  const action = useTransaction();
-
-  const [mintStep, setMintStep] = useState<MintStep>("ready");
-  const [mintError, setMintError] = useState<string | null>(null);
-  const [mintStatusMsg, setMintStatusMsg] = useState("");
-  const [completedTxHash, setCompletedTxHash] = useState<string | null>(null);
-
-  const storageKey = walletAddress ? `ml_mint_${walletAddress}` : null;
-
-  useEffect(() => {
-    if (!storageKey) return;
-    const stored = localStorage.getItem(storageKey);
-    if (stored) { setCompletedTxHash(stored); setMintStep("success"); }
-  }, [storageKey]);
-
-  const executeMint = useCallback(async () => {
-    setMintError(null);
-    setMintStep("minting");
-    setMintStatusMsg("Preparing your record…");
-
-    await action.run(async (signer) => {
-      if (!walletAddress) throw new UserFacingError("Account not found. Please try again.");
-      if (!MINT_CONTRACT) throw new UserFacingError("Airdrop has not started yet.");
-
-      setMintStatusMsg("Confirming participation…");
-      await runIntentCalls(signer, () => getMedialaneClient().api.intents.create("genesis-mint", { owner: signer.address, recipient: walletAddress }));
-    });
-  }, [walletAddress, action]);
-
-  useEffect(() => {
-    if (action.phase === "success" && action.txHash) {
-      setMintStep("success");
-      setCompletedTxHash(action.txHash);
-      if (storageKey) localStorage.setItem(storageKey, action.txHash);
-    }
-  }, [action.phase, action.txHash, storageKey]);
-
-  useEffect(() => {
-    if (action.phase === "error") {
-      setMintStep("error");
-      setMintError(action.error);
-    }
-  }, [action.phase, action.error]);
-
-  const handleClaim = useCallback(() => {
-    void executeMint();
-  }, [executeMint]);
-
-  const handleRetry = () => {
-    action.reset();
-    setMintError(null);
-    setMintStep("ready");
-  };
-
-  const handleResetMintGate = useCallback(() => {
-    if (storageKey) localStorage.removeItem(storageKey);
-    setCompletedTxHash(null);
-    setMintStep("ready");
-  }, [storageKey]);
+  const { step, error, statusMsg, txHash, phase, start, retry, resetStored } = useGenesisMint({
+    address: walletAddress ?? null,
+    storageKey: walletAddress ? `ml_mint_${walletAddress}` : null,
+    messages: MESSAGES,
+  });
 
   if (!hasWallet || isDeployed === null) {
     return (
@@ -124,7 +75,7 @@ export function GenesisMint() {
 
   return (
     <div className="rounded-2xl border border-border/50 bg-card/60 backdrop-blur-sm p-5 space-y-4 shadow-lg shadow-black/5">
-      {mintStep === "ready" && (
+      {step === "ready" && (
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-sm">
             <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
@@ -132,27 +83,27 @@ export function GenesisMint() {
               Account active, mint your passport
             </span>
           </div>
-          <GradientButton big onClick={handleClaim} disabled={!MINT_CONTRACT}>
+          <GradientButton big onClick={start} disabled={!MINT_CONTRACT}>
             <Sparkles className="h-4 w-4" />
             {MINT_CONTRACT ? "Claim my spot" : "Airdrop not started yet"}
           </GradientButton>
         </div>
       )}
 
-      {mintStep === "minting" && (
+      {step === "minting" && (
         <div className="space-y-3">
           <div className="flex items-center gap-3">
             <Loader2 className="h-6 w-6 animate-spin text-primary shrink-0" />
             <div>
               <p className="font-semibold text-sm">Registering your participation…</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{mintStatusMsg || "Please wait…"}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{statusMsg || "Please wait…"}</p>
             </div>
           </div>
           <div className="space-y-1.5 pl-9">
             {[
-              { label: "Preparing your record", done: action.phase !== "idle" },
-              { label: "Submitting", done: action.phase === "confirming" || action.phase === "success" },
-              { label: "Confirmed", done: action.phase === "success" },
+              { label: "Preparing your record", done: phase !== "idle" },
+              { label: "Submitting", done: phase === "confirming" || phase === "success" },
+              { label: "Confirmed", done: phase === "success" },
             ].map(({ label, done }) => (
               <div key={label} className="flex items-center gap-2 text-xs text-muted-foreground">
                 {done ? <CheckCircle2 className="h-3 w-3 text-emerald-500" /> : <div className="h-3 w-3 rounded-full border border-muted-foreground/30" />}
@@ -163,7 +114,7 @@ export function GenesisMint() {
         </div>
       )}
 
-      {mintStep === "success" && (
+      {step === "success" && (
         <div className="space-y-4">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
@@ -174,14 +125,14 @@ export function GenesisMint() {
               <p className="text-xs text-muted-foreground mt-0.5">Your participation is confirmed.</p>
             </div>
           </div>
-          {completedTxHash && (
+          {txHash && (
             <a
-              href={`${EXPLORER_URL}/tx/${completedTxHash}`}
+              href={`${EXPLORER_URL}/tx/${txHash}`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
-              <span className="tabular-nums">{completedTxHash.slice(0, 12)}…{completedTxHash.slice(-8)}</span>
+              <span className="tabular-nums">{txHash.slice(0, 12)}…{txHash.slice(-8)}</span>
               <ExternalLink className="h-3 w-3" />
             </a>
           )}
@@ -193,22 +144,22 @@ export function GenesisMint() {
               <Link href="/marketplace">Explore</Link>
             </Button>
           </div>
-          <button className="text-xs text-muted-foreground underline underline-offset-2 w-full text-center" onClick={handleResetMintGate}>
+          <button className="text-xs text-muted-foreground underline underline-offset-2 w-full text-center" onClick={resetStored}>
             Didn&apos;t mint your passport? Try again
           </button>
         </div>
       )}
 
-      {mintStep === "error" && (
+      {step === "error" && (
         <div className="space-y-3">
           <div className="flex items-start gap-3">
             <XCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
             <div>
               <p className="font-semibold text-sm">Could not complete</p>
-              {mintError && <p className="text-xs text-muted-foreground mt-0.5">{mintError}</p>}
+              {error && <p className="text-xs text-muted-foreground mt-0.5">{error}</p>}
             </div>
           </div>
-          <Button size="sm" variant="outline" className="gap-2" onClick={handleRetry}>
+          <Button size="sm" variant="outline" className="gap-2" onClick={retry}>
             <RefreshCw className="h-3.5 w-3.5" /> Try again
           </Button>
         </div>
