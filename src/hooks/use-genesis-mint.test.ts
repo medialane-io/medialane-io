@@ -43,8 +43,17 @@ const setMintContract = (value: string) => mock.module("@/lib/constants", () => 
 setMintContract("0xmint");
 
 const intentCalls: unknown[] = [];
+const chain = { balance: "0x0", tokenId: "0x2a", down: false };
 mock.module("@/lib/medialane-client", () => ({
   getMedialaneClient: () => ({
+    provider: {
+      callContract: async ({ entrypoint }: { entrypoint: string }) => {
+        if (chain.down) throw new Error("rpc down");
+        if (entrypoint === "balanceOf") return [chain.balance, "0x0"];
+        if (entrypoint === "token_of_owner_by_index") return [chain.tokenId, "0x0"];
+        throw new Error(`unexpected ${entrypoint}`);
+      },
+    },
     api: {
       intents: {
         create: async (kind: string, params: unknown) => {
@@ -71,18 +80,45 @@ beforeEach(() => {
   intentCalls.length = 0;
   txHash = "0xtx";
   runFailure = null;
+  chain.balance = "0x0";
+  chain.tokenId = "0x2a";
+  chain.down = false;
   setMintContract("0xmint");
 });
 
-test("restores success from storage", async () => {
-  localStorage.setItem("k1", "0xabc");
-  const { result } = renderHook(() => useGenesisMint({ address: "0xme", storageKey: "k1", messages }));
+const render = (address: string | null = "0xme") =>
+  renderHook(() => useGenesisMint({ address, messages }));
+
+test("checks the chain before offering the mint", async () => {
+  const { result } = render();
+  expect(result.current.step).toBe("checking");
+  await waitFor(() => expect(result.current.step).toBe("ready"));
+});
+
+test("a wallet that holds the token starts on success with a link to it", async () => {
+  chain.balance = "0x1";
+  const { result } = render();
   await waitFor(() => expect(result.current.step).toBe("success"));
-  expect(result.current.txHash).toBe("0xabc");
+  expect(result.current.tokenId).toBe("42");
+  expect(result.current.txHash).toBeNull();
+});
+
+test("an unreachable chain falls back to ready", async () => {
+  chain.down = true;
+  const { result } = render();
+  await waitFor(() => expect(result.current.step).toBe("ready"));
+});
+
+test("no chain read happens without an address or a mint contract", async () => {
+  const none = render(null);
+  expect(none.result.current.step).toBe("ready");
+  setMintContract("");
+  const unset = render();
+  expect(unset.result.current.step).toBe("ready");
 });
 
 test("start without an address reports noAccount", async () => {
-  const { result } = renderHook(() => useGenesisMint({ address: null, storageKey: null, messages }));
+  const { result } = render(null);
   await act(async () => {
     result.current.start();
   });
@@ -93,7 +129,7 @@ test("start without an address reports noAccount", async () => {
 
 test("start without a mint contract reports notStarted", async () => {
   setMintContract("");
-  const { result } = renderHook(() => useGenesisMint({ address: "0xme", storageKey: "k1", messages }));
+  const { result } = render();
   await act(async () => {
     result.current.start();
   });
@@ -102,29 +138,23 @@ test("start without a mint contract reports notStarted", async () => {
   expect(intentCalls).toEqual([]);
 });
 
-test("success stores the hash under storageKey", async () => {
-  const { result } = renderHook(() => useGenesisMint({ address: "0xme", storageKey: "k1", messages }));
+test("a completed mint shows its transaction and then the token", async () => {
+  const { result } = render();
+  await waitFor(() => expect(result.current.step).toBe("ready"));
+  chain.balance = "0x1";
   await act(async () => {
     result.current.start();
   });
   await waitFor(() => expect(result.current.step).toBe("success"));
   expect(result.current.txHash).toBe("0xtx");
-  expect(localStorage.getItem("k1")).toBe("0xtx");
   expect(intentCalls).toEqual([{ kind: "genesis-mint", params: { owner: "0xsigner", recipient: "0xme" } }]);
-});
-
-test("success with a null storageKey writes nothing", async () => {
-  const { result } = renderHook(() => useGenesisMint({ address: "0xme", storageKey: null, messages }));
-  await act(async () => {
-    result.current.start();
-  });
-  await waitFor(() => expect(result.current.step).toBe("success"));
-  expect(localStorage.length).toBe(0);
+  await waitFor(() => expect(result.current.tokenId).toBe("42"));
 });
 
 test("retry returns to ready", async () => {
   runFailure = new Error("boom");
-  const { result } = renderHook(() => useGenesisMint({ address: "0xme", storageKey: "k1", messages }));
+  const { result } = render();
+  await waitFor(() => expect(result.current.step).toBe("ready"));
   await act(async () => {
     result.current.start();
   });
@@ -135,12 +165,11 @@ test("retry returns to ready", async () => {
   expect(result.current.error).toBeNull();
 });
 
-test("resetStored clears the marker", async () => {
-  localStorage.setItem("k1", "0xabc");
-  const { result } = renderHook(() => useGenesisMint({ address: "0xme", storageKey: "k1", messages }));
+test("mintAnother lets a holder mint again", async () => {
+  chain.balance = "0x1";
+  const { result } = render();
   await waitFor(() => expect(result.current.step).toBe("success"));
-  act(() => result.current.resetStored());
-  expect(localStorage.getItem("k1")).toBeNull();
-  expect(result.current.txHash).toBeNull();
+  act(() => result.current.mintAnother());
   expect(result.current.step).toBe("ready");
+  expect(result.current.txHash).toBeNull();
 });

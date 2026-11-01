@@ -64,5 +64,5 @@ const SIGNED_OUT = (
 );
 
 export function GenesisMint() {
-  return <GenesisMintCard copy={COPY} storageKeyPrefix="ml_mint_" signedOut={SIGNED_OUT} />;
+  return <GenesisMintCard copy={COPY} signedOut={SIGNED_OUT} />;
 }

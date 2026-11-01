@@ -7,6 +7,7 @@ import { Button } from "@medialane/ui/button";
 import { Sparkles, ExternalLink, CheckCircle2, Loader2, RefreshCw, XCircle } from "lucide-react";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useGenesisMint, type GenesisMintMessages } from "@/hooks/use-genesis-mint";
+import { assetHref } from "@/lib/routes";
 import { EXPLORER_URL, MINT_CONTRACT } from "@/lib/constants";
 
 export interface GenesisMintCopy extends GenesisMintMessages {
@@ -27,15 +28,13 @@ export interface GenesisMintCopy extends GenesisMintMessages {
 
 interface GenesisMintCardProps {
   copy: GenesisMintCopy;
-  storageKeyPrefix: string;
   signedOut: ReactNode;
 }
 
-export function GenesisMintCard({ copy, storageKeyPrefix, signedOut }: GenesisMintCardProps) {
+export function GenesisMintCard({ copy, signedOut }: GenesisMintCardProps) {
   const { hasWallet, address, isDeployed } = useWalletNativeSession();
-  const { step, error, statusMsg, txHash, phase, start, retry, resetStored } = useGenesisMint({
+  const { step, error, statusMsg, txHash, tokenId, phase, start, retry, mintAnother } = useGenesisMint({
     address: address ?? null,
-    storageKey: address ? `${storageKeyPrefix}${address}` : null,
     messages: copy,
   });
 
@@ -45,6 +44,8 @@ export function GenesisMintCard({ copy, storageKeyPrefix, signedOut }: GenesisMi
 
   return (
     <div className="rounded-2xl border border-border/50 bg-card/60 backdrop-blur-sm p-5 space-y-4 shadow-lg shadow-black/5">
+      {step === "checking" && <div className="h-24 rounded-xl bg-muted/30 animate-pulse" />}
+
       {step === "ready" && (
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-sm">
@@ -89,7 +90,7 @@ export function GenesisMintCard({ copy, storageKeyPrefix, signedOut }: GenesisMi
               <p className="text-xs text-muted-foreground mt-0.5">{copy.successBody}</p>
             </div>
           </div>
-          {txHash && (
+          {txHash ? (
             <a
               href={`${EXPLORER_URL}/tx/${txHash}`}
               target="_blank"
@@ -99,7 +100,15 @@ export function GenesisMintCard({ copy, storageKeyPrefix, signedOut }: GenesisMi
               <span className="tabular-nums">{txHash.slice(0, 12)}…{txHash.slice(-8)}</span>
               <ExternalLink className="h-3 w-3" />
             </a>
-          )}
+          ) : tokenId ? (
+            <Link
+              href={assetHref("STARKNET", MINT_CONTRACT, tokenId)}
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <span className="tabular-nums">#{tokenId}</span>
+              <ExternalLink className="h-3 w-3" />
+            </Link>
+          ) : null}
           <div className="flex flex-col sm:flex-row gap-2">
             <Button size="sm" asChild className="flex-1">
               <Link href="/launchpad/single-editions">{copy.create}</Link>
@@ -108,7 +117,7 @@ export function GenesisMintCard({ copy, storageKeyPrefix, signedOut }: GenesisMi
               <Link href="/marketplace">{copy.explore}</Link>
             </Button>
           </div>
-          <button className="text-xs text-muted-foreground underline underline-offset-2 w-full text-center" onClick={resetStored}>
+          <button className="text-xs text-muted-foreground underline underline-offset-2 w-full text-center" onClick={mintAnother}>
             {copy.again}
           </button>
         </div>

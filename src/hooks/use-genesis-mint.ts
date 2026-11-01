@@ -4,8 +4,9 @@ import { useCallback, useEffect, useState } from "react";
 import { UserFacingError, runIntentCalls, useTransaction } from "@medialane/ui";
 import { MINT_CONTRACT } from "@/lib/constants";
 import { getMedialaneClient } from "@/lib/medialane-client";
+import { useGenesisHolding } from "./use-genesis-holding";
 
-export type MintStep = "ready" | "minting" | "success" | "error";
+export type MintStep = "checking" | "ready" | "minting" | "success" | "error";
 
 export interface GenesisMintMessages {
   preparing: string;
@@ -16,7 +17,6 @@ export interface GenesisMintMessages {
 
 export interface UseGenesisMintOptions {
   address: string | null;
-  storageKey: string | null;
   messages: GenesisMintMessages;
 }
 
@@ -25,32 +25,26 @@ export interface UseGenesisMint {
   error: string | null;
   statusMsg: string;
   txHash: string | null;
+  tokenId: string | null;
   phase: ReturnType<typeof useTransaction>["phase"];
   start: () => void;
   retry: () => void;
-  resetStored: () => void;
+  mintAnother: () => void;
 }
 
-export function useGenesisMint({ address, storageKey, messages }: UseGenesisMintOptions): UseGenesisMint {
+export function useGenesisMint({ address, messages }: UseGenesisMintOptions): UseGenesisMint {
   const action = useTransaction();
+  const { holding, checking, reload } = useGenesisHolding(address);
 
-  const [step, setStep] = useState<MintStep>("ready");
+  const [local, setLocal] = useState<Exclude<MintStep, "checking">>("ready");
   const [error, setError] = useState<string | null>(null);
   const [statusMsg, setStatusMsg] = useState("");
   const [txHash, setTxHash] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!storageKey) return;
-    const stored = localStorage.getItem(storageKey);
-    if (stored) {
-      setTxHash(stored);
-      setStep("success");
-    }
-  }, [storageKey]);
+  const [mintingAgain, setMintingAgain] = useState(false);
 
   const start = useCallback(() => {
     setError(null);
-    setStep("minting");
+    setLocal("minting");
     setStatusMsg(messages.preparing);
 
     void action.run(async (signer) => {
@@ -66,15 +60,15 @@ export function useGenesisMint({ address, storageKey, messages }: UseGenesisMint
 
   useEffect(() => {
     if (action.phase === "success" && action.txHash) {
-      setStep("success");
+      setLocal("success");
       setTxHash(action.txHash);
-      if (storageKey) localStorage.setItem(storageKey, action.txHash);
+      reload();
     }
-  }, [action.phase, action.txHash, storageKey]);
+  }, [action.phase, action.txHash, reload]);
 
   useEffect(() => {
     if (action.phase === "error") {
-      setStep("error");
+      setLocal("error");
       setError(action.error);
     }
   }, [action.phase, action.error]);
@@ -82,14 +76,30 @@ export function useGenesisMint({ address, storageKey, messages }: UseGenesisMint
   const retry = useCallback(() => {
     action.reset();
     setError(null);
-    setStep("ready");
+    setLocal("ready");
   }, [action]);
 
-  const resetStored = useCallback(() => {
-    if (storageKey) localStorage.removeItem(storageKey);
+  const mintAnother = useCallback(() => {
+    setMintingAgain(true);
     setTxHash(null);
-    setStep("ready");
-  }, [storageKey]);
+    setLocal("ready");
+  }, []);
 
-  return { step, error, statusMsg, txHash, phase: action.phase, start, retry, resetStored };
+  let step: MintStep = local;
+  if (local === "ready" && !mintingAgain) {
+    if (checking) step = "checking";
+    else if (holding?.owned) step = "success";
+  }
+
+  return {
+    step,
+    error,
+    statusMsg,
+    txHash,
+    tokenId: holding?.tokenId ?? null,
+    phase: action.phase,
+    start,
+    retry,
+    mintAnother,
+  };
 }

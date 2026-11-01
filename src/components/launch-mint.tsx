@@ -2,6 +2,8 @@
 
 import { ACCOUNT_NOT_READY } from "@/lib/account-gate";
 import Image from "next/image";
+import Link from "next/link";
+import { assetHref } from "@/lib/routes";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import {
   Sparkles,
@@ -79,9 +81,8 @@ const MESSAGES = {
 
 export function LaunchMint() {
   const { hasWallet, address: recipientAddress, isDeployed } = useWalletNativeSession();
-  const { step, error, statusMsg, txHash, phase, start, retry, resetStored } = useGenesisMint({
+  const { step, error, statusMsg, txHash, tokenId, phase, start, retry, mintAnother } = useGenesisMint({
     address: recipientAddress ?? null,
-    storageKey: recipientAddress ? `ml_genesis_${recipientAddress}` : null,
     messages: MESSAGES,
   });
 
@@ -144,6 +145,8 @@ export function LaunchMint() {
                     </h1>
                   </div>
                 )}
+
+                {step === "checking" && <div className="h-24 rounded-xl bg-muted/30 animate-pulse" />}
 
                 {step === "ready" && (
                   <>
@@ -237,7 +240,7 @@ export function LaunchMint() {
                         </div>
                       </div>
 
-                      {txHash && (
+                      {txHash ? (
                         <a
                           href={`${EXPLORER_URL}/tx/${txHash}`}
                           target="_blank"
@@ -249,7 +252,15 @@ export function LaunchMint() {
                           </span>
                           <ExternalLink className="h-3 w-3 group-hover:text-primary transition-colors" />
                         </a>
-                      )}
+                      ) : tokenId ? (
+                        <Link
+                          href={assetHref("STARKNET", MINT_CONTRACT, tokenId)}
+                          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors group"
+                        >
+                          <span className="tabular-nums">#{tokenId}</span>
+                          <ExternalLink className="h-3 w-3 group-hover:text-primary transition-colors" />
+                        </Link>
+                      ) : null}
                     </div>
 
                     <div className="space-y-2">
@@ -257,7 +268,7 @@ export function LaunchMint() {
                     </div>
                     <button
                       className="text-xs text-muted-foreground underline underline-offset-2"
-                      onClick={resetStored}
+                      onClick={mintAnother}
                     >
                       Didn&apos;t receive your NFT? Try again
                     </button>
