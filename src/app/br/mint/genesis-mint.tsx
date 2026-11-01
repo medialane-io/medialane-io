@@ -1,195 +1,37 @@
 "use client";
 
-import { UserFacingError, runIntentCalls, useTransaction } from "@medialane/ui";
-import { useState, useCallback, useEffect } from "react";
-import Link from "next/link";
-import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import {
-  Sparkles,
-  ExternalLink,
-  CheckCircle2,
-  Loader2,
-  RefreshCw,
-  XCircle,
-  Wallet,
-} from "lucide-react";
-import { Button } from "@medialane/ui/button";
-import { EXPLORER_URL, MINT_CONTRACT } from "@/lib/constants";
-import { getMedialaneClient } from "@/lib/medialane-client";
+import { Wallet } from "lucide-react";
+import { GenesisMintCard, type GenesisMintCopy } from "@/components/genesis-mint-card";
 
-type MintStep = "ready" | "minting" | "success" | "error";
+const COPY: GenesisMintCopy = {
+  preparing: "Preparando seu registro…",
+  submitting: "Confirmando participação…",
+  noAccount: "Conta não encontrada. Tente novamente.",
+  notStarted: "Distribuição não iniciada ainda.",
+  ready: "Conta ativa, minte seu passaporte",
+  claim: "Garantir meu lugar",
+  claimUnavailable: "Distribuição não iniciada",
+  working: "Registrando sua participação…",
+  wait: "Aguarde…",
+  steps: ["Preparando seu registro", "Enviando", "Confirmado"],
+  successTitle: "Você está dentro!",
+  successBody: "Sua participação está confirmada.",
+  create: "Publicar conteúdo",
+  explore: "Explorar o app",
+  again: "Não mintou seu passaporte? Tente novamente",
+  failedTitle: "Não foi possível registrar",
+  retry: "Tentar novamente",
+};
+
+const SIGNED_OUT = (
+  <div className="space-y-3">
+    <div className="flex items-center gap-3 py-2">
+      <Wallet className="h-5 w-5 text-muted-foreground" />
+      <p className="text-sm text-muted-foreground">Configure sua conta para participar.</p>
+    </div>
+  </div>
+);
 
 export function GenesisMint() {
-  const { hasWallet, address: walletAddress, isDeployed } = useWalletNativeSession();
-  const action = useTransaction();
-
-  const [mintStep, setMintStep] = useState<MintStep>("ready");
-  const [mintError, setMintError] = useState<string | null>(null);
-  const [mintStatusMsg, setMintStatusMsg] = useState("");
-  const [completedTxHash, setCompletedTxHash] = useState<string | null>(null);
-
-  const storageKey = walletAddress ? `ml_br_mint_${walletAddress}` : null;
-
-  useEffect(() => {
-    if (!storageKey) return;
-    const stored = localStorage.getItem(storageKey);
-    if (stored) { setCompletedTxHash(stored); setMintStep("success"); }
-  }, [storageKey]);
-
-  const executeMint = useCallback(async () => {
-    setMintError(null);
-    setMintStep("minting");
-    setMintStatusMsg("Preparando seu registro…");
-
-    await action.run(async (signer) => {
-      if (!walletAddress) throw new UserFacingError("Conta não encontrada. Tente novamente.");
-      if (!MINT_CONTRACT) throw new UserFacingError("Distribuição não iniciada ainda.");
-
-      setMintStatusMsg("Confirmando participação…");
-      await runIntentCalls(signer, () => getMedialaneClient().api.intents.create("genesis-mint", { owner: signer.address, recipient: walletAddress }));
-    });
-  }, [walletAddress, action]);
-
-  useEffect(() => {
-    if (action.phase === "success" && action.txHash) {
-      setMintStep("success");
-      setCompletedTxHash(action.txHash);
-      if (storageKey) localStorage.setItem(storageKey, action.txHash);
-    }
-  }, [action.phase, action.txHash, storageKey]);
-
-  useEffect(() => {
-    if (action.phase === "error") {
-      setMintStep("error");
-      setMintError(action.error);
-    }
-  }, [action.phase, action.error]);
-
-  const handleClaim = useCallback(() => {
-    void executeMint();
-  }, [executeMint]);
-
-  const handleRetry = () => {
-    action.reset();
-    setMintError(null);
-    setMintStep("ready");
-  };
-
-  const handleResetMintGate = useCallback(() => {
-    if (storageKey) localStorage.removeItem(storageKey);
-    setCompletedTxHash(null);
-    setMintStep("ready");
-  }, [storageKey]);
-
-  if (!hasWallet || isDeployed === null) {
-    return (
-      <div className="space-y-3">
-        <div className="flex items-center gap-3 py-2">
-          <Wallet className="h-5 w-5 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">Configure sua conta para participar.</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="rounded-2xl border border-border/50 bg-card/50 p-5 space-y-4">
-      {mintStep === "ready" && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 text-sm">
-            <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
-            <span className="text-emerald-600 dark:text-emerald-400 font-medium">
-              Conta ativa, minte seu passaporte
-            </span>
-          </div>
-          <div className="btn-border-animated p-[1px] rounded-2xl">
-            <Button
-              size="lg"
-              className="w-full h-12 font-bold gap-2 bg-transparent text-white rounded-[15px] hover:bg-transparent hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
-              onClick={handleClaim}
-              disabled={!MINT_CONTRACT}
-            >
-              <Sparkles className="h-4 w-4" />
-              {MINT_CONTRACT ? "Garantir meu lugar" : "Distribuição não iniciada"}
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {mintStep === "minting" && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-3">
-            <Loader2 className="h-6 w-6 animate-spin text-primary shrink-0" />
-            <div>
-              <p className="font-semibold text-sm">Registrando sua participação…</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{mintStatusMsg || "Aguarde…"}</p>
-            </div>
-          </div>
-          <div className="space-y-1.5 pl-9">
-            {[
-              { label: "Preparando seu registro", done: action.phase !== "idle" },
-              { label: "Enviando", done: action.phase === "confirming" || action.phase === "success" },
-              { label: "Confirmado", done: action.phase === "success" },
-            ].map(({ label, done }) => (
-              <div key={label} className="flex items-center gap-2 text-xs text-muted-foreground">
-                {done ? <CheckCircle2 className="h-3 w-3 text-emerald-500" /> : <div className="h-3 w-3 rounded-full border border-muted-foreground/30" />}
-                <span className={done ? "text-foreground" : ""}>{label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {mintStep === "success" && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
-              <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-            </div>
-            <div>
-              <p className="font-bold text-emerald-600 dark:text-emerald-300">Você está dentro!</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Sua participação está confirmada.</p>
-            </div>
-          </div>
-          {completedTxHash && (
-            <a
-              href={`${EXPLORER_URL}/tx/${completedTxHash}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <span className="tabular-nums">{completedTxHash.slice(0, 12)}…{completedTxHash.slice(-8)}</span>
-              <ExternalLink className="h-3 w-3" />
-            </a>
-          )}
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Button size="sm" asChild className="flex-1">
-              <Link href="/launchpad/single-editions">Publicar conteúdo</Link>
-            </Button>
-            <Button size="sm" variant="outline" asChild className="flex-1">
-              <Link href="/marketplace">Explorar o app</Link>
-            </Button>
-          </div>
-          <button className="text-xs text-muted-foreground underline underline-offset-2 w-full text-center" onClick={handleResetMintGate}>
-            Não mintou seu passaporte? Tente novamente
-          </button>
-        </div>
-      )}
-
-      {mintStep === "error" && (
-        <div className="space-y-3">
-          <div className="flex items-start gap-3">
-            <XCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
-            <div>
-              <p className="font-semibold text-sm">Não foi possível registrar</p>
-              {mintError && <p className="text-xs text-muted-foreground mt-0.5">{mintError}</p>}
-            </div>
-          </div>
-          <Button size="sm" variant="outline" className="gap-2" onClick={handleRetry}>
-            <RefreshCw className="h-3.5 w-3.5" /> Tentar novamente
-          </Button>
-        </div>
-      )}
-    </div>
-  );
+  return <GenesisMintCard copy={COPY} signedOut={SIGNED_OUT} />;
 }

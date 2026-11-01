@@ -10,7 +10,10 @@ import {
 import { Button } from "@medialane/ui/button";
 import { LaunchMint } from "@/components/launch-mint";
 import { FadeIn, Stagger, StaggerItem } from "@medialane/ui/motion-primitives";
-import { EXPLORER_URL } from "@/lib/constants";
+import { MINT_CONTRACT } from "@/lib/constants";
+import { assetHref } from "@/lib/routes";
+import { useGenesisHolding } from "@/hooks/use-genesis-holding";
+import type { GenesisHolding } from "@/lib/genesis-holding";
 import { cn } from "@/lib/utils";
 
 const JOURNEYS = [
@@ -71,20 +74,21 @@ const HIGHLIGHTS = [
 ] as const;
 
 function OnboardingBanner({
-  mintTxHash,
+  holding,
   onDismiss,
 }: {
-  mintTxHash: string | null;
+  holding: GenesisHolding | null;
   onDismiss: () => void;
 }) {
+  const minted = Boolean(holding?.owned);
   const steps = [
     { done: true, label: "Account created", sub: "Secured with a passkey" },
     { done: true, label: "Account secured", sub: "MediaWallet on Starknet" },
     {
-      done: !!mintTxHash,
-      label: mintTxHash ? "Genesis NFT minted" : "Genesis NFT",
-      sub: mintTxHash ? null : "Claim your welcome gift below",
-      txHash: mintTxHash,
+      done: minted,
+      label: minted ? "Genesis NFT minted" : "Genesis NFT",
+      sub: minted ? null : "Claim your welcome gift below",
+      tokenId: holding?.tokenId ?? null,
     },
   ];
 
@@ -116,16 +120,14 @@ function OnboardingBanner({
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm font-semibold leading-none">{step.label}</p>
-                  {step.txHash ? (
-                    <a
-                      href={`${EXPLORER_URL}/tx/${step.txHash}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                  {step.tokenId ? (
+                    <Link
+                      href={assetHref("STARKNET", MINT_CONTRACT, step.tokenId)}
                       className="inline-flex items-center gap-1 text-2xs text-muted-foreground hover:text-foreground transition-colors group mt-0.5"
                     >
-                      <span className="tabular-nums">{step.txHash.slice(0, 10)}…</span>
+                      <span className="tabular-nums">#{step.tokenId}</span>
                       <ExternalLink className="h-2.5 w-2.5 shrink-0" />
-                    </a>
+                    </Link>
                   ) : step.sub ? (
                     <p className="text-2xs text-muted-foreground mt-0.5">{step.sub}</p>
                   ) : null}
@@ -142,7 +144,7 @@ function OnboardingBanner({
 export function WelcomePageClient() {
   const { address: walletAddress } = useWalletNativeSession();
   const [showBanner, setShowBanner] = useState(false);
-  const [mintTxHash, setMintTxHash] = useState<string | null>(null);
+  const { holding } = useGenesisHolding(walletAddress ?? null);
 
   useEffect(() => {
     const fresh = sessionStorage.getItem("ml_fresh_onboarding");
@@ -152,18 +154,12 @@ export function WelcomePageClient() {
     }
   }, []);
 
-  useEffect(() => {
-    if (!walletAddress) return;
-    const stored = localStorage.getItem(`ml_genesis_${walletAddress}`);
-    if (stored) setMintTxHash(stored);
-  }, [walletAddress]);
-
   return (
     <div className="pb-24">
 
       {showBanner && (
         <OnboardingBanner
-          mintTxHash={mintTxHash}
+          holding={holding}
           onDismiss={() => setShowBanner(false)}
         />
       )}
@@ -184,7 +180,7 @@ export function WelcomePageClient() {
         </div>
       </FadeIn>
 
-      {!mintTxHash && (
+      {!holding?.owned && (
         <FadeIn delay={0.1}>
           <div className="mt-10">
             <div className="max-w-5xl mx-auto px-4 mb-4">
@@ -197,7 +193,7 @@ export function WelcomePageClient() {
         </FadeIn>
       )}
 
-      <FadeIn delay={mintTxHash ? 0.1 : 0.16}>
+      <FadeIn delay={holding?.owned ? 0.1 : 0.16}>
         <div className="max-w-5xl mx-auto px-4 mt-10">
           <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">
             Start here
@@ -231,7 +227,7 @@ export function WelcomePageClient() {
         </div>
       </FadeIn>
 
-      <FadeIn delay={mintTxHash ? 0.16 : 0.22}>
+      <FadeIn delay={holding?.owned ? 0.16 : 0.22}>
         <div className="max-w-5xl mx-auto px-4 mt-10">
           <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">
             Built different
@@ -250,7 +246,7 @@ export function WelcomePageClient() {
         </div>
       </FadeIn>
 
-      {mintTxHash && (
+      {holding?.owned && (
         <FadeIn delay={0.22}>
           <div className="max-w-5xl mx-auto px-4 mt-10">
             <div className="bento-cell p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -259,15 +255,15 @@ export function WelcomePageClient() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-sm">Genesis NFT collected</p>
-                <a
-                  href={`${EXPLORER_URL}/tx/${mintTxHash}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors group mt-0.5"
-                >
-                  <span className="tabular-nums">{mintTxHash.slice(0, 16)}…{mintTxHash.slice(-8)}</span>
-                  <ExternalLink className="h-3 w-3 group-hover:text-primary shrink-0" />
-                </a>
+                {holding.tokenId && (
+                  <Link
+                    href={assetHref("STARKNET", MINT_CONTRACT, holding.tokenId)}
+                    className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors group mt-0.5"
+                  >
+                    <span className="tabular-nums">#{holding.tokenId}</span>
+                    <ExternalLink className="h-3 w-3 group-hover:text-primary shrink-0" />
+                  </Link>
+                )}
               </div>
               <Button size="sm" variant="outline" asChild className="shrink-0">
                 <Link href="/portfolio/assets">View in portfolio</Link>
