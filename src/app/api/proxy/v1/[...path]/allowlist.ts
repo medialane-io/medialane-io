@@ -1,5 +1,4 @@
 export const ALLOW: Record<string, RegExp[]> = {
-
   GET: [
     /^orders$/,
     /^orders\/[^/]+$/,

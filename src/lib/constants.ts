@@ -10,8 +10,6 @@ export {
   STARKNET_GENESIS_MINT_CONTRACT as MINT_CONTRACT,
 } from "@medialane/sdk";
 
-
-
 const isServer = typeof window === "undefined";
 
 export const MEDIALANE_BACKEND_URL = isServer
@@ -39,8 +37,6 @@ export const IPFS_GATEWAY = (() => {
 
 export const EXPLORER_URL =
   readStringEnv(process.env.NEXT_PUBLIC_EXPLORER_URL, "https://voyager.online");
-
-
 
 export const DURATION_OPTIONS = [
   { label: "1 Day", seconds: 86400 },
