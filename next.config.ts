@@ -65,36 +65,6 @@ const nextConfig: NextConfig = {
   },
   images: {
     unoptimized: true,
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "gateway.pinata.cloud",
-        pathname: "/ipfs/**",
-      },
-      {
-        protocol: "https",
-        hostname: "**.mypinata.cloud",
-      },
-      {
-        protocol: "https",
-        hostname: "ipfs.io",
-        pathname: "/ipfs/**",
-      },
-      {
-        protocol: "https",
-        hostname: "dweb.link",
-        pathname: "/ipfs/**",
-      },
-      {
-        protocol: "https",
-        hostname: "cloudflare-ipfs.com",
-        pathname: "/ipfs/**",
-      },
-      {
-        protocol: "https",
-        hostname: "**",
-      },
-    ],
   },
   webpack: (config, { isServer }) => {
     if (!isServer) {
