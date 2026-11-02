@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useUsdPrices } from "@/hooks/use-usd-prices";
 import { usdValueFor } from "@/lib/wallet-format";
@@ -14,8 +15,9 @@ import { Textarea } from "@medialane/ui/textarea";
 import { Alert, AlertDescription } from "@medialane/ui/alert";
 import { Badge } from "@medialane/ui/badge";
 import { TransactionSuccess, successMessages } from "@medialane/ui";
-import { useMarketplace } from "@/hooks/use-marketplace";
-import { useWalletMarketplaceActionFlow } from "@/hooks/use-wallet-marketplace-action-flow";
+import { useMarketplaceTransaction } from "@/hooks/use-marketplace-transaction";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
+import { makeCounterOffer } from "@/lib/marketplace-intents";
 import { CurrencyIcon } from "@medialane/ui/currency-icon";
 import { DURATION_OPTIONS } from "@/lib/constants";
 import { marketplacePriceField, counterOfferDurationField } from "@/lib/marketplace-schemas";
@@ -55,54 +57,40 @@ export function CounterOfferDialog({
   currencySymbol,
   currencyDecimals,
 }: CounterOfferDialogProps) {
-  const { makeCounterOffer, hasWallet, resetState } = useMarketplace();
-
-  const {
-    pendingValues,
-    status,
-    txHash,
-    error,
-    beginAction,
-    resetActionFlow,
-  } = useWalletMarketplaceActionFlow<FormValues>({
-    hasWallet,
-    executeAction: async (values) => {
-      const hash = await makeCounterOffer({
-        originalOrderHash,
-        counterPriceRaw: toRawWei(values.price, currencyDecimals),
-        durationSeconds: values.durationSeconds,
-        message: values.message || undefined,
-        tokenName,
-      });
-      return hash ? { txHash: hash } : undefined;
-    },
-  });
+  const { hasWallet } = useWalletNativeSession();
+  const { phase, busy: isProcessing, txHash, error, start, reset } = useMarketplaceTransaction();
+  const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { price: "", durationSeconds: 604800, message: "" },
   });
 
-  const isProcessing = status === "processing" || status === "confirming";
   const usdPrices = useUsdPrices();
   const watchedPrice = form.watch("price");
   const usdEquivalent = usdValueFor(watchedPrice || undefined, currencySymbol, usdPrices);
 
   const onSubmit = (values: FormValues) => {
     if (!hasWallet) return;
-    beginAction(values);
+    setPendingValues(values);
+    void start((ctx) => makeCounterOffer(ctx, {
+      originalOrderHash,
+      counterPriceRaw: toRawWei(values.price, currencyDecimals),
+      durationSeconds: values.durationSeconds,
+      message: values.message || undefined,
+    }));
   };
 
   const handleClose = (v: boolean) => {
     if (!isProcessing) {
-      resetState();
       form.reset();
-      resetActionFlow();
+      reset();
+      setPendingValues(null);
       onOpenChange(v);
     }
   };
 
-  const isSuccess = status === "success" && !error;
+  const isSuccess = phase === "success";
 
   return (
     <>

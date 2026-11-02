@@ -14,7 +14,7 @@ import { useSession } from "@/hooks/use-session";
 import { MedialaneApiError } from "@medialane/sdk";
 import { getMedialaneClient } from "@/lib/medialane-client";
 
-export type ReportTarget =
+type ReportTarget =
   | { type: "TOKEN"; contract: string; tokenId: string; name?: string }
   | { type: "COLLECTION"; contract: string; name?: string }
   | { type: "CREATOR"; address: string; name?: string }

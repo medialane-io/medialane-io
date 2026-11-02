@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useSWRConfig } from "swr";
 import { useForm } from "react-hook-form";
@@ -14,8 +14,10 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@medialan
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@medialane/ui/form";
 import { Input } from "@medialane/ui/input";
 import { Alert, AlertDescription } from "@medialane/ui/alert";
-import { useMarketplace } from "@/hooks/use-marketplace";
-import { useWalletMarketplaceActionFlow } from "@/hooks/use-wallet-marketplace-action-flow";
+import { useMarketplaceTransaction } from "@/hooks/use-marketplace-transaction";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
+import { useWhenChanged } from "@/hooks/use-when-changed";
+import { createListing } from "@/lib/marketplace-intents";
 import { useResolvedTokenStandard } from "@/hooks/use-resolved-token-standard";
 import {
   DialogTransactionSuccess,
@@ -71,31 +73,9 @@ export function ListingDialog({
   const { tokenStandard: resolvedStandard, isResolving } = useResolvedTokenStandard(assetContract, tokenStandard);
   const is1155 = resolvedStandard === "ERC1155";
   const { mutate } = useSWRConfig();
-  const { createListing, hasWallet, resetState } = useMarketplace();
-
-  const {
-    pendingValues,
-    status,
-    txHash,
-    error,
-    beginAction,
-    resetActionFlow,
-  } = useWalletMarketplaceActionFlow<FormValues>({
-    hasWallet,
-    executeAction: async (values) => {
-      const hash = await createListing({
-        assetContract,
-        tokenId,
-        tokenName,
-        price: values.price,
-        currencySymbol: values.currency,
-        durationSeconds: values.durationSeconds,
-        tokenStandard: resolvedStandard,
-        amount: is1155 ? (values.amount || "1") : undefined,
-      });
-      return hash ? { txHash: hash } : undefined;
-    },
-  });
+  const { hasWallet } = useWalletNativeSession();
+  const { phase, busy, txHash, error, retryable, failedAfterSubmit, start, reset } = useMarketplaceTransaction();
+  const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -111,21 +91,27 @@ export function ListingDialog({
         return;
       }
     }
-    beginAction(values);
+    setPendingValues(values);
+    void start((ctx) => createListing(ctx, {
+      assetContract,
+      tokenId,
+      price: values.price,
+      currencySymbol: values.currency,
+      durationSeconds: values.durationSeconds,
+      tokenStandard: resolvedStandard,
+      amount: is1155 ? (values.amount || "1") : undefined,
+    }));
   };
 
-  const busy = status === "processing" || status === "confirming";
-  const isSuccess = status === "success";
-  const isTerminalError = status === "error";
+  const isSuccess = phase === "success";
 
   const handleClose = (v: boolean) => {
-    if (!busy && !isSuccess && !isTerminalError) onOpenChange(v);
+    if (!busy && !isSuccess && !failedAfterSubmit) onOpenChange(v);
   };
 
-  useEffect(() => {
-    if (open) { resetState(); form.reset(); resetActionFlow(); }
-    
-  }, [open]);
+  useWhenChanged(open, () => {
+    if (open) { form.reset(); reset(); setPendingValues(null); }
+  });
 
   const confettiFired = useRef(false);
   useEffect(() => {
@@ -170,7 +156,7 @@ export function ListingDialog({
               <RewardEarned actionType="list_asset" />
             </DialogTransactionSuccess>
 
-          ) : isTerminalError ? (
+          ) : failedAfterSubmit ? (
             <MarketplaceErrorState
               tokenImage={tokenImage}
               name={name}
@@ -179,7 +165,7 @@ export function ListingDialog({
               error={error}
               txHash={txHash}
               explorerUrl={EXPLORER_URL}
-              onRetry={() => resetState()}
+              onRetry={retryable ? reset : undefined}
               onDone={() => onOpenChange(false)}
             />
 

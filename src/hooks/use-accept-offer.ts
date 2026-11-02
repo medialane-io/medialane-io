@@ -1,9 +1,9 @@
 "use client";
 
-import { UserFacingError } from "@medialane/ui";
 import { useState } from "react";
-import { useWalletMarketplaceActionFlow } from "@/hooks/use-wallet-marketplace-action-flow";
-import { useMarketplace } from "@/hooks/use-marketplace";
+import { useMarketplaceTransaction } from "@/hooks/use-marketplace-transaction";
+import { fulfillOrder } from "@/lib/marketplace-intents";
+import { orderNftStandard } from "@/lib/protocol/token-standard";
 import { useTokenBalance, hasSufficientBalance } from "@medialane/ui/utils/media-wallet/use-erc20-balance";
 import type { ApiOrder } from "@medialane/sdk";
 
@@ -16,7 +16,7 @@ interface UseAcceptOfferOptions {
 }
 
 export function useAcceptOffer({ mutateListings, tokenStandard, activeListings = [] }: UseAcceptOfferOptions) {
-  const { fulfillOrder, hasWallet } = useMarketplace();
+  const tx = useMarketplaceTransaction();
 
   const [selectedOrder, setSelectedOrder] = useState<ApiOrder | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -30,25 +30,17 @@ export function useAcceptOffer({ mutateListings, tokenStandard, activeListings =
     ? hasSufficientBalance(rawBalance, selectedOrder.price.formatted ?? "", decimals)
     : null;
 
-  const actionFlow = useWalletMarketplaceActionFlow<ApiOrder>({
-    hasWallet,
-    executeAction: async (order) => {
-      const nftStandard =
-        order.offer.itemType === "ERC20"
-          ? order.consideration.itemType
-          : order.offer.itemType;
-      const hash = await fulfillOrder({
-        orderHash: order.orderHash,
-        tokenStandard: tokenStandard ?? nftStandard,
-      });
-      if (!hash) throw new UserFacingError("Transaction failed — check your portfolio");
-      mutateListings();
-    },
-  });
+  const accept = async (order: ApiOrder) => {
+    const ok = await tx.start((ctx) => fulfillOrder(ctx, {
+      orderHash: order.orderHash,
+      tokenStandard: tokenStandard ?? orderNftStandard(order),
+    }));
+    if (ok) mutateListings();
+  };
 
   const handleAcceptClick = (order: ApiOrder) => {
     setSelectedOrder(order);
-    actionFlow.resetActionFlow();
+    tx.reset();
     if (activeListings.length > 0) {
       setPendingOrder(order);
       setWarningOpen(true);
@@ -59,13 +51,13 @@ export function useAcceptOffer({ mutateListings, tokenStandard, activeListings =
 
   const confirmAccept = () => {
     setConfirmOpen(false);
-    if (selectedOrder) actionFlow.beginAction(selectedOrder);
+    if (selectedOrder) void accept(selectedOrder);
   };
 
   const proceedFromWarning = () => {
     setWarningOpen(false);
     if (!pendingOrder) return;
-    actionFlow.beginAction(pendingOrder);
+    void accept(pendingOrder);
   };
 
   const dismissWarning = () => {
@@ -75,8 +67,8 @@ export function useAcceptOffer({ mutateListings, tokenStandard, activeListings =
   };
 
   const dismiss = () => {
-    if (actionFlow.status === "processing" || actionFlow.status === "confirming") return;
-    actionFlow.resetActionFlow();
+    if (tx.busy) return;
+    tx.reset();
     setSelectedOrder(null);
     setConfirmOpen(false);
     setWarningOpen(false);
@@ -84,12 +76,15 @@ export function useAcceptOffer({ mutateListings, tokenStandard, activeListings =
   };
 
   return {
-    isOpen: warningOpen || confirmOpen || actionFlow.status !== "idle",
+    isOpen: warningOpen || confirmOpen || tx.phase !== "idle",
     selectedOrder,
     buyerHasFunds,
-    status: actionFlow.status,
-    txHash: actionFlow.txHash,
-    error: actionFlow.error,
+    phase: tx.phase,
+    busy: tx.busy,
+    txHash: tx.txHash,
+    error: tx.error,
+    retryable: tx.retryable,
+    failedAfterSubmit: tx.failedAfterSubmit,
     handleAcceptClick,
     confirmAccept,
     dismiss,

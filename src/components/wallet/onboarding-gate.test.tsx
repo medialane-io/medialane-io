@@ -1,5 +1,6 @@
-import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { cleanup, render } from "@testing-library/react";
+import { mockForThisFile } from "../../../test/mock-for-this-file";
 
 const pushed: string[] = [];
 let pathname = "/portfolio";
@@ -8,18 +9,15 @@ let session = { hasWallet: true, isDeployed: false as boolean | null };
 let account: { walletAddress: string | null } | null = null;
 let accountLoading = false;
 
-mock.module("next/navigation", () => ({
-  useRouter: () => ({ push: (to: string) => pushed.push(to) }),
+await mockForThisFile("next/navigation", {
+  useRouter: () => ({ push: (to: string) => pushed.push(to) }) as never,
   usePathname: () => pathname,
+});
+await mockForThisFile("@/hooks/use-session", { useSession: () => ({ session: account, isLoading: accountLoading }) as never });
+await mockForThisFile("@/hooks/use-wallet-native-session", { useWalletNativeSession: () => session as never });
+await mockForThisFile<typeof import("@/lib/wallet/client")>("@/lib/wallet/client", (real) => ({
+  mediaWallet: { ...real.mediaWallet, isDeploying: () => deploying },
 }));
-const real = {
-  session: await import("@/hooks/use-wallet-native-session"),
-  account: await import("@/hooks/use-session"),
-  client: await import("@/lib/wallet/client"),
-};
-mock.module("@/hooks/use-session", () => ({ ...real.account, useSession: () => ({ session: account, isLoading: accountLoading }) }));
-mock.module("@/hooks/use-wallet-native-session", () => ({ ...real.session, useWalletNativeSession: () => session }));
-mock.module("@/lib/wallet/client", () => ({ ...real.client, mediaWallet: { ...real.client.mediaWallet, isDeploying: () => deploying } }));
 
 const { OnboardingGate } = await import("./onboarding-gate");
 

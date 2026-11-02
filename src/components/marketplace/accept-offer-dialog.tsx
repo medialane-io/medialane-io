@@ -32,9 +32,12 @@ export function AcceptOfferDialog({ hook, tokenName, tokenImage, onCancelListing
     isOpen,
     selectedOrder,
     buyerHasFunds,
-    status,
+    phase,
+    busy,
     txHash,
     error,
+    retryable,
+    failedAfterSubmit,
     confirmAccept,
     dismiss,
     warningOpen,
@@ -52,7 +55,6 @@ export function AcceptOfferDialog({ hook, tokenName, tokenImage, onCancelListing
     ? `${formatDisplayPrice(selectedOrder.price.formatted)} ${selectedOrder.price.currency}`
     : "";
 
-  const busy = status === "processing" || status === "confirming";
   const handleOpenChange = (v: boolean) => {
     if (!v && busy) return;
     if (!v) dismiss();
@@ -129,7 +131,7 @@ export function AcceptOfferDialog({ hook, tokenName, tokenImage, onCancelListing
             imageUrl={image}
             imageAlt={name}
           />
-        ) : status === "success" ? (
+        ) : phase === "success" ? (
           <DialogTransactionSuccess
             name={name}
             image={image}
@@ -139,7 +141,7 @@ export function AcceptOfferDialog({ hook, tokenName, tokenImage, onCancelListing
           >
             <RewardEarned actionType="offer_accepted_seller" />
           </DialogTransactionSuccess>
-        ) : status === "error" ? (
+        ) : failedAfterSubmit ? (
           <MarketplaceErrorState
             tokenImage={image}
             name={name}
@@ -148,7 +150,7 @@ export function AcceptOfferDialog({ hook, tokenName, tokenImage, onCancelListing
             error={error}
             txHash={txHash}
             explorerUrl={EXPLORER_URL}
-            onRetry={confirmAccept}
+            onRetry={retryable ? confirmAccept : undefined}
             onDone={dismiss}
           />
         ) : (
@@ -173,6 +175,7 @@ export function AcceptOfferDialog({ hook, tokenName, tokenImage, onCancelListing
                   </Alert>
                 ) : null
               }
+              error={error}
               secondaryLabel="Cancel"
               onSecondary={dismiss}
               primaryLabel="Accept offer"

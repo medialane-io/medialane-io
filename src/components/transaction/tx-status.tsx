@@ -3,27 +3,28 @@
 import { Loader2, CheckCircle2, XCircle, ExternalLink } from "lucide-react";
 import { Button } from "@medialane/ui/button";
 import { EXPLORER_URL } from "@/lib/constants";
-import type { WalletWriteStatus } from "@/hooks/use-wallet-write-action";
+import type { TransactionPhase } from "@medialane/ui";
+import { isBusyPhase } from "@/hooks/use-marketplace-transaction";
 
 interface TxStatusProps {
-  status: WalletWriteStatus;
+  phase: TransactionPhase;
   txHash: string | null;
   error?: string | null;
   statusMessage?: string;
 }
 
-export function TxStatus({ status, txHash, error, statusMessage }: TxStatusProps) {
-  if (status === "idle") return null;
+export function TxStatus({ phase, txHash, error, statusMessage }: TxStatusProps) {
+  if (phase === "idle") return null;
 
   return (
     <div className="flex flex-col items-center gap-3 py-4">
-      {(status === "processing" || status === "confirming") && (
+      {isBusyPhase(phase) && (
         <>
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
           <p className="text-sm text-muted-foreground">{statusMessage}</p>
         </>
       )}
-      {status === "success" && (
+      {phase === "success" && (
         <>
           <CheckCircle2 className="h-8 w-8 text-emerald-500" />
           <p className="text-sm font-medium">Transaction confirmed!</p>
@@ -36,7 +37,7 @@ export function TxStatus({ status, txHash, error, statusMessage }: TxStatusProps
           )}
         </>
       )}
-      {status === "error" && (
+      {phase === "error" && (
         <>
           <XCircle className="h-8 w-8 text-destructive" />
           <p className="text-sm font-medium text-destructive">Transaction failed</p>

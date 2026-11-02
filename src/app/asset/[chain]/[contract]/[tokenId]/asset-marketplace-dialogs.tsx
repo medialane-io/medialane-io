@@ -9,13 +9,12 @@ import { AcceptOfferDialog } from "@/components/marketplace/accept-offer-dialog"
 import type { ApiOrder } from "@medialane/sdk";
 import { useAcceptOffer, type AcceptOfferHook } from "@/hooks/use-accept-offer";
 import type { AssetMarketActions, AssetMarketContext } from "@medialane/ui";
-import { CancelListingDialog } from "./cancel-listing-dialog";
-import { useOrderActions } from "./use-order-actions";
+import { CancelOrderDialog } from "@/components/marketplace/cancel-order-dialog";
+import { useCancelOrder, type CancelOrderHook } from "@/hooks/use-cancel-order";
 
 type TokenStandard = "ERC721" | "ERC1155" | "UNKNOWN";
-type CancelStep = "idle" | "processing" | "success" | "error";
 
-export function useAssetMarketplaceDialogState() {
+function useAssetMarketplaceDialogState() {
   const [purchaseOrder, setPurchaseOrder] = useState<ApiOrder | null>(null);
   const [listOpen, setListOpen] = useState(false);
   const [offerOpen, setOfferOpen] = useState(false);
@@ -50,14 +49,11 @@ interface AssetMarketplaceDialogsProps {
   setOfferOpen: (open: boolean) => void;
   transferOpen: boolean;
   setTransferOpen: (open: boolean) => void;
-  cancelStep: CancelStep;
-  cancelError: string | null;
-  resetCancelStep: () => void;
+  cancelOrderHook: CancelOrderHook;
   acceptOfferHook: AcceptOfferHook;
-  onCancelListing?: (order: ApiOrder) => void;
 }
 
-export function AssetMarketplaceDialogs({
+function AssetMarketplaceDialogs({
   contract,
   tokenId,
   tokenName,
@@ -74,11 +70,8 @@ export function AssetMarketplaceDialogs({
   setOfferOpen,
   transferOpen,
   setTransferOpen,
-  cancelStep,
-  cancelError,
-  resetCancelStep,
+  cancelOrderHook,
   acceptOfferHook,
-  onCancelListing,
 }: AssetMarketplaceDialogsProps) {
 
   const handleSuccess = useCallback(() => {
@@ -120,19 +113,17 @@ export function AssetMarketplaceDialogs({
         tokenStandard={tokenStandard}
       />
 
-      <CancelListingDialog
-        cancelStep={cancelStep}
-        cancelError={cancelError}
+      <CancelOrderDialog
+        hook={cancelOrderHook}
         tokenName={tokenName}
         tokenImage={tokenImage}
-        onReset={resetCancelStep}
       />
 
       <AcceptOfferDialog
         hook={acceptOfferHook}
         tokenName={tokenName}
         tokenImage={tokenImage}
-        onCancelListing={onCancelListing}
+        onCancelListing={cancelOrderHook.select}
       />
 
       <TransferDialog
@@ -153,16 +144,16 @@ export function AssetMarketplaceDialogs({
 export function useAssetMarketActions(context: AssetMarketContext): AssetMarketActions {
   const state = useAssetMarketplaceDialogState();
   const tokenStandard = context.tokenStandard === "UNKNOWN" ? undefined : context.tokenStandard;
-  const orders = useOrderActions({ mutateListings: context.mutateListings, tokenStandard });
+  const cancelOrder = useCancelOrder({ onSuccess: context.mutateListings, tokenStandard });
   const acceptOffer = useAcceptOffer({ mutateListings: context.mutateListings, tokenStandard, activeListings: context.activeListings });
 
   return {
-    isProcessing: orders.isProcessing,
+    isProcessing: cancelOrder.busy,
     buy: state.setPurchaseOrder,
     list: () => state.setListOpen(true),
     offer: () => state.setOfferOpen(true),
     transfer: () => state.setTransferOpen(true),
-    cancel: orders.handleCancelClick,
+    cancel: cancelOrder.select,
     acceptBid: acceptOffer.handleAcceptClick,
     dialogs: (
       <AssetMarketplaceDialogs
@@ -175,11 +166,8 @@ export function useAssetMarketActions(context: AssetMarketContext): AssetMarketA
         hasActiveListing={context.activeListings.length > 0}
         mutateListings={context.mutateListings}
         {...state}
-        cancelStep={orders.cancelStep}
-        cancelError={orders.cancelError}
-        resetCancelStep={orders.resetCancelStep}
+        cancelOrderHook={cancelOrder}
         acceptOfferHook={acceptOffer}
-        onCancelListing={orders.handleCancelClick}
       />
     ),
   };

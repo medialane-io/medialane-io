@@ -2,17 +2,16 @@
 
 import type { ReactNode } from "react";
 import { TxStatus } from "@/components/transaction/tx-status";
-import { DialogTransactionSuccess, MarketplaceErrorState, type SuccessMessage } from "@medialane/ui";
+import { DialogTransactionSuccess, MarketplaceErrorState, type SuccessMessage, type TransactionPhase } from "@medialane/ui";
 import { EXPLORER_URL } from "@/lib/constants";
 import { resolveImage } from "@/lib/utils";
-import type { WalletWriteStatus } from "@/hooks/use-wallet-write-action";
+import { isBusyPhase } from "@/hooks/use-marketplace-transaction";
 
 interface TransactionDialogStatesProps {
-  status: WalletWriteStatus | undefined;
+  phase: TransactionPhase;
   statusMessage?: string;
   txHash: string | null;
   error: string | null;
-  isSubmitting: boolean;
   success: SuccessMessage;
   successImage?: string | null;
   successName: string;
@@ -22,18 +21,17 @@ interface TransactionDialogStatesProps {
   errorAssetName?: string;
 
   errorAssetImage?: string | null;
-  onRetry: () => void;
+  onRetry?: () => void;
   onDone: () => void;
 
   children: ReactNode;
 }
 
 export function TransactionDialogStates({
-  status,
+  phase,
   statusMessage,
   txHash,
   error,
-  isSubmitting,
   success,
   successImage = null,
   successName,
@@ -46,7 +44,8 @@ export function TransactionDialogStates({
   children,
 }: TransactionDialogStatesProps) {
   const successSrc = resolveImage(successImage);
-  const isSuccess = status === "success" && !error;
+  const isSubmitting = isBusyPhase(phase);
+  const isSuccess = phase === "success" && !error;
   const isTerminalError = !isSubmitting && !!error && !!txHash;
 
   if (isSuccess) {
@@ -80,7 +79,7 @@ export function TransactionDialogStates({
     return (
       <div className="p-6">
         <TxStatus
-          status={status ?? "idle"}
+          phase={phase}
           txHash={txHash}
           error={error}
           statusMessage={statusMessage}

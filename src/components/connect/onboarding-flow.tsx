@@ -36,7 +36,7 @@ export function walletStepLabel(step: OnboardingStep): string {
   return "Creating passkey…";
 }
 
-export { describeWalletFailure, type WalletFailureNotice } from "@medialane/ui";
+export { describeWalletFailure } from "@medialane/ui";
 
 export interface OnboardingFlowProps {
   start?: "email" | "wallet";

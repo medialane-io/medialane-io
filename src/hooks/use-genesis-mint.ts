@@ -6,7 +6,7 @@ import { MINT_CONTRACT } from "@/lib/constants";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { useGenesisHolding } from "./use-genesis-holding";
 
-export type MintStep = "checking" | "ready" | "minting" | "success" | "error";
+type MintStep = "checking" | "ready" | "minting" | "success" | "error";
 
 export interface GenesisMintMessages {
   preparing: string;
@@ -18,6 +18,8 @@ export interface GenesisMintMessages {
 export interface UseGenesisMintOptions {
   address: string | null;
   messages: GenesisMintMessages;
+  /** The genesis contract; the configured one by default. */
+  contract?: string;
 }
 
 export interface UseGenesisMint {
@@ -32,9 +34,9 @@ export interface UseGenesisMint {
   mintAnother: () => void;
 }
 
-export function useGenesisMint({ address, messages }: UseGenesisMintOptions): UseGenesisMint {
+export function useGenesisMint({ address, messages, contract = MINT_CONTRACT }: UseGenesisMintOptions): UseGenesisMint {
   const action = useTransaction();
-  const { holding, checking, reload } = useGenesisHolding(address);
+  const { holding, checking, reload } = useGenesisHolding(address, contract);
 
   const [local, setLocal] = useState<Exclude<MintStep, "checking">>("ready");
   const [error, setError] = useState<string | null>(null);
@@ -49,14 +51,14 @@ export function useGenesisMint({ address, messages }: UseGenesisMintOptions): Us
 
     void action.run(async (signer) => {
       if (!address) throw new UserFacingError(messages.noAccount);
-      if (!MINT_CONTRACT) throw new UserFacingError(messages.notStarted);
+      if (!contract) throw new UserFacingError(messages.notStarted);
 
       setStatusMsg(messages.submitting);
       await runIntentCalls(signer, () =>
         getMedialaneClient().api.intents.create("genesis-mint", { owner: signer.address, recipient: address }),
       );
     });
-  }, [address, action, messages]);
+  }, [address, action, messages, contract]);
 
   useEffect(() => {
     if (action.phase === "success" && action.txHash) {

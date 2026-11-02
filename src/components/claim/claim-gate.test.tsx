@@ -1,17 +1,20 @@
-import { afterEach, describe, expect, mock, test } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
 import { cleanup, render, screen } from "@testing-library/react";
+import { forwardRef } from "react";
+import { mockForThisFile } from "../../../test/mock-for-this-file";
 
 let hasWallet = false;
-const realSession = await import("@/hooks/use-wallet-native-session");
-mock.module("@/hooks/use-wallet-native-session", () => ({ ...realSession, useWalletNativeSession: () => ({ hasWallet }) }));
-mock.module("next/navigation", () => ({ usePathname: () => "/claim/username" }));
-mock.module("next/link", () => ({
-  default: ({ href, children, ...rest }: { href: string; children: React.ReactNode }) => (
-    <a href={href} {...rest}>
-      {children}
-    </a>
-  ),
-}));
+await mockForThisFile("@/hooks/use-wallet-native-session", { useWalletNativeSession: () => ({ hasWallet }) as never });
+await mockForThisFile("next/navigation", { usePathname: () => "/claim/username" });
+await mockForThisFile("next/link", {
+  default: forwardRef<HTMLAnchorElement, { href: string; children: React.ReactNode }>(function Link({ href, children, ...rest }, ref) {
+    return (
+      <a ref={ref} href={href} {...rest}>
+        {children}
+      </a>
+    );
+  }) as never,
+});
 
 const { ClaimGate } = await import("./claim-gate");
 

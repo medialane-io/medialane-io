@@ -1,7 +1,7 @@
 "use client";
 
 import { UserFacingError, MarketplaceErrorState, MarketplaceTxLink, isStableCurrency, successMessages } from "@medialane/ui";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -16,8 +16,10 @@ import { assetHref as buildAssetHref } from "@/lib/routes";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@medialane/ui/dialog";
 import { Button } from "@medialane/ui/button";
 import { Alert, AlertDescription } from "@medialane/ui/alert";
-import { useMarketplace } from "@/hooks/use-marketplace";
-import { useWalletMarketplaceActionFlow } from "@/hooks/use-wallet-marketplace-action-flow";
+import { useMarketplaceTransaction } from "@/hooks/use-marketplace-transaction";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
+import { useWhenChanged } from "@/hooks/use-when-changed";
+import { fulfillOrder } from "@/lib/marketplace-intents";
 import { EXPLORER_URL } from "@/lib/constants";
 import type { ApiOrder } from "@medialane/sdk";
 import { formatDisplayPrice, resolveImage } from "@/lib/utils";
@@ -37,7 +39,6 @@ interface PurchaseDialogProps {
   onSuccess?: () => void;
 }
 
-type Step = "details" | "processing" | "success";
 
 function TokenHero({ order, quantity }: { order: ApiOrder; quantity: number }) {
   const image = resolveImage(order.token?.image);
@@ -206,11 +207,10 @@ function SuccessScreen({
 
 export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: PurchaseDialogProps) {
   const router = useRouter();
-  const { fulfillOrder, hasWallet, walletAddress, resetState } = useMarketplace();
+  const { address: walletAddress, hasWallet } = useWalletNativeSession();
+  const { phase, busy, txHash, error, retryable, failedAfterSubmit, start, reset } = useMarketplaceTransaction();
 
-  const [step, setStep] = useState<Step>("details");
   const [quantity, setQuantity] = useState(1);
-  const [successTxHash, setSuccessTxHash] = useState<string | null>(null);
   const [paymentSymbol, setPaymentSymbol] = useState<string | null>(null);
 
   const is1155 = order.offer?.itemType === "ERC1155";
@@ -226,22 +226,8 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
 
   const needsSwap = !balanceLoading && orderCurrencyBalance !== null && orderCurrencyBalance < requiredRaw;
 
-  const handlePurchaseSuccess = (hash: string | null) => {
-    setSuccessTxHash(hash ?? null);
-    setStep("success");
-    fireConfetti();
-  };
-
-  const {
-    status,
-    txHash,
-    error,
-    beginAction,
-    resetActionFlow,
-  } = useWalletMarketplaceActionFlow<{ quantity: number; paymentSymbol: string | null }>({
-    hasWallet,
-    executeAction: async (values) => {
-      setStep("processing");
+  const buy = async (values: { quantity: number; paymentSymbol: string | null }) => {
+    const ok = await start(async (ctx) => {
       const qty = is1155 ? String(values.quantity) : undefined;
 
       const quantity = is1155 ? BigInt(values.quantity || 1) : 1n;
@@ -261,72 +247,64 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
         }
       }
 
-      const hash = await fulfillOrder({
+      return fulfillOrder(ctx, {
         orderHash: order.orderHash,
         tokenStandard: order.offer.itemType,
         quantity: qty,
         swap,
       });
-
-      if (hash) {
-        handlePurchaseSuccess(hash);
-        return { txHash: hash };
-      }
-      setStep("details");
-    },
-  });
+    });
+    if (ok) fireConfetti();
+  };
 
   const canBuy = !needsSwap || !!paymentSymbol;
 
   const handleBuyClick = () => {
     if (!hasWallet || !canBuy) return;
-    beginAction({ quantity, paymentSymbol: needsSwap ? paymentSymbol : null });
+    void buy({ quantity, paymentSymbol: needsSwap ? paymentSymbol : null });
   };
 
+  const isSuccess = phase === "success";
+
   const handleClose = (v: boolean) => {
-    if (step === "processing" || step === "success") return;
+    if (busy || isSuccess) return;
     onOpenChange(v);
   };
 
-  useEffect(() => {
+  useWhenChanged(open, () => {
     if (open) {
-      resetState();
-      resetActionFlow();
-      setStep("details");
+      reset();
       setQuantity(1);
-      setSuccessTxHash(null);
       setPaymentSymbol(null);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- resets dialog state on open; resetState/resetActionFlow aren't stable across renders and would re-fire this every render
-  }, [open]);
+  });
 
   const processingMessage = "Confirming on Starknet…";
-  const isTerminalError = status === "error";
 
   return (
     <>
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="max-w-[calc(100%-12px)] sm:max-w-md p-0 overflow-hidden gap-0 rounded-2xl">
           <DialogTitle className="sr-only">
-            {step === "success" ? "Purchase complete" : step === "processing" ? "Processing purchase" : "Buy now"}
+            {isSuccess ? "Purchase complete" : busy ? "Processing purchase" : "Buy now"}
           </DialogTitle>
           <DialogDescription className="sr-only">
             Confirm and complete this marketplace purchase with your Medialane wallet.
           </DialogDescription>
 
-          {step === "success" ? (
+          {isSuccess ? (
             <>
               <SuccessScreen
                 order={order}
                 quantity={quantity}
-                txHash={successTxHash ?? txHash}
+                txHash={txHash}
                 onClose={() => { onOpenChange(false); onSuccess?.(); }}
                 onViewPortfolio={() => { onOpenChange(false); router.push("/portfolio/assets"); }}
               />
               <div className="px-6 pb-6"><RewardEarned actionType="buy_asset" /></div>
             </>
 
-          ) : isTerminalError ? (
+          ) : failedAfterSubmit ? (
             <MarketplaceErrorState
               tokenImage={resolveImage(order.token?.image)}
               name={order.token?.name || `Token #${order.nftTokenId}`}
@@ -335,11 +313,11 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
               error={error}
               txHash={txHash}
               explorerUrl={EXPLORER_URL}
-              onRetry={() => { resetState(); resetActionFlow(); setStep("details"); }}
+              onRetry={retryable ? reset : undefined}
               onDone={() => onOpenChange(false)}
             />
 
-          ) : step === "processing" ? (
+          ) : busy ? (
 
             <div className="flex flex-col items-center gap-4 p-6 py-10">
               <div className="relative">
