@@ -12,6 +12,12 @@ export interface MarketplaceContext {
   signer: MarketplaceSigner;
 }
 
+export interface MarketplaceResult {
+  txHash: string;
+  /** The order the intent created, as recorded by the backend once it confirmed the transaction. */
+  orderHash: string | null;
+}
+
 export interface CreateListingInput {
   assetContract: string;
   tokenId: string;
@@ -42,6 +48,13 @@ export interface FulfillOrderInput {
 export interface CancelOrderInput {
   orderHash: string;
   tokenStandard?: string;
+}
+
+export interface TransferInput {
+  contractAddress: string;
+  tokenId: string;
+  toAddress: string;
+  tokenStandard?: "ERC721" | "ERC1155" | "UNKNOWN";
 }
 
 export interface MakeCounterOfferInput {
@@ -87,11 +100,16 @@ function sanitizeTypedData(value: unknown): unknown {
   return value;
 }
 
-async function pollUntilTerminal(client: MedialaneClient, id: string, intervalMs: number): Promise<"CONFIRMED" | "FAILED"> {
+interface SettledIntent {
+  status: "CONFIRMED" | "FAILED";
+  orderHash?: string | null;
+}
+
+async function pollUntilTerminal(client: MedialaneClient, id: string, intervalMs: number): Promise<SettledIntent> {
   for (let i = 0; i < MAX_POLL_ATTEMPTS; i++) {
     if (i > 0) await new Promise<void>((r) => setTimeout(r, intervalMs));
-    const intent = (await client.api.intents.get(id)) as unknown as { status?: unknown };
-    if (intent.status === "CONFIRMED" || intent.status === "FAILED") return intent.status;
+    const intent = (await client.api.intents.get(id)) as unknown as { status?: unknown; orderHash?: string | null };
+    if (intent.status === "CONFIRMED" || intent.status === "FAILED") return intent as SettledIntent;
   }
   throw new Error("Verification timed out. Check your account for the transaction status.");
 }
@@ -101,7 +119,7 @@ export async function runMarketplaceIntent(
   { client, signer }: MarketplaceContext,
   create: () => Promise<ApiIntentCreated>,
   { before, pollIntervalMs = POLL_INTERVAL_MS }: RunOptions = {},
-): Promise<string> {
+): Promise<MarketplaceResult> {
   const intent = await create();
   if (!intent?.id) throw new Error("Intent creation failed: no data returned");
 
@@ -121,18 +139,19 @@ export async function runMarketplaceIntent(
   const { txHash } = await signer.execute(calls, { intentIds });
   await client.api.intents.confirm(intent.id, "0x" + txHash.replace(/^0x/, "").padStart(64, "0"));
 
-  if ((await pollUntilTerminal(client, intent.id, pollIntervalMs)) === "FAILED") {
+  const settled = await pollUntilTerminal(client, intent.id, pollIntervalMs);
+  if (settled.status === "FAILED") {
     throw new UserFacingError(
       "Transaction was submitted but the marketplace order could not be confirmed onchain. " +
       "The order may have already been filled or expired — please refresh and try again."
     );
   }
-  return txHash;
+  return { txHash, orderHash: settled.orderHash ?? null };
 }
 
 const endTimeAfter = (durationSeconds: number) => Math.floor(Date.now() / 1000) + durationSeconds;
 
-export function createListing(ctx: MarketplaceContext, input: CreateListingInput, opts?: ActionOptions): Promise<string> {
+export function createListing(ctx: MarketplaceContext, input: CreateListingInput, opts?: ActionOptions): Promise<MarketplaceResult> {
   return runMarketplaceIntent(ctx, () => ctx.client.api.intents.create("listing", {
     offerer: ctx.signer.address,
     nftContract: input.assetContract,
@@ -144,7 +163,7 @@ export function createListing(ctx: MarketplaceContext, input: CreateListingInput
   }), opts);
 }
 
-export function makeOffer(ctx: MarketplaceContext, input: MakeOfferInput, opts?: ActionOptions): Promise<string> {
+export function makeOffer(ctx: MarketplaceContext, input: MakeOfferInput, opts?: ActionOptions): Promise<MarketplaceResult> {
   return runMarketplaceIntent(ctx, () => ctx.client.api.intents.create("offer", {
     offerer: ctx.signer.address,
     nftContract: input.assetContract,
@@ -157,7 +176,7 @@ export function makeOffer(ctx: MarketplaceContext, input: MakeOfferInput, opts?:
   }), opts);
 }
 
-export function fulfillOrder(ctx: MarketplaceContext, input: FulfillOrderInput, opts?: ActionOptions): Promise<string> {
+export function fulfillOrder(ctx: MarketplaceContext, input: FulfillOrderInput, opts?: ActionOptions): Promise<MarketplaceResult> {
   return runMarketplaceIntent(ctx, () => ctx.client.api.intents.create("fulfill", {
     fulfiller: ctx.signer.address,
     orderHash: input.orderHash,
@@ -166,7 +185,7 @@ export function fulfillOrder(ctx: MarketplaceContext, input: FulfillOrderInput, 
   }), { ...opts, before: input.swap });
 }
 
-export function cancelOrder(ctx: MarketplaceContext, input: CancelOrderInput, opts?: ActionOptions): Promise<string> {
+export function cancelOrder(ctx: MarketplaceContext, input: CancelOrderInput, opts?: ActionOptions): Promise<MarketplaceResult> {
   return runMarketplaceIntent(ctx, () => ctx.client.api.intents.create("cancel", {
     offerer: ctx.signer.address,
     orderHash: input.orderHash,
@@ -174,7 +193,7 @@ export function cancelOrder(ctx: MarketplaceContext, input: CancelOrderInput, op
   }), opts);
 }
 
-export function makeCounterOffer(ctx: MarketplaceContext, input: MakeCounterOfferInput, opts?: ActionOptions): Promise<string> {
+export function makeCounterOffer(ctx: MarketplaceContext, input: MakeCounterOfferInput, opts?: ActionOptions): Promise<MarketplaceResult> {
   return runMarketplaceIntent(ctx, () => ctx.client.api.intents.create("counter-offer", {
     sellerAddress: ctx.signer.address,
     originalOrderHash: input.originalOrderHash,
@@ -182,4 +201,28 @@ export function makeCounterOffer(ctx: MarketplaceContext, input: MakeCounterOffe
     priceRaw: input.counterPriceRaw,
     message: input.message,
   }), opts);
+}
+
+function isStarknetAddress(value: string): boolean {
+  return /^0x[0-9a-fA-F]{1,64}$/.test(value) && value.replace(/^0x0*/, "").length > 0;
+}
+
+/** Sends an NFT to another address. Transfers create no order, so there is nothing to confirm or poll. */
+export async function transferNft({ client, signer }: MarketplaceContext, input: TransferInput): Promise<string> {
+  if (!isStarknetAddress(input.toAddress)) throw new UserFacingError("Invalid recipient address.");
+  if (!isStarknetAddress(input.contractAddress)) throw new UserFacingError("Invalid token contract address.");
+  if (!input.tokenStandard) {
+    throw new UserFacingError("Token standard could not be determined. Please try again or contact support.");
+  }
+  const intent = await client.api.intents.create("transfer-nft", {
+    owner: signer.address,
+    contractAddress: input.contractAddress,
+    tokenId: input.tokenId,
+    recipient: input.toAddress,
+    tokenStandard: input.tokenStandard === "ERC1155" ? "ERC1155" : "ERC721",
+  });
+  const calls = (intent as { calls?: Call[] }).calls;
+  if (!calls?.length) throw new Error("No calls returned from intent");
+  const { txHash } = await signer.execute(calls, { intentIds: [intent.id] });
+  return txHash;
 }

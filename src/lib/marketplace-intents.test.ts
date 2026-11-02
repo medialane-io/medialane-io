@@ -8,6 +8,7 @@ import {
   makeCounterOffer,
   makeOffer,
   runMarketplaceIntent,
+  transferNft,
   type MarketplaceContext,
 } from "./marketplace-intents";
 
@@ -19,7 +20,12 @@ const USDC = SUPPORTED_TOKENS.find((t) => t.symbol === "USDC")!.address;
 
 type Intent = { id: string; requiresSignature: boolean; typedData?: unknown; calls?: unknown[] };
 
-function fixture({ intent, statuses = ["CONFIRMED"], txHash = "0xtx" }: { intent?: Intent; statuses?: string[]; txHash?: string } = {}) {
+function fixture({
+  intent,
+  statuses = ["CONFIRMED"],
+  txHash = "0xtx",
+  orderHash = null,
+}: { intent?: Intent; statuses?: string[]; txHash?: string; orderHash?: string | null } = {}) {
   const log = {
     created: [] as Array<{ kind: string; params: Record<string, unknown> }>,
     signed: [] as unknown[],
@@ -47,7 +53,7 @@ function fixture({ intent, statuses = ["CONFIRMED"], txHash = "0xtx" }: { intent
         get: async () => {
           const status = statuses[Math.min(log.polls, statuses.length - 1)];
           log.polls++;
-          return { status };
+          return { status, orderHash };
         },
       },
     },
@@ -102,9 +108,21 @@ describe("runMarketplaceIntent", () => {
 
   test("confirm receives the hash padded to 64 hex digits", async () => {
     const { ctx, log } = fixture({ txHash: "0xabc" });
-    const hash = await runMarketplaceIntent(ctx, () => ctx.client.api.intents.create("fulfill", {} as never), FAST);
-    expect(hash).toBe("0xabc");
+    const { txHash } = await runMarketplaceIntent(ctx, () => ctx.client.api.intents.create("fulfill", {} as never), FAST);
+    expect(txHash).toBe("0xabc");
     expect(log.confirmed).toEqual([{ id: "fulfill1", hash: "0x" + "abc".padStart(64, "0") }]);
+  });
+
+  test("returns the order hash the backend recorded for the intent", async () => {
+    const { ctx } = fixture({ statuses: ["PENDING", "CONFIRMED"], orderHash: "0xorder" });
+    const result = await runMarketplaceIntent(ctx, () => ctx.client.api.intents.create("listing", {} as never), FAST);
+    expect(result).toEqual({ txHash: "0xtx", orderHash: "0xorder" });
+  });
+
+  test("the order hash is null when the backend recorded none", async () => {
+    const { ctx } = fixture();
+    const result = await runMarketplaceIntent(ctx, () => ctx.client.api.intents.create("listing", {} as never), FAST);
+    expect(result.orderHash).toBeNull();
   });
 
   test("a FAILED intent throws a UserFacingError", async () => {
@@ -168,5 +186,39 @@ describe("marketplace actions", () => {
     await expect(
       createListing(ctx, { assetContract: "0xc", tokenId: "1", price: "1", currencySymbol: "XYZ", durationSeconds: 60 }, FAST),
     ).rejects.toThrow("Unsupported currency: XYZ");
+  });
+});
+
+describe("transferNft", () => {
+  const transfer = { contractAddress: "0x1", tokenId: "1", toAddress: "0x2", tokenStandard: "ERC721" as const };
+
+  test("runs the backend's transfer intent from the signer's address", async () => {
+    const { ctx, log } = fixture({ intent: { id: "nft-intent", requiresSignature: false, calls: [FULFILL_CALL] } });
+    const txHash = await transferNft(ctx, { ...transfer, tokenStandard: "ERC1155" });
+    expect(txHash).toBe("0xtx");
+    expect(log.created).toEqual([{
+      kind: "transfer-nft",
+      params: { owner: ADDRESS, contractAddress: "0x1", tokenId: "1", recipient: "0x2", tokenStandard: "ERC1155" },
+    }]);
+    expect(log.executed).toEqual([{ calls: [FULFILL_CALL], opts: { intentIds: ["nft-intent"] } }]);
+    expect(log.polls).toBe(0);
+  });
+
+  test("a token of unknown standard is transferred as ERC-721", async () => {
+    const { ctx, log } = fixture();
+    await transferNft(ctx, { ...transfer, tokenStandard: "UNKNOWN" });
+    expect(log.created[0].params.tokenStandard).toBe("ERC721");
+  });
+
+  test("an invalid recipient or contract is refused before anything is sent", async () => {
+    const { ctx, log } = fixture();
+    await expect(transferNft(ctx, { ...transfer, toAddress: "0x" })).rejects.toThrow("Invalid recipient address.");
+    await expect(transferNft(ctx, { ...transfer, contractAddress: "nope" })).rejects.toThrow("Invalid token contract address.");
+    expect(log.created).toEqual([]);
+  });
+
+  test("a token without a known standard is refused", async () => {
+    const { ctx } = fixture();
+    await expect(transferNft(ctx, { ...transfer, tokenStandard: undefined })).rejects.toThrow("Token standard could not be determined");
   });
 });

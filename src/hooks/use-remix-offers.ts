@@ -1,5 +1,5 @@
 import useSWR from "swr";
-import type { ApiRemixOffer, ApiResponse, ConfirmRemixOfferParams } from "@medialane/sdk";
+import type { ApiRemixOffer, ApiResponse } from "@medialane/sdk";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSession } from "@/hooks/use-session";
 import { requireSignedIn } from "@/lib/account-gate";
@@ -20,8 +20,4 @@ export function useRemixOffers(role: "creator" | "requester", status?: string) {
   );
 
   return { offers: data?.data ?? [], total: data?.meta?.total ?? 0, isLoading, error, mutate };
-}
-
-export async function confirmRemixOffer(id: string, body: ConfirmRemixOfferParams): Promise<ApiRemixOffer> {
-  return await getMedialaneClient().api.remix.confirm(id, body);
 }
