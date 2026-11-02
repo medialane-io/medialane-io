@@ -19,7 +19,8 @@ import { confirmRemixOffer } from "@/hooks/use-remix-offers";
 import { useSession } from "@/hooks/use-session";
 import { pinLaunchpadMetadata } from "@/lib/launchpad-metadata";
 import { executeIntent, mintedTokenIdFromReceipt } from "@medialane/sdk/starknet";
-import { useMarketplace } from "@/hooks/use-marketplace";
+import { useInvalidateMarketplace } from "@/hooks/use-marketplace-transaction";
+import { createListing } from "@/lib/marketplace-intents";
 import { formatDisplayPrice } from "@/lib/utils";
 import { AlertCircle, Check, GitBranch, Loader2 } from "lucide-react";
 import type { RemixOffer } from "@/types/remix-offers";
@@ -35,7 +36,7 @@ interface Props {
 export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props) {
   const { address: walletAddress, signer } = useWalletNativeSession();
   const { session } = useSession();
-  const { createListing } = useMarketplace();
+  const invalidateMarketplace = useInvalidateMarketplace();
   const client = useMedialaneClient();
 
   const { collections } = useCollectionsByOwner(walletAddress ?? null);
@@ -168,7 +169,7 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
         remixTokenId = minted.tokenId;
       }
 
-      const listingTxHash = await createListing({
+      const listingTxHash = await createListing({ client, signer }, {
         assetContract: selectedCollection.contractAddress,
         tokenId: remixTokenId,
         price: offer.price?.raw ?? "0",
@@ -178,7 +179,8 @@ export function ApproveMintSheet({ offer, open, onOpenChange, onSuccess }: Props
         amount: standard === "ERC1155" ? "1" : undefined,
       });
 
-      if (listingTxHash) await syncTransactionBestEffort(client, listingTxHash);
+      await syncTransactionBestEffort(client, listingTxHash);
+      invalidateMarketplace();
 
       let orderHash: string | undefined;
       const listingDeadline = Date.now() + 15_000;
