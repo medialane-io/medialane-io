@@ -1,22 +1,17 @@
 "use client";
 
-import { useEffect } from "react";
 import Image from "next/image";
 import { ShieldCheck } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@medialane/ui/dialog";
 import { CurrencyIcon } from "@medialane/ui/currency-icon";
-import { useMarketplace } from "@/hooks/use-marketplace";
-import { useWalletMarketplaceActionFlow } from "@/hooks/use-wallet-marketplace-action-flow";
+import type { CancelOrderHook } from "@/hooks/use-cancel-order";
 import { MarketplaceConfirmStep, successMessages } from "@medialane/ui";
 import { TransactionDialogStates } from "@/components/marketplace/transaction-dialog-states";
 import { resolveImage, formatDisplayPrice } from "@/lib/utils";
 import type { ApiOrder } from "@medialane/sdk";
 
 interface CancelOrderDialogProps {
-  order: ApiOrder | null;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSuccess?: () => void;
+  hook: CancelOrderHook;
 
   variant?: "listing" | "offer";
 
@@ -62,59 +57,20 @@ function TokenHero({ order, variant, tokenName, tokenImage }: { order: ApiOrder;
   );
 }
 
-export function CancelOrderDialog({
-  order,
-  open,
-  onOpenChange,
-  onSuccess,
-  variant,
-  tokenName,
-  tokenImage,
-}: CancelOrderDialogProps) {
-  const { cancelOrder, hasWallet, resetState } = useMarketplace();
-
-  const {
-    status,
-    txHash,
-    error,
-    beginAction,
-    resetActionFlow,
-  } = useWalletMarketplaceActionFlow<{ orderHash: string; tokenStandard: string }>({
-    hasWallet,
-    executeAction: async (values) => {
-      const hash = await cancelOrder({
-        orderHash: values.orderHash,
-        tokenStandard: values.tokenStandard,
-      });
-      return hash ? { txHash: hash } : undefined;
-    },
-  });
+export function CancelOrderDialog({ hook, variant, tokenName, tokenImage }: CancelOrderDialogProps) {
+  const { order, phase, txHash, error, retryable, confirm, dismiss } = hook;
 
   const resolvedVariant: "listing" | "offer" =
     variant ?? (order?.offer.itemType === "ERC721" || order?.offer.itemType === "ERC1155" ? "listing" : "offer");
 
-  useEffect(() => {
-    if (open) {
-      resetState();
-      resetActionFlow();
-    }
-    
-  }, [open]);
-
-  const isProcessing = status === "processing" || status === "confirming";
   const handleClose = (v: boolean) => {
-    if (!isProcessing) onOpenChange(v);
-  };
-
-  const handleConfirmCancel = () => {
-    if (!order) return;
-    beginAction({ orderHash: order.orderHash, tokenStandard: order.offer.itemType });
+    if (!v) dismiss();
   };
 
   const resolvedName = order?.token?.name ?? tokenName ?? "Asset";
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={order !== null} onOpenChange={handleClose}>
       <DialogContent className="max-w-[calc(100%-6px)] sm:max-w-md p-0 overflow-hidden gap-0 rounded-2xl">
         <DialogTitle className="sr-only">Cancel {resolvedVariant} for {resolvedName}</DialogTitle>
         <DialogDescription className="sr-only">
@@ -122,11 +78,10 @@ export function CancelOrderDialog({
         </DialogDescription>
 
         <TransactionDialogStates
-          status={status}
+          phase={phase}
           statusMessage="Confirming onchain…"
           txHash={txHash}
           error={error}
-          isSubmitting={isProcessing}
           success={successMessages.cancelled({ kind: resolvedVariant })}
           successImage={order?.token?.image ?? tokenImage ?? null}
           successName={resolvedName}
@@ -134,8 +89,8 @@ export function CancelOrderDialog({
           errorDescription={`The transaction was submitted, but this ${resolvedVariant} could not be cancelled.`}
           errorAssetName={resolvedName}
           errorAssetImage={resolveImage(order?.token?.image ?? tokenImage)}
-          onRetry={handleConfirmCancel}
-          onDone={() => { onOpenChange(false); onSuccess?.(); }}
+          onRetry={retryable ? confirm : undefined}
+          onDone={dismiss}
         >
           {order && (
             <div className="space-y-0">
@@ -144,9 +99,9 @@ export function CancelOrderDialog({
                 description={`Cancel this ${resolvedVariant}? This action cannot be undone.`}
                 error={error}
                 secondaryLabel="Keep it"
-                onSecondary={() => onOpenChange(false)}
+                onSecondary={dismiss}
                 primaryLabel={`Cancel ${resolvedVariant}`}
-                onPrimary={handleConfirmCancel}
+                onPrimary={confirm}
                 primaryVariant="destructive"
                 footer={(
                   <div className="flex items-start justify-center gap-1.5">

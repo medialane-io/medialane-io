@@ -7,7 +7,7 @@ import Image from "next/image";
 import { AlertCircle, CheckCircle2, ExternalLink, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@medialane/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@medialane/ui/dialog";
-import { useMarketplace } from "@/hooks/use-marketplace";
+import { useCancelOrder } from "@/hooks/use-cancel-order";
 import { useMarketplaceTransaction } from "@/hooks/use-marketplace-transaction";
 import { fulfillOrder } from "@/lib/marketplace-intents";
 import { useAcceptOffer } from "@/hooks/use-accept-offer";
@@ -22,20 +22,11 @@ import { resolveImage, formatDisplayPrice } from "@/lib/utils";
 type Context = { refresh: () => void };
 
 function useCancelActions(variant: "listing" | "offer", { refresh }: Context): PortfolioOrderActions {
-  const { isProcessing } = useMarketplace();
-  const [selectedOrder, setSelectedOrder] = useState<ApiOrder | null>(null);
+  const cancel = useCancelOrder({ onSuccess: refresh });
   return {
-    isProcessing,
-    cancel: setSelectedOrder,
-    dialogs: (
-      <CancelOrderDialog
-        order={selectedOrder}
-        open={!!selectedOrder}
-        onOpenChange={(v) => { if (!v) setSelectedOrder(null); }}
-        onSuccess={refresh}
-        variant={variant}
-      />
-    ),
+    isProcessing: cancel.busy,
+    cancel: cancel.select,
+    dialogs: <CancelOrderDialog hook={cancel} variant={variant} />,
   };
 }
 
@@ -197,13 +188,18 @@ export function useAssetActions({ refresh }: Context): PortfolioAssetActions {
   const [transferToken, setTransferToken] = useState<ApiToken | null>(null);
   const [transferOpen, setTransferOpen] = useState(false);
   const [cancelToken, setCancelToken] = useState<ApiToken | null>(null);
-  const [cancelOpen, setCancelOpen] = useState(false);
+  const cancelListing = useCancelOrder({ onSuccess: refresh });
   const handleSuccess = refresh;
 
   return {
     list: (token) => { setSelectedToken(token); setListOpen(true); },
     transfer: (token) => { setTransferToken(token); setTransferOpen(true); },
-    cancel: (token) => { setCancelToken(token); setCancelOpen(true); },
+    cancel: (token) => {
+      const listing = token.activeOrders?.[0];
+      if (!listing) return;
+      setCancelToken(token);
+      cancelListing.select(listing);
+    },
     dialogs: (
       <>
         {selectedToken && (
@@ -227,10 +223,7 @@ export function useAssetActions({ refresh }: Context): PortfolioAssetActions {
         )}
 
         <CancelOrderDialog
-          order={cancelToken?.activeOrders?.[0] ?? null}
-          open={cancelOpen}
-          onOpenChange={(v) => { setCancelOpen(v); if (!v) setCancelToken(null); }}
-          onSuccess={handleSuccess}
+          hook={cancelListing}
           variant="listing"
           tokenName={cancelToken?.metadata?.name}
           tokenImage={cancelToken?.metadata?.image}
