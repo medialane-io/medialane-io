@@ -1,7 +1,7 @@
 "use client";
 
 import { EmailCodeEntry, describeError } from "@medialane/ui";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Mail, ShieldCheck, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
@@ -11,6 +11,7 @@ import { Button } from "@medialane/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@medialane/ui/card";
 import { Input } from "@medialane/ui/input";
 import { useEmailCode } from "@/hooks/use-email-code";
+import { useWhenChanged } from "@/hooks/use-when-changed";
 import { Alert, AlertDescription } from "@medialane/ui/alert";
 
 type Step = "loading" | "add-email" | "code" | "verified";
@@ -26,7 +27,7 @@ export default function VerifyEmailContent() {
   const [error, setError] = useState<string | null>(null);
   const emailCode = useEmailCode(email);
 
-  useEffect(() => {
+  useWhenChanged(walletAddress, () => {
     if (!walletAddress) return;
     (async () => {
       const result = session;
@@ -41,8 +42,7 @@ export default function VerifyEmailContent() {
         setStep("add-email");
       }
     })();
-    
-  }, [walletAddress]);
+  });
 
   async function handleAddEmail() {
     const value = emailInput.trim();

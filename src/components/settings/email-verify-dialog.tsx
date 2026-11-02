@@ -1,10 +1,11 @@
 "use client";
 
 import { EmailCodeEntry } from "@medialane/ui";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Mail, CheckCircle2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@medialane/ui/dialog";
 import { useEmailCode } from "@/hooks/use-email-code";
+import { useWhenChanged } from "@/hooks/use-when-changed";
 
 interface EmailVerifyDialogProps {
   open: boolean;
@@ -19,13 +20,13 @@ export function EmailVerifyDialog({ open, onOpenChange, email, onVerified, skipI
   const [verified, setVerified] = useState(false);
   const { send, markReady, setCode } = emailCode;
 
-  useEffect(() => {
+  useWhenChanged(open, () => {
     if (!open) return;
     setVerified(false);
     setCode("");
     if (skipInitialSend) markReady();
     else void send();
-  }, [open]);
+  });
 
   const verify = async (code?: string) => {
     const ok = await emailCode.verify({ code, after: onVerified });
