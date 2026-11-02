@@ -1,53 +1,20 @@
 import { afterAll, afterEach, beforeAll, describe, expect, mock, test } from "bun:test";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { useState, type ReactNode } from "react";
-import type { TransactionPhase } from "@medialane/ui";
+import type { ReactNode } from "react";
+import { createFakeMarketplaceTransaction } from "../../../test/fake-marketplace-transaction";
 
 const real = {
-  tx: await import("@/hooks/use-marketplace-transaction"),
-  session: await import("@/hooks/use-wallet-native-session"),
-  standard: await import("@/hooks/use-resolved-token-standard"),
-  balance: await import("@medialane/ui/utils/media-wallet/use-erc20-balance"),
-  usd: await import("@/hooks/use-usd-prices"),
-  nav: await import("next/navigation"),
+  tx: { ...(await import("@/hooks/use-marketplace-transaction")) },
+  session: { ...(await import("@/hooks/use-wallet-native-session")) },
+  standard: { ...(await import("@/hooks/use-resolved-token-standard")) },
+  balance: { ...(await import("@medialane/ui/utils/media-wallet/use-erc20-balance")) },
+  usd: { ...(await import("@/hooks/use-usd-prices")) },
+  nav: { ...(await import("next/navigation")) },
 };
 
 // Module mocks outlive this file in bun, so every fake hands back to the real hook once this file is done.
 let active = false;
-type Fake = { started: number; resets: number; fail: { message: string; retryable: boolean } | null; hang: boolean };
-const fake: Fake = { started: 0, resets: 0, fail: null, hang: false };
-
-function useFakeMarketplaceTransaction() {
-  const [state, setState] = useState<{ phase: TransactionPhase; error: string | null; retryable: boolean }>({
-    phase: "idle",
-    error: null,
-    retryable: true,
-  });
-  return {
-    phase: state.phase,
-    busy: state.phase === "preparing" || state.phase === "submitting" || state.phase === "confirming",
-    txHash: null,
-    error: state.error,
-    retryable: state.retryable,
-    start: async () => {
-      fake.started++;
-      if (fake.hang) {
-        setState({ phase: "confirming", error: null, retryable: true });
-        return new Promise<boolean>(() => {});
-      }
-      if (fake.fail) {
-        setState({ phase: "error", error: fake.fail.message, retryable: fake.fail.retryable });
-        return false;
-      }
-      setState({ phase: "success", error: null, retryable: true });
-      return true;
-    },
-    reset: () => {
-      fake.resets++;
-      setState({ phase: "idle", error: null, retryable: true });
-    },
-  };
-}
+const { control: fake, useFakeMarketplaceTransaction } = createFakeMarketplaceTransaction();
 
 mock.module("@/hooks/use-marketplace-transaction", () => ({
   ...real.tx,
@@ -88,7 +55,7 @@ beforeAll(() => { active = true; });
 afterAll(() => { active = false; });
 afterEach(() => {
   cleanup();
-  Object.assign(fake, { started: 0, resets: 0, fail: null, hang: false });
+  fake.clear();
 });
 
 const DIALOGS: Array<{ name: string; submit: string; render: (onOpenChange: (v: boolean) => void) => ReactNode }> = [

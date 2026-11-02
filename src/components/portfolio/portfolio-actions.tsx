@@ -1,15 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { UserFacingError, type PortfolioAssetActions, type PortfolioOrderActions } from "@medialane/ui";
+import type { PortfolioAssetActions, PortfolioOrderActions } from "@medialane/ui";
 import type { ApiOrder, ApiToken } from "@medialane/sdk";
 import Image from "next/image";
 import { AlertCircle, CheckCircle2, ExternalLink, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@medialane/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@medialane/ui/dialog";
 import { useMarketplace } from "@/hooks/use-marketplace";
+import { useMarketplaceTransaction } from "@/hooks/use-marketplace-transaction";
+import { fulfillOrder } from "@/lib/marketplace-intents";
 import { useAcceptOffer } from "@/hooks/use-accept-offer";
-import { useWalletWriteAction } from "@/hooks/use-wallet-write-action";
 import { AcceptOfferDialog } from "@/components/marketplace/accept-offer-dialog";
 import { CancelOrderDialog } from "@/components/marketplace/cancel-order-dialog";
 import { CounterOfferDialog } from "@/components/marketplace/counter-offer-dialog";
@@ -46,7 +47,7 @@ export function useReceivedOfferActions({ refresh }: Context): PortfolioOrderAct
   const [counterOrder, setCounterOrder] = useState<ApiOrder | null>(null);
   const token = counterOrder ? SUPPORTED_TOKENS.find((t) => t.symbol === counterOrder.price.currency) : undefined;
   return {
-    isProcessing: acceptOffer.status === "processing" || acceptOffer.status === "confirming",
+    isProcessing: acceptOffer.busy,
     accept: (order) => acceptOffer.handleAcceptClick(order),
     counter: setCounterOrder,
     dialogs: (
@@ -69,41 +70,23 @@ export function useReceivedOfferActions({ refresh }: Context): PortfolioOrderAct
 }
 
 export function useCounterOfferActions({ refresh }: Context): PortfolioOrderActions {
-  const { fulfillOrder, isProcessing } = useMarketplace();
-  const action = useWalletWriteAction();
+  const tx = useMarketplaceTransaction();
   const [selectedCounter, setSelectedCounter] = useState<ApiOrder | null>(null);
-  const mutate = refresh;
 
-  const resultStep = action.status;
-  const resultTxHash = action.txHash;
-  const resultError = action.error;
+  const resultTxHash = tx.txHash;
+  const resultError = tx.error;
 
   const handleAccept = (counter: ApiOrder) => {
     setSelectedCounter(counter);
-    void action.run(() => handleUnlocked(counter));
-  };
-
-  const handleUnlocked = async (counter: ApiOrder) => {
-
-    const hash = await fulfillOrder({
+    void tx.start((ctx) => fulfillOrder(ctx, {
       orderHash: counter.orderHash,
       tokenStandard: counter.consideration.itemType,
-    });
-    if (!hash) {
-      mutate();
-
-      throw new UserFacingError(
-        "We couldn't complete the counter-offer accept. The transaction may have been rejected or the order may have expired. Please refresh and try again."
-      );
-    }
-    mutate();
-    return { txHash: hash };
+    })).then(refresh);
   };
 
   const dismissResult = () => {
-
-    if (action.status === "processing" || action.status === "confirming") return;
-    action.reset();
+    if (tx.busy) return;
+    tx.reset();
     setSelectedCounter(null);
   };
 
@@ -112,11 +95,11 @@ export function useCounterOfferActions({ refresh }: Context): PortfolioOrderActi
   const counterImage = resolveImage(selectedCounter?.token?.image);
 
   return {
-    isProcessing,
+    isProcessing: tx.busy,
     accept: handleAccept,
     dialogs: (
           <Dialog
-            open={resultStep !== "idle"}
+            open={tx.phase !== "idle"}
             onOpenChange={(v) => { if (!v) dismissResult(); }}
           >
             <DialogContent className="max-w-[calc(100%-6px)] sm:max-w-md p-0 overflow-hidden gap-0 rounded-2xl">
@@ -137,7 +120,7 @@ export function useCounterOfferActions({ refresh }: Context): PortfolioOrderActi
                       className="object-cover"
                     />
                   )}
-                  {resultStep === "success" && (
+                  {tx.phase === "success" && (
                     <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-background flex items-center justify-center">
                       <CheckCircle2 className="h-6 w-6 text-emerald-500" />
                     </div>
@@ -148,7 +131,7 @@ export function useCounterOfferActions({ refresh }: Context): PortfolioOrderActi
                 </p>
               </div>
 
-              {resultStep === "processing" && (
+              {tx.busy && (
                 <div className="flex flex-col items-center gap-4 p-6 pt-3">
                   <Loader2 className="h-7 w-7 animate-spin text-primary" />
                   <div className="text-center space-y-1">
@@ -160,7 +143,7 @@ export function useCounterOfferActions({ refresh }: Context): PortfolioOrderActi
                 </div>
               )}
 
-              {resultStep === "success" && (
+              {tx.phase === "success" && (
                 <div className="flex flex-col items-center gap-4 p-6 pt-3">
                   <div className="text-center space-y-1">
                     <p className="font-bold text-lg flex items-center justify-center gap-1.5">
@@ -188,7 +171,7 @@ export function useCounterOfferActions({ refresh }: Context): PortfolioOrderActi
                 </div>
               )}
 
-              {resultStep === "error" && (
+              {tx.phase === "error" && (
                 <div className="flex flex-col items-center gap-4 p-6 pt-3">
                   <div className="h-12 w-12 rounded-full bg-destructive/15 flex items-center justify-center">
                     <AlertCircle className="h-6 w-6 text-destructive" />
