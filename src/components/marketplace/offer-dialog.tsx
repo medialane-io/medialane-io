@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useSWRConfig } from "swr";
 import { useForm } from "react-hook-form";
@@ -14,8 +14,9 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@medialan
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@medialane/ui/form";
 import { Input } from "@medialane/ui/input";
 import { Alert, AlertDescription } from "@medialane/ui/alert";
-import { useMarketplace } from "@/hooks/use-marketplace";
-import { useWalletMarketplaceActionFlow } from "@/hooks/use-wallet-marketplace-action-flow";
+import { useMarketplaceTransaction } from "@/hooks/use-marketplace-transaction";
+import { useWhenChanged } from "@/hooks/use-when-changed";
+import { makeOffer } from "@/lib/marketplace-intents";
 import { useResolvedTokenStandard } from "@/hooks/use-resolved-token-standard";
 import {
   DialogTransactionSuccess,
@@ -71,38 +72,15 @@ export function OfferDialog({
   const { tokenStandard: resolvedStandard } = useResolvedTokenStandard(assetContract, tokenStandard);
   const is1155 = resolvedStandard === "ERC1155";
   const { mutate } = useSWRConfig();
-  const { makeOffer, hasWallet, resetState } = useMarketplace();
-
-  const {
-    pendingValues,
-    status,
-    txHash,
-    error,
-    beginAction,
-    resetActionFlow,
-  } = useWalletMarketplaceActionFlow<FormValues>({
-    hasWallet,
-    executeAction: async (values) => {
-      const hash = await makeOffer({
-        assetContract,
-        tokenId,
-        tokenName,
-        price: values.price,
-        currencySymbol: values.currency,
-        durationSeconds: values.durationSeconds,
-        tokenStandard: resolvedStandard,
-        quantity: values.quantity,
-      });
-      return hash ? { txHash: hash } : undefined;
-    },
-  });
+  const { phase, busy, txHash, error, retryable, start, reset } = useMarketplaceTransaction();
+  const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { price: "", currency: "USDC", durationSeconds: 2592000, quantity: "1" },
   });
 
-  const { address: walletAddress } = useWalletNativeSession();
+  const { address: walletAddress, hasWallet } = useWalletNativeSession();
   const watchedCurrency = form.watch("currency");
   const watchedPrice = form.watch("price");
   const watchedQty = form.watch("quantity");
@@ -121,21 +99,28 @@ export function OfferDialog({
 
   const onSubmit = (values: FormValues) => {
     if (!hasWallet) return;
-    beginAction(values);
+    setPendingValues(values);
+    void start((ctx) => makeOffer(ctx, {
+      assetContract,
+      tokenId,
+      price: values.price,
+      currencySymbol: values.currency,
+      durationSeconds: values.durationSeconds,
+      tokenStandard: resolvedStandard,
+      quantity: values.quantity,
+    }));
   };
 
-  const busy = status === "processing" || status === "confirming";
-  const isSuccess = status === "success";
-  const isTerminalError = status === "error";
+  const isSuccess = phase === "success";
+  const isTerminalError = phase === "error";
 
   const handleClose = (v: boolean) => {
     if (!busy && !isSuccess && !isTerminalError) onOpenChange(v);
   };
 
-  useEffect(() => {
-    if (open) { resetState(); form.reset(); resetActionFlow(); }
-    
-  }, [open]);
+  useWhenChanged(open, () => {
+    if (open) { form.reset(); reset(); setPendingValues(null); }
+  });
 
   const confettiFired = useRef(false);
   useEffect(() => {
@@ -186,7 +171,7 @@ export function OfferDialog({
               error={error}
               txHash={txHash}
               explorerUrl={EXPLORER_URL}
-              onRetry={() => resetState()}
+              onRetry={retryable ? reset : undefined}
               onDone={() => onOpenChange(false)}
             />
 

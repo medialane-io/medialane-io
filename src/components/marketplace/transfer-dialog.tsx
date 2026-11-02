@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useWhenChanged } from "@/hooks/use-when-changed";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -94,15 +95,14 @@ export function TransferDialog({
     }
   };
 
-  useEffect(() => {
+  useWhenChanged(open, () => {
     if (open) {
       resetState();
       form.reset();
       setPendingAddress(null);
       setStep("form");
     }
-    
-  }, [open]);
+  });
 
   const onSubmit = (values: FormValues) => {
     if (walletAddress) {
