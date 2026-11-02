@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { TransactionPhase } from "@medialane/ui";
 import type { MarketplaceContext } from "@/lib/marketplace-intents";
 
-export interface FakeTransactionControl {
+interface FakeTransactionControl {
   started: number;
   resets: number;
   /** When set, start ends in the error phase with this message. */

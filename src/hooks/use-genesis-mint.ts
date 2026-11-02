@@ -6,7 +6,7 @@ import { MINT_CONTRACT } from "@/lib/constants";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { useGenesisHolding } from "./use-genesis-holding";
 
-export type MintStep = "checking" | "ready" | "minting" | "success" | "error";
+type MintStep = "checking" | "ready" | "minting" | "success" | "error";
 
 export interface GenesisMintMessages {
   preparing: string;

@@ -14,7 +14,7 @@ import { useCancelOrder, type CancelOrderHook } from "@/hooks/use-cancel-order";
 
 type TokenStandard = "ERC721" | "ERC1155" | "UNKNOWN";
 
-export function useAssetMarketplaceDialogState() {
+function useAssetMarketplaceDialogState() {
   const [purchaseOrder, setPurchaseOrder] = useState<ApiOrder | null>(null);
   const [listOpen, setListOpen] = useState(false);
   const [offerOpen, setOfferOpen] = useState(false);
@@ -53,7 +53,7 @@ interface AssetMarketplaceDialogsProps {
   acceptOfferHook: AcceptOfferHook;
 }
 
-export function AssetMarketplaceDialogs({
+function AssetMarketplaceDialogs({
   contract,
   tokenId,
   tokenName,

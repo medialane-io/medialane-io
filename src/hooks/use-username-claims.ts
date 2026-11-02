@@ -4,11 +4,9 @@ import useSWR from "swr";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSession } from "@/hooks/use-session";
 import { requireSignedIn } from "@/lib/account-gate";
-import type { ApiCreatorProfile, ApiUsernameClaim } from "@medialane/sdk";
+import type { ApiUsernameClaim } from "@medialane/sdk";
 import { getMedialaneClient } from "@/lib/medialane-client";
 
-export type { ApiUsernameClaim as UsernameClaim } from "@medialane/sdk";
-export type { ApiCreatorProfile as CreatorByUsername };
 
 export function useMyUsernameClaim() {
   const { hasWallet } = useWalletNativeSession();
