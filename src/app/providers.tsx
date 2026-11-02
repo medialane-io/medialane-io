@@ -8,7 +8,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { usePathname } from "next/navigation";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { useEffect } from "react";
-import { NavCommandMenu, NavBrandButton, ThemeAmbientBackground, SelfFundConsentDialog, setUploadDiagnosticsReporter, MedialaneAppProvider, useCreatorProfile } from "@medialane/ui";
+import { NavCommandMenu, NavBrandButton, ThemeAmbientBackground, SelfFundConsentDialog, setUploadDiagnosticsReporter, MedialaneAppProvider, useCreatorProfile, IpfsGatewayFallback, PINATA_PUBLIC_GATEWAY } from "@medialane/ui";
 import { NAV_COMMANDS } from "@/lib/nav-commands";
 import { OnboardingGate } from "@/components/wallet/onboarding-gate";
 import { NavThemeToggle } from "@medialane/ui/nav-theme-toggle";
@@ -17,6 +17,7 @@ import { HeaderWalletTrigger } from "@/components/nav-wallet-trigger";
 import { MediaWalletApp } from "@/components/media-wallet-app";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { resolveImage } from "@/lib/utils";
+import { IPFS_GATEWAY } from "@/lib/constants";
 import { walletConsent } from "@/lib/wallet/client";
 import { sendUploadDiagnostics } from "@/lib/upload-diagnostics";
 import { useAppAdapter } from "@/lib/use-app-adapter";
@@ -120,6 +121,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         }}
       >
         {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
+        <IpfsGatewayFallback primary={IPFS_GATEWAY} fallback={PINATA_PUBLIC_GATEWAY} />
         <OnboardingGate />
         <AppAdapter>
           <Shell>{children}</Shell>
