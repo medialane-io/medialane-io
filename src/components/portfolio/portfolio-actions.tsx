@@ -72,7 +72,7 @@ export function useCounterOfferActions({ refresh }: Context): PortfolioOrderActi
     void tx.start((ctx) => fulfillOrder(ctx, {
       orderHash: counter.orderHash,
       tokenStandard: counter.consideration.itemType,
-    })).then(refresh);
+    })).then(() => refresh());
   };
 
   const dismissResult = () => {

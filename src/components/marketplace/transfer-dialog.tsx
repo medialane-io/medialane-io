@@ -15,7 +15,9 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@medialan
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@medialane/ui/form";
 import { Input } from "@medialane/ui/input";
 import { Alert, AlertDescription } from "@medialane/ui/alert";
-import { useTransfer } from "@/hooks/use-transfer";
+import { useMarketplaceTransaction } from "@/hooks/use-marketplace-transaction";
+import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
+import { transferNft } from "@/lib/marketplace-intents";
 import { useResolvedTokenStandard } from "@/hooks/use-resolved-token-standard";
 import {
   DialogTransactionSuccess,
@@ -39,7 +41,7 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
-type Step = "form" | "confirm" | "processing" | "success";
+type Step = "form" | "confirm";
 
 interface TransferDialogProps {
   open: boolean;
@@ -65,14 +67,8 @@ export function TransferDialog({
   tokenStandard,
 }: TransferDialogProps) {
   const tokenImage = resolveImage(tokenImageRaw);
-  const {
-    transferToken,
-    walletAddress,
-    hasWallet,
-    txHash,
-    error,
-    resetState,
-  } = useTransfer();
+  const { address: walletAddress, hasWallet } = useWalletNativeSession();
+  const { phase, busy, txHash, error, retryable, failedAfterSubmit, start, reset } = useMarketplaceTransaction();
 
   const { tokenStandard: resolvedStandard } = useResolvedTokenStandard(contractAddress, tokenStandard);
 
@@ -84,24 +80,26 @@ export function TransferDialog({
     defaultValues: { toAddress: "" },
   });
 
-  const handleClose = (v: boolean) => {
+  const isSuccess = phase === "success";
 
-    if (step !== "processing" && step !== "success") {
-      resetState();
-      form.reset();
-      setPendingAddress(null);
-      setStep("form");
-      onOpenChange(v);
-    }
+  const resetDialog = () => {
+    reset();
+    form.reset();
+    setPendingAddress(null);
+    setStep("form");
+  };
+
+  const close = () => {
+    resetDialog();
+    onOpenChange(false);
+  };
+
+  const handleClose = (v: boolean) => {
+    if (!v && !busy && !isSuccess) close();
   };
 
   useWhenChanged(open, () => {
-    if (open) {
-      resetState();
-      form.reset();
-      setPendingAddress(null);
-      setStep("form");
-    }
+    if (open) resetDialog();
   });
 
   const onSubmit = (values: FormValues) => {
@@ -120,29 +118,20 @@ export function TransferDialog({
     setStep("confirm");
   };
 
-  const handleConfirmTransfer = async () => {
+  const handleConfirmTransfer = () => {
     if (!pendingAddress) return;
-
-    setStep("processing");
-    try {
-      await transferToken({
-        contractAddress,
-        tokenId,
-        toAddress: pendingAddress,
-        tokenStandard: resolvedStandard,
-      });
-      setStep("success");
-    } catch {
-      setStep("confirm");
-    }
+    void start((ctx) => transferNft(ctx, {
+      contractAddress,
+      tokenId,
+      toAddress: pendingAddress,
+      tokenStandard: resolvedStandard,
+    }));
   };
 
   const displayName = tokenName || `Token #${tokenId}`;
   const recipientShort = pendingAddress
     ? `${pendingAddress.slice(0, 8)}…${pendingAddress.slice(-6)}`
     : "";
-
-  const isTerminalError = step !== "processing" && step !== "success" && !!error && !!txHash;
 
   const shieldFooter = (
     <div className="flex items-start justify-center gap-1.5">
@@ -169,7 +158,7 @@ export function TransferDialog({
             fallbackIcon={<ArrowRightLeft className="h-12 w-12 text-brand-blue/30" />}
           />
 
-          {step === "success" ? (
+          {isSuccess ? (
             <DialogTransactionSuccess
               name={displayName}
               image={tokenImage}
@@ -179,14 +168,14 @@ export function TransferDialog({
                 {
                   label: "Done",
                   onClick: () => {
-                    handleClose(false);
+                    close();
                     onSuccess?.();
                   },
                 },
               ]}
             />
 
-          ) : isTerminalError ? (
+          ) : failedAfterSubmit ? (
             <MarketplaceErrorState
               tokenImage={tokenImage}
               name={displayName}
@@ -195,11 +184,11 @@ export function TransferDialog({
               error={error}
               txHash={txHash}
               explorerUrl={EXPLORER_URL}
-              onRetry={() => { resetState(); setStep("form"); }}
-              onDone={() => handleClose(false)}
+              onRetry={retryable ? () => { reset(); setStep("form"); } : undefined}
+              onDone={close}
             />
 
-          ) : step === "processing" ? (
+          ) : busy ? (
 
             <div className="flex flex-col items-center gap-5 p-6 py-8">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -224,7 +213,7 @@ export function TransferDialog({
                 description="Transfer this asset? This action cannot be undone."
                 error={error}
                 secondaryLabel="Back"
-                onSecondary={() => setStep("form")}
+                onSecondary={() => { reset(); setStep("form"); }}
                 primaryLabel="Transfer"
                 onPrimary={handleConfirmTransfer}
                 primaryIcon={<ArrowRightLeft className="h-4 w-4" />}
