@@ -55,6 +55,8 @@ export function useMarketplaceTransaction(useTx: TransactionHook = useTransactio
     txHash: tx.txHash,
     error: tx.error,
     retryable: tx.retryable,
+    /** The failure came after a transaction was sent; before that, nothing reached the chain. */
+    failedAfterSubmit: tx.phase === "error" && tx.txHash !== null,
     start,
     reset: tx.reset,
   };

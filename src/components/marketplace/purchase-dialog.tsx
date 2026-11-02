@@ -208,7 +208,7 @@ function SuccessScreen({
 export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: PurchaseDialogProps) {
   const router = useRouter();
   const { address: walletAddress, hasWallet } = useWalletNativeSession();
-  const { phase, busy, txHash, error, retryable, start, reset } = useMarketplaceTransaction();
+  const { phase, busy, txHash, error, retryable, failedAfterSubmit, start, reset } = useMarketplaceTransaction();
 
   const [quantity, setQuantity] = useState(1);
   const [paymentSymbol, setPaymentSymbol] = useState<string | null>(null);
@@ -280,7 +280,6 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
   });
 
   const processingMessage = "Confirming on Starknet…";
-  const isTerminalError = phase === "error";
 
   return (
     <>
@@ -305,7 +304,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
               <div className="px-6 pb-6"><RewardEarned actionType="buy_asset" /></div>
             </>
 
-          ) : isTerminalError ? (
+          ) : failedAfterSubmit ? (
             <MarketplaceErrorState
               tokenImage={resolveImage(order.token?.image)}
               name={order.token?.name || `Token #${order.nftTokenId}`}

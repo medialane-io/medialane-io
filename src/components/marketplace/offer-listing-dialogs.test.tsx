@@ -90,7 +90,7 @@ async function submitPrice(submit: string, price: string) {
 for (const dialog of DIALOGS) {
   describe(dialog.name, () => {
     test("Try again on the error screen calls reset", async () => {
-      fake.fail = { message: "Network hiccup", retryable: true };
+      fake.fail = { message: "Network hiccup", retryable: true, submitted: true };
       show(dialog.render(() => {}));
       await submitPrice(dialog.submit, "5");
       await screen.findByText("Network hiccup");
@@ -100,20 +100,20 @@ for (const dialog of DIALOGS) {
     });
 
     test("no Try again when the error is not retryable", async () => {
-      fake.fail = { message: "Not allowed", retryable: false };
+      fake.fail = { message: "Not allowed", retryable: false, submitted: true };
       show(dialog.render(() => {}));
       await submitPrice(dialog.submit, "5");
       await screen.findByText("Not allowed");
-      expect(screen.queryByRole("button", { name: "Try again" })).toBeNull();
+      expect(screen.queryByRole("button", { name: "Try again" }) === null).toBe(true);
     });
 
-    test("a failure before submit returns to the form with values kept", async () => {
-      fake.fail = { message: "Passkey prompt closed", retryable: true };
+    test("a failure before submit stays on the form with the error and the values kept", async () => {
+      fake.fail = { message: "Passkey prompt closed", retryable: true, submitted: false };
       show(dialog.render(() => {}));
       await submitPrice(dialog.submit, "5");
       await screen.findByText("Passkey prompt closed");
-      fireEvent.click(screen.getByRole("button", { name: "Try again" }));
-      expect((await screen.findByPlaceholderText("0.00") as HTMLInputElement).value).toBe("5");
+      expect(screen.queryByRole("button", { name: "Try again" }) === null).toBe(true);
+      expect((screen.getByPlaceholderText("0.00") as HTMLInputElement).value).toBe("5");
     });
 
     test("close is ignored while busy", async () => {

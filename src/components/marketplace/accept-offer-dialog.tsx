@@ -37,6 +37,7 @@ export function AcceptOfferDialog({ hook, tokenName, tokenImage, onCancelListing
     txHash,
     error,
     retryable,
+    failedAfterSubmit,
     confirmAccept,
     dismiss,
     warningOpen,
@@ -140,7 +141,7 @@ export function AcceptOfferDialog({ hook, tokenName, tokenImage, onCancelListing
           >
             <RewardEarned actionType="offer_accepted_seller" />
           </DialogTransactionSuccess>
-        ) : phase === "error" ? (
+        ) : failedAfterSubmit ? (
           <MarketplaceErrorState
             tokenImage={image}
             name={name}
@@ -174,6 +175,7 @@ export function AcceptOfferDialog({ hook, tokenName, tokenImage, onCancelListing
                   </Alert>
                 ) : null
               }
+              error={error}
               secondaryLabel="Cancel"
               onSecondary={dismiss}
               primaryLabel="Accept offer"

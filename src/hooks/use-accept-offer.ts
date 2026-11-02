@@ -84,6 +84,7 @@ export function useAcceptOffer({ mutateListings, tokenStandard, activeListings =
     txHash: tx.txHash,
     error: tx.error,
     retryable: tx.retryable,
+    failedAfterSubmit: tx.failedAfterSubmit,
     handleAcceptClick,
     confirmAccept,
     dismiss,

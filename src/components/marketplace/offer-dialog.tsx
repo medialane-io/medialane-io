@@ -72,7 +72,7 @@ export function OfferDialog({
   const { tokenStandard: resolvedStandard } = useResolvedTokenStandard(assetContract, tokenStandard);
   const is1155 = resolvedStandard === "ERC1155";
   const { mutate } = useSWRConfig();
-  const { phase, busy, txHash, error, retryable, start, reset } = useMarketplaceTransaction();
+  const { phase, busy, txHash, error, retryable, failedAfterSubmit, start, reset } = useMarketplaceTransaction();
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
 
   const form = useForm<FormValues>({
@@ -112,10 +112,9 @@ export function OfferDialog({
   };
 
   const isSuccess = phase === "success";
-  const isTerminalError = phase === "error";
 
   const handleClose = (v: boolean) => {
-    if (!busy && !isSuccess && !isTerminalError) onOpenChange(v);
+    if (!busy && !isSuccess && !failedAfterSubmit) onOpenChange(v);
   };
 
   useWhenChanged(open, () => {
@@ -162,7 +161,7 @@ export function OfferDialog({
               <RewardEarned actionType="make_offer" />
             </DialogTransactionSuccess>
 
-          ) : isTerminalError ? (
+          ) : failedAfterSubmit ? (
             <MarketplaceErrorState
               tokenImage={tokenImage}
               name={name}

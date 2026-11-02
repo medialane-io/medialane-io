@@ -19,7 +19,7 @@ test("renders the badge only when the copy has one", () => {
   cleanup();
   render(<MintLanding copy={BR_MINT_COPY} mint={null} />);
   expect(BR_MINT_COPY.badge).toBeUndefined();
-  expect(screen.queryByText("Creator's Fund Campaign")).toBeNull();
+  expect(screen.queryByText("Creator's Fund Campaign") === null).toBe(true);
 });
 
 test("renders the mint slot", () => {

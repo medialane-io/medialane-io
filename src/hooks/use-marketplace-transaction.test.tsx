@@ -24,7 +24,7 @@ const signer = {
   execute: async () => ({ txHash: "0xtx" }),
 };
 
-/** Stands in for useTransaction: hands `signer` to the work and reports phases like the real one. */
+/** Stands in for useTransaction: hands a tracked signer to the work and reports phases like the real one. */
 function useFakeTransaction() {
   const [state, setState] = useState<{ phase: TransactionPhase; txHash: string | null; error: string | null }>({
     phase: "idle",
@@ -35,13 +35,22 @@ function useFakeTransaction() {
     ...state,
     retryable: true,
     run: async (work: (s: typeof signer) => Promise<void>) => {
-      setState({ phase: "confirming", txHash: "0xtx", error: null });
+      let txHash: string | null = null;
+      setState({ phase: "preparing", txHash, error: null });
+      const tracked = {
+        ...signer,
+        execute: async () => {
+          txHash = "0xtx";
+          setState({ phase: "confirming", txHash, error: null });
+          return { txHash };
+        },
+      };
       try {
-        await work(signer);
-        setState({ phase: "success", txHash: "0xtx", error: null });
+        await work(tracked);
+        setState({ phase: "success", txHash, error: null });
         return true;
       } catch (err) {
-        setState({ phase: "error", txHash: "0xtx", error: (err as Error).message });
+        setState({ phase: "error", txHash, error: (err as Error).message });
         return false;
       }
     },
@@ -74,8 +83,12 @@ test("busy while work runs, success after", async () => {
   const { result } = render();
   let finish!: () => void;
   let started!: Promise<boolean>;
-  act(() => {
-    started = result.current.start(() => new Promise<void>((r) => { finish = r; }));
+  await act(async () => {
+    started = result.current.start(async (ctx) => {
+      await ctx.signer.execute([]);
+      await new Promise<void>((r) => { finish = r; });
+    });
+    await Promise.resolve();
   });
   expect(result.current.busy).toBe(true);
   await act(async () => {
@@ -94,7 +107,7 @@ test("work gets a client and the transaction's signer", async () => {
     await result.current.start(async (ctx) => { seen = { client: ctx.client, signer: ctx.signer }; });
   });
   expect(seen!.client).toBeTruthy();
-  expect(seen!.signer).toBe(signer);
+  expect((seen!.signer as typeof signer).address).toBe(signer.address);
 });
 
 test("invalidates after a successful run and after a failed run", async () => {
@@ -121,9 +134,21 @@ test("the invalidator matches order and token keys, not others", async () => {
   expect(matcher(["array-key"])).toBe(false);
 });
 
+test("failedAfterSubmit is true only when the failure came after a transaction was sent", async () => {
+  const { result } = render();
+  await act(async () => { await result.current.start(async () => { throw new Error("prompt closed"); }); });
+  expect(result.current.phase).toBe("error");
+  expect(result.current.failedAfterSubmit).toBe(false);
+  await act(async () => {
+    await result.current.start(async (ctx) => { await ctx.signer.execute([]); throw new Error("reverted"); });
+  });
+  expect(result.current.failedAfterSubmit).toBe(true);
+});
+
 test("reset returns to idle with no error or hash", async () => {
   const { result } = render();
-  await act(async () => { await result.current.start(async () => { throw new Error("no"); }); });
+  await act(async () => { await result.current.start(async (ctx) => { await ctx.signer.execute([]); throw new Error("no"); }); });
+  expect(result.current.txHash).toBe("0xtx");
   act(() => result.current.reset());
   expect(result.current.phase).toBe("idle");
   expect(result.current.error).toBeNull();
