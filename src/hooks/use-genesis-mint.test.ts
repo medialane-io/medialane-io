@@ -1,23 +1,21 @@
-import { test, expect, mock, beforeEach } from "bun:test";
+import { test, expect, beforeEach } from "bun:test";
 import { useState } from "react";
 import { GlobalRegistrator } from "@happy-dom/global-registrator";
 import { renderHook, waitFor, act } from "@testing-library/react";
+import { mockForThisFile } from "../../test/mock-for-this-file";
 
 if (!GlobalRegistrator.isRegistered) GlobalRegistrator.register();
-
-const realUi = await import("@medialane/ui");
 
 const created: unknown[] = [];
 let txHash = "0xtx";
 let runFailure: Error | null = null;
 
-mock.module("@medialane/ui", () => ({
-  ...realUi,
-  runIntentCalls: async (_signer: unknown, create: () => Promise<unknown>) => {
+await mockForThisFile("@medialane/ui", {
+  runIntentCalls: (async (_signer: unknown, create: () => Promise<unknown>) => {
     created.push(await create());
     return { txHash };
-  },
-  useTransaction: () => {
+  }) as never,
+  useTransaction: (() => {
     const [state, setState] = useState({ phase: "idle", txHash: null as string | null, error: null as string | null });
     return {
       ...state,
@@ -36,15 +34,15 @@ mock.module("@medialane/ui", () => ({
       },
       reset: () => setState({ phase: "idle", txHash: null, error: null }),
     };
-  },
-}));
+  }) as never,
+});
 
-const setMintContract = (value: string) => mock.module("@/lib/constants", () => ({ MINT_CONTRACT: value }));
-setMintContract("0xmint");
+let mintContract = "0xmint";
+const setMintContract = (value: string) => { mintContract = value; };
 
 const intentCalls: unknown[] = [];
 const chain = { balance: "0x0", tokenId: "0x2a", down: false };
-mock.module("@/lib/medialane-client", () => ({
+await mockForThisFile("@/lib/medialane-client", {
   getMedialaneClient: () => ({
     provider: {
       callContract: async ({ entrypoint }: { entrypoint: string }) => {
@@ -62,8 +60,8 @@ mock.module("@/lib/medialane-client", () => ({
         },
       },
     },
-  }),
-}));
+  }) as never,
+});
 
 const { useGenesisMint } = await import("./use-genesis-mint");
 
@@ -87,7 +85,7 @@ beforeEach(() => {
 });
 
 const render = (address: string | null = "0xme") =>
-  renderHook(() => useGenesisMint({ address, messages }));
+  renderHook(() => useGenesisMint({ address, messages, contract: mintContract }));
 
 test("checks the chain before offering the mint", async () => {
   const { result } = render();

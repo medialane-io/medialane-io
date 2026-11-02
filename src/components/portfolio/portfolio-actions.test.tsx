@@ -1,36 +1,22 @@
-import { afterAll, afterEach, beforeAll, expect, mock, test } from "bun:test";
+import { afterEach, expect, test } from "bun:test";
 import { act, renderHook } from "@testing-library/react";
 import type { ApiOrder } from "@medialane/sdk";
+import { mockForThisFile } from "../../../test/mock-for-this-file";
 import { createFakeMarketplaceTransaction } from "../../../test/fake-marketplace-transaction";
 
-const real = {
-  tx: { ...(await import("@/hooks/use-marketplace-transaction")) },
-  intents: { ...(await import("@/lib/marketplace-intents")) },
-};
-
-// Module mocks outlive this file in bun, so every fake hands back to the real one once this file is done.
-let active = false;
 const { control, useFakeMarketplaceTransaction } = createFakeMarketplaceTransaction();
 const fulfilled: unknown[] = [];
 
-mock.module("@/hooks/use-marketplace-transaction", () => ({
-  ...real.tx,
-  useMarketplaceTransaction: (...args: Parameters<typeof real.tx.useMarketplaceTransaction>) =>
-    (active ? useFakeMarketplaceTransaction : real.tx.useMarketplaceTransaction)(...args),
-}));
-mock.module("@/lib/marketplace-intents", () => ({
-  ...real.intents,
-  fulfillOrder: async (...args: Parameters<typeof real.intents.fulfillOrder>) => {
-    if (!active) return real.intents.fulfillOrder(...args);
-    fulfilled.push(args[1]);
-    return "0xtx";
-  },
-}));
+await mockForThisFile("@/hooks/use-marketplace-transaction", { useMarketplaceTransaction: useFakeMarketplaceTransaction as never });
+await mockForThisFile("@/lib/marketplace-intents", {
+  fulfillOrder: (async (_ctx: unknown, input: unknown) => {
+    fulfilled.push(input);
+    return { txHash: "0xtx", orderHash: null };
+  }) as never,
+});
 
 const { useCounterOfferActions } = await import("./portfolio-actions");
 
-beforeAll(() => { active = true; });
-afterAll(() => { active = false; });
 afterEach(() => {
   control.clear();
   fulfilled.length = 0;

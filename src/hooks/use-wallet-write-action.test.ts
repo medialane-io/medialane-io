@@ -1,7 +1,9 @@
 import { UserFacingError } from "@medialane/ui";
-import { test, expect, mock } from "bun:test";
+import { afterEach, test, expect } from "bun:test";
 import { GlobalRegistrator } from "@happy-dom/global-registrator";
 import { renderHook, waitFor, act } from "@testing-library/react";
+import type { WalletNativeSession } from "./use-wallet-native-session";
+import { mockForThisFile } from "../../test/mock-for-this-file";
 
 if (!GlobalRegistrator.isRegistered) GlobalRegistrator.register();
 
@@ -9,14 +11,17 @@ const FAKE_SEALED = {
   credentialId: "cred1", ownerPubKey: "0xabc", address: "0xdeadbeef", iv: "iv1", ciphertext: "ct1",
 };
 
-mock.module("./use-wallet-native-session", () => ({
-  useWalletNativeSession: () => ({
-    address: FAKE_SEALED.address,
-    hasWallet: true,
-    isDeployed: true,
-    signer: { address: FAKE_SEALED.address, signTypedData: async () => ["0xr", "0xs"], execute: async () => ({ txHash: "0xtx" }) },
-  }),
-}));
+const WITH_WALLET = {
+  address: FAKE_SEALED.address,
+  hasWallet: true,
+  isDeployed: true,
+  signer: { address: FAKE_SEALED.address, signTypedData: async () => ["0xr", "0xs"], execute: async () => ({ txHash: "0xtx" }) },
+} as unknown as WalletNativeSession;
+const NO_WALLET: WalletNativeSession = { address: null, hasWallet: false, isDeployed: null, signer: null };
+
+let walletSession = WITH_WALLET;
+await mockForThisFile("@/hooks/use-wallet-native-session", { useWalletNativeSession: () => walletSession });
+afterEach(() => { walletSession = WITH_WALLET; });
 
 const { useWalletWriteAction } = await import("./use-wallet-write-action");
 
@@ -75,11 +80,8 @@ test("reset returns to idle", async () => {
 });
 
 test("walletNotReady is true and run is a no-op when there's no wallet", async () => {
-  mock.module("./use-wallet-native-session", () => ({
-    useWalletNativeSession: () => ({ address: null, hasWallet: false, isDeployed: null, signer: null }),
-  }));
-  const { useWalletWriteAction: useNoWallet } = await import("./use-wallet-write-action?no-wallet");
-  const { result } = renderHook(() => useNoWallet(VERIFY_OK));
+  walletSession = NO_WALLET;
+  const { result } = renderHook(() => useWalletWriteAction(VERIFY_OK));
   expect(result.current.walletNotReady).toBe(true);
 
   await act(async () => {

@@ -1,5 +1,6 @@
-import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { cleanup, render } from "@testing-library/react";
+import { mockForThisFile } from "../../../test/mock-for-this-file";
 
 const replaced: string[] = [];
 let search = "";
@@ -7,18 +8,14 @@ let account: { email: string; walletAddress: string | null } | null = null;
 let loading = false;
 let hasKey = false;
 
-const real = {
-  navigation: await import("next/navigation"),
-  native: await import("@/hooks/use-wallet-native-session"),
-  session: await import("@/hooks/use-session"),
-};
-mock.module("next/navigation", () => ({
-  ...real.navigation,
-  useRouter: () => ({ replace: (to: string) => replaced.push(to), push: () => {} }),
-  useSearchParams: () => new URLSearchParams(search),
-}));
-mock.module("@/hooks/use-wallet-native-session", () => ({ ...real.native, useWalletNativeSession: () => ({ hasWallet: hasKey, isDeployed: null }) }));
-mock.module("@/hooks/use-session", () => ({ ...real.session, useSession: () => ({ session: account, isLoading: loading }) }));
+await mockForThisFile("next/navigation", {
+  useRouter: () => ({ replace: (to: string) => replaced.push(to), push: () => {} }) as never,
+  useSearchParams: () => new URLSearchParams(search) as never,
+});
+await mockForThisFile("@/hooks/use-wallet-native-session", {
+  useWalletNativeSession: () => ({ hasWallet: hasKey, isDeployed: null }) as never,
+});
+await mockForThisFile("@/hooks/use-session", { useSession: () => ({ session: account, isLoading: loading }) as never });
 
 const { default: OnboardingPage } = await import("./page");
 

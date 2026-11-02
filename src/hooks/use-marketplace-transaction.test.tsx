@@ -1,19 +1,18 @@
-import { beforeEach, expect, mock, test } from "bun:test";
+import { beforeEach, expect, test } from "bun:test";
 import { act, renderHook } from "@testing-library/react";
 import { useState, type ReactNode } from "react";
 import type { TransactionPhase } from "@medialane/ui";
+import { mockForThisFile } from "../../test/mock-for-this-file";
 
 const invalidations: unknown[] = [];
-const realSwr = await import("swr");
-mock.module("swr", () => ({
-  ...realSwr,
-  useSWRConfig: () => ({
+await mockForThisFile("swr", {
+  useSWRConfig: (() => ({
     mutate: (matcher: unknown) => {
       invalidations.push(matcher);
       return Promise.resolve([]);
     },
-  }),
-}));
+  })) as never,
+});
 
 const { MedialaneAppProvider } = await import("@medialane/ui");
 const { useMarketplaceTransaction } = await import("./use-marketplace-transaction");

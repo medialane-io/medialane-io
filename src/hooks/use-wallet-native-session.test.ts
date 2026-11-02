@@ -1,22 +1,17 @@
-import { test, expect, beforeEach, mock } from "bun:test";
+import { test, expect, beforeEach } from "bun:test";
 import { GlobalRegistrator } from "@happy-dom/global-registrator";
 import { renderHook, waitFor } from "@testing-library/react";
+import { mockForThisFile } from "../../test/mock-for-this-file";
 
 if (!GlobalRegistrator.isRegistered) GlobalRegistrator.register();
 
-const realAccountOps = await import("@/lib/wallet/account-ops");
 let deployedCheck: () => Promise<boolean> = async () => false;
-mock.module("@/lib/wallet/account-ops", () => ({
-  ...realAccountOps,
-  isDeployed: () => deployedCheck(),
-}));
+await mockForThisFile("@/lib/wallet/account-ops", { isDeployed: () => deployedCheck() });
 
 let sessionWallet: string | null = null;
-const realSession = await import("@/hooks/use-session");
-mock.module("@/hooks/use-session", () => ({
-  ...realSession,
-  useSession: () => ({ session: sessionWallet ? { walletAddress: sessionWallet } : null, isLoading: false }),
-}));
+await mockForThisFile("@/hooks/use-session", {
+  useSession: () => ({ session: sessionWallet ? { walletAddress: sessionWallet } : null, isLoading: false }) as never,
+});
 
 const { useWalletNativeSession } = await import("./use-wallet-native-session");
 const { saveSealedOwner, clearSealedOwner } = await import("@/lib/wallet/store");

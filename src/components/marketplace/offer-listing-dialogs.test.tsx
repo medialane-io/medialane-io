@@ -1,58 +1,28 @@
-import { afterAll, afterEach, beforeAll, describe, expect, mock, test } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
+import { mockForThisFile } from "../../../test/mock-for-this-file";
 import { createFakeMarketplaceTransaction } from "../../../test/fake-marketplace-transaction";
 
-const real = {
-  tx: { ...(await import("@/hooks/use-marketplace-transaction")) },
-  session: { ...(await import("@/hooks/use-wallet-native-session")) },
-  standard: { ...(await import("@/hooks/use-resolved-token-standard")) },
-  balance: { ...(await import("@medialane/ui/utils/media-wallet/use-erc20-balance")) },
-  usd: { ...(await import("@/hooks/use-usd-prices")) },
-  nav: { ...(await import("next/navigation")) },
-};
-
-// Module mocks outlive this file in bun, so every fake hands back to the real hook once this file is done.
-let active = false;
 const { control: fake, useFakeMarketplaceTransaction } = createFakeMarketplaceTransaction();
 
-mock.module("@/hooks/use-marketplace-transaction", () => ({
-  ...real.tx,
-  useMarketplaceTransaction: (...args: Parameters<typeof real.tx.useMarketplaceTransaction>) =>
-    (active ? useFakeMarketplaceTransaction : real.tx.useMarketplaceTransaction)(...args),
-}));
-mock.module("@/hooks/use-wallet-native-session", () => ({
-  ...real.session,
-  useWalletNativeSession: () =>
-    active ? { address: "0xabc", hasWallet: true, isDeployed: true, signer: null } : real.session.useWalletNativeSession(),
-}));
-mock.module("@/hooks/use-resolved-token-standard", () => ({
-  ...real.standard,
-  useResolvedTokenStandard: (contract: string | null, standard?: string | null) =>
-    active
-      ? { tokenStandard: "ERC721", collectionStandard: "ERC721", isResolving: false }
-      : real.standard.useResolvedTokenStandard(contract, standard),
-}));
-mock.module("@medialane/ui/utils/media-wallet/use-erc20-balance", () => ({
-  ...real.balance,
-  useTokenBalance: (...args: Parameters<typeof real.balance.useTokenBalance>) =>
-    active ? { rawBalance: null, decimals: 6, isLoading: false } : real.balance.useTokenBalance(...args),
-}));
-mock.module("@/hooks/use-usd-prices", () => ({
-  ...real.usd,
-  useUsdPrices: () => (active ? {} : real.usd.useUsdPrices()),
-}));
-mock.module("next/navigation", () => ({
-  ...real.nav,
-  usePathname: () => (active ? "/asset/starknet/0xc/1" : real.nav.usePathname()),
-}));
+await mockForThisFile("@/hooks/use-marketplace-transaction", { useMarketplaceTransaction: useFakeMarketplaceTransaction as never });
+await mockForThisFile("@/hooks/use-wallet-native-session", {
+  useWalletNativeSession: () => ({ address: "0xabc", hasWallet: true, isDeployed: true, signer: null }),
+});
+await mockForThisFile("@/hooks/use-resolved-token-standard", {
+  useResolvedTokenStandard: () => ({ tokenStandard: "ERC721", collectionStandard: "ERC721", isResolving: false }),
+});
+await mockForThisFile("@medialane/ui/utils/media-wallet/use-erc20-balance", {
+  useTokenBalance: () => ({ rawBalance: null, decimals: 6, isLoading: false }) as never,
+});
+await mockForThisFile("@/hooks/use-usd-prices", { useUsdPrices: () => ({}) as never });
+await mockForThisFile("next/navigation", { usePathname: () => "/asset/starknet/0xc/1" });
 
 const { MedialaneAppProvider } = await import("@medialane/ui");
 const { OfferDialog } = await import("./offer-dialog");
 const { ListingDialog } = await import("./listing-dialog");
 
-beforeAll(() => { active = true; });
-afterAll(() => { active = false; });
 afterEach(() => {
   cleanup();
   fake.clear();

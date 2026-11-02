@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from "bun:test";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MedialaneApiError } from "@medialane/sdk";
+import { mockForThisFile } from "../../../test/mock-for-this-file";
 
 const RECOVERY_KEY_OPTION = "I have my recovery key from Medialane";
 const NEW_WALLET_OPTION = "I don't have the recovery key and want to start a new wallet";
@@ -16,31 +17,38 @@ const completeDeployment = mock(async (_onStep: (s: string) => void, _options?: 
 const getSessionWallet = mock(async (..._args: unknown[]): Promise<{ walletAddress: string; needsKeySetup: boolean } | null> => null);
 const claimSessionWallet = mock(async (..._args: unknown[]) => undefined);
 
+type WalletClient = typeof import("@/lib/wallet/client");
+await mockForThisFile("@/lib/medialane-client", { getMedialaneClient: () => ({ api }) as never });
 const real = {
-  client: await import("@/lib/wallet/client"),
-  store: await import("@/lib/wallet/store"),
-  passkey: await import("@/lib/wallet/passkey"),
-  devices: await import("@/lib/wallet/devices"),
-  confetti: await import("@medialane/ui/utils/media-wallet/confetti"),
-  session: await import("@/hooks/use-wallet-native-session"),
-  sessionHook: await import("@/hooks/use-session"),
-  starknet: await import("@medialane/sdk/starknet"),
+  client: await mockForThisFile<WalletClient>("@/lib/wallet/client", (client) => ({
+    mediaWallet: { ...client.mediaWallet, completeDeployment } as never,
+  })),
+  starknet: await mockForThisFile("@medialane/sdk/starknet", { claimSessionWallet: claimSessionWallet as never }),
 };
-
-mock.module("@/lib/medialane-client", () => ({ getMedialaneClient: () => ({ api }) }));
-mock.module("@/lib/wallet/client", () => ({ ...real.client, mediaWallet: { ...real.client.mediaWallet, completeDeployment } }));
-mock.module("@medialane/sdk/starknet", () => ({ ...real.starknet, claimSessionWallet }));
 let localOwner: { address: string } | null = null;
-mock.module("@/lib/wallet/store", () => ({ ...real.store, loadSealedOwner: () => localOwner, saveSealedOwner: () => {}, notifyWalletChange: () => {} }));
+await mockForThisFile("@/lib/wallet/store", {
+  loadSealedOwner: () => localOwner as never,
+  saveSealedOwner: () => {},
+  notifyWalletChange: () => {},
+});
 let restoredKeyIsOwner = true;
 let createKeyError: Error | null = null;
-mock.module("@/lib/wallet/passkey", () => ({ ...real.passkey, createOwnerKey: async () => { if (createKeyError) throw createKeyError; return { privateKeyHex: "0x1", sealed: { credentialId: "c", ownerPubKey: "0x222", address: "0x999", iv: "i", ciphertext: "x" } }; }, sealImportedOwnerKey: async (key: { walletAddress: string }) => ({ address: key.walletAddress, ownerPubKey: "0x1" }) }));
-mock.module("@/lib/wallet/devices", () => ({ ...real.devices, removeDevice: async () => {}, isOwnerOf: async () => restoredKeyIsOwner }));
-mock.module("@medialane/ui/utils/media-wallet/confetti", () => ({ ...real.confetti, fireConfetti: () => {} }));
+await mockForThisFile("@/lib/wallet/passkey", {
+  createOwnerKey: (async () => {
+    if (createKeyError) throw createKeyError;
+    return { privateKeyHex: "0x1", sealed: { credentialId: "c", ownerPubKey: "0x222", address: "0x999", iv: "i", ciphertext: "x" } };
+  }) as never,
+  sealImportedOwnerKey: (async (key: { walletAddress: string }) => ({ address: key.walletAddress, ownerPubKey: "0x1" })) as never,
+});
+await mockForThisFile("@/lib/wallet/devices", { removeDevice: async () => {}, isOwnerOf: async () => restoredKeyIsOwner });
+await mockForThisFile("@medialane/ui/utils/media-wallet/confetti", { fireConfetti: () => {} });
 let nativeSession: { hasWallet: boolean; isDeployed: boolean | null } = { hasWallet: false, isDeployed: null };
-mock.module("@/hooks/use-wallet-native-session", () => ({ ...real.session, useWalletNativeSession: () => nativeSession }));
+await mockForThisFile("@/hooks/use-wallet-native-session", { useWalletNativeSession: () => nativeSession as never });
 let session: { email: string; walletAddress: string | null } | null = null;
-mock.module("@/hooks/use-session", () => ({ ...real.sessionHook, useSession: () => ({ session, isLoading: false }), refreshSession: async () => undefined }));
+await mockForThisFile("@/hooks/use-session", {
+  useSession: () => ({ session, isLoading: false }) as never,
+  refreshSession: async () => undefined as never,
+});
 
 const { OnboardingFlow } = await import("./onboarding-flow");
 

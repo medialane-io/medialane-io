@@ -11,7 +11,7 @@ export function isBusyPhase(phase: TransactionPhase): boolean {
 }
 
 /** Revalidates every cached order, listing and token query. */
-export function useInvalidateMarketplace(): () => void {
+function useInvalidateMarketplace(): () => void {
   const { mutate } = useSWRConfig();
   return useCallback(() => {
     mutate((key) => {

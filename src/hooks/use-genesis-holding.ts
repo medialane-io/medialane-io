@@ -7,10 +7,10 @@ import { readGenesisHolding, type GenesisHolding } from "@/lib/genesis-holding";
 
 const NOT_HOLDING: GenesisHolding = { owned: false, tokenId: null };
 
-export function useGenesisHolding(address: string | null) {
+export function useGenesisHolding(address: string | null, contract: string = MINT_CONTRACT) {
   const [holding, setHolding] = useState<GenesisHolding | null>(null);
   const [round, setRound] = useState(0);
-  const enabled = Boolean(address && MINT_CONTRACT);
+  const enabled = Boolean(address && contract);
 
   useEffect(() => {
     if (!enabled || !address) {
@@ -18,13 +18,13 @@ export function useGenesisHolding(address: string | null) {
       return;
     }
     let current = true;
-    readGenesisHolding(getMedialaneClient().provider, MINT_CONTRACT, address)
+    readGenesisHolding(getMedialaneClient().provider, contract, address)
       .then((read) => current && setHolding(read))
       .catch(() => current && setHolding(NOT_HOLDING));
     return () => {
       current = false;
     };
-  }, [address, enabled, round]);
+  }, [address, contract, enabled, round]);
 
   const reload = useCallback(() => setRound((r) => r + 1), []);
 

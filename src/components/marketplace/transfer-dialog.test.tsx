@@ -1,49 +1,27 @@
-import { afterAll, afterEach, beforeAll, describe, expect, mock, test } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { mockForThisFile } from "../../../test/mock-for-this-file";
 import { createFakeMarketplaceTransaction } from "../../../test/fake-marketplace-transaction";
 
-const real = {
-  tx: { ...(await import("@/hooks/use-marketplace-transaction")) },
-  intents: { ...(await import("@/lib/marketplace-intents")) },
-  session: { ...(await import("@/hooks/use-wallet-native-session")) },
-  standard: { ...(await import("@/hooks/use-resolved-token-standard")) },
-};
-
-// Module mocks outlive this file in bun, so every fake hands back to the real one once this file is done.
-let active = false;
 const { control: fake, useFakeMarketplaceTransaction } = createFakeMarketplaceTransaction();
 const transfers: unknown[] = [];
 
-mock.module("@/hooks/use-marketplace-transaction", () => ({
-  ...real.tx,
-  useMarketplaceTransaction: (...args: Parameters<typeof real.tx.useMarketplaceTransaction>) =>
-    (active ? useFakeMarketplaceTransaction : real.tx.useMarketplaceTransaction)(...args),
-}));
-mock.module("@/lib/marketplace-intents", () => ({
-  ...real.intents,
-  transferNft: async (...args: Parameters<typeof real.intents.transferNft>) => {
-    if (!active) return real.intents.transferNft(...args);
-    transfers.push(args[1]);
+await mockForThisFile("@/hooks/use-marketplace-transaction", { useMarketplaceTransaction: useFakeMarketplaceTransaction as never });
+await mockForThisFile("@/lib/marketplace-intents", {
+  transferNft: (async (_ctx: unknown, input: unknown) => {
+    transfers.push(input);
     return "0xtx";
-  },
-}));
-mock.module("@/hooks/use-wallet-native-session", () => ({
-  ...real.session,
-  useWalletNativeSession: () =>
-    active ? { address: "0xabc", hasWallet: true, isDeployed: true, signer: null } : real.session.useWalletNativeSession(),
-}));
-mock.module("@/hooks/use-resolved-token-standard", () => ({
-  ...real.standard,
-  useResolvedTokenStandard: (contract: string | null, standard?: string | null) =>
-    active
-      ? { tokenStandard: "ERC721", collectionStandard: "ERC721", isResolving: false }
-      : real.standard.useResolvedTokenStandard(contract, standard),
-}));
+  }) as never,
+});
+await mockForThisFile("@/hooks/use-wallet-native-session", {
+  useWalletNativeSession: () => ({ address: "0xabc", hasWallet: true, isDeployed: true, signer: null }),
+});
+await mockForThisFile("@/hooks/use-resolved-token-standard", {
+  useResolvedTokenStandard: () => ({ tokenStandard: "ERC721", collectionStandard: "ERC721", isResolving: false }),
+});
 
 const { TransferDialog } = await import("./transfer-dialog");
 
-beforeAll(() => { active = true; });
-afterAll(() => { active = false; });
 afterEach(() => {
   cleanup();
   fake.clear();

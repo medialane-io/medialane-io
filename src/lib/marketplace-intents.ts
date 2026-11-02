@@ -5,7 +5,7 @@ import type { Call, TypedData } from "starknet";
 import { SUPPORTED_TOKENS } from "@/lib/constants";
 import { isErc1155Standard } from "@/lib/protocol/token-standard";
 
-export type MarketplaceSigner = FastMintSigner;
+type MarketplaceSigner = FastMintSigner;
 
 export interface MarketplaceContext {
   client: MedialaneClient;
