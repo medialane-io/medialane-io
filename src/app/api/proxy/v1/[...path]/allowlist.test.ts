@@ -117,6 +117,11 @@ test("POST /v1/users/me/generate-wallet is allowed", () => {
   expect(isPathAllowed("POST", "users/me/generate-wallet")).toBe(true);
 });
 
+test("POST /v1/users/me/sign-out-other-devices is allowed, GET is not", () => {
+  expect(isPathAllowed("POST", "users/me/sign-out-other-devices")).toBe(true);
+  expect(isPathAllowed("GET", "users/me/sign-out-other-devices")).toBe(false);
+});
+
 test("POST /v1/users/me/email is allowed", () => {
   expect(isPathAllowed("POST", "users/me/email")).toBe(true);
 });
