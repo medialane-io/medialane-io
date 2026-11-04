@@ -13,7 +13,13 @@ await mockForThisFile("@/hooks/use-session", {
   useSession: () => ({ session: sessionWallet ? { walletAddress: sessionWallet } : null, isLoading: false }) as never,
 });
 
+let walletCheck: () => Promise<{ type: string }> = async () => ({ type: "finish" });
+await mockForThisFile("@/lib/wallet/wallet-step", { checkWalletStep: (() => walletCheck()) as never });
+
 const { useWalletNativeSession } = await import("./use-wallet-native-session");
+const { SWRConfig } = await import("swr");
+const { createElement } = await import("react");
+const fresh = { wrapper: ({ children }: { children: React.ReactNode }) => createElement(SWRConfig, { value: { provider: () => new Map() } }, children) };
 const { saveSealedOwner, clearSealedOwner } = await import("@/lib/wallet/store");
 
 const FAKE = {
@@ -23,6 +29,8 @@ const FAKE = {
 beforeEach(() => {
   localStorage.clear();
   sessionWallet = null;
+  deployedCheck = async () => false;
+  walletCheck = async () => ({ type: "finish" });
 });
 
 test("returns no wallet when nothing is stored", async () => {
@@ -73,5 +81,53 @@ test("uses no wallet when nobody is signed in, even with a key stored", () => {
   saveSealedOwner(FAKE);
   const { result } = renderHook(() => useWalletNativeSession());
   expect(result.current.hasWallet).toBe(false);
+  clearSealedOwner();
+});
+
+test("is ready, with a signer, when this browser's key is on the deployed wallet and its setup is finished", async () => {
+  sessionWallet = "0xdeadbeef";
+  saveSealedOwner(FAKE);
+  deployedCheck = async () => true;
+  const { result } = renderHook(() => useWalletNativeSession(), fresh);
+  await waitFor(() => expect(result.current.status).toBe("ready"));
+  expect(result.current.hasWallet).toBe(true);
+  expect(result.current.signer?.address).toBe("0xdeadbeef");
+  clearSealedOwner();
+});
+
+test("a key the wallet does not have gives no wallet and no signer, and needs setup", async () => {
+  sessionWallet = "0xdeadbeef";
+  saveSealedOwner(FAKE);
+  deployedCheck = async () => true;
+  walletCheck = async () => ({ type: "restore-key" });
+  const { result } = renderHook(() => useWalletNativeSession(), fresh);
+  await waitFor(() => expect(result.current.status).toBe("needs-setup"));
+  expect(result.current.hasWallet).toBe(false);
+  expect(result.current.signer).toBeNull();
+  expect(result.current.address).toBeNull();
+  clearSealedOwner();
+});
+
+test("a setup that stopped halfway needs setup", async () => {
+  sessionWallet = "0xdeadbeef";
+  saveSealedOwner(FAKE);
+  deployedCheck = async () => true;
+  walletCheck = async () => ({ type: "key-setup" });
+  const { result } = renderHook(() => useWalletNativeSession(), fresh);
+  await waitFor(() => expect(result.current.status).toBe("needs-setup"));
+  expect(result.current.hasWallet).toBe(false);
+  clearSealedOwner();
+});
+
+test("a wallet check that fails keeps the wallet usable", async () => {
+  sessionWallet = "0xdeadbeef";
+  saveSealedOwner(FAKE);
+  deployedCheck = async () => true;
+  walletCheck = async () => {
+    throw new Error("rpc down");
+  };
+  const { result } = renderHook(() => useWalletNativeSession(), fresh);
+  await waitFor(() => expect(result.current.status).toBe("ready"));
+  expect(result.current.hasWallet).toBe(true);
   clearSealedOwner();
 });
