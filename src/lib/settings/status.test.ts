@@ -38,8 +38,29 @@ describe("the headline", () => {
     expect(h?.text).toBe("Confirm your email to keep your account");
   });
 
-  test("an account with no recovery or a single device is still working", () => {
-    expect(accountStatus({ ...working, guardians: 0, devices: 1 }).headline?.tone).toBe("ok");
+  test("a single device with recovery on is still working", () => {
+    expect(accountStatus({ ...working, guardians: 1, devices: 1 }).headline).toEqual({ tone: "ok", text: "Everything is working" });
+  });
+
+  test("asks to turn on recovery, and links to where, when it is off", () => {
+    expect(accountStatus({ ...working, guardians: 0 }).headline).toEqual({
+      tone: "warn",
+      text: "Turn on recovery so you can always get your account back",
+      href: "/settings/recovery",
+    });
+  });
+
+  test("does not ask for recovery while it is still being checked", () => {
+    expect(accountStatus({ ...working, guardians: null }).headline).toEqual({ tone: "ok", text: "Everything is working" });
+  });
+
+  test("the wallet still setting up comes before recovery, which is set with its first transaction", () => {
+    expect(accountStatus({ ...working, walletDeployed: false, guardians: 0 }).headline?.text).toBe("Your wallet is still setting up");
+  });
+
+  test("the email comes before recovery when both need a look", () => {
+    const h = accountStatus({ ...working, guardians: 0, email: { email: "a@b.co", verified: false } }).headline;
+    expect(h?.text).toBe("Confirm your email to keep your account");
   });
 
   test("shows nothing while the email or the wallet is still being checked", () => {
