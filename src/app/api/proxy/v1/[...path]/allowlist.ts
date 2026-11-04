@@ -78,6 +78,7 @@ export const ALLOW: Record<string, RegExp[]> = {
     /^users\/me\/(generate-wallet|email|wallet|wallet\/key)$/,
     /^users\/me\/wallet\/recovery(\/complete)?$/,
     /^users\/me\/sign-out-other-devices$/,
+    /^users\/me\/support$/,
     /^username-claims$/,
     /^metadata\/(upload|upload-file|upload-directory)$/,
     /^tx\/sync$/,
