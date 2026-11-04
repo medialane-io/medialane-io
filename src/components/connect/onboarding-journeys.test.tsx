@@ -42,7 +42,7 @@ await mockForThisFile("@/lib/wallet/passkey", {
 });
 await mockForThisFile("@/lib/wallet/devices", { removeDevice: async () => {}, isOwnerOf: async () => restoredKeyIsOwner });
 await mockForThisFile("@medialane/ui/utils/media-wallet/confetti", { fireConfetti: () => {} });
-let nativeSession: { hasWallet: boolean; isDeployed: boolean | null } = { hasWallet: false, isDeployed: null };
+let nativeSession: { hasWallet: boolean; isDeployed: boolean | null; status: string } = { hasWallet: false, isDeployed: null, status: "none" };
 await mockForThisFile("@/hooks/use-wallet-native-session", { useWalletNativeSession: () => nativeSession as never });
 let session: { email: string; walletAddress: string | null } | null = null;
 await mockForThisFile("@/hooks/use-session", {
@@ -67,7 +67,7 @@ beforeEach(() => {
   localOwner = null;
   restoredKeyIsOwner = true;
   createKeyError = null;
-  nativeSession = { hasWallet: false, isDeployed: null };
+  nativeSession = { hasWallet: false, isDeployed: null, status: "none" };
   session = null;
   api.account.emailExists.mockImplementation(async () => false);
   api.account.registerEmailAccount.mockImplementation(async () => ({}));
@@ -116,7 +116,7 @@ describe("the onboarding page opened by someone not signed in", () => {
 describe("someone signed in whose wallet is already set up on this browser", () => {
   const signedInWithKey = (isDeployed: boolean | null) => {
     session = { email: "signed-in@example.com", walletAddress: WALLET };
-    nativeSession = { hasWallet: true, isDeployed };
+    nativeSession = { hasWallet: true, isDeployed, status: isDeployed === true ? "ready" : isDeployed === false ? "needs-setup" : "checking" };
   };
 
   test("never gets a second wallet, whatever page they open", async () => {
@@ -297,6 +297,31 @@ describe("an address that already has an account", () => {
     expect(claimSessionWallet).toHaveBeenCalledTimes(1);
     expect(claimSessionWallet.mock.calls[0]![1]).toBe(WALLET);
     expect(completeDeployment).not.toHaveBeenCalled();
+  });
+
+  test("a setup that stopped after this browser saved its key is finished with that key after login", async () => {
+    localOwner = { address: WALLET };
+    restoredKeyIsOwner = false;
+    api.account.emailExists.mockImplementation(async () => true);
+    getSessionWallet.mockImplementation(async () => ({ walletAddress: WALLET, needsKeySetup: true }));
+    await enterEmail("stopped-halfway@example.com");
+    await enterCode();
+    await waitFor(() => expect(done).toEqual([{ celebrated: true }]));
+    expect(claimSessionWallet).toHaveBeenCalledTimes(1);
+    expect(claimSessionWallet.mock.calls[0]![1]).toBe(WALLET);
+    expect(completeDeployment).not.toHaveBeenCalled();
+  });
+
+  test("a browser whose key the wallet does not have is asked for the recovery key after login, not finished", async () => {
+    localOwner = { address: WALLET };
+    restoredKeyIsOwner = false;
+    api.account.emailExists.mockImplementation(async () => true);
+    getSessionWallet.mockImplementation(async () => ({ walletAddress: WALLET, needsKeySetup: false }));
+    await enterEmail("key-not-on-wallet@example.com");
+    await enterCode();
+    await waitFor(() => screen.getByRole("button", { name: RECOVERY_KEY_OPTION }));
+    expect(done).toEqual([]);
+    expect(claimSessionWallet).not.toHaveBeenCalled();
   });
 
   test("a wrong code shows a message and lets them try again", async () => {

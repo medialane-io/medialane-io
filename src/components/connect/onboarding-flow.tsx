@@ -18,7 +18,8 @@ import { createOwnerKey } from "@/lib/wallet/passkey";
 import { removeDevice } from "@/lib/wallet/devices";
 import { NewBrowserWallet } from "./new-browser-wallet";
 import { loadSealedOwner, saveSealedOwner, notifyWalletChange } from "@/lib/wallet/store";
-import { afterCodeVerified, afterEmailCheck, afterRegister, isEmailAddress } from "@/lib/onboarding/decisions";
+import { afterEmailCheck, afterRegister, isEmailAddress, walletStep } from "@/lib/onboarding/decisions";
+import { checkWalletStep, refreshWalletStep } from "@/lib/wallet/wallet-step";
 import { flowReducer, initialFlow, retryTarget, type OnboardingStep } from "@/lib/onboarding/flow";
 
 export type { OnboardingStep };
@@ -50,7 +51,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
   const emailCode = useEmailCode(email);
   const walletStartedRef = useRef(false);
 
-  const { hasWallet, isDeployed } = useWalletNativeSession();
+  const { hasWallet, isDeployed, status } = useWalletNativeSession();
   const { session, isLoading: sessionLoading } = useSession();
   const [mounted, setMounted] = useState(false);
 
@@ -59,6 +60,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
   const finish = useCallback(
     (celebrated = false) => {
       if (celebrated) fireConfetti();
+      void refreshWalletStep();
       dispatch({ type: "finished" });
       onDone?.({ celebrated });
     },
@@ -113,8 +115,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
 
   const continueSignedIn = useCallback(
     async (accountExisted: boolean) => {
-      const wallet = accountExisted ? await getMedialaneClient().api.account.sessionWallet() : null;
-      const next = afterCodeVerified(wallet, loadSealedOwner()?.address ?? null);
+      const next = accountExisted ? await checkWalletStep() : walletStep(null, null);
       if (next.type === "restore-key") {
         dispatch({ type: "key-needed" });
         return;
@@ -145,8 +146,8 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
   }, [autoStartWallet, sessionLoading, session, hasWallet, isDeployed, runWalletSetup]);
 
   useEffect(() => {
-    if (mounted && hasWallet) finish();
-  }, [mounted, hasWallet, finish]);
+    if (mounted && status === "ready") finish();
+  }, [mounted, status, finish]);
 
   const requestLoginCode = async () => {
     if (await emailCode.send(email)) dispatch({ type: "code-sent" });
