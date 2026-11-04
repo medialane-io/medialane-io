@@ -399,6 +399,10 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
                   <p className="text-sm text-muted-foreground text-center py-2">
                     Secure your account to purchase this asset.
                   </p>
+                ) : error && !retryable ? (
+                  <Button variant="secondary" className="w-full h-12 text-base font-semibold rounded-[11px]" onClick={() => onOpenChange(false)}>
+                    Close
+                  </Button>
                 ) : (
                   <div className={`btn-border-animated p-[1px] rounded-xl ${!canBuy ? "opacity-50 pointer-events-none" : ""}`}>
                     <button
