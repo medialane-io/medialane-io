@@ -33,7 +33,8 @@ export type FlowEvent =
   | { type: "wallet-failed"; message: string; canRetry: boolean }
   | { type: "key-setup-finished" }
   | { type: "key-needed" }
-  | { type: "finished" };
+  | { type: "finished" }
+  | { type: "start-over" };
 
 export const initialFlow = (start: "email" | "wallet"): FlowState => ({
   step: start === "wallet" ? "checking-account" : "email",
@@ -74,6 +75,8 @@ export function flowReducer(state: FlowState, event: FlowEvent): FlowState {
       return { ...state, step: "restore-key", error: null };
     case "finished":
       return { ...state, step: "done" };
+    case "start-over":
+      return initialFlow("email");
   }
 }
 
