@@ -36,7 +36,13 @@ function fixture({
   const contractOf = (params: Record<string, unknown>) =>
     (params.collectionContract as string) ?? COLLECTION_721.contractAddress;
   let mintContract = "";
+  const createIntent = async (kind: string, params: Record<string, unknown>) => {
+    log.created.push({ kind, params });
+    if (kind === "mint") mintContract = receiptFrom ?? contractOf(params);
+    return { id: `${kind}1`, expiresAt: "", requiresSignature: false, calls: [{ contractAddress: "0x1", entrypoint: kind, calldata: [] }] };
+  };
   const client = {
+    createIntent,
     provider: {
       getTransactionReceipt: async (txHash: string) => ({
         execution_status: "SUCCEEDED",
@@ -53,11 +59,7 @@ function fixture({
         },
       },
       intents: {
-        create: async (kind: string, params: Record<string, unknown>) => {
-          log.created.push({ kind, params });
-          if (kind === "mint") mintContract = receiptFrom ?? contractOf(params);
-          return { id: `${kind}1`, expiresAt: "", requiresSignature: false, calls: [{ contractAddress: "0x1", entrypoint: kind, calldata: [] }] };
-        },
+        create: createIntent,
         confirm: async () => ({}),
         get: async () => ({ status: "CONFIRMED", orderHash }),
         syncTransaction: async () => ({ applied: 1, pending: false }),
