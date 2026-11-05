@@ -464,7 +464,7 @@ describe("recovering by email on a new browser", () => {
     fireEvent.click(await waitFor(() => screen.getByRole("button", { name: "Recover with my email" })));
     await waitFor(() => expect(screen.getByText(/Recovery started/)).toBeTruthy());
     expect(startRecovery).toHaveBeenCalledWith({ newOwnerPubkey: "0x222" });
-    expect(real.client.ownerStore.loadPending()?.address).toBe(WALLET);
+    expect(real.client.ownerStore.loadRecovery()?.address).toBe(WALLET);
     expect(real.client.ownerStore.load()).toBeNull();
     expect(done).toEqual([]);
   });
@@ -480,13 +480,13 @@ describe("recovering by email on a new browser", () => {
   });
 
   test("when the wait is over, one tap opens the wallet and finishes", async () => {
-    real.client.ownerStore.savePending({ credentialId: "c", ownerPubKey: "0x222", address: WALLET, iv: "i", ciphertext: "x" });
+    real.client.ownerStore.saveRecovery({ credentialId: "c", ownerPubKey: "0x222", address: WALLET, iv: "i", ciphertext: "x" });
     getRecovery.mockImplementation(async () => ({ ...ON, state: "ready", readyAt: 1_800_000_000, newOwnerGuid: real.starknet.computeOwnerGuid("0x222") }));
     await reachRecoveryStep();
     fireEvent.click(await waitFor(() => screen.getByRole("button", { name: "Open my account" })));
     await waitFor(() => expect(done).toEqual([{ celebrated: false }]));
     expect(completeRecovery).toHaveBeenCalledWith({ newOwnerPubkey: "0x222" });
-    expect(real.client.ownerStore.loadPending()).toBeNull();
+    expect(real.client.ownerStore.loadRecovery()).toBeNull();
   });
 
   test("a recovery that is waiting for another browser's key can be taken over from this one", async () => {

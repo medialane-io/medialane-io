@@ -14,9 +14,9 @@ import { saveSealedOwner, notifyWalletChange } from "@/lib/wallet/store";
 
 const deps = {
   createOwnerKey: () => createOwnerKey(),
-  loadPending: () => ownerStore.loadPending(),
-  savePending: (sealed: Parameters<typeof ownerStore.savePending>[0]) => ownerStore.savePending(sealed),
-  clearPending: () => ownerStore.clearPending(),
+  loadRecovery: () => ownerStore.loadRecovery(),
+  saveRecovery: (sealed: Parameters<typeof ownerStore.saveRecovery>[0]) => ownerStore.saveRecovery(sealed),
+  clearRecovery: () => ownerStore.clearRecovery(),
   saveOwner: (sealed: Parameters<typeof saveSealedOwner>[0]) => {
     saveSealedOwner(sealed);
     notifyWalletChange();
@@ -24,7 +24,7 @@ const deps = {
 };
 
 const forThisBrowser = (status: WalletRecovery): boolean => {
-  const pending = ownerStore.loadPending();
+  const pending = ownerStore.loadRecovery();
   return (
     status.state !== "none" &&
     status.newOwnerGuid !== null &&
