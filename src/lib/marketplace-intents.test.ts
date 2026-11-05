@@ -27,7 +27,7 @@ function fixture({
   orderHash = null,
 }: { intent?: Intent; statuses?: string[]; txHash?: string; orderHash?: string | null } = {}) {
   const log = {
-    created: [] as Array<{ kind: string; params: Record<string, unknown> }>,
+    created: [] as Array<{ kind: string; params: Record<string, unknown>; via: "client" | "api" }>,
     signed: [] as unknown[],
     submitted: [] as Array<{ id: string; sig: unknown }>,
     executed: [] as Array<{ calls: unknown; opts?: unknown }>,
@@ -36,10 +36,14 @@ function fixture({
   };
   const created = intent ?? { id: "fulfill1", requiresSignature: false, calls: [FULFILL_CALL] };
   const client = {
+    createIntent: async (kind: string, params: Record<string, unknown>) => {
+      log.created.push({ kind, params, via: "client" });
+      return { expiresAt: "", ...created };
+    },
     api: {
       intents: {
         create: async (kind: string, params: Record<string, unknown>) => {
-          log.created.push({ kind, params });
+          log.created.push({ kind, params, via: "api" });
           return { expiresAt: "", ...created };
         },
         submitSignature: async (id: string, sig: unknown) => {
@@ -88,6 +92,28 @@ describe("runMarketplaceIntent", () => {
     expect(log.signed).toEqual([{ message: { currency: USDC } }]);
     expect(log.submitted).toEqual([{ id: "intent1", sig: ["0xr", "0xs"] }]);
     expect(log.executed).toEqual([{ calls: [APPROVE_CALL], opts: { intentIds: ["intent1"] } }]);
+  });
+
+  test("a locally built order is signed as built and executed with its own signed calls", async () => {
+    const { buildIntent, populateSignedCalls } = await import("@medialane/sdk/starknet");
+    const { resolveConfig } = await import("@medialane/sdk");
+    const params = {
+      offerer: "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      nftContract: "0x0222222222222222222222222222222222222222222222222222222222222222",
+      tokenId: "42",
+      currency: USDC,
+      price: "1.5",
+      endTime: 1_900_000_000,
+      salt: "0xabc",
+      startTime: 1_800_000_000,
+    };
+    const built = buildIntent("listing", params, { counter: "5", royaltyMaxBps: "500" }, resolveConfig({}));
+    const { ctx, log } = fixture({
+      intent: { id: "intent1", requiresSignature: true, typedData: built.typedData, local: { kind: "listing", built } } as Intent,
+    });
+    await runMarketplaceIntent(ctx, () => ctx.client.createIntent("listing", params), FAST);
+    expect(log.signed[0]).toBe(built.typedData);
+    expect(log.executed[0]!.calls).toEqual(populateSignedCalls("listing", built, ["0xr", "0xs"]));
   });
 
   test("a prebuilt intent executes without signing", async () => {
@@ -151,6 +177,7 @@ describe("marketplace actions", () => {
     expect(log.created[0]).toEqual({
       kind: "listing",
       params: { offerer: ADDRESS, nftContract: "0xc", tokenId: "7", currency: USDC, price: "5", endTime: 1_700_003_600 },
+      via: "client",
     });
     expect(log.created[1].params.amount).toBe("3");
   });
@@ -181,6 +208,23 @@ describe("marketplace actions", () => {
     });
   });
 
+  test("listing, offer, cancel and counter-offer are built by the client; fulfill is created by the API", async () => {
+    const { ctx, log } = fixture();
+    const base = { assetContract: "0xc", tokenId: "7", price: "5", currencySymbol: "USDC", durationSeconds: 60 };
+    await createListing(ctx, { ...base, tokenStandard: "ERC721" }, FAST);
+    await makeOffer(ctx, { ...base, tokenStandard: "ERC721" }, FAST);
+    await cancelOrder(ctx, { orderHash: "0xo" }, FAST);
+    await makeCounterOffer(ctx, { originalOrderHash: "0xo", counterPriceRaw: "9", durationSeconds: 60 }, FAST);
+    await fulfillOrder(ctx, { orderHash: "0xo" }, FAST);
+    expect(log.created.map((c) => `${c.kind}:${c.via}`)).toEqual([
+      "listing:client",
+      "offer:client",
+      "cancel:client",
+      "counter-offer:client",
+      "fulfill:api",
+    ]);
+  });
+
   test("an unknown currency symbol throws", async () => {
     const { ctx } = fixture();
     await expect(
@@ -199,6 +243,7 @@ describe("transferNft", () => {
     expect(log.created).toEqual([{
       kind: "transfer-nft",
       params: { owner: ADDRESS, contractAddress: "0x1", tokenId: "1", recipient: "0x2", tokenStandard: "ERC1155" },
+      via: "api",
     }]);
     expect(log.executed).toEqual([{ calls: [FULFILL_CALL], opts: { intentIds: ["nft-intent"] } }]);
     expect(log.polls).toBe(0);

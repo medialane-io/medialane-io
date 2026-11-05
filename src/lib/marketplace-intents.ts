@@ -1,6 +1,5 @@
 import { UserFacingError, type FastMintSigner } from "@medialane/ui";
-import type { ApiIntentCreated } from "@medialane/sdk";
-import type { MedialaneClient } from "@medialane/sdk/starknet";
+import { populateSignedCalls, type CreatedIntent, type MedialaneClient } from "@medialane/sdk/starknet";
 import type { Call, TypedData } from "starknet";
 import { SUPPORTED_TOKENS } from "@/lib/constants";
 import { isErc1155Standard } from "@/lib/protocol/token-standard";
@@ -117,7 +116,7 @@ async function pollUntilTerminal(client: MedialaneClient, id: string, intervalMs
 /** Creates an intent, signs it if needed, executes it, confirms it and waits until the backend settles it. */
 export async function runMarketplaceIntent(
   { client, signer }: MarketplaceContext,
-  create: () => Promise<ApiIntentCreated>,
+  create: () => Promise<CreatedIntent>,
   { before, pollIntervalMs = POLL_INTERVAL_MS }: RunOptions = {},
 ): Promise<MarketplaceResult> {
   const intent = await create();
@@ -125,9 +124,10 @@ export async function runMarketplaceIntent(
 
   let calls: Call[];
   if (intent.requiresSignature) {
-    const sig = await signer.signTypedData(sanitizeTypedData(intent.typedData) as TypedData);
+    const typedData = (intent.local ? intent.typedData : sanitizeTypedData(intent.typedData)) as TypedData;
+    const sig = await signer.signTypedData(typedData);
     const signed = await client.api.intents.submitSignature(intent.id, sig);
-    calls = signed.calls as Call[];
+    calls = intent.local ? populateSignedCalls(intent.local.kind, intent.local.built, sig) : (signed.calls as Call[]);
   } else {
     calls = intent.calls as Call[];
   }
@@ -152,7 +152,7 @@ export async function runMarketplaceIntent(
 const endTimeAfter = (durationSeconds: number) => Math.floor(Date.now() / 1000) + durationSeconds;
 
 export function createListing(ctx: MarketplaceContext, input: CreateListingInput, opts?: ActionOptions): Promise<MarketplaceResult> {
-  return runMarketplaceIntent(ctx, () => ctx.client.api.intents.create("listing", {
+  return runMarketplaceIntent(ctx, () => ctx.client.createIntent("listing", {
     offerer: ctx.signer.address,
     nftContract: input.assetContract,
     tokenId: input.tokenId,
@@ -164,7 +164,7 @@ export function createListing(ctx: MarketplaceContext, input: CreateListingInput
 }
 
 export function makeOffer(ctx: MarketplaceContext, input: MakeOfferInput, opts?: ActionOptions): Promise<MarketplaceResult> {
-  return runMarketplaceIntent(ctx, () => ctx.client.api.intents.create("offer", {
+  return runMarketplaceIntent(ctx, () => ctx.client.createIntent("offer", {
     offerer: ctx.signer.address,
     nftContract: input.assetContract,
     tokenId: input.tokenId,
@@ -186,7 +186,7 @@ export function fulfillOrder(ctx: MarketplaceContext, input: FulfillOrderInput, 
 }
 
 export function cancelOrder(ctx: MarketplaceContext, input: CancelOrderInput, opts?: ActionOptions): Promise<MarketplaceResult> {
-  return runMarketplaceIntent(ctx, () => ctx.client.api.intents.create("cancel", {
+  return runMarketplaceIntent(ctx, () => ctx.client.createIntent("cancel", {
     offerer: ctx.signer.address,
     orderHash: input.orderHash,
     tokenStandard: toApiStandard(input.tokenStandard),
@@ -194,7 +194,7 @@ export function cancelOrder(ctx: MarketplaceContext, input: CancelOrderInput, op
 }
 
 export function makeCounterOffer(ctx: MarketplaceContext, input: MakeCounterOfferInput, opts?: ActionOptions): Promise<MarketplaceResult> {
-  return runMarketplaceIntent(ctx, () => ctx.client.api.intents.create("counter-offer", {
+  return runMarketplaceIntent(ctx, () => ctx.client.createIntent("counter-offer", {
     sellerAddress: ctx.signer.address,
     originalOrderHash: input.originalOrderHash,
     durationSeconds: input.durationSeconds,
