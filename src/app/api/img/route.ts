@@ -1,13 +1,8 @@
-import { lookup } from "node:dns/promises";
-import { createImageProxyHandler } from "@medialane/sdk";
+import { createImageProxyHandler } from "@medialane/sdk/server";
 
 export const runtime = "nodejs";
 
 const handler = createImageProxyHandler({
-  resolveHostname: async (hostname) => {
-    const records = await lookup(hostname, { all: true, verbatim: true });
-    return records.map((record) => record.address);
-  },
   backend: {
     appId: "MEDIALANE_IO",
     backendUrl: process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL ?? "http://localhost:3001",
