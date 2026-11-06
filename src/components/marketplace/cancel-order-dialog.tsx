@@ -1,14 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import { ShieldCheck } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@medialane/ui/dialog";
-import { CurrencyIcon } from "@medialane/ui/currency-icon";
 import type { CancelOrderHook } from "@/hooks/use-cancel-order";
-import { MarketplaceConfirmStep, successMessages } from "@medialane/ui";
+import { MarketplaceConfirmStep, OrderSummaryHero, successMessages } from "@medialane/ui";
 import { TransactionDialogStates } from "@/components/marketplace/transaction-dialog-states";
-import { resolveImage, formatDisplayPrice } from "@/lib/utils";
-import type { ApiOrder } from "@medialane/sdk";
+import { resolveImage } from "@/lib/utils";
 
 interface CancelOrderDialogProps {
   hook: CancelOrderHook;
@@ -18,43 +15,6 @@ interface CancelOrderDialogProps {
   tokenName?: string | null;
 
   tokenImage?: string | null;
-}
-
-function TokenHero({ order, variant, tokenName, tokenImage }: { order: ApiOrder; variant: "listing" | "offer"; tokenName?: string | null; tokenImage?: string | null }) {
-  const rawImage = order.token?.image ?? tokenImage ?? null;
-  const image = resolveImage(rawImage);
-  const name = order.token?.name ?? tokenName ?? null;
-
-  return (
-    <div>
-      <div className="flex justify-center pt-6">
-        <div className="relative h-32 w-32 rounded-2xl overflow-hidden border border-border bg-muted">
-          {image ? (
-            <Image src={image} alt={name ?? "Asset"} fill sizes="128px" className="object-cover" />
-          ) : (
-            <div className="h-full w-full bg-gradient-to-br from-destructive/20 via-brand-rose/10 to-transparent" />
-          )}
-        </div>
-      </div>
-      <div className="flex items-end justify-between px-6 pt-3 pb-1">
-        <div className="min-w-0">
-          <p className="font-bold text-lg leading-tight truncate">{name ?? "Asset"}</p>
-          <p className="text-xs text-muted-foreground mt-0.5 capitalize">
-            Cancel {variant}
-          </p>
-        </div>
-        {order.price && (
-          <div className="shrink-0 text-right ml-4">
-            <p className="flex items-center gap-1.5 font-bold text-xl justify-end">
-              <CurrencyIcon symbol={order.price.currency} size={16} />
-              {formatDisplayPrice(order.price.formatted)}
-            </p>
-            <p className="text-xs text-muted-foreground">{order.price.currency}</p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
 }
 
 export function CancelOrderDialog({ hook, variant, tokenName, tokenImage }: CancelOrderDialogProps) {
@@ -94,7 +54,13 @@ export function CancelOrderDialog({ hook, variant, tokenName, tokenImage }: Canc
         >
           {order && (
             <div className="space-y-0">
-              <TokenHero order={order} variant={resolvedVariant} tokenName={tokenName} tokenImage={tokenImage} />
+              <OrderSummaryHero
+                name={resolvedName}
+                image={resolveImage(order.token?.image ?? tokenImage)}
+                subtitle={<span className="capitalize">Cancel {resolvedVariant}</span>}
+                tone="destructive"
+                price={order.price}
+              />
               <MarketplaceConfirmStep
                 description={`Cancel this ${resolvedVariant}? This action cannot be undone.`}
                 error={error}
