@@ -1,10 +1,10 @@
 "use client";
 
-import { UserFacingError, MarketplaceErrorState, MarketplaceTxLink, OrderSummaryHero, DialogTransactionSuccess, successMessages } from "@medialane/ui";
+import { UserFacingError, OrderSummaryHero, TransactionDialogStates, successMessages } from "@medialane/ui";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  AlertCircle, ExternalLink, Loader2,
+  AlertCircle,
   ShoppingCart, RefreshCw, Zap, Minus, Plus,
   ShieldCheck,
 } from "lucide-react";
@@ -18,7 +18,6 @@ import { useMarketplaceTransaction } from "@/hooks/use-marketplace-transaction";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useWhenChanged } from "@/hooks/use-when-changed";
 import { fulfillOrder } from "@/lib/marketplace-intents";
-import { EXPLORER_URL } from "@/lib/constants";
 import type { ApiOrder } from "@medialane/sdk";
 import { resolveImage } from "@/lib/utils";
 import { useUsdPrices } from "@/hooks/use-usd-prices";
@@ -40,7 +39,7 @@ interface PurchaseDialogProps {
 export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: PurchaseDialogProps) {
   const router = useRouter();
   const { address: walletAddress, hasWallet } = useWalletNativeSession();
-  const { phase, busy, txHash, error, retryable, failedAfterSubmit, start, reset } = useMarketplaceTransaction();
+  const { phase, busy, txHash, error, retryable, start, reset } = useMarketplaceTransaction();
 
   const [quantity, setQuantity] = useState(1);
   const [paymentSymbol, setPaymentSymbol] = useState<string | null>(null);
@@ -132,159 +131,117 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
             Confirm and complete this marketplace purchase with your Medialane wallet.
           </DialogDescription>
 
-          {isSuccess ? (
-            <>
-              <DialogTransactionSuccess
-                name={assetName}
-                image={assetImage}
-                {...successMessages.purchased({ name: order.token?.name ?? "the asset", quantity: is1155 ? quantity : 1 })}
-                txHash={txHash}
-                actions={[
-                  {
-                    label: "View asset",
-                    href: buildAssetHref("STARKNET", order.nftContract, order.nftTokenId),
-                    onClick: () => { onOpenChange(false); onSuccess?.(); },
-                  },
-                  { label: "View portfolio", onClick: () => { onOpenChange(false); router.push("/portfolio/assets"); } },
-                ]}
-              />
-              <div className="px-6 pb-6"><RewardEarned actionType="buy_asset" /></div>
-            </>
-
-          ) : failedAfterSubmit ? (
-            <MarketplaceErrorState
-              tokenImage={assetImage}
-              name={assetName}
-              title="Purchase failed"
-              description="The transaction was submitted, but the purchase could not be completed."
-              error={error}
-              txHash={txHash}
-              explorerUrl={EXPLORER_URL}
-              onRetry={retryable ? reset : undefined}
-              onDone={() => onOpenChange(false)}
-            />
-
-          ) : busy ? (
-
-            <div className="flex flex-col items-center gap-4 p-6 py-10">
-              <div className="relative">
-                <Loader2 className="h-10 w-10 animate-spin text-primary" />
-              </div>
-              <div className="text-center space-y-1">
-                <p className="text-sm font-medium">{processingMessage}</p>
-                {txHash ? (
-                  <MarketplaceTxLink txHash={txHash} explorerUrl={EXPLORER_URL} className="mt-1" />
-                ) : null}
-              </div>
-              <p className="text-xs text-muted-foreground">Keep this window open until it finishes.</p>
-            </div>
-
-          ) : (
-
-            <div className="space-y-0">
-              <OrderSummaryHero
-                name={assetName}
-                image={assetImage}
-                subtitle={
-                  <span className="flex items-center gap-1">
-                    <Zap className="h-3 w-3 text-emerald-500" />
-                    <span className="text-emerald-500">Digital Asset Ownership</span>
-                  </span>
-                }
-                price={order.price}
-                quantity={quantity}
-                usdTotal={totalUsd}
-              />
-              <div className="px-6 pb-6 pt-3 space-y-3">
-                {error && (
-                  <>
+          <TransactionDialogStates
+            phase={phase}
+            asset={{ name: assetName, image: assetImage }}
+            statusMessage={processingMessage}
+            txHash={txHash}
+            error={error}
+            success={successMessages.purchased({ name: order.token?.name ?? "the asset", quantity: is1155 ? quantity : 1 })}
+            successActions={[
+              {
+                label: "View asset",
+                href: buildAssetHref("STARKNET", order.nftContract, order.nftTokenId),
+                onClick: () => { onOpenChange(false); onSuccess?.(); },
+              },
+              { label: "View portfolio", onClick: () => { onOpenChange(false); router.push("/portfolio/assets"); } },
+            ]}
+            successChildren={<RewardEarned actionType="buy_asset" />}
+            errorTitle="Purchase failed"
+            errorDescription="The transaction was submitted, but the purchase could not be completed."
+            onRetry={retryable ? reset : undefined}
+            onDone={() => onOpenChange(false)}
+          >
+              <div className="space-y-0">
+                <OrderSummaryHero
+                  name={assetName}
+                  image={assetImage}
+                  subtitle={
+                    <span className="flex items-center gap-1">
+                      <Zap className="h-3 w-3 text-emerald-500" />
+                      <span className="text-emerald-500">Digital Asset Ownership</span>
+                    </span>
+                  }
+                  price={order.price}
+                  quantity={quantity}
+                  usdTotal={totalUsd}
+                />
+                <div className="px-6 pb-6 pt-3 space-y-3">
+                  {error && (
                     <Alert variant="destructive">
                       <AlertCircle className="h-4 w-4" />
                       <AlertDescription>{error}</AlertDescription>
                     </Alert>
-                    {txHash && (
-                      <Button variant="outline" size="sm" className="w-full" asChild>
-                        <a
-                          href={`${EXPLORER_URL}/tx/${txHash}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2"
+                  )}
+
+                  {is1155 && maxQty > 1 && (
+                    <div className="flex items-center justify-between py-1">
+                      <span className="text-sm text-muted-foreground">Quantity</span>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline" size="icon" className="h-7 w-7"
+                          disabled={quantity <= 1}
+                          onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                          aria-label="Decrease quantity"
                         >
-                          View transaction on Voyager <ExternalLink className="h-3 w-3" />
-                        </a>
-                      </Button>
-                    )}
-                  </>
-                )}
-
-                {is1155 && maxQty > 1 && (
-                  <div className="flex items-center justify-between py-1">
-                    <span className="text-sm text-muted-foreground">Quantity</span>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline" size="icon" className="h-7 w-7"
-                        disabled={quantity <= 1}
-                        onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                        aria-label="Decrease quantity"
-                      >
-                        <Minus className="h-3 w-3" />
-                      </Button>
-                      <span className="w-8 text-center text-sm font-medium">{quantity}</span>
-                      <Button
-                        variant="outline" size="icon" className="h-7 w-7"
-                        disabled={quantity >= maxQty}
-                        onClick={() => setQuantity(q => Math.min(maxQty, q + 1))}
-                        aria-label="Increase quantity"
-                      >
-                        <Plus className="h-3 w-3" />
-                      </Button>
-                      <span className="text-xs text-muted-foreground ml-1">/ {maxQty}</span>
+                          <Minus className="h-3 w-3" />
+                        </Button>
+                        <span className="w-8 text-center text-sm font-medium">{quantity}</span>
+                        <Button
+                          variant="outline" size="icon" className="h-7 w-7"
+                          disabled={quantity >= maxQty}
+                          onClick={() => setQuantity(q => Math.min(maxQty, q + 1))}
+                          aria-label="Increase quantity"
+                        >
+                          <Plus className="h-3 w-3" />
+                        </Button>
+                        <span className="text-xs text-muted-foreground ml-1">/ {maxQty}</span>
+                      </div>
                     </div>
+                  )}
+
+                  {hasWallet && needsSwap && order.price?.currency && (
+                    <PayWithPicker
+                      orderCurrency={order.price.currency}
+                      requiredRaw={requiredRaw}
+                      walletAddress={walletAddress}
+                      selected={paymentSymbol}
+                      onSelect={setPaymentSymbol}
+                      onBeforeFund={() => onOpenChange(false)}
+                    />
+                  )}
+
+                  {!hasWallet ? (
+                    <p className="text-sm text-muted-foreground text-center py-2">
+                      Secure your account to purchase this asset.
+                    </p>
+                  ) : error && !retryable ? (
+                    <Button variant="secondary" className="w-full h-12 text-base font-semibold rounded-[11px]" onClick={() => onOpenChange(false)}>
+                      Close
+                    </Button>
+                  ) : (
+                    <div className={`btn-border-animated p-[1px] rounded-xl ${!canBuy ? "opacity-50 pointer-events-none" : ""}`}>
+                      <button
+                        className="w-full h-12 rounded-[11px] flex items-center justify-center gap-2 text-base font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-transparent"
+                        onClick={handleBuyClick}
+                        disabled={!canBuy}
+                      >
+                        {error ? <RefreshCw className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
+                        {error ? "Try again" : needsSwap && !paymentSymbol ? "Select a token to pay with" : "Buy now"}
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="flex items-start justify-center gap-1.5">
+                    <ShieldCheck className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
+                    <p className="text-2xs text-center text-muted-foreground">
+                      All purchases settle atomically onchain — your asset is transferred instantly with the payment. Gas is sponsored by Medialane.
+                    </p>
                   </div>
-                )}
-
-                {hasWallet && needsSwap && order.price?.currency && (
-                  <PayWithPicker
-                    orderCurrency={order.price.currency}
-                    requiredRaw={requiredRaw}
-                    walletAddress={walletAddress}
-                    selected={paymentSymbol}
-                    onSelect={setPaymentSymbol}
-                    onBeforeFund={() => onOpenChange(false)}
-                  />
-                )}
-
-                {!hasWallet ? (
-                  <p className="text-sm text-muted-foreground text-center py-2">
-                    Secure your account to purchase this asset.
-                  </p>
-                ) : error && !retryable ? (
-                  <Button variant="secondary" className="w-full h-12 text-base font-semibold rounded-[11px]" onClick={() => onOpenChange(false)}>
-                    Close
-                  </Button>
-                ) : (
-                  <div className={`btn-border-animated p-[1px] rounded-xl ${!canBuy ? "opacity-50 pointer-events-none" : ""}`}>
-                    <button
-                      className="w-full h-12 rounded-[11px] flex items-center justify-center gap-2 text-base font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-transparent"
-                      onClick={handleBuyClick}
-                      disabled={!canBuy}
-                    >
-                      {error ? <RefreshCw className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
-                      {error ? "Try again" : needsSwap && !paymentSymbol ? "Select a token to pay with" : "Buy now"}
-                    </button>
-                  </div>
-                )}
-
-                <div className="flex items-start justify-center gap-1.5">
-                  <ShieldCheck className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
-                  <p className="text-2xs text-center text-muted-foreground">
-                    All purchases settle atomically onchain — your asset is transferred instantly with the payment. Gas is sponsored by Medialane.
-                  </p>
                 </div>
               </div>
-            </div>
-          )}
-
+          
+          </TransactionDialogStates>
         </DialogContent>
       </Dialog>
     </>

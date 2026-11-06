@@ -8,7 +8,6 @@ import * as z from "zod";
 import {
   AlertCircle,
   ArrowRightLeft,
-  Loader2,
   ShieldCheck,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@medialane/ui/dialog";
@@ -20,13 +19,11 @@ import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { transferNft } from "@/lib/marketplace-intents";
 import { useResolvedTokenStandard } from "@/hooks/use-resolved-token-standard";
 import {
-  DialogTransactionSuccess,
   MarketplaceConfirmStep,
   MarketplaceDialogHero,
-  MarketplaceErrorState,
+  TransactionDialogStates,
   successMessages,
 } from "@medialane/ui";
-import { EXPLORER_URL } from "@/lib/constants";
 import { resolveImage } from "@/lib/utils";
 
 const schema = z.object({
@@ -68,7 +65,7 @@ export function TransferDialog({
 }: TransferDialogProps) {
   const tokenImage = resolveImage(tokenImageRaw);
   const { address: walletAddress, hasWallet } = useWalletNativeSession();
-  const { phase, busy, txHash, error, retryable, failedAfterSubmit, start, reset } = useMarketplaceTransaction();
+  const { phase, busy, txHash, error, retryable, start, reset } = useMarketplaceTransaction();
 
   const { tokenStandard: resolvedStandard } = useResolvedTokenStandard(contractAddress, tokenStandard);
 
@@ -151,142 +148,117 @@ export function TransferDialog({
             Enter a recipient Starknet address to transfer this asset onchain.
           </DialogDescription>
 
-          <MarketplaceDialogHero
-            tokenImage={tokenImage}
-            tokenName={tokenName}
-            tokenId={tokenId}
-            fallbackIcon={<ArrowRightLeft className="h-12 w-12 text-brand-blue/30" />}
-          />
-
-          {isSuccess ? (
-            <DialogTransactionSuccess
-              name={displayName}
-              image={tokenImage}
-              {...successMessages.transferred({ name: displayName, to: recipientShort })}
-              txHash={txHash}
-              actions={[
-                {
-                  label: "Done",
-                  onClick: () => {
-                    close();
-                    onSuccess?.();
-                  },
-                },
-              ]}
-            />
-
-          ) : failedAfterSubmit ? (
-            <MarketplaceErrorState
-              tokenImage={tokenImage}
-              name={displayName}
-              title="Transfer failed"
-              description="The transaction was submitted, but the transfer could not be completed."
-              error={error}
-              txHash={txHash}
-              explorerUrl={EXPLORER_URL}
-              onRetry={retryable ? () => { reset(); setStep("form"); } : undefined}
-              onDone={close}
-            />
-
-          ) : busy ? (
-
-            <div className="flex flex-col items-center gap-5 p-6 py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <div className="text-center space-y-1">
-                <p className="font-semibold">Confirming on Starknet…</p>
-                <p className="text-sm text-muted-foreground">Keep this window open until it finishes.</p>
-              </div>
-            </div>
-
-          ) : step === "confirm" ? (
-
+          <TransactionDialogStates
+            phase={phase}
+            asset={{ name: displayName, image: tokenImage }}
+            statusMessage="Confirming on Starknet…"
+            txHash={txHash}
+            error={error}
+            success={successMessages.transferred({ name: displayName, to: recipientShort })}
+            successActions={[{ label: "Done", onClick: () => { close(); onSuccess?.(); } }]}
+            errorTitle="Transfer failed"
+            errorDescription="The transaction was submitted, but the transfer could not be completed."
+            onRetry={retryable ? () => { reset(); setStep("form"); } : undefined}
+            onDone={close}
+          >
             <>
-              <div className="flex items-end justify-between px-6 pt-3 pb-1">
-                <div className="min-w-0">
-                  <p className="font-bold text-lg leading-tight truncate">{displayName}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5 tabular-nums truncate">
-                    → {recipientShort}
-                  </p>
-                </div>
-              </div>
-              <MarketplaceConfirmStep
-                description="Transfer this asset? This action cannot be undone."
-                error={error}
-                secondaryLabel="Back"
-                onSecondary={() => { reset(); setStep("form"); }}
-                primaryLabel="Transfer"
-                onPrimary={handleConfirmTransfer}
-                primaryIcon={<ArrowRightLeft className="h-4 w-4" />}
-                footer={shieldFooter}
+              <MarketplaceDialogHero
+                tokenImage={tokenImage}
+                tokenName={tokenName}
+                tokenId={tokenId}
+                fallbackIcon={<ArrowRightLeft className="h-12 w-12 text-brand-blue/30" />}
               />
-            </>
+              {step === "confirm" ? (
 
-          ) : (
+              <>
+                <div className="flex items-end justify-between px-6 pt-3 pb-1">
+                  <div className="min-w-0">
+                    <p className="font-bold text-lg leading-tight truncate">{displayName}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5 tabular-nums truncate">
+                      → {recipientShort}
+                    </p>
+                  </div>
+                </div>
+                <MarketplaceConfirmStep
+                  description="Transfer this asset? This action cannot be undone."
+                  error={error}
+                  secondaryLabel="Back"
+                  onSecondary={() => { reset(); setStep("form"); }}
+                  primaryLabel="Transfer"
+                  onPrimary={handleConfirmTransfer}
+                  primaryIcon={<ArrowRightLeft className="h-4 w-4" />}
+                  footer={shieldFooter}
+                />
+              </>
 
-            <div className="px-5 pb-4 pt-3 space-y-3">
-              <p className="font-bold text-base leading-tight truncate">{displayName}</p>
+            ) : (
 
-              {hasActiveListing && (
-                <Alert variant="destructive">
+              <div className="px-5 pb-4 pt-3 space-y-3">
+                <p className="font-bold text-base leading-tight truncate">{displayName}</p>
+
+                {hasActiveListing && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription className="text-xs">
+                      This token has an active listing. A buyer could still complete the purchase after you transfer it — cancel the listing first, or proceed with caution.
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                <Alert>
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription className="text-xs">
-                    This token has an active listing. A buyer could still complete the purchase after you transfer it — cancel the listing first, or proceed with caution.
+                    Transfers are permanent and irreversible. Double-check the recipient address before confirming.
                   </AlertDescription>
                 </Alert>
-              )}
 
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription className="text-xs">
-                  Transfers are permanent and irreversible. Double-check the recipient address before confirming.
-                </AlertDescription>
-              </Alert>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+                    <FormField
+                      control={form.control}
+                      name="toAddress"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Recipient address</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="0x…"
+                              autoComplete="off"
+                              spellCheck={false}
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
-                  <FormField
-                    control={form.control}
-                    name="toAddress"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Recipient address</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="0x…"
-                            autoComplete="off"
-                            spellCheck={false}
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                    {error && (
+                      <Alert variant="destructive">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription>{error}</AlertDescription>
+                      </Alert>
                     )}
-                  />
 
-                  {error && (
-                    <Alert variant="destructive">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                  )}
-
-                  <div className="pt-1 space-y-2">
-                    <div className="btn-border-animated p-[1px] rounded-xl">
-                      <button
-                        type="submit"
-                        disabled={!hasWallet}
-                        className="w-full h-11 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-transparent"
-                      >
-                        <ArrowRightLeft className="h-4 w-4" />
-                        {hasWallet ? "Transfer" : "Connect with email to transfer"}
-                      </button>
+                    <div className="pt-1 space-y-2">
+                      <div className="btn-border-animated p-[1px] rounded-xl">
+                        <button
+                          type="submit"
+                          disabled={!hasWallet}
+                          className="w-full h-11 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-transparent"
+                        >
+                          <ArrowRightLeft className="h-4 w-4" />
+                          {hasWallet ? "Transfer" : "Connect with email to transfer"}
+                        </button>
+                      </div>
+                      {shieldFooter}
                     </div>
-                    {shieldFooter}
-                  </div>
-                </form>
-              </Form>
-            </div>
-          )}
+                  </form>
+                </Form>
+              </div>
+            )}
+            </>
+          </TransactionDialogStates>
         </DialogContent>
       </Dialog>
     </>
