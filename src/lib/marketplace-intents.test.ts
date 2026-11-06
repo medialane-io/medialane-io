@@ -25,7 +25,8 @@ function fixture({
   statuses = ["CONFIRMED"],
   txHash = "0xtx",
   orderHash = null,
-}: { intent?: Intent; statuses?: string[]; txHash?: string; orderHash?: string | null } = {}) {
+  stored,
+}: { intent?: Intent; statuses?: string[]; txHash?: string; orderHash?: string | null; stored?: string[] } = {}) {
   const log = {
     created: [] as Array<{ kind: string; params: Record<string, unknown>; via: "client" | "api" }>,
     signed: [] as unknown[],
@@ -48,7 +49,7 @@ function fixture({
         },
         submitSignature: async (id: string, sig: unknown) => {
           log.submitted.push({ id, sig });
-          return { calls: [APPROVE_CALL] };
+          return { calls: [APPROVE_CALL], signature: stored ?? (sig as string[]) };
         },
         confirm: async (id: string, hash: string) => {
           log.confirmed.push({ id, hash });
@@ -94,7 +95,7 @@ describe("runMarketplaceIntent", () => {
     expect(log.executed).toEqual([{ calls: [APPROVE_CALL], opts: { intentIds: ["intent1"] } }]);
   });
 
-  test("a locally built order is signed as built and executed with its own signed calls", async () => {
+  test("a locally built order is executed with the signature the account stored for it", async () => {
     const { buildIntent, populateSignedCalls } = await import("@medialane/sdk/starknet");
     const { resolveConfig } = await import("@medialane/sdk");
     const params = {
@@ -108,12 +109,15 @@ describe("runMarketplaceIntent", () => {
       startTime: 1_800_000_000,
     };
     const built = buildIntent("listing", params, { counter: "5", royaltyMaxBps: "500" }, resolveConfig({}));
+    const stored = ["0x1", "0x0", "0xowner", "0xr", "0xs"];
     const { ctx, log } = fixture({
       intent: { id: "intent1", requiresSignature: true, typedData: built.typedData, local: { kind: "listing", built } } as Intent,
+      stored,
     });
     await runMarketplaceIntent(ctx, () => ctx.client.createIntent("listing", params), FAST);
     expect(log.signed[0]).toBe(built.typedData);
-    expect(log.executed[0]!.calls).toEqual(populateSignedCalls("listing", built, ["0xr", "0xs"]));
+    expect(log.submitted).toEqual([{ id: "intent1", sig: ["0xr", "0xs"] }]);
+    expect(log.executed[0]!.calls).toEqual(populateSignedCalls("listing", built, stored));
   });
 
   test("a prebuilt intent executes without signing", async () => {
@@ -180,6 +184,33 @@ describe("marketplace actions", () => {
       via: "client",
     });
     expect(log.created[1].params.amount).toBe("3");
+  });
+
+  test("a listing whose prepared calls did not match says there was a problem listing, and keeps the code", async () => {
+    const { SponsoredCallRejectedError } = await import("@medialane/sdk/starknet");
+    const { ctx } = fixture();
+    (ctx.signer as { execute: unknown }).execute = async () => {
+      throw new SponsoredCallRejectedError("generic", { code: "calls_mismatch", stage: "build" });
+    };
+    const base = { assetContract: "0xc", tokenId: "7", price: "5", currencySymbol: "USDC", durationSeconds: 60 };
+    const failure = await createListing(ctx, { ...base, tokenStandard: "ERC721" }, FAST).catch((e: unknown) => e);
+    expect(failure).toBeInstanceOf(SponsoredCallRejectedError);
+    expect((failure as Error).message).toBe(
+      "We had a problem listing your asset. If this error persists please contact our support.",
+    );
+    expect((failure as { code?: string; stage?: string }).code).toBe("calls_mismatch");
+    expect((failure as { stage?: string }).stage).toBe("build");
+  });
+
+  test("a listing refused for another reason keeps that reason", async () => {
+    const { SponsoredCallRejectedError } = await import("@medialane/sdk/starknet");
+    const { ctx } = fixture();
+    (ctx.signer as { execute: unknown }).execute = async () => {
+      throw new SponsoredCallRejectedError("Reason from the account", { code: "not_authorized", stage: "build" });
+    };
+    const base = { assetContract: "0xc", tokenId: "7", price: "5", currencySymbol: "USDC", durationSeconds: 60 };
+    const failure = await createListing(ctx, { ...base, tokenStandard: "ERC721" }, FAST).catch((e: unknown) => e);
+    expect((failure as Error).message).toBe("Reason from the account");
   });
 
   test("makeOffer sends quantity 1 for ERC1155 when none is given, none for ERC721", async () => {

@@ -1,5 +1,5 @@
 import { UserFacingError, type FastMintSigner } from "@medialane/ui";
-import { populateSignedCalls, type CreatedIntent, type MedialaneClient } from "@medialane/sdk/starknet";
+import { SponsoredCallRejectedError, populateSignedCalls, type CreatedIntent, type MedialaneClient } from "@medialane/sdk/starknet";
 import type { Call, TypedData } from "starknet";
 import { SUPPORTED_TOKENS } from "@/lib/constants";
 import { isErc1155Standard } from "@/lib/protocol/token-standard";
@@ -127,7 +127,7 @@ export async function runMarketplaceIntent(
     const typedData = (intent.local ? intent.typedData : sanitizeTypedData(intent.typedData)) as TypedData;
     const sig = await signer.signTypedData(typedData);
     const signed = await client.api.intents.submitSignature(intent.id, sig);
-    calls = intent.local ? populateSignedCalls(intent.local.kind, intent.local.built, sig) : (signed.calls as Call[]);
+    calls = intent.local ? populateSignedCalls(intent.local.kind, intent.local.built, signed.signature) : (signed.calls as Call[]);
   } else {
     calls = intent.calls as Call[];
   }
@@ -151,16 +151,25 @@ export async function runMarketplaceIntent(
 
 const endTimeAfter = (durationSeconds: number) => Math.floor(Date.now() / 1000) + durationSeconds;
 
-export function createListing(ctx: MarketplaceContext, input: CreateListingInput, opts?: ActionOptions): Promise<MarketplaceResult> {
-  return runMarketplaceIntent(ctx, () => ctx.client.createIntent("listing", {
-    offerer: ctx.signer.address,
-    nftContract: input.assetContract,
-    tokenId: input.tokenId,
-    currency: resolveCurrencyAddress(input.currencySymbol),
-    price: input.price,
-    endTime: endTimeAfter(input.durationSeconds),
-    ...(isErc1155Standard(input.tokenStandard) ? { amount: input.amount || "1" } : {}),
-  }), opts);
+const LISTING_PROBLEM = "We had a problem listing your asset. If this error persists please contact our support.";
+
+export async function createListing(ctx: MarketplaceContext, input: CreateListingInput, opts?: ActionOptions): Promise<MarketplaceResult> {
+  try {
+    return await runMarketplaceIntent(ctx, () => ctx.client.createIntent("listing", {
+      offerer: ctx.signer.address,
+      nftContract: input.assetContract,
+      tokenId: input.tokenId,
+      currency: resolveCurrencyAddress(input.currencySymbol),
+      price: input.price,
+      endTime: endTimeAfter(input.durationSeconds),
+      ...(isErc1155Standard(input.tokenStandard) ? { amount: input.amount || "1" } : {}),
+    }), opts);
+  } catch (err) {
+    if (err instanceof SponsoredCallRejectedError && err.code === "calls_mismatch") {
+      throw new SponsoredCallRejectedError(LISTING_PROBLEM, err);
+    }
+    throw err;
+  }
 }
 
 export function makeOffer(ctx: MarketplaceContext, input: MakeOfferInput, opts?: ActionOptions): Promise<MarketplaceResult> {
