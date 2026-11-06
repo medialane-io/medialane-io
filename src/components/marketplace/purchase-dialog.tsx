@@ -1,14 +1,12 @@
 "use client";
 
-import { UserFacingError, MarketplaceErrorState, MarketplaceTxLink, isStableCurrency, successMessages } from "@medialane/ui";
+import { UserFacingError, MarketplaceErrorState, MarketplaceTxLink, OrderSummaryHero, DialogTransactionSuccess, successMessages } from "@medialane/ui";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import Image from "next/image";
 import {
   AlertCircle, ExternalLink, Loader2,
   ShoppingCart, RefreshCw, Zap, Minus, Plus,
-  CheckCircle2, ShieldCheck,
+  ShieldCheck,
 } from "lucide-react";
 import { fireConfetti } from "@medialane/ui/utils/media-wallet/confetti";
 import { RewardEarned } from "@medialane/ui";
@@ -22,8 +20,7 @@ import { useWhenChanged } from "@/hooks/use-when-changed";
 import { fulfillOrder } from "@/lib/marketplace-intents";
 import { EXPLORER_URL } from "@/lib/constants";
 import type { ApiOrder } from "@medialane/sdk";
-import { formatDisplayPrice, resolveImage } from "@/lib/utils";
-import { CurrencyIcon } from "@medialane/ui/currency-icon";
+import { resolveImage } from "@/lib/utils";
 import { useUsdPrices } from "@/hooks/use-usd-prices";
 import { usdValueFor } from "@/lib/wallet-format";
 import { useErc20Balance } from "@medialane/ui/utils/media-wallet/use-erc20-balance";
@@ -40,171 +37,6 @@ interface PurchaseDialogProps {
 }
 
 
-function TokenHero({ order, quantity }: { order: ApiOrder; quantity: number }) {
-  const image = resolveImage(order.token?.image);
-  const name = order.token?.name || `Token #${order.nftTokenId}`;
-  const usdPrices = useUsdPrices();
-
-  const unitPrice = order.price?.formatted ? parseFloat(order.price.formatted) : null;
-  const totalPrice = unitPrice !== null ? unitPrice * quantity : null;
-  const showTotal = quantity > 1 && totalPrice !== null;
-  const totalUsd = totalPrice !== null
-    ? usdValueFor(String(totalPrice), order.price?.currency, usdPrices)
-    : null;
-
-  return (
-    <div>
-      <div className="flex justify-center pt-6 shrink-0">
-        <div className="relative h-32 w-32 rounded-2xl overflow-hidden border border-border bg-muted">
-          {image ? (
-            <Image src={image} alt={name} fill sizes="128px" className="object-cover" />
-          ) : (
-            <div className="h-full w-full bg-gradient-to-br from-primary/20 via-brand-purple/10 to-transparent flex items-center justify-center text-2xl font-bold text-muted-foreground/30">
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between px-5 pt-4 pb-1">
-        <div className="min-w-0">
-          <p className="font-bold text-lg leading-tight truncate">{name}</p>
-          <div className="flex items-center gap-1 mt-1">
-            <Zap className="h-3 w-3 text-emerald-500" />
-            <span className="text-2xs font-medium text-emerald-500">Digital Asset Ownership</span>
-          </div>
-        </div>
-        {order.price && (() => {
-          const totalCryptoDisplay = showTotal
-            ? formatDisplayPrice(totalPrice!.toFixed(order.price.decimals <= 6 ? 2 : 4))
-            : formatDisplayPrice(order.price.formatted);
-          const stable = isStableCurrency(order.price.currency);
-          const displayFace = "font-[family-name:var(--font-display)] font-extrabold tracking-tight tabular-nums";
-
-          return (
-            <div className="shrink-0 text-right ml-4">
-              {totalUsd ? (
-                <p className={`${displayFace} text-2xl`}>{totalUsd}</p>
-              ) : (
-                <p className={`flex items-center gap-2 justify-end ${displayFace} text-2xl`}>
-                  <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-foreground/[0.06]">
-                    <CurrencyIcon symbol={order.price.currency} size={13} />
-                  </span>
-                  {totalCryptoDisplay}
-                </p>
-              )}
-              <p className="text-sm font-semibold text-muted-foreground inline-flex items-center gap-1.5 justify-end mt-0.5">
-                {totalUsd && (
-                  <span className="grid h-4 w-4 shrink-0 place-items-center rounded-full bg-foreground/[0.06]">
-                    <CurrencyIcon symbol={order.price.currency} size={10} />
-                  </span>
-                )}
-                {totalUsd
-                  ? (stable ? order.price.currency : `${totalCryptoDisplay} ${order.price.currency}`)
-                  : order.price.currency}
-              </p>
-              {showTotal && (
-                <p className="text-2xs text-muted-foreground/60 mt-0.5">
-                  {formatDisplayPrice(order.price.formatted)} × {quantity} {order.price.currency}
-                </p>
-              )}
-            </div>
-          );
-        })()}
-      </div>
-    </div>
-  );
-}
-
-function SuccessScreen({
-  order,
-  quantity,
-  txHash,
-  onClose,
-  onViewPortfolio,
-}: {
-  order: ApiOrder;
-  quantity: number;
-  txHash: string | null;
-  onClose: () => void;
-  onViewPortfolio: () => void;
-}) {
-  const image = resolveImage(order.token?.image);
-  const name = order.token?.name ?? null;
-  const is1155 = order.offer?.itemType === "ERC1155";
-  const assetHref = buildAssetHref("STARKNET", order.nftContract, order.nftTokenId);
-
-  const unitPrice = order.price?.formatted ? parseFloat(order.price.formatted) : null;
-  const totalPrice = unitPrice !== null ? unitPrice * quantity : null;
-
-  const message = successMessages.purchased({ name: name ?? "the asset", quantity: is1155 ? quantity : 1 });
-
-  return (
-    <div className="flex flex-col">
-
-      <div className="flex flex-col items-center gap-4 px-5 pt-8 shrink-0">
-        <div className="relative">
-          <div className="relative h-32 w-32 rounded-2xl overflow-hidden border border-border bg-muted">
-            {image ? (
-              <Image src={image} alt={name ?? ""} fill sizes="128px" className="object-cover" />
-            ) : (
-              <div className="h-full w-full bg-gradient-to-br from-primary/20 via-brand-purple/10 to-emerald-500/10 flex items-center justify-center">
-                <CheckCircle2 className="h-12 w-12 text-emerald-500/40" />
-              </div>
-            )}
-          </div>
-          <div className="absolute -bottom-2 -right-2 h-9 w-9 rounded-full bg-emerald-500 flex items-center justify-center border-2 border-background">
-            <CheckCircle2 className="h-5 w-5 text-white" />
-          </div>
-        </div>
-        <div className="text-center min-w-0 max-w-full">
-          <p className="font-black text-xl leading-tight">{message.title}</p>
-          <p className="text-muted-foreground text-sm mt-0.5 break-words">{message.description}</p>
-        </div>
-      </div>
-
-      <div className="px-5 py-5 space-y-4">
-
-        <div className="rounded-xl border border-border divide-y divide-border text-sm">
-          {order.price && (
-            <div className="flex items-center justify-between px-4 py-2.5">
-              <span className="text-muted-foreground">Price paid</span>
-              <span className="font-semibold flex items-center gap-1.5">
-                <CurrencyIcon symbol={order.price.currency} size={13} />
-                {totalPrice !== null && quantity > 1
-                  ? `${formatDisplayPrice(totalPrice.toFixed(order.price.decimals <= 6 ? 2 : 4))} ${order.price.currency}`
-                  : `${formatDisplayPrice(order.price.formatted)} ${order.price.currency}`}
-              </span>
-            </div>
-          )}
-          {txHash && (
-            <div className="flex items-center justify-between px-4 py-2.5">
-              <span className="text-muted-foreground">Transaction</span>
-              <a
-                href={`${EXPLORER_URL}/tx/${txHash}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 tabular-nums text-xs text-primary hover:underline"
-              >
-                {txHash.slice(0, 8)}…{txHash.slice(-6)}
-                <ExternalLink className="h-3 w-3" />
-              </a>
-            </div>
-          )}
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-2 w-full">
-          <Button variant="outline" className="flex-1" asChild>
-            <Link href={assetHref} onClick={onClose}>View asset</Link>
-          </Button>
-          <Button className="flex-1" onClick={onViewPortfolio}>
-            View portfolio
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: PurchaseDialogProps) {
   const router = useRouter();
   const { address: walletAddress, hasWallet } = useWalletNativeSession();
@@ -217,6 +49,14 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
   const maxQty = is1155
     ? Math.max(1, parseInt(order.remainingAmount ?? order.offer.startAmount ?? "1", 10))
     : 1;
+
+  const usdPrices = useUsdPrices();
+  const unitPrice = order.price?.formatted ? parseFloat(order.price.formatted) : null;
+  const totalUsd = unitPrice !== null
+    ? usdValueFor(String(unitPrice * quantity), order.price?.currency, usdPrices)
+    : null;
+  const assetName = order.token?.name || `Token #${order.nftTokenId}`;
+  const assetImage = resolveImage(order.token?.image);
 
   const requiredRaw = BigInt(order.consideration.startAmount ?? "0") * BigInt(is1155 ? quantity : 1);
   const orderCurrencyToken = order.price?.currency ? getTokenBySymbol(order.price.currency) : undefined;
@@ -294,20 +134,27 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
 
           {isSuccess ? (
             <>
-              <SuccessScreen
-                order={order}
-                quantity={quantity}
+              <DialogTransactionSuccess
+                name={assetName}
+                image={assetImage}
+                {...successMessages.purchased({ name: order.token?.name ?? "the asset", quantity: is1155 ? quantity : 1 })}
                 txHash={txHash}
-                onClose={() => { onOpenChange(false); onSuccess?.(); }}
-                onViewPortfolio={() => { onOpenChange(false); router.push("/portfolio/assets"); }}
+                actions={[
+                  {
+                    label: "View asset",
+                    href: buildAssetHref("STARKNET", order.nftContract, order.nftTokenId),
+                    onClick: () => { onOpenChange(false); onSuccess?.(); },
+                  },
+                  { label: "View portfolio", onClick: () => { onOpenChange(false); router.push("/portfolio/assets"); } },
+                ]}
               />
               <div className="px-6 pb-6"><RewardEarned actionType="buy_asset" /></div>
             </>
 
           ) : failedAfterSubmit ? (
             <MarketplaceErrorState
-              tokenImage={resolveImage(order.token?.image)}
-              name={order.token?.name || `Token #${order.nftTokenId}`}
+              tokenImage={assetImage}
+              name={assetName}
               title="Purchase failed"
               description="The transaction was submitted, but the purchase could not be completed."
               error={error}
@@ -335,7 +182,19 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
           ) : (
 
             <div className="space-y-0">
-              <TokenHero order={order} quantity={quantity} />
+              <OrderSummaryHero
+                name={assetName}
+                image={assetImage}
+                subtitle={
+                  <span className="flex items-center gap-1">
+                    <Zap className="h-3 w-3 text-emerald-500" />
+                    <span className="text-emerald-500">Digital Asset Ownership</span>
+                  </span>
+                }
+                price={order.price}
+                quantity={quantity}
+                usdTotal={totalUsd}
+              />
               <div className="px-6 pb-6 pt-3 space-y-3">
                 {error && (
                   <>
