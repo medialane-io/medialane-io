@@ -20,16 +20,14 @@ import { useWhenChanged } from "@/hooks/use-when-changed";
 import { createListing } from "@/lib/marketplace-intents";
 import { useResolvedTokenStandard } from "@/hooks/use-resolved-token-standard";
 import {
-  DialogTransactionSuccess,
-  MarketplaceProcessingState,
+  TransactionDialogStates,
   MarketplaceSignInGate,
   successMessages,
-  MarketplaceErrorState,
   MarketplaceDialogHero,
   CurrencyPicker,
   DurationPicker,
 } from "@medialane/ui";
-import { EXPLORER_URL, DURATION_OPTIONS } from "@/lib/constants";
+import { DURATION_OPTIONS } from "@/lib/constants";
 import { resolveImage } from "@/lib/utils";
 import { getListableTokens } from "@medialane/sdk";
 import { marketplacePriceField, marketplaceCurrencyField, marketplaceDurationField } from "@/lib/marketplace-schemas";
@@ -145,194 +143,176 @@ export function ListingDialog({
             Set pricing, quantity, currency, and duration to create an onchain marketplace listing.
           </DialogDescription>
 
-          {isSuccess ? (
-            <DialogTransactionSuccess
-              name={name}
-              image={tokenImage}
-              {...successMessages.listed({ name, price: listedPrice })}
-              txHash={txHash}
-              actions={[{ label: "Done", onClick: () => { onOpenChange(false); onSuccess?.(); } }]}
-            >
-              <RewardEarned actionType="list_asset" />
-            </DialogTransactionSuccess>
-
-          ) : failedAfterSubmit ? (
-            <MarketplaceErrorState
-              tokenImage={tokenImage}
-              name={name}
-              title="Listing failed"
-              description="The transaction was submitted, but the listing could not be completed."
-              error={error}
-              txHash={txHash}
-              explorerUrl={EXPLORER_URL}
-              onRetry={retryable ? reset : undefined}
-              onDone={() => onOpenChange(false)}
-            />
-
-          ) : busy ? (
-            <MarketplaceProcessingState
-              title="Confirming onchain…"
-              imageUrl={tokenImage}
-              imageAlt={name}
-            />
-
-          ) : !hasWallet ? (
-            <MarketplaceSignInGate
-              title="Secure your account to list"
-              description="You need an account to list assets for sale."
-              href={`/connect?redirect_url=${encodeURIComponent(pathname)}`}
-            />
-
-          ) : (
-            <>
-              <MarketplaceDialogHero
-                tokenImage={tokenImage}
-                tokenName={tokenName}
-                tokenId={tokenId}
-                fallbackIcon={<Tag className="h-12 w-12 text-brand-blue/30" />}
-                badge={is1155 ? (
-                  <span className="absolute top-3 left-3 inline-flex items-center gap-1 text-2xs font-semibold px-2.5 py-1 rounded-full border border-brand-purple/40 bg-brand-purple/20 text-brand-purple backdrop-blur-sm">
-                    <Layers className="h-3 w-3" />
-                    Multi-edition
-                  </span>
-                ) : undefined}
+          <TransactionDialogStates
+            phase={phase}
+            asset={{ name, image: tokenImage }}
+            txHash={txHash}
+            error={error}
+            success={successMessages.listed({ name, price: listedPrice })}
+            successActions={[{ label: "Done", onClick: () => { onOpenChange(false); onSuccess?.(); } }]}
+            successChildren={<RewardEarned actionType="list_asset" />}
+            errorTitle="Listing failed"
+            errorDescription="The transaction was submitted, but the listing could not be completed."
+            onRetry={retryable ? reset : undefined}
+            onDone={() => onOpenChange(false)}
+          >
+            {!hasWallet ? (
+              <MarketplaceSignInGate
+                title="Secure your account to list"
+                description="You need an account to list assets for sale."
+                href={`/connect?redirect_url=${encodeURIComponent(pathname)}`}
               />
-              <div className="flex items-center justify-between px-5 pt-3 pb-0">
-                <p className="font-bold text-base leading-tight truncate">{name}</p>
-              </div>
 
-              <div className="px-5 pb-4 pt-2 space-y-3">
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+            ) : (
+              <>
+                <MarketplaceDialogHero
+                  tokenImage={tokenImage}
+                  tokenName={tokenName}
+                  tokenId={tokenId}
+                  fallbackIcon={<Tag className="h-12 w-12 text-brand-blue/30" />}
+                  badge={is1155 ? (
+                    <span className="absolute top-3 left-3 inline-flex items-center gap-1 text-2xs font-semibold px-2.5 py-1 rounded-full border border-brand-purple/40 bg-brand-purple/20 text-brand-purple backdrop-blur-sm">
+                      <Layers className="h-3 w-3" />
+                      Multi-edition
+                    </span>
+                  ) : undefined}
+                />
+                <div className="flex items-center justify-between px-5 pt-3 pb-0">
+                  <p className="font-bold text-base leading-tight truncate">{name}</p>
+                </div>
 
-                    {is1155 ? (
-                      <div className="grid grid-cols-2 gap-3 items-start">
-                        <FormField
-                          control={form.control}
-                          name="amount"
-                          render={({ field }) => (
-                            <FormItem>
-                              <div className="flex items-center justify-between">
-                                <FormLabel>Qty</FormLabel>
-                                {quantityOwned != null && (
-                                  <span className="text-xs text-muted-foreground">You own {quantityOwned}</span>
-                                )}
-                              </div>
-                              <FormControl>
-                                <Input type="number" min="1" step="1" placeholder="1" disabled={busy} {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                <div className="px-5 pb-4 pt-2 space-y-3">
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+
+                      {is1155 ? (
+                        <div className="grid grid-cols-2 gap-3 items-start">
+                          <FormField
+                            control={form.control}
+                            name="amount"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center justify-between">
+                                  <FormLabel>Qty</FormLabel>
+                                  {quantityOwned != null && (
+                                    <span className="text-xs text-muted-foreground">You own {quantityOwned}</span>
+                                  )}
+                                </div>
+                                <FormControl>
+                                  <Input type="number" min="1" step="1" placeholder="1" disabled={busy} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="price"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Price / edition</FormLabel>
+                                <div className="relative">
+                                  <FormControl>
+                                    <Input type="number" step="any" placeholder="0.00" className="pr-16" disabled={busy} {...field} />
+                                  </FormControl>
+                                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
+                                    <CurrencyIcon symbol={form.watch("currency")} size={13} />
+                                    <span className="text-2xs font-bold">{form.watch("currency")}</span>
+                                  </div>
+                                </div>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      ) : (
                         <FormField
                           control={form.control}
                           name="price"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Price / edition</FormLabel>
+                              <FormLabel>Price</FormLabel>
                               <div className="relative">
                                 <FormControl>
-                                  <Input type="number" step="any" placeholder="0.00" className="pr-16" disabled={busy} {...field} />
+                                  <Input type="number" step="any" placeholder="0.00" className="pr-20" disabled={busy} {...field} />
                                 </FormControl>
                                 <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
-                                  <CurrencyIcon symbol={form.watch("currency")} size={13} />
-                                  <span className="text-2xs font-bold">{form.watch("currency")}</span>
+                                  <CurrencyIcon symbol={form.watch("currency")} size={14} />
+                                  <span className="text-xs font-bold">{form.watch("currency")}</span>
                                 </div>
                               </div>
                               <FormMessage />
                             </FormItem>
                           )}
                         />
-                      </div>
-                    ) : (
+                      )}
+
                       <FormField
                         control={form.control}
-                        name="price"
+                        name="currency"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Price</FormLabel>
-                            <div className="relative">
-                              <FormControl>
-                                <Input type="number" step="any" placeholder="0.00" className="pr-20" disabled={busy} {...field} />
-                              </FormControl>
-                              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
-                                <CurrencyIcon symbol={form.watch("currency")} size={14} />
-                                <span className="text-xs font-bold">{form.watch("currency")}</span>
-                              </div>
-                            </div>
-                            <FormMessage />
+                            <FormLabel>Currency</FormLabel>
+                            <FormControl>
+                              <CurrencyPicker
+                                currencies={CURRENCIES}
+                                value={field.value}
+                                onChange={field.onChange}
+                                disabled={busy}
+                              />
+                            </FormControl>
                           </FormItem>
                         )}
                       />
-                    )}
 
-                    <FormField
-                      control={form.control}
-                      name="currency"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Currency</FormLabel>
-                          <FormControl>
-                            <CurrencyPicker
-                              currencies={CURRENCIES}
-                              value={field.value}
-                              onChange={field.onChange}
-                              disabled={busy}
-                            />
-                          </FormControl>
-                        </FormItem>
+                      <FormField
+                        control={form.control}
+                        name="durationSeconds"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Duration</FormLabel>
+                            <FormControl>
+                              <DurationPicker
+                                options={DURATION_OPTIONS}
+                                value={field.value}
+                                onChange={field.onChange}
+                                disabled={busy}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+
+                      {error && (
+                        <Alert variant="destructive">
+                          <AlertCircle className="h-4 w-4" />
+                          <AlertDescription>{error}</AlertDescription>
+                        </Alert>
                       )}
-                    />
 
-                    <FormField
-                      control={form.control}
-                      name="durationSeconds"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Duration</FormLabel>
-                          <FormControl>
-                            <DurationPicker
-                              options={DURATION_OPTIONS}
-                              value={field.value}
-                              onChange={field.onChange}
-                              disabled={busy}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-
-                    {error && (
-                      <Alert variant="destructive">
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertDescription>{error}</AlertDescription>
-                      </Alert>
-                    )}
-
-                    <div className="pt-1 space-y-2">
-                      <div className={`btn-border-animated p-[1px] rounded-xl ${(busy || isResolving) ? "pointer-events-none" : ""}`}>
-                        <button
-                          type="submit"
-                          className="w-full h-11 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-transparent"
-                          disabled={busy || isResolving}
-                        >
-                          {isResolving ? (
-                            <><Loader2 className="h-4 w-4 animate-spin" /> Resolving asset…</>
-                          ) : (
-                            <><Tag className="h-4 w-4" /> {hasWallet ? "List" : "Secure account & list"}</>
-                          )}
-                        </button>
+                      <div className="pt-1 space-y-2">
+                        <div className={`btn-border-animated p-[1px] rounded-xl ${(busy || isResolving) ? "pointer-events-none" : ""}`}>
+                          <button
+                            type="submit"
+                            className="w-full h-11 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-transparent"
+                            disabled={busy || isResolving}
+                          >
+                            {isResolving ? (
+                              <><Loader2 className="h-4 w-4 animate-spin" /> Resolving asset…</>
+                            ) : (
+                              <><Tag className="h-4 w-4" /> {hasWallet ? "List" : "Secure account & list"}</>
+                            )}
+                          </button>
+                        </div>
+                        {shieldFooter}
                       </div>
-                      {shieldFooter}
-                    </div>
 
-                  </form>
-                </Form>
-              </div>
-            </>
-          )}
-
+                    </form>
+                  </Form>
+                </div>
+              </>
+            )}
+          </TransactionDialogStates>
         </DialogContent>
       </Dialog>
     </>
