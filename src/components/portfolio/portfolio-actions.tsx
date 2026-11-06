@@ -50,6 +50,8 @@ export function useReceivedOfferActions({ refresh }: Context): PortfolioOrderAct
             onOpenChange={(v) => { if (!v) setCounterOrder(null); }}
             originalOrderHash={counterOrder.orderHash}
             tokenName={counterOrder.token?.name ?? undefined}
+            tokenImage={resolveImage(counterOrder.token?.image)}
+            tokenId={counterOrder.nftTokenId ?? undefined}
             currentBid={`${formatDisplayPrice(counterOrder.price.formatted)} ${counterOrder.price.currency}`}
             currencySymbol={counterOrder.price.currency ?? ""}
             currencyDecimals={token?.decimals ?? 18}
