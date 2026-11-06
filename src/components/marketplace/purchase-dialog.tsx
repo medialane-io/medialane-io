@@ -1,6 +1,6 @@
 "use client";
 
-import { UserFacingError, OrderSummaryHero, TransactionDialogStates, successMessages } from "@medialane/ui";
+import { UserFacingError, OrderSummaryHero, TransactionDialogStates, successMessages, usdValueFor } from "@medialane/ui";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -21,7 +21,6 @@ import { fulfillOrder } from "@/lib/marketplace-intents";
 import type { ApiOrder } from "@medialane/sdk";
 import { resolveImage } from "@/lib/utils";
 import { useUsdPrices } from "@/hooks/use-usd-prices";
-import { usdValueFor } from "@/lib/wallet-format";
 import { useErc20Balance } from "@medialane/ui/utils/media-wallet/use-erc20-balance";
 import { getTokenBySymbol } from "@medialane/sdk";
 import { createSwapIntent } from "@/lib/wallet/swap-calls";

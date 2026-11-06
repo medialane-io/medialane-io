@@ -1,7 +1,7 @@
 "use client";
 
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@medialane/ui/dialog";
-import { RewardEarned } from "@medialane/ui";
+import { RewardEarned, formatDisplayPrice } from "@medialane/ui";
 import {
   MarketplaceDialogHero,
   MarketplaceConfirmStep,
@@ -10,7 +10,7 @@ import {
 } from "@medialane/ui";
 import { Alert, AlertDescription } from "@medialane/ui/alert";
 import { AlertTriangle, HandCoins, Tag, X } from "lucide-react";
-import { resolveImage, formatDisplayPrice } from "@/lib/utils";
+import { resolveImage } from "@/lib/utils";
 import type { AcceptOfferHook } from "@/hooks/use-accept-offer";
 import type { ApiOrder } from "@medialane/sdk";
 

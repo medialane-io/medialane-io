@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Skeleton } from "@medialane/ui/skeleton";
-import { cn } from "@/lib/utils";
+import { cn } from "@medialane/ui";
 import type { RowTone } from "@/lib/settings/rows";
 import { accountStatus, type StatusInput } from "@/lib/settings/status";
 

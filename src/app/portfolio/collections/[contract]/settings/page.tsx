@@ -14,7 +14,7 @@ import {
   Lock, Unlock, Sparkles, ShieldCheck, CheckCircle2, ExternalLink,
   Video, Music, Radio, FileText, Link2, Info,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@medialane/ui";
 import Link from "next/link";
 import { SectionCard, SectionHeader, FieldRow, HelperText } from "./settings-ui";
 import { CollectionSlugClaimSection } from "./collection-slug-claim-section";

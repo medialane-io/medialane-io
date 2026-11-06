@@ -1,7 +1,7 @@
 "use client";
 
 import { requireSignedIn } from "@/lib/account-gate";
-import { useCollectionsByOwner } from "@medialane/ui";
+import { useCollectionsByOwner, formatDisplayPrice } from "@medialane/ui";
 import { useState } from "react";
 import { getService } from "@medialane/sdk";
 import { assetHref } from "@/lib/routes";
@@ -15,7 +15,6 @@ import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSession } from "@/hooks/use-session";
 import { useMarketplaceTransaction } from "@/hooks/use-marketplace-transaction";
 import { approveRemix, type RemixCollection } from "@/lib/remix-approval";
-import { formatDisplayPrice } from "@/lib/utils";
 import { AlertCircle, Check, GitBranch, Loader2 } from "lucide-react";
 import type { RemixOffer } from "@/types/remix-offers";
 

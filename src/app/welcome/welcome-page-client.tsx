@@ -14,7 +14,7 @@ import { MINT_CONTRACT } from "@/lib/constants";
 import { assetHref } from "@/lib/routes";
 import { useGenesisHolding } from "@/hooks/use-genesis-holding";
 import type { GenesisHolding } from "@/lib/genesis-holding";
-import { cn } from "@/lib/utils";
+import { cn } from "@medialane/ui";
 
 const JOURNEYS = [
   {
