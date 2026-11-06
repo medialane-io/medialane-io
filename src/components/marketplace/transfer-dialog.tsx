@@ -1,44 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { useWhenChanged } from "@/hooks/use-when-changed";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import {
-  AlertCircle,
-  ArrowRightLeft,
-  ShieldCheck,
-} from "lucide-react";
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@medialane/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@medialane/ui/form";
-import { Input } from "@medialane/ui/input";
-import { Alert, AlertDescription } from "@medialane/ui/alert";
+import { TransferDialog as TransferDialogView } from "@medialane/ui";
 import { useMarketplaceTransaction } from "@/hooks/use-marketplace-transaction";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { transferNft } from "@/lib/marketplace-intents";
 import { useResolvedTokenStandard } from "@/hooks/use-resolved-token-standard";
-import {
-  MarketplaceConfirmStep,
-  MarketplaceDialogHero,
-  TransactionDialogStates,
-  successMessages,
-} from "@medialane/ui";
 import { resolveImage } from "@/lib/utils";
-
-const schema = z.object({
-  toAddress: z
-    .string()
-    .min(1, "Recipient address is required")
-    .regex(
-      /^0x[0-9a-fA-F]{1,64}$/,
-      "Must be a valid Starknet address (0x followed by hex characters)"
-    ),
-});
-
-type FormValues = z.infer<typeof schema>;
-
-type Step = "form" | "confirm";
 
 interface TransferDialogProps {
   open: boolean;
@@ -58,209 +25,32 @@ export function TransferDialog({
   contractAddress,
   tokenId,
   tokenName,
-  tokenImage: tokenImageRaw,
+  tokenImage,
   onSuccess,
-  hasActiveListing = false,
+  hasActiveListing,
   tokenStandard,
 }: TransferDialogProps) {
-  const tokenImage = resolveImage(tokenImageRaw);
-  const { address: walletAddress, hasWallet } = useWalletNativeSession();
-  const { phase, busy, txHash, error, retryable, start, reset } = useMarketplaceTransaction();
-
+  const { address, hasWallet } = useWalletNativeSession();
+  const tx = useMarketplaceTransaction();
   const { tokenStandard: resolvedStandard } = useResolvedTokenStandard(contractAddress, tokenStandard);
 
-  const [step, setStep] = useState<Step>("form");
-  const [pendingAddress, setPendingAddress] = useState<string | null>(null);
-
-  const form = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: { toAddress: "" },
-  });
-
-  const isSuccess = phase === "success";
-
-  const resetDialog = () => {
-    reset();
-    form.reset();
-    setPendingAddress(null);
-    setStep("form");
-  };
-
-  const close = () => {
-    resetDialog();
-    onOpenChange(false);
-  };
-
-  const handleClose = (v: boolean) => {
-    if (!v && !busy && !isSuccess) close();
-  };
-
-  useWhenChanged(open, () => {
-    if (open) resetDialog();
-  });
-
-  const onSubmit = (values: FormValues) => {
-    if (walletAddress) {
-      try {
-        if (BigInt(values.toAddress) === BigInt(walletAddress)) {
-          form.setError("toAddress", { message: "Cannot transfer to yourself" });
-          return;
-        }
-      } catch {
-
-      }
-    }
-    if (!hasWallet) return;
-    setPendingAddress(values.toAddress);
-    setStep("confirm");
-  };
-
-  const handleConfirmTransfer = () => {
-    if (!pendingAddress) return;
-    void start((ctx) => transferNft(ctx, {
-      contractAddress,
-      tokenId,
-      toAddress: pendingAddress,
-      tokenStandard: resolvedStandard,
-    }));
-  };
-
-  const displayName = tokenName || `Token #${tokenId}`;
-  const recipientShort = pendingAddress
-    ? `${pendingAddress.slice(0, 8)}…${pendingAddress.slice(-6)}`
-    : "";
-
-  const shieldFooter = (
-    <div className="flex items-start justify-center gap-1.5">
-      <ShieldCheck className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
-      <p className="text-2xs text-center text-muted-foreground">
-        Transfer is recorded permanently onchain. Gas is sponsored by Medialane.
-      </p>
-    </div>
-  );
-
   return (
-    <>
-      <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="max-w-[calc(100%-6px)] sm:max-w-md p-0 overflow-hidden gap-0 rounded-2xl flex flex-col max-h-[92svh]">
-          <DialogTitle className="sr-only">Transfer {displayName}</DialogTitle>
-          <DialogDescription className="sr-only">
-            Enter a recipient Starknet address to transfer this asset onchain.
-          </DialogDescription>
-
-          <TransactionDialogStates
-            phase={phase}
-            asset={{ name: displayName, image: tokenImage }}
-            statusMessage="Confirming on Starknet…"
-            txHash={txHash}
-            error={error}
-            success={successMessages.transferred({ name: displayName, to: recipientShort })}
-            successActions={[{ label: "Done", onClick: () => { close(); onSuccess?.(); } }]}
-            errorTitle="Transfer failed"
-            errorDescription="The transaction was submitted, but the transfer could not be completed."
-            onRetry={retryable ? () => { reset(); setStep("form"); } : undefined}
-            onDone={close}
-          >
-            <>
-              <MarketplaceDialogHero
-                tokenImage={tokenImage}
-                tokenName={tokenName}
-                tokenId={tokenId}
-                fallbackIcon={<ArrowRightLeft className="h-12 w-12 text-brand-blue/30" />}
-              />
-              {step === "confirm" ? (
-
-              <>
-                <div className="flex items-end justify-between px-6 pt-3 pb-1">
-                  <div className="min-w-0">
-                    <p className="font-bold text-lg leading-tight truncate">{displayName}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5 tabular-nums truncate">
-                      → {recipientShort}
-                    </p>
-                  </div>
-                </div>
-                <MarketplaceConfirmStep
-                  description="Transfer this asset? This action cannot be undone."
-                  error={error}
-                  secondaryLabel="Back"
-                  onSecondary={() => { reset(); setStep("form"); }}
-                  primaryLabel="Transfer"
-                  onPrimary={handleConfirmTransfer}
-                  primaryIcon={<ArrowRightLeft className="h-4 w-4" />}
-                  footer={shieldFooter}
-                />
-              </>
-
-            ) : (
-
-              <div className="px-5 pb-4 pt-3 space-y-3">
-                <p className="font-bold text-base leading-tight truncate">{displayName}</p>
-
-                {hasActiveListing && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription className="text-xs">
-                      This token has an active listing. A buyer could still complete the purchase after you transfer it — cancel the listing first, or proceed with caution.
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-                <Alert>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription className="text-xs">
-                    Transfers are permanent and irreversible. Double-check the recipient address before confirming.
-                  </AlertDescription>
-                </Alert>
-
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
-                    <FormField
-                      control={form.control}
-                      name="toAddress"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Recipient address</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="0x…"
-                              autoComplete="off"
-                              spellCheck={false}
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    {error && (
-                      <Alert variant="destructive">
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertDescription>{error}</AlertDescription>
-                      </Alert>
-                    )}
-
-                    <div className="pt-1 space-y-2">
-                      <div className="btn-border-animated p-[1px] rounded-xl">
-                        <button
-                          type="submit"
-                          disabled={!hasWallet}
-                          className="w-full h-11 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-transparent"
-                        >
-                          <ArrowRightLeft className="h-4 w-4" />
-                          {hasWallet ? "Transfer" : "Connect with email to transfer"}
-                        </button>
-                      </div>
-                      {shieldFooter}
-                    </div>
-                  </form>
-                </Form>
-              </div>
-            )}
-            </>
-          </TransactionDialogStates>
-        </DialogContent>
-      </Dialog>
-    </>
+    <TransferDialogView
+      open={open}
+      onOpenChange={onOpenChange}
+      tokenId={tokenId}
+      tokenName={tokenName}
+      tokenImage={resolveImage(tokenImage)}
+      hasActiveListing={hasActiveListing}
+      walletAddress={address}
+      canTransfer={hasWallet}
+      connectLabel="Connect with email to transfer"
+      footerNote="Transfer is recorded permanently onchain. Gas is sponsored by Medialane."
+      tx={{ phase: tx.phase, txHash: tx.txHash, error: tx.error, retryable: tx.retryable, reset: tx.reset }}
+      onTransfer={(toAddress) => {
+        void tx.start((ctx) => transferNft(ctx, { contractAddress, tokenId, toAddress, tokenStandard: resolvedStandard }));
+      }}
+      onSuccess={onSuccess}
+    />
   );
 }
