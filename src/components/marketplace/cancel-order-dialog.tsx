@@ -42,12 +42,9 @@ export function CancelOrderDialog({ hook, variant, tokenName, tokenImage }: Canc
           txHash={txHash}
           error={error}
           success={successMessages.cancelled({ kind: resolvedVariant })}
-          successImage={resolveImage(order?.token?.image ?? tokenImage)}
-          successName={resolvedName}
+          asset={{ name: resolvedName, image: resolveImage(order?.token?.image ?? tokenImage) }}
           errorTitle={`${resolvedVariant === "listing" ? "Listing" : "Offer"} cancellation failed`}
           errorDescription={`The transaction was submitted, but this ${resolvedVariant} could not be cancelled.`}
-          errorAssetName={resolvedName}
-          errorAssetImage={resolveImage(order?.token?.image ?? tokenImage)}
           onRetry={retryable ? confirm : undefined}
           onDone={dismiss}
         >

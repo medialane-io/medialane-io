@@ -3,16 +3,13 @@
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@medialane/ui/dialog";
 import { RewardEarned } from "@medialane/ui";
 import {
-  DialogTransactionSuccess,
   MarketplaceDialogHero,
   MarketplaceConfirmStep,
-  MarketplaceProcessingState,
+  TransactionDialogStates,
   successMessages,
-  MarketplaceErrorState,
 } from "@medialane/ui";
 import { Alert, AlertDescription } from "@medialane/ui/alert";
 import { AlertTriangle, HandCoins, Tag, X } from "lucide-react";
-import { EXPLORER_URL } from "@/lib/constants";
 import { resolveImage, formatDisplayPrice } from "@/lib/utils";
 import type { AcceptOfferHook } from "@/hooks/use-accept-offer";
 import type { ApiOrder } from "@medialane/sdk";
@@ -37,7 +34,6 @@ export function AcceptOfferDialog({ hook, tokenName, tokenImage, onCancelListing
     txHash,
     error,
     retryable,
-    failedAfterSubmit,
     confirmAccept,
     dismiss,
     warningOpen,
@@ -125,37 +121,20 @@ export function AcceptOfferDialog({ hook, tokenName, tokenImage, onCancelListing
               </button>
             </div>
           </div>
-        ) : busy ? (
-          <MarketplaceProcessingState
-            title="Confirming on Starknet…"
-            imageUrl={image}
-            imageAlt={name}
-          />
-        ) : phase === "success" ? (
-          <DialogTransactionSuccess
-            name={name}
-            image={image}
-            {...successMessages.accepted({ name, price: priceLabel })}
+        ) : (
+          <TransactionDialogStates
+            phase={phase}
+            asset={{ name, image }}
+            statusMessage="Confirming on Starknet…"
             txHash={txHash}
-            actions={[{ label: "Done", onClick: dismiss }]}
-          >
-            <RewardEarned actionType="offer_accepted_seller" />
-          </DialogTransactionSuccess>
-        ) : failedAfterSubmit ? (
-          <MarketplaceErrorState
-            tokenImage={image}
-            name={name}
-            title="Offer acceptance failed"
-            description="The transaction could not be completed. Your asset is still listed."
             error={error}
-            txHash={txHash}
-            explorerUrl={EXPLORER_URL}
+            success={successMessages.accepted({ name, price: priceLabel })}
+            successChildren={<RewardEarned actionType="offer_accepted_seller" />}
+            errorTitle="Offer acceptance failed"
+            errorDescription="The transaction could not be completed. Your asset is still listed."
             onRetry={retryable ? confirmAccept : undefined}
             onDone={dismiss}
-          />
-        ) : (
-
-          <>
+          >
             <MarketplaceDialogHero
               tokenImage={image}
               tokenName={name}
@@ -181,7 +160,7 @@ export function AcceptOfferDialog({ hook, tokenName, tokenImage, onCancelListing
               primaryLabel="Accept offer"
               onPrimary={confirmAccept}
             />
-          </>
+          </TransactionDialogStates>
         )}
       </DialogContent>
     </Dialog>
