@@ -4,10 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { Bell, CheckCheck, Inbox, Filter } from "lucide-react";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useNotifications } from "@medialane/ui";
+import { useNotifications, cn } from "@medialane/ui";
 import { NotificationRow } from "@/components/shared/notification-row";
 import { Button } from "@medialane/ui/button";
-import { cn } from "@/lib/utils";
 import type { Notification, NotificationType } from "@medialane/ui";
 
 const FILTERS: { label: string; value: NotificationType | "" }[] = [

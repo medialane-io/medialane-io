@@ -4,13 +4,12 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Loader2, Wallet } from "lucide-react";
 import { getTokenBySymbol, parseAmount, formatAmount } from "@medialane/sdk";
-import { GradientButton, useTransaction } from "@medialane/ui";
+import { GradientButton, useTransaction, cn } from "@medialane/ui";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useErc20Balance, useTokenBalance } from "@medialane/ui/utils/media-wallet/use-erc20-balance";
 import { useSwapQuote } from "@/hooks/use-swap-quote";
 import { createSwapIntent } from "@/lib/wallet/swap-calls";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import { cn } from "@/lib/utils";
 
 interface CoinSwapWidgetProps {
   coinAddress: string;

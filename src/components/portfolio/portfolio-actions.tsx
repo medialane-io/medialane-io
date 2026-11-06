@@ -17,7 +17,8 @@ import { CounterOfferDialog } from "@/components/marketplace/counter-offer-dialo
 import { ListingDialog } from "@/components/marketplace/listing-dialog";
 import { TransferDialog } from "@/components/marketplace/transfer-dialog";
 import { EXPLORER_URL, SUPPORTED_TOKENS } from "@/lib/constants";
-import { resolveImage, formatDisplayPrice } from "@/lib/utils";
+import { formatDisplayPrice } from "@medialane/ui";
+import { resolveImage } from "@/lib/utils";
 
 type Context = { refresh: () => void };
 

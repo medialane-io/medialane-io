@@ -9,7 +9,7 @@ import { Button } from "@medialane/ui/button";
 import { Skeleton } from "@medialane/ui/skeleton";
 import { GitBranch, Check, Clock } from "lucide-react";
 import { AddressDisplay } from "@medialane/ui/address-display";
-import { timeAgo } from "@/lib/utils";
+import { timeAgo } from "@medialane/ui";
 import type { RemixOffer } from "@/types/remix-offers";
 import Link from "next/link";
 

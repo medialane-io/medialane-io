@@ -9,7 +9,7 @@ import * as z from "zod";
 import { AlertCircle, AlertTriangle, HandCoins, Layers, ShieldCheck } from "lucide-react";
 import { CurrencyIcon } from "@medialane/ui/currency-icon";
 import { fireConfetti } from "@medialane/ui/utils/media-wallet/confetti";
-import { RewardEarned } from "@medialane/ui";
+import { RewardEarned, usdValueFor } from "@medialane/ui";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@medialane/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@medialane/ui/form";
 import { Input } from "@medialane/ui/input";
@@ -33,7 +33,6 @@ import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useTokenBalance, hasSufficientBalance } from "@medialane/ui/utils/media-wallet/use-erc20-balance";
 import { marketplacePriceField, marketplaceCurrencyField, marketplaceDurationField } from "@/lib/marketplace-schemas";
 import { useUsdPrices } from "@/hooks/use-usd-prices";
-import { usdValueFor } from "@/lib/wallet-format";
 
 const CURRENCIES = getListableTokens().map((t) => t.symbol);
 

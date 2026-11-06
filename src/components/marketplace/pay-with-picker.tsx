@@ -5,9 +5,8 @@ import { Loader2 } from "lucide-react";
 import { CurrencyIcon } from "@medialane/ui/currency-icon";
 import { useErc20Balance } from "@medialane/ui/utils/media-wallet/use-erc20-balance";
 import { useSwapQuote } from "@/hooks/use-swap-quote";
-import { useMediaWallet } from "@medialane/ui";
-import { fmt } from "@/lib/wallet-format";
-import { cn } from "@/lib/utils";
+import { useMediaWallet, cn } from "@medialane/ui";
+import { fmt } from "@medialane/ui/utils/media-wallet/wallet-format";
 
 function PayWithOption({
   symbol, decimals, rawBalance, sellAmount, isLoading, insufficient, selected, onSelect,

@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@medialane/ui";
 
 export function SectionCard({ children, className, id }: { children: React.ReactNode; className?: string; id?: string }) {
   return (

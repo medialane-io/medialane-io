@@ -1,13 +1,12 @@
 "use client";
 
-import { ServiceFormShell } from "@medialane/ui";
+import { ServiceFormShell, cn } from "@medialane/ui";
 import Link from "next/link";
 import type { ElementType, ReactNode } from "react";
 import { ArrowLeft, ChevronRight, Settings as SettingsIcon, Wallet } from "lucide-react";
 import { Button } from "@medialane/ui/button";
 import { Skeleton } from "@medialane/ui/skeleton";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { cn } from "@/lib/utils";
 import type { RowStatus, RowTone } from "@/lib/settings/rows";
 
 export function SettingsPage({
