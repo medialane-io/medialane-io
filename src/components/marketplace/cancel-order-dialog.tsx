@@ -3,8 +3,7 @@
 import { ShieldCheck } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@medialane/ui/dialog";
 import type { CancelOrderHook } from "@/hooks/use-cancel-order";
-import { MarketplaceConfirmStep, OrderSummaryHero, successMessages } from "@medialane/ui";
-import { TransactionDialogStates } from "@/components/marketplace/transaction-dialog-states";
+import { MarketplaceConfirmStep, OrderSummaryHero, TransactionDialogStates, successMessages } from "@medialane/ui";
 import { resolveImage } from "@/lib/utils";
 
 interface CancelOrderDialogProps {
@@ -43,7 +42,7 @@ export function CancelOrderDialog({ hook, variant, tokenName, tokenImage }: Canc
           txHash={txHash}
           error={error}
           success={successMessages.cancelled({ kind: resolvedVariant })}
-          successImage={order?.token?.image ?? tokenImage ?? null}
+          successImage={resolveImage(order?.token?.image ?? tokenImage)}
           successName={resolvedName}
           errorTitle={`${resolvedVariant === "listing" ? "Listing" : "Offer"} cancellation failed`}
           errorDescription={`The transaction was submitted, but this ${resolvedVariant} could not be cancelled.`}
