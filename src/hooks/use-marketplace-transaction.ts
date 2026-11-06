@@ -2,13 +2,9 @@
 
 import { useCallback } from "react";
 import { useSWRConfig } from "swr";
-import { useMedialaneClient, useTransaction, type TransactionPhase } from "@medialane/ui";
+import { isBusyPhase, useMedialaneClient, useTransaction } from "@medialane/ui";
 import { QUERY_PREFIX } from "@medialane/ui/utils/query-keys";
 import type { MarketplaceContext } from "@/lib/marketplace-intents";
-
-export function isBusyPhase(phase: TransactionPhase): boolean {
-  return phase === "preparing" || phase === "submitting" || phase === "confirming";
-}
 
 /** Revalidates every cached order, listing and token query. */
 function useInvalidateMarketplace(): () => void {
