@@ -4,7 +4,7 @@ import { useState } from "react";
 import { assetHref } from "@/lib/routes";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useRemixOffers } from "@/hooks/use-remix-offers";
-import { ApproveMintSheet } from "@/components/portfolio/approve-mint-sheet";
+import { ApproveMintDialog } from "@/components/portfolio/approve-mint-dialog";
 import { Button } from "@medialane/ui/button";
 import { Skeleton } from "@medialane/ui/skeleton";
 import { GitBranch, Check, Clock } from "lucide-react";
@@ -151,7 +151,7 @@ export default function PortfolioLicensingPage() {
         )}
       </section>
 
-      <ApproveMintSheet
+      <ApproveMintDialog
         offer={approveOffer}
         open={approveOpen}
         onOpenChange={setApproveOpen}
