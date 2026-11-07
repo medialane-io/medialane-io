@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { JourneyContent } from "./journey-content";
+import { JourneyContent } from "@medialane/ui";
 import { canonical, buildSocialMetadata } from "@/lib/seo";
 
 const title = "Your Journey";
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 export default function JourneyPage() {
   return (
     <div className="max-w-5xl mx-auto px-5 sm:px-8">
-      <JourneyContent />
+      <JourneyContent startHint="Get started in seconds." />
     </div>
   );
 }

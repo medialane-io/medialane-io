@@ -2,7 +2,7 @@
 
 import { ImageIcon, LifeBuoy, Mail, Smartphone, User, Wallet } from "lucide-react";
 import { AccountStatus } from "@/components/settings/account-status";
-import { PortfolioSnapshot, RewardsSnapshot } from "@/components/settings/snapshots";
+import { PortfolioSnapshot, RewardsSnapshot } from "@medialane/ui";
 import { SettingsGate, SettingsGroup, SettingsPage, SettingsRow } from "@/components/settings/settings-page";
 import { useAccountEmail } from "@/hooks/use-account-email";
 import { useCollectionsByOwner, useUserOrders } from "@medialane/ui";
