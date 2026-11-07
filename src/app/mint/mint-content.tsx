@@ -3,7 +3,7 @@
 import { GenesisMint } from "@/components/airdrop/genesis-mint";
 import { MintLanding, type MintLandingCopy } from "@medialane/ui";
 
-export const MINT_COPY: MintLandingCopy = {
+const MINT_COPY: MintLandingCopy = {
   image: { src: "/genesis.jpg", alt: "Medialane Creator's Airdrop", fallback: "Medialane Airdrop 2026" },
   badge: "Creator's Fund Campaign",
   headline: { lead: "Join the", highlight: "Creator's Airdrop" },
