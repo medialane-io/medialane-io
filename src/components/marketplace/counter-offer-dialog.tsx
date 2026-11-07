@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { useUsdPrices } from "@/hooks/use-usd-prices";
+import { useUsdPrices } from "@medialane/ui/utils/use-usd-prices";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { AlertCircle, ArrowLeftRight } from "lucide-react";

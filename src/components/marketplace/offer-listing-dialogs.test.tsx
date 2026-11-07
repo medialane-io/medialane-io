@@ -16,7 +16,7 @@ await mockForThisFile("@/hooks/use-resolved-token-standard", {
 await mockForThisFile("@medialane/ui/utils/media-wallet/use-erc20-balance", {
   useTokenBalance: () => ({ rawBalance: null, decimals: 6, isLoading: false }) as never,
 });
-await mockForThisFile("@/hooks/use-usd-prices", { useUsdPrices: () => ({}) as never });
+await mockForThisFile("@medialane/ui/utils/use-usd-prices", { useUsdPrices: () => ({}) as never });
 await mockForThisFile("next/navigation", { usePathname: () => "/asset/starknet/0xc/1" });
 
 const { MedialaneAppProvider } = await import("@medialane/ui");

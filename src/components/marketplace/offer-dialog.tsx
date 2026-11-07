@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useSWRConfig } from "swr";
 import { useForm } from "react-hook-form";
@@ -8,14 +8,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { AlertCircle, AlertTriangle, HandCoins, Layers, ShieldCheck } from "lucide-react";
 import { CurrencyIcon } from "@medialane/ui/currency-icon";
-import { fireConfetti } from "@medialane/ui/utils/media-wallet/confetti";
+import { useConfetti } from "@medialane/ui/utils/use-confetti";
 import { RewardEarned, usdValueFor } from "@medialane/ui";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@medialane/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@medialane/ui/form";
 import { Input } from "@medialane/ui/input";
 import { Alert, AlertDescription } from "@medialane/ui/alert";
 import { useMarketplaceTransaction } from "@/hooks/use-marketplace-transaction";
-import { useWhenChanged } from "@/hooks/use-when-changed";
+import { useOnOpen } from "@medialane/ui/utils/use-on-open";
 import { makeOffer } from "@/lib/marketplace-intents";
 import { useResolvedTokenStandard } from "@/hooks/use-resolved-token-standard";
 import {
@@ -32,7 +32,7 @@ import { getListableTokens } from "@medialane/sdk";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useTokenBalance, hasSufficientBalance } from "@medialane/ui/utils/media-wallet/use-erc20-balance";
 import { marketplacePriceField, marketplaceCurrencyField, marketplaceDurationField } from "@/lib/marketplace-schemas";
-import { useUsdPrices } from "@/hooks/use-usd-prices";
+import { useUsdPrices } from "@medialane/ui/utils/use-usd-prices";
 
 const CURRENCIES = getListableTokens().map((t) => t.symbol);
 
@@ -114,18 +114,12 @@ export function OfferDialog({
     if (!busy && !isSuccess && !failedAfterSubmit) onOpenChange(v);
   };
 
-  useWhenChanged(open, () => {
-    if (open) { form.reset(); reset(); setPendingValues(null); }
-  });
+  useOnOpen(open, () => { form.reset(); reset(); setPendingValues(null); });
 
-  const confettiFired = useRef(false);
+  useConfetti(isSuccess);
   useEffect(() => {
-    if (isSuccess && !confettiFired.current) {
-      confettiFired.current = true;
-      fireConfetti();
-      mutate((key) => typeof key === "string" && key.includes("/v1/orders"), undefined, { revalidate: true });
-    }
-    if (!isSuccess) confettiFired.current = false;
+    if (!isSuccess) return;
+    mutate((key) => typeof key === "string" && key.includes("/v1/orders"), undefined, { revalidate: true });
   }, [isSuccess, mutate]);
 
   const name = tokenName || `Token #${tokenId}`;
