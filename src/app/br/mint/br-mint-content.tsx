@@ -1,6 +1,6 @@
 "use client";
 
-import { MintLanding, type MintLandingCopy } from "@/components/airdrop/mint-landing";
+import { MintLanding, type MintLandingCopy } from "@medialane/ui";
 import { GenesisMint } from "./genesis-mint";
 
 export const BR_MINT_COPY: MintLandingCopy = {

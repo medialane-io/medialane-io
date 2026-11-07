@@ -1,7 +1,7 @@
 "use client";
 
 import { GenesisMint } from "@/components/airdrop/genesis-mint";
-import { MintLanding, type MintLandingCopy } from "@/components/airdrop/mint-landing";
+import { MintLanding, type MintLandingCopy } from "@medialane/ui";
 
 export const MINT_COPY: MintLandingCopy = {
   image: { src: "/genesis.jpg", alt: "Medialane Creator's Airdrop", fallback: "Medialane Airdrop 2026" },
