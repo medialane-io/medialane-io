@@ -8,7 +8,6 @@ import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSession } from "@/hooks/use-session";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { lockVenueSigner } from "@/lib/wallet/venue-signer";
-import { ReportDialog } from "@/components/report-dialog";
 import { resolveImage } from "@/lib/utils";
 
 export function useAppAdapter(): MedialaneApp {
@@ -32,7 +31,6 @@ export function useAppAdapter(): MedialaneApp {
       icon: Wallet,
       origin: "https://starknet.medialane.io",
     },
-    ReportDialog,
     resolveImage,
     getSigner: () => {
       requireAccount(signer);
