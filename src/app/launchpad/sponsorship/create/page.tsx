@@ -1,7 +1,7 @@
 "use client";
 
 import { SponsorshipCreate } from "@medialane/ui";
-import { CreateSponsorshipAside } from "@/components/claim/create-sponsorship-aside";
+import { CreateSponsorshipAside } from "@medialane/ui";
 
 export default function CreateSponsorshipPage() {
   return <SponsorshipCreate aside={<CreateSponsorshipAside />} />;
