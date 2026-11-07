@@ -22,7 +22,7 @@ export interface WalletNativeSession {
   status: WalletStatus;
 }
 
-export function sessionOwner(sealed: SealedOwner | null, sessionWallet: string | null | undefined): SealedOwner | null {
+function sessionOwner(sealed: SealedOwner | null, sessionWallet: string | null | undefined): SealedOwner | null {
   if (!sealed || !sessionWallet) return null;
   return normalizeWalletAddress(sealed.address) === normalizeWalletAddress(sessionWallet) ? sealed : null;
 }

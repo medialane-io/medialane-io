@@ -3,7 +3,7 @@
 import { MintLanding, type MintLandingCopy } from "@medialane/ui";
 import { GenesisMint } from "./genesis-mint";
 
-export const BR_MINT_COPY: MintLandingCopy = {
+const BR_MINT_COPY: MintLandingCopy = {
   image: { src: "/br_launch.jpg", alt: "Medialane Airdrop de Prêmios", fallback: "Medialane Brasil 2026" },
   headline: { lead: "Participe do", highlight: "Airdrop" },
   chips: ["Grátis", "Sem cartão", "Sem CPF"],
