@@ -16,11 +16,11 @@ import { Button } from "@medialane/ui/button";
 import { Alert, AlertDescription } from "@medialane/ui/alert";
 import { useMarketplaceTransaction } from "@/hooks/use-marketplace-transaction";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useWhenChanged } from "@/hooks/use-when-changed";
+import { useOnOpen } from "@medialane/ui/utils/use-on-open";
 import { fulfillOrder } from "@/lib/marketplace-intents";
 import type { ApiOrder } from "@medialane/sdk";
 import { resolveImage } from "@/lib/utils";
-import { useUsdPrices } from "@/hooks/use-usd-prices";
+import { useUsdPrices } from "@medialane/ui/utils/use-usd-prices";
 import { useErc20Balance } from "@medialane/ui/utils/media-wallet/use-erc20-balance";
 import { getTokenBySymbol } from "@medialane/sdk";
 import { createSwapIntent } from "@/lib/wallet/swap-calls";
@@ -109,12 +109,10 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
     onOpenChange(v);
   };
 
-  useWhenChanged(open, () => {
-    if (open) {
-      reset();
-      setQuantity(1);
-      setPaymentSymbol(null);
-    }
+  useOnOpen(open, () => {
+    reset();
+    setQuantity(1);
+    setPaymentSymbol(null);
   });
 
   const processingMessage = "Confirming on Starknet…";
