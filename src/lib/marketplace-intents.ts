@@ -186,7 +186,7 @@ export function makeOffer(ctx: MarketplaceContext, input: MakeOfferInput, opts?:
 }
 
 export function fulfillOrder(ctx: MarketplaceContext, input: FulfillOrderInput, opts?: ActionOptions): Promise<MarketplaceResult> {
-  return runMarketplaceIntent(ctx, () => ctx.client.api.intents.create("fulfill", {
+  return runMarketplaceIntent(ctx, () => ctx.client.createIntent("fulfill", {
     fulfiller: ctx.signer.address,
     orderHash: input.orderHash,
     tokenStandard: toApiStandard(input.tokenStandard),
