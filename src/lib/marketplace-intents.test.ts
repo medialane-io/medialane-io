@@ -274,7 +274,7 @@ describe("transferNft", () => {
     expect(log.created).toEqual([{
       kind: "transfer-nft",
       params: { owner: ADDRESS, contractAddress: "0x1", tokenId: "1", recipient: "0x2", tokenStandard: "ERC1155" },
-      via: "api",
+      via: "client",
     }]);
     expect(log.executed).toEqual([{ calls: [FULFILL_CALL], opts: { intentIds: ["nft-intent"] } }]);
     expect(log.polls).toBe(0);
