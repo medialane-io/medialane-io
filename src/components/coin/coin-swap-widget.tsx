@@ -71,7 +71,7 @@ export function CoinSwapWidget({
   const submit = () => {
     if (!ready || !address) return;
     void action.run(async (signer) => {
-      const intent = await createSwapIntent(getMedialaneClient().api, {
+      const intent = await createSwapIntent(getMedialaneClient(), {
         sell: sellToken,
         buy: buyToken,
         amountRaw: quote!.sellAmount,

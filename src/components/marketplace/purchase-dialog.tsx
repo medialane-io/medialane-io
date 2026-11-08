@@ -74,7 +74,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
       let swap: Awaited<ReturnType<typeof createSwapIntent>> | undefined;
       if (values.paymentSymbol && order.price?.currency && walletAddress) {
         try {
-          swap = await createSwapIntent(getMedialaneClient().api, {
+          swap = await createSwapIntent(getMedialaneClient(), {
             sell: values.paymentSymbol,
             buy: order.price.currency,
             amountRaw: grossAmount.toString(),
