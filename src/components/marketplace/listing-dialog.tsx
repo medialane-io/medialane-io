@@ -122,7 +122,7 @@ export function ListingDialog({
     <div className="flex items-start justify-center gap-1.5">
       <ShieldCheck className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
       <p className="text-2xs text-center text-muted-foreground">
-        All listings are fully onchain &amp; permissionless — your asset stays in your wallet until a trade settles. Gas is sponsored by Medialane.
+        Listings are fully onchain and permissionless. Assets stay in the wallet until a trade settles.
       </p>
     </div>
   );

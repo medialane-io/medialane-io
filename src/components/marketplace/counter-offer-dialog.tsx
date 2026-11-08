@@ -235,7 +235,7 @@ export function CounterOfferDialog({
                         {hasWallet ? "Send counter-offer" : "Connect with email to counter"}
                       </Button>
                       <p className="text-2xs text-center text-muted-foreground">
-                        Your offer will be pushed onchain. Transaction sponsored by Medialane.
+                        This offer will be recorded onchain.
                       </p>
                     </form>
                   </Form>

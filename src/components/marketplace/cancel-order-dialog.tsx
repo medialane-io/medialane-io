@@ -1,9 +1,8 @@
 "use client";
 
-import { ShieldCheck } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@medialane/ui/dialog";
 import type { CancelOrderHook } from "@/hooks/use-cancel-order";
-import { MarketplaceConfirmStep, OrderSummaryHero, TransactionDialogStates, successMessages } from "@medialane/ui";
+import { CancelOrderConfirm, TransactionDialogStates, successMessages } from "@medialane/ui";
 import { resolveImage } from "@/lib/utils";
 
 interface CancelOrderDialogProps {
@@ -49,32 +48,15 @@ export function CancelOrderDialog({ hook, variant, tokenName, tokenImage }: Canc
           onDone={dismiss}
         >
           {order && (
-            <div className="space-y-0">
-              <OrderSummaryHero
-                name={resolvedName}
-                image={resolveImage(order.token?.image ?? tokenImage)}
-                subtitle={<span className="capitalize">Cancel {resolvedVariant}</span>}
-                tone="destructive"
-                price={order.price}
-              />
-              <MarketplaceConfirmStep
-                description={`Cancel this ${resolvedVariant}? This action cannot be undone.`}
-                error={error}
-                secondaryLabel="Keep it"
-                onSecondary={dismiss}
-                primaryLabel={`Cancel ${resolvedVariant}`}
-                onPrimary={confirm}
-                primaryVariant="destructive"
-                footer={(
-                  <div className="flex items-start justify-center gap-1.5">
-                    <ShieldCheck className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
-                    <p className="text-2xs text-center text-muted-foreground">
-                      Cancellation is recorded onchain — the order is permanently removed from the marketplace. Gas is sponsored by Medialane.
-                    </p>
-                  </div>
-                )}
-              />
-            </div>
+            <CancelOrderConfirm
+              variant={resolvedVariant}
+              name={resolvedName}
+              image={resolveImage(order.token?.image ?? tokenImage)}
+              price={order.price}
+              error={error}
+              onKeep={dismiss}
+              onConfirm={confirm}
+            />
           )}
         </TransactionDialogStates>
 

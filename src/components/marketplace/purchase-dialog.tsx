@@ -232,7 +232,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
                   <div className="flex items-start justify-center gap-1.5">
                     <ShieldCheck className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
                     <p className="text-2xs text-center text-muted-foreground">
-                      All purchases settle atomically onchain — your asset is transferred instantly with the payment. Gas is sponsored by Medialane.
+                      Purchases settle atomically onchain and assets transfer instantly.
                     </p>
                   </div>
                 </div>
