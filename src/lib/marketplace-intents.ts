@@ -223,7 +223,7 @@ export async function transferNft({ client, signer }: MarketplaceContext, input:
   if (!input.tokenStandard) {
     throw new UserFacingError("Token standard could not be determined. Please try again or contact support.");
   }
-  const intent = await client.api.intents.create("transfer-nft", {
+  const intent = await client.createIntent("transfer-nft", {
     owner: signer.address,
     contractAddress: input.contractAddress,
     tokenId: input.tokenId,
