@@ -10,7 +10,7 @@ import {
 
 let _client: MedialaneClient | null = null;
 
-function medialaneConfig() {
+export function medialaneConfig() {
   return {
     backendUrl: MEDIALANE_BACKEND_URL,
     apiKey: MEDIALANE_API_KEY || undefined,
@@ -19,6 +19,7 @@ function medialaneConfig() {
     collection721Contract: STARKNET_COLLECTION_721_CONTRACT,
     collection1155Contract: STARKNET_COLLECTION_1155_CONTRACT,
     chain: "STARKNET" as const,
+    feeConfig: { enabled: true },
   };
 }
 

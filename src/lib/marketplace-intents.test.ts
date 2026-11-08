@@ -239,7 +239,7 @@ describe("marketplace actions", () => {
     });
   });
 
-  test("listing, offer, cancel and counter-offer are built by the client; fulfill is created by the API", async () => {
+  test("listing, offer, cancel, counter-offer and purchases are built by the client", async () => {
     const { ctx, log } = fixture();
     const base = { assetContract: "0xc", tokenId: "7", price: "5", currencySymbol: "USDC", durationSeconds: 60 };
     await createListing(ctx, { ...base, tokenStandard: "ERC721" }, FAST);
@@ -252,7 +252,7 @@ describe("marketplace actions", () => {
       "offer:client",
       "cancel:client",
       "counter-offer:client",
-      "fulfill:api",
+      "fulfill:client",
     ]);
   });
 
