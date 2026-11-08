@@ -45,7 +45,7 @@ export function TransferDialog({
       walletAddress={address}
       canTransfer={hasWallet}
       connectLabel="Connect with email to transfer"
-      footerNote="Transfer is recorded permanently onchain. Gas is sponsored by Medialane."
+      footerNote="Transfer is recorded permanently onchain."
       tx={{ phase: tx.phase, txHash: tx.txHash, error: tx.error, retryable: tx.retryable, reset: tx.reset }}
       onTransfer={(toAddress) => {
         void tx.start((ctx) => transferNft(ctx, { contractAddress, tokenId, toAddress, tokenStandard: resolvedStandard }));

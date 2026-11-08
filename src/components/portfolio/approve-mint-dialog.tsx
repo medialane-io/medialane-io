@@ -36,7 +36,7 @@ export function ApproveMintDialog({ offer, open, onOpenChange, onSuccess }: Prop
       open={open}
       onOpenChange={onOpenChange}
       collections={eligible}
-      footerNote="Two onchain operations (mint + listing). Gas is free."
+      footerNote="Two onchain operations (mint + listing)."
       newAssetHref={newAssetHref}
       tx={{
         phase: tx.phase,
