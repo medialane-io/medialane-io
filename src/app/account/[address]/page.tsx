@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { canonical, buildSocialMetadata, buildBreadcrumbJsonLd } from "@/lib/seo";
 import { JsonLd } from "@medialane/ui/json-ld";
-import CreatorPageClient from "./creator-page-client";
+import AccountPageClient from "./account-page-client";
 
 export const revalidate = 60;
 
@@ -35,7 +35,7 @@ export default async function AccountPage({ params }: Props) {
   return (
     <>
       <JsonLd data={jsonLd} />
-      <CreatorPageClient />
+      <AccountPageClient />
     </>
   );
 }
