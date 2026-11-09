@@ -131,7 +131,7 @@ export function ListingDialog({
     <>
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="max-w-[calc(100%-6px)] sm:max-w-md p-0 overflow-hidden gap-0 rounded-2xl flex flex-col max-h-[92svh]">
-          <DialogTitle className="sr-only">List {name} for sale</DialogTitle>
+          <DialogTitle className="sr-only">Sell {name}</DialogTitle>
           <DialogDescription className="sr-only">
             Set pricing, quantity, currency, and duration to create an onchain marketplace listing.
           </DialogDescription>
@@ -151,8 +151,8 @@ export function ListingDialog({
           >
             {!hasWallet ? (
               <MarketplaceSignInGate
-                title="Secure your account to list"
-                description="You need an account to list assets for sale."
+                title="Secure your account to sell"
+                description="You need an account to sell assets."
                 href={`/connect?redirect_url=${encodeURIComponent(pathname)}`}
               />
 
@@ -293,7 +293,7 @@ export function ListingDialog({
                             {isResolving ? (
                               <><Loader2 className="h-4 w-4 animate-spin" /> Resolving asset…</>
                             ) : (
-                              <><Tag className="h-4 w-4" /> {hasWallet ? "List" : "Secure account & list"}</>
+                              <><Tag className="h-4 w-4" /> {hasWallet ? "Sell" : "Secure account & sell"}</>
                             )}
                           </button>
                         </div>

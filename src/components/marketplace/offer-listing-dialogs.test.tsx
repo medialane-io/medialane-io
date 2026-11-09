@@ -36,7 +36,7 @@ const DIALOGS: Array<{ name: string; submit: string; render: (onOpenChange: (v: 
   },
   {
     name: "ListingDialog",
-    submit: "List",
+    submit: "Sell",
     render: (onOpenChange) => <ListingDialog open onOpenChange={onOpenChange} assetContract="0xc" tokenId="1" tokenStandard="ERC721" />,
   },
 ];
