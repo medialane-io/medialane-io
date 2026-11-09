@@ -1,23 +1,10 @@
 import type { MetadataRoute } from "next";
-import { IP_TYPE_DATA, sitemapChunks, sitemapEntries } from "@medialane/ui";
+import { IP_TYPE_DATA } from "@medialane/ui";
 import { APP_URL } from "@/lib/seo";
-import { getMedialaneClient } from "@/lib/medialane-client";
 
 const BASE_URL = APP_URL;
-export const revalidate = 3600;
 
-export async function generateSitemaps() {
-  const chunks = await sitemapChunks(getMedialaneClient().api);
-  return [{ id: "pages" }, ...chunks.map(({ kind, index }) => ({ id: `${kind}-${index}` }))];
-}
-
-export default async function sitemap(props: { id: string | Promise<string> }): Promise<MetadataRoute.Sitemap> {
-  const id = await props.id;
-  if (id !== "pages") {
-    const [kind, index] = id.split("-");
-    return sitemapEntries(getMedialaneClient().api, { kind: kind as "tokens" | "collections" | "creators", index: Number(index) }, BASE_URL);
-  }
-
+export default function sitemap(): MetadataRoute.Sitemap {
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: BASE_URL, changeFrequency: "daily", priority: 1 },
     { url: `${BASE_URL}/discover`, changeFrequency: "daily", priority: 0.9 },
