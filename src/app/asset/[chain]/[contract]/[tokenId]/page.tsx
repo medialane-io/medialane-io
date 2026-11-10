@@ -66,7 +66,7 @@ export default async function AssetPage({ params }: Props) {
   return (
     <>
       <JsonLd data={jsonLd} />
-      <AssetPageClient />
+      <AssetPageClient initialToken={token} initialCollection={collection} />
     </>
   );
 }
