@@ -1,8 +1,9 @@
 "use client";
 
 import { AddressDisplay, ExportKeySection, AccountSection, useMediaWallet } from "@medialane/ui";
+import Link from "next/link";
 import { useState } from "react";
-import { ArrowUpRight, RefreshCw, Wallet } from "lucide-react";
+import { ArrowRight, ArrowUpRight, RefreshCw, Wallet } from "lucide-react";
 import { Badge } from "@medialane/ui/badge";
 import { Button } from "@medialane/ui/button";
 import { SettingsGate, SettingsPage } from "@/components/settings/settings-page";
@@ -53,8 +54,14 @@ export default function WalletSettingsPage() {
         </AccountSection>
 
         {address ? (
-          <div className="rounded-2xl border border-border/60 bg-card p-5 sm:p-6">
+          <div className="space-y-4 rounded-2xl border border-border/60 bg-card p-5 sm:p-6">
             <ExportKeySection loadSealed={loadSealedOwner} unlock={unlockOwnerKey} />
+            <Button asChild variant="outline" size="sm">
+              <Link href="/settings/recovery">
+                Recovery options
+                <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+              </Link>
+            </Button>
           </div>
         ) : null}
 
