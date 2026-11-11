@@ -2,6 +2,7 @@
 
 import {
   ActiveFilters,
+  FeaturedListings,
   FiltersButton,
   FiltersDialog,
   MarketplaceSearch,
@@ -13,6 +14,7 @@ import {
 import { getTokenBySymbol } from "@medialane/sdk";
 import { ListingsGrid } from "@/components/marketplace/listings-grid";
 import { ActivityTicker } from "@/components/shared/activity-ticker";
+import { useMarketActions } from "@/lib/use-market-actions";
 
 function PlatformStatsBar() {
   const { stats } = usePlatformStats();
@@ -29,6 +31,7 @@ function PlatformStatsBar() {
 
 export default function MarketplacePageClient() {
   const filters = useMarketplaceFilters();
+  const market = useMarketActions();
 
   return (
     <PageContainer className="box-border max-w-full pt-14 pb-8 space-y-8">
@@ -39,6 +42,9 @@ export default function MarketplacePageClient() {
       </div>
 
       <ActivityTicker limit={12} />
+
+      <FeaturedListings market={market} />
+      {market.dialogs}
 
       <div className="space-y-2">
         <div className="flex items-center gap-2 flex-wrap">

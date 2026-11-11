@@ -15,7 +15,6 @@ import { EXPLORER_URL } from "@/lib/constants";
 import { emailBannerText } from "@/lib/settings/rows";
 
 const EMAIL_BANNER = { href: "/verify", text: emailBannerText };
-const EXTERNAL_WALLET = { href: "https://starknet.medialane.io", label: "Use another wallet" };
 
 function useAccountEmail(): string | null {
   return useSession().session?.email ?? null;
@@ -47,7 +46,6 @@ export function MediaWalletApp() {
       resolveImage={resolveImage}
       explorerUrl={EXPLORER_URL}
       emailBanner={EMAIL_BANNER}
-      externalWallet={EXTERNAL_WALLET}
       useWalletSession={useWalletNativeSession}
       useWriteAction={useWalletWriteAction}
       useEmailStatus={useEmailVerificationStatus}
