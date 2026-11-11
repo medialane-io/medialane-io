@@ -113,6 +113,12 @@ test("POST /v1/auth/email/register-account is allowed", () => {
   expect(isPathAllowed("POST", "auth/email/register-account")).toBe(true);
 });
 
+test("a recovery key proves its wallet through a nonce and the recover route", () => {
+  expect(isPathAllowed("POST", "auth/siws/nonce")).toBe(true);
+  expect(isPathAllowed("POST", "users/me/wallet/recover-with-key")).toBe(true);
+  expect(isPathAllowed("GET", "users/me/wallet/recover-with-key")).toBe(false);
+});
+
 test("POST /v1/users/me/generate-wallet is allowed", () => {
   expect(isPathAllowed("POST", "users/me/generate-wallet")).toBe(true);
 });
@@ -145,7 +151,6 @@ test("drop routes", () => {
 });
 
 test("wallet sign-in is not reachable through io's gateway; io signs in by email", () => {
-  expect(isPathAllowed("POST", "auth/siws/nonce")).toBe(false);
   expect(isPathAllowed("POST", "auth/siws/verify")).toBe(false);
   expect(isPathAllowed("POST", "auth/email/verify-code")).toBe(true);
 });
