@@ -1,7 +1,7 @@
 import type { Call } from "starknet";
 import { getTokenBySymbol } from "@medialane/sdk";
 import type { MedialaneClient } from "@medialane/sdk/starknet";
-import type { SwapAmountMode, SwapToken } from "@/hooks/use-swap-quote";
+import type { SwapAmountMode, SwapToken } from "@medialane/ui";
 
 interface CreateSwapIntentParams {
   sell: SwapToken;

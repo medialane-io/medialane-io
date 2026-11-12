@@ -20,6 +20,7 @@ export function useAppAdapter(): MedialaneApp {
     walletAddress: address ?? null,
     onRequireWallet: () => router.push(`/connect?redirect_url=${encodeURIComponent(pathname)}`),
     ensureSignedIn: async () => requireSignedIn(session),
+    signedIn: !!session,
     releaseSigner: () => {
       if (signer) lockVenueSigner(signer.address);
     },
