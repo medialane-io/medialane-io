@@ -3,13 +3,12 @@
 import { useState } from "react";
 import { assetHref } from "@/lib/routes";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useRemixOffers } from "@/hooks/use-remix-offers";
 import { ApproveMintDialog } from "@/components/portfolio/approve-mint-dialog";
 import { Button } from "@medialane/ui/button";
 import { Skeleton } from "@medialane/ui/skeleton";
 import { GitBranch, Check, Clock } from "lucide-react";
 import { AddressDisplay } from "@medialane/ui/address-display";
-import { timeAgo } from "@medialane/ui";
+import { timeAgo, useRemixOffers } from "@medialane/ui";
 import type { RemixOffer } from "@/types/remix-offers";
 import Link from "next/link";
 
