@@ -1,17 +1,17 @@
 import { redirect, notFound } from "next/navigation";
 import { collectionHref } from "@/lib/routes";
-import { getMedialaneClient } from "@/lib/medialane-client";
+import { fetchCollectionBySlug } from "@/lib/api-server";
 
 interface Props {
   params: Promise<{ slug: string }>;
 }
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function CollectionSlugPage({ params }: Props) {
   const { slug } = await params;
 
-  const collection = await getMedialaneClient().api.collections.findBySlug(slug).catch(() => null);
+  const collection = await fetchCollectionBySlug(slug);
   if (!collection?.contractAddress) notFound();
 
   redirect(collectionHref("STARKNET", collection.contractAddress));
