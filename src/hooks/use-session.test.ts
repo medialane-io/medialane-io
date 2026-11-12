@@ -1,5 +1,8 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { fetchSession } from "./use-session";
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { createElement, type ReactNode } from "react";
+import { SWRConfig } from "swr";
+import { fetchSession, useSession } from "./use-session";
 
 const original = globalThis.fetch;
 afterEach(() => {
@@ -33,6 +36,22 @@ describe("fetchSession", () => {
   test("is signed out when there is no session", async () => {
     const calls = backend(null);
     expect(await fetchSession()).toBeNull();
+    expect(calls).toEqual(["GET /api/session"]);
+  });
+});
+
+describe("useSession", () => {
+  test("focus and reconnect do not ask the server again", async () => {
+    const calls = backend({ ...base, email: "ana@example.com" });
+    const wrapper = ({ children }: { children: ReactNode }) =>
+      createElement(SWRConfig, { value: { provider: () => new Map(), dedupingInterval: 0, focusThrottleInterval: 0 } }, children);
+    const { result } = renderHook(() => useSession(), { wrapper });
+    await waitFor(() => expect(result.current.session).not.toBeNull());
+    await act(async () => {
+      window.dispatchEvent(new Event("focus"));
+      window.dispatchEvent(new Event("online"));
+      await new Promise((r) => setTimeout(r, 20));
+    });
     expect(calls).toEqual(["GET /api/session"]);
   });
 });

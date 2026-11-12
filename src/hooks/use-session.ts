@@ -23,7 +23,7 @@ export async function fetchSession(): Promise<ApiSession | null> {
 export const sessionEmail = (): string | null => lastEmail;
 
 export function useSession(): { session: ApiSession | null; isLoading: boolean } {
-  const { data, isLoading } = useSWR(SESSION_KEY, fetchSession, { shouldRetryOnError: false });
+  const { data, isLoading } = useSWR(SESSION_KEY, fetchSession, { shouldRetryOnError: false, revalidateOnFocus: false, revalidateOnReconnect: false });
   return { session: data ?? null, isLoading: data === undefined && isLoading };
 }
 
