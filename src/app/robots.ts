@@ -11,7 +11,6 @@ export default function robots(): MetadataRoute.Robots {
         "/confirm-email",
         "/portfolio/",
         "/create/",
-        "/notifications",
         "/sign-in",
         "/sign-up",
         "/welcome",

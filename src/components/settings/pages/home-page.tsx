@@ -5,9 +5,8 @@ import { AccountStatus } from "@/components/settings/account-status";
 import { PortfolioSnapshot, RewardsSnapshot } from "@medialane/ui";
 import { SettingsGate, SettingsGroup, SettingsPage, SettingsRow } from "@/components/settings/settings-page";
 import { useAccountEmail } from "@/hooks/use-account-email";
-import { useCollectionsByOwner, useUserOrders } from "@medialane/ui";
+import { useCollectionsByOwner, useTokensByOwner, useUserOrders } from "@medialane/ui";
 
-import { useTokensByOwner } from "@/hooks/use-tokens";
 
 import { useSecurityStatus } from "@/hooks/use-security-status";
 import { useMyUsernameClaim } from "@/hooks/use-username-claims";

@@ -35,6 +35,9 @@ export const fetchTokenMeta = cached("token-meta", async (contract: string, toke
 export const fetchCollectionMeta = cached("collection-meta", async (contract: string) =>
   await api().collections.get(contract));
 
+export const fetchCollectionBySlug = cached("collection-by-slug", async (slug: string) =>
+  await api().collections.findBySlug(slug));
+
 export const fetchFeaturedCollections = cached("featured-collections", async (limit: number) =>
   (await api().collections.list({ page: 1, limit, sort: "recent", isFeatured: true, hideEmpty: true })).data);
 
