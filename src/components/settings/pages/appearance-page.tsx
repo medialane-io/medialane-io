@@ -1,6 +1,6 @@
 "use client";
 
-import { AssetPicker, type OwnedAsset } from "@medialane/ui";
+import { AssetPicker, useTokensByOwner, type OwnedAsset } from "@medialane/ui";
 import { useState } from "react";
 import { CheckCircle2, ImageIcon, Loader2 } from "lucide-react";
 import { Button } from "@medialane/ui/button";
@@ -9,7 +9,6 @@ import { FastMint } from "@/components/launchpad/fast-mint";
 import { ProfileLivePreview } from "@/components/settings/profile-live-preview";
 import { SettingsGate, SettingsPage, SettingsSection } from "@/components/settings/settings-page";
 import { useProfileForm } from "@/hooks/use-profile-form";
-import { useTokensByOwner } from "@/hooks/use-tokens";
 import { useMyUsernameClaim } from "@/hooks/use-username-claims";
 import { resolveImage } from "@/lib/utils";
 
