@@ -6,7 +6,7 @@ let session: object | null = { id: "s" };
 let deploy: (onStep: (step: string) => void, options: { replace?: boolean }) => Promise<unknown>;
 const calls: { replace?: boolean }[] = [];
 
-await mockForThisFile("@/hooks/use-session", { useSession: () => ({ session }) as never });
+await mockForThisFile("@medialane/ui/utils/use-session", { useSession: () => ({ session }) as never });
 await mockForThisFile<typeof import("@/lib/wallet/client")>("@/lib/wallet/client", (real) => ({
   mediaWallet: {
     ...real.mediaWallet,

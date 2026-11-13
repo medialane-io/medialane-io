@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { useUsdPrices } from "@medialane/ui/utils/use-usd-prices";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import type { z } from "zod";
 import { AlertCircle, ArrowLeftRight } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@medialane/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@medialane/ui/form";
@@ -14,13 +14,12 @@ import { Input } from "@medialane/ui/input";
 import { Textarea } from "@medialane/ui/textarea";
 import { Alert, AlertDescription } from "@medialane/ui/alert";
 import { Badge } from "@medialane/ui/badge";
-import { MarketplaceDialogHero, MarketplaceSignInGate, TransactionDialogStates, successMessages, usdValueFor } from "@medialane/ui";
+import { MarketplaceDialogHero, MarketplaceSignInGate, TransactionDialogStates, successMessages, usdValueFor, DurationPicker, counterOfferFormSchema } from "@medialane/ui";
 import { useMarketplaceTransaction } from "@/hooks/use-marketplace-transaction";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { makeCounterOffer } from "@/lib/marketplace-intents";
 import { CurrencyIcon } from "@medialane/ui/currency-icon";
 import { DURATION_OPTIONS } from "@/lib/constants";
-import { marketplacePriceField, counterOfferDurationField } from "@/lib/marketplace-schemas";
 
 function toRawWei(humanAmount: string, decimals: number): string {
   const parts = humanAmount.replace(/,/g, "").split(".");
@@ -29,13 +28,7 @@ function toRawWei(humanAmount: string, decimals: number): string {
   return (integer * BigInt(10 ** decimals) + BigInt(fraction)).toString();
 }
 
-const schema = z.object({
-  price: marketplacePriceField,
-  durationSeconds: counterOfferDurationField,
-  message: z.string().max(500).optional(),
-});
-
-type FormValues = z.infer<typeof schema>;
+type FormValues = z.infer<typeof counterOfferFormSchema>;
 
 interface CounterOfferDialogProps {
   open: boolean;
@@ -66,7 +59,7 @@ export function CounterOfferDialog({
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(counterOfferFormSchema),
     defaultValues: { price: "", durationSeconds: 604800, message: "" },
   });
 
@@ -180,21 +173,12 @@ export function CounterOfferDialog({
                           <FormItem>
                             <FormLabel>Valid for</FormLabel>
                             <FormControl>
-                              <div className="grid grid-cols-4 gap-2">
-                                {DURATION_OPTIONS.map((opt) => (
-                                  <Button
-                                    key={opt.label}
-                                    type="button"
-                                    variant={field.value === opt.seconds ? "default" : "outline"}
-                                    size="sm"
-                                    onClick={() => field.onChange(opt.seconds)}
-                                    disabled={isProcessing || opt.seconds < 3600}
-                                    className="text-xs"
-                                  >
-                                    {opt.label}
-                                  </Button>
-                                ))}
-                              </div>
+                              <DurationPicker
+                                options={DURATION_OPTIONS}
+                                value={field.value}
+                                onChange={field.onChange}
+                                disabled={isProcessing}
+                              />
                             </FormControl>
                           </FormItem>
                         )}

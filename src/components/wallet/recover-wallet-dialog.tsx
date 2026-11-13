@@ -7,7 +7,7 @@ import { Input } from "@medialane/ui/input";
 import { AddressDisplay, MarketplaceConfirmStep, MarketplaceProcessingState, describeError } from "@medialane/ui";
 import { Button } from "@medialane/ui/button";
 import { InvalidRecoveryKeyError, parseRecoveryKey, signRecoveryKeyProof } from "@medialane/sdk/starknet";
-import { useSession } from "@/hooks/use-session";
+import { useSession } from "@medialane/ui/utils/use-session";
 import { MEDIALANE_BACKEND_URL } from "@/lib/constants";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { isOwnerOf } from "@/lib/wallet/devices";

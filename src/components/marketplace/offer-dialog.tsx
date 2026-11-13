@@ -5,14 +5,11 @@ import { usePathname } from "next/navigation";
 import { useSWRConfig } from "swr";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { AlertCircle, AlertTriangle, HandCoins, Layers, ShieldCheck } from "lucide-react";
-import { CurrencyIcon } from "@medialane/ui/currency-icon";
 import { useConfetti } from "@medialane/ui/utils/use-confetti";
 import { RewardEarned, usdValueFor } from "@medialane/ui";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@medialane/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@medialane/ui/form";
-import { Input } from "@medialane/ui/input";
+import { Form } from "@medialane/ui/form";
 import { Alert, AlertDescription } from "@medialane/ui/alert";
 import { useMarketplaceTransaction } from "@/hooks/use-marketplace-transaction";
 import { useOnOpen } from "@medialane/ui/utils/use-on-open";
@@ -23,27 +20,18 @@ import {
   MarketplaceSignInGate,
   successMessages,
   MarketplaceDialogHero,
-  CurrencyPicker,
-  DurationPicker,
+  OrderFields,
+  GradientButton,
+  orderFormSchema,
+  type OrderFormValues,
 } from "@medialane/ui";
 import { DURATION_OPTIONS } from "@/lib/constants";
 import { resolveImage } from "@/lib/utils";
-import { getListableTokens } from "@medialane/sdk";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useTokenBalance, hasSufficientBalance } from "@medialane/ui/utils/media-wallet/use-erc20-balance";
-import { marketplacePriceField, marketplaceCurrencyField, marketplaceDurationField } from "@/lib/marketplace-schemas";
 import { useUsdPrices } from "@medialane/ui/utils/use-usd-prices";
 
-const CURRENCIES = getListableTokens().map((t) => t.symbol);
-
-const schema = z.object({
-  price: marketplacePriceField,
-  currency: marketplaceCurrencyField,
-  durationSeconds: marketplaceDurationField,
-  quantity: z.string().optional(),
-});
-
-type FormValues = z.infer<typeof schema>;
+type FormValues = OrderFormValues;
 
 interface OfferDialogProps {
   open: boolean;
@@ -73,14 +61,14 @@ export function OfferDialog({
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: { price: "", currency: "USDC", durationSeconds: 2592000, quantity: "1" },
+    resolver: zodResolver(orderFormSchema),
+    defaultValues: { price: "", currency: "USDC", durationSeconds: 2592000, amount: "1" },
   });
 
   const { address: walletAddress, hasWallet } = useWalletNativeSession();
   const watchedCurrency = form.watch("currency");
   const watchedPrice = form.watch("price");
-  const watchedQty = form.watch("quantity");
+  const watchedQty = form.watch("amount");
   const { rawBalance, decimals } = useTokenBalance(open ? watchedCurrency : null,
     open ? walletAddress : null
   );
@@ -104,7 +92,7 @@ export function OfferDialog({
       currencySymbol: values.currency,
       durationSeconds: values.durationSeconds,
       tokenStandard: resolvedStandard,
-      quantity: values.quantity,
+      quantity: values.amount,
     }));
   };
 
@@ -184,97 +172,12 @@ export function OfferDialog({
                   <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
 
-                      {is1155 ? (
-                        <div className="grid grid-cols-2 gap-3 items-start">
-                          <FormField
-                            control={form.control}
-                            name="quantity"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Qty</FormLabel>
-                                <FormControl>
-                                  <Input type="number" min="1" step="1" placeholder="1" disabled={busy} {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="price"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Price / edition</FormLabel>
-                                <div className="relative">
-                                  <FormControl>
-                                    <Input type="number" step="any" placeholder="0.00" className="pr-16" disabled={busy} {...field} />
-                                  </FormControl>
-                                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
-                                    <CurrencyIcon symbol={form.watch("currency")} size={13} />
-                                    <span className="text-2xs font-bold">{form.watch("currency")}</span>
-                                  </div>
-                                </div>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                      ) : (
-                        <FormField
-                          control={form.control}
-                          name="price"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Offer price</FormLabel>
-                              <div className="relative">
-                                <FormControl>
-                                  <Input type="number" step="any" placeholder="0.00" className="pr-20" disabled={busy} {...field} />
-                                </FormControl>
-                                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
-                                  <CurrencyIcon symbol={form.watch("currency")} size={14} />
-                                  <span className="text-xs font-bold">{form.watch("currency")}</span>
-                                </div>
-                              </div>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      )}
-
-                      <FormField
-                        control={form.control}
-                        name="currency"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Currency</FormLabel>
-                            <FormControl>
-                              <CurrencyPicker
-                                currencies={CURRENCIES}
-                                value={field.value}
-                                onChange={field.onChange}
-                                disabled={busy}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="durationSeconds"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Duration</FormLabel>
-                            <FormControl>
-                              <DurationPicker
-                                options={DURATION_OPTIONS}
-                                value={field.value}
-                                onChange={field.onChange}
-                                disabled={busy}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
+                      <OrderFields
+                        form={form}
+                        durationOptions={DURATION_OPTIONS}
+                        busy={busy}
+                        priceLabel={is1155 ? "Price per edition" : "Offer price"}
+                        quantity={is1155 ? {} : undefined}
                       />
 
                       {usdEquivalent && (
@@ -298,16 +201,10 @@ export function OfferDialog({
                       )}
 
                       <div className="pt-1 space-y-2">
-                        <div className={`btn-border-animated p-[1px] rounded-xl ${busy ? "pointer-events-none" : ""}`}>
-                          <button
-                            type="submit"
-                            disabled={busy}
-                            className="w-full h-11 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-transparent"
-                          >
-                            <HandCoins className="h-4 w-4" />
-                            {hasWallet ? "Submit offer" : "Secure account & offer"}
-                          </button>
-                        </div>
+                        <GradientButton type="submit" disabled={busy}>
+                          <HandCoins className="h-4 w-4" />
+                          {hasWallet ? "Submit offer" : "Secure account & offer"}
+                        </GradientButton>
                         {shieldFooter}
                       </div>
 

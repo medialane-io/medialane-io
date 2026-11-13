@@ -9,7 +9,7 @@ import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useEmailCode } from "@/hooks/use-email-code";
-import { refreshSession, useSession } from "@/hooks/use-session";
+import { refreshSession, useSession } from "@medialane/ui/utils/use-session";
 import { fireConfetti } from "@medialane/ui/utils/media-wallet/confetti";
 import { MedialaneApiError } from "@medialane/sdk";
 import { mediaWallet } from "@/lib/wallet/client";

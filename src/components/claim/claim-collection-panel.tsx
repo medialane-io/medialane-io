@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useSession } from "@/hooks/use-session";
+import { useSession } from "@medialane/ui/utils/use-session";
 import { requireSignedIn } from "@/lib/account-gate";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { Button } from "@medialane/ui/button";

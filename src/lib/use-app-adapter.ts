@@ -5,7 +5,7 @@ import { Wallet } from "lucide-react";
 import type { MedialaneApp } from "@medialane/ui";
 import { requireAccount, requireSignedIn } from "@/lib/account-gate";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useSession } from "@/hooks/use-session";
+import { useSession } from "@medialane/ui/utils/use-session";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { lockVenueSigner } from "@/lib/wallet/venue-signer";
 import { resolveImage } from "@/lib/utils";

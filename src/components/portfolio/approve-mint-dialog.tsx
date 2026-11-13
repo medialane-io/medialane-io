@@ -6,7 +6,7 @@ import { ApproveMintDialog as ApproveMintDialogView, useCollectionsByOwner } fro
 import { requireSignedIn } from "@/lib/account-gate";
 import { assetHref } from "@/lib/routes";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useSession } from "@/hooks/use-session";
+import { useSession } from "@medialane/ui/utils/use-session";
 import { useMarketplaceTransaction } from "@/hooks/use-marketplace-transaction";
 import { approveRemix } from "@/lib/remix-approval";
 import type { RemixOffer } from "@/types/remix-offers";

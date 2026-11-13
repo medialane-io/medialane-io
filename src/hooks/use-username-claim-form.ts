@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useSession } from "@/hooks/use-session";
+import { useSession } from "@medialane/ui/utils/use-session";
 import { requireSignedIn } from "@/lib/account-gate";
 import { useMyUsernameClaim, submitUsernameClaim, checkUsernameAvailability } from "@/hooks/use-username-claims";
 import type { CheckState } from "@/components/settings/types";

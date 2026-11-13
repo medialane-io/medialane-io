@@ -6,7 +6,7 @@ import { Button } from "@medialane/ui/button";
 import { Textarea } from "@medialane/ui/textarea";
 import { Loader2 } from "lucide-react";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import { useSession } from "@/hooks/use-session";
+import { useSession } from "@medialane/ui/utils/use-session";
 
 export function SupportForm({ onBack }: { onBack: () => void }) {
   const { session } = useSession();

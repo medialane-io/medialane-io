@@ -9,7 +9,7 @@ let deployedCheck: () => Promise<boolean> = async () => false;
 await mockForThisFile("@/lib/wallet/account-ops", { isDeployed: () => deployedCheck() });
 
 let sessionWallet: string | null = null;
-await mockForThisFile("@/hooks/use-session", {
+await mockForThisFile("@medialane/ui/utils/use-session", {
   useSession: () => ({ session: sessionWallet ? { walletAddress: sessionWallet } : null, isLoading: false }) as never,
 });
 

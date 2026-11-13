@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@medialan
 import { AddressDisplay, MarketplaceConfirmStep, MarketplaceProcessingState, describeError } from "@medialane/ui";
 import { Button } from "@medialane/ui/button";
 import type { DeploymentStep } from "@medialane/sdk/starknet";
-import { useSession } from "@/hooks/use-session";
+import { useSession } from "@medialane/ui/utils/use-session";
 import { mediaWallet } from "@/lib/wallet/client";
 
 const STEP_LABEL: Record<DeploymentStep, string> = {

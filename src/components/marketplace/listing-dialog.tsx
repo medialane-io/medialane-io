@@ -5,13 +5,11 @@ import { usePathname } from "next/navigation";
 import { useSWRConfig } from "swr";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { AlertCircle, Tag, Layers, ShieldCheck, Loader2 } from "lucide-react";
 import { useConfetti } from "@medialane/ui/utils/use-confetti";
 import { RewardEarned } from "@medialane/ui";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@medialane/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@medialane/ui/form";
-import { Input } from "@medialane/ui/input";
+import { Form } from "@medialane/ui/form";
 import { Alert, AlertDescription } from "@medialane/ui/alert";
 import { useMarketplaceTransaction } from "@/hooks/use-marketplace-transaction";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
@@ -23,24 +21,15 @@ import {
   MarketplaceSignInGate,
   successMessages,
   ListingAssetSummary,
-  CurrencyPicker,
-  DurationPicker,
+  OrderFields,
+  GradientButton,
+  orderFormSchema,
+  type OrderFormValues,
 } from "@medialane/ui";
 import { DURATION_OPTIONS } from "@/lib/constants";
 import { resolveImage } from "@/lib/utils";
-import { getListableTokens } from "@medialane/sdk";
-import { marketplacePriceField, marketplaceCurrencyField, marketplaceDurationField } from "@/lib/marketplace-schemas";
 
-const CURRENCIES = getListableTokens().map((t) => t.symbol);
-
-const schema = z.object({
-  price: marketplacePriceField,
-  currency: marketplaceCurrencyField,
-  durationSeconds: marketplaceDurationField,
-  amount: z.string().optional(),
-});
-
-type FormValues = z.infer<typeof schema>;
+type FormValues = OrderFormValues;
 
 interface ListingDialogProps {
   open: boolean;
@@ -75,7 +64,7 @@ export function ListingDialog({
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(orderFormSchema),
     defaultValues: { price: "", currency: "USDC", durationSeconds: 63072000, amount: "1" },
   });
 
@@ -173,70 +162,12 @@ export function ListingDialog({
                   <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 
-                      <FormField
-                        control={form.control}
-                        name="price"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{is1155 ? "Price per edition" : "Price"}</FormLabel>
-                            <FormControl>
-                              <Input type="number" step="any" placeholder="0.00" className="h-14 rounded-xl text-2xl font-semibold tabular-nums md:text-2xl placeholder:text-muted-foreground/40" disabled={busy} {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="currency"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Currency</FormLabel>
-                            <FormControl>
-                              <CurrencyPicker currencies={CURRENCIES} value={field.value} onChange={field.onChange} disabled={busy} />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-
-                      {is1155 && (
-                        <FormField
-                          control={form.control}
-                          name="amount"
-                          render={({ field }) => (
-                            <FormItem>
-                              <div className="flex items-center justify-between">
-                                <FormLabel>Quantity</FormLabel>
-                                {quantityOwned != null && (
-                                  <span className="text-xs text-muted-foreground">You own {quantityOwned}</span>
-                                )}
-                              </div>
-                              <FormControl>
-                                <Input type="number" min="1" step="1" placeholder="1" disabled={busy} {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      )}
-
-                      <FormField
-                        control={form.control}
-                        name="durationSeconds"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Duration</FormLabel>
-                            <FormControl>
-                              <DurationPicker
-                                options={DURATION_OPTIONS}
-                                value={field.value}
-                                onChange={field.onChange}
-                                disabled={busy}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
+                      <OrderFields
+                        form={form}
+                        durationOptions={DURATION_OPTIONS}
+                        busy={busy}
+                        priceLabel={is1155 ? "Price per edition" : "Price"}
+                        quantity={is1155 ? { owned: quantityOwned } : undefined}
                       />
 
                       {error && (
@@ -247,19 +178,13 @@ export function ListingDialog({
                       )}
 
                       <div className="pt-1 space-y-2">
-                        <div className={`btn-border-animated p-[1px] rounded-xl ${(busy || isResolving) ? "pointer-events-none" : ""}`}>
-                          <button
-                            type="submit"
-                            className="w-full h-11 rounded-[11px] flex items-center justify-center gap-2 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-transparent"
-                            disabled={busy || isResolving}
-                          >
-                            {isResolving ? (
-                              <><Loader2 className="h-4 w-4 animate-spin" /> Resolving asset…</>
-                            ) : (
-                              <><Tag className="h-4 w-4" /> {hasWallet ? "Sell" : "Secure account & sell"}</>
-                            )}
-                          </button>
-                        </div>
+                        <GradientButton type="submit" disabled={busy || isResolving}>
+                          {isResolving ? (
+                            <><Loader2 className="h-4 w-4 animate-spin" /> Resolving asset…</>
+                          ) : (
+                            <><Tag className="h-4 w-4" /> {hasWallet ? "Sell" : "Secure account & sell"}</>
+                          )}
+                        </GradientButton>
                         {shieldFooter}
                       </div>
 

@@ -4,7 +4,7 @@ import useSWR from "swr";
 import type { GatedContent, GatedContentState } from "@medialane/ui";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useSession } from "@/hooks/use-session";
+import { useSession } from "@medialane/ui/utils/use-session";
 import { requireSignedIn } from "@/lib/account-gate";
 
 
