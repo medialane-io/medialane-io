@@ -8,7 +8,7 @@ import { useEmailVerificationStatus } from "@/hooks/use-email-verification-requi
 
 import { useMyUsernameClaim } from "@/hooks/use-username-claims";
 
-import { useSession } from "@/hooks/use-session";
+import { useSession } from "@medialane/ui/utils/use-session";
 import { mediaWallet } from "@/lib/wallet/client";
 import { resolveImage } from "@/lib/utils";
 import { EXPLORER_URL } from "@/lib/constants";

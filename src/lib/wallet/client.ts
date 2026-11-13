@@ -2,7 +2,7 @@
 
 import { createAppWallet } from "@medialane/ui";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import { sessionEmail } from "@/hooks/use-session";
+import { sessionEmail } from "@medialane/ui/utils/use-session";
 
 const CANONICAL_RP_ID = "www.medialane.io";
 

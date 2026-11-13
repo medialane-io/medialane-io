@@ -46,7 +46,7 @@ await mockForThisFile("@medialane/ui/utils/media-wallet/confetti", { fireConfett
 let nativeSession: { hasWallet: boolean; isDeployed: boolean | null; status: string } = { hasWallet: false, isDeployed: null, status: "none" };
 await mockForThisFile("@/hooks/use-wallet-native-session", { useWalletNativeSession: () => nativeSession as never });
 let session: { email: string; walletAddress: string | null } | null = null;
-await mockForThisFile("@/hooks/use-session", {
+await mockForThisFile("@medialane/ui/utils/use-session", {
   useSession: () => ({ session, isLoading: false }) as never,
   refreshSession: async () => undefined as never,
 });

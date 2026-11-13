@@ -71,3 +71,10 @@ test("a backend failure is reported as a failure, not as signed out", async () =
   const res = await GET(withCookie());
   expect(res.status).toBe(502);
 });
+
+test("a session without an email is a visitor and keeps the cookie", async () => {
+  backend = () => Response.json({ accountId: "acc_1", publicId: "p1", walletAddress: null, email: null, emailDeadline: null });
+  const res = await GET(withCookie());
+  expect(await res.json()).toBeNull();
+  expect(res.headers.get("set-cookie")).toBeNull();
+});

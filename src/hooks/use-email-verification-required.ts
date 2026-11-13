@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession } from "./use-session";
+import { useSession } from "@medialane/ui/utils/use-session";
 
 export interface EmailVerificationStatus {
   email: string | null;

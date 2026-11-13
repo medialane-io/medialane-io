@@ -8,7 +8,7 @@ import { isDeployed as checkIsDeployed } from "@/lib/wallet/account-ops";
 import { starknetVenueSigner } from "@/lib/wallet/venue-signer";
 import { checkWalletStep, WALLET_STEP_KEY } from "@/lib/wallet/wallet-step";
 import { keyNotUsable, walletStatus, type WalletStatus } from "@/lib/wallet/wallet-status";
-import { useSession } from "@/hooks/use-session";
+import { useSession } from "@medialane/ui/utils/use-session";
 import type { SealedOwner } from "@/lib/wallet/passkey";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 

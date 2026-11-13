@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { FastMint as SharedFastMint, type FastMintProps as SharedFastMintProps, type FastMintSigner, useCollectionsByOwner, useMedialaneClient } from "@medialane/ui";
 
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { useSession } from "@/hooks/use-session";
+import { useSession } from "@medialane/ui/utils/use-session";
 
 import { RewardEarned } from "@medialane/ui";
 import { invalidatePortfolioCache } from "@medialane/ui";

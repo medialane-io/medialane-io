@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@medialane/ui/card";
 import { ShieldCheck } from "lucide-react";
 import { OnboardingFlow } from "@/components/connect/onboarding-flow";
-import { useSession } from "@/hooks/use-session";
+import { useSession } from "@medialane/ui/utils/use-session";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { connectHref } from "@/lib/connect-href";
 import { safeRelativePath } from "@/lib/safe-redirect";

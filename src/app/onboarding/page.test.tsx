@@ -15,7 +15,7 @@ await mockForThisFile("next/navigation", {
 await mockForThisFile("@/hooks/use-wallet-native-session", {
   useWalletNativeSession: () => ({ hasWallet: hasKey, isDeployed: null }) as never,
 });
-await mockForThisFile("@/hooks/use-session", { useSession: () => ({ session: account, isLoading: loading }) as never });
+await mockForThisFile("@medialane/ui/utils/use-session", { useSession: () => ({ session: account, isLoading: loading }) as never });
 
 const { default: OnboardingPage } = await import("./page");
 

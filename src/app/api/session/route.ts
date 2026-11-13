@@ -7,6 +7,7 @@ const handler = createAppSessionHandler({
   backendUrl: process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL ?? "http://localhost:3001",
   apiKey: process.env.MEDIALANE_API_KEY,
   appSecret: process.env.MEDIALANE_APP_SECRET,
+  requireEmail: true,
 });
 
 export const GET = (req: Request) => handler.GET(req);

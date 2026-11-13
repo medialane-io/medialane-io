@@ -1,6 +1,6 @@
 "use client";
 
-import { UserFacingError, OrderSummaryHero, TransactionDialogStates, successMessages, usdValueFor } from "@medialane/ui";
+import { UserFacingError, OrderSummaryHero, TransactionDialogStates, successMessages, usdValueFor, GradientButton } from "@medialane/ui";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -217,16 +217,10 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
                       Close
                     </Button>
                   ) : (
-                    <div className={`btn-border-animated p-[1px] rounded-xl ${!canBuy ? "opacity-50 pointer-events-none" : ""}`}>
-                      <button
-                        className="w-full h-12 rounded-[11px] flex items-center justify-center gap-2 text-base font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98] bg-transparent"
-                        onClick={handleBuyClick}
-                        disabled={!canBuy}
-                      >
-                        {error ? <RefreshCw className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
-                        {error ? "Try again" : needsSwap && !paymentSymbol ? "Select a token to pay with" : "Buy now"}
-                      </button>
-                    </div>
+                    <GradientButton onClick={handleBuyClick} disabled={!canBuy}>
+                      {error ? <RefreshCw className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
+                      {error ? "Try again" : needsSwap && !paymentSymbol ? "Select a token to pay with" : "Buy now"}
+                    </GradientButton>
                   )}
 
                   <div className="flex items-start justify-center gap-1.5">

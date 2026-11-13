@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import { useSession, refreshSession } from "@/hooks/use-session";
+import { useSession, refreshSession } from "@medialane/ui/utils/use-session";
 import { getMedialaneClient } from "@/lib/medialane-client";
 
 interface AccountEmail {

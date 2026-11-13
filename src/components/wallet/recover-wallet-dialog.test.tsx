@@ -10,7 +10,7 @@ let owns = true;
 const events: string[] = [];
 let recoverCall: (proof: unknown) => Promise<unknown>;
 
-await mockForThisFile("@/hooks/use-session", { useSession: () => ({ session }) as never });
+await mockForThisFile("@medialane/ui/utils/use-session", { useSession: () => ({ session }) as never });
 await mockForThisFile<typeof import("@/lib/wallet/passkey")>("@/lib/wallet/passkey", () => ({
   sealImportedOwnerKey: async () => {
     events.push("sealed");

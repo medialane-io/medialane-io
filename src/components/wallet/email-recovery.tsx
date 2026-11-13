@@ -7,7 +7,7 @@ import { Button } from "@medialane/ui/button";
 import type { WalletRecovery } from "@medialane/sdk";
 import { computeOwnerGuid, finishSessionRecovery, startSessionRecovery } from "@medialane/sdk/starknet";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import { useSession } from "@/hooks/use-session";
+import { useSession } from "@medialane/ui/utils/use-session";
 import { ownerStore } from "@/lib/wallet/client";
 import { createOwnerKey } from "@/lib/wallet/passkey";
 import { saveSealedOwner, notifyWalletChange } from "@/lib/wallet/store";
