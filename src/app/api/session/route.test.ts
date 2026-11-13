@@ -49,14 +49,21 @@ test("a valid session returns the account, asked with the app's key and the sess
   expect(calls[0]!.headers.get("x-app-id")).toBe("MEDIALANE_IO");
 });
 
-test("an expired or inactive session is signed out and the cookie is cleared", async () => {
-  for (const status of [401, 403]) {
-    backend = () => Response.json({ error: "x" }, { status });
+test("an ended or inactive session is signed out and the cookie is cleared", async () => {
+  for (const [status, code] of [[401, "sign_in_required"], [403, "account_inactive"]] as const) {
+    backend = () => Response.json({ error: "x", code }, { status });
     const res = await GET(withCookie());
     expect(res.status).toBe(200);
     expect(await res.json()).toBeNull();
     expect(res.headers.get("set-cookie")).toContain("ml_account_session=;");
   }
+});
+
+test("a refusal that is not about the session keeps the cookie", async () => {
+  backend = () => Response.json({ error: "Invalid or revoked API key" }, { status: 401 });
+  const res = await GET(withCookie());
+  expect(res.status).toBe(502);
+  expect(res.headers.get("set-cookie")).toBeNull();
 });
 
 test("a backend failure is reported as a failure, not as signed out", async () => {

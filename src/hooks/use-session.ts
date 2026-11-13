@@ -12,7 +12,6 @@ export async function fetchSession(): Promise<ApiSession | null> {
   if (!res.ok) throw new Error("Session check failed");
   const session = (await res.json()) as ApiSession | null;
   if (session && !session.email) {
-    await fetch(SESSION_KEY, { method: "DELETE" });
     lastEmail = null;
     return null;
   }

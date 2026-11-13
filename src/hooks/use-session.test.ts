@@ -27,10 +27,10 @@ describe("fetchSession", () => {
     expect(calls).toEqual(["GET /api/session"]);
   });
 
-  test("treats a session without an email as signed out and clears it", async () => {
+  test("treats a session without an email as signed out and keeps the cookie", async () => {
     const calls = backend({ ...base, email: null });
     expect(await fetchSession()).toBeNull();
-    expect(calls).toEqual(["GET /api/session", "DELETE /api/session"]);
+    expect(calls).toEqual(["GET /api/session"]);
   });
 
   test("is signed out when there is no session", async () => {
