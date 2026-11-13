@@ -7,7 +7,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { AlertCircle, Tag, Layers, ShieldCheck, Loader2 } from "lucide-react";
-import { CurrencyIcon } from "@medialane/ui/currency-icon";
 import { useConfetti } from "@medialane/ui/utils/use-confetti";
 import { RewardEarned } from "@medialane/ui";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@medialane/ui/dialog";
@@ -23,8 +22,8 @@ import {
   TransactionDialogStates,
   MarketplaceSignInGate,
   successMessages,
-  MarketplaceDialogHero,
-  CurrencyPicker,
+  ListingAssetSummary,
+  PriceCurrencyInput,
   DurationPicker,
 } from "@medialane/ui";
 import { DURATION_OPTIONS } from "@/lib/constants";
@@ -77,7 +76,7 @@ export function ListingDialog({
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { price: "", currency: "USDC", durationSeconds: 2592000, amount: "1" },
+    defaultValues: { price: "", currency: "USDC", durationSeconds: 63072000, amount: "1" },
   });
 
   const onSubmit = (values: FormValues) => {
@@ -122,7 +121,7 @@ export function ListingDialog({
     <div className="flex items-start justify-center gap-1.5">
       <ShieldCheck className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
       <p className="text-2xs text-center text-muted-foreground">
-        Listings are fully onchain and permissionless. Assets stay in the wallet until a trade settles.
+        Listings are fully onchain and permissionless. Assets stay in the wallet until it settles.
       </p>
     </div>
   );
@@ -158,105 +157,62 @@ export function ListingDialog({
 
             ) : (
               <>
-                <MarketplaceDialogHero
-                  tokenImage={tokenImage}
-                  tokenName={tokenName}
-                  tokenId={tokenId}
-                  fallbackIcon={<Tag className="h-12 w-12 text-brand-blue/30" />}
+                <ListingAssetSummary
+                  name={name}
+                  image={tokenImage}
+                  fallbackIcon={<Tag className="h-6 w-6 text-brand-blue/40" />}
                   badge={is1155 ? (
-                    <span className="absolute top-3 left-3 inline-flex items-center gap-1 text-2xs font-semibold px-2.5 py-1 rounded-full border border-brand-purple/40 bg-brand-purple/20 text-brand-purple backdrop-blur-sm">
+                    <span className="inline-flex items-center gap-1 text-2xs font-semibold px-2 py-0.5 rounded-full border border-brand-purple/40 bg-brand-purple/15 text-brand-purple">
                       <Layers className="h-3 w-3" />
                       Multi-edition
                     </span>
                   ) : undefined}
                 />
-                <div className="flex items-center justify-between px-5 pt-3 pb-0">
-                  <p className="font-bold text-base leading-tight truncate">{name}</p>
-                </div>
 
-                <div className="px-5 pb-4 pt-2 space-y-3">
+                <div className="px-5 pb-5 pt-4 overflow-y-auto">
                   <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 
-                      {is1155 ? (
-                        <div className="grid grid-cols-2 gap-3 items-start">
-                          <FormField
-                            control={form.control}
-                            name="amount"
-                            render={({ field }) => (
-                              <FormItem>
-                                <div className="flex items-center justify-between">
-                                  <FormLabel>Qty</FormLabel>
-                                  {quantityOwned != null && (
-                                    <span className="text-xs text-muted-foreground">You own {quantityOwned}</span>
-                                  )}
-                                </div>
-                                <FormControl>
-                                  <Input type="number" min="1" step="1" placeholder="1" disabled={busy} {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="price"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Price / edition</FormLabel>
-                                <div className="relative">
-                                  <FormControl>
-                                    <Input type="number" step="any" placeholder="0.00" className="pr-16" disabled={busy} {...field} />
-                                  </FormControl>
-                                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
-                                    <CurrencyIcon symbol={form.watch("currency")} size={13} />
-                                    <span className="text-2xs font-bold">{form.watch("currency")}</span>
-                                  </div>
-                                </div>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                      ) : (
+                      <FormField
+                        control={form.control}
+                        name="price"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{is1155 ? "Price per edition" : "Price"}</FormLabel>
+                            <FormControl>
+                              <PriceCurrencyInput
+                                {...field}
+                                currency={form.watch("currency")}
+                                currencies={CURRENCIES}
+                                onCurrencyChange={(c) => form.setValue("currency", c, { shouldDirty: true })}
+                                disabled={busy}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      {is1155 && (
                         <FormField
                           control={form.control}
-                          name="price"
+                          name="amount"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Price</FormLabel>
-                              <div className="relative">
-                                <FormControl>
-                                  <Input type="number" step="any" placeholder="0.00" className="pr-20" disabled={busy} {...field} />
-                                </FormControl>
-                                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
-                                  <CurrencyIcon symbol={form.watch("currency")} size={14} />
-                                  <span className="text-xs font-bold">{form.watch("currency")}</span>
-                                </div>
+                              <div className="flex items-center justify-between">
+                                <FormLabel>Quantity</FormLabel>
+                                {quantityOwned != null && (
+                                  <span className="text-xs text-muted-foreground">You own {quantityOwned}</span>
+                                )}
                               </div>
+                              <FormControl>
+                                <Input type="number" min="1" step="1" placeholder="1" disabled={busy} {...field} />
+                              </FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
                         />
                       )}
-
-                      <FormField
-                        control={form.control}
-                        name="currency"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Currency</FormLabel>
-                            <FormControl>
-                              <CurrencyPicker
-                                currencies={CURRENCIES}
-                                value={field.value}
-                                onChange={field.onChange}
-                                disabled={busy}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
 
                       <FormField
                         control={form.control}
