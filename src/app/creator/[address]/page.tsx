@@ -74,7 +74,7 @@ export default async function CreatorPage({ params }: Props) {
       },
     },
     buildBreadcrumbJsonLd([
-      { name: "Creators", path: "/creators" },
+      { name: "Accounts", path: "/creators" },
       { name, path },
     ]),
   ];
