@@ -22,7 +22,7 @@ const STEP_LABEL: Record<Step, string> = {
 };
 
 const WARNING =
-  "This permanently replaces the active wallet on this account. This cannot be undone, make sure to transfer your assets before replace the wallet.";
+  "This replaces the active wallet on this account. Assets in the current wallet can be moved first.";
 
 interface RecoverWalletDialogProps {
   open: boolean;

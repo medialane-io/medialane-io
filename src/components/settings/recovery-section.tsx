@@ -63,7 +63,7 @@ export function RecoverySection() {
       iconColor="text-emerald-600 dark:text-emerald-400"
       iconBg="bg-emerald-500/10"
       title="Recovery by email"
-      description="Get your wallet back on a new browser with just your email."
+      description="Recovery by email gives this wallet a guardian: a backup key kept by the service and unique to this wallet. With the guardian in place, signing in with the account email on a new browser brings the wallet back, so it stays available on any browser."
     >
       {status.state !== "none" && (
         <Alert variant="destructive">
@@ -73,7 +73,7 @@ export function RecoverySection() {
             {status.state === "ready"
               ? "It can finish at any time."
               : `It can finish on ${new Date((status.readyAt ?? 0) * 1000).toLocaleString()}.`}{" "}
-            If this wasn&apos;t you, cancel it now.
+            Recovery can be stopped with the button below.
             <Button onClick={cancel} disabled={busy !== null} variant="destructive" size="sm" className="mt-2 w-full">
               {busy === "cancel" && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
               Cancel recovery
@@ -84,7 +84,7 @@ export function RecoverySection() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
           {status.enabled
-            ? "Recovery is on. If you lose this browser, sign in with your email on a new one to get your wallet back."
+            ? "Recovery by email is active."
             : "Recovery is off."}
         </p>
         {status.enabled ? (

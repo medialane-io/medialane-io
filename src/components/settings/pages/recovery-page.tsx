@@ -19,7 +19,7 @@ export default function RecoverySettingsPage() {
       <SettingsGate>
         <SettingsPage
           title="Recovery"
-          subtitle="How to get back in if you lose every device."
+          subtitle="Ways to restore this wallet on a new browser or device."
           icon={<LifeBuoy className="h-4 w-4 text-white" />}
         >
           {address ? (
@@ -28,7 +28,7 @@ export default function RecoverySettingsPage() {
               iconColor="text-violet-600 dark:text-violet-400"
               iconBg="bg-violet-500/10"
               title="Your wallet key"
-              description="Keep a copy so you can open this wallet on any browser."
+              description="Save a copy to backup and secure this wallet"
             >
               <ExportKeySection
                 loadSealed={loadSealedOwner}
