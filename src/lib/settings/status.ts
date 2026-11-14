@@ -32,6 +32,9 @@ function headline(input: StatusInput): StatusHeadline | null {
     return { tone: "warn", text: `Confirm your email${when} to keep your account`, href: "/settings/email" };
   }
   if (!walletDeployed) return { tone: "muted", text: "Your wallet is still setting up" };
+  if (input.guardians === 0) {
+    return { tone: "warn", text: "Turn on recovery so you can always get your account back", href: "/settings/recovery" };
+  }
   return { tone: "ok", text: "Everything is working" };
 }
 
