@@ -82,7 +82,7 @@ export function NewBrowserWallet({
       <div className="w-full space-y-4">
         <p className="text-sm text-muted-foreground">Finish your account setup and secure this device</p>
         <EmailRecovery status={status} onStatus={setStatus} onRecovered={onRecovered} />
-        <OptionButton title="Contact support" description="Questions about this account." onClick={() => setView("support")} />
+        <OptionButton title="Contact support" description="General help." onClick={() => setView("support")} />
         {anotherEmail}
       </div>
     );
@@ -138,7 +138,7 @@ export function NewBrowserWallet({
           onClick={() => setView("new-wallet")}
         />
         {anotherEmail}
-        <OptionButton title="Contact support" description="Questions about this account." onClick={() => setView("support")} />
+        <OptionButton title="Contact support" description="General help." onClick={() => setView("support")} />
       </div>
     </div>
   );
