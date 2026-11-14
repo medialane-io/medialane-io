@@ -29,7 +29,7 @@ afterEach(cleanup);
 describe("the replace wallet dialog", () => {
   test("states what replacing does and starts nothing until it is confirmed", () => {
     const { getAllByText } = render(<ReplaceWalletDialog open onOpenChange={() => {}} />);
-    expect(getAllByText(/permanently replaces the active wallet/).length).toBeGreaterThan(0);
+    expect(getAllByText(/replaces the active wallet/).length).toBeGreaterThan(0);
     expect(calls).toEqual([]);
   });
 

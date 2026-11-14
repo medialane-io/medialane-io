@@ -76,7 +76,7 @@ export default function WalletSettingsPage() {
             iconColor="text-destructive"
             iconBg="bg-destructive/10"
             title="Generate New Wallet"
-            description="This permanently replaces the active wallet on this account. This cannot be undone, make sure to transfer your assets before replace the wallet."
+            description="This replaces the active wallet on this account. Assets in the current wallet can be moved first."
           >
             <Button onClick={() => setReplaceOpen(true)} variant="destructive" size="sm">
               Generate a new wallet

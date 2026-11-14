@@ -35,7 +35,7 @@ function show(onOpenChange: (v: boolean) => void = () => {}) {
 async function confirmTransfer(to: string) {
   fireEvent.change(screen.getByPlaceholderText("0x…"), { target: { value: to } });
   await act(async () => { fireEvent.click(screen.getByRole("button", { name: /^Transfer$/ })); });
-  await screen.findByText("Transfer this asset? This action cannot be undone.");
+  await screen.findByText("Transfer this asset?");
   await act(async () => { fireEvent.click(screen.getByRole("button", { name: /^Transfer$/ })); });
   await waitFor(() => expect(fake.started).toBe(1));
 }
@@ -72,7 +72,7 @@ describe("TransferDialog", () => {
     show();
     await confirmTransfer("0x123");
     await screen.findByText("Passkey prompt closed");
-    expect(screen.queryByText("Transfer this asset? This action cannot be undone.") !== null).toBe(true);
+    expect(screen.queryByText("Transfer this asset?") !== null).toBe(true);
   });
 
   test("close is ignored while busy", async () => {

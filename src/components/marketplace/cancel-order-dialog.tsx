@@ -32,7 +32,7 @@ export function CancelOrderDialog({ hook, variant, tokenName, tokenImage }: Canc
       <DialogContent className="max-w-[calc(100%-6px)] sm:max-w-md p-0 overflow-hidden gap-0 rounded-2xl">
         <DialogTitle className="sr-only">Cancel {resolvedVariant} for {resolvedName}</DialogTitle>
         <DialogDescription className="sr-only">
-          Enter your PIN to cancel this {resolvedVariant}. This action cannot be undone.
+          Enter the PIN to cancel this {resolvedVariant}.
         </DialogDescription>
 
         <TransactionDialogStates
