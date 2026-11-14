@@ -46,7 +46,7 @@ export function SupportForm({ onBack }: { onBack: () => void }) {
   return (
     <div className="w-full space-y-4">
       <div className="space-y-1">
-        <p className="text-sm font-medium">Write to our team</p>
+        <p className="text-sm font-medium">Contact support</p>
         <p className="text-sm text-muted-foreground">
           We&apos;ll reply to <span className="text-foreground">{email}</span>.
         </p>
