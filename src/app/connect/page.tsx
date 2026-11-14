@@ -33,7 +33,7 @@ function ConnectContent() {
                 <ShieldCheck className="h-6 w-6 text-primary" />
               </div>
             </div>
-            <CardTitle>{restoring ? "Open your account on this device" : "Connect with your email"}</CardTitle>
+            <CardTitle>{restoring ? "Open this account on this device" : "Connect with your email"}</CardTitle>
           </CardHeader>
           <CardContent>
             <OnboardingFlow

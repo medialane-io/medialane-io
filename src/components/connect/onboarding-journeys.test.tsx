@@ -3,9 +3,9 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { MedialaneApiError } from "@medialane/sdk";
 import { mockForThisFile } from "../../../test/mock-for-this-file";
 
-const RECOVERY_KEY_OPTION = "I have my recovery key";
-const NO_KEY_OPTION = "I can't find my recovery key";
-const NEW_WALLET_LINK = "Start a new wallet instead";
+const RECOVERY_KEY_OPTION = "Use the recovery key";
+const SUPPORT_OPTION = "Contact support";
+const NEW_WALLET_LINK = "Start a new wallet";
 const WALLET = "0x01575d29b83d7828cd1d833ef785083b809adeb187b6ac14aab21db568f2bf02";
 
 const api = { account: { emailExists: mock(async (_email: string) => false), registerEmailAccount: mock(async (_email: string) => ({})), requestEmailCode: mock(async (_email: string) => ({})), verifyEmailCode: mock(async (_email: string, _code: string) => ({})), upsertMyWallet: mock(async (..._args: unknown[]) => ({})), sessionWallet: (...args: unknown[]) => getSessionWallet(...args), walletRecovery: (...args: unknown[]) => getRecovery(...args), startWalletRecovery: (...args: unknown[]) => startRecovery(...args), completeWalletRecovery: (...args: unknown[]) => completeRecovery(...args), contactSupport: mock(async (_params: { message?: string }) => undefined) } };
@@ -220,7 +220,7 @@ describe("an address that already has an account", () => {
     await enterEmail("new-browser@example.com");
     await enterCode();
     await waitFor(() => screen.getByRole("button", { name: RECOVERY_KEY_OPTION }));
-    expect(screen.getByRole("button", { name: NO_KEY_OPTION })).toBeTruthy();
+    expect(screen.getByRole("button", { name: SUPPORT_OPTION })).toBeTruthy();
     expect(screen.getByRole("button", { name: NEW_WALLET_LINK })).toBeTruthy();
     expect(screen.queryByPlaceholderText("medialane-recovery:v1:…")).toBeNull();
     expect(done).toEqual([]);
@@ -292,7 +292,7 @@ describe("an address that already has an account", () => {
   test("the new wallet confirmation offers support first, and sending a note reaches support", async () => {
     session = { email: "new-browser@example.com", walletAddress: WALLET };
     await reachNewWalletConfirm();
-    fireEvent.click(await waitFor(() => screen.getByRole("button", { name: "Write to our team" })));
+    fireEvent.click(await waitFor(() => screen.getByRole("button", { name: "Contact support" })));
     fireEvent.change(await waitFor(() => screen.getByLabelText(/What happened/)), { target: { value: "I lost my key" } });
     fireEvent.click(screen.getByRole("button", { name: "Send" }));
     await waitFor(() => screen.getByText(/we've got your message/));
@@ -307,7 +307,7 @@ describe("an address that already has an account", () => {
     getSessionWallet.mockImplementation(async () => ({ walletAddress: WALLET, needsKeySetup: false }));
     await enterEmail("new-browser@example.com");
     await enterCode();
-    fireEvent.click(await waitFor(() => screen.getByRole("button", { name: NO_KEY_OPTION })));
+    fireEvent.click(await waitFor(() => screen.getByRole("button", { name: SUPPORT_OPTION })));
     fireEvent.click(await waitFor(() => screen.getByRole("button", { name: "Send" })));
     await waitFor(() => screen.getByText(/we've got your message/));
     expect(api.account.contactSupport).toHaveBeenCalledWith({ message: undefined });
@@ -322,7 +322,7 @@ describe("an address that already has an account", () => {
     getSessionWallet.mockImplementation(async () => ({ walletAddress: WALLET, needsKeySetup: false }));
     await enterEmail("new-browser@example.com");
     await enterCode();
-    fireEvent.click(await waitFor(() => screen.getByRole("button", { name: NO_KEY_OPTION })));
+    fireEvent.click(await waitFor(() => screen.getByRole("button", { name: SUPPORT_OPTION })));
     fireEvent.change(await waitFor(() => screen.getByLabelText(/What happened/)), { target: { value: "help" } });
     fireEvent.click(screen.getByRole("button", { name: "Send" }));
     await waitFor(() => expect(document.body.textContent).toContain("with support"));
@@ -441,12 +441,12 @@ describe("recovering by email on a new browser", () => {
   test("a wallet that has not turned recovery on offers a recovery key or a new wallet", async () => {
     await reachRecoveryStep();
     await waitFor(() => screen.getByRole("button", { name: RECOVERY_KEY_OPTION }));
-    expect(screen.getByRole("button", { name: NO_KEY_OPTION })).toBeTruthy();
+    expect(screen.getByRole("button", { name: SUPPORT_OPTION })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Recover with my email" })).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: RECOVERY_KEY_OPTION }));
     await waitFor(() => screen.getByPlaceholderText("medialane-recovery:v1:…"));
     fireEvent.click(screen.getByRole("button", { name: "Back" }));
-    await waitFor(() => screen.getByRole("button", { name: NO_KEY_OPTION }));
+    await waitFor(() => screen.getByRole("button", { name: SUPPORT_OPTION }));
   });
 
   test("a wallet that has turned recovery on leads with recovery by email and no key field", async () => {
