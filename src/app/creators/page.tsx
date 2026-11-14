@@ -1,17 +1,17 @@
 import type { Metadata } from "next";
-import { CreatorsPage as CreatorsPageClient } from "@medialane/ui";
+import { AccountsPage as AccountsPageClient } from "@medialane/ui";
 import { canonical, buildSocialMetadata } from "@/lib/seo";
 
-const title = "Creators";
-const description = "Meet the creators building on Medialane — discover artists, musicians, photographers, and developers minting IP onchain.";
+const title = "Accounts";
+const description = "Browse onchain accounts on Medialane: every address with collections or assets.";
 
 export const metadata: Metadata = {
   title,
   description,
   alternates: canonical("/creators"),
-  ...buildSocialMetadata({ title, description, imageAlt: "Medialane Creators" }),
+  ...buildSocialMetadata({ title, description, imageAlt: "Medialane Accounts" }),
 };
 
-export default function CreatorsPage() {
-  return <CreatorsPageClient />;
+export default function AccountsPage() {
+  return <AccountsPageClient />;
 }
