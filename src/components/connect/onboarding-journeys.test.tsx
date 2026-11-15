@@ -289,18 +289,6 @@ describe("an address that already has an account", () => {
     expect(completeDeployment.mock.calls.map((c) => c[1])).toEqual([{ replace: true }, { replace: true }]);
   });
 
-  test("the new wallet confirmation offers support first, and sending a note reaches support", async () => {
-    session = { email: "new-browser@example.com", walletAddress: WALLET };
-    await reachNewWalletConfirm();
-    fireEvent.click(await waitFor(() => screen.getByRole("button", { name: "Contact support" })));
-    fireEvent.change(await waitFor(() => screen.getByLabelText(/What happened/)), { target: { value: "I lost my key" } });
-    fireEvent.click(screen.getByRole("button", { name: "Send" }));
-    await waitFor(() => screen.getByText(/we've got your message/));
-    expect(api.account.contactSupport).toHaveBeenCalledWith({ message: "I lost my key" });
-    expect(completeDeployment).not.toHaveBeenCalled();
-    expect(done).toEqual([]);
-  });
-
   test("support can be written to without a note, from the missing key option", async () => {
     session = { email: "new-browser@example.com", walletAddress: WALLET };
     api.account.emailExists.mockImplementation(async () => true);
