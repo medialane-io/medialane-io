@@ -109,9 +109,6 @@ export function NewBrowserWallet({
             automatically.
           </p>
         </div>
-        <Button className={OPTION_CLASS} onClick={() => setView("support")}>
-          Contact support
-        </Button>
         <Button variant="outline" className={OPTION_CLASS} onClick={onStartNew}>
           Start a new wallet
         </Button>
