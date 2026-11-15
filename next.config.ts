@@ -49,6 +49,7 @@ const nextConfig: NextConfig = {
       { source: "/privacy",        destination: "https://docs.medialane.io/guidelines/privacy",        permanent: true },
       { source: "/campaign-terms", destination: "https://docs.medialane.io/guidelines/campaign-terms", permanent: true },
       { source: "/portfolio/remix-offers", destination: "/portfolio/licensing", permanent: true },
+      { source: "/creators", destination: "/accounts", permanent: true },
       { source: "/launchpad/memecoin", destination: "/claim/memecoin", permanent: true },
       { source: "/asset/:contract(0x[0-9a-fA-F]+)/:tokenId", destination: "/asset/starknet/:contract/:tokenId", permanent: true },
       { source: "/collections/:contract(0x[0-9a-fA-F]+)",    destination: "/collections/starknet/:contract",    permanent: true },

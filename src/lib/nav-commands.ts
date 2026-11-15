@@ -10,7 +10,7 @@ export const NAV_COMMANDS = navGroups([
   {
     heading: "Navigate",
     items: [
-      "collections", "coins", "creators", "activities", "rewards", "airdrop",
+      "collections", "coins", "accounts", "activities", "rewards", "airdrop",
       { id: "claims", label: "Claims", icon: FolderInput, href: "/claim", keywords: ["username", "reserve", "import", "collection name", "memecoin"] },
       "settings",
     ],
