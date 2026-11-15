@@ -28,7 +28,7 @@ export default async function AccountPage({ params }: Props) {
   const short = `${address.slice(0, 8)}…${address.slice(-6)}`;
 
   const jsonLd = buildBreadcrumbJsonLd([
-    { name: "Accounts", path: "/creators" },
+    { name: "Accounts", path: "/accounts" },
     { name: short, path: `/account/${address}` },
   ]);
 

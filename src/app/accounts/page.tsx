@@ -8,7 +8,7 @@ const description = "Browse onchain accounts on Medialane: every address with co
 export const metadata: Metadata = {
   title,
   description,
-  alternates: canonical("/creators"),
+  alternates: canonical("/accounts"),
   ...buildSocialMetadata({ title, description, imageAlt: "Medialane Accounts" }),
 };
 
