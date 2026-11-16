@@ -17,7 +17,8 @@ export const AIRDROP_CLAIM: ServiceDefinition = {
 };
 
 export function claimDefinitions(all: readonly ServiceDefinition[]): ServiceDefinition[] {
-  const shared = SHARED_CLAIM_KEYS.map((key) => all.find((d) => d.key === key)).filter((d): d is ServiceDefinition => d !== undefined);
+  const shared = SHARED_CLAIM_KEYS.map((key) => all.find((d) => d.key === key)).filter((d): d is ServiceDefinition => d !== undefined)
+    .map((d) => ({ ...d, group: "claims" as const }));
   return [AIRDROP_CLAIM, ...shared];
 }
 
