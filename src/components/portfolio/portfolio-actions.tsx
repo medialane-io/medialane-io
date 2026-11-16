@@ -17,7 +17,7 @@ import { CounterOfferDialog } from "@/components/marketplace/counter-offer-dialo
 import { ListingDialog } from "@/components/marketplace/listing-dialog";
 import { TransferDialog } from "@/components/marketplace/transfer-dialog";
 import { EXPLORER_URL, SUPPORTED_TOKENS } from "@/lib/constants";
-import { formatDisplayPrice } from "@medialane/ui";
+import { ArchiveAssetDialog, formatDisplayPrice } from "@medialane/ui";
 import { resolveImage } from "@/lib/utils";
 
 type Context = { refresh: () => void };
@@ -190,6 +190,7 @@ export function useAssetActions({ refresh }: Context): PortfolioAssetActions {
   const [listOpen, setListOpen] = useState(false);
   const [transferToken, setTransferToken] = useState<ApiToken | null>(null);
   const [transferOpen, setTransferOpen] = useState(false);
+  const [archiveToken, setArchiveToken] = useState<ApiToken | null>(null);
   const [cancelToken, setCancelToken] = useState<ApiToken | null>(null);
   const cancelListing = useCancelOrder({ onSuccess: refresh });
   const handleSuccess = refresh;
@@ -197,6 +198,7 @@ export function useAssetActions({ refresh }: Context): PortfolioAssetActions {
   return {
     list: (token) => { setSelectedToken(token); setListOpen(true); },
     transfer: (token) => { setTransferToken(token); setTransferOpen(true); },
+    archive: setArchiveToken,
     cancel: (token) => {
       const listing = token.activeOrders?.[0];
       if (!listing) return;
@@ -249,6 +251,18 @@ export function useAssetActions({ refresh }: Context): PortfolioAssetActions {
                 ? "ERC1155"
                 : undefined
             }
+            onSuccess={handleSuccess}
+          />
+        )}
+        {archiveToken && (
+          <ArchiveAssetDialog
+            open
+            onOpenChange={(open) => { if (!open) setArchiveToken(null); }}
+            contractAddress={archiveToken.contractAddress}
+            tokenId={archiveToken.tokenId}
+            tokenName={archiveToken.metadata?.name ?? undefined}
+            tokenImage={archiveToken.metadata?.image ?? null}
+            hasActiveListing={!!archiveToken.activeOrders?.[0]}
             onSuccess={handleSuccess}
           />
         )}
