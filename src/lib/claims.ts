@@ -1,7 +1,7 @@
 import { Gift } from "lucide-react";
-import type { ServiceDefinition, ServiceOverrides } from "@medialane/ui";
+import { COLLECTION_NAME_CLAIM, type ServiceDefinition, type ServiceOverrides } from "@medialane/ui";
 
-export const SHARED_CLAIM_KEYS = ["claim-username", "claim-collection", "claim-collection-name", "claim-memecoin"] as const;
+export const SHARED_CLAIM_KEYS = ["claim-username", "claim-collection", "claim-memecoin"] as const;
 
 export const AIRDROP_CLAIM: ServiceDefinition = {
   key: "claim-airdrop",
@@ -19,7 +19,7 @@ export const AIRDROP_CLAIM: ServiceDefinition = {
 export function claimDefinitions(all: readonly ServiceDefinition[]): ServiceDefinition[] {
   const shared = SHARED_CLAIM_KEYS.map((key) => all.find((d) => d.key === key)).filter((d): d is ServiceDefinition => d !== undefined)
     .map((d) => ({ ...d, group: "claims" as const }));
-  return [AIRDROP_CLAIM, ...shared];
+  return [AIRDROP_CLAIM, ...shared.slice(0, 2), COLLECTION_NAME_CLAIM, ...shared.slice(2)];
 }
 
 export function claimOverrides(base: ServiceOverrides): ServiceOverrides {
