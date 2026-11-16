@@ -7,7 +7,6 @@ import { FastMint as SharedFastMint, type FastMintProps as SharedFastMintProps, 
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSession } from "@medialane/ui/utils/use-session";
 
-import { RewardEarned } from "@medialane/ui";
 import { invalidatePortfolioCache } from "@medialane/ui";
 
 export interface FastMintProps {
@@ -31,11 +30,9 @@ export function FastMint({ presentation = "inline", open = true, onClose, mediaK
 
   return (
     <SharedFastMint
-      successFooter={<RewardEarned actionType="mint_asset" />}
       presentation={presentation}
       open={open}
       onClose={onClose}
-      onNavigate={(href) => router.push(href)}
       mediaKindLock={mediaKindLock}
       onMinted={(asset) => {
         if (walletAddress) invalidatePortfolioCache(walletAddress);
