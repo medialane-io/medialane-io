@@ -35,6 +35,7 @@ export function FastMint({ presentation = "inline", open = true, onClose, mediaK
       presentation={presentation}
       open={open}
       onClose={onClose}
+      onNavigate={(href) => router.push(href)}
       mediaKindLock={mediaKindLock}
       onMinted={(asset) => {
         if (walletAddress) invalidatePortfolioCache(walletAddress);
