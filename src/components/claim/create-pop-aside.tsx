@@ -5,7 +5,7 @@ export function CreatePopAside() {
   return (
     <ClaimRail
       included={[
-        { icon: Award, title: "A badge people can claim", desc: "Give everyone who showed up a collectible proof." },
+        { icon: Award, title: "An immutable certificate", desc: "A digital asset certificate for authenticity." },
         { icon: Ticket, title: "Theirs to keep", desc: "It stays in their account — a real record they were there." },
         { icon: LayoutGrid, title: "A branded event page", desc: "Your event, with a shareable claim link." },
       ]}
