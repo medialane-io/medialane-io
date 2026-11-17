@@ -16,15 +16,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { resolveImage } from "@/lib/utils";
 
-function StandaloneShell({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <main className="flex-1">{children}</main>
-    </div>
-  );
-}
-
-function MainShell({ children }: { children: React.ReactNode }) {
+export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const suppressAmbient =
     pathname.startsWith("/asset/") ||
@@ -57,10 +49,4 @@ function MainShell({ children }: { children: React.ReactNode }) {
       </div>
     </>
   );
-}
-
-export function AppShell({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  if (pathname === "/mint") return <StandaloneShell>{children}</StandaloneShell>;
-  return <MainShell>{children}</MainShell>;
 }

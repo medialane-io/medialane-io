@@ -110,8 +110,6 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
     setPaymentSymbol(null);
   });
 
-  const processingMessage = "Confirming on Starknet…";
-
   return (
     <MarketplaceDialog
       open={open}
@@ -122,7 +120,6 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
       <TransactionDialogStates
         phase={phase}
         asset={{ name: assetName, image: assetImage }}
-        statusMessage={processingMessage}
         txHash={txHash}
         error={error}
         success={successMessages.purchased({ name: order.token?.name ?? "the asset", quantity: is1155 ? quantity : 1 })}

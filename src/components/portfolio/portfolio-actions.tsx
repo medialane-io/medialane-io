@@ -125,7 +125,7 @@ export function useCounterOfferActions({ refresh }: Context): PortfolioOrderActi
               <div className="flex flex-col items-center gap-4 p-6 pt-3">
                 <Loader2 className="h-7 w-7 animate-spin text-primary" />
                 <div className="text-center space-y-1">
-                  <p className="font-semibold">Confirming on Starknet…</p>
+                  <p className="font-semibold">Confirming onchain…</p>
                   <p className="text-xs text-muted-foreground">
                     Keep this window open until it finishes.
                   </p>
